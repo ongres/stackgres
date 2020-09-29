@@ -27,12 +27,14 @@ import javax.ws.rs.BadRequestException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapKeySelector;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.config.WebApiProperty;
@@ -53,8 +55,6 @@ import io.stackgres.apiweb.dto.cluster.ClusterScriptFrom;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
 import io.stackgres.apiweb.dto.cluster.PodScheduling;
-import io.stackgres.apiweb.dto.cluster.ConfigMapKeySelectorDto;
-import io.stackgres.apiweb.dto.cluster.SecretKeySelectorDto;
 import io.stackgres.apiweb.resource.ClusterDtoFinder;
 import io.stackgres.apiweb.resource.ClusterDtoScanner;
 import io.stackgres.apiweb.resource.ClusterStatsDtoFinder;
@@ -84,6 +84,8 @@ import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.PersistentVolumeClaimFinder;
 import io.stackgres.common.resource.PodExecutor;
 import io.stackgres.common.resource.PodFinder;
+import io.stackgres.common.resource.ResourceFinder;
+import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.eclipse.microprofile.context.ManagedExecutor;
@@ -125,8 +127,16 @@ class ClusterResourceTest
   @Mock
   private ResourceTransactionHandler<Secret> secretTransactionHandler;
 
+  @Mock
+  private ResourceFinder<ConfigMap> configMapFinder;
+
+  @Mock
+  private ResourceFinder<Secret> secretFinder;
+
   private ExecutorService executorService;
 
+  private Secret secret;
+  private ConfigMap configMap;
   private PodList podList;
   private List<ClusterLogEntryDto> logList;
   private StackGresCluster clusterWithoutDistributedLogs;
@@ -134,6 +144,22 @@ class ClusterResourceTest
   @BeforeEach
   void setUp() {
     super.setUp();
+    secret = new SecretBuilder()
+        .withNewMetadata()
+        .withNamespace(getResourceNamespace())
+        .withName("script")
+        .endMetadata()
+        .withData(ImmutableMap.of(
+            "script", ResourceUtil.encodeSecret("CREATE USER test WITH PASSWORD 'test'")))
+        .build();
+    configMap = new ConfigMapBuilder()
+        .withNewMetadata()
+        .withNamespace(getResourceNamespace())
+        .withName("script")
+        .endMetadata()
+        .withData(ImmutableMap.of(
+            "script", "CREATE DATABASE test WITH OWNER test"))
+        .build();
     podList = JsonUtil.readFromJson("stackgres_cluster/pods.json", PodList.class);
     logList = new ArrayList<>();
     clusterWithoutDistributedLogs = JsonUtil.readFromJson(
@@ -154,9 +180,7 @@ class ClusterResourceTest
   @Test
   @Override
   void listShouldReturnAllDtos() {
-    when(configContext.get(WebApiProperty.GRAFANA_EMBEDDED))
-        .thenReturn(Optional.of("true"));
-    when(podFinder.findResourcesWithLabels(any())).thenReturn(podList.getItems());
+    clusterMocks();
     super.listShouldReturnAllDtos();
   }
 
@@ -214,7 +238,7 @@ class ClusterResourceTest
     assertEquals(dto.getMetadata().getNamespace(), createdSecret.getMetadata().getNamespace());
 
     final ClusterScriptFrom scriptFrom = entry.getScriptFrom();
-    final SecretKeySelectorDto secretKeyRef = scriptFrom.getSecretKeyRef();
+    final SecretKeySelector secretKeyRef = scriptFrom.getSecretKeyRef();
 
     assertEquals(secretKeyRef.getName(), createdSecret.getMetadata().getName());
     assertTrue(createdSecret.getData().containsKey(secretKeyRef.getKey()));
@@ -247,7 +271,7 @@ class ClusterResourceTest
     assertEquals(dto.getMetadata().getNamespace(), createdSecret.getMetadata().getNamespace());
 
     final ClusterScriptFrom scriptFrom = entry.getScriptFrom();
-    final SecretKeySelectorDto secretKeyRef = scriptFrom.getSecretKeyRef();
+    final SecretKeySelector secretKeyRef = scriptFrom.getSecretKeyRef();
 
     assertEquals(secretKeyRef.getName(), createdSecret.getMetadata().getName());
     assertTrue(createdSecret.getData().containsKey(secretKeyRef.getKey()));
@@ -278,7 +302,7 @@ class ClusterResourceTest
     assertEquals(dto.getMetadata().getNamespace(), createdSecret.getMetadata().getNamespace());
 
     final ClusterScriptFrom scriptFrom = entry.getScriptFrom();
-    final ConfigMapKeySelectorDto configMapKeyRef = scriptFrom.getConfigMapKeyRef();
+    final ConfigMapKeySelector configMapKeyRef = scriptFrom.getConfigMapKeyRef();
     assertEquals(configMapKeyRef.getName(), createdSecret.getMetadata().getName());
     assertTrue(createdSecret.getData().containsKey(configMapKeyRef.getKey()));
     assertEquals(scriptFrom.getConfigMapScript(), createdSecret.getData().get(configMapKeyRef.getKey()));
@@ -293,7 +317,7 @@ class ClusterResourceTest
     entry.setScriptFrom(scriptFrom);
     scriptFrom.setSecretScript("CREATE DATABASE test");
 
-    final SecretKeySelectorDto secretKeyRef = new SecretKeySelectorDto();
+    final SecretKeySelector secretKeyRef = new SecretKeySelector();
     scriptFrom.setSecretKeyRef(secretKeyRef);
 
     final String randomKey = StringUtils.getRandomString();
@@ -313,7 +337,7 @@ class ClusterResourceTest
     entry.setScriptFrom(scriptFrom);
     scriptFrom.setConfigMapScript("CREATE DATABASE test");
 
-    final ConfigMapKeySelectorDto configMapKeyRef = new ConfigMapKeySelectorDto();
+    final ConfigMapKeySelector configMapKeyRef = new ConfigMapKeySelector();
     scriptFrom.setConfigMapKeyRef(configMapKeyRef);
 
     final String randomKey = StringUtils.getRandomString();
@@ -327,6 +351,9 @@ class ClusterResourceTest
   private void clusterMocks() {
     when(configContext.get(WebApiProperty.GRAFANA_EMBEDDED))
         .thenReturn(Optional.of("true"));
+    when(secretFinder.findByNameAndNamespace(anyString(), anyString())).thenReturn(Optional.of(secret));
+    when(configMapFinder.findByNameAndNamespace(anyString(), anyString())).thenReturn(Optional.of(configMap));
+    when(podFinder.findResourcesWithLabels(any())).thenReturn(podList.getItems());
     when(podFinder.findResourcesInNamespaceWithLabels(anyString(), any()))
         .thenReturn(podList.getItems());
     when(persistentVolumeClaimFinder.findByNameAndNamespace(anyString(), anyString()))
@@ -431,7 +458,8 @@ class ClusterResourceTest
         dtoScanner,
         dtoFinder,
         statsDtoFinder,
-        distributedLogsFetcher, secretTransactionHandler, configMapTransactionHandler);
+        distributedLogsFetcher, secretTransactionHandler, configMapTransactionHandler,
+        secretFinder, configMapFinder);
   }
 
   @Override
@@ -549,6 +577,9 @@ class ClusterResourceTest
                         dtoScriptFrom.getSecretKeyRef().getKey());
                     assertEquals(resourceScriptFrom.getSecretKeyRef().getName(),
                         dtoScriptFrom.getSecretKeyRef().getName());
+                    assertEquals(ResourceUtil.decodeSecret(secret.getData().get(
+                        resourceScriptFrom.getSecretKeyRef().getKey())),
+                        dtoScriptFrom.getSecretScript());
                   } else {
                     assertNull(dtoScriptFrom.getSecretKeyRef());
                   }
@@ -558,6 +589,9 @@ class ClusterResourceTest
                         dtoScriptFrom.getConfigMapKeyRef().getKey());
                     assertEquals(resourceScriptFrom.getConfigMapKeyRef().getName(),
                         dtoScriptFrom.getConfigMapKeyRef().getName());
+                    assertEquals(configMap.getData().get(
+                        resourceScriptFrom.getConfigMapKeyRef().getKey()),
+                        dtoScriptFrom.getConfigMapScript());
                   } else {
                     assertNull(dtoScriptFrom.getConfigMapKeyRef());
                   }
@@ -705,7 +739,7 @@ class ClusterResourceTest
                 final StackGresClusterScriptFrom resourceScriptFrom = resourceEntry.getScriptFrom();
                 if (dtoScriptFrom != null) {
                   assertNotNull(resourceScriptFrom);
-                  final SecretKeySelectorDto dtoSecretKeyRef = dtoScriptFrom.getSecretKeyRef();
+                  final SecretKeySelector dtoSecretKeyRef = dtoScriptFrom.getSecretKeyRef();
                   final SecretKeySelector resourceSecretKeyRef = resourceScriptFrom.getSecretKeyRef();
                   if (dtoSecretKeyRef != null) {
                     assertNotNull(resourceSecretKeyRef);
@@ -715,7 +749,7 @@ class ClusterResourceTest
                     assertNull(resourceSecretKeyRef);
                   }
                   final ConfigMapKeySelector resourceConfigMapKeyRef = resourceScriptFrom.getConfigMapKeyRef();
-                  final ConfigMapKeySelectorDto dtoConfigMapKeyRef = dtoScriptFrom.getConfigMapKeyRef();
+                  final ConfigMapKeySelector dtoConfigMapKeyRef = dtoScriptFrom.getConfigMapKeyRef();
                   if (dtoConfigMapKeyRef != null) {
                     assertNotNull(resourceConfigMapKeyRef);
                     assertEquals(dtoConfigMapKeyRef.getName(), resourceConfigMapKeyRef.getName());

@@ -4892,3 +4892,63 @@ tr.details td:last-of-type .configurationDetails table {
     word-wrap: break-word;
     padding-right: 15px;
 }
+
+/* Secret Toggle */
+.toggleSecret {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 30px;
+    height: 30px;
+    border-top: 1px solid #f0f0f1;
+    border-left: 1px solid #f0f0f1;
+    border-top-left-radius: 10px;
+    cursor: pointer;
+}
+
+.toggleSecret svg {
+    width: 18px;
+    height: 18px;
+    position: absolute;
+    top: 6px;
+    left: 6px;
+}
+
+.toggleSecret svg path {
+    fill: var(--gray2);
+}
+
+.toggleSecret.show svg path {
+    fill: var(--blue)
+}
+
+.blur {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+    -webkit-filter: blur(5px);
+    -moz-filter: blur(5px);
+    -o-filter: blur(5px);
+    -ms-filter: blur(5px);
+    filter: blur(5px);
+    padding: 5px;
+}
+
+.blur.show {
+    -webkit-touch-callout: initial; /* iOS Safari */
+    -webkit-user-select: initial; /* Safari */
+     -khtml-user-select: initial; /* Konqueror HTML */
+       -moz-user-select: initial; /* Old versions of Firefox */
+        -ms-user-select: initial; /* Internet Explorer/Edge */
+            user-select: initial; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+    -webkit-filter: blur(0);
+    -moz-filter: blur(0);
+    -o-filter: blur(0);
+    -ms-filter: blur(0);
+    filter: blur(0);
+}

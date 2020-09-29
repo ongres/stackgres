@@ -15,6 +15,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
+import io.fabric8.kubernetes.api.model.ConfigMapKeySelector;
+import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
@@ -26,13 +28,13 @@ public class ClusterScriptFrom {
   private String secretScript;
 
   @Valid
-  private SecretKeySelectorDto secretKeyRef;
+  private SecretKeySelector secretKeyRef;
 
   @NotEmpty
   private String configMapScript;
 
   @Valid
-  private ConfigMapKeySelectorDto configMapKeyRef;
+  private ConfigMapKeySelector configMapKeyRef;
 
   @JsonIgnore
   @AssertTrue(message = "secretKeyRef and configMapKeyRef are mutually exclusive and one of them is"
@@ -60,11 +62,11 @@ public class ClusterScriptFrom {
     this.secretScript = secretScript;
   }
 
-  public SecretKeySelectorDto getSecretKeyRef() {
+  public SecretKeySelector getSecretKeyRef() {
     return secretKeyRef;
   }
 
-  public void setSecretKeyRef(SecretKeySelectorDto secretKeyRef) {
+  public void setSecretKeyRef(SecretKeySelector secretKeyRef) {
     this.secretKeyRef = secretKeyRef;
   }
 
@@ -76,11 +78,11 @@ public class ClusterScriptFrom {
     this.configMapScript = configMapScript;
   }
 
-  public ConfigMapKeySelectorDto getConfigMapKeyRef() {
+  public ConfigMapKeySelector getConfigMapKeyRef() {
     return configMapKeyRef;
   }
 
-  public void setConfigMapKeyRef(ConfigMapKeySelectorDto configMapKeyRef) {
+  public void setConfigMapKeyRef(ConfigMapKeySelector configMapKeyRef) {
     this.configMapKeyRef = configMapKeyRef;
   }
 
