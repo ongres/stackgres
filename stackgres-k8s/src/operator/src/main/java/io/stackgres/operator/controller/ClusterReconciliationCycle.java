@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.controller;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,7 @@ import javax.inject.Inject;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
@@ -33,6 +35,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.storages.AwsCredentials;
@@ -51,6 +54,7 @@ import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.cluster.factory.Cluster;
+import io.stackgres.operator.cluster.factory.ClusterStatefulSet;
 import io.stackgres.operator.common.ImmutableStackGresUserClusterContext;
 import io.stackgres.operator.common.ImmutableStackGresUserGeneratorContext;
 import io.stackgres.operator.common.Prometheus;
@@ -243,7 +247,20 @@ public class ClusterReconciliationCycle
         .ownerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(cluster)))
         .restoreContext(getRestoreContext(cluster))
         .prometheus(getPrometheus(cluster))
+        .internalScripts(ImmutableList.of(getPostgresExporterInitScript()))
         .build();
+  }
+
+  private StackGresClusterScriptEntry getPostgresExporterInitScript() {
+    final StackGresClusterScriptEntry script = new StackGresClusterScriptEntry();
+    script.setName("prometheus-postgres-exporter-init");
+    script.setDatabase("postgres");
+    script.setScript(Unchecked.supplier(() -> Resources
+          .asCharSource(ClusterStatefulSet.class.getResource(
+              "/prometheus-postgres-exporter/init.sql"),
+              StandardCharsets.UTF_8)
+          .read()).get());
+    return script;
   }
 
   private Optional<StackGresProfile> getProfile(StackGresCluster cluster) {

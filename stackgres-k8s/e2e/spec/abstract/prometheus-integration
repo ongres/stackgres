@@ -25,12 +25,23 @@ check_exporter_service_monitor() {
     return 1
   fi
 
-  if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl \
-    curl "http://$(prometheus_service).$(prometheus_namespace):9090/api/v1/query?query=pg_settings_shared_buffers_bytes"
+  if wait_until eval "[ \"\$(kubectl exec -i -n '$CLUSTER_NAMESPACE' curl \
+    -- curl -s -f 'http://$(prometheus_service).$(prometheus_namespace):9090/api/v1/query?query=pg_settings_shared_buffers_bytes' \
+    | jq -r '.data.result | length')\" -gt 0 ]"
   then
-    echo "Exporter metrics was found on prometheus"
+    echo "Exporter metric pg_settings_shared_buffers_bytes was found on prometheus"
   else
-    echo "Exporter metrics wasn't found on prometheus"
+    echo "Exporter metric pg_settings_shared_buffers_bytes wasn't found on prometheus"
+    return 1
+  fi
+
+  if wait_until eval "[ \"\$(kubectl exec -i -n '$CLUSTER_NAMESPACE' curl \
+    -- curl -s -f 'http://$(prometheus_service).$(prometheus_namespace):9090/api/v1/query?query=pg_stat_activity_count' \
+    | jq -r '.data.result | length')\" -gt 0 ]"
+  then
+    echo "Exporter metric pg_stat_activity_count was found on prometheus"
+  else
+    echo "Exporter metric pg_stat_activity_count wasn't found on prometheus"
     return 1
   fi
 }
