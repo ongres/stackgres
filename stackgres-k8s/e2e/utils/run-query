@@ -3,7 +3,7 @@
 run_query() {
   local NAME="${CLUSTER_NAME}"
   local NAMESPACE="${CLUSTER_NAMESPACE}"
-  local QUERY="'SELECT 1'"
+  local QUERY='SELECT 1'
   local PORT=5432
   local HOST=127.0.0.1
   local DATABASE=postgres
