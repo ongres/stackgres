@@ -46,10 +46,10 @@ cache:
 
 stages:
   - build
+  - check-release
   - native build
   - image build
   - test
-  - check-release
   - deploy
 
 include:
