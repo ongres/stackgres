@@ -412,7 +412,7 @@ var Backups = Vue.component("Backups", {
 										<td :colspan="(isCluster) ? 3 : 4">
 											<table>
 												<thead>
-													<th>Backup Configuration</th>
+													<th>Storage Details</th>
 												</thead>
 												<tbody>
 													<tr>

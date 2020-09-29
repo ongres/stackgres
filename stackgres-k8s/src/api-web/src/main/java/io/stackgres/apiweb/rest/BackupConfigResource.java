@@ -21,8 +21,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.quarkus.security.Authenticated;
-import io.stackgres.apiweb.dto.SecretKeySelector;
 import io.stackgres.apiweb.dto.backupconfig.BackupConfigDto;
 import io.stackgres.apiweb.transformer.DependencyResourceTransformer;
 import io.stackgres.common.ArcUtil;
@@ -143,7 +143,7 @@ public class BackupConfigResource extends
     final String name = util.secretName(resource);
     util.extractSecretInfo(resource)
         .filter(t -> t.v2.v1 != null)
-        .forEach(t -> t.v2.v4.accept(SecretKeySelector.create(name, t.v1)));
+        .forEach(t -> t.v2.v4.accept(new SecretKeySelector(t.v1, name, false)));
   }
 
   private void createOrUpdateSecret(BackupConfigDto resource) {
