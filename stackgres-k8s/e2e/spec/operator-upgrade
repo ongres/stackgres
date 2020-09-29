@@ -58,13 +58,13 @@ check_operator_upgrade() {
   POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
     | grep '/operator:')"
-  if [ "$POD_OPERATOR_IMAGE" = "$PREVIOUS_OPERATOR_IMAGE" ]
+  if [ "$POD_OPERATOR_IMAGE" = "$STACKGRES_PREVIOUS_OPERATOR_IMAGE" ]
   then
     echo "SUCCESS. Operator pod is using the previous operator image"
   else
     echo "FAILURE. Operator pod is not using the previous operator image"
     echo
-    echo "Previous operator image is $PREVIOUS_OPERATOR_IMAGE"
+    echo "Previous operator image is $STACKGRES_PREVIOUS_OPERATOR_IMAGE"
     echo
     echo "Used operator image is $POD_OPERATOR_IMAGE"
     return 1
@@ -73,13 +73,13 @@ check_operator_upgrade() {
   POD_RESTAPI_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-restapi \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
     | grep '/restapi:')"
-  if [ "$POD_RESTAPI_IMAGE" = "$PREVIOUS_RESTAPI_IMAGE" ]
+  if [ "$POD_RESTAPI_IMAGE" = "$STACKGRES_PREVIOUS_RESTAPI_IMAGE" ]
   then
     echo "SUCCESS. Operator pod is using the previous restapi image"
   else
     echo "FAILURE. Operator pod is not using the previous restapi image"
     echo
-    echo "Previous restapi image is $PREVIOUS_RESTAPI_IMAGE"
+    echo "Previous restapi image is $STACKGRES_PREVIOUS_RESTAPI_IMAGE"
     echo
     echo "Used restapi image is $POD_RESTAPI_IMAGE"
     return 1
@@ -90,13 +90,13 @@ check_operator_upgrade() {
   POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
     | grep '/operator:')"
-  if [ "$POD_OPERATOR_IMAGE" = "$OPERATOR_IMAGE" ]
+  if [ "$POD_OPERATOR_IMAGE" = "$STACKGRES_OPERATOR_IMAGE" ]
   then
     echo "SUCCESS. Operator pod is using the new operator image"
   else
     echo "FAILURE. Operator pod is not using the new operator image"
     echo
-    echo "New operator image is $OPERATOR_IMAGE"
+    echo "New operator image is $STACKGRES_OPERATOR_IMAGE"
     echo
     echo "Used operator image is $POD_OPERATOR_IMAGE"
     return 1
@@ -104,13 +104,13 @@ check_operator_upgrade() {
   POD_RESTAPI_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-restapi \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
     | grep '/restapi:')"
-  if [ "$POD_RESTAPI_IMAGE" = "$RESTAPI_IMAGE" ]
+  if [ "$POD_RESTAPI_IMAGE" = "$STACKGRES_RESTAPI_IMAGE" ]
   then
     echo "SUCCESS. Operator pod is using the new restapi image"
   else
     echo "FAILURE. Operator pod is not using the new restapi image"
     echo
-    echo "New restapi image is $RESTAPI_IMAGE"
+    echo "New restapi image is $STACKGRES_RESTAPI_IMAGE"
     echo
     echo "Used restapi image is $POD_RESTAPI_IMAGE"
     return 1

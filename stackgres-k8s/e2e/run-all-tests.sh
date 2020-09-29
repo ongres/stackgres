@@ -62,14 +62,21 @@ $SPECS
 
 echo "Preparing environment"
 
+echo "StackGres version used is $STACKGRES_VERSION"
+echo "* StackGres operator image used is $STACKGRES_OPERATOR_IMAGE"
+echo "* StackGres restapi image used is $STACKGRES_RESTAPI_IMAGE"
+echo "* StackGres admin-ui image used is $STACKGRES_ADMINUI_IMAGE"
+echo "Previous StackGres version used is $STACKGRES_PREVIOUS_VERSION"
+echo "* Previous StackGres operator image used is $STACKGRES_PREVIOUS_OPERATOR_IMAGE"
+echo "* Previous StackGres restapi image used is $STACKGRES_PREVIOUS_RESTAPI_IMAGE"
+echo "* Previous StackGres admin-ui image used is $STACKGRES_PREVIOUS_ADMINUI_IMAGE"
+
 setup_images
 setup_k8s
 setup_cache
 setup_helm
 setup_operator
 setup_logs
-
-echo "Previous StackGres version used is $STACKGRES_PREVIOUS_VERSION"
 
 rm -f "$TARGET_PATH/e2e-tests-junit-report.results.xml"
 
