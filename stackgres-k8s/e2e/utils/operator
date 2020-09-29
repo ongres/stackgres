@@ -229,7 +229,7 @@ install_operator() {
     --set-string "restapi.image.pullPolicy=$(operator_pull_policy)" \
     --set-string adminui.image.name="${ADMINUI_IMAGE_NAME%:*}" --set-string adminui.image.tag="${ADMINUI_IMAGE_NAME#*:}" \
     --set-string "adminui.image.pullPolicy=$(operator_pull_policy)" \
-    $E2E_OPERATOR_OPTS "$@"  
+    $E2E_OPERATOR_OPTS "$@"
   fi
   
 }
@@ -238,7 +238,12 @@ install_operator_previous_version() {
   kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null 2>&1 \
     || kubectl create namespace "$OPERATOR_NAMESPACE"
 
+  local TAG
+  TAG="$(get_operator_image_tag "$STACKGRES_PREVIOUS_VERSION")"
   install_operator_vanilla_from "$OPERATOR_PREVIOUS_VERSION_HELM_URL" \
+    --set-string operator.image.tag="$TAG" \
+    --set-string restapi.image.tag="$TAG" \
+    --set-string adminui.image.tag="${TAG%-jvm}" \
     $E2E_OPERATOR_OPTS "$@"
 }
 
@@ -422,7 +427,7 @@ get_component_versions() {
   "$X_UNSET" || set -x
 }
 
-get_previous_version() {
+get_previous_operator_version() {
   local VERSION="$1"
 
   local CARDINALITY="$(echo "$VERSION" | tr '.' '\n' | wc -l)"
@@ -631,7 +636,8 @@ fix_zero_patch_prior_0_9() {
   sed 's/^\(0\.[0-9]\)\.0/\1/'
 }
 
-get_image_tag() {
+get_operator_image_tag() {
+  [ -n "$1" ]
   local VERSION="$1"
   local CARDINALITY="$(echo "$VERSION" | tr '.' '\n' | wc -l)"
   local SUFFIX=""
@@ -642,7 +648,7 @@ get_image_tag() {
 
   if [ "$VERSION" = "$STACKGRES_VERSION" ]
   then
-    echo "$IMAGE_TAG"
+    echo "${IMAGE_TAG%-jvm}$SUFFIX"
   elif [ "${VERSION#*-}" = "SNAPSHOT" ]
   then
     if [ "$CARDINALITY" = "3" ] \
@@ -658,16 +664,28 @@ get_image_tag() {
 }
 
 get_operator_image() {
-  echo "stackgres/operator:$(get_image_tag "$1")"
+  local TAG
+  TAG="$(get_operator_image_tag "$1")"
+  echo "stackgres/operator:$TAG"
 }
 
 get_restapi_image() {
-  echo "stackgres/restapi:$(get_image_tag "$1")"
+  local TAG
+  TAG="$(get_operator_image_tag "$1")"
+  echo "stackgres/restapi:$TAG"
 }
 
-export OPERATOR_IMAGE="$(get_operator_image "$STACKGRES_VERSION")"
-export RESTAPI_IMAGE="$(get_restapi_image "$STACKGRES_VERSION")"
-export STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-$(get_previous_version "$STACKGRES_VERSION")}"
+get_adminui_image() {
+  local TAG
+  TAG="$(get_operator_image_tag "$1")"
+  echo "stackgres/admin-ui:${TAG%-jvm}"
+}
+
+export STACKGRES_OPERATOR_IMAGE="$(get_operator_image "$STACKGRES_VERSION")"
+export STACKGRES_RESTAPI_IMAGE="$(get_restapi_image "$STACKGRES_VERSION")"
+export STACKGRES_ADMINUI_IMAGE="$(get_adminui_image "$STACKGRES_VERSION")"
+export STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-$(get_previous_operator_version "$STACKGRES_VERSION")}"
 export OPERATOR_PREVIOUS_VERSION_HELM_URL="${OPERATOR_PREVIOUS_VERSION_HELM_URL:-https://stackgres.io/downloads/stackgres-k8s/stackgres/$STACKGRES_PREVIOUS_VERSION/helm-operator.tgz}"
-export PREVIOUS_OPERATOR_IMAGE="$(get_operator_image "$STACKGRES_PREVIOUS_VERSION")"
-export PREVIOUS_RESTAPI_IMAGE="$(get_restapi_image "$STACKGRES_PREVIOUS_VERSION")"
+export STACKGRES_PREVIOUS_OPERATOR_IMAGE="$(get_operator_image "$STACKGRES_PREVIOUS_VERSION")"
+export STACKGRES_PREVIOUS_RESTAPI_IMAGE="$(get_restapi_image "$STACKGRES_PREVIOUS_VERSION")"
+export STACKGRES_PREVIOUS_ADMINUI_IMAGE="$(get_adminui_image "$STACKGRES_PREVIOUS_VERSION")"

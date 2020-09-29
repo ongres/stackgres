@@ -3095,8 +3095,28 @@ td.label span {
 }
 
 .podStatus .Active span {
-    color: #03CC03;
-    background: #00F90040;
+    color: rgba(3, 204, 3, 1);
+    background-color: rgba(0, 249, 0, .25);
+}
+
+.podStatus .Failed span {
+    color: rgba(255, 38, 0, 1);
+    background-color: rgba(255, 38, 0, .25);
+}
+
+.podStatus .Inactive span {
+    color: rgba(255, 137, 0, 1);
+    background-color: rgba(255, 137, 0, .25);
+}
+
+.podStatus .Pending span {
+    color: rgba(146, 185, 195, 1);
+    background-color: rgba(146, 185, 195, .25);
+}
+
+.podStatus .Unknown span {
+    color: rgba(172, 66, 250, 1);
+    background-color: rgba(172, 66, 250, .25);
 }
 
 table.clusterConfig {
@@ -3166,7 +3186,7 @@ table.backupConfig  {
     border-bottom: 1px solid #f0f0f1;
 }
 
-table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + tr.details, table.podStatus tr:nth-child(4n-2) {
+table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + tr.details, table.podStatus tr:nth-child(even) {
     background: #fff;
 }
 
