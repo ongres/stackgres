@@ -78,6 +78,8 @@ setup_helm
 setup_operator
 setup_logs
 
+kubectl version
+
 rm -f "$TARGET_PATH/e2e-tests-junit-report.results.xml"
 
 echo "Functional tests results" > "$TARGET_PATH/logs/results.log"

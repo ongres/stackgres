@@ -19,6 +19,8 @@ setup_helm
 setup_operator
 setup_logs
 
+kubectl version
+
 echo "Functional tests results" > "$TARGET_PATH/logs/results.log"
 
 if [ -z "$1" ]

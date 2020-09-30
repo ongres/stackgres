@@ -41,7 +41,7 @@ public interface StackGresContext {
   String AUTH_KEY = "api.stackgres.io/auth";
   String AUTH_USER_VALUE = "user";
 
-  String KUBECTL_IMAGE = "bitnami/kubectl:1.18.3";
+  String KUBECTL_IMAGE = "bitnami/kubectl:1.19.2";
   String BUSYBOX_IMAGE = "busybox:1.31.1";
 
 }
