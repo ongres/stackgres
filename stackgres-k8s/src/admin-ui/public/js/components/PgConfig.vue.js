@@ -28,13 +28,22 @@ var PgConfig = Vue.component("PostgresConfig", {
 				<table id="postgres" class="configurations pgConfig">
 					<thead class="sort">
 						<th @click="sort('data.metadata.name')" class="sorted desc name">
-							<span>Name</span>
+							<span>
+								Name
+								<span class="helpTooltip" @mouseover="helpTooltip( 'SGPostgresConfig', 'metadata.name')"></span>
+							</span>
 						</th>
 						<th @click="sort('data.spec.postgresVersion')" class="desc postgresVersion">
-							<span>PG</span>
+							<span>
+								PG
+								<span class="helpTooltip" @mouseover="helpTooltip( 'SGPostgresConfig', 'spec.postgresVersion')"></span>
+							</span>
 						</th>
 						<th class="config">
-							<span>Parameters</span>
+							<span>
+								Parameters
+								<span class="helpTooltip" @mouseover="helpTooltip( 'SGPostgresConfig', 'spec.postgresql.conf')"></span>
+							</span>
 						</th>
 						<th class="actions"></th>
 					</thead>
@@ -81,7 +90,7 @@ var PgConfig = Vue.component("PostgresConfig", {
 										<table>
 											<tbody>
 												<tr>
-													<td class="label">Postgres Version</td>
+													<td class="label">Postgres Version <span class="helpTooltip" @mouseover="helpTooltip( 'SGPostgresConfig', 'spec.postgresVersion')"></span></td>
 													<td>{{ conf.data.spec.postgresVersion }}</td>
 												</tr>
 												<template v-if="conf.data.status.clusters.length">
@@ -104,7 +113,10 @@ var PgConfig = Vue.component("PostgresConfig", {
 									</div>
 									<div class="paramDetails" v-if="conf.data.status['postgresql.conf'].length">
 										<template v-if="conf.data.status.defaultParameters.length != conf.data.status['postgresql.conf'].length">
-											<span class="title">Parameters</span>	
+											<span class="title">
+												Parameters
+												<span class="helpTooltip" @mouseover="helpTooltip( 'SGPostgresConfig', 'status.postgresql.conf')"></span>
+											</span>
 											<table>
 												<tbody>
 													<tr v-for="param in conf.data.status['postgresql.conf']" v-if="!conf.data.status.defaultParameters.includes(param.parameter)">
@@ -126,7 +138,10 @@ var PgConfig = Vue.component("PostgresConfig", {
 										</template>
 
 										<template v-if="conf.data.status.defaultParameters.length">
-											<span class="title">Default Parameters</span>	
+											<span class="title">
+												Default Parameters
+												<span class="helpTooltip" @mouseover="helpTooltip( 'SGPostgresConfig', 'status.defaultParameters')"></span>
+											</span>	
 											<table class="defaultParams">
 												<tbody>
 													<tr v-for="param in conf.data.status['postgresql.conf']" v-if="conf.data.status.defaultParameters.includes(param.parameter)">

@@ -28,10 +28,16 @@ var LogsServer = Vue.component("LogsServer", {
                 <table id="logs" class="logsCluster pgConfig">
                     <thead class="sort">
                         <th @click="sort('data.metadata.name')" class="sorted desc name">
-                            <span>Name</span>
+                            <span>
+                                Name
+                                <span class="helpTooltip" @mouseover="helpTooltip( 'SGDistributedLogs', 'metadata.name')"></span>
+                            </span>
                         </th>
                         <th @click="sort('data.spec.persistentVolume.size')" class="desc volumeSize">
-                            <span>Volume Size</span>
+                            <span>
+                                Volume Size
+                                <span class="helpTooltip" @mouseover="helpTooltip( 'SGDistributedLogs', 'spec.persistentVolume.size')"></span>
+                            </span>
                         </th>
                         <th class="actions"></th>
                     </thead>
@@ -46,8 +52,12 @@ var LogsServer = Vue.component("LogsServer", {
                         </tr>
                         <template v-for="cluster in clusters" v-if="(cluster.data.metadata.namespace == $route.params.namespace)">
                             <tr class="base" :class="[ $route.params.name == cluster.data.metadata.name ? 'open' : '', 'logs-'+cluster.data.metadata.namespace+'-'+cluster.data.metadata.name ]" :data-name="cluster.data.metadata.name">
-                                <td class="hasTooltip clusterName"><span>{{ cluster.data.metadata.name }}</span></td>
-                                <td class="volumeSize fontZero">{{ cluster.data.spec.persistentVolume.size }}</td>
+                                <td class="hasTooltip clusterName">
+                                    <span>{{ cluster.data.metadata.name }}</span>
+                                </td>
+                                <td class="volumeSize fontZero">
+                                    {{ cluster.data.spec.persistentVolume.size }}
+                                </td>
                                 <td class="actions">
                                     <router-link v-if="iCan('patch','sgdistributedlogs',$route.params.namespace)" :to="'/admin/crd/edit/logs/'+$route.params.namespace+'/'+cluster.data.metadata.name" title="Edit Configuration">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M90,135.721v2.246a.345.345,0,0,0,.345.345h2.246a.691.691,0,0,0,.489-.2l8.042-8.041a.346.346,0,0,0,0-.489l-2.39-2.389a.345.345,0,0,0-.489,0L90.2,135.232A.691.691,0,0,0,90,135.721Zm13.772-8.265a.774.774,0,0,0,0-1.095h0l-1.82-1.82a.774.774,0,0,0-1.095,0h0l-1.175,1.176a.349.349,0,0,0,0,.495l2.421,2.421a.351.351,0,0,0,.5,0Z" transform="translate(-90 -124.313)"/></svg>
@@ -65,7 +75,10 @@ var LogsServer = Vue.component("LogsServer", {
                                         <table>
                                             <tbody>
                                                 <tr>
-                                                    <td class="label">Volume Size</td>
+                                                    <td class="label">
+                                                        Volume Size
+                                                        <span class="helpTooltip" @mouseover="helpTooltip( 'SGDistributedLogs', 'spec.persistentVolume.size')"></span>
+                                                    </td>
                                                     <td>{{ cluster.data.spec.persistentVolume.size }}</td>
                                                 </tr>
                                                 <template v-if="cluster.data.status.clusters.length">

@@ -28,13 +28,22 @@ var SGProfiles = Vue.component("InstanceProfile", {
 				<table id="profiles" class="profiles pgConfig">
 					<thead class="sort">
 						<th @click="sort('data.metadata.name')" class="sorted desc name">
-							<span>Name</span>
+							<span>
+								Name
+								<span class="helpTooltip" @mouseover="helpTooltip( 'SGInstanceProfile', 'metadata.name')"></span>
+							</span>
 						</th>
 						<th @click="sort('data.spec.memory')" class="desc memory">
-							<span>RAM</span>
+							<span>
+								RAM
+								<span class="helpTooltip" @mouseover="helpTooltip( 'SGInstanceProfile', 'spec.memory')"></span>
+							</span>
 						</th>
 						<th @click="sort('data.spec.cpu')" class="desc cpu">
-							<span>CPU</span>
+							<span>
+								CPU
+								<span class="helpTooltip" @mouseover="helpTooltip( 'SGInstanceProfile', 'spec.cpu')"></span>
+							</span>
 						</th>
 						<th class="actions"></th>
 					</thead>
@@ -69,11 +78,11 @@ var SGProfiles = Vue.component("InstanceProfile", {
 										<table>
 											<tbody>
 												<tr>
-													<td class="label">RAM</td>
+													<td class="label">RAM <span class="helpTooltip" @mouseover="helpTooltip( 'SGInstanceProfile', 'spec.memory')"></span></td>
 													<td>{{ conf.data.spec.memory }}</td>
 												</tr>
 												<tr>
-													<td class="label">CPU</td>
+													<td class="label">CPU <span class="helpTooltip" @mouseover="helpTooltip( 'SGInstanceProfile', 'spec.cpu')"></span></td>
 													<td>{{ conf.data.spec.cpu }}</td>
 												</tr>
 												<template v-if="conf.data.status.clusters.length">
