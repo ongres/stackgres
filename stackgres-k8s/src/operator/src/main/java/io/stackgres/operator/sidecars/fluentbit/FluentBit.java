@@ -228,6 +228,7 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
         + "    Annotations      Off\n"
         + "    Kube_Tag_Prefix  ''\n"
         + "    Regex_Parser     kubernetes_tag\n"
+        + "    Buffer_Size      0\n"
         + "\n"
         + "[OUTPUT]\n"
         + "    Name              forward\n"
