@@ -7,7 +7,6 @@ package io.stackgres.apiweb.rest;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
 import com.google.common.base.Throwables;
@@ -15,8 +14,8 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.jboss.resteasy.spi.ApplicationException;
 
 @Provider
-public class ApplicationExceptionMapper extends AbstractGenericExceptionMapper<ApplicationException>
-    implements ExceptionMapper<ApplicationException> {
+public class ApplicationExceptionMapper
+    extends AbstractGenericExceptionMapper<ApplicationException> {
   private StatusParserProvider statusParserProvider;
 
   @Override

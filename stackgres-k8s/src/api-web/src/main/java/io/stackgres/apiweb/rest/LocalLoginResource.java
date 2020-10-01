@@ -43,10 +43,10 @@ public class LocalLoginResource {
   public Response login(@Valid UserPassword credentials) {
     try {
       String k8sUsername =
-          verify.verifyCredentials(credentials.getUsername(), credentials.getPassword());
+          verify.verifyCredentials(credentials.getUserName(), credentials.getPassword());
       LOGGER.info("Kubernetes user: {}", k8sUsername);
       String accessToken =
-          TokenUtils.generateTokenString(k8sUsername, credentials.getUsername(), DURATION,
+          TokenUtils.generateTokenString(k8sUsername, credentials.getUserName(), DURATION,
               "/etc/operator/certs/jwt-rsa.key");
 
       TokenResponse tokenResponse = new TokenResponse();

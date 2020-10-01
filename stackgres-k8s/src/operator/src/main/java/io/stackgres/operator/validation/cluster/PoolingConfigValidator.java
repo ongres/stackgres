@@ -57,7 +57,7 @@ public class PoolingConfigValidator implements ClusterValidator {
     String poolingConfig = cluster.getSpec().getConfiguration().getConnectionPoolingConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
-    if (cluster.getSpec().getPod().getDisableConnectionPooling() == Boolean.FALSE) {
+    if (Boolean.FALSE.equals(cluster.getSpec().getPod().getDisableConnectionPooling())) {
       checkIfProvided(poolingConfig, "sgPoolingConfig");
       Optional<StackGresPoolingConfig> poolingConfigOpt = configFinder
           .findByNameAndNamespace(poolingConfig, namespace);

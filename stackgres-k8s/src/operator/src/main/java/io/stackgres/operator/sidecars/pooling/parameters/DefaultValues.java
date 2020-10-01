@@ -5,6 +5,9 @@
 
 package io.stackgres.operator.sidecars.pooling.parameters;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -28,11 +31,11 @@ public class DefaultValues {
 
   private static Properties readResource() {
     Properties properties = new Properties();
-    try {
-      properties.load(DefaultValues.class.getResourceAsStream(
-          "/pgbouncer-default-values.properties"));
-    } catch (Exception ex) {
-      throw new RuntimeException(ex);
+    try (InputStream is = DefaultValues.class.getResourceAsStream(
+        "/pgbouncer-default-values.properties")) {
+      properties.load(is);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
     return properties;
   }

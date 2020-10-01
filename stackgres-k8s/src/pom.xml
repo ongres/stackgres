@@ -4,8 +4,7 @@
   ~ SPDX-License-Identifier: AGPL-3.0-or-later
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
@@ -61,12 +60,12 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <!-- Dependencies versions -->
-    <quarkus.version>1.7.0.Final</quarkus.version>
+    <quarkus.version>1.7.5.Final</quarkus.version>
     <jool.version>0.9.14</jool.version>
     <immutables.version>2.8.8</immutables.version>
-    <checkstyle.version>8.35</checkstyle.version>
-    <spotbugs.version>4.1.1</spotbugs.version>
-    <pmd.version>6.26.0</pmd.version>
+    <checkstyle.version>8.36.2</checkstyle.version>
+    <spotbugs.version>4.1.3</spotbugs.version>
+    <pmd.version>6.28.0</pmd.version>
     <docker-junit-extension.version>1.2.15</docker-junit-extension.version>
     <jersey.version>2.29</jersey.version>
     <log4j.version>2.13.3</log4j.version>
@@ -91,10 +90,10 @@
     <build-helper-maven-plugin.version>3.2.0</build-helper-maven-plugin.version>
     <!-- Checkstyle, SpotBugs and PMD properties -->
     <checks.location>${project.basedir}/checks</checks.location>
-    <checkstyle.config.location>${checks.location}/checkstyle/checkstyle.xml</checkstyle.config.location>
-    <checkstyle.header.file>${checks.location}/checkstyle/header.txt</checkstyle.header.file>
-    <checkstyle.suppressions.location>${checks.location}/checkstyle/suppressions.xml</checkstyle.suppressions.location>
-    <spotbugs.excludeFilterFile>${checks.location}/spotbugs/exclude.xml</spotbugs.excludeFilterFile>
+    <checkstyle.config.location>${checks.location}/checkstyle.xml</checkstyle.config.location>
+    <checkstyle.header.file>${checks.location}/checkstyle-header.txt</checkstyle.header.file>
+    <checkstyle.suppressions.location>${checks.location}/checkstyle-suppressions.xml</checkstyle.suppressions.location>
+    <spotbugs.excludeFilterFile>${checks.location}/spotbugs-exclude.xml</spotbugs.excludeFilterFile>
 
     <it.image>stackgres/it:10.0</it.image>
     <buildah.image>quay.io/buildah/stable:v1.15.0</buildah.image>
@@ -268,37 +267,6 @@
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>${checkstyle-plugin.version}</version>
-        <dependencies>
-          <dependency>
-            <groupId>com.puppycrawl.tools</groupId>
-            <artifactId>checkstyle</artifactId>
-            <version>${checkstyle.version}</version>
-          </dependency>
-        </dependencies>
-        <executions>
-          <execution>
-            <id>validate</id>
-            <phase>validate</phase>
-            <configuration>
-              <violationSeverity>error</violationSeverity>
-              <failOnViolation>true</failOnViolation>
-              <failsOnError>true</failsOnError>
-              <consoleOutput>true</consoleOutput>
-              <linkXRef>false</linkXRef>
-              <includeResources>false</includeResources>
-              <includeTestSourceDirectory>false</includeTestSourceDirectory>
-              <includeTestResources>false</includeTestResources>
-            </configuration>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.jboss.jandex</groupId>
         <artifactId>jandex-maven-plugin</artifactId>
       </plugin>
@@ -384,6 +352,37 @@
       <build>
         <plugins>
           <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <version>${checkstyle-plugin.version}</version>
+            <dependencies>
+              <dependency>
+                <groupId>com.puppycrawl.tools</groupId>
+                <artifactId>checkstyle</artifactId>
+                <version>${checkstyle.version}</version>
+              </dependency>
+            </dependencies>
+            <executions>
+              <execution>
+                <id>validate</id>
+                <phase>verify</phase>
+                <configuration>
+                  <violationSeverity>error</violationSeverity>
+                  <failOnViolation>true</failOnViolation>
+                  <failsOnError>true</failsOnError>
+                  <consoleOutput>true</consoleOutput>
+                  <linkXRef>false</linkXRef>
+                  <includeResources>false</includeResources>
+                  <includeTestSourceDirectory>false</includeTestSourceDirectory>
+                  <includeTestResources>false</includeTestResources>
+                </configuration>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-maven-plugin</artifactId>
             <version>${spotbugs-plugin.version}</version>
@@ -404,6 +403,7 @@
             <executions>
               <execution>
                 <id>validate</id>
+                <phase>verify</phase>
                 <goals>
                   <goal>check</goal>
                 </goals>
@@ -434,6 +434,7 @@
             <executions>
               <execution>
                 <id>validate</id>
+                <phase>verify</phase>
                 <goals>
                   <goal>check</goal>
                 </goals>

@@ -20,7 +20,7 @@ public class ErrorResponse {
     this.title = title;
     this.detail = detail;
     this.status = status;
-    this.fields = fields;
+    this.fields = fields != null ? fields.clone() : null;
   }
 
   public String getType() {
@@ -56,11 +56,11 @@ public class ErrorResponse {
   }
 
   public String[] getFields() {
-    return fields;
+    return fields != null ? fields.clone() : new String[0];
   }
 
   public void setFields(String[] fields) {
-    this.fields = fields;
+    this.fields = fields != null ? fields.clone() : null;
   }
 
   public static ErrorResponse create(Throwable throwable) {

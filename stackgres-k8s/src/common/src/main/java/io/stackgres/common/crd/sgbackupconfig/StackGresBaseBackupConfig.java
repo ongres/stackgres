@@ -86,7 +86,7 @@ public class StackGresBaseBackupConfig {
       return false;
     }
     StackGresBaseBackupConfig that = (StackGresBaseBackupConfig) o;
-    return retention == that.retention
+    return Objects.equals(retention, that.retention)
            && Objects.equals(cronSchedule, that.cronSchedule)
            && Objects.equals(compression, that.compression)
            && Objects.equals(performance, that.performance);

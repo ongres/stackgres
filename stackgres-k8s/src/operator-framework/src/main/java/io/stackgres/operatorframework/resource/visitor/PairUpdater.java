@@ -12,9 +12,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 class PairUpdater<T> extends PairVisitor<T, T> {
 
@@ -28,13 +29,13 @@ class PairUpdater<T> extends PairVisitor<T, T> {
   }
 
   @Override
-  public PairVisitor<T, T> transformRight(Function<T, T> rightTransformer) {
-    return new PairUpdater<T>(left, rightTransformer.apply(right));
+  public PairVisitor<T, T> transformRight(UnaryOperator<T> rightTransformer) {
+    return new PairUpdater<>(left, rightTransformer.apply(right));
   }
 
   @Override
-  public PairVisitor<T, T> transformLeft(Function<T, T> leftTransformer) {
-    return new PairUpdater<T>(leftTransformer.apply(left), right);
+  public PairVisitor<T, T> transformLeft(UnaryOperator<T> leftTransformer) {
+    return new PairUpdater<>(leftTransformer.apply(left), right);
   }
 
   public PairVisitor<T, T> visit() {
@@ -65,21 +66,21 @@ class PairUpdater<T> extends PairVisitor<T, T> {
 
   @Override
   public <O> PairVisitor<T, T> visitTransformed(Function<T, O> getter, BiConsumer<T, O> setter,
-      BiFunction<O, O, O> leftTransformer, BiFunction<O, O, O> rightTransformer) {
+      BinaryOperator<O> leftTransformer, BinaryOperator<O> rightTransformer) {
     return updateAnyTransformed(getter, setter, rightTransformer);
   }
 
   @Override
   public <O, S> PairVisitor<T, T> visitWith(Function<T, O> getter,
       BiConsumer<T, O> setter,
-      Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor) {
+      UnaryOperator<PairVisitor<O, S>> subVisitor) {
     return updateAnyWith(getter, setter, subVisitor);
   }
 
   @Override
   public <O, S> PairVisitor<T, T> visitWithUsingDefaultFrom(Function<T, O> getter,
       BiConsumer<T, O> setter,
-      Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor,
+      UnaryOperator<PairVisitor<O, S>> subVisitor,
       Supplier<O> defaultValue) {
     return updateAnyWithUsingDefaultFrom(getter, setter, subVisitor,
         defaultValue);
@@ -105,20 +106,20 @@ class PairUpdater<T> extends PairVisitor<T, T> {
   }
 
   <O> PairUpdater<T> updateAnyTransformed(Function<T, O> getter, BiConsumer<T, O> setter,
-      BiFunction<O, O, O> rightTransformer) {
+      BinaryOperator<O> rightTransformer) {
     setter.accept(left, rightTransformer.apply(getter.apply(left),
         getter.apply(right)));
     return this;
   }
 
   <O, S> PairUpdater<T> updateAnyWith(Function<T, O> getter, BiConsumer<T, O> setter,
-      Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor) {
+      UnaryOperator<PairVisitor<O, S>> subVisitor) {
     setter.accept(left, subVisitor.apply(get(getter).as()).resultAs());
     return this;
   }
 
   <O, S> PairUpdater<T> updateAnyWithUsingDefaultFrom(Function<T, O> getter,
-      BiConsumer<T, O> setter, Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor,
+      BiConsumer<T, O> setter, UnaryOperator<PairVisitor<O, S>> subVisitor,
       Supplier<O> defaultValue) {
     setter.accept(left, subVisitor.apply(getOrDefault(getter, defaultValue).as()).resultAs());
     return this;
@@ -132,9 +133,9 @@ class PairUpdater<T> extends PairVisitor<T, T> {
       Supplier<O> defaultValue) {
     return new PairUpdater<>(
         getter.andThen(Optional::ofNullable)
-        .andThen(o -> o.orElseGet(defaultValue)).apply(left),
+            .andThen(o -> o.orElseGet(defaultValue)).apply(left),
         getter.andThen(Optional::ofNullable)
-        .andThen(o -> o.orElseGet(defaultValue)).apply(right));
+            .andThen(o -> o.orElseGet(defaultValue)).apply(right));
   }
 
   @Override
@@ -146,7 +147,7 @@ class PairUpdater<T> extends PairVisitor<T, T> {
   @Override
   public <E, O extends List<E>, S> PairVisitor<T, T> visitListWith(
       Function<T, O> getter, BiConsumer<T, O> setter,
-      Function<PairVisitor<E, S>, PairVisitor<E, S>> subVisitor) {
+      UnaryOperator<PairVisitor<E, S>> subVisitor) {
     return updateList(getter, setter, subVisitor);
   }
 
@@ -178,7 +179,7 @@ class PairUpdater<T> extends PairVisitor<T, T> {
 
   <E, O extends List<E>, S> PairUpdater<T> updateList(
       Function<T, O> getter, BiConsumer<T, O> setter,
-      Function<PairVisitor<E, S>, PairVisitor<E, S>> subVisitor) {
+      UnaryOperator<PairVisitor<E, S>> subVisitor) {
     O leftList = getter.apply(left);
     O rightList = getter.apply(right);
     if (leftList == null || leftList.isEmpty()
@@ -231,8 +232,8 @@ class PairUpdater<T> extends PairVisitor<T, T> {
   @Override
   public <K, V, O extends Map<K, V>> PairVisitor<T, T> visitMapTransformed(
       Function<T, O> getter, BiConsumer<T, O> setter,
-      BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> leftTransformer,
-      BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> rightTransformer) {
+      BinaryOperator<Entry<K, V>> leftTransformer,
+      BinaryOperator<Entry<K, V>> rightTransformer) {
     return updateMapTransformed(getter, setter, leftTransformer, rightTransformer);
   }
 
@@ -249,19 +250,21 @@ class PairUpdater<T> extends PairVisitor<T, T> {
         setter.accept(left, rightMap);
         return this;
       }
-      if (leftMap == null || leftMap.isEmpty()) {
+      if (leftMap != null && leftMap.isEmpty() && rightMap != null) {
         leftMap.putAll(rightMap);
         return this;
       }
-      leftMap.clear();
+      if (leftMap != null) {
+        leftMap.clear();
+      }
       return this;
     }
     Map<K, V> leftMapCopy = new HashMap<>(leftMap);
     rightMap.entrySet().stream()
-      .forEach(rightEntry -> leftMap.put(rightEntry.getKey(), rightEntry.getValue()));
+        .forEach(rightEntry -> leftMap.put(rightEntry.getKey(), rightEntry.getValue()));
     leftMapCopy.entrySet().stream()
-      .filter(leftEntry -> !rightMap.containsKey(leftEntry.getKey()))
-      .forEach(leftEntry -> leftMap.remove(leftEntry.getKey()));
+        .filter(leftEntry -> !rightMap.containsKey(leftEntry.getKey()))
+        .forEach(leftEntry -> leftMap.remove(leftEntry.getKey()));
     return this;
   }
 
@@ -269,8 +272,7 @@ class PairUpdater<T> extends PairVisitor<T, T> {
       Function<T, O> getter, BiConsumer<T, O> setter) {
     O leftMap = getter.apply(left);
     O rightMap = getter.apply(right);
-    if (leftMap == null || leftMap.isEmpty()
-        || rightMap == null || rightMap.isEmpty()) {
+    if (leftMap == null || leftMap.isEmpty() || rightMap == null || rightMap.isEmpty()) {
       if (leftMap == null && rightMap != null && setter == null) {
         throw new IllegalStateException();
       }
@@ -278,31 +280,32 @@ class PairUpdater<T> extends PairVisitor<T, T> {
         setter.accept(left, rightMap);
         return this;
       }
-      if (leftMap == null || leftMap.isEmpty()) {
+      if (leftMap != null && leftMap.isEmpty() && rightMap != null) {
         leftMap.putAll(rightMap);
         return this;
       }
-      leftMap.clear();
+      if (leftMap != null) {
+        leftMap.clear();
+      }
       return this;
     }
     Map<K, V> leftMapCopy = new HashMap<>(leftMap);
     rightMap.entrySet().stream()
-      .filter(rightEntry -> !leftMap.containsKey(rightEntry.getKey()))
-      .forEach(rightEntry -> leftMap.put(rightEntry.getKey(), rightEntry.getValue()));
+        .filter(rightEntry -> !leftMap.containsKey(rightEntry.getKey()))
+        .forEach(rightEntry -> leftMap.put(rightEntry.getKey(), rightEntry.getValue()));
     leftMapCopy.entrySet().stream()
-      .filter(leftEntry -> !rightMap.containsKey(leftEntry.getKey()))
-      .forEach(leftEntry -> leftMap.remove(leftEntry.getKey()));
+        .filter(leftEntry -> !rightMap.containsKey(leftEntry.getKey()))
+        .forEach(leftEntry -> leftMap.remove(leftEntry.getKey()));
     return this;
   }
 
   <K, V, O extends Map<K, V>> PairUpdater<T> updateMapTransformed(
       Function<T, O> getter, BiConsumer<T, O> setter,
-      BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> leftTransformer,
-      BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> rightTransformer) {
+      BinaryOperator<Entry<K, V>> leftTransformer,
+      BinaryOperator<Entry<K, V>> rightTransformer) {
     O leftMap = getter.apply(left);
     O rightMap = getter.apply(right);
-    if (leftMap == null || leftMap.isEmpty()
-        || rightMap == null || rightMap.isEmpty()) {
+    if (leftMap == null || leftMap.isEmpty() || rightMap == null || rightMap.isEmpty()) {
       if (leftMap == null && rightMap != null && setter == null) {
         throw new IllegalStateException();
       }
@@ -310,27 +313,29 @@ class PairUpdater<T> extends PairVisitor<T, T> {
         setter.accept(left, rightMap);
         return this;
       }
-      if (leftMap == null || leftMap.isEmpty()) {
+      if (leftMap != null && leftMap.isEmpty() && rightMap != null) {
         leftMap.putAll(rightMap);
         return this;
       }
-      leftMap.clear();
+      if (leftMap != null) {
+        leftMap.clear();
+      }
       return this;
     }
     Map<K, V> leftMapCopy = new HashMap<>(leftMap);
     rightMap.entrySet().stream()
-      .map(rightEntry -> rightTransformer.apply(
-          leftMap.entrySet()
-          .stream()
-          .filter(leftEntry -> leftEntry.getKey().equals(rightEntry.getKey()))
-          .findAny()
-          .map(leftEntry -> leftTransformer.apply(leftEntry, rightEntry))
-          .orElse(null),
-          rightEntry))
-      .forEach(rightEntry -> leftMap.put(rightEntry.getKey(), rightEntry.getValue()));
+        .map(rightEntry -> rightTransformer.apply(
+            leftMap.entrySet()
+                .stream()
+                .filter(leftEntry -> leftEntry.getKey().equals(rightEntry.getKey()))
+                .findAny()
+                .map(leftEntry -> leftTransformer.apply(leftEntry, rightEntry))
+                .orElse(null),
+            rightEntry))
+        .forEach(rightEntry -> leftMap.put(rightEntry.getKey(), rightEntry.getValue()));
     leftMapCopy.entrySet().stream()
-      .filter(leftEntry -> !rightMap.containsKey(leftEntry.getKey()))
-      .forEach(leftEntry -> leftMap.remove(leftEntry.getKey()));
+        .filter(leftEntry -> !rightMap.containsKey(leftEntry.getKey()))
+        .forEach(leftEntry -> leftMap.remove(leftEntry.getKey()));
     return this;
   }
 

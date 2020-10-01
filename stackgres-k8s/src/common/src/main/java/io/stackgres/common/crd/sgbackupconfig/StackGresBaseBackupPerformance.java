@@ -69,9 +69,9 @@ public class StackGresBaseBackupPerformance {
       return false;
     }
     StackGresBaseBackupPerformance that = (StackGresBaseBackupPerformance) o;
-    return maxNetworkBandwitdh == that.maxNetworkBandwitdh
-        && maxDiskBandwitdh == that.maxDiskBandwitdh
-        && uploadDiskConcurrency == that.uploadDiskConcurrency;
+    return Objects.equals(maxNetworkBandwitdh, that.maxNetworkBandwitdh)
+        && Objects.equals(maxDiskBandwitdh, that.maxDiskBandwitdh)
+        && Objects.equals(uploadDiskConcurrency, that.uploadDiskConcurrency);
   }
 
   @Override

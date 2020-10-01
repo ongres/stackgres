@@ -22,8 +22,7 @@ import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 public class DefaultPostgresMutator
-    extends AbstractDefaultResourceMutator<StackGresPostgresConfig>
-    implements ClusterMutator {
+    extends AbstractDefaultResourceMutator<StackGresPostgresConfig> {
 
   @Inject
   public DefaultPostgresMutator(

@@ -5,6 +5,9 @@
 
 package io.stackgres.operator.sidecars.pooling.parameters;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -28,11 +31,11 @@ public class Blocklist {
 
   private static Properties readResource() {
     Properties properties = new Properties();
-    try {
-      properties.load(Blocklist.class.getResourceAsStream(
-          "/pgbouncer-blocklist.properties"));
-    } catch (Exception ex) {
-      throw new RuntimeException(ex);
+    try (InputStream is = Blocklist.class.getResourceAsStream(
+        "/pgbouncer-blocklist.properties")) {
+      properties.load(is);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
     return properties;
   }

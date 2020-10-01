@@ -50,7 +50,7 @@ public class PatroniScriptsConfigMap implements StackGresClusterResourceStreamFa
 
   private static String normalizedResourceName(
       Tuple4<StackGresClusterScriptEntry, Long, String, Long> indexedScript) {
-    return (indexedScript.v3 == INTERNAL_SCRIPT
+    return (INTERNAL_SCRIPT.equals(indexedScript.v3)
         ? "internal-" + baseName(indexedScript.v1, indexedScript.v2)
         : baseName(indexedScript.v1, indexedScript.v4))
         .toLowerCase(Locale.US).replaceAll("[^a-z0-9-]", "-");

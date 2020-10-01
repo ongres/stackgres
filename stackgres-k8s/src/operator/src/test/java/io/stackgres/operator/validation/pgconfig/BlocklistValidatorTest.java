@@ -15,12 +15,13 @@ import java.util.Set;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.patroni.factory.parameters.Blocklist;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.Test;
 
 class BlocklistValidatorTest {
 
-  private static String[] BLOCKLISTED_PROPERTIES = PgConfigValidator.BLOCKLIST_PROPERTIES;
+  private static String[] BLOCKLISTED_PROPERTIES = Blocklist.getBlocklistParameters().toArray(new String[0]);
 
   private BlocklistValidator validator = new BlocklistValidator();
 

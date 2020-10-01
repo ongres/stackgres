@@ -67,16 +67,16 @@ public abstract class AbstractReconciliationCycle<T extends ResourceHandlerConte
     close = true;
     reconcile();
     executorService.shutdown();
-    arrayBlockingQueue.offer(true);
+    arrayBlockingQueue.offer(Boolean.TRUE);
     stopped.join();
   }
 
   public void reconcile() {
-    arrayBlockingQueue.offer(true);
+    arrayBlockingQueue.offer(Boolean.TRUE);
   }
 
   private void reconciliationCycleLoop() {
-    LOGGER.info(name + " reconciliation cycle loop started");
+    LOGGER.info("{} reconciliation cycle loop started", name);
     while (true) {
       try {
         arrayBlockingQueue.take();
@@ -88,7 +88,7 @@ public abstract class AbstractReconciliationCycle<T extends ResourceHandlerConte
         LOGGER.error(name + " reconciliation cycle loop was interrupted", ex);
       }
     }
-    LOGGER.info(name + " reconciliation cycle loop stopped");
+    LOGGER.info("{} reconciliation cycle loop stopped", name);
     stopped.complete(null);
   }
 
@@ -96,8 +96,8 @@ public abstract class AbstractReconciliationCycle<T extends ResourceHandlerConte
     final int cycleId = reconciliationCount.incrementAndGet();
     String cycleName = cycleId + "| " + name + " reconciliation cycle";
 
-    LOGGER.trace(cycleName + " starting");
-    LOGGER.trace(cycleName + " getting existing " + name.toLowerCase(Locale.US) + " list");
+    LOGGER.trace("{} starting", cycleName);
+    LOGGER.trace("{} getting existing {} list", cycleName, name.toLowerCase(Locale.US));
     ImmutableList<T> existingContexts = getExistingConfigs();
     try {
       for (T context : existingContexts) {
@@ -107,30 +107,32 @@ public abstract class AbstractReconciliationCycle<T extends ResourceHandlerConte
             + contextResource.getMetadata().getName();
 
         try (KubernetesClient client = clientSupplier.get()) {
-          LOGGER.trace(cycleName + " working on " + contextId);
+          LOGGER.trace("{} working on {}", cycleName, contextId);
           ImmutableList<HasMetadata> existingResourcesOnly = getExistingResources(
               client, context);
           T contextWithExistingResourcesOnly = getContextWithExistingResourcesOnly(context,
               existingResourcesOnly
-              .stream()
-              .map(existingResource -> Tuple.tuple(existingResource, Optional.<HasMetadata>empty()))
-              .collect(ImmutableList.toImmutableList()));
+                  .stream()
+                  .map(existingResource -> Tuple.tuple(existingResource,
+                      Optional.<HasMetadata>empty()))
+                  .collect(ImmutableList.toImmutableList()));
           ImmutableList<HasMetadata> requiredResourcesOnly = getRequiredResources(
               contextWithExistingResourcesOnly);
           ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources =
               existingResourcesOnly
-              .stream()
-              .map(existingResource -> Tuple.tuple(existingResource,
-                  findResourceIn(existingResource, requiredResourcesOnly)))
-              .collect(ImmutableList.toImmutableList());
+                  .stream()
+                  .map(existingResource -> Tuple.tuple(existingResource,
+                      findResourceIn(existingResource, requiredResourcesOnly)))
+                  .collect(ImmutableList.toImmutableList());
           ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources =
               requiredResourcesOnly
-              .stream()
-              .map(requiredResource -> Tuple.tuple(requiredResource,
-                  Optional.of(findResourceIn(requiredResource, existingResourcesOnly))
-                  .filter(Optional::isPresent)
-                  .orElseGet(() -> handlerSelector.find(client, context, requiredResource))))
-              .collect(ImmutableList.toImmutableList());
+                  .stream()
+                  .map(requiredResource -> Tuple.tuple(requiredResource,
+                      Optional.of(findResourceIn(requiredResource, existingResourcesOnly))
+                          .filter(Optional::isPresent)
+                          .orElseGet(
+                              () -> handlerSelector.find(client, context, requiredResource))))
+                  .collect(ImmutableList.toImmutableList());
           T contextWithExistingAndRequiredResources = getContextWithExistingAndRequiredResources(
               context, requiredResources, existingResources);
           createReconciliator(client, contextWithExistingAndRequiredResources).reconcile();
@@ -138,13 +140,13 @@ public abstract class AbstractReconciliationCycle<T extends ResourceHandlerConte
           LOGGER.error(cycleName + " failed reconciling " + contextId, ex);
           try {
             onConfigError(context, contextResource, ex);
-          } catch (Exception rex) {
+          } catch (RuntimeException rex) {
             LOGGER.error(cycleName + " failed sending event while reconciling " + contextId, rex);
           }
         }
       }
       LOGGER.trace(cycleName + " ended successfully");
-    } catch (Exception ex) {
+    } catch (RuntimeException ex) {
       LOGGER.error(cycleName + " failed", ex);
       onError(ex);
     }

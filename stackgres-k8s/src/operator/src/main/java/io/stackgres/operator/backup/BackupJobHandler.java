@@ -47,7 +47,7 @@ public class BackupJobHandler extends AbstractClusterResourceHandler {
         existingResource, requiredResource);
   }
 
-  private class JobVisitor<T>
+  private static class JobVisitor<T>
       extends ResourcePairVisitor<T, StackGresClusterContext> {
 
     public JobVisitor(StackGresClusterContext context) {

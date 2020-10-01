@@ -32,7 +32,7 @@ public class ErrorResponseBuilder {
   }
 
   public ErrorResponseBuilder setFields(String[] fields) {
-    this.fields = fields;
+    this.fields = fields != null ? fields.clone() : null;
     return this;
   }
 

@@ -5,13 +5,11 @@
 
 package io.stackgres.operator.rest;
 
-import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
 import org.jboss.resteasy.spi.WriterException;
 
 @Provider
-public class WriterExceptionMapper extends AbstractGenericExceptionMapper<WriterException>
-    implements ExceptionMapper<WriterException> {
+public class WriterExceptionMapper extends AbstractGenericExceptionMapper<WriterException> {
 
 }
