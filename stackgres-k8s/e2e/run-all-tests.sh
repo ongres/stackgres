@@ -142,7 +142,7 @@ SPECS="$(
         do
           if [ "$(( (${LINE%%:*} - 1) % BATCH_COUNT))" = "$((BATCH_INDEX - 1))" ]
           then
-            echo "$LINE" | cut -d : -f 2
+            echo "$SPEC_PATH/$(echo "$LINE" | cut -d : -f 2)"
           fi
         done
   done)"
