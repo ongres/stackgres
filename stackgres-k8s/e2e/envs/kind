@@ -15,6 +15,11 @@ check_kind_version() {
   fi
 }
 
+get_k8s_env_version() {
+  echo "Kind version $(kind version | cut -d ' ' -f 2)"
+  echo
+}
+
 update_k8s_config() {
   check_kind_version
 

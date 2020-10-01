@@ -1,7 +1,6 @@
 #!/bin/sh
 
 setup_helm() {
-
   helm repo list | grep -q 'https://kubernetes-charts.storage.googleapis.com' \
     || helm repo add stable https://kubernetes-charts.storage.googleapis.com
     
@@ -22,4 +21,7 @@ setup_helm() {
       helm dependency update --skip-refresh "$CHART_PATH"
     fi
   done
+
+  echo "Helm version $(helm version | cut -d '"' -f 2)"
+  echo
 }
