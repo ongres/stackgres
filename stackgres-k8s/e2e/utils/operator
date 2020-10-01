@@ -467,12 +467,13 @@ get_previous_operator_version() {
     if [ -n "$SUFFIX" ]
     then
       MINOR="${MINOR%-*}"
-      for i in alpha beta
+      local A_SUFFIX
+      for A_SUFFIX in alpha beta
       do
-        if [ "${SUFFIX%%[0-9]*}" = "$i" ]
+        if [ "${SUFFIX%%[0-9]*}" = "$A_SUFFIX" ]
         then
-          SUFFIX=$i
-          SUFFIX_VERSION="${SUFFIX#$i}"
+          SUFFIX_VERSION="${SUFFIX#$A_SUFFIX}"
+          SUFFIX="$A_SUFFIX"
         fi
       done
     fi
@@ -614,7 +615,6 @@ get_previous_operator_version() {
       do
         if [ "$PATCH" -gt "0" ]
         then
-          PATCH="$((PATCH - 1))"
           if curl -s -f "$(get_pom_url "$(
             echo "$MAJOR.$MINOR.$PATCH" \
               | fix_zero_patch_prior_0_9)")" > /dev/null 2>&1
@@ -622,6 +622,7 @@ get_previous_operator_version() {
             FOUND=true
             break
           fi
+          PATCH="$((PATCH - 1))"
         else
           break
         fi
