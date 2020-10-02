@@ -21,6 +21,11 @@ then
   K8S_VERSION=1.13.11
 fi
 
+get_k8s_env_version() {
+  echo "az version $(az version 2>/dev/null | grep -F '"azure-cli"' | cut -d '"' -f 4)"
+  echo
+}
+
 set_up_resource_group(){
   RS_EXISTS=$(az group exists --name "$K8S_AZ_RESOURCE_GROUP")
   if [ "$RS_EXISTS" = true ]

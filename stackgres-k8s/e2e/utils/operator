@@ -467,12 +467,13 @@ get_previous_operator_version() {
     if [ -n "$SUFFIX" ]
     then
       MINOR="${MINOR%-*}"
-      for i in alpha beta
+      local A_SUFFIX
+      for A_SUFFIX in alpha beta
       do
-        if [ "${SUFFIX%%[0-9]*}" = "$i" ]
+        if [ "${SUFFIX%%[0-9]*}" = "$A_SUFFIX" ]
         then
-          SUFFIX=$i
-          SUFFIX_VERSION="${SUFFIX#$i}"
+          SUFFIX_VERSION="${SUFFIX#$A_SUFFIX}"
+          SUFFIX="$A_SUFFIX"
         fi
       done
     fi
@@ -614,7 +615,6 @@ get_previous_operator_version() {
       do
         if [ "$PATCH" -gt "0" ]
         then
-          PATCH="$((PATCH - 1))"
           if curl -s -f "$(get_pom_url "$(
             echo "$MAJOR.$MINOR.$PATCH" \
               | fix_zero_patch_prior_0_9)")" > /dev/null 2>&1
@@ -622,6 +622,7 @@ get_previous_operator_version() {
             FOUND=true
             break
           fi
+          PATCH="$((PATCH - 1))"
         else
           break
         fi
@@ -684,8 +685,20 @@ get_adminui_image() {
 export STACKGRES_OPERATOR_IMAGE="$(get_operator_image "$STACKGRES_VERSION")"
 export STACKGRES_RESTAPI_IMAGE="$(get_restapi_image "$STACKGRES_VERSION")"
 export STACKGRES_ADMINUI_IMAGE="$(get_adminui_image "$STACKGRES_VERSION")"
-export STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-$(get_previous_operator_version "$STACKGRES_VERSION")}"
-export OPERATOR_PREVIOUS_VERSION_HELM_URL="${OPERATOR_PREVIOUS_VERSION_HELM_URL:-https://stackgres.io/downloads/stackgres-k8s/stackgres/$STACKGRES_PREVIOUS_VERSION/helm-operator.tgz}"
-export STACKGRES_PREVIOUS_OPERATOR_IMAGE="$(get_operator_image "$STACKGRES_PREVIOUS_VERSION")"
-export STACKGRES_PREVIOUS_RESTAPI_IMAGE="$(get_restapi_image "$STACKGRES_PREVIOUS_VERSION")"
-export STACKGRES_PREVIOUS_ADMINUI_IMAGE="$(get_adminui_image "$STACKGRES_PREVIOUS_VERSION")"
+
+setup_versions() {
+  export STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-$(get_previous_operator_version "$STACKGRES_VERSION")}"
+  export OPERATOR_PREVIOUS_VERSION_HELM_URL="${OPERATOR_PREVIOUS_VERSION_HELM_URL:-https://stackgres.io/downloads/stackgres-k8s/stackgres/$STACKGRES_PREVIOUS_VERSION/helm-operator.tgz}"
+  export STACKGRES_PREVIOUS_OPERATOR_IMAGE="$(get_operator_image "$STACKGRES_PREVIOUS_VERSION")"
+  export STACKGRES_PREVIOUS_RESTAPI_IMAGE="$(get_restapi_image "$STACKGRES_PREVIOUS_VERSION")"
+  export STACKGRES_PREVIOUS_ADMINUI_IMAGE="$(get_adminui_image "$STACKGRES_PREVIOUS_VERSION")"
+
+  echo "StackGres version used is $STACKGRES_VERSION"
+  echo "* StackGres operator image used is $STACKGRES_OPERATOR_IMAGE"
+  echo "* StackGres restapi image used is $STACKGRES_RESTAPI_IMAGE"
+  echo "* StackGres admin-ui image used is $STACKGRES_ADMINUI_IMAGE"
+  echo "Previous StackGres version used is $STACKGRES_PREVIOUS_VERSION"
+  echo "* Previous StackGres operator image used is $STACKGRES_PREVIOUS_OPERATOR_IMAGE"
+  echo "* Previous StackGres restapi image used is $STACKGRES_PREVIOUS_RESTAPI_IMAGE"
+  echo "* Previous StackGres admin-ui image used is $STACKGRES_PREVIOUS_ADMINUI_IMAGE"
+}
