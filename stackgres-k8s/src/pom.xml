@@ -76,6 +76,7 @@
     <mockito.version>3.0.0</mockito.version>
     <log4j.version>2.11.2</log4j.version>
     <jooq.version>3.13.2</jooq.version>
+    <swagger-annotations.version>2.1.5</swagger-annotations.version>
     <!-- Plugins versions -->
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <jar-plugin.version>3.2.0</jar-plugin.version>
@@ -92,6 +93,7 @@
     <jandex-maven-plugin.version>1.0.8</jandex-maven-plugin.version>
     <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
     <build-helper-maven-plugin.version>3.2.0</build-helper-maven-plugin.version>
+    <swagger-maven-plugin.version>2.1.5</swagger-maven-plugin.version>
     <!-- Checkstyle, SpotBugs and PMD properties -->
     <checks.location>${project.basedir}/checks</checks.location>
     <checkstyle.config.location>${checks.location}/checkstyle/checkstyle.xml</checkstyle.config.location>
@@ -161,6 +163,12 @@
             <artifactId>jaxb-api</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>io.swagger.core.v3</groupId>
+        <artifactId>swagger-annotations</artifactId>
+        <version>${swagger-annotations.version}</version>
+        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>org.ow2.asm</groupId>
@@ -336,6 +344,11 @@
               </goals>
             </execution>
           </executions>
+        </plugin>
+        <plugin>
+          <groupId>io.openapitools.swagger</groupId>
+          <artifactId>swagger-maven-plugin</artifactId>
+          <version>${swagger-maven-plugin.version}</version>
         </plugin>
         <!--This plugin's configuration is used to store Eclipse m2e settings only.
             It has no influence on the Maven build itself.-->

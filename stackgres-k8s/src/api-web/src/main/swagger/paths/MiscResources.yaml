@@ -1,0 +1,94 @@
+paths:
+  /stackgres/configmaps/{namespace}:
+    get:
+      tags:
+      - misc
+      summary: List configmaps
+      description: |
+        List configmaps.
+
+        ### RBAC permissions required
+
+        * configmaps list
+      parameters:
+      - name: namespace
+        description: The namespace to list resources from
+        in: path
+        required: true
+        schema:
+          type: string
+      security:
+      - JWT: []
+  /stackgres/kubernetes-cluster-info:
+    get:
+      tags:
+      - misc
+      summary: Get kubernetes cluster info
+      description: |
+        Get kubernetes cluster info.
+
+        ### RBAC permissions required
+
+        None
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: The URL to connect to the kubernetes cluster
+      security:
+      - JWT: []
+  /stackgres/namespace:
+    get:
+      tags:
+      - misc
+      summary: List namespaces
+      description: |
+        List namespaces.
+
+        ### RBAC permissions required
+
+        * namespaces list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  description: |
+                    A namespace
+      security:
+      - JWT: []
+  /stackgres/secrets/{namespace}:
+    get:
+      tags:
+      - misc
+      summary: List secrets
+      description: |
+        List secrets.
+
+        ### RBAC permissions required
+
+        * secrets list
+      parameters:
+      - name: namespace
+        description: The namespace to list the resource from
+        in: path
+        required: true
+        schema:
+          type: string
+      security:
+      - JWT: []
+  /stackgres/storageclass:
+    get:
+      tags:
+      - misc
+      summary: List storageclasss
+      description: |
+        List storageclasss.
+
+        ### RBAC permissions required
+
+        * storageclasss list
+      security:
+      - JWT: []

@@ -30,10 +30,8 @@ import javax.ws.rs.core.MediaType;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.fabric8.kubernetes.api.model.ConfigMapKeySelector;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
-import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.distributedlogs.DistributedLogsFetcher;
 import io.stackgres.apiweb.distributedlogs.FullTextSearchQuery;
@@ -49,12 +47,19 @@ import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
 import io.stackgres.apiweb.resource.ResourceTransactionHandler;
 import io.stackgres.apiweb.transformer.ResourceTransformer;
 import io.stackgres.common.ArcUtil;
+import io.stackgres.common.crd.ConfigMapKeySelector;
+import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
@@ -115,6 +120,14 @@ public class ClusterResource
     this.configMapFinder = null;
   }
 
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  array = @ArraySchema(schema = @Schema(implementation = ClusterDto.class))) })
+      })
+  @CommonApiResponses
   @Authenticated
   @Override
   public List<ClusterDto> list() {
@@ -124,6 +137,14 @@ public class ClusterResource
         .toList();
   }
 
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ClusterDto.class)) })
+      })
+  @CommonApiResponses
   @Authenticated
   @Override
   public ClusterDto get(String namespace, String name) {
@@ -133,6 +154,11 @@ public class ClusterResource
         .orElseThrow(NotFoundException::new);
   }
 
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK")
+      })
+  @CommonApiResponses
   @Authenticated
   @Override
   public void create(ClusterDto resource) {
@@ -142,6 +168,28 @@ public class ClusterResource
     createSecrets(secretsToCreate,
         () -> createConfigMaps(configMapsToCreate,
             () -> super.create(resource)));
+  }
+
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK")
+      })
+  @CommonApiResponses
+  @Authenticated
+  @Override
+  public void update(ClusterDto resource) {
+    super.update(resource);
+  }
+
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK")
+      })
+  @CommonApiResponses
+  @Authenticated
+  @Override
+  public void delete(ClusterDto resource) {
+    super.delete(resource);
   }
 
   private ClusterDto setSecrets(ClusterDto resource) {
@@ -334,6 +382,14 @@ public class ClusterResource
   /**
    * Return a {@code ClusterStatus}.
    */
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ClusterStatsDto.class)) })
+      })
+  @CommonApiResponses
   @GET
   @Path("/stats/{namespace}/{name}")
   @Authenticated
@@ -346,6 +402,15 @@ public class ClusterResource
   /**
    * Query distributed logs and return a list of {@code ClusterLogEntry}.
    */
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  array = @ArraySchema(
+                      schema = @Schema(implementation = ClusterLogEntryDto.class))) })
+      })
+  @CommonApiResponses
   @GET
   @Path("/logs/{namespace}/{name}")
   @Authenticated
