@@ -1,0 +1,53 @@
+{
+    "sgcluster": {
+        "type": "object",
+        "description": "el cluster",
+        "properties": {
+            "status":{
+                "type": "object",
+                "description": "el status",
+                "properties": {
+                    "totalCpu": {
+                        "description": "el cpu"
+                    },
+                    "totalMemory": {
+                        "description": "la ram"
+                    },
+                    "primaryNodeDisk": {
+                        "description": "el disco"
+                    },
+                    "instances": {
+                        "description": "las instancias"
+                    },
+                    "pods": {
+                        "type": "object",
+                        "description": "",
+                        "properties": {
+                            "podName": {
+                                "description": "el podname"
+                            },
+                            "role": {
+                                "description": "el role"
+                            },
+                            "status": {
+                                "description": "el statussss"
+                            },
+                            "cpu": {
+                                "description": "c-p-u"
+                            },
+                            "memory": {
+                                "description": "memoria"
+                            },
+                            "disk": {
+                                "description": "el disco"
+                            },
+                            "containers": {
+                                "description": "contenedores"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

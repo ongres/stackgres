@@ -54,19 +54,19 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 					<thead>
 						<th>
 							Total CPU 
-							<span class="helpTooltip" @click=""></span>
+							<span class="helpTooltip" @mouseover="helpTooltip( 'SGUI', 'sgcluster.status.totalCpu')"></span>
 						</th>
 						<th>
 							Total Memory
-							<span class="helpTooltip" @click=""></span>
+							<span class="helpTooltip" @mouseover="helpTooltip( 'SGUI', 'sgcluster.status.totalMemory')"></span>
 						</th>
 						<th>
 							Primary Node Disk
-							<span class="helpTooltip" @click=""></span>
+							<span class="helpTooltip" @mouseover="helpTooltip( 'SGUI', 'sgcluster.status.primaryNodeDisk')"></span>
 						</th>
 						<th>
 							Instances
-							<span class="helpTooltip" @click=""></span>
+							<span class="helpTooltip" @mouseover="helpTooltip( 'SGUI', 'sgcluster.status.instances')"></span>
 						</th>
 					</thead>
 					<tbody>
@@ -104,31 +104,31 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 					<thead>
 						<th>
 							Pod Name
-							<span class="helpTooltip" @click=""></span>
+							<span class="helpTooltip" @mouseover="helpTooltip( 'SGUI', 'sgcluster.status.pods.podName')"></span>
 						</th>
 						<th>
 							Role
-							<span class="helpTooltip" @click=""></span>
+							<span class="helpTooltip" @mouseover="helpTooltip( 'SGUI', 'sgcluster.status.pods.role')"></span>
 						</th>
 						<th>
 							Status
-							<span class="helpTooltip" @click=""></span>
+							<span class="helpTooltip" @mouseover="helpTooltip( 'SGUI', 'sgcluster.status.pods.status')"></span>
 						</th>
 						<th>
 							CPU
-							<span class="helpTooltip" @click=""></span>
+							<span class="helpTooltip" @mouseover="helpTooltip( 'SGUI', 'sgcluster.status.pods.cpu')"></span>
 						</th>
 						<th>
 							Memory
-							<span class="helpTooltip" @click=""></span>
+							<span class="helpTooltip" @mouseover="helpTooltip( 'SGUI', 'sgcluster.status.pods.memory')"></span>
 						</th>
 						<th>
 							Disk
-							<span class="helpTooltip" @click=""></span>
+							<span class="helpTooltip" @mouseover="helpTooltip( 'SGUI', 'sgcluster.status.pods.disk')"></span>
 						</th>
 						<th>
 							Containers
-							<span class="helpTooltip" @click=""></span>
+							<span class="helpTooltip" @mouseover="helpTooltip( 'SGUI', 'sgcluster.status.pods.containers')"></span>
 						</th>
 					</thead>
 					<tbody>

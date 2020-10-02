@@ -741,6 +741,7 @@ const store = new Vuex.Store({
     helpTooltip: '',
     tooltips: {
       description: 'Click on a question mark to get help and tips about that field.', 
+      SGUI: {},
       SGCluster: {},
       SGBackup: {},
       SGPostgresConfig: {},
@@ -1198,11 +1199,11 @@ Vue.mixin({
         fetch('/admin/js/components/forms/help/crd-'+kind+'-EN.json')
         .then(response => response.json())
         .then(data => 
-            store.commit('setTooltips', { 
-              kind: kind, 
-              description: data 
-            })
-          );
+          store.commit('setTooltips', { 
+            kind: kind, 
+            description: data 
+          })
+        );
         
       }
 

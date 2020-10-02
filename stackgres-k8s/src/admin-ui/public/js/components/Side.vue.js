@@ -175,6 +175,7 @@ var Side = Vue.component("sg-side", {
 		this.loadTooltips('SGPostgresConfig');
 		this.loadTooltips('SGPoolingConfig');
 		this.loadTooltips('SGDistributedLogs');
+		this.loadTooltips('SGUI');
 	},
 
 	computed: {
