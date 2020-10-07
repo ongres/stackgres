@@ -51,8 +51,8 @@ import io.stackgres.common.crd.sgprofile.StackGresProfileList;
 import io.stackgres.operator.controller.ClusterReconciliationCycle;
 import io.stackgres.operator.controller.ClusterResourceWatcherFactory;
 import io.stackgres.operator.controller.DistributedLogsReconciliationCycle;
-import io.stackgres.operator.controller.WatcherMonitor;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import io.stackgres.operatorframework.resource.WatcherMonitor;
 
 @ApplicationScoped
 public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
@@ -135,7 +135,6 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
 
     try (KubernetesClient client = kubeClient.create()) {
       CustomResourceDefinitionContext crd = ResourceUtil.getCustomResource(client, name)
-          .map(CustomResourceDefinitionContext::fromCrd)
           .orElseThrow(() -> new IllegalStateException("Some required CRDs does not exists"));
       return new WatcherMonitor<>(watcherListener -> kubeClient.create()
           .customResources(crd, crClass, listClass, doneableClass)

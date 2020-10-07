@@ -162,8 +162,10 @@ public class ClusterReconciliationCycle
   @Override
   protected void onConfigError(StackGresClusterContext context, HasMetadata configResource,
                                Exception ex) {
-    statusManager.sendCondition(
-        ClusterStatusCondition.CLUSTER_CONFIG_ERROR.getCondition(), context);
+    try (KubernetesClient client = clientSupplier.get()) {
+      statusManager.updateCondition(
+          ClusterStatusCondition.CLUSTER_CONFIG_ERROR.getCondition(), context, client);
+    }
     eventController.sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
         "StackGres Cluster " + configResource.getMetadata().getNamespace() + "."
             + configResource.getMetadata().getName() + " reconciliation failed: "

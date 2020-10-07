@@ -13,6 +13,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import io.fabric8.kubernetes.client.Watcher;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operatorframework.resource.WatcherListener;
+import io.stackgres.operatorframework.resource.WatcherMonitor;
 import org.junit.jupiter.api.Test;
 
 class WatcherMonitorTest {

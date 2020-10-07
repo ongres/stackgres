@@ -21,8 +21,8 @@ import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.client.internal.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,9 +103,11 @@ public class ResourceUtil {
    * @param crdName Name of the CDR to lookup.
    * @return the CustomResourceDefinition model.
    */
-  public static Optional<CustomResourceDefinition> getCustomResource(KubernetesClient client,
-                                                                     String crdName) {
-    return Optional.ofNullable(client.customResourceDefinitions().withName(crdName).get());
+  public static Optional<CustomResourceDefinitionContext> getCustomResource(KubernetesClient client,
+      String crdName) {
+    return Optional.ofNullable(client.customResourceDefinitions()
+        .withName(crdName).get())
+        .map(CustomResourceDefinitionContext::fromCrd);
   }
 
   /**

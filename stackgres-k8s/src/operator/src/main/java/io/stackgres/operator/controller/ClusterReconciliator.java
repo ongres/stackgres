@@ -40,8 +40,8 @@ public class ClusterReconciliator
     eventController.sendEvent(EventReason.CLUSTER_CREATED,
         "StackGres Cluster " + contextResource.getMetadata().getNamespace() + "."
         + contextResource.getMetadata().getName() + " created", contextResource);
-    statusManager.sendCondition(
-        ClusterStatusCondition.FALSE_FAILED.getCondition(), context);
+    statusManager.updateCondition(
+        ClusterStatusCondition.FALSE_FAILED.getCondition(), context, client);
   }
 
   @Override
@@ -49,8 +49,8 @@ public class ClusterReconciliator
     eventController.sendEvent(EventReason.CLUSTER_UPDATED,
         "StackGres Cluster " + contextResource.getMetadata().getNamespace() + "."
         + contextResource.getMetadata().getName() + " updated", contextResource);
-    statusManager.sendCondition(
-        ClusterStatusCondition.FALSE_FAILED.getCondition(), context);
+    statusManager.updateCondition(
+        ClusterStatusCondition.FALSE_FAILED.getCondition(), context, client);
   }
 
   @Override

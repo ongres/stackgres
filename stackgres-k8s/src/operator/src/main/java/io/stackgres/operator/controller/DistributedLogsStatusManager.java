@@ -58,7 +58,7 @@ public class DistributedLogsStatusManager extends AbstractClusterStatusManager<
   }
 
   @Override
-  protected void patchCluster(StackGresDistributedLogsContext context,
+  protected void patch(StackGresDistributedLogsContext context,
       KubernetesClient client) {
     StackGresDistributedLogs distributedLogs = context.getDistributedLogs();
     ResourceUtil.getCustomResource(client, StackGresDistributedLogsDefinition.NAME)

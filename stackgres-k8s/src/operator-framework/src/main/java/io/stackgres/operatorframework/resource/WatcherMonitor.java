@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.controller;
+package io.stackgres.operatorframework.resource;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;

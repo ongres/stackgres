@@ -58,7 +58,7 @@ public class ClusterStatusManager extends AbstractClusterStatusManager<
   }
 
   @Override
-  protected void patchCluster(StackGresClusterContext context,
+  protected void patch(StackGresClusterContext context,
       KubernetesClient client) {
     StackGresCluster cluster = context.getCluster();
     ResourceUtil.getCustomResource(client, StackGresClusterDefinition.NAME)
