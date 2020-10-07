@@ -24,7 +24,6 @@ variables:
                    -Dsurefire.useFile=false
                    -Dsurefire.useFile=false
                    -DtrimStackTrace=false
-  DOCUMENTATION_BASE_URL: "https://ongresinc.gitlab.io/web/stackgres/doc/latest"
   PRODUCTION_DOCUMENTATION_BASE_URL: "https://stackgres.io/doc/latest"
   SKIP_NATIVE: "false"
   SKIP_E2E: "false"

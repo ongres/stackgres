@@ -17,17 +17,19 @@ build documentation:
   dependencies:
     - build
   script:
-  - |
-    if [[ ! -z "$CI_COMMIT_TAG" && ! "$CI_COMMIT_TAG" =~ ^latest-.*$ ]]
-    then
-      DOCUMENTATION_BASE_URL="$PRODUCTION_DOCUMENTATION_BASE_URL"
-    fi
   - apt update -y
   - apt install -y jq python-pip
   - pip install yq
   - sh -x stackgres-k8s/src/api-web/src/main/swagger/build.sh
   - sh -x doc/build.sh
   - STACKGRES_VERSION="$(echo 'import xml.etree.ElementTree as ET; print ET.parse("stackgres-k8s/src/pom.xml").getroot().find("{%s}version" % "http://maven.apache.org/POM/4.0.0").text' | python)"
+  - |
+    if [[ ! -z "$CI_COMMIT_TAG" && ! "$CI_COMMIT_TAG" =~ ^latest-.*$ ]]
+    then
+      DOCUMENTATION_BASE_URL="$PRODUCTION_DOCUMENTATION_BASE_URL"
+    else
+      DOCUMENTATION_BASE_URL="https://ongresinc.gitlab.io/stackgres/$STACKGRES_VERSION"
+    fi
   - mkdir -p "doc/public/$STACKGRES_VERSION"
   - hugo -v --source doc --destination "$(pwd)/doc/public/$STACKGRES_VERSION" --baseURL="$DOCUMENTATION_BASE_URL"
   - cp -a "doc/public/$STACKGRES_VERSION" doc/public/latest
