@@ -297,6 +297,37 @@
         <groupId>org.jboss.jandex</groupId>
         <artifactId>jandex-maven-plugin</artifactId>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>${checkstyle-plugin.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>${checkstyle.version}</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>validate</id>
+            <phase>verify</phase>
+            <configuration>
+              <violationSeverity>error</violationSeverity>
+              <failOnViolation>true</failOnViolation>
+              <failsOnError>true</failsOnError>
+              <consoleOutput>true</consoleOutput>
+              <linkXRef>false</linkXRef>
+              <includeResources>false</includeResources>
+              <includeTestSourceDirectory>false</includeTestSourceDirectory>
+              <includeTestResources>false</includeTestResources>
+            </configuration>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
     <pluginManagement>
       <plugins>
@@ -386,37 +417,6 @@
       <id>safer</id> <!-- Slower but safer profile used to look for errors before pushing to SCM -->
       <build>
         <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-checkstyle-plugin</artifactId>
-            <version>${checkstyle-plugin.version}</version>
-            <dependencies>
-              <dependency>
-                <groupId>com.puppycrawl.tools</groupId>
-                <artifactId>checkstyle</artifactId>
-                <version>${checkstyle.version}</version>
-              </dependency>
-            </dependencies>
-            <executions>
-              <execution>
-                <id>validate</id>
-                <phase>verify</phase>
-                <configuration>
-                  <violationSeverity>error</violationSeverity>
-                  <failOnViolation>true</failOnViolation>
-                  <failsOnError>true</failsOnError>
-                  <consoleOutput>true</consoleOutput>
-                  <linkXRef>false</linkXRef>
-                  <includeResources>false</includeResources>
-                  <includeTestSourceDirectory>false</includeTestSourceDirectory>
-                  <includeTestResources>false</includeTestResources>
-                </configuration>
-                <goals>
-                  <goal>check</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
           <plugin>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-maven-plugin</artifactId>
