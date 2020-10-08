@@ -5,7 +5,10 @@
 
 package io.stackgres.common;
 
+import java.util.Optional;
+
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 
 public class FluentdUtil {
   public static final String NAME = "fluentd";
@@ -13,6 +16,13 @@ public class FluentdUtil {
   public static final String PATRONI_LOG_TYPE = "patroni";
   public static final int FORWARD_PORT = 12225;
   public static final String FORWARD_PORT_NAME = "fluentd-forward";
+
+  public static String databaseNameAndOptions(StackGresCluster cluster) {
+    return databaseName(cluster) + ":"
+        + Optional.ofNullable(cluster.getSpec().getDistributedLogs())
+        .map(StackGresClusterDistributedLogs::getRetention)
+        .orElse("");
+  }
 
   public static String databaseName(StackGresCluster cluster) {
     return databaseName(cluster.getMetadata().getNamespace(),

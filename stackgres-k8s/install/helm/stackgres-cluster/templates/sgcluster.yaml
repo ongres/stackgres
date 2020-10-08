@@ -141,6 +141,9 @@ spec:
   {{- if .Values.distributedLogs.enabled }}
   distributedLogs:
     sgDistributedLogs: {{ .Values.cluster.distributedLogs.sgDistributedLogs }}
+    {{- if .Values.cluster.distributedLogs.retention }}
+    retention: {{ .Values.cluster.distributedLogs.retention }}
+    {{- end }}
   {{- end }}
   prometheusAutobind: {{ .Values.cluster.prometheusAutobind }}
   {{- if .Values.nonProductionOptions }}

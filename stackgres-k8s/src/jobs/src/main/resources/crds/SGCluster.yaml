@@ -61,18 +61,12 @@ spec:
                         allResources:
                           type: object
                           description: Annotations to attach to any resource created or managed by StackGres.
-                          additionalProperties:
-                            type: string
                         pods:
                           type: object
                           description: Annotations to attach to pods created or managed by StackGres.
-                          additionalProperties:
-                            type: string
                         services:
                           type: object
                           description: Annotations to attach to services created or managed by StackGres.
-                          additionalProperties:
-                            type: string
                 postgresServices:
                   type: object
                   description: Kubernetes [services](https://kubernetes.io/docs/concepts/services-networking/service/) created or managed by StackGres.
@@ -90,8 +84,6 @@ spec:
                           description: Specify the type of K8s service to create.
                         annotations:
                           type: object
-                          additionalProperties:
-                            type: string
                           description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) to be passed to the `-primary` service.
                     replicas:
                       type: object
@@ -106,8 +98,6 @@ spec:
                           description: Specify the type of K8s service to create.
                         annotations:
                           type: object
-                          additionalProperties:
-                            type: string
                           description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) to be passed to the `-replicas` service.
                 pods:
                   type: object
@@ -142,8 +132,6 @@ spec:
                       properties:
                         labels:
                           type: object
-                          additionalProperties:
-                            type: string
                           description: Additional labels for StackGres Pods to have
                     scheduling:
                       type: object
@@ -151,8 +139,6 @@ spec:
                       properties:
                         nodeSelector:
                           type: object
-                          additionalProperties:
-                            type: string
                           description: Pod custom node selector
                   required: ["persistentVolume"]
                 configurations:
@@ -265,6 +251,17 @@ spec:
                       type: string
                       description: |
                         Name of the [SGDistributedLogs](https://stackgres.io/doc/latest/04-postgres-cluster-management/06-distributed-logs/) to use for this cluster. It must exist.
+                    retention:
+                      type: string
+                      pattern: '[0-9]+ (minutes?|hours?|days?|months?)'
+                      description: |
+                        Define a retention window with the syntax `<integer> (minutes|hours|days|months)` in which log entries are kept.
+                         Log entries will be removed when they get older more than the double of the specified retention window.
+
+                        When this field is changed the retention will be applied only to log entries that are newer than the end of
+                         the retention window previously specified. If no retention window was previously specified it is considered
+                         to be of 7 days. This means that if previous retention window is of `7 days` new retention configuration will
+                         apply after UTC timestamp calculated with: `SELECT date_trunc('days', now() at time zone 'UTC') - INTERVAL '7 days'`.
               required: ["instances", "postgresVersion", "pods"]
             status:
               type: object

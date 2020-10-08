@@ -6,7 +6,6 @@
 package io.stackgres.operator.controller;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -31,8 +30,6 @@ import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsEventReason;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSet;
@@ -46,6 +43,7 @@ import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.distributedlogs.factory.DistributedLogs;
 import io.stackgres.operator.distributedlogs.fluentd.Fluentd;
 import io.stackgres.operator.resource.DistributedLogsResourceHandlerSelector;
+import io.stackgres.operatorframework.reconciliation.AbstractReconciliationCycle;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliator;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -54,7 +52,7 @@ import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
 public class DistributedLogsReconciliationCycle
-    extends StackGresReconciliationCycle<StackGresDistributedLogsContext,
+    extends AbstractReconciliationCycle<StackGresDistributedLogsContext,
       StackGresDistributedLogs, DistributedLogsResourceHandlerSelector> {
 
   private final DistributedLogs distributeLogs;
@@ -63,6 +61,7 @@ public class DistributedLogsReconciliationCycle
   private final EventController eventController;
   private final OperatorPropertyContext operatorContext;
   private final LabelFactory<StackGresDistributedLogs> labelFactory;
+  private final CustomResourceScanner<StackGresDistributedLogs> distributedLogsScanner;
   private final CustomResourceScanner<StackGresCluster> clusterScanner;
 
   /**
@@ -81,18 +80,19 @@ public class DistributedLogsReconciliationCycle
       CustomResourceScanner<StackGresCluster> clusterScanner) {
     super("DistributeLogs", clientFactory::create,
         StackGresDistributedLogsContext::getDistributedLogs,
-        handlerSelector, objectMapperProvider.objectMapper(), distributedLogsScanner);
+        handlerSelector, objectMapperProvider.objectMapper());
     this.distributeLogs = distributeLogs;
     this.fluentd = fluentd;
     this.statusManager = statusManager;
     this.eventController = eventController;
     this.operatorContext = operatorContext;
     this.labelFactory = labelFactory;
+    this.distributedLogsScanner = distributedLogsScanner;
     this.clusterScanner = clusterScanner;
   }
 
   public DistributedLogsReconciliationCycle() {
-    super(null, null, c -> null, null, null, null);
+    super(null, null, c -> null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
     this.distributeLogs = null;
     this.fluentd = null;
@@ -100,6 +100,7 @@ public class DistributedLogsReconciliationCycle
     this.eventController = null;
     this.operatorContext = null;
     this.labelFactory = null;
+    this.distributedLogsScanner = null;
     this.clusterScanner = null;
   }
 
@@ -169,16 +170,16 @@ public class DistributedLogsReconciliationCycle
   }
 
   @Override
-  protected StackGresDistributedLogsContext mapResourceToContext(
-      StackGresDistributedLogs resource) {
-    return this.getDistributedLogsContext(resource);
+  protected ImmutableList<StackGresDistributedLogsContext> getExistingConfigs() {
+    return distributedLogsScanner.getResources()
+        .stream()
+        .map(distributedLogs -> getDistributedLogsContext(distributedLogs))
+        .collect(ImmutableList.toImmutableList());
   }
 
   private StackGresDistributedLogsContext getDistributedLogsContext(
       StackGresDistributedLogs distributedLogs) {
     final StackGresCluster cluster = getStackGresCLusterForDistributedLogs(distributedLogs);
-    final StackGresPostgresConfig postgresConfig = getStackGresPostgresConfigForDistributedLogs(
-        distributedLogs);
     return ImmutableStackGresDistributedLogsContext.builder()
         .operatorContext(operatorContext)
         .distributedLogs(distributedLogs)
@@ -186,7 +187,7 @@ public class DistributedLogsReconciliationCycle
         .cluster(cluster)
         .backupContext(Optional.empty())
         .restoreContext(Optional.empty())
-        .postgresConfig(Optional.of(postgresConfig))
+        .postgresConfig(Optional.empty())
         .profile(Optional.empty())
         .prometheus(Optional.empty())
         .labels(labelFactory.clusterLabels(cluster))
@@ -201,26 +202,6 @@ public class DistributedLogsReconciliationCycle
             fluentd.toStackGresClusterSidecarResourceFactory(),
             Optional.empty()))
         .build();
-  }
-
-  private StackGresPostgresConfig getStackGresPostgresConfigForDistributedLogs(
-      StackGresDistributedLogs distributedLogs) {
-    StackGresPostgresConfig config = new StackGresPostgresConfig();
-    config.getMetadata().setNamespace(
-        distributedLogs.getMetadata().getNamespace());
-    config.getMetadata().setName(
-        distributedLogs.getMetadata().getName());
-    config.getMetadata().setUid(
-        distributedLogs.getMetadata().getUid());
-    StackGresPostgresConfigSpec spec = new StackGresPostgresConfigSpec();
-    spec.setPostgresVersion(StackGresComponents.getPostgresMajorVersion(
-        StackGresComponents.calculatePostgresVersion(StackGresComponents.LATEST)));
-    spec.setPostgresqlConf(new HashMap<>());
-    spec.getPostgresqlConf().put("shared_preload_libraries",
-        "pg_stat_statements, auto_explain, timescaledb");
-    spec.getPostgresqlConf().put("timescaledb.telemetry_level", "off");
-    config.setSpec(spec);
-    return config;
   }
 
   private StackGresCluster getStackGresCLusterForDistributedLogs(

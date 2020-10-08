@@ -1,5 +1,7 @@
 BEGIN;
 
+CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
+
 CREATE DOMAIN log_type AS char(2) CHECK (VALUE IN ('pg','pa'));
 
 CREATE SEQUENCE log_postgres_log_time_index_seq INCREMENT 2 MINVALUE 0 MAXVALUE 1000000 CACHE 1000 CYCLE;
@@ -33,6 +35,8 @@ CREATE TABLE log_postgres (
   application_name text,
   PRIMARY KEY (log_time, log_time_index)
 );
+
+SELECT create_hypertable('log_postgres', 'log_time', chunk_time_interval => INTERVAL '1 year');
 
 ALTER SEQUENCE log_postgres_log_time_index_seq OWNED BY log_postgres.log_time_index;
 
@@ -78,6 +82,8 @@ CREATE TABLE log_patroni (
   message text,
   PRIMARY KEY (log_time, log_time_index)
 );
+
+SELECT create_hypertable('log_patroni', 'log_time', chunk_time_interval => INTERVAL '1 year');
 
 ALTER SEQUENCE log_patroni_log_time_index_seq OWNED BY log_patroni.log_time_index;
 

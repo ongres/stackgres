@@ -21,6 +21,9 @@ public class ClusterDistributedLogs {
   @JsonProperty("sgDistributedLogs")
   private String distributedLogs;
 
+  @JsonProperty("retention")
+  private String retention;
+
   public String getDistributedLogs() {
     return distributedLogs;
   }
@@ -29,9 +32,17 @@ public class ClusterDistributedLogs {
     this.distributedLogs = distributedLogs;
   }
 
+  public String getRetention() {
+    return retention;
+  }
+
+  public void setRetention(String retention) {
+    this.retention = retention;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(distributedLogs);
+    return Objects.hash(distributedLogs, retention);
   }
 
   @Override
@@ -43,13 +54,15 @@ public class ClusterDistributedLogs {
       return false;
     }
     ClusterDistributedLogs other = (ClusterDistributedLogs) obj;
-    return Objects.equals(distributedLogs, other.distributedLogs);
+    return Objects.equals(distributedLogs, other.distributedLogs)
+        && Objects.equals(retention, other.retention);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("sgDistributedLogs", distributedLogs)
+        .add("retention", retention)
         .toString();
   }
 }

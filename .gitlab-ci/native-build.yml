@@ -50,3 +50,9 @@ build jobs native executable:
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: "-jobs"
     MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,jobs"
+
+build distributedlogs-controller native executable:
+  extends: .build native executable
+  variables:
+    NATIVE_IMAGE_EXTRA_PREFIX: "-distributedlogs-controller"
+    MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,distributedlogs-controller"

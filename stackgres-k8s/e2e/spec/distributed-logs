@@ -38,6 +38,8 @@ e2e_test() {
   run_test "Checking that distributed logs attach to clusters" check_distributed_logs_attach_to_clusters
 
   run_test "Checking that distributed logs query endpoint works correctly"  check_distributed_logs_query_endpoint
+
+  run_test "Checking that retention works correctly"  check_retention
 }
 
 default_annotations(){
@@ -311,3 +313,61 @@ get_logs_count_with_filter_of_log_with_text() {
     | jq -r "map(select(.message != null and (.message | contains(\"$1\")) and (.$2 | select(. == null) = \"\" | tostring) == \"$FILTER\")) | length"
 }
 
+check_retention() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
+    --set-string cluster.distributedLogs.retention="1 minutes" \
+    --set distributedLogs.enabled=true \
+    --set distributedLogs.create=false \
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+
+  local TABLE
+  for TABLE in log_postgres log_patroni
+  do
+    wait_until run_query -c "$DISTRIBUTED_LOGS_NAME" -x psql -k postgres \
+        -h "$DISTRIBUTED_LOGS_NAME"-primary -p 5432 \
+        -d "${CLUSTER_NAMESPACE}_${CLUSTER_NAME}" \
+        -q "SELECT EXISTS (
+        SELECT * FROM _timescaledb_catalog.hypertable
+        LEFT JOIN _timescaledb_catalog.dimension ON (hypertable.id = dimension.hypertable_id)
+        WHERE table_name = '$TABLE' AND column_name = 'log_time'
+        AND INTERVAL '1 minute' = (interval_length / 1000000) * INTERVAL '1 second')"
+    run_query -c "$DISTRIBUTED_LOGS_NAME" -x psql -k postgres \
+      -h "$DISTRIBUTED_LOGS_NAME"-primary -p 5432 \
+        -d "${CLUSTER_NAMESPACE}_${CLUSTER_NAME}" \
+      -q "SELECT drop_chunks(now() + INTERVAL '1 year', '$TABLE', newer_than => to_timestamp(0))"
+  done
+
+  for TEXT in distributed-logs-retention-worked distributed-logs-retention-works distributed-logs-retention-still-works
+  do
+    RESPONSE="$(run_query -c "$CLUSTER_NAME" -x psql -k postgres \
+      -h "$CLUSTER_NAME"-primary -p 5432 -q "SELECT '$TEXT'")"
+
+    if [ "$RESPONSE" = "$TEXT" ]
+    then
+      echo "SUCCESS: Log entry created"
+    else
+      echo "FAIL: Cannot create log entry"
+      return 1
+    fi
+  done
+
+  for TEXT in distributed-logs-retention-worked distributed-logs-retention-works distributed-logs-retention-still-works
+  do
+    if wait_until eval 'get_logs_count_with_text "$TEXT" | grep -q "^0$"'
+    then
+      echo "SUCCESS: Cluster log entry was removed for cluster $CLUSTER_NAME"
+    else
+      echo "FAIL: Cluster log entry was not removed for cluster $CLUSTER_NAME"
+      return 1
+    fi
+  done
+}
+
+get_logs_timestamp_with_text() {
+  local RESULT="$(run_curl \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME$2?text=$1" \
+    -n "$CLUSTER_NAMESPACE")"
+  date -d "$(echo_raw "$RESULT" \
+    | jq -r ".[] | select(.message != null and (.message | contains(\"$1\"))) | .logTime" \
+    | head -n 1 | tr 'T' ' ')" +%s
+}
