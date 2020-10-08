@@ -11,9 +11,9 @@ public interface EventReason {
 
   String reason();
 
-  public Type type();
+  Type type();
 
-  public enum Type {
+  enum Type {
     NORMAL("Normal"),
     WARNING("Warning");
 
