@@ -8,6 +8,7 @@ package io.stackgres.operatorframework.resource;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import org.slf4j.Logger;
@@ -34,6 +35,8 @@ public class WatcherMonitor<T> implements AutoCloseable {
     this.giveUp = giveUp;
   }
 
+  @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
+      justification = "Method is called by private inner class")
   private void onEventReceived() {
     retries.set(0);
   }
