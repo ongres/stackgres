@@ -27,6 +27,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
+import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsEventReason;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction;
 import io.stackgres.common.resource.CustomResourceScanner;
@@ -101,18 +102,22 @@ public class DistributedLogsReconciliationCycle
 
   @Override
   protected void onError(Exception ex) {
-    eventController.sendEvent(EventReason.DISTRIBUTED_LOGS_CONFIG_ERROR,
-        "StackGres Cluster reconciliation cycle failed: "
-            + ex.getMessage());
+    try (KubernetesClient client = clientSupplier.get()) {
+      eventController.sendEvent(DistributedLogsEventReason.DISTRIBUTED_LOGS_CONFIG_ERROR,
+          "StackGres Cluster reconciliation cycle failed: "
+              + ex.getMessage(), client);
+    }
   }
 
   @Override
   protected void onConfigError(StackGresDistributedLogsContext context,
       HasMetadata configResource, Exception ex) {
-    eventController.sendEvent(EventReason.DISTRIBUTED_LOGS_CONFIG_ERROR,
-        "StackGres DistributeLogs " + configResource.getMetadata().getNamespace() + "."
-            + configResource.getMetadata().getName() + " reconciliation failed: "
-            + ex.getMessage(), configResource);
+    try (KubernetesClient client = clientSupplier.get()) {
+      eventController.sendEvent(DistributedLogsEventReason.DISTRIBUTED_LOGS_CONFIG_ERROR,
+          "StackGres DistributeLogs " + configResource.getMetadata().getNamespace() + "."
+              + configResource.getMetadata().getName() + " reconciliation failed: "
+              + ex.getMessage(), configResource, client);
+    }
   }
 
   @Override

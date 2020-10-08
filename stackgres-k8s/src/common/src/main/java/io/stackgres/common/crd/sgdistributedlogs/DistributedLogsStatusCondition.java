@@ -3,29 +3,27 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.controller;
+package io.stackgres.common.crd.sgdistributedlogs;
 
-import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
-
-public enum ClusterStatusCondition {
+public enum DistributedLogsStatusCondition {
 
   POD_REQUIRES_RESTART(Type.PENDING_RESTART, Status.TRUE, "PodRequiresRestart"),
   FALSE_PENDING_RESTART(Type.PENDING_RESTART, Status.FALSE, "FalsePendingRestart"),
-  CLUSTER_CONFIG_ERROR(Type.FAILED, Status.TRUE, "ClusterConfigFailed"),
+  DISTRIBUTED_LOGS_CONFIG_ERROR(Type.FAILED, Status.TRUE, "DistributedLogsConfigFailed"),
   FALSE_FAILED(Type.FAILED, Status.FALSE, "FalseFailed");
 
   private final String type;
   private final String status;
   private final String reason;
 
-  ClusterStatusCondition(Type type, Status status, String reason) {
+  DistributedLogsStatusCondition(Type type, Status status, String reason) {
     this.type = type.getType();
     this.status = status.getStatus();
     this.reason = reason;
   }
 
-  public StackGresClusterCondition getCondition() {
-    return new StackGresClusterCondition(type, status, reason);
+  public StackGresDistributedLogsCondition getCondition() {
+    return new StackGresDistributedLogsCondition(type, status, reason);
   }
 
   private enum Type {

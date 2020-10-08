@@ -9,6 +9,8 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.crd.sgcluster.ClusterEventReason;
+import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.resource.ClusterResourceHandlerSelector;
@@ -37,18 +39,18 @@ public class ClusterReconciliator
 
   @Override
   protected void onConfigCreated() {
-    eventController.sendEvent(EventReason.CLUSTER_CREATED,
+    eventController.sendEvent(ClusterEventReason.CLUSTER_CREATED,
         "StackGres Cluster " + contextResource.getMetadata().getNamespace() + "."
-        + contextResource.getMetadata().getName() + " created", contextResource);
+        + contextResource.getMetadata().getName() + " created", contextResource, client);
     statusManager.updateCondition(
         ClusterStatusCondition.FALSE_FAILED.getCondition(), context, client);
   }
 
   @Override
   protected void onConfigUpdated() {
-    eventController.sendEvent(EventReason.CLUSTER_UPDATED,
+    eventController.sendEvent(ClusterEventReason.CLUSTER_UPDATED,
         "StackGres Cluster " + contextResource.getMetadata().getNamespace() + "."
-        + contextResource.getMetadata().getName() + " updated", contextResource);
+        + contextResource.getMetadata().getName() + " updated", contextResource, client);
     statusManager.updateCondition(
         ClusterStatusCondition.FALSE_FAILED.getCondition(), context, client);
   }

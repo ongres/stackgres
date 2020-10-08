@@ -9,6 +9,8 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsEventReason;
+import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
 import io.stackgres.operator.resource.DistributedLogsResourceHandlerSelector;
@@ -38,18 +40,18 @@ public class DistributedLogsReconciliator
 
   @Override
   protected void onConfigCreated() {
-    eventController.sendEvent(EventReason.DISTRIBUTED_LOGS_CREATED,
+    eventController.sendEvent(DistributedLogsEventReason.DISTRIBUTED_LOGS_CREATED,
         "StackGres Centralized Logging " + contextResource.getMetadata().getNamespace() + "."
-        + contextResource.getMetadata().getName() + " created", contextResource);
+        + contextResource.getMetadata().getName() + " created", contextResource, client);
     statusManager.updateCondition(
         DistributedLogsStatusCondition.FALSE_FAILED.getCondition(), context, client);
   }
 
   @Override
   protected void onConfigUpdated() {
-    eventController.sendEvent(EventReason.DISTRIBUTED_LOGS_UPDATED,
+    eventController.sendEvent(DistributedLogsEventReason.DISTRIBUTED_LOGS_UPDATED,
         "StackGres Centralized Logging " + contextResource.getMetadata().getNamespace() + "."
-        + contextResource.getMetadata().getName() + " updated", contextResource);
+        + contextResource.getMetadata().getName() + " updated", contextResource, client);
     statusManager.updateCondition(
         DistributedLogsStatusCondition.FALSE_FAILED.getCondition(), context, client);
   }

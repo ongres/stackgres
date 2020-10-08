@@ -31,6 +31,8 @@ import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
+import io.stackgres.common.crd.sgcluster.ClusterEventReason;
+import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
@@ -154,22 +156,24 @@ public class ClusterReconciliationCycle
 
   @Override
   protected void onError(Exception ex) {
-    eventController.sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
-        "StackGres Cluster reconciliation cycle failed: "
-            + ex.getMessage());
+    try (KubernetesClient client = clientSupplier.get()) {
+      eventController.sendEvent(ClusterEventReason.CLUSTER_CONFIG_ERROR,
+          "StackGres Cluster reconciliation cycle failed: "
+              + ex.getMessage(), client);
+    }
   }
 
   @Override
   protected void onConfigError(StackGresClusterContext context, HasMetadata configResource,
-                               Exception ex) {
+      Exception ex) {
     try (KubernetesClient client = clientSupplier.get()) {
       statusManager.updateCondition(
           ClusterStatusCondition.CLUSTER_CONFIG_ERROR.getCondition(), context, client);
+      eventController.sendEvent(ClusterEventReason.CLUSTER_CONFIG_ERROR,
+          "StackGres Cluster " + configResource.getMetadata().getNamespace() + "."
+              + configResource.getMetadata().getName() + " reconciliation failed: "
+              + ex.getMessage(), configResource, client);
     }
-    eventController.sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
-        "StackGres Cluster " + configResource.getMetadata().getNamespace() + "."
-            + configResource.getMetadata().getName() + " reconciliation failed: "
-            + ex.getMessage(), configResource);
   }
 
   @Override

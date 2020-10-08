@@ -11,10 +11,12 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.Watcher.Action;
 import io.quarkus.runtime.Application;
+import io.stackgres.common.KubernetesClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +26,7 @@ public class ResourceWatcherFactory {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(ResourceWatcherFactory.class);
 
+  private final KubernetesClientFactory clientFactory;
   private final EventController eventController;
 
   /**
@@ -31,8 +34,10 @@ public class ResourceWatcherFactory {
    */
   @Inject
   public ResourceWatcherFactory(
+      KubernetesClientFactory clientFactory,
       EventController eventController) {
     super();
+    this.clientFactory = clientFactory;
     this.eventController = eventController;
   }
 
@@ -66,10 +71,12 @@ public class ResourceWatcherFactory {
         LOGGER.info("onClose was called");
       } else {
         LOGGER.error("onClose was called, ", cause);
-        eventController.sendEvent(EventReason.OPERATOR_ERROR,
-            "Watcher was closed unexpectedly: " + (cause.getMessage() != null
-            ? cause.getMessage() : "unknown reason"));
-        new Thread(() -> Application.currentApplication().stop()).start();
+        try (KubernetesClient client = clientFactory.create()) {
+          eventController.sendEvent(OperatorEventReason.OPERATOR_ERROR,
+              "Watcher was closed unexpectedly: " + (cause.getMessage() != null
+              ? cause.getMessage() : "unknown reason"), client);
+          new Thread(() -> Application.currentApplication().stop()).start();
+        }
       }
     }
   }

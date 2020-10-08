@@ -1,0 +1,32 @@
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+package io.stackgres.operator.controller;
+
+import static io.stackgres.operatorframework.resource.EventReason.Type.WARNING;
+
+public enum OperatorEventReason implements io.stackgres.common.crd.OperatorEventReason {
+
+  OPERATOR_ERROR(WARNING, "OperatorError");
+
+  private final Type type;
+  private final String reason;
+
+  OperatorEventReason(Type type, String reason) {
+    this.type = type;
+    this.reason = reason;
+  }
+
+  @Override
+  public String reason() {
+    return reason;
+  }
+
+  @Override
+  public Type type() {
+    return type;
+  }
+
+}
