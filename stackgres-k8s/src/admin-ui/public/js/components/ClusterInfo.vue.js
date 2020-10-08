@@ -410,7 +410,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 				</div>
 
 				<div class="resourcesMetadata" v-if="hasProp(cluster, 'data.spec.metadata.annotations')">
-					<h2>Resources Metadata</h2>
+					<h2>Resources Metadata <span class="helpTooltip"  @mouseover="helpTooltip( 'SGCluster', 'spec.metadata')"></span></h2>
 					<table v-if="hasProp(cluster, 'data.spec.metadata.annotations.allResources')" class="clusterConfig">
 						<thead>
 							<th></th>
@@ -422,6 +422,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 							<tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.allResources)">
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.allResources).length">
 									All Resources
+									<span class="helpTooltip"  @mouseover="helpTooltip( 'SGCluster', 'spec.metadata.annotations.allResources')"></span>
 								</td>
 								<td class="label">
 									{{ item.annotation }}
@@ -444,6 +445,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 							<tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.pods)">
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.pods).length">
 									Pods
+									<span class="helpTooltip"  @mouseover="helpTooltip( 'SGCluster', 'spec.metadata.annotations.pods')"></span>
 								</td>
 								<td class="label">
 									{{ item.annotation }}

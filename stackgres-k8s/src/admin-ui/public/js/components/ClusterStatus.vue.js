@@ -71,17 +71,11 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 					</thead>
 					<tbody>
 						<tr>
-							<td v-if="cluster.status.hasOwnProperty('cpuPsiAvg60')">
-								{{ cluster.status.cpuRequested }} (avg. load {{ cluster.status.cpuPsiAvg60 }})
-							</td>
-							<td v-else>
-								{{ cluster.status.cpuRequested }} (avg. load {{ cluster.status.averageLoad1m }})
-							</td>
-							<td v-if="cluster.status.hasOwnProperty('memoryPsiAvg60')">
-								{{ cluster.status.memoryPsiAvg60 }}
+							<td>
+								{{ cluster.status.cpuRequested }} (avg. load {{ cluster.status.hasOwnProperty('cpuPsiAvg60') ? cluster.status.cpuPsiAvg60 : cluster.status.averageLoad1m }})
 							</td>
 							<td>
-								{{ cluster.status.memoryRequested }}
+								{{ cluster.status.hasOwnProperty('memoryPsiAvg60') ? cluster.status.memoryPsiAvg60 : cluster.status.memoryRequested}}
 							</td>
 							<td class="flex-center">
 								<div class="donut">
@@ -94,7 +88,7 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 								</div>
 								{{ cluster.status.diskUsed }} / {{ cluster.data.spec.pods.persistentVolume.size }} <span v-if="cluster.status.hasOwnProperty('ioPsiAvg60')">(psi avg. {{ cluster.status.ioPsiAvg60 }})</span>
 							</td>
-							<td>{{ cluster.data.podsReady }} / {{ cluster.data.pods.length }}</td>
+							<td>{{ cluster.data.podsReady }} / {{ cluster.data.spec.instances }}</td>
 						</tr>
 					</tbody>
 				</table>
@@ -136,17 +130,11 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 							<td>{{ pod.name }}</td>
 							<td class="label" :class="pod.role"><span>{{ pod.role }}</span></td>
 							<td class="label" :class="pod.status"><span>{{ pod.status }}</span></td>
-							<td v-if="pod.hasOwnProperty('cpuPsiAvg60')">
-								{{ pod.cpuRequested }} (avg. load {{ pod.cpuPsiAvg60 }})
-							</td>
-							<td v-else>
-								{{ pod.cpuRequested }} (avg. load {{ pod.averageLoad1m }})
-							</td>
-							<td v-if="pod.hasOwnProperty('memoryPsiAvg60')">
-								{{ pod.memoryPsiAvg60 }}
+							<td>
+								{{ pod.cpuRequested }} (avg. load {{ pod.hasOwnProperty('cpuPsiAvg60') ? pod.cpuPsiAvg60 : pod.averageLoad1m }})
 							</td>
 							<td>
-								{{ pod.memoryRequested }}
+								{{ pod.hasOwnProperty('memoryPsiAvg60') ? pod.memoryPsiAvg60 : pod.memoryRequested }}
 							</td>
 							<td>
 								{{ pod.diskUsed }} / {{ pod.diskRequested }} <span v-if="pod.hasOwnProperty('ioPsiAvg60')">(psi avg. {{ pod.ioPsiAvg60 }})</span>
