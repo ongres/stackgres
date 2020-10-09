@@ -1,6 +1,7 @@
 ---
 title: Post-installation
 weight: 3
+url: install/post/install
 ---
 
 ## Connect to the UI

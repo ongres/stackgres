@@ -1,6 +1,7 @@
 ---
 title: "Licensing"
 weight: 5
+url: intro/license
 ---
 
 StackGres source code is licensed under the OSI-approved open source license [GNU Affero General
@@ -11,5 +12,5 @@ We respect others who switch to or are directly built as source-available softwa
  follow this approach. We love the concept of GitLab’s stewardship, and in the same spirit, we
  promise you that StackGres will always be open source software. 
 
-Contact us at stackgres at ongres doc com if you want a trial or commercial license that does not
+Contact us at StackGres at OnGres doc com if you want a trial or commercial license that does not
  contain the GPL clauses.
