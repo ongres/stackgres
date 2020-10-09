@@ -3167,7 +3167,7 @@ table.clusterConfig a:hover svg, td.usedOn a:hover svg path{
     fill: var(--lblue) !important;
 }
 
-table.clusterConfig svg, td.usedOn svg {
+table.clusterConfig svg, td.usedOn svg, tr.controlData svg {
     fill: var(--blue);
     width: 15px;
     display: inline-block;
@@ -4010,7 +4010,7 @@ td.operation.Reset > span {
     padding: 20px !important;
 }
 
-.daterangepicker tbody {
+.daterangepicker tbody  {
     color: var(--gray5);
 }
 
@@ -4519,6 +4519,12 @@ tr.details.open > td:first-child:before {
     top: -28px;
     border: 2px solid var(--blue);
     border-right: 0;
+}
+
+tr.controlData a {
+    display: inline-flex;
+    cursor: pointer;
+    color: var(--gray5);
 }
 
 /* */
