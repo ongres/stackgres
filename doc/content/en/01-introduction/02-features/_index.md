@@ -1,6 +1,7 @@
 ---
 title: "Features"
 weight: 2
+url: intro/features
 ---
 
 * Running on Kubernetes. Embracing multi-cloud and on-premise.

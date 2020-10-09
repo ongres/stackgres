@@ -1,6 +1,7 @@
 ---
 title: Create your first cluster
 weight: 3
+url: demo/cluster/create
 ---
 
 ## Installation with kubectl
@@ -161,7 +162,7 @@ CREATE DATABASE
 postgres=# \q
 ```
 
-Please check [about the postgres-util side car]({{% relref "/05-postgres-administration/01-local-connection-and-the-postgres-util-sidecar" %}}) and [how to connect to the postgres cluster]({{% relref "/04-postgres-cluster-management/05-connecting-to-the-postgres-cluster" %}}) for more details.
+Please check [about the postgres-util side car]({{% relref "/04-administration-guide/REVIEW-local-connection-and-the-postgres-util-sidecar" %}}) and [how to connect to the postgres cluster]({{% relref "/04-administration-guide/02-connecting-to-the-cluster" %}}) for more details.
 
 ## Manage the status of the PostgreSQL cluster
 
@@ -203,4 +204,4 @@ Session ended, resume using 'kubectl attach psql-connect -c psql-connect -i -t' 
 pod "psql-connect" deleted
 ```
 
-Check [how to connect to the cluster]({{% relref "04-postgres-cluster-management/05-connecting-to-the-postgres-cluster#dns-resolution" %}}) for more details.
+Check [how to connect to the cluster]({{% relref "/04-administration-guide/02-connecting-to-the-cluster#dns-resolution" %}}) for more details.

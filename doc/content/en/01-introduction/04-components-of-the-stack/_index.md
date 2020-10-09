@@ -1,6 +1,7 @@
 ---
 title: "Components of the Stack"
 weight: 4
+url: intro/stackcomponents
 ---
 
 Running Postgres in production requires "a RedHat" of PostgreSQL. A curated set of open source components built,
@@ -10,8 +11,8 @@ it to provide what a Linux distribution provide.
 Exists an ecosystem of tools built around Postgres that can be used to build a Postgres distribution. This is what
 we call the stack of components.
 
-Chosing the right component of this stack is an hard task. Exists many components that overlap functionalities or have
-pros and cons to take into account before chosing one over another. It is required an high understanding of all the 
+Choosing the right component of this stack is an hard task. Exists many components that overlap functionalities or have
+pros and cons to take into account before choosing one over another. It is required an high understanding of all the 
 components in order to chose the ones that fit together and provide a production ready Postgres distribution.
 
 ![Components of the Stack](stack.png "Components of the Stack")
@@ -23,7 +24,7 @@ requirements in each different area required in the Postgres production distribu
 
 The main container used for a Postgres cluster node uses an UBI 8 minimal image as its base to which is added a
 vanilla PostgreSQL v11, v12. It uses a persistent storage configured via StorageClass. Is always deployed with a
-sidecar util container to allow access for a system/database admisitrator.
+sidecar util container to allow access for a system/database administrator.
 
 ## Configuration
 
@@ -57,14 +58,14 @@ Exists 3 alternatives solutions:
 
 Which one to chose?
 
-For StackGres PgBouncer was the chosen solution. It is enough simple and stable to be used for connection pooling. It has
-a cons that is the lack of multithreading that can lead to a saturation of CPU when connections increase over a vertain limit
-that depends on the perfromnace of a sigle core of the CPU where it is running. Odyssey will be a good candidate to replace
+The StackGres chosen solution is PgBouncer. It is enough simple and stable to be used for connection pooling. 
+The disadvantage is the lack of multithreading that can lead to CPU saturation when connections increase over certain limit
+that depends on the performance of a single CPU's core where it is running. Odyssey will be a good candidate to replace
 PgBouncer when it will become more mature.
 
 ## High availability
 
-If a Postgres instance goes down or is not working properly we want our cluster to recover by chosing a working instance
+If a Postgres instance goes down or is not working properly we want our cluster to recover by choosing a working instance
 to convert to the new master and configure all the other instances and the application to point to this new master. We want
 all this to happen without manual intervention.
 
@@ -99,14 +100,14 @@ Also, where do we store our backups?
 
 And finally, will our backup work when needed or will it fail?
 
-Wal-g, the successor of Wal-e, is the most complete and lightweight solution to provide both incremental (trought archive
+Wal-g, the successor of Wal-e, is the most complete and lightweight solution to provide both incremental (trough archive
 command) and full backup support. Also, it provides out of the box features that allow store backup in a persistent volume
 (using a storage class that supports `ReadWriteMany` access mode) or a cloud storage between AWS S3, Google Cloud Storage
 or Azure Blob Storage. It also allow configure aspects like bandwidth or disk usage rate.
 
 ## Log
 
-We want to sotre our logs distributed across all our containers in a central location and be able to analyze them when
+We want to store our logs distributed across all our containers in a central location and be able to analyze them when
 needed. It does not exists a good solution for that so you have to build one. Exists [fluentd](https://www.fluentd.org/)
 and [Loki](https://grafana.com/oss/loki/), this last does not work very well with Postgres. An alternative is to store
 all the logs in Postgres using [Timescale](https://github.com/timescale/timescaledb).
@@ -117,7 +118,7 @@ How do I locate the master, if it might be changing? How do I obtain traffic met
 duplicate, A/B to test cluster or event inspect it?
 
 [Envoy](https://www.envoyproxy.io/) is an open source edge and service proxy, designed for cloud-native applications. It is
-extensible in order to provide advanced funcionality based on the actual traffic (for example the Postgres could be parsed
+extensible in order to provide advanced functionality based on the actual traffic (for example the Postgres could be parsed
 in order to offer stats) or on connection characteristic (like the TLS certificate in order to chose to which node the
 connection have to be dispatched.
 
@@ -136,16 +137,35 @@ Which monitoring solution can we use to monitor a Postgres cluster?
 
 
 StackGres approach here is to enable as much monitoring solution as possible. Currently, only Prometheus can connect
-to StackGres stats using the [PostgreSQL Server Exporter](https://github.com/wrouesnel/postgres_exporter).
+to StackGres stats using the [PostgreSQL Server Exporter](https://github.com/wrouesnel/postgres_exporter) 
+and integrates as a sidecar offering an auto binding mechanism if prometheus is installed using the [prometheus operator](https://github.com/coreos/prometheus-operator).
 
 Take in account that Prometheus is a dependency and that StackGres expects that you install and configure it separately.
 
-Of course, we have provided an option to deploy Prometheus alongside with StackGres as part of the [Helm chart](/02-demo-quickstart/02-operator-installation/#installation-with-helm) (addin the flag `prometheus-operator.create=true`),
-but that is only for the [Demo/Quickstart](/02-demo-quickstart), therefore be careful to not enable it for production porpuses.
+Of course, StackGres provides an option to deploy Prometheus alongside with the StackGres Operator 
+as part of the [Helm chart](/02-demo-quickstart/02-operator-installation/#installation-with-helm) 
+and you can follow the steps there to enable the parameters and override from the default Helm chart the needed entries so that monitoring integration work as expected. 
+Please, read and review the steps and notes for a successful installation.
+
+Please note that Prometheus is to be removed from the Helm chart at some point, so the actual instructions will change and be obsolete.
+
+### Grafana integration
+
+By default helm chart of [prometheus operator](https://github.com/coreos/prometheus-operator) comes
+ with grafana and StackGres offer an integration to allow monitoring a StackGres cluster pod
+ directly from the StackGres UI. There are various options to achieve it.
+
+StackGres includes three ways to perform such integration.
+
+- [All in one](/03-production-installation/01-pre-requisites/#all-in-one)
+- [Automatic integration](/03-production-installation/01-pre-requisites/#automatic-integration)
+- [Manual integration](/03-production-installation/01-pre-requisites/#manual-integration)
+
+Some manual steps are required in order to achieve such integration.
 
 ## User interface
 
-Exists some user interface to interact with Postgres like pgadmin or dbviewer that allow to look at the database content
+Exists some user interface to interact with Postgres like [DBeaver](https://dbeaver.io/) that allow to look at the database content
 and configuration. We need a user interface that is capable of manage an entire cluster. How do I list the clusters?
 How many nodes have a cluster? What is the status of replication? How many resources are used by a node? How to get
 monitoring info of a particular node?
@@ -153,4 +173,3 @@ monitoring info of a particular node?
 StackGres provide a Web and CLI user interface able to monitor and interact with the created StackGres clusters. It allow
 to do basic and advanced tasks like list/get/create/update/delete a cluster or execute a switchover or a backup recovery.
 
-The Web interface is also able to integrate with Grafana in order to allow see stats of each node of the cluster.
