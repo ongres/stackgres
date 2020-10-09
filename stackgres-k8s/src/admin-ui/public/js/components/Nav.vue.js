@@ -128,7 +128,7 @@ var Nav = Vue.component("sg-nav", {
 				</div>-->				
 			</div>
 			
-			<div id="helpTooltip"><vue-markdown :source=helpTooltipText></vue-markdown></div>
+			<div id="helpTooltip" class="hideOnClick"><vue-markdown :source=tooltipsText></vue-markdown></div>
 		</aside>`,
 
 	data: function() {
@@ -177,8 +177,8 @@ var Nav = Vue.component("sg-nav", {
 			return store.state.cloneCRD
 		},
 
-		helpTooltipText () {
-			return store.state.helpTooltip
+		tooltipsText () {
+			return store.state.tooltipsText
 		}
 
 		/* confirmDeleteName() {

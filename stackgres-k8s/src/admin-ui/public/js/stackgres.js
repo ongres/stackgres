@@ -738,18 +738,8 @@ const store = new Vuex.Store({
       },
       forbidden: []
     },
-    helpTooltip: '',
-    tooltips: {
-      description: 'Click on a question mark to get help and tips about that field.', 
-      SGUI: {},
-      SGCluster: {},
-      SGBackup: {},
-      SGPostgresConfig: {},
-      SGBackupConfig: {},
-      SGPoolingConfig: {},
-      SGInstanceProfile: {},
-      SGDistributedLogs: {}
-    },
+    tooltipsText: 'Click on a question mark to get help and tips about that field.',
+    tooltips: {},
     deleteItem: {
       kind: '',
       namespace: '',
@@ -980,11 +970,13 @@ const store = new Vuex.Store({
     },
 
     setTooltips (state, tooltips) {
-      state.tooltips[tooltips.kind] = tooltips.description;
+      Object.keys(tooltips).forEach(function(key){
+        state.tooltips['sg' + key.replace('Dto','').toLowerCase()] = tooltips[key];
+      })
     },
 
-    setTooltipDescription (state, description) {
-      state.tooltips.description = description;
+    setTooltipsText (state, tooltipsText) {
+      state.tooltipsText = tooltipsText;
     },
 
     showLogs (state, show) {
@@ -1003,9 +995,6 @@ const store = new Vuex.Store({
       state.cloneCRD.data.metadata.namespace = namespace;
     },
     
-    setHelpTooltip (state, tooltip) {
-      state.helpTooltip = tooltip
-    }
   }
 });
 
@@ -1051,7 +1040,7 @@ Vue.mixin({
         })
       }
       
-      store.commit('setHelpTooltip', param.description)
+      store.commit('setTooltipsText', param.description)
       $('#helpTooltip').show()
     },
 
@@ -1193,19 +1182,14 @@ Vue.mixin({
 
     loadTooltips: function( kind, lang = 'EN' ) {
 
-      if( !store.state.tooltips[kind].hasOwnProperty('metadata.name') ) {
-        //console.log("Reading "+kind+" tooltips");
+      fetch('/admin/info/sg-tooltips.json')
+      .then(response => response.json())
+      .then(data => {
 
-        fetch('/admin/js/components/forms/help/crd-'+kind+'-EN.json')
-        .then(response => response.json())
-        .then(data => 
-          store.commit('setTooltips', { 
-            kind: kind, 
-            description: data 
-          })
-        );
-        
-      }
+        let tooltips = data.components.schemas;
+        cleanupTooltips(tooltips)
+        store.commit('setTooltips', tooltips)
+      });
 
     },
 
@@ -1787,6 +1771,12 @@ const vm = new Vue({
       }
     }.bind(this), 10000);
 
+  },
+
+  computed: {
+
+    
+
   }
 });
 
@@ -1830,6 +1820,26 @@ Vue.filter('formatTimestamp',function(t, part){
     }
       
 });
+
+
+function cleanupTooltips( obj ) {
+  Object.keys(obj).forEach(function(key){
+    if(obj[key].hasOwnProperty('properties')){
+      
+      obj[key].properties["description"] = obj[key].hasOwnProperty('description') ? obj[key].description : ''
+      obj[key] = obj[key].properties
+      cleanupTooltips(obj[key])
+      
+    } else if ( (obj[key].type == 'array') && obj[key].items.hasOwnProperty('properties')){
+      //obj[key] = obj[key].items.properties
+      obj[key].properties["description"] = obj[key].items.hasOwnProperty('description') ? obj[key].items.description : ''
+      Object.keys(obj[key].items.properties).forEach(function(k){
+        obj[key][k] = obj[key].items.properties[k].description
+      })      
+    } else
+      obj[key] =obj[key].description
+  })
+}
 
 function notFound() {
   store.commit('notFound',true)
@@ -2523,13 +2533,13 @@ $(document).ready(function(){
   onmousemove = function (e) {
 
     if( (window.innerWidth - e.clientX) > 420 ) {
-      $('#nameTooltip').css({
+      $('#nameTooltip, #infoTooltip').css({
         "top": e.clientY+20, 
         "right": "auto",
         "left": e.clientX+20
       })
     } else {
-      $('#nameTooltip').css({
+      $('#nameTooltip, #infoTooltip').css({
         "top": e.clientY+20, 
         "left": "auto",
         "right": window.innerWidth - e.clientX + 20
@@ -2551,6 +2561,33 @@ $(document).ready(function(){
     $('#nameTooltip').removeClass('show');
   });
 
+  $(document).on('click','[data-tooltip]', function(e){
+    if( (window.innerWidth - e.clientX) > 420 ) {
+      $('#helpTooltip').css({
+        "top": e.clientY+10, 
+        "right": "auto",
+        "left": e.clientX+10
+      })
+    } else {
+      $('#helpTooltip').css({
+        "top": e.clientY+10, 
+        "left": "auto",
+        "right": window.innerWidth - e.clientX + 10
+      })
+    }
+
+    if(!$(this).hasClass('show')) {
+      store.commit('setTooltipsText', $(this).data('tooltip'))
+      $('.helpTooltip.show').removeClass('show')
+      $('#helpTooltip').addClass('show').show()
+    } else {
+      store.commit('setTooltipsText','Click on a question mark to get help and tips about that field.')
+      $('#helpTooltip').removeClass('show').hide()
+    }
+
+    $(this).toggleClass('show')  
+  })
+
   $(document).on('click','a.help', function(){
     $('a.help.active').removeClass('active')
     $(this).addClass('active')
@@ -2569,25 +2606,29 @@ $(document).ready(function(){
     }
   });
 
-  onmousemove = function (e) {
+ /*  onmousemove = function (e) {
 
     if( (window.innerWidth - e.clientX) > 420 ) {
-      $('#helpTooltip').css({
+      $('#helpTooltip:not(.show)').css({
         "top": e.clientY+20, 
         "right": "auto",
         "left": e.clientX+20
       })
     } else {
-      $('#helpTooltip').css({
+      $('#helpTooltip:not(.show)').css({
         "top": e.clientY+20, 
         "left": "auto",
         "right": window.innerWidth - e.clientX + 20
       })
     }
-  }
+  } */
 
-  $(document).on('mouseleave','.helpTooltip', function(){
-    $('#helpTooltip').hide()
-  })
+  // Hide divs on click out
+  $(document).click(function(event) { 
+    var $target = $(event.target);
+    
+    if( $('.hideOnClick.show').length && !$target.closest('.show').length)
+      $('.hideOnClick.show').removeClass('show').fadeOut()
+  });
 
 });

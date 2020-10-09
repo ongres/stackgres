@@ -54,19 +54,19 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 					<thead>
 						<th>
 							Total CPU 
-							<span class="helpTooltip" @mouseover="helpTooltip( 'SGUI', 'sgcluster.status.totalCpu')"></span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.cpuRequested + ' (' + (cluster.status.hasOwnProperty('cpuPsiAvg60') ? tooltips.sgcluster.pods.cpuPsiAvg60 : tooltips.sgcluster.pods.averageLoad1m) + ')'"></span>
 						</th>
 						<th>
 							Total Memory
-							<span class="helpTooltip" @mouseover="helpTooltip( 'SGUI', 'sgcluster.status.totalMemory')"></span>
+							<span class="helpTooltip" :data-tooltip="cluster.status.hasOwnProperty('memoryPsiAvg60') ? tooltips.sgcluster.pods.memoryPsiAvg60 : tooltips.sgcluster.pods.memoryRequested"></span>
 						</th>
 						<th>
 							Primary Node Disk
-							<span class="helpTooltip" @mouseover="helpTooltip( 'SGUI', 'sgcluster.status.primaryNodeDisk')"></span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.diskUsed + ' / ' + tooltips.sgcluster.spec.pods.persistentVolume.size + (cluster.status.hasOwnProperty('ioPsiAvg60') ? ' (' + tooltips.sgcluster.pods.ioPsiAvg60 + ')' : '')"></span>
 						</th>
 						<th>
 							Instances
-							<span class="helpTooltip" @mouseover="helpTooltip( 'SGUI', 'sgcluster.status.instances')"></span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.podsReady + ' / ' + tooltips.sgcluster.spec.instances"></span>
 						</th>
 					</thead>
 					<tbody>
@@ -98,31 +98,31 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 					<thead>
 						<th>
 							Pod Name
-							<span class="helpTooltip" @mouseover="helpTooltip( 'SGUI', 'sgcluster.status.pods.podName')"></span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.name"></span>
 						</th>
 						<th>
 							Role
-							<span class="helpTooltip" @mouseover="helpTooltip( 'SGUI', 'sgcluster.status.pods.role')"></span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.role"></span>
 						</th>
 						<th>
 							Status
-							<span class="helpTooltip" @mouseover="helpTooltip( 'SGUI', 'sgcluster.status.pods.status')"></span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.status"></span>
 						</th>
 						<th>
 							CPU
-							<span class="helpTooltip" @mouseover="helpTooltip( 'SGUI', 'sgcluster.status.pods.cpu')"></span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.cpuRequested + ' (' + (cluster.status.hasOwnProperty('cpuPsiAvg60') ? tooltips.sgcluster.pods.cpuPsiAvg60 : tooltips.sgcluster.pods.averageLoad1m) + ')'"></span>
 						</th>
 						<th>
 							Memory
-							<span class="helpTooltip" @mouseover="helpTooltip( 'SGUI', 'sgcluster.status.pods.memory')"></span>
+							<span class="helpTooltip" :data-tooltip="cluster.status.hasOwnProperty('memoryPsiAvg60') ? tooltips.sgcluster.pods.memoryPsiAvg60 : tooltips.sgcluster.pods.memoryRequested"></span>
 						</th>
 						<th>
 							Disk
-							<span class="helpTooltip" @mouseover="helpTooltip( 'SGUI', 'sgcluster.status.pods.disk')"></span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.diskUsed + ' / ' + tooltips.sgcluster.pods.diskRequested + (cluster.status.hasOwnProperty('ioPsiAvg60') ? ' (' + tooltips.sgcluster.pods.ioPsiAvg60 + ')' : '')"></span>
 						</th>
 						<th>
 							Containers
-							<span class="helpTooltip" @mouseover="helpTooltip( 'SGUI', 'sgcluster.status.pods.containers')"></span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.containersReady + ' / ' + tooltips.sgcluster.pods.containers"></span>
 						</th>
 					</thead>
 					<tbody>
@@ -244,6 +244,10 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 		},
 		notFound () {
 			//window.location.href = '/admin/not-found.html';
+		},
+
+		tooltips () {
+			return store.state.tooltips
 		}
 	},
 	beforeDestroy () {

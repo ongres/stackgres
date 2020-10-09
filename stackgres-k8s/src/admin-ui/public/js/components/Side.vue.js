@@ -169,12 +169,12 @@ var Side = Vue.component("sg-side", {
 
 	created: function() {
 		this.loadTooltips('SGCluster');
-		this.loadTooltips('SGBackup');
+		/*this.loadTooltips('SGBackup');
 		this.loadTooltips('SGBackupConfig');
 		this.loadTooltips('SGInstanceProfile');
 		this.loadTooltips('SGPostgresConfig');
 		this.loadTooltips('SGPoolingConfig');
-		this.loadTooltips('SGDistributedLogs');
+		this.loadTooltips('SGDistributedLogs'); */
 		this.loadTooltips('SGUI');
 	},
 
