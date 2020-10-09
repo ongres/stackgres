@@ -1,7 +1,7 @@
 ---
 title: Database Extensions
-weight: 15
-url: administration/extensions
+weight: 17
+url: DEPRECATE-1
 ---
 
 All extensions can be created with a regular `CREATE EXTENSION` command. To create then, connect on the database through `psql` then run:
@@ -10,7 +10,7 @@ All extensions can be created with a regular `CREATE EXTENSION` command. To crea
 postgres=# CREATE EXTENSION pg_stat_statements;
 CREATE EXTENSION
 ```
-> Check [here for more details](/administration/cluster/connection/pgutil) about how to connect using kubectl.
+> Check [here for more details]({{% relref "/04-administration-guide/REVIEW-local-connection-and-the-postgres-util-sidecar#access-to-postgres-util-sidecar" %}}) about how to connect using kubectl.
 
 ## Checking available extensions
 

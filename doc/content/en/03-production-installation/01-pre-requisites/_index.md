@@ -13,9 +13,22 @@ StackGres is able to run on any Kubernetes installation from 1.11 to 1.17 versio
 
 ## Backups
 
+<<<<<<< HEAD
 All the configuration for this matter can be found at [Backup Configuration documentation](reference/backups/#configuration). By default, backups are scheduled daily (`config.backup.fullSchedule`) at `05:00 UTC` and with a retention policy (`config.backup.retention`) of 5 full-backups removed on rotation. You will have to find out the correct time window and retention policy that fit your needs.
 
 In the next section, you'll be able to see how to done this [via Helm](install/helm/install/), with more explicit examples.
+=======
+### General configuration
+
+By default backups are scheduled (`config.backup.fullSchedule`) at 05:00 UTC in a window
+ (`config.backup.fullSchedule`) of 1 hour of duration and with a retention policy
+ (`config.backup.retention`) of 5 for non-persistent full backups. You will have to find out the
+ correct time window and retention policy that fit your needs.
+
+There are more general fine tuning parameters that could affect backups in more aspects, you can get more info at [Backup Configuration](/03-production-installation/06-cluster-parameters/#backup-configuration):
+
+StackGres recommend to configure all those aspects by creating a YAML values file for backup configuration, In the next section [Installation Via Helm](/03-production-installation/02-installation-via-helm/#install-operator) StackGres provides such example.
+>>>>>>> 8f7f0789... Issues 682 341 686
 
 ### Storage
 
@@ -25,12 +38,22 @@ StackGres support Backups support the following storage options:
 * Google CLoud Storage
 * Azure Blob Storage
 
+<<<<<<< HEAD
 
 > By default, examples are using [MinIO](https://min.io/) service as a S3 compatible service for 
 > quick setups on local Kubernetes Cluster. Although, for production setups, StackGres Team recommends
 > emphatically to pick a Storage as a Service for this purpose.
 
 All the related configuration for the storage, is under backupconfig/storage section in your [Stackgres Cluster configuration file](https://gitlab.com/ongresinc/stackgres/-/blob/development/stackgres-k8s/install/helm/stackgres-cluster/values.yaml#L100-148).
+=======
+By default backups are stored in a [MinIO](https://min.io/) service as a separate component as a
+ [StackGres cluster helm chart dependency](https://github.com/helm/charts/tree/master/stable/minio).
+ MinIO is compatible with S3 service and is configured to stores the backups in a persistent volume
+ with the default storage class of the kubernetes cluster. We recommend to disable the dependency
+ and use a cloud provider. To disable MinIO dependency create a YAML values file for backup storage
+ configuration  to include in the helm installation (`-f` or `--values` parameters) of the
+ StackGres operator similar to the following:
+>>>>>>> 8f7f0789... Issues 682 341 686
 
 ```yaml
 configurations:
@@ -63,6 +86,17 @@ cluster:
 As early indicated in [Component of the Stack](/01-introduction/04-components-of-the-stack/#monitoring), StackGres at the moment supports Prometheus integration only. 
 
 ## Grafana Integration and Pre-requisites
+As early indicated in [Component of the Stack](/01-introduction/04-components-of-the-stack/#monitoring) currently StackGres integrates only with prometheus. 
+
+### Grafana integration Pre-requisites
+
+#### All in one
+
+You can install the Prometheus operator and Grafana together with StackGres operator by setting
+ `prometheus-operator.create=true`, **this will install also a grafana instance and it will be
+ embed with the StackGres UI automatically**
+
+> See the [Installation Via Helm](/install/installation/helm/#install-operator) for usage examples
 
 ### Integrating Pre-existing Grafanas
 

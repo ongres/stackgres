@@ -1,7 +1,7 @@
 ---
 title: Postgres clusters
 weight: 1
-url: reference/crd/postgres/clusters
+url: reference/postgres/clusters
 ---
 
 StackGres PostgreSQL cluster can be created using a cluster Custom Resource (CR) in Kubernetes.

@@ -8,7 +8,7 @@ url: reference/distributedlogs
 
 The distributed logs CR represent a distributed logs cluster. When a cluster is configured to use a
  distributed logs cluster it will forward all logs from different sources to the distributed logs cluster.
-Under the hood, distributed log cluster use a SGCluster, therefore the distributed log cluster could be receive SQL queries in a *postgres-util* fashion but not with it.
+Behind the hood, distributed log cluster use a SGCluster, therefore the distributed log cluster could be receive SQL queries in a *postgres-util* fashion but not with it.
 
 For more information about distributed log usage please review the [Distributed Log Cluster Administration Guide](/administration/cluster/distributedlogs/)
 ___

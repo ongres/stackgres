@@ -5,52 +5,76 @@ url: install/helm/install
 ---
 
 StackGres operator and clusters can be installed using [Helm](https://helm.sh/) version >= `3.1.1`.
-As you may expect, a Production environment will require to install and setup additional components alongside your StackGres Operator and Cluster resources.
+However, installing StackGres is not only the Operator and the Cluster, if you want you have other options
+to modify, add or remove in your installation.
 
 In this page, we are going through all the necessary steps to setup a Production like environment using Helm repositories and workflow.
 
-## Setting up namespaces
-
-Each component of your infrastructure needs to be isolated in different namespaces as a standard practice for reusability and security. For a minimal setup, three namespaces will be created:
+Firstly, create `stackgres` namespace if doesn't exists already.
+Also, you could include the namespace for Prometheus and enable it alongside the StackGres Operator installation.
 
 ```bash
 kubectl create namespace stackgres
-kubectl create namespace monitoring
+kubectl create namespace prometheus
 kubectl create namespace my-cluster
 ```
 
-`stackgres` will be the StackGres' **Operator** namespace, and `my-cluster` will be the namespace for the node resources that will contain the data and working backend.
+Now that you have created the Prometheus namespace you can install the prometheus operator together with StackGres operator
+ by setting `prometheus-operator.create=true`, this will install also a grafana instance and it will be
+ embed with the StackGres UI automatically or you can install both operators separately.
+Helm will take care of the necessary steps in Prometheus Operator deployment.
 
-The `monitoring` namespace was created to deploy the Prometheus Operator, which will result in a running Grafana instance.
-
-### Installing Prometheus Server
-
-First, add the Prometheus Community repositories:
-
-```bash
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo add stable https://kubernetes-charts.storage.googleapis.com/
-helm repo update
-```
-
-Install the [Prometheus Server Operator](https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus):
+To install first the Prometheus Operator and then StackGres Operator run:
 
 ```bash
-helm install --namespace monitoring prometheus-operator prometheus-community/prometheus
+helm install --namespace prometheus prometheus-operator stable/prometheus-operator
 ```
 
-> StackGres provides more and advanced options for monitoring installation, see [Create a more advanced cluster](/administration/cluster/creation/advanced) in the [Administration Guide](/administration).
+Or by executing following script:
 
-## StackGres Operator installation
+``` sh
+grafana_host=http://localhost:3000
+grafana_credentials=admin:prom-operator
+grafana_prometheus_datasource_name=Prometheus
+curl_grafana_api() {
+  curl -sk -H "Accept: application/json" -H "Content-Type: application/json" -u "$grafana_credentials" "$@"
+}
+dashboard_id=9628
+dashboard_json="$(cat << EOF
+{
+  "dashboard": $(curl_grafana_api "$grafana_host/api/gnet/dashboards/$dashboard_id" | jq .json),
+  "overwrite": true,
+  "inputs": [{
+    "name": "DS_PROMETHEUS",
+    "type": "datasource",
+    "pluginId": "prometheus",
+    "value": "$grafana_prometheus_datasource_name"
+  }]
+}
+EOF
+)"
+grafana_dashboard_url="$(curl_grafana_api -X POST -d "$dashboard_json" "$grafana_host/api/dashboards/import" | jq -r .importedUrl)"
+echo "$grafana_dashboard_url"
 
-Now that we have configured a Backup storage place, as indicated in the pre-requisites, 
-and a monitoring system already in place for proper observability, 
-we can proceed to the StackGres Operator itself!
+Then install the StackGres Operator
 
 ```bash
 helm install --namespace stackgres stackgres-operator \
         --set grafana.autoEmbed=true \
-        --set-string grafana.webHost=prometheus-operator-grafana.monitoring \
+        --set-string grafana.webHost=prometheus-operator-grafana.prometheus \
+        --set-string grafana.user=admin \
+        --set-string grafana.password=prom-operator \
+        --set-string adminui.service.type=LoadBalancer \
+        {{< download-url >}}/helm-operator.tgz
+```
+
+Or you can install in only one command. Helm will deploy Prometheus and SG Operator as follow
+
+```bash
+helm install --namespace stackgres stackgres-operator \
+        --set prometheus-operator.create=true \
+        --set grafana.autoEmbed=true \
+        --set-string grafana.webHost=prometheus-operator-grafana.prometheus \
         --set-string grafana.user=admin \
         --set-string grafana.password=prom-operator \
         --set-string adminui.service.type=LoadBalancer \
@@ -62,10 +86,7 @@ the monitoring. Follow the [Cluster Parameters](install/cluster/parameters) sect
 
 > The `grafana.webHost` value may change if the installation is not Prometheus' default, as well as `grafana.user` and `grafana.password`.
 
-## Creating and customizing your Postgres Clusters 
-
 The next step is an optional one, but it will show you how to play with the StackGres versatility.
-
 You can instruct StackGres to create your cluster with different hardware specification using the [Custom Resource](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) (AKA CR) [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-instance-profiles/) as follow
 
 
@@ -82,7 +103,7 @@ spec:
 EOF
 ```
 
-But not only the Instance Profile, you can instruct StackGres to changes PostgreSQL configuration using the CR [SGPostgresConfig](/reference/crd/tuning/postgres/) or the PGBouncer setting with [SGPoolingConfig](/reference/crd/tuning/pool/) and more, like the backup specification using [SGBackupConfig](/reference/backups/#configuration)
+But not only the Instance Profile, you can instruct StackGres to changes PostgreSQL configuration using the CR [SGPostgresConfig]() or the PGBouncer setting with [SGPoolingConfig]() and more, like the backup specification using [SGBackupConfig]()
 
 The next code snippets will show you how to play with these CRs.
 
@@ -104,9 +125,7 @@ spec:
     log_checkpoints: 'on'
 EOF
 ```
-
 You can easily declare the StackGres supported variables and setup your specific configuration.
-
 Lets move forward and create our pooling CR
 
 ```yaml
@@ -125,7 +144,7 @@ spec:
 EOF
 ```
 
-The longest step for this demonstration is the backup CR
+The last step and the longest for this demonstration is the backup CR
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -144,7 +163,7 @@ spec:
 EOF
 ```
 
-Alternatively, StackGres could be instructed to use [Google Cloud Storage](https://cloud.google.com/storage/)
+Alternatively StackGres could be instructed to use [Google Cloud Storage](https://cloud.google.com/storage/)
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -314,20 +333,17 @@ EOF
 
 Notice that each CR was assigned with its own `name:` which you would keep to define in the cluster creation
 and aware StackGres about it.
-
-The order of the CR creation have some relevance for the Cluster creation, i.e you need perform the access and secrets keys before create the SGDistributedLogs CR.
+The order of the CR creation have no relevance for the Cluster creation, the order in the previous steps 
+is only a coincidence.
 
 But that is not all, StackGres lets you include several `initialData` script to perform any operation in the cluster before start.
-
 In the given example, we are creating an user to perform some queries using the k8s secret capabilities.
 
 ```bash
 kubectl -n demo create secret generic pgbench-user-password-secret --from-literal=pgbench-create-user-sql="create user admin password 'admin123'"
 ```
-
 As you can see, has been created a secret key and its value which will be used in the StackGres cluster creation.
-
-All the necessary steps were performed to create your first StackGres Cluster, lets do it.
+All the necessary steps were performed to create your first StackGres Cluster, lets do it
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -366,31 +382,16 @@ EOF
 ```
 
 Look up to the yaml into the here doc above, every CR previously being included in the right place in the SGCluster CR creation.
-
 And there is in place the script created through the secret, but StackGres includes an extra example for you, the second script
 show you how to run a SQL instruction directly into the yaml. 
-
-Another important entry to highlight in the yaml is [prometheusAutobind: true](/install/cluster/parameters/#configuration-cluster-parameters). 
-It is not enough to have the Prometheus operator installed to have monitoring, we need to enable this parameter to have monitoring as documentation indicates.
+Another important entry to highlight in the yaml is `prometheusAutobind: true`, don't forget the beginning of the tutorial, 
+StackGres can support automatically Prometheus monitoring.
 
 Awesome, now you can relax and wait for the SGCluster spinning up.
 
-## Accessing the cluster
-
-Once the cluster is up and running, we need to expose the main entrypoint port for being accessed remotely:
+Meanwhile, you can monitor what StackGres is doing online running
 
 ```
-kubectl port-forward test-0 --address 0.0.0.0 7777:5432
+some commando to monitor what happen
 ```
 
-In the namespace of the cluster, you should be able to see a set of secrets, we'll get the main superuser password:
-
-```
-kubectl get secrets  test -o jsonpath='{.data.superuser-password}' | base64 -d
-```
-
-You can connect within the following command:
-
-```
-psql -h <the ip of the cluster> -p 7777 -U postgres
-```

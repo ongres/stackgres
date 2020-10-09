@@ -143,7 +143,7 @@ and integrates as a sidecar offering an auto binding mechanism if prometheus is 
 Take in account that Prometheus is a dependency and that StackGres expects that you install and configure it separately.
 
 Of course, StackGres provides an option to deploy Prometheus alongside with the StackGres Operator 
-as part of the [Helm chart](/install/helm/install) 
+as part of the [Helm chart](/02-demo-quickstart/02-operator-installation/#installation-with-helm) 
 and you can follow the steps there to enable the parameters and override from the default Helm chart the needed entries so that monitoring integration work as expected. 
 Please, read and review the steps and notes for a successful installation.
 

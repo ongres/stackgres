@@ -1,7 +1,7 @@
 ---
-title: Patroni Management
+title: Patroni management
 weight: 16
-url: administration/patroni/management
+url: DEPRECATE-3
 ---
 
 Once you hace a StackGres cluster installed you'll have a Full HA PostgreSQL configuration and depending of the size of your cluster you´ll have something like this:
@@ -60,7 +60,6 @@ To identify the replica nodes:
 ```
 kubectl get pods -n default -l app=StackGresCluster,cluster=true -l role=replica
 ```
-
 
 output:
 
