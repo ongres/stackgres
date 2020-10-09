@@ -1,9 +1,10 @@
 ---
 title: "EKS"
 weight: 1
+url: demo/setenv/eks
 ---
 
-This section will ilustrate how to create an [AWS Elastic Kubernetes Service](https://aws.amazon.com/eks/).
+This section will illustrate how to create an [AWS Elastic Kubernetes Service](https://aws.amazon.com/eks/).
  Assuming you have already installed the [aws CLI](https://aws.amazon.com/cli/) and the [eksctl CLI](https://github.com/weaveworks/eksctl)
  you can proceed by creating the kubernetes cluster with following characteristics (that you may change):
 

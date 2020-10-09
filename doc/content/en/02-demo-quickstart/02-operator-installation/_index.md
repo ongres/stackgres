@@ -1,6 +1,7 @@
 ---
 title: Operator installation
 weight: 2
+url: demo/operator/install
 ---
 
 ## Installation with kubectl

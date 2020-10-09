@@ -1,341 +1,397 @@
 ---
 title: Installation via Helm
 weight: 2
+url: install/helm/install
 ---
 
 StackGres operator and clusters can be installed using [Helm](https://helm.sh/) version >= `3.1.1`.
+However, installing StackGres is not only the Operator and the Cluster, if you want you have other options
+to modify, add or remove in your installation.
 
 ## Install Operator
 
-Create `stackgres` namespace if doesn't exists already
+Firstly, create `stackgres` namespace if doesn't exists already.
+Also, you could include the namespace for Prometheus and enable it alongside the StackGres Operator installation.
 
 ```bash
 kubectl create namespace stackgres
+kubectl create namespace prometheus
+kubectl create namespace my-cluster
 ```
 
-Install the operator with the following command:
+Now that you have created the Prometheus namespace you can install the prometheus operator together with StackGres operator
+ by setting `prometheus-operator.create=true`, this will install also a grafana instance and it will be
+ embed with the StackGres UI automatically or you can install both operators separately.
+Helm will take care of the necessary steps in Prometheus Operator deployment.
+
+To install first the Prometheus Operator and then StackGres Operator run:
+
+```bash
+helm install --namespace prometheus prometheus-operator stable/prometheus-operator
+```
+
+Or by executing following script:
+
+``` sh
+grafana_host=http://localhost:3000
+grafana_credentials=admin:prom-operator
+grafana_prometheus_datasource_name=Prometheus
+curl_grafana_api() {
+  curl -sk -H "Accept: application/json" -H "Content-Type: application/json" -u "$grafana_credentials" "$@"
+}
+dashboard_id=9628
+dashboard_json="$(cat << EOF
+{
+  "dashboard": $(curl_grafana_api "$grafana_host/api/gnet/dashboards/$dashboard_id" | jq .json),
+  "overwrite": true,
+  "inputs": [{
+    "name": "DS_PROMETHEUS",
+    "type": "datasource",
+    "pluginId": "prometheus",
+    "value": "$grafana_prometheus_datasource_name"
+  }]
+}
+EOF
+)"
+grafana_dashboard_url="$(curl_grafana_api -X POST -d "$dashboard_json" "$grafana_host/api/dashboards/import" | jq -r .importedUrl)"
+echo "$grafana_dashboard_url"
+
+Then install the StackGres Operator
 
 ```bash
 helm install --namespace stackgres stackgres-operator \
-  --values my-operator-values.yml \
-  {{< download-url >}}/helm-operator.tgz
+        --set grafana.autoEmbed=true \
+        --set-string grafana.webHost=prometheus-operator-grafana.prometheus \
+        --set-string grafana.user=admin \
+        --set-string grafana.password=prom-operator \
+        --set-string adminui.service.type=LoadBalancer \
+        {{< download-url >}}/helm-operator.tgz
 ```
 
-## Upgrade Operator
-
-Upgrade the operator with the following command:
+Or you can install in only one command. Helm will deploy Prometheus and SG Operator as follow
 
 ```bash
-helm upgrade --namespace stackgres stackgres-operator \
-  --values my-operator-values.yml \
-  {{< download-url >}}/helm-operator.tgz
+helm install --namespace stackgres stackgres-operator \
+        --set prometheus-operator.create=true \
+        --set grafana.autoEmbed=true \
+        --set-string grafana.webHost=prometheus-operator-grafana.prometheus \
+        --set-string grafana.user=admin \
+        --set-string grafana.password=prom-operator \
+        --set-string adminui.service.type=LoadBalancer \
+        {{< download-url >}}/helm-operator.tgz
 ```
 
-Upgrade of an operator can serve two purpose:
+In the previous example StackGres have included several options to the installation, including the needed options to enable
+the monitoring. Follow the [Cluster Parameters](install/cluster/parameters) section for a described list.
 
-* Configuration change
-* Operator upgrade
+> The `grafana.webHost` value may change if the installation is not Prometheus' default, as well as `grafana.user` and `grafana.password`.
 
-### Operator upgrade
+The next step is an optional one, but it will show you how to play with the StackGres versatility.
+You can instruct StackGres to create your cluster with different hardware specification using the [Custom Resource](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) (AKA CR) [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-instance-profiles/) as follow
 
-After the upgrade completes any new cluster that will be created, will be created with the new
- updated components.
-For existing clusters, there are two mechanisms in order to update components: in-place restart
- and reduced-impact restart. In both cases there is small impact on read-only operations (we will
- apply draining here) and a read-write controlled switchover. Both procedures are essentially the
- same but reduced-impact restart allow to restart a cluster with minimal downtime for read-only
- connections (we will not apply draining here) or for read-write connections when a single node
- clusters is used.
 
-### Parameters
+```yaml
+cat << EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGInstanceProfile
+metadata:
+  namespace: my-cluster
+  name: size-small
+spec:
+  cpu: "2"
+  memory: "4Gi"
+EOF
+```
 
-You can specify following parameters values:
+But not only the Instance Profile, you can instruct StackGres to changes PostgreSQL configuration using the CR [SGPostgresConfig]() or the PGBouncer setting with [SGPoolingConfig]() and more, like the backup specification using [SGBackupConfig]()
 
-| Parameter | Description | Default |
-|:----------|:------------|:--------|
-| `cert.autoapprove` | {{< description stackgres-operator.cert.autoapprove >}} | true |
-| `cert.key` | {{< description stackgres-operator.cert.key >}} | true |
-| `cert.crt` | {{< description stackgres-operator.cert.crt >}} | true |
-| `cert.jwtRsaKey` | {{< description stackgres-operator.cert.jwtRsaKey >}} | true |
-| `cert.jwtRsaPub` | {{< description stackgres-operator.cert.jwtRsaPub >}} | true |
-| `adminui.service.type` | {{< description stackgres-operator.adminui.service.type >}} | ClusterIP |
-| `adminui.service.loadBalancerIP` | {{< description stackgres-operator.adminui.service.loadBalancerIP >}} |  |
-| `adminui.service.loadBalancerSourceRanges` | {{< description stackgres-operator.adminui.service.loadBalancerSourceRanges >}} |  |
-| `adminui.service.nodePort` | {{< description stackgres-operator.adminui.service.nodePort >}} |  |
-| `authentication.user` | {{< description stackgres-operator.authentication.user >}} | admin |
-| `authentication.password` | {{< description stackgres-operator.authentication.password >}} | Autogenerated random value |
-| `grafana.autoEmbed` | {{< description stackgres-operator.grafana.autoEmbed >}} | true |
-| `grafana.schema` | {{< description stackgres-operator.grafana.schema >}} | http |
-| `grafana.webHost` | {{< description stackgres-operator.grafana.webHost >}} |  |
-| `grafana.user` | {{< description stackgres-operator.grafana.user >}} |  |
-| `grafana.password` | {{< description stackgres-operator.grafana.password >}} |  |
-| `grafana.secretNamespace` | {{< description stackgres-operator.grafana.secretNamespace >}} |  |
-| `grafana.secretName` | {{< description stackgres-operator.grafana.secretName >}} |  |
-| `grafana.secretUserKey` | {{< description stackgres-operator.grafana.secretUserKey >}} |  |
-| `grafana.secretPasswordKey` | {{< description stackgres-operator.grafana.secretPasswordKey >}} |  |
-| `grafana.datasourceName` | {{< description stackgres-operator.grafana.datasourceName >}} | Prometheus |
-| `grafana.dashboardConfigMap` | {{ < description stackgres-operator.grafana.dashboardConfigMap > }} |  |
-| `grafana.dashboardId` | {{< description stackgres-operator.grafana.dashboardId >}} |  |
-| `grafana.url` | {{< description stackgres-operator.grafana.url >}} |  |
-| `grafana.token` | {{< description stackgres-operator.grafana.token >}} |  |
-| `prometheus.allowAutobind` | {{< description stackgres-operator.prometheus.allowAutobind >}} | true |
-| `prometheus-operator.create` | {{< description stackgres-operator.prometheus-operator.create >}} | false |
+The next code snippets will show you how to play with these CRs.
 
-## Create a Cluster
+Start with PostgreSQL configuration using th `SGPostgresConfig` as follow
 
-To install a cluster you can use the following command:
+```yaml
+cat << EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGPostgresConfig
+metadata:
+  namespace: my-cluster
+  name: pgconfig1
+spec:
+  postgresVersion: "12"
+  postgresql.conf:
+    shared_buffers: '512MB'
+    random_page_cost: '1.5'
+    password_encryption: 'scram-sha-256'
+    log_checkpoints: 'on'
+EOF
+```
+You can easily declare the StackGres supported variables and setup your specific configuration.
+Lets move forward and create our pooling CR
+
+```yaml
+cat << EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGPoolingConfig
+metadata:
+  namespace: my-cluster
+  name: poolconfig1
+spec:
+  pgBouncer:
+    pgbouncer.ini:
+      pool_mode: transaction
+      max_client_conn: '200'
+      default_pool_size: '200'
+EOF
+```
+
+The last step and the longest for this demonstration is the backup CR
+
+```yaml
+cat << EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGBackupConfig
+metadata:
+  namespace: my-cluster
+  name: backupconfig1
+spec:
+  baseBackups:
+    cronSchedule: "*/5 * * * *"
+    retention: 6
+  storage:
+    type: "gcs"
+    gcs:
+EOF
+```
+
+Alternatively StackGres could be instructed to use [Google Cloud Storage](https://cloud.google.com/storage/)
+
+```yaml
+cat << EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGBackupConfig
+metadata:
+  namespace: my-cluster
+  name: backupconfig1
+spec:
+  baseBackups:
+    cronSchedule: "*/5 * * * *"
+    retention: 6
+  storage:
+    type: "gcs"
+    gcs:
+      bucket: backup-my-cluster-of-stackgres-io
+      gcpCredentials:
+        secretKeySelectors:
+          serviceAccountJSON: 
+            name: gcp-backup-bucket-secret
+            key: my-creds.json
+EOF
+```
+
+Or [AWS S3](https://aws.amazon.com/s3/) if you want
+
+```yaml
+cat << EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGBackupConfig
+metadata:
+  namespace: my-cluster
+  name: backupconfig1
+spec:
+  baseBackups:
+    cronSchedule: '*/5 * * * *'
+    retention: 6
+  storage:
+    type: 's3'
+    s3:
+      bucket: 'backup.my-cluster.stackgres.io'
+      awsCredentials:
+        secretKeySelectors:
+          accessKeyId: {name: 's3-backup-bucket-secret', key: 'accessKeyId'}
+          secretAccessKey: {name: 's3-backup-bucket-secret', key: 'secretAccessKey'}
+EOF
+```
+
+On AWS you will need to define some parameters if already you don't have defined it.
+As bottom here is some variables and the needed permissions on S3
 
 ```bash
-helm install --namespace my-namespace my-cluster \
-  --values my-cluster-values.yml \
-  {{< download-url >}}/demo-helm-cluster.tgz
+S3_BACKUP_BUCKET=backup.my-cluster.stackgres.io
+
+S3_BACKUP_BUCKET_POLICY_NAME=s3_backup_bucket_iam_policy
+
+S3_BACKUP_BUCKET_USER=s3_backup_bucket_iam_user
+
+S3_BACKUP_CREDENTIALS_K8S_SECRET=s3-backup-bucket-secret
+
+CLUSTER_NAMESPACE=my-cluster
+
+# May be empty
+export AWS_PROFILE=
+
+# Include the region as you like
+AWS_REGION=
+
+aws=aws
+[ ">"${AWS_PROFILE}"<" != "><" ] && aws="aws --profile ${AWS_PROFILE}"
 ```
 
-Helm is the recommended approach to deploy any of our CRDs, and this is a demo chart that could be
- used as a starting point for creating your own.
+Is necessary perform the policies generation, access keys and credentials.
 
-### Parameters
+```bash
+#!/bin/bash
 
-You can specify following parameters values:
+source ./variables
 
-| Parameter | Description | Default |
-|:----------|:------------|:--------|
-| `cluster.create` | {{< description stackgres-cluster.cluster.create >}} | true |
-| `cluster.postgresVersion` | {{< crd-field-description SGCluster.spec.postgresVersion >}} | 12.2 |
-| `cluster.instances` | {{< crd-field-description SGCluster.spec.instances >}} | 1 |
-| `cluster.sgInstanceProfile` | {{< crd-field-description SGCluster.spec.sgInstanceProfile >}} | size-xs |
-| `cluster.configurations.sgPostgresConfig` | {{< crd-field-description SGCluster.spec.configurations.sgPostgresConfig >}} | postgresconfig |
-| `cluster.configurations.sgPoolingConfig` | {{< crd-field-description SGCluster.spec.configurations.sgPoolingConfig >}} | poolingconfig |
-| `cluster.configurations.sgBackupConfig` | {{< crd-field-description SGCluster.spec.configurations.sgBackupConfig >}} | backupconfig |
-| `cluster.prometheusAutobind` | {{< crd-field-description SGCluster.spec.prometheusAutobind >}} | true |
-| `instanceProfiles` | {{< description stackgres-cluster.instanceProfiles >}} | See [instance profiles](#instance-profiles) |
-| `configurations.create` | {{< description stackgres-cluster.configurations.create >}} | true |
-| `configurations.postgresconfig` | {{< description stackgres-cluster.configurations.postgresconfig >}} | See [postgres configuration](#postgres-configuration) |
-| `configurations.poolingconfig` | {{< description stackgres-cluster.configurations.poolingconfig >}} | See [connection pooling configuration](#connection-pooling-configuration) |
-| `configurations.backupconfig` | {{< description stackgres-cluster.configurations.backupconfig.description >}} | See [backup configuration](#backup-configuration) |
+tempdir=/tmp/.$RANDOM-$RANDOM
+mkdir $tempdir
 
-#### Postgres Services
+cat << EOF > "$tempdir/policy.json"
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::${S3_BACKUP_BUCKET}/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket",
+        "s3:GetBucketLocation"
+      ],
+      "Resource": [
+        "arn:aws:s3:::${S3_BACKUP_BUCKET}"
+      ]
+    }
+  ]
+}
+EOF
 
-| Parameter | Description | Default |
-|:----------|:------------|:--------|
-| `cluster.postgresServices.primary.enabled` | {{< crd-field-description SGCluster.spec.postgresServices.primary.enabled >}} | true |
-| `cluster.postgresServices.primary.type` | {{< crd-field-description SGCluster.spec.postgresServices.primary.type >}} | ClusterIP |
-| `cluster.postgresServices.primary.annotations` | {{< crd-field-description SGCluster.spec.postgresServices.primary.annotations >}} | |
-| `cluster.postgresServices.replicas.enabled` | {{< crd-field-description SGCluster.spec.postgresServices.replicas.enabled >}} | true |
-| `cluster.postgresServices.replicas.type` | {{< crd-field-description SGCluster.spec.postgresServices.replicas.type >}} | ClusterIP |
-| `cluster.postgresServices.replicas.annotations` | {{< crd-field-description SGCluster.spec.postgresServices.replicas.annotations >}} | |
+{
+	aws iam create-user --region $AWS_REGION --user-name $S3_BACKUP_BUCKET_USER > /dev/null
+	
+	aws iam put-user-policy --region $AWS_REGION --user-name $S3_BACKUP_BUCKET_USER \
+		--policy-name $S3_BACKUP_BUCKET_POLICY_NAME \
+		--policy-document "file://$tempdir/policy.json" > /dev/null
+	
+	aws iam create-access-key --region $AWS_REGION --user-name $S3_BACKUP_BUCKET_USER \
+		> $tempdir/credentials.json
 
-#### Pods
+	aws s3 mb s3://$S3_BACKUP_BUCKET --region $AWS_REGION
+} &> /dev/null
 
-| Parameter | Description | Default |
-|:----------|:------------|:--------|
-| `cluster.pods.persistentVolume.size` | {{< crd-field-description SGCluster.spec.pods.persistentVolume.size >}} | 5Gi |
-| `cluster.pods.persistentVolume.storageclass` | {{< crd-field-description SGCluster.spec.pods.persistentVolume.storageClass >}} |  |
-| `cluster.pods.disableConnectionPooling` | {{< crd-field-description SGCluster.spec.pods.disableConnectionPooling >}} | false |
-| `cluster.pods.disableMetricsExporter` | {{< crd-field-description SGCluster.spec.pods.disableMetricsExporter >}} | false |
-| `cluster.pods.disablePostgresUtil` | {{< crd-field-description SGCluster.spec.pods.disablePostgresUtil >}} | false |
-| `cluster.pods.metadata.labels` | {{< crd-field-description SGCluster.spec.pods.metadata.labels >}} | |
-| `cluster.pods.scheduling.nodeSelector` | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeSelector >}} | |
+accessKeyId=$(jq -r '.AccessKey.AccessKeyId' "$tempdir/credentials.json")
+secretAccessKey=$(jq -r '.AccessKey.SecretAccessKey' "$tempdir/credentials.json")
 
-#### Resources metadata
+echo accessKeyId=$accessKeyId
+echo secretAccessKey=$secretAccessKey
+echo kubectl --namespace $CLUSTER_NAMESPACE create secret generic $S3_BACKUP_CREDENTIALS_K8S_SECRET \
+	--from-literal="accessKeyId=$accessKeyId" \
+	--from-literal="secretAccessKey=$secretAccessKey"
 
-| Parameter | Description | Default |
-|:----------|:------------|:--------|
-| `cluster.metadata.annotations.allResources` | {{< crd-field-description SGCluster.spec.metadata.annotations.allResources >}} | |
-| `cluster.metadata.annotations.pods` | {{< crd-field-description SGCluster.spec.metadata.annotations.pods >}} |  |
-| `cluster.metadata.annotations.services` | {{< crd-field-description SGCluster.spec.metadata.annotations.services >}} | false |
+rm $tempdir/policy.json
+rm $tempdir/credentials.json
+rmdir $tempdir
+```
 
-#### Instance profiles
-
-| Parameter | Description | Default |
-|:----------|:------------|:--------|
-| `instanceProfiles.<index>.name` | {{< crd-field-description SGInstanceProfile.metadata.name >}} | See below |
-| `instanceProfiles.<index>.cpu` | {{< crd-field-description SGInstanceProfile.spec.cpu >}} | See below |
-| `instanceProfiles.<index>.memory` | {{< crd-field-description SGInstanceProfile.spec.memory >}} | See below |
-
-By default following profiles are created:
+Now StackGres is able to use the keys accordingly.
 
 ```yaml
-instanceProfiles:
-  - name: size-xs
-    cpu: "500m"
-    memory: "512Mi"
-  - name: size-s
-    cpu: "1"
-    memory: "2Gi"
-  - name: size-m
-    cpu: "2"
-    memory: "4Gi"
-  - name: size-l
-    cpu: "4"
-    memory: "8Gi"
-  - name: size-xl
-    cpu: "6"
-    memory: "16Gi"
-  - name: size-xxl
-    cpu: "8"
-    memory: "32Gi"
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aws-creds-secret
+type: Opaque
+data:
+  accessKey: ${accessKey}
+  secretKey: ${secretKey}
+EOF
 ```
 
-#### Postgres configuration
-
-| Parameter | Description | Default |
-|:----------|:------------|:--------|
-| `configurations.postgresconfig.postgresql\.conf` | {{< crd-field-description "SGPostgresConfig.spec.postgresql\.conf" >}} | See below |
-
-By default following parameters are specified:
+Finally create the SGDistributedLogs CR to enable a [distributed log cluster](/reference/distributedlogs/) 
 
 ```yaml
-configurations:
-  postgresconfig:
-    postgresql.conf:
-      shared_buffers: '256MB'
-      random_page_cost: '1.5'
-      password_encryption: 'scram-sha-256'
-      wal_compression: 'on'
-      checkpoint_timeout: '30'
+cat << EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGDistributedLogs
+metadata:
+  namespace: my-cluster
+  name: distributedlogs
+spec:
+  persistentVolume:
+    size: 50Gi
+EOF
 ```
 
-#### Connection pooling configuration
+Notice that each CR was assigned with its own `name:` which you would keep to define in the cluster creation
+and aware StackGres about it.
+The order of the CR creation have no relevance for the Cluster creation, the order in the previous steps 
+is only a coincidence.
 
-| Parameter | Description | Default |
-|:----------|:------------|:--------|
-| `configurations.poolingconfig.pgBouncer.pgbouncer\.ini` | {{< crd-field-description "SGPoolingConfig.spec.pgBouncer.pgbouncer\.ini" >}} | See below |
+But that is not all, StackGres lets you include several `initialData` script to perform any operation in the cluster before start.
+In the given example, we are creating an user to perform some queries using the k8s secret capabilities.
 
-By default following parameters are specified:
+```bash
+kubectl -n demo create secret generic pgbench-user-password-secret --from-literal=pgbench-create-user-sql="create user admin password 'admin123'"
+```
+As you can see, has been created a secret key and its value which will be used in the StackGres cluster creation.
+All the necessary steps were performed to create your first StackGres Cluster, lets do it
 
 ```yaml
-configurations:
-  poolingconfig:
-    pgBouncer:
-      pgbouncer.ini:
-        pool_mode: transaction
-        max_client_conn: '200'
-        default_pool_size: '200'
+cat << EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
+metadata:
+  namespace: my-cluster
+  name: cluster
+spec:
+  postgresVersion: '12.3'
+  instances: 3
+  sgInstanceProfile: 'size-small'
+  pods:
+    persistentVolume:
+      size: '10Gi'
+  configurations:
+    sgPostgresConfig: 'pgconfig1'
+    sgPoolingConfig: 'poolconfig1'
+    sgBackupConfig: 'backupconfig1'
+  distributedLogs:
+    sgDistributedLogs: 'distributedlogs'
+  initialData:
+    scripts:
+    - name: create-pgbench-user
+      scriptFrom:
+        secretKeyRef:
+          name: pgbench-user-password-secret
+          key: pgbench-create-user-sql
+    - name: create-pgbench-database
+      script: |
+        create database pgbench owner pgbench;
+  prometheusAutobind: true
+  nonProductionOptions:
+    disableClusterPodAntiAffinity: true
+EOF
 ```
 
-#### Backup configuration
+Look up to the yaml into the here doc above, every CR previously being included in the right place in the SGCluster CR creation.
+And there is in place the script created through the secret, but StackGres includes an extra example for you, the second script
+show you how to run a SQL instruction directly into the yaml. 
+Another important entry to highlight in the yaml is `prometheusAutobind: true`, don't forget the beginning of the tutorial, 
+StackGres can support automatically Prometheus monitoring.
 
-By default the chart create a storage class backed by an MinIO server. To avoid the creation of the
- MinIO server set `nonProductionOptions.createMinio` to `false` and fill any of the `configurations.backupconfig.storage.s3`,
-  `configurations.backupconfig.storage.gcs` or `configurations.backupconfig.storage.azureBlob` sections.
- 
-| Parameter | Description | Default |
-|:----------|:------------|:--------|
-| `configurations.backupconfig.create` | {{< description stackgres-cluster.configurations.backupconfig.create >}} | true |
-| `configurations.backupconfig.baseBackups.retention` | {{< crd-field-description SGBackupConfig.spec.baseBackups.retention >}} | 5 |
-| `configurations.backupconfig.baseBackups.cronSchedule` | {{< crd-field-description SGBackupConfig.spec.baseBackups.cronSchedule >}} | Each 2 minutes |
-| `configurations.backupconfig.baseBackups.compression` | {{< crd-field-description SGBackupConfig.spec.baseBackups.compression >}} | lz4 |
-| `configurations.backupconfig.baseBackups.performance.uploadDiskConcurrency` | {{< crd-field-description SGBackupConfig.spec.baseBackups.performance.uploadDiskConcurrency >}} | 1 |
-| `configurations.backupconfig.baseBackups.performance.maxNetworkBandwitdh` | {{< crd-field-description SGBackupConfig.spec.baseBackups.performance.maxDiskBandwitdh >}} | unlimited |
-| `configurations.backupconfig.baseBackups.performance.maxDiskBandwitdh` | {{< crd-field-description SGBackupConfig.spec.baseBackups.performance.maxNetworkBandwitdh >}} | unlimited |
+Awesome, now you can relax and wait for the SGCluster spinning up.
 
-##### Amazon Web Services S3
+Meanwhile, you can monitor what StackGres is doing online running
 
-| Parameter | Description | Default |
-|:----------|:------------|:--------|
-| `configurations.backupconfig.storage.s3.bucket` | {{< crd-field-description SGBackupConfig.spec.storage.s3.bucket >}} |  |
-| `configurations.backupconfig.storage.s3.path` | {{< crd-field-description SGBackupConfig.spec.storage.s3.path >}} |  |
-| `configurations.backupconfig.storage.s3.awsCredentials.secretKeySelectors.accessKeyId` | {{< crd-field-description SGBackupConfig.spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId >}} |  |
-| `configurations.backupconfig.storage.s3.awsCredentials.secretKeySelectors.accessKeyId.name` | {{< crd-field-description SGBackupConfig.spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId.name >}} |  |
-| `configurations.backupconfig.storage.s3.awsCredentials.secretKeySelectors.accessKeyId.key` | {{< crd-field-description SGBackupConfig.spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId.key >}} |  |
-| `configurations.backupconfig.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey` | {{< crd-field-description SGBackupConfig.spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey >}} |  |
-| `configurations.backupconfig.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey.name` | {{< crd-field-description SGBackupConfig.spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey.name >}} |  |
-| `configurations.backupconfig.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey.key` | {{< crd-field-description SGBackupConfig.spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey.key >}} |  |
-| `configurations.backupconfig.storage.s3.region` | {{< crd-field-description SGBackupConfig.spec.storage.s3.region >}} |  |
-| `configurations.backupconfig.storage.s3.storageClass` | {{< crd-field-description SGBackupConfig.spec.storage.s3.storageClass >}} |  |
+```
+some commando to monitor what happen
+```
 
-##### Amazon Web Services S3 Compatible
-
-| Parameter | Description | Default |
-|:----------|:------------|:--------|
-| `configurations.backupconfig.storage.s3Compatible.bucket` | {{< crd-field-description SGBackupConfig.spec.storage.s3Compatible.bucket >}} |  |
-| `configurations.backupconfig.storage.s3Compatible.path` | {{< crd-field-description SGBackupConfig.spec.storage.s3Compatible.path >}} |  |
-| `configurations.backupconfig.storage.s3Compatible.bucket` | The AWS S3 bucket (eg. bucket).
-| `configurations.backupconfig.storage.s3Compatible.path` | The AWS S3 bucket path (eg. /path/to/folder).
-| `configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId` | {{< crd-field-description SGBackupConfig.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId >}} |  |
-| `configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.name` | {{< crd-field-description SGBackupConfig.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.name >}} |  |
-| `configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.key` | {{< crd-field-description SGBackupConfig.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.key >}} |  |
-| `configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey` | {{< crd-field-description SGBackupConfig.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey >}} |  |
-| `configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.name` | {{< crd-field-description SGBackupConfig.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.name >}} |  |
-| `configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.key` | {{< crd-field-description SGBackupConfig.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.key >}} |  |
-| `configurations.backupconfig.storage.s3Compatible.region` | {{< crd-field-description SGBackupConfig.spec.storage.s3Compatible.region >}} |  |
-| `configurations.backupconfig.storage.s3Compatible.storageClass` | {{< crd-field-description SGBackupConfig.spec.storage.s3Compatible.storageClass >}} |  |
-| `configurations.backupconfig.storage.s3Compatible.endpoint` | {{< crd-field-description SGBackupConfig.spec.storage.s3Compatible.endpoint >}} |  |
-| `configurations.backupconfig.storage.s3Compatible.enablePathStyleAddressing` | {{< crd-field-description SGBackupConfig.spec.storage.s3Compatible.enablePathStyleAddressing >}} |  |
-
-##### Google Cloud Storage
-
-| Parameter | Description | Default |
-|:----------|:------------|:--------|
-| `configurations.backupconfig.storage.gcs.bucket` | {{< crd-field-description SGBackupConfig.spec.storage.gcs.bucket >}} |  |
-| `configurations.backupconfig.storage.gcs.path` | {{< crd-field-description SGBackupConfig.spec.storage.gcs.path >}} |  |
-| `configurations.backupconfig.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON` | {{< crd-field-description SGBackupConfig.spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON >}} |  |
-| `configurations.backupconfig.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.name` | {{< crd-field-description SGBackupConfig.spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.name >}} |  |
-| `configurations.backupconfig.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.key` | {{< crd-field-description SGBackupConfig.spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.key >}} |  |
-
-##### Azure Blob Storage
-
-| Parameter | Description | Default |
-|:----------|:------------|:--------|
-| `configurations.backupconfig.storage.azureBlob.bucket` | {{< crd-field-description SGBackupConfig.spec.storage.azureBlob.bucket >}} |  |
-| `configurations.backupconfig.storage.azureBlob.path` | {{< crd-field-description SGBackupConfig.spec.storage.azureBlob.path >}} |  |
-| `configurations.backupconfig.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount` | {{< crd-field-description SGBackupConfig.spec.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount >}} |  |
-| `configurations.backupconfig.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount.name` | {{< crd-field-description SGBackupConfig.spec.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount.name >}} |  |
-| `configurations.backupconfig.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount.key` | {{< crd-field-description SGBackupConfig.spec.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount.key >}} |  |
-| `configurations.backupconfig.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey` | {{< crd-field-description SGBackupConfig.spec.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey >}} |  |
-| `configurations.backupconfig.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey.name` | {{< crd-field-description SGBackupConfig.spec.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey.name >}} |  |
-| `configurations.backupconfig.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey.key` | {{< crd-field-description SGBackupConfig.spec.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey.key >}} |  |
-
-#### Restore configuration
-
-By default, stackgres creates as an empty database. To create a cluster with data from an
- existent backup, we have the restore options. It works, by simply indicating the backup CR Uid
- that we want to restore. 
-
-| Parameter | Description | Default |
-|:----------|:------------|:--------|
-| `cluster.initialData.restore.fromBackup` | {{< crd-field-description SGCluster.spec.initialData.restore.fromBackup >}} |  |
-| `cluster.initialData.restore.downloadDiskConcurrency` | {{< crd-field-description SGCluster.spec.initialData.restore.downloadDiskConcurrency >}} |  |
-
-#### Scripts configuration
-
-By default, stackgres creates as an empty database. To execute some scripts, we have the scripts
- options where you can specify a script or reference a key in a ConfigMap or a Secret that contains
- the script to execute.
-
-| Parameter | Description | Default |
-|:----------|:------------|:--------|
-| `cluster.initialData.scripts.<index>.name` | {{< crd-field-description SGCluster.spec.initialData.scripts.items.name >}} |  |
-| `cluster.initialData.scripts.<index>.database` | {{< crd-field-description SGCluster.spec.initialData.scripts.items.database >}} | postgres |
-| `cluster.initialData.scripts.<index>.script` | {{< crd-field-description SGCluster.spec.initialData.scripts.items.script >}} |  |
-| `cluster.initialData.scripts.<index>.scriptFrom` | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom >}} |  |
-| `cluster.initialData.scripts.<index>.scriptFrom.configMapKeyRef` | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.configMapKeyRef >}} |  |
-| `cluster.initialData.scripts.<index>.scriptFrom.configMapKeyRef.name` | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.configMapKeyRef.name >}} |  |
-| `cluster.initialData.scripts.<index>.scriptFrom.configMapKeyRef.key` | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.configMapKeyRef.key >}} |  |
-| `cluster.initialData.scripts.<index>.scriptFrom.secretKeyRef` | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.secretKeyRef >}} |  |
-| `cluster.initialData.scripts.<index>.scriptFrom.secretKeyRef.name` | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.secretKeyRef.name >}} |  |
-| `cluster.initialData.scripts.<index>.scriptFrom.secretKeyRef.key` | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.secretKeyRef.key >}} |  |
-
-#### Distributed logs
-
-By default, stackgres send logs to container stdout. To send logs to a distributed logs create a
- distributed logs cluster and configure the cluster to use it by setting `distributedLogs.enabled`
- to `true`.
-
-| Parameter | Description | Default |
-|:----------|:------------|:--------|
-| `cluster.distributedLogs.sgDistributedLogs` | {{< crd-field-description SGCluster.spec.distributedLogs.sgDistributedLogs >}} | distributedlogs |
-| `distributedLogs.enabled` | {{< description stackgres-cluster.distributedLogs.enabled >}} | false |
-| `distributedLogs.create` | {{< description stackgres-cluster.distributedLogs.create >}} | true |
-| `distributedLogs.persistentVolume.size` | {{< crd-field-description SGDistributedLogs.spec.persistentVolume.size >}} | 5Gi |
-| `distributedLogs.persistentVolume.storageClass` | {{< crd-field-description SGDistributedLogs.spec.persistentVolume.storageClass >}} |  |
-
-#### Non production options
-
-The following options should NOT be enabled in a production environment.
-
-| Parameter | Description | Default |
-|:----------|:------------|:--------|
-| `nonProductionOptions.disableClusterPodAntiAffinity` | {{< crd-field-description SGCluster.spec.nonProductionOptions.disableClusterPodAntiAffinity >}} | true |
-| `nonProductionOptions.createMinio` | {{< description stackgres-cluster.nonProductionOptions.createMinio >}} | true |
