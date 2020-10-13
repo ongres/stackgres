@@ -27,32 +27,32 @@ var ClusterOverview = Vue.component("ClusterOverview", {
 					<thead>
 						<th>
 							<span>StackGres Cluster</span>
-							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.metadata.name"></span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.metadata.name.description"></span>
 						</th>
 
 						<th>
 							<span>Instances</span>
-							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.spec.instances"></span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.spec.instances.description"></span>
 						</th>
 
 						<th>
 							<span>CPU</span>
-							<span class="helpTooltip"  :data-tooltip="tooltips.sgprofile.spec.cpu"></span>
+							<span class="helpTooltip"  :data-tooltip="tooltips.sgprofile.spec.cpu.description"></span>
 						</th>
 
 						<th>
 							<span>Memory</span>
-							<span class="helpTooltip" :data-tooltip="tooltips.sgprofile.spec.memory"></span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgprofile.spec.memory.description"></span>
 						</th>
 
 						<th>
 							<span>Disk</span>
-							<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.pods.persistentVolume.size"></span>
+							<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.pods.persistentVolume.size.description"></span>
 						</th>
 
 						<th>
 							<span>Health</span>
-							<span class="helpTooltip" data-tooltip="Number of pods of the cluster that are ready / Number of StackGres instances for the cluster."></span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.podsReady.description + ' / ' + tooltips.sgcluster.spec.instances.description"></span>
 						</th>
 						
 						<th class="actions"></th>

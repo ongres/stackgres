@@ -1186,7 +1186,7 @@ Vue.mixin({
       .then(response => response.json())
       .then(data => {
 
-        let tooltips = data.components.schemas;
+        var tooltips = data.components.schemas;
         cleanupTooltips(tooltips)
         store.commit('setTooltips', tooltips)
       });
@@ -1824,20 +1824,24 @@ Vue.filter('formatTimestamp',function(t, part){
 
 function cleanupTooltips( obj ) {
   Object.keys(obj).forEach(function(key){
-    if(obj[key].hasOwnProperty('properties')){
+    if((obj[key].type == 'object') && obj[key].hasOwnProperty('properties')){
+      var desc = ''
       
-      obj[key].properties["description"] = obj[key].hasOwnProperty('description') ? obj[key].description : ''
+      if(obj[key].hasOwnProperty('description'))
+        desc = obj[key].description
+
       obj[key] = obj[key].properties
+      obj[key].description = desc
       cleanupTooltips(obj[key])
       
     } else if ( (obj[key].type == 'array') && obj[key].items.hasOwnProperty('properties')){
       //obj[key] = obj[key].items.properties
-      obj[key].properties["description"] = obj[key].items.hasOwnProperty('description') ? obj[key].items.description : ''
+      //obj[key].properties["description"] = obj[key].items.hasOwnProperty('description') ? obj[key].items.description : ''
+      
       Object.keys(obj[key].items.properties).forEach(function(k){
-        obj[key][k] = obj[key].items.properties[k].description
+        obj[key][k] = obj[key].items.properties[k]
       })      
-    } else
-      obj[key] =obj[key].description
+    } 
   })
 }
 
@@ -2390,36 +2394,12 @@ $(document).ready(function(){
     e.preventDefault(); 
   });
 
-  $(document).on("click", ".sort th", function(){
-    /* if( $(this).hasClass("sorted") ){
-      if($(this).hasClass("asc"))
-        $(this).removeClass("asc").addClass("desc");
-      else
-        $(this).removeClass("desc").addClass("asc");
-    } else {
-      $(".sorted").removeClass("sorted asc desc");
-      $(this).addClass("sorted");
-    } */
-
+  $(document).on("click", ".sort th span:not(.helpTooltip)", function(){
     $(".sorted").removeClass("sorted");
     $(this).addClass("sorted");
     $(".sort th").toggleClass("desc asc")   
   });
 
-/*   $(document).on("click", "table.backups tr.base td:not(.actions), table.profiles tr.base td:not(.actions), table.pgConfig tr.base td:not(.actions), table.poolConfig tr.base td:not(.actions)", function(){
-    $(this).parent().next().toggle().addClass("open");
-    $(this).parent().toggleClass("open");
-  });
-
- */
-  /* $(document).on('focus','.filter.open .options', function(){
-    if( $('.filter.open').find('.active').length )
-      $('.filter.open').addClass('filtered');
-    else
-      $('.filter.open').removeClass('filtered');
-    
-      $('.filter.open').removeClass("open");
-  }); */
 
   // Show configurations details when the row is clicked
   $(document).on('click', 'table:not(.backups):not(.logs) tr.base > td:not(.actions)', function(){    

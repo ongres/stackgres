@@ -157,31 +157,38 @@ var Backups = Vue.component("Backups", {
 							</ul>
 						</div>
 					</div>
-					<table class="backups">
+					<table class="backups" v-if="Object.keys(tooltips.sgbackup).length">
 						<thead class="sort">
-							<th @click="sort('data.status.process.timing.stored')" class="sorted desc timestamp">
-								<span>Timestamp <span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.process.timing.stored')"></span></span>
+							<th class="sorted desc timestamp">
+								<span @click="sort('data.status.process.timing.stored')">Timestamp</span>
+								<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.timing.stored.description"></span>
 							</th>
-							<th @click="sort('data.spec.managedLifecycle')" class="icon desc managedLifecycle">
-								<span>Managed Lifecycle (request) <span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'spec.managedLifecycle')"></span></span>
+							<th class="icon desc managedLifecycle">
+								<span @click="sort('data.spec.managedLifecycle')" >Managed Lifecycle (request)</span>
+								<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.spec.managedLifecycle.description"></span>
 							</th>
-							<th @click="sort('data.status.process.status')" class="desc phase center">
-								<span>Status <span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.process.status')"></span></span>
+							<th class="desc phase center">
+								<span @click="sort('data.status.process.status')" >Status</span>
+								<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.status.description"></span>
 							</th>
-							<th @click="sort('data.status.backupInformation.size.uncompressed')" class="desc size">
-								<span>Size uncompressed (compressed) <span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.backupInformation.size.uncompressed')"></span></span>
+							<th class="desc size">
+								<span @click="sort('data.status.backupInformation.size.uncompressed')" >Size uncompressed (compressed)</span>
+								<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.size.uncompressed.description"></span>
 							</th>
-							<th @click="sort('data.status.backupInformation.postgresVersion')" class="desc postgresVersion" v-if="!isCluster">
-								<span>PG <span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.backupInformation.postgresVersion')"></span></span>
+							<th class="desc postgresVersion" v-if="!isCluster">
+								<span@click="sort('data.status.backupInformation.postgresVersion')" >PG</span>
+								<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.postgresVersion.description"></span>
 							</th>
 							<!--<th @click="sort('data.status.tested')" class="icon desc tested">
 								<span>Tested</span>
 							</th>-->
-							<th @click="sort('data.metadata.name')" class="desc name">
-								<span>Name <span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'metadata.name')"></span></span>
+							<th class="desc name">
+								<span @click="sort('data.metadata.name')">Name</span>
+								<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.metadata.name.description"></span>
 							</th>
-							<th @click="sort('data.spec.sgCluster')" class="desc clusterName" v-if="!isCluster">
-								<span>Source Cluster <span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'spec.sgCluster')"></span></span>
+							<th class="desc clusterName" v-if="!isCluster">
+								<span @click="sort('data.spec.sgCluster')" >Source Cluster</span>
+								<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.spec.sgCluster.description"></span>
 							</th>
 							<th class="actions"></th>
 							<!--<th class="details"></th>-->
@@ -252,7 +259,7 @@ var Backups = Vue.component("Backups", {
 													<tr>
 														<td class="label">
 															Start Time
-															<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.process.timing.start')"></span>
+															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.timing.start.description"></span>
 														</td>
 														<td class="timestamp">
 															<span class='date'>
@@ -282,7 +289,7 @@ var Backups = Vue.component("Backups", {
 													<tr>
 														<td class="label">
 															LSN (start ⇢ end)
-															<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', '')"></span>
+															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.lsn.start.description + ' ⇢ ' + tooltips.sgbackup.status.backupInformation.lsn.end.description"></span>
 														</td>
 														<td>
 															{{ back.data.status.backupInformation.lsn.start }} ⇢ {{ back.data.status.backupInformation.lsn.end }}
@@ -291,7 +298,7 @@ var Backups = Vue.component("Backups", {
 													<tr>
 														<td class="label">
 															UID
-															<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', '')"></span>
+															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.metadata.uid.description"></span>
 														</td>
 														<td colspan="2">
 															{{ back.data.metadata.uid }}
@@ -300,7 +307,7 @@ var Backups = Vue.component("Backups", {
 													<tr>
 														<td class="label">
 															Source Pod
-															<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.backupInformation.hostname')"></span>
+															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.hostname.description"></span>
 														</td>
 														<td>
 															{{ back.data.status.backupInformation.hostname }}
@@ -309,7 +316,7 @@ var Backups = Vue.component("Backups", {
 													<tr>
 														<td class="label">
 															Timeline
-															<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.backupInformation.startWalFile')"></span>
+															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.startWalFile.description"></span>
 														</td>
 														<td>
 															{{ parseInt(back.data.status.backupInformation.startWalFile.substr(8)) }}
@@ -318,7 +325,7 @@ var Backups = Vue.component("Backups", {
 													<tr>
 														<td class="label">
 															System Identifier
-															<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.backupInformation.systemIdentifier')"></span>
+															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.systemIdentifier.description"></span>
 														</td>
 														<td>
 															{{ back.data.status.backupInformation.systemIdentifier }}
@@ -327,7 +334,7 @@ var Backups = Vue.component("Backups", {
 													<tr>
 														<td class="label">
 															Job Pod
-															<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.process.jobPod')"></span>
+															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.jobPod.description"></span>
 														</td>
 														<td>
 															{{ back.data.status.process.jobPod }}
@@ -336,7 +343,7 @@ var Backups = Vue.component("Backups", {
 													<tr>
 														<td class="label">
 															Managed Lifecycle (status)
-															<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.process.managedLifecycle')"></span>
+															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.managedLifecycle.description"></span>
 														</td>
 														<td>
 															{{ back.data.status.process.managedLifecycle ? 'Enabled' : 'Disabled' }}
@@ -345,7 +352,7 @@ var Backups = Vue.component("Backups", {
 													<tr>
 														<td class="label">
 															End Time
-															<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.process.timing.end')"></span>
+															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.timing.end.description"></span>
 														</td>
 														<td class="timestamp">
 															<span class='date'>
@@ -362,7 +369,7 @@ var Backups = Vue.component("Backups", {
 													<tr>
 														<td class="label">
 															Stored Time
-															<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.process.timing.stored')"></span>
+															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.timing.stored.description"></span>
 														</td>
 														<td class="timestamp">
 															<span class='date'>
@@ -379,7 +386,7 @@ var Backups = Vue.component("Backups", {
 													<tr>
 														<td class="label">
 															Hostname
-															<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.backupInformation.hostname')"></span>
+															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.hostname.description"></span>
 														</td>
 														<td>
 															{{ back.data.status.backupInformation.hostname }}
@@ -388,7 +395,7 @@ var Backups = Vue.component("Backups", {
 													<tr>
 														<td class="label">
 															PG Data
-															<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.backupInformation.pgData')"></span>
+															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.pgData.description"></span>
 														</td>
 														<td>
 															{{ back.data.status.backupInformation.pgData }}
@@ -397,7 +404,7 @@ var Backups = Vue.component("Backups", {
 													<tr>
 														<td class="label">
 															Start Wal File
-															<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.backupInformation.startWalFile')"></span>
+															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.startWalFile.description"></span>
 														</td>
 														<td>
 															{{ back.data.status.backupInformation.startWalFile }}
@@ -406,7 +413,7 @@ var Backups = Vue.component("Backups", {
 													<tr v-if="(typeof back.data.status.backupInformation.controlData !== 'undefined')">
 														<td class="label">
 															Control Data
-															<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.backupInformation.controlData')"></span>
+															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.controlData.description"></span>
 														</td>
 														<td>
 															{{ back.data.status.backupInformation.controlData }}
@@ -420,14 +427,14 @@ var Backups = Vue.component("Backups", {
 												<thead>
 													<th colspan="2">
 														Storage Details
-														<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage')"></span>
+														<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.description"></span>
 													</th>
 												</thead>
 												<tbody>
 													<tr>
 														<td class="label">
 															Storage Type
-															<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.type')"></span>
+															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.type.description"></span>
 														</td>
 														<td>
 															{{ back.data.status.sgBackupConfig.storage.type }}
@@ -437,7 +444,7 @@ var Backups = Vue.component("Backups", {
 														<tr>
 															<td class="label">
 																Bucket
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.s3.bucket')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.bucket.description"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.s3.bucket }}
@@ -446,7 +453,7 @@ var Backups = Vue.component("Backups", {
 														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3.path')">
 															<td class="label">
 																Path
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.s3.path')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.path.description"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.s3.path }}
@@ -455,7 +462,7 @@ var Backups = Vue.component("Backups", {
 														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3.region')">
 															<td class="label">
 																Region
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.s3.region')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.region.description"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.s3.region }}
@@ -464,7 +471,7 @@ var Backups = Vue.component("Backups", {
 														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3.storageClass')">
 															<td class="label">
 																Bucket
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.s3.storageClass')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.storageClass.description"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.s3.path }}
@@ -473,13 +480,13 @@ var Backups = Vue.component("Backups", {
 														<tr>
 															<td colspan="2" class="label">
 																AWS Credentials
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.s3.awsCredentials')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.awsCredentials.description"></span>
 															</td>
 														</tr>
 														<tr>
 															<td class="label">
 																Access Key ID
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.s3.awsCredentials.secretKeySelectors.accessKeyId')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.awsCredentials.secretKeySelectors.accessKeyId.description"></span>
 															</td>
 															<td>
 																********
@@ -488,7 +495,7 @@ var Backups = Vue.component("Backups", {
 														<tr>
 															<td class="label">
 																Secret Access Key
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey.description"></span>
 															</td>
 															<td>
 																********
@@ -499,7 +506,7 @@ var Backups = Vue.component("Backups", {
 														<tr>
 															<td class="label">
 																Bucket
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.s3Compatible.bucket')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.bucket.description"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.s3Compatible.bucket }}
@@ -508,7 +515,7 @@ var Backups = Vue.component("Backups", {
 														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3Compatible.path')">
 															<td class="label">
 																Path
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.s3Compatible.path')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.path.description"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.s3Compatible.path }}
@@ -517,7 +524,7 @@ var Backups = Vue.component("Backups", {
 														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3Compatible.enablePathStyleAddressing')">
 															<td class="label">
 																Path Style Addressing
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.s3Compatible.enablePathStyleAddressing')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.enablePathStyleAddressing.description"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.s3Compatible.enablePathStyleAddressing ? 'Enabled' : 'Disabled'}}
@@ -526,7 +533,7 @@ var Backups = Vue.component("Backups", {
 														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3Compatible.endpoint')">
 															<td class="label">
 																Endpoint
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.s3Compatible.endpoint')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.endpoint.description"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.s3Compatible.endpoint }}
@@ -535,7 +542,7 @@ var Backups = Vue.component("Backups", {
 														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3Compatible.region')">
 															<td class="label">
 																Region
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.s3Compatible.region')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.region.description"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.s3Compatible.region }}
@@ -544,7 +551,7 @@ var Backups = Vue.component("Backups", {
 														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3Compatible.storageClass')">
 															<td class="label">
 																Bucket
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.s3Compatible.storageClass')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.storageClass.description"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.s3Compatible.path }}
@@ -553,13 +560,13 @@ var Backups = Vue.component("Backups", {
 														<tr>
 															<td colspan="2" class="label">
 																AWS Credentials
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.s3Compatible.awsCredentials')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.awsCredentials.description"></span>
 															</td>
 														</tr>
 														<tr>
 															<td class="label">
 																Access Key ID
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.description"></span>
 															</td>
 															<td>
 																********
@@ -568,7 +575,7 @@ var Backups = Vue.component("Backups", {
 														<tr>
 															<td class="label">
 																Secret Access Key
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.description"></span>
 															</td>
 															<td>
 																********
@@ -579,7 +586,7 @@ var Backups = Vue.component("Backups", {
 														<tr>
 															<td class="label">
 																Bucket
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.gcs.bucket')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.gcs.bucket.description"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.gcs.bucket }}
@@ -588,7 +595,7 @@ var Backups = Vue.component("Backups", {
 														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.gcs.path')">
 															<td class="label">
 																Path
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.gcs.path')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.gcs.path.description"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.gcs.path }}
@@ -597,13 +604,13 @@ var Backups = Vue.component("Backups", {
 														<tr>
 															<td colspan="2" class="label">
 																GCS Credentials
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.gcs.gcpCredentials')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.gcs.gcpCredentials.description"></span>
 															</td>
 														</tr>
 														<tr>
 															<td class="label">
 																Service Account JSON
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.gcs.gcpCredentials.serviceAccountJSON')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.gcs.gcpCredentials.serviceAccountJSON.description"></span>
 															</td>
 															<td>
 																********
@@ -614,7 +621,7 @@ var Backups = Vue.component("Backups", {
 														<tr>
 															<td class="label">
 																Bucket
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.azureBlob.bucket')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.azureBlob.bucket.description"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.azureBlob.bucket }}
@@ -623,7 +630,7 @@ var Backups = Vue.component("Backups", {
 														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.azureBlob.path')">
 															<td class="label">
 																Path
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.azureBlob.path')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.azureBlob.path.description"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.azureBlob.path }}
@@ -632,13 +639,13 @@ var Backups = Vue.component("Backups", {
 														<tr>
 															<td colspan="2" class="label">
 																Azure Credentials
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.azureBlob.azureCredentials')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.azureBlob.azureCredentials.description"></span>
 															</td>
 														</tr>
 														<tr>
 															<td class="label">
 																Storage Account
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount.description"></span>
 															</td>
 															<td>
 																********
@@ -647,7 +654,7 @@ var Backups = Vue.component("Backups", {
 														<tr>
 															<td class="label">
 																Access Key
-																<span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.sgBackupConfig.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey')"></span>
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey.description"></span>
 															</td>
 															<td>
 																********
@@ -726,6 +733,10 @@ var Backups = Vue.component("Backups", {
 
 		isCluster() {
 			return this.$route.params.hasOwnProperty('cluster')
+		},
+
+		tooltips() {
+			return store.state.tooltips
 		}
 
 	},

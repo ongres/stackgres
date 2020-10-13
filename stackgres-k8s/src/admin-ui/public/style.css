@@ -2833,11 +2833,19 @@ table .sort, a.uploadLink {
     cursor: pointer;
 }
 
-.sort th > span:after {
+.sort th {
+    position: relative;
+}
+
+.sort th span.helpTooltip {
+    margin-left: -29px;
+}
+
+.sort th > span:not(.helpTooltip):after {
     content: "▾";
     opacity: 0;
     display: inline-block;
-    margin-left: 5px;
+    margin-left: 23px;
     position: relative;
     top: -1px;
 }
@@ -3134,8 +3142,7 @@ table.clusterConfig td:not([colspan]) {
 }
 
 table.clusterConfig a {
-    color: initial;
-    display: inline-flex;
+    display: block;
     cursor: pointer;
 }
 
@@ -3148,6 +3155,7 @@ table.clusterConfig svg, td.usedOn svg {
     width: 15px;
     display: inline-block;
     margin-left: 5px;
+    float: right;
 }
 
 table.backups .details > td {
@@ -4900,6 +4908,10 @@ tr.details td:last-of-type .configurationDetails table {
     top: 1px;
     margin-left: 3px;
     cursor: pointer;
+}
+
+td.label .helpTooltip {
+    float: right;
 }
 
 .helpTooltip:hover {
