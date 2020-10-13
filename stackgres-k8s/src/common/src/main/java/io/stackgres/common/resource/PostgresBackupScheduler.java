@@ -23,7 +23,7 @@ public class PostgresBackupScheduler
   @Inject
   public PostgresBackupScheduler(KubernetesClientFactory clientFactory) {
     super(clientFactory,
-        StackGresBackupConfigDefinition.NAME,
+        StackGresBackupConfigDefinition.CONTEXT,
         StackGresBackupConfig.class,
         StackGresBackupConfigList.class,
         StackGresBackupConfigDoneable.class);

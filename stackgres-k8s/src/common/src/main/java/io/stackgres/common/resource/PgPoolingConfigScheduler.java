@@ -23,7 +23,7 @@ public class PgPoolingConfigScheduler
   @Inject
   public PgPoolingConfigScheduler(KubernetesClientFactory clientFactory) {
     super(clientFactory,
-        StackGresPoolingConfigDefinition.NAME,
+        StackGresPoolingConfigDefinition.CONTEXT,
         StackGresPoolingConfig.class,
         StackGresPoolingConfigList.class,
         StackGresPoolingConfigDoneable.class);

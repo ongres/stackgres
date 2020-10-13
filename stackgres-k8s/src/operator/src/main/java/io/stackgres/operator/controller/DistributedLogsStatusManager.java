@@ -24,7 +24,6 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDoneabl
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @ApplicationScoped
 public class DistributedLogsStatusManager extends AbstractClusterStatusManager<
@@ -62,14 +61,14 @@ public class DistributedLogsStatusManager extends AbstractClusterStatusManager<
   protected void patch(StackGresDistributedLogsContext context,
       KubernetesClient client) {
     StackGresDistributedLogs distributedLogs = context.getDistributedLogs();
-    ResourceUtil.getCustomResource(client, StackGresDistributedLogsDefinition.NAME)
-        .ifPresent(crd -> client.customResources(crd,
-            StackGresDistributedLogs.class,
-            StackGresDistributedLogsList.class,
-            StackGresDistributedLogsDoneable.class)
-            .inNamespace(distributedLogs.getMetadata().getNamespace())
-            .withName(distributedLogs.getMetadata().getName())
-            .patch(distributedLogs));
+    client.customResources(
+        StackGresDistributedLogsDefinition.CONTEXT,
+        StackGresDistributedLogs.class,
+        StackGresDistributedLogsList.class,
+        StackGresDistributedLogsDoneable.class)
+        .inNamespace(distributedLogs.getMetadata().getNamespace())
+        .withName(distributedLogs.getMetadata().getName())
+        .patch(distributedLogs);
   }
 
   @Override

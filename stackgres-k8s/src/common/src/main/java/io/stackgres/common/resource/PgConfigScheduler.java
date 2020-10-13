@@ -23,7 +23,7 @@ public class PgConfigScheduler
   @Inject
   public PgConfigScheduler(KubernetesClientFactory clientFactory) {
     super(clientFactory,
-        StackGresPostgresConfigDefinition.NAME,
+        StackGresPostgresConfigDefinition.CONTEXT,
         StackGresPostgresConfig.class,
         StackGresPostgresConfigList.class,
         StackGresPostgresConfigDoneable.class);

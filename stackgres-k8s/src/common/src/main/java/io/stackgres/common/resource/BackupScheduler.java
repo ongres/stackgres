@@ -23,7 +23,7 @@ public class BackupScheduler
   @Inject
   public BackupScheduler(KubernetesClientFactory clientFactory) {
     super(clientFactory,
-        StackGresBackupDefinition.NAME,
+        StackGresBackupDefinition.CONTEXT,
         StackGresBackup.class,
         StackGresBackupList.class,
         StackGresBackupDoneable.class);

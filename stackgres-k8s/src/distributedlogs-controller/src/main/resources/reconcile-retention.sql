@@ -1,0 +1,1 @@
+SELECT drop_chunks(date_trunc(${RETENTION_UNIT}, now()) - CAST(${RETENTION} AS INTERVAL), ${TABLE})

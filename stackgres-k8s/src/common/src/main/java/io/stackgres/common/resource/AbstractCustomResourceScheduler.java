@@ -21,19 +21,19 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource,
 
   private final KubernetesClientFactory clientFactory;
 
-  private final String customResourceName;
+  private final CustomResourceDefinitionContext customResourceDefinitionContext;
   private final Class<T> customResourceClass;
   private final Class<L> customResourceListClass;
   private final Class<D> customResourceDoneClass;
 
   protected AbstractCustomResourceScheduler(
       KubernetesClientFactory clientFactory,
-      String customResourceName,
+      CustomResourceDefinitionContext customResourceDefinitionContext,
       Class<T> customResourceClass,
       Class<L> customResourceListClass,
       Class<D> customResourceDoneClass) {
     this.clientFactory = clientFactory;
-    this.customResourceName = customResourceName;
+    this.customResourceDefinitionContext = customResourceDefinitionContext;
     this.customResourceClass = customResourceClass;
     this.customResourceListClass = customResourceListClass;
     this.customResourceDoneClass = customResourceDoneClass;
@@ -70,13 +70,7 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource,
 
   private Namespaceable<NonNamespaceOperation<T, L, D, Resource<T, D>>> getCustomResourceEndpoints(
       KubernetesClient client) {
-    CustomResourceDefinitionContext crd = ResourceUtil.getCustomResource(
-        client, customResourceName)
-        .map(CustomResourceDefinitionContext::fromCrd)
-        .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
-            + " CRD " + customResourceName + " not found."));
-
-    return client.customResources(crd,
+    return client.customResources(customResourceDefinitionContext,
         customResourceClass,
         customResourceListClass,
         customResourceDoneClass);

@@ -5,116 +5,83 @@
 
 package io.stackgres.operator.controller;
 
-import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.ArcUtil;
+import io.stackgres.common.ObjectMapperProvider;
 import io.stackgres.common.crd.sgcluster.ClusterEventReason;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.resource.ClusterResourceHandlerSelector;
-import io.stackgres.operatorframework.reconciliation.AbstractReconciliator;
+import io.stackgres.operatorframework.reconciliation.ResourceGeneratorReconciliator;
 
+@ApplicationScoped
 public class ClusterReconciliator
-    extends AbstractReconciliator<StackGresClusterContext, StackGresCluster,
+    extends ResourceGeneratorReconciliator<StackGresClusterContext, StackGresCluster,
       ClusterResourceHandlerSelector> {
 
   private final ClusterStatusManager statusManager;
   private final EventController eventController;
 
-  private ClusterReconciliator(Builder builder) {
-    super("Cluster", builder.handlerSelector,
-        builder.client, builder.objectMapper,
-        builder.clusterContext, builder.clusterContext.getCluster());
-    Objects.requireNonNull(builder.handlerSelector);
-    Objects.requireNonNull(builder.statusManager);
-    Objects.requireNonNull(builder.eventController);
-    Objects.requireNonNull(builder.client);
-    Objects.requireNonNull(builder.objectMapper);
-    Objects.requireNonNull(builder.clusterContext);
-    this.statusManager = builder.statusManager;
-    this.eventController = builder.eventController;
+  @Dependent
+  public static class Parameters {
+    @Inject ClusterResourceHandlerSelector handlerSelector;
+    @Inject ObjectMapperProvider objectMapperProvider;
+    @Inject ClusterStatusManager statusManager;
+    @Inject EventController eventController;
+  }
+
+  @Inject
+  public ClusterReconciliator(Parameters parameters) {
+    super("Cluster", StackGresClusterContext::getCluster,
+        parameters.handlerSelector, parameters.objectMapperProvider.objectMapper());
+    this.statusManager = parameters.statusManager;
+    this.eventController = parameters.eventController;
+  }
+
+  public ClusterReconciliator() {
+    super(null, c -> null, null, null);
+    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    this.statusManager = null;
+    this.eventController = null;
+  }
+
+  public static ClusterReconciliator create(Consumer<Parameters> consumer) {
+    Stream<Parameters> parameters = Optional.of(new Parameters()).stream().peek(consumer);
+    return new ClusterReconciliator(parameters.findAny().get());
   }
 
   @Override
-  protected void onConfigCreated() {
+  protected void onConfigCreated(KubernetesClient client, StackGresClusterContext context) {
+    StackGresCluster cluster = context.getCluster();
     eventController.sendEvent(ClusterEventReason.CLUSTER_CREATED,
-        "StackGres Cluster " + contextResource.getMetadata().getNamespace() + "."
-        + contextResource.getMetadata().getName() + " created", contextResource, client);
+        "StackGres Cluster " + cluster.getMetadata().getNamespace() + "."
+        + cluster.getMetadata().getName() + " created", cluster, client);
     statusManager.updateCondition(
         ClusterStatusCondition.FALSE_FAILED.getCondition(), context, client);
   }
 
   @Override
-  protected void onConfigUpdated() {
+  protected void onConfigUpdated(KubernetesClient client, StackGresClusterContext context) {
+    StackGresCluster cluster = context.getCluster();
     eventController.sendEvent(ClusterEventReason.CLUSTER_UPDATED,
-        "StackGres Cluster " + contextResource.getMetadata().getNamespace() + "."
-        + contextResource.getMetadata().getName() + " updated", contextResource, client);
+        "StackGres Cluster " + cluster.getMetadata().getNamespace() + "."
+        + cluster.getMetadata().getName() + " updated", cluster, client);
     statusManager.updateCondition(
         ClusterStatusCondition.FALSE_FAILED.getCondition(), context, client);
   }
 
   @Override
-  protected void onPostConfigReconcilied() {
+  protected void onPostConfigReconcilied(KubernetesClient client, StackGresClusterContext context) {
     statusManager.updatePendingRestart(context);
-  }
-
-  /**
-   * Creates builder to build {@link ClusterReconciliator}.
-   * @return created builder
-   */
-  public static Builder builder() {
-    return new Builder();
-  }
-
-  /**
-   * Builder to build {@link ClusterReconciliator}.
-   */
-  public static final class Builder {
-    private ClusterResourceHandlerSelector handlerSelector;
-    private ClusterStatusManager statusManager;
-    private EventController eventController;
-    private KubernetesClient client;
-    private ObjectMapper objectMapper;
-    private StackGresClusterContext clusterContext;
-
-    private Builder() {}
-
-    public Builder withHandlerSelector(
-        ClusterResourceHandlerSelector handlerSelector) {
-      this.handlerSelector = handlerSelector;
-      return this;
-    }
-
-    public Builder withStatusManager(ClusterStatusManager statusManager) {
-      this.statusManager = statusManager;
-      return this;
-    }
-
-    public Builder withEventController(EventController eventController) {
-      this.eventController = eventController;
-      return this;
-    }
-
-    public Builder withClient(KubernetesClient client) {
-      this.client = client;
-      return this;
-    }
-
-    public Builder withObjectMapper(ObjectMapper objectMapper) {
-      this.objectMapper = objectMapper;
-      return this;
-    }
-
-    public Builder withClusterContext(StackGresClusterContext clusterContext) {
-      this.clusterContext = clusterContext;
-      return this;
-    }
-
-    public ClusterReconciliator build() {
-      return new ClusterReconciliator(this);
-    }
   }
 
 }

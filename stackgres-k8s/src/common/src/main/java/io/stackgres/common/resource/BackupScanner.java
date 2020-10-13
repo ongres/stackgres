@@ -25,7 +25,7 @@ public class BackupScanner
    */
   @Inject
   public BackupScanner(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresBackupDefinition.NAME,
+    super(clientFactory, StackGresBackupDefinition.CONTEXT,
         StackGresBackup.class, StackGresBackupList.class,
         StackGresBackupDoneable.class);
   }

@@ -26,6 +26,8 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -33,14 +35,12 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operator.sidecars.pooling.parameters.Blocklist;
 import io.stackgres.operator.sidecars.pooling.parameters.DefaultValues;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -57,7 +57,7 @@ public class PgPooling
   private static final String CONFIG_SUFFIX = "-connection-pooling-config";
   private static final Map<String, String> defaultPgBouncerInt = ImmutableMap
       .<String, String>builder()
-      .put("listen_port", Integer.toString(Envoy.PG_POOL_PORT))
+      .put("listen_port", Integer.toString(EnvoyUtil.PG_POOL_PORT))
       .put("listen_addr", "127.0.0.1") // NOPMD
       .put("unix_socket_dir", ClusterStatefulSetPath.PG_RUN_PATH.path())
       .put("auth_type", "md5")
@@ -115,7 +115,7 @@ public class PgPooling
         .collect(Collectors.joining("\n"));
 
     String configFile = "[databases]\n"
-        + " * = port = " + Envoy.PG_PORT + "\n"
+        + " * = port = " + EnvoyUtil.PG_PORT + "\n"
         + "\n"
         + "[pgbouncer]\n"
         + pgBouncerConfig

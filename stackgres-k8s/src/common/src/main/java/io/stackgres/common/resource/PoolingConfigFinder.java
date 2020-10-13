@@ -24,7 +24,7 @@ public class PoolingConfigFinder
    */
   @Inject
   public PoolingConfigFinder(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresPoolingConfigDefinition.NAME,
+    super(clientFactory, StackGresPoolingConfigDefinition.CONTEXT,
         StackGresPoolingConfig.class, StackGresPoolingConfigList.class,
         StackGresPoolingConfigDoneable.class);
   }

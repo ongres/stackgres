@@ -156,8 +156,8 @@ build distributedlogs-controller native image:
   timeout: 1 hour
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
-    - 'export JOBS_IMAGE_NAME="stackgres/distributedlogs-controller:$IMAGE_TAG"'
-    - 'export TARGET_JOBS_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$JOBS_IMAGE_NAME"'
+    - 'export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="stackgres/distributedlogs-controller:$IMAGE_TAG"'
+    - 'export TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"'
     - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - cd stackgres-k8s/src
     - |

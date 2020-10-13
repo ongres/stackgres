@@ -25,7 +25,7 @@ public class ClusterScanner
    */
   @Inject
   public ClusterScanner(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresClusterDefinition.NAME,
+    super(clientFactory, StackGresClusterDefinition.CONTEXT,
         StackGresCluster.class, StackGresClusterList.class,
         StackGresClusterDoneable.class);
   }

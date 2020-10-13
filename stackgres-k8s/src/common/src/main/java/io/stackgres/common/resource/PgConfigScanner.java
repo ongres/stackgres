@@ -22,7 +22,7 @@ public class PgConfigScanner extends
 
   @Inject
   public PgConfigScanner(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresPostgresConfigDefinition.NAME,
+    super(clientFactory, StackGresPostgresConfigDefinition.CONTEXT,
         StackGresPostgresConfig.class, StackGresPostgresConfigList.class,
         StackGresPostgresConfigDoneable.class);
   }

@@ -23,7 +23,7 @@ public class DistributedLogsScheduler
   @Inject
   public DistributedLogsScheduler(KubernetesClientFactory clientFactory) {
     super(clientFactory,
-        StackGresDistributedLogsDefinition.NAME,
+        StackGresDistributedLogsDefinition.CONTEXT,
         StackGresDistributedLogs.class,
         StackGresDistributedLogsList.class,
         StackGresDistributedLogsDoneable.class);

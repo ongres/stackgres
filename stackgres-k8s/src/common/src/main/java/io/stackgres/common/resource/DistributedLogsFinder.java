@@ -24,7 +24,7 @@ public class DistributedLogsFinder
    */
   @Inject
   public DistributedLogsFinder(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresDistributedLogsDefinition.NAME,
+    super(clientFactory, StackGresDistributedLogsDefinition.CONTEXT,
         StackGresDistributedLogs.class, StackGresDistributedLogsList.class,
         StackGresDistributedLogsDoneable.class);
   }

@@ -21,7 +21,7 @@ public class PgPoolingConfigScanner extends AbstractCustomResourceScanner
 
   @Inject
   public PgPoolingConfigScanner(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresPoolingConfigDefinition.NAME,
+    super(clientFactory, StackGresPoolingConfigDefinition.CONTEXT,
         StackGresPoolingConfig.class, StackGresPoolingConfigList.class,
         StackGresPoolingConfigDoneable.class);
   }

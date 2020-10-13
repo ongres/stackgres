@@ -19,24 +19,24 @@ public interface ResourceHandlerSelector<T extends ResourceHandlerContext> {
   HasMetadata update(T resourceHandlerContext,
       HasMetadata toUpdate, HasMetadata withUpdates);
 
-  boolean isManaged(T config, HasMetadata existingResource);
+  boolean isManaged(T context, HasMetadata existingResource);
 
-  boolean skipCreation(T config, HasMetadata requiredResource);
+  boolean skipCreation(T context, HasMetadata requiredResource);
 
-  boolean skipDeletion(T config, HasMetadata requiredResource);
+  boolean skipDeletion(T context, HasMetadata requiredResource);
 
   void registerKinds();
 
-  Stream<HasMetadata> getResources(KubernetesClient client, T config);
+  Stream<HasMetadata> getResources(KubernetesClient client, T context);
 
-  Optional<HasMetadata> find(KubernetesClient client, T config,
+  Optional<HasMetadata> find(KubernetesClient client, T context,
       HasMetadata resource);
 
-  HasMetadata create(KubernetesClient client, T config, HasMetadata resource);
+  HasMetadata create(KubernetesClient client, T context, HasMetadata resource);
 
-  HasMetadata patch(KubernetesClient client, T config, HasMetadata resource);
+  HasMetadata patch(KubernetesClient client, T context, HasMetadata resource);
 
-  boolean delete(KubernetesClient client, T config, HasMetadata resource);
+  boolean delete(KubernetesClient client, T context, HasMetadata resource);
 
   ResourceHandler<T> getResourceHandler(HasMetadata resource);
 

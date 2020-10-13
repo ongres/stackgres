@@ -26,7 +26,7 @@ public class PrometheusScanner
    */
   @Inject
   public PrometheusScanner(KubernetesClientFactory clientFactory) {
-    super(clientFactory, PrometheusConfigDefinition.NAME,
+    super(clientFactory, PrometheusConfigDefinition.CONTEXT,
         PrometheusConfig.class, PrometheusConfigList.class,
         PrometheusConfigDoneable.class);
   }

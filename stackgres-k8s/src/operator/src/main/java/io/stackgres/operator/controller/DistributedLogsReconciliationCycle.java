@@ -8,8 +8,11 @@ package io.stackgres.operator.controller;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
@@ -19,6 +22,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.ArcUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
+import io.stackgres.common.ObjectMapperProvider;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
@@ -34,7 +38,6 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProd
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.common.resource.CustomResourceScanner;
-import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSet;
 import io.stackgres.operator.common.ImmutableStackGresDistributedLogsContext;
 import io.stackgres.operator.common.ImmutableStackGresDistributedLogsGeneratorContext;
@@ -43,14 +46,15 @@ import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
 import io.stackgres.operator.common.StackGresDistributedLogsGeneratorContext;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
+import io.stackgres.operator.distributedlogs.controller.DistributedLogsController;
 import io.stackgres.operator.distributedlogs.factory.DistributedLogs;
 import io.stackgres.operator.distributedlogs.fluentd.Fluentd;
 import io.stackgres.operator.resource.DistributedLogsResourceHandlerSelector;
-import io.stackgres.operatorframework.reconciliation.AbstractReconciliator;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple2;
+import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
 public class DistributedLogsReconciliationCycle
@@ -58,68 +62,87 @@ public class DistributedLogsReconciliationCycle
       StackGresDistributedLogs, DistributedLogsResourceHandlerSelector> {
 
   private final DistributedLogs distributeLogs;
+  private final DistributedLogsController distributedLogsController;
   private final Fluentd fluentd;
-  private final DistributedLogsStatusManager statusManager;
   private final EventController eventController;
   private final OperatorPropertyContext operatorContext;
   private final LabelFactory<StackGresDistributedLogs> labelFactory;
   private final CustomResourceScanner<StackGresCluster> clusterScanner;
 
-  /**
-   * Create a {@code DistributeLogsReconciliationCycle} instance.
-   */
+  @Dependent
+  public static class Parameters {
+    @Inject KubernetesClientFactory clientFactory;
+    @Inject DistributedLogsReconciliator reconciliator;
+    @Inject DistributedLogs distributeLogs;
+    @Inject DistributedLogsController distributedLogsController;
+    @Inject Fluentd fluentd;
+    @Inject DistributedLogsResourceHandlerSelector handlerSelector;
+    @Inject EventController eventController;
+    @Inject ObjectMapperProvider objectMapperProvider;
+    @Inject OperatorPropertyContext operatorContext;
+    @Inject LabelFactory<StackGresDistributedLogs> labelFactory;
+    @Inject CustomResourceScanner<StackGresDistributedLogs> distributedLogsScanner;
+    @Inject CustomResourceScanner<StackGresCluster> clusterScanner;
+  }
+
   @Inject
-  public DistributedLogsReconciliationCycle(
-      KubernetesClientFactory clientFactory,
-      DistributedLogs distributeLogs, Fluentd fluentd,
-      DistributedLogsResourceHandlerSelector handlerSelector,
-      DistributedLogsStatusManager statusManager, EventController eventController,
-      ObjectMapperProvider objectMapperProvider,
-      OperatorPropertyContext operatorContext,
-      LabelFactory<StackGresDistributedLogs> labelFactory,
-      CustomResourceScanner<StackGresDistributedLogs> distributedLogsScanner,
-      CustomResourceScanner<StackGresCluster> clusterScanner) {
-    super("DistributeLogs", clientFactory::create,
+  public DistributedLogsReconciliationCycle(Parameters parameters) {
+    super("DistributeLogs", parameters.clientFactory::create,
+        parameters.reconciliator,
         StackGresDistributedLogsContext::getDistributedLogs,
-        handlerSelector, objectMapperProvider.objectMapper(), distributedLogsScanner);
-    this.distributeLogs = distributeLogs;
-    this.fluentd = fluentd;
-    this.statusManager = statusManager;
-    this.eventController = eventController;
-    this.operatorContext = operatorContext;
-    this.labelFactory = labelFactory;
-    this.clusterScanner = clusterScanner;
+        parameters.handlerSelector, parameters.distributedLogsScanner);
+    this.distributeLogs = parameters.distributeLogs;
+    this.distributedLogsController = parameters.distributedLogsController;
+    this.fluentd = parameters.fluentd;
+    this.eventController = parameters.eventController;
+    this.operatorContext = parameters.operatorContext;
+    this.labelFactory = parameters.labelFactory;
+    this.clusterScanner = parameters.clusterScanner;
   }
 
   public DistributedLogsReconciliationCycle() {
-    super(null, null, c -> null, null, null, null);
+    super(null, null, null, c -> null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
     this.distributeLogs = null;
+    this.distributedLogsController = null;
     this.fluentd = null;
-    this.statusManager = null;
     this.eventController = null;
     this.operatorContext = null;
     this.labelFactory = null;
     this.clusterScanner = null;
   }
 
+  public static DistributedLogsReconciliationCycle create(Consumer<Parameters> consumer) {
+    Stream<Parameters> parameters = Optional.of(new Parameters()).stream().peek(consumer);
+    return new DistributedLogsReconciliationCycle(parameters.findAny().get());
+  }
+
   @Override
   protected void onError(Exception ex) {
+    String message = MessageFormatter.arrayFormat(
+        "StackGres DistributeLogs reconciliation cycle failed",
+        new String[] {
+        }).getMessage();
+    logger.error(message, ex);
     try (KubernetesClient client = clientSupplier.get()) {
       eventController.sendEvent(DistributedLogsEventReason.DISTRIBUTED_LOGS_CONFIG_ERROR,
-          "StackGres Cluster reconciliation cycle failed: "
-              + ex.getMessage(), client);
+          message + ": " + ex.getMessage(), client);
     }
   }
 
   @Override
   protected void onConfigError(StackGresDistributedLogsContext context,
       HasMetadata configResource, Exception ex) {
+    String message = MessageFormatter.arrayFormat(
+        "StackGres DistributeLogs {}.{} reconciliation failed",
+        new String[] {
+            configResource.getMetadata().getNamespace(),
+            configResource.getMetadata().getName(),
+        }).getMessage();
+    logger.error(message, ex);
     try (KubernetesClient client = clientSupplier.get()) {
       eventController.sendEvent(DistributedLogsEventReason.DISTRIBUTED_LOGS_CONFIG_ERROR,
-          "StackGres DistributeLogs " + configResource.getMetadata().getNamespace() + "."
-              + configResource.getMetadata().getName() + " reconciliation failed: "
-              + ex.getMessage(), configResource, client);
+          message + ": " + ex.getMessage(), configResource, client);
     }
   }
 
@@ -134,20 +157,6 @@ public class DistributedLogsReconciliationCycle
         .append(distributeLogs)
         .stream()
         .collect(ImmutableList.toImmutableList());
-  }
-
-  @Override
-  protected AbstractReconciliator<StackGresDistributedLogsContext, StackGresDistributedLogs,
-      DistributedLogsResourceHandlerSelector> createReconciliator(
-          KubernetesClient client, StackGresDistributedLogsContext context) {
-    return DistributedLogsReconciliator.builder()
-        .withEventController(eventController)
-        .withHandlerSelector(handlerSelector)
-        .withStatusManager(statusManager)
-        .withClient(client)
-        .withObjectMapper(objectMapper)
-        .withDistributedLogsContext(context)
-        .build();
   }
 
   @Override
@@ -197,9 +206,13 @@ public class DistributedLogsReconciliationCycle
         .backupKey(labelFactory.getLabelMapper().backupKey())
         .ownerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(distributedLogs)))
         .addBackups()
-        .addSidecars(new SidecarEntry<>(
-            fluentd.toStackGresClusterSidecarResourceFactory(),
-            Optional.empty()))
+        .addSidecars(
+            new SidecarEntry<>(
+                fluentd.toStackGresClusterSidecarResourceFactory(),
+                Optional.empty()),
+            new SidecarEntry<>(
+                distributedLogsController.toStackGresClusterSidecarResourceFactory(),
+                Optional.empty()))
         .build();
   }
 
@@ -279,4 +292,5 @@ public class DistributedLogsReconciliationCycle
             .orElse(false))
         .collect(ImmutableList.toImmutableList());
   }
+
 }

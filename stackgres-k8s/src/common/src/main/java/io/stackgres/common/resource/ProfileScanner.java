@@ -22,7 +22,7 @@ public class ProfileScanner
 
   @Inject
   public ProfileScanner(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresProfileDefinition.NAME,
+    super(clientFactory, StackGresProfileDefinition.CONTEXT,
         StackGresProfile.class, StackGresProfileList.class,
         StackGresProfileDoneable.class);
   }

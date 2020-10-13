@@ -19,6 +19,10 @@ public interface ContainerResourceFactory<T, C, E>
 
   Container getContainer(C context);
 
+  default Stream<Container> getInitContainers(C context) {
+    return Stream.empty();
+  }
+
   default ImmutableList<Volume> getVolumes(C context) {
     return ImmutableList.of();
   }

@@ -24,7 +24,7 @@ public class PostgresConfigFinder
    */
   @Inject
   public PostgresConfigFinder(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresPostgresConfigDefinition.NAME,
+    super(clientFactory, StackGresPostgresConfigDefinition.CONTEXT,
         StackGresPostgresConfig.class, StackGresPostgresConfigList.class,
         StackGresPostgresConfigDoneable.class);
   }

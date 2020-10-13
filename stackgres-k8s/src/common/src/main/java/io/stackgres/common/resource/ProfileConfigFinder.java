@@ -23,7 +23,7 @@ public class ProfileConfigFinder extends AbstractCustomResourceFinder<StackGresP
    */
   @Inject
   public ProfileConfigFinder(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresProfileDefinition.NAME,
+    super(clientFactory, StackGresProfileDefinition.CONTEXT,
         StackGresProfile.class, StackGresProfileList.class,
         StackGresProfileDoneable.class);
   }

@@ -16,12 +16,9 @@
 
   <artifactId>stackgres-distributedlogs-controller</artifactId>
   <packaging>jar</packaging>
-  <name>StackGres Local Controller</name>
+  <name>StackGres Distributed Logs Local Controller</name>
 
   <properties>
-    <stackgres.operatorName>stackgres-distributedlogs-controller</stackgres.operatorName>
-    <stackgres.operatorNamespace>stackgres</stackgres.operatorNamespace>
-    <stackgres.operatorIP>localhost</stackgres.operatorIP>
     <quarkus.skipAugmentation>false</quarkus.skipAugmentation>
     <checks.location>${project.parent.basedir}/checks</checks.location>
   </properties>
@@ -43,6 +40,10 @@
     <dependency>
       <groupId>com.ongres</groupId>
       <artifactId>fluent-process</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-jdbc-postgresql</artifactId>
     </dependency>
 
     <dependency>
@@ -195,7 +196,7 @@
                         <entrypoint>
                           <arg>/bin/sh</arg>
                           <arg>-ex</arg>
-                          <arg>/operator/src/main/buildah/build-image-jvm.sh</arg>
+                          <arg>/distributedlogs-controller/src/main/buildah/build-image-jvm.sh</arg>
                         </entrypoint>
                         <wait>
                           <time>300000</time>
@@ -250,13 +251,13 @@
                   <containerNamePattern>%a</containerNamePattern>
                   <images>
                     <image>
-                      <alias>operator-native-builder</alias>
-                      <name>operator-native-builder</name>
+                      <alias>distributedlogs-controller-native-builder</alias>
+                      <name>distributedlogs-controller-native-builder</name>
                       <build>
                         <cleanup>remove</cleanup>
                         <from>${buildah.image}</from>
                         <assembly>
-                          <targetDir>/operator</targetDir>
+                          <targetDir>/distributedlogs-controller</targetDir>
                           <inline>
                             <fileSets>
                               <fileSet>
@@ -276,7 +277,7 @@
                         <entrypoint>
                           <arg>/bin/sh</arg>
                           <arg>-ex</arg>
-                          <arg>/operator/src/main/buildah/build-image-native.sh</arg>
+                          <arg>/distributedlogs-controller/src/main/buildah/build-image-native.sh</arg>
                         </entrypoint>
                         <wait>
                           <time>600000</time>

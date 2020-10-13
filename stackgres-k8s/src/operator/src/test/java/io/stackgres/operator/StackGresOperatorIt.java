@@ -5,23 +5,21 @@
 
 package io.stackgres.operator;
 
+import java.time.temporal.ChronoUnit;
+import java.util.stream.Collectors;
+
 import com.ongres.junit.docker.Container;
 import com.ongres.junit.docker.ContainerParam;
 import com.ongres.junit.docker.DockerContainer;
 import com.ongres.junit.docker.DockerExtension;
 import com.ongres.junit.docker.WhenReuse;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Service;
+import io.stackgres.common.ClusterStatefulSetEnvVars;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.crd.sgcluster.ClusterEventReason;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvVars;
-import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operatorframework.resource.EventReason;
-
-import java.time.temporal.ChronoUnit;
-import java.util.stream.Collectors;
-
 import org.jooq.lambda.Unchecked;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -93,7 +91,7 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
       ItHelper.waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
           "kubectl exec -t -n " + namespace + " "
               + CLUSTER_NAME + "-" + instance + " -c postgres-util --"
-              + " sh -c \"psql -t -A -U postgres -d postgres -p " + Envoy.PG_PORT
+              + " sh -c \"psql -t -A -U postgres -d postgres -p " + EnvoyUtil.PG_PORT
               + " -c 'SELECT 1'\"")),
           s -> s.anyMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
           s -> Assertions.fail(
@@ -106,7 +104,7 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
               + CLUSTER_NAME + "-" + instance + " -c postgres-util --"
               + " sh -c \"PGPASSWORD=$(kubectl get secret " + CLUSTER_NAME + " -n " + namespace
               + " -o yaml | grep superuser-password | cut -d ':' -f 2 | tr -d ' ' | base64 -d)"
-              + " psql -t -A -U postgres -d postgres -p " + Envoy.PG_ENTRY_PORT + " -h localhost"
+              + " psql -t -A -U postgres -d postgres -p " + EnvoyUtil.PG_ENTRY_PORT + " -h localhost"
               + " -c 'SELECT 1'\"")),
           s -> s.anyMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
           s -> Assertions.fail(
@@ -133,14 +131,14 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
       throws InterruptedException, Exception {
     String currentWalFileName = k8s.execute("sh", "-l", "-c",
         "kubectl exec -t -n " + namespace + " "+ CLUSTER_NAME + "-" + 0
-        + " -c postgres-util -- sh -c \"psql -t -A -U postgres -p " + Envoy.PG_PORT
+        + " -c postgres-util -- sh -c \"psql -t -A -U postgres -p " + EnvoyUtil.PG_PORT
         + " -c 'SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r'\"")
         .filter(ItHelper.EXCLUDE_TTY_WARNING)
         .findFirst()
         .get();
     ItHelper.waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
         "kubectl exec -t -n " + namespace + " "+ CLUSTER_NAME + "-" + 0
-        + " -c postgres-util -- sh -c \"psql -t -A -U postgres -p " + Envoy.PG_PORT
+        + " -c postgres-util -- sh -c \"psql -t -A -U postgres -p " + EnvoyUtil.PG_PORT
         + " -c 'SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r'\"")),
         s -> s.anyMatch(newWalFileName -> newWalFileName.equals(currentWalFileName)), 60, ChronoUnit.SECONDS,
         s -> Assertions.fail(

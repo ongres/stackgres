@@ -20,19 +20,19 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource,
     implements CustomResourceScanner<T> {
 
   private final KubernetesClientFactory clientFactory;
-  private final String customResourceName;
+  private final CustomResourceDefinitionContext customResourceDefinitionContext;
   private final Class<T> customResourceClass;
   private final Class<L> customResourceListClass;
   private final Class<D> customResourceDoneClass;
 
   protected AbstractCustomResourceScanner(KubernetesClientFactory clientFactory,
-      String customResourceName,
+      CustomResourceDefinitionContext customResourceDefinitionContext,
       Class<T> customResourceClass,
       Class<L> customResourceListClass,
       Class<D> customResourceDoneClass) {
     super();
     this.clientFactory = clientFactory;
-    this.customResourceName = customResourceName;
+    this.customResourceDefinitionContext = customResourceDefinitionContext;
     this.customResourceClass = customResourceClass;
     this.customResourceListClass = customResourceListClass;
     this.customResourceDoneClass = customResourceDoneClass;
@@ -41,30 +41,28 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource,
   @Override
   public Optional<List<T>> findResources() {
     try (KubernetesClient client = clientFactory.create()) {
-      return ResourceUtil.getCustomResource(client, customResourceName)
-          .map(CustomResourceDefinitionContext::fromCrd)
-          .map(crd -> client.customResources(crd,
+      return Optional.ofNullable(
+          client.customResources(customResourceDefinitionContext,
               customResourceClass,
               customResourceListClass,
               customResourceDoneClass)
-              .inAnyNamespace()
-              .list()
-              .getItems());
+          .inAnyNamespace()
+          .list()
+          .getItems());
     }
   }
 
   @Override
   public Optional<List<T>> findResources(String namespace) {
     try (KubernetesClient client = clientFactory.create()) {
-      return ResourceUtil.getCustomResource(client, customResourceName)
-          .map(CustomResourceDefinitionContext::fromCrd)
-          .map(crd -> client.customResources(crd,
+      return Optional.ofNullable(
+          client.customResources(customResourceDefinitionContext,
               customResourceClass,
               customResourceListClass,
               customResourceDoneClass)
-              .inNamespace(namespace)
-              .list()
-              .getItems());
+          .inNamespace(namespace)
+          .list()
+          .getItems());
     }
   }
 
@@ -72,14 +70,14 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource,
   public List<T> getResources() {
     return findResources()
         .orElseThrow(() -> new IllegalStateException("StackGres is not correctly installed:"
-            + " CRD " + customResourceName + " not found."));
+            + " CRD " + customResourceDefinitionContext.getName() + " not found."));
   }
 
   @Override
   public List<T> getResources(String namespace) {
     return findResources(namespace)
         .orElseThrow(() -> new IllegalStateException("StackGres is not correctly installed:"
-            + " CRD " + customResourceName + " not found."));
+            + " CRD " + customResourceDefinitionContext.getName() + " not found."));
   }
 
 }

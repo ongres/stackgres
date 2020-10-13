@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresProperty;
@@ -29,7 +30,6 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.Sidecar;
@@ -37,7 +37,6 @@ import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.distributedlogs.fluentd.Fluentd;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 
@@ -143,7 +142,7 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
         .getDistributedLogs().getDistributedLogs();
     final String fluentdNamespace =
         StackGresUtil.getNamespaceFromRelativeId(fluentdRelativeId, namespace);
-    final String fluentdServiceName = Fluentd.serviceName(
+    final String fluentdServiceName = FluentdUtil.serviceName(
         StackGresUtil.getNameFromRelativeId(fluentdRelativeId));
 
     String parsersConfigFile = ""

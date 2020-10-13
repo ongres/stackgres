@@ -32,11 +32,12 @@ import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.common.Sidecar;
@@ -49,7 +50,6 @@ import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorDefinition;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
-import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
@@ -105,7 +105,7 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
             + "do\n"
             + "  if ( [ -z \"$PID\" ] || [ ! -d \"/proc/$PID\" ] ) \\\n"
             + "    && [ -S '" + ClusterStatefulSetPath.PG_RUN_PATH.path()
-              + "/.s.PGSQL." + Envoy.PG_PORT + "' ]\n"
+              + "/.s.PGSQL." + EnvoyUtil.PG_PORT + "' ]\n"
             + "  then\n"
             + "    if [ -n \"$PID\" ]\n"
             + "    then\n"
@@ -124,7 +124,7 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
                 .build(),
             new EnvVarBuilder()
                 .withName("DATA_SOURCE_NAME")
-                .withValue("postgresql://postgres@:" + Envoy.PG_PORT + "/postgres"
+                .withValue("postgresql://postgres@:" + EnvoyUtil.PG_PORT + "/postgres"
                     + "?host=" + ClusterStatefulSetPath.PG_RUN_PATH.path()
                     + "&sslmode=disable")
                 .build(),

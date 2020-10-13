@@ -24,7 +24,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterDoneable;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @ApplicationScoped
 public class ClusterStatusManager extends AbstractClusterStatusManager<
@@ -62,14 +61,13 @@ public class ClusterStatusManager extends AbstractClusterStatusManager<
   protected void patch(StackGresClusterContext context,
       KubernetesClient client) {
     StackGresCluster cluster = context.getCluster();
-    ResourceUtil.getCustomResource(client, StackGresClusterDefinition.NAME)
-        .ifPresent(crd -> client.customResources(crd,
-            StackGresCluster.class,
-            StackGresClusterList.class,
-            StackGresClusterDoneable.class)
-            .inNamespace(cluster.getMetadata().getNamespace())
-            .withName(cluster.getMetadata().getName())
-            .patch(cluster));
+    client.customResources(StackGresClusterDefinition.CONTEXT,
+        StackGresCluster.class,
+        StackGresClusterList.class,
+        StackGresClusterDoneable.class)
+        .inNamespace(cluster.getMetadata().getNamespace())
+        .withName(cluster.getMetadata().getName())
+        .patch(cluster);
   }
 
   @Override

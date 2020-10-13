@@ -29,18 +29,18 @@ public abstract class AbstractResourceHandlerSelector<T extends ResourceHandlerC
   }
 
   @Override
-  public boolean isManaged(T config, HasMetadata existingResource) {
-    return selectResourceHandler(config, existingResource).isManaged();
+  public boolean isManaged(T context, HasMetadata existingResource) {
+    return selectResourceHandler(context, existingResource).isManaged();
   }
 
   @Override
-  public boolean skipCreation(T config, HasMetadata requiredResource) {
-    return selectResourceHandler(config, requiredResource).skipCreation();
+  public boolean skipCreation(T context, HasMetadata requiredResource) {
+    return selectResourceHandler(context, requiredResource).skipCreation();
   }
 
   @Override
-  public boolean skipDeletion(T config, HasMetadata requiredResource) {
-    return selectResourceHandler(config, requiredResource).skipDeletion();
+  public boolean skipDeletion(T context, HasMetadata requiredResource) {
+    return selectResourceHandler(context, requiredResource).skipDeletion();
   }
 
   @Override
@@ -50,39 +50,34 @@ public abstract class AbstractResourceHandlerSelector<T extends ResourceHandlerC
   }
 
   @Override
-  public Stream<HasMetadata> getResources(KubernetesClient client, T config) {
+  public Stream<HasMetadata> getResources(KubernetesClient client, T context) {
     return getResourceHandlers()
-        .flatMap(handler -> handler.getResources(client, config));
+        .flatMap(handler -> handler.getResources(client, context));
   }
 
   @Override
-  public Optional<HasMetadata> find(KubernetesClient client, T config,
-      HasMetadata resource) {
-    return selectResourceHandler(config, resource).find(client, resource);
+  public Optional<HasMetadata> find(KubernetesClient client, T context, HasMetadata resource) {
+    return selectResourceHandler(context, resource).find(client, resource);
   }
 
   @Override
-  public HasMetadata create(KubernetesClient client, T config,
-      HasMetadata resource) {
-    return selectResourceHandler(config, resource).create(client, resource);
+  public HasMetadata create(KubernetesClient client, T context, HasMetadata resource) {
+    return selectResourceHandler(context, resource).create(client, resource);
   }
 
   @Override
-  public HasMetadata patch(KubernetesClient client, T config,
-      HasMetadata resource) {
-    return selectResourceHandler(config, resource).patch(client, resource);
+  public HasMetadata patch(KubernetesClient client, T context, HasMetadata resource) {
+    return selectResourceHandler(context, resource).patch(client, resource);
   }
 
   @Override
-  public boolean delete(KubernetesClient client, T config,
-      HasMetadata resource) {
-    return selectResourceHandler(config, resource).delete(client, resource);
+  public boolean delete(KubernetesClient client, T context, HasMetadata resource) {
+    return selectResourceHandler(context, resource).delete(client, resource);
   }
 
-  private ResourceHandler<T> selectResourceHandler(T config,
-      HasMetadata resource) {
+  private ResourceHandler<T> selectResourceHandler(T context, HasMetadata resource) {
     Optional<ResourceHandler<T>> customHandler = getResourceHandlers()
-        .filter(handler -> handler.isHandlerForResource(config, resource)).findAny();
+        .filter(handler -> handler.isHandlerForResource(context, resource)).findAny();
 
     return customHandler.orElseGet(() -> getResourceHandler(resource));
 

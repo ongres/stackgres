@@ -16,6 +16,7 @@ import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.distributedlogs.LogTableFields;
 import io.stackgres.common.distributedlogs.PostgresTableFields;
+import io.stackgres.common.distributedlogs.Tables;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -33,8 +34,8 @@ import org.jooq.lambda.tuple.Tuple2;
 
 public class DistributedLogsQueryGenerator {
 
-  public static final String LOG_POSTGRES_TABLE = "log_postgres";
-  public static final String LOG_PATRONI_TABLE = "log_patroni";
+  public static final String LOG_POSTGRES_TABLE = Tables.LOG_POSTGRES.getTableName();
+  public static final String LOG_PATRONI_TABLE = Tables.LOG_PATRONI.getTableName();
   public static final String LOG_POSTGRES_WINDOW = "log_postgres_window";
   public static final String LOG_PATRONI_WINDOW = "log_patroni_window";
   public static final String LOG_POSTGRES_TSVECTOR_FUNCTION = "log_postgres_tsvector";
@@ -52,7 +53,7 @@ public class DistributedLogsQueryGenerator {
 
   public static final String LOG_TIME = LogTableFields.LOG_TIME;
   public static final String LOG_TIME_INDEX = LogTableFields.LOG_TIME_INDEX;
-  public static final String LOG_TYPE = "log_type";
+  public static final String LOG_TYPE = LogTableFields.LOG_TYPE;
   public static final String MESSAGE = LogTableFields.MESSAGE;
   public static final String POD_NAME = LogTableFields.POD_NAME;
   public static final String ROLE = LogTableFields.ROLE;

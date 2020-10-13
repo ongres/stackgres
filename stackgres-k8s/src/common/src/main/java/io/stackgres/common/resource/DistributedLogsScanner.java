@@ -22,7 +22,7 @@ public class DistributedLogsScanner
 
   @Inject
   public DistributedLogsScanner(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresDistributedLogsDefinition.NAME,
+    super(clientFactory, StackGresDistributedLogsDefinition.CONTEXT,
         StackGresDistributedLogs.class, StackGresDistributedLogsList.class,
         StackGresDistributedLogsDoneable.class);
   }

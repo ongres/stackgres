@@ -23,7 +23,7 @@ public class ClusterResourceScheduler extends
   @Inject
   public ClusterResourceScheduler(KubernetesClientFactory clientFactory) {
     super(clientFactory,
-        StackGresClusterDefinition.NAME,
+        StackGresClusterDefinition.CONTEXT,
         StackGresCluster.class,
         StackGresClusterList.class,
         StackGresClusterDoneable.class);

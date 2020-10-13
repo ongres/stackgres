@@ -24,7 +24,7 @@ public class BackupConfigFinder
    */
   @Inject
   public BackupConfigFinder(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresBackupConfigDefinition.NAME,
+    super(clientFactory, StackGresBackupConfigDefinition.CONTEXT,
         StackGresBackupConfig.class, StackGresBackupConfigList.class,
         StackGresBackupConfigDoneable.class);
   }

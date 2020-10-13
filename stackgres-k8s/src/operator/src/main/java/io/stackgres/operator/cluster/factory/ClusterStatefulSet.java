@@ -176,6 +176,9 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
             .addAllToContainers(clusterContext.getSidecars().stream()
                 .map(sidecarEntry -> sidecarEntry.getSidecar().getContainer(context))
                 .collect(ImmutableList.toImmutableList()))
+            .addAllToInitContainers(clusterContext.getSidecars().stream()
+                .flatMap(sidecarEntry -> sidecarEntry.getSidecar().getInitContainers(context))
+                .collect(ImmutableList.toImmutableList()))
             .addAllToVolumes(clusterContext.getSidecars().stream()
                 .flatMap(sidecarEntry -> sidecarEntry.getSidecar().getVolumes(context).stream())
                 .collect(ImmutableList.toImmutableList()))
@@ -203,7 +206,7 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
             .flatMap(sidecarEntry -> sidecarEntry.getSidecar().streamResources(context)))
         .append(Seq.seq(context.getClusterContext().getExistingResources())
             .map(Tuple2::v1)
-            .filter(existingResource -> existingResource instanceof Pod)
+            .filter(Pod.class::isInstance)
             .map(HasMetadata::getMetadata)
             .filter(existingPodMetadata -> Objects.equals(
                 existingPodMetadata.getLabels().get(StackGresContext.CLUSTER_KEY),

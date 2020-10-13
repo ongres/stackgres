@@ -15,6 +15,7 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;

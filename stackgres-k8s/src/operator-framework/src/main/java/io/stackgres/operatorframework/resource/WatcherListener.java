@@ -11,5 +11,8 @@ public interface WatcherListener<T> {
 
   void eventReceived(Watcher.Action action, T resource);
 
-  void watcherClosed(Exception ex);
+  void watcherError(Exception ex);
+
+  void watcherClosed();
+
 }

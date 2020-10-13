@@ -18,18 +18,19 @@ public abstract class AbstractCustomResourceFinder<T extends CustomResource>
     implements CustomResourceFinder<T> {
 
   private final KubernetesClientFactory clientFactory;
-  private final String customResourceName;
+  private final CustomResourceDefinitionContext customResourceDefinitionContext;
   private final Class<T> customResourceClass;
   private final Class<? extends CustomResourceList<T>> customResourceListClass;
   private final Class<? extends CustomResourceDoneable<T>> customResourceDoneClass;
 
   protected AbstractCustomResourceFinder(KubernetesClientFactory clientFactory,
-      String customResourceName, Class<T> customResourceClass,
+      CustomResourceDefinitionContext customResourceDefinitionContext,
+      Class<T> customResourceClass,
       Class<? extends CustomResourceList<T>> customResourceListClass,
       Class<? extends CustomResourceDoneable<T>> customResourceDoneClass) {
     super();
     this.clientFactory = clientFactory;
-    this.customResourceName = customResourceName;
+    this.customResourceDefinitionContext = customResourceDefinitionContext;
     this.customResourceClass = customResourceClass;
     this.customResourceListClass = customResourceListClass;
     this.customResourceDoneClass = customResourceDoneClass;
@@ -43,17 +44,13 @@ public abstract class AbstractCustomResourceFinder<T extends CustomResource>
    */
   public Optional<T> findByNameAndNamespace(String name, String namespace) {
     try (KubernetesClient client = clientFactory.create()) {
-      return ResourceUtil.getCustomResource(client, customResourceName)
-          .map(CustomResourceDefinitionContext::fromCrd)
-          .map(crd -> Optional.ofNullable(client.customResources(crd,
-              customResourceClass,
-              customResourceListClass,
-              customResourceDoneClass)
-              .inNamespace(namespace)
-              .withName(name)
-              .get()))
-          .orElseThrow(() -> new IllegalStateException("StackGres is not correctly installed:"
-              + " CRD " + customResourceName + " not found."));
+      return Optional.ofNullable(client.customResources(customResourceDefinitionContext,
+          customResourceClass,
+          customResourceListClass,
+          customResourceDoneClass)
+          .inNamespace(namespace)
+          .withName(name)
+          .get());
     }
   }
 

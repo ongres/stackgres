@@ -5,90 +5,47 @@
 
 package io.stackgres.operator.common;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
-import java.util.Comparator;
-import java.util.Properties;
-
-import com.google.common.collect.ImmutableMap;
+import io.stackgres.common.AbstractStackGresComponents;
 import org.jooq.lambda.Seq;
-import org.jooq.lambda.tuple.Tuple;
-import org.jooq.lambda.tuple.Tuple3;
 
 public enum StackGresComponents {
 
   INSTANCE;
 
-  public static final String LATEST = "latest";
-  public static final ImmutableMap<String, String> COMPONENT_VERSIONS =
-      INSTANCE.componentVersions;
-
-  private final ImmutableMap<String, String> componentVersions;
-
-  StackGresComponents() {
-    try (InputStream is = StackGresComponents.class.getResourceAsStream("/versions.properties")) {
-      Properties properties = new Properties();
-      properties.load(is);
-      this.componentVersions = Seq.seq(properties)
-          .collect(ImmutableMap.toImmutableMap(
-              t -> t.v1.toString(), t -> t.v2.toString()));
-    } catch (RuntimeException ex) {
-      throw ex;
-    } catch (IOException ex) {
-      throw new UncheckedIOException(ex);
-    }
-  }
+  public static final String LATEST = StackGresComponentsComposer.LATEST;
+  public static final StackGresComponentsComposer COMPOSER = new StackGresComponentsComposer();
 
   public static String get(String component) {
-    return COMPONENT_VERSIONS.get(component);
+    return COMPOSER.get(component);
   }
 
   public static String[] getAsArray(String component) {
-    return get(component).split(",");
+    return COMPOSER.getAsArray(component);
   }
 
   public static String getPostgresMajorVersion(String pgVersion) {
-    int versionSplit = pgVersion.lastIndexOf('.');
-    return pgVersion.substring(0, versionSplit);
+    return COMPOSER.getPostgresMajorVersion(pgVersion);
   }
 
   public static String getPostgresMinorVersion(String pgVersion) {
-    int versionSplit = pgVersion.lastIndexOf('.');
-    return pgVersion.substring(versionSplit + 1, pgVersion.length());
+    return COMPOSER.getPostgresMinorVersion(pgVersion);
   }
 
   public static String calculatePostgresVersion(String pgVersion) {
-    if (pgVersion == null || LATEST.equals(pgVersion)) {
-      return getOrderedPostgresVersions()
-          .findFirst()
-          .orElseThrow(() -> new IllegalStateException("postgresql versions not configured"));
-    }
-
-    if (!pgVersion.contains(".")) {
-      return getOrderedPostgresVersions()
-          .filter(version -> version.startsWith(pgVersion))
-          .findFirst()
-          .orElseThrow(() -> new IllegalStateException("postgresql versions not configured"));
-    }
-
-    return pgVersion;
+    return COMPOSER.calculatePostgresVersion(pgVersion);
   }
 
   public static Seq<String> getOrderedPostgresVersions() {
-    return Seq.of(StackGresComponents.getAsArray("postgresql"))
-        .map(version -> Tuple.tuple(
-            Integer.parseInt(StackGresComponents.getPostgresMajorVersion(version)),
-            Integer.parseInt(StackGresComponents.getPostgresMinorVersion(version)),
-            version))
-        .sorted(Comparator.reverseOrder())
-        .map(Tuple3::v3);
+    return COMPOSER.getOrderedPostgresVersions();
   }
 
   public static Seq<String> getAllOrderedPostgresVersions() {
-    return Seq.of(LATEST)
-        .append(getOrderedPostgresVersions()
-            .flatMap(version -> Seq.of(getPostgresMajorVersion(version), version)));
+    return COMPOSER.getAllOrderedPostgresVersions();
   }
 
+  private static class StackGresComponentsComposer extends AbstractStackGresComponents {
+    StackGresComponentsComposer() {
+      super();
+    }
+  }
 }

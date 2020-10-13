@@ -23,7 +23,7 @@ public class ProfileScheduler
   @Inject
   public ProfileScheduler(KubernetesClientFactory clientFactory) {
     super(clientFactory,
-        StackGresProfileDefinition.NAME,
+        StackGresProfileDefinition.CONTEXT,
         StackGresProfile.class,
         StackGresProfileList.class,
         StackGresProfileDoneable.class);

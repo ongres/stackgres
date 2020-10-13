@@ -146,8 +146,8 @@ public class ClusterStatefulSetPodHandler extends AbstractClusterResourceHandler
     private boolean isPodIndexGreaterThanReplicas(Stream<HasMetadata> resources,
         ObjectMeta podMetadata) {
       return resources
-      .filter(resource -> resource instanceof StatefulSet)
-      .map(resource -> (StatefulSet) resource)
+      .filter(StatefulSet.class::isInstance)
+      .map(StatefulSet.class::cast)
       .anyMatch(statefulSet -> StackGresUtil.extractPodIndex(
               getContext().getCluster(),
               podMetadata) >= statefulSet.getSpec().getReplicas());

@@ -9,6 +9,8 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import com.google.common.collect.ImmutableMap;
+import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
@@ -18,7 +20,6 @@ import io.stackgres.common.crd.storages.AzureBlobStorage;
 import io.stackgres.common.crd.storages.BackupStorage;
 import io.stackgres.common.crd.storages.GoogleCloudCredentials;
 import io.stackgres.common.crd.storages.GoogleCloudStorage;
-import io.stackgres.operator.sidecars.envoy.Envoy;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.fi.util.function.CheckedFunction;
 import org.slf4j.Logger;
@@ -26,7 +27,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractBackupConfigMap {
 
-  private static final Logger WAL_G_LOGGER = LoggerFactory.getLogger("wal-g");
+  private static final Logger WAL_G_LOGGER = LoggerFactory.getLogger("io.stackgres.wal-g");
 
   protected ImmutableMap<String, String> getBackupEnvVars(
       String namespace, String name,
@@ -34,7 +35,7 @@ public abstract class AbstractBackupConfigMap {
     ImmutableMap.Builder<String, String> backupEnvVars = ImmutableMap.builder();
 
     backupEnvVars.put("PGDATA", ClusterStatefulSetPath.PG_DATA_PATH.path());
-    backupEnvVars.put("PGPORT", String.valueOf(Envoy.PG_PORT));
+    backupEnvVars.put("PGPORT", String.valueOf(EnvoyUtil.PG_PORT));
     backupEnvVars.put("PGUSER", "postgres");
     backupEnvVars.put("PGDATABASE", "postgres");
     backupEnvVars.put("PGHOST", ClusterStatefulSetPath.PG_RUN_PATH.path());
