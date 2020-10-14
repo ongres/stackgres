@@ -27,15 +27,15 @@ var PoolConfig = Vue.component("PoolConfig", {
 			<div class="content">
 				<table id="connectionpooling" class="configurations poolConfig">
 					<thead class="sort">
-						<th @click="sort('data.metadata.name')" class="sorted desc name">
-							<span>
+						<th class="sorted desc name">
+							<span @click="sort('data.metadata.name')">
 								Name
-								<span class="helpTooltip" @mouseover="helpTooltip( 'SGPoolingConfig', 'metadata.name')"></span>
 							</span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgpoolingconfig.metadata.name.description"></span>
 						</th>
 						<th class="config">
 							Parameters
-							<span class="helpTooltip" @mouseover="helpTooltip( 'SGPoolingConfig', 'spec.pgBouncer.pgbouncer.ini')"></span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgpoolingconfig.spec.pgBouncer['pgbouncer.ini'].description"></span>
 						</th>
 						<th class="actions"></th>
 					</thead>
@@ -73,7 +73,7 @@ var PoolConfig = Vue.component("PoolConfig", {
 										<table>
 											<tbody>
 												<tr>
-													<td class="label">Used on</td>
+													<td class="label">Used on  <span class="helpTooltip" :data-tooltip="tooltips.sgpoolingconfig.status.clusters.description"></span></td>
 													<td class="usedOn">
 														<ul>
 															<li v-for="c in conf.data.status.clusters">
@@ -92,7 +92,7 @@ var PoolConfig = Vue.component("PoolConfig", {
 										<template v-if="conf.data.status.pgBouncer['pgbouncer.ini'].length != conf.data.status.pgBouncer.defaultParameters.length">
 											<span class="title">
 												Parameters
-												<span class="helpTooltip" @mouseover="helpTooltip( 'SGPoolingConfig', 'spec.pgBouncer.pgbouncer.ini')"></span>
+												<span class="helpTooltip" :data-tooltip="tooltips.sgpoolingconfig.spec.pgBouncer['pgbouncer.ini'].description"></span>
 											</span>	
 											<table>
 												<tbody>
@@ -109,7 +109,10 @@ var PoolConfig = Vue.component("PoolConfig", {
 										</template>
 
 										<template v-if="conf.data.status.pgBouncer.defaultParameters.length">
-											<span class="title">Default Parameters</span>	
+											<span class="title">
+												Default Parameters
+												<span class="helpTooltip" :data-tooltip="tooltips.sgpoolingconfig.status.pgBouncer.defaultParameters.description"></span>
+											</span>	
 											<table>
 												<tbody>
 													<tr v-for="param in conf.data.status.pgBouncer['pgbouncer.ini']" v-if="conf.data.status.pgBouncer.defaultParameters.includes(param.parameter)">
@@ -149,6 +152,10 @@ var PoolConfig = Vue.component("PoolConfig", {
 		currentNamespace () {
 			return store.state.currentNamespace
 		},
+
+		tooltips() {
+			return store.state.tooltips
+		}
 
 	},
 	mounted: function() {

@@ -2613,4 +2613,9 @@ $(document).ready(function(){
     }
   });
 
+  $(window).on('scroll', function(){
+    $('#helpTooltip.show').removeClass('show').fadeOut()
+    $('.helpTooltip.show').removeClass('show')
+  })
+
 });

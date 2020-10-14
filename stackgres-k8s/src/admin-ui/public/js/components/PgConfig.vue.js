@@ -27,14 +27,14 @@ var PgConfig = Vue.component("PostgresConfig", {
 			<div class="content">
 				<table id="postgres" class="configurations pgConfig">
 					<thead class="sort">
-						<th @click="sort('data.metadata.name')" class="sorted desc name">
-							<span>
+						<th class="sorted desc name">
+							<span @click="sort('data.metadata.name')">
 								Name
 							</span>
 							<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.metadata.name.description"></span>
 						</th>
-						<th @click="sort('data.spec.postgresVersion')" class="desc postgresVersion">
-							<span>
+						<th class="desc postgresVersion">
+							<span @click="sort('data.spec.postgresVersion')">
 								PG
 							</span>
 							<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.spec.postgresVersion.description"></span>
@@ -115,7 +115,7 @@ var PgConfig = Vue.component("PostgresConfig", {
 										<template v-if="conf.data.status.defaultParameters.length != conf.data.status['postgresql.conf'].length">
 											<span class="title">
 												Parameters
-												<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.status['postgresql.conf'].description"></span>
+												<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.spec['postgresql.conf'].description"></span>
 											</span>
 											<table>
 												<tbody>

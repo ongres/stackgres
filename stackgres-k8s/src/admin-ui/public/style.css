@@ -4518,7 +4518,7 @@ tr.base > td:not(.actions):hover {
     display: none;
 }*/
 
-table.backupConfig tr.details.show td:first-of-type {
+table.backupConfig tr.details.open td:first-of-type {
     position: relative;
     padding-top: 0 !important;
 }
@@ -4527,7 +4527,7 @@ table.pgConfig tr.toggle:not(.open) td:first-of-type {
     display: initial;
 }
 
-table.backupConfig tr.details.show td:first-of-type:before {
+table.backupConfig tr.details.open td:first-of-type:before {
     width: 7px;
     content: " ";
     background: transparent;
@@ -4572,7 +4572,7 @@ table.backupConfig th.name {
     width: 300px;
 }
 
-table.backupConfig tr.details.show {
+table.backupConfig tr.details.open {
     display: table-row;
 }
 
@@ -4791,11 +4791,11 @@ table.backupConfig span.title {
     font-weight: bold;
 }
 
-table.backupConfig tr.details.show .configurationDetails td:first-of-type:before {
+table.backupConfig tr.details.open .configurationDetails td:first-of-type:before {
     display:none;
 }
 
-table.backupConfig tr.details.show td:first-of-type {
+table.backupConfig tr.details.open td:first-of-type {
     padding-top: 10px !important;
 }
 

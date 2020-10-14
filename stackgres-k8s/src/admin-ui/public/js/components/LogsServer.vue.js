@@ -27,17 +27,17 @@ var LogsServer = Vue.component("LogsServer", {
             <div class="content">
                 <table id="logs" class="logsCluster pgConfig">
                     <thead class="sort">
-                        <th @click="sort('data.metadata.name')" class="sorted desc name">
-                            <span>
+                        <th class="sorted desc name">
+                            <span @click="sort('data.metadata.name')" >
                                 Name
-                                <span class="helpTooltip" @mouseover="helpTooltip( 'SGDistributedLogs', 'metadata.name')"></span>
                             </span>
+                            <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.metadata.name.description"></span>
                         </th>
-                        <th @click="sort('data.spec.persistentVolume.size')" class="desc volumeSize">
-                            <span>
+                        <th class="desc volumeSize">
+                            <span @click="sort('data.spec.persistentVolume.size')">
                                 Volume Size
-                                <span class="helpTooltip" @mouseover="helpTooltip( 'SGDistributedLogs', 'spec.persistentVolume.size')"></span>
                             </span>
+                            <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.spec.persistentVolume.size.description"></span>
                         </th>
                         <th class="actions"></th>
                     </thead>
@@ -77,13 +77,16 @@ var LogsServer = Vue.component("LogsServer", {
                                                 <tr>
                                                     <td class="label">
                                                         Volume Size
-                                                        <span class="helpTooltip" @mouseover="helpTooltip( 'SGDistributedLogs', 'spec.persistentVolume.size')"></span>
+                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.spec.persistentVolume.size.description"></span>
                                                     </td>
                                                     <td>{{ cluster.data.spec.persistentVolume.size }}</td>
                                                 </tr>
                                                 <template v-if="cluster.data.status.clusters.length">
                                                     <tr>
-                                                        <td class="label">Used on</td>
+                                                        <td class="label">
+                                                            Used on
+                                                            <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.status.clusters.description"></span>
+                                                        </td>
                                                         <td class="usedOn">
                                                             <ul>
                                                                 <li v-for="c in cluster.data.status.clusters">
@@ -129,6 +132,10 @@ var LogsServer = Vue.component("LogsServer", {
 
         clusters () {
 			return store.state.logsClusters
-		},
+        },
+        
+        tooltips() {
+            return store.state.tooltips
+        }
     }
 })
