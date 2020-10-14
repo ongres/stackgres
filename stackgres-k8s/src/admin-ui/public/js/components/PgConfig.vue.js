@@ -30,20 +30,20 @@ var PgConfig = Vue.component("PostgresConfig", {
 						<th @click="sort('data.metadata.name')" class="sorted desc name">
 							<span>
 								Name
-								<span class="helpTooltip" @mouseover="helpTooltip( 'SGPostgresConfig', 'metadata.name')"></span>
 							</span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.metadata.name.description"></span>
 						</th>
 						<th @click="sort('data.spec.postgresVersion')" class="desc postgresVersion">
 							<span>
 								PG
-								<span class="helpTooltip" @mouseover="helpTooltip( 'SGPostgresConfig', 'spec.postgresVersion')"></span>
 							</span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.spec.postgresVersion.description"></span>
 						</th>
 						<th class="config">
 							<span>
 								Parameters
-								<span class="helpTooltip" @mouseover="helpTooltip( 'SGPostgresConfig', 'spec.postgresql.conf')"></span>
 							</span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.spec['postgresql.conf'].description"></span>
 						</th>
 						<th class="actions"></th>
 					</thead>
@@ -90,12 +90,12 @@ var PgConfig = Vue.component("PostgresConfig", {
 										<table>
 											<tbody>
 												<tr>
-													<td class="label">Postgres Version <span class="helpTooltip" @mouseover="helpTooltip( 'SGPostgresConfig', 'spec.postgresVersion')"></span></td>
+													<td class="label">Postgres Version <span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.spec.postgresVersion.description"></span></td>
 													<td>{{ conf.data.spec.postgresVersion }}</td>
 												</tr>
 												<template v-if="conf.data.status.clusters.length">
 													<tr>
-														<td class="label">Used on</td>
+														<td class="label">Used on <span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.status.clusters.description"></span></td>
 														<td class="usedOn">
 															<ul>
 																<li v-for="c in conf.data.status.clusters">
@@ -115,7 +115,7 @@ var PgConfig = Vue.component("PostgresConfig", {
 										<template v-if="conf.data.status.defaultParameters.length != conf.data.status['postgresql.conf'].length">
 											<span class="title">
 												Parameters
-												<span class="helpTooltip" @mouseover="helpTooltip( 'SGPostgresConfig', 'status.postgresql.conf')"></span>
+												<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.status['postgresql.conf'].description"></span>
 											</span>
 											<table>
 												<tbody>
@@ -140,7 +140,7 @@ var PgConfig = Vue.component("PostgresConfig", {
 										<template v-if="conf.data.status.defaultParameters.length">
 											<span class="title">
 												Default Parameters
-												<span class="helpTooltip" @mouseover="helpTooltip( 'SGPostgresConfig', 'status.defaultParameters')"></span>
+												<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.status.defaultParameters.description"></span>
 											</span>	
 											<table class="defaultParams">
 												<tbody>
@@ -188,6 +188,10 @@ var PgConfig = Vue.component("PostgresConfig", {
 		currentNamespace () { 
 			return store.state.currentNamespace
 		},
+
+		tooltips() {
+			return store.state.tooltips
+		}
 
 	},
 	mounted: function() {

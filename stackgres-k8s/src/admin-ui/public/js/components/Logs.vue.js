@@ -207,17 +207,50 @@ var Logs = Vue.component("Logs", {
 
 					<table class="logs">
 						<thead class="sort">
-							<th class="logTime sorted desc timestamp" @click="sort()"><span>Log Time</span></th>
-							<th class="logType center label" v-if="showColumns.logType">Type</th>
-							<th class="errorLevel center" v-if="showColumns.errorLevel">Error Level</th>
-							<th class="podName" v-if="showColumns.podName">Pod Name</th>
-							<th class="role center label" v-if="showColumns.role">Role</th>
-							<th class="logMessage" v-if="showColumns.logMessage">Message</th>
-							<th class="userName" v-if="showColumns.userName">User</th>
-							<th class="databaseName" v-if="showColumns.databaseName">Database</th>
-							<th class="processId" v-if="showColumns.processId">Process ID</th>
-							<th class="connectionFrom" v-if="showColumns.connectionFrom">Connection From</th>
-							<th class="applicationName" v-if="showColumns.applicationName">Application</th>
+							<th class="logTime sorted desc timestamp">
+								<span @click="sort()">Log Time</span>
+								<span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.logTime.description"></span>
+							</th>
+							<th class="logType center label" v-if="showColumns.logType">
+								Type
+								<span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.logType.description"></span>
+							</th>
+							<th class="errorLevel center" v-if="showColumns.errorLevel">
+								Error Level
+								<span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.errorLevel.description"></span>
+							</th>
+							<th class="podName" v-if="showColumns.podName">
+								Pod Name
+								<span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.podName.description"></span>
+							</th>
+							<th class="role center label" v-if="showColumns.role">
+								Role
+								<span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.role.description"></span>
+							</th>
+							<th class="logMessage" v-if="showColumns.logMessage">
+								Message
+								<span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.message.description"></span>
+							</th>
+							<th class="userName" v-if="showColumns.userName">
+								User
+								<span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.userName.description"></span>
+							</th>
+							<th class="databaseName" v-if="showColumns.databaseName">
+								Database
+								<span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.databaseName.description"></span>
+							</th>
+							<th class="processId" v-if="showColumns.processId">
+								Process ID
+								<span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.processId.description"></span>
+							</th>
+							<th class="connectionFrom" v-if="showColumns.connectionFrom">
+								Connection From
+								<span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.connectionFrom.description"></span>
+							</th>
+							<th class="applicationName" v-if="showColumns.applicationName">
+								Application
+								<span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.applicationName.description"></span>
+							</th>
 						</thead>
 						<tbody>
 							<tr class="no-results">
@@ -328,7 +361,7 @@ var Logs = Vue.component("Logs", {
 										<table class="logMessage">
 											<tbody>
 												<tr>
-													<td class="param">Message</td>
+													<td class="param">Message <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.message.description"></span></td>
 													<td class="value">{{ log.message }}</td>
 												</tr>
 											</tbody>
@@ -337,53 +370,53 @@ var Logs = Vue.component("Logs", {
 											<table>
 												<tbody>
 													<tr>
-														<td class="param">Type</td>
+														<td class="param">Type <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.logType.description"></span></td>
 														<td class="value label logType pg"><span>Postgres</span></td>
 													</tr>
 													<tr>
-														<td class="param">Pod Name</td>
+														<td class="param">Pod Name <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.podName.description"></span></td>
 														<td class="value">{{ log.podName }}</td>
 													</tr>
 													<tr>
-														<td class="param">Role</td>
+														<td class="param">Role <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.role.description"></span></td>
 														<td class="value label role" :class="log.role">
 															<span>{{ log.role }}</span>
 														</td>
 													</tr>
 													<tr>
-														<td class="param">User</td>
+														<td class="param">User <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.userName.description"></span></td>
 														<td class="value">{{ log.userName }}</td>
 													</tr>
 													<tr>
-														<td class="param">Database</td>
+														<td class="param">Database <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.databaseName.description"></span></td>
 														<td class="value">{{ log.databaseName }}</td>
 													</tr>
 													<tr>
-														<td class="param">Process ID</td>
+														<td class="param">Process ID <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.processId.description"></span></td>
 														<td class="value">{{ log.processId }}</td>
 													</tr>
 													<tr>
-														<td class="param">Connection From</td>
+														<td class="param">Connection From <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.connectionFrom.description"></span></td>
 														<td class="value">{{ log.connectionFrom }}</td>
 													</tr>
 													<tr>
-														<td class="param">Session ID</td>
+														<td class="param">Session ID <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.sessionId.description"></span></td>
 														<td class="value">{{ log.sessionId }}</td>
 													</tr>
 													<tr>
-														<td class="param">Session Line Number</td>
+														<td class="param">Session Line Number <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.sessionLineNum.description"></span></td>
 														<td class="value">{{ log.sessionLineNum }}</td>
 													</tr>
 													<tr>
-														<td class="param">Command Tag</td>
+														<td class="param">Command Tag <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.commandTag.description"></span></td>
 														<td class="value">{{ log.commandTag }}</td>
 													</tr>
 													<tr>
-														<td class="param">Session Start Time</td>
+														<td class="param">Session Start Time <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.sessionStartTime.description"></span></td>
 														<td class="value">{{ log.sessionStartTime }}</td>
 													</tr>
 													<tr>
-														<td class="param">Virtual Transaction ID</td>
+														<td class="param">Virtual Transaction ID <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.virtualTransactionId.description"></span></td>
 														<td class="value">{{ log.virtualTransactionId }}</td>
 													</tr>
 												</tbody>
@@ -392,51 +425,51 @@ var Logs = Vue.component("Logs", {
 											<table>
 												<tbody>
 													<tr>
-														<td class="param">Transaction ID</td>
+														<td class="param">Transaction ID <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.transactionId.description"></span></td>
 														<td class="value">{{ log.transactionId }}</td>
 													</tr>
 													<tr>
-														<td class="param">Error Level</td>
+														<td class="param">Error Level <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.errorLevel.description"></span></td>
 														<td class="value label errorLevel" :class="log.errorLevel"><span>{{ log.errorLevel }}</span></td>
 													</tr>
 													<tr>
-														<td class="param">SQL State Code</td>
+														<td class="param">SQL State Code <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.sqlStateCode.description"></span></td>
 														<td class="value">{{ log.sqlStateCode }}</td>
 													</tr>
 													<tr>
-														<td class="param">Detail</td>
+														<td class="param">Detail <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.detail.description"></span></td>
 														<td class="value">{{ log.detail }}</td>
 													</tr>
 													<tr>
-														<td class="param">Hint</td>
+														<td class="param">Hint <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.hint.description"></span></td>
 														<td class="value">{{ log.hint }}</td>
 													</tr>
 													<tr>
-														<td class="param">Internal Query</td>
+														<td class="param">Internal Query <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.internalQuery.description"></span></td>
 														<td class="value">{{ log.internalQuery }}</td>
 													</tr>
 													<tr>
-														<td class="param">Internal Query Pos</td>
+														<td class="param">Internal Query Pos <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.internalQueryPos.description"></span></td>
 														<td class="value">{{ log.internalQueryPos }}</td>
 													</tr>
 													<tr>
-														<td class="param">Context</td>
+														<td class="param">Context <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.context.description"></span></td>
 														<td class="value">{{ log.context }}</td>
 													</tr>
 													<tr>
-														<td class="param">Query</td>
+														<td class="param">Query <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.query.description"></span></td>
 														<td class="value">{{ log.query }}</td>
 													</tr>
 													<tr>
-														<td class="param">Query Pos</td>
+														<td class="param">Query Pos <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.queryPos.description"></span></td>
 														<td class="value">{{ log.queryPos }}</td>
 													</tr>
 													<tr>
-														<td class="param">Location</td>
+														<td class="param">Location <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.location.description"></span></td>
 														<td class="value">{{ log.location }}</td>
 													</tr>
 													<tr>
-														<td class="param">Application Name</td>
+														<td class="param">Application Name <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.applicationName.description"></span></td>
 														<td class="value">{{ log.applicationName }}</td>
 													</tr>
 												</tbody>
@@ -446,11 +479,11 @@ var Logs = Vue.component("Logs", {
 											<table>
 												<tbody>
 													<tr>
-														<td class="param">Type</td>
+														<td class="param">Type <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.logType.description"></span></td>
 														<td class="value label logType pa"><span>Patroni</span></td>
 													</tr>
 													<tr>
-														<td class="param">Pod Name</td>
+														<td class="param">Pod Name <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.podName.description"></span></td>
 														<td class="value">{{ log.podName }}</td>
 													</tr>
 												</tbody>
@@ -458,13 +491,13 @@ var Logs = Vue.component("Logs", {
 											<table>
 												<tbody>
 													<tr>
-														<td class="param">Role</td>
+														<td class="param">Role <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.role.description"></span></td>
 														<td class="value label role" :class="log.role">
 															<span>{{ log.role }}</span>
 														</td>
 													</tr>
 													<tr>
-														<td class="param">Error Level</td>
+														<td class="param">Error Level <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.errorLevel.description"></span></td>
 														<td class="value label errorLevel" :class="log.errorLevel"><span>{{ log.errorLevel }}</span></td>
 													</tr>
 												</tbody>
@@ -553,6 +586,10 @@ var Logs = Vue.component("Logs", {
 
 		cluster() {
 			return store.state.currentCluster
+		},
+
+		tooltips() {
+			return store.state.tooltips
 		}
 
 	},

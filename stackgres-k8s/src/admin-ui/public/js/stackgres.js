@@ -1824,7 +1824,7 @@ Vue.filter('formatTimestamp',function(t, part){
 
 function cleanupTooltips( obj ) {
   Object.keys(obj).forEach(function(key){
-    if((obj[key].type == 'object') && obj[key].hasOwnProperty('properties')){
+    if((obj[key].type != 'array') && obj[key].hasOwnProperty('properties')){
       var desc = ''
       
       if(obj[key].hasOwnProperty('description'))
@@ -2607,8 +2607,10 @@ $(document).ready(function(){
   $(document).click(function(event) { 
     var $target = $(event.target);
     
-    if( $('.hideOnClick.show').length && !$target.closest('.show').length)
+    if( $('.hideOnClick.show').length && !$target.closest('.show').length) {
       $('.hideOnClick.show').removeClass('show').fadeOut()
+      $('.helpTooltip.show').removeClass('show')
+    }
   });
 
 });

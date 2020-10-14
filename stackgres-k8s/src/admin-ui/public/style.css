@@ -2837,7 +2837,7 @@ table .sort, a.uploadLink {
     position: relative;
 }
 
-.sort th span.helpTooltip {
+.sort th span + span.helpTooltip {
     margin-left: -29px;
 }
 
