@@ -1,6 +1,7 @@
 ---
 title: Running the e2e tests
 weight: 5
+url: developer/stackgres/e2e
 ---
 
 Given the operator nature we rely heavily on our integration and e2e tests. 

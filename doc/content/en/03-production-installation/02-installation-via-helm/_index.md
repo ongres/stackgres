@@ -19,12 +19,11 @@ kubectl create namespace prometheus
 kubectl create namespace my-cluster
 ```
 
-Now that you have created the Prometheus namespace you can install the prometheus operator together with StackGres operator
- by setting `prometheus-operator.create=true`, this will install also a grafana instance and it will be
- embed with the StackGres UI automatically or you can install both operators separately.
-Helm will take care of the necessary steps in Prometheus Operator deployment.
+Now that you have created the Prometheus namespace you can install the Prometheus operator, 
+this will install also a Grafana instance and it will be
+ embed with the StackGres UI automatically using the `grafana.autoEmbed=true` as shown later in the SG operator install.
 
-To install first the Prometheus Operator and then StackGres Operator run:
+Helm will take care of the necessary steps in Prometheus Operator deployment.
 
 ```bash
 helm install --namespace prometheus prometheus-operator stable/prometheus-operator
@@ -68,19 +67,6 @@ helm install --namespace stackgres stackgres-operator \
         {{< download-url >}}/helm-operator.tgz
 ```
 
-Or you can install in only one command. Helm will deploy Prometheus and SG Operator as follow
-
-```bash
-helm install --namespace stackgres stackgres-operator \
-        --set prometheus-operator.create=true \
-        --set grafana.autoEmbed=true \
-        --set-string grafana.webHost=prometheus-operator-grafana.prometheus \
-        --set-string grafana.user=admin \
-        --set-string grafana.password=prom-operator \
-        --set-string adminui.service.type=LoadBalancer \
-        {{< download-url >}}/helm-operator.tgz
-```
-
 In the previous example StackGres have included several options to the installation, including the needed options to enable
 the monitoring. Follow the [Cluster Parameters](install/cluster/parameters) section for a described list.
 
@@ -103,7 +89,7 @@ spec:
 EOF
 ```
 
-But not only the Instance Profile, you can instruct StackGres to changes PostgreSQL configuration using the CR [SGPostgresConfig]() or the PGBouncer setting with [SGPoolingConfig]() and more, like the backup specification using [SGBackupConfig]()
+But not only the Instance Profile, you can instruct StackGres to changes PostgreSQL configuration using the CR [SGPostgresConfig](/reference/crd/tuning/postgres/) or the PGBouncer setting with [SGPoolingConfig](/reference/crd/tuning/pool/) and more, like the backup specification using [SGBackupConfig](/reference/backups/#configuration)
 
 The next code snippets will show you how to play with these CRs.
 
@@ -384,8 +370,8 @@ EOF
 Look up to the yaml into the here doc above, every CR previously being included in the right place in the SGCluster CR creation.
 And there is in place the script created through the secret, but StackGres includes an extra example for you, the second script
 show you how to run a SQL instruction directly into the yaml. 
-Another important entry to highlight in the yaml is `prometheusAutobind: true`, don't forget the beginning of the tutorial, 
-StackGres can support automatically Prometheus monitoring.
+Another important entry to highlight in the yaml is [prometheusAutobind: true](/install/cluster/parameters/#configuration-cluster-parameters). 
+It is not enough to have the Prometheus operator installed to have monitoring, we need to enable this parameter to have monitoring as documentation indicates.
 
 Awesome, now you can relax and wait for the SGCluster spinning up.
 
