@@ -11,7 +11,9 @@ e2e_test_install() {
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
   install_operator_previous_version
+  
   kubectl create namespace "$CLUSTER_NAMESPACE"
+
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false
   create_or_replace_cluster "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1 \
@@ -23,7 +25,7 @@ e2e_test_install() {
   create_or_replace_cluster "$CLUSTER_NAME-3" "$CLUSTER_NAMESPACE" 3 \
     --set configurations.create=false --set instanceProfiles=false \
      --set-string cluster.postgresVersion=latest
-
+  
   wait_pods_running "$CLUSTER_NAMESPACE" 6
 
   generate_mock_data "$CLUSTER_NAME-1"
@@ -51,6 +53,7 @@ e2e_test() {
   run_test "Check that cluster with 1 node can be restarted after upgrade" check_cluster_1_restart
   run_test "Check that cluster with 2 node can be restarted after upgrade" check_cluster_2_restart
   run_test "Check that cluster with 3 node can be restarted after upgrade" check_cluster_3_restart
+  run_test "Check that the conversion webhook is configured" check_conversion_webhook_configured
 }
 
 check_operator_upgrade() {
@@ -115,7 +118,9 @@ check_operator_upgrade() {
     echo "Used restapi image is $POD_RESTAPI_IMAGE"
     return 1
   fi
+
 }
+
 
 check_cluster_1() {
   check_mock_data_samehost "$CLUSTER_NAME-1"
@@ -223,3 +228,14 @@ check_cluster_restart() {
 
   check_mock_data_samehost "$CLUSTER_NAME"
 }
+
+check_conversion_webhook_configured(){
+
+  CONVERSTION_STRATEGY=$(kubectl get crd sgclusters.stackgres.io -o jsonpath='{.spec.conversion.strategy}')
+
+  assert_string_equal "Webhook" "$CONVERSTION_STRATEGY"
+
+}
+
+
+

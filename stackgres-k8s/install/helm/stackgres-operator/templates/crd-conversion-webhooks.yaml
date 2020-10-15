@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name }}-conversion-webhooks"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: stackgres-operator
+    scope: init
+    job: configure-crd-webhooks
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "1"
+spec:
+  template:
+    metadata:
+      labels:
+        app: stackgres-operator
+        scope: init
+        job: configure-crd-webhooks
+    spec:
+      serviceAccountName: {{ .Release.Name }}-crd-webhooks
+      containers:
+      - name: "{{ .Values.jobs.name }}"
+        image: "{{ .Values.jobs.image.name }}:{{ .Values.jobs.image.tag }}"
+        imagePullPolicy: "{{ .Values.jobs.image.pullPolicy }}"
+        env:
+          - name: OPERATOR_NAME
+            value: "{{ .Release.Name }}"
+          - name: OPERATOR_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: CRD_UPGRADE
+            value: "false"
+          - name: CONVERSION_WEBHOOKS
+            value: "true"
+        
+      restartPolicy: OnFailure

@@ -14,4 +14,4 @@ mkdir -p target
 rm -rf target/public
 cp -a public target/public
 mkdir -p target/public/js/components/forms/help
-"$SHELL" $SHELL_XTRACE ../../ci/utils/crds2description_json.sh ../../install/helm/stackgres-operator/crds target/public/js/components/forms/help
+"$SHELL" $SHELL_XTRACE ../../ci/utils/crds2description_json.sh ../jobs/src/main/resources/crds target/public/js/components/forms/help
