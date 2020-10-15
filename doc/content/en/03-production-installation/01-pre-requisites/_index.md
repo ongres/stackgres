@@ -63,17 +63,9 @@ cluster:
 
 As early indicated in [Component of the Stack](/01-introduction/04-components-of-the-stack/#monitoring) currently StackGres integrates only with prometheus. 
 
-### Grafana integration Pre-requisites
+## Grafana integration Pre-requisites
 
-#### All in one
-
-You can install the Prometheus operator and Grafana together with StackGres operator by setting
- `prometheus-operator.create=true`, **this will install also a grafana instance and it will be
- embed with the StackGres UI automatically**
-
-> See the [Installation Via Helm](/install/installation/helm/#install-operator) for usage examples
-
-#### Automatic integration
+### Automatic integration
 
 If you already have a grafana installation in your system you can embed it automatically in the
  StackGres UI by setting the property `grafana.autoEmbed=true`:
