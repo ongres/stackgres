@@ -250,419 +250,474 @@ var Backups = Vue.component("Backups", {
 										</td>
 									</tr>
 									<tr class="details" :class="[ $route.params.uid == back.data.metadata.uid ? 'open' : '', 'sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name]" :style="$route.params.uid == back.data.metadata.uid ? 'display: table-row;' : ''" v-if="back.data.status.process.status === 'Completed'">
-										<td :colspan="(isCluster) ? 3 : 4">
-											<table>
-												<thead>
-													<th colspan="2">Backup Details</th>
-												</thead>
-												<tbody>
-													<tr>
-														<td class="label">
-															Start Time
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.timing.start.description"></span>
-														</td>
-														<td class="timestamp">
-															<span class='date'>
-																{{ back.data.status.process.timing.start | formatTimestamp('date') }}
-															</span>
-															<span class='time'>
-																{{ back.data.status.process.timing.start | formatTimestamp('time') }}
-															</span>
-															<span class='ms'>
-																{{ back.data.status.process.timing.start | formatTimestamp('ms') }} Z
-															</span>
-														</td>
-													</tr>
-													<tr>
-														<td class="label">
-															Elapsed
-														</td>
-														<td class="timestamp">
-															<span class='time'>
-																{{ back.duration | formatTimestamp('time') }}
-															</span>
-															<span class='ms'>
-																{{ back.duration | formatTimestamp('ms') }}
-															</span>
-														</td>
-													</tr>
-													<tr>
-														<td class="label">
-															LSN (start ⇢ end)
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.lsn.start.description + ' ⇢ ' + tooltips.sgbackup.status.backupInformation.lsn.end.description"></span>
-														</td>
-														<td>
-															{{ back.data.status.backupInformation.lsn.start }} ⇢ {{ back.data.status.backupInformation.lsn.end }}
-														</td>
-													</tr>
-													<tr>
-														<td class="label">
-															UID
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.metadata.uid.description"></span>
-														</td>
-														<td colspan="2">
-															{{ back.data.metadata.uid }}
-														</td>
-													</tr>
-													<tr>
-														<td class="label">
-															Source Pod
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.hostname.description"></span>
-														</td>
-														<td>
-															{{ back.data.status.backupInformation.hostname }}
-														</td>
-													</tr>
-													<tr>
-														<td class="label">
-															Timeline
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.startWalFile.description"></span>
-														</td>
-														<td>
-															{{ parseInt(back.data.status.backupInformation.startWalFile.substr(8)) }}
-														</td>
-													</tr>
-													<tr>
-														<td class="label">
-															System Identifier
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.systemIdentifier.description"></span>
-														</td>
-														<td>
-															{{ back.data.status.backupInformation.systemIdentifier }}
-														</td>
-													</tr>
-													<tr>
-														<td class="label">
-															Job Pod
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.jobPod.description"></span>
-														</td>
-														<td>
-															{{ back.data.status.process.jobPod }}
-														</td>
-													</tr>
-													<tr>
-														<td class="label">
-															Managed Lifecycle (status)
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.managedLifecycle.description"></span>
-														</td>
-														<td>
-															{{ back.data.status.process.managedLifecycle ? 'Enabled' : 'Disabled' }}
-														</td>
-													</tr>
-													<tr>
-														<td class="label">
-															End Time
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.timing.end.description"></span>
-														</td>
-														<td class="timestamp">
-															<span class='date'>
-																{{ back.data.status.process.timing.end | formatTimestamp('date') }}
-															</span>
-															<span class='time'>
-																{{ back.data.status.process.timing.end | formatTimestamp('time') }}
-															</span>
-															<span class='ms'>
-																{{ back.data.status.process.timing.end | formatTimestamp('ms') }} Z
-															</span>
-														</td>
-													</tr>
-													<tr>
-														<td class="label">
-															Stored Time
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.timing.stored.description"></span>
-														</td>
-														<td class="timestamp">
-															<span class='date'>
-																{{ back.data.status.process.timing.stored | formatTimestamp('date') }}
-															</span>
-															<span class='time'>
-																{{ back.data.status.process.timing.stored | formatTimestamp('time') }}
-															</span>
-															<span class='ms'>
-																{{ back.data.status.process.timing.stored | formatTimestamp('ms') }} Z
-															</span>
-														</td>
-													</tr>
-													<tr>
-														<td class="label">
-															Hostname
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.hostname.description"></span>
-														</td>
-														<td>
-															{{ back.data.status.backupInformation.hostname }}
-														</td>
-													</tr>
-													<tr>
-														<td class="label">
-															PG Data
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.pgData.description"></span>
-														</td>
-														<td>
-															{{ back.data.status.backupInformation.pgData }}
-														</td>
-													</tr>
-													<tr>
-														<td class="label">
-															Start Wal File
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.startWalFile.description"></span>
-														</td>
-														<td>
-															{{ back.data.status.backupInformation.startWalFile }}
-														</td>
-													</tr>
-													<tr v-if="(typeof back.data.status.backupInformation.controlData !== 'undefined')">
-														<td class="label">
-															Control Data
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.controlData.description"></span>
-														</td>
-														<td>
-															{{ back.data.status.backupInformation.controlData }}
-														</td>
-													</tr>
-												</tbody>
-											</table>
-										</td>
-										<td :colspan="(isCluster) ? 3 : 4">
-											<table>
-												<thead>
-													<th colspan="2">
-														Storage Details
-														<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.description"></span>
-													</th>
-												</thead>
-												<tbody>
-													<tr>
-														<td class="label">
-															Storage Type
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.type.description"></span>
-														</td>
-														<td>
-															{{ back.data.status.sgBackupConfig.storage.type }}
-														</td>
-													</tr>
-													<template v-if="back.data.status.sgBackupConfig.storage.type == 's3'">
+										<td :colspan="(isCluster) ? 6 : 8">
+											<div>
+												<table>
+													<thead>
+														<th colspan="2">Backup Details</th>
+													</thead>
+													<tbody>
 														<tr>
 															<td class="label">
-																Bucket
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.bucket.description"></span>
+																Status
+																<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.status.description"></span>
 															</td>
-															<td>
-																{{ back.data.status.sgBackupConfig.storage.s3.bucket }}
-															</td>
-														</tr>
-														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3.path')">
-															<td class="label">
-																Path
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.path.description"></span>
-															</td>
-															<td>
-																{{ back.data.status.sgBackupConfig.storage.s3.path }}
-															</td>
-														</tr>
-														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3.region')">
-															<td class="label">
-																Region
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.region.description"></span>
-															</td>
-															<td>
-																{{ back.data.status.sgBackupConfig.storage.s3.region }}
-															</td>
-														</tr>
-														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3.storageClass')">
-															<td class="label">
-																Bucket
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.storageClass.description"></span>
-															</td>
-															<td>
-																{{ back.data.status.sgBackupConfig.storage.s3.path }}
-															</td>
-														</tr>
-														<tr>
-															<td colspan="2" class="label">
-																AWS Credentials
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.awsCredentials.description"></span>
+															<td class="phase" :class="back.data.status.process.status">
+																<span>{{ back.data.status.process.status }}</span>
 															</td>
 														</tr>
 														<tr>
 															<td class="label">
-																Access Key ID
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.awsCredentials.secretKeySelectors.accessKeyId.description"></span>
+																Size uncompressed (compressed)
+																<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.size.uncompressed.description"></span>
 															</td>
 															<td>
-																********
+																{{ back.data.status.backupInformation.size.uncompressed | formatBytes }} ({{ back.data.status.backupInformation.size.compressed | formatBytes }})																
 															</td>
 														</tr>
 														<tr>
 															<td class="label">
-																Secret Access Key
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey.description"></span>
+																PG
+																<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.postgresVersion.description"></span>
 															</td>
 															<td>
-																********
-															</td>
-														</tr>
-													</template>
-													<template v-else-if="back.data.status.sgBackupConfig.storage.type === 's3Compatible'">
-														<tr>
-															<td class="label">
-																Bucket
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.bucket.description"></span>
-															</td>
-															<td>
-																{{ back.data.status.sgBackupConfig.storage.s3Compatible.bucket }}
-															</td>
-														</tr>
-														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3Compatible.path')">
-															<td class="label">
-																Path
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.path.description"></span>
-															</td>
-															<td>
-																{{ back.data.status.sgBackupConfig.storage.s3Compatible.path }}
-															</td>
-														</tr>
-														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3Compatible.enablePathStyleAddressing')">
-															<td class="label">
-																Path Style Addressing
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.enablePathStyleAddressing.description"></span>
-															</td>
-															<td>
-																{{ back.data.status.sgBackupConfig.storage.s3Compatible.enablePathStyleAddressing ? 'Enabled' : 'Disabled'}}
-															</td>
-														</tr>
-														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3Compatible.endpoint')">
-															<td class="label">
-																Endpoint
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.endpoint.description"></span>
-															</td>
-															<td>
-																{{ back.data.status.sgBackupConfig.storage.s3Compatible.endpoint }}
-															</td>
-														</tr>
-														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3Compatible.region')">
-															<td class="label">
-																Region
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.region.description"></span>
-															</td>
-															<td>
-																{{ back.data.status.sgBackupConfig.storage.s3Compatible.region }}
-															</td>
-														</tr>
-														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3Compatible.storageClass')">
-															<td class="label">
-																Bucket
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.storageClass.description"></span>
-															</td>
-															<td>
-																{{ back.data.status.sgBackupConfig.storage.s3Compatible.path }}
-															</td>
-														</tr>
-														<tr>
-															<td colspan="2" class="label">
-																AWS Credentials
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.awsCredentials.description"></span>
+																{{ back.data.status.backupInformation.postgresVersion | prefix }}
 															</td>
 														</tr>
 														<tr>
 															<td class="label">
-																Access Key ID
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.description"></span>
+																Name
+																<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.metadata.name.description"></span>
 															</td>
 															<td>
-																********
+																{{ back.data.metadata.name }}
 															</td>
 														</tr>
 														<tr>
 															<td class="label">
-																Secret Access Key
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.description"></span>
+																Source Cluster
+																<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.spec.sgCluster.description"></span>
 															</td>
 															<td>
-																********
-															</td>
-														</tr>
-													</template>
-													<template v-else-if="back.data.status.sgBackupConfig.storage.type === 'gcs'">
-														<tr>
-															<td class="label">
-																Bucket
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.gcs.bucket.description"></span>
-															</td>
-															<td>
-																{{ back.data.status.sgBackupConfig.storage.gcs.bucket }}
-															</td>
-														</tr>
-														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.gcs.path')">
-															<td class="label">
-																Path
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.gcs.path.description"></span>
-															</td>
-															<td>
-																{{ back.data.status.sgBackupConfig.storage.gcs.path }}
-															</td>
-														</tr>
-														<tr>
-															<td colspan="2" class="label">
-																GCS Credentials
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.gcs.gcpCredentials.description"></span>
+																{{ back.data.spec.sgCluster }}
 															</td>
 														</tr>
 														<tr>
 															<td class="label">
-																Service Account JSON
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.gcs.gcpCredentials.serviceAccountJSON.description"></span>
+																Start Time
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.timing.start.description"></span>
 															</td>
-															<td>
-																********
-															</td>
-														</tr>
-													</template>
-													<template v-else-if="back.data.status.sgBackupConfig.storage.type === 'azureBlob'">
-														<tr>
-															<td class="label">
-																Bucket
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.azureBlob.bucket.description"></span>
-															</td>
-															<td>
-																{{ back.data.status.sgBackupConfig.storage.azureBlob.bucket }}
-															</td>
-														</tr>
-														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.azureBlob.path')">
-															<td class="label">
-																Path
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.azureBlob.path.description"></span>
-															</td>
-															<td>
-																{{ back.data.status.sgBackupConfig.storage.azureBlob.path }}
-															</td>
-														</tr>
-														<tr>
-															<td colspan="2" class="label">
-																Azure Credentials
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.azureBlob.azureCredentials.description"></span>
+															<td class="timestamp">
+																<span class='date'>
+																	{{ back.data.status.process.timing.start | formatTimestamp('date') }}
+																</span>
+																<span class='time'>
+																	{{ back.data.status.process.timing.start | formatTimestamp('time') }}
+																</span>
+																<span class='ms'>
+																	{{ back.data.status.process.timing.start | formatTimestamp('ms') }} Z
+																</span>
 															</td>
 														</tr>
 														<tr>
 															<td class="label">
-																Storage Account
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount.description"></span>
+																Elapsed
 															</td>
-															<td>
-																********
+															<td class="timestamp">
+																<span class='time'>
+																	{{ back.duration | formatTimestamp('time') }}
+																</span>
+																<span class='ms'>
+																	{{ back.duration | formatTimestamp('ms') }}
+																</span>
 															</td>
 														</tr>
 														<tr>
 															<td class="label">
-																Access Key
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey.description"></span>
+																LSN (start ⇢ end)
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.lsn.start.description + ' ⇢ ' + tooltips.sgbackup.status.backupInformation.lsn.end.description"></span>
 															</td>
 															<td>
-																********
+																{{ back.data.status.backupInformation.lsn.start }} ⇢ {{ back.data.status.backupInformation.lsn.end }}
 															</td>
 														</tr>
-													</template>
-												</tbody>
-											</table>
+														<tr>
+															<td class="label">
+																UID
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.metadata.uid.description"></span>
+															</td>
+															<td colspan="2">
+																{{ back.data.metadata.uid }}
+															</td>
+														</tr>
+														<tr>
+															<td class="label">
+																Source Pod
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.hostname.description"></span>
+															</td>
+															<td>
+																{{ back.data.status.backupInformation.hostname }}
+															</td>
+														</tr>
+														<tr>
+															<td class="label">
+																Timeline
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.startWalFile.description"></span>
+															</td>
+															<td>
+																{{ parseInt(back.data.status.backupInformation.startWalFile.substr(8)) }}
+															</td>
+														</tr>
+														<tr>
+															<td class="label">
+																System Identifier
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.systemIdentifier.description"></span>
+															</td>
+															<td>
+																{{ back.data.status.backupInformation.systemIdentifier }}
+															</td>
+														</tr>
+														<tr>
+															<td class="label">
+																Job Pod
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.jobPod.description"></span>
+															</td>
+															<td>
+																{{ back.data.status.process.jobPod }}
+															</td>
+														</tr>
+														<tr>
+															<td class="label">
+																Managed Lifecycle (request)
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.spec.managedLifecycle.description"></span>
+															</td>
+															<td class="managedLifecycle" :class="[(back.data.spec.managedLifecycle) ? 'true' : 'false']" :data-val="back.data.spec.managedLifecycle"></td>
+														</tr>
+														<tr>
+															<td class="label">
+																Managed Lifecycle (status)
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.managedLifecycle.description"></span>
+															</td>
+															<td>
+																{{ back.data.status.process.managedLifecycle ? 'Enabled' : 'Disabled' }}
+															</td>
+														</tr>
+														<tr>
+															<td class="label">
+																End Time
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.timing.end.description"></span>
+															</td>
+															<td class="timestamp">
+																<span class='date'>
+																	{{ back.data.status.process.timing.end | formatTimestamp('date') }}
+																</span>
+																<span class='time'>
+																	{{ back.data.status.process.timing.end | formatTimestamp('time') }}
+																</span>
+																<span class='ms'>
+																	{{ back.data.status.process.timing.end | formatTimestamp('ms') }} Z
+																</span>
+															</td>
+														</tr>
+														<tr>
+															<td class="label">
+																Stored Time
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.timing.stored.description"></span>
+															</td>
+															<td class="timestamp">
+																<span class='date'>
+																	{{ back.data.status.process.timing.stored | formatTimestamp('date') }}
+																</span>
+																<span class='time'>
+																	{{ back.data.status.process.timing.stored | formatTimestamp('time') }}
+																</span>
+																<span class='ms'>
+																	{{ back.data.status.process.timing.stored | formatTimestamp('ms') }} Z
+																</span>
+															</td>
+														</tr>
+														<tr>
+															<td class="label">
+																Hostname
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.hostname.description"></span>
+															</td>
+															<td>
+																{{ back.data.status.backupInformation.hostname }}
+															</td>
+														</tr>
+														<tr>
+															<td class="label">
+																PG Data
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.pgData.description"></span>
+															</td>
+															<td>
+																{{ back.data.status.backupInformation.pgData }}
+															</td>
+														</tr>
+														<tr>
+															<td class="label">
+																Start Wal File
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.startWalFile.description"></span>
+															</td>
+															<td>
+																{{ back.data.status.backupInformation.startWalFile }}
+															</td>
+														</tr>
+														<tr v-if="(typeof back.data.status.backupInformation.controlData !== 'undefined')">
+															<td class="label">
+																Control Data
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.controlData.description"></span>
+															</td>
+															<td class="controlData">
+																{{ back.data.status.backupInformation.controlData }}
+															</td>
+														</tr>
+													</tbody>
+												</table>
+											</div>
+
+											<div>
+												<table>
+													<thead>
+														<th colspan="2">
+															Storage Details
+															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.description"></span>
+														</th>
+													</thead>
+													<tbody>
+														<tr>
+															<td class="label">
+																Storage Type
+																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.type.description"></span>
+															</td>
+															<td>
+																{{ back.data.status.sgBackupConfig.storage.type }}
+															</td>
+														</tr>
+														<template v-if="back.data.status.sgBackupConfig.storage.type == 's3'">
+															<tr>
+																<td class="label">
+																	Bucket
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.bucket.description"></span>
+																</td>
+																<td>
+																	{{ back.data.status.sgBackupConfig.storage.s3.bucket }}
+																</td>
+															</tr>
+															<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3.path')">
+																<td class="label">
+																	Path
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.path.description"></span>
+																</td>
+																<td>
+																	{{ back.data.status.sgBackupConfig.storage.s3.path }}
+																</td>
+															</tr>
+															<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3.region')">
+																<td class="label">
+																	Region
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.region.description"></span>
+																</td>
+																<td>
+																	{{ back.data.status.sgBackupConfig.storage.s3.region }}
+																</td>
+															</tr>
+															<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3.storageClass')">
+																<td class="label">
+																	Bucket
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.storageClass.description"></span>
+																</td>
+																<td>
+																	{{ back.data.status.sgBackupConfig.storage.s3.path }}
+																</td>
+															</tr>
+															<tr>
+																<td colspan="2" class="label">
+																	AWS Credentials
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.awsCredentials.description"></span>
+																</td>
+															</tr>
+															<tr>
+																<td class="label">
+																	Access Key ID
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.awsCredentials.secretKeySelectors.accessKeyId.description"></span>
+																</td>
+																<td>
+																	********
+																</td>
+															</tr>
+															<tr>
+																<td class="label">
+																	Secret Access Key
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey.description"></span>
+																</td>
+																<td>
+																	********
+																</td>
+															</tr>
+														</template>
+														<template v-else-if="back.data.status.sgBackupConfig.storage.type === 's3Compatible'">
+															<tr>
+																<td class="label">
+																	Bucket
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.bucket.description"></span>
+																</td>
+																<td>
+																	{{ back.data.status.sgBackupConfig.storage.s3Compatible.bucket }}
+																</td>
+															</tr>
+															<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3Compatible.path')">
+																<td class="label">
+																	Path
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.path.description"></span>
+																</td>
+																<td>
+																	{{ back.data.status.sgBackupConfig.storage.s3Compatible.path }}
+																</td>
+															</tr>
+															<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3Compatible.enablePathStyleAddressing')">
+																<td class="label">
+																	Path Style Addressing
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.enablePathStyleAddressing.description"></span>
+																</td>
+																<td>
+																	{{ back.data.status.sgBackupConfig.storage.s3Compatible.enablePathStyleAddressing ? 'Enabled' : 'Disabled'}}
+																</td>
+															</tr>
+															<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3Compatible.endpoint')">
+																<td class="label">
+																	Endpoint
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.endpoint.description"></span>
+																</td>
+																<td>
+																	{{ back.data.status.sgBackupConfig.storage.s3Compatible.endpoint }}
+																</td>
+															</tr>
+															<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3Compatible.region')">
+																<td class="label">
+																	Region
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.region.description"></span>
+																</td>
+																<td>
+																	{{ back.data.status.sgBackupConfig.storage.s3Compatible.region }}
+																</td>
+															</tr>
+															<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3Compatible.storageClass')">
+																<td class="label">
+																	Bucket
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.storageClass.description"></span>
+																</td>
+																<td>
+																	{{ back.data.status.sgBackupConfig.storage.s3Compatible.path }}
+																</td>
+															</tr>
+															<tr>
+																<td colspan="2" class="label">
+																	AWS Credentials
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.awsCredentials.description"></span>
+																</td>
+															</tr>
+															<tr>
+																<td class="label">
+																	Access Key ID
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.description"></span>
+																</td>
+																<td>
+																	********
+																</td>
+															</tr>
+															<tr>
+																<td class="label">
+																	Secret Access Key
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.description"></span>
+																</td>
+																<td>
+																	********
+																</td>
+															</tr>
+														</template>
+														<template v-else-if="back.data.status.sgBackupConfig.storage.type === 'gcs'">
+															<tr>
+																<td class="label">
+																	Bucket
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.gcs.bucket.description"></span>
+																</td>
+																<td>
+																	{{ back.data.status.sgBackupConfig.storage.gcs.bucket }}
+																</td>
+															</tr>
+															<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.gcs.path')">
+																<td class="label">
+																	Path
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.gcs.path.description"></span>
+																</td>
+																<td>
+																	{{ back.data.status.sgBackupConfig.storage.gcs.path }}
+																</td>
+															</tr>
+															<tr>
+																<td colspan="2" class="label">
+																	GCS Credentials
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.gcs.gcpCredentials.description"></span>
+																</td>
+															</tr>
+															<tr>
+																<td class="label">
+																	Service Account JSON
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.gcs.gcpCredentials.serviceAccountJSON.description"></span>
+																</td>
+																<td>
+																	********
+																</td>
+															</tr>
+														</template>
+														<template v-else-if="back.data.status.sgBackupConfig.storage.type === 'azureBlob'">
+															<tr>
+																<td class="label">
+																	Bucket
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.azureBlob.bucket.description"></span>
+																</td>
+																<td>
+																	{{ back.data.status.sgBackupConfig.storage.azureBlob.bucket }}
+																</td>
+															</tr>
+															<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.azureBlob.path')">
+																<td class="label">
+																	Path
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.azureBlob.path.description"></span>
+																</td>
+																<td>
+																	{{ back.data.status.sgBackupConfig.storage.azureBlob.path }}
+																</td>
+															</tr>
+															<tr>
+																<td colspan="2" class="label">
+																	Azure Credentials
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.azureBlob.azureCredentials.description"></span>
+																</td>
+															</tr>
+															<tr>
+																<td class="label">
+																	Storage Account
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount.description"></span>
+																</td>
+																<td>
+																	********
+																</td>
+															</tr>
+															<tr>
+																<td class="label">
+																	Access Key
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey.description"></span>
+																</td>
+																<td>
+																	********
+																</td>
+															</tr>
+														</template>
+													</tbody>
+												</table>
+											</div>
 										</td>
 									</tr>
 									<tr class="details Running" :class="'backup-'+back.data.metadata.namespace+'-'+back.data.metadata.name" v-else-if="back.data.status.process.status === 'Running'">
