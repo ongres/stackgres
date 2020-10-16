@@ -72,6 +72,10 @@
     <script>
         mermaid.initialize({ startOnLoad: true });
     </script>
+    <link href="{{"css/swagger-ui.css" | relURL}}{{ if not .Site.Params.disableAssetsBusting }}?{{ now.Unix }}{{ end }}" rel="stylesheet" />
+    <script src="{{"js/swagger-ui-bundle.js" | relURL}}{{ if not .Site.Params.disableAssetsBusting }}?{{ now.Unix }}{{ end }}"></script>
+    <script src="{{"js/swagger-ui-standalone-preset.js" | relURL}}{{ if not .Site.Params.disableAssetsBusting }}?{{ now.Unix }}{{ end }}"></script>
+
     {{ partial "custom-footer.html" . }}
   </body>
 </html>

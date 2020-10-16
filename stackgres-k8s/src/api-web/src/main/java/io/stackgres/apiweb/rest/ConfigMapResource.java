@@ -16,9 +16,14 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.quarkus.security.Authenticated;
+import io.stackgres.apiweb.dto.configmap.ConfigMapDto;
 import io.stackgres.common.resource.ResourceScanner;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 @Path("/stackgres/configmaps")
 @RequestScoped
@@ -26,17 +31,25 @@ import io.stackgres.common.resource.ResourceScanner;
 @Consumes(MediaType.APPLICATION_JSON)
 public class ConfigMapResource {
 
-  private ResourceScanner<ConfigMap> scanner;
+  private ResourceScanner<ConfigMapDto> scanner;
 
   @Inject
-  public ConfigMapResource(ResourceScanner<ConfigMap> scanner) {
+  public ConfigMapResource(ResourceScanner<ConfigMapDto> scanner) {
     this.scanner = scanner;
   }
 
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  array = @ArraySchema(schema = @Schema(implementation = ConfigMapDto.class))) })
+      })
+  @CommonApiResponses
   @Path("/{namespace}")
   @GET
   @Authenticated
-  public List<ConfigMap> list(@PathParam("namespace") String namespace) {
+  public List<ConfigMapDto> list(@PathParam("namespace") String namespace) {
     return scanner.findResourcesInNamespace(namespace);
   }
 

@@ -21,6 +21,7 @@
     {{with .Site.Params.themeVariant}}
       <link href="{{(printf "css/theme-%s.css" .) | relURL}}{{ if $assetBusting }}?{{ now.Unix }}{{ end }}" rel="stylesheet">
     {{end}}
+    <link href="{{ "css/swagger-ui.css" | relURL }}" rel="stylesheet" type="text/css">
 
     <script src="{{"js/jquery-3.3.1.min.js"| relURL}}{{ if $assetBusting }}?{{ now.Unix }}{{ end }}"></script>
 

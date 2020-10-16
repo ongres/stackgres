@@ -8,6 +8,7 @@ export JOBS_IMAGE_NAME="stackgres/jobs:$IMAGE_TAG"
 export ADMINUI_IMAGE_NAME="stackgres/admin-ui:$ADMINUI_IMAGE_TAG"
 
 export STACKGRES_PATH="${STACKGRES_PATH:-$E2E_PATH/..}"
+export PROJECT_PATH="${PROJECT_PATH:-$STACKGRES_PATH/..}"
 export STACKGRES_VERSION="$(grep '<artifactId>stackgres-parent</artifactId>' "$STACKGRES_PATH/src/pom.xml" -A 2 -B 2 \
   | grep -o '<version>\([^<]\+\)</version>' | tr '<>' '  ' | cut -d ' ' -f 3)"
 export CONTAINER_BUILD="$(grep '<properties>' "$STACKGRES_PATH/src/pom.xml" -A 2 -B 2 \
@@ -40,9 +41,12 @@ setup_images() {
   then
     (
     cd "$STACKGRES_PATH/src"
-    ./mvnw -q clean package -DskipTests -P build-image-jvm
-    sh admin-ui/build.sh
-    sh admin-ui/buildah/build.sh
+    ./mvnw -q clean package -DskipTests
+    (
+    echo 'sh operator/src/main/buildah/build-image-jvm.sh'
+    echo 'sh api-web/src/main/buildah/build-image-jvm.sh'
+    echo 'sh admin-ui/build.sh; sh admin-ui/buildah/build.sh'
+    ) | xargs -n 1 -I % -P 0 sh -c %
     )
   fi
 }

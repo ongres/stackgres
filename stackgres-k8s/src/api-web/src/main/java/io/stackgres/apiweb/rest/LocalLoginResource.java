@@ -22,6 +22,10 @@ import io.stackgres.apiweb.security.SecretVerification;
 import io.stackgres.apiweb.security.TokenResponse;
 import io.stackgres.apiweb.security.TokenUtils;
 import io.stackgres.apiweb.security.UserPassword;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +42,14 @@ public class LocalLoginResource {
 
   private static final long DURATION = 28800; // 8h
 
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(type = "string")) })
+      })
+  @CommonApiResponses
   @POST
   @Path("login")
   public Response login(@Valid UserPassword credentials) {
