@@ -13,6 +13,8 @@ paths:
         * pod list
         * secrets get
         * configmaps get
+      security:
+      - JWT: []
     put:
       tags:
       - sgcluster
@@ -23,6 +25,8 @@ paths:
         ### RBAC permissions required
 
         * sgclusters patch
+      security:
+      - JWT: []
     post:
       tags:
       - sgcluster
@@ -38,6 +42,8 @@ paths:
         * sgclusters create
         * secrets get, create, patch
         * configmaps get, create, patch
+      security:
+      - JWT: []
     delete:
       tags:
       - sgcluster
