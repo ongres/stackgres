@@ -10,8 +10,10 @@ to modify, add or remove in your installation.
 
 ## Install Operator
 
-Firstly, create `stackgres` namespace if doesn't exists already.
-Also, you could include the namespace for Prometheus and enable it alongside the StackGres Operator installation.
+Firstly, create `stackgres` namespace for the operator if doesn't exists already.
+Also, you could include the namespace for Prometheus operator and the SG cluster we will create.
+
+Create a namespace for the 
 
 ```bash
 kubectl create namespace stackgres
@@ -21,7 +23,7 @@ kubectl create namespace my-cluster
 
 Now that you have created the Prometheus namespace you can install the Prometheus operator, 
 this will install also a Grafana instance and it will be
- embed with the StackGres UI automatically using the `grafana.autoEmbed=true` as shown later in the SG operator install.
+ embedded with the StackGres UI automatically using the `grafana.autoEmbed=true` as will be shown later in the SG operator install.
 
 Helm will take care of the necessary steps in Prometheus Operator deployment.
 
