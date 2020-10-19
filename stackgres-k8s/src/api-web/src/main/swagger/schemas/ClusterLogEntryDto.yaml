@@ -1,0 +1,87 @@
+type: ClusterLogEntryDto
+schema:
+  ClusterLogEntryDto:
+    description: |
+      Object that represent an entry in the logs collected by distributed logs server.
+    properties:
+      logTime:
+        description: |
+          The log entry timestamp in ISO-8601 format.
+      logTimeIndex:
+        description: |
+          The index to disambiguate logs that has the same `logTime` value.
+      logType:
+        description: |
+          The source of the log entry: `pa` for Patroni; `pg` for Postgres
+      podName:
+        description: |
+          The name of the pod where the log entry was originated
+      role:
+        description: |
+          The role of the pod where the log entry was originated. Can be `null`, `Primary`, `Replica`, `Uninitialized` or `Standby`
+      errorLevel:
+        description: |
+          The error level of the log entry.
+      message:
+        description: |
+          The error message of the log entry.
+      userName:
+        description: |
+          The user name associated with the postgres log entry.
+      databaseName:
+        description: |
+          The database name associated with the postgres log entry.
+      processId:
+        description: |
+          The process ID associated with the postgres log entry.
+      connectionFrom:
+        description: |
+          The the host and port of the client (separated by colon) associated with the postgres log entry.
+      sessionId:
+        description: |
+          The session ID associated with the postgres log entry.
+      sessionLineNum:
+        description: |
+          The session line number associated with the postgres log entry.
+      commandTag:
+        description: |
+          The command tag associated with the postgres log entry.
+      sessionStartTime:
+        description: |
+          The session start time associated with the postgres log entry.
+      virtualTransactionId:
+        description: |
+          The virtual transaction ID associated with the postgres log entry.
+      transactionId:
+        description: |
+          The transaction ID associated with the postgres log entry.
+      sqlStateCode:
+        description: |
+          The SQL state code associated with the postgres log entry.
+      detail:
+        description: |
+          The detail associated with the postgres log entry.
+      hint:
+        description: |
+          An hint associated with the postgres log entry.
+      internalQuery:
+        description: |
+          The internal query associated with the postgres log entry.
+      internalQueryPos:
+        description: |
+          The internal query position associated with the postgres log entry.
+      context:
+        description: |
+          The context associated with the postgres log entry.
+      query:
+        description: |
+          The query associated with the postgres log entry.
+      queryPos:
+        description: |
+          The query position associated with the postgres log entry.
+      location:
+        description: |
+          The location associated with the postgres log entry.
+      applicationName:
+        description: |
+          The application name associated with the postgres log entry.

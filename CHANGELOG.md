@@ -1,3 +1,51 @@
+# Release 0.9.1
+
+## NOTES
+
+Here it comes StackGres 0.9.1!! :tada: :bottle_with_popping_cork: 
+
+We want you to be safe and cool so we bring to you some component version upgrades and buigfixes!
+
+## UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release. For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/03-production-installation/02-installation-via-helm/#upgrade-operator).
+
+To upgrade StackGres operator's helm chart issue following commands (replace namespace and release name if you used something different):
+
+```
+NAMESPACE=stackgres
+RELEASE=stackgres-operator
+helm upgrade -n "$NAMESPACE" "$RELEASE" https://stackgres.io/downloads/stackgres-k8s/stackgres/0.9.1/helm-operator.tgz
+```
+
+This release comes with new images that fix a bug with the [JIT library not present in previous version](https://gitlab.com/ongresinc/stackgres/-/issues/648). To upgrade your running cluster refer to [our cluster restart documentation](https://stackgres.io/doc/latest/03-production-installation/04-cluster-restart)
+
+## CHANGES
+
+* PostgreSQL version 12.4 and 11.9 added
+* Removing MinIO as a helm dependency
+
+## FIXES
+
+* Disable the 'idle_timeout' from TcpProxy to prevent finish connections for long running queries.
+* Pod does not recover after failover if pg_rewind fails
+* Performance drop when accessing via the service
+* PendingRestart condition is not updating when expected
+* Script stored on secret or configmap are not returned by REST API
+* Only postgres database stats are collected by postgres-exporter
+* Grafana dashboard does not refresh in the operator admin UI
+* Seq page cost show an error in grafana dashboard of operator admin UI
+* Unproper rendering of long namespace names in the operator admin UI
+* Cluster status do not show the message when one node is failing in the operator admin UI
+* Various fixes and small improvements in the operator admin UI
+* Helm chart init jobs uses the same service account used by the operator
+* Helm chart grafana integration fail if grafana.secret* are specified 
+
+# KNOWN ISSUES
+
+* Kubernetes 1.18 is not supported yet, see #439
+* Kubernetes 1.11 requires PodShareProcessNamespace feature gate to be enabled (not tested in any kubernetes environment except for MiniShift 3.11)
+
 # Release 0.9
 
 ## NOTES

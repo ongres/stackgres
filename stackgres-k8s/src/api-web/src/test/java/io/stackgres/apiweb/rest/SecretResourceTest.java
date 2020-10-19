@@ -7,21 +7,14 @@ package io.stackgres.apiweb.rest;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.Optional;
 
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableMap;
-import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.KubernetesClientFactory;
-import io.stackgres.common.resource.SecretFinder;
-import io.stackgres.common.resource.SecretWriter;
 import io.stackgres.testutil.StringUtils;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;

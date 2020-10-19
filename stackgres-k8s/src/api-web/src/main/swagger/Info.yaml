@@ -1,0 +1,20 @@
+info:
+  title: StackGres REST API
+  version: "1"
+tags:
+- name: sgcluster
+- name: sginstanceprofile
+- name: sgpgconfig
+- name: sgpoolconfig
+- name: sgbackupconfig
+- name: sgdistributedlogs
+- name: sgbackup
+- name: auth
+- name: misc
+components:
+  securitySchemes:
+    JWT:
+      type: http
+      description: JWT authentication with bearer token
+      scheme: bearer
+      bearerFormat: "Bearer [token]"

@@ -77,6 +77,9 @@
     <log4j.version>2.13.3</log4j.version>
     <jooq.version>3.13.4</jooq.version>
     <jetbrains-annotations.version>20.0.0</jetbrains-annotations.version>
+    <mockito.version>3.0.0</mockito.version>
+    <swagger-annotations.version>2.1.5</swagger-annotations.version>
+    <spotbugs-annotations.version>4.0.4</spotbugs-annotations.version>
     <!-- Plugins versions -->
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <jar-plugin.version>3.2.0</jar-plugin.version>
@@ -94,6 +97,7 @@
     <jandex.version>2.2.1.Final</jandex.version>
     <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
     <build-helper-maven-plugin.version>3.2.0</build-helper-maven-plugin.version>
+    <swagger-maven-plugin.version>2.1.5</swagger-maven-plugin.version>
     <!-- Checkstyle, SpotBugs and PMD properties -->
     <checks.location>${project.basedir}/checks</checks.location>
     <checkstyle.config.location>${checks.location}/checkstyle.xml</checkstyle.config.location>
@@ -158,6 +162,12 @@
         </exclusions>
       </dependency>
       <dependency>
+        <groupId>io.swagger.core.v3</groupId>
+        <artifactId>swagger-annotations</artifactId>
+        <version>${swagger-annotations.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
         <groupId>org.ow2.asm</groupId>
         <artifactId>asm</artifactId>
         <version>8.0.1</version>
@@ -194,6 +204,17 @@
       <version>${jetbrains-annotations.version}</version>
       <optional>true</optional>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.spotbugs</groupId>
+      <artifactId>spotbugs-annotations</artifactId>
+      <version>${spotbugs-annotations.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>jsr305</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 
@@ -308,6 +329,11 @@
               <version>${jandex.version}</version>
             </dependency>
           </dependencies>
+        </plugin>
+        <plugin>
+          <groupId>io.openapitools.swagger</groupId>
+          <artifactId>swagger-maven-plugin</artifactId>
+          <version>${swagger-maven-plugin.version}</version>
         </plugin>
         <!--This plugin's configuration is used to store Eclipse m2e settings only.
             It has no influence on the Maven build itself.-->
