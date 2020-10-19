@@ -24,7 +24,6 @@ variables:
                    -Dsurefire.useFile=false
                    -Dsurefire.useFile=false
                    -DtrimStackTrace=false
-  DOCUMENTATION_BASE_URL: "https://ongresinc.gitlab.io/web/stackgres/doc/latest"
   PRODUCTION_DOCUMENTATION_BASE_URL: "https://stackgres.io/doc/latest"
   SKIP_NATIVE: "false"
   SKIP_E2E: "false"
@@ -46,6 +45,7 @@ cache:
 
 stages:
   - build
+  - post-build
   - check-release
   - native build
   - image build
@@ -54,6 +54,7 @@ stages:
 
 include:
   - local: .gitlab-ci/build.yml
+  - local: .gitlab-ci/post-build.yml
   - local: .gitlab-ci/native-build.yml
   - local: .gitlab-ci/image-build.yml
   - local: .gitlab-ci/test.yml

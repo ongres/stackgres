@@ -400,7 +400,7 @@ test_constraint_violation_api_error() {
 
   EXPECTED_ERROR_TYPE="constraint-violation"
   EXPECTED_ERROR_TITLE="do not comply with the syntactic rules"
-  EXPECTED_ERROR_DETAIL="greater than zero"
+  EXPECTED_ERROR_DETAIL="greater than"
   EXPECTED_ERROR_FIELD="retention"
 
   assert_api_error "$ERROR_RESPONSE"

@@ -15,8 +15,8 @@ import java.util.Optional;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
-import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.stackgres.common.ErrorType;
+import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.storages.AwsCredentials;
 import io.stackgres.common.crd.storages.AwsS3CompatibleStorage;
 import io.stackgres.common.crd.storages.AwsS3Storage;
@@ -196,8 +196,8 @@ class BackupConfigSourceValidatorTest {
     storage.getS3().setAwsCredentials(new AwsCredentials());
     storage.getS3().getAwsCredentials().setSecretKeySelectors(new AwsSecretKeySelector());
     AwsSecretKeySelector awsSecretKeySelector = storage.getS3().getAwsCredentials().getSecretKeySelectors();
-    awsSecretKeySelector.setAccessKeyId(new SecretKeySelector(accessKeyIdKey, accessKeyIdName, false));
-    awsSecretKeySelector.setSecretAccessKey(new SecretKeySelector(secretAccessKeyKey, secretAccessKeyName, false));
+    awsSecretKeySelector.setAccessKeyId(new SecretKeySelector(accessKeyIdKey, accessKeyIdName));
+    awsSecretKeySelector.setSecretAccessKey(new SecretKeySelector(secretAccessKeyKey, secretAccessKeyName));
   }
 
   @Test
@@ -336,8 +336,8 @@ class BackupConfigSourceValidatorTest {
     storage.getS3Compatible().setAwsCredentials(new AwsCredentials());
     storage.getS3Compatible().getAwsCredentials().setSecretKeySelectors(new AwsSecretKeySelector());
     AwsSecretKeySelector awsSecretKeySelector = storage.getS3Compatible().getAwsCredentials().getSecretKeySelectors();
-    awsSecretKeySelector.setAccessKeyId(new SecretKeySelector(accessKeyIdKey, accessKeyIdName, false));
-    awsSecretKeySelector.setSecretAccessKey(new SecretKeySelector(secretAccessKeyKey, secretAccessKeyName, false));
+    awsSecretKeySelector.setAccessKeyId(new SecretKeySelector(accessKeyIdKey, accessKeyIdName));
+    awsSecretKeySelector.setSecretAccessKey(new SecretKeySelector(secretAccessKeyKey, secretAccessKeyName));
   }
 
   @Test
@@ -475,8 +475,8 @@ class BackupConfigSourceValidatorTest {
     storage.getAzureBlob().setAzureCredentials(new AzureBlobStorageCredentials());
     storage.getAzureBlob().getAzureCredentials().setSecretKeySelectors(new AzureBlobSecretKeySelector());
     AzureBlobSecretKeySelector azureBlobSecretKeySelector = storage.getAzureBlob().getAzureCredentials().getSecretKeySelectors();
-    azureBlobSecretKeySelector.setAccount(new SecretKeySelector(accountKey, accountName, false));
-    azureBlobSecretKeySelector.setAccessKey(new SecretKeySelector(accessKeyKey, accessKeyName, false));
+    azureBlobSecretKeySelector.setAccount(new SecretKeySelector(accountKey, accountName));
+    azureBlobSecretKeySelector.setAccessKey(new SecretKeySelector(accessKeyKey, accessKeyName));
   }
 
   @Test
@@ -544,7 +544,7 @@ class BackupConfigSourceValidatorTest {
     storage.getGcs().setCredentials(new GoogleCloudCredentials());
     storage.getGcs().getCredentials().setSecretKeySelectors(new GoogleCloudSecretKeySelector());
     GoogleCloudSecretKeySelector awsSecretKeySelector = storage.getGcs().getCredentials().getSecretKeySelectors();
-    awsSecretKeySelector.setServiceAccountJsonKey(new SecretKeySelector(serviceAccountJsonKeyKey, serviceAccountJsonKeyName, false));
+    awsSecretKeySelector.setServiceAccountJsonKey(new SecretKeySelector(serviceAccountJsonKeyKey, serviceAccountJsonKeyName));
   }
 
   private BackupConfigReview getEmptyReview() {

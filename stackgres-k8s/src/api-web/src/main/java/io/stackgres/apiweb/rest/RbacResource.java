@@ -26,10 +26,15 @@ import javax.ws.rs.core.Response.Status;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.authorization.SubjectAccessReview;
 import io.fabric8.kubernetes.api.model.authorization.SubjectAccessReviewBuilder;
+import io.fabric8.kubernetes.api.model.authorization.SubjectAccessReviewStatus;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.apiweb.dto.PermissionsListDto;
 import io.stackgres.common.StackGresProperty;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.eclipse.microprofile.jwt.Claim;
 import org.eclipse.microprofile.jwt.Claims;
 import org.slf4j.Logger;
@@ -55,6 +60,14 @@ public class RbacResource {
     this.namespaces = namespaces;
   }
 
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = SubjectAccessReviewStatus.class)) })
+      })
+  @CommonApiResponses
   @GET
   @Path("/can-i/{verb}/{resource}")
   public Response verb(@PathParam("verb") String verb, @PathParam("resource") String resource,
@@ -89,6 +102,14 @@ public class RbacResource {
     }
   }
 
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = PermissionsListDto.class)) })
+      })
+  @CommonApiResponses
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/can-i")
