@@ -58,7 +58,9 @@ grafana:
      automatically grafana)
   webHost: |
     The service host name to access grafana (used to embed manually and
-     automatically grafana)
+     automatically grafana). 
+     The parameter value should point to the grafana service following the 
+     [DNS reference](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/) `svc_name.namespace`
   user: |
     The username to access grafana. By default admin. (used to embed automatically
      grafana)

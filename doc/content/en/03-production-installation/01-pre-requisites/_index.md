@@ -4,6 +4,13 @@ weight: 1
 url: install/prerequisites
 ---
 
+## Environment
+
+As wel as explained in the [Demo section](/demo/setenv/) you need to provide the environment where you want to run
+StackGres.
+
+StackGres is able to run on any Kubernetes installation from 1.11 to 1.17 version, there
+
 ## Backups
 
 ### General configuration
