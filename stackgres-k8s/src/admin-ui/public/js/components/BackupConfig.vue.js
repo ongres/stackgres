@@ -109,8 +109,12 @@ var BackupConfig = Vue.component("BackupConfig", {
 							<tr :class="[ $route.params.name == conf.name ? 'open' : '', 'sgbackupconfig-'+conf.data.metadata.namespace+'-'+conf.name ]" class="details" :style="$route.params.name == conf.name ? 'display: table-row;' : ''">
 								<td colspan="7">
 									<div class="configurationDetails">
-										<span class="title">Configuration Details</span>	
 										<table>
+											<thead>
+												<th colspan="2" class="label">
+													Configuration Details
+												</th>
+											</thead>
 											<tbody>
 												<tr v-if="typeof conf.data.spec.baseBackups.retention !== 'undefined'">
 													<td class="label">
@@ -186,10 +190,13 @@ var BackupConfig = Vue.component("BackupConfig", {
 										</table>
 									</div>
 									<div class="configurationDetails storageDetails">
-										<span class="title">Storage Details
-											<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.description"></span>
-										</span>
 										<table>
+											<thead>
+												<th colspan="2" class="label">
+													Storage Details
+													<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.description"></span>
+												</th>
+											</thead>
 											<tbody>
 												<tr>
 													<td class="label">

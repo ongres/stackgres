@@ -163,7 +163,7 @@ var Backups = Vue.component("Backups", {
 								<span @click="sort('data.status.process.timing.stored')">Timestamp</span>
 								<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.timing.stored.description"></span>
 							</th>
-							<th class="icon desc managedLifecycle">
+							<th class="desc managedLifecycle">
 								<span @click="sort('data.spec.managedLifecycle')" >Managed Lifecycle (request)</span>
 								<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.spec.managedLifecycle.description"></span>
 							</th>
@@ -479,7 +479,7 @@ var Backups = Vue.component("Backups", {
 											<div>
 												<table>
 													<thead>
-														<th colspan="2">
+														<th colspan="2" class="label">
 															Storage Details
 															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.description"></span>
 														</th>

@@ -532,7 +532,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 							<tr>
 								<td class="label" v-if="!hasProp(cluster, 'data.spec.postgresServices.replicas.annotations')">
 									Replicas
-									<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresServices.replica.descriptions"></span>
+									<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresServices.replicas.description"></span>
 								</td>
 								<td class="label" v-else :rowspan="Object.keys(cluster.data.spec.postgresServices.replicas.annotations).length+1">
 									Replicas

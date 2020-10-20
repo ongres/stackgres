@@ -71,8 +71,12 @@ var LogsServer = Vue.component("LogsServer", {
                             <tr :style="$route.params.name == cluster.data.metadata.name ? 'display: table-row' : ''" :class="$route.params.name == cluster.data.metadata.name ? 'open details logsCluster pgConfig' : 'details logsCluster pgConfig'">
                                 <td colspan="3">
                                     <div class="configurationDetails">
-                                        <span class="title">Log Details</span>	
                                         <table>
+                                            <thead>
+                                                <th colspan="2" class="label">
+                                                Log Details
+                                                </th>
+                                            </thead>
                                             <tbody>
                                                 <tr>
                                                     <td class="label">

@@ -69,8 +69,12 @@ var PoolConfig = Vue.component("PoolConfig", {
 							<tr :style="$route.params.name == conf.name ? 'display: table-row' : ''" :class="$route.params.name == conf.name ? 'open details pgConfig' : 'details pgConfig'">
 								<td colspan="3">
 									<div class="configurationDetails" v-if="conf.data.status.clusters.length">
-										<span class="title">Configuration Details</span>	
 										<table>
+											<thead>
+												<th colspan="2" class="label">
+													Configuration Details
+												</th>
+											</thead>
 											<tbody>
 												<tr>
 													<td class="label">Used on  <span class="helpTooltip" :data-tooltip="tooltips.sgpoolingconfig.status.clusters.description"></span></td>
@@ -89,12 +93,14 @@ var PoolConfig = Vue.component("PoolConfig", {
 										</table>
 									</div>
 									<div class="paramDetails" v-if="conf.data.spec.pgBouncer['pgbouncer.ini'].length">
-										<template v-if="conf.data.status.pgBouncer['pgbouncer.ini'].length != conf.data.status.pgBouncer.defaultParameters.length">
-											<span class="title">
-												Parameters
-												<span class="helpTooltip" :data-tooltip="tooltips.sgpoolingconfig.spec.pgBouncer['pgbouncer.ini'].description"></span>
-											</span>	
+										<template v-if="conf.data.status.pgBouncer['pgbouncer.ini'].length != conf.data.status.pgBouncer.defaultParameters.length">	
 											<table>
+												<thead>
+													<th colspan="2" class="label">
+														Parameters
+														<span class="helpTooltip" :data-tooltip="tooltips.sgpoolingconfig.spec.pgBouncer['pgbouncer.ini'].description"></span>
+													</th>
+												</thead>
 												<tbody>
 													<tr v-for="param in conf.data.status.pgBouncer['pgbouncer.ini']" v-if="!conf.data.status.pgBouncer.defaultParameters.includes(param.parameter)">
 														<td class="label">
@@ -109,11 +115,14 @@ var PoolConfig = Vue.component("PoolConfig", {
 										</template>
 
 										<template v-if="conf.data.status.pgBouncer.defaultParameters.length">
-											<span class="title">
-												Default Parameters
-												<span class="helpTooltip" :data-tooltip="tooltips.sgpoolingconfig.status.pgBouncer.defaultParameters.description"></span>
-											</span>	
+											
 											<table>
+												<thead>
+													<th colspan="2" class="label">
+														Default Parameters
+														<span class="helpTooltip" :data-tooltip="tooltips.sgpoolingconfig.status.pgBouncer.defaultParameters.description"></span>
+													</th>
+												</thead>
 												<tbody>
 													<tr v-for="param in conf.data.status.pgBouncer['pgbouncer.ini']" v-if="conf.data.status.pgBouncer.defaultParameters.includes(param.parameter)">
 														<td class="label">

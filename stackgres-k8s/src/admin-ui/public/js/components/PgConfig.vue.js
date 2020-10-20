@@ -86,8 +86,12 @@ var PgConfig = Vue.component("PostgresConfig", {
 							<tr :style="$route.params.name == conf.name ? 'display: table-row' : ''" :class="$route.params.name == conf.name ? 'open details pgConfig' : 'details pgConfig'">
 								<td colspan="4">
 									<div class="configurationDetails">
-										<span class="title">Configuration Details</span>	
 										<table>
+											<thead>
+												<th colspan="2" class="label">
+													Configuration Details
+												</th>
+											</thead>
 											<tbody>
 												<tr>
 													<td class="label">Postgres Version <span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.spec.postgresVersion.description"></span></td>
@@ -113,11 +117,13 @@ var PgConfig = Vue.component("PostgresConfig", {
 									</div>
 									<div class="paramDetails" v-if="conf.data.status['postgresql.conf'].length">
 										<template v-if="conf.data.status.defaultParameters.length != conf.data.status['postgresql.conf'].length">
-											<span class="title">
-												Parameters
-												<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.spec['postgresql.conf'].description"></span>
-											</span>
 											<table>
+												<thead>
+													<th colspan="2" class="label">
+														Parameters
+														<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.spec['postgresql.conf'].description"></span>
+													</th>
+												</thead>
 												<tbody>
 													<tr v-for="param in conf.data.status['postgresql.conf']" v-if="!conf.data.status.defaultParameters.includes(param.parameter)">
 														<td class="label">
@@ -138,11 +144,13 @@ var PgConfig = Vue.component("PostgresConfig", {
 										</template>
 
 										<template v-if="conf.data.status.defaultParameters.length">
-											<span class="title">
-												Default Parameters
-												<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.status.defaultParameters.description"></span>
-											</span>	
 											<table class="defaultParams">
+												<thead>
+													<th colspan="2" class="label">
+														Default Parameters
+														<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.status.defaultParameters.description"></span>
+													</th>
+												</thead>
 												<tbody>
 													<tr v-for="param in conf.data.status['postgresql.conf']" v-if="conf.data.status.defaultParameters.includes(param.parameter)">
 														<td class="label">

@@ -2060,6 +2060,10 @@ ul.selector li {
     width: calc(100% - 50px);
 }
 
+#backups td.actions {
+    width: 70px;
+}
+
 #nav #backup-btn, #nav #grafana-btn {
     display: none;
 }
@@ -2959,6 +2963,16 @@ td.timestamp span.time, span.timestamp span.time {
 td.timestamp, span.timestamp {
     color: var(--gray3);
     width: 190px;
+    min-width: 190px;
+}
+
+#backups .size, #backups .phase, #backups .managedLifecycle {
+    width: 120px;
+}
+
+#backups .postgresVersion {
+    width: 65px;
+    padding-left: 10px;
 }
 
 td.timestamp span.ms, span.timestamp span.ms {
@@ -3027,7 +3041,7 @@ tr.details table th, tr.details table td {
     border-color: #333333;;
 }
 
-tr.details table td.label {
+tr.details table .label {
     min-width: 200px;
     width: 200px;
     padding-right: 35px;
@@ -4600,11 +4614,23 @@ table.pgConfig tr.open > td, table.poolConfig tr.open > td {
 }
 
 table.pgConfig th.postgresVersion {
-    width: 35px;
+    width: 60px;
 }
 
 table.backupConfig th.name {
-    width: 300px;
+    width: 290px;
+}
+
+#backup .retention {
+    width: 95px;
+}
+
+#backup .compression {
+    width: 165px;
+}
+
+#backup .storageType {
+    width: 114px;
 }
 
 table.backupConfig tr.details.open {
@@ -4630,9 +4656,9 @@ table.profiles td, table.clusterOverview td, table.pgConfig tr.open td.hasToolti
 
 table.backups .clusterName {
     padding-left: 15px;
-    max-width: 120px;
-   
+    width: 140px;
 }
+
 
 table.backups .name {
     max-width: 250px;
@@ -4720,7 +4746,7 @@ td.usedOn li:last-child {
 table tr.details .configurationDetails a, table tr.details .paramDetails a {
     float: right;
     display: inline-block;
-    padding: 2px 10px;
+    padding: 2px 14px;
 }
 
 table.pgConfig tr.details a svg path, table.poolConfig tr.details a svg path {
@@ -4730,11 +4756,6 @@ table.pgConfig tr.details a svg path, table.poolConfig tr.details a svg path {
 table.pgConfig tr.details .configurationDetails table td.label, table.poolConfig tr.details .configurationDetails table td.label, table.backupConfig tr.details .configurationDetails table td.label {
     padding-right: 10px;
     width: 140px;
-}
-
-table.pgConfig tr.details .paramDetails table td.label, table.poolConfig tr.details .paramDetails table td.label {
-    width: auto;
-    padding-right: 10px;
 }
 
 tr.details.pgConfig .title {
@@ -4758,7 +4779,7 @@ tr.details .paramDetails table.defaultParams {
     margin-bottom: 10px;
 }
 
-.paramDetails table tbody {
+.paramDetails table {
     width: 100%;
     display: inline-table;
 }
@@ -4777,6 +4798,7 @@ table.pgConfig tr.details td.paramValue a, table.poolConfig tr.details td.paramV
 
 table.pgConfig tr.details .paramDetails table td, table.poolConfig tr.details .paramDetails table td {
     padding: 10px;
+    padding-right: 14px;
 }
 
 table.pgConfig tr.details .paramDetails table, table.poolConfig tr.details .paramDetails table {

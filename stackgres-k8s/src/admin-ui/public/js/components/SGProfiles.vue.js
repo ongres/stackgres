@@ -74,8 +74,12 @@ var SGProfiles = Vue.component("InstanceProfile", {
 							<tr :style="$route.params.name == conf.name ? 'display: table-row' : ''" :class="$route.params.name == conf.name ? 'open details profile pgConfig' : 'details profile pgConfig'">
 								<td colspan="4">
 									<div class="configurationDetails">
-										<span class="title">Profile Details</span>	
 										<table>
+											<thead>
+												<th colspan="2" class="label">
+													Profile Details
+												</th>
+											</thead>
 											<tbody>
 												<tr>
 													<td class="label">RAM <span class="helpTooltip" :data-tooltip="tooltips.sgprofile.spec.memory.description"></span></td>
