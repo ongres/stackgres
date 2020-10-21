@@ -1,7 +1,7 @@
 ---
 title: Backups
 weight: 4
-url: reference/backups
+url: reference/crd/backups
 ---
 
 ## Creating a backup
