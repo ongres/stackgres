@@ -63,11 +63,8 @@ cluster:
 As early indicated in [Component of the Stack](/01-introduction/04-components-of-the-stack/#monitoring), StackGres at the moment supports Prometheus integration only. 
 
 ## Grafana Integration and Pre-requisites
-As early indicated in [Component of the Stack](/01-introduction/04-components-of-the-stack/#monitoring) currently StackGres integrates only with prometheus. 
 
-## Grafana integration Pre-requisites
-
-### Automatic integration
+### Integrating Pre-existing Grafanas
 
 If you already have a Grafana installation in your system you can embed it automatically in the
  StackGres UI by setting the property `grafana.autoEmbed=true`:
