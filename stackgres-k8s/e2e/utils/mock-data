@@ -45,7 +45,8 @@ read_mock_table(){
 
 check_mock_data_samehost(){
   local CLUSTER_NAME="${1:-$CLUSTER_NAME}"
-  RESPONSE=$(read_mock_table -i 0)
+  local INSTANCE="${2:-0}"
+  RESPONSE=$(read_mock_table -i "$INSTANCE")
   if [ "$RESPONSE" = "54" ]
   then
     echo "Mock data is present"

@@ -39,7 +39,7 @@ public abstract class TransactionHandlerTest<R extends HasMetadata> {
   @Test
   void successfulTransaction_shouldNotCallRollback() {
 
-    doNothing().when(writer).create(resource);
+    when(writer.create(resource)).thenReturn(resource);
 
     AtomicBoolean transactionCalled = new AtomicBoolean(false);
 
@@ -55,7 +55,7 @@ public abstract class TransactionHandlerTest<R extends HasMetadata> {
   @Test
   void failedTransaction_shouldCallRollback() {
 
-    doNothing().when(writer).create(resource);
+    when(writer.create(resource)).thenReturn(resource);
     doNothing().when(writer).delete(resource);
 
     assertThrows(RuntimeException.class, () -> transactionHandler.create(resource, () -> {

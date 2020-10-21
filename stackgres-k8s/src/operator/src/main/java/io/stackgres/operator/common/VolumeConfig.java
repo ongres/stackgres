@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterContext;
 import io.stackgres.common.VolumePath;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
@@ -25,19 +26,19 @@ import org.jooq.lambda.tuple.Tuple3;
 
 public class VolumeConfig {
 
-  private static final BiFunction<StackGresClusterContext, VolumeBuilder, VolumeBuilder>
+  private static final BiFunction<ClusterContext, VolumeBuilder, VolumeBuilder>
       UNCHANGED_VOLUME_BUILDER = (context, volumeBuilder) -> volumeBuilder;
 
   private final String name;
   private final List<VolumePath> paths;
-  private final Function<StackGresClusterContext, List<VolumeMount>> volumeMountFactory;
-  private final Function<StackGresClusterContext, Optional<Volume>> volumeFactory;
+  private final Function<ClusterContext, List<VolumeMount>> volumeMountFactory;
+  private final Function<ClusterContext, Optional<Volume>> volumeFactory;
 
   private VolumeConfig(String name, VolumePath path,
       Function<VolumeConfig, Optional<VolumeBuilder>> volumeFactory,
-      Function<StackGresClusterContext, String> getName,
-      BiFunction<StackGresClusterContext, VolumeBuilder, VolumeBuilder> volumeBuilderConsumer,
-      Predicate<StackGresClusterContext> filter) {
+      Function<ClusterContext, String> getName,
+      BiFunction<ClusterContext, VolumeBuilder, VolumeBuilder> volumeBuilderConsumer,
+      Predicate<ClusterContext> filter) {
     this.name = name;
     this.paths = ImmutableList.of(path);
     this.volumeMountFactory = context -> Seq.of(Optional.of(context)
@@ -59,8 +60,8 @@ public class VolumeConfig {
   private VolumeConfig(String name,
       List<VolumePathConfig> paths,
       Function<VolumeConfig, Optional<VolumeBuilder>> volumeFactory,
-      Function<StackGresClusterContext, String> getName,
-      BiFunction<StackGresClusterContext, VolumeBuilder, VolumeBuilder> volumeBuilderConsumer) {
+      Function<ClusterContext, String> getName,
+      BiFunction<ClusterContext, VolumeBuilder, VolumeBuilder> volumeBuilderConsumer) {
     Preconditions.checkArgument(paths.size() > 0);
     this.name = name;
     this.paths = Seq.seq(paths).map(VolumePathConfig::volumePath).toList();
@@ -87,13 +88,13 @@ public class VolumeConfig {
 
   public static class VolumePathConfig
       extends Tuple3<VolumePath,
-        Predicate<StackGresClusterContext>,
+        Predicate<ClusterContext>,
         Function<VolumeMountBuilder, VolumeMountBuilder>> {
 
     private static final long serialVersionUID = 1L;
 
     private VolumePathConfig(Tuple3<VolumePath,
-        Predicate<StackGresClusterContext>,
+        Predicate<ClusterContext>,
         Function<VolumeMountBuilder, VolumeMountBuilder>> tuple) {
       super(tuple);
     }
@@ -102,7 +103,7 @@ public class VolumeConfig {
       return v1;
     }
 
-    public Predicate<StackGresClusterContext> filter() {
+    public Predicate<ClusterContext> filter() {
       return v2;
     }
 
@@ -116,13 +117,13 @@ public class VolumeConfig {
     }
 
     public static VolumePathConfig of(VolumePath path,
-        Predicate<StackGresClusterContext> filter) {
+        Predicate<ClusterContext> filter) {
       return new VolumePathConfig(Tuple.tuple(
           path, filter, volumeMountBuilder -> volumeMountBuilder));
     }
 
     public static VolumePathConfig of(VolumePath path,
-        Predicate<StackGresClusterContext> filter,
+        Predicate<ClusterContext> filter,
         Function<VolumeMountBuilder, VolumeMountBuilder> volumeMounthOverwrite) {
       return new VolumePathConfig(Tuple.tuple(
           path, filter, volumeMounthOverwrite));
@@ -130,7 +131,7 @@ public class VolumeConfig {
   }
 
   public static VolumeConfig persistentVolumeClaim(String name, VolumePath path,
-      Function<StackGresClusterContext, String> getName) {
+      Function<ClusterContext, String> getName) {
     return new VolumeConfig(name, path, config ->  Optional.empty(), getName,
         UNCHANGED_VOLUME_BUILDER, context -> true);
   }
@@ -152,7 +153,7 @@ public class VolumeConfig {
   }
 
   public static VolumeConfig configMap(String name, VolumePath path,
-      Function<StackGresClusterContext, String> getConfigMapName) {
+      Function<ClusterContext, String> getConfigMapName) {
     return new VolumeConfig(name, path, VolumeConfig::createConfigMapVolume, context -> name,
         (context, volumeBuilder) -> volumeBuilder.editConfigMap()
         .withName(getConfigMapName.apply(context)).endConfigMap(),
@@ -160,8 +161,8 @@ public class VolumeConfig {
   }
 
   public static VolumeConfig configMap(String name, VolumePath path,
-      Function<StackGresClusterContext, String> getConfigMapName,
-      Predicate<StackGresClusterContext> filter) {
+      Function<ClusterContext, String> getConfigMapName,
+      Predicate<ClusterContext> filter) {
     return new VolumeConfig(name, path, VolumeConfig::createConfigMapVolume, context -> name,
         (context, volumeBuilder) -> volumeBuilder.editConfigMap()
         .withName(getConfigMapName.apply(context)).endConfigMap(),
@@ -169,7 +170,7 @@ public class VolumeConfig {
   }
 
   public static VolumeConfig secret(String name, VolumePath path,
-      Function<StackGresClusterContext, String> getSecretName) {
+      Function<ClusterContext, String> getSecretName) {
     return new VolumeConfig(name, path, VolumeConfig::createSecretVolume, context -> name,
         (context, volumeBuilder) -> volumeBuilder.editSecret()
         .withSecretName(getSecretName.apply(context)).endSecret(),
@@ -177,8 +178,8 @@ public class VolumeConfig {
   }
 
   public static VolumeConfig secret(String name, VolumePath path,
-      Function<StackGresClusterContext, String> getSecretName,
-      Predicate<StackGresClusterContext> filter) {
+      Function<ClusterContext, String> getSecretName,
+      Predicate<ClusterContext> filter) {
     return new VolumeConfig(name, path, VolumeConfig::createSecretVolume, context -> name,
         (context, volumeBuilder) -> volumeBuilder.editSecret()
         .withSecretName(getSecretName.apply(context)).endSecret(),
@@ -228,22 +229,25 @@ public class VolumeConfig {
     return paths;
   }
 
-  public Optional<VolumeMount> volumeMount(VolumePath path, StackGresClusterContext context) {
+  public Optional<VolumeMount> volumeMount(VolumePath path, ClusterContext context) {
     return volumeMountFactory.apply(context).stream()
         .filter(volumeMount -> paths.contains(path))
         .skip(paths.indexOf(path))
         .findFirst();
   }
 
-  public List<VolumeMount> volumeMounts(StackGresClusterContext context) {
+  public List<VolumeMount> volumeMounts(ClusterContext context) {
+    return volumeMountFactory.apply(context);
+
+  }
+
+  public List<VolumeMount> volumeMounts(ClusterContext context, String subPath) {
     return volumeMountFactory.apply(context);
   }
 
-  public List<VolumeMount> volumeMounts(StackGresClusterContext context, String subPath) {
-    return volumeMountFactory.apply(context);
-  }
 
-  public Optional<Volume> volume(StackGresClusterContext context) {
+
+  public Optional<Volume> volume(ClusterContext context) {
     return volumeFactory.apply(context);
   }
 

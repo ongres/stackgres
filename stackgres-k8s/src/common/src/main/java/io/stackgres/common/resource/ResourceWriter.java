@@ -10,9 +10,9 @@ import org.jetbrains.annotations.NotNull;
 
 public interface ResourceWriter<T extends HasMetadata> {
 
-  void create(@NotNull T resource);
+  T create(@NotNull T resource);
 
-  void update(@NotNull T resource);
+  T update(@NotNull T resource);
 
   void delete(@NotNull T resource);
 

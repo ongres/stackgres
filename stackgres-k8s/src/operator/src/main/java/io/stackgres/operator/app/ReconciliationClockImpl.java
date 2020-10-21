@@ -9,25 +9,25 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.stackgres.common.app.AbstractReconciliationClock;
-import io.stackgres.operator.controller.ClusterReconciliationCycle;
-import io.stackgres.operator.controller.DistributedLogsReconciliationCycle;
+import io.stackgres.operator.conciliation.cluster.ClusterReconciliator;
+import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsReconciliator;
 
 @ApplicationScoped
 public class ReconciliationClockImpl extends AbstractReconciliationClock {
 
-  private final ClusterReconciliationCycle clusterReconciliationCycle;
-  private final DistributedLogsReconciliationCycle distributedLogsReconciliationCycle;
+  private final ClusterReconciliator clusterReconciliationCycle;
+  private final DistributedLogsReconciliator distributedLogsReconciliator;
 
   @Inject
-  public ReconciliationClockImpl(ClusterReconciliationCycle clusterReconciliationCycle,
-      DistributedLogsReconciliationCycle distributedLogsReconciliationCycle) {
+  public ReconciliationClockImpl(ClusterReconciliator clusterReconciliationCycle,
+                                 DistributedLogsReconciliator distributedLogsConciliator) {
     this.clusterReconciliationCycle = clusterReconciliationCycle;
-    this.distributedLogsReconciliationCycle = distributedLogsReconciliationCycle;
+    this.distributedLogsReconciliator = distributedLogsConciliator;
   }
 
   @Override
   protected void reconcile() {
     clusterReconciliationCycle.reconcile();
-    distributedLogsReconciliationCycle.reconcile();
+    distributedLogsReconciliator.reconcile();
   }
 }

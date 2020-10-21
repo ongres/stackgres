@@ -49,7 +49,7 @@ public interface DefaultAnnotationMutator
 
     ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
 
-    if (!crAnnotations.isPresent()) {
+    if (crAnnotations.isEmpty()) {
       operations.add(new AddOperation(ANNOTATION_POINTER, FACTORY.objectNode()));
     }
 

@@ -1,0 +1,63 @@
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+package io.stackgres.operator.resource;
+
+import java.util.function.Function;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.Deletable;
+import io.fabric8.kubernetes.client.dsl.RollableScalableResource;
+import io.stackgres.common.KubernetesClientFactory;
+import io.stackgres.common.resource.ResourceWriter;
+
+@ApplicationScoped
+public class StatefulSetWriter implements ResourceWriter<StatefulSet> {
+
+  private final KubernetesClientFactory clientFactory;
+
+  @Inject
+  public StatefulSetWriter(KubernetesClientFactory clientFactory) {
+    this.clientFactory = clientFactory;
+  }
+
+  @Override
+  public StatefulSet create(StatefulSet resource) {
+    return withStatefulSetEndpoint(resource, endpoint -> endpoint.create(resource));
+  }
+
+  @Override
+  public StatefulSet update(StatefulSet resource) {
+    return withStatefulSetEndpoint(resource, endpoint -> endpoint.patch(resource));
+  }
+
+  @Override
+  public void delete(StatefulSet resource) {
+    withStatefulSetEndpoint(resource, Deletable::delete);
+
+  }
+
+  private <T> T withNewClient(Function<KubernetesClient, T> func) {
+    try (var client = clientFactory.create()) {
+      return func.apply(client);
+    }
+  }
+
+  private <T> T withStatefulSetEndpoint(
+      StatefulSet statefulSet,
+      Function<RollableScalableResource<StatefulSet>, T> func) {
+    return withNewClient(client -> {
+      String namespace = statefulSet.getMetadata().getNamespace();
+      String name = statefulSet.getMetadata().getName();
+      var endpoint = client.apps().statefulSets()
+          .inNamespace(namespace).withName(name);
+      return func.apply(endpoint);
+    });
+  }
+}

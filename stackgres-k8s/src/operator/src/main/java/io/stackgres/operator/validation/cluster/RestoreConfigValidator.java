@@ -70,7 +70,7 @@ public class RestoreConfigValidator implements ClusterValidator {
 
         Optional<StackGresBackup> config = findBackup(backupUid);
 
-        if (!config.isPresent()) {
+        if (config.isEmpty()) {
 
           final String message = "Backup uid " + backupUid + " not found";
           fail(errorCrReferencerUri, message);

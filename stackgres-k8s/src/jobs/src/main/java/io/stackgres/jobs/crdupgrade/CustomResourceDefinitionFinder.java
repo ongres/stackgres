@@ -40,18 +40,18 @@ public class CustomResourceDefinitionFinder implements ResourceFinder<CustomReso
   }
 
   @Override
-  public void create(CustomResourceDefinition resource) {
+  public CustomResourceDefinition create(CustomResourceDefinition resource) {
     try (KubernetesClient client = kubernetesClientFactory.create()) {
-      client.apiextensions().v1()
+      return client.apiextensions().v1()
           .customResourceDefinitions()
           .create(resource);
     }
   }
 
   @Override
-  public void update(CustomResourceDefinition resource) {
+  public CustomResourceDefinition update(CustomResourceDefinition resource) {
     try (KubernetesClient client = kubernetesClientFactory.create()) {
-      client.apiextensions().v1()
+      return client.apiextensions().v1()
           .customResourceDefinitions()
           .withName(resource.getMetadata().getName())
           .patch(resource);

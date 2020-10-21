@@ -6,6 +6,7 @@
 package io.stackgres.operator.sidecars.controller;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -58,56 +59,57 @@ public class ClusterController implements StackGresClusterSidecarResourceFactory
         .withImage(StackGresController.CLUSTER_CONTROLLER.getImageName())
         .withImagePullPolicy("IfNotPresent")
         .withEnv(new EnvVarBuilder()
-            .withName(ClusterControllerProperty.CLUSTER_NAME.getEnvironmentVariableName())
-            .withValue(context
-                .getCluster().getMetadata().getName())
-            .build(),
+                .withName(ClusterControllerProperty.CLUSTER_NAME.getEnvironmentVariableName())
+                .withValue(context
+                    .getCluster().getMetadata().getName())
+                .build(),
             new EnvVarBuilder()
-            .withName(ClusterControllerProperty.CLUSTER_NAMESPACE.getEnvironmentVariableName())
-            .withValue(context
-                .getCluster().getMetadata().getNamespace())
-            .build(),
+                .withName(ClusterControllerProperty.CLUSTER_NAMESPACE.getEnvironmentVariableName())
+                .withValue(context
+                    .getCluster().getMetadata().getNamespace())
+                .build(),
             new EnvVarBuilder()
-            .withName(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME
-                .getEnvironmentVariableName())
-            .withValueFrom(new EnvVarSourceBuilder()
-                .withFieldRef(new ObjectFieldSelector("v1", "metadata.name"))
+                .withName(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME
+                    .getEnvironmentVariableName())
+                .withValueFrom(new EnvVarSourceBuilder()
+                    .withFieldRef(new ObjectFieldSelector("v1", "metadata.name"))
+                    .build())
+                .build(),
+            new EnvVarBuilder()
+                .withName(ClusterControllerProperty.CLUSTER_CONTROLLER_EXTENSIONS_REPOSITORY_URLS
+                    .getEnvironmentVariableName())
+                .withValue(OperatorProperty.EXTENSIONS_REPOSITORY_URLS
+                    .getString())
+                .build(),
+            new EnvVarBuilder()
+                .withName(ClusterControllerProperty
+                    .CLUSTER_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES
+                    .getEnvironmentVariableName())
+                .withValue(Boolean.TRUE.toString())
+                .build(),
+            new EnvVarBuilder()
+                .withName("CLUSTER_CONTROLLER_LOG_LEVEL")
+                .withValue(System.getenv("OPERATOR_LOG_LEVEL"))
+                .build(),
+            new EnvVarBuilder()
+                .withName("CLUSTER_CONTROLLER_SHOW_STACK_TRACES")
+                .withValue(System.getenv("OPERATOR_SHOW_STACK_TRACES"))
+                .build(),
+            new EnvVarBuilder()
+                .withName("APP_OPTS")
+                .withValue(System.getenv("APP_OPTS"))
+                .build(),
+            new EnvVarBuilder()
+                .withName("DEBUG_CLUSTER_CONTROLLER")
+                .withValue(System.getenv("DEBUG_OPERATOR"))
+                .build(),
+            new EnvVarBuilder()
+                .withName("DEBUG_CLUSTER_CONTROLLER_SUSPEND")
+                .withValue(System.getenv("DEBUG_OPERATOR_SUSPEND"))
                 .build())
-            .build(),
-            new EnvVarBuilder()
-            .withName(ClusterControllerProperty.CLUSTER_CONTROLLER_EXTENSIONS_REPOSITORY_URLS
-                .getEnvironmentVariableName())
-            .withValue(OperatorProperty.EXTENSIONS_REPOSITORY_URLS
-                .getString())
-            .build(),
-            new EnvVarBuilder()
-            .withName(ClusterControllerProperty
-                .CLUSTER_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES
-                .getEnvironmentVariableName())
-            .withValue(Boolean.TRUE.toString())
-            .build(),
-            new EnvVarBuilder()
-            .withName("CLUSTER_CONTROLLER_LOG_LEVEL")
-            .withValue(System.getenv("OPERATOR_LOG_LEVEL"))
-            .build(),
-            new EnvVarBuilder()
-            .withName("CLUSTER_CONTROLLER_SHOW_STACK_TRACES")
-            .withValue(System.getenv("OPERATOR_SHOW_STACK_TRACES"))
-            .build(),
-            new EnvVarBuilder()
-            .withName("APP_OPTS")
-            .withValue(System.getenv("APP_OPTS"))
-            .build(),
-            new EnvVarBuilder()
-            .withName("DEBUG_CLUSTER_CONTROLLER")
-            .withValue(System.getenv("DEBUG_OPERATOR"))
-            .build(),
-            new EnvVarBuilder()
-            .withName("DEBUG_CLUSTER_CONTROLLER_SUSPEND")
-            .withValue(System.getenv("DEBUG_OPERATOR_SUSPEND"))
-            .build())
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(context))
-        .addAllToVolumeMounts(ClusterStatefulSetVolumeConfig.USER.volumeMounts(context))
+        .addAllToVolumeMounts(ClusterStatefulSetVolumeConfig.volumeMounts(context)
+            .collect(Collectors.toUnmodifiableList()))
         .build();
   }
 
@@ -129,8 +131,8 @@ public class ClusterController implements StackGresClusterSidecarResourceFactory
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.TEMPLATES_PATH.path()
-            + "/" + ClusterStatefulSetPath.LOCAL_BIN_RELOCATE_BINARIES_SH_PATH.filename())
-        .withEnv(clusterStatefulSetEnvironmentVariables.listResources(context))
+                + "/" + ClusterStatefulSetPath.LOCAL_BIN_RELOCATE_BINARIES_SH_PATH.filename())
+        .withEnv(clusterStatefulSetEnvironmentVariables.listResources(context.getCluster()))
         .withVolumeMounts(
             ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context),
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(context))
@@ -143,58 +145,58 @@ public class ClusterController implements StackGresClusterSidecarResourceFactory
         .withImage(StackGresController.CLUSTER_CONTROLLER.getImageName())
         .withImagePullPolicy("IfNotPresent")
         .withEnv(new EnvVarBuilder()
-            .withName("COMMAND")
-            .withValue("run-reconciliation-cycle")
-            .build(),
+                .withName("COMMAND")
+                .withValue("run-reconciliation-cycle")
+                .build(),
             new EnvVarBuilder()
-            .withName(ClusterControllerProperty.CLUSTER_NAME.getEnvironmentVariableName())
-            .withValue(context
-                .getCluster().getMetadata().getName())
-            .build(),
+                .withName(ClusterControllerProperty.CLUSTER_NAME.getEnvironmentVariableName())
+                .withValue(context
+                    .getCluster().getMetadata().getName())
+                .build(),
             new EnvVarBuilder()
-            .withName(ClusterControllerProperty.CLUSTER_NAMESPACE.getEnvironmentVariableName())
-            .withValue(context
-                .getCluster().getMetadata().getNamespace())
-            .build(),
+                .withName(ClusterControllerProperty.CLUSTER_NAMESPACE.getEnvironmentVariableName())
+                .withValue(context
+                    .getCluster().getMetadata().getNamespace())
+                .build(),
             new EnvVarBuilder()
-            .withName(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME
-                .getEnvironmentVariableName())
-            .withValueFrom(new EnvVarSourceBuilder()
-                .withFieldRef(new ObjectFieldSelector("v1", "metadata.name"))
+                .withName(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME
+                    .getEnvironmentVariableName())
+                .withValueFrom(new EnvVarSourceBuilder()
+                    .withFieldRef(new ObjectFieldSelector("v1", "metadata.name"))
+                    .build())
+                .build(),
+            new EnvVarBuilder()
+                .withName(ClusterControllerProperty.CLUSTER_CONTROLLER_EXTENSIONS_REPOSITORY_URLS
+                    .getEnvironmentVariableName())
+                .withValue(OperatorProperty.EXTENSIONS_REPOSITORY_URLS
+                    .getString())
+                .build(),
+            new EnvVarBuilder()
+                .withName(ClusterControllerProperty
+                    .CLUSTER_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES
+                    .getEnvironmentVariableName())
+                .withValue(Boolean.FALSE.toString())
+                .build(),
+            new EnvVarBuilder()
+                .withName("CLUSTER_CONTROLLER_LOG_LEVEL")
+                .withValue(System.getenv("OPERATOR_LOG_LEVEL"))
+                .build(),
+            new EnvVarBuilder()
+                .withName("CLUSTER_CONTROLLER_SHOW_STACK_TRACES")
+                .withValue(System.getenv("OPERATOR_SHOW_STACK_TRACES"))
+                .build(),
+            new EnvVarBuilder()
+                .withName("APP_OPTS")
+                .withValue(System.getenv("APP_OPTS"))
+                .build(),
+            new EnvVarBuilder()
+                .withName("DEBUG_CLUSTER_CONTROLLER")
+                .withValue(System.getenv("DEBUG_OPERATOR"))
+                .build(),
+            new EnvVarBuilder()
+                .withName("DEBUG_CLUSTER_CONTROLLER_SUSPEND")
+                .withValue(System.getenv("DEBUG_OPERATOR_SUSPEND"))
                 .build())
-            .build(),
-            new EnvVarBuilder()
-            .withName(ClusterControllerProperty.CLUSTER_CONTROLLER_EXTENSIONS_REPOSITORY_URLS
-                .getEnvironmentVariableName())
-            .withValue(OperatorProperty.EXTENSIONS_REPOSITORY_URLS
-                .getString())
-            .build(),
-            new EnvVarBuilder()
-            .withName(ClusterControllerProperty
-                .CLUSTER_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES
-                .getEnvironmentVariableName())
-            .withValue(Boolean.FALSE.toString())
-            .build(),
-            new EnvVarBuilder()
-            .withName("CLUSTER_CONTROLLER_LOG_LEVEL")
-            .withValue(System.getenv("OPERATOR_LOG_LEVEL"))
-            .build(),
-            new EnvVarBuilder()
-            .withName("CLUSTER_CONTROLLER_SHOW_STACK_TRACES")
-            .withValue(System.getenv("OPERATOR_SHOW_STACK_TRACES"))
-            .build(),
-            new EnvVarBuilder()
-            .withName("APP_OPTS")
-            .withValue(System.getenv("APP_OPTS"))
-            .build(),
-            new EnvVarBuilder()
-            .withName("DEBUG_CLUSTER_CONTROLLER")
-            .withValue(System.getenv("DEBUG_OPERATOR"))
-            .build(),
-            new EnvVarBuilder()
-            .withName("DEBUG_CLUSTER_CONTROLLER_SUSPEND")
-            .withValue(System.getenv("DEBUG_OPERATOR_SUSPEND"))
-            .build())
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(context))
         .build();
   }

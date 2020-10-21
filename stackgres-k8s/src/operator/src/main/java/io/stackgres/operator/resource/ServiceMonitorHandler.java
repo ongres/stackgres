@@ -19,6 +19,8 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.stackgres.common.LabelFactory;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.customresource.prometheus.Endpoint;
@@ -35,6 +37,8 @@ public class ServiceMonitorHandler
     extends AbstractPausableResourceHandler<StackGresClusterContext> {
 
   private LabelFactoryDelegator factoryDelegator;
+
+  private LabelFactory<StackGresCluster> labelFactory;
 
   @Override
   public boolean isHandlerForResource(HasMetadata resource) {
@@ -61,7 +65,7 @@ public class ServiceMonitorHandler
     return getServiceMonitorClient(client)
         .map(crClient -> crClient
             .inAnyNamespace()
-            .withLabels(factoryDelegator.pickFactory(context)
+            .withLabels(labelFactory
                 .clusterCrossNamespaceLabels(context.getCluster()))
             .list()
             .getItems()
@@ -178,7 +182,7 @@ public class ServiceMonitorHandler
   }
 
   @Inject
-  public void setFactoryDelegator(LabelFactoryDelegator factoryDelegator) {
-    this.factoryDelegator = factoryDelegator;
+  public void setLabelFactory(LabelFactory<StackGresCluster> labelFactory) {
+    this.labelFactory = labelFactory;
   }
 }

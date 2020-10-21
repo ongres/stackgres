@@ -16,43 +16,43 @@ import io.stackgres.common.resource.ResourceUtil;
 
 public interface LabelFactory<T extends CustomResource<?, ?>> {
 
-  Map<String, String> genericClusterLabels(StackGresCluster resource);
+  Map<String, String> genericClusterLabels(T resource);
 
-  Map<String, String> clusterLabels(StackGresCluster resource);
+  Map<String, String> clusterLabels(T resource);
 
-  Map<String, String> patroniClusterLabels(StackGresCluster resource);
+  Map<String, String> patroniClusterLabels(T resource);
 
-  Map<String, String> patroniPrimaryLabels(StackGresCluster resource);
+  Map<String, String> patroniPrimaryLabels(T resource);
 
-  Map<String, String> patroniReplicaLabels(StackGresCluster resource);
+  Map<String, String> patroniReplicaLabels(T resource);
 
-  Map<String, String> statefulSetPodLabels(StackGresCluster resource);
+  Map<String, String> statefulSetPodLabels(T resource);
 
-  Map<String, String> backupPodLabels(StackGresCluster resource);
+  Map<String, String> backupPodLabels(T resource);
 
-  Map<String, String> scheduledBackupPodLabels(StackGresCluster resource);
+  Map<String, String> scheduledBackupPodLabels(T resource);
 
-  Map<String, String> dbOpsPodLabels(StackGresCluster resource);
+  Map<String, String> dbOpsPodLabels(T resource);
 
   Map<String, String> anyPatroniClusterLabels();
 
-  Map<String, String> clusterCrossNamespaceLabels(StackGresCluster resource);
+  Map<String, String> clusterCrossNamespaceLabels(T resource);
 
   LabelMapper<T> getLabelMapper();
 
-  default String clusterName(StackGresCluster resource) {
+  default String clusterName(T resource) {
     return resource.getMetadata().getName();
   }
 
-  default String clusterNamespace(StackGresCluster resource) {
+  default String clusterNamespace(T resource) {
     return resource.getMetadata().getNamespace();
   }
 
-  default String clusterUid(StackGresCluster resource) {
+  default String clusterUid(T resource) {
     return resource.getMetadata().getUid();
   }
 
-  default String clusterScope(StackGresCluster resource) {
+  default String clusterScope(T resource) {
     return ResourceUtil.labelValue(clusterName(resource));
   }
 

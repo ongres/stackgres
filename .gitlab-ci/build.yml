@@ -3,6 +3,7 @@ build:
   stage: build
   tags:
     - stackgres-runner
+    - stackgres-maven-runner
   script:
     - 'microdnf install python3-pip jq'
     - 'pip3 install yamllint yq'

@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.cluster.factory;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Function;
@@ -15,11 +16,21 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.VolumeConfig;
 import io.stackgres.operator.common.VolumeConfig.VolumePathConfig;
-import io.stackgres.operator.patroni.factory.PatroniConfigMap;
+import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterStatefulSet;
+import io.stackgres.operator.conciliation.factory.cluster.backup.BackupConfigMap;
+import io.stackgres.operator.conciliation.factory.cluster.backup.BackupSecret;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.TemplatesConfigMap;
+import io.stackgres.operator.conciliation.factory.cluster.restore.RestoreConfigMap;
+import io.stackgres.operator.conciliation.factory.cluster.restore.RestoreSecret;
 import org.jooq.lambda.Seq;
 
 public enum ClusterStatefulSetVolumeConfig {
@@ -67,11 +78,17 @@ public enum ClusterStatefulSetVolumeConfig {
   RESTORE_ENV(VolumeConfig.configMap(
       "restore-env", ClusterStatefulSetPath.RESTORE_ENV_PATH,
       RestoreConfigMap::name,
-      context ->  context.getRestoreContext().isPresent())),
+      context -> Optional.ofNullable(context.getCluster().getSpec())
+          .map(StackGresClusterSpec::getInitData)
+          .map(StackGresClusterInitData::getRestore)
+          .map(StackGresClusterRestore::getFromBackup).isPresent())),
   RESTORE_SECRET(VolumeConfig.secret(
       "restore-secret", ClusterStatefulSetPath.RESTORE_SECRET_PATH,
       RestoreSecret::name,
-      context ->  context.getRestoreContext().isPresent())),
+      context -> Optional.ofNullable(context.getCluster().getSpec())
+          .map(StackGresClusterSpec::getInitData)
+          .map(StackGresClusterInitData::getRestore)
+          .map(StackGresClusterRestore::getFromBackup).isPresent())),
   TEMPLATES(VolumeConfig.configMap(
       "templates", ClusterStatefulSetPath.TEMPLATES_PATH,
       TemplatesConfigMap::name));
@@ -82,17 +99,41 @@ public enum ClusterStatefulSetVolumeConfig {
     this.volumeConfig = volumeConfig;
   }
 
+  public static Stream<VolumeMount> volumeMounts(io.stackgres.operator.common.StackGresClusterContext context,
+                                                 ClusterStatefulSetVolumeConfig... configs) {
+    return Seq.of(configs)
+        .map(ClusterStatefulSetVolumeConfig::config)
+        .flatMap(volumeConfig -> volumeConfig.volumeMounts(context).stream());
+  }
+
+  public static Stream<VolumeMount> volumeMounts(ClusterContext context) {
+    return volumeMounts(context, values());
+  }
+
+  public static Stream<VolumeMount> volumeMounts(ClusterContext context,
+                                                 ClusterStatefulSetVolumeConfig... configs) {
+    return Seq.of(configs)
+        .map(ClusterStatefulSetVolumeConfig::config)
+        .flatMap(volumeConfig -> volumeConfig.volumeMounts(context).stream());
+  }
+
+  public static Stream<Volume> volumes(ClusterContext context) {
+    return Seq.of(values())
+        .map(ClusterStatefulSetVolumeConfig::config)
+        .map(volumeConfig -> volumeConfig.volume(context))
+        .filter(Optional::isPresent)
+        .map(Optional::get);
+  }
+
   public VolumeConfig config() {
     return volumeConfig;
   }
 
   public Collection<VolumeMount> volumeMounts(StackGresClusterContext context) {
-    return volumeConfig.volumeMounts(context)
-        .stream()
-        .collect(Collectors.toList());
+    return new ArrayList<>(volumeConfig.volumeMounts(context));
   }
 
-  public VolumeMount volumeMount(StackGresClusterContext context) {
+  public VolumeMount volumeMount(ClusterContext context) {
     return volumeConfig.volumeMounts(context)
         .stream()
         .findFirst()
@@ -101,7 +142,7 @@ public enum ClusterStatefulSetVolumeConfig {
   }
 
   public VolumeMount volumeMount(StackGresClusterContext context,
-      Function<VolumeMountBuilder, VolumeMountBuilder> volumeMountOverride) {
+                                 Function<VolumeMountBuilder, VolumeMountBuilder> volumeMountOverride) {
     return volumeConfig.volumeMounts(context)
         .stream()
         .map(VolumeMountBuilder::new)
@@ -112,7 +153,7 @@ public enum ClusterStatefulSetVolumeConfig {
             "Volume mount " + volumeConfig.name() + " is not available for this context"));
   }
 
-  public VolumeMount volumeMount(ClusterStatefulSetPath path, StackGresClusterContext context) {
+  public VolumeMount volumeMount(ClusterStatefulSetPath path, ClusterContext context) {
     return volumeConfig.volumeMount(path, context)
         .orElseThrow(() -> new IllegalStateException(
             "Volume mount " + volumeConfig.name() + " with path " + path.path(context)
@@ -120,7 +161,7 @@ public enum ClusterStatefulSetVolumeConfig {
   }
 
   public VolumeMount volumeMount(ClusterStatefulSetPath path, StackGresClusterContext context,
-      Function<VolumeMountBuilder, VolumeMountBuilder> volumeMountOverride) {
+                                 Function<VolumeMountBuilder, VolumeMountBuilder> volumeMountOverride) {
     return volumeConfig.volumeMount(path, context)
         .map(VolumeMountBuilder::new)
         .map(volumeMountOverride)

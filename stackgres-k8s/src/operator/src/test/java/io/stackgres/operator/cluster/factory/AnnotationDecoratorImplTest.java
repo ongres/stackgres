@@ -14,32 +14,22 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
-import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
-import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
-import io.fabric8.kubernetes.api.model.SecretBuilder;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
-import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
-import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
-import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobBuilder;
-import io.fabric8.kubernetes.api.model.batch.v1beta1.JobTemplateSpec;
-import io.fabric8.kubernetes.api.model.batch.v1beta1.JobTemplateSpecBuilder;
+import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
+import io.fabric8.kubernetes.api.model.batch.v1.JobTemplateSpec;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.conciliation.factory.cluster.AnnotationDecoratorImpl;
 import org.jooq.lambda.tuple.Tuple2;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,81 +46,10 @@ class AnnotationDecoratorImplTest {
   void setUp() {
     defaultCluster = JsonUtil
         .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
-    resources = Stream.of(
-        new SecretBuilder()
-            .withData(ImmutableMap.of(StringUtil.generateRandom(), StringUtil.generateRandom()))
-            .withNewMetadata()
-            .withName("testSecret")
-            .endMetadata().build(),
-        new ConfigMapBuilder()
-            .withData(ImmutableMap.of(StringUtil.generateRandom(), StringUtil.generateRandom()))
-            .withNewMetadata().withName("testConfigMap")
-            .endMetadata()
-            .build(),
-        new StatefulSetBuilder()
-            .withNewMetadata().withNamespace("test").withName("testStatefulSet").endMetadata()
-            .withNewSpec()
-            .withTemplate(
-                new PodTemplateSpecBuilder()
-                    .withNewSpec()
-                    .addNewContainer().withImage("randomimage")
-                    .endContainer()
-                    .endSpec()
-                    .build())
-            .withVolumeClaimTemplates(
-                new PersistentVolumeClaimBuilder()
-                    .withNewMetadata()
-                    .withName("testVolumeClaim")
-                    .endMetadata()
-                    .withNewSpec()
-                    .withAccessModes("ReadWriteOnce")
-                    .endSpec()
-                    .build())
-            .endSpec().build(),
-        new ServiceBuilder()
-            .withNewMetadata()
-            .withName("primary-" + PatroniUtil.READ_WRITE_SERVICE)
-            .endMetadata()
-            .build(),
-        new ServiceBuilder()
-            .withNewMetadata()
-            .withName("replicas-" + PatroniUtil.READ_ONLY_SERVICE)
-            .endMetadata()
-            .build(),
-        new PodBuilder()
-            .withNewMetadata().withName("testpod")
-            .endMetadata().build(),
-        new CronJobBuilder()
-            .withNewMetadata().withName("testcronjob")
-            .endMetadata()
-            .withNewSpec()
-            .withJobTemplate(new JobTemplateSpecBuilder()
-                .withNewSpec()
-                .withNewTemplate()
-                .withNewSpec()
-                .addNewContainer()
-                .withImage("randomimage")
-                .endContainer()
-                .endSpec()
-                .endTemplate()
-                .endSpec()
-                .build())
-            .endSpec()
-            .build(),
-        new JobBuilder()
-            .withNewMetadata()
-            .withName("testjob")
-            .endMetadata()
-            .withNewSpec()
-            .withNewTemplateLike(new PodTemplateSpecBuilder()
-                .withNewSpec().addNewContainer()
-                .withImage("randomimage")
-                .endContainer().endSpec()
-                .build())
-            .endTemplate()
-            .endSpec()
-            .build()
-    ).collect(Collectors.toList());
+
+    final ObjectMeta metadata = defaultCluster.getMetadata();
+    resources = KubernetessMockResourceGenerationUtil
+        .buildResources(metadata.getName(), metadata.getNamespace());
   }
 
   @Test
@@ -385,16 +304,14 @@ class AnnotationDecoratorImplTest {
 
     annotationDecorator.decorate(defaultCluster, ImmutableList.of(
         new StatefulSetBuilder()
-        .withNewMetadata().withNamespace("test").withNewName("testStatefulSet").endMetadata()
+        .withNewMetadata().withNamespace("test").withName("testStatefulSet").endMetadata()
         .build()), resources);
 
     resources.stream()
         .filter(r -> r.getKind().equals("StatefulSet"))
         .forEach(resource -> {
           StatefulSet statefulSet = (StatefulSet) resource;
-          statefulSet.getSpec().getVolumeClaimTemplates().forEach(template -> {
-            checkResourceAnnotations(template);
-          });
+          statefulSet.getSpec().getVolumeClaimTemplates().forEach(this::checkResourceAnnotations);
         });
   }
 

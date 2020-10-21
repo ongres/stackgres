@@ -35,7 +35,7 @@ public class ClusterDtoFinder implements CustomResourceFinder<ClusterDto> {
   }
 
   private List<Pod> getClusterPods(StackGresCluster cluster) {
-    return podFinder.findResourcesInNamespaceWithLabels(
+    return podFinder.findByLabelsAndNamespace(
         cluster.getMetadata().getNamespace(),
         labelFactory.patroniClusterLabels(cluster));
   }

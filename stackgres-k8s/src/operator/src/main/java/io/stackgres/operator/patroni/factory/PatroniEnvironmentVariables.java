@@ -25,22 +25,20 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestorePitr;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.sidecars.envoy.Envoy;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
 public class PatroniEnvironmentVariables
-    implements SubResourceStreamFactory<EnvVar, StackGresClusterContext> {
+    implements SubResourceStreamFactory<EnvVar, StackGresCluster> {
 
   @Override
-  public Stream<EnvVar> streamResources(StackGresClusterContext context) {
-
+  public Stream<EnvVar> streamResources(StackGresCluster context) {
     return Seq.of(
         new EnvVarBuilder()
             .withName("PATRONI_RESTAPI_LISTEN")
-            .withValue("0.0.0.0:" + getPatroniListenPort(context))
+            .withValue("0.0.0.0:" + EnvoyUtil.PATRONI_ENTRY_PORT)
             .build(),
         new EnvVarBuilder()
             .withName("PATRONI_RESTAPI_CONNECT_ADDRESS")
@@ -55,7 +53,7 @@ public class PatroniEnvironmentVariables
             .withValueFrom(new EnvVarSourceBuilder()
                 .withSecretKeyRef(
                     new SecretKeySelectorBuilder()
-                        .withName(context.getCluster().getMetadata().getName())
+                        .withName(context.getMetadata().getName())
                         .withKey("restapi-password")
                         .build())
                 .build())
@@ -88,7 +86,7 @@ public class PatroniEnvironmentVariables
             .withValueFrom(new EnvVarSourceBuilder()
                 .withSecretKeyRef(
                     new SecretKeySelectorBuilder()
-                        .withName(context.getCluster().getMetadata().getName())
+                        .withName(context.getMetadata().getName())
                         .withKey("superuser-password")
                         .build())
                 .build())
@@ -97,7 +95,7 @@ public class PatroniEnvironmentVariables
             .withValueFrom(new EnvVarSourceBuilder()
                 .withSecretKeyRef(
                     new SecretKeySelectorBuilder()
-                        .withName(context.getCluster().getMetadata().getName())
+                        .withName(context.getMetadata().getName())
                         .withKey("replication-password")
                         .build())
                 .build())
@@ -106,7 +104,7 @@ public class PatroniEnvironmentVariables
             .withValueFrom(new EnvVarSourceBuilder()
                 .withSecretKeyRef(
                     new SecretKeySelectorBuilder()
-                        .withName(context.getCluster().getMetadata().getName())
+                        .withName(context.getMetadata().getName())
                         .withKey("authenticator-password")
                         .build())
                 .build())
@@ -114,7 +112,7 @@ public class PatroniEnvironmentVariables
         new EnvVarBuilder().withName("PATRONI_authenticator_OPTIONS")
             .withValue("superuser")
             .build())
-        .append(Seq.of(Optional.ofNullable(context.getCluster().getSpec())
+        .append(Seq.of(Optional.ofNullable(context.getSpec())
             .map(StackGresClusterSpec::getInitData)
             .map(StackGresClusterInitData::getRestore)
             .map(StackGresClusterRestore::getFromBackup)
@@ -131,15 +129,6 @@ public class PatroniEnvironmentVariables
                 .build()))
             .filter(Optional::isPresent)
             .map(Optional::get));
-  }
-
-  private int getPatroniListenPort(StackGresClusterContext context) {
-    return context.getSidecars().stream()
-        .filter(entry -> entry.getSidecar() instanceof Envoy)
-        .map(entry -> EnvoyUtil.PATRONI_PORT)
-        .findFirst()
-        .orElse(EnvoyUtil.PATRONI_ENTRY_PORT);
-
   }
 
 }

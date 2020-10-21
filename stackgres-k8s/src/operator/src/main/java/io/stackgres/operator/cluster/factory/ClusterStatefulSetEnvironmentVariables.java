@@ -12,19 +12,19 @@ import javax.enterprise.context.ApplicationScoped;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.stackgres.common.ClusterStatefulSetEnvVars;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
 public class ClusterStatefulSetEnvironmentVariables
-    implements SubResourceStreamFactory<EnvVar, StackGresClusterContext> {
+    implements SubResourceStreamFactory<EnvVar, StackGresCluster> {
 
-  public Stream<EnvVar> streamResources(StackGresClusterContext context) {
-    return Seq.of(ClusterStatefulSetEnvVars.values())
-        .map(clusterStatefulSetPath -> clusterStatefulSetPath.envVar(context))
-        .append(Seq.of(ClusterStatefulSetPath.values())
-            .map(clusterStatefulSetPath -> clusterStatefulSetPath.envVar(context)));
+  public Stream<EnvVar> streamResources(StackGresCluster context) {
+    return Seq.of(ClusterStatefulSetPath.values())
+        .map(ClusterStatefulSetPath::envVar)
+        .append(Seq.of(ClusterStatefulSetEnvVars.values())
+        .map(clusterStatefulSetPath -> clusterStatefulSetPath.envVar(context)));
   }
 
 }

@@ -8,39 +8,45 @@ package io.stackgres.distributedlogs.controller;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.WatcherException;
-import io.stackgres.common.KubernetesClientFactory;
+import io.stackgres.common.DistributedLogsControllerProperty;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.event.EventEmitter;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.distributedlogs.common.DistributedLogsControllerEventReason;
 import io.stackgres.operatorframework.resource.AbstractResourceWatcherFactory;
 
 @ApplicationScoped
 public class ResourceWatcherFactory extends AbstractResourceWatcherFactory {
 
-  private final KubernetesClientFactory clientFactory;
-  private final EventController eventController;
+  private final EventEmitter<StackGresDistributedLogs> eventEmitter;
+  private final CustomResourceFinder<StackGresDistributedLogs> distributedLogsFinder;
 
   /**
    * Create a {@code DistributedLogsWatcherFactory} instance.
    */
   @Inject
   public ResourceWatcherFactory(
-      KubernetesClientFactory clientFactory,
-      EventController eventController) {
+      EventEmitter<StackGresDistributedLogs> eventEmitter,
+      CustomResourceFinder<StackGresDistributedLogs> distributedLogsFinder) {
     super();
-    this.clientFactory = clientFactory;
-    this.eventController = eventController;
+    this.eventEmitter = eventEmitter;
+    this.distributedLogsFinder = distributedLogsFinder;
   }
 
   @Override
   public void onError(WatcherException cause) {
-    try (KubernetesClient client = clientFactory.create()) {
-      eventController.sendEvent(
-          DistributedLogsControllerEventReason.DISTRIBUTEDLOGS_CONTROLLER_ERROR,
-          "Watcher was closed unexpectedly: " + (cause.getMessage() != null
-              ? cause.getMessage()
-              : "unknown reason"), client);
-    }
+
+    StackGresDistributedLogs distributedLogs = distributedLogsFinder
+        .findByNameAndNamespace(
+            DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAME.getString(),
+            DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAMESPACE.getString())
+        .orElse(null);
+
+    eventEmitter.sendEvent(DistributedLogsControllerEventReason.DISTRIBUTEDLOGS_CONTROLLER_ERROR,
+        "Watcher was closed unexpectedly: " + (cause.getMessage() != null
+            ? cause.getMessage()
+            : "unknown reason"), distributedLogs);
   }
 
   @Override

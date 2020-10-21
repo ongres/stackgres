@@ -399,7 +399,7 @@ class ClusterResourceTest
     when(configMapFinder.findByNameAndNamespace(anyString(), anyString()))
         .thenReturn(Optional.of(configMap));
     when(podFinder.findResourcesWithLabels(any())).thenReturn(podList.getItems());
-    when(podFinder.findResourcesInNamespaceWithLabels(anyString(), any()))
+    when(podFinder.findByLabelsAndNamespace(anyString(), any()))
         .thenReturn(podList.getItems());
     when(persistentVolumeClaimFinder.findByNameAndNamespace(anyString(), anyString()))
         .thenReturn(Optional.of(new PersistentVolumeClaimBuilder()

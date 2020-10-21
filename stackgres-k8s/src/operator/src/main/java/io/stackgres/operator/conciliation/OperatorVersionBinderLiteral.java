@@ -1,0 +1,25 @@
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+package io.stackgres.operator.conciliation;
+
+import javax.enterprise.util.AnnotationLiteral;
+
+import io.stackgres.operator.conciliation.cluster.StackGresVersion;
+
+public class OperatorVersionBinderLiteral extends AnnotationLiteral<OperatorVersionBinder>
+    implements OperatorVersionBinder {
+
+  @Override
+  public StackGresVersion startAt() {
+    return StackGresVersion.V09;
+  }
+
+  @Override
+  public StackGresVersion stopAt() {
+    return StackGresVersion.V10;
+  }
+
+}

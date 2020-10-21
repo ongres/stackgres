@@ -1,0 +1,77 @@
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+package io.stackgres.operator.conciliation.cluster;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import io.stackgres.common.ClusterContext;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.operator.common.Prometheus;
+import io.stackgres.operator.conciliation.GenerationContext;
+import io.stackgres.operator.patroni.factory.PatroniScriptsConfigMap;
+import org.immutables.value.Value;
+import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple4;
+
+@Value.Immutable
+public interface StackGresClusterContext extends GenerationContext<StackGresCluster>, ClusterContext {
+
+  @Override
+  default StackGresCluster getCluster() {
+    return getSource();
+  }
+
+  Optional<StackGresBackupConfig> getBackupConfig();
+
+  StackGresPostgresConfig getPostgresConfig();
+
+  StackGresProfile getStackGresProfile();
+
+  Optional<StackGresPoolingConfig> getPoolingConfig();
+
+  Optional<StackGresBackup> getRestoreBackup();
+
+  List<StackGresBackup> getBackups();
+
+  Map<String, String> getPatroniClusterLabels();
+
+  String getClusterScope();
+
+  Seq<StackGresClusterScriptEntry> getInternalScripts();
+
+  Optional<Prometheus> getPrometheus();
+
+  List<StackGresDbOps> getDbOps();
+
+  @Value.Derived
+  default List<Tuple4<StackGresClusterScriptEntry, Long, String, Long>> getIndexedScripts() {
+    return getInternalScripts()
+        .zipWithIndex()
+        .map(t -> t.concat(PatroniScriptsConfigMap.INTERNAL_SCRIPT))
+        .append(Seq.of(Optional.ofNullable(
+            getSource().getSpec().getInitData())
+            .map(StackGresClusterInitData::getScripts))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .flatMap(List::stream)
+            .zipWithIndex()
+            .map(t -> t.concat(PatroniScriptsConfigMap.SCRIPT)))
+        .zipWithIndex()
+        .map(t -> t.v1.concat(t.v2))
+        .toList();
+  }
+
+}

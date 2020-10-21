@@ -13,7 +13,7 @@ import javax.inject.Singleton;
 
 import io.stackgres.common.ErrorType;
 import io.stackgres.operator.common.PgConfigReview;
-import io.stackgres.operator.patroni.factory.parameters.Blocklist;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.Blocklist;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;

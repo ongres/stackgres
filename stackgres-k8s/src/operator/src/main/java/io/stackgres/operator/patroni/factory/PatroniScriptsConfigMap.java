@@ -22,8 +22,7 @@ import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.tuple.Tuple4;
 
-@ApplicationScoped
-public class PatroniScriptsConfigMap implements StackGresClusterResourceStreamFactory {
+public class PatroniScriptsConfigMap {
 
   public static final String INTERNAL_SCRIPT = "INTERNAL_SCRIPT";
   public static final String SCRIPT = "SCRIPT";
@@ -32,12 +31,17 @@ public class PatroniScriptsConfigMap implements StackGresClusterResourceStreamFa
   public static final String SCRIPT_NAME = "%05d-%s";
   public static final String SCRIPT_NAME_FOR_DATABASE = "%05d-%s.%s";
 
-  private LabelFactoryDelegator factoryDelegator;
-
   public static String name(StackGresClusterContext clusterContext,
                             Tuple4<StackGresClusterScriptEntry, Long, String, Long> indexedScript) {
     return ResourceUtil.cutVolumeName(
         ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName()
+            + "-" + normalizedResourceName(indexedScript)));
+  }
+
+  public static String name(io.stackgres.operator.conciliation.cluster.StackGresClusterContext clusterContext,
+                            Tuple4<StackGresClusterScriptEntry, Long, String, Long> indexedScript) {
+    return ResourceUtil.cutVolumeName(
+        ResourceUtil.resourceName(clusterContext.getSource().getMetadata().getName()
             + "-" + normalizedResourceName(indexedScript)));
   }
 
@@ -81,27 +85,5 @@ public class PatroniScriptsConfigMap implements StackGresClusterResourceStreamFa
     return database.replaceAll("\\\\", "\\\\\\\\").replaceAll("/", "\\\\h");
   }
 
-  @Override
-  public Stream<HasMetadata> streamResources(StackGresClusterContext context) {
-    final StackGresCluster cluster = context.getCluster();
-    return context.getIndexedScripts()
-        .filter(t -> t.v1.getScript() != null)
-        .map(t -> {
-          final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(context);
-          return new ConfigMapBuilder()
-              .withNewMetadata()
-              .withNamespace(cluster.getMetadata().getNamespace())
-              .withName(name(context, t))
-              .withLabels(labelFactory.patroniClusterLabels(cluster))
-              .withOwnerReferences(context.getOwnerReferences())
-              .endMetadata()
-              .withData(ImmutableMap.of(scriptName(t), t.v1.getScript()))
-              .build();
-        });
-  }
 
-  @Inject
-  public void setFactoryDelegator(LabelFactoryDelegator factoryDelegator) {
-    this.factoryDelegator = factoryDelegator;
-  }
 }

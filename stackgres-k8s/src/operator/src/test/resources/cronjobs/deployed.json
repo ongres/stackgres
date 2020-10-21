@@ -1,0 +1,251 @@
+{
+  "apiVersion" : "batch/v1beta1",
+  "kind" : "CronJob",
+  "metadata" : {
+    "labels" : {
+      "app" : "StackGresCluster",
+      "cluster-name" : "restore-backup",
+      "cluster-uid" : "0bec5d95-e1ba-41ba-98a0-52f3c1abb303",
+      "scheduled-backup" : "true"
+    },
+    "name" : "restore-backup-backup",
+    "namespace" : "restore-5fc6329d-backup",
+    "ownerReferences" : [ {
+      "apiVersion" : "stackgres.io/v1beta1",
+      "kind" : "SGCluster",
+      "controller" : true,
+      "name" : "restore-backup",
+      "uid" : "0bec5d95-e1ba-41ba-98a0-52f3c1abb303"
+    } ]
+  },
+  "spec" : {
+    "concurrencyPolicy" : "Allow",
+    "failedJobsHistoryLimit" : 10,
+    "jobTemplate" : {
+      "metadata" : {
+        "labels" : {
+          "app" : "StackGresCluster",
+          "cluster-name" : "restore-backup",
+          "cluster-uid" : "0bec5d95-e1ba-41ba-98a0-52f3c1abb303",
+          "scheduled-backup" : "true"
+        },
+        "name" : "restore-backup-backup",
+        "namespace" : "restore-5fc6329d-backup"
+      },
+      "spec" : {
+        "backoffLimit" : 3,
+        "completions" : 1,
+        "parallelism" : 1,
+        "template" : {
+          "metadata" : {
+            "labels" : {
+              "app" : "StackGresCluster",
+              "cluster-name" : "restore-backup",
+              "cluster-uid" : "0bec5d95-e1ba-41ba-98a0-52f3c1abb303",
+              "scheduled-backup" : "true"
+            },
+            "name" : "restore-backup-backup",
+            "namespace" : "restore-5fc6329d-backup"
+          },
+          "spec" : {
+            "containers" : [ {
+              "command" : [ "/bin/bash", "-ex", "/usr/local/bin/create-backup.sh" ],
+              "env" : [ {
+                "name" : "ETC_PASSWD_PATH",
+                "value" : "/etc/passwd"
+              }, {
+                "name" : "ETC_GROUP_PATH",
+                "value" : "/etc/group"
+              }, {
+                "name" : "ETC_SHADOW_PATH",
+                "value" : "/etc/shadow"
+              }, {
+                "name" : "ETC_GSHADOW_PATH",
+                "value" : "/etc/gshadow"
+              }, {
+                "name" : "LOCAL_BIN_PATH",
+                "value" : "/usr/local/bin"
+              }, {
+                "name" : "LOCAL_BIN_START_PATRONI_SH_PATH",
+                "value" : "/usr/local/bin/start-patroni.sh"
+              }, {
+                "name" : "LOCAL_BIN_START_PATRONI_WITH_RESTORE_SH_PATH",
+                "value" : "/usr/local/bin/start-patroni-with-restore.sh"
+              }, {
+                "name" : "LOCAL_BIN_POST_INIT_SH_PATH",
+                "value" : "/usr/local/bin/post-init.sh"
+              }, {
+                "name" : "LOCAL_BIN_EXEC_WITH_ENV_PATH",
+                "value" : "/usr/local/bin/exec-with-env"
+              }, {
+                "name" : "LOCAL_BIN_CREATE_BACKUP_SH_PATH",
+                "value" : "/usr/local/bin/create-backup.sh"
+              }, {
+                "name" : "PG_BASE_PATH",
+                "value" : "/var/lib/postgresql"
+              }, {
+                "name" : "PG_DATA_PATH",
+                "value" : "/var/lib/postgresql/data"
+              }, {
+                "name" : "PG_RUN_PATH",
+                "value" : "/var/run/postgresql"
+              }, {
+                "name" : "PG_LOG_PATH",
+                "value" : "/var/log/postgresql"
+              }, {
+                "name" : "BASE_ENV_PATH",
+                "value" : "/etc/env"
+              }, {
+                "name" : "BASE_SECRET_PATH",
+                "value" : "/etc/env/.secret"
+              }, {
+                "name" : "PATRONI_ENV_PATH",
+                "value" : "/etc/env/patroni"
+              }, {
+                "name" : "PATRONI_CONFIG_PATH",
+                "value" : "/etc/patroni"
+              }, {
+                "name" : "BACKUP_ENV_PATH",
+                "value" : "/etc/env/backup"
+              }, {
+                "name" : "BACKUP_SECRET_PATH",
+                "value" : "/etc/env/.secret/backup"
+              }, {
+                "name" : "RESTORE_ENV_PATH",
+                "value" : "/etc/env/restore"
+              }, {
+                "name" : "RESTORE_SECRET_PATH",
+                "value" : "/etc/env/.secret/restore"
+              }, {
+                "name" : "TEMPLATES_PATH",
+                "value" : "/templates"
+              }, {
+                "name" : "PATRONI_ENV",
+                "value" : "patroni"
+              }, {
+                "name" : "BACKUP_ENV",
+                "value" : "backup"
+              }, {
+                "name" : "RESTORE_ENV",
+                "value" : "restore"
+              }, {
+                "name" : "POSTGRES_ENTRY_PORT",
+                "value" : "7432"
+              }, {
+                "name" : "POSTGRES_REPL_ENTRY_PORT",
+                "value" : "7433"
+              }, {
+                "name" : "POSTGRES_POOL_PORT",
+                "value" : "6432"
+              }, {
+                "name" : "POSTGRES_PORT",
+                "value" : "5432"
+              }, {
+                "name" : "CLUSTER_NAMESPACE",
+                "value" : "restore-5fc6329d-backup"
+              }, {
+                "name" : "CLUSTER_NAME",
+                "value" : "restore-backup"
+              }, {
+                "name" : "CRONJOB_NAME",
+                "value" : "restore-backup-backup"
+              }, {
+                "name" : "BACKUP_CONFIG_CRD_NAME",
+                "value" : "sgbackupconfigs.stackgres.io"
+              }, {
+                "name" : "BACKUP_CONFIG",
+                "value" : "backupconf"
+              }, {
+                "name" : "BACKUP_CRD_KIND",
+                "value" : "SGBackup"
+              }, {
+                "name" : "BACKUP_CRD_NAME",
+                "value" : "sgbackups.stackgres.io"
+              }, {
+                "name" : "BACKUP_CRD_APIVERSION",
+                "value" : "stackgres.io/v1beta1"
+              }, {
+                "name" : "BACKUP_PHASE_RUNNING",
+                "value" : "Running"
+              }, {
+                "name" : "BACKUP_PHASE_COMPLETED",
+                "value" : "Completed"
+              }, {
+                "name" : "BACKUP_PHASE_FAILED",
+                "value" : "Failed"
+              }, {
+                "name" : "PATRONI_ROLE_KEY",
+                "value" : "role"
+              }, {
+                "name" : "PATRONI_PRIMARY_ROLE",
+                "value" : "master"
+              }, {
+                "name" : "PATRONI_REPLICA_ROLE",
+                "value" : "replica"
+              }, {
+                "name" : "SCHEDULED_BACKUP_KEY",
+                "value" : "scheduled-backup"
+              }, {
+                "name" : "RIGHT_VALUE",
+                "value" : "true"
+              }, {
+                "name" : "PATRONI_CLUSTER_LABELS",
+                "value" : "app=StackGresCluster,cluster-uid=0bec5d95-e1ba-41ba-98a0-52f3c1abb303,cluster-name=restore-backup,cluster=true"
+              }, {
+                "name" : "POD_NAME",
+                "valueFrom" : {
+                  "fieldRef" : {
+                    "apiVersion" : "v1",
+                    "fieldPath" : "metadata.name"
+                  }
+                }
+              }, {
+                "name" : "RETAIN",
+                "value" : "5"
+              }, {
+                "name" : "WINDOW",
+                "value" : "3600"
+              } ],
+              "image" : "bitnami/kubectl:1.19.2",
+              "imagePullPolicy" : "IfNotPresent",
+              "name" : "create-backup",
+              "resources" : { },
+              "terminationMessagePath" : "/dev/termination-log",
+              "terminationMessagePolicy" : "File",
+              "volumeMounts" : [ {
+                "mountPath" : "/usr/local/bin/create-backup.sh",
+                "name" : "templates",
+                "readOnly" : true,
+                "subPath" : "create-backup.sh"
+              } ]
+            } ],
+            "dnsPolicy" : "ClusterFirst",
+            "restartPolicy" : "OnFailure",
+            "schedulerName" : "default-scheduler",
+            "securityContext" : {
+              "fsGroup" : 999,
+              "runAsGroup" : 999,
+              "runAsNonRoot" : true,
+              "runAsUser" : 999
+            },
+            "serviceAccount" : "restore-backup-patroni",
+            "serviceAccountName" : "restore-backup-patroni",
+            "terminationGracePeriodSeconds" : 30,
+            "volumes" : [ {
+              "configMap" : {
+                "defaultMode" : 365,
+                "name" : "restore-backup-templates"
+              },
+              "name" : "templates"
+            } ]
+          }
+        }
+      }
+    },
+    "schedule" : "0 5 31 2 *",
+    "startingDeadlineSeconds" : 300,
+    "successfulJobsHistoryLimit" : 3,
+    "suspend" : false
+  },
+  "status" : { }
+}

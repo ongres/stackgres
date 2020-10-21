@@ -24,18 +24,18 @@ public abstract class AbstractResourceWriter
   }
 
   @Override
-  public void create(T resource) {
+  public T create(T resource) {
     try (KubernetesClient client = clientFactory.create()) {
-      getResourceEndpoints(client)
+      return getResourceEndpoints(client)
           .inNamespace(resource.getMetadata().getNamespace())
           .create(resource);
     }
   }
 
   @Override
-  public void update(T resource) {
+  public T update(T resource) {
     try (KubernetesClient client = clientFactory.create()) {
-      getResourceEndpoints(client)
+      return getResourceEndpoints(client)
           .inNamespace(resource.getMetadata().getNamespace())
           .withName(resource.getMetadata().getName())
           .patch(resource);

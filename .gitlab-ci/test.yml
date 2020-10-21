@@ -21,6 +21,7 @@ shell unit tests:
   stage: test
   tags:
     - stackgres-runner
+    - stackgres-maven-runner
   script:
     - |
       set +e
