@@ -60,13 +60,13 @@ cluster:
 
 ## Monitoring
 
-As early indicated in [Component of the Stack](/01-introduction/04-components-of-the-stack/#monitoring) currently StackGres integrates only with prometheus. 
+As early indicated in [Component of the Stack](/01-introduction/04-components-of-the-stack/#monitoring), StackGres at the moment supports Prometheus integration only. 
 
-## Grafana integration Pre-requisites
+## Grafana Integration and Pre-requisites
 
-### Automatic integration
+### Integrating Pre-existing Grafanas
 
-If you already have a grafana installation in your system you can embed it automatically in the
+If you already have a Grafana installation in your system you can embed it automatically in the
  StackGres UI by setting the property `grafana.autoEmbed=true`:
 
 ```
@@ -74,27 +74,25 @@ helm install --namespace prometheus prometheus-operator stable/prometheus-operat
   --set grafana.autoEmbed=true
 ```
 
-This method requires the installation process to be able to access grafana API as grafana
- administrator by username and password (see [installation via helm]({{% relref "/03-production-installation/02-installation-via-helm" %}})
- for more options related to automatic embedding of grafana).
+This method requires the installation process to be able to authenticate using administrative username and password to the Grafana's API (see [installation via helm]({{% relref "/03-production-installation/02-installation-via-helm" %}}) for more options related to automatic embedding of Grafana).
 
 ### Manual integration
 
 Some manual steps are required in order to achieve such integration.
 
-1. Create grafana dashboard for postgres exporter and copy/paste share URL:
+1. Create Grafana dashboard for Postgres exporter and copy/paste share URL:
 
     **Using the UI:** Click on Grafana > Create > Import > Grafana.com Dashboard 9628
 
     Check [the dashboard](https://grafana.com/grafana/dashboards/9628) for more details.
 
-2. Copy/paste grafana dashboard URL for postgres exporter:
+2. Copy/paste Grafana's dashboard URL for the Postgres exporter:
 
     **Using the UI:** Click on Grafana > Dashboard > Manage > Select Postgres exporter dashboard > Copy URL
 
     Or using the value returned by the next [script]().
 
-3. Create and copy/paste grafana API token:
+3. Create and copy/paste Grafana API token:
 
     **Using the UI:** Grafana > Configuration > API Keys > Add API key (for viewer) > Copy key value
 
