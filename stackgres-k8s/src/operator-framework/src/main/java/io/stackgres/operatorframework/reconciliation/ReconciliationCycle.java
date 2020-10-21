@@ -93,7 +93,7 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
     stopped.complete(null);
   }
 
-  private void reconciliationCycle() {
+  void reconciliationCycle() {
     final int cycleId = reconciliationCount.incrementAndGet();
     String cycleName = cycleId + "| " + name + " reconciliation cycle";
 

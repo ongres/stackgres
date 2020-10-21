@@ -6,6 +6,8 @@
 package io.stackgres.distributedlogs.controller;
 
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
@@ -24,6 +26,7 @@ import io.stackgres.distributedlogs.common.DistributedLogsEventReason;
 import io.stackgres.distributedlogs.common.DistributedLogsProperty;
 import io.stackgres.distributedlogs.common.ImmutableStackGresDistributedLogsContext;
 import io.stackgres.distributedlogs.common.StackGresDistributedLogsContext;
+import io.stackgres.distributedlogs.configuration.DistributedLogsPropertyContext;
 import io.stackgres.distributedlogs.resource.DistributedLogsResourceHandlerSelector;
 import io.stackgres.operatorframework.reconciliation.ReconciliationCycle;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
@@ -35,6 +38,7 @@ public class DistributedLogsReconciliationCycle
     extends ReconciliationCycle<StackGresDistributedLogsContext,
       StackGresDistributedLogs, DistributedLogsResourceHandlerSelector> {
 
+  private final DistributedLogsPropertyContext propertyContext;
   private final EventController eventController;
   private final LabelFactory<StackGresDistributedLogs> labelFactory;
   private final CustomResourceFinder<StackGresDistributedLogs> distributedLogsFinder;
@@ -44,6 +48,7 @@ public class DistributedLogsReconciliationCycle
     @Inject KubernetesClientFactory clientFactory;
     @Inject DistributedLogsReconciliator reconciliator;
     @Inject DistributedLogsResourceHandlerSelector handlerSelector;
+    @Inject DistributedLogsPropertyContext propertyContext;
     @Inject EventController eventController;
     @Inject LabelFactory<StackGresDistributedLogs> labelFactory;
     @Inject CustomResourceFinder<StackGresDistributedLogs> distributedLogsFinder;
@@ -58,6 +63,7 @@ public class DistributedLogsReconciliationCycle
         parameters.reconciliator,
         StackGresDistributedLogsContext::getDistributedLogs,
         parameters.handlerSelector);
+    this.propertyContext = parameters.propertyContext;
     this.eventController = parameters.eventController;
     this.labelFactory = parameters.labelFactory;
     this.distributedLogsFinder = parameters.distributedLogsFinder;
@@ -66,9 +72,15 @@ public class DistributedLogsReconciliationCycle
   public DistributedLogsReconciliationCycle() {
     super(null, null, null, c -> null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    this.propertyContext = null;
     this.eventController = null;
     this.labelFactory = null;
     this.distributedLogsFinder = null;
+  }
+
+  public static DistributedLogsReconciliationCycle create(Consumer<Parameters> consumer) {
+    Stream<Parameters> parameters = Optional.of(new Parameters()).stream().peek(consumer);
+    return new DistributedLogsReconciliationCycle(parameters.findAny().get());
   }
 
   @Override
@@ -130,8 +142,8 @@ public class DistributedLogsReconciliationCycle
   @Override
   protected ImmutableList<StackGresDistributedLogsContext> getExistingContexts() {
     return distributedLogsFinder.findByNameAndNamespace(
-        DistributedLogsProperty.DISTRIBUTEDLOGS_NAME.getString(),
-        DistributedLogsProperty.DISTRIBUTEDLOGS_NAMESPACE.getString())
+        propertyContext.getString(DistributedLogsProperty.DISTRIBUTEDLOGS_NAME),
+        propertyContext.getString(DistributedLogsProperty.DISTRIBUTEDLOGS_NAMESPACE))
         .stream()
         .map(distributedLogs -> getDistributedLogsContext(distributedLogs))
         .collect(ImmutableList.toImmutableList());

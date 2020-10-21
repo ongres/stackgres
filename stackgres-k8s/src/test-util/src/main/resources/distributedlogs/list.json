@@ -31,7 +31,15 @@
                     "status": "False",
                     "type": "Failed"
                 }
-            ]
+            ],
+            "clusters": [{
+              "namespace": "stackgres",
+              "name": "stackgres",
+              "config": {
+                "sgDistributedLogs": "distributedlogs",
+                "retention": "1 minute"
+              }
+            }]
         }
     }
   ],
