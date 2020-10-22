@@ -75,7 +75,6 @@ import io.stackgres.operator.sidecars.fluentbit.FluentBit;
 import io.stackgres.operator.sidecars.pgexporter.PostgresExporter;
 import io.stackgres.operator.sidecars.pgutils.PostgresUtil;
 import io.stackgres.operator.sidecars.pooling.PgPooling;
-import io.stackgres.operatorframework.reconciliation.AbstractReconciliationCycle;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliator;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
 import org.jooq.lambda.Seq;
@@ -85,7 +84,7 @@ import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
 public class ClusterReconciliationCycle
-    extends AbstractReconciliationCycle<StackGresClusterContext, StackGresCluster,
+    extends StackGresReconciliationCycle<StackGresClusterContext, StackGresCluster,
       ClusterResourceHandlerSelector> {
 
   private final ClusterSidecarFinder sidecarFinder;
@@ -93,7 +92,6 @@ public class ClusterReconciliationCycle
   private final ClusterStatusManager statusManager;
   private final EventController eventController;
   private final OperatorPropertyContext operatorContext;
-  private final CustomResourceScanner<StackGresCluster> clusterScanner;
   private final CustomResourceFinder<StackGresProfile> profileFinder;
   private final CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
   private final CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
@@ -122,14 +120,13 @@ public class ClusterReconciliationCycle
       CustomResourceScanner<StackGresBackup> backupScanner, ResourceFinder<Secret> secretFinder,
       CustomResourceScanner<PrometheusConfig> prometheusScanner) {
     super("Cluster", kubClientFactory::create, StackGresClusterContext::getCluster,
-        handlerSelector, objectMapperProvider.objectMapper());
+        handlerSelector, objectMapperProvider.objectMapper(), clusterScanner);
     this.sidecarFinder = sidecarFinder;
     this.cluster = cluster;
     this.statusManager = statusManager;
     this.eventController = eventController;
     this.operatorContext = operatorContext;
     this.labelFactory = labelFactory;
-    this.clusterScanner = clusterScanner;
     this.profileFinder = profileFinder;
     this.postgresConfigFinder = postgresConfigFinder;
     this.backupConfigFinder = backupConfigFinder;
@@ -139,7 +136,7 @@ public class ClusterReconciliationCycle
   }
 
   public ClusterReconciliationCycle() {
-    super(null, null, c -> null, null, null);
+    super(null, null, c -> null, null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
     this.sidecarFinder = null;
     this.cluster = null;
@@ -147,7 +144,6 @@ public class ClusterReconciliationCycle
     this.eventController = null;
     this.operatorContext = null;
     this.labelFactory = null;
-    this.clusterScanner = null;
     this.profileFinder = null;
     this.postgresConfigFinder = null;
     this.backupConfigFinder = null;
@@ -219,11 +215,8 @@ public class ClusterReconciliationCycle
   }
 
   @Override
-  protected ImmutableList<StackGresClusterContext> getExistingConfigs() {
-    return clusterScanner.getResources()
-            .stream()
-            .map(cluster -> getClusterConfig(cluster))
-            .collect(ImmutableList.toImmutableList());
+  protected StackGresClusterContext mapResourceToContext(StackGresCluster resource) {
+    return this.getClusterConfig(resource);
   }
 
   private StackGresClusterContext getClusterConfig(StackGresCluster cluster) {

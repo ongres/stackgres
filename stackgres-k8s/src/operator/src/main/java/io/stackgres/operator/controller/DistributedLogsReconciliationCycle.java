@@ -42,7 +42,6 @@ import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.distributedlogs.factory.DistributedLogs;
 import io.stackgres.operator.distributedlogs.fluentd.Fluentd;
 import io.stackgres.operator.resource.DistributedLogsResourceHandlerSelector;
-import io.stackgres.operatorframework.reconciliation.AbstractReconciliationCycle;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliator;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -51,7 +50,7 @@ import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
 public class DistributedLogsReconciliationCycle
-    extends AbstractReconciliationCycle<StackGresDistributedLogsContext,
+    extends StackGresReconciliationCycle<StackGresDistributedLogsContext,
       StackGresDistributedLogs, DistributedLogsResourceHandlerSelector> {
 
   private final DistributedLogs distributeLogs;
@@ -60,7 +59,6 @@ public class DistributedLogsReconciliationCycle
   private final EventController eventController;
   private final OperatorPropertyContext operatorContext;
   private final LabelFactory<StackGresDistributedLogs> labelFactory;
-  private final CustomResourceScanner<StackGresDistributedLogs> distributedLogsScanner;
   private final CustomResourceScanner<StackGresCluster> clusterScanner;
 
   /**
@@ -79,19 +77,18 @@ public class DistributedLogsReconciliationCycle
       CustomResourceScanner<StackGresCluster> clusterScanner) {
     super("DistributeLogs", clientFactory::create,
         StackGresDistributedLogsContext::getDistributedLogs,
-        handlerSelector, objectMapperProvider.objectMapper());
+        handlerSelector, objectMapperProvider.objectMapper(), distributedLogsScanner);
     this.distributeLogs = distributeLogs;
     this.fluentd = fluentd;
     this.statusManager = statusManager;
     this.eventController = eventController;
     this.operatorContext = operatorContext;
     this.labelFactory = labelFactory;
-    this.distributedLogsScanner = distributedLogsScanner;
     this.clusterScanner = clusterScanner;
   }
 
   public DistributedLogsReconciliationCycle() {
-    super(null, null, c -> null, null, null);
+    super(null, null, c -> null, null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
     this.distributeLogs = null;
     this.fluentd = null;
@@ -99,7 +96,6 @@ public class DistributedLogsReconciliationCycle
     this.eventController = null;
     this.operatorContext = null;
     this.labelFactory = null;
-    this.distributedLogsScanner = null;
     this.clusterScanner = null;
   }
 
@@ -165,11 +161,9 @@ public class DistributedLogsReconciliationCycle
   }
 
   @Override
-  protected ImmutableList<StackGresDistributedLogsContext> getExistingConfigs() {
-    return distributedLogsScanner.getResources()
-        .stream()
-        .map(distributedLogs -> getDistributedLogsContext(distributedLogs))
-        .collect(ImmutableList.toImmutableList());
+  protected StackGresDistributedLogsContext mapResourceToContext(
+      StackGresDistributedLogs resource) {
+    return this.getDistributedLogsContext(resource);
   }
 
   private StackGresDistributedLogsContext getDistributedLogsContext(
