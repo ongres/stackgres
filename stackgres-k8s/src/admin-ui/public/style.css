@@ -99,6 +99,15 @@ h1, h2, h3, h4, h5, h6 {
     color: #fff;
 }
 
+.form button.textBtn, .darkmode .form button.textBtn {
+    padding: 0;
+    background: transparent;
+    color: var(--blue);
+    font-weight: bold;
+    border: 0;
+    margin: 0;
+}
+
 a {
     color: var(--blue);
     text-decoration: none;
@@ -2587,7 +2596,7 @@ fieldset {
 }
 
 .form .header input[type="checkbox"]:checked {
-    border: 2px solid var(--blue);
+    border: 1px solid var(--blue);
 }
 
 .form .header input[type="checkbox"]:checked:after {
@@ -2600,20 +2609,12 @@ fieldset {
     display: block;
     transform: rotate(45deg);
     position: relative;
-    top: -1px;
-    left: 3px;
+    top: 0px;
+    left: 4px;
 }
 
 .form .header input[type="checkbox"]:checked + span {
     color: var(--blue);
-}
-
-.form .header input[type="checkbox"]:checked, .form .header input[type="checkbox"]:checked + span {
-    cursor: not-allowed;
-}
-
-input#advancedMode:hover {
-    border: 1px solid var(--blue);
 }
 
 .form .alert, .darkmode .form .alert {
@@ -5128,4 +5129,46 @@ td.label .helpTooltip {
     -o-filter: blur(0);
     -ms-filter: blur(0);
     filter: blur(0);
+}
+
+/* Form Accordions */
+.accordion .fields {
+    display: none;
+}
+
+fieldset .header:not(.open) {
+    border: 0;
+}
+
+fieldset .header button {
+    float: right;
+    font-size: 12px;
+}
+
+fieldset .section {
+    width: calc(100% + 40px);
+    margin-left: -20px;
+    padding: 20px;
+    border-top: 1px solid #333333;
+    margin-top: 20px;
+}
+
+fieldset.accordion {
+    padding: 0;
+}
+
+fieldset.accordion > .header {
+    padding: 20px 20px 15px;
+    margin-bottom: 0;
+    cursor: pointer;
+    transition: all .3s ease-in;
+}
+
+fieldset.accordion > .header.open {
+    margin-bottom: 15px;
+    transition: all .3s ease-in;
+}
+
+fieldset.accordion .fields {
+    padding: 0 20px;
 }
