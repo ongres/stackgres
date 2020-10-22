@@ -1,0 +1,175 @@
+#!/bin/sh
+
+e2e_test_install() {
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+
+  cat <<EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGInstanceProfile
+metadata:
+  name: size-xs
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  cpu: '500m'
+  memory: '512Mi'
+EOF
+ kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" || true
+
+}
+
+
+e2e_test() {
+  run_test "A stackgres cluster with ignore label should not be created" ignore_sgcluster_create
+
+  run_test "A stackgres cluster with ignore label should not be patched" ignore_sgcluster_patch
+
+  run_test "A stackgres cluster without ignore label should be patched" resume_sgcluster_reconciliation
+
+  run_test "A distributed logs cluster with ignore label should not be created" ignore_sgdistributedlogs_create
+
+  run_test "A distributed logs cluster with ignore label should not be patched" ignore_sgdistributedlogs_patch
+  
+  run_test "A distributed logs cluster without ignore label should be patched" resume_sgdistributedlogs_reconciliation
+  
+}
+
+ignore_sgcluster_create(){
+
+    cat << EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
+metadata:
+  name: $CLUSTER_NAME
+  namespace: $CLUSTER_NAMESPACE
+  annotations:
+    stackgres.io/reconciliation: "skip"
+spec:
+  instances: 1
+  postgresVersion: 'latest'
+  pods:
+    persistentVolume:
+      size: '128Mi'
+  sgInstanceProfile: 'size-xs'
+  nonProductionOptions:
+    disableClusterPodAntiAffinity: true  
+EOF
+
+  if wait_until -t "15" has_cluster_generated_resources
+  then
+    echo "Cluster where created"
+    return 1
+  else
+    echo "Cluster resources wheren't created"
+  fi
+
+}
+
+ignore_sgcluster_patch(){
+
+  kubectl annotate sgcluster "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" stackgres.io/reconciliation-
+
+  wait_until has_cluster_generated_resources
+
+  kubectl annotate sgcluster "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" stackgres.io/reconciliation=skip
+
+  kubectl patch sgcluster "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" --type='json' \
+    -p='[{"op": "replace", "path": "/spec/instances", "value": 2}]'
+
+  if wait_until -t "15" eval '[ $(get_cluster_replicas) = 2 ]'
+  then
+    echo "Fail. SGCluster is not being ignored"
+    return 1
+  else
+    echo "Sucess. SGCluster is being ignored"
+  fi
+  
+}
+
+resume_sgcluster_reconciliation(){
+
+  kubectl annotate sgcluster "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" stackgres.io/reconciliation-
+
+  if wait_until -t "15" eval '[ $(get_cluster_replicas) = 2 ]'
+  then
+    echo "Success. SGCluster is not being ignored"    
+  else
+    echo "Fail. SGCluster is being ignored"
+    return 1
+  fi
+
+}
+
+ignore_sgdistributedlogs_create(){
+  cat <<EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGDistributedLogs
+metadata:
+  name: $CLUSTER_NAME-logs
+  namespace: $CLUSTER_NAMESPACE
+  annotations:
+    stackgres.io/reconciliation: "skip"
+spec:
+  persistentVolume:
+    size: '128Mi'
+  nonProductionOptions:
+    disableClusterPodAntiAffinity: true
+EOF
+
+  if wait_until -t "15" has_logs_generated_resources
+  then
+    echo "Fail. Distributed logs cluster where created"
+    return 1
+  else
+    echo "Success. Distributed logs cluster resources wheren't created"
+  fi
+  
+}
+
+ignore_sgdistributedlogs_patch(){
+
+  kubectl annotate sgdistributedlogs "$CLUSTER_NAME-logs" -n "$CLUSTER_NAMESPACE" stackgres.io/reconciliation-
+
+  wait_until has_logs_generated_resources
+
+  kubectl annotate sgdistributedlogs "$CLUSTER_NAME-logs" -n "$CLUSTER_NAMESPACE" stackgres.io/reconciliation=skip
+
+  kubectl patch sts "$CLUSTER_NAME-logs" -n "$CLUSTER_NAMESPACE" --type='json' \
+    -p='[{"op": "replace", "path": "/spec/replicas", "value": 2}]'
+
+  if wait_until -t "15" eval '[ $(get_sgdistributedlogs_replicas) = 1 ]'
+  then
+    echo "Fail. Distributed logs is not being ignored"
+    return 1
+  else
+    echo "Sucess. Distributed logs is being ignored"
+  fi
+}
+
+resume_sgdistributedlogs_reconciliation(){
+
+  kubectl annotate sgdistributedlogs "$CLUSTER_NAME-logs" -n "$CLUSTER_NAMESPACE" stackgres.io/reconciliation-
+
+  if wait_until -t "15" eval '[ $(get_sgdistributedlogs_replicas) = 1 ]'
+  then
+    echo "Success. Distributed logs is not being ignored"    
+  else
+    echo "Fail. Distributed logs is being ignored"
+    return 1
+  fi
+}
+
+has_cluster_generated_resources() {
+  kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
+}
+
+has_logs_generated_resources(){
+  kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-logs"
+}
+
+get_cluster_replicas() {
+  kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath='{.spec.replicas}'
+}
+
+get_sgdistributedlogs_replicas() {
+  kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-logs" -o jsonpath='{.spec.replicas}'
+}
