@@ -6,9 +6,7 @@
 package io.stackgres.common.crd.sgdistributedlogs;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import javax.validation.Valid;
@@ -34,7 +32,7 @@ public class StackGresDistributedLogsStatus implements KubernetesResource {
 
   @JsonProperty("databases")
   @Valid
-  private Map<String, StackGresDistributedLogsStatusDatabase> databases = new HashMap<>();
+  private List<StackGresDistributedLogsStatusDatabase> databases = new ArrayList<>();
 
   @JsonProperty("clusters")
   @Valid
@@ -51,11 +49,11 @@ public class StackGresDistributedLogsStatus implements KubernetesResource {
     this.conditions = conditions;
   }
 
-  public Map<String, StackGresDistributedLogsStatusDatabase> getDatabases() {
+  public List<StackGresDistributedLogsStatusDatabase> getDatabases() {
     return databases;
   }
 
-  public void setDatabases(Map<String, StackGresDistributedLogsStatusDatabase> databases) {
+  public void setDatabases(List<StackGresDistributedLogsStatusDatabase> databases) {
     this.databases = databases;
   }
 

@@ -21,8 +21,19 @@ public class StackGresDistributedLogsStatusDatabase implements KubernetesResourc
 
   private static final long serialVersionUID = -1L;
 
+  @JsonProperty("name")
+  private String name;
+
   @JsonProperty("retention")
   private String retention;
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
 
   public String getRetention() {
     return retention;
@@ -34,7 +45,7 @@ public class StackGresDistributedLogsStatusDatabase implements KubernetesResourc
 
   @Override
   public int hashCode() {
-    return Objects.hash(retention);
+    return Objects.hash(name, retention);
   }
 
   @Override
@@ -46,13 +57,15 @@ public class StackGresDistributedLogsStatusDatabase implements KubernetesResourc
       return false;
     }
     StackGresDistributedLogsStatusDatabase other = (StackGresDistributedLogsStatusDatabase) obj;
-    return Objects.equals(retention, other.retention);
+    return Objects.equals(name, other.name)
+        && Objects.equals(retention, other.retention);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
+        .add("name", name)
         .add("retention", retention)
         .toString();
   }

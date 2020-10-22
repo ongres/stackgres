@@ -29,7 +29,6 @@ import io.stackgres.distributedlogs.configuration.DistributedLogsPropertyContext
 import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
-import org.jooq.lambda.tuple.Tuple2;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -162,9 +161,9 @@ public class DistributedLogsReconciliationCycleTest {
     StackGresDistributedLogsContext distributedLogsContext = getDistributedLogsContext();
     StackGresDistributedLogsStatusDatabase databaseStatus =
         new StackGresDistributedLogsStatusDatabase();
+    databaseStatus.setName("stackgres_stackgres");
     distributedLogsContext.getDistributedLogs().getStatus().setDatabases(
-        Seq.of(Tuple.tuple("stackgres_stackgres", databaseStatus))
-            .toMap(Tuple2::v1, Tuple2::v2));
+        Seq.of(databaseStatus).toList());
     reconciliator.reconcile(null, distributedLogsContext);
     verify(databaseReconciliator, times(1)).existsDatabase(any(), any());
     verify(databaseReconciliator, times(1)).createDatabase(any(), any());
@@ -181,10 +180,10 @@ public class DistributedLogsReconciliationCycleTest {
     StackGresDistributedLogsContext distributedLogsContext = getDistributedLogsContext();
     StackGresDistributedLogsStatusDatabase databaseStatus =
         new StackGresDistributedLogsStatusDatabase();
+    databaseStatus.setName("stackgres_stackgres");
     databaseStatus.setRetention("1 minute");
     distributedLogsContext.getDistributedLogs().getStatus().setDatabases(
-        Seq.of(Tuple.tuple("stackgres_stackgres", databaseStatus))
-            .toMap(Tuple2::v1, Tuple2::v2));
+        Seq.of(databaseStatus).toList());
     reconciliator.reconcile(null, distributedLogsContext);
     verify(databaseReconciliator, times(1)).existsDatabase(any(), any());
     verify(databaseReconciliator, times(1)).createDatabase(any(), any());

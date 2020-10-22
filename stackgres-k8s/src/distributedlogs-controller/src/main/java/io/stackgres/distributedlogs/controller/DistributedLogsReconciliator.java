@@ -104,7 +104,9 @@ public class DistributedLogsReconciliator
       }
       String retention = cluster.getConfig().getRetention();
       if (!Optional.of(distributedLogs.getStatus().getDatabases())
-          .map(databases -> databases.get(database))
+          .flatMap(databases -> databases.stream()
+              .filter(databaseStatus -> databaseStatus.getName().equals(database))
+              .findAny())
           .map(StackGresDistributedLogsStatusDatabase::getRetention)
           .map(currentRetention -> Objects.equals(retention, currentRetention))
           .orElse(false)) {
@@ -165,11 +167,18 @@ public class DistributedLogsReconciliator
 
   private void updateStatus(StackGresDistributedLogs distributedLogs, String database,
       String retention) {
-    StackGresDistributedLogsStatusDatabase distributedLogsDatabase =
-        new StackGresDistributedLogsStatusDatabase();
+    Optional<StackGresDistributedLogsStatusDatabase> foundDistributedLogsDatabase =
+        distributedLogs.getStatus().getDatabases()
+        .stream()
+        .filter(databaseStatus -> databaseStatus.getName().equals(database))
+        .findAny();
+    final StackGresDistributedLogsStatusDatabase distributedLogsDatabase =
+        foundDistributedLogsDatabase.orElseGet(() -> new StackGresDistributedLogsStatusDatabase());
+    if (!foundDistributedLogsDatabase.isPresent()) {
+      distributedLogs.getStatus().getDatabases().add(distributedLogsDatabase);
+    }
+    distributedLogsDatabase.setName(database);
     distributedLogsDatabase.setRetention(retention);
-    distributedLogs.getStatus().getDatabases()
-        .put(database, distributedLogsDatabase);
   }
 
   private void handleException(KubernetesClient client, StackGresDistributedLogs distributedLogs,
