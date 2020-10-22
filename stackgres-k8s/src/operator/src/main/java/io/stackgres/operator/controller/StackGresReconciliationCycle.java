@@ -22,8 +22,7 @@ public abstract class StackGresReconciliationCycle<T extends ResourceHandlerCont
     H extends CustomResource, S extends ResourceHandlerSelector<T>>
     extends AbstractReconciliationCycle<T, H, S> {
 
-  private static final String STACKGRES_IO_RECONCILIATION = "stackgres.io/reconciliation";
-  protected static final String RECONCILIATION_SKIP = "skip";
+  private static final String STACKGRES_IO_RECONCILIATION = "stackgres.io/reconciliation-pause";
 
   private final CustomResourceScanner<H> clusterScanner;
 
@@ -42,7 +41,8 @@ public abstract class StackGresReconciliationCycle<T extends ResourceHandlerCont
     return clusterScanner.getResources()
         .stream().filter(r -> Optional.ofNullable(r.getMetadata().getAnnotations())
             .map(annotations -> annotations.get(STACKGRES_IO_RECONCILIATION))
-            .map(v -> !v.equals(RECONCILIATION_SKIP))
+            .map(Boolean::parseBoolean)
+            .map(b -> !b)
             .orElse(true))
         .map(this::mapResourceToContext)
         .collect(ImmutableList.toImmutableList());
