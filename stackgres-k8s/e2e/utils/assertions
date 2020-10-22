@@ -28,6 +28,21 @@ assert_string_equal(){
 
 }
 
+assert_string_not_equal(){
+
+  EXPECTED="$1"
+  ACTUAL="$2"
+
+  if [ "$ACTUAL" = "$EXPECTED" ]
+  then 
+    echo "Fail. $ACTUAL is equal to $EXPECTED"
+    return 1
+  else
+    echo "Success. $ACTUAL is not equal to $EXPECTED"
+  fi
+
+}
+
 assert_greater_than(){
   local EXPECTED="$1"
   local ACTUAL="$2"

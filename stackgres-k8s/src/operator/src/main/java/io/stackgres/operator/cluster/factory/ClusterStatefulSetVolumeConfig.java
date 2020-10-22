@@ -26,6 +26,8 @@ public enum ClusterStatefulSetVolumeConfig {
       ClusterStatefulSet::dataName)),
   SOCKET(VolumeConfig.inMemoryEmptyDir(
       "socket", ClusterStatefulSetPath.PG_RUN_PATH)),
+  SHARED_MEMORY(VolumeConfig.inMemoryEmptyDir(
+      "dshm", ClusterStatefulSetPath.SHARED_MEMORY_PATH)),
   LOCAL(VolumeConfig.onDiskEmptyDir(
       "local", ImmutableList.of(
           VolumePathConfig.of(ClusterStatefulSetPath.LOCAL_BIN_PATH),
@@ -87,7 +89,7 @@ public enum ClusterStatefulSetVolumeConfig {
       Function<VolumeMountBuilder, VolumeMountBuilder> volumeMountOverride) {
     return volumeConfig.volumeMounts(context)
         .stream()
-        .map(volumeMount -> new VolumeMountBuilder(volumeMount))
+        .map(VolumeMountBuilder::new)
         .map(volumeMountOverride)
         .map(VolumeMountBuilder::build)
         .findFirst()
@@ -105,7 +107,7 @@ public enum ClusterStatefulSetVolumeConfig {
   public VolumeMount volumeMount(ClusterStatefulSetPath path, StackGresClusterContext context,
       Function<VolumeMountBuilder, VolumeMountBuilder> volumeMountOverride) {
     return volumeConfig.volumeMount(path, context)
-        .map(volumeMount -> new VolumeMountBuilder(volumeMount))
+        .map(VolumeMountBuilder::new)
         .map(volumeMountOverride)
         .map(VolumeMountBuilder::build)
         .orElseThrow(() -> new IllegalStateException(
