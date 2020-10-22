@@ -97,8 +97,13 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
         .endMetadata()
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups("")
-            .withResources("endpoints", "configmaps", "secrets")
+            .withResources("endpoints", "configmaps")
             .withVerbs("create", "get", "list", "patch", "update", "watch")
+            .build())
+        .addToRules(new PolicyRuleBuilder()
+            .withApiGroups("")
+            .withResources("secrets")
+            .withVerbs("get")
             .build())
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups("")
@@ -127,8 +132,12 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
             .build())
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups(StackGresProperty.CRD_GROUP.getString())
+            .withResources(StackGresBackupDefinition.PLURAL)
+            .withVerbs("list", "get", "create", "patch", "delete")
+            .build())
+        .addToRules(new PolicyRuleBuilder()
+            .withApiGroups(StackGresProperty.CRD_GROUP.getString())
             .withResources(
-                StackGresBackupDefinition.PLURAL,
                 StackGresBackupConfigDefinition.PLURAL,
                 StackGresClusterDefinition.PLURAL,
                 StackGresPostgresConfigDefinition.PLURAL,
