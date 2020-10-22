@@ -2726,7 +2726,7 @@ fieldset.postgresServicesPrimary .header a.help, fieldset.postgresServicesReplic
 }
 
 fieldset.podsScheduling .row a.help {
-    right: -46px;
+    right: -67px;
     bottom: -15px;
 }
 
@@ -2780,6 +2780,9 @@ a.help:hover svg > path, a.help.active svg > path {
     fill: var(--blue);
 }
 
+.header a.help {
+    margin: 0;
+}
 
 /* Firefox Outline on focus hack */
 button:focus,
@@ -5148,7 +5151,7 @@ fieldset .header button {
 fieldset .section {
     width: calc(100% + 40px);
     margin-left: -20px;
-    padding: 20px;
+    padding: 20px 20px 0;
     border-top: 1px solid #333333;
     margin-top: 20px;
 }
