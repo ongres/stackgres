@@ -130,7 +130,7 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
     AwsS3CompatibleStorage other = (AwsS3CompatibleStorage) obj;
     return Objects.equals(awsCredentials, other.awsCredentials)
         && Objects.equals(endpoint, other.endpoint)
-        && enablePathStyleAddressing == other.enablePathStyleAddressing
+        && Objects.equals(enablePathStyleAddressing, other.enablePathStyleAddressing)
         && Objects.equals(bucket, other.bucket)
         && Objects.equals(path, other.path)
         && Objects.equals(region, other.region)

@@ -10,7 +10,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import io.stackgres.apiweb.dto.SecretKeySelector;
 import io.stackgres.apiweb.dto.backupconfig.BackupConfigDto;
 import io.stackgres.apiweb.dto.backupconfig.BackupConfigSpec;
 import io.stackgres.apiweb.dto.storages.AwsCredentials;
@@ -24,6 +23,7 @@ import io.stackgres.apiweb.dto.storages.BackupStorage;
 import io.stackgres.apiweb.dto.storages.GoogleCloudCredentials;
 import io.stackgres.apiweb.dto.storages.GoogleCloudSecretKeySelector;
 import io.stackgres.apiweb.dto.storages.GoogleCloudStorage;
+import io.stackgres.common.crd.SecretKeySelector;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;

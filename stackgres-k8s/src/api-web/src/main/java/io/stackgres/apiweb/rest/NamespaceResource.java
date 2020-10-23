@@ -20,6 +20,11 @@ import io.fabric8.kubernetes.api.model.Namespace;
 import io.quarkus.security.Authenticated;
 import io.stackgres.common.ArcUtil;
 import io.stackgres.common.resource.ResourceScanner;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 @Path("/stackgres/namespace")
 @RequestScoped
@@ -40,6 +45,14 @@ public class NamespaceResource {
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
   }
 
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  array = @ArraySchema(schema = @Schema(type = "string"))) })
+      })
+  @CommonApiResponses
   @GET
   @Authenticated
   public List<String> get() {

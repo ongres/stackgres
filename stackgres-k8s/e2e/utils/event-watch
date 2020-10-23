@@ -1,19 +1,19 @@
 #!/bin/sh
 
 event_watch() {
-  local namespace
-  local output=wide
+  local NAMESPACE="--all-namespaces"
+  local OUTPUT=wide
   while [ "$#" -gt 0 ]
   do
     case "$1" in
       -n|--namespace)
         shift
-        namespace="$1"
+        NAMESPACE="--namespace $1"
         shift
         ;;
       -o)
         shift
-        output="$1"
+        OUTPUT="$1"
         shift
         ;;
       *)
@@ -22,8 +22,14 @@ event_watch() {
         ;;
     esac
   done
-  trap_exec kubectl get event $(if [ -z "$namespace" ]; then echo '--all-namespaces'; else echo '-n '"$namespace"; fi) --watch-only --no-headers -o json \
+  trap_exec kubectl get event "$NAMESPACE" --watch-only --no-headers -o json \
     | jq --unbuffered -r '.metadata.namespace + "/" + .metadata.name' \
-    | xargs -r -n 1 -I % "$SHELL" $SHELL_XTRACE -ec 'kubectl get event -o '"'$output'"' --no-headers -n "$(echo "%" | cut -d "/" -f 1)" "$(echo "%" | cut -d "/" -f 2)" 2>/dev/null || true' \
-    | xargs -r -n 1 -I % "$SHELL" $SHELL_XTRACE -ec "echo \"$(date --iso-8601=seconds)\"' %'"
+    | xargs -r -n 1 -I % "$SHELL" $SHELL_XTRACE -ec "kubectl get event -o '$OUTPUT' --no-headers -n \"\$(echo '%' | cut -d '/' -f 1)\" \"\$(echo '%' | cut -d '/' -f 2)\" 2>/dev/null || true" \
+    | (
+      set +x
+      while IFS="$(printf '\n')" read line
+      do
+        echo_raw "$(date --iso-8601=seconds) $line"
+      done
+      )
 }

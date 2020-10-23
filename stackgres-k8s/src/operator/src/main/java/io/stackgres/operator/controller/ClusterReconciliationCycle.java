@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.controller;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,7 @@ import javax.inject.Inject;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
@@ -33,6 +35,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.storages.AwsCredentials;
@@ -51,6 +54,7 @@ import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.cluster.factory.Cluster;
+import io.stackgres.operator.cluster.factory.ClusterStatefulSet;
 import io.stackgres.operator.common.ImmutableStackGresUserClusterContext;
 import io.stackgres.operator.common.ImmutableStackGresUserGeneratorContext;
 import io.stackgres.operator.common.Prometheus;
@@ -71,7 +75,6 @@ import io.stackgres.operator.sidecars.fluentbit.FluentBit;
 import io.stackgres.operator.sidecars.pgexporter.PostgresExporter;
 import io.stackgres.operator.sidecars.pgutils.PostgresUtil;
 import io.stackgres.operator.sidecars.pooling.PgPooling;
-import io.stackgres.operatorframework.reconciliation.AbstractReconciliationCycle;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliator;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
 import org.jooq.lambda.Seq;
@@ -81,7 +84,7 @@ import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
 public class ClusterReconciliationCycle
-    extends AbstractReconciliationCycle<StackGresClusterContext, StackGresCluster,
+    extends StackGresReconciliationCycle<StackGresClusterContext, StackGresCluster,
       ClusterResourceHandlerSelector> {
 
   private final ClusterSidecarFinder sidecarFinder;
@@ -89,7 +92,6 @@ public class ClusterReconciliationCycle
   private final ClusterStatusManager statusManager;
   private final EventController eventController;
   private final OperatorPropertyContext operatorContext;
-  private final CustomResourceScanner<StackGresCluster> clusterScanner;
   private final CustomResourceFinder<StackGresProfile> profileFinder;
   private final CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
   private final CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
@@ -118,14 +120,13 @@ public class ClusterReconciliationCycle
       CustomResourceScanner<StackGresBackup> backupScanner, ResourceFinder<Secret> secretFinder,
       CustomResourceScanner<PrometheusConfig> prometheusScanner) {
     super("Cluster", kubClientFactory::create, StackGresClusterContext::getCluster,
-        handlerSelector, objectMapperProvider.objectMapper());
+        handlerSelector, objectMapperProvider.objectMapper(), clusterScanner);
     this.sidecarFinder = sidecarFinder;
     this.cluster = cluster;
     this.statusManager = statusManager;
     this.eventController = eventController;
     this.operatorContext = operatorContext;
     this.labelFactory = labelFactory;
-    this.clusterScanner = clusterScanner;
     this.profileFinder = profileFinder;
     this.postgresConfigFinder = postgresConfigFinder;
     this.backupConfigFinder = backupConfigFinder;
@@ -135,7 +136,7 @@ public class ClusterReconciliationCycle
   }
 
   public ClusterReconciliationCycle() {
-    super(null, null, c -> null, null, null);
+    super(null, null, c -> null, null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
     this.sidecarFinder = null;
     this.cluster = null;
@@ -143,7 +144,6 @@ public class ClusterReconciliationCycle
     this.eventController = null;
     this.operatorContext = null;
     this.labelFactory = null;
-    this.clusterScanner = null;
     this.profileFinder = null;
     this.postgresConfigFinder = null;
     this.backupConfigFinder = null;
@@ -162,7 +162,8 @@ public class ClusterReconciliationCycle
   @Override
   protected void onConfigError(StackGresClusterContext context, HasMetadata configResource,
                                Exception ex) {
-    statusManager.sendCondition(ClusterStatusCondition.CLUSTER_CONFIG_ERROR, context);
+    statusManager.sendCondition(
+        ClusterStatusCondition.CLUSTER_CONFIG_ERROR.getCondition(), context);
     eventController.sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
         "StackGres Cluster " + configResource.getMetadata().getNamespace() + "."
             + configResource.getMetadata().getName() + " reconciliation failed: "
@@ -214,11 +215,8 @@ public class ClusterReconciliationCycle
   }
 
   @Override
-  protected ImmutableList<StackGresClusterContext> getExistingConfigs() {
-    return clusterScanner.getResources()
-            .stream()
-            .map(cluster -> getClusterConfig(cluster))
-            .collect(ImmutableList.toImmutableList());
+  protected StackGresClusterContext mapResourceToContext(StackGresCluster resource) {
+    return this.getClusterConfig(resource);
   }
 
   private StackGresClusterContext getClusterConfig(StackGresCluster cluster) {
@@ -242,7 +240,20 @@ public class ClusterReconciliationCycle
         .ownerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(cluster)))
         .restoreContext(getRestoreContext(cluster))
         .prometheus(getPrometheus(cluster))
+        .internalScripts(ImmutableList.of(getPostgresExporterInitScript()))
         .build();
+  }
+
+  private StackGresClusterScriptEntry getPostgresExporterInitScript() {
+    final StackGresClusterScriptEntry script = new StackGresClusterScriptEntry();
+    script.setName("prometheus-postgres-exporter-init");
+    script.setDatabase("postgres");
+    script.setScript(Unchecked.supplier(() -> Resources
+          .asCharSource(ClusterStatefulSet.class.getResource(
+              "/prometheus-postgres-exporter/init.sql"),
+              StandardCharsets.UTF_8)
+          .read()).get());
+    return script;
   }
 
   private Optional<StackGresProfile> getProfile(StackGresCluster cluster) {

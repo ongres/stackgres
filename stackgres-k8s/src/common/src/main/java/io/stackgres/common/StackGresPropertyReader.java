@@ -5,6 +5,7 @@
 
 package io.stackgres.common;
 
+import java.io.InputStream;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
@@ -35,8 +36,8 @@ public interface StackGresPropertyReader {
   Properties getApplicationProperties();
 
   /**
-   * Return true only if first existing value of associated system property, environment variable
-   * or application property (in this exact sequence) is true after calling method
+   * Return true only if first existing value of associated system property, environment variable or
+   * application property (in this exact sequence) is true after calling method
    * {@code Boolean.parseBoolean(String)}. Otherwise false is returned.
    */
   default boolean getBoolean() {
@@ -44,20 +45,20 @@ public interface StackGresPropertyReader {
   }
 
   /**
-   * Return first existing value of associated system property, environment variable
-   * or application property (in this exact sequence). Otherwise throw a {@code RuntimeException}.
+   * Return first existing value of associated system property, environment variable or application
+   * property (in this exact sequence). Otherwise throw a {@code RuntimeException}.
    */
   default String getString() {
     return get()
         .orElseThrow(() -> new RuntimeException(
             "System property " + getPropertyName()
-            + "and environment variable " + getEnvironmentVariableName()
-            + " can not be found"));
+                + "and environment variable " + getEnvironmentVariableName()
+                + " can not be found"));
   }
 
   /**
-   * Return first existing value of associated system property, environment variable
-   * or application property (in this exact sequence).
+   * Return first existing value of associated system property, environment variable or application
+   * property (in this exact sequence).
    */
   default Optional<String> get() {
     return Seq.of(
@@ -69,12 +70,14 @@ public interface StackGresPropertyReader {
   }
 
   /**
-   * Implementation of this interface should use this function to read the
-   * application properties file.
+   * Implementation of this interface should use this function to read the application properties
+   * file.
    */
   static Properties readApplicationProperties(Class<?> clazz) throws Exception {
     Properties properties = new Properties();
-    properties.load(clazz.getResourceAsStream("/application.properties"));
+    try (InputStream is = clazz.getResourceAsStream("/application.properties")) {
+      properties.load(is);
+    }
     return properties;
   }
 

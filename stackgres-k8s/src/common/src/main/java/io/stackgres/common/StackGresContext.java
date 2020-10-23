@@ -35,10 +35,13 @@ public interface StackGresContext {
   String DISTRIBUTED_LOGS_CLUSTER_KEY = "distributed-logs-cluster";
   String DISTRIBUTED_LOGS_BACKUP_KEY = "distributed-logs-backup";
 
+  String STACKGRES_KEY_PREFIX = "stackgres.io/";
+  String VERSION_KEY = STACKGRES_KEY_PREFIX + "operatorVersion";
+
   String AUTH_KEY = "api.stackgres.io/auth";
   String AUTH_USER_VALUE = "user";
 
-  String KUBECTL_IMAGE = "bitnami/kubectl:1.18.3";
+  String KUBECTL_IMAGE = "bitnami/kubectl:1.19.2";
   String BUSYBOX_IMAGE = "busybox:1.31.1";
 
 }

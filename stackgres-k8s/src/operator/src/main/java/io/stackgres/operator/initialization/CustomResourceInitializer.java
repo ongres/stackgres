@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import org.slf4j.Logger;
@@ -46,6 +48,11 @@ public class CustomResourceInitializer<T extends CustomResource>
         .stream()
         .filter(i -> i.getMetadata().getName()
             .startsWith(factory.getDefaultPrefix()))
+        .filter(i -> Optional
+            .ofNullable(i.getMetadata().getAnnotations())
+            .map(annotations -> annotations.get(StackGresContext.VERSION_KEY))
+            .map(StackGresProperty.OPERATOR_VERSION.getString()::equals)
+            .orElse(false))
         .findFirst();
 
     if (installedDefaultResources.isPresent()) {

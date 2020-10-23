@@ -33,12 +33,14 @@ public class CheckOperatorValuesTest {
         Paths.get("../../install/helm/stackgres-operator/values.yaml").toFile());
     final String imageTag;
     if (StackGresProperty.OPERATOR_VERSION.getString().endsWith("-SNAPSHOT")) {
-      imageTag = "development-jvm";
+      imageTag = "development(-[^-]+)?-jvm";
     } else {
       imageTag = StackGresProperty.OPERATOR_VERSION.getString() + "-jvm";
     }
-    Assert.assertEquals(imageTag,
-        operatorConfig.get("operator").get("image").get("tag").asText());
+    Assert.assertTrue(operatorConfig.get("operator").get("image").get("tag").asText()
+        + " should match " + imageTag,
+        operatorConfig.get("operator").get("image").get("tag").asText()
+            .matches(imageTag));
     Assert.assertEquals(OperatorProperty.PROMETHEUS_AUTOBIND.getString(),
         operatorConfig.get("prometheus").get("allowAutobind").asText());
   }
@@ -60,14 +62,20 @@ public class CheckOperatorValuesTest {
         versions.get("components").get("patroni").get("versions").get(0).asText(),
         StackGresComponents.get("patroni"));
     Assert.assertEquals(
-        versions.get("components").get("wal_g").get("versions").asText(),
-        StackGresComponents.get("wal_g"));
-    Assert.assertEquals(
         versions.get("components").get("pgbouncer").get("versions").get(0).asText(),
         StackGresComponents.get("pgbouncer"));
     Assert.assertEquals(
         versions.get("components").get("postgres_exporter").get("versions").get(0).asText(),
         StackGresComponents.get("postgres_exporter"));
+    Assert.assertEquals(
+        versions.get("components").get("envoy").get("versions").get(0).asText(),
+        StackGresComponents.get("envoy"));
+    Assert.assertEquals(
+        versions.get("components").get("fluentbit").get("versions").get(0).asText(),
+        StackGresComponents.get("fluentbit"));
+    Assert.assertEquals(
+        versions.get("components").get("fluentd").get("versions").get(0).asText(),
+        StackGresComponents.get("fluentd"));
   }
 
 }

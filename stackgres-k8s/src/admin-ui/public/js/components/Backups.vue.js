@@ -1,6 +1,6 @@
 var Backups = Vue.component("Backups", {
 	template: `
-		<div id="sg-backup">
+		<div id="sg-backup" v-if="loggedIn && isReady">
 			<header v-if="isCluster">
 				<template v-for="cluster in clusters" v-if="(cluster.name == $route.params.name) && (cluster.data.metadata.namespace == $route.params.namespace)">
 					<ul class="breadcrumbs">
@@ -463,13 +463,25 @@ var Backups = Vue.component("Backups", {
 																{{ back.data.status.backupInformation.startWalFile }}
 															</td>
 														</tr>
-														<tr v-if="(typeof back.data.status.backupInformation.controlData !== 'undefined')">
+														<tr v-if="(typeof back.data.status.backupInformation.controlData !== 'undefined')" class="controlData">
 															<td class="label">
 																Control Data
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.controlData.description"></span>
 															</td>
-															<td class="controlData">
-																{{ back.data.status.backupInformation.controlData }}
+															<td>
+																<a @click="setContentTooltip('#controlData-'+index)"> 
+																	View Control Data
+																	<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+																</a>
+
+																<div :id="'controlData-'+index" class="hidden">
+																	<!--<pre>{{ back.data.status.backupInformation.controlData }}</pre>-->
+																	<table>
+																		<tr v-for="(value, key) in back.data.status.backupInformation.controlData">
+																			<td class="label">{{ key }}</td>
+																			<td class="value">{{ value }}</td>
+																		</tr>
+																	</table>
+																</div>
 															</td>
 														</tr>
 													</tbody>

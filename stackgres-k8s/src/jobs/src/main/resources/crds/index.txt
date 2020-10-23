@@ -1,0 +1,7 @@
+SGBackup.yaml
+SGBackupConfig.yaml
+SGCluster.yaml
+SGDistributedLogs.yaml
+SGInstanceProfile.yaml
+SGPoolingConfig.yaml
+SGPostgresConfig.yaml

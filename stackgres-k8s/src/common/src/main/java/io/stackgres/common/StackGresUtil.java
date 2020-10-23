@@ -11,6 +11,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Comparator;
 import java.util.Locale;
@@ -46,8 +47,8 @@ public class StackGresUtil {
 
   /**
    * This function return the namespace of the relativeId if present or the namespace.
-   * <br />
-   * A relative id points to a resource relative to another resource. If the resource is
+   *
+   * <p>A relative id points to a resource relative to another resource. If the resource is
    * in the same namespace of the other resource then the relativeId is the resource name.
    * If the resource is in another namespace then the relativeId will contain a '.' character
    * that separate namespace and name (`&lt;namespace&gt;.&lt;name&gt;`).
@@ -61,8 +62,8 @@ public class StackGresUtil {
 
   /**
    * This function return the name of the relativeId.
-   * <br />
-   * A relative id points to a resource relative to another resource. If the resource is
+   *
+   * <p>A relative id points to a resource relative to another resource. If the resource is
    * in the same namespace of the other resource then the relativeId is the resource name.
    * If the resource is in another namespace then the relativeId will contain a '.' character
    * that separate namespace and name (`&lt;namespace&gt;.&lt;name&gt;`).
@@ -77,8 +78,8 @@ public class StackGresUtil {
   /**
    * This function return the relative id of a name and a nanemspace
    *  relative to the relativeNamespace.
-   * <br />
-   * A relative id points to a resource relative to another resource. If the resource is
+   *
+   * <p>A relative id points to a resource relative to another resource. If the resource is
    * in the same namespace of the other resource then the relativeId is the resource name.
    * If the resource is in another namespace then the relativeId will contain a '.' character
    * that separate namespace and name (`&lt;namespace&gt;.&lt;name&gt;`).
@@ -131,7 +132,7 @@ public class StackGresUtil {
         .sorted(Comparator.comparing(Map.Entry::getKey))
         .map(e -> e.getValue())
         .collect(Collectors.joining())
-        .getBytes());
+        .getBytes(StandardCharsets.UTF_8));
     return ImmutableMap.<String, String>builder()
         .putAll(data)
         .put("MD5SUM", DatatypeConverter.printHexBinary(
@@ -167,6 +168,7 @@ public class StackGresUtil {
 
   /**
    * Loads a properties file from the classpath.
+   *
    * @param path the path of the properties file to load
    * @return the loaded file
    * @throws IOException if cannot load the properties file

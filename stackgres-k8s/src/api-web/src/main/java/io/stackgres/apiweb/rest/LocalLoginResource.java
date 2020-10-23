@@ -22,6 +22,10 @@ import io.stackgres.apiweb.security.SecretVerification;
 import io.stackgres.apiweb.security.TokenResponse;
 import io.stackgres.apiweb.security.TokenUtils;
 import io.stackgres.apiweb.security.UserPassword;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,15 +42,23 @@ public class LocalLoginResource {
 
   private static final long DURATION = 28800; // 8h
 
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(type = "string")) })
+      })
+  @CommonApiResponses
   @POST
   @Path("login")
   public Response login(@Valid UserPassword credentials) {
     try {
       String k8sUsername =
-          verify.verifyCredentials(credentials.getUsername(), credentials.getPassword());
+          verify.verifyCredentials(credentials.getUserName(), credentials.getPassword());
       LOGGER.info("Kubernetes user: {}", k8sUsername);
       String accessToken =
-          TokenUtils.generateTokenString(k8sUsername, credentials.getUsername(), DURATION,
+          TokenUtils.generateTokenString(k8sUsername, credentials.getUserName(), DURATION,
               "/etc/operator/certs/jwt-rsa.key");
 
       TokenResponse tokenResponse = new TokenResponse();

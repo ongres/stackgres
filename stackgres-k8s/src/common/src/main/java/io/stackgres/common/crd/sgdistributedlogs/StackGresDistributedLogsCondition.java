@@ -15,11 +15,12 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.crd.Condition;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackGresDistributedLogsCondition implements KubernetesResource {
+public class StackGresDistributedLogsCondition implements Condition, KubernetesResource {
 
   private static final long serialVersionUID = 1L;
 
@@ -57,42 +58,52 @@ public class StackGresDistributedLogsCondition implements KubernetesResource {
   public StackGresDistributedLogsCondition() {
   }
 
+  @Override
   public String getLastTransitionTime() {
     return lastTransitionTime;
   }
 
+  @Override
   public void setLastTransitionTime(String lastTransitionTime) {
     this.lastTransitionTime = lastTransitionTime;
   }
 
+  @Override
   public String getMessage() {
     return message;
   }
 
+  @Override
   public void setMessage(String message) {
     this.message = message;
   }
 
+  @Override
   public String getReason() {
     return reason;
   }
 
+  @Override
   public void setReason(String reason) {
     this.reason = reason;
   }
 
+  @Override
   public String getStatus() {
     return status;
   }
 
+  @Override
   public void setStatus(String status) {
     this.status = status;
   }
 
+  @Override
   public String getType() {
     return type;
   }
 
+  @Override
   public void setType(String type) {
     this.type = type;
   }

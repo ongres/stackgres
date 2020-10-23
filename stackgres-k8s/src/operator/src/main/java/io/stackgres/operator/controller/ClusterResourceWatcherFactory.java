@@ -36,21 +36,11 @@ public class ClusterResourceWatcherFactory {
   }
 
   public <T extends HasMetadata> Watcher<T> createWatcher(Consumer<Action> actionConsumer) {
-    return new WatcherInstance<>(actionConsumer, new WatcherListener<T>() {
-      @Override
-      public void eventReceived(Action action, T resource) {
-
-      }
-
-      @Override
-      public void watcherClosed(Exception ex) {
-
-      }
-    });
+    return new WatcherInstance<>(actionConsumer, new EmptyWatcherListener<>());
   }
 
   public <T extends HasMetadata> Watcher<T> createWatcher(Consumer<Action> actionConsumer,
-                                                          WatcherListener<T> watcherListener) {
+      WatcherListener<T> watcherListener) {
     return new WatcherInstance<>(actionConsumer, watcherListener);
   }
 
@@ -85,10 +75,19 @@ public class ClusterResourceWatcherFactory {
         LOGGER.error("onClose was called, ", cause);
         eventController.sendEvent(EventReason.OPERATOR_ERROR,
             "Watcher was closed unexpectedly: " + (cause.getMessage() != null
-                ? cause.getMessage() : "unknown reason"));
+                ? cause.getMessage()
+                : "unknown reason"));
         watcherListener.watcherClosed(cause);
       }
     }
+  }
+
+  private static class EmptyWatcherListener<T> implements WatcherListener<T> {
+    @Override
+    public void eventReceived(Action action, T resource) {}
+
+    @Override
+    public void watcherClosed(Exception ex) {}
   }
 
 }

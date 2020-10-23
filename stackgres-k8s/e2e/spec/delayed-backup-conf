@@ -12,21 +12,7 @@ e2e_test() {
 
 add_backup_manually(){
 
-    cat << EOF > "$LOG_PATH/minio-values.yaml"
-persistence:
-  enabled: false
-buckets:
-  - name: stackgres
-    policy: none
-    purge: true
-EOF
-
-  local MINIO_NAME="$CLUSTER_NAME"-minio
-
-  helm install $MINIO_NAME stable/minio \
-    --version 5.0.26 \
-    --namespace "$CLUSTER_NAMESPACE" \
-    -f "$LOG_PATH/minio-values.yaml"
+  install_minio
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
   

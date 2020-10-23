@@ -67,7 +67,7 @@ public class ResourceWatcherFactory {
       } else {
         LOGGER.error("onClose was called, ", cause);
         eventController.sendEvent(EventReason.OPERATOR_ERROR,
-            "Watcher was closed unexpectedly: " + (cause != null && cause.getMessage() != null
+            "Watcher was closed unexpectedly: " + (cause.getMessage() != null
             ? cause.getMessage() : "unknown reason"));
         new Thread(() -> Application.currentApplication().stop()).start();
       }

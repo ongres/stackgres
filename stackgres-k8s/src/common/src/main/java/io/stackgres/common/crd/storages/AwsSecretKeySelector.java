@@ -14,8 +14,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
-import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.crd.SecretKeySelector;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -57,8 +57,8 @@ public class AwsSecretKeySelector {
       return false;
     }
     AwsSecretKeySelector that = (AwsSecretKeySelector) o;
-    return accessKeyId.equals(that.accessKeyId)
-        && secretAccessKey.equals(that.secretAccessKey);
+    return Objects.equals(accessKeyId, that.accessKeyId)
+        && Objects.equals(secretAccessKey, that.secretAccessKey);
   }
 
   @Override

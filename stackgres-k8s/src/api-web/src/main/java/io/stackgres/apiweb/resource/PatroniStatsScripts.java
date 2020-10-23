@@ -5,6 +5,9 @@
 
 package io.stackgres.apiweb.resource;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.Properties;
 
 import com.google.common.collect.ImmutableMap;
@@ -55,11 +58,11 @@ public enum PatroniStatsScripts {
 
   private static ImmutableMap<PatroniStatsScripts, String> readScripts() {
     Properties properties = new Properties();
-    try {
-      properties.load(PatroniStatsScripts.class.getResourceAsStream(
-          "/patroni-stats.properties"));
-    } catch (Exception ex) {
-      throw new RuntimeException(ex);
+    try (InputStream is = PatroniStatsScripts.class.getResourceAsStream(
+        "/patroni-stats.properties")) {
+      properties.load(is);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
     return Seq.of(values())
         .map(script -> Tuple.tuple(script, properties.getProperty(script.name)))

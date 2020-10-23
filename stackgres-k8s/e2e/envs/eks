@@ -15,6 +15,11 @@ E2E_USE_INTERMIDIATE_PRIVATE_REPO=true
 
 export K8S_EKS_NAME K8S_VERSION K8S_EKS_REGION K8S_EKS_NODE_LOCATIONS K8S_EKS_NODE_TYPE K8S_EKS_OPTS E2E_USE_INTERMIDIATE_PRIVATE_REPO
 
+get_k8s_env_version() {
+  echo "eksctl version $(eksctl version)"
+  echo
+}
+
 reuse_k8s() {
   if ! eksctl get cluster --name "$K8S_EKS_NAME" --region "$K8S_EKS_REGION" 2>&1 \
     | grep "^$K8S_EKS_NAME" | grep -q "ACTIVE"

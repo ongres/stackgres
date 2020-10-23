@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.common;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -17,15 +18,20 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodMetadata;
+import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
+import io.stackgres.operator.patroni.factory.PatroniScriptsConfigMap;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
+import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
+import org.jooq.lambda.tuple.Tuple4;
 
 public abstract class StackGresClusterContext implements ResourceHandlerContext {
 
@@ -46,6 +52,8 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
   public abstract ImmutableList<StackGresBackup> getBackups();
 
   public abstract Optional<Prometheus> getPrometheus();
+
+  public abstract List<StackGresClusterScriptEntry> getInternalScripts();
 
   @Override
   public abstract ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> getExistingResources();
@@ -108,6 +116,22 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
         .map(StackGresClusterPod::getMetadata)
         .map(StackGresClusterPodMetadata::getLabels)
         .orElse(ImmutableMap.of());
+  }
+
+  public Seq<Tuple4<StackGresClusterScriptEntry, Long, String, Long>> getIndexedScripts() {
+    return Seq.seq(getInternalScripts())
+        .zipWithIndex()
+        .map(t -> t.concat(PatroniScriptsConfigMap.INTERNAL_SCRIPT))
+        .append(Seq.of(Optional.ofNullable(
+            getCluster().getSpec().getInitData())
+            .map(StackGresClusterInitData::getScripts))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .flatMap(List::stream)
+            .zipWithIndex()
+            .map(t -> t.concat(PatroniScriptsConfigMap.SCRIPT)))
+        .zipWithIndex()
+        .map(t -> t.v1.concat(t.v2));
   }
 
 }

@@ -6,15 +6,12 @@
 package io.stackgres.apiweb.rest;
 
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
-import java.util.Optional;
-import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
@@ -28,10 +25,9 @@ import io.stackgres.apiweb.dto.Metadata;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterScriptEntry;
 import io.stackgres.apiweb.dto.cluster.ClusterScriptFrom;
-import io.stackgres.apiweb.dto.cluster.ConfigMapKeySelectorDto;
-import io.stackgres.apiweb.dto.cluster.SecretKeySelectorDto;
 import io.stackgres.common.KubernetesClientFactory;
-import io.stackgres.common.resource.ResourceFinder;
+import io.stackgres.common.crd.ConfigMapKeySelector;
+import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -124,7 +120,7 @@ class ClusterResourceIt implements AuthenticatedResourceTest {
 
     try (KubernetesClient client = factory.create()){
       final ClusterScriptFrom scriptFrom = entry.getScriptFrom();
-      final SecretKeySelectorDto secretKeyRef = scriptFrom.getSecretKeyRef();
+      final SecretKeySelector secretKeyRef = scriptFrom.getSecretKeyRef();
       Secret secret = client.secrets().inNamespace("test")
           .withName(secretKeyRef.getName())
           .get();
@@ -160,7 +156,7 @@ class ClusterResourceIt implements AuthenticatedResourceTest {
 
     try (KubernetesClient client = factory.create()){
       final ClusterScriptFrom secretScriptFrom = secretScriptEntry.getScriptFrom();
-      final SecretKeySelectorDto secretKeyRef = secretScriptFrom.getSecretKeyRef();
+      final SecretKeySelector secretKeyRef = secretScriptFrom.getSecretKeyRef();
       Secret secret = client.secrets().inNamespace("test")
           .withName(secretKeyRef.getName())
           .get();
@@ -171,7 +167,7 @@ class ClusterResourceIt implements AuthenticatedResourceTest {
           new String(actualScript, StandardCharsets.UTF_8));
 
       final ClusterScriptFrom configMapScriptFrom = configMapScriptEntry.getScriptFrom();
-      final ConfigMapKeySelectorDto configMapKeyRef = configMapScriptFrom.getConfigMapKeyRef();
+      final ConfigMapKeySelector configMapKeyRef = configMapScriptFrom.getConfigMapKeyRef();
       ConfigMap configMap = client.configMaps().inNamespace("test")
           .withName(configMapKeyRef.getName())
           .get();
@@ -190,7 +186,7 @@ class ClusterResourceIt implements AuthenticatedResourceTest {
     entry.setName("init");
     final ClusterScriptFrom scriptFrom = new ClusterScriptFrom();
     scriptFrom.setSecretScript("CREATE DATABASE test");
-    final SecretKeySelectorDto secretMapKeyRef = new SecretKeySelectorDto();
+    final SecretKeySelector secretMapKeyRef = new SecretKeySelector();
     scriptFrom.setSecretKeyRef(secretMapKeyRef);
     secretMapKeyRef.setKey("script");
     secretMapKeyRef.setName("initScript");
@@ -203,7 +199,7 @@ class ClusterResourceIt implements AuthenticatedResourceTest {
     entry.setName("init");
     final ClusterScriptFrom scriptFrom = new ClusterScriptFrom();
     scriptFrom.setConfigMapScript("CREATE DATABASE test");
-    final ConfigMapKeySelectorDto configMapKeyRef = new ConfigMapKeySelectorDto();
+    final ConfigMapKeySelector configMapKeyRef = new ConfigMapKeySelector();
     scriptFrom.setConfigMapKeyRef(configMapKeyRef);
     configMapKeyRef.setKey("script");
     configMapKeyRef.setName("initScript");

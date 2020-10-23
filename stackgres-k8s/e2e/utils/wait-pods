@@ -16,16 +16,16 @@ wait_pods_running() {
       | grep '[0-9]\+/[0-9]\+' -o | cut -d '/' -f 1 | tr '\n' ' ')"
     EXPECTED_CONTAINERS="$(kubectl get pods "$NAMESPACE_OPT" | grep "Running" \
       | grep '[0-9]\+/[0-9]\+' -o | cut -d '/' -f 2 | tr '\n' ' ')"
-    if [ "$RUNNING_PODS" -ge "$EXPECTED_RUNNING_PODS" \
-      -a "$RUNNING_CONTAINERS" = "$EXPECTED_CONTAINERS" ]
+    if [ "$RUNNING_PODS" -ge "$EXPECTED_RUNNING_PODS" ] \
+      && [ "$RUNNING_CONTAINERS" = "$EXPECTED_CONTAINERS" ]
     then
       echo "$([ -z "$1" ] && echo "All pods running" || echo "All pods running in namespace $1")"
       return
     fi
     sleep 2
   done
-  echo "$([ -z "$1" ] && echo "Timeout while waiting for all pods to become running" \
-    || echo "Timeout while waiting for all pods to become running in namespace $1")"
+  echo "$([ -z "$1" ] && echo "Timeout while waiting for $EXPECTED_RUNNING_PODS pods to become running" \
+    || echo "Timeout while waiting for $EXPECTED_RUNNING_PODS pods to become running in namespace $1")"
   echo
   kubectl get pods "$NAMESPACE_OPT"
   return 1
@@ -56,8 +56,8 @@ wait_pods_terminated() {
     fi
     sleep 2
   done
-  echo "$([ -z "$1" ] && echo "Timeout while waiting for all pods to terminate" \
-    || echo "Timeout while waiting for all pods to terminate in namespace $1")"
+  echo "$([ -z "$1" ] && echo "Timeout while waiting for $EXPECTED_REMAINING_PODS pods to remain running" \
+    || echo "Timeout while waiting for $EXPECTED_REMAINING_PODS pods to remain running in namespace $1")"
   echo
   kubectl get pods "$NAMESPACE_OPT"
   return 1

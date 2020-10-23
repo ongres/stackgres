@@ -1,0 +1,52 @@
+{{- $deployment := (lookup "apps/v1" "Deployment" .Release.Namespace .Release.Name) }}
+{{- if $deployment }}
+{{- if $deployment.spec.selector.matchLabels.version }}
+{{- $_ := set .Values.deploy "fix_0_9_deployments" true }}
+{{- end }}
+{{- end }}
+{{- if .Values.deploy.fix_0_9_deployments }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name }}-fix-deplpoyment-selector"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: stackgres-operator
+    scope: init
+    job: fix-deployment-selector
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "0"
+spec:
+  template:
+    metadata:
+      labels:
+        app: stackgres-operator
+        scope: init
+        job: fix-deployment-selector
+    spec:
+      serviceAccountName: {{ .Release.Name }}-init
+      containers:
+      - name: "{{ .Release.Name }}-fix-deployment-selector"
+        image: "bitnami/kubectl:1.19.2"
+        imagePullPolicy: "IfNotPresent"
+        command:
+          - "/bin/bash"
+          - "-ecx"
+          - |
+            cat << 'EOF' > /tmp/operator-deployment.yaml
+            {{- include (print $.Template.BasePath "/operator-deployment.yaml") . | indent 12 }}
+            EOF
+            cat << 'EOF' > /tmp/webapi-deployment.yaml
+            {{- include (print $.Template.BasePath "/webapi-deployment.yaml") . | indent 12 }}
+            EOF
+            kubectl delete deployment --ignore-not-found \
+              -n '{{ .Release.Namespace }}' '{{ .Release.Name }}'
+            kubectl delete deployment --ignore-not-found \
+              -n '{{ .Release.Namespace }}' '{{ .Values.restapi.name }}'
+            kubectl create -f /tmp/operator-deployment.yaml
+            kubectl create -f /tmp/webapi-deployment.yaml
+      restartPolicy: OnFailure
+{{- end }}
+{{- $_ := set .Values.deploy "fix_0_9_deployments" nil }}

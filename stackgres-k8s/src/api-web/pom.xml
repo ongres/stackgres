@@ -70,6 +70,10 @@
       <artifactId>jakarta.persistence-api</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.swagger.core.v3</groupId>
+      <artifactId>swagger-annotations</artifactId>
+    </dependency>
+    <dependency>
       <groupId>io.stackgres</groupId>
       <artifactId>stackgres-test-util</artifactId>
       <version>${project.version}</version>
@@ -141,6 +145,29 @@
       <plugin>
         <groupId>org.jboss.jandex</groupId>
         <artifactId>jandex-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>io.openapitools.swagger</groupId>
+        <artifactId>swagger-maven-plugin</artifactId>
+        <configuration>
+          <resourcePackages>
+            <resourcePackage>io.stackgres.apiweb.rest</resourcePackage>
+            <resourcePackage>io.stackgres.apiweb.dto</resourcePackage>
+            <resourcePackage>io.stackgres.apiweb.security</resourcePackage>
+          </resourcePackages>
+          <outputDirectory>${basedir}/target/</outputDirectory>
+          <outputFilename>swagger</outputFilename>
+          <outputFormats>JSON,YAML</outputFormats>
+          <prettyPrint>true</prettyPrint>
+          <useResourcePackagesChildren>true</useResourcePackagesChildren>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

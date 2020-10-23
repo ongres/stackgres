@@ -4,7 +4,7 @@ e2e_test_install() {
   BACKUPCONF="backupconf"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 --set cluster.create=false --set cluster.configurations.sgBackupConfig="$BACKUPCONF" \
-    --set configurations.backupconfig.create=true --set nonProductionOptions.createMinio=false \
+    --set configurations.backupconfig.create=true \
     --set-string configurations.backupconfig.storage.s3Compatible.bucket=test \
     --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.name=test \
     --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.key=test \
@@ -400,7 +400,7 @@ test_constraint_violation_api_error() {
 
   EXPECTED_ERROR_TYPE="constraint-violation"
   EXPECTED_ERROR_TITLE="do not comply with the syntactic rules"
-  EXPECTED_ERROR_DETAIL="greater than zero"
+  EXPECTED_ERROR_DETAIL="greater than"
   EXPECTED_ERROR_FIELD="retention"
 
   assert_api_error "$ERROR_RESPONSE"

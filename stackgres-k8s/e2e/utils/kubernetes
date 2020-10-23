@@ -2,7 +2,7 @@
 
 export E2E_ENV="${E2E_ENV:-kind}"
 export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
-export DEFAULT_K8S_VERSION="1.15.11"
+export DEFAULT_K8S_VERSION="1.16.15"
 export K8S_VERSION="${K8S_VERSION:-$DEFAULT_K8S_VERSION}"
 
 e2e_add_source "envs/$E2E_ENV"
@@ -21,6 +21,10 @@ setup_k8s() {
   else
     reuse_k8s
   fi
+
+  echo "Kubernetes version set is $K8S_VERSION (on $E2E_ENV environment) [kubectl:$(kubectl version | head -n 1 | cut -d , -f 3 | cut -d '"' -f 2) kubernetes:$(kubectl version | tail -n 1 | cut -d , -f 3 | cut -d '"' -f 2)]."
+  echo
+  get_k8s_env_version
 }
 
 create_namespace_if_not_exists() {
@@ -33,8 +37,8 @@ create_namespace_if_not_exists() {
 delete_namespace_if_exists() {
   local NAMESPACE="$1"
 
-  if kubectl get namespaces $NAMESPACE  > /dev/null 2>&1
+  if kubectl get namespaces "$NAMESPACE" > /dev/null 2>&1
   then
-    kubectl delete namespace $NAMESPACE
+    kubectl delete namespace "$NAMESPACE"
   fi
 }

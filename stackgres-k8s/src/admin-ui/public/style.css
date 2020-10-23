@@ -839,6 +839,10 @@ ul.zg-ul-select.active li.active:hover {
 #ns-select a {
     padding-left: 50px;
     display: block;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 #ns-select li {
@@ -3148,8 +3152,28 @@ td.label span:not(.helpTooltip) {
 }
 
 .podStatus .Active span {
-    color: #03CC03;
-    background: #00F90040;
+    color: rgba(3, 204, 3, 1);
+    background-color: rgba(0, 249, 0, .25);
+}
+
+.podStatus .Failed span {
+    color: rgba(255, 38, 0, 1);
+    background-color: rgba(255, 38, 0, .25);
+}
+
+.podStatus .Inactive span {
+    color: rgba(255, 137, 0, 1);
+    background-color: rgba(255, 137, 0, .25);
+}
+
+.podStatus .Pending span {
+    color: rgba(146, 185, 195, 1);
+    background-color: rgba(146, 185, 195, .25);
+}
+
+.podStatus .Unknown span {
+    color: rgba(172, 66, 250, 1);
+    background-color: rgba(172, 66, 250, .25);
 }
 
 table.clusterConfig {
@@ -3199,7 +3223,7 @@ table.clusterConfig a:hover svg, td.usedOn a:hover svg path{
     fill: var(--lblue) !important;
 }
 
-table.clusterConfig svg, td.usedOn svg {
+table.clusterConfig svg, td.usedOn svg, tr.controlData svg {
     fill: var(--blue);
     width: 15px;
     display: inline-block;
@@ -3219,7 +3243,7 @@ table.backupConfig  {
     border-bottom: 1px solid #f0f0f1;
 }
 
-table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + tr.details, table.podStatus tr:nth-child(4n-2) {
+table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + tr.details, table.podStatus tr:nth-child(even) {
     background: #fff;
 }
 
@@ -4554,6 +4578,12 @@ tr.details:not(.Failed).open > td:first-child:before {
     border-right: 0;
 }
 
+tr.controlData a {
+    display: inline-flex;
+    cursor: pointer;
+    color: var(--gray5);
+}
+
 /* */
 table.pgConfig, table.poolConfig {
     table-layout: fixed;
@@ -4987,4 +5017,64 @@ td.label .helpTooltip {
     max-width: 400px;
     color: var(--gray4);
     font-weight: 300;
+}
+
+/* Secret Toggle */
+.toggleSecret {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 30px;
+    height: 30px;
+    border-top: 1px solid #f0f0f1;
+    border-left: 1px solid #f0f0f1;
+    border-top-left-radius: 10px;
+    cursor: pointer;
+}
+
+.toggleSecret svg {
+    width: 18px;
+    height: 18px;
+    position: absolute;
+    top: 6px;
+    left: 6px;
+}
+
+.toggleSecret svg path {
+    fill: var(--gray2);
+}
+
+.toggleSecret.show svg path {
+    fill: var(--blue)
+}
+
+.blur {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+    -webkit-filter: blur(5px);
+    -moz-filter: blur(5px);
+    -o-filter: blur(5px);
+    -ms-filter: blur(5px);
+    filter: blur(5px);
+    padding: 5px;
+}
+
+.blur.show {
+    -webkit-touch-callout: initial; /* iOS Safari */
+    -webkit-user-select: initial; /* Safari */
+     -khtml-user-select: initial; /* Konqueror HTML */
+       -moz-user-select: initial; /* Old versions of Firefox */
+        -ms-user-select: initial; /* Internet Explorer/Edge */
+            user-select: initial; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+    -webkit-filter: blur(0);
+    -moz-filter: blur(0);
+    -o-filter: blur(0);
+    -ms-filter: blur(0);
+    filter: blur(0);
 }

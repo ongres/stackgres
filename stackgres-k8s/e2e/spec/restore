@@ -1,28 +1,11 @@
 #!/bin/sh
 
 e2e_test_install() {
-  cat << EOF > "$LOG_PATH/minio-values.yaml"
-persistence:
-  enabled: false
-buckets:
-  - name: $CLUSTER_NAME-backup
-    policy: none
-    purge: true
-readinessProbe:
-  initialDelaySeconds: 5
-EOF
-  if [ "$E2E_ENV" = "minishift" ]
-  then
-    eval "$(minishift oc-env)"
-    oc adm policy add-scc-to-user anyuid -n "$CLUSTER_NAMESPACE-backup" -z "$CLUSTER_NAME-backup-minio"
-  fi
 
-  kubectl create namespace "$CLUSTER_NAMESPACE-backup"
-
-  helm install "$CLUSTER_NAME-backup-minio" stable/minio \
-    --namespace "$CLUSTER_NAMESPACE-backup" \
-    --version 5.0.26 \
-    -f "$LOG_PATH/minio-values.yaml"
+  export MINIO_NAME="$CLUSTER_NAME-backup-minio"
+  export BUCKET_NAME="$CLUSTER_NAME-backup"
+  export MINIO_NAMESPACE="$CLUSTER_NAMESPACE-backup"
+  install_minio
 
   SPEC_VALUES_FILE="$SPEC_FILE.backup.values.yaml"
 
@@ -67,8 +50,6 @@ is_backup_phase() {
 e2e_test_uninstall() {
   helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" || true
   helm_cleanup_chart "$CLUSTER_NAME-backup" "$CLUSTER_NAMESPACE" || true
-  helm_cleanup_chart "$CLUSTER_NAME-backup-minio" "$CLUSTER_NAMESPACE" || true
-  helm_cleanup_chart "$CLUSTER_NAME-backup-minio2" "$CLUSTER_NAMESPACE" || true
 
   k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE" || true
   k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE-backup" || true
@@ -84,15 +65,15 @@ e2e_test() {
 
 
 create_mock_data() {
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'CREATE DATABASE test;'"
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'CREATE TABLE fibonacci(num integer);'" -d "test"
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'INSERT INTO fibonacci(num) VALUES (1);'" -d "test"
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'INSERT INTO fibonacci(num) VALUES (2);'" -d "test"
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'INSERT INTO fibonacci(num) VALUES (3);'" -d "test"
+  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "CREATE DATABASE test;"
+  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "CREATE TABLE fibonacci(num integer);" -d "test"
+  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "INSERT INTO fibonacci(num) VALUES (1);" -d "test"
+  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "INSERT INTO fibonacci(num) VALUES (2);" -d "test"
+  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "INSERT INTO fibonacci(num) VALUES (3);" -d "test"
 }
 
 check_init_data() {
-  if run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test" \
+  if run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q " SELECT num FROM fibonacci ORDER BY num;" -d "test" \
     | tr -d '\n' \
     | grep -q "^123$"
   then
@@ -105,7 +86,7 @@ check_init_data() {
 }
 
 check_replica_data() {
-  if run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test" \
+  if run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q " SELECT num FROM fibonacci ORDER BY num;" -d "test" \
     | tr -d '\n' \
     | grep -q "^123$"
   then
@@ -121,12 +102,12 @@ check_replication() {
   local PRIMARY_RESPONSE
   local REPLICA_RESPONSE
 
-  run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "'INSERT INTO fibonacci(num) VALUES (5);'" -d test
-  run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "'INSERT INTO fibonacci(num) VALUES (8);'" -d test
-  run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "'INSERT INTO fibonacci(num) VALUES (13);'" -d test
+  run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "INSERT INTO fibonacci(num) VALUES (5);" -d test
+  run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "INSERT INTO fibonacci(num) VALUES (8);" -d test
+  run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "INSERT INTO fibonacci(num) VALUES (13);" -d test
 
-  PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test" | tr -d '\n')"
-  REPLICA_RESPONSE="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test" | tr -d '\n')"
+  PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "SELECT num FROM fibonacci ORDER BY num;" -d "test" | tr -d '\n')"
+  REPLICA_RESPONSE="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "SELECT num FROM fibonacci ORDER BY num;" -d "test" | tr -d '\n')"
 
   if [ "$PRIMARY_RESPONSE" = "1235813" ]
   then
@@ -157,6 +138,7 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   postgresVersion: '$ALTERNATIVE_MAYOR_PG_VERSION'
+  postgresql.conf: {}
 EOF
 
   cat << EOF > "$LOG_PATH/alter-restore-cluster.yaml"

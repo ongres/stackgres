@@ -3,8 +3,8 @@ title: "Licensing"
 weight: 5
 ---
 
-StackGres source code is licensed under the OSI-approved open source license GNU Affero General
- Public License version 3 (AGPLv3). All the source code is available on the
+StackGres source code is licensed under the OSI-approved open source license [GNU Affero General
+ Public License version 3 (AGPLv3)](https://www.gnu.org/licenses/agpl-3.0.en.html). All the source code is available on the
  [gitlab repository](https://gitlab.com/ongresinc/stackgres).
 
 We respect others who switch to or are directly built as source-available software, but we don’t

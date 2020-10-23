@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+
+  <!-- Ignore Generated source code -->
+  <Match>
+    <Or>
+      <Package name="~.*\.generated\..*" />
+      <Source name="~.*generated-sources.*\.java" />
+    </Or>
+  </Match>
+
+  <!-- Ignore spotbugs reports from incomplete detectors -->
+  <Match>
+    <Bug pattern="TESTING" />
+  </Match>
+
+  <!-- Ignore native image substitutions -->
+  <Match>
+    <Package name="~.*\.nativeimage.*" />
+    <Source name="~.*Substitutions\.java" />
+  </Match>
+
+  <!-- Ignore spotbugs reports from Potential CRLF Injection for logs -->
+  <Match>
+    <Bug pattern="CRLF_INJECTION_LOGS" />
+  </Match>
+
+  <!-- Se: Non-transient non-serializable instance field in serializable class -->
+  <Match>
+    <Bug pattern="SE_BAD_FIELD" />
+  </Match>
+
+  <!-- Return values should not be ignored when they contain the operation status code,
+       ignores ArrayBlockingQueue.offer() return value. -->
+  <Match>
+    <Bug pattern="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE" />
+    <Or>
+      <And>
+        <Class name="io.stackgres.operatorframework.reconciliation.AbstractReconciliationCycle" />
+        <Method name="stop" />
+      </And>
+      <And>
+        <Class name="io.stackgres.operatorframework.reconciliation.AbstractReconciliationCycle" />
+        <Method name="reconcile" />
+      </And>
+    </Or>
+  </Match>
+
+  <!-- False positive https://github.com/spotbugs/spotbugs/issues/1250 -->
+  <Match>
+    <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE" />
+    <Or>
+      <And>
+        <Class name="io.stackgres.apiweb.distributedlogs.DistributedLogsFetcherImpl" />
+        <Method name="logs" />
+      </And>
+    </Or>
+  </Match>
+
+  <!-- Most of them are injected in setter metods from CDI -->
+  <Match>
+    <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR" />
+  </Match>
+
+  <!-- Used internally -->
+  <Match>
+    <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
+    <Or>
+      <And>
+        <Class name="io.stackgres.operator.controller.WatcherMonitor" />
+        <Method name="onEventReceived" />
+      </And>
+      <And>
+        <Class name="io.stackgres.apiweb.resource.ClusterDtoScanner$Transformer" />
+        <Method name="transform" />
+      </And>
+    </Or>
+  </Match>
+</FindBugsFilter>

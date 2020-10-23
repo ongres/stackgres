@@ -12,9 +12,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
-import io.fabric8.kubernetes.api.model.ConfigMapKeySelectorBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.stackgres.apiweb.config.WebApiProperty;
 import io.stackgres.apiweb.dto.cluster.ClusterConfiguration;
 import io.stackgres.apiweb.dto.cluster.ClusterDistributedLogs;
@@ -28,12 +26,11 @@ import io.stackgres.apiweb.dto.cluster.ClusterPostgresService;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgresServices;
 import io.stackgres.apiweb.dto.cluster.ClusterRestore;
 import io.stackgres.apiweb.dto.cluster.ClusterScriptEntry;
+import io.stackgres.apiweb.dto.cluster.ClusterScriptFrom;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecAnnotations;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
-import io.stackgres.apiweb.dto.cluster.ConfigMapKeySelectorDto;
 import io.stackgres.apiweb.dto.cluster.PodScheduling;
-import io.stackgres.apiweb.dto.cluster.SecretKeySelectorDto;
 import io.stackgres.common.ArcUtil;
 import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -243,22 +240,9 @@ public class ClusterTransformer
       targetEntry.setScript(entry.getScript());
       if (entry.getScriptFrom() != null) {
         StackGresClusterScriptFrom targetScriptFrom = new StackGresClusterScriptFrom();
-        final SecretKeySelectorDto secretKeyRef = entry.getScriptFrom().getSecretKeyRef();
-        if (secretKeyRef != null) {
-          targetScriptFrom.setSecretKeyRef(new SecretKeySelectorBuilder()
-              .withName(secretKeyRef.getName())
-              .withKey(secretKeyRef.getKey())
-              .build());
-        }
-        final ConfigMapKeySelectorDto configMapKeyRef = entry.getScriptFrom().getConfigMapKeyRef();
-        if (configMapKeyRef != null) {
-          targetScriptFrom.setConfigMapKeyRef(new ConfigMapKeySelectorBuilder()
-              .withName(configMapKeyRef.getName())
-              .withKey(configMapKeyRef.getKey())
-              .build());
-        }
+        targetScriptFrom.setSecretKeyRef(entry.getScriptFrom().getSecretKeyRef());
+        targetScriptFrom.setConfigMapKeyRef(entry.getScriptFrom().getConfigMapKeyRef());
         targetEntry.setScriptFrom(targetScriptFrom);
-
       }
       return targetEntry;
     }).collect(ImmutableList.toImmutableList());
@@ -331,6 +315,13 @@ public class ClusterTransformer
           targetEntry.setScript(sourceEntry.getScript());
           targetEntry.setDatabase(sourceEntry.getDatabase());
           targetEntry.setName(sourceEntry.getName());
+          if (sourceEntry.getScriptFrom() != null) {
+            targetEntry.setScriptFrom(new ClusterScriptFrom());
+            targetEntry.getScriptFrom().setSecretKeyRef(
+                sourceEntry.getScriptFrom().getSecretKeyRef());
+            targetEntry.getScriptFrom().setConfigMapKeyRef(
+                sourceEntry.getScriptFrom().getConfigMapKeyRef());
+          }
           return targetEntry;
         }).collect(ImmutableList.toImmutableList()));
       }

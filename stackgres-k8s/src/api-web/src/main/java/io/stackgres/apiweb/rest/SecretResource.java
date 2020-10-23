@@ -19,6 +19,11 @@ import javax.ws.rs.core.MediaType;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.secret.SecretDto;
 import io.stackgres.common.resource.ResourceScanner;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 @Path("/stackgres/secrets")
 @RequestScoped
@@ -33,6 +38,14 @@ public class SecretResource {
     this.scanner = scanner;
   }
 
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  array = @ArraySchema(schema = @Schema(implementation = SecretDto.class))) })
+      })
+  @CommonApiResponses
   @Path("/{namespace}")
   @GET
   @Authenticated

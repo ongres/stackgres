@@ -24,8 +24,7 @@ import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 @ApplicationScoped
 public class DefaultPoolingMutator
-    extends AbstractDefaultResourceMutator<StackGresPoolingConfig>
-    implements ClusterMutator {
+    extends AbstractDefaultResourceMutator<StackGresPoolingConfig> {
 
   @Inject
   public DefaultPoolingMutator(

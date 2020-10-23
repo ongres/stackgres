@@ -1,7 +1,7 @@
 static_resources:
   listeners:
     - name: postgres_listener
-      per_connection_buffer_limit_bytes: 32768  # 32 KiB
+      per_connection_buffer_limit_bytes: 1048576 # 1 MiB
       address:
         socket_address:
           address: 0.0.0.0
@@ -17,8 +17,9 @@ static_resources:
                 "@type": type.googleapis.com/envoy.config.filter.network.tcp_proxy.v2.TcpProxy
                 stat_prefix: ingress_tcp
                 cluster: postgres_cluster
+                idle_timeout: 0s
     - name: postgres_raw_listener
-      per_connection_buffer_limit_bytes: 32768  # 32 KiB
+      per_connection_buffer_limit_bytes: 1048576 # 1 MiB
       address:
         socket_address:
           address: 0.0.0.0
@@ -30,11 +31,12 @@ static_resources:
                 "@type": type.googleapis.com/envoy.config.filter.network.tcp_proxy.v2.TcpProxy
                 stat_prefix: ingress_raw_tcp
                 cluster: postgres_cluster
+                idle_timeout: 0s
   clusters:
     - name: postgres_cluster
       type: STATIC
       connect_timeout: 1s
-      per_connection_buffer_limit_bytes: 32768 # 32 KiB
+      per_connection_buffer_limit_bytes: 1048576 # 1 MiB
       load_assignment:
         cluster_name: postgres_raw_cluster
         endpoints:

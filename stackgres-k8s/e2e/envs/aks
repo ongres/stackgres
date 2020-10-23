@@ -7,7 +7,8 @@ K8S_VERSION="${K8S_VERSION:-1.15.11}"
 K8S_AZ_NODE_SIZE="${K8S_AZ_NODE_SIZE:-Standard_F2}"
 K8S_AZ_NODE_COUNT="${K8S_AZ_NODE_COUNT:-3}"
 K8S_AZ_REGISTRY="${K8S_AZ_REGISTRY:-stackgrese2e}"
-E2E_USE_INTERMIDIATE_PRIVATE_REPO=true
+
+export E2E_USE_INTERMIDIATE_PRIVATE_REPO=true
 
 if [ "$K8S_AZ_NODE_SIZE" = "Standard_F2" ] && [ "$E2E_PARALLELISM" -gt "$K8S_AZ_NODE_COUNT" ]
 then
@@ -19,6 +20,11 @@ then
   >&2 echo "Warning: using kubernetes version 1.13.11 since e2e default $DEFAULT_K8S_VERSION is not available for aks"
   K8S_VERSION=1.13.11
 fi
+
+get_k8s_env_version() {
+  echo "az version $(az version 2>/dev/null | grep -F '"azure-cli"' | cut -d '"' -f 4)"
+  echo
+}
 
 set_up_resource_group(){
   RS_EXISTS=$(az group exists --name "$K8S_AZ_RESOURCE_GROUP")

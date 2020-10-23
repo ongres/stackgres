@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.sidecars.pgexporter;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -15,22 +16,27 @@ import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Resources;
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
+import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.common.Sidecar;
@@ -46,6 +52,7 @@ import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.Unchecked;
 
 @Singleton
 @Sidecar(PostgresExporter.NAME)
@@ -53,6 +60,7 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
 
   public static final String SERVICE_MONITOR = "-stackgres-postgres-exporter";
   public static final String SERVICE = "-prometheus-postgres-exporter";
+  public static final String CONFIG_MAP = "-prometheus-postgres-exporter-config";
   public static final String NAME = StackgresClusterContainers.POSTGRES_EXPORTER;
 
   private static final String IMAGE_NAME =
@@ -64,6 +72,11 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
   public static String serviceName(StackGresClusterContext clusterContext) {
     String name = clusterContext.getCluster().getMetadata().getName();
     return ResourceUtil.resourceName(name + SERVICE);
+  }
+
+  public static String configName(StackGresClusterContext clusterContext) {
+    String name = clusterContext.getCluster().getMetadata().getName();
+    return ResourceUtil.resourceName(name + CONFIG_MAP);
   }
 
   public static String serviceMonitorName(StackGresClusterContext clusterContext) {
@@ -79,30 +92,69 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
         .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION,
             StackGresProperty.CONTAINER_BUILD.getString()))
         .withImagePullPolicy("IfNotPresent")
-        .withEnv(new EnvVarBuilder()
+        .withCommand("/bin/sh", "-exc")
+        .withArgs(""
+            + "run_postgres_exporter() {\n"
+            + "  set -x\n"
+            + "  exec /usr/local/bin/postgres_exporter \\\n"
+            + "    --log.level=info\n"
+            + "}\n"
+            + "\n"
+            + "set +x\n"
+            + "while true\n"
+            + "do\n"
+            + "  if ( [ -z \"$PID\" ] || [ ! -d \"/proc/$PID\" ] ) \\\n"
+            + "    && [ -S '" + ClusterStatefulSetPath.PG_RUN_PATH.path()
+              + "/.s.PGSQL." + Envoy.PG_PORT + "' ]\n"
+            + "  then\n"
+            + "    if [ -n \"$PID\" ]\n"
+            + "    then\n"
+            + "      kill \"$PID\"\n"
+            + "      wait \"$PID\" || true\n"
+            + "    fi\n"
+            + "    run_postgres_exporter &\n"
+            + "    PID=\"$!\"\n"
+            + "  fi\n"
+            + "  sleep 5\n"
+            + "done\n")
+        .withEnv(
+            new EnvVarBuilder()
+                .withName("PGAPPNAME")
+                .withValue(NAME)
+                .build(),
+            new EnvVarBuilder()
                 .withName("DATA_SOURCE_NAME")
-                .withValue("host=/var/run/postgresql user=postgres port=" + Envoy.PG_PORT)
+                .withValue("postgresql://postgres@:" + Envoy.PG_PORT + "/postgres"
+                    + "?host=" + ClusterStatefulSetPath.PG_RUN_PATH.path()
+                    + "&sslmode=disable")
                 .build(),
             new EnvVarBuilder()
-                .withName("POSTGRES_EXPORTER_USERNAME")
-                .withValue("postgres")
-                .build(),
-            new EnvVarBuilder()
-                .withName("POSTGRES_EXPORTER_PASSWORD")
-                .withValueFrom(new EnvVarSourceBuilder().withSecretKeyRef(
-                    new SecretKeySelectorBuilder()
-                        .withName(context.getClusterContext().getCluster().getMetadata().getName())
-                        .withKey("superuser-password")
-                        .build())
-                    .build())
+                .withName("PG_EXPORTER_EXTEND_QUERY_PATH")
+                .withValue("/var/opt/postgres-exporter/queries.yaml")
                 .build())
         .withPorts(new ContainerPortBuilder()
             .withContainerPort(9187)
             .build())
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
-            .volumeMount(context.getClusterContext()));
+            .volumeMount(context.getClusterContext()),
+            new VolumeMountBuilder()
+                .withName("queries")
+                .withMountPath("/var/opt/postgres-exporter/queries.yaml")
+                .withSubPath("queries.yaml")
+                .withNewReadOnly(true)
+                .build());
 
     return container.build();
+  }
+
+  @Override
+  public ImmutableList<Volume> getVolumes(StackGresGeneratorContext context) {
+    return ImmutableList.of(new VolumeBuilder()
+        .withName("queries")
+        .withConfigMap(new ConfigMapVolumeSourceBuilder()
+            .withName(configName(context.getClusterContext()))
+            .build())
+        .build());
   }
 
   @Override
@@ -116,10 +168,26 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
 
     Optional<Prometheus> prometheus = clusterContext.getPrometheus();
     ImmutableList.Builder<HasMetadata> resourcesBuilder = ImmutableList.builder();
+    final String clusterNamespace = cluster.getMetadata().getNamespace();
+
+    resourcesBuilder.add(new ConfigMapBuilder()
+        .withNewMetadata()
+        .withName(configName(clusterContext))
+        .withNamespace(clusterNamespace)
+        .withLabels(labels)
+        .endMetadata()
+        .withData(ImmutableMap.of("queries.yaml",
+            Unchecked.supplier(() -> Resources
+                .asCharSource(PostgresExporter.class.getResource(
+                    "/prometheus-postgres-exporter/queries.yaml"),
+                    StandardCharsets.UTF_8)
+                .read()).get()))
+        .build());
+
     resourcesBuilder.add(
         new ServiceBuilder()
             .withNewMetadata()
-            .withNamespace(cluster.getMetadata().getNamespace())
+            .withNamespace(clusterNamespace)
             .withName(serviceName(clusterContext))
             .withLabels(ImmutableMap.<String, String>builder()
                 .putAll(labels)
@@ -157,7 +225,7 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
           LabelSelector selector = new LabelSelector();
           spec.setSelector(selector);
           NamespaceSelector namespaceSelector = new NamespaceSelector();
-          namespaceSelector.setAny(true);
+          namespaceSelector.setMatchNames(ImmutableList.of(clusterNamespace));
           spec.setNamespaceSelector(namespaceSelector);
 
           selector.setMatchLabels(labels);

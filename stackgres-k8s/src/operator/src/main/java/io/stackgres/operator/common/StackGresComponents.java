@@ -5,6 +5,9 @@
 
 package io.stackgres.operator.common;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.Comparator;
 import java.util.Properties;
 
@@ -24,16 +27,16 @@ public enum StackGresComponents {
   private final ImmutableMap<String, String> componentVersions;
 
   StackGresComponents() {
-    try {
+    try (InputStream is = StackGresComponents.class.getResourceAsStream("/versions.properties")) {
       Properties properties = new Properties();
-      properties.load(StackGresComponents.class.getResourceAsStream("/versions.properties"));
+      properties.load(is);
       this.componentVersions = Seq.seq(properties)
           .collect(ImmutableMap.toImmutableMap(
               t -> t.v1.toString(), t -> t.v2.toString()));
     } catch (RuntimeException ex) {
       throw ex;
-    } catch (Exception ex) {
-      throw new RuntimeException(ex);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
   }
 

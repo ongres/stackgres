@@ -46,9 +46,6 @@ check_cluster_not_deployed() {
 check_cluster_deployed_after_node_configured() {
 
   NODE_NAME=$(get_first_node_name)
-  echo "Node name: $NODE_NAME"
-  echo "Node label key: $NODE_LABEL_KEY"
-  echo "Node label value: $NODE_LABEL_VALUE"
 
   kubectl label nodes "$NODE_NAME" "$NODE_LABEL_KEY"="$NODE_LABEL_VALUE"
 

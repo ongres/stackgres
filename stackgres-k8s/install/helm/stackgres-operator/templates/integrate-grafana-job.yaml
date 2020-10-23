@@ -5,19 +5,22 @@ metadata:
   namespace: {{ .Release.Namespace }}
   name: "{{ .Release.Name }}-integrate-grafana"
   labels:
-    app: stackgres-integrate-grafana
-    scope: integrate-grafana
+    app: stackgres-operator
+    scope: init
+    job: integrate-grafana
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "0"
 spec:
   template:
     metadata:
       labels:
-        app: stackgres-integrate-grafana
-        scope: integrate-grafana
+        app: stackgres-operator
+        scope: init
+        job: integrate-grafana
     spec:
-      serviceAccountName: {{ .Release.Name }}
+      serviceAccountName: {{ .Release.Name }}-init
       containers:
       - name: "integrate-grafana"
         image: "janwh/k8s-inithelper:latest"
@@ -26,8 +29,10 @@ spec:
           - "/bin/bash"
           - "-ecx"
           - |
-            {{- if and .Values.grafana.namespace .Values.grafana.secretName .Values.grafana.secretUserKey .Values.grafana.secretPasswordKey }}
-            grafana_credentials="$(kubectl get secret -n {{ .Values.grafana.namespace }} {{ .Values.grafana.secretName }} --template {{ "'{{ .data." }}{{ .Values.grafana.secretUserKey }}{{ " }}'" }}"):$(kubectl get secret -n {{ .Release.Namespace }} {{ .Values.grafana.secretName }} --template {{ "'{{ .data." }}{{ .Values.grafana.secretPasswordKey }}{{ " }}'" }}")"
+            {{- if and .Values.grafana.secretNamespace .Values.grafana.secretName .Values.grafana.secretUserKey .Values.grafana.secretPasswordKey }} 
+            grafana_credentials="$(kubectl get secret -n '{{ .Values.grafana.secretNamespace }}' '{{ .Values.grafana.secretName }}' \
+              --template '{{ `{{` }} printf `%s:%s` (index .data `{{ .Values.grafana.secretUserKey }}` | base64decode) (index .data `{{ .Values.grafana.secretPasswordKey }}` | base64decode) {{ `}}` }}' \
+              )"
             {{- else }}
             grafana_credentials="{{ .Values.grafana.user }}:{{ .Values.grafana.password }}"
             {{- end }}

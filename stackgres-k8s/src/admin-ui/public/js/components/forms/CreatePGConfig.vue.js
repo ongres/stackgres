@@ -1,6 +1,6 @@
 var CreatePGConfig = Vue.component("CreatePgConfig", {
     template: `
-        <form id="create-pgconfig" class="noSubmit">
+        <form id="create-pgconfig" class="noSubmit" v-if="loggedIn && isReady">
             <!-- Vue reactivity hack -->
             <template v-if="Object.keys(config).length > 0"></template>
             <header>

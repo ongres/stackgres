@@ -15,6 +15,9 @@ import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.github.fge.jsonpatch.ReplaceOperation;
+import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple3;
 
 public interface JsonPatchMutator<T> {
 
@@ -48,12 +51,23 @@ public interface JsonPatchMutator<T> {
 
     List<JsonPatchOperation> operations = new ArrayList<>();
 
-    defaultNode.fieldNames().forEachRemaining(field -> {
-      if (!incomingNode.has(field)) {
-        JsonPointer propertyPointer = basePointer.append(field);
-        operations.add(new AddOperation(propertyPointer, defaultNode.get(field)));
-      }
-    });
+    List<Tuple3<JsonNode, JsonPointer, JsonNode>> jsonNodeStack = new ArrayList<>();
+    jsonNodeStack.add(Tuple.tuple(incomingNode, basePointer, defaultNode));
+    while (!jsonNodeStack.isEmpty()) {
+      List<Tuple3<JsonNode, JsonPointer, JsonNode>> jsonNodes = new ArrayList<>(jsonNodeStack);
+      jsonNodeStack.clear();
+      jsonNodes.stream().forEach(t -> Seq.seq(t.v3.fieldNames())
+          .forEach(field -> {
+            JsonPointer propertyPointer = t.v2.append(field);
+            JsonNode propertyDefaultValue = t.v3.get(field);
+            if (propertyDefaultValue.isObject() && t.v1.has(field)) {
+              jsonNodeStack.add(Tuple.tuple(
+                  t.v1.get(field), propertyPointer, propertyDefaultValue));
+            } else if (!t.v1.has(field)) {
+              operations.add(new AddOperation(propertyPointer, propertyDefaultValue));
+            }
+          }));
+    }
 
     return operations;
   }

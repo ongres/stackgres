@@ -1,6 +1,6 @@
 var CreateLogsServer = Vue.component("CreateLogsServer", {
 	template: `
-        <form id="create-logs-server" class="noSubmit">
+        <form id="create-logs-server" class="noSubmit" v-if="loggedIn && isReady">
             <!-- Vue reactivity hack -->
             <template v-if="Object.keys(cluster).length > 0"></template>
 

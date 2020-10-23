@@ -3,9 +3,9 @@ title: Pre-requisites
 weight: 1
 ---
 
-# Backups
+## Backups
 
-## General configuration
+### General configuration
 
 By default backups are scheduled (`config.backup.fullSchedule`) at 05:00 UTC in a window
  (`config.backup.fullSchedule`) of 1 hour of duration and with a retention policy
@@ -30,7 +30,7 @@ We reccomend to configure all those aspects by creating a YAML values file for b
  configuration to include in the helm installation (`-f` or `--values` parameters) of the
  StackGres operator similar to the following:
 
-``` yaml
+```yaml
 configurations:
   backupconfig:
     baseBackups:
@@ -43,7 +43,7 @@ configurations:
         # maxDiskBandwitdh:
 ```
 
-## Storage
+### Storage
 
 Backups support the following storage options:
  
@@ -59,7 +59,7 @@ By default backups are stored in a [MinIO](https://min.io/) service as a separat
  configuration  to include in the helm installation (`-f` or `--values` parameters) of the
  StackGres operator similar to the following:
 
-``` yaml
+```yaml
 configurations:
   backupconfig:
     # fill the preferred storage method with
@@ -73,7 +73,7 @@ minio:
   create: false
 ```
 
-## Restore
+### Restore
 
 StackGres can perfrom a database restoration from a stackgres backup by just setting the UID of 
  the backup CR that represents the backup that we want to restore. Like this:
@@ -85,7 +85,7 @@ cluster:
       fromBackup: #the backup UID to restore
 ```
 
-# Monitoring
+## Monitoring
 
 Currently StackGres integrates only with prometheus by providing prometheus exporter sidecar and
  offer an auto binding mechanism if prometheus is installed using the [prometeus operator](https://github.com/coreos/prometheus-operator).
@@ -96,14 +96,14 @@ The recommended way to install prometheus operator in kubernetes is by using the
 helm install --namespace prometheus prometheus-operator stable/prometheus-operator
 ```
 
-## Grafana integration
+### Grafana integration
 
 By default helm chart of [prometheus operator](https://github.com/coreos/prometheus-operator) comes
  with grafana and StackGres offer an integration to allow monitoring a StackGres cluster pod
  directly from the StackGres UI. There are various options to achieve it.
 
 
-### All in one
+#### All in one
 
 You can install the prometheus operator together with StackGres operator by setting
  `prometheus-operator.create` to true, this will install also a grafana instance and it will be
@@ -114,7 +114,7 @@ helm install --namespace prometheus prometheus-operator stable/prometheus-operat
   --set prometheus-operator.create=true
 ```
 
-### Automatic integration
+#### Automatic integration
 
 If you already have a grafana installation in your system you can embed it automatically in the
  StackGres UI by setting the property `grafana.autoEmbed=true`:
@@ -134,19 +134,21 @@ Some manual steps are required in order to achieve such integration.
 
 1. Create grafana dashboard for postgres exporter and copy/paste share URL:
 
-Using the UI: Grafana > Create > Import > Grafana.com Dashboard 9628
+    **Using the UI:** Click on Grafana > Create > Import > Grafana.com Dashboard 9628
+
+    Check [the dashboard](https://grafana.com/grafana/dashboards/9628) for more details.
 
 2. Copy/paste grafana dashboard URL for postgres exporter:
 
-Using the UI: Grafana > Dashboard > Manage > Select postgres exporter dashboard > Copy URL
+    **Using the UI:** Click on Grafana > Dashboard > Manage > Select postgres exporter dashboard > Copy URL
 
-Or using the value returned by the previous script.
+    Or using the value returned by the previous script.
 
 3. Create and copy/paste grafana API token:
 
-Using the UI: Grafana > Configuration > API Keys > Add API key (for viewer) > Copy key value
+    **Using the UI:** Grafana > Configuration > API Keys > Add API key (for viewer) > Copy key value
 
-# Non production options
+## Non production options
 
 We reccomend to disable all non production options in a production environment. To do so create a
  YAML values file to include in the helm installation (`-f` or `--values` parameters) of the

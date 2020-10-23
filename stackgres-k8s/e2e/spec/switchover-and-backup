@@ -3,30 +3,9 @@
 . "$SPEC_PATH/abstract/backup"
 
 e2e_test_install() {
-  if [ "$E2E_ENV" = "kind" ]
-  then
-    cat << EOF > "$LOG_PATH/minio-affinity.yaml"
-minio:
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-          - matchExpressions:
-            - key: "kubernetes.io/hostname"
-              operator: "In"
-              values: [ "${KIND_NAME}-worker", "${KIND_NAME}-control-plane" ]
-EOF
-  else
-    echo -n > "$LOG_PATH/minio-affinity.yaml"
-  fi
-  if [ "$E2E_ENV" = "minishift" ]
-  then
-    eval "$(minishift oc-env)"
-    oc adm policy add-scc-to-user anyuid -n "$CLUSTER_NAMESPACE" -z "$CLUSTER_NAME-minio"
-  fi
+  install_minio
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
-    -f "$LOG_PATH/minio-affinity.yaml"
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
@@ -77,7 +56,7 @@ check_switchover() {
     return 1
   fi
 
-  if ! run_query -i 1 -p 5432 -q "'SELECT pg_is_in_recovery()'" | grep -q '^t$'
+  if ! run_query -i 1 -p 5432 -q "SELECT pg_is_in_recovery()" | grep -q '^t$'
   then
     echo "SUCCESS. The primary is now the node at index 1"
   else
@@ -85,7 +64,7 @@ check_switchover() {
     return 1
   fi
 
-  if ! run_query -i 0 -p 5432 -q "'SELECT pg_is_in_recovery()'" | grep -q '^f$'
+  if ! run_query -i 0 -p 5432 -q "SELECT pg_is_in_recovery()" | grep -q '^f$'
   then
     echo "SUCCESS. The replica is now the node at index 0"
   else

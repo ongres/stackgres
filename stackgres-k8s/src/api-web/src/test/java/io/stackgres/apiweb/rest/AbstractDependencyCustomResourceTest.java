@@ -16,7 +16,6 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.CustomResourceList;
-import io.stackgres.apiweb.rest.AbstractDependencyRestService;
 import io.stackgres.apiweb.dto.ResourceDto;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -28,7 +27,6 @@ import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 abstract class AbstractDependencyCustomResourceTest<T extends ResourceDto, R extends CustomResource,

@@ -40,17 +40,20 @@ set_up_private_repository() {
   export PRIVATE_REPO_URI=$(get_private_repository_uri)
   export PRIVATE_OPERATOR_IMAGE_NAME="$PRIVATE_REPO_URI/$OPERATOR_IMAGE_NAME"
   export PRIVATE_RESTAPI_IMAGE_NAME="$PRIVATE_REPO_URI/$RESTAPI_IMAGE_NAME"
+  export PRIVATE_JOBS_IMAGE_NAME="$PRIVATE_REPO_URI/$JOBS_IMAGE_NAME"
   export PRIVATE_ADMINUI_IMAGE_NAME="$PRIVATE_REPO_URI/$ADMINUI_IMAGE_NAME"
 
   get_private_repository_password | docker login --username AWS --password-stdin "$PRIVATE_REPO_URI"
   
   docker tag "$OPERATOR_IMAGE_NAME" "$PRIVATE_OPERATOR_IMAGE_NAME"
   docker tag "$RESTAPI_IMAGE_NAME" "$PRIVATE_RESTAPI_IMAGE_NAME"
+  docker tag "$JOBS_IMAGE_NAME" "$PRIVATE_JOBS_IMAGE_NAME"
   docker tag "$ADMINUI_IMAGE_NAME" "$PRIVATE_ADMINUI_IMAGE_NAME"
 
   docker push "$PRIVATE_OPERATOR_IMAGE_NAME"
   docker push "$PRIVATE_RESTAPI_IMAGE_NAME"
-  docker push "$PRIVATE_ADMINUI_IMAGE_NAME"
+  docker push "$JOBS_IMAGE_NAME"
+  docker push "$PRIVATE_ADMINUI_IMAGE_NAME"  
 
   if kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null
   then  
@@ -66,6 +69,35 @@ set_up_private_repository() {
     --docker-username="AWS" \
     --docker-password="$(get_private_repository_password)"
   fi
+
+  if kubectl get serviceaccount -n "$OPERATOR_NAMESPACE" stackgres-operator > /dev/null
+  then
+    kubectl delete serviceaccount -n "$OPERATOR_NAMESPACE" stackgres-operator
+    cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: stackgres-operator
+  namespace: $OPERATOR_NAMESPACE
+imagePullSecrets:
+- name: regcred
+EOF
+  fi
+
+  if kubectl get serviceaccount -n "$OPERATOR_NAMESPACE" stackgres-restapi > /dev/null
+  then
+    kubectl delete serviceaccount -n "$OPERATOR_NAMESPACE" stackgres-restapi
+    cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: stackgres-restapi
+  namespace: $OPERATOR_NAMESPACE
+imagePullSecrets:
+- name: regcred
+EOF
+  fi
+
 }
 
 get_private_repository_uri() {
@@ -83,7 +115,7 @@ load_cached_images_from_local_repository() {
   cat "$E2E_PULLED_IMAGES_PATH" \
     | cut -d : -f 2-3 | sort | uniq \
     | xargs -r -n 1 -I % -P 0 \
-      "$SHELL" $SHELL_XTRACE "$(dirname "$0")/e2e" load_cached_image_from_local_repository '%'
+      "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" load_cached_image_from_local_repository '%'
 }
 
 load_cached_image_from_local_repository() {

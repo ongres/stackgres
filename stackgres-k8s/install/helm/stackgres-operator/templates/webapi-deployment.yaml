@@ -1,4 +1,4 @@
-{{- if .Values.deploy.restapi }}
+{{- if and .Values.deploy.restapi }}
 apiVersion: "apps/v1"
 kind: "Deployment"
 metadata:
@@ -21,13 +21,11 @@ spec:
   selector:
     matchLabels:
       app: {{ .Values.restapi.name }}
-      version: "{{ .Chart.Version }}"
       group:  stackgres.io
   template:
     metadata:
       labels:
         app: {{ .Values.restapi.name }}
-        version: "{{ .Chart.Version }}"
         group:  stackgres.io
     spec:
       serviceAccountName: {{ .Values.restapi.name }}
@@ -44,7 +42,10 @@ spec:
         imagePullPolicy: {{ .Values.restapi.image.pullPolicy }}
         env:
           - name: RESTAPI_NAMESPACE
-            value: "{{ .Release.Namespace }}"
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
           {{- if .Values.developer.logLevel }}
           - name: RESTAPI_LOG_LEVEL
             value: "{{ .Values.developer.logLevel }}"
@@ -129,8 +130,19 @@ spec:
           {{- end }}
         args:
           - '/bin/sh'
-          - '-exc'
+          - '-ec'
+          {{- if .Values.developer.showDebug }}
+          - '-x'
+          {{- end }}
           - |
+            {{- if .Values.developer.showDebug }}
+            echo "
+              GRAFANA_EMBEDDED=$GRAFANA_EMBEDDED
+              GRAFANA_URL_PATH=$GRAFANA_URL_PATH
+              GRAFANA_SCHEMA=$GRAFANA_SCHEMA
+              GRAFANA_WEB_HOST=$GRAFANA_WEB_HOST
+              GRAFANA_TOKEN=$GRAFANA_TOKEN"
+            {{- end }}
             envsubst '
               $GRAFANA_EMBEDDED
               $GRAFANA_URL_PATH
@@ -139,8 +151,14 @@ spec:
               $GRAFANA_TOKEN' \
               < /etc/nginx/template.d/stackgres-operator.template \
               > /etc/nginx/conf.d/stackgres-operator.conf
+            {{- if .Values.developer.showDebug }}
             cat /etc/nginx/conf.d/stackgres-operator.conf
+            {{- end }}
+            {{- if .Values.developer.showDebug }}
             exec nginx-debug -g 'daemon off;'
+            {{- else }}
+            exec nginx -g 'daemon off;'
+            {{- end }}
         ports:
         - containerPort: 9443
           name: "https"

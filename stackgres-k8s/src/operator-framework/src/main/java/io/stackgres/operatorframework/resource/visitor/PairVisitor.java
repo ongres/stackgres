@@ -9,9 +9,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 public abstract class PairVisitor<T, R> {
   protected final T left;
@@ -42,7 +43,7 @@ public abstract class PairVisitor<T, R> {
   }
 
   public <O extends T, S> PairVisitor<T, R> lastVisit(
-      Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor) {
+      UnaryOperator<PairVisitor<O, S>> subVisitor) {
     return lastResult(subVisitor.apply(as()).resultAs());
   }
 
@@ -51,7 +52,7 @@ public abstract class PairVisitor<T, R> {
    */
   public <O extends T, S> PairVisitor<T, R> lastVisitIfBothInstanceOf(
       Class<O> resourceClass,
-      Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor) {
+      UnaryOperator<PairVisitor<O, S>> subVisitor) {
     if (!bothInstanceOf(resourceClass)) {
       return this;
     }
@@ -65,9 +66,9 @@ public abstract class PairVisitor<T, R> {
     return (S) result();
   }
 
-  public abstract PairVisitor<T, R> transformRight(Function<T, T> rightTransformer);
+  public abstract PairVisitor<T, R> transformRight(UnaryOperator<T> rightTransformer);
 
-  public abstract PairVisitor<T, R> transformLeft(Function<T, T> leftTransformer);
+  public abstract PairVisitor<T, R> transformLeft(UnaryOperator<T> leftTransformer);
 
   public abstract PairVisitor<T, R> visit();
 
@@ -84,15 +85,15 @@ public abstract class PairVisitor<T, R> {
 
   public abstract <O> PairVisitor<T, R> visitTransformed(
       Function<T, O> getter, BiConsumer<T, O> setter,
-      BiFunction<O, O, O> leftTransformer, BiFunction<O, O, O> rightTransformer);
+      BinaryOperator<O> leftTransformer, BinaryOperator<O> rightTransformer);
 
   public abstract <O, S> PairVisitor<T, R> visitWith(Function<T, O> getter,
       BiConsumer<T, O> setter,
-      Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor);
+      UnaryOperator<PairVisitor<O, S>> subVisitor);
 
   public abstract <O, S> PairVisitor<T, R> visitWithUsingDefaultFrom(Function<T, O> getter,
       BiConsumer<T, O> setter,
-      Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor,
+      UnaryOperator<PairVisitor<O, S>> subVisitor,
       Supplier<O> defaultValue);
 
   public abstract <E, O extends List<E>> PairVisitor<T, R> visitList(
@@ -100,7 +101,7 @@ public abstract class PairVisitor<T, R> {
 
   public abstract <E, O extends List<E>, S> PairVisitor<T, R> visitListWith(
       Function<T, O> getter, BiConsumer<T, O> setter,
-      Function<PairVisitor<E, S>, PairVisitor<E, S>> tester);
+      UnaryOperator<PairVisitor<E, S>> tester);
 
   public abstract <K, V, O extends Map<K, V>> PairVisitor<T, R> visitMap(
       Function<T, O> getter);
@@ -117,8 +118,8 @@ public abstract class PairVisitor<T, R> {
   public abstract <K, V, O extends Map<K, V>>
       PairVisitor<T, R> visitMapTransformed(
           Function<T, O> getter, BiConsumer<T, O> setter,
-          BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> leftTransformer,
-          BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> rightTransformer);
+          BinaryOperator<Entry<K, V>> leftTransformer,
+          BinaryOperator<Entry<K, V>> rightTransformer);
 
   public PairVisitor<T, R> lastResult(R result) {
     return new LastResult(left, right, result);
@@ -134,14 +135,14 @@ public abstract class PairVisitor<T, R> {
 
     @Override
     public <O extends T, S> PairVisitor<T, R> lastVisit(
-        Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor) {
+        UnaryOperator<PairVisitor<O, S>> subVisitor) {
       return this;
     }
 
     @Override
     public <O extends T, S> PairVisitor<T, R> lastVisitIfBothInstanceOf(
         Class<O> resourceClass,
-        Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor) {
+        UnaryOperator<PairVisitor<O, S>> subVisitor) {
       return this;
     }
 
@@ -151,12 +152,12 @@ public abstract class PairVisitor<T, R> {
     }
 
     @Override
-    public PairVisitor<T, R> transformRight(Function<T, T> rightTransformer) {
+    public PairVisitor<T, R> transformRight(UnaryOperator<T> rightTransformer) {
       return this;
     }
 
     @Override
-    public PairVisitor<T, R> transformLeft(Function<T, T> leftTransformer) {
+    public PairVisitor<T, R> transformLeft(UnaryOperator<T> leftTransformer) {
       return this;
     }
 
@@ -189,21 +190,21 @@ public abstract class PairVisitor<T, R> {
 
     @Override
     public <O> PairVisitor<T, R> visitTransformed(Function<T, O> getter, BiConsumer<T, O> setter,
-        BiFunction<O, O, O> leftTransformer, BiFunction<O, O, O> rightTransformer) {
+        BinaryOperator<O> leftTransformer, BinaryOperator<O> rightTransformer) {
       return this;
     }
 
     @Override
     public <O, S> PairVisitor<T, R> visitWith(Function<T, O> getter,
         BiConsumer<T, O> setter,
-        Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor) {
+        UnaryOperator<PairVisitor<O, S>> subVisitor) {
       return this;
     }
 
     @Override
     public <O, S> PairVisitor<T, R> visitWithUsingDefaultFrom(
         Function<T, O> getter, BiConsumer<T, O> setter,
-        Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor,
+        UnaryOperator<PairVisitor<O, S>> subVisitor,
         Supplier<O> defaultValue) {
       return this;
     }
@@ -217,7 +218,7 @@ public abstract class PairVisitor<T, R> {
     @Override
     public <E, O extends List<E>, S> PairVisitor<T, R> visitListWith(
         Function<T, O> getter, BiConsumer<T, O> setter,
-        Function<PairVisitor<E, S>, PairVisitor<E, S>> tester) {
+        UnaryOperator<PairVisitor<E, S>> tester) {
       return this;
     }
 
@@ -249,8 +250,8 @@ public abstract class PairVisitor<T, R> {
     public <K, V, O extends Map<K, V>>
         PairVisitor<T, R> visitMapTransformed(
             Function<T, O> getter, BiConsumer<T, O> setter,
-            BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> leftTransformer,
-            BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> rightTransformer) {
+            BinaryOperator<Entry<K, V>> leftTransformer,
+            BinaryOperator<Entry<K, V>> rightTransformer) {
       return this;
     }
 

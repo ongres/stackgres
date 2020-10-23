@@ -774,6 +774,7 @@ const store = new Vuex.Store({
 
     setTheme (state, theme) {
       state.theme = theme;
+      document.cookie = "sgTheme="+theme+"; Path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT";
     },
     
     setCurrentNamespace (state, namespace) {
@@ -1011,7 +1012,6 @@ Vue.mixin({
     }
   },
   computed: {
-   
   },
   methods: {
 
@@ -1282,7 +1282,7 @@ if( urlParams.has('showLogs') ) {
   store.commit('showLogs', true);
 }
 
-if( urlParams.has('darkmode') ) {
+if( urlParams.has('darkmode') || (getCookie('sgTheme') === 'dark') ) {
   console.log('Switching to darkmode');
   store.commit('setTheme', 'dark');
   $('body').addClass('darkmode');

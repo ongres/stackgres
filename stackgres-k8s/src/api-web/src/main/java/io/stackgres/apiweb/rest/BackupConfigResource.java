@@ -22,10 +22,10 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.quarkus.security.Authenticated;
-import io.stackgres.apiweb.dto.SecretKeySelector;
 import io.stackgres.apiweb.dto.backupconfig.BackupConfigDto;
 import io.stackgres.apiweb.transformer.DependencyResourceTransformer;
 import io.stackgres.common.ArcUtil;
+import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -34,6 +34,11 @@ import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.common.resource.ResourceWriter;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 
@@ -80,6 +85,14 @@ public class BackupConfigResource extends
             resource.getMetadata().getName());
   }
 
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  array = @ArraySchema(schema = @Schema(implementation = BackupConfigDto.class))) })
+      })
+  @CommonApiResponses
   @Authenticated
   @Override
   public List<BackupConfigDto> list() {
@@ -88,6 +101,14 @@ public class BackupConfigResource extends
         .toList();
   }
 
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = BackupConfigDto.class)) })
+      })
+  @CommonApiResponses
   @Authenticated
   @Override
   public BackupConfigDto get(String namespace, String name) {
@@ -96,6 +117,11 @@ public class BackupConfigResource extends
         .get();
   }
 
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK")
+      })
+  @CommonApiResponses
   @Authenticated
   @Override
   public void create(BackupConfigDto resource) {
@@ -105,6 +131,11 @@ public class BackupConfigResource extends
     createOrUpdateSecret(resource);
   }
 
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK")
+      })
+  @CommonApiResponses
   @Authenticated
   @Override
   public void delete(BackupConfigDto resource) {
@@ -113,6 +144,11 @@ public class BackupConfigResource extends
     deleteSecret(resource);
   }
 
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK")
+      })
+  @CommonApiResponses
   @Authenticated
   @Override
   public void update(BackupConfigDto resource) {
@@ -143,7 +179,7 @@ public class BackupConfigResource extends
     final String name = util.secretName(resource);
     util.extractSecretInfo(resource)
         .filter(t -> t.v2.v1 != null)
-        .forEach(t -> t.v2.v4.accept(SecretKeySelector.create(name, t.v1)));
+        .forEach(t -> t.v2.v4.accept(new SecretKeySelector(t.v1, name)));
   }
 
   private void createOrUpdateSecret(BackupConfigDto resource) {

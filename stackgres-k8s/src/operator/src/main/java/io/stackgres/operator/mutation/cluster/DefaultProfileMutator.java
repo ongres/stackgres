@@ -26,8 +26,7 @@ import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 @ApplicationScoped
-public class DefaultProfileMutator extends AbstractDefaultResourceMutator<StackGresProfile>
-    implements ClusterMutator {
+public class DefaultProfileMutator extends AbstractDefaultResourceMutator<StackGresProfile> {
 
   @Inject
   public DefaultProfileMutator(DefaultCustomResourceFactory<StackGresProfile> resourceFactory,

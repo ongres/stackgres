@@ -9,8 +9,10 @@ import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.RequestScoped;
@@ -38,22 +40,30 @@ import io.stackgres.apiweb.dto.cluster.ClusterDistributedLogs;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterInitData;
 import io.stackgres.apiweb.dto.cluster.ClusterLogEntryDto;
+import io.stackgres.apiweb.dto.cluster.ClusterScriptEntry;
 import io.stackgres.apiweb.dto.cluster.ClusterScriptFrom;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
-import io.stackgres.apiweb.dto.cluster.ConfigMapKeySelectorDto;
-import io.stackgres.apiweb.dto.cluster.SecretKeySelectorDto;
 import io.stackgres.apiweb.resource.ResourceTransactionHandler;
 import io.stackgres.apiweb.transformer.ResourceTransformer;
 import io.stackgres.common.ArcUtil;
+import io.stackgres.common.crd.ConfigMapKeySelector;
+import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
+import org.jooq.lambda.tuple.Tuple4;
 
 @Path("/stackgres/sgcluster")
 @RequestScoped
@@ -63,12 +73,15 @@ public class ClusterResource
     extends AbstractRestService<ClusterDto, StackGresCluster> {
 
   private static final String DEFAULT_SCRIPT_KEY = "script";
+
   private final CustomResourceScanner<ClusterDto> clusterScanner;
   private final CustomResourceFinder<ClusterDto> clusterFinder;
   private final CustomResourceFinder<ClusterStatsDto> clusterResourceStatsFinder;
   private final DistributedLogsFetcher distributedLogsFetcher;
   private final ResourceTransactionHandler<Secret> secretTransactionHandler;
   private final ResourceTransactionHandler<ConfigMap> configMapTransactionHandler;
+  private final ResourceFinder<Secret> secretFinder;
+  private final ResourceFinder<ConfigMap> configMapFinder;
 
   @Inject
   public ClusterResource(
@@ -80,7 +93,9 @@ public class ClusterResource
       CustomResourceFinder<ClusterStatsDto> clusterResourceStatsFinder,
       DistributedLogsFetcher distributedLogsFetcher,
       ResourceTransactionHandler<Secret> secretTransactionHandler,
-      ResourceTransactionHandler<ConfigMap> configMapTransactionHandler) {
+      ResourceTransactionHandler<ConfigMap> configMapTransactionHandler,
+      ResourceFinder<Secret> secretFinder,
+      ResourceFinder<ConfigMap> configMapFinder) {
     super(null, finder, scheduler, transformer);
     this.clusterScanner = clusterScanner;
     this.clusterFinder = clusterFinder;
@@ -88,6 +103,8 @@ public class ClusterResource
     this.distributedLogsFetcher = distributedLogsFetcher;
     this.secretTransactionHandler = secretTransactionHandler;
     this.configMapTransactionHandler = configMapTransactionHandler;
+    this.secretFinder = secretFinder;
+    this.configMapFinder = configMapFinder;
   }
 
   public ClusterResource() {
@@ -99,21 +116,49 @@ public class ClusterResource
     this.distributedLogsFetcher = null;
     this.secretTransactionHandler = null;
     this.configMapTransactionHandler = null;
+    this.secretFinder = null;
+    this.configMapFinder = null;
   }
 
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  array = @ArraySchema(schema = @Schema(implementation = ClusterDto.class))) })
+      })
+  @CommonApiResponses
   @Authenticated
   @Override
   public List<ClusterDto> list() {
-    return clusterScanner.getResources();
+    return Seq.seq(clusterScanner.getResources())
+        .map(this::setSecrets)
+        .map(this::setConfigMaps)
+        .toList();
   }
 
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ClusterDto.class)) })
+      })
+  @CommonApiResponses
   @Authenticated
   @Override
   public ClusterDto get(String namespace, String name) {
     return clusterFinder.findByNameAndNamespace(name, namespace)
+        .map(this::setSecrets)
+        .map(this::setConfigMaps)
         .orElseThrow(NotFoundException::new);
   }
 
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK")
+      })
+  @CommonApiResponses
   @Authenticated
   @Override
   public void create(ClusterDto resource) {
@@ -125,7 +170,83 @@ public class ClusterResource
             () -> super.create(resource)));
   }
 
-  public void createSecrets(Deque<Secret> secrets, Runnable transaction) {
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK")
+      })
+  @CommonApiResponses
+  @Authenticated
+  @Override
+  public void update(ClusterDto resource) {
+    super.update(resource);
+  }
+
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK")
+      })
+  @CommonApiResponses
+  @Authenticated
+  @Override
+  public void delete(ClusterDto resource) {
+    super.delete(resource);
+  }
+
+  private ClusterDto setSecrets(ClusterDto resource) {
+    final String namespace = resource.getMetadata().getNamespace();
+    Seq.of(Optional.ofNullable(resource.getSpec())
+        .map(ClusterSpec::getInitData)
+        .map(ClusterInitData::getScripts))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .flatMap(scripts -> scripts.stream())
+        .zipWithIndex()
+        .filter(t -> t.v1.getScriptFrom() != null
+            && t.v1.getScriptFrom().getSecretKeyRef() != null)
+        .map(script -> extractSecretInfo(resource, script))
+        .filter(t -> t.v2.v3 != null)
+        .grouped(t -> t.v2.v3.getName())
+        .flatMap(t -> {
+          Optional<Map<String, String>> secrets = secretFinder
+              .findByNameAndNamespace(t.v1, namespace)
+              .map(Secret::getData);
+          return secrets
+              .map(s -> t.v2.map(tt -> Tuple.tuple(
+                  ResourceUtil.decodeSecret(s.get(tt.v2.v3.getKey())), tt.v2.v2)))
+              .orElse(Seq.empty());
+        })
+        .forEach(t -> t.v2.accept(t.v1));
+    return resource;
+  }
+
+  private ClusterDto setConfigMaps(ClusterDto resource) {
+    final String namespace = resource.getMetadata().getNamespace();
+    Seq.of(Optional.ofNullable(resource.getSpec())
+        .map(ClusterSpec::getInitData)
+        .map(ClusterInitData::getScripts))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .flatMap(scripts -> scripts.stream())
+        .zipWithIndex()
+        .filter(t -> t.v1.getScriptFrom() != null
+            && t.v1.getScriptFrom().getConfigMapKeyRef() != null)
+        .map(script -> extractConfigMapInfo(resource, script))
+        .filter(t -> t.v2.v3 != null)
+        .grouped(t -> t.v2.v3.getName())
+        .flatMap(t -> {
+          Optional<Map<String, String>> configMaps = configMapFinder
+              .findByNameAndNamespace(t.v1, namespace)
+              .map(ConfigMap::getData);
+          return configMaps
+              .map(s -> t.v2.map(tt -> Tuple.tuple(
+                  s.get(tt.v2.v3.getKey()), tt.v2.v2)))
+              .orElse(Seq.empty());
+        })
+        .forEach(t -> t.v2.accept(t.v1));
+    return resource;
+  }
+
+  private void createSecrets(Deque<Secret> secrets, Runnable transaction) {
     Secret secret = secrets.poll();
     if (secret != null) {
       secretTransactionHandler.create(secret, () -> createSecrets(secrets, transaction));
@@ -134,7 +255,7 @@ public class ClusterResource
     }
   }
 
-  public void createConfigMaps(Deque<ConfigMap> configMaps, Runnable transaction) {
+  private void createConfigMaps(Deque<ConfigMap> configMaps, Runnable transaction) {
     ConfigMap configMap = configMaps.poll();
     if (configMap != null) {
       configMapTransactionHandler.create(configMap,
@@ -153,7 +274,7 @@ public class ClusterResource
             .filter(entry -> entry.v1.getScriptFrom().getConfigMapScript() != null)
             .map(tuple -> {
               ClusterScriptFrom clusterScriptFrom = tuple.v1.getScriptFrom();
-              ConfigMapKeySelectorDto configMapKeyRef = clusterScriptFrom.getConfigMapKeyRef();
+              ConfigMapKeySelector configMapKeyRef = clusterScriptFrom.getConfigMapKeyRef();
               final String configMapScript = clusterScriptFrom.getConfigMapScript();
               if (configMapKeyRef != null) {
                 return new ConfigMapBuilder()
@@ -165,9 +286,8 @@ public class ClusterResource
                         configMapScript))
                     .build();
               } else {
-                final String configMapName = tuple.v1.getName() != null ? tuple.v1.getName() :
-                    resource.getMetadata().getName() + "-init-script-" + tuple.v2;
-                configMapKeyRef = new ConfigMapKeySelectorDto();
+                final String configMapName = scriptResourceName(resource, tuple);
+                configMapKeyRef = new ConfigMapKeySelector();
                 configMapKeyRef.setName(configMapName);
                 configMapKeyRef.setKey(DEFAULT_SCRIPT_KEY);
                 clusterScriptFrom.setConfigMapKeyRef(configMapKeyRef);
@@ -194,7 +314,7 @@ public class ClusterResource
             .filter(entry -> entry.v1.getScriptFrom().getSecretScript() != null)
             .map(tuple -> {
               ClusterScriptFrom clusterScriptFrom = tuple.v1.getScriptFrom();
-              SecretKeySelectorDto secretKeyRef = clusterScriptFrom.getSecretKeyRef();
+              SecretKeySelector secretKeyRef = clusterScriptFrom.getSecretKeyRef();
 
               final String secretScript = ResourceUtil
                   .encodeSecret(clusterScriptFrom.getSecretScript());
@@ -209,9 +329,8 @@ public class ClusterResource
                         secretScript))
                     .build();
               } else {
-                final String secretName = tuple.v1.getName() != null ? tuple.v1.getName() :
-                    resource.getMetadata().getName() + "-init-script-" + tuple.v2;
-                secretKeyRef = new SecretKeySelectorDto();
+                final String secretName = scriptResourceName(resource, tuple);
+                secretKeyRef = new SecretKeySelector();
                 secretKeyRef.setName(secretName);
                 secretKeyRef.setKey(DEFAULT_SCRIPT_KEY);
                 clusterScriptFrom.setSecretKeyRef(secretKeyRef);
@@ -227,9 +346,50 @@ public class ClusterResource
             }).collect(Collectors.toCollection(ArrayDeque::new))).orElse(new ArrayDeque<>());
   }
 
+  private Tuple2<String, Tuple4<String, Consumer<String>, SecretKeySelector,
+      Consumer<SecretKeySelector>>> extractSecretInfo(
+          ClusterDto resource, Tuple2<ClusterScriptEntry, Long> script) {
+    return Tuple.<String, Tuple4<String, Consumer<String>, SecretKeySelector,
+        Consumer<SecretKeySelector>>>tuple(
+            scriptResourceName(resource, script),
+            Tuple.<String, Consumer<String>, SecretKeySelector,
+            Consumer<SecretKeySelector>>tuple(
+                script.v1.getScriptFrom().getSecretScript(),
+                script.v1.getScriptFrom()::setSecretScript,
+                script.v1.getScriptFrom().getSecretKeyRef(),
+                script.v1.getScriptFrom()::setSecretKeyRef));
+  }
+
+  private Tuple2<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector,
+      Consumer<ConfigMapKeySelector>>> extractConfigMapInfo(
+          ClusterDto resource, Tuple2<ClusterScriptEntry, Long> script) {
+    return Tuple.<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector,
+        Consumer<ConfigMapKeySelector>>>tuple(
+            scriptResourceName(resource, script),
+            Tuple.<String, Consumer<String>, ConfigMapKeySelector,
+            Consumer<ConfigMapKeySelector>>tuple(
+                script.v1.getScriptFrom().getConfigMapScript(),
+                script.v1.getScriptFrom()::setConfigMapScript,
+                script.v1.getScriptFrom().getConfigMapKeyRef(),
+                script.v1.getScriptFrom()::setConfigMapKeyRef));
+  }
+
+  private String scriptResourceName(ClusterDto resource, Tuple2<ClusterScriptEntry, Long> tuple) {
+    return tuple.v1.getName() != null ? tuple.v1.getName() :
+        resource.getMetadata().getName() + "-init-script-" + tuple.v2;
+  }
+
   /**
    * Return a {@code ClusterStatus}.
    */
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ClusterStatsDto.class)) })
+      })
+  @CommonApiResponses
   @GET
   @Path("/stats/{namespace}/{name}")
   @Authenticated
@@ -242,6 +402,15 @@ public class ClusterResource
   /**
    * Query distributed logs and return a list of {@code ClusterLogEntry}.
    */
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  array = @ArraySchema(
+                      schema = @Schema(implementation = ClusterLogEntryDto.class))) })
+      })
+  @CommonApiResponses
   @GET
   @Path("/logs/{namespace}/{name}")
   @Authenticated

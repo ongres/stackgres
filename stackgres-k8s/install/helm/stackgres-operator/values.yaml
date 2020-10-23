@@ -9,6 +9,12 @@ restapi:
     name: "stackgres/restapi"
     tag: "development-jvm"
     pullPolicy: "IfNotPresent"
+jobs:
+  name: stackgres-jobs
+  image:
+    name: "stackgres/jobs"
+    tag: "development-jvm"
+    pullPolicy: "IfNotPresent"
 adminui:
   name: stackgres-adminui
   image:
@@ -35,6 +41,8 @@ adminui:
 
 serviceAccount:
   create: true
+
+initClusterRole: cluster-admin
 
 rbac:
   create: true
@@ -89,6 +97,7 @@ grafana:
 developer: {}
   # logLevel: trace
   # showStackTraces: true
+  # enableDebug: false # Show more info when starting operator and restapi
   # enableJvmDebug: false # Only work with JVM version and allow connect
   #                       # on port 8000 of operator Pod with jdb or similar
   # enableJvmDebugSuspend: false

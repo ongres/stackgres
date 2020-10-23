@@ -1,6 +1,6 @@
 var CreateBackupConfig = Vue.component("CreateBackupConfig", {
     template: `
-        <form id="create-backup-config">
+        <form id="create-backup-config" v-if="loggedIn && isReady">
             <!-- Vue reactivity hack -->
             <template v-if="Object.keys(config).length > 0"></template>
 
@@ -490,9 +490,9 @@ var CreateBackupConfig = Vue.component("CreateBackupConfig", {
                         vm.backupConfigRetention = config.data.spec.baseBackups.retention;
                         vm.backupConfigTarSizeThreshold = tresholdSize.match(/\d+/g);
                         vm.backupConfigTarSizeThresholdUnit = tresholdUnit;
-                        vm.backupConfigMaxNetworkBandwitdh = config.data.spec.baseBackups.performance.maxNetworkBandwitdh;
-                        vm.backupConfigMaxDiskBandwitdh = config.data.spec.baseBackups.performance.maxDiskBandwitdh;
-                        vm.backupConfigUploadDiskConcurrency = config.data.spec.baseBackups.performance.uploadDiskConcurrency;
+                        vm.backupConfigMaxNetworkBandwitdh = hasProp(config, 'data.spec.baseBackups.performance.maxNetworkBandwitdh') ? config.data.spec.baseBackups.performance.maxNetworkBandwitdh : '';
+                        vm.backupConfigMaxDiskBandwitdh = hasProp(config, 'data.spec.baseBackups.performance.maxDiskBandwitdh') ? config.data.spec.baseBackups.performance.maxDiskBandwitdh : ''; 
+                        vm.backupConfigUploadDiskConcurrency = hasProp(config, 'data.spec.baseBackups.performance.uploadDiskConcurrency') ? config.data.spec.baseBackups.performance.uploadDiskConcurrency : 1;
                         vm.backupConfigStorageType = config.data.spec.storage.type;
     
                         //s3
@@ -500,8 +500,8 @@ var CreateBackupConfig = Vue.component("CreateBackupConfig", {
                             vm.backupS3Bucket = config.data.spec.storage.s3.bucket;
                             vm.backupS3Path =  (typeof config.data.spec.storage.s3.path !== 'undefined') ? config.data.spec.storage.s3.path : '';
                             vm.backupS3Region =  (typeof config.data.spec.storage.s3.region !== 'undefined') ? config.data.spec.storage.s3.region : '';
-                            vm.backupS3AccessKeyId = config.data.spec.storage.s3.awsCredentials.accessKeyId;
-                            vm.backupS3SecretAccessKey = config.data.spec.storage.s3.awsCredentials.secretAccessKey;
+                            vm.backupS3AccessKeyId = hasProp(config, 'data.spec.storage.s3.awsCredentials.accessKeyId') ? config.data.spec.storage.s3.awsCredentials.accessKeyId : '';
+                            vm.backupS3SecretAccessKey = hasProp(config, 'data.spec.storage.s3.awsCredentials.secretAccessKey') ? config.data.spec.storage.s3.awsCredentials.secretAccessKey : '';
                             vm.backupS3StorageClass = (typeof config.data.spec.storage.s3.storageClass !== 'undefined') ? config.data.spec.storage.s3.storageClass : '';
                         }
                         
@@ -511,8 +511,8 @@ var CreateBackupConfig = Vue.component("CreateBackupConfig", {
                             vm.backupS3CompatiblePath = (typeof config.data.spec.storage.s3Compatible.path !== 'undefined') ? config.data.spec.storage.s3Compatible.path : '';
                             vm.backupS3CompatibleEndpoint = (typeof config.data.spec.storage.s3Compatible.endpoint !== 'undefined') ? config.data.spec.storage.s3Compatible.endpoint : '';
                             vm.backupS3CompatibleRegion = (typeof config.data.spec.storage.s3Compatible.region !== 'undefined') ? config.data.spec.storage.s3Compatible.region : '';
-                            vm.backupS3CompatibleAccessKeyId = config.data.spec.storage.s3Compatible.awsCredentials.accessKeyId;
-                            vm.backupS3CompatibleSecretAccessKey = config.data.spec.storage.s3Compatible.awsCredentials.secretAccessKey;
+                            vm.backupS3CompatibleAccessKeyId = hasProp(config, 'data.spec.storage.s3Compatible.awsCredentials.accessKeyId') ? config.data.spec.storage.s3Compatible.awsCredentials.accessKeyId : '';
+                            vm.backupS3CompatibleSecretAccessKey = hasProp(config, 'data.spec.storage.s3Compatible.awsCredentials.secretAccessKey') ? config.data.spec.storage.s3Compatible.awsCredentials.secretAccessKey : '';
                             vm.backupS3CompatibleStorageClass = (typeof config.data.spec.storage.s3Compatible.storageClass !== 'undefined') ? config.data.spec.storage.s3Compatible.storageClass : '';
                             vm.backupS3CompatibleEnablePathStyleAddressing = config.data.spec.storage.s3Compatible.enablePathStyleAddressing;
                         }

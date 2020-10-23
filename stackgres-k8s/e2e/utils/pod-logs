@@ -92,12 +92,12 @@ pod_logs_pod_container_in_trap() {
         ;;
     esac
   done
-  trap_exec kubectl logs -n "$namespace" "$pod" -c "$container" -f \
+  trap_exec kubectl logs -n "$namespace" "$pod" -c "$container" --timestamps -f \
     | (
       set +x
       while IFS="$(printf '\n')" read line
       do
-        echo_raw "[${pod%/*}:$container] $(date --iso-8601=seconds) $line"
+        echo_raw "[${pod%/*}:$container] $line"
       done
       ) &
 }
