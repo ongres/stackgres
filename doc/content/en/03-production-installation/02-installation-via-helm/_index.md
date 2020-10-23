@@ -210,7 +210,7 @@ You can expose the UI using the bellow command:
 
 ```
 POD_NAME=$(kubectl get pods --namespace stackgres -l "app=stackgres-restapi" -o jsonpath="{.items[0].metadata.name}")
-kubectl port-forward ${POD_NAME} --address 0.0.0.0 8443:9443 --namespace stackgre
+kubectl port-forward ${POD_NAME} --address 0.0.0.0 8443:9443 --namespace stackgres
 ```
 
 Connect to `https://<your-host>:8443/admin/` and get your UI credentials:
