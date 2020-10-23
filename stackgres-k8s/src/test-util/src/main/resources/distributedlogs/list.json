@@ -32,7 +32,7 @@
                     "type": "Failed"
                 }
             ],
-            "clusters": [{
+            "connectedClusters": [{
               "namespace": "stackgres",
               "name": "stackgres",
               "config": {
