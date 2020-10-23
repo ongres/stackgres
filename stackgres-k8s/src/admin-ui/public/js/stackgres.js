@@ -1025,9 +1025,9 @@ Vue.mixin({
       let param = crd;
 
       if(field == 'spec.postgresql.conf') {
-        param =  crd.spec.properties['postgresql.conf']
+        param =  crd.spec['postgresql.conf']
       } else if (field == 'spec.pgBouncer.pgbouncer.ini') {
-        param =  crd.spec.properties.pgBouncer.properties['pgbouncer.ini']
+        param =  crd.spec.pgBouncer['pgbouncer.ini']
       } else {
         params = field.split('.');
         params.forEach(function(item, index){
@@ -1203,22 +1203,17 @@ Vue.mixin({
       let param = crd;
 
       if(field == 'spec.postgresql.conf') {
-        param =  crd.spec.properties['postgresql.conf']
+        param =  crd.spec['postgresql.conf']
       } else if (field == 'spec.pgBouncer.pgbouncer.ini') {
-        param =  crd.spec.properties.pgBouncer.properties['pgbouncer.ini']
+        param =  crd.spec.pgBouncer['pgbouncer.ini']
       } else {
         params = field.split('.');
         params.forEach(function(item, index){
-          if( !index ) // First level
-            param = param[item]
-          else if (param.type == 'object')
-            param = param.properties[item]
-          else if (param.type == 'array')
-            param = param.items.properties[item]
+          param = param[item]
         })
       }
 
-      store.commit("setTooltipDescription", param['description']);
+      store.commit("setTooltipsText", param.description);
 
     },
 
