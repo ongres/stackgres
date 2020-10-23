@@ -125,6 +125,7 @@ public class ClusterReconciliationCycle
     @Inject CustomResourceScanner<PrometheusConfig> prometheusScanner;
   }
 
+  @Inject
   public ClusterReconciliationCycle(Parameters parameters) {
     super("Cluster", parameters.clientFactory::create,
         parameters.reconciliator, StackGresClusterContext::getCluster,

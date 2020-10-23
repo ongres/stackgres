@@ -49,6 +49,7 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
   protected ReconciliationCycle(String name, Supplier<KubernetesClient> clientSupplier,
       Reconciliator<T> reconciliator, Function<T, H> resourceGetter, S handlerSelector) {
     super();
+    logger.debug("ReconciliationCycle", new Exception());
     this.name = name;
     this.clientSupplier = clientSupplier;
     this.reconciliator = reconciliator;

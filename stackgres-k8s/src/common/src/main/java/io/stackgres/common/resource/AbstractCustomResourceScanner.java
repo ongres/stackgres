@@ -41,8 +41,10 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource,
   @Override
   public Optional<List<T>> findResources() {
     try (KubernetesClient client = clientFactory.create()) {
-      return Optional.ofNullable(
-          client.customResources(customResourceDefinitionContext,
+      return Optional.ofNullable(client.customResourceDefinitions()
+          .withName(customResourceDefinitionContext.getName())
+          .get())
+          .map(crd -> client.customResources(customResourceDefinitionContext,
               customResourceClass,
               customResourceListClass,
               customResourceDoneClass)
@@ -55,8 +57,10 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource,
   @Override
   public Optional<List<T>> findResources(String namespace) {
     try (KubernetesClient client = clientFactory.create()) {
-      return Optional.ofNullable(
-          client.customResources(customResourceDefinitionContext,
+      return Optional.ofNullable(client.customResourceDefinitions()
+          .withName(customResourceDefinitionContext.getName())
+          .get())
+          .map(crd -> client.customResources(customResourceDefinitionContext,
               customResourceClass,
               customResourceListClass,
               customResourceDoneClass)
@@ -68,16 +72,27 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource,
 
   @Override
   public List<T> getResources() {
-    return findResources()
-        .orElseThrow(() -> new IllegalStateException("StackGres is not correctly installed:"
-            + " CRD " + customResourceDefinitionContext.getName() + " not found."));
+    try (KubernetesClient client = clientFactory.create()) {
+      return client.customResources(customResourceDefinitionContext,
+          customResourceClass,
+          customResourceListClass,
+          customResourceDoneClass)
+          .list()
+          .getItems();
+    }
   }
 
   @Override
   public List<T> getResources(String namespace) {
-    return findResources(namespace)
-        .orElseThrow(() -> new IllegalStateException("StackGres is not correctly installed:"
-            + " CRD " + customResourceDefinitionContext.getName() + " not found."));
+    try (KubernetesClient client = clientFactory.create()) {
+      return client.customResources(customResourceDefinitionContext,
+          customResourceClass,
+          customResourceListClass,
+          customResourceDoneClass)
+          .inNamespace(namespace)
+          .list()
+          .getItems();
+    }
   }
 
 }
