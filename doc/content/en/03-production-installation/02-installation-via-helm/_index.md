@@ -5,40 +5,137 @@ url: install/helm/install
 ---
 
 StackGres operator and clusters can be installed using [Helm](https://helm.sh/) version >= `3.1.1`.
-However, installing StackGres is not only the Operator and the Cluster, if you want you have other options
-to modify, add or remove in your installation.
+As you may expect, a Production environment will require to install and setup additional components alongside your StackGres Operator and Cluster resources.
 
-## Install Operator
+In this page, we are going through all the necessary steps to setup a Production like environment using Helm repositories and workflow.
 
-Firstly, create `stackgres` namespace for the operator if doesn't exists already.
-Also, you could include the namespace for Prometheus operator and the SG cluster we will create.
+## Setting up namespaces
 
-Create a namespace for the 
+Each component of your infrastructure needs to be isolated in different namespaces as an standard practice for reusability and security. For a minimal setup, three namespaces will be created:
 
 ```bash
 kubectl create namespace stackgres
-kubectl create namespace prometheus
+kubectl create namespace monitoring
 kubectl create namespace my-cluster
 ```
 
-Now that you have created the Prometheus namespace you can install the Prometheus operator, 
-this will install also a Grafana instance and it will be
- embedded with the StackGres UI automatically using the `grafana.autoEmbed=true` as will be shown later in the SG operator install.
+`stackgres` will be the StackGres' **Operator** namespace, and `my-cluster` will be the namespace for the node resources that will contain the data and working backends.
 
-Helm will take care of the necessary steps in Prometheus Operator deployment.
+The `monitoring` namespace was created for sitting the Prometheus Operator, which after all the further steps will end up with a running Grafana instance, embedded in the StackGres UI automatically by using the `grafana.autoEmbed=true` property, as shown later.
+
+## Monitoring, Observability and Alerting with Prometheus and Grafana
+
+Prometheus natively includes the following services:
+
+- Prometheus Server: The core service
+- Alert Manager: Handle events and send notifications to your preferred on-call platform
+- Push Gateway: exposes metrics for ephemeral and batch jobs  
+
+### Installing Prometheus Server
+
+First, add the Prometheus Community repositories:
 
 ```bash
-helm install --namespace prometheus prometheus-operator stable/prometheus-operator
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+helm repo update
 ```
 
-Or by executing following script:
+Install the [Prometheus Server Operator](https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus):
 
-``` sh
+```bash
+helm install --namespace monitoring prometheus-operator prometheus-community/prometheus
+```
+
+### [Optional] Re-routing services to different ports 
+
+In a production setup, is very likely that you will be installing all the resources in a remote location, so you'll need to route the services through specific interfaces and ports.
+
+> For sake of simplicity, we port-forward to all interfaces (0.0.0.0), although we
+> strongly recommend to only expose through internal network interfaces when dealing on production.
+
+Exposing Prometheus Server UI:
+
+```bash
+export POD_NAME=$(kubectl get pods --namespace monitoring -l "app=prometheus,component=server" -o jsonpath="{.items[0].metadata.name}")
+kubectl --namespace monitoring port-forward $POD_NAME --address 0.0.0.0 9090
+```
+
+The Prometheus server serves through port 80 under `prometheus-operator-server.monitoring.svc.cluster.local` DNS name.
+
+Exposing Alert Manager:
+
+Over port 80, Prometheus alertmanager can be accessed through `prometheus-operator-alertmanager.monitoring.svc.cluster.local` DNS name.
+
+```
+export POD_NAME=$(kubectl get pods --namespace monitoring -l "app=prometheus,component=alertmanager" -o jsonpath="{.items[0].metadata.name}")
+kubectl --namespace monitoring port-forward $POD_NAME --address 0.0.0.0 9093
+```
+
+Get the PushGateway URL by running these commands in the same shell:
+
+```
+export POD_NAME=$(kubectl get pods --namespace monitoring -l "app=prometheus,component=pushgateway" -o jsonpath="{.items[0].metadata.name}")
+kubectl --namespace monitoring port-forward $POD_NAME --address 0.0.0.0 9091
+```
+
+The Prometheus PushGateway can be accessed via port 9091 on the following DNS name from within your cluster: `prometheus-operator-pushgateway.monitoring.svc.cluster.local`
+
+### Installing Prometheus Stack
+
+[kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack)
+
+```
+helm install --namespace monitoring prometheus prometheus-community/kube-prometheus-stack
+```
+
+```
+kubectl --namespace monitoring get pods -l "release=prometheus"
+```
+
+### Installing Grafana and create basic dashboards
+
+Get the source repository for the Grafana charts:
+
+```sh
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+```
+
+And install the chart:
+
+```
+helm install --namespace monitoring grafana grafana/grafana
+```
+
+Get the `admin` credential:
+
+```
+kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+```
+
+Expose your Grafana service at `grafana.monitoring.svc.cluster.local` (port 80) through your interfaces and port 3000 to login remotely (using above secret):
+
+```bash
+export POD_NAME=$(kubectl get pods --namespace monitoring -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=grafana" -o jsonpath="{.items[0].metadata.name}")
+kubectl --namespace monitoring port-forward $POD_NAME --address 0.0.0.0 3000
+```
+
+> NOTE: take note of the Grafana's URL `grafana.monitoring.svc.cluster.local`, which will be used when configuring StackGres Operator.
+
+The following script, will create a basic PostgreSQL dashboard against Grafana's API (you can change grafana_host to point to the remote location):
+
+```sh
 grafana_host=http://localhost:3000
-grafana_credentials=admin:prom-operator
+grafana_admin_cred=$(kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo)
+grafana_credentials=admin:${grafana_admin_cred}
 grafana_prometheus_datasource_name=Prometheus
 curl_grafana_api() {
   curl -sk -H "Accept: application/json" -H "Content-Type: application/json" -u "$grafana_credentials" "$@"
+}
+get_admin_settings() {
+  # Not executed in the script, but useful to keep this
+  curl_grafana_api -X GET  ${grafana_host}/api/admin/settings | jq .
 }
 dashboard_id=9628
 dashboard_json="$(cat << EOF
@@ -55,24 +152,75 @@ dashboard_json="$(cat << EOF
 EOF
 )"
 grafana_dashboard_url="$(curl_grafana_api -X POST -d "$dashboard_json" "$grafana_host/api/dashboards/import" | jq -r .importedUrl)"
-echo "$grafana_dashboard_url"
+echo ${grafana_host}${grafana_dashboard_url}
+```
 
-Then install the StackGres Operator
+The resulting URL will be the dashboard whether your PostgreSQL metrics will be show up.
+
+
+### Monitoring Setup Verification
+
+At this point, you should have ended with the following pods:
+
+```
+# kubectl get pods -n monitoring 
+NAME                                                      READY   STATUS    RESTARTS   AGE
+alertmanager-prometheus-kube-prometheus-alertmanager-0    2/2     Running   0          20m
+grafana-7575c4b7b5-2cbvw                                  1/1     Running   0          14m
+prometheus-grafana-5b458bf78c-tpqrl                       2/2     Running   0          20m
+prometheus-kube-prometheus-operator-576f4bf45b-w5j9m      2/2     Running   0          20m
+prometheus-kube-state-metrics-c65b87574-tsx24             1/1     Running   0          20m
+prometheus-operator-alertmanager-655b8bc7bf-hc6fd         2/2     Running   0          79m
+prometheus-operator-kube-state-metrics-69fcc8d48c-tmn8j   1/1     Running   0          79m
+prometheus-operator-node-exporter-28qz9                   1/1     Running   0          79m
+prometheus-operator-pushgateway-888f886ff-bxxtw           1/1     Running   0          79m
+prometheus-operator-server-7686fc69bd-mlvsx               2/2     Running   0          79m
+prometheus-prometheus-kube-prometheus-prometheus-0        3/3     Running   1          20m
+prometheus-prometheus-node-exporter-jbsm2                 0/1     Pending   0          20m
+```
+
+
+## StackGres Operator installation
+
+Now that we have configured a Backup storage place and a monitoring system already in place for proper observability, we can proceed
+to the StackGres Operator itself!
 
 ```bash
+grafana_admin_cred=$(kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo)
+
 helm install --namespace stackgres stackgres-operator \
         --set grafana.autoEmbed=true \
-        --set-string grafana.webHost=prometheus-operator-grafana.prometheus \
+        --set-string grafana.webHost=grafana.monitoring \
         --set-string grafana.user=admin \
-        --set-string grafana.password=prom-operator \
+        --set-string grafana.password=${grafana_admin_cred} \
         --set-string adminui.service.type=LoadBalancer \
         {{< download-url >}}/helm-operator.tgz
 ```
+
+> Notice that we use the short version of the Grafana's URL for the webHost.
 
 In the previous example StackGres have included several options to the installation, including the needed options to enable
 the monitoring. Follow the [Cluster Parameters](install/cluster/parameters) section for a described list.
 
 > The `grafana.webHost` value may change if the installation is not Prometheus' default, as well as `grafana.user` and `grafana.password`.
+
+## Exposing the UI
+
+You can expose the UI using the bellow command:
+
+```
+POD_NAME=$(kubectl get pods --namespace stackgres -l "app=stackgres-restapi" -o jsonpath="{.items[0].metadata.name}")
+kubectl port-forward ${POD_NAME} --address 0.0.0.0 8443:9443 --namespace stackgre
+```
+
+Connect to `https://<your-host>:8443/admin/` and get your UI credentials:
+
+```bash
+kubectl get secret -n stackgres stackgres-restapi --template '{{ printf "username = %s\n" (.data.k8sUsername | base64decode) }}'
+kubectl get secret -n stackgres stackgres-restapi --template '{{ printf "password = %s\n" (.data.clearPassword | base64decode) }}'
+```
+
+## Creating and customizing your Postgres Clusters 
 
 The next step is an optional one, but it will show you how to play with the StackGres versatility.
 You can instruct StackGres to create your cluster with different hardware specification using the [Custom Resource](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) (AKA CR) [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-instance-profiles/) as follow
