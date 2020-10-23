@@ -34,7 +34,7 @@ public class StackGresDistributedLogsStatus implements KubernetesResource {
   @Valid
   private List<StackGresDistributedLogsStatusDatabase> databases = new ArrayList<>();
 
-  @JsonProperty("clusters")
+  @JsonProperty("connectedClusters")
   @Valid
   private List<StackGresDistributedLogsStatusCluster> connectedClusters = new ArrayList<>();
 

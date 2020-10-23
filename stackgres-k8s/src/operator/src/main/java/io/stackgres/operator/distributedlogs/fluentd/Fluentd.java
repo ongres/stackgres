@@ -137,7 +137,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
         .withImage(StackGresContext.BUSYBOX_IMAGE)
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ecx", Stream.of(
-            "cp /etc/fluentd/fluentd.conf /fluentd/fluentd.conf")
+            "cp /etc/fluentd/initial-fluentd.conf /fluentd/fluentd.conf")
             .collect(Collectors.joining(" && ")))
         .withVolumeMounts(
             new VolumeMountBuilder()
@@ -181,7 +181,53 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
         distributedLogsContext.getDistributedLogs();
     final String namespace = distributedLogs.getMetadata().getNamespace();
 
-    final String configFile = ""
+    final Map<String, String> data = ImmutableMap.of(
+        "fluentd.conf", getFluentdConfig(distributedLogsContext, true),
+        "initial-fluentd.conf", getFluentdConfig(distributedLogsContext, false));
+
+    final StackGresClusterContext clusterContext = context.getClusterContext();
+    final StackGresCluster cluster = clusterContext.getCluster();
+    final LabelFactory<?> labelFactory = factoryDelegator
+        .pickFactory(clusterContext);
+    final Map<String, String> clusterLabels = labelFactory
+        .clusterLabels(cluster);
+    final ConfigMap configMap = new ConfigMapBuilder()
+        .withNewMetadata()
+        .withNamespace(namespace)
+        .withName(FluentdUtil.configName(distributedLogsContext.getDistributedLogs()))
+        .withLabels(clusterLabels)
+        .withOwnerReferences(clusterContext.getOwnerReferences())
+        .endMetadata()
+        .withData(data)
+        .build();
+
+    final Map<String, String> patroniPrimaryLabels = labelFactory
+        .patroniPrimaryLabels(cluster);
+    final Service service = new ServiceBuilder()
+        .withNewMetadata()
+        .withNamespace(namespace)
+        .withName(FluentdUtil.serviceName(distributedLogsContext.getDistributedLogs()))
+        .withLabels(patroniPrimaryLabels)
+        .withOwnerReferences(clusterContext.getOwnerReferences())
+        .endMetadata()
+        .withNewSpec()
+        .withSelector(patroniPrimaryLabels)
+        .withPorts(new ServicePortBuilder()
+            .withProtocol("TCP")
+            .withName(FluentdUtil.FORWARD_PORT_NAME)
+            .withPort(FluentdUtil.FORWARD_PORT)
+            .withTargetPort(new IntOrString(FluentdUtil.FORWARD_PORT_NAME))
+            .build())
+        .withType("ClusterIP")
+        .endSpec()
+        .build();
+
+    return Seq.of(configMap, service);
+  }
+
+  private String getFluentdConfig(final StackGresDistributedLogsContext distributedLogsContext,
+      boolean includeClusters) {
+    return ""
         + "<system>\n"
         + "  workers " + getMaxWorkersBeforeRestart(distributedLogsContext) + "\n"
         + "</system>\n"
@@ -205,6 +251,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
         + "  </filter>"
         + "\n"
         + Seq.seq(distributedLogsContext.getConnectedClusters())
+            .filter(cluster -> includeClusters)
             .zipWithIndex()
             .map(t -> t.map2(index -> index + getCoreWorkers()))
             .map(t -> ""
@@ -237,6 +284,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
         + "</worker>\n"
         + "\n"
         + Seq.seq(distributedLogsContext.getConnectedClusters())
+            .filter(cluster -> includeClusters)
             .zipWithIndex()
             .map(t -> t.map2(index -> index + getCoreWorkers()))
             .map(t -> ""
@@ -289,46 +337,6 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
                 + "</worker>\n"
                 + "\n")
             .collect(Collectors.joining("\n"));
-    final Map<String, String> data = ImmutableMap.of("fluentd.conf", configFile);
-
-    final StackGresClusterContext clusterContext = context.getClusterContext();
-    final StackGresCluster cluster = clusterContext.getCluster();
-    final LabelFactory<?> labelFactory = factoryDelegator
-        .pickFactory(clusterContext);
-    final Map<String, String> clusterLabels = labelFactory
-        .clusterLabels(cluster);
-    final ConfigMap configMap = new ConfigMapBuilder()
-        .withNewMetadata()
-        .withNamespace(namespace)
-        .withName(FluentdUtil.configName(distributedLogsContext.getDistributedLogs()))
-        .withLabels(clusterLabels)
-        .withOwnerReferences(clusterContext.getOwnerReferences())
-        .endMetadata()
-        .withData(data)
-        .build();
-
-    final Map<String, String> patroniPrimaryLabels = labelFactory
-        .patroniPrimaryLabels(cluster);
-    final Service service = new ServiceBuilder()
-        .withNewMetadata()
-        .withNamespace(namespace)
-        .withName(FluentdUtil.serviceName(distributedLogsContext.getDistributedLogs()))
-        .withLabels(patroniPrimaryLabels)
-        .withOwnerReferences(clusterContext.getOwnerReferences())
-        .endMetadata()
-        .withNewSpec()
-        .withSelector(patroniPrimaryLabels)
-        .withPorts(new ServicePortBuilder()
-            .withProtocol("TCP")
-            .withName(FluentdUtil.FORWARD_PORT_NAME)
-            .withPort(FluentdUtil.FORWARD_PORT)
-            .withTargetPort(new IntOrString(FluentdUtil.FORWARD_PORT_NAME))
-            .build())
-        .withType("ClusterIP")
-        .endSpec()
-        .build();
-
-    return Seq.of(configMap, service);
   }
 
   /**
@@ -342,7 +350,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
   }
 
   private int getCoreWorkers() {
-    return 3;
+    return 1;
   }
 
   private int getWorkersBatchSize() {
