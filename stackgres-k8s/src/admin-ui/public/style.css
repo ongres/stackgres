@@ -422,7 +422,7 @@ form#login .warning {
     color: #e3e3e3;
 }
 
-.darkmode #sets h4, .darkmode h4, .darkmode #sets h3, .darkmode h3, .darkmode h2, .darkmode thead, .darkmode .tabs a, .darkmode #keyword, .darkmode .options li.textFilter .search, .darkmode #help h3.title, .darkmode table.clusterConfig td.label, .darkmode .details th, .darkmode tr.details table td.label, .darkmode .yaml .label, .darkmode .logMessage .param, .darkmode .logDetails td.param {
+.darkmode #sets h4, .darkmode h4, .darkmode #sets h3, .darkmode h3, .darkmode h2, .darkmode thead, .darkmode .tabs a, .darkmode #keyword, .darkmode .options li.textFilter .search, .darkmode #help h3.title, .darkmode table.clusterConfig td.label, .darkmode .details th, .darkmode tr.details table td.label, .darkmode .yaml .label, .darkmode .logMessage .param, .darkmode .logDetails td.param, .darkmode tr.details table th.label {
     color: #a5a5a5;
 }
 
@@ -455,7 +455,7 @@ form#login .warning {
     background-color: rgba(122, 123, 133, .10);
 }
 
-.darkmode ul#postgresVersion, .darkmode ul#postgresVersion ul, .darkmode table.pgConfig tr:nth-child(4n-2), .darkmode table.pgConfig tr:nth-child(4n-2) + tr.details, .darkmode table.poolConfig tr:nth-child(4n-2), .darkmode table.poolConfig tr:nth-child(4n-2) + tr.details, .darkmode table.backupConfig tr:nth-child(4n-2), .darkmode table.backupConfig tr:nth-child(4n-2) + tr.details {
+.darkmode ul#postgresVersion, .darkmode ul#postgresVersion ul, .darkmode table.pgConfig tr:nth-child(4n-2), .darkmode table.pgConfig tr:nth-child(4n-2) + tr.details, .darkmode table.poolConfig tr:nth-child(4n-2), .darkmode table.poolConfig tr:nth-child(4n-2) + tr.details, .darkmode table.backupConfig tr:nth-child(4n-2), .darkmode table.backupConfig tr:nth-child(4n-2) + tr.details, .darkmode table.backups thead, .darkmode #backups th.actions {
     background-color: #171717;
 }
 
@@ -2071,6 +2071,12 @@ ul.selector li {
 
 #backups td.actions {
     width: 70px;
+    z-index: 0;
+}
+
+#backups th.actions {
+    background: #fff;
+    display: table-cell;
 }
 
 #nav #backup-btn, #nav #grafana-btn {
@@ -3561,7 +3567,7 @@ table.logs, table.backups {
     border: none !important;
 }
 
-table.logs tbody, table.backups tbody {
+table.logs tbody, table.backups > tbody {
     max-height: calc(100vh - 353px);
     max-width: calc(100vw - 430px);
     display: inline-block;
@@ -3570,7 +3576,7 @@ table.logs tbody, table.backups tbody {
     border: none;
 }
 
-table.logs thead, table.backups thead {
+table.logs thead, table.backups > thead {
     display: inline-block;
     margin-bottom: -4px;
     border-bottom: 1px solid #f0f0f1;
@@ -3853,7 +3859,7 @@ th.sysId, th.operation {
     padding-left: 15px;
 }
 
-table.logs table.logMessage tr {
+table.logs table.logMessage tr, #backups .details thead {
     background: transparent;
 }
 
@@ -3953,7 +3959,7 @@ table.logs tr.base td {
     background: #171717;
 }
 
-.darkmode .logDetails table,.darkmode .logMessage .param, .darkmode .logInfo.open .logMessage p, .darkmode .logDetails td.param, .darkmode .logDetails.postgres tr:not(:last-of-type), .darkmode .logDetails.patroni tr:not(:last-of-type),.darkmode table.logs thead, .darkmode .logInfo.open .logMessage {
+.darkmode .logDetails table,.darkmode .logMessage .param, .darkmode .logInfo.open .logMessage p, .darkmode .logDetails td.param, .darkmode .logDetails.postgres tr:not(:last-of-type), .darkmode .logDetails.patroni tr:not(:last-of-type),.darkmode table.logs thead, .darkmode table.backups thead, .darkmode .logInfo.open .logMessage {
     border-color: #333333;
 }
 
@@ -4330,7 +4336,7 @@ table.loading:after {
     opacity: 1;
     transition: opacity .4s ease-in;
 }
-table.logs tbody, table.backups tbody {
+table.logs tbody, table.backups > tbody {
     max-height: initial;
     max-width: initial;
     display: initial;
@@ -4347,7 +4353,7 @@ table.logs tr.no-results:first-child:last-child {
     display: block;
 }
 
-table.logs thead {
+table.logs thead, table.backups > thead {
     display: inline-block;
     position: sticky;
     z-index: 1;
