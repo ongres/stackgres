@@ -525,9 +525,23 @@ It is not enough to have the Prometheus operator installed to have monitoring, w
 
 Awesome, now you can relax and wait for the SGCluster spinning up.
 
-Meanwhile, you can monitor what StackGres is doing online running
+
+## Accessing the cluster
+
+Once the cluster is up and running, we need to expose the main entrypoint port for being accessed remotely:
 
 ```
-some commando to monitor what happen
+kubectl port-forward test-0 --address 0.0.0.0 7777:5432
 ```
 
+In the namespace of the cluster, you should be able to see a set of secrets, we'll get the main superuser password:
+
+```
+kubectl get secrets  test -o jsonpath='{.data.superuser-password}' | base64 -d
+```
+
+You can connect within the following command:
+
+```
+psql -h <the ip of the cluster> -p 7777 -U postgres
+```
