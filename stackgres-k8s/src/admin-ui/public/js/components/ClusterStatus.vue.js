@@ -51,7 +51,7 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 			<div class="content">
 				<h2>Cluster</h2>
 				<table class="clusterInfo">
-					<thead>
+					<thead v-if="tooltips.hasOwnProperty('sgcluster')">
 						<th>
 							Total CPU 
 							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.cpuRequested.description + ' (' + (cluster.status.hasOwnProperty('cpuPsiAvg60') ? tooltips.sgcluster.pods.cpuPsiAvg60.description : tooltips.sgcluster.pods.averageLoad1m.description) + ')'"></span>
@@ -95,7 +95,7 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 
 				<h2>Pods</h2>
 				<table class="podStatus">
-					<thead>
+					<thead v-if="tooltips.hasOwnProperty('sgcluster')">
 						<th>
 							Pod Name
 							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.name.description"></span>

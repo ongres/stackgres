@@ -205,7 +205,7 @@ var Logs = Vue.component("Logs", {
 						</div>-->
 					</div>
 
-					<table class="logs">
+					<table class="logs" v-if="tooltips.hasOwnProperty('sgclusterlogentry')">
 						<thead class="sort">
 							<th class="logTime sorted desc timestamp">
 								<span @click="sort()">Log Time</span>

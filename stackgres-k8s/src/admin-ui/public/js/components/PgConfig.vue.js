@@ -25,7 +25,7 @@ var PgConfig = Vue.component("PostgresConfig", {
 			</header>
 
 			<div class="content">
-				<table id="postgres" class="configurations pgConfig">
+				<table id="postgres" class="configurations pgConfig" v-if="tooltips.hasOwnProperty('sgpostgresconfig')">
 					<thead class="sort">
 						<th class="sorted desc name">
 							<span @click="sort('data.metadata.name')">

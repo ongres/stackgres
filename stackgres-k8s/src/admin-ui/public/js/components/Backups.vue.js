@@ -157,7 +157,7 @@ var Backups = Vue.component("Backups", {
 							</ul>
 						</div>
 					</div>
-					<table class="backups" v-if="Object.keys(tooltips.sgbackup).length">
+					<table class="backups" v-if="tooltips.hasOwnProperty('sgbackup')">
 						<thead class="sort">
 							<th class="sorted desc timestamp">
 								<span @click="sort('data.status.process.timing.stored')">Timestamp</span>

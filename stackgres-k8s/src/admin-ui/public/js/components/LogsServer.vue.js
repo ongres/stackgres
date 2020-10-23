@@ -25,7 +25,7 @@ var LogsServer = Vue.component("LogsServer", {
             </header>
 
             <div class="content">
-                <table id="logs" class="logsCluster pgConfig">
+                <table id="logs" class="logsCluster pgConfig" v-if="tooltips.hasOwnProperty('sgclusterlogentry')">
                     <thead class="sort">
                         <th class="sorted desc name">
                             <span @click="sort('data.metadata.name')" >

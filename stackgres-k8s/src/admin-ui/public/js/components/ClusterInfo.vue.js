@@ -50,7 +50,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 
 			<div class="content">
 				<h2>Cluster Details</h2>
-				<table class="clusterConfig">
+				<table class="clusterConfig" v-if="tooltips.hasOwnProperty('sgcluster')">
 					<thead>
 						<th></th>
 						<th></th>
@@ -295,7 +295,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 
 				<div class="podsMetadata" v-if="hasProp(cluster, 'data.spec.pods.metadata') || hasProp(cluster, 'data.spec.pods.scheduling')">
 					<h2>Pods Details</h2>
-					<table v-if="hasProp(cluster, 'data.spec.pods.metadata.labels')" class="clusterConfig">
+					<table v-if="hasProp(cluster, 'data.spec.pods.metadata.labels') && tooltips.hasOwnProperty('sgcluster')" class="clusterConfig">
 						<thead>
 							<th></th>
 							<th></th>
@@ -322,7 +322,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						</tbody>
 					</table>
 
-					<table v-if="hasProp(cluster, 'data.spec.pods.scheduling.nodeSelector')" class="clusterConfig">
+					<table v-if="hasProp(cluster, 'data.spec.pods.scheduling.nodeSelector') && tooltips.hasOwnProperty('sgcluster')" class="clusterConfig">
 						<thead>
 							<th></th>
 							<th></th>
@@ -350,7 +350,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 					</table>
 				</div>
 
-				<div class="scripts" v-if="hasProp(cluster, 'data.spec.initialData.scripts')">
+				<div class="scripts" v-if="hasProp(cluster, 'data.spec.initialData.scripts') && tooltips.hasOwnProperty('sgcluster')">
 					<h2>Scripts <span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.initialData.scripts.description"></span></h2>
 					<table class="clusterConfig">
 						<thead>
@@ -408,7 +408,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 					</table>
 				</div>
 
-				<div class="resourcesMetadata" v-if="hasProp(cluster, 'data.spec.metadata.annotations')">
+				<div class="resourcesMetadata" v-if="hasProp(cluster, 'data.spec.metadata.annotations') && tooltips.hasOwnProperty('sgcluster')">
 					<h2>Resources Metadata <span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.metadata.description"></span></h2>
 					<table v-if="hasProp(cluster, 'data.spec.metadata.annotations.allResources')" class="clusterConfig">
 						<thead>
@@ -479,7 +479,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 					</table>
 				</div>	
 
-				<div class="postgresServices" v-if="hasProp(cluster, 'data.spec.postgresServices') && ((hasProp(cluster, 'data.spec.postgresServices.primary') && cluster.data.spec.postgresServices.primary.enabled) || (hasProp(cluster, 'data.spec.postgresServices.replicas') && cluster.data.spec.postgresServices.replicas.enabled))">
+				<div class="postgresServices" v-if="tooltips.hasOwnProperty('sgcluster') && hasProp(cluster, 'data.spec.postgresServices') && ((hasProp(cluster, 'data.spec.postgresServices.primary') && cluster.data.spec.postgresServices.primary.enabled) || (hasProp(cluster, 'data.spec.postgresServices.replicas') && cluster.data.spec.postgresServices.replicas.enabled))">
 					<h2>Postgres Services <span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresServices.description"></span></h2>
 					<table v-if="hasProp(cluster, 'data.spec.postgresServices.primary') && cluster.data.spec.postgresServices.primary.enabled" class="clusterConfig">
 						<thead>

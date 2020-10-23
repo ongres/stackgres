@@ -25,7 +25,7 @@ var SGProfiles = Vue.component("InstanceProfile", {
 			</header>
 
 			<div class="content">
-				<table id="profiles" class="profiles pgConfig">
+				<table id="profiles" class="profiles pgConfig" v-if="tooltips.hasOwnProperty('sgprofile')">
 					<thead class="sort">
 						<th class="sorted desc name">
 							<span @click="sort('data.metadata.name')">

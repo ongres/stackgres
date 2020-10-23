@@ -25,7 +25,7 @@ var PoolConfig = Vue.component("PoolConfig", {
 			</header>
 
 			<div class="content">
-				<table id="connectionpooling" class="configurations poolConfig">
+				<table id="connectionpooling" class="configurations poolConfig" v-if="tooltips.hasOwnProperty('sgpoolingconfig')">
 					<thead class="sort">
 						<th class="sorted desc name">
 							<span @click="sort('data.metadata.name')">

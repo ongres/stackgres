@@ -26,7 +26,7 @@ var BackupConfig = Vue.component("BackupConfig", {
 
 
 			<div class="content">
-				<table id="backup" class="configurations backupConfig">
+				<table id="backup" class="configurations backupConfig" v-if="tooltips.hasOwnProperty('sgbackupconfig')">
 					<thead class="sort">
 						<th class="sorted desc name">
 							<span @click="sort('data.metadata.name')">
