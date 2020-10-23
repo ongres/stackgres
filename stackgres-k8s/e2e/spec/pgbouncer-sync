@@ -1,0 +1,80 @@
+#!/bin/sh
+
+e2e_test_install() {
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+  PGCBOUNCER="pgbouncer"
+  cat <<EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGInstanceProfile
+metadata:
+  name: size-xs
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  cpu: '500m'
+  memory: '512Mi'
+EOF
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGPoolingConfig
+metadata:
+  name: $PGCBOUNCER
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  pgBouncer:
+    pgbouncer.ini:
+      max_client_conn: '2000'
+      default_pool_size: '50'
+EOF
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
+metadata:
+  name: $CLUSTER_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  instances: 1
+  postgresVersion: 'latest'
+  configurations:
+    sgPoolingConfig: $PGCBOUNCER
+  sgInstanceProfile: 'size-xs'
+  pods:
+    persistentVolume:
+      size: '128Mi'
+  nonProductionOptions:
+    disableClusterPodAntiAffinity: true
+EOF
+
+  wait_until has_cluster_generated_resources
+}
+
+e2e_test() {
+  run_test "max_client_conn should appear in pgbouncer configmap only once" check_pgbouncer_max_client_conn
+  run_test "default_pool_size should appear in pgbouncer configmap only once" check_pgbouncer_default_pool_size
+
+}
+
+check_pgbouncer_max_client_conn(){
+
+  check_parameter_count "max_db_connections"
+
+}
+
+check_pgbouncer_default_pool_size(){
+
+  check_parameter_count "default_pool_size"
+}
+
+check_parameter_count(){
+  PARAM=$1
+  PARAM_COUNT=$(kubectl get configmaps -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-connection-pooling-config" -o json \
+    | jq '.data["pgbouncer.ini"]' -r | grep -c "$PARAM")
+
+  if assert_string_equal "1" "$PARAM_COUNT"
+  then
+    echo "Success. $PARAM is appearing only once"
+  else
+    echo "Fail. $PARAM is appearing more than once"
+    return 1
+  fi
+}
