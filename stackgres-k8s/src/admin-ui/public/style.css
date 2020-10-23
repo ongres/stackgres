@@ -2060,6 +2060,11 @@ ul.selector li {
     background-position-x: 15px;
 }
 
+#backups .timestamp, #backups .managedLifecycle {
+    min-width: 210px;
+    width: 210px;
+}
+
 #backups .details.Failed div {
     width: calc(100% - 50px);
 }
@@ -2970,8 +2975,14 @@ td.timestamp, span.timestamp {
     min-width: 190px;
 }
 
-#backups .size, #backups .phase, #backups .managedLifecycle {
+#backups .phase {
     width: 120px;
+    min-width: 120px;
+}
+
+#backups .size {
+    min-width: 240px;
+    width: 240px;
 }
 
 #backups .postgresVersion {
@@ -3544,13 +3555,13 @@ tr.no-results:first-child:last-child {
     width: 13px;
 }
 
-table.logs {
+table.logs, table.backups {
     margin-bottom: 0;
     max-height: calc(100vh - 310px) !important;
     border: none !important;
 }
 
-table.logs tbody {
+table.logs tbody, table.backups tbody {
     max-height: calc(100vh - 353px);
     max-width: calc(100vw - 430px);
     display: inline-block;
@@ -3559,7 +3570,7 @@ table.logs tbody {
     border: none;
 }
 
-table.logs thead {
+table.logs thead, table.backups thead {
     display: inline-block;
     margin-bottom: -4px;
     border-bottom: 1px solid #f0f0f1;
@@ -3615,23 +3626,23 @@ table.logs .userName {
 }
 
 table.logs .databaseName {
-    min-width: 90px;
-    max-width: 90px;
-    width: 90px;
+    min-width: 100px;
+    max-width: 100px;
+    width: 100px;
     padding: 0 10px;
 }
 
 table.logs .processId {
-    min-width: 85px;
-    max-width: 85px;
-    width: 85px;
+    min-width: 110px;
+    max-width: 110px;
+    width: 110px;
     padding: 0 10px;
 }
 
 table.logs .connectionFrom {
-    min-width: 130px;
-    max-width: 130px;
-    width: 130px;
+    min-width: 150px;
+    max-width: 150px;
+    width: 150px;
     padding: 0 10px;
 }
 
@@ -3642,10 +3653,16 @@ table.logs .applicationName {
     padding: 0 10px;
 }
 
-table.logs .logType, table.logs .errorLevel {
-    min-width: 90px;
-    max-width: 90px;
-    width: 90px;
+table.logs .logType {
+    min-width: 100px;
+    max-width: 100px;
+    width: 100px;
+}
+
+table.logs .errorLevel {
+    min-width: 120px;
+    max-width: 120px;
+    width: 120px;
 }
 
 table.logs .role {
@@ -4285,7 +4302,7 @@ tr.logInfo.open:before {
 }
 
 /* Luis Logs & Filters */
-table.logs {
+table.logs, table.backups {
     max-height: calc(100vh - 353px);
     max-width: calc(100vw - 430px);
     display: inline-block;
@@ -4313,7 +4330,7 @@ table.loading:after {
     opacity: 1;
     transition: opacity .4s ease-in;
 }
-table.logs tbody {
+table.logs tbody, table.backups tbody {
     max-height: initial;
     max-width: initial;
     display: initial;
@@ -4431,9 +4448,9 @@ td.logMessage, th.logMessage {
 }
 
 table.logs .podName {
-    min-width: 75px;
+    min-width: 85px;
     width: auto;
-    max-width: 75px;
+    max-width: 85px;
 }
 
 .options label.active span {
@@ -4667,8 +4684,18 @@ table.backupConfig tr.details.open {
     display: table-row;
 }
 
-table.backups th.name {
-    width: 130px;
+table.backups {
+    border: none;
+}
+
+table.backups th.name, table.backups td.name {
+    min-width: 250px;
+    width: 250px;
+}
+
+#backups .actions {
+    min-width: 70px;
+    width: 70px;
 }
 
 table.backups .hasTooltip {
@@ -4687,11 +4714,6 @@ table.profiles td, table.clusterOverview td, table.pgConfig tr.open td.hasToolti
 table.backups .clusterName {
     padding-left: 15px;
     width: 140px;
-}
-
-
-table.backups .name {
-    max-width: 250px;
 }
 
 table.profiles td.inlineList svg, table.backupConfig td.usedOn svg {
