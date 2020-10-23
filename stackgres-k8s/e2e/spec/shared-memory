@@ -1,0 +1,22 @@
+#!/bin/sh
+
+e2e_test_install_pods() {
+  echo 1
+}
+
+e2e_test() {
+  run_test "Checking that pods shared memory is bigger than 64mb" check_shared_memory
+}
+
+check_shared_memory() {
+
+  SHM_SIZE=$(get_shared_memory)
+
+  assert_string_not_equal "64M" "$SHM_SIZE"
+
+}
+
+get_shared_memory() {
+  kubectl exec -ti -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni  -- df -h > "$LOG_PATH/devices.log"
+  grep shm "$LOG_PATH/devices.log" | awk '{print $2}'
+}

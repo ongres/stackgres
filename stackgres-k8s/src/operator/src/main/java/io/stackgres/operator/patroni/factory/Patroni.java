@@ -130,6 +130,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.volumeMounts(context.getClusterContext(),
             ClusterStatefulSetVolumeConfig.DATA,
             ClusterStatefulSetVolumeConfig.SOCKET,
+            ClusterStatefulSetVolumeConfig.SHARED_MEMORY,
             ClusterStatefulSetVolumeConfig.LOCAL,
             ClusterStatefulSetVolumeConfig.PATRONI_ENV,
             ClusterStatefulSetVolumeConfig.PATRONI_CONFIG,
