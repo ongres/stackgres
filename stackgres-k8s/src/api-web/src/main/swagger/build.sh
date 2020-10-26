@@ -43,7 +43,7 @@ do
   if [ "$(yq -r '.crdFile != null' "$SCHEMA_PATH")" = "true" ]
   then
     CRD_FILE="$(yq -r '.crdFile' "$SCHEMA_PATH")"
-    yq -y -s ".[0] * { \"components\": { \"schemas\" : { \"$TYPE\": ({ "schema": { \"$TYPE\": .[1].spec.validation.openAPIV3Schema } } * .[2]).schema.$TYPE } } }" \
+    yq -y -s ".[0] * { \"components\": { \"schemas\" : { \"$TYPE\": ({ "schema": { \"$TYPE\": .[1].spec.versions[0].schema.openAPIV3Schema } } * .[2]).schema.$TYPE } } }" \
       "$MERGED_SWAGGER_YAML_FILE.tmp" "$CRDS_PATH/$CRD_FILE" "$SCHEMA_PATH" > "$MERGED_SWAGGER_YAML_FILE"
   else
     if [ "$(yq -r '.schema == null' "$SCHEMA_PATH")" = "true" ]
