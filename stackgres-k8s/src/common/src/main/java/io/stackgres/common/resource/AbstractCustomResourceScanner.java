@@ -77,6 +77,7 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource,
           customResourceClass,
           customResourceListClass,
           customResourceDoneClass)
+          .inAnyNamespace()
           .list()
           .getItems();
     }
