@@ -1,6 +1,6 @@
 ---
 title: Local connection and the postgres-util sidecar
-weight: 15
+weight: 0
 url: administration/cluster/connection/pgutil
 ---
 

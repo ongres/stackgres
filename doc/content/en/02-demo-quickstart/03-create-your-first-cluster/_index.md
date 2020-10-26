@@ -162,7 +162,7 @@ CREATE DATABASE
 postgres=# \q
 ```
 
-Please check [about the postgres-util side car]({{% relref "/04-administration-guide/REVIEW-local-connection-and-the-postgres-util-sidecar" %}}) and [how to connect to the postgres cluster]({{% relref "/04-administration-guide/02-connecting-to-the-cluster" %}}) for more details.
+Please check [about the postgres-util side car](/administration/cluster/connection/pgutil) and [how to connect to the postgres cluster](administration/cluster/connection) for more details.
 
 ## Manage the status of the PostgreSQL cluster
 
