@@ -160,10 +160,6 @@ resume_sgdistributedlogs_reconciliation(){
   fi
 }
 
-has_cluster_generated_resources() {
-  kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
-}
-
 has_logs_generated_resources(){
   kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-logs"
 }
