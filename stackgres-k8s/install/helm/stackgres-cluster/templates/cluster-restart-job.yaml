@@ -67,6 +67,7 @@ spec:
         cluster-namespace: '{{ .Release.Namespace }}'
     spec:
       serviceAccountName: {{ .Release.Name }}-cluster-restart
+      backoffLimit: 0
       containers:
       - name: "{{ .Release.Name }}-fix-deployment-selector"
         image: "bitnami/kubectl:1.19.2"
@@ -79,6 +80,7 @@ spec:
             {{ .Files.Get "cluster-restart.sh" | indent 12 }}
             EOF
             export REDUCED_IMPACT={{ if .Values.cluster.restartReducedImpact }}true{{ else }}false{{ end }}
+            export RESTART_PRIMARY_FIRST={{ if .Values.cluster.restartPrimaryFirst }}true{{ else }}false{{ end }}
             sh -x /tmp/cluster-restart.sh '{{ .Release.Namespace }}' '{{ .Release.Name }}'
       restartPolicy: Never
 {{- end }}

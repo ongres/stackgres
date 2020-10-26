@@ -4,6 +4,7 @@ cluster:
   # restartRole: 
   restartClusterRole: cluster-admin
   restartReducedImpact: true
+  restartPrimaryFirst: false
   postgresVersion: '12.3'
   instances: 1
   sgInstanceProfile: size-xs

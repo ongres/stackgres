@@ -8,6 +8,7 @@ kubectl get sgcluster -n "$NAMESPACE" "$SGCLUSTER" -o name > /dev/null
 
 READ_ONLY_PODS=
 REDUCED_IMPACT="${REDUCED_IMPACT:-true}"
+RESTART_PRIMARY_FIRST="${RESTART_PRIMARY_FIRST:-false}"
 
 increase_instances_by_one() {
   INSTANCES="$(kubectl get sgcluster -n "$NAMESPACE" "$SGCLUSTER" --template "{{ .spec.instances }}")"
@@ -42,15 +43,12 @@ wait_read_only_pod() {
   echo "Waiting for read only pod $1"
   until kubectl get pod -n "$NAMESPACE" "$1" > /dev/null 2>&1; do sleep 1; done
   kubectl wait --for=condition=Ready -n "$NAMESPACE" "pod/$1"
-  while kubectl get -n "$NAMESPACE" pod \
-      -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=replica" -o name \
-    | grep -F "pod/$1" | wc -l | grep -q 0; do sleep 1; done
 }
 
 delete_primary_instance() {
   echo "Deleting primary pod $1"
   kubectl delete -n "$NAMESPACE" pod "$1"
-  
+
   wait_primary_pod "$1"
 }
 
@@ -58,9 +56,6 @@ wait_primary_pod() {
   echo "Waiting for primary pod $1"
   until kubectl get pod -n "$NAMESPACE" "$1" > /dev/null 2>&1; do sleep 1; done
   kubectl wait --for=condition=Ready -n "$NAMESPACE" "pod/$1"
-  while kubectl get -n "$NAMESPACE" pod \
-      -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=master" -o name \
-    | grep -F "pod/$1" | wc -l | grep -q 0; do sleep 1; done
 }
 
 perform_switchover() {
@@ -76,10 +71,21 @@ then
 fi
 
 update_read_only_pods
+
 if [ "$REDUCED_IMPACT" = "true" ]
 then
   READ_ONLY_PODS="$(echo "$READ_ONLY_PODS" | head -n -1)"
 fi
+
+if [ "$RESTART_PRIMARY_FIRST" = "true" ]
+then
+  PRIMARY_POD="$(kubectl get pod -n "$NAMESPACE" \
+      -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=master" -o name | head -n 1)"
+  PRIMARY_POD="${PRIMARY_POD#pod/}"
+
+  delete_primary_instance "$PRIMARY_POD"
+fi
+
 READ_ONLY_POD="$(echo "$READ_ONLY_PODS" | head -n 1)"
 [ -z "$READ_ONLY_POD" ] && echo "No read only pods needs restart" \
   || (
@@ -97,20 +103,23 @@ do
     || echo "$READ_ONLY_POD will be restarted"
 done
 
-READ_ONLY_POD="$(kubectl get pod -n "$NAMESPACE" \
-    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=replica" -o name | head -n 1)"
-PRIMARY_POD="$(kubectl get pod -n "$NAMESPACE" \
-    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=master" -o name | head -n 1)"
-READ_ONLY_POD="${READ_ONLY_POD#pod/}"
-PRIMARY_POD="${PRIMARY_POD#pod/}"
-
-if [ -n "$READ_ONLY_POD" ]
+if [ "$RESTART_PRIMARY_FIRST" != "true" ]
 then
-  perform_switchover "$PRIMARY_POD" "$READ_ONLY_POD"
-  delete_read_only_instance "$PRIMARY_POD"
-else
-  echo "Can not perform switchover, no read only pod found"
-  delete_primary_instance "$PRIMARY_POD"
+  READ_ONLY_POD="$(kubectl get pod -n "$NAMESPACE" \
+      -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=replica" -o name | head -n 1)"
+  PRIMARY_POD="$(kubectl get pod -n "$NAMESPACE" \
+      -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=master" -o name | head -n 1)"
+  READ_ONLY_POD="${READ_ONLY_POD#pod/}"
+  PRIMARY_POD="${PRIMARY_POD#pod/}"
+  
+  if [ -n "$READ_ONLY_POD" ]
+  then
+    perform_switchover "$PRIMARY_POD" "$READ_ONLY_POD"
+    delete_read_only_instance "$PRIMARY_POD"
+  else
+    echo "Can not perform switchover, no read only pod found"
+    delete_primary_instance "$PRIMARY_POD"
+  fi
 fi
 
 if [ "$REDUCED_IMPACT" = "true" ]

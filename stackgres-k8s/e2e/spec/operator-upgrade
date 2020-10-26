@@ -15,17 +15,19 @@ e2e_test_install() {
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
-    --set cluster.create=false
+    --set cluster.create=false \
+    --set instanceProfiles[0].name=size-xs \
+    --set instanceProfiles[0].cpu=250m \
+    --set instanceProfiles[0].memory=512Mi
   create_or_replace_cluster "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
-     --set-string cluster.postgresVersion=latest
+    --set-string cluster.postgresVersion=latest
   create_or_replace_cluster "$CLUSTER_NAME-2" "$CLUSTER_NAMESPACE" 2 \
     --set configurations.create=false --set instanceProfiles=false \
-     --set-string cluster.postgresVersion=latest
+    --set-string cluster.postgresVersion=latest
   create_or_replace_cluster "$CLUSTER_NAME-3" "$CLUSTER_NAMESPACE" 3 \
     --set configurations.create=false --set instanceProfiles=false \
-     --set-string cluster.postgresVersion=latest
-  
+    --set-string cluster.postgresVersion=latest
   wait_pods_running "$CLUSTER_NAMESPACE" 6
 
   generate_mock_data "$CLUSTER_NAME-1"
@@ -138,23 +140,25 @@ check_cluster_3() {
 }
 
 check_cluster_1_restart() {
-  check_cluster_restart "$CLUSTER_NAME-1" 1
+  check_cluster_restart "$CLUSTER_NAME-1" 1 true false
   wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-1" --for condition=PendingRestart'
 }
 
 check_cluster_2_restart() {
-  check_cluster_restart "$CLUSTER_NAME-2" 2
+  check_cluster_restart "$CLUSTER_NAME-2" 2 false true
   wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-2" --for condition=PendingRestart'
 }
 
 check_cluster_3_restart() {
-  check_cluster_restart "$CLUSTER_NAME-3" 3
+  check_cluster_restart "$CLUSTER_NAME-3" 3 false false
   wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-3" --for condition=PendingRestart'
 }
 
 check_cluster_restart() {
   local CLUSTER_NAME="$1"
   local CLUSTER_SIZE="$2"
+  local REDUCED_IMPACT="$3"
+  local RESTART_PRIMARY_FIRST="$4"
   local CURRENT_TIMESTAMP="$(date --utc +%s)"
 
   local POD
@@ -180,7 +184,9 @@ check_cluster_restart() {
   done
 
   try_function create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$CLUSTER_SIZE" \
-    --set cluster.restart=true --set cluster.restartReducedImpact=false
+    --set cluster.restart=true \
+    --set cluster.restartReducedImpact="$REDUCED_IMPACT" \
+    --set cluster.restartPrimaryFirst="$RESTART_PRIMARY_FIRST"
   if "$RESULT"
   then
     echo "SUCCESS. Cluster restart completed sucesfully"
