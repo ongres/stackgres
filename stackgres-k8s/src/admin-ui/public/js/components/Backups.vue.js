@@ -172,8 +172,8 @@ var Backups = Vue.component("Backups", {
 								<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.status.description"></span>
 							</th>
 							<th class="desc size">
-								<span @click="sort('data.status.backupInformation.size.uncompressed')" >Size uncompressed (compressed)</span>
-								<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.size.uncompressed.description"></span>
+								<span @click="sort('data.status.backupInformation.size.uncompressed')">Size uncompressed (compressed)</span>
+								<span class="helpTooltip" data-tooltip="Size (in bytes) of the uncompressed backup (Size (in bytes) of the compressed backup)."></span>
 							</th>
 							<th class="desc postgresVersion" v-if="!isCluster">
 								<span@click="sort('data.status.backupInformation.postgresVersion')" >PG</span>
