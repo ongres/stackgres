@@ -2583,6 +2583,12 @@ $(document).ready(function(){
     $(this).toggleClass('show')  
   })
 
+  $(document).on("click", "#helpTooltip a", function(e) {
+    e.preventDefault()
+    window.open($(this).prop('href'));
+    return false;
+  })
+
   $(document).on('click','a.help', function(){
     $('a.help.active').removeClass('active')
     $(this).addClass('active')
