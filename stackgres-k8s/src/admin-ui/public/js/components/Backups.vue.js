@@ -322,6 +322,7 @@ var Backups = Vue.component("Backups", {
 														<tr>
 															<td class="label">
 																Elapsed
+																<span class="helpTooltip" data-tooltip="Total time transcurred between the start time of backup and the time at which the backup is safely stored in the object storage."></span>
 															</td>
 															<td class="timestamp">
 																<span class='time'>
