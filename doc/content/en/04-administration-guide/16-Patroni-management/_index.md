@@ -1,7 +1,7 @@
 ---
-title: Patroni management
+title: Patroni Management
 weight: 16
-url: DEPRECATE-3
+url: administration/patroni/management
 ---
 
 Once you hace a StackGres cluster installed you'll have a Full HA PostgreSQL configuration and depending of the size of your cluster you´ll have something like this:
