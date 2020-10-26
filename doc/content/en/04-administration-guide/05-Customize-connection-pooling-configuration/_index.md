@@ -1,7 +1,7 @@
 ---
 title: Customize Connection Pooling Configuration
 weight: 5
-url: administration/custom/pool/config
+url: administration/cluster/pool
 ---
 
 This section is currently empty and the documentation development is in progress.
