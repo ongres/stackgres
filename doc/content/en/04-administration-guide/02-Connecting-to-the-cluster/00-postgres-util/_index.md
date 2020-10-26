@@ -1,7 +1,7 @@
 ---
 title: Local connection and the postgres-util sidecar
 weight: 15
-url: DEPRECATE-2
+url: administration/cluster/connection/pgutil
 ---
 
 Local Connection to the database has to be through the `postgres-utils` sidecar. This sidecar has all PostgreSQL binaries that are not present in the main container called `patroni` like the `psql` command.
