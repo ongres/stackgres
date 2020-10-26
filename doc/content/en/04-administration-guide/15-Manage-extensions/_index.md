@@ -1,7 +1,7 @@
 ---
 title: Database Extensions
-weight: 17
-url: DEPRECATE-1
+weight: 15
+url: administration/extensions
 ---
 
 All extensions can be created with a regular `CREATE EXTENSION` command. To create then, connect on the database through `psql` then run:

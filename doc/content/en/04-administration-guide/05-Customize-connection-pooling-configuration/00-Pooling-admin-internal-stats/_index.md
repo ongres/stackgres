@@ -1,9 +1,8 @@
 ---
 title: Pooling Administration and Internal Stats
-weight: 15
-url: administration/cluster/pooling/admin
+weight: 1
+url: administration/cluster/pool/admin
 ---
-
 
 ## Accessing the Pooling Admin console
 
