@@ -9,7 +9,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.distributedlogs.common.DistributedLogsProperty;
@@ -27,7 +27,7 @@ public class EventController extends EventEmitter {
   }
 
   public EventController() {
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.distributedLogsFinder = null;
   }
 

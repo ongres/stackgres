@@ -13,7 +13,7 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operatorframework.resource.AbstractResourceHandlerSelector;
 import io.stackgres.operatorframework.resource.ResourceHandler;
@@ -31,7 +31,7 @@ public class ClusterResourceHandlerSelector
   }
 
   public ClusterResourceHandlerSelector() {
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.handlers = null;
   }
 

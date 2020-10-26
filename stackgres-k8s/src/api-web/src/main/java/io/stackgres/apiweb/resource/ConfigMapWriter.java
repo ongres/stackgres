@@ -15,7 +15,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.Namespaceable;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.resource.AbstractResourceWriter;
 
@@ -30,7 +30,7 @@ public class ConfigMapWriter extends AbstractResourceWriter<
 
   public ConfigMapWriter() {
     super(null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Override

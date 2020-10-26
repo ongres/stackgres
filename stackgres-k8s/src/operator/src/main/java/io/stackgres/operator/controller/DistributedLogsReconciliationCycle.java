@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.ObjectMapperProvider;
@@ -102,7 +102,7 @@ public class DistributedLogsReconciliationCycle
 
   public DistributedLogsReconciliationCycle() {
     super(null, null, null, c -> null, null, null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.distributeLogs = null;
     this.distributedLogsController = null;
     this.fluentd = null;

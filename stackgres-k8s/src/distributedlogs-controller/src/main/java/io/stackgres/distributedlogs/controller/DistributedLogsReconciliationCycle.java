@@ -16,7 +16,7 @@ import javax.inject.Inject;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -71,7 +71,7 @@ public class DistributedLogsReconciliationCycle
 
   public DistributedLogsReconciliationCycle() {
     super(null, null, null, c -> null, null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.propertyContext = null;
     this.eventController = null;
     this.labelFactory = null;

@@ -16,7 +16,7 @@ import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsEventReason;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -58,7 +58,7 @@ public class DistributedLogsReconciliator
 
   public DistributedLogsReconciliator() {
     super(null, c -> null, null, null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.distributedLogsScheduler = null;
     this.statusManager = null;
     this.eventController = null;

@@ -17,7 +17,7 @@ import javax.ws.rs.core.MediaType;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.backup.BackupDto;
 import io.stackgres.apiweb.transformer.ResourceTransformer;
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
@@ -45,7 +45,7 @@ public class BackupResource
 
   public BackupResource() {
     super(null, null, null, null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Operation(

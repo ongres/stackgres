@@ -14,7 +14,7 @@ import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ObjectMapperProvider;
 import io.stackgres.common.crd.sgcluster.ClusterEventReason;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
@@ -49,7 +49,7 @@ public class ClusterReconciliator
 
   public ClusterReconciliator() {
     super(null, c -> null, null, null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.statusManager = null;
     this.eventController = null;
   }

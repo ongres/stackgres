@@ -10,7 +10,7 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operatorframework.resource.EventEmitter;
@@ -27,7 +27,7 @@ public class EventController extends EventEmitter {
   }
 
   public EventController() {
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.serviceFinder = null;
   }
 

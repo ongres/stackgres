@@ -8,7 +8,7 @@ package io.stackgres.operator.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.resource.AbstractCustomResourceScanner;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
@@ -33,7 +33,7 @@ public class PrometheusScanner
 
   public PrometheusScanner() {
     super(null, null, null, null, null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
 }

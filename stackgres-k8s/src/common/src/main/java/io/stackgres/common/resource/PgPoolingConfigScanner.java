@@ -8,7 +8,7 @@ package io.stackgres.common.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDefinition;
@@ -28,7 +28,7 @@ public class PgPoolingConfigScanner extends AbstractCustomResourceScanner
 
   public PgPoolingConfigScanner() {
     super(null, null, null, null, null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
 }

@@ -13,7 +13,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
@@ -37,7 +37,7 @@ public class DistributedLogsStatusManager extends AbstractClusterStatusManager<
 
   public DistributedLogsStatusManager() {
     super(null, null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Override
