@@ -81,6 +81,7 @@ spec:
             EOF
             export REDUCED_IMPACT={{ if .Values.cluster.restartReducedImpact }}true{{ else }}false{{ end }}
             export RESTART_PRIMARY_FIRST={{ if .Values.cluster.restartPrimaryFirst }}true{{ else }}false{{ end }}
+            export TIMEOUT={{ .Values.cluster.restartTimeout }}
             sh -x /tmp/cluster-restart.sh '{{ .Release.Namespace }}' '{{ .Release.Name }}'
       restartPolicy: Never
 {{- end }}
