@@ -1,7 +1,7 @@
 ---
 title: "Components of the Stack"
 weight: 4
-url: intro/stackcomponents
+url: intro/stack-components
 ---
 
 Running Postgres in production requires "a RedHat" of PostgreSQL. A curated set of open source components built,
@@ -142,12 +142,12 @@ and integrates as a sidecar offering an auto binding mechanism if prometheus is 
 
 Take in account that Prometheus is a dependency and that StackGres expects that you install and configure it separately.
 
-Of course, StackGres provides an option to deploy Prometheus alongside with the StackGres Operator 
+Of course, StackGres provides an option to deploy Prometheus alongside the StackGres Operator 
 as part of the [Helm chart](/install/helm/install) 
-and you can follow the steps there to enable the parameters and override from the default Helm chart the needed entries so that monitoring integration work as expected. 
+and you can follow the steps there to set the Helm chart needed parameters so that monitoring integration works as expected. 
 Please, read and review the steps and notes for a successful installation.
 
-Please note that Prometheus is to be removed from the Helm chart at some point, so the actual instructions will change and be obsolete.
+Please note that Prometheus will be removed from the Helm chart at some point, so the actual instructions will change and become obsolete.
 
 ### Grafana integration
 

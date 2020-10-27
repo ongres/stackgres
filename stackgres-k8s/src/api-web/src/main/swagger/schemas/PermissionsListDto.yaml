@@ -1,0 +1,17 @@
+type: PermissionsListDto
+schema:
+  PermissionsListDto:
+    description: |
+      A list of namespaced and unnamespaced permissions an user has been granted with.
+    properties:
+      namespaced:
+        description: |
+          List of namespaced permissions an user has been granted with.
+        items:
+          description: |
+            The namespaced permissions an user has been granted with. Each key represent a resource
+             type and the value is a list of strings each representing a verb on specified resource.
+      unnamespaced:
+        description: |
+          The unnamespaced permissions an user has been granted with. Each key represent a resource
+           type and the value is a list of strings each representing a verb on specified resource.

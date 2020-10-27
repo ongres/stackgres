@@ -5,18 +5,18 @@ metadata:
   name: "{{ .Release.Name }}-create-certificate"
   namespace: {{ .Release.Namespace }}
   labels:
-    app: stackgres-operator
+    app: "{{ .Release.Name }}-create-certificate"
     scope: init
     job: create-certificate
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
-    "helm.sh/hook-weigth": "0"
+    "helm.sh/hook-weight": "0"
 spec:
   template:
     metadata:
       labels:
-        app: stackgres-operator
+        app: "{{ .Release.Name }}-create-certificate"
         scope: init
         job: create-certificate
     spec:
@@ -109,13 +109,13 @@ spec:
             
             kubectl apply -f /tmp/validating-webhook-configuration.yaml
             kubectl apply -f /tmp/mutating-webhook-configuration.yaml
-            kubectl apply -f /tmp/certificate-secret.yaml
-            OPERATOR_POD="$(kubectl get pod)"
+            kubectl apply -f /tmp/certificate-secret.yaml            
             {{- if .Release.IsInstall }}
             kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
             kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
             {{- else }}
-            kubectl rollout restart -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
+            kubectl scale --timeout 1h --replicas 0 -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
+            kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'            
             kubectl rollout restart -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
             {{- end }}
       restartPolicy: OnFailure

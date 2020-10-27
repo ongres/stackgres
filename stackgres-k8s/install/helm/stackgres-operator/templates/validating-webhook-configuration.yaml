@@ -1,5 +1,5 @@
 {{- if or (and (not .Release.IsInstall) (not .Release.IsUpgrade)) (and .Values.cert.key .Values.cert.crt) }}
-apiVersion: admissionregistration.k8s.io/v1beta1
+apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   name: {{ .Release.Name }}
@@ -26,6 +26,7 @@ webhooks:
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgcluster'
       caBundle: {{ .Values.cert.crt }}
+    admissionReviewVersions: ["v1beta1"]
   - name: sgpgconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
     {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
@@ -42,6 +43,7 @@ webhooks:
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgpgconfig'
       caBundle: {{ .Values.cert.crt }}
+    admissionReviewVersions: ["v1beta1"]
   - name: sgpoolconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
     {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
@@ -58,6 +60,7 @@ webhooks:
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgpoolconfig'
       caBundle: {{ .Values.cert.crt }}
+    admissionReviewVersions: ["v1beta1"]
   - name: sginstanceprofile.{{ .Release.Name }}.{{ .Release.Namespace }}
     {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
@@ -74,6 +77,7 @@ webhooks:
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sginstanceprofile'
       caBundle: {{ .Values.cert.crt }}
+    admissionReviewVersions: ["v1beta1"]
   - name: sgbackupconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
     {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
@@ -90,6 +94,7 @@ webhooks:
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgbackupconfig'
       caBundle: {{ .Values.cert.crt }}
+    admissionReviewVersions: ["v1beta1"]
   - name: sgbackup.{{ .Release.Name }}.{{ .Release.Namespace }}
     {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
@@ -106,6 +111,7 @@ webhooks:
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgbackup'
       caBundle: {{ .Values.cert.crt }}
+    admissionReviewVersions: ["v1beta1"]
   - name: sgdistributedlogs.{{ .Release.Name }}.{{ .Release.Namespace }}
     {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
@@ -122,4 +128,5 @@ webhooks:
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgdistributedlogs'
       caBundle: {{ .Values.cert.crt }}
+    admissionReviewVersions: ["v1beta1"]
 {{- end }}

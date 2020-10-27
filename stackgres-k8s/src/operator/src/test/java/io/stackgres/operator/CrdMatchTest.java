@@ -185,11 +185,9 @@ public class CrdMatchTest {
 
     String declaredKind = crdTree.get("spec").get("names").get("kind").asText();
 
-    CustomResourceDefinition definition = Optional.ofNullable(definitionsByKind.get(declaredKind))
+    return Optional.ofNullable(definitionsByKind.get(declaredKind))
         .orElseThrow(() -> new AssertionFailedError("Custom Resource definition "
             + declaredKind + " does not exists. Available kinds: " + definitionsByKind.keySet()));
-
-    return definition;
 
   }
 

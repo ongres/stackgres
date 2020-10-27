@@ -44,3 +44,9 @@ build restapi native executable:
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: "-restapi"
     MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,api-web"
+
+build jobs native executable:
+  extends: .build native executable
+  variables:
+    NATIVE_IMAGE_EXTRA_PREFIX: "-jobs"
+    MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,jobs"

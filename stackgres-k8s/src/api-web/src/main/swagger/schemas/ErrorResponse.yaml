@@ -1,0 +1,22 @@
+crdFile: null
+type: ErrorResponse
+schema:
+  ErrorResponse:
+    description: |
+      Object returned when an error occur.
+    properties:
+      type:
+        description: |
+          An URL indicating the type of the error that point to the documentation.
+      title:
+        description: |
+          The title of the error message.
+      detail:
+        description: |
+          A human readable description of what is the problem.
+      status:
+        description: |
+          The HTTP status code.
+      fields:
+        description: |
+          If applicable, a list of fields that is causing the issue.

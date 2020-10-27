@@ -255,7 +255,7 @@ pg_controldata --pgdata="$PG_DATA_PATH"
 EOF
 if [ "$?" = 0 ]
 then
-  cat /tmp/pg_controldata | awk '{ $2=$2;print }'| awk -F ': ' '
+  cat /tmp/pg_controldata | awk -F ':' '{ printf "%s: %s\n", $1, $2 }' | awk '{ $2=$2;print }'| awk -F ': ' '
         BEGIN { print "\n            {"}
         {
           if (NR > 1)

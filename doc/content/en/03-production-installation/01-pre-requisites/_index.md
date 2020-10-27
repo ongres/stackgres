@@ -9,7 +9,7 @@ url: install/prerequisites
 As explained in the [Demo section](/demo/setenv/), for setting up the Operator and StackGres Cluster, you need to have an
 environment on top of which it needs to request the necessary resources.
 
-StackGres is able to run on any Kubernetes installation from 1.11 to 1.17 version, support for newer version, please follow up the open discussion at [#666](https://gitlab.com/ongresinc/stackgres/-/issues/666).
+StackGres is able to run on any Kubernetes installation from 1.11 to 1.17 version, to maintain support for some version, please follow up the open discussion at" [#666](https://gitlab.com/ongresinc/stackgres/-/issues/666).
 
 ## Backups
 
@@ -19,18 +19,18 @@ In the next section, you'll be able to see how to done this [via Helm](install/h
 
 ### Storage
 
-StackGres support Backups support the following storage options:
+StackGres support Backups with the following storage options:
  
 * AWS S3
 * Google CLoud Storage
 * Azure Blob Storage
 
 
-> By default, examples are using [MinIO](https://min.io/) service as a S3 compatible service for 
+> Examples are using [MinIO](https://min.io/) service as a S3 compatible service for 
 > quick setups on local Kubernetes Cluster. Although, for production setups, StackGres Team recommends
 > emphatically to pick a Storage as a Service for this purpose.
 
-All the related configuration for the storage, is under backupconfig/storage section in your [Stackgres Cluster configuration file](https://gitlab.com/ongresinc/stackgres/-/blob/development/stackgres-k8s/install/helm/stackgres-cluster/values.yaml#L100-148).
+All the related configuration for the storage, is under `configurations.backupconfig.storage` section in your [Stackgres Cluster configuration file](https://gitlab.com/ongresinc/stackgres/-/blob/development/stackgres-k8s/install/helm/stackgres-cluster/values.yaml#L100-148).
 
 ```yaml
 configurations:
@@ -90,8 +90,6 @@ Some manual steps are required in order to achieve such integration.
 
     **Using the UI:** Click on Grafana > Dashboard > Manage > Select Postgres exporter dashboard > Copy URL
 
-    Or using the value returned by the next [script]().
-
 3. Create and copy/paste Grafana API token:
 
     **Using the UI:** Grafana > Configuration > API Keys > Add API key (for viewer) > Copy key value
@@ -105,7 +103,3 @@ We recommend to disable all non production options in a production environment. 
 ``` yaml
 nonProductionOptions: {}
 ```
-
-The use of MinIO in production is not considered a bad practice but we recommend to install MinIO
- separately to in order to be able to change version independently from the StackGres cluster helm
- chart.

@@ -25,7 +25,6 @@ unit tests:
     - build helm packages
     - build helm templates
   variables:
-    OPERATOR_IN_KUBERNETES: "true"
     IMAGE_TAG_SUFFIX: ""
     E2E_SUFFIX: ""
   timeout: 12 hour

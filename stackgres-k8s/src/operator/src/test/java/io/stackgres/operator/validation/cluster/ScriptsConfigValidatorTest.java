@@ -5,7 +5,9 @@
 
 package io.stackgres.operator.validation.cluster;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,20 +15,20 @@ import java.util.Optional;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.fabric8.kubernetes.api.model.ConfigMapKeySelector;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
-import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.stackgres.common.ErrorType;
+import io.stackgres.common.crd.ConfigMapKeySelector;
+import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.resource.ResourceFinder;
-import io.stackgres.testutil.JsonUtil;
-import io.stackgres.testutil.StringUtils;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import io.stackgres.testutil.JsonUtil;
+import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -288,9 +290,7 @@ class ScriptsConfigValidatorTest {
       s.setScript(null);
       s.setDatabase(null);
       s.setScriptFrom(new StackGresClusterScriptFrom());
-      s.getScriptFrom().setSecretKeyRef(new SecretKeySelector());
-      s.getScriptFrom().getSecretKeyRef().setName(name);
-      s.getScriptFrom().getSecretKeyRef().setKey(key);
+      s.getScriptFrom().setSecretKeyRef(new SecretKeySelector(key, name));
     });
   }
 
@@ -300,9 +300,7 @@ class ScriptsConfigValidatorTest {
       s.setScript(null);
       s.setDatabase(null);
       s.setScriptFrom(new StackGresClusterScriptFrom());
-      s.getScriptFrom().setConfigMapKeyRef(new ConfigMapKeySelector());
-      s.getScriptFrom().getConfigMapKeyRef().setName(name);
-      s.getScriptFrom().getConfigMapKeyRef().setKey(key);
+      s.getScriptFrom().setConfigMapKeyRef(new ConfigMapKeySelector(key, name));
     });
   }
 

@@ -11,19 +11,32 @@ e2e_test_install() {
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
   install_operator_previous_version
+  
   kubectl create namespace "$CLUSTER_NAMESPACE"
+
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
-    --set cluster.create=false
+    --set cluster.create=false \
+    --set instanceProfiles[0].name=size-xs \
+    --set instanceProfiles[0].cpu=250m \
+    --set instanceProfiles[0].memory=512Mi \
+    --set-string configurations.postgresconfig.postgresql\.conf.max_connections=100
+  create_or_replace_cluster "$CLUSTER_NAME-for-restart-primary-first" "$CLUSTER_NAMESPACE" 1 \
+    --set cluster.create=false \
+    --set instanceProfiles=null \
+    --set cluster.configurations.sgPostgresConfig=postgresconf-for-restart-primary-first \
+    --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-restart-primary-first \
+    --set-string configurations.postgresconfig.postgresql\.conf.max_connections=100
   create_or_replace_cluster "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
-     --set-string cluster.postgresVersion=latest
+    --set-string cluster.postgresVersion=latest
   create_or_replace_cluster "$CLUSTER_NAME-2" "$CLUSTER_NAMESPACE" 2 \
     --set configurations.create=false --set instanceProfiles=false \
-     --set-string cluster.postgresVersion=latest
+    --set-string cluster.postgresVersion=latest \
+    --set cluster.configurations.sgPostgresConfig=postgresconf-for-restart-primary-first \
+    --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-restart-primary-first
   create_or_replace_cluster "$CLUSTER_NAME-3" "$CLUSTER_NAMESPACE" 3 \
     --set configurations.create=false --set instanceProfiles=false \
-     --set-string cluster.postgresVersion=latest
-
+    --set-string cluster.postgresVersion=latest
   wait_pods_running "$CLUSTER_NAMESPACE" 6
 
   generate_mock_data "$CLUSTER_NAME-1"
@@ -48,9 +61,10 @@ e2e_test() {
   run_test "Check that cluster with 1 node after upgrade" check_cluster_1
   run_test "Check that cluster with 2 node after upgrade" check_cluster_2
   run_test "Check that cluster with 3 node after upgrade" check_cluster_3
-  run_test "Check that cluster with 1 node can be restarted after upgrade" check_cluster_1_restart
-  run_test "Check that cluster with 2 node can be restarted after upgrade" check_cluster_2_restart
-  run_test "Check that cluster with 3 node can be restarted after upgrade" check_cluster_3_restart
+  run_test "Check that cluster with 1 node can be restarted after upgrade with reduced impact" check_cluster_1_restart
+  run_test "Check that cluster with 2 node can be restarted after upgrade with restart primary first" check_cluster_2_restart
+  run_test "Check that cluster with 3 node can be restarted after upgrade with in-place restart" check_cluster_3_restart
+  run_test "Check that the conversion webhook is configured" check_conversion_webhook_configured
 }
 
 check_operator_upgrade() {
@@ -115,7 +129,9 @@ check_operator_upgrade() {
     echo "Used restapi image is $POD_RESTAPI_IMAGE"
     return 1
   fi
+
 }
+
 
 check_cluster_1() {
   check_mock_data_samehost "$CLUSTER_NAME-1"
@@ -133,23 +149,31 @@ check_cluster_3() {
 }
 
 check_cluster_1_restart() {
-  check_cluster_restart "$CLUSTER_NAME-1" 1
+  check_cluster_restart "$CLUSTER_NAME-1" 1 true false
   wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-1" --for condition=PendingRestart'
 }
 
 check_cluster_2_restart() {
-  check_cluster_restart "$CLUSTER_NAME-2" 2
+  create_or_replace_cluster "$CLUSTER_NAME-for-restart-primary-first" "$CLUSTER_NAMESPACE" 1 \
+    --set cluster.create=false \
+    --set instanceProfiles=null \
+    --set cluster.configurations.sgPostgresConfig=postgresconf-for-restart-primary-first \
+    --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-restart-primary-first \
+    --set-string configurations.postgresconfig.postgresql\.conf.max_connections=50
+  check_cluster_restart "$CLUSTER_NAME-2" 2 false true
   wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-2" --for condition=PendingRestart'
 }
 
 check_cluster_3_restart() {
-  check_cluster_restart "$CLUSTER_NAME-3" 3
+  check_cluster_restart "$CLUSTER_NAME-3" 3 false false
   wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-3" --for condition=PendingRestart'
 }
 
 check_cluster_restart() {
   local CLUSTER_NAME="$1"
   local CLUSTER_SIZE="$2"
+  local REDUCED_IMPACT="$3"
+  local RESTART_PRIMARY_FIRST="$4"
   local CURRENT_TIMESTAMP="$(date --utc +%s)"
 
   local POD
@@ -175,7 +199,9 @@ check_cluster_restart() {
   done
 
   try_function create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$CLUSTER_SIZE" \
-    --set cluster.restart=true --set cluster.restartReducedImpact=false
+    --set cluster.restart=true \
+    --set cluster.restartReducedImpact="$REDUCED_IMPACT" \
+    --set cluster.restartPrimaryFirst="$RESTART_PRIMARY_FIRST"
   if "$RESULT"
   then
     echo "SUCCESS. Cluster restart completed sucesfully"
@@ -223,3 +249,14 @@ check_cluster_restart() {
 
   check_mock_data_samehost "$CLUSTER_NAME"
 }
+
+check_conversion_webhook_configured(){
+
+  CONVERSTION_STRATEGY=$(kubectl get crd sgclusters.stackgres.io -o jsonpath='{.spec.conversion.strategy}')
+
+  assert_string_equal "Webhook" "$CONVERSTION_STRATEGY"
+
+}
+
+
+

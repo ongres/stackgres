@@ -3,7 +3,7 @@
 set -e
 
 RESTAPI_IMAGE_NAME="${RESTAPI_IMAGE_NAME:-"stackgres/restapi:development-jvm"}"
-CONTAINER_BASE=$(buildah from "azul/zulu-openjdk-alpine:11.0.8-jre-headless")
+CONTAINER_BASE=$(buildah from "registry.access.redhat.com/ubi8/openjdk-11")
 TARGET_RESTAPI_IMAGE_NAME="${TARGET_RESTAPI_IMAGE_NAME:-docker-daemon:$RESTAPI_IMAGE_NAME}"
 
 # Include binaries
@@ -32,7 +32,7 @@ JAVA_JAR="-jar /app/stackgres-restapi.jar"
 exec java $JAVA_OPTS $JAVA_JAR $APP_OPTS
 EOF
 buildah copy --chown nobody:nobody "$CONTAINER_BASE" 'api-web/target/stackgres-restapi.sh' '/app/'
-buildah run "$CONTAINER_BASE" -- chmod 775 '/app'
+#buildah run "$CONTAINER_BASE" -- chmod 775 '/app'
 
 ## Run our server and expose the port
 buildah config --cmd 'sh /app/stackgres-restapi.sh' "$CONTAINER_BASE"

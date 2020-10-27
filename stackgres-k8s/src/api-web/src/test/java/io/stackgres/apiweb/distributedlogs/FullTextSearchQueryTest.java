@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Optional;
 
-import io.stackgres.apiweb.distributedlogs.FullTextSearchQuery;
 import org.junit.jupiter.api.Test;
 
 public class FullTextSearchQueryTest {
