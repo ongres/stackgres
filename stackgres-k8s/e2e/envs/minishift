@@ -89,6 +89,7 @@ update_k8s_config() {
     mv "$HOME/.kube/config-oc" "$KUBECONFIG"
   fi
   )
+  chmod 700 "$KUBECONFIG"
 }
 
 reuse_k8s() {
@@ -99,8 +100,7 @@ reuse_k8s() {
   if ! "$RESULT" > /dev/null 2>&1
   then
     echo "Can not reuse minishift environment"
-    reset_k8s
-    return
+    exit 1
   fi
 
   echo "Reusing minishift environment"

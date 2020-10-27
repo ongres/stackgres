@@ -10,8 +10,7 @@ reuse_k8s() {
   if ! minikube status > /dev/null 2>&1
   then
     echo "Can not reuse minikube environment"
-    reset_k8s
-    return
+    exit 1
   fi
 
   echo "Reusing minikube environment"
