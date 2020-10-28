@@ -26,8 +26,6 @@ reuse_k8s() {
   then
     echo "Can not reuse eks environment $K8S_EKS_NAME"
     exit 1
-    reset_k8s
-    return
   fi
 
   echo "Reusing eks environment $K8S_EKS_NAME"
@@ -93,6 +91,32 @@ get_k8s_versions() {
 EOF
 }
 
+excluded_customresourcedefinitions() {
+  echo '.*\.aws'
+  echo '.*\.amazonaws\.com'
+}
+
+excluded_clusterroles() {
+  echo 'eks:.*'
+  echo 'aws-node'
+  echo 'vpc-resource-controller-role'
+}
+
+excluded_clusterrolebindings() {
+  echo 'eks:.*'
+  echo 'aws-node'
+  echo 'vpc-resource-controller-rolebinding'
+}
+
 excluded_podsecuritypolicies() {
   echo 'eks\.privileged'
+}
+
+excluded_validatingwebhookconfigurations() {
+  echo "vpc-resource-validating-webhook"
+}
+
+excluded_mutatingwebhookconfigurations() {
+  echo "vpc-resource-mutating-webhook"
+  echo "pod-identity-webhook"
 }
