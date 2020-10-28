@@ -177,6 +177,7 @@
         <groupId>io.openapitools.swagger</groupId>
         <artifactId>swagger-maven-plugin</artifactId>
         <configuration>
+          <skip>false</skip>
           <resourcePackages>
             <resourcePackage>io.stackgres.apiweb.rest</resourcePackage>
             <resourcePackage>io.stackgres.apiweb.dto</resourcePackage>

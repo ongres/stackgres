@@ -114,6 +114,8 @@ public class InitializationQueueImpl implements InitializationQueue {
         scheduler.shutdown();
         return;
       }
+      scheduler.schedule(this::initializationCycle, 10, TimeUnit.SECONDS);
+      return;
     }
     scheduler.schedule(this::initializationCycle, 500, TimeUnit.MILLISECONDS);
   }

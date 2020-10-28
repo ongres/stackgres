@@ -72,36 +72,36 @@ k8s_cleanup() {
   echo "Cleanup of k8s"
   k8s_webhook_cleanup
   kubectl get crd -o name \
-    | grep -v "^customresourcedefinition.apiextensions.k8s.io/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | grep -v "^customresourcedefinition.apiextensions.k8s.io/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | xargs -r -n 1 -I % -P 0 kubectl delete %
   kubectl get clusterrolebinding -o name \
-    | grep -v "^clusterrolebinding.rbac.authorization.k8s.io/\\(system:.*\|kubeadm:.*\|cluster-admin\|kindnet\)$" \
-    | grep -v "^clusterrolebinding.rbac.authorization.k8s.io/\($(excluded_clusterrolebindings | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | grep -v "^clusterrolebinding.rbac.authorization.k8s.io/\($(env_excluded_clusterrolebindings | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\(system:.*\|kubeadm:.*\|cluster-admin\|kindnet\)$" \
+    | grep -v "^[^/]\+/\($(excluded_clusterrolebindings | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_clusterrolebindings | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | xargs -r -n 1 -I % -P 0 kubectl delete %
   kubectl get clusterrole -o name \
-    | grep -v "^clusterrole.rbac.authorization.k8s.io/\\(system:.*\|admin\|cluster-admin\|edit\|kindnet\|view\)$" \
-    | grep -v "^clusterrole.rbac.authorization.k8s.io/\($(excluded_clusterroles | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | grep -v "^clusterrole.rbac.authorization.k8s.io/\($(env_excluded_clusterroles | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\(system:.*\|admin\|cluster-admin\|edit\|kindnet\|view\)$" \
+    | grep -v "^[^/]\+/\($(excluded_clusterroles | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_clusterroles | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | xargs -r -n 1 -I % -P 0 kubectl delete %
   kubectl get namespace -o name \
-    | grep -v "^namespace/\(default\|kube-.*\)$" \
-    | grep -v "^namespace/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | grep -v "^namespace/\($(env_excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\(default\|kube-.*\)$" \
+    | grep -v "^[^/]\+/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | cut -d / -f 2 \
     | xargs -r -n 1 -I % -P 0 kubectl delete namespace % --timeout="$((1 + E2E_TIMEOUT / 10))s" \
     || kubectl get namespace -o name \
-      | grep -v "^namespace/\(default\|kube-.*\)$" \
-      | grep -v "^namespace/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-      | grep -v "^namespace/\($(env_excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | grep -v "^[^/]\+/\(default\|kube-.*\)$" \
+      | grep -v "^[^/]\+/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | grep -v "^[^/]\+/\($(env_excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
       | cut -d / -f 2 \
       | xargs -r -n 1 -I @ -P 0 "$SHELL" $SHELL_XTRACE \
         -ec "$(k8s_finalize_namespace_script)"
   ! kubectl api-resources | grep -q '^podsecuritypolicies ' \
     || kubectl get podsecuritypolicies -o name \
-      | grep -v "^podsecuritypolicy.extensions/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-      | grep -v "^podsecuritypolicy.extensions/\($(env_excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | grep -v "^[^/]\+/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | grep -v "^[^/]\+/\($(env_excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
       | xargs -r -n 1 -I % kubectl delete '%'
 }
 
@@ -109,23 +109,23 @@ k8s_async_cleanup() {
   echo "Async cleanup of k8s"
   k8s_webhook_cleanup
   kubectl get crd -o name \
-    | grep -v "^customresourcedefinition.apiextensions.k8s.io/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | grep -v "^customresourcedefinition.apiextensions.k8s.io/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | xargs -r -n 1 -I % -P 0 kubectl delete %
   kubectl get clusterrolebinding -o name \
-    | grep -v "^clusterrolebinding.rbac.authorization.k8s.io/\\(system:.*\|kubeadm:.*\|cluster-admin\|kindnet\)$" \
-    | grep -v "^clusterrolebinding.rbac.authorization.k8s.io/\($(excluded_clusterrolebindings | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | grep -v "^clusterrolebinding.rbac.authorization.k8s.io/\($(env_excluded_clusterrolebindings | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\(system:.*\|kubeadm:.*\|cluster-admin\|kindnet\)$" \
+    | grep -v "^[^/]\+/\($(excluded_clusterrolebindings | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_clusterrolebindings | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | xargs -r -n 1 -I % -P 0 kubectl delete %
   kubectl get clusterrole -o name \
-    | grep -v "^clusterrole.rbac.authorization.k8s.io/\\(system:.*\|admin\|cluster-admin\|edit\|kindnet\|view\)$" \
-    | grep -v "^clusterrole.rbac.authorization.k8s.io/\($(excluded_clusterroles | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | grep -v "^clusterrole.rbac.authorization.k8s.io/\($(env_excluded_clusterroles | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\(system:.*\|admin\|cluster-admin\|edit\|kindnet\|view\)$" \
+    | grep -v "^[^/]\+/\($(excluded_clusterroles | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_clusterroles | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | xargs -r -n 1 -I % -P 0 kubectl delete %
   kubectl get namespace -o name \
-    | grep -v "^namespace/\(default\|kube-.*\)$" \
-    | grep -v "^namespace/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | grep -v "^namespace/\($(env_excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\(default\|kube-.*\)$" \
+    | grep -v "^[^/]\+/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | cut -d / -f 2 \
     | xargs -r -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE \
         -ec "kubectl delete namespace --wait=false % \
@@ -133,20 +133,20 @@ k8s_async_cleanup() {
           || ! kubectl get namespace % >/dev/null 2>&1"
   ! kubectl api-resources | grep -q '^podsecuritypolicies ' \
     || kubectl get podsecuritypolicies -o name \
-      | grep -v "^podsecuritypolicy.extensions/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-      | grep -v "^podsecuritypolicy.extensions/\($(env_excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | grep -v "^[^/]\+/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | grep -v "^[^/]\+/\($(env_excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
       | xargs -r -n 1 -I % kubectl delete '%'
 }
 
 k8s_webhook_cleanup() {
   echo "Cleanup of k8s webhooks"
   kubectl get validatingwebhookconfigurations.admissionregistration.k8s.io -o name \
-    | grep -v "^validatingwebhookconfiguration.admissionregistration.k8s.io/\($(excluded_validatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | grep -v "^validatingwebhookconfiguration.admissionregistration.k8s.io/\($(env_excluded_validatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(excluded_validatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_validatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | xargs -r -n 1 -I % -P 0 kubectl delete %
   kubectl get mutatingwebhookconfigurations.admissionregistration.k8s.io -o name \
-    | grep -v "^mutatingwebhookconfiguration.admissionregistration.k8s.io/\($(excluded_mutatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | grep -v "^mutatingwebhookconfiguration.admissionregistration.k8s.io/\($(env_excluded_mutatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(excluded_mutatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_mutatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | xargs -r -n 1 -I % -P 0 kubectl delete %
 }
 
@@ -166,26 +166,26 @@ k8s_cleanup_but_operator() {
   echo "Cleanup of k8s excluding operator"
   kubectl get crd -o name \
     | grep -v '\.stackgres\.io$' \
-    | grep -v "^customresourcedefinition.apiextensions.k8s.io/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | grep -v "^customresourcedefinition.apiextensions.k8s.io/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | xargs -r -n 1 -I % -P 0 kubectl delete %
   kubectl get namespace -o name \
-    | grep -v "^namespace/\(default\|kube-.*\|$OPERATOR_NAMESPACE\)$" \
-    | grep -v "^namespace/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | grep -v "^namespace/\($(env_excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\(default\|kube-.*\|$OPERATOR_NAMESPACE\)$" \
+    | grep -v "^[^/]\+/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | cut -d / -f 2 \
     | xargs -r -n 1 -I % -P 0 kubectl delete namespace % --timeout="$((1 + E2E_TIMEOUT / 10))s" \
     || kubectl get namespace -o name \
-      | grep -v "^namespace/\(default\|kube-.*\|$OPERATOR_NAMESPACE\)$" \
-      | grep -v "^namespace/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-      | grep -v "^namespace/\($(env_excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | grep -v "^[^/]\+/\(default\|kube-.*\|$OPERATOR_NAMESPACE\)$" \
+      | grep -v "^[^/]\+/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | grep -v "^[^/]\+/\($(env_excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
       | cut -d / -f 2 \
       | xargs -r -n 1 -I @ -P 0 "$SHELL" $SHELL_XTRACE \
         -ec "$(k8s_finalize_namespace_script)"
   ! kubectl api-resources | grep -q '^podsecuritypolicies ' \
     || kubectl get podsecuritypolicies -o name \
-      | grep -v "^podsecuritypolicy.extensions/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-      | grep -v "^podsecuritypolicy.extensions/\($(env_excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | grep -v "^[^/]\+/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | grep -v "^[^/]\+/\($(env_excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
       | xargs -r -n 1 -I % kubectl delete '%'
 }
 
@@ -193,13 +193,13 @@ k8s_async_cleanup_but_operator() {
   echo "Async cleanup of k8s excluding operator"
   kubectl get crd -o name \
     | grep -v '\.stackgres\.io$' \
-    | grep -v "^customresourcedefinition.apiextensions.k8s.io/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | grep -v "^customresourcedefinition.apiextensions.k8s.io/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | xargs -r -n 1 -I % -P 0 kubectl delete %
   kubectl get namespace -o name \
-    | grep -v "^namespace/\(default\|kube-.*\|$OPERATOR_NAMESPACE\)$" \
-    | grep -v "^namespace/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | grep -v "^namespace/\($(env_excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\(default\|kube-.*\|$OPERATOR_NAMESPACE\)$" \
+    | grep -v "^[^/]\+/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | cut -d / -f 2 \
     | xargs -r -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE \
         -ec "kubectl delete namespace --wait=false % \
@@ -207,8 +207,8 @@ k8s_async_cleanup_but_operator() {
           || ! kubectl get namespace % >/dev/null 2>&1"
   ! kubectl api-resources | grep -q '^podsecuritypolicies ' \
     || kubectl get podsecuritypolicies -o name \
-      | grep -v "^podsecuritypolicy.extensions/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-      | grep -v "^podsecuritypolicy.extensions/\($(env_excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | grep -v "^[^/]\+/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | grep -v "^[^/]\+/\($(env_excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
       | xargs -r -n 1 -I % kubectl delete '%'
 }
 

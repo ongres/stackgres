@@ -101,7 +101,7 @@ check_operator_upgrade() {
 
   POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
-    | grep '/operator:')"
+    | grep '/operator:' | sed 's#^[^/]\+/\([^/]\+/[^:]\+\)#\1#')"
   if [ "$POD_OPERATOR_IMAGE" = "$STACKGRES_OPERATOR_IMAGE" ]
   then
     echo "SUCCESS. Operator pod is using the new operator image"
@@ -115,7 +115,7 @@ check_operator_upgrade() {
   fi
   POD_RESTAPI_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-restapi \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
-    | grep '/restapi:')"
+    | grep '/restapi:' | sed 's#^[^/]\+/\([^/]\+/[^:]\+\)#\1#')"
   if [ "$POD_RESTAPI_IMAGE" = "$STACKGRES_RESTAPI_IMAGE" ]
   then
     echo "SUCCESS. Operator pod is using the new restapi image"
