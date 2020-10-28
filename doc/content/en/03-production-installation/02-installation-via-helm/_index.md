@@ -39,7 +39,7 @@ Install the [Prometheus Server Operator](https://github.com/prometheus-community
 helm install --namespace monitoring prometheus-operator prometheus-community/prometheus
 ```
 
-> StackGres provides more and advanced options for monitoring installation, see [Create a more advanced cluster](/administration/cluster/creation/advanced) in the [Administration Guide](/administration).
+> StackGres provides more and advanced options for monitoring installation, see [Create a more advanced cluster]({{% relref "04-administration-guide/07-create-a-more-advanced-cluster" %}}) in the [Administration Guide]({{% relref "04-administration-guide" %}}).
 
 ## StackGres Operator installation
 
@@ -58,7 +58,7 @@ helm install --namespace stackgres stackgres-operator \
 ```
 
 In the previous example StackGres have included several options to the installation, including the needed options to enable
-the monitoring. Follow the [Cluster Parameters](install/cluster/parameters) section for a described list.
+the monitoring. Follow the [Cluster Parameters]({{% relref "03-production-installation/06-cluster-parameters" %}}) section for a described list.
 
 > The `grafana.webHost` value may change if the installation is not Prometheus' default, as well as `grafana.user` and `grafana.password`.
 
@@ -82,7 +82,7 @@ spec:
 EOF
 ```
 
-But not only the Instance Profile, you can instruct StackGres to changes PostgreSQL configuration using the CR [SGPostgresConfig](/reference/crd/tuning/postgres/) or the PGBouncer setting with [SGPoolingConfig](/reference/crd/tuning/pool/) and more, like the backup specification using [SGBackupConfig](/reference/backups/#configuration)
+But not only the Instance Profile, you can instruct StackGres to changes PostgreSQL configuration using the CR [SGPostgresConfig]({{% relref "05-crd-reference/04-postgres-configuration" %}}) or the PGBouncer setting with [SGPoolingConfig]({{% relref "05-crd-reference/07-connection-pooling-configuration" %}}) and more, like the backup specification using [SGBackupConfig]({{% relref "05-crd-reference/03-backup-config" %}})
 
 The next code snippets will show you how to play with these CRs.
 
@@ -297,7 +297,7 @@ data:
 EOF
 ```
 
-Finally create the SGDistributedLogs CR to enable a [distributed log cluster](/reference/distributedlogs/) 
+Finally create the SGDistributedLogs CR to enable a [distributed log cluster]({{% relref "05-crd-reference/06-distributed-logs" %}}) 
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -370,7 +370,7 @@ Look up to the yaml into the here doc above, every CR previously being included 
 And there is in place the script created through the secret, but StackGres includes an extra example for you, the second script
 show you how to run a SQL instruction directly into the yaml. 
 
-Another important entry to highlight in the yaml is [prometheusAutobind: true](/install/cluster/parameters/#configuration-cluster-parameters). 
+Another important entry to highlight in the yaml is [prometheusAutobind: true]({{% relref "03-production-installation/06-cluster-parameters" %}}). 
 It is not enough to have the Prometheus operator installed to have monitoring, we need to enable this parameter to have monitoring as documentation indicates.
 
 Awesome, now you can relax and wait for the SGCluster spinning up.

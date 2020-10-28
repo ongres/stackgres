@@ -6,16 +6,16 @@ url: install/prerequisites
 
 ## Environment
 
-As explained in the [Demo section](/demo/setenv/), for setting up the Operator and StackGres Cluster, you need to have an
+As explained in the [Demo section]({{% relref "02-demo-quickstart/01-setting-up-the-environment" %}}), for setting up the Operator and StackGres Cluster, you need to have an
 environment on top of which it needs to request the necessary resources.
 
 StackGres is able to run on any Kubernetes installation from 1.11 to 1.17 version, to maintain support for some version, please follow up the open discussion at" [#666](https://gitlab.com/ongresinc/stackgres/-/issues/666).
 
 ## Backups
 
-All the configuration for this matter can be found at [Backup Configuration documentation](reference/backups/#configuration). By default, backups are scheduled daily (`config.backup.fullSchedule`) at `05:00 UTC` and with a retention policy (`config.backup.retention`) of 5 full-backups removed on rotation. You will have to find out the correct time window and retention policy that fit your needs.
+All the configuration for this matter can be found at [Backup Configuration documentation]({{% relref "05-crd-reference/02-backups/#configuration" %}}). By default, backups are scheduled daily (`config.backup.fullSchedule`) at `05:00 UTC` and with a retention policy (`config.backup.retention`) of 5 full-backups removed on rotation. You will have to find out the correct time window and retention policy that fit your needs.
 
-In the next section, you'll be able to see how to done this [via Helm](install/helm/install/), with more explicit examples.
+In the next section, you'll be able to see how to done this [via Helm]({{% relref "03-production-installation/02-installation-via-helm" %}}), with more explicit examples.
 
 ### Storage
 
@@ -44,7 +44,7 @@ configurations:
       azureBlob: {}
 ```
 
-To extend the CRD for the backups, all the reference can be found at [CRD Reference Documentation](/reference/crd/#backups).
+To extend the CRD for the backups, all the reference can be found at [CRD Reference Documentation]({{% relref "05-crd-reference/02-backups" %}}).
 
 ### Restore
 
@@ -60,7 +60,7 @@ cluster:
 
 ## Monitoring
 
-As early indicated in [Component of the Stack](/01-introduction/04-components-of-the-stack/#monitoring), StackGres at the moment supports Prometheus integration only. 
+As early indicated in [Component of the Stack]({{% relref "01-introduction/04-components-of-the-stack/#monitoring" %}}), StackGres at the moment supports Prometheus integration only. 
 
 ## Grafana Integration and Pre-requisites
 

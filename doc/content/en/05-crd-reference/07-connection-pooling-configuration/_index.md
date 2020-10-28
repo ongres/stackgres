@@ -1,7 +1,7 @@
 ---
 title: Connection pooling configuration
-weight: 3
-url: reference/crd/tuning/pool
+weight: 7
+url: reference/crd/sgpoolconfig
 ---
 
 The connection pooling CR represent the configuration of PgBouncer.

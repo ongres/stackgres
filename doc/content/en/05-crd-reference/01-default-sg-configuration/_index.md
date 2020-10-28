@@ -1,7 +1,7 @@
 ---
 title: Default StackGres configurations
 weight: 1
-url: reference/crd/tuning/stackgres
+url: reference/crd/default-config
 ---
 
 StackGres operator creates default configurations in the same namespace where the operator has
