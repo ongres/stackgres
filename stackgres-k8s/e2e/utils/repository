@@ -11,7 +11,7 @@ setup_cache() {
   load_cached_images_from_local_repository
   cache_pulled_images_to_local_repository &
   trap_kill "$!"
-  load_failed_to_pull_images_from_local_repository &
+  load_failed_images_pull_from_local_repository &
   trap_kill "$!"
 }
 
@@ -112,9 +112,10 @@ get_private_repository_password() {
 }
 
 load_cached_images_from_local_repository() {
+  echo "Loading cached images from local repository"
   if [ ! -f "$E2E_PULLED_IMAGES_PATH" ]
   then
-    return
+    touch "$E2E_PULLED_IMAGES_PATH"
   fi
   cat "$E2E_PULLED_IMAGES_PATH" \
     | cut -d : -f 2-3 | sort | uniq \
@@ -125,25 +126,29 @@ load_cached_images_from_local_repository() {
 load_cached_image_from_local_repository() {
   if docker image inspect "$1" >/dev/null 2>&1
   then
-    load_image_k8s "$1"
+    try load_image_k8s "$1"
+    if ! "$RESULT"
+    then
+      echo "Loading image $IMAGE_NAME to k8s failed!"
+    fi
   else
     echo "Image $1 not found in cache!"
   fi
 }
 
 cache_pulled_images_to_local_repository() {
+  echo "Looking for pulled images to cache to local repository"
+  if [ ! -f "$E2E_PULLED_IMAGES_PATH" ]
+  then
+    touch "$E2E_PULLED_IMAGES_PATH"
+  fi
   event_watch \
-    | stdbuf -o0 grep '\sSuccessfully pulled image "[^"]\+"$' \
-    | stdbuf -o0 sed 's/.*\sSuccessfully pulled image "\([^"]\+\)"$/\1/' \
+    | stdbuf -o0 grep '\sSuccessfully pulled image "[^"]\+"' \
+    | stdbuf -o0 sed 's/^.*\sSuccessfully pulled image "\([^"]\+\)".*$/\1/' \
     | (
       while read IMAGE_NAME
       do
         echo "Detected pulled image $IMAGE_NAME to k8s env $E2E_ENV"
-        if [ ! -f "$E2E_PULLED_IMAGES_PATH" ]
-        then
-          rm -f "$E2E_PULLED_IMAGES_PATH"
-          touch "$E2E_PULLED_IMAGES_PATH"
-        fi
         if [ "$(grep -F "$IMAGE_NAME" "$E2E_PULLED_IMAGES_PATH" \
           | sort | tail -n 1 | cut -d : -f 1 | grep '\d+' || echo 0)" \
           -lt "$(($(date +%s)-30))" ]
@@ -160,10 +165,11 @@ cache_pulled_images_to_local_repository() {
       )
 }
 
-load_failed_to_pull_images_from_local_repository() {
+load_failed_images_pull_from_local_repository() {
+  echo "Looking for failed images pull to load from local repository"
   event_watch \
-    | stdbuf -o0 grep '\sFailed to pull image "[^"]\+":.*$' \
-    | stdbuf -o0 sed 's/.*\sFailed to pull image "\([^"]\+\)":.*/\1/' \
+    | stdbuf -o0 grep '\sFailed to pull image "[^"]\+"' \
+    | stdbuf -o0 sed 's/^.*\sFailed to pull image "\([^"]\+\)".*$/\1/' \
     | (
       while read IMAGE_NAME
       do
