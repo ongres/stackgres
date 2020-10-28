@@ -10,7 +10,7 @@ All extensions can be created with a regular `CREATE EXTENSION` command. To crea
 postgres=# CREATE EXTENSION pg_stat_statements;
 CREATE EXTENSION
 ```
-> Check [here for more details](/administration/cluster/connection/pgutil) about how to connect using kubectl.
+> Check [here for more details]({{% relref "04-administration-guide/02-Connecting-to-the-cluster/00-postgres-util" %}}) about how to connect using kubectl.
 
 ## Checking available extensions
 

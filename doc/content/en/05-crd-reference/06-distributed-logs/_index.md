@@ -1,7 +1,7 @@
 ---
 title: Distributed logs
 weight: 6
-url: reference/distributedlogs
+url: reference/crd/sgdistributedlogs
 ---
 
 ## Creating a distributed logs cluster
