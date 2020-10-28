@@ -112,6 +112,10 @@ get_private_repository_password() {
 }
 
 load_cached_images_from_local_repository() {
+  if [ ! -f "$E2E_PULLED_IMAGES_PATH" ]
+  then
+    return
+  fi
   cat "$E2E_PULLED_IMAGES_PATH" \
     | cut -d : -f 2-3 | sort | uniq \
     | xargs -r -n 1 -I % -P 0 \
