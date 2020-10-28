@@ -12,10 +12,10 @@ public final class CdiUtil {
   public static void checkPublicNoArgsConstructorIsCalledToCreateProxy() {
     StackWalker instance = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
     String callerClass = instance.getCallerClass().getName();
-    if (instance.walk(s -> s.noneMatch(p -> p.getClassName()
-        .equals(callerClass + "_Bean")
-        && p.getMethodName().equals("proxy")
-        && p.getMethodType().parameterArray().length == 0)).booleanValue()) {
+    if (instance.walk(s -> s
+        .noneMatch(p -> p.getClassName().equals(callerClass + "_Bean")
+            && p.getMethodName().equals("proxy")))
+        .booleanValue()) {
       throw new IllegalStateException("Public no-args constructor can only be used"
           + " to create a dummy proxy instance."
           + " See https://quarkus.io/guides/cdi-reference#simplified-constructor-injection");
