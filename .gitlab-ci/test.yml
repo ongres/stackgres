@@ -61,6 +61,8 @@ unit tests:
     - |
       flock -s /tmp/stackgres-build-operator-native-executable \
         flock -s /tmp/stackgres-build-restapi-native-executable \
+        flock -s /tmp/stackgres-build-jobs-native-executable \
+        flock -s /tmp/stackgres-build-distributedlogs-controller-native-executable \
         flock "/tmp/stackgres-integration-test$SUFFIX" \
         timeout -s KILL 3600 \
         "$E2E_SHELL" $SHELL_XTRACE stackgres-k8s/e2e/run-all-tests.sh
