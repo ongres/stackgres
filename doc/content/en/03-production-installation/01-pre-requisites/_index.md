@@ -1,63 +1,36 @@
 ---
 title: Pre-requisites
 weight: 1
+url: install/prerequisites
 ---
+
+## Environment
+
+As explained in the [Demo section]({{% relref "02-demo-quickstart/01-setting-up-the-environment" %}}), for setting up the Operator and StackGres Cluster, you need to have an
+environment on top of which it needs to request the necessary resources.
+
+StackGres is able to run on any Kubernetes installation from 1.11 to 1.17 version, to maintain support for some version, please follow up the open discussion at" [#666](https://gitlab.com/ongresinc/stackgres/-/issues/666).
 
 ## Backups
 
-### General configuration
+All the configuration for this matter can be found at [Backup Configuration documentation]({{% relref "05-crd-reference/02-backups/#configuration" %}}). By default, backups are scheduled daily (`config.backup.fullSchedule`) at `05:00 UTC` and with a retention policy (`config.backup.retention`) of 5 full-backups removed on rotation. You will have to find out the correct time window and retention policy that fit your needs.
 
-By default backups are scheduled (`config.backup.fullSchedule`) at 05:00 UTC in a window
- (`config.backup.fullSchedule`) of 1 hour of duration and with a retention policy
- (`config.backup.retention`) of 5 for non-persistent full backups. You will have to find out the
- correct time window and retention policy that fit your needs.
-
-There are more general fine tuning parameters that could affect backups in more aspects:
-
-* Compression algorithm (`config.backup.compression`): affect backup size and computational
- resources used when creating and reading them.
-* Upload disk concurrency (`config.backup.uploadDiskConcurrency`): When reading from disk incresing
- the parallelism could speed up the operation but this depend really on the storage capacity to
- support parallel reads.
-* Maximum size of generated files (`config.backup.tarSizeThreshold`): could be relevant on some
- storage. Database backups can be huge so splitting is a good practice to take into account.
-* Network rate limit (`config.backup.maxNetworkBandwitdh`): could be important to limit costs and/or
- resource usage.
-* Disk rate limit (`config.backup.maxDiskBandwitdh`): could be important to limit costs and/or
- resource usage.
-
-We reccomend to configure all those aspects by creating a YAML values file for backup
- configuration to include in the helm installation (`-f` or `--values` parameters) of the
- StackGres operator similar to the following:
-
-```yaml
-configurations:
-  backupconfig:
-    baseBackups:
-      retention: 5
-      cronSchedule: "0 5 * * *"
-      compression: lz4
-      performance:
-        uploadDiskConcurrency: 1
-        # maxNetworkBandwitdh:
-        # maxDiskBandwitdh:
-```
+In the next section, you'll be able to see how to done this [via Helm]({{% relref "03-production-installation/02-installation-via-helm" %}}), with more explicit examples.
 
 ### Storage
 
-Backups support the following storage options:
+StackGres support Backups with the following storage options:
  
 * AWS S3
 * Google CLoud Storage
 * Azure Blob Storage
 
-By default backups are stored in a [MinIO](https://min.io/) service as a separate component as a
- [StackGres cluster helm chart dependency](https://github.com/helm/charts/tree/master/stable/minio).
- MinIO is compatible with S3 service and is configured to stores the backups in a persistent volume
- with the default storage class of the kubernetes cluster. We reccomend to disable the dependency
- and use a cloud provider. To disable MinIO dependency create a YAML values file for backup storage
- configuration  to include in the helm installation (`-f` or `--values` parameters) of the
- StackGres operator similar to the following:
+
+> Examples are using [MinIO](https://min.io/) service as a S3 compatible service for 
+> quick setups on local Kubernetes Cluster. Although, for production setups, StackGres Team recommends
+> emphatically to pick a Storage as a Service for this purpose.
+
+All the related configuration for the storage, is under `configurations.backupconfig.storage` section in your [Stackgres Cluster configuration file](https://gitlab.com/ongresinc/stackgres/-/blob/development/stackgres-k8s/install/helm/stackgres-cluster/values.yaml#L100-148).
 
 ```yaml
 configurations:
@@ -69,13 +42,13 @@ configurations:
       s3Compatible: {}
       gcs: {}
       azureBlob: {}
-minio:
-  create: false
 ```
+
+To extend the CRD for the backups, all the reference can be found at [CRD Reference Documentation]({{% relref "05-crd-reference/02-backups" %}}).
 
 ### Restore
 
-StackGres can perfrom a database restoration from a stackgres backup by just setting the UID of 
+StackGres can perform a database restoration from a StackGres backup by just setting the UID of 
  the backup CR that represents the backup that we want to restore. Like this:
 
 ``` yaml
@@ -87,36 +60,13 @@ cluster:
 
 ## Monitoring
 
-Currently StackGres integrates only with prometheus by providing prometheus exporter sidecar and
- offer an auto binding mechanism if prometheus is installed using the [prometeus operator](https://github.com/coreos/prometheus-operator).
+As early indicated in [Component of the Stack]({{% relref "01-introduction/04-components-of-the-stack/#monitoring" %}}), StackGres at the moment supports Prometheus integration only. 
 
-The recommended way to install prometheus operator in kubernetes is by using the [helm chart for prometheus operator](https://github.com/helm/charts/tree/master/stable/prometheus-operator):
+## Grafana Integration and Pre-requisites
 
-```
-helm install --namespace prometheus prometheus-operator stable/prometheus-operator
-```
+### Integrating Pre-existing Grafanas
 
-### Grafana integration
-
-By default helm chart of [prometheus operator](https://github.com/coreos/prometheus-operator) comes
- with grafana and StackGres offer an integration to allow monitoring a StackGres cluster pod
- directly from the StackGres UI. There are various options to achieve it.
-
-
-#### All in one
-
-You can install the prometheus operator together with StackGres operator by setting
- `prometheus-operator.create` to true, this will install also a grafana instance and it will be
- embed with the StackGres U autmatically:
-
-```
-helm install --namespace prometheus prometheus-operator stable/prometheus-operator \
-  --set prometheus-operator.create=true
-```
-
-#### Automatic integration
-
-If you already have a grafana installation in your system you can embed it automatically in the
+If you already have a Grafana installation in your system you can embed it automatically in the
  StackGres UI by setting the property `grafana.autoEmbed=true`:
 
 ```
@@ -124,40 +74,32 @@ helm install --namespace prometheus prometheus-operator stable/prometheus-operat
   --set grafana.autoEmbed=true
 ```
 
-This method requires the installation process to be able to access grafana API as grafana
- administrator by username and password (see [installation via helm]({{% relref "/03-production-installation/02-installation-via-helm" %}})
- for more options related to automatic embedding of grafana).
+This method requires the installation process to be able to authenticate using administrative username and password to the Grafana's API (see [installation via helm]({{% relref "/03-production-installation/02-installation-via-helm" %}}) for more options related to automatic embedding of Grafana).
 
 ### Manual integration
 
 Some manual steps are required in order to achieve such integration.
 
-1. Create grafana dashboard for postgres exporter and copy/paste share URL:
+1. Create Grafana dashboard for Postgres exporter and copy/paste share URL:
 
     **Using the UI:** Click on Grafana > Create > Import > Grafana.com Dashboard 9628
 
     Check [the dashboard](https://grafana.com/grafana/dashboards/9628) for more details.
 
-2. Copy/paste grafana dashboard URL for postgres exporter:
+2. Copy/paste Grafana's dashboard URL for the Postgres exporter:
 
-    **Using the UI:** Click on Grafana > Dashboard > Manage > Select postgres exporter dashboard > Copy URL
+    **Using the UI:** Click on Grafana > Dashboard > Manage > Select Postgres exporter dashboard > Copy URL
 
-    Or using the value returned by the previous script.
-
-3. Create and copy/paste grafana API token:
+3. Create and copy/paste Grafana API token:
 
     **Using the UI:** Grafana > Configuration > API Keys > Add API key (for viewer) > Copy key value
 
 ## Non production options
 
-We reccomend to disable all non production options in a production environment. To do so create a
+We recommend to disable all non production options in a production environment. To do so create a
  YAML values file to include in the helm installation (`-f` or `--values` parameters) of the
  StackGres operator similar to the following:
 
 ``` yaml
 nonProductionOptions: {}
 ```
-
-The use of MinIO in production is not considered a bad practice but we reccomend to install MinIO
- separately to in order to be able to change version independently from the StackGres cluster helm
- chart.

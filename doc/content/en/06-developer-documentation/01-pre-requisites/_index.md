@@ -1,6 +1,7 @@
 ---
 title: Pre-requisites
 weight: 1
+url: developer/prerequisites
 ---
 
 * [Java OpenJDK](https://openjdk.java.net/install/) 1.8 or higher
