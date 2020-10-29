@@ -29,3 +29,5 @@ For existing clusters, there are two mechanisms in order to update components: i
  same but reduced-impact restart allow to restart a cluster with minimal downtime for read-only
  connections (we will not apply draining here) or for read-write connections when a single node
  clusters is used.
+
+For more details please see the [cluster restart section]({{% relref "03-production-installation/04-cluster-restart" %}})

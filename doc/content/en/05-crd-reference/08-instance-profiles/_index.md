@@ -1,7 +1,7 @@
 ---
 title: Instance profiles
 weight: 8
-url: reference/crd/sginstanceprofiles
+url: reference/crd/sginstanceprofile
 ---
 
 The instance profile CR represent the CPU and memory resources assigned to each Pod of the cluster.
