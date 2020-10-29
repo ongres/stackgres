@@ -31,8 +31,7 @@ reuse_k8s() {
     | grep -q "status: RUNNING"
   then
     echo "Can not reuse gke environment $K8S_GKE_NAME"
-    reset_k8s
-    return
+    exit 1
   fi
 
   echo "Reusing gke environment $K8S_GKE_NAME"

@@ -1,3 +1,38 @@
+# Release 0.9.2
+
+## NOTES
+
+Here it comes StackGres 0.9.2!! :tada: :bottle_with_popping_cork: 
+
+We want you to be safe so we bring to you some buigfixes!
+
+## UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release. For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/03-production-installation/02-installation-via-helm/#upgrade-operator).
+
+To upgrade StackGres operator's helm chart issue following commands (replace namespace and release name if you used something different):
+
+```
+NAMESPACE=stackgres
+RELEASE=stackgres-operator
+helm upgrade -n "$NAMESPACE" "$RELEASE" https://stackgres.io/downloads/stackgres-k8s/stackgres/0.9.2/helm-operator.tgz
+```
+
+## CHANGES
+
+* Reconciliation cycle can now be stopped, by annotating sgclusters or sgdistributedlogs with `stackgres.io/reconciliation: skip`
+
+## FIXES
+
+* Ensure StackGres pods have enough Shared Memory (SHM)
+* pgBouncer configuration is repeting parameters in the pgbouncer.ini file
+* UI: Wrong mapping of diskPsiAvg* cluster status props
+
+# KNOWN ISSUES
+
+* Kubernetes 1.18 is not supported yet, see #439
+* Kubernetes 1.11 requires PodShareProcessNamespace feature gate to be enabled (not tested in any kubernetes environment
+
 # Release 0.9.1
 
 ## NOTES

@@ -11,4 +11,4 @@ grep '<artifactId>stackgres-parent</artifactId>' "$(dirname "$0")/../stackgres-k
  | grep -oP '(?<=<version>).*?(?=</version>)' \
  | xargs echo current_version: > "$(dirname "$0")/data/versions.yml"
 
-cp stackgres-k8s/src/api-web/target/swagger-merged.yaml doc/themes/sg-doc/static/sg-swagger.yaml
+cp "$(dirname "$0")/../stackgres-k8s/src/api-web/target/swagger-merged.yaml" "$(dirname "$0")/themes/sg-doc/static/sg-swagger.yaml"
