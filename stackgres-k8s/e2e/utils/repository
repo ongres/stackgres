@@ -126,7 +126,7 @@ load_cached_images_from_local_repository() {
 load_cached_image_from_local_repository() {
   if docker image inspect "$1" >/dev/null 2>&1
   then
-    try load_image_k8s "$1"
+    try_function load_image_k8s "$1"
     if ! "$RESULT"
     then
       echo "Loading image $IMAGE_NAME to k8s failed!"
