@@ -54,9 +54,9 @@ public class DistributedLogsConfigReconciliatorImpl implements DistributedLogsCo
         .findAny()
         .orElseThrow(() -> new IllegalStateException("Fluentd configmap not found"));
     if (needsRestart) {
-      FluentProcess.start("kill", "-s", "SIGINT", fluentdPid).join();
+      FluentProcess.start("sh", "-c", "kill -s SIGINT " + fluentdPid).join();
     } else {
-      FluentProcess.start("kill", "-s", "SIGUSR2", fluentdPid).join();
+      FluentProcess.start("sh", "-c", "kill -s SIGUSR2 " + fluentdPid).join();
     }
   }
 
