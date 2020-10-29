@@ -1,7 +1,7 @@
 ---
 title: Postgres configuration
 weight: 4
-url: reference/crd/sgpostgresconfig
+url: reference/crd/sgpgconfig
 ---
 
 A PostgreSQL configuration CR represent the configuration of a specific PostgreSQL major
