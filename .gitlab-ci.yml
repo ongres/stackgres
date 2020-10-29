@@ -35,7 +35,7 @@ variables:
   E2E_EXCLUSIVE_JOBS: 3
   K8S_VERSION: 1.16.15
   K8S_FROM_DIND: "true"
-  K8S_REUSE: "false"
+  K8S_REUSE: "true"
 
 # Cache downloaded dependencies and plugins between builds.
 # To keep cache across branches add 'key: "$CI_JOB_NAME"'
