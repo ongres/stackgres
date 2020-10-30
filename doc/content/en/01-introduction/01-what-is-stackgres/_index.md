@@ -1,6 +1,7 @@
 ---
 title: "What is StackGres?"
 weight: 1
+url: intro/about
 ---
 
 > StackGres - Enterprise-grade, Full Stack PostgreSQL on Kubernetes

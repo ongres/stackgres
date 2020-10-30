@@ -1,6 +1,7 @@
 ---
 title: Cluster Restart
 weight: 4
+url: install/restart
 ---
 
 This procedure can be used in general after a configuration change that requires restart (including

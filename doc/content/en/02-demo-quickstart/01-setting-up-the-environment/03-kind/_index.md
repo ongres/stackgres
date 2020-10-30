@@ -1,6 +1,7 @@
 ---
 title: "Kind"
 weight: 7
+url: demo/setenv/kind
 ---
 
 [Kind](https://kind.sigs.k8s.io/) is a tool for running local Kubernetes clusters using Docker container "nodes".

@@ -1,6 +1,7 @@
 ---
 title: "Versions"
 weight: 6
+url: intro/versions
 ---
 
 ## StackGres 0.9.2

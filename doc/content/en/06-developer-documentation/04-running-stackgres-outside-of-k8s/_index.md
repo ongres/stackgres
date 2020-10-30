@@ -1,6 +1,7 @@
 ---
 title: Running StackGres outside of K8s
 weight: 4
+url: developer/stackgres/outside
 ---
 
 To run StackGres outside of kubernetes you will first need to install some required kubernetes resources:
@@ -44,7 +45,7 @@ EOF
 This configuration only works if you use kind.
 
 Then you may start the operator outside of kubernetes using the following command (remember to build the
- operator first, see [building stackgres](../02-building-stackgres) section):
+ operator first, see [building stackgres]({{% relref "06-developer-documentation/02-building-stackgres" %}}) section):
 
 ```
 java -cp stackgres-k8s/src/operator/target/stackgres-operator-runner.jar \

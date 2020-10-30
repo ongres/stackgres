@@ -1,12 +1,13 @@
 ---
 title: Operator installation
 weight: 2
+url: demo/operator/install
 ---
 
 ## Installation with kubectl
 
 We ship some kubernetes resources files in order to allow installation of the StackGres operator
- for demostration purpose. Assuming you have already installed the the
+ for demonstration purpose. Assuming you have already installed the the
  [kubectl CLI](https://kubernetes.io/docs/tasks/tools/install-kubectl/) you can install the
  operator with the following command:
 
@@ -15,7 +16,7 @@ kubectl apply -f {{< download-url >}}/demo-operator.yml
 ```
 
 > The `demo-operator.yml` will expose the UI as with a LoadBalancer. Note that enabling this feature
-> will probably incurr in some fee that depend on the host of the kubernetes cluster (for example
+> will probably incur in some fee that depend on the host of the kubernetes cluster (for example
 > this is true for EKS, GKE and AKS).
 
 To clean up the resources created by the demo just run:
@@ -26,7 +27,7 @@ kubectl delete --ignore-not-found -f {{< download-url >}}/demo-operator.yml
 
 ## Installation with helm
 
-You can also install the StackGres operator using [helm vesion 3.1.x](https://github.com/helm/helm/releases)
+You can also install the StackGres operator using [helm version 3.1.x](https://github.com/helm/helm/releases)
  with the following command:
 
 ```

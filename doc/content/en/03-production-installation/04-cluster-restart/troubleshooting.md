@@ -1,6 +1,7 @@
 ---
 title: Cluster Restart Troubleshooting
 weight: 4
+url: install/restart/troubleshooting
 ---
 
 This section is currently empty.
