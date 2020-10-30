@@ -23,8 +23,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.JdbcStatementTemplate;
 import io.stackgres.common.PatroniUtil;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.distributedlogs.common.StackGresDistributedLogsContext;
@@ -43,9 +41,7 @@ public class DistributedLogsDatabaseReconciliatorImpl
   @Dependent
   public static class Parameters {
     @Inject ResourceFinder<Secret> secretFinder;
-    @Inject CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler;
     @Inject PostgresConnectionManager postgresConnectionManager;
-    @Inject EventController eventController;
   }
 
   @Inject
