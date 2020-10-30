@@ -13,7 +13,7 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 
 @ApplicationScoped
@@ -30,7 +30,7 @@ public class PersistentVolumeClaimFinder implements
 
   public PersistentVolumeClaimFinder() {
     this.kubClientFactory = null;
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Override

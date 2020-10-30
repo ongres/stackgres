@@ -5,6 +5,7 @@ export ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
 export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
 export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"
 export JOBS_IMAGE_NAME="stackgres/jobs:$IMAGE_TAG"
+export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="stackgres/distributedlogs-controller:$IMAGE_TAG"
 export ADMINUI_IMAGE_NAME="stackgres/admin-ui:$ADMINUI_IMAGE_TAG"
 
 export STACKGRES_PATH="${STACKGRES_PATH:-$E2E_PATH/..}"
@@ -45,6 +46,8 @@ setup_images() {
     (
     echo 'sh operator/src/main/buildah/build-image-jvm.sh'
     echo 'sh api-web/src/main/buildah/build-image-jvm.sh'
+    echo 'sh jobs/src/main/buildah/build-image-jvm.sh'
+    echo 'sh distributedlogs-controller/src/main/buildah/build-image-jvm.sh'
     echo 'sh admin-ui/build.sh; sh admin-ui/buildah/build.sh'
     ) | xargs -n 1 -I % -P 0 sh -c %
     )
@@ -147,6 +150,7 @@ load_operator_k8s() {
     if ! docker inspect "$OPERATOR_IMAGE_NAME" >/dev/null 2>&1 \
       || ! docker inspect "$RESTAPI_IMAGE_NAME" >/dev/null 2>&1 \
       || ! docker inspect "$JOBS_IMAGE_NAME" >/dev/null 2>&1 \
+      || ! docker inspect "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" >/dev/null 2>&1 \
       || ! docker inspect "$ADMINUI_IMAGE_NAME" >/dev/null 2>&1 
     then
       if [ -n "$E2E_OPERATOR_REGISTRY" ]
@@ -159,12 +163,14 @@ load_operator_k8s() {
       docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$OPERATOR_IMAGE_NAME"
       docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$RESTAPI_IMAGE_NAME"
       docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$JOBS_IMAGE_NAME"
+      docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
       docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$ADMINUI_IMAGE_NAME"
       if [ -n "$E2E_OPERATOR_REGISTRY" ]
       then
         docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$OPERATOR_IMAGE_NAME" "$OPERATOR_IMAGE_NAME"
         docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
         docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$JOBS_IMAGE_NAME" "$JOBS_IMAGE_NAME"
+        docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
         docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
       fi
     fi
@@ -175,16 +181,19 @@ load_operator_k8s() {
     local ORIGINAL_OPERATOR_IMAGE_NAME="$OPERATOR_IMAGE_NAME"
     local ORIGINAL_RESTAPI_IMAGE_NAME="$RESTAPI_IMAGE_NAME"
     local ORIGINAL_JOBS_IMAGE_NAME="$JOBS_IMAGE_NAME"
+    local ORIGINAL_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
     local ORIGINAL_ADMINUI_IMAGE_NAME="$ADMINUI_IMAGE_NAME"
     local IMAGE_TAG="$1"
     local ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
     local OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
     local RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"
     local JOBS_IMAGE_NAME="stackgres/jobs:$IMAGE_TAG"
+    local DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="stackgres/distributedlogs-controller:$IMAGE_TAG"
     local ADMINUI_IMAGE_NAME="stackgres/admin-ui:$ADMINUI_IMAGE_TAG"
     docker tag "$ORIGINAL_OPERATOR_IMAGE_NAME" "$OPERATOR_IMAGE_NAME"
     docker tag "$ORIGINAL_RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
     docker tag "$ORIGINAL_JOBS_IMAGE_NAME" "$JOBS_IMAGE_NAME"
+    docker tag "$ORIGINAL_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
     docker tag "$ORIGINAL_ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
     load_operator_k8s
   fi
@@ -206,6 +215,12 @@ load_operator_k8s() {
     load_image_k8s "$JOBS_IMAGE_NAME"
   else
     echo "Image $JOBS_IMAGE_NAME not found in cache!"
+  fi
+  if docker image inspect "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" >/dev/null 2>&1
+  then 
+    load_image_k8s "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
+  else
+    echo "Image $DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME not found in cache!"
   fi
   if docker image inspect "$ADMINUI_IMAGE_NAME" >/dev/null 2>&1
   then 

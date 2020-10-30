@@ -67,9 +67,13 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
         LOGGER.info("Kubernetes version: {}", client.getVersion().getGitVersion());
       }
       LOGGER.info("URL of this Kubernetes cluster: {}", client.getMasterUrl());
-      if (!hasCustomResource(client, StackGresProfileDefinition.NAME)
+      if (!hasCustomResource(client, StackGresClusterDefinition.NAME)
+          || !hasCustomResource(client, StackGresProfileDefinition.NAME)
           || !hasCustomResource(client, StackGresPostgresConfigDefinition.NAME)
-          || !hasCustomResource(client, StackGresClusterDefinition.NAME)) {
+          || !hasCustomResource(client, StackGresPoolingConfigDefinition.NAME)
+          || !hasCustomResource(client, StackGresBackupConfigDefinition.NAME)
+          || !hasCustomResource(client, StackGresBackupDefinition.NAME)
+          || !hasCustomResource(client, StackGresDistributedLogsDefinition.NAME)) {
         throw new RuntimeException("Some required CRDs does not exists");
       }
 

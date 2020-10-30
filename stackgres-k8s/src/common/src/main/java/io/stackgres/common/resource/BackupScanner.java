@@ -8,7 +8,7 @@ package io.stackgres.common.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
@@ -25,14 +25,14 @@ public class BackupScanner
    */
   @Inject
   public BackupScanner(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresBackupDefinition.NAME,
+    super(clientFactory, StackGresBackupDefinition.CONTEXT,
         StackGresBackup.class, StackGresBackupList.class,
         StackGresBackupDoneable.class);
   }
 
   public BackupScanner() {
     super(null, null, null, null, null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
 }

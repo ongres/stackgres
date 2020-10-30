@@ -29,6 +29,9 @@ public class KubernetesServerSupplier implements Supplier<KubernetesServer> {
 
       File file = CrdUtils.getCrdsFolder();
       for (File crdFile: Optional.ofNullable(file.listFiles()).orElse(new File[0])) {
+        if (!crdFile.getName().endsWith(".yaml")) {
+          continue;
+        }
         CustomResourceDefinition crd = client.customResourceDefinitions().load(crdFile).get();
         client.customResourceDefinitions().create(crd);
       }

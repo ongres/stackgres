@@ -10,9 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import com.google.common.base.Preconditions;
@@ -23,7 +27,9 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.ArcUtil;
+import io.quarkus.runtime.ShutdownEvent;
+import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.OperatorProperty;
@@ -31,6 +37,8 @@ import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
+import io.stackgres.common.crd.sgcluster.ClusterEventReason;
+import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
@@ -52,7 +60,6 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceUtil;
-import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.cluster.factory.Cluster;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSet;
 import io.stackgres.operator.common.ImmutableStackGresUserClusterContext;
@@ -75,12 +82,12 @@ import io.stackgres.operator.sidecars.fluentbit.FluentBit;
 import io.stackgres.operator.sidecars.pgexporter.PostgresExporter;
 import io.stackgres.operator.sidecars.pgutils.PostgresUtil;
 import io.stackgres.operator.sidecars.pooling.PgPooling;
-import io.stackgres.operatorframework.reconciliation.AbstractReconciliator;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
+import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
 public class ClusterReconciliationCycle
@@ -101,43 +108,48 @@ public class ClusterReconciliationCycle
 
   private final LabelFactory<StackGresCluster> labelFactory;
 
-  /**
-   * Create a {@code ClusterReconciliationCycle} instance.
-   */
+  @Dependent
+  public static class Parameters {
+    @Inject KubernetesClientFactory clientFactory;
+    @Inject ClusterReconciliator reconciliator;
+    @Inject ClusterResourceHandlerSelector handlerSelector;
+    @Inject ClusterSidecarFinder sidecarFinder;
+    @Inject Cluster cluster;
+    @Inject ClusterStatusManager statusManager;
+    @Inject EventController eventController;
+    @Inject OperatorPropertyContext operatorContext;
+    @Inject LabelFactory<StackGresCluster> labelFactory;
+    @Inject CustomResourceScanner<StackGresCluster> clusterScanner;
+    @Inject CustomResourceFinder<StackGresProfile> profileFinder;
+    @Inject CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
+    @Inject CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
+    @Inject CustomResourceScanner<StackGresBackup> backupScanner;
+    @Inject ResourceFinder<Secret> secretFinder;
+    @Inject CustomResourceScanner<PrometheusConfig> prometheusScanner;
+  }
+
   @Inject
-  public ClusterReconciliationCycle(
-      KubernetesClientFactory kubClientFactory,
-      ClusterSidecarFinder sidecarFinder, Cluster cluster,
-      ClusterResourceHandlerSelector handlerSelector,
-      ClusterStatusManager statusManager, EventController eventController,
-      ObjectMapperProvider objectMapperProvider,
-      OperatorPropertyContext operatorContext,
-      LabelFactory<StackGresCluster> labelFactory,
-      CustomResourceScanner<StackGresCluster> clusterScanner,
-      CustomResourceFinder<StackGresProfile> profileFinder,
-      CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder,
-      CustomResourceFinder<StackGresBackupConfig> backupConfigFinder,
-      CustomResourceScanner<StackGresBackup> backupScanner, ResourceFinder<Secret> secretFinder,
-      CustomResourceScanner<PrometheusConfig> prometheusScanner) {
-    super("Cluster", kubClientFactory::create, StackGresClusterContext::getCluster,
-        handlerSelector, objectMapperProvider.objectMapper(), clusterScanner);
-    this.sidecarFinder = sidecarFinder;
-    this.cluster = cluster;
-    this.statusManager = statusManager;
-    this.eventController = eventController;
-    this.operatorContext = operatorContext;
-    this.labelFactory = labelFactory;
-    this.profileFinder = profileFinder;
-    this.postgresConfigFinder = postgresConfigFinder;
-    this.backupConfigFinder = backupConfigFinder;
-    this.backupScanner = backupScanner;
-    this.secretFinder = secretFinder;
-    this.prometheusScanner = prometheusScanner;
+  public ClusterReconciliationCycle(Parameters parameters) {
+    super("Cluster", parameters.clientFactory::create,
+        parameters.reconciliator, StackGresClusterContext::getCluster,
+        parameters.handlerSelector, parameters.clusterScanner);
+    this.sidecarFinder = parameters.sidecarFinder;
+    this.cluster = parameters.cluster;
+    this.statusManager = parameters.statusManager;
+    this.eventController = parameters.eventController;
+    this.operatorContext = parameters.operatorContext;
+    this.labelFactory = parameters.labelFactory;
+    this.profileFinder = parameters.profileFinder;
+    this.postgresConfigFinder = parameters.postgresConfigFinder;
+    this.backupConfigFinder = parameters.backupConfigFinder;
+    this.backupScanner = parameters.backupScanner;
+    this.secretFinder = parameters.secretFinder;
+    this.prometheusScanner = parameters.prometheusScanner;
   }
 
   public ClusterReconciliationCycle() {
-    super(null, null, c -> null, null, null, null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    super(null, null, null, c -> null, null, null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.sidecarFinder = null;
     this.cluster = null;
     this.statusManager = null;
@@ -152,22 +164,48 @@ public class ClusterReconciliationCycle
     this.prometheusScanner = null;
   }
 
-  @Override
-  protected void onError(Exception ex) {
-    eventController.sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
-        "StackGres Cluster reconciliation cycle failed: "
-            + ex.getMessage());
+  public static ClusterReconciliationCycle create(Consumer<Parameters> consumer) {
+    Stream<Parameters> parameters = Optional.of(new Parameters()).stream().peek(consumer);
+    return new ClusterReconciliationCycle(parameters.findAny().get());
+  }
+
+  void onStart(@Observes StartupEvent ev) {
+    start();
+  }
+
+  void onStop(@Observes ShutdownEvent ev) {
+    stop();
   }
 
   @Override
-  protected void onConfigError(StackGresClusterContext context, HasMetadata configResource,
-                               Exception ex) {
-    statusManager.sendCondition(
-        ClusterStatusCondition.CLUSTER_CONFIG_ERROR.getCondition(), context);
-    eventController.sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
-        "StackGres Cluster " + configResource.getMetadata().getNamespace() + "."
-            + configResource.getMetadata().getName() + " reconciliation failed: "
-            + ex.getMessage(), configResource);
+  protected void onError(Exception ex) {
+    String message = MessageFormatter.arrayFormat(
+        "StackGres Cluster reconciliation cycle failed",
+        new String[] {
+        }).getMessage();
+    logger.error(message, ex);
+    try (KubernetesClient client = clientSupplier.get()) {
+      eventController.sendEvent(ClusterEventReason.CLUSTER_CONFIG_ERROR,
+          message + ": " + ex.getMessage(), client);
+    }
+  }
+
+  @Override
+  protected void onConfigError(StackGresClusterContext context,
+      HasMetadata configResource, Exception ex) {
+    String message = MessageFormatter.arrayFormat(
+        "StackGres Cluster {}.{} reconciliation failed",
+        new String[] {
+            configResource.getMetadata().getNamespace(),
+            configResource.getMetadata().getName(),
+        }).getMessage();
+    logger.error(message, ex);
+    try (KubernetesClient client = clientSupplier.get()) {
+      statusManager.updateCondition(
+          ClusterStatusCondition.CLUSTER_CONFIG_ERROR.getCondition(), context, client);
+      eventController.sendEvent(ClusterEventReason.CLUSTER_CONFIG_ERROR,
+          message + ": " + ex.getMessage(), configResource, client);
+    }
   }
 
   @Override
@@ -180,20 +218,6 @@ public class ClusterReconciliationCycle
         .append(cluster)
         .stream()
         .collect(ImmutableList.toImmutableList());
-  }
-
-  @Override
-  protected AbstractReconciliator<StackGresClusterContext, StackGresCluster,
-        ClusterResourceHandlerSelector> createReconciliator(
-      KubernetesClient client, StackGresClusterContext context) {
-    return ClusterReconciliator.builder()
-        .withEventController(eventController)
-        .withHandlerSelector(handlerSelector)
-        .withStatusManager(statusManager)
-        .withClient(client)
-        .withObjectMapper(objectMapper)
-        .withClusterContext(context)
-        .build();
   }
 
   @Override
@@ -216,7 +240,7 @@ public class ClusterReconciliationCycle
 
   @Override
   protected StackGresClusterContext mapResourceToContext(StackGresCluster resource) {
-    return this.getClusterConfig(resource);
+    return getClusterConfig(resource);
   }
 
   private StackGresClusterContext getClusterConfig(StackGresCluster cluster) {
@@ -334,7 +358,7 @@ public class ClusterReconciliationCycle
         .getPrometheusAutobind()).orElse(false);
 
     if (isAutobindAllowed && isPrometheusAutobindEnabled) {
-      LOGGER.trace("Prometheus auto bind enabled, looking for prometheus installations");
+      logger.trace("Prometheus auto bind enabled, looking for prometheus installations");
 
       List<PrometheusInstallation> prometheusInstallations = prometheusScanner.findResources()
           .map(pcs -> pcs.stream()

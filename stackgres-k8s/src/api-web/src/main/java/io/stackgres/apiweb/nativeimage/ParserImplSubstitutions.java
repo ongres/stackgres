@@ -34,6 +34,8 @@ public final class ParserImplSubstitutions {
   static {
     IGNORE = new DDLQuery() {
 
+      private static final long serialVersionUID = 1L;
+
       @Override
       public void subscribe(Subscriber<? super Integer> subscriber) {
 
@@ -79,7 +81,6 @@ public final class ParserImplSubstitutions {
         return null;
       }
 
-      @SuppressWarnings("deprecation")
       @Override
       public String getSQL(boolean inline) {
         return null;
@@ -145,6 +146,8 @@ public final class ParserImplSubstitutions {
 
     IGNORE_NO_DELIMITER = new Query() {
 
+      private static final long serialVersionUID = 1L;
+
       @Override
       public void attach(Configuration configuration) {
 
@@ -185,7 +188,6 @@ public final class ParserImplSubstitutions {
         return null;
       }
 
-      @SuppressWarnings("deprecation")
       @Override
       public String getSQL(boolean inline) {
         return null;

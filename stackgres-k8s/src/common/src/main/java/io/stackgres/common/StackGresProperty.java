@@ -15,6 +15,7 @@ public enum StackGresProperty implements StackGresPropertyReader {
   CRD_VERSION("stackgres.crd.version"),
   CONTAINER_BUILD("stackgres.containerBuild"),
   OPERATOR_VERSION("stackgres.operatorVersion"),
+  OPERATOR_IMAGE_VERSION("stackgres.operatorImageVersion"),
   DOCUMENTATION_URI("stackgres.documentation.uri"),
   DOCUMENTATION_ERRORS_PATH("stackgres.documentation.errorsPath");
 

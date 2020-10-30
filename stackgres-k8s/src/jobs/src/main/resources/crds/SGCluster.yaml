@@ -265,6 +265,17 @@ spec:
                       type: string
                       description: |
                         Name of the [SGDistributedLogs](https://stackgres.io/doc/latest/04-postgres-cluster-management/06-distributed-logs/) to use for this cluster. It must exist.
+                    retention:
+                      type: string
+                      pattern: '[0-9]+ (minutes?|hours?|days?|months?)'
+                      description: |
+                        Define a retention window with the syntax `<integer> (minutes|hours|days|months)` in which log entries are kept.
+                         Log entries will be removed when they get older more than the double of the specified retention window.
+
+                        When this field is changed the retention will be applied only to log entries that are newer than the end of
+                         the retention window previously specified. If no retention window was previously specified it is considered
+                         to be of 7 days. This means that if previous retention window is of `7 days` new retention configuration will
+                         apply after UTC timestamp calculated with: `SELECT date_trunc('days', now() at time zone 'UTC') - INTERVAL '7 days'`.
               required: ["instances", "postgresVersion", "pods"]
             status:
               type: object

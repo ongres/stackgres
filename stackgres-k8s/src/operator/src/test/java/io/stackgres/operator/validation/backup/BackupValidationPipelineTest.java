@@ -9,9 +9,9 @@ import javax.inject.Inject;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operator.validation.ValidationPipelineTest;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 @QuarkusTest

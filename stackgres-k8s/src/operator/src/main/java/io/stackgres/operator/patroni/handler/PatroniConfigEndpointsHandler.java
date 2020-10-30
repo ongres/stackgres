@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.stackgres.operator.app.ObjectMapperProvider;
+import io.stackgres.common.ObjectMapperProvider;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.patroni.factory.PatroniConfigEndpoints;
 import io.stackgres.operator.patroni.factory.PatroniServices;

@@ -28,12 +28,13 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
@@ -116,16 +117,16 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                 .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
                 .withContainerPort(clusterContext.getSidecars().stream()
                     .filter(entry -> entry.getSidecar() instanceof Envoy)
-                    .map(entry -> Envoy.PG_ENTRY_PORT)
+                    .map(entry -> EnvoyUtil.PG_ENTRY_PORT)
                     .findFirst()
-                    .orElse(Envoy.PG_PORT)).build(),
+                    .orElse(EnvoyUtil.PG_PORT)).build(),
             new ContainerPortBuilder()
                 .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
                 .withContainerPort(clusterContext.getSidecars().stream()
                     .filter(entry -> entry.getSidecar() instanceof Envoy)
-                    .map(entry -> Envoy.PG_REPL_ENTRY_PORT)
+                    .map(entry -> EnvoyUtil.PG_REPL_ENTRY_PORT)
                     .findFirst()
-                    .orElse(Envoy.PG_PORT)).build(),
+                    .orElse(EnvoyUtil.PG_PORT)).build(),
             new ContainerPortBuilder().withContainerPort(8008).build())
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.volumeMounts(context.getClusterContext(),
             ClusterStatefulSetVolumeConfig.DATA,

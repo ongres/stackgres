@@ -9,6 +9,7 @@ import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.FluentdUtil;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
 import io.stackgres.operator.resource.AbstractDistributedLogsResourceHandler;
 
@@ -23,7 +24,7 @@ public class FluentdHandler extends AbstractDistributedLogsResourceHandler {
         && resource.getMetadata().getNamespace().equals(
             context.getDistributedLogs().getMetadata().getNamespace())
         && resource.getMetadata().getName().equals(
-            Fluentd.serviceName(context));
+            FluentdUtil.serviceName(context.getDistributedLogs()));
   }
 
   @Override

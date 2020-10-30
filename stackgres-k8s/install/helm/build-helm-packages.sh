@@ -28,6 +28,7 @@ helm repo add stable https://kubernetes-charts.storage.googleapis.com
 helm repo update
 helm dependency update stackgres-operator
 helm dependency update stackgres-cluster
+rm -rf "target/packages"
 mkdir -p "target/packages"
 helm package stackgres-operator -d "target/packages"
 mv "target/packages/stackgres-operator-$STACKGRES_VERSION.tgz" target/packages/helm-operator.tgz

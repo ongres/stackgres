@@ -13,6 +13,7 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.VolumeConfig;
 import io.stackgres.operator.common.VolumeConfig.VolumePathConfig;

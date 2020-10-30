@@ -26,6 +26,11 @@ import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDefinition;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDefinition;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDefinition;
+import io.stackgres.common.crd.sgprofile.StackGresProfileDefinition;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
@@ -121,14 +126,25 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
             .withVerbs("create")
             .build())
         .addToRules(new PolicyRuleBuilder()
+            .withApiGroups("")
+            .withResources("events")
+            .withVerbs("get", "list", "create", "patch", "update")
+            .build())
+        .addToRules(new PolicyRuleBuilder()
             .withApiGroups(StackGresProperty.CRD_GROUP.getString())
             .withResources(StackGresBackupDefinition.PLURAL)
             .withVerbs("list", "get", "create", "patch", "delete")
             .build())
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups(StackGresProperty.CRD_GROUP.getString())
-            .withResources(StackGresBackupConfigDefinition.PLURAL)
-            .withVerbs("get")
+            .withResources(
+                StackGresBackupConfigDefinition.PLURAL,
+                StackGresClusterDefinition.PLURAL,
+                StackGresPostgresConfigDefinition.PLURAL,
+                StackGresPoolingConfigDefinition.PLURAL,
+                StackGresProfileDefinition.PLURAL,
+                StackGresDistributedLogsDefinition.PLURAL)
+            .withVerbs("get", "list", "watch", "patch")
             .build())
         .build();
   }

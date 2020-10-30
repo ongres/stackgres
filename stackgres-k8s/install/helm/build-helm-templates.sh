@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 STACKGRES_VERSION="$(grep '<artifactId>stackgres-parent</artifactId>' "../../src/pom.xml" -A 2 -B 2 \
  | grep -o '<version>\([^<]\+\)</version>' | tr '<>' '  ' | cut -d ' ' -f 3)"
 
-rm -Rf "target"
+rm -Rf "target/stackgres-operator" "target/stackgres-cluster" "target/templates"
 mkdir -p "target"
 
 # Fix for Error: chart requires kubeVersion: X which is incompatible with Kubernetes Y

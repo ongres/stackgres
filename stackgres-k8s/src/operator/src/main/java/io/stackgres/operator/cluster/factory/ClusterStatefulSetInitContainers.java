@@ -13,6 +13,7 @@ import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;

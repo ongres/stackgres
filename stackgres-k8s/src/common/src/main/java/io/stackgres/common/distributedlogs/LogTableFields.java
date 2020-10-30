@@ -9,6 +9,7 @@ public interface LogTableFields {
 
   String LOG_TIME = "log_time";
   String LOG_TIME_INDEX = "log_time_index";
+  String LOG_TYPE = "log_type";
   String POD_NAME = "pod_name";
   String ROLE = "role";
   String ERROR_SEVERITY = "error_severity";

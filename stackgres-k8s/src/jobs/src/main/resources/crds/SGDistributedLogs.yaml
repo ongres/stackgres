@@ -61,3 +61,65 @@ spec:
 
                         The same best practice applies to databases on containers. By default, StackGres will not allow to run more than one StackGres or Distributed Logs pod on a given K8s node. Set this property to true to allow more than one StackGres pod per node.
               required: ["persistentVolume"]
+            status:
+              type: object
+              properties:
+                conditions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      lastTransitionTime:
+                        description: Last time the condition transitioned from one status to another.
+                        type: string
+                      message:
+                        description: A human readable message indicating details about the transition.
+                        type: string
+                      reason:
+                        description: The reason for the condition's last transition.
+                        type: string
+                      status:
+                        description: Status of the condition, one of True, False, Unknown.
+                        type: string
+                      type:
+                        description: Type of deployment condition.
+                        type: string
+                databases:
+                  type: array
+                  description: The list of database status
+                  items:
+                    type: object
+                    description: A database status
+                    properties:
+                      name:
+                        type: string
+                        description: The database name that has been created
+                      retention:
+                        type: string
+                        description: The retention window that has been applied to tables
+                connectedClusters:
+                  type: array
+                  description: The list of connected `sgclusters`
+                  items:
+                    type: object
+                    description: A connected `sgcluster`
+                    properties:
+                      namespace:
+                        type: string
+                        description: The `sgcluster` namespace
+                      name:
+                        type: string
+                        description: The `sgcluster` name
+                      config:
+                        type: object
+                        description: The configuration for `sgdistributedlgos` of this `sgcluster`
+                        properties:
+                          sgDistributedLogs:
+                            type: string
+                            description: The `sgdistributedlogs` to which this `sgcluster` is connected to
+                          retention:
+                            type: string
+                            description: The retention window that has been applied to tables
+                fluentdConfigHash:
+                  type: string
+                  description: The hash of the configuration file that is used by fluentd

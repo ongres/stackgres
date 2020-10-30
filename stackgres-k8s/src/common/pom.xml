@@ -24,6 +24,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>io.stackgres</groupId>
+      <artifactId>stackgres-operator-framework</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-kubernetes-client</artifactId>
     </dependency>

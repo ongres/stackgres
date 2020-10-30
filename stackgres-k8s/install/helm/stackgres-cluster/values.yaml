@@ -34,6 +34,7 @@ cluster:
     sgPoolingConfig: pgbouncerconf
   distributedLogs:
     sgDistributedLogs: distributedlogs
+    retention: 7 days
   #restore:
   #  initialData:
   #    fromBackup:

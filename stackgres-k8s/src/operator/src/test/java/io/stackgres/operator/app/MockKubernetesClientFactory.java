@@ -46,12 +46,12 @@ public class MockKubernetesClientFactory implements KubernetesClientFactory {
 
   public MockKubernetesClientFactory() {
     executor = Executors.newSingleThreadScheduledExecutor();
-    executor.schedule(this::updateTokenPeriodically, 0, TimeUnit.MILLISECONDS);
   }
 
   @PostConstruct
   public void setup() throws Exception {
     if (AbstractStackGresOperatorIt.isRunning()) {
+      updateTokenPeriodically();
       return;
     }
     try (KubernetesClient client = serverSupplier.get().getClient()) {

@@ -5,8 +5,10 @@ setup_logs() {
   then
     return
   fi
+  echo "Recording pods logs"
   pod_logs > "$TARGET_PATH/all_pods.log" 2>/dev/null &
   trap_kill "$!"
+  echo "Recording events"
   event_watch -o wide > "$TARGET_PATH/all_events.log" 2>/dev/null &
   trap_kill "$!"
 }

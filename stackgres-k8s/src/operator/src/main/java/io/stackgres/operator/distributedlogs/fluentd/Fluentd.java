@@ -9,6 +9,7 @@ import static io.stackgres.common.FluentdUtil.PATRONI_LOG_TYPE;
 import static io.stackgres.common.FluentdUtil.POSTGRES_LOG_TYPE;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,6 +24,7 @@ import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
+import io.fabric8.kubernetes.api.model.EmptyDirVolumeSource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
@@ -33,14 +35,16 @@ import io.fabric8.kubernetes.api.model.TCPSocketActionBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.LabelFactory;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
+import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.distributedlogs.PatroniTableFields;
 import io.stackgres.common.distributedlogs.PostgresTableFields;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
@@ -49,15 +53,18 @@ import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
 import io.stackgres.operator.common.StackGresDistributedLogsGeneratorContext;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operator.sidecars.fluentbit.FluentBit;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 import io.stackgres.operatorframework.resource.factory.ContainerResourceFactory;
 import org.jooq.lambda.Seq;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 public class Fluentd implements ContainerResourceFactory<StackGresDistributedLogs,
     StackGresDistributedLogsGeneratorContext, StackGresDistributedLogs> {
+
+  private static final Logger FLEUNTD_LOGGER = LoggerFactory.getLogger("io.stackgres.fleuntd");
+
   public static final String IMAGE_NAME = "docker.io/ongres/fluentd:v%s-build-%s";
   static final String DEFAULT_VERSION = StackGresComponents.get("fluentd");
   static final String PATRONI_TABLE_FIELDS = Stream.of(PatroniTableFields.values())
@@ -67,27 +74,13 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
       .map(PostgresTableFields::getFieldName)
       .collect(Collectors.joining(","));
 
-  private static final String SUFFIX = "-fluentd";
-
   private LabelFactoryDelegator factoryDelegator;
-
-  public static String configName(StackGresDistributedLogsContext context) {
-    return ResourceUtil.resourceName(context.getDistributedLogs().getMetadata().getName() + SUFFIX);
-  }
-
-  public static String serviceName(StackGresDistributedLogsContext context) {
-    return serviceName(context.getDistributedLogs().getMetadata().getName());
-  }
-
-  public static String serviceName(String distributedLogsName) {
-    return ResourceUtil.resourceName(distributedLogsName + SUFFIX);
-  }
 
   // list of log_patroni table fields
   @Override
   public Container getContainer(StackGresDistributedLogsGeneratorContext context) {
     return new ContainerBuilder()
-        .withName(FluentdUtil.NAME)
+        .withName(StackgresClusterContainers.FLUENTD)
         .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION,
             StackGresProperty.CONTAINER_BUILD.getString()))
         .withImagePullPolicy("IfNotPresent")
@@ -95,68 +88,8 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
         .withArgs(""
             + "echo 'Wait for postgres to be up, running and initialized!'\n"
             + "until curl -s localhost:8008/read-only --fail > /dev/null; do sleep 1; done\n"
-            + "CONFIG_PATH=/etc/fluentd\n"
-            + "update_config() {\n"
-            + "  rm -Rf /tmp/last_config\n"
-            + "  cp -Lr \"$CONFIG_PATH\" /tmp/last_config\n"
-            + "}\n"
-            + "\n"
-            + "has_config_changed() {\n"
-            + "  for file in $(ls -1 \"$CONFIG_PATH\")\n"
-            + "  do\n"
-            + "    [ \"$(cat \"$CONFIG_PATH/$file\" | md5sum)\" \\\n"
-            + "      != \"$(cat \"/tmp/last_config/$file\" | md5sum)\" ] \\\n"
-            + "      && return || true\n"
-            + "  done\n"
-            + "  return 1\n"
-            + "}\n"
-            + "\n"
-            + "run_fluentd() {\n"
-            + "  set -x\n"
-            + "  for database in $(cat \"$CONFIG_PATH/databases\")\n"
-            + "  do\n"
-            + "    echo \"Create database ${database} if not exists\"\n"
-            + "    cat << EOF | ruby -e '\n"
-            + "require \"pg\"\n"
-            + "conn = PG.connect(host: \"" + ClusterStatefulSetPath.PG_RUN_PATH.path() + "\""
-            + ", port: " + Envoy.PG_PORT + ", user: \"postgres\", dbname: \"postgres\")\n"
-            + "conn.exec(STDIN.read)'\n"
-            + "CREATE EXTENSION IF NOT EXISTS dblink;\n"
-            + "DO\n"
-            + "\\$do\\$\n"
-            + "BEGIN\n"
-            + "   IF EXISTS (SELECT FROM pg_database WHERE datname = '${database}') THEN\n"
-            + "      RAISE NOTICE 'Database ${database} already exists';\n"
-            + "   ELSE\n"
-            + "     PERFORM dblink_exec('host=" + ClusterStatefulSetPath.PG_RUN_PATH.path()
-            + " port=" + Envoy.PG_PORT + " user=postgres dbname=' || current_database()"
-            + ", 'CREATE DATABASE \"${database}\"');\n"
-            + "   END IF;\n"
-            + "END\n"
-            + "\\$do\\$;\n"
-            + "EOF\n"
-            + "  done\n"
-            + "  exec /usr/local/bin/fluentd \\\n"
-            + "    -c \"$CONFIG_PATH/fluentd.conf\"\n"
-            + "}\n"
-            + "\n"
-            + "set +x\n"
-            + "while true\n"
-            + "do\n"
-            + "  if has_config_changed || [ ! -d \"/proc/$PID\" ]\n"
-            + "  then\n"
-            + "    echo 'Configuration has changed, restarting fluentd'\n"
-            + "    update_config\n"
-            + "    if [ -n \"$PID\" ]\n"
-            + "    then\n"
-            + "      kill \"$PID\" || true\n"
-            + "      wait \"$PID\" || true\n"
-            + "    fi\n"
-            + "    run_fluentd &\n"
-            + "    PID=\"$!\"\n"
-            + "  fi\n"
-            + "  sleep 5\n"
-            + "done\n")
+            + "exec /usr/local/bin/fluentd \\\n"
+            + "  -c \"/etc/fluentd/fluentd.conf\"\n")
         .withPorts(
             new ContainerPortBuilder()
                 .withName(FluentdUtil.FORWARD_PORT_NAME)
@@ -179,20 +112,64 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
             .volumeMount(context.getClusterContext()),
             new VolumeMountBuilder()
-                .withName(FluentdUtil.NAME)
-                .withMountPath("/etc/fluentd")
-                .withReadOnly(Boolean.TRUE)
-                .build())
+              .withName(StackgresClusterContainers.FLUENTD)
+              .withMountPath("/etc/fluentd")
+              .withReadOnly(Boolean.TRUE)
+              .build(),
+            new VolumeMountBuilder()
+              .withName(FluentdUtil.BUFFER)
+              .withMountPath("/var/log/fluentd")
+              .withReadOnly(Boolean.FALSE)
+              .build())
+        .build();
+  }
+
+  @Override
+  public Stream<Container> getInitContainers(StackGresDistributedLogsGeneratorContext context) {
+    return Seq.of(Optional.of(createSetupConfigContainer()))
+        .filter(Optional::isPresent)
+        .map(Optional::get);
+  }
+
+  private Container createSetupConfigContainer() {
+    return new ContainerBuilder()
+        .withName("setup-fluentd-config")
+        .withImage(StackGresContext.BUSYBOX_IMAGE)
+        .withImagePullPolicy("IfNotPresent")
+        .withCommand("/bin/sh", "-ecx", Stream.of(
+            "cp /etc/fluentd/initial-fluentd.conf /fluentd/fluentd.conf")
+            .collect(Collectors.joining(" && ")))
+        .withVolumeMounts(
+            new VolumeMountBuilder()
+            .withName(FluentdUtil.CONFIG)
+            .withMountPath("/etc/fluentd")
+            .withReadOnly(Boolean.TRUE)
+            .build(),
+            new VolumeMountBuilder()
+            .withName(StackgresClusterContainers.FLUENTD)
+            .withMountPath("/fluentd")
+            .withReadOnly(Boolean.FALSE)
+            .build())
         .build();
   }
 
   @Override
   public ImmutableList<Volume> getVolumes(StackGresDistributedLogsGeneratorContext context) {
-    return ImmutableList.of(new VolumeBuilder()
-        .withName(FluentdUtil.NAME)
+    return ImmutableList.of(
+        new VolumeBuilder()
+        .withName(FluentdUtil.CONFIG)
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
-            .withName(configName(context.getDistributedLogsContext()))
+            .withName(FluentdUtil.configName(
+                context.getDistributedLogsContext().getDistributedLogs()))
             .build())
+        .build(),
+        new VolumeBuilder()
+        .withName(StackgresClusterContainers.FLUENTD)
+        .withEmptyDir(new EmptyDirVolumeSource())
+        .build(),
+        new VolumeBuilder()
+        .withName(FluentdUtil.BUFFER)
+        .withEmptyDir(new EmptyDirVolumeSource())
         .build());
   }
 
@@ -204,101 +181,9 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
         distributedLogsContext.getDistributedLogs();
     final String namespace = distributedLogs.getMetadata().getNamespace();
 
-    final String configFile = ""
-        + "<system>\n"
-        + "  workers " + (1 + distributedLogsContext.getConnectedClusters().size()) + "\n"
-        + "</system>\n"
-        + "\n"
-        + "<worker 0>\n"
-        + "  <source>\n"
-        + "    @type forward\n"
-        + "    bind 0.0.0.0\n"
-        + "    port " + FluentdUtil.FORWARD_PORT + "\n"
-        + "  </source>\n"
-        + "  \n"
-        + "  <filter *.*.*.*.*>\n"
-        + "    @type record_transformer\n"
-        + "    enable_ruby\n"
-        + "    <record>\n"
-        + "      pod_name ${record[\"kubernetes\"][\"pod_name\"]}\n"
-        + "    </record>\n"
-        + "    <record>\n"
-        + "      role ${record[\"kubernetes\"][\"labels\"][\"role\"]}\n"
-        + "    </record>\n"
-        + "  </filter>"
-        + "  \n"
-        + Seq.seq(distributedLogsContext.getConnectedClusters())
-            .zipWithIndex()
-            .map(t -> t.map2(index -> index + 1))
-            .map(t -> ""
-                + "  <match " + FluentBit.tagName(t.v1, "*") + ".*.*>\n"
-                + "    @type forward\n"
-                + "    <server>\n"
-                + "      name localhost\n"
-                + "      host 127.0.0.1\n"
-                + "      port " + (FluentdUtil.FORWARD_PORT + t.v2) + "\n"
-                + "    </server>\n"
-                + "  </match>\n"
-                + "  \n")
-            .collect(Collectors.joining("\n"))
-        + "  <match *.*.*.*.*>\n"
-        + "    @type forward\n"
-        + "    <server>\n"
-        + "      name localhost\n"
-        + "      host 127.0.0.1\n"
-        + "      port " + FluentdUtil.FORWARD_PORT + "\n"
-        + "    </server>\n"
-        + "  </match>\n"
-        + "</worker>\n"
-        + "\n"
-        + Seq.seq(distributedLogsContext.getConnectedClusters())
-            .zipWithIndex()
-            .map(t -> t.map2(index -> index + 1))
-            .map(t -> ""
-                + "<worker " + t.v2 + ">\n"
-                + "  <source>\n"
-                + "    @type forward\n"
-                + "    bind 127.0.0.1\n"
-                + "    port " + (FluentdUtil.FORWARD_PORT + t.v2) + "\n"
-                + "  </source>\n"
-                + "  \n"
-                + "  <match " + FluentBit.tagName(t.v1, POSTGRES_LOG_TYPE) + ".*.*>\n"
-                + "    @type sql\n"
-                + "    host /var/run/postgresql\n"
-                + "    port " + Envoy.PG_PORT + "\n"
-                + "    database " + FluentdUtil.databaseName(t.v1) + "\n"
-                + "    adapter postgresql\n"
-                + "    username postgres\n"
-                + "    <table>\n"
-                + "      table log_postgres\n"
-                + "      column_mapping "
-                + "'" + POSTGRES_TABLE_FIELDS + "'\n"
-                + "    </table>\n"
-                + "  </match>\n"
-                + "  \n"
-                + "  <match " + FluentBit.tagName(t.v1, PATRONI_LOG_TYPE) + ".*.*>\n"
-                + "    @type sql\n"
-                + "    host /var/run/postgresql\n"
-                + "    port " + Envoy.PG_PORT + "\n"
-                + "    database " + FluentdUtil.databaseName(t.v1) + "\n"
-                + "    adapter postgresql\n"
-                + "    username postgres\n"
-                + "    <table>\n"
-                + "      table log_patroni\n"
-                + "      column_mapping "
-                + "'" + PATRONI_TABLE_FIELDS + "'\n"
-                + "    </table>\n"
-                + "  </match>\n"
-                + "</worker>\n"
-                + "\n")
-            .collect(Collectors.joining("\n"));
-    final String databaseList = distributedLogsContext.getConnectedClusters()
-        .stream()
-        .map(FluentdUtil::databaseName)
-        .collect(Collectors.joining("\n"));
     final Map<String, String> data = ImmutableMap.of(
-        "fluentd.conf", configFile,
-        "databases", databaseList);
+        "fluentd.conf", getFluentdConfig(distributedLogsContext, true),
+        "initial-fluentd.conf", getFluentdConfig(distributedLogsContext, false));
 
     final StackGresClusterContext clusterContext = context.getClusterContext();
     final StackGresCluster cluster = clusterContext.getCluster();
@@ -309,7 +194,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
     final ConfigMap configMap = new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
-        .withName(configName(distributedLogsContext))
+        .withName(FluentdUtil.configName(distributedLogsContext.getDistributedLogs()))
         .withLabels(clusterLabels)
         .withOwnerReferences(clusterContext.getOwnerReferences())
         .endMetadata()
@@ -321,7 +206,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
     final Service service = new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
-        .withName(serviceName(distributedLogsContext))
+        .withName(FluentdUtil.serviceName(distributedLogsContext.getDistributedLogs()))
         .withLabels(patroniPrimaryLabels)
         .withOwnerReferences(clusterContext.getOwnerReferences())
         .endMetadata()
@@ -338,6 +223,138 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
         .build();
 
     return Seq.of(configMap, service);
+  }
+
+  private String getFluentdConfig(final StackGresDistributedLogsContext distributedLogsContext,
+      boolean includeClusters) {
+    return ""
+        + "<system>\n"
+        + "  workers " + getMaxWorkersBeforeRestart(distributedLogsContext) + "\n"
+        + "</system>\n"
+        + "\n"
+        + "<worker 0>\n"
+        + "  <source>\n"
+        + "    @type forward\n"
+        + "    bind 0.0.0.0\n"
+        + "    port " + FluentdUtil.FORWARD_PORT + "\n"
+        + "  </source>\n"
+        + "\n"
+        + "  <filter *.*.*.*.*>\n"
+        + "    @type record_transformer\n"
+        + "    enable_ruby\n"
+        + "    <record>\n"
+        + "      pod_name ${record[\"kubernetes\"][\"pod_name\"]}\n"
+        + "    </record>\n"
+        + "    <record>\n"
+        + "      role ${record[\"kubernetes\"][\"labels\"][\"role\"]}\n"
+        + "    </record>\n"
+        + "  </filter>"
+        + "\n"
+        + Seq.seq(distributedLogsContext.getConnectedClusters())
+            .filter(cluster -> includeClusters)
+            .zipWithIndex()
+            .map(t -> t.map2(index -> index + getCoreWorkers()))
+            .map(t -> ""
+                + "  <match " + FluentBit.tagName(t.v1, "*") + ".*.*>\n"
+                + "    @type forward\n"
+                + "    <buffer>\n"
+                + "      @type file\n"
+                + "      path /var/log/fluentd/" + FluentBit.tagName(t.v1, "buffer") + "\n"
+                + "    </buffer>\n"
+                + "    <server>\n"
+                + "      name localhost\n"
+                + "      host 127.0.0.1\n"
+                + "      port " + (FluentdUtil.FORWARD_PORT + t.v2) + "\n"
+                + "    </server>\n"
+                + "  </match>\n"
+                + "\n")
+            .collect(Collectors.joining("\n"))
+        + "  <match *.*.*.*.*>\n"
+        + "    @type forward\n"
+        + "    <buffer>\n"
+        + "      @type file\n"
+        + "      path /var/log/fluentd/loop\n"
+        + "    </buffer>\n"
+        + "    <server>\n"
+        + "      name localhost\n"
+        + "      host 127.0.0.1\n"
+        + "      port " + FluentdUtil.FORWARD_PORT + "\n"
+        + "    </server>\n"
+        + "  </match>\n"
+        + "</worker>\n"
+        + "\n"
+        + Seq.seq(distributedLogsContext.getConnectedClusters())
+            .filter(cluster -> includeClusters)
+            .zipWithIndex()
+            .map(t -> t.map2(index -> index + getCoreWorkers()))
+            .map(t -> ""
+                + "<worker " + t.v2 + ">\n"
+                + "  <source>\n"
+                + "    @type forward\n"
+                + "    bind 127.0.0.1\n"
+                + "    port " + (FluentdUtil.FORWARD_PORT + t.v2) + "\n"
+                + "  </source>\n"
+                + "\n"
+                + "  <match " + FluentBit.tagName(t.v1, POSTGRES_LOG_TYPE) + ".*.*>\n"
+                + "    @type copy\n"
+                + "    <store>\n"
+                + "      @type sql\n"
+                + "      host /var/run/postgresql\n"
+                + "      port " + EnvoyUtil.PG_PORT + "\n"
+                + "      database " + FluentdUtil.databaseName(t.v1) + "\n"
+                + "      adapter postgresql\n"
+                + "      username postgres\n"
+                + "      <table>\n"
+                + "        table log_postgres\n"
+                + "        column_mapping '" + POSTGRES_TABLE_FIELDS + "'\n"
+                + "      </table>\n"
+                + "    </store>\n"
+                + "    <store>\n"
+                + "      @type stdout\n"
+                + "      @log_level " + (FLEUNTD_LOGGER.isTraceEnabled() ? "info" : "debug") + "\n"
+                + "    </store>\n"
+                + "  </match>\n"
+                + "\n"
+                + "  <match " + FluentBit.tagName(t.v1, PATRONI_LOG_TYPE) + ".*.*>\n"
+                + "    @type copy\n"
+                + "    <store>\n"
+                + "      @type sql\n"
+                + "      host /var/run/postgresql\n"
+                + "      port " + EnvoyUtil.PG_PORT + "\n"
+                + "      database " + FluentdUtil.databaseName(t.v1) + "\n"
+                + "      adapter postgresql\n"
+                + "      username postgres\n"
+                + "      <table>\n"
+                + "        table log_patroni\n"
+                + "        column_mapping '" + PATRONI_TABLE_FIELDS + "'\n"
+                + "      </table>\n"
+                + "    </store>\n"
+                + "    <store>\n"
+                + "      @type stdout\n"
+                + "      @log_level " + (FLEUNTD_LOGGER.isTraceEnabled() ? "info" : "debug") + "\n"
+                + "    </store>\n"
+                + "  </match>\n"
+                + "</worker>\n"
+                + "\n")
+            .collect(Collectors.joining("\n"));
+  }
+
+  /**
+   * When needed workers are more than 16 fluentd must be restarted.
+   */
+  private int getMaxWorkersBeforeRestart(
+      final StackGresDistributedLogsContext distributedLogsContext) {
+    return getWorkersBatchSize()
+        * ((getCoreWorkers() + distributedLogsContext.getConnectedClusters().size()
+            + getWorkersBatchSize() - 1) / getWorkersBatchSize());
+  }
+
+  private int getCoreWorkers() {
+    return 1;
+  }
+
+  private int getWorkersBatchSize() {
+    return 16;
   }
 
   public StackGresClusterSidecarResourceFactory<Void> toStackGresClusterSidecarResourceFactory() {
@@ -371,6 +388,16 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
     public Container getContainer(StackGresGeneratorContext context) {
       if (context instanceof StackGresDistributedLogsGeneratorContext) {
         return Fluentd.this.getContainer((StackGresDistributedLogsGeneratorContext) context);
+      } else {
+        throw new IllegalArgumentException(
+            "context is not a StackGresDistributedLogsGeneratorContext");
+      }
+    }
+
+    @Override
+    public Stream<Container> getInitContainers(StackGresGeneratorContext context) {
+      if (context instanceof StackGresDistributedLogsGeneratorContext) {
+        return Fluentd.this.getInitContainers((StackGresDistributedLogsGeneratorContext) context);
       } else {
         throw new IllegalArgumentException(
             "context is not a StackGresDistributedLogsGeneratorContext");

@@ -8,7 +8,7 @@ package io.stackgres.common.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileDefinition;
@@ -23,7 +23,7 @@ public class ProfileScheduler
   @Inject
   public ProfileScheduler(KubernetesClientFactory clientFactory) {
     super(clientFactory,
-        StackGresProfileDefinition.NAME,
+        StackGresProfileDefinition.CONTEXT,
         StackGresProfile.class,
         StackGresProfileList.class,
         StackGresProfileDoneable.class);
@@ -31,7 +31,7 @@ public class ProfileScheduler
 
   public ProfileScheduler() {
     super(null, null, null, null, null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
 }

@@ -18,7 +18,7 @@ import javax.ws.rs.core.MediaType;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.pgconfig.PostgresConfigDto;
 import io.stackgres.apiweb.transformer.DependencyResourceTransformer;
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -49,7 +49,7 @@ public class PostgresConfigResource extends
 
   public PostgresConfigResource() {
     super(null, null, null, null, null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Override
