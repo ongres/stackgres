@@ -25,22 +25,23 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDefinit
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDoneable;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
 import io.stackgres.distributedlogs.common.DistributedLogsProperty;
-import io.stackgres.distributedlogs.controller.DistributedLogsReconciliationCycle;
+import io.stackgres.distributedlogs.controller.DistributedLogsControllerReconciliationCycle;
 import io.stackgres.distributedlogs.controller.ResourceWatcherFactory;
 import io.stackgres.operatorframework.resource.WatcherMonitor;
 
 @ApplicationScoped
-public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
+public class DistributedLogsControllerWatchersHandlerImpl
+    implements DistributedLogsControllerWatcherHandler {
 
   private final List<WatcherMonitor<?>> monitors = new ArrayList<>();
 
   private final KubernetesClientFactory clientFactory;
-  private final DistributedLogsReconciliationCycle distributedLogsReconciliationCycle;
+  private final DistributedLogsControllerReconciliationCycle distributedLogsReconciliationCycle;
   private final ResourceWatcherFactory watcherFactory;
 
   @Inject
-  public OperatorWatchersHandlerImpl(KubernetesClientFactory clientFactory,
-      DistributedLogsReconciliationCycle distributedLogsReconciliationCycle,
+  public DistributedLogsControllerWatchersHandlerImpl(KubernetesClientFactory clientFactory,
+      DistributedLogsControllerReconciliationCycle distributedLogsReconciliationCycle,
       ResourceWatcherFactory watcherFactory) {
     this.clientFactory = clientFactory;
     this.distributedLogsReconciliationCycle = distributedLogsReconciliationCycle;

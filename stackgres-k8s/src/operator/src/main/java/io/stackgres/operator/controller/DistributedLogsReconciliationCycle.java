@@ -13,12 +13,15 @@ import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.quarkus.runtime.ShutdownEvent;
+import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
@@ -115,6 +118,14 @@ public class DistributedLogsReconciliationCycle
   public static DistributedLogsReconciliationCycle create(Consumer<Parameters> consumer) {
     Stream<Parameters> parameters = Optional.of(new Parameters()).stream().peek(consumer);
     return new DistributedLogsReconciliationCycle(parameters.findAny().get());
+  }
+
+  void onStart(@Observes StartupEvent ev) {
+    start();
+  }
+
+  void onStop(@Observes ShutdownEvent ev) {
+    stop();
   }
 
   @Override

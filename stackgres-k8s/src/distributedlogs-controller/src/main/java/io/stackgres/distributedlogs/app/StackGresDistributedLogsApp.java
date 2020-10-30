@@ -11,17 +11,18 @@ import javax.inject.Inject;
 
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.app.ReconciliationClock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
-public class StackGresOperatorApp {
+public class StackGresDistributedLogsApp {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(StackGresOperatorApp.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(StackGresDistributedLogsApp.class);
 
-  private OperatorWatcherHandler operatorWatchersHandler;
+  private DistributedLogsControllerWatcherHandler operatorWatchersHandler;
   private ReconciliationClock reconciliationClock;
-  private OperatorBootstrap operatorBootstrap;
+  private DistributedLogsControllerBootstrap operatorBootstrap;
 
   void onStart(@Observes StartupEvent ev) {
     operatorBootstrap.bootstrap();
@@ -36,7 +37,8 @@ public class StackGresOperatorApp {
   }
 
   @Inject
-  public void setOperatorWatchersHandler(OperatorWatcherHandler operatorWatchersHandler) {
+  public void setOperatorWatchersHandler(
+      DistributedLogsControllerWatcherHandler operatorWatchersHandler) {
     this.operatorWatchersHandler = operatorWatchersHandler;
   }
 
@@ -46,7 +48,7 @@ public class StackGresOperatorApp {
   }
 
   @Inject
-  public void setOperatorBootstrap(OperatorBootstrap operatorBootstrap) {
+  public void setOperatorBootstrap(DistributedLogsControllerBootstrap operatorBootstrap) {
     this.operatorBootstrap = operatorBootstrap;
   }
 }

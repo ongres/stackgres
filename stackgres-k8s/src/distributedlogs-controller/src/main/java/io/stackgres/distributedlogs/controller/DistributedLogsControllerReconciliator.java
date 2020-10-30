@@ -37,7 +37,7 @@ import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
-public class DistributedLogsReconciliator
+public class DistributedLogsControllerReconciliator
     extends Reconciliator<StackGresDistributedLogsContext> {
 
   private final DistributedLogsPropertyContext propertyContext;
@@ -56,7 +56,7 @@ public class DistributedLogsReconciliator
   }
 
   @Inject
-  public DistributedLogsReconciliator(Parameters parameters) {
+  public DistributedLogsControllerReconciliator(Parameters parameters) {
     this.propertyContext = parameters.propertyContext;
     this.databaseReconciliator = parameters.databaseReconciliator;
     this.configReconciliator = parameters.configReconciliator;
@@ -64,7 +64,7 @@ public class DistributedLogsReconciliator
     this.eventController = parameters.eventController;
   }
 
-  public DistributedLogsReconciliator() {
+  public DistributedLogsControllerReconciliator() {
     super();
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.propertyContext = null;
@@ -74,9 +74,9 @@ public class DistributedLogsReconciliator
     this.eventController = null;
   }
 
-  public static DistributedLogsReconciliator create(Consumer<Parameters> consumer) {
+  public static DistributedLogsControllerReconciliator create(Consumer<Parameters> consumer) {
     Stream<Parameters> parameters = Optional.of(new Parameters()).stream().peek(consumer);
-    return new DistributedLogsReconciliator(parameters.findAny().get());
+    return new DistributedLogsControllerReconciliator(parameters.findAny().get());
   }
 
   @SuppressFBWarnings(value = "REC_CATCH_EXCEPTION",

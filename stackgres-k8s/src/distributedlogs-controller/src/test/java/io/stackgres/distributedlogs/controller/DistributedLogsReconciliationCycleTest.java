@@ -56,11 +56,11 @@ public class DistributedLogsReconciliationCycleTest {
   @Mock
   private EventController eventController;
 
-  private DistributedLogsReconciliator reconciliator;
+  private DistributedLogsControllerReconciliator reconciliator;
 
   @BeforeEach
   void setUp() {
-    reconciliator = DistributedLogsReconciliator.create(p -> {
+    reconciliator = DistributedLogsControllerReconciliator.create(p -> {
       p.propertyContext = propertyContext;
       p.databaseReconciliator = databaseReconciliator;
       p.configReconciliator = configReconciliator;

@@ -11,6 +11,7 @@ import javax.inject.Inject;
 
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.app.ReconciliationClock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -11,11 +11,14 @@ import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.quarkus.runtime.ShutdownEvent;
+import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
@@ -34,7 +37,7 @@ import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
-public class DistributedLogsReconciliationCycle
+public class DistributedLogsControllerReconciliationCycle
     extends ReconciliationCycle<StackGresDistributedLogsContext,
       StackGresDistributedLogs, DistributedLogsResourceHandlerSelector> {
 
@@ -46,7 +49,7 @@ public class DistributedLogsReconciliationCycle
   @Dependent
   public static class Parameters {
     @Inject KubernetesClientFactory clientFactory;
-    @Inject DistributedLogsReconciliator reconciliator;
+    @Inject DistributedLogsControllerReconciliator reconciliator;
     @Inject DistributedLogsResourceHandlerSelector handlerSelector;
     @Inject DistributedLogsPropertyContext propertyContext;
     @Inject EventController eventController;
@@ -58,7 +61,7 @@ public class DistributedLogsReconciliationCycle
    * Create a {@code DistributeLogsReconciliationCycle} instance.
    */
   @Inject
-  public DistributedLogsReconciliationCycle(Parameters parameters) {
+  public DistributedLogsControllerReconciliationCycle(Parameters parameters) {
     super("DistributeLogs", parameters.clientFactory::create,
         parameters.reconciliator,
         StackGresDistributedLogsContext::getDistributedLogs,
@@ -69,7 +72,7 @@ public class DistributedLogsReconciliationCycle
     this.distributedLogsFinder = parameters.distributedLogsFinder;
   }
 
-  public DistributedLogsReconciliationCycle() {
+  public DistributedLogsControllerReconciliationCycle() {
     super(null, null, null, c -> null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.propertyContext = null;
@@ -78,9 +81,17 @@ public class DistributedLogsReconciliationCycle
     this.distributedLogsFinder = null;
   }
 
-  public static DistributedLogsReconciliationCycle create(Consumer<Parameters> consumer) {
+  public static DistributedLogsControllerReconciliationCycle create(Consumer<Parameters> consumer) {
     Stream<Parameters> parameters = Optional.of(new Parameters()).stream().peek(consumer);
-    return new DistributedLogsReconciliationCycle(parameters.findAny().get());
+    return new DistributedLogsControllerReconciliationCycle(parameters.findAny().get());
+  }
+
+  void onStart(@Observes StartupEvent ev) {
+    start();
+  }
+
+  void onStop(@Observes ShutdownEvent ev) {
+    stop();
   }
 
   @Override

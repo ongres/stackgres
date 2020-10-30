@@ -5,9 +5,8 @@
 
 package io.stackgres.distributedlogs.app;
 
-public interface ReconciliationClock {
+public interface DistributedLogsControllerBootstrap {
 
-  void start();
+  void bootstrap();
 
-  void stop();
 }

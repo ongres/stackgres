@@ -22,16 +22,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
-public class OperatorBootstrapImpl implements OperatorBootstrap {
+public class DistributedLogsControllerBootstrapImpl implements DistributedLogsControllerBootstrap {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(OperatorBootstrapImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(
+      DistributedLogsControllerBootstrapImpl.class);
 
   private final KubernetesClientFactory clientFactory;
   private final ResourceHandlerSelector<StackGresDistributedLogsContext>
       distributedLogsHandlerSelector;
 
   @Inject
-  public OperatorBootstrapImpl(
+  public DistributedLogsControllerBootstrapImpl(
       KubernetesClientFactory clientFactory,
       ResourceHandlerSelector<StackGresDistributedLogsContext> distributedLogsHandlerSelector) {
     this.clientFactory = clientFactory;

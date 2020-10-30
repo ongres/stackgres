@@ -5,8 +5,8 @@
 
 package io.stackgres.distributedlogs.app;
 
-public interface OperatorBootstrap {
+public interface DistributedLogsControllerWatcherHandler {
+  void startWatchers();
 
-  void bootstrap();
-
+  void stopWatchers();
 }
