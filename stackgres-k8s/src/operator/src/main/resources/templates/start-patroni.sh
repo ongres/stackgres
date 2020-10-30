@@ -1,6 +1,8 @@
+export HOME="$PG_BASE_PATH"
+export PATH="$PATH:/opt/stackgres/bin"
+export LD_LIBRARY_PATH="/opt/stackgres/lib64"
 export PATRONI_POSTGRESQL_LISTEN="$(eval "echo $PATRONI_POSTGRESQL_LISTEN")"
 export PATRONI_POSTGRESQL_CONNECT_ADDRESS="$(eval "echo $PATRONI_POSTGRESQL_CONNECT_ADDRESS")"
-export HOME="$PG_BASE_PATH"
 
 cat << EOF > "$PATRONI_CONFIG_PATH/postgres.yml"
 scope: ${PATRONI_SCOPE}

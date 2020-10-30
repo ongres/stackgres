@@ -45,6 +45,7 @@ public enum ClusterStatefulSetPath implements VolumePath {
       "dbops/major-version-upgrade/reset-patroni-initialize.sh"),
   PG_BASE_PATH("/var/lib/postgresql"),
   PG_DATA_PATH(PG_BASE_PATH, "data"),
+  PG_EXTENSIONS_PATH(PG_BASE_PATH, "extensions"),
   PG_UPGRADE_PATH(PG_BASE_PATH, "upgrade"),
   PG_RUN_PATH("/var/run/postgresql"),
   PG_LOG_PATH("/var/log/postgresql"),

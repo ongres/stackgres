@@ -1,6 +1,8 @@
+export HOME="$PG_BASE_PATH"
+export PATH="$PATH:/opt/stackgres/bin"
+export LD_LIBRARY_PATH="/opt/stackgres/lib64"
 export PATRONI_POSTGRESQL_LISTEN="$(eval "echo $PATRONI_POSTGRESQL_LISTEN")"
 export PATRONI_POSTGRESQL_CONNECT_ADDRESS="$(eval "echo $PATRONI_POSTGRESQL_CONNECT_ADDRESS")"
-export HOME="$PG_BASE_PATH"
 
 cat << 'EOF' | exec-with-env "${RESTORE_ENV}" -- sh -ex
 if [ -n "$ENDPOINT_HOSTNAME" ] && [ -n "$ENDPOINT_PORT" ]

@@ -140,6 +140,43 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
             ClusterStatefulSetVolumeConfig.RESTORE_SECRET)
             .toArray(VolumeMount[]::new))
         .addToVolumeMounts(
+            ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                context.getClusterContext(),
+                volumeMountBuilder -> volumeMountBuilder
+                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.filename()
+                    + "/original/usr/lib64")
+                .withMountPath("/usr/lib64")),
+            ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                context.getClusterContext(),
+                volumeMountBuilder -> volumeMountBuilder
+                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.filename()
+                    + "/original/usr/lib/postgresql/" + pgVersion + "/lib")
+                .withMountPath("/usr/lib/postgresql/" + pgVersion + "/lib")),
+            ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                context.getClusterContext(),
+                volumeMountBuilder -> volumeMountBuilder
+                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.filename()
+                    + "/original/usr/lib/postgresql/" + pgVersion + "/bin")
+                .withMountPath("/usr/lib/postgresql/" + pgVersion + "/bin")),
+            ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                context.getClusterContext(),
+                volumeMountBuilder -> volumeMountBuilder
+                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.filename()
+                    + "/usr/lib64")
+                .withMountPath("/opt/stackgres/lib64")),
+            ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                context.getClusterContext(),
+                volumeMountBuilder -> volumeMountBuilder
+                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.filename()
+                    + "/usr/lib/postgresql/" + pgVersion + "/bin")
+                .withMountPath("/opt/stackgres/bin")),
+            ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                context.getClusterContext(),
+                volumeMountBuilder -> volumeMountBuilder
+                  .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.filename()
+                      + "/usr/share/postgresql/" + pgVersion + "/extension")
+                  .withMountPath("/usr/share/postgresql/" + pgVersion + "/extension")))
+        .addToVolumeMounts(
             clusterContext.getIndexedScripts()
                 .map(t -> new VolumeMountBuilder()
                     .withName(PatroniScriptsConfigMap.name(clusterContext, t))
