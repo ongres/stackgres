@@ -17,20 +17,21 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableList;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,13 +45,25 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @RunWith(MockitoJUnitRunner.class)
 class PostgresVersionValidatorTest {
 
-  private static final ImmutableList<String> supportedPostgresVersions =
-      ImmutableList.of("12.0", "11.5", "11.4");
+  private static final List<String> supportedPostgresVersions =
+      StackGresComponent.POSTGRESQL.getOrderedVersions().toList();
   private static final ImmutableList<String> allSupportedPostgresVersions =
-      Seq.of(StackGresComponents.LATEST)
-      .append(Seq.seq(supportedPostgresVersions)
-          .flatMap(version -> Seq.of(StackGresComponents.getPostgresMajorVersion(version), version)))
+      Seq.of(StackGresComponent.LATEST)
+      .append(StackGresComponent.POSTGRESQL.getOrderedMajorVersions())
+      .append(supportedPostgresVersions)
       .collect(ImmutableList.toImmutableList());
+  private static final String firstPgMajorVersion =
+      StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
+      .get(0).get();
+  private static final String secondPgMajorVersion =
+      StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
+      .get(1).get();
+  private static final String firstPgMinorVersion =
+      StackGresComponent.POSTGRESQL.getOrderedVersions()
+      .get(0).get();
+  private static final String secondPgMinorVersion =
+      StackGresComponent.POSTGRESQL.getOrderedVersions()
+      .get(1).get();
 
   private static String getRandomPostgresVersion() {
     Random r = new Random();
@@ -160,7 +173,7 @@ class PostgresVersionValidatorTest {
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
-    spec.setPostgresVersion(StackGresComponents.LATEST);
+    spec.setPostgresVersion(StackGresComponent.LATEST);
     String postgresProfile = spec.getConfiguration().getPostgresConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -202,6 +215,7 @@ class PostgresVersionValidatorTest {
     final StackGresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/invalid_creation_pg_version.json",
             StackGresClusterReview.class);
+    review.getRequest().getObject().getSpec().setPostgresVersion(secondPgMajorVersion);
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     String postgresProfile = spec.getConfiguration().getPostgresConfig();
@@ -216,7 +230,7 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("Invalid postgresVersion, must be 12 to use sgPostgresConfig postgresconf",
+    assertEquals("Invalid postgresVersion, must be " + firstPgMajorVersion + " to use sgPostgresConfig postgresconf",
         resultMessage);
 
     verify(configFinder).findByNameAndNamespace(eq(postgresProfile), eq(namespace));
@@ -269,6 +283,8 @@ class PostgresVersionValidatorTest {
         .readFromJson("cluster_allow_requests/major_postgres_version_update.json",
             StackGresClusterReview.class);
 
+    review.getRequest().getObject().getSpec().setPostgresVersion(firstPgMajorVersion);
+    review.getRequest().getOldObject().getSpec().setPostgresVersion(secondPgMajorVersion);
     validator.validate(review);
   }
 
@@ -279,6 +295,8 @@ class PostgresVersionValidatorTest {
         .readFromJson("cluster_allow_requests/wrong_major_postgres_version_update.json",
             StackGresClusterReview.class);
 
+    review.getRequest().getObject().getSpec().setPostgresVersion(secondPgMajorVersion);
+    review.getRequest().getOldObject().getSpec().setPostgresVersion(firstPgMajorVersion);
     ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
     });
@@ -296,6 +314,8 @@ class PostgresVersionValidatorTest {
         .readFromJson("cluster_allow_requests/minor_postgres_version_update.json",
             StackGresClusterReview.class);
 
+    review.getRequest().getObject().getSpec().setPostgresVersion(firstPgMinorVersion);
+    review.getRequest().getOldObject().getSpec().setPostgresVersion(secondPgMinorVersion);
     validator.validate(review);
   }
 
@@ -304,6 +324,7 @@ class PostgresVersionValidatorTest {
 
     final StackGresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
+    review.getRequest().getObject().getSpec().setPostgresVersion(firstPgMajorVersion);
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     String postgresProfile = spec.getConfiguration().getPostgresConfig();

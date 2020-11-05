@@ -9,6 +9,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.operatorframework.resource.factory.OptionalSubResourceStreamFactory;
 
 public interface StackGresClusterOptionalResourceStreamFactory
-    extends OptionalSubResourceStreamFactory<HasMetadata, StackGresGeneratorContext> {
+    extends OptionalSubResourceStreamFactory<HasMetadata, StackGresClusterContext> {
 
 }

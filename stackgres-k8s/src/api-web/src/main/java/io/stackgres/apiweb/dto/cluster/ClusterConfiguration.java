@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
+import javax.validation.constraints.NotBlank;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -17,6 +19,7 @@ import io.stackgres.common.StackGresUtil;
 public class ClusterConfiguration {
 
   @JsonProperty("sgPostgresConfig")
+  @NotBlank(message = "You need to associate a Postgres configuration to this cluster")
   private String sgPostgresConfig;
 
   @JsonProperty("sgPoolingConfig")

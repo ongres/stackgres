@@ -10,8 +10,8 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -49,17 +49,16 @@ public class StackGresClusterSpecAnnotations {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof StackGresClusterSpecAnnotations)) {
       return false;
     }
-    StackGresClusterSpecAnnotations that = (StackGresClusterSpecAnnotations) o;
-    return Objects.equals(allResources, that.allResources)
-        && Objects.equals(pods, that.pods)
-        && Objects.equals(services, that.services);
+    StackGresClusterSpecAnnotations other = (StackGresClusterSpecAnnotations) obj;
+    return Objects.equals(allResources, other.allResources) && Objects.equals(pods, other.pods)
+        && Objects.equals(services, other.services);
   }
 
   @Override
@@ -69,10 +68,6 @@ public class StackGresClusterSpecAnnotations {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("allResources", allResources)
-        .add("pods", pods)
-        .add("services", services)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 }

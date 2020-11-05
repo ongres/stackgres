@@ -84,6 +84,44 @@ spec:
                       type:
                         description: Type of deployment condition.
                         type: string
+                podStatuses:
+                  type: array
+                  description: The list of pod statuses.
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: The name of the pod.
+                      pendingRestart:
+                        type: boolean
+                        description: Indicate if the pod requires restart
+                      installedPostgresExtensions:
+                        type: array
+                        description: The list of extensions currently installed.
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: The name of the installed extension.
+                            publisher:
+                              type: string
+                              description: The id of the publisher of the installed extension.
+                            version:
+                              type: string
+                              description: The version of the installed extension.
+                            repository:
+                              type: string
+                              description: The repository base URL from where the extension was installed.
+                            postgresVersion:
+                              type: string
+                              description: The postgres major version of the installed extension.
+                            build:
+                              type: string
+                              description: The build version of the installed extension.
+                          required: ["name", "publisher", "version", "repository", "postgresVersion"]
+                    required: ["name"]
                 databases:
                   type: array
                   description: The list of database status

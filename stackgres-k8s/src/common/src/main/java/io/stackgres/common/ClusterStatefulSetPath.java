@@ -5,6 +5,10 @@
 
 package io.stackgres.common;
 
+import java.util.Map;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import org.jooq.lambda.Seq;
@@ -21,6 +25,8 @@ public enum ClusterStatefulSetPath implements VolumePath {
   LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH(LOCAL_BIN_PATH, "setup-data-paths.sh"),
   LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH(LOCAL_BIN_PATH, "setup-arbitrary-user.sh"),
   LOCAL_BIN_SETUP_SCRIPTS_SH_PATH(LOCAL_BIN_PATH, "setup-scripts.sh"),
+  LOCAL_BIN_RELOCATE_BINARIES_SH_PATH(LOCAL_BIN_PATH, "relocate-binaries.sh"),
+  LOCAL_BIN_MOCK_BINARIES_SH_PATH(LOCAL_BIN_PATH, "mock-binaries.sh"),
   LOCAL_BIN_START_PATRONI_SH_PATH(LOCAL_BIN_PATH, "start-patroni.sh"),
   LOCAL_BIN_START_PATRONI_WITH_RESTORE_SH_PATH(LOCAL_BIN_PATH, "start-patroni-with-restore.sh"),
   LOCAL_BIN_POST_INIT_SH_PATH(LOCAL_BIN_PATH, "post-init.sh"),
@@ -45,32 +51,62 @@ public enum ClusterStatefulSetPath implements VolumePath {
       "dbops/major-version-upgrade/reset-patroni-initialize.sh"),
   PG_BASE_PATH("/var/lib/postgresql"),
   PG_DATA_PATH(PG_BASE_PATH, "data"),
-  PG_EXTENSIONS_PATH(PG_BASE_PATH, "extensions"),
+  PG_EXTENSIONS_BASE_PATH(PG_BASE_PATH, "extensions"),
+  PG_EXTENSIONS_PATH(PG_EXTENSIONS_BASE_PATH,
+      ClusterStatefulSetEnvVars.POSTGRES_MAJOR_VERSION.substVar(),
+      ClusterStatefulSetEnvVars.BUILD_MAJOR_VERSION.substVar()),
+  PG_EXTENSIONS_BINARIES_PATH(PG_EXTENSIONS_PATH,
+      "usr/lib/postgresql",
+      ClusterStatefulSetEnvVars.POSTGRES_MAJOR_VERSION.substVar()),
+  PG_EXTENSIONS_BIN_PATH(PG_EXTENSIONS_BINARIES_PATH, "bin"),
+  PG_EXTENSIONS_LIB_PATH(PG_EXTENSIONS_BINARIES_PATH, "lib"),
+  PG_EXTENSIONS_SHARE_PATH(PG_EXTENSIONS_PATH,
+      "usr/share/postgresql",
+      ClusterStatefulSetEnvVars.POSTGRES_MAJOR_VERSION.substVar()),
+  PG_EXTENSIONS_EXTENSION_PATH(PG_EXTENSIONS_SHARE_PATH, "extension"),
+  PG_EXTENSIONS_LIB64_PATH(PG_EXTENSIONS_PATH, "usr/lib64"),
+  PG_EXTENSIONS_MOUNTED_BIN_PATH("/opt/stackgres/bin"),
+  PG_EXTENSIONS_MOUNTED_LIB64_PATH("/opt/stackgres/lib64"),
+  PG_LIB64_PATH("/usr/lib64"),
+  PG_BINARIES_PATH("/usr/lib/postgresql",
+      ClusterStatefulSetEnvVars.POSTGRES_VERSION.substVar()),
+  PG_BIN_PATH(PG_BINARIES_PATH, "bin"),
+  PG_LIB_PATH(PG_BINARIES_PATH, "lib"),
+  PG_SHARE_PATH("/usr/share/postgresql",
+      ClusterStatefulSetEnvVars.POSTGRES_VERSION.substVar()),
+  PG_EXTENSION_PATH(PG_SHARE_PATH, "extension"),
+  PG_RELOCATED_PATH(PG_BASE_PATH, "relocated",
+      ClusterStatefulSetEnvVars.POSTGRES_VERSION.substVar()),
+  PG_RELOCATED_LIB64_PATH(PG_RELOCATED_PATH, "usr/lib64"),
+  PG_RELOCATED_BINARIES_PATH(PG_RELOCATED_PATH, "usr/lib/postgresql",
+      ClusterStatefulSetEnvVars.POSTGRES_VERSION.substVar()),
+  PG_RELOCATED_BIN_PATH(PG_RELOCATED_BINARIES_PATH, "bin"),
+  PG_RELOCATED_LIB_PATH(PG_RELOCATED_BINARIES_PATH, "lib"),
+  PG_RELOCATED_SHARE_PATH(PG_RELOCATED_PATH, "usr/share/postgresql/",
+      ClusterStatefulSetEnvVars.POSTGRES_VERSION.substVar()),
+  PG_RELOCATED_EXTENSION_PATH(PG_RELOCATED_SHARE_PATH, "extension"),
   PG_UPGRADE_PATH(PG_BASE_PATH, "upgrade"),
   PG_RUN_PATH("/var/run/postgresql"),
   PG_LOG_PATH("/var/log/postgresql"),
   BASE_ENV_PATH("/etc/env"),
   BASE_SECRET_PATH(BASE_ENV_PATH, ".secret"),
-  PATRONI_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSetEnvVars.PATRONI_ENV.value()),
+  PATRONI_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSetEnvVars.PATRONI_ENV.substVar()),
   PATRONI_CONFIG_PATH("/etc/patroni"),
-  BACKUP_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSetEnvVars.BACKUP_ENV.value()),
-  BACKUP_SECRET_PATH(BASE_SECRET_PATH, ClusterStatefulSetEnvVars.BACKUP_ENV.value()),
-  RESTORE_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSetEnvVars.RESTORE_ENV.value()),
-  RESTORE_SECRET_PATH(BASE_SECRET_PATH, ClusterStatefulSetEnvVars.RESTORE_ENV.value()),
+  BACKUP_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSetEnvVars.BACKUP_ENV.substVar()),
+  BACKUP_SECRET_PATH(BASE_SECRET_PATH, ClusterStatefulSetEnvVars.BACKUP_ENV.substVar()),
+  RESTORE_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSetEnvVars.RESTORE_ENV.substVar()),
+  RESTORE_SECRET_PATH(BASE_SECRET_PATH, ClusterStatefulSetEnvVars.RESTORE_ENV.substVar()),
   TEMPLATES_PATH("/templates"),
   SHARED_PATH("/shared");
 
   private final String path;
-  private final String subPath;
-  private final EnvVar envVar;
 
   ClusterStatefulSetPath(String path) {
     this.path = path;
-    this.subPath = path.substring(1);
-    this.envVar = new EnvVarBuilder()
-        .withName(name())
-        .withValue(path)
-        .build();
+  }
+
+  ClusterStatefulSetPath(String...paths) {
+    this(Seq.of(paths).toString("/"));
   }
 
   ClusterStatefulSetPath(ClusterStatefulSetPath parent, String...paths) {
@@ -78,22 +114,112 @@ public enum ClusterStatefulSetPath implements VolumePath {
   }
 
   @Override
+  public String path() {
+    return path(ImmutableMap.of());
+  }
+
+  @Override
+  public String path(ClusterContext context) {
+    return path(context.getEnvironmentVariables());
+  }
+
+  @Override
+  public String path(Map<String, String> envVars) {
+    StringBuilder path = new StringBuilder();
+    int startIndexOf = this.path.indexOf("$(");
+    int endIndexOf = -1;
+    while (startIndexOf >= 0) {
+      path.append(this.path, endIndexOf + 1, startIndexOf);
+      endIndexOf = this.path.indexOf(")", startIndexOf);
+      if (endIndexOf == -1) {
+        throw new RuntimeException("Path " + this.path + " do not close variable substitution."
+            + " Expected a `)` character after position " + startIndexOf);
+      }
+      String variable = this.path.substring(startIndexOf + 2, endIndexOf);
+      String value = envVars.get(variable);
+      if (value == null) {
+        throw new RuntimeException("Path " + this.path + " specify variable " + variable
+            + " for substitution. But was not found in map " + envVars);
+      }
+      path.append(value);
+      startIndexOf = this.path.indexOf("$(", endIndexOf + 1);
+    }
+    if (endIndexOf == 0) {
+      return this.path;
+    }
+    if (endIndexOf < this.path.length()) {
+      path.append(this.path, endIndexOf + 1, this.path.length());
+    }
+    return path.toString();
+  }
+
+  @Override
   public String filename() {
+    return filename(ImmutableMap.of());
+  }
+
+  @Override
+  public String filename(ClusterContext context) {
+    return filename(context.getEnvironmentVariables());
+  }
+
+  @Override
+  public String filename(Map<String, String> envVars) {
+    String path = path(envVars);
     int indexOfLastSlash = path.lastIndexOf('/');
     return indexOfLastSlash != -1 ? path.substring(indexOfLastSlash + 1) : path;
   }
 
   @Override
-  public String path() {
-    return path;
+  public String subPath() {
+    return subPath(ImmutableMap.of());
   }
 
   @Override
-  public String subPath() {
-    return subPath;
+  public String subPath(ClusterContext context) {
+    return subPath(context.getEnvironmentVariables());
+  }
+
+  @Override
+  public String subPath(Map<String, String> envVars) {
+    return path(envVars).substring(1);
+  }
+
+  @Override
+  public String subPath(VolumePath relativeTo) {
+    return relativize(subPath(ImmutableMap.of()), relativeTo.subPath(ImmutableMap.of()));
+  }
+
+  @Override
+  public String subPath(ClusterContext context, VolumePath relativeTo) {
+    return relativize(subPath(context.getEnvironmentVariables()),
+        relativeTo.subPath(context.getEnvironmentVariables()));
+  }
+
+  @Override
+  public String subPath(Map<String, String> envVars, VolumePath relativeTo) {
+    return relativize(subPath(envVars), relativeTo.subPath(envVars));
+  }
+
+  private String relativize(String subPath, String relativeToSubPath) {
+    Preconditions.checkArgument(subPath.startsWith(relativeToSubPath + "/"),
+        subPath + " is not relative to " + relativeToSubPath + "/");
+    return subPath.substring(relativeToSubPath.length() + 1);
   }
 
   public EnvVar envVar() {
-    return envVar;
+    return envVar(ImmutableMap.of());
   }
+
+  public EnvVar envVar(ClusterContext context) {
+    return envVar(context.getEnvironmentVariables());
+  }
+
+  public EnvVar envVar(Map<String, String> envVars) {
+    return new EnvVarBuilder()
+        .withName(name())
+        .withValue(path(envVars))
+        .build();
+  }
+
 }

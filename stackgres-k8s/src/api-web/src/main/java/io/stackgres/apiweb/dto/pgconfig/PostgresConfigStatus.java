@@ -13,8 +13,8 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -60,12 +60,7 @@ public class PostgresConfigStatus {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("clusters", clusters)
-        .add("postgresql.conf", postgresqlConf)
-        .add("defaultParameters", defaultParameters)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 
 }

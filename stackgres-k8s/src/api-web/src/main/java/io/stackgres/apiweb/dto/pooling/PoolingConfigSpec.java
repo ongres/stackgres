@@ -9,8 +9,8 @@ import javax.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -20,14 +20,6 @@ public class PoolingConfigSpec {
   @Valid
   private PoolingConfigPgBouncer pgBouncer;
 
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("pgBouncer", getPgBouncer())
-        .toString();
-  }
-
   public PoolingConfigPgBouncer getPgBouncer() {
     return pgBouncer;
   }
@@ -35,4 +27,10 @@ public class PoolingConfigSpec {
   public void setPgBouncer(PoolingConfigPgBouncer pgBouncer) {
     this.pgBouncer = pgBouncer;
   }
+
+  @Override
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
+  }
+
 }

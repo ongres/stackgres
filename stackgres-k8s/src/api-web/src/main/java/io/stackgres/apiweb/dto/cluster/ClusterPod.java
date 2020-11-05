@@ -5,6 +5,10 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -17,6 +21,8 @@ import io.stackgres.common.StackGresUtil;
 public class ClusterPod {
 
   @JsonProperty("persistentVolume")
+  @NotNull(message = "Pod's persistent volume must be specified")
+  @Valid
   private ClusterPodPersistentVolume persistentVolume;
 
   @JsonProperty("disableConnectionPooling")
@@ -29,8 +35,10 @@ public class ClusterPod {
   private Boolean disablePostgresUtil;
 
   @JsonProperty("metadata")
+  @Valid
   private ClusterPodMetadata metadata;
 
+  @Valid
   private PodScheduling scheduling;
 
   public ClusterPodPersistentVolume getPersistentVolume() {

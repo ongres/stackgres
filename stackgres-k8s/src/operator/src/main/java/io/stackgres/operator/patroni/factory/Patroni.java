@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
@@ -18,6 +19,7 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HTTPGetActionBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
@@ -31,7 +33,7 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
-import io.stackgres.common.StackGresProperty;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
@@ -39,18 +41,14 @@ import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
-import io.stackgres.operator.common.StackGresComponents;
-import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
+import org.jooq.lambda.Seq;
 
 @Singleton
 public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
 
   public static final String POST_INIT_SUFFIX = "-post-init";
-
-  public static final String IMAGE_NAME = "docker.io/ongres/patroni:v%s-pg%s-build-%s";
-  public static final String DEFAULT_VERSION = StackGresComponents.get("patroni");
 
   private final PatroniRequirements resourceRequirementsFactory;
   private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;
@@ -94,40 +92,41 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
   }
 
   @Override
-  public Container getContainer(StackGresGeneratorContext context) {
-    final StackGresClusterContext clusterContext = context.getClusterContext();
-    final StackGresCluster cluster = clusterContext.getCluster();
-    final String pgVersion = cluster.getSpec().getPostgresVersion();
+  public Container getContainer(StackGresClusterContext context) {
+    final StackGresCluster cluster = context.getCluster();
+    final String patroniImageName = StackGresComponent.PATRONI.findImageName(
+        StackGresComponent.LATEST,
+        ImmutableMap.of(StackGresComponent.POSTGRESQL,
+            cluster.getSpec().getPostgresVersion()));
 
     ResourceRequirements podResources = resourceRequirementsFactory
-        .createResource(clusterContext);
+        .createResource(context);
 
-    final String startScript = context.getClusterContext().getRestoreContext().isPresent()
+    final String startScript = context.getRestoreContext().isPresent()
         ? "/start-patroni-with-restore.sh" : "/start-patroni.sh";
     return new ContainerBuilder()
         .withName(StackgresClusterContainers.PATRONI)
-        .withImage(String.format(IMAGE_NAME,
-            DEFAULT_VERSION, pgVersion, StackGresProperty.CONTAINER_BUILD.getString()))
+        .withImage(patroniImageName)
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.LOCAL_BIN_PATH.path() + startScript)
         .withImagePullPolicy("IfNotPresent")
         .withPorts(
             new ContainerPortBuilder()
                 .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
-                .withContainerPort(clusterContext.getSidecars().stream()
+                .withContainerPort(context.getSidecars().stream()
                     .filter(entry -> entry.getSidecar() instanceof Envoy)
                     .map(entry -> EnvoyUtil.PG_ENTRY_PORT)
                     .findFirst()
                     .orElse(EnvoyUtil.PG_PORT)).build(),
             new ContainerPortBuilder()
                 .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
-                .withContainerPort(clusterContext.getSidecars().stream()
+                .withContainerPort(context.getSidecars().stream()
                     .filter(entry -> entry.getSidecar() instanceof Envoy)
                     .map(entry -> EnvoyUtil.PG_REPL_ENTRY_PORT)
                     .findFirst()
                     .orElse(EnvoyUtil.PG_PORT)).build(),
             new ContainerPortBuilder().withContainerPort(8008).build())
-        .withVolumeMounts(ClusterStatefulSetVolumeConfig.volumeMounts(context.getClusterContext(),
+        .withVolumeMounts(ClusterStatefulSetVolumeConfig.volumeMounts(context,
             ClusterStatefulSetVolumeConfig.DATA,
             ClusterStatefulSetVolumeConfig.SOCKET,
             ClusterStatefulSetVolumeConfig.SHARED_MEMORY,
@@ -141,45 +140,53 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
             .toArray(VolumeMount[]::new))
         .addToVolumeMounts(
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                context.getClusterContext(),
+                context,
                 volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.filename()
-                    + "/original/usr/lib64")
-                .withMountPath("/usr/lib64")),
+                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_LIB64_PATH.subPath(context,
+                    ClusterStatefulSetPath.PG_BASE_PATH))
+                .withMountPath(ClusterStatefulSetPath.PG_LIB64_PATH.path(context))),
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                context.getClusterContext(),
+                context,
                 volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.filename()
-                    + "/original/usr/lib/postgresql/" + pgVersion + "/lib")
-                .withMountPath("/usr/lib/postgresql/" + pgVersion + "/lib")),
+                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH.subPath(context,
+                    ClusterStatefulSetPath.PG_BASE_PATH))
+                .withMountPath(ClusterStatefulSetPath.PG_LIB_PATH.path(context))),
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                context.getClusterContext(),
+                context,
                 volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.filename()
-                    + "/original/usr/lib/postgresql/" + pgVersion + "/bin")
-                .withMountPath("/usr/lib/postgresql/" + pgVersion + "/bin")),
+                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_BIN_PATH.subPath(context,
+                    ClusterStatefulSetPath.PG_BASE_PATH))
+                .withMountPath(ClusterStatefulSetPath.PG_BIN_PATH.path(context))),
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                context.getClusterContext(),
+                context,
                 volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.filename()
-                    + "/usr/lib64")
-                .withMountPath("/opt/stackgres/lib64")),
+                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_SHARE_PATH.subPath(context,
+                    ClusterStatefulSetPath.PG_BASE_PATH))
+                .withMountPath(ClusterStatefulSetPath.PG_SHARE_PATH.path(context))),
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                context.getClusterContext(),
+                context,
                 volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.filename()
-                    + "/usr/lib/postgresql/" + pgVersion + "/bin")
-                .withMountPath("/opt/stackgres/bin")),
+                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_EXTENSION_PATH.subPath(context,
+                    ClusterStatefulSetPath.PG_BASE_PATH))
+                .withMountPath(ClusterStatefulSetPath.PG_EXTENSION_PATH.path(context))),
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                context.getClusterContext(),
+                context,
                 volumeMountBuilder -> volumeMountBuilder
-                  .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.filename()
-                      + "/usr/share/postgresql/" + pgVersion + "/extension")
-                  .withMountPath("/usr/share/postgresql/" + pgVersion + "/extension")))
+                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_BIN_PATH.subPath(context,
+                    ClusterStatefulSetPath.PG_BASE_PATH))
+                .withMountPath(
+                    ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_BIN_PATH.path(context))),
+            ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                context,
+                volumeMountBuilder -> volumeMountBuilder
+                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH.subPath(context,
+                    ClusterStatefulSetPath.PG_BASE_PATH))
+                .withMountPath(
+                    ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_LIB64_PATH.path(context))))
         .addToVolumeMounts(
-            clusterContext.getIndexedScripts()
+            context.getIndexedScripts()
                 .map(t -> new VolumeMountBuilder()
-                    .withName(PatroniScriptsConfigMap.name(clusterContext, t))
+                    .withName(PatroniScriptsConfigMap.name(context, t))
                     .withMountPath("/etc/patroni/init-script.d/"
                         + PatroniScriptsConfigMap.scriptName(t))
                     .withSubPath(t.v1.getScript() != null
@@ -192,11 +199,30 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                 .toArray(VolumeMount[]::new))
         .withEnvFrom(new EnvFromSourceBuilder()
             .withConfigMapRef(new ConfigMapEnvSourceBuilder()
-                .withName(PatroniConfigMap.name(clusterContext)).build())
+                .withName(PatroniConfigMap.name(context)).build())
             .build())
         .withEnv(ImmutableList.<EnvVar>builder()
-            .addAll(clusterStatefulSetEnvironmentVariables.listResources(clusterContext))
-            .addAll(patroniEnvironmentVariables.listResources(clusterContext))
+            .add(new EnvVarBuilder()
+                .withName("PATH")
+                .withValue(Seq.of(
+                    ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_BIN_PATH.path(context),
+                    ClusterStatefulSetPath.PG_BIN_PATH.path(context),
+                    "/usr/local/sbin",
+                    "/usr/local/bin",
+                    "/usr/sbin",
+                    "/usr/bin",
+                    "/sbin",
+                    "/bin")
+                    .toString(":"))
+                .build())
+            .add(new EnvVarBuilder()
+                .withName("LD_LIBRARY_PATH")
+                .withValue(Seq.of(
+                    ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_LIB64_PATH.path(context))
+                    .toString(":"))
+                .build())
+            .addAll(clusterStatefulSetEnvironmentVariables.listResources(context))
+            .addAll(patroniEnvironmentVariables.listResources(context))
             .build())
         .withLivenessProbe(new ProbeBuilder()
             .withHttpGet(new HTTPGetActionBuilder()
@@ -222,32 +248,31 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
   }
 
   @Override
-  public ImmutableList<Volume> getVolumes(StackGresGeneratorContext context) {
-    final StackGresClusterContext clusterContext = context.getClusterContext();
-    return clusterContext.getIndexedScripts()
+  public ImmutableList<Volume> getVolumes(StackGresClusterContext context) {
+    return context.getIndexedScripts()
         .filter(t -> t.v1.getScript() != null)
         .map(t -> new VolumeBuilder()
-            .withName(PatroniScriptsConfigMap.name(clusterContext, t))
+            .withName(PatroniScriptsConfigMap.name(context, t))
             .withConfigMap(new ConfigMapVolumeSourceBuilder()
-                .withName(PatroniScriptsConfigMap.name(clusterContext, t))
+                .withName(PatroniScriptsConfigMap.name(context, t))
                 .withOptional(false)
                 .build())
             .build())
-        .append(clusterContext.getIndexedScripts()
+        .append(context.getIndexedScripts()
             .filter(t -> t.v1.getScriptFrom() != null)
             .filter(t -> t.v1.getScriptFrom().getConfigMapKeyRef() != null)
             .map(t -> new VolumeBuilder()
-                .withName(PatroniScriptsConfigMap.name(clusterContext, t))
+                .withName(PatroniScriptsConfigMap.name(context, t))
                 .withConfigMap(new ConfigMapVolumeSourceBuilder()
                     .withName(t.v1.getScriptFrom().getConfigMapKeyRef().getName())
                     .withOptional(false)
                     .build())
                 .build()))
-        .append(clusterContext.getIndexedScripts()
+        .append(context.getIndexedScripts()
             .filter(t -> t.v1.getScriptFrom() != null)
             .filter(t -> t.v1.getScriptFrom().getSecretKeyRef() != null)
             .map(t -> new VolumeBuilder()
-                .withName(PatroniScriptsConfigMap.name(clusterContext, t))
+                .withName(PatroniScriptsConfigMap.name(context, t))
                 .withSecret(new SecretVolumeSourceBuilder()
                     .withSecretName(t.v1.getScriptFrom().getSecretKeyRef().getName())
                     .withOptional(false)
@@ -257,7 +282,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
   }
 
   @Override
-  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
+  public Stream<HasMetadata> streamResources(StackGresClusterContext context) {
     return ResourceGenerator.with(context)
         .of(HasMetadata.class)
         .append(patroniConfigMap)

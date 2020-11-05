@@ -41,7 +41,6 @@ import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.StackGresBackupContext;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
-import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.common.StackGresPodSecurityContext;
 import io.stackgres.operator.patroni.factory.PatroniRole;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -77,15 +76,12 @@ public class BackupJob implements StackGresClusterResourceStreamFactory {
         name + StackGresUtil.BACKUP_SUFFIX);
   }
 
-  public Stream<HasMetadata> streamResources(
-      StackGresGeneratorContext context) {
-    StackGresClusterContext clusterContext = context.getClusterContext();
-
-    if (!clusterContext.getBackupContext().isPresent()) {
+  public Stream<HasMetadata> streamResources(StackGresClusterContext context) {
+    if (!context.getBackupContext().isPresent()) {
       return Seq.empty();
     }
 
-    return Seq.seq(clusterContext.getBackups())
+    return Seq.seq(context.getBackups())
         .filter(backup -> !Optional.ofNullable(backup.getStatus())
             .map(StackGresBackupStatus::getProcess)
             .map(StackGresBackupProcess::getStatus)
@@ -94,7 +90,7 @@ public class BackupJob implements StackGresClusterResourceStreamFactory {
             && !Seq.seq(backup.getMetadata().getAnnotations())
             .anyMatch(Tuple.tuple(
                 StackGresContext.SCHEDULED_BACKUP_KEY, StackGresContext.RIGHT_VALUE)::equals))
-        .map(backup -> createBackupJob(backup, clusterContext))
+        .map(backup -> createBackupJob(backup, context))
         .filter(Optional::isPresent)
         .map(Optional::get);
   }

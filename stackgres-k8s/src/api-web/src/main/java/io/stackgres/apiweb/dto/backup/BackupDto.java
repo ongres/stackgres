@@ -8,9 +8,9 @@ package io.stackgres.apiweb.dto.backup;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.ResourceDto;
+import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 public class BackupDto extends ResourceDto {
@@ -40,12 +40,7 @@ public class BackupDto extends ResourceDto {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("metadata", getMetadata())
-        .add("spec", spec)
-        .add("status", status)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 
 }

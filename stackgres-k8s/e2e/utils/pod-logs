@@ -51,7 +51,7 @@ pod_logs() {
           continue
         fi
         kubectl get pod -n "${pod%%/*}" "$(echo "$pod" | cut -d / -f 2)" -o json \
-          | jq -r '.metadata.uid as $uid|.status.containerStatuses|map(.name + "/" + $uid + "/" + (.restartCount | tostring))|.[]' \
+          | jq -r '.metadata.uid as $uid|[.status.containerStatuses,.status.initContainerStatuses][]|select(. != null)|map(.name + "/" + $uid + "/" + (.restartCount | tostring))|.[]' \
           | if [ -z "$filtered_container" ]; then cat; else grep '^'"$filtered_container"'/'; fi \
           | while read container; do
               if [ -f "$pods_file" ] && grep -q -F "${pod%%/*}/$(echo "$pod" | cut -d / -f 2)/$container" "$pods_file"

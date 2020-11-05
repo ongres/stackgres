@@ -10,9 +10,9 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -44,29 +44,26 @@ public class StackGresClusterRestore implements KubernetesResource {
   }
 
   @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("backupUid", backupUid)
-        .add("downloadDiskConcurrency", downloadDiskConcurrency)
-        .toString();
+  public int hashCode() {
+    return Objects.hash(backupUid, downloadDiskConcurrency);
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof StackGresClusterRestore)) {
       return false;
     }
-    StackGresClusterRestore that = (StackGresClusterRestore) o;
-    return Objects.equals(downloadDiskConcurrency, that.downloadDiskConcurrency)
-        && Objects.equals(backupUid, that.backupUid);
+    StackGresClusterRestore other = (StackGresClusterRestore) obj;
+    return Objects.equals(backupUid, other.backupUid)
+        && Objects.equals(downloadDiskConcurrency, other.downloadDiskConcurrency);
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(downloadDiskConcurrency, backupUid);
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
+
 }

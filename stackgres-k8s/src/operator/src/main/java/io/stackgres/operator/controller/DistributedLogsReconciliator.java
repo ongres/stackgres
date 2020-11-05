@@ -77,7 +77,7 @@ public class DistributedLogsReconciliator
   @Override
   protected void onPreConfigReconcilied(KubernetesClient client,
       StackGresDistributedLogsContext context) {
-    statusManager.updatePendingRestart(context, client);
+    statusManager.updatePendingRestart(context);
     boolean isRestartPending = statusManager.isPendingRestart(context);
     context.getRequiredResources().stream()
         .map(Tuple2::v1)
@@ -107,7 +107,10 @@ public class DistributedLogsReconciliator
         + distributedLogs.getMetadata().getName() + " created",
         distributedLogs, client);
     statusManager.updateCondition(
-        DistributedLogsStatusCondition.FALSE_FAILED.getCondition(), context, client);
+        DistributedLogsStatusCondition.FALSE_FAILED.getCondition(), context);
+    distributedLogsScheduler.updateStatus(context.getDistributedLogs(),
+        StackGresDistributedLogs::getStatus,
+        StackGresDistributedLogs::setStatus);
   }
 
   @Override
@@ -118,13 +121,16 @@ public class DistributedLogsReconciliator
         + distributedLogs.getMetadata().getName() + " updated",
         distributedLogs, client);
     statusManager.updateCondition(
-        DistributedLogsStatusCondition.FALSE_FAILED.getCondition(), context, client);
+        DistributedLogsStatusCondition.FALSE_FAILED.getCondition(), context);
+    distributedLogsScheduler.updateStatus(context.getDistributedLogs(),
+        StackGresDistributedLogs::getStatus,
+        StackGresDistributedLogs::setStatus);
   }
 
   @Override
   protected void onPostConfigReconcilied(KubernetesClient client,
       StackGresDistributedLogsContext context) {
-    statusManager.updatePendingRestart(context, client);
+    statusManager.updatePendingRestart(context);
     context.getDistributedLogs().setStatus(
         Optional.ofNullable(context.getDistributedLogs().getStatus())
         .orElseGet(() -> new StackGresDistributedLogsStatus()));

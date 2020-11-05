@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.controller;
 
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -17,8 +16,10 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.io.Resources;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
@@ -26,28 +27,21 @@ import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.ObjectMapperProvider;
+import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
-import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
-import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsEventReason;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.common.resource.CustomResourceScanner;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSet;
 import io.stackgres.operator.common.ImmutableStackGresDistributedLogsContext;
-import io.stackgres.operator.common.ImmutableStackGresDistributedLogsGeneratorContext;
 import io.stackgres.operator.common.SidecarEntry;
-import io.stackgres.operator.common.StackGresComponents;
+import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
-import io.stackgres.operator.common.StackGresDistributedLogsGeneratorContext;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.distributedlogs.controller.DistributedLogsController;
 import io.stackgres.operator.distributedlogs.factory.DistributedLogs;
@@ -55,7 +49,7 @@ import io.stackgres.operator.distributedlogs.fluentd.Fluentd;
 import io.stackgres.operator.resource.DistributedLogsResourceHandlerSelector;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-import org.jooq.lambda.Unchecked;
+import io.stackgres.operatorframework.resource.factory.ContainerResourceFactory;
 import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -160,10 +154,7 @@ public class DistributedLogsReconciliationCycle
   @Override
   protected ImmutableList<HasMetadata> getRequiredResources(
       StackGresDistributedLogsContext context) {
-    return ResourceGenerator.<StackGresDistributedLogsGeneratorContext>with(
-        ImmutableStackGresDistributedLogsGeneratorContext.builder()
-            .distributedLogsContext(context)
-            .build())
+    return ResourceGenerator.<StackGresDistributedLogsContext>with(context)
         .of(HasMetadata.class)
         .append(distributeLogs)
         .stream()
@@ -196,7 +187,8 @@ public class DistributedLogsReconciliationCycle
 
   private StackGresDistributedLogsContext getDistributedLogsContext(
       StackGresDistributedLogs distributedLogs) {
-    final StackGresCluster cluster = getStackGresCLusterForDistributedLogs(distributedLogs);
+    final StackGresCluster cluster = StackGresDistributedLogsUtil
+        .getStackGresClusterForDistributedLogs(distributedLogs);
     final StackGresPostgresConfig postgresConfig = getStackGresPostgresConfigForDistributedLogs(
         distributedLogs);
     return ImmutableStackGresDistributedLogsContext.builder()
@@ -220,10 +212,10 @@ public class DistributedLogsReconciliationCycle
         .addBackups()
         .addSidecars(
             new SidecarEntry<>(
-                fluentd.toStackGresClusterSidecarResourceFactory(),
+                toStackGresClusterSidecarResourceFactory(fluentd),
                 Optional.empty()),
             new SidecarEntry<>(
-                distributedLogsController.toStackGresClusterSidecarResourceFactory(),
+                toStackGresClusterSidecarResourceFactory(distributedLogsController),
                 Optional.empty()))
         .build();
   }
@@ -238,55 +230,14 @@ public class DistributedLogsReconciliationCycle
     config.getMetadata().setUid(
         distributedLogs.getMetadata().getUid());
     StackGresPostgresConfigSpec spec = new StackGresPostgresConfigSpec();
-    spec.setPostgresVersion(StackGresComponents.getPostgresMajorVersion(
-        StackGresComponents.calculatePostgresVersion(StackGresComponents.LATEST)));
+    spec.setPostgresVersion(StackGresComponent.POSTGRESQL.findMajorVersion(
+        StackGresComponent.LATEST));
     spec.setPostgresqlConf(new HashMap<>());
     spec.getPostgresqlConf().put("shared_preload_libraries",
         "pg_stat_statements, auto_explain, timescaledb");
     spec.getPostgresqlConf().put("timescaledb.telemetry_level", "off");
     config.setSpec(spec);
     return config;
-  }
-
-  private StackGresCluster getStackGresCLusterForDistributedLogs(
-      StackGresDistributedLogs distributedLogs) {
-    final StackGresCluster distributedLogsCluster = new StackGresCluster();
-    distributedLogsCluster.getMetadata().setNamespace(
-        distributedLogs.getMetadata().getNamespace());
-    distributedLogsCluster.getMetadata().setName(
-        distributedLogs.getMetadata().getName());
-    distributedLogsCluster.getMetadata().setUid(
-        distributedLogs.getMetadata().getUid());
-    final StackGresClusterSpec spec = new StackGresClusterSpec();
-    spec.setPostgresVersion(StackGresComponents.calculatePostgresVersion(
-        StackGresComponents.LATEST));
-    spec.setInstances(1);
-    final StackGresClusterPod pod = new StackGresClusterPod();
-    final StackGresPodPersistentVolume persistentVolume = new StackGresPodPersistentVolume();
-    persistentVolume.setVolumeSize(
-        distributedLogs.getSpec().getPersistentVolume().getVolumeSize());
-    persistentVolume.setStorageClass(
-        distributedLogs.getSpec().getPersistentVolume().getStorageClass());
-    pod.setPersistentVolume(persistentVolume);
-    spec.setPod(pod);
-    final StackGresClusterInitData initData = new StackGresClusterInitData();
-    final StackGresClusterScriptEntry script = new StackGresClusterScriptEntry();
-    script.setName("distributed-logs-template");
-    script.setDatabase("template1");
-    script.setScript(Unchecked.supplier(() -> Resources
-          .asCharSource(ClusterStatefulSet.class.getResource("/distributed-logs-template.sql"),
-              StandardCharsets.UTF_8)
-          .read()).get());
-    initData.setScripts(ImmutableList.of(script));
-    spec.setInitData(initData);
-    final StackGresClusterNonProduction nonProduction = new StackGresClusterNonProduction();
-    nonProduction.setDisableClusterPodAntiAffinity(
-        Optional.ofNullable(distributedLogs.getSpec().getNonProduction())
-        .map(StackGresDistributedLogsNonProduction::getDisableClusterPodAntiAffinity)
-        .orElse(false));
-    spec.setNonProduction(nonProduction);
-    distributedLogsCluster.setSpec(spec);
-    return distributedLogsCluster;
   }
 
   private ImmutableList<StackGresCluster> getConnectedClusters(
@@ -304,6 +255,58 @@ public class DistributedLogsReconciliationCycle
                     distributedLogsRelativeId).equals(name))
             .orElse(false))
         .collect(ImmutableList.toImmutableList());
+  }
+
+  public <T> StackGresClusterSidecarResourceFactory<T> toStackGresClusterSidecarResourceFactory(
+      ContainerResourceFactory<T, StackGresDistributedLogsContext>
+          containerResourceFactory) {
+    return new DistributedLogsControllerStackGresClusterSidecarResourceFactory<T>(
+        containerResourceFactory);
+  }
+
+  @SuppressFBWarnings(value = { "BC_UNCONFIRMED_CAST" },
+      justification = "We know the cast is safe")
+  private static class DistributedLogsControllerStackGresClusterSidecarResourceFactory<T>
+      implements StackGresClusterSidecarResourceFactory<T> {
+
+    private final ContainerResourceFactory<T, StackGresDistributedLogsContext>
+        containerResourceFactory;
+
+    public DistributedLogsControllerStackGresClusterSidecarResourceFactory(
+        ContainerResourceFactory<T, StackGresDistributedLogsContext>
+            containerResourceFactory) {
+      this.containerResourceFactory = containerResourceFactory;
+    }
+
+    @Override
+    public Stream<HasMetadata> streamResources(StackGresClusterContext context) {
+      return containerResourceFactory.streamResources(
+          (StackGresDistributedLogsContext) context);
+    }
+
+    @Override
+    public ImmutableList<Volume> getVolumes(StackGresClusterContext context) {
+      return containerResourceFactory.getVolumes(
+          (StackGresDistributedLogsContext) context);
+    }
+
+    @Override
+    public Container getContainer(StackGresClusterContext context) {
+      return containerResourceFactory.getContainer(
+          (StackGresDistributedLogsContext) context);
+    }
+
+    @Override
+    public Stream<Container> getInitContainers(StackGresClusterContext context) {
+      return containerResourceFactory.getInitContainers(
+          (StackGresDistributedLogsContext) context);
+    }
+
+    @Override
+    public Optional<T> getConfig(StackGresClusterContext context) throws Exception {
+      return containerResourceFactory.getConfig(
+          (StackGresDistributedLogsContext) context);
+    }
   }
 
 }

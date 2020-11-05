@@ -5,7 +5,9 @@
 
 package io.stackgres.operatorframework.reconciliation;
 
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -17,6 +19,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -93,13 +96,28 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
     stopped.complete(null);
   }
 
-  void reconciliationCycle() {
+  public synchronized ReconciliationCycleResult<T> reconciliationCycle() {
+    final ImmutableMap.Builder<T, Exception> contextExceptions = ImmutableMap.builder();
     final int cycleId = reconciliationCount.incrementAndGet();
-    String cycleName = cycleId + "| " + name + " reconciliation cycle";
+    final String cycleName = cycleId + "| " + name + " reconciliation cycle";
 
     logger.trace("{} starting", cycleName);
     logger.trace("{} getting existing {} list", cycleName, name.toLowerCase(Locale.US));
-    ImmutableList<T> existingContexts = getExistingContexts();
+    final ImmutableList<T> existingContexts;
+
+    try {
+      existingContexts = getExistingContexts();
+    } catch (RuntimeException ex) {
+      logger.error(cycleName + " failed", ex);
+      try {
+        onError(ex);
+      } catch (RuntimeException rex) {
+        logger.error(cycleName
+            + " failed sending event while retrieving reconciliation cycle contexts", rex);
+      }
+      return new ReconciliationCycleResult<>(ex);
+    }
+
     try {
       for (T context : existingContexts) {
         HasMetadata contextResource = resourceGetter.apply(context);
@@ -138,8 +156,13 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
                   .collect(ImmutableList.toImmutableList());
           T contextWithExistingAndRequiredResources = getContextWithExistingAndRequiredResources(
               context, requiredResources, existingResources);
-          reconciliator.reconcile(client, contextWithExistingAndRequiredResources);
+          ReconciliationResult<?> reconciliationResult =
+              reconciliator.reconcile(client, contextWithExistingAndRequiredResources);
+          if (!reconciliationResult.success()) {
+            contextExceptions.put(context, reconciliationResult.getException());
+          }
         } catch (Exception ex) {
+          contextExceptions.put(context, ex);
           logger.error(cycleName + " failed reconciling " + contextId, ex);
           try {
             onConfigError(context, contextResource, ex);
@@ -149,9 +172,50 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
         }
       }
       logger.trace(cycleName + " ended successfully");
+      return new ReconciliationCycleResult<>(existingContexts, contextExceptions.build());
     } catch (RuntimeException ex) {
       logger.error(cycleName + " failed", ex);
-      onError(ex);
+      try {
+        onError(ex);
+      } catch (RuntimeException rex) {
+        logger.error(cycleName + " failed sending event while running reconciliation cycle", rex);
+      }
+      return new ReconciliationCycleResult<>(ex);
+    }
+  }
+
+  public static class ReconciliationCycleResult<T extends ResourceHandlerContext> {
+    private final List<T> contexts;
+    private final ImmutableMap<T, Exception> contextExceptions;
+    private final Exception exception;
+
+    public ReconciliationCycleResult(ImmutableList<T> contexts,
+        ImmutableMap<T, Exception> contextExceptions) {
+      this.contexts = contexts;
+      this.contextExceptions = contextExceptions;
+      this.exception = null;
+    }
+
+    public ReconciliationCycleResult(Exception exception) {
+      this.contexts = ImmutableList.of();
+      this.contextExceptions = ImmutableMap.of();
+      this.exception = exception;
+    }
+
+    public List<T> getContexts() {
+      return contexts;
+    }
+
+    public Optional<Exception> getException() {
+      return Optional.ofNullable(exception);
+    }
+
+    public Map<T, Exception> getContextExceptions() {
+      return contextExceptions;
+    }
+
+    public boolean success() {
+      return exception == null && contextExceptions.isEmpty();
     }
   }
 

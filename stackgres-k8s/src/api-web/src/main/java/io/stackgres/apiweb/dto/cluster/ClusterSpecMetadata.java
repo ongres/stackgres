@@ -29,4 +29,5 @@ public class ClusterSpecMetadata {
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
   }
+
 }

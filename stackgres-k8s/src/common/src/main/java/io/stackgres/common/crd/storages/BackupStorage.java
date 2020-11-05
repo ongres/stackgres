@@ -13,8 +13,8 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -82,35 +82,27 @@ public class BackupStorage {
   }
 
   @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("type", type)
-        .add("s3", s3)
-        .add("s3Compatible", s3Compatible)
-        .add("gcs", gcs)
-        .add("azureblob", azureBlob)
-        .toString();
+  public int hashCode() {
+    return Objects.hash(azureBlob, gcs, s3, s3Compatible, type);
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof BackupStorage)) {
       return false;
     }
-    BackupStorage storage = (BackupStorage) o;
-    return Objects.equals(type, storage.type)
-        && Objects.equals(s3, storage.s3)
-        && Objects.equals(s3Compatible, storage.s3Compatible)
-        && Objects.equals(gcs, storage.gcs)
-        && Objects.equals(azureBlob, storage.azureBlob);
+    BackupStorage other = (BackupStorage) obj;
+    return Objects.equals(azureBlob, other.azureBlob) && Objects.equals(gcs, other.gcs)
+        && Objects.equals(s3, other.s3) && Objects.equals(s3Compatible, other.s3Compatible)
+        && Objects.equals(type, other.type);
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(type, s3, s3Compatible, gcs, azureBlob);
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
+
 }

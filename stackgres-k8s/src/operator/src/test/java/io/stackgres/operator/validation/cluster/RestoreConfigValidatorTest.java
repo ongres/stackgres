@@ -12,15 +12,17 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupList;
-import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.resource.CustomResourceScanner;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import io.stackgres.testutil.JsonUtil;
+import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,13 +32,25 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class RestoreConfigValidatorTest {
 
+  private static final String firstPgMajorVersion =
+      StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
+      .get(0).get();
+
+  private static final String secondPgMajorVersion =
+      StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
+      .get(1).get();
+
+  private static final String firstPgMajorVersionNumber = 
+      Seq.of(StackGresComponent.POSTGRESQL.findVersion(firstPgMajorVersion)
+      .split("\\.")).map(Integer::valueOf).append(1)
+      .map(number -> String.format("%02d", number)).toString();
+
   @Mock
   private CustomResourceScanner<StackGresBackup> scanner;
 
   private RestoreConfigValidator validator;
 
   private StackGresBackupList backupList;
-
 
   @BeforeEach
   void setUp() {
@@ -50,7 +64,12 @@ class RestoreConfigValidatorTest {
   void givenAValidCreation_shouldPass() throws ValidationFailed {
 
     final StackGresClusterReview review = getCreationReview();
+    review.getRequest().getObject().getSpec().setPostgresVersion(firstPgMajorVersion);
 
+    StackGresBackupList backupList = JsonUtil
+        .readFromJson("backup/list.json", StackGresBackupList.class);
+    backupList.getItems().get(0).getStatus().getBackupInformation()
+        .setPostgresVersion(firstPgMajorVersionNumber);
     when(scanner.findResources())
         .thenReturn(Optional.of(backupList.getItems()));
 
@@ -82,6 +101,7 @@ class RestoreConfigValidatorTest {
   void givenACreationWithBackupFromDifferentPgVersion_shouldFail() {
 
     final StackGresClusterReview review = getCreationReview();
+    review.getRequest().getObject().getSpec().setPostgresVersion(secondPgMajorVersion);
     String stackgresBackup = review.getRequest()
         .getObject().getSpec().getInitData().getRestore().getBackupUid();
 
@@ -89,7 +109,8 @@ class RestoreConfigValidatorTest {
         .filter(b -> b.getMetadata().getUid().equals(stackgresBackup))
         .findFirst().orElseThrow(AssertionError::new);
 
-    backup.getStatus().getBackupInformation().setPostgresVersion("120001");
+    backup.getStatus().getBackupInformation().setPostgresVersion(
+        firstPgMajorVersionNumber);
 
     when(scanner.findResources())
         .thenReturn(Optional.of(backupList.getItems()));
@@ -97,7 +118,6 @@ class RestoreConfigValidatorTest {
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
         "Cannot restore from backup " + stackgresBackup
             + " because it comes from an incompatible postgres version");
-
 
     verify(scanner).findResources();
 

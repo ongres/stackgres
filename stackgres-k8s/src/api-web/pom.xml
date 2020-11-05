@@ -131,6 +131,9 @@
         <artifactId>quarkus-maven-plugin</artifactId>
         <version>${quarkus.version}</version>
         <extensions>true</extensions>
+        <configuration>
+          <skip>false</skip>
+        </configuration>
         <executions>
           <execution>
             <goals>
@@ -297,7 +300,7 @@
                       <name>restapi-native-builder</name>
                       <build>
                         <cleanup>remove</cleanup>
-			<from>${buildah.image}</from>
+                        <from>${buildah.image}</from>
                         <assembly>
                           <targetDir>/api-web</targetDir>
                           <inline>

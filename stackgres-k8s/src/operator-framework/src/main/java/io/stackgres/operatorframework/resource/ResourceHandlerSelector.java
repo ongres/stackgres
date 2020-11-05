@@ -13,11 +13,9 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 
 public interface ResourceHandlerSelector<T extends ResourceHandlerContext> {
 
-  boolean equals(T resourceHandlerContext,
-      HasMetadata existingResource, HasMetadata resource);
+  boolean equals(T context, HasMetadata existingResource, HasMetadata resource);
 
-  HasMetadata update(T resourceHandlerContext,
-      HasMetadata toUpdate, HasMetadata withUpdates);
+  HasMetadata update(T context, HasMetadata toUpdate, HasMetadata withUpdates);
 
   boolean isManaged(T context, HasMetadata existingResource);
 

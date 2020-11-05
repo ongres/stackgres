@@ -9,6 +9,7 @@ import java.util.List;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.ResourceDto;
+import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 public class SecretDto extends ResourceDto {
@@ -22,4 +23,10 @@ public class SecretDto extends ResourceDto {
   public void setKeys(List<String> keys) {
     this.keys = keys;
   }
+
+  @Override
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
+  }
+
 }

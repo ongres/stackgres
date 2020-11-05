@@ -12,14 +12,13 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.operator.cluster.factory.Cluster;
-import io.stackgres.operator.common.StackGresDistributedLogsGeneratorContext;
+import io.stackgres.operator.common.StackGresDistributedLogsContext;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 
 @ApplicationScoped
 public class DistributedLogs
-    implements SubResourceStreamFactory<HasMetadata,
-      StackGresDistributedLogsGeneratorContext> {
+    implements SubResourceStreamFactory<HasMetadata, StackGresDistributedLogsContext> {
 
   private final Cluster cluster;
 
@@ -30,7 +29,7 @@ public class DistributedLogs
   }
 
   @Override
-  public Stream<HasMetadata> streamResources(StackGresDistributedLogsGeneratorContext context) {
+  public Stream<HasMetadata> streamResources(StackGresDistributedLogsContext context) {
     return ResourceGenerator
         .with(context)
         .of(HasMetadata.class)

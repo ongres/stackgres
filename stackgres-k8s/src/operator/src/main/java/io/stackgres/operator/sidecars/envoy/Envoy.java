@@ -35,7 +35,7 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
-import io.stackgres.common.StackGresProperty;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -47,8 +47,6 @@ import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
-import io.stackgres.operator.common.StackGresComponents;
-import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.customresource.prometheus.Endpoint;
 import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
@@ -65,8 +63,6 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
 
   public static final String NAME = StackgresClusterContainers.ENVOY;
 
-  private static final String IMAGE_NAME = "docker.io/ongres/envoy:v%s-build-%s";
-  private static final String DEFAULT_VERSION = StackGresComponents.get("envoy");
   private static final String CONFIG_SUFFIX = "-envoy-config";
   private static final ImmutableMap<String, Integer> LISTEN_SOCKET_ADDRESS_PORT_MAPPING =
       ImmutableMap.of(
@@ -104,11 +100,10 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
   }
 
   @Override
-  public Container getContainer(StackGresGeneratorContext context) {
+  public Container getContainer(StackGresClusterContext context) {
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
-        .withImage(String.format(
-            IMAGE_NAME, DEFAULT_VERSION, StackGresProperty.CONTAINER_BUILD.getString()))
+        .withImage(StackGresComponent.ENVOY.findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withVolumeMounts(new VolumeMountBuilder()
             .withName(NAME)
@@ -116,13 +111,13 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
             .withNewReadOnly(true)
             .build(),
             ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.ETC_PASSWD_PATH, context.getClusterContext()),
+                ClusterStatefulSetPath.ETC_PASSWD_PATH, context),
             ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.ETC_GROUP_PATH, context.getClusterContext()),
+                ClusterStatefulSetPath.ETC_GROUP_PATH, context),
             ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.ETC_SHADOW_PATH, context.getClusterContext()),
+                ClusterStatefulSetPath.ETC_SHADOW_PATH, context),
             ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.ETC_GSHADOW_PATH, context.getClusterContext()))
+                ClusterStatefulSetPath.ETC_GSHADOW_PATH, context))
         .withPorts(
             new ContainerPortBuilder().withContainerPort(EnvoyUtil.PG_ENTRY_PORT).build(),
             new ContainerPortBuilder().withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT).build())
@@ -132,20 +127,19 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
   }
 
   @Override
-  public ImmutableList<Volume> getVolumes(
-      StackGresGeneratorContext context) {
+  public ImmutableList<Volume> getVolumes(StackGresClusterContext context) {
     return ImmutableList.of(new VolumeBuilder()
         .withName(NAME)
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
-            .withName(configName(context.getClusterContext()))
+            .withName(configName(context))
             .build())
         .build());
   }
 
   @Override
-  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
+  public Stream<HasMetadata> streamResources(StackGresClusterContext context) {
 
-    final StackGresClusterContext clusterContext = context.getClusterContext();
+    final StackGresClusterContext clusterContext = context;
     final StackGresCluster stackGresCluster = clusterContext.getCluster();
     boolean disablePgBouncer = Optional
         .ofNullable(stackGresCluster.getSpec())

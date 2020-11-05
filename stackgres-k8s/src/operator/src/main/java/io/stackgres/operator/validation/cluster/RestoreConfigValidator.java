@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import io.stackgres.common.ErrorType;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -20,7 +21,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -88,8 +88,7 @@ public class RestoreConfigValidator implements ClusterValidator {
         String backupMajorVersion = RestoreConfigValidator.getMajorVersion(backup);
 
         String givenPgVersion = review.getRequest().getObject().getSpec().getPostgresVersion();
-        String calculatedPgVersion = StackGresComponents.calculatePostgresVersion(givenPgVersion);
-        String givenMajorVersion = StackGresComponents.getPostgresMajorVersion(calculatedPgVersion);
+        String givenMajorVersion = StackGresComponent.POSTGRESQL.findMajorVersion(givenPgVersion);
 
         if (!backupMajorVersion.equals(givenMajorVersion)) {
           final String message = "Cannot restore from backup " + backupUid

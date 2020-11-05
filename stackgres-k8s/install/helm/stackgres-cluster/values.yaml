@@ -6,7 +6,7 @@ cluster:
   restartReducedImpact: true
   restartPrimaryFirst: false
   restartTimeout: 300
-  postgresVersion: '12.3'
+  postgresVersion: '12'
   instances: 1
   sgInstanceProfile: size-xs
   postgresServices:
@@ -55,6 +55,11 @@ cluster:
   #        name: stackgres-sqls-scripts
   #        key: create-stackgres-schema.sql
   prometheusAutobind: true
+  #postgresExtensions:
+  #  - name: timescaledb      # The extension name
+  #    publisher: com.ongres  # Optional. The extension publisher
+  #    version: "1.7.1"       # Optional. The extension version or channel
+  #    repository: https://extensions.stackgres.io/postgres/repository # Optional. The extension repository
 
 instanceProfiles:
   - name: size-xs

@@ -10,9 +10,9 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.distributedlogs.common.DistributedLogsProperty;
 import io.stackgres.operatorframework.resource.EventEmitter;
 import io.stackgres.operatorframework.resource.EventReason;
 
@@ -37,8 +37,8 @@ public class EventController extends EventEmitter {
   public void sendEvent(EventReason reason, String message, KubernetesClient client) {
     StackGresDistributedLogs distributedLogs = distributedLogsFinder
         .findByNameAndNamespace(
-            DistributedLogsProperty.DISTRIBUTEDLOGS_NAME.getString(),
-            DistributedLogsProperty.DISTRIBUTEDLOGS_NAMESPACE.getString())
+            DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAME.getString(),
+            DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAMESPACE.getString())
         .orElse(null);
     sendEvent(reason, message, distributedLogs, client);
   }

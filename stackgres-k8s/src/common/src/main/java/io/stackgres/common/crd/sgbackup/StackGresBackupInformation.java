@@ -12,8 +12,8 @@ import javax.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -118,39 +118,33 @@ public class StackGresBackupInformation {
   }
 
   @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("hostname", hostname)
-        .add("pgData", pgData)
-        .add("postgresVersion", postgresVersion)
-        .add("systemIdentifier", systemIdentifier)
-        .add("lsn", lsn)
-        .add("size", size)
-        .add("controlData", controlData)
-        .add("startWalFile", startWalFile)
-        .toString();
+  public int hashCode() {
+    return Objects.hash(controlData, hostname, lsn, pgData, postgresVersion, size, sourcePod,
+        startWalFile, systemIdentifier, timeline);
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof StackGresBackupInformation)) {
       return false;
     }
-    StackGresBackupInformation that = (StackGresBackupInformation) o;
-    return Objects.equals(hostname, that.hostname)
-        && Objects.equals(pgData, that.pgData)
-        && Objects.equals(postgresVersion, that.postgresVersion)
-        && Objects.equals(systemIdentifier, that.systemIdentifier) && Objects.equals(lsn, that.lsn)
-        && Objects.equals(size, that.size) && Objects.equals(controlData, that.controlData)
-        && Objects.equals(startWalFile, that.startWalFile);
+    StackGresBackupInformation other = (StackGresBackupInformation) obj;
+    return Objects.equals(controlData, other.controlData)
+        && Objects.equals(hostname, other.hostname) && Objects.equals(lsn, other.lsn)
+        && Objects.equals(pgData, other.pgData)
+        && Objects.equals(postgresVersion, other.postgresVersion)
+        && Objects.equals(size, other.size) && Objects.equals(sourcePod, other.sourcePod)
+        && Objects.equals(startWalFile, other.startWalFile)
+        && Objects.equals(systemIdentifier, other.systemIdentifier)
+        && Objects.equals(timeline, other.timeline);
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(hostname, pgData, postgresVersion, systemIdentifier,
-        lsn, size, controlData, startWalFile);
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
+
 }

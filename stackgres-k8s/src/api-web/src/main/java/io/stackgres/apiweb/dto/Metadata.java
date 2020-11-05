@@ -8,8 +8,8 @@ package io.stackgres.apiweb.dto;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonIgnoreProperties(ignoreUnknown = true,
@@ -52,12 +52,7 @@ public class Metadata {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("namespace", namespace)
-        .add("name", name)
-        .add("uid", uid)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 
 }

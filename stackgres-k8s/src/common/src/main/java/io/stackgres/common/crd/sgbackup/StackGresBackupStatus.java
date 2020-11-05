@@ -12,9 +12,9 @@ import javax.validation.Valid;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 
 @JsonDeserialize
@@ -79,33 +79,28 @@ public class StackGresBackupStatus implements KubernetesResource {
   }
 
   @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("backupConfig", backupConfig)
-        .add("internalName", internalName)
-        .add("process", process)
-        .add("backupInformation", backupInformation)
-        .add("tested", tested)
-        .toString();
+  public int hashCode() {
+    return Objects.hash(backupConfig, backupInformation, internalName, process, tested);
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof StackGresBackupStatus)) {
       return false;
     }
-    StackGresBackupStatus that = (StackGresBackupStatus) o;
-    return Objects.equals(backupConfig, that.backupConfig)
-        && Objects.equals(internalName, that.internalName) && Objects.equals(process, that.process)
-        && Objects.equals(backupInformation, that.backupInformation)
-        && Objects.equals(tested, that.tested);
+    StackGresBackupStatus other = (StackGresBackupStatus) obj;
+    return Objects.equals(backupConfig, other.backupConfig)
+        && Objects.equals(backupInformation, other.backupInformation)
+        && Objects.equals(internalName, other.internalName)
+        && Objects.equals(process, other.process) && Objects.equals(tested, other.tested);
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(backupConfig, internalName, process, backupInformation, tested);
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
+
 }

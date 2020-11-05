@@ -33,6 +33,7 @@
     <module>operator-framework</module>
     <module>operator</module>
     <module>api-web</module>
+    <module>cluster-controller</module>
     <module>distributedlogs-controller</module>
     <module>test-util</module>
     <module>jobs</module>
@@ -46,7 +47,6 @@
   </scm>
 
   <properties>
-    <stackgres.containerBuild>5.1</stackgres.containerBuild>
     <stackgres.group>stackgres.io</stackgres.group>
     <stackgres.crd.version>v1</stackgres.crd.version>
     <stackgres.operatorName>stackgres-operator</stackgres.operatorName>
@@ -60,6 +60,14 @@
     <quarkus.http.ssl.certificate.key-file>/etc/operator/certs/root.key</quarkus.http.ssl.certificate.key-file>
     <stackgres.conversionWebhooks>false</stackgres.conversionWebhooks>
     <stackgres.crdUpgrade>false</stackgres.crdUpgrade>
+    <stackgres.containerRegistry>docker.io</stackgres.containerRegistry>
+    <stackgres.container.patroni>1.6.5-build-5.1,1.6.5-build-6.0-dev</stackgres.container.patroni>
+    <stackgres.container.prometheus-postgres-exporter>0.8.0-build-5.1</stackgres.container.prometheus-postgres-exporter>
+    <stackgres.container.postgresql>11.8-build-5.1,11.9-build-5.1,12.3-build-5.1,12.4-build-5.1,11.11-build-6.0-dev,12.6-build-6.0-dev</stackgres.container.postgresql>
+    <stackgres.container.envoy>1.15.0-build-5.1</stackgres.container.envoy>
+    <stackgres.container.pgbouncer>1.13.0-build-5.1</stackgres.container.pgbouncer>
+    <stackgres.container.fluentbit>1.4.4-build-5.1</stackgres.container.fluentbit>
+    <stackgres.container.fluentd>1.9.3-build-5.1</stackgres.container.fluentd>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- Java compilation -->
@@ -204,8 +212,28 @@
       <artifactId>guava</artifactId>
       <exclusions>
         <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
+          <groupId>com.google.guava</groupId>
+          <artifactId>listenablefuture</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>jsr305</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.checkerframework</groupId>
+          <artifactId>checker-qual</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.errorprone</groupId>
+          <artifactId>error_prone_annotations</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.j2objc</groupId>
+          <artifactId>j2objc-annotations</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>animal-sniffer-annotations</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -346,6 +374,14 @@
           <includeResources>false</includeResources>
           <includeTestSourceDirectory>false</includeTestSourceDirectory>
           <includeTestResources>false</includeTestResources>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-maven-plugin</artifactId>
+        <version>${quarkus.version}</version>
+        <configuration>
+          <skip>true</skip>
         </configuration>
       </plugin>
     </plugins>

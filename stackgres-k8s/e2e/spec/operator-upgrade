@@ -7,9 +7,8 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_install() {
-  PREVIOUS_CONTAINER_BUILD="$(get_container_build "$STACKGRES_PREVIOUS_VERSION")"
-  PATRONI_IMAGE="$(get_component_images "$CONTAINER_BUILD" | grep '/patroni:' | sort | tail -n 1)"
-  PREVIOUS_PATRONI_IMAGE="$(get_component_images "$PREVIOUS_CONTAINER_BUILD" | grep '/patroni:' | sort | tail -n 1)"
+  PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION" | grep '/patroni:' | sort | tail -n 1)"
+  PREVIOUS_PATRONI_IMAGE="$(get_component_images "$STACKGRES_PREVIOUS_VERSION" | grep '/patroni:' | sort | tail -n 1)"
   k8s_webhook_cleanup
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup

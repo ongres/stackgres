@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import com.google.common.collect.ImmutableMap;
+import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresUtil;
@@ -30,6 +31,7 @@ public abstract class AbstractBackupConfigMap {
   private static final Logger WAL_G_LOGGER = LoggerFactory.getLogger("io.stackgres.wal-g");
 
   protected ImmutableMap<String, String> getBackupEnvVars(
+      ClusterContext context,
       String namespace, String name,
       StackGresBackupConfigSpec backupConfigSpec) {
     ImmutableMap.Builder<String, String> backupEnvVars = ImmutableMap.builder();
@@ -68,13 +70,14 @@ public abstract class AbstractBackupConfigMap {
     Optional<AwsS3CompatibleStorage> storageForS3Compatible = getStorageFor(backupConfigSpec,
         BackupStorage::getS3Compatible);
     if (storageForS3Compatible.isPresent()) {
-      setS3CompatibleStorageEnvVars(namespace, name, backupEnvVars, storageForS3Compatible);
+      setS3CompatibleStorageEnvVars(
+          namespace, name, backupEnvVars, storageForS3Compatible);
     }
 
     Optional<GoogleCloudStorage> storageForGcs = getStorageFor(
         backupConfigSpec, BackupStorage::getGcs);
     if (storageForGcs.isPresent()) {
-      setGcsStorageEnvVars(namespace, name, backupEnvVars, storageForGcs);
+      setGcsStorageEnvVars(context, namespace, name, backupEnvVars, storageForGcs);
     }
 
     Optional<AzureBlobStorage> storageForAzureBlob = getStorageFor(
@@ -125,21 +128,22 @@ public abstract class AbstractBackupConfigMap {
         AwsS3CompatibleStorage::getStorageClass));
   }
 
-  private void setGcsStorageEnvVars(String namespace, String name,
-                                    ImmutableMap.Builder<String, String> backupEnvVars,
-                                    Optional<GoogleCloudStorage> storageForGcs) {
+  private void setGcsStorageEnvVars(ClusterContext context,
+      String namespace, String name,
+      ImmutableMap.Builder<String, String> backupEnvVars,
+      Optional<GoogleCloudStorage> storageForGcs) {
     backupEnvVars.put("WALG_GS_PREFIX", getFromGcs(storageForGcs, GoogleCloudStorage::getPrefix)
         + "/" + namespace + "/" + name);
     if (!storageForGcs
         .map(GoogleCloudStorage::getCredentials)
         .map(GoogleCloudCredentials::isFetchCredentialsFromMetadataService)
         .orElse(false)) {
-      backupEnvVars.put("GOOGLE_APPLICATION_CREDENTIALS", getGcsCredentialsFilePath());
+      backupEnvVars.put("GOOGLE_APPLICATION_CREDENTIALS", getGcsCredentialsFilePath(context));
     }
   }
 
-  protected String getGcsCredentialsFilePath() {
-    return ClusterStatefulSetPath.BACKUP_SECRET_PATH.path()
+  protected String getGcsCredentialsFilePath(ClusterContext context) {
+    return ClusterStatefulSetPath.BACKUP_SECRET_PATH.path(context)
         + "/" + ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME;
   }
 

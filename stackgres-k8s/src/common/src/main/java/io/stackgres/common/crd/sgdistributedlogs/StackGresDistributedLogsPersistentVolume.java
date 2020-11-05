@@ -13,8 +13,8 @@ import javax.validation.constraints.Pattern;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -66,9 +66,6 @@ public class StackGresDistributedLogsPersistentVolume {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("volumeSize", volumeSize)
-        .add("storageClass", storageClass)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 }

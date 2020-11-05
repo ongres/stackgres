@@ -20,7 +20,6 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
-import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 
@@ -38,25 +37,24 @@ public class BackupSecret extends AbstractBackupSecret
   }
 
   @Override
-  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
+  public Stream<HasMetadata> streamResources(StackGresClusterContext context) {
     Map<String, String> data = new HashMap<String, String>();
 
-    final StackGresClusterContext clusterContext = context.getClusterContext();
-    clusterContext.getBackupContext().ifPresent(backupContext -> {
+    context.getBackupContext().ifPresent(backupContext -> {
       data.put("BACKUP_CONFIG_RESOURCE_VERSION",
           backupContext.getBackupConfig().getMetadata().getResourceVersion());
       data.putAll(getBackupSecrets(backupContext.getBackupConfig().getSpec(),
           backupContext.getSecrets()));
     });
 
-    final StackGresCluster cluster = clusterContext.getCluster();
-    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
+    final StackGresCluster cluster = context.getCluster();
+    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(context);
     return Seq.of(new SecretBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
-        .withName(name(clusterContext))
+        .withName(name(context))
         .withLabels(labelFactory.clusterLabels(cluster))
-        .withOwnerReferences(clusterContext.getOwnerReferences())
+        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .withType("Opaque")
         .withStringData(StackGresUtil.addMd5Sum(data))

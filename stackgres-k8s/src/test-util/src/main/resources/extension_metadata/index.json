@@ -1,0 +1,59 @@
+{
+  "publishers": [{
+    "name": "OnGres",
+    "id": "com.ongres",
+    "url": "https://ongres.com",
+    "publicKey": "dummy value",
+    "email": "stackgres@ongres.com"
+  }],
+  "extensions": [{
+    "name": "pgsodium",
+    "license": "postgres",
+    "repository": "https://myrepo.mysite.com/stackgres-extensions",
+    "abstract": "Postgres extension for libsodium functions",
+    "description": "pgsodium is a PostgreSQL extension that exposes modern libsodium based cryptographic functions to SQL.",
+    "channels": {
+      "stable": "1.1.0"
+    },
+    "tags": ["sodium", "crypto", "cryptography", "encryption", "random", "asymmetric encryption", "public key"],
+    "versions": [{
+      "version": "1.1.0",
+      "availableFor": [{
+        "build": "5.1",
+        "postgresVersion": "11"
+      }, {
+        "build": "5.1",
+        "postgresVersion": "12"
+      }]
+    }],
+    "url": "https://github.com/michelp/pgsodium/",
+    "source": "https://pgxn.org/dist/pgsodium/"
+  }, {
+    "name": "mysqlcompat",
+    "license": "unrestricted",
+    "abstract": "MySQL compatibility functions",
+    "description": "A reimplemenation of as many MySQL functions as possible in PostgreSQL, as an aid to porting",
+    "channels": {
+      "stable": "0.0.7"
+    },
+    "tags": ["mysql", "compatibility", "conversion", "functions", "2ndQuadrant"],
+    "versions": [{
+      "version": "0.0.7",
+      "availableFor": [{
+        "build": "5.1",
+        "postgresVersion": "11"
+      }, {
+        "build": "5.1",
+        "postgresVersion": "12"
+      }]
+    }, {
+      "version": "0.0.6",
+      "availableFor": [{
+        "build": "5.1",
+        "postgresVersion": "11"
+      }]
+    }],
+    "url": "https://github.com/2ndQuadrant/mysqlcompat/",
+    "source": "https://pgxn.org/dist/mysqlcompat/"
+  }]
+}

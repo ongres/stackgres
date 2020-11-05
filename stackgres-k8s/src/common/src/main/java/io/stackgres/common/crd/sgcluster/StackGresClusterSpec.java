@@ -5,6 +5,7 @@
 
 package io.stackgres.common.crd.sgcluster;
 
+import java.util.List;
 import java.util.Objects;
 
 import javax.validation.Valid;
@@ -15,9 +16,9 @@ import javax.validation.constraints.Positive;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -56,6 +57,10 @@ public class StackGresClusterSpec implements KubernetesResource {
   @Valid
   private StackGresClusterDistributedLogs distributedLogs;
 
+  @JsonProperty("postgresExtensions")
+  @Valid
+  private List<StackGresClusterExtension> postgresExtensions;
+
   @JsonProperty("prometheusAutobind")
   private Boolean prometheusAutobind;
 
@@ -63,8 +68,12 @@ public class StackGresClusterSpec implements KubernetesResource {
   @Valid
   private StackGresClusterNonProduction nonProduction;
 
+  @JsonProperty("postgresServices")
+  @Valid
   private StackGresClusterPostgresServices postgresServices;
 
+  @JsonProperty("metadata")
+  @Valid
   private StackGresClusterSpecMetadata metadata;
 
   public int getInstances() {
@@ -155,21 +164,12 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.metadata = metadata;
   }
 
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("postgresVersion", postgresVersion)
-        .add("instances", instances)
-        .add("sgInstanceProfile", resourceProfile)
-        .add("pods", pod)
-        .add("configurations", configuration)
-        .add("initData", initData)
-        .add("distributedLogs", distributedLogs)
-        .add("nonProductionOptions", nonProduction)
-        .add("postgresServices", postgresServices)
-        .add("metadata", metadata)
-        .toString();
+  public List<StackGresClusterExtension> getPostgresExtensions() {
+    return postgresExtensions;
+  }
+
+  public void setPostgresExtensions(List<StackGresClusterExtension> postgresExtensions) {
+    this.postgresExtensions = postgresExtensions;
   }
 
   @Override
@@ -183,11 +183,10 @@ public class StackGresClusterSpec implements KubernetesResource {
     StackGresClusterSpec other = (StackGresClusterSpec) obj;
     return Objects.equals(configuration, other.configuration)
         && Objects.equals(distributedLogs, other.distributedLogs)
-        && Objects.equals(initData, other.initData)
-        && instances == other.instances
+        && Objects.equals(initData, other.initData) && instances == other.instances
         && Objects.equals(metadata, other.metadata)
-        && Objects.equals(nonProduction, other.nonProduction)
-        && Objects.equals(pod, other.pod)
+        && Objects.equals(nonProduction, other.nonProduction) && Objects.equals(pod, other.pod)
+        && Objects.equals(postgresExtensions, other.postgresExtensions)
         && Objects.equals(postgresServices, other.postgresServices)
         && Objects.equals(postgresVersion, other.postgresVersion)
         && Objects.equals(prometheusAutobind, other.prometheusAutobind)
@@ -197,7 +196,13 @@ public class StackGresClusterSpec implements KubernetesResource {
   @Override
   public int hashCode() {
     return Objects.hash(configuration, distributedLogs, initData, instances, metadata,
-        nonProduction, pod, postgresServices, postgresVersion, prometheusAutobind, resourceProfile);
+        nonProduction, pod, postgresExtensions, postgresServices, postgresVersion,
+        prometheusAutobind, resourceProfile);
+  }
+
+  @Override
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
 
 }

@@ -30,8 +30,8 @@ import io.fabric8.kubernetes.api.model.batch.JobBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactory;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -41,7 +41,6 @@ import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariab
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.StackGresDbOpsContext;
 import io.stackgres.operator.common.StackGresPodSecurityContext;
-import io.stackgres.operator.sidecars.pgutils.PostgresUtil;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 import org.jooq.lambda.Seq;
@@ -232,7 +231,7 @@ public abstract class DbOpsJob
                     new EnvVarBuilder()
                     .withName("RUN_SCRIPT_PATH")
                     .withValue(Optional.ofNullable(getRunScript())
-                        .map(ClusterStatefulSetPath::path)
+                        .map(clusterStatefulSetPath -> clusterStatefulSetPath.path(context))
                         .orElse(""))
                     .build(),
                     new EnvVarBuilder()
@@ -287,7 +286,7 @@ public abstract class DbOpsJob
                     new EnvVarBuilder()
                     .withName("SET_RESULT_SCRIPT_PATH")
                     .withValue(Optional.ofNullable(getSetResultScript())
-                        .map(ClusterStatefulSetPath::path)
+                        .map(clusterStatefulSetPath -> clusterStatefulSetPath.path(context))
                         .orElse(""))
                     .build(),
                     new EnvVarBuilder()
@@ -335,8 +334,8 @@ public abstract class DbOpsJob
             .addAllToVolumeMounts(Optional.ofNullable(getSetResultScript())
                 .map(script -> ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
                     volumeMountBuilder -> volumeMountBuilder
-                    .withSubPath(script.filename())
-                    .withMountPath(script.path())
+                    .withSubPath(script.filename(context))
+                    .withMountPath(script.path(context))
                     .withReadOnly(true)))
                 .stream()
                 .collect(Collectors.toList()))
@@ -369,9 +368,8 @@ public abstract class DbOpsJob
   }
 
   protected String getRunImage(StackGresDbOpsContext context) {
-    return String.format(PostgresUtil.IMAGE_NAME,
-        context.getCluster().getSpec().getPostgresVersion(),
-        StackGresProperty.CONTAINER_BUILD.getString());
+    return StackGresComponent.POSTGRES_UTIL.findImageName(
+        context.getCluster().getSpec().getPostgresVersion());
   }
 
   protected abstract ClusterStatefulSetPath getRunScript();

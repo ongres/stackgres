@@ -14,9 +14,10 @@ import javax.validation.Valid;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -29,6 +30,10 @@ public class StackGresDistributedLogsStatus implements KubernetesResource {
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @Valid
   private List<StackGresDistributedLogsCondition> conditions = new ArrayList<>();
+
+  @JsonProperty("podStatuses")
+  @Valid
+  private List<StackGresClusterPodStatus> podStatuses;
 
   @JsonProperty("databases")
   @Valid
@@ -47,6 +52,14 @@ public class StackGresDistributedLogsStatus implements KubernetesResource {
 
   public void setConditions(List<StackGresDistributedLogsCondition> conditions) {
     this.conditions = conditions;
+  }
+
+  public List<StackGresClusterPodStatus> getPodStatuses() {
+    return podStatuses;
+  }
+
+  public void setPodStatuses(List<StackGresClusterPodStatus> podStatuses) {
+    this.podStatuses = podStatuses;
   }
 
   public List<StackGresDistributedLogsStatusDatabase> getDatabases() {
@@ -75,7 +88,7 @@ public class StackGresDistributedLogsStatus implements KubernetesResource {
 
   @Override
   public int hashCode() {
-    return Objects.hash(conditions, databases, connectedClusters, fluentdConfigHash);
+    return Objects.hash(conditions, connectedClusters, databases, fluentdConfigHash, podStatuses);
   }
 
   @Override
@@ -88,20 +101,15 @@ public class StackGresDistributedLogsStatus implements KubernetesResource {
     }
     StackGresDistributedLogsStatus other = (StackGresDistributedLogsStatus) obj;
     return Objects.equals(conditions, other.conditions)
-        && Objects.equals(databases, other.databases)
         && Objects.equals(connectedClusters, other.connectedClusters)
-        && Objects.equals(fluentdConfigHash, other.fluentdConfigHash);
+        && Objects.equals(databases, other.databases)
+        && Objects.equals(fluentdConfigHash, other.fluentdConfigHash)
+        && Objects.equals(podStatuses, other.podStatuses);
   }
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("conditions", conditions)
-        .add("databases", databases)
-        .add("connectedClusters", connectedClusters)
-        .add("fluentdConfigHash", fluentdConfigHash)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 
 }

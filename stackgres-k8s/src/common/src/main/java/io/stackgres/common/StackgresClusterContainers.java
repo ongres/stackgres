@@ -19,6 +19,8 @@ public interface StackgresClusterContainers {
 
   String FLUENTD = "fluentd";
 
+  String CLUSTER_CONTROLLER = "cluster-controller";
+
   String DISTRIBUTEDLOGS_CONTROLLER = "distributedlogs-controller";
 
   String MAJOR_VERSION_UPGRADE = "major-version-upgrade";

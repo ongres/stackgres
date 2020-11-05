@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -47,6 +48,11 @@ public class StackGresProfileSpec implements KubernetesResource {
   }
 
   @Override
+  public int hashCode() {
+    return Objects.hash(cpu, memory);
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -60,7 +66,8 @@ public class StackGresProfileSpec implements KubernetesResource {
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(cpu, memory);
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
+
 }

@@ -13,8 +13,8 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -91,41 +91,31 @@ public class StackGresClusterPod {
   }
 
   @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("persistentVolume", persistentVolume)
-        .add("disableConnectionPooling", disableConnectionPooling)
-        .add("disableMetricsExporter", disableMetricsExporter)
-        .add("disablePostgresUtil", disablePostgresUtil)
-        .add("metadata", metadata)
-        .add("scheduling", scheduling)
-        .toString();
+  public int hashCode() {
+    return Objects.hash(disableConnectionPooling, disableMetricsExporter, disablePostgresUtil,
+        metadata, persistentVolume, scheduling);
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof StackGresClusterPod)) {
       return false;
     }
-    StackGresClusterPod that = (StackGresClusterPod) o;
-    return Objects.equals(persistentVolume, that.persistentVolume)
-        && Objects.equals(disableConnectionPooling, that.disableConnectionPooling)
-        && Objects.equals(disableMetricsExporter, that.disableMetricsExporter)
-        && Objects.equals(disablePostgresUtil, that.disablePostgresUtil)
-        && Objects.equals(metadata, that.metadata)
-        && Objects.equals(scheduling, that.scheduling);
+    StackGresClusterPod other = (StackGresClusterPod) obj;
+    return Objects.equals(disableConnectionPooling, other.disableConnectionPooling)
+        && Objects.equals(disableMetricsExporter, other.disableMetricsExporter)
+        && Objects.equals(disablePostgresUtil, other.disablePostgresUtil)
+        && Objects.equals(metadata, other.metadata)
+        && Objects.equals(persistentVolume, other.persistentVolume)
+        && Objects.equals(scheduling, other.scheduling);
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(persistentVolume,
-        disableConnectionPooling,
-        disableMetricsExporter,
-        disablePostgresUtil,
-        metadata,
-        scheduling);
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
+
 }

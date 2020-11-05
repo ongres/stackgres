@@ -5,13 +5,15 @@
 
 package io.stackgres.common.crd.storages;
 
+import java.util.Objects;
+
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -42,12 +44,26 @@ public class BackupVolume {
   }
 
   @Override
+  public int hashCode() {
+    return Objects.hash(size, writeManyStorageClass);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof BackupVolume)) {
+      return false;
+    }
+    BackupVolume other = (BackupVolume) obj;
+    return Objects.equals(size, other.size)
+        && Objects.equals(writeManyStorageClass, other.writeManyStorageClass);
+  }
+
+  @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("size", size)
-        .add("writeManyStorageClass", writeManyStorageClass)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 
 }

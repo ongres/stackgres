@@ -13,9 +13,9 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.storages.BackupStorage;
 
 @JsonDeserialize
@@ -52,29 +52,25 @@ public class StackGresBackupConfigSpec implements KubernetesResource {
   }
 
   @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("storage", storage)
-        .add("baseBackups", baseBackups)
-        .toString();
+  public int hashCode() {
+    return Objects.hash(baseBackups, storage);
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof StackGresBackupConfigSpec)) {
       return false;
     }
-    StackGresBackupConfigSpec spec = (StackGresBackupConfigSpec) o;
-    return Objects.equals(storage, spec.storage)
-        && Objects.equals(baseBackups, spec.baseBackups);
+    StackGresBackupConfigSpec other = (StackGresBackupConfigSpec) obj;
+    return Objects.equals(baseBackups, other.baseBackups) && Objects.equals(storage, other.storage);
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(storage, baseBackups);
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
+
 }

@@ -16,8 +16,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.Toleration;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
@@ -83,9 +83,6 @@ public class StackGresPodScheduling {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("nodeSelector", nodeSelector)
-        .add("tolerations", tolerations)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 }

@@ -13,8 +13,8 @@ import javax.validation.constraints.Pattern;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -47,28 +47,26 @@ public class StackGresPodPersistentVolume {
   }
 
   @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("volumeSize", volumeSize)
-        .add("storageClass", storageClass)
-        .toString();
+  public int hashCode() {
+    return Objects.hash(storageClass, volumeSize);
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof StackGresPodPersistentVolume)) {
       return false;
     }
-    StackGresPodPersistentVolume that = (StackGresPodPersistentVolume) o;
-    return Objects.equals(volumeSize, that.volumeSize)
-        && Objects.equals(storageClass, that.storageClass);
+    StackGresPodPersistentVolume other = (StackGresPodPersistentVolume) obj;
+    return Objects.equals(storageClass, other.storageClass)
+        && Objects.equals(volumeSize, other.volumeSize);
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(volumeSize, storageClass);
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
+
 }

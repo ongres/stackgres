@@ -5,11 +5,10 @@
 
 package io.stackgres.operator.common;
 
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operatorframework.resource.factory.ContainerResourceFactory;
 
 public interface StackGresClusterSidecarResourceFactory<T>
     extends StackGresClusterResourceStreamFactory,
-      ContainerResourceFactory<T, StackGresGeneratorContext, StackGresCluster> {
+      ContainerResourceFactory<T, StackGresClusterContext> {
 
 }

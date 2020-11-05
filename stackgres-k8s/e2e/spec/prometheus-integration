@@ -34,8 +34,6 @@ e2e_test_install() {
     --set grafana.autoEmbed=true \
     --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"
 
-  wait_pods_terminated "$OPERATOR_NAMESPACE" 2
-
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1

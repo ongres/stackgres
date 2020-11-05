@@ -5,16 +5,14 @@
 
 package io.stackgres.apiweb.dto.storages;
 
-import java.util.Objects;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.SecretKeySelector;
 
 @JsonDeserialize
@@ -49,28 +47,8 @@ public class AzureBlobSecretKeySelector {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    AzureBlobSecretKeySelector that = (AzureBlobSecretKeySelector) o;
-    return Objects.equals(account, that.account)
-        && Objects.equals(accessKey, that.accessKey);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(account, accessKey);
-  }
-
-  @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("account", account)
-        .add("accessKey", accessKey)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
+
 }

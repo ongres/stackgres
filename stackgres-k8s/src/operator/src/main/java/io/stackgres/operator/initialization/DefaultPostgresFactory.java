@@ -9,9 +9,9 @@ import java.util.List;
 
 import javax.enterprise.context.Dependent;
 
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
-import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.patroni.factory.parameters.Blocklist;
 
 @Dependent
@@ -24,8 +24,8 @@ public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackG
   private String postgresVersion;
 
   public DefaultPostgresFactory() {
-    this.postgresVersion = StackGresComponents.getPostgresMajorVersion(
-        StackGresComponents.calculatePostgresVersion(StackGresComponents.LATEST));
+    this.postgresVersion = StackGresComponent.POSTGRESQL.findMajorVersion(
+        StackGresComponent.LATEST);
   }
 
   @Override

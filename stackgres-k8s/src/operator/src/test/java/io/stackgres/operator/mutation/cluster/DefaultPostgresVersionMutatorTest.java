@@ -17,8 +17,8 @@ import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import com.github.fge.jsonpatch.JsonPatchOperation;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,14 +70,14 @@ class DefaultPostgresVersionMutatorTest {
     JsonNode newConfig = jp.apply(crJson);
 
     String actualPostgresVersion = newConfig.get("spec").get("postgresVersion").asText();
-    assertEquals("12.4", actualPostgresVersion);
+    assertEquals(StackGresComponent.POSTGRESQL.findVersion("12"), actualPostgresVersion);
 
   }
 
   @Test
   void clusteWithLatestPostgresVersion_shouldSetFinalValue() throws JsonPatchException {
 
-    review.getRequest().getObject().getSpec().setPostgresVersion(StackGresComponents.LATEST);
+    review.getRequest().getObject().getSpec().setPostgresVersion(StackGresComponent.LATEST);
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
 
@@ -87,7 +87,7 @@ class DefaultPostgresVersionMutatorTest {
     JsonNode newConfig = jp.apply(crJson);
 
     String actualPostgresVersion = newConfig.get("spec").get("postgresVersion").asText();
-    assertEquals("12.4", actualPostgresVersion);
+    assertEquals(StackGresComponent.POSTGRESQL.findVersion("12"), actualPostgresVersion);
 
   }
 
@@ -104,7 +104,7 @@ class DefaultPostgresVersionMutatorTest {
     JsonNode newConfig = jp.apply(crJson);
 
     String actualPostgresVersion = newConfig.get("spec").get("postgresVersion").asText();
-    assertEquals("12.4", actualPostgresVersion);
+    assertEquals(StackGresComponent.POSTGRESQL.findVersion("12"), actualPostgresVersion);
 
   }
 }

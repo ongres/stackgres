@@ -20,19 +20,22 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
+import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.distributedlogs.common.DistributedLogsEventReason;
-import io.stackgres.distributedlogs.common.DistributedLogsProperty;
+import io.stackgres.distributedlogs.common.DistributedLogsControllerEventReason;
 import io.stackgres.distributedlogs.common.ImmutableStackGresDistributedLogsContext;
 import io.stackgres.distributedlogs.common.StackGresDistributedLogsContext;
-import io.stackgres.distributedlogs.configuration.DistributedLogsPropertyContext;
+import io.stackgres.distributedlogs.configuration.DistributedLogsControllerPropertyContext;
 import io.stackgres.distributedlogs.resource.DistributedLogsResourceHandlerSelector;
 import io.stackgres.operatorframework.reconciliation.ReconciliationCycle;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
+import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -41,20 +44,22 @@ public class DistributedLogsControllerReconciliationCycle
     extends ReconciliationCycle<StackGresDistributedLogsContext,
       StackGresDistributedLogs, DistributedLogsResourceHandlerSelector> {
 
-  private final DistributedLogsPropertyContext propertyContext;
+  private final DistributedLogsControllerPropertyContext propertyContext;
   private final EventController eventController;
   private final LabelFactory<StackGresDistributedLogs> labelFactory;
   private final CustomResourceFinder<StackGresDistributedLogs> distributedLogsFinder;
+  private final DistributedLogsExtensionMetadataManager distributedLogsExtensionMetadataManager;
 
   @Dependent
   public static class Parameters {
     @Inject KubernetesClientFactory clientFactory;
     @Inject DistributedLogsControllerReconciliator reconciliator;
     @Inject DistributedLogsResourceHandlerSelector handlerSelector;
-    @Inject DistributedLogsPropertyContext propertyContext;
+    @Inject DistributedLogsControllerPropertyContext propertyContext;
     @Inject EventController eventController;
     @Inject LabelFactory<StackGresDistributedLogs> labelFactory;
     @Inject CustomResourceFinder<StackGresDistributedLogs> distributedLogsFinder;
+    @Inject DistributedLogsExtensionMetadataManager distributedLogsExtensionMetadataManager;
   }
 
   /**
@@ -70,6 +75,8 @@ public class DistributedLogsControllerReconciliationCycle
     this.eventController = parameters.eventController;
     this.labelFactory = parameters.labelFactory;
     this.distributedLogsFinder = parameters.distributedLogsFinder;
+    this.distributedLogsExtensionMetadataManager =
+        parameters.distributedLogsExtensionMetadataManager;
   }
 
   public DistributedLogsControllerReconciliationCycle() {
@@ -79,6 +86,7 @@ public class DistributedLogsControllerReconciliationCycle
     this.eventController = null;
     this.labelFactory = null;
     this.distributedLogsFinder = null;
+    this.distributedLogsExtensionMetadataManager = null;
   }
 
   public static DistributedLogsControllerReconciliationCycle create(Consumer<Parameters> consumer) {
@@ -102,7 +110,8 @@ public class DistributedLogsControllerReconciliationCycle
         }).getMessage();
     logger.error(message, ex);
     try (KubernetesClient client = clientSupplier.get()) {
-      eventController.sendEvent(DistributedLogsEventReason.DISTRIBUTED_LOGS_CONTROLLER_ERROR,
+      eventController.sendEvent(
+          DistributedLogsControllerEventReason.DISTRIBUTEDLOGS_CONTROLLER_ERROR,
           message + ": " + ex.getMessage(), client);
     }
   }
@@ -118,7 +127,8 @@ public class DistributedLogsControllerReconciliationCycle
         }).getMessage();
     logger.error(message, ex);
     try (KubernetesClient client = clientSupplier.get()) {
-      eventController.sendEvent(DistributedLogsEventReason.DISTRIBUTED_LOGS_CONTROLLER_ERROR,
+      eventController.sendEvent(
+          DistributedLogsControllerEventReason.DISTRIBUTEDLOGS_CONTROLLER_ERROR,
           message + ": " + ex.getMessage(), configResource, client);
     }
   }
@@ -153,8 +163,8 @@ public class DistributedLogsControllerReconciliationCycle
   @Override
   protected ImmutableList<StackGresDistributedLogsContext> getExistingContexts() {
     return distributedLogsFinder.findByNameAndNamespace(
-        propertyContext.getString(DistributedLogsProperty.DISTRIBUTEDLOGS_NAME),
-        propertyContext.getString(DistributedLogsProperty.DISTRIBUTEDLOGS_NAMESPACE))
+        propertyContext.getString(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAME),
+        propertyContext.getString(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAMESPACE))
         .stream()
         .map(distributedLogs -> getDistributedLogsContext(distributedLogs))
         .collect(ImmutableList.toImmutableList());
@@ -162,24 +172,31 @@ public class DistributedLogsControllerReconciliationCycle
 
   private StackGresDistributedLogsContext getDistributedLogsContext(
       StackGresDistributedLogs distributedLogs) {
-    final StackGresCluster cluster = getStackGresCLusterForDistributedLogs(distributedLogs);
+    final StackGresCluster cluster = StackGresDistributedLogsUtil
+        .getStackGresClusterForDistributedLogs(distributedLogs);
     return ImmutableStackGresDistributedLogsContext.builder()
         .distributedLogs(distributedLogs)
         .cluster(cluster)
+        .extensions(getDefaultExtensions(cluster))
         .labels(labelFactory.clusterLabels(cluster))
         .build();
   }
 
-  private StackGresCluster getStackGresCLusterForDistributedLogs(
-      StackGresDistributedLogs distributedLogs) {
-    final StackGresCluster distributedLogsCluster = new StackGresCluster();
-    distributedLogsCluster.getMetadata().setNamespace(
-        distributedLogs.getMetadata().getNamespace());
-    distributedLogsCluster.getMetadata().setName(
-        distributedLogs.getMetadata().getName());
-    distributedLogsCluster.getMetadata().setUid(
-        distributedLogs.getMetadata().getUid());
-    return distributedLogsCluster;
+  private ImmutableList<StackGresClusterExtension> getDefaultExtensions(StackGresCluster cluster) {
+    return ImmutableList.of(
+        getExtension(cluster, "plpgsql"),
+        getExtension(cluster, "pg_stat_statements"),
+        getExtension(cluster, "dblink"),
+        getExtension(cluster, "plpython3u"),
+        getExtension(cluster, "timescaledb"));
   }
 
+  private StackGresClusterExtension getExtension(StackGresCluster cluster, String extensionName) {
+    StackGresClusterExtension extension = new StackGresClusterExtension();
+    extension.setName(extensionName);
+    extension.setVersion(Unchecked.supplier(
+        () -> distributedLogsExtensionMetadataManager.getExtensionCandidateAnyVersion(
+            cluster, extension)).get().getVersion().getVersion());
+    return extension;
+  }
 }

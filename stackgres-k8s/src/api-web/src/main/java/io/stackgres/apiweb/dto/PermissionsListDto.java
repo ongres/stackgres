@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 public class PermissionsListDto {
@@ -30,11 +31,6 @@ public class PermissionsListDto {
 
   public void setNamespaced(List<Namespaced> namespaced) {
     this.namespaced = namespaced;
-  }
-
-  @Override
-  public String toString() {
-    return "PermissionsList [unnamespaced=" + unnamespaced + ", namespaced=" + namespaced + "]";
   }
 
   @RegisterForReflection
@@ -61,9 +57,14 @@ public class PermissionsListDto {
 
     @Override
     public String toString() {
-      return "Namespaces [namespace=" + namespace + ", resources=" + resources + "]";
+      return StackGresUtil.toPrettyYaml(this);
     }
 
+  }
+
+  @Override
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
 
 }

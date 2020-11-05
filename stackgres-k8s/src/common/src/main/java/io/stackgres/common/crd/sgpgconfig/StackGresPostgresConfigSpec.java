@@ -14,9 +14,9 @@ import javax.validation.constraints.NotEmpty;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -50,29 +50,26 @@ public class StackGresPostgresConfigSpec implements KubernetesResource {
   }
 
   @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("pgVersion", postgresVersion)
-        .add("postgresql.conf", postgresqlConf)
-        .toString();
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    StackGresPostgresConfigSpec that = (StackGresPostgresConfigSpec) o;
-    return Objects.equals(postgresVersion, that.postgresVersion)
-        && Objects.equals(postgresqlConf, that.postgresqlConf);
-  }
-
-  @Override
   public int hashCode() {
     return Objects.hash(postgresVersion, postgresqlConf);
   }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof StackGresPostgresConfigSpec)) {
+      return false;
+    }
+    StackGresPostgresConfigSpec other = (StackGresPostgresConfigSpec) obj;
+    return Objects.equals(postgresVersion, other.postgresVersion)
+        && Objects.equals(postgresqlConf, other.postgresqlConf);
+  }
+
+  @Override
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
+  }
+
 }

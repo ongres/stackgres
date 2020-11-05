@@ -103,8 +103,8 @@ public enum ClusterStatefulSetVolumeConfig {
   public VolumeMount volumeMount(ClusterStatefulSetPath path, StackGresClusterContext context) {
     return volumeConfig.volumeMount(path, context)
         .orElseThrow(() -> new IllegalStateException(
-            "Volume mount " + volumeConfig.name() + " with path " + path.path()
-            + " and subPath " + path.subPath() + " is not available for this context"));
+            "Volume mount " + volumeConfig.name() + " with path " + path.path(context)
+            + " and subPath " + path.subPath(context) + " is not available for this context"));
   }
 
   public VolumeMount volumeMount(ClusterStatefulSetPath path, StackGresClusterContext context,
@@ -114,8 +114,8 @@ public enum ClusterStatefulSetVolumeConfig {
         .map(volumeMountOverride)
         .map(VolumeMountBuilder::build)
         .orElseThrow(() -> new IllegalStateException(
-            "Volume mount " + volumeConfig.name() + " with path " + path.path()
-            + " and subPath " + path.subPath() + " is not available for this context"));
+            "Volume mount " + volumeConfig.name() + " with path " + path.path(context)
+            + " and subPath " + path.subPath(context) + " is not available for this context"));
   }
 
   public Volume volume(StackGresClusterContext context) {

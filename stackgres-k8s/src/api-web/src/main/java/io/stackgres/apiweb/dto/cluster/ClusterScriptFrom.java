@@ -5,6 +5,12 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
+
+import javax.validation.Valid;
+import javax.validation.constraints.AssertTrue;
+import javax.validation.constraints.NotEmpty;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -17,13 +23,35 @@ import io.stackgres.common.crd.SecretKeySelector;
 @RegisterForReflection
 public class ClusterScriptFrom {
 
+  @NotEmpty
   private String secretScript;
 
+  @Valid
   private SecretKeySelector secretKeyRef;
 
+  @NotEmpty
   private String configMapScript;
 
+  @Valid
   private ConfigMapKeySelector configMapKeyRef;
+
+  @JsonIgnore
+  @AssertTrue(message = "secretKeyRef and configMapKeyRef are mutually exclusive and one of them is"
+      + " required.")
+  public boolean areSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndOneRequired() {
+    return (isSecretScriptConfigured() && !isConfigMapScriptConfigured()) // NOPMD
+        || (!isSecretScriptConfigured() && isConfigMapScriptConfigured()); //NOPMD
+  }
+
+  @JsonIgnore
+  public boolean isSecretScriptConfigured() {
+    return secretKeyRef != null || secretScript != null;
+  }
+
+  @JsonIgnore
+  public boolean isConfigMapScriptConfigured() {
+    return configMapKeyRef != null || configMapScript != null;
+  }
 
   public String getSecretScript() {
     return secretScript;

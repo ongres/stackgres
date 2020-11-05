@@ -5,16 +5,14 @@
 
 package io.stackgres.apiweb.dto.distributedlogs;
 
-import java.util.Objects;
-
 import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -98,33 +96,8 @@ public class DistributedLogsCondition implements KubernetesResource {
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    final DistributedLogsCondition other = (DistributedLogsCondition) obj;
-    return Objects.equals(this.type, other.type)
-        && Objects.equals(this.status, other.status)
-        && Objects.equals(this.reason, other.reason);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(this.type, this.status, this.reason);
-  }
-
-  @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("type", getType())
-        .add("status", getStatus())
-        .add("reason", getReason())
-        .add("lastTransitionTime", getLastTransitionTime())
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 
 }

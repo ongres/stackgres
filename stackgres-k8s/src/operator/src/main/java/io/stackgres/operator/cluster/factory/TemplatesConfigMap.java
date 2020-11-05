@@ -22,7 +22,6 @@ import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
-import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
@@ -41,8 +40,7 @@ public class TemplatesConfigMap
   }
 
   @Override
-  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
-    final StackGresClusterContext clusterContext = context.getClusterContext();
+  public Stream<HasMetadata> streamResources(StackGresClusterContext context) {
     Map<String, String> data = new HashMap<String, String>();
 
     for (String resource : new String[] {
@@ -50,6 +48,8 @@ public class TemplatesConfigMap
         ClusterStatefulSetPath.LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_SETUP_SCRIPTS_SH_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_RELOCATE_BINARIES_SH_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_MOCK_BINARIES_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_START_PATRONI_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_START_PATRONI_WITH_RESTORE_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_POST_INIT_SH_PATH.filename(),
@@ -78,13 +78,13 @@ public class TemplatesConfigMap
           .read()).get());
     }
 
-    final StackGresCluster cluster = clusterContext.getCluster();
+    final StackGresCluster cluster = context.getCluster();
     ConfigMap configMap = new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
-        .withName(name(clusterContext))
+        .withName(name(context))
         .withLabels(labelFactory.clusterLabels(cluster))
-        .withOwnerReferences(clusterContext.getOwnerReferences())
+        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .withData(data)
         .build();

@@ -29,7 +29,7 @@ then
   JAVA_OPTS="$JAVA_OPTS -Dquarkus.log.console.format=%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c{4.}] (%t) %s%e%n"
 fi
 JAVA_JAR="-jar /app/stackgres-distributedlogs-controller.jar"
-exec java $JAVA_OPTS $JAVA_JAR $APP_OPTS
+exec java $JAVA_OPTS $APP_OPTS $JAVA_JAR "$@"
 EOF
 buildah copy --chown nobody:nobody "$CONTAINER_BASE" 'distributedlogs-controller/target/stackgres-distributedlogs-controller.sh' '/app/'
 #buildah run "$CONTAINER_BASE" -- chmod 775 '/app'

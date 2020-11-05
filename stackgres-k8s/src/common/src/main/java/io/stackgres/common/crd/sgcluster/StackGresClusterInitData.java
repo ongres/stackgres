@@ -13,8 +13,8 @@ import javax.validation.Valid;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -45,28 +45,24 @@ public class StackGresClusterInitData {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    StackGresClusterInitData that = (StackGresClusterInitData) o;
-    return Objects.equals(restore, that.restore)
-        && Objects.equals(scripts, that.scripts);
-  }
-
-  @Override
   public int hashCode() {
     return Objects.hash(restore, scripts);
   }
 
   @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof StackGresClusterInitData)) {
+      return false;
+    }
+    StackGresClusterInitData other = (StackGresClusterInitData) obj;
+    return Objects.equals(restore, other.restore) && Objects.equals(scripts, other.scripts);
+  }
+
+  @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("restore", restore)
-        .add("scripts", scripts)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 }

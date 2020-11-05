@@ -6,6 +6,7 @@
 package io.stackgres.operator.common;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -43,7 +44,7 @@ public class VolumeConfig {
         .filter(filter)
         .map(c -> new VolumeMountBuilder()
             .withName(getName.apply(context))
-            .withMountPath(path.path())
+            .withMountPath(path.path(context))
             .build()))
         .filter(Optional::isPresent)
         .map(Optional::get)
@@ -68,8 +69,10 @@ public class VolumeConfig {
             .filter(volumePathConfig.filter())
             .map(c -> new VolumeMountBuilder()
                 .withName(getName.apply(context))
-                .withSubPath(volumePathConfig.volumePath().subPath())
-                .withMountPath(volumePathConfig.volumePath().path()))
+                .withSubPath(volumePathConfig.volumePath().subPath(
+                    context.getEnvironmentVariables()))
+                .withMountPath(volumePathConfig.volumePath().path(
+                    context.getEnvironmentVariables())))
             .map(volumePathConfig.volumeMounthOverwrite())
             .map(VolumeMountBuilder::build))
         .filter(Optional::isPresent)
@@ -217,8 +220,8 @@ public class VolumeConfig {
     return name;
   }
 
-  public String path() {
-    return paths.get(0).path();
+  public String path(Map<String, String> envVars) {
+    return paths.get(0).path(envVars);
   }
 
   public List<VolumePath> paths() {

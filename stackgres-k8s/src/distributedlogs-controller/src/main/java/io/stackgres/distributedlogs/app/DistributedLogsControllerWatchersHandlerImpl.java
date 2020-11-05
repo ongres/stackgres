@@ -16,10 +16,10 @@ import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.Watcher.Action;
 import io.quarkus.runtime.Application;
+import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
-import io.stackgres.distributedlogs.common.DistributedLogsProperty;
 import io.stackgres.distributedlogs.controller.DistributedLogsControllerReconciliationCycle;
 import io.stackgres.distributedlogs.controller.ResourceWatcherFactory;
 import io.stackgres.operatorframework.resource.WatcherMonitor;
@@ -57,7 +57,7 @@ public class DistributedLogsControllerWatchersHandlerImpl
       Class<T> crClass, Class<L> listClass, Consumer<Action> consumer) {
     return new WatcherMonitor<>(watcherListener -> clientFactory.create()
         .customResources(crClass, listClass)
-        .inNamespace(DistributedLogsProperty.DISTRIBUTEDLOGS_NAMESPACE.getString())
+        .inNamespace(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAMESPACE.getString())
         .watch(watcherFactory.createWatcher(consumer, watcherListener)),
         () -> new Thread(() -> Application.currentApplication().stop()).start());
   }

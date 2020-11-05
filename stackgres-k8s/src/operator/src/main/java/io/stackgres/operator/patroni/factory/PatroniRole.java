@@ -35,7 +35,6 @@ import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
-import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 
@@ -55,7 +54,7 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
   }
 
   @Override
-  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
+  public Stream<HasMetadata> streamResources(StackGresClusterContext context) {
     return Seq.of(
         createServiceAccount(context),
         createRole(context),
@@ -65,18 +64,17 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
   /**
    * Create the ServiceAccount for patroni associated to the cluster.
    */
-  private ServiceAccount createServiceAccount(StackGresGeneratorContext context) {
-    final StackGresClusterContext clusterContext = context.getClusterContext();
-    final StackGresCluster cluster = clusterContext.getCluster();
-    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
+  private ServiceAccount createServiceAccount(StackGresClusterContext context) {
+    final StackGresCluster cluster = context.getCluster();
+    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(context);
     final Map<String, String> labels = labelFactory
         .clusterLabels(cluster);
     return new ServiceAccountBuilder()
         .withNewMetadata()
-        .withName(roleName(clusterContext))
+        .withName(roleName(context))
         .withNamespace(cluster.getMetadata().getNamespace())
         .withLabels(labels)
-        .withOwnerReferences(clusterContext.getOwnerReferences())
+        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .build();
   }
@@ -84,17 +82,16 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
   /**
    * Create the Role for patroni associated to the cluster.
    */
-  private Role createRole(StackGresGeneratorContext context) {
-    final StackGresClusterContext clusterContext = context.getClusterContext();
-    final StackGresCluster cluster = clusterContext.getCluster();
-    final Map<String, String> labels = factoryDelegator.pickFactory(clusterContext)
+  private Role createRole(StackGresClusterContext context) {
+    final StackGresCluster cluster = context.getCluster();
+    final Map<String, String> labels = factoryDelegator.pickFactory(context)
         .clusterLabels(cluster);
     return new RoleBuilder()
         .withNewMetadata()
-        .withName(roleName(clusterContext))
+        .withName(roleName(context))
         .withNamespace(cluster.getMetadata().getNamespace())
         .withLabels(labels)
-        .withOwnerReferences(clusterContext.getOwnerReferences())
+        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups("")
@@ -134,7 +131,7 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups(CommonDefinition.GROUP)
             .withResources(CustomResource.getPlural(StackGresBackup.class))
-            .withVerbs("list", "get", "create", "patch", "delete")
+            .withVerbs("list", "get", "create", "patch", "update", "delete")
             .build())
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups(CommonDefinition.GROUP)
@@ -146,7 +143,7 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
                 CustomResource.getPlural(StackGresProfile.class),
                 CustomResource.getPlural(StackGresDistributedLogs.class),
                 CustomResource.getPlural(StackGresDbOps.class))
-            .withVerbs("get", "list", "watch", "patch")
+            .withVerbs("get", "list", "watch", "patch", "update")
             .build())
         .build();
   }
@@ -154,27 +151,26 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
   /**
    * Create the RoleBinding for patroni associated to the cluster.
    */
-  private RoleBinding createRoleBinding(StackGresGeneratorContext context) {
-    final StackGresClusterContext clusterContext = context.getClusterContext();
-    final StackGresCluster cluster = clusterContext.getCluster();
-    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
+  private RoleBinding createRoleBinding(StackGresClusterContext context) {
+    final StackGresCluster cluster = context.getCluster();
+    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(context);
     final Map<String, String> labels = labelFactory
         .clusterLabels(cluster);
     return new RoleBindingBuilder()
         .withNewMetadata()
-        .withName(roleName(clusterContext))
+        .withName(roleName(context))
         .withNamespace(cluster.getMetadata().getNamespace())
         .withLabels(labels)
-        .withOwnerReferences(clusterContext.getOwnerReferences())
+        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .withSubjects(new SubjectBuilder()
             .withKind("ServiceAccount")
-            .withName(roleName(clusterContext))
+            .withName(roleName(context))
             .withNamespace(cluster.getMetadata().getNamespace())
             .build())
         .withRoleRef(new RoleRefBuilder()
             .withKind("Role")
-            .withName(roleName(clusterContext))
+            .withName(roleName(context))
             .withApiGroup("rbac.authorization.k8s.io")
             .build())
         .build();
