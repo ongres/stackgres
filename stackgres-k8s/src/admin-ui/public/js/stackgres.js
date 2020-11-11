@@ -1285,6 +1285,10 @@ Vue.mixin({
         $('#clone').fadeIn().addClass('show');
       }
     }
+  },
+
+  beforeCreate: function() {
+    store.commit('setTooltipsText','Click on a question mark to get help and tips about that field.');
   }
 });
 
@@ -1789,8 +1793,6 @@ const vm = new Vue({
   },
 
   computed: {
-
-    
 
   }
 });

@@ -5051,6 +5051,10 @@ td.label .helpTooltip {
     font-weight: 300;
 }
 
+#helpTooltip br {
+    display: none;
+}
+
 /* Secret Toggle */
 .toggleSecret {
     position: absolute;
