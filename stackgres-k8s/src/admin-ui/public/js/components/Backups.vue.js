@@ -80,6 +80,8 @@ var Backups = Vue.component("Backups", {
 							<a @click="clearFilters('keyword')" class="btn clear border keyword" style="display:none">CLEAR</a>
 						</div>
 
+						<router-link v-if="isCluster && iCan('create','sgbackups',$route.params.namespace)" :to="'/admin/crd/create/backup/'+$route.params.namespace+'/'+$route.params.name" title="Add New Backup" class="btn addClusterBackup">Add Backup</router-link>
+
 						<div class="filter">
 							<span class="toggle date">DATE RANGE <input v-model="datePicker" id="datePicker" autocomplete="off"></span>
 						</div>

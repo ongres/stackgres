@@ -3288,7 +3288,7 @@ table.backupConfig tr.base.open {
     background-position: 10px center;
     background-repeat: no-repeat;
     border-radius: 6px;
-    width: 400px;
+    width: 300px;
     max-width: 50%;
 }
 
@@ -4551,6 +4551,11 @@ span.closeLog:hover {
     padding: 7px 10px;
     margin: 0 2px;
     border: 1px solid var(--blue);
+}
+
+.toolbar a.addClusterBackup {
+    float: right;
+    margin-left: 10px;
 }
 
 .filter select.active {

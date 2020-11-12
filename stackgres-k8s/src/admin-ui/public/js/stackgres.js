@@ -113,6 +113,13 @@ const router = new VueRouter({
       },
     },
     { 
+      path: '/admin/crd/create/backup/:namespace/:cluster', 
+      component: CreateBackup,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
       path: '/admin/crd/:action/backup/:namespace/:uid', 
       component: CreateBackup,
       meta: {
