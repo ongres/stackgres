@@ -268,11 +268,20 @@ var Backups = Vue.component("Backups", {
 														</tr>
 														<tr>
 															<td class="label">
-																Size uncompressed (compressed)
+																Size uncompressed
 																<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.size.uncompressed.description"></span>
 															</td>
 															<td>
-																{{ back.data.status.backupInformation.size.uncompressed | formatBytes }} ({{ back.data.status.backupInformation.size.compressed | formatBytes }})																
+																{{ back.data.status.backupInformation.size.uncompressed | formatBytes }}
+															</td>
+														</tr>
+														<tr>
+															<td class="label">
+																Size compressed
+																<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.size.compressed.description"></span>
+															</td>
+															<td>
+																{{ back.data.status.backupInformation.size.compressed | formatBytes }}
 															</td>
 														</tr>
 														<tr>

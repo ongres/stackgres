@@ -52,7 +52,7 @@ var ClusterOverview = Vue.component("ClusterOverview", {
 
 						<th>
 							<span>Health</span>
-							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.podsReady.description + ' / ' + tooltips.sgcluster.spec.instances.description"></span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.podsReady.description.slice(0, -2) + ' / ' + tooltips.sgcluster.spec.instances.description"></span>
 						</th>
 						
 						<th class="actions"></th>
