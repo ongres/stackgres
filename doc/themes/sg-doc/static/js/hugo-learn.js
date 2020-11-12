@@ -89,3 +89,6 @@ jQuery(document).ready(function() {
     $(element).parent().replaceWith('<div class="mermaid" align="center">' + content + '</div>');
   });
 });
+
+//Scroll to active sidebar section on load
+$('.highlightable').scrollTop($('.highlightable').scrollTop() + $('ul.topics > li.parent').position().top);
