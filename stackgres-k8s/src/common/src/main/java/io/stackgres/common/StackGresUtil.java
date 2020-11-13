@@ -12,6 +12,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.Comparator;
 import java.util.Locale;
@@ -30,6 +32,7 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceUtil;
+import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 
 public class StackGresUtil {
@@ -138,6 +141,20 @@ public class StackGresUtil {
         .put("MD5SUM", DatatypeConverter.printHexBinary(
             messageDigest.digest()).toUpperCase(Locale.US))
         .build();
+  }
+
+  /**
+   * Calculate MD5 hash of all files ordered by path.
+   */
+  public static String getMd5Sum(Path...paths) {
+    MessageDigest messageDigest = Unchecked
+        .supplier(() -> MessageDigest.getInstance("MD5")).get();
+    Seq.of(paths)
+        .sorted()
+        .map(Unchecked.function(Files::readAllBytes))
+        .forEach(messageDigest::update);
+    return DatatypeConverter.printHexBinary(
+        messageDigest.digest()).toUpperCase(Locale.US);
   }
 
   /**

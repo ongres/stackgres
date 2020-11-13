@@ -22,7 +22,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterDistributedLogs;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterLogEntryDto;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
@@ -54,7 +54,7 @@ public class DistributedLogsFetcherImpl implements DistributedLogsFetcher {
   }
 
   public DistributedLogsFetcherImpl() {
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.secretFinder = null;
     this.postgresConnectionManager = null;
   }

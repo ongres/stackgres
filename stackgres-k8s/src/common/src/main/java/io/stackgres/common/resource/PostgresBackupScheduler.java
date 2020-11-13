@@ -8,7 +8,7 @@ package io.stackgres.common.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigDefinition;
@@ -23,7 +23,7 @@ public class PostgresBackupScheduler
   @Inject
   public PostgresBackupScheduler(KubernetesClientFactory clientFactory) {
     super(clientFactory,
-        StackGresBackupConfigDefinition.NAME,
+        StackGresBackupConfigDefinition.CONTEXT,
         StackGresBackupConfig.class,
         StackGresBackupConfigList.class,
         StackGresBackupConfigDoneable.class);
@@ -31,7 +31,7 @@ public class PostgresBackupScheduler
 
   public PostgresBackupScheduler() {
     super(null, null, null, null, null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
 }

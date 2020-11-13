@@ -17,19 +17,9 @@ import static org.mockito.Mockito.when;
 import java.util.HashMap;
 import java.util.Optional;
 
-import io.fabric8.kubernetes.api.model.Secret;
-import io.stackgres.common.KubernetesClientFactory;
-import io.stackgres.common.LabelFactory;
 import io.stackgres.common.OperatorProperty;
-import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
-import io.stackgres.common.resource.ResourceFinder;
-import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
@@ -50,38 +40,10 @@ class PrometheusTest {
   private StackGresCluster cluster;
 
   @Mock
-  private KubernetesClientFactory clientFactory;
-
-  @Mock
-  private ObjectMapperProvider objectMapperProvider;
-
-  @Mock
-  private CustomResourceScanner<StackGresCluster> clusterScanner;
-
-  @Mock
-  private CustomResourceFinder<StackGresProfile> profileFinder;
-
-  @Mock
-  private CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
-
-  @Mock
-  private CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
-
-  @Mock
-  private CustomResourceScanner<StackGresBackup> backupScanner;
-
-  @Mock
-  private ResourceFinder<Secret> secretFinder;
-
-  @Mock
   private CustomResourceScanner<PrometheusConfig> prometheusScanner;
 
   @Mock
   private OperatorPropertyContext operatorContext;
-
-  @Mock
-  private LabelFactory<StackGresCluster> labelFactory;
-
 
   private PrometheusConfigList prometheusConfigList;
 
@@ -96,10 +58,11 @@ class PrometheusTest {
     prometheusConfigList = JsonUtil.readFromJson("prometheus/prometheus_list.json",
         PrometheusConfigList.class);
 
-    reconciliationCycle = new ClusterReconciliationCycle(
-        clientFactory, null, null, null, null, null, objectMapperProvider,
-        operatorContext, labelFactory, clusterScanner, profileFinder, postgresConfigFinder,
-        backupConfigFinder, backupScanner, secretFinder, prometheusScanner);
+    reconciliationCycle = ClusterReconciliationCycle.create(p -> {
+      p.clientFactory = () -> null;
+      p.operatorContext = operatorContext;
+      p.prometheusScanner = prometheusScanner;
+    });
   }
 
   @Test

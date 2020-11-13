@@ -64,6 +64,7 @@ class BackupResourceTest
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   protected void checkDto(BackupDto dto, StackGresBackup resource) {
     assertNotNull(dto.getMetadata());
     assertEquals("postgresql", dto.getMetadata().getNamespace());
@@ -117,6 +118,7 @@ class BackupResourceTest
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   protected void checkCustomResource(StackGresBackup resource, BackupDto resourceDto, Operation operation) {
     assertNotNull(resource.getMetadata());
     assertEquals("postgresql", resource.getMetadata().getNamespace());

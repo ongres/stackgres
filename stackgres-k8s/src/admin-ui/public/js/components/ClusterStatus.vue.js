@@ -62,7 +62,7 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 						</th>
 						<th>
 							Primary Node Disk
-							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.diskUsed.description.slice(0, -2) + ' / ' + tooltips.sgcluster.spec.pods.persistentVolume.size.description + (cluster.status.hasOwnProperty('ioPsiAvg60') ? ' (' + tooltips.sgcluster.pods.ioPsiAvg60.description + ')' : '')"></span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.diskUsed.description.slice(0, -2) + ' / ' + tooltips.sgcluster.spec.pods.persistentVolume.size.description + (cluster.status.hasOwnProperty('diskPsiAvg60') ? ' (' + tooltips.sgcluster.pods.diskPsiAvg60.description + ')' : '')"></span>
 						</th>
 						<th>
 							Instances
@@ -86,7 +86,7 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 										<circle cx="12.5" cy="12.5" r="10" stroke-width="5" fill="none" />
 									</svg>
 								</div>
-								<template v-if="cluster.status.hasOwnProperty('diskUsed')">{{ cluster.status.diskUsed }}</template><template v-else>-</template> / {{ cluster.data.spec.pods.persistentVolume.size }} <span v-if="cluster.status.hasOwnProperty('ioPsiAvg60')">(psi avg. {{ cluster.status.ioPsiAvg60 }})</span>
+								<template v-if="cluster.status.hasOwnProperty('diskUsed')">{{ cluster.status.diskUsed }}</template><template v-else>-</template> / {{ cluster.data.spec.pods.persistentVolume.size }} <span v-if="cluster.status.hasOwnProperty('diskPsiAvg60')">(psi avg. {{ cluster.status.diskPsiAvg60 }})</span>
 							</td>
 							<td>{{ cluster.data.podsReady }} / {{ cluster.data.spec.instances }}</td>
 						</tr>
@@ -118,7 +118,7 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 						</th>
 						<th>
 							Disk
-							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.diskUsed.description.slice(0, -2) + ' / ' + tooltips.sgcluster.pods.diskRequested.description + (cluster.status.hasOwnProperty('ioPsiAvg60') ? ' (' + tooltips.sgcluster.pods.ioPsiAvg60.description + ')' : '')"></span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.diskUsed.description.slice(0, -2) + ' / ' + tooltips.sgcluster.pods.diskRequested.description + (cluster.status.hasOwnProperty('diskPsiAvg60') ? ' (' + tooltips.sgcluster.pods.diskPsiAvg60.description + ')' : '')"></span>
 						</th>
 						<th>
 							Containers
@@ -137,7 +137,7 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 								{{ pod.hasOwnProperty('memoryPsiAvg60') ? pod.memoryPsiAvg60 : pod.memoryRequested }}
 							</td>
 							<td>
-								<template v-if="pod.hasOwnProperty('diskUsed')">{{ pod.diskUsed }}</template><template v-else>-</template> / {{ pod.diskRequested }} <span v-if="pod.hasOwnProperty('ioPsiAvg60')">(psi avg. {{ pod.ioPsiAvg60 }})</span>
+							<template v-if="pod.hasOwnProperty('diskUsed')">{{ pod.diskUsed }}</template><template v-else>-</template> / {{ pod.diskRequested }} <span v-if="pod.hasOwnProperty('diskPsiAvg60')">(psi avg. {{ pod.diskPsiAvg60 }})</span>
 							</td>
 							<td>{{ pod.containersReady }} / {{ pod.containers }}</td>
 						</tr>

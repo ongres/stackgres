@@ -32,6 +32,8 @@ import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackgresClusterContainers;
@@ -39,7 +41,6 @@ import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.Prometheus;
@@ -63,10 +64,6 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
   public static final String SERVICE_MONITOR = "-stackgres-envoy";
   public static final String SERVICE = "-prometheus-envoy";
 
-  public static final int PG_ENTRY_PORT = 7432;
-  public static final int PG_REPL_ENTRY_PORT = 7433;
-  public static final int PG_POOL_PORT = 6432;
-  public static final int PG_PORT = 5432;
   public static final String NAME = StackgresClusterContainers.ENVOY;
 
   private static final String IMAGE_NAME = "docker.io/ongres/envoy:v%s-build-%s";
@@ -74,12 +71,12 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
   private static final String CONFIG_SUFFIX = "-envoy-config";
   private static final ImmutableMap<String, Integer> LISTEN_SOCKET_ADDRESS_PORT_MAPPING =
       ImmutableMap.of(
-          "postgres_entry_port", PG_ENTRY_PORT,
-          "postgres_repl_entry_port", PG_REPL_ENTRY_PORT);
+          "postgres_entry_port", EnvoyUtil.PG_ENTRY_PORT,
+          "postgres_repl_entry_port", EnvoyUtil.PG_REPL_ENTRY_PORT);
   private static final ImmutableMap<String, Integer> CLUSTER_SOCKET_ADDRESS_PORT_MAPPING =
       ImmutableMap.of(
-          "postgres_pool_port", PG_POOL_PORT,
-          "postgres_port", PG_PORT);
+          "postgres_pool_port", EnvoyUtil.PG_POOL_PORT,
+          "postgres_port", EnvoyUtil.PG_PORT);
 
   private final YamlMapperProvider yamlMapperProvider;
 
@@ -128,8 +125,8 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
             ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
                 ClusterStatefulSetPath.ETC_GSHADOW_PATH, context.getClusterContext()))
         .withPorts(
-            new ContainerPortBuilder().withContainerPort(PG_ENTRY_PORT).build(),
-            new ContainerPortBuilder().withContainerPort(PG_REPL_ENTRY_PORT).build())
+            new ContainerPortBuilder().withContainerPort(EnvoyUtil.PG_ENTRY_PORT).build(),
+            new ContainerPortBuilder().withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT).build())
         .withCommand("/usr/local/bin/envoy-static")
         .withArgs("-c", "/etc/envoy/default_envoy.yaml", "-l", "debug");
     return container.build();

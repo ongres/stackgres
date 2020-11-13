@@ -6,6 +6,7 @@
 package io.stackgres.operator.sidecars.pooling;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -25,6 +26,8 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -32,14 +35,12 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operator.sidecars.pooling.parameters.Blocklist;
 import io.stackgres.operator.sidecars.pooling.parameters.DefaultValues;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -54,13 +55,28 @@ public class PgPooling
   private static final String IMAGE_PREFIX = "docker.io/ongres/pgbouncer:v%s-build-%s";
   private static final String DEFAULT_VERSION = StackGresComponents.get("pgbouncer");
   private static final String CONFIG_SUFFIX = "-connection-pooling-config";
-
+  private static final Map<String, String> defaultPgBouncerInt = ImmutableMap
+      .<String, String>builder()
+      .put("listen_port", Integer.toString(EnvoyUtil.PG_POOL_PORT))
+      .put("listen_addr", "127.0.0.1") // NOPMD
+      .put("unix_socket_dir", ClusterStatefulSetPath.PG_RUN_PATH.path())
+      .put("auth_type", "md5")
+      .put("auth_user", "authenticator")
+      .put("auth_query", "SELECT usename, passwd FROM pg_shadow WHERE usename=$1")
+      .put("admin_users", "postgres")
+      .put("stats_users", "postgres")
+      .put("application_name_add_host", "1")
+      .put("ignore_startup_parameters", "extra_float_digits")
+      .put("max_db_connections", "100")
+      .put("max_user_connections", "100")
+      .put("default_pool_size", "100")
+      .build();
   private final LabelFactory<StackGresCluster> labelFactory;
   private final CustomResourceFinder<StackGresPoolingConfig> poolingConfigScanner;
 
   @Inject
   public PgPooling(LabelFactory<StackGresCluster> labelFactory,
-      CustomResourceFinder<StackGresPoolingConfig> poolingConfigScanner) {
+                   CustomResourceFinder<StackGresPoolingConfig> poolingConfigScanner) {
     super();
     this.labelFactory = labelFactory;
     this.poolingConfigScanner = poolingConfigScanner;
@@ -75,8 +91,6 @@ public class PgPooling
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
     final StackGresClusterContext clusterContext = context.getClusterContext();
     final StackGresCluster stackGresCluster = clusterContext.getCluster();
-    String namespace = stackGresCluster.getMetadata().getNamespace();
-    String configMapName = configName(clusterContext);
     Optional<StackGresPoolingConfig> pgbouncerConfig =
         clusterContext.getSidecarConfig(this);
     Map<String, String> newParams = pgbouncerConfig.map(StackGresPoolingConfig::getSpec)
@@ -93,29 +107,23 @@ public class PgPooling
       params.put(entry.getKey(), entry.getValue());
     }
 
+    Map<String, String> pgbouncerIniParams = new LinkedHashMap<>(defaultPgBouncerInt);
+    pgbouncerIniParams.putAll(params);
+
+    String pgBouncerConfig = pgbouncerIniParams.entrySet().stream()
+        .map(entry -> entry.getKey() + " = " + entry.getValue())
+        .collect(Collectors.joining("\n"));
+
     String configFile = "[databases]\n"
-        + " * = port = " + Envoy.PG_PORT + "\n"
+        + " * = port = " + EnvoyUtil.PG_PORT + "\n"
         + "\n"
         + "[pgbouncer]\n"
-        + "listen_port = " + Envoy.PG_POOL_PORT + "\n"
-        + "listen_addr = 127.0.0.1\n"
-        + "unix_socket_dir = " + ClusterStatefulSetPath.PG_RUN_PATH.path() + "\n"
-        + "auth_type = md5\n"
-        + "auth_user = authenticator\n"
-        + "auth_query = SELECT usename, passwd FROM pg_shadow WHERE usename=$1\n"
-        + "admin_users = postgres\n"
-        + "stats_users = postgres\n"
-        + "application_name_add_host = 1\n"
-        + "ignore_startup_parameters = extra_float_digits\n"
-        + "max_db_connections = 100\n"
-        + "max_user_connections = 100\n"
-        + "default_pool_size = 100\n"
-        + params.entrySet().stream()
-        .map(entry -> " " + entry.getKey() + " = " + entry.getValue())
-        .collect(Collectors.joining("\n"))
+        + pgBouncerConfig
         + "\n";
     Map<String, String> data = ImmutableMap.of("pgbouncer.ini", configFile);
 
+    String namespace = stackGresCluster.getMetadata().getNamespace();
+    String configMapName = configName(clusterContext);
     ConfigMap cm = new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(namespace)

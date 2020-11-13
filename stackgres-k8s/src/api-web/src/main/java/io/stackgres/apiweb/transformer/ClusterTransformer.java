@@ -31,7 +31,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecAnnotations;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
 import io.stackgres.apiweb.dto.cluster.PodScheduling;
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
@@ -69,7 +69,7 @@ public class ClusterTransformer
   public ClusterTransformer() {
     this.context = null;
     this.clusterPodTransformer = null;
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Override

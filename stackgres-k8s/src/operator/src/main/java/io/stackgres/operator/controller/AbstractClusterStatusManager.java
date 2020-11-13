@@ -5,15 +5,9 @@
 
 package io.stackgres.operator.controller;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
-import javax.validation.constraints.NotNull;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -22,13 +16,14 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
-import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operatorframework.resource.Condition;
+import io.stackgres.operatorframework.resource.ConditionUpdater;
 import org.jooq.lambda.tuple.Tuple2;
 
 public abstract class AbstractClusterStatusManager<T extends StackGresClusterContext,
-    C extends Condition> {
+    C extends Condition> extends ConditionUpdater<T, C> {
 
   private final KubernetesClientFactory clientFactory;
   private final LabelFactory<?> labelFactory;
@@ -38,48 +33,6 @@ public abstract class AbstractClusterStatusManager<T extends StackGresClusterCon
     this.clientFactory = clientFactory;
     this.labelFactory = labelFactory;
   }
-
-  /**
-   * Send an event related to a stackgres cluster.
-   */
-  public void sendCondition(@NotNull C condition,
-      @NotNull T context) {
-    try (KubernetesClient client = clientFactory.create()) {
-      sendCondition(condition, context, client);
-    }
-  }
-
-  private void sendCondition(C condition, T context, KubernetesClient client) {
-    Instant now = Instant.now();
-
-    condition.setLastTransitionTime(now.toString());
-
-    if (getConditions(context).stream()
-        .filter(c -> c.getType().equals(condition.getType())
-            && c.getStatus().equals(condition.getStatus()))
-        .anyMatch(c -> Instant.parse(c.getLastTransitionTime())
-            .isBefore(now.plus(1, ChronoUnit.MINUTES)))) {
-      return;
-    }
-
-    // copy list of current conditions
-    List<C> copyList =
-        getConditions(context).stream()
-            .filter(c -> !condition.getType().equals(c.getType()))
-            .collect(Collectors.toList());
-
-    copyList.add(condition);
-
-    setConditions(context, copyList);
-
-    patchCluster(context, client);
-  }
-
-  protected abstract List<C> getConditions(T context);
-
-  protected abstract void setConditions(T context, List<C> conditions);
-
-  protected abstract void patchCluster(T context, KubernetesClient client);
 
   /**
    * Update pending restart status condition.
@@ -92,9 +45,9 @@ public abstract class AbstractClusterStatusManager<T extends StackGresClusterCon
 
   private void updatePendingRestart(T context, KubernetesClient client) {
     if (isPendingRestart(context)) {
-      sendCondition(getPodRequiresRestart(), context, client);
+      updateCondition(getPodRequiresRestart(), context, client);
     } else {
-      sendCondition(getFalsePendingRestart(), context, client);
+      updateCondition(getFalsePendingRestart(), context, client);
     }
   }
 

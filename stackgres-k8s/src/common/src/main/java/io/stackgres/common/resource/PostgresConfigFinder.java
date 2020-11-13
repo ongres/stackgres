@@ -8,7 +8,7 @@ package io.stackgres.common.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDefinition;
@@ -24,14 +24,14 @@ public class PostgresConfigFinder
    */
   @Inject
   public PostgresConfigFinder(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresPostgresConfigDefinition.NAME,
+    super(clientFactory, StackGresPostgresConfigDefinition.CONTEXT,
         StackGresPostgresConfig.class, StackGresPostgresConfigList.class,
         StackGresPostgresConfigDoneable.class);
   }
 
   public PostgresConfigFinder() {
     super(null, null, null, null, null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
 }

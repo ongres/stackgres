@@ -49,10 +49,9 @@ import io.stackgres.common.crd.sgprofile.StackGresProfileDefinition;
 import io.stackgres.common.crd.sgprofile.StackGresProfileDoneable;
 import io.stackgres.common.crd.sgprofile.StackGresProfileList;
 import io.stackgres.operator.controller.ClusterReconciliationCycle;
-import io.stackgres.operator.controller.ClusterResourceWatcherFactory;
 import io.stackgres.operator.controller.DistributedLogsReconciliationCycle;
-import io.stackgres.operator.controller.WatcherMonitor;
-import io.stackgres.operatorframework.resource.ResourceUtil;
+import io.stackgres.operator.controller.ResourceWatcherFactory;
+import io.stackgres.operatorframework.resource.WatcherMonitor;
 
 @ApplicationScoped
 public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
@@ -62,13 +61,13 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
   private final KubernetesClientFactory kubeClient;
   private final ClusterReconciliationCycle clusterReconciliationCycle;
   private final DistributedLogsReconciliationCycle distributedLogsReconciliationCycle;
-  private final ClusterResourceWatcherFactory watcherFactory;
+  private final ResourceWatcherFactory watcherFactory;
 
   @Inject
   public OperatorWatchersHandlerImpl(KubernetesClientFactory kubeClient,
       ClusterReconciliationCycle clusterReconciliationCycle,
       DistributedLogsReconciliationCycle distributedLogsReconciliationCycle,
-      ClusterResourceWatcherFactory watcherFactory) {
+      ResourceWatcherFactory watcherFactory) {
     this.kubeClient = kubeClient;
     this.clusterReconciliationCycle = clusterReconciliationCycle;
     this.distributedLogsReconciliationCycle = distributedLogsReconciliationCycle;
@@ -78,7 +77,7 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
   @Override
   public void startWatchers() {
     monitors.add(createWatcher(
-        StackGresClusterDefinition.NAME,
+        StackGresClusterDefinition.CONTEXT,
         StackGresCluster.class,
         StackGresClusterList.class,
         StackGresClusterDoneable.class,
@@ -86,42 +85,42 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
           .andThen(reconcileDistributedLogs())));
 
     monitors.add(createWatcher(
-        StackGresPostgresConfigDefinition.NAME,
+        StackGresPostgresConfigDefinition.CONTEXT,
         StackGresPostgresConfig.class,
         StackGresPostgresConfigList.class,
         StackGresPostgresConfigDoneable.class,
         reconcileCluster()));
 
     monitors.add(createWatcher(
-        StackGresPoolingConfigDefinition.NAME,
+        StackGresPoolingConfigDefinition.CONTEXT,
         StackGresPoolingConfig.class,
         StackGresPoolingConfigList.class,
         StackGresPoolingConfigDoneable.class,
         reconcileCluster()));
 
     monitors.add(createWatcher(
-        StackGresProfileDefinition.NAME,
+        StackGresProfileDefinition.CONTEXT,
         StackGresProfile.class,
         StackGresProfileList.class,
         StackGresProfileDoneable.class,
         reconcileCluster()));
 
     monitors.add(createWatcher(
-        StackGresBackupConfigDefinition.NAME,
+        StackGresBackupConfigDefinition.CONTEXT,
         StackGresBackupConfig.class,
         StackGresBackupConfigList.class,
         StackGresBackupConfigDoneable.class,
         reconcileCluster()));
 
     monitors.add(createWatcher(
-        StackGresBackupDefinition.NAME,
+        StackGresBackupDefinition.CONTEXT,
         StackGresBackup.class,
         StackGresBackupList.class,
         StackGresBackupDoneable.class,
         reconcileCluster()));
 
     monitors.add(createWatcher(
-        StackGresDistributedLogsDefinition.NAME,
+        StackGresDistributedLogsDefinition.CONTEXT,
         StackGresDistributedLogs.class,
         StackGresDistributedLogsList.class,
         StackGresDistributedLogsDoneable.class,
@@ -130,15 +129,14 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
   }
 
   private <R extends HasMetadata, L extends KubernetesResourceList<R>, D extends Doneable<R>>
-      WatcherMonitor<R> createWatcher(String name, Class<R> crClass, Class<L> listClass,
+      WatcherMonitor<R> createWatcher(
+          CustomResourceDefinitionContext customResourceDefinitionContext,
+          Class<R> crClass, Class<L> listClass,
           Class<D> doneableClass, Consumer<Action> consumer) {
 
     try (KubernetesClient client = kubeClient.create()) {
-      CustomResourceDefinitionContext crd = ResourceUtil.getCustomResource(client, name)
-          .map(CustomResourceDefinitionContext::fromCrd)
-          .orElseThrow(() -> new IllegalStateException("Some required CRDs does not exists"));
       return new WatcherMonitor<>(watcherListener -> kubeClient.create()
-          .customResources(crd, crClass, listClass, doneableClass)
+          .customResources(customResourceDefinitionContext, crClass, listClass, doneableClass)
           .inAnyNamespace()
           .watch(watcherFactory.createWatcher(consumer, watcherListener)),
           () -> new Thread(() -> Application.currentApplication().stop()).start());

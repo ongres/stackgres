@@ -13,9 +13,10 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
+import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
@@ -23,7 +24,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterDoneable;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @ApplicationScoped
 public class ClusterStatusManager extends AbstractClusterStatusManager<
@@ -37,7 +37,7 @@ public class ClusterStatusManager extends AbstractClusterStatusManager<
 
   public ClusterStatusManager() {
     super(null, null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Override
@@ -58,17 +58,16 @@ public class ClusterStatusManager extends AbstractClusterStatusManager<
   }
 
   @Override
-  protected void patchCluster(StackGresClusterContext context,
+  protected void patch(StackGresClusterContext context,
       KubernetesClient client) {
     StackGresCluster cluster = context.getCluster();
-    ResourceUtil.getCustomResource(client, StackGresClusterDefinition.NAME)
-        .ifPresent(crd -> client.customResources(crd,
-            StackGresCluster.class,
-            StackGresClusterList.class,
-            StackGresClusterDoneable.class)
-            .inNamespace(cluster.getMetadata().getNamespace())
-            .withName(cluster.getMetadata().getName())
-            .patch(cluster));
+    client.customResources(StackGresClusterDefinition.CONTEXT,
+        StackGresCluster.class,
+        StackGresClusterList.class,
+        StackGresClusterDoneable.class)
+        .inNamespace(cluster.getMetadata().getNamespace())
+        .withName(cluster.getMetadata().getName())
+        .patch(cluster);
   }
 
   @Override

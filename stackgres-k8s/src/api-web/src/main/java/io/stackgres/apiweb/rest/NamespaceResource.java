@@ -18,7 +18,7 @@ import javax.ws.rs.core.MediaType;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.quarkus.security.Authenticated;
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.resource.ResourceScanner;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -42,7 +42,7 @@ public class NamespaceResource {
 
   public NamespaceResource() {
     this.namespaceScanner = null;
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Operation(

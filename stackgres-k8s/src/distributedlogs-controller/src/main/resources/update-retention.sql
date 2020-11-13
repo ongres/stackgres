@@ -1,0 +1,1 @@
+SELECT set_chunk_time_interval(${TABLE}, CAST(${RETENTION} AS INTERVAL))

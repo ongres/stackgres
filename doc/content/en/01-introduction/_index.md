@@ -3,6 +3,7 @@ title: Introduction
 weight: 1
 pre: "<b>1. </b>"
 chapter: true
+url: /intro
 ---
 
 ### Chapter 1

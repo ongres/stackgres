@@ -24,7 +24,6 @@ public abstract class AbstractResourceWriter<T extends HasMetadata,
     this.clientFactory = clientFactory;
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public void create(T resource) {
     try (KubernetesClient client = clientFactory.create()) {

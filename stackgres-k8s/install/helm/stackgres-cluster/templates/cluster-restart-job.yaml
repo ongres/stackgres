@@ -58,6 +58,7 @@ metadata:
     "helm.sh/hook": post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 spec:
+  backoffLimit: 0
   template:
     metadata:
       labels:
@@ -79,6 +80,8 @@ spec:
             {{ .Files.Get "cluster-restart.sh" | indent 12 }}
             EOF
             export REDUCED_IMPACT={{ if .Values.cluster.restartReducedImpact }}true{{ else }}false{{ end }}
+            export RESTART_PRIMARY_FIRST={{ if .Values.cluster.restartPrimaryFirst }}true{{ else }}false{{ end }}
+            export TIMEOUT={{ .Values.cluster.restartTimeout }}
             sh -x /tmp/cluster-restart.sh '{{ .Release.Namespace }}' '{{ .Release.Name }}'
       restartPolicy: Never
 {{- end }}

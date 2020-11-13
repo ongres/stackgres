@@ -8,6 +8,8 @@ kubectl get sgcluster -n "$NAMESPACE" "$SGCLUSTER" -o name > /dev/null
 
 READ_ONLY_PODS=
 REDUCED_IMPACT="${REDUCED_IMPACT:-true}"
+RESTART_PRIMARY_FIRST="${RESTART_PRIMARY_FIRST:-false}"
+TIMEOUT="${TIMEOUT:-300}"
 
 increase_instances_by_one() {
   INSTANCES="$(kubectl get sgcluster -n "$NAMESPACE" "$SGCLUSTER" --template "{{ .spec.instances }}")"
@@ -41,26 +43,27 @@ delete_read_only_instance() {
 wait_read_only_pod() {
   echo "Waiting for read only pod $1"
   until kubectl get pod -n "$NAMESPACE" "$1" > /dev/null 2>&1; do sleep 1; done
-  kubectl wait --for=condition=Ready -n "$NAMESPACE" "pod/$1"
-  while kubectl get -n "$NAMESPACE" pod \
-      -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=replica" -o name \
-    | grep -F "pod/$1" | wc -l | grep -q 0; do sleep 1; done
+  kubectl wait --timeout="${TIMEOUT}s" --for=condition=Ready -n "$NAMESPACE" "pod/$1"
 }
 
 delete_primary_instance() {
   echo "Deleting primary pod $1"
   kubectl delete -n "$NAMESPACE" pod "$1"
-  
+
+  wait_primary_pod "$1"
+}
+
+restart_primary_instance() {
+  echo "Restart primary instance $1"
+  kubectl exec -t -n "$NAMESPACE" "$1" -- patronictl restart "$SGCLUSTER" "$1" --force
+
   wait_primary_pod "$1"
 }
 
 wait_primary_pod() {
   echo "Waiting for primary pod $1"
   until kubectl get pod -n "$NAMESPACE" "$1" > /dev/null 2>&1; do sleep 1; done
-  kubectl wait --for=condition=Ready -n "$NAMESPACE" "pod/$1"
-  while kubectl get -n "$NAMESPACE" pod \
-      -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=master" -o name \
-    | grep -F "pod/$1" | wc -l | grep -q 0; do sleep 1; done
+  kubectl wait --timeout="${TIMEOUT}s" --for=condition=Ready -n "$NAMESPACE" "pod/$1"
 }
 
 perform_switchover() {
@@ -76,10 +79,21 @@ then
 fi
 
 update_read_only_pods
+
 if [ "$REDUCED_IMPACT" = "true" ]
 then
   READ_ONLY_PODS="$(echo "$READ_ONLY_PODS" | head -n -1)"
 fi
+
+if [ "$RESTART_PRIMARY_FIRST" = "true" ]
+then
+  PRIMARY_POD="$(kubectl get pod -n "$NAMESPACE" \
+      -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=master" -o name | head -n 1)"
+  PRIMARY_POD="${PRIMARY_POD#pod/}"
+
+  restart_primary_instance "$PRIMARY_POD"
+fi
+
 READ_ONLY_POD="$(echo "$READ_ONLY_PODS" | head -n 1)"
 [ -z "$READ_ONLY_POD" ] && echo "No read only pods needs restart" \
   || (

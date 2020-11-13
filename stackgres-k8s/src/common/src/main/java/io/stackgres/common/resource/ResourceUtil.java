@@ -27,8 +27,6 @@ import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.internal.SerializationUtils;
 import org.jooq.lambda.tuple.Tuple;
 import org.slf4j.Logger;
@@ -89,18 +87,6 @@ public class ResourceUtil {
 
   public static String getNameWithHashPattern(String name) {
     return "^" + Pattern.quote(name) + "-([a-z0-9]+){10}-([a-z0-9]+){5}$";
-  }
-
-  /**
-   * Get a custom resource definition from Kubernetes.
-   *
-   * @param client  Kubernetes client to call the API.
-   * @param crdName Name of the CDR to lookup.
-   * @return the CustomResourceDefinition model.
-   */
-  public static Optional<CustomResourceDefinition> getCustomResource(KubernetesClient client,
-                                                                     String crdName) {
-    return Optional.ofNullable(client.customResourceDefinitions().withName(crdName).get());
   }
 
   /**

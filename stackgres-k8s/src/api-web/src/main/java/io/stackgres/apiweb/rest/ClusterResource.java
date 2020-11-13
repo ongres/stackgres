@@ -46,7 +46,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
 import io.stackgres.apiweb.resource.ResourceTransactionHandler;
 import io.stackgres.apiweb.transformer.ResourceTransformer;
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -109,7 +109,7 @@ public class ClusterResource
 
   public ClusterResource() {
     super(null, null, null, null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.clusterScanner = null;
     this.clusterFinder = null;
     this.clusterResourceStatsFinder = null;

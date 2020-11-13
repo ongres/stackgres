@@ -16,4 +16,8 @@ public interface StackgresClusterContainers {
   String POSTGRES_EXPORTER = "prometheus-postgres-exporter";
 
   String POSTGRES_UTIL = "postgres-util";
+
+  String FLUENTD = "fluentd";
+
+  String DISTRIBUTEDLOGS_CONTROLLER = "distributedlogs-controller";
 }

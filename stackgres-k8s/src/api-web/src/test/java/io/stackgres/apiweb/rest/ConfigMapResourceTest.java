@@ -49,13 +49,11 @@ class ConfigMapResourceTest implements AuthenticatedResourceTest {
   void ifConfigMapsAreCreated_itShouldReturnThenInAnArray() {
 
     final String randomPlainValue = StringUtils.getRandomString();
-    final String randomBinaryValue = StringUtils.getRandomString();
 
     try (KubernetesClient client = factory.create()) {
       client.configMaps().inNamespace("test")
           .create(new ConfigMapBuilder()
               .withData(ImmutableMap.of("testKey", randomPlainValue))
-              .withBinaryData(ImmutableMap.of("binKey", randomBinaryValue))
               .withNewMetadata()
               .withName("testConfigMaps")
               .endMetadata()
@@ -69,7 +67,6 @@ class ConfigMapResourceTest implements AuthenticatedResourceTest {
         .then().statusCode(200)
         .body("", Matchers.hasSize(1))
         .body("[0].data.testKey", is(randomPlainValue))
-        .body("[0].binaryData.binKey", is(randomBinaryValue))
         .body("[0].metadata.name", is("testConfigMaps"));
 
   }

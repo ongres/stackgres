@@ -8,7 +8,7 @@ package io.stackgres.common.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileDefinition;
@@ -22,14 +22,14 @@ public class ProfileScanner
 
   @Inject
   public ProfileScanner(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresProfileDefinition.NAME,
+    super(clientFactory, StackGresProfileDefinition.CONTEXT,
         StackGresProfile.class, StackGresProfileList.class,
         StackGresProfileDoneable.class);
   }
 
   public ProfileScanner() {
     super(null, null, null, null, null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
 }

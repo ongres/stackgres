@@ -11,7 +11,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
@@ -33,15 +32,14 @@ public class ClusterFinder implements CustomResourceFinder<StackGresCluster> {
 
     try (KubernetesClient client = kubernetesClientFactory.create()) {
 
-      return ResourceUtil.getCustomResource(client, StackGresClusterDefinition.NAME)
-          .map(CustomResourceDefinitionContext::fromCrd)
-          .map(crd -> client.customResources(crd,
+      return Optional.ofNullable(
+          client.customResources(StackGresClusterDefinition.CONTEXT,
               StackGresCluster.class,
               StackGresClusterList.class,
               StackGresClusterDoneable.class)
-              .inNamespace(namespace)
-              .withName(name)
-              .get());
+          .inNamespace(namespace)
+          .withName(name)
+          .get());
 
     }
   }

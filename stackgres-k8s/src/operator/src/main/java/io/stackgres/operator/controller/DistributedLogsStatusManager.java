@@ -13,9 +13,10 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.ArcUtil;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
+import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDefinition;
@@ -23,7 +24,6 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDoneabl
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @ApplicationScoped
 public class DistributedLogsStatusManager extends AbstractClusterStatusManager<
@@ -37,7 +37,7 @@ public class DistributedLogsStatusManager extends AbstractClusterStatusManager<
 
   public DistributedLogsStatusManager() {
     super(null, null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Override
@@ -58,17 +58,17 @@ public class DistributedLogsStatusManager extends AbstractClusterStatusManager<
   }
 
   @Override
-  protected void patchCluster(StackGresDistributedLogsContext context,
+  protected void patch(StackGresDistributedLogsContext context,
       KubernetesClient client) {
     StackGresDistributedLogs distributedLogs = context.getDistributedLogs();
-    ResourceUtil.getCustomResource(client, StackGresDistributedLogsDefinition.NAME)
-        .ifPresent(crd -> client.customResources(crd,
-            StackGresDistributedLogs.class,
-            StackGresDistributedLogsList.class,
-            StackGresDistributedLogsDoneable.class)
-            .inNamespace(distributedLogs.getMetadata().getNamespace())
-            .withName(distributedLogs.getMetadata().getName())
-            .patch(distributedLogs));
+    client.customResources(
+        StackGresDistributedLogsDefinition.CONTEXT,
+        StackGresDistributedLogs.class,
+        StackGresDistributedLogsList.class,
+        StackGresDistributedLogsDoneable.class)
+        .inNamespace(distributedLogs.getMetadata().getNamespace())
+        .withName(distributedLogs.getMetadata().getName())
+        .patch(distributedLogs);
   }
 
   @Override

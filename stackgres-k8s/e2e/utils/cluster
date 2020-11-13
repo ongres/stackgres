@@ -39,3 +39,7 @@ create_or_replace_cluster() {
       --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
   fi
 }
+
+has_cluster_generated_resources() {
+  kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" > /dev/null
+}

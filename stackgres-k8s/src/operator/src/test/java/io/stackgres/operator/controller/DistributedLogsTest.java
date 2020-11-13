@@ -9,14 +9,13 @@ import static org.mockito.Mockito.when;
 
 import io.stackgres.common.DistributedLogsLabelFactory;
 import io.stackgres.common.DistributedLogsLabelMapper;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
 import io.stackgres.common.resource.CustomResourceScanner;
-import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
+import io.stackgres.operator.distributedlogs.controller.DistributedLogsController;
 import io.stackgres.operator.distributedlogs.fluentd.Fluentd;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,15 +33,6 @@ class DistributedLogsTest {
   private StackGresDistributedLogsList distributedLogsList;
 
   @Mock
-  private KubernetesClientFactory clientFactory;
-
-  @Mock
-  private Fluentd fluentd;
-
-  @Mock
-  private ObjectMapperProvider objectMapperProvider;
-
-  @Mock
   private OperatorPropertyContext operatorContext;
 
   private LabelFactory<StackGresDistributedLogs> labelFactory;
@@ -53,6 +43,12 @@ class DistributedLogsTest {
   @Mock
   private CustomResourceScanner<StackGresCluster> clusterScanner;
 
+  @Mock
+  private DistributedLogsController distributedLogsController;
+
+  @Mock
+  private Fluentd fluentd;
+
   private DistributedLogsReconciliationCycle reconciliationCycle;
 
   @BeforeEach
@@ -62,10 +58,15 @@ class DistributedLogsTest {
 
     labelFactory = new DistributedLogsLabelFactory(new DistributedLogsLabelMapper());
 
-    reconciliationCycle = new DistributedLogsReconciliationCycle(
-        clientFactory, null, fluentd, null, null, null, 
-        objectMapperProvider, operatorContext, labelFactory,
-        distributedLogsScanner, clusterScanner);
+    reconciliationCycle = DistributedLogsReconciliationCycle.create(p -> {
+      p.clientFactory = () -> null;
+      p.operatorContext = operatorContext;
+      p.labelFactory = labelFactory;
+      p.clusterScanner = clusterScanner;
+      p.distributedLogsScanner = distributedLogsScanner;
+      p.distributedLogsController = distributedLogsController;
+      p.fluentd = fluentd;
+    });
   }
 
   @Test
@@ -76,7 +77,7 @@ class DistributedLogsTest {
   @Test
   void givenSimpleConfigurationWithoutConnectedClusters_itShouldNotFail() {
     when(distributedLogsScanner.getResources()).thenReturn(distributedLogsList.getItems());
-    reconciliationCycle.getExistingConfigs();
+    reconciliationCycle.getExistingContexts();
   }
 
 }

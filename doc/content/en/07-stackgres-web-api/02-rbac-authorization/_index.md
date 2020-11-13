@@ -1,6 +1,7 @@
 ---
 title: RBAC Authorization Overview
 weight: 2
+url: api/rbac
 ---
 
 ## Authentication

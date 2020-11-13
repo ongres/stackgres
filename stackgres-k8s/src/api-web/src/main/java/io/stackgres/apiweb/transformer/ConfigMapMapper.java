@@ -14,7 +14,9 @@ public class ConfigMapMapper {
   public static ConfigMapDto map(ConfigMap configMap) {
     ConfigMapDto configMapDto = new ConfigMapDto();
     configMapDto.setMetadata(MetadataMapper.map(configMap.getMetadata()));
-    configMapDto.setData(ImmutableMap.copyOf(configMap.getData()));
+    if (configMap.getData() != null) {
+      configMapDto.setData(ImmutableMap.copyOf(configMap.getData()));
+    }
     return configMapDto;
   }
 

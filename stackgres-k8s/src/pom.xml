@@ -33,6 +33,7 @@
     <module>operator-framework</module>
     <module>operator</module>
     <module>api-web</module>
+    <module>distributedlogs-controller</module>
     <module>test-util</module>
     <module>jobs</module>
     <!-- <module>cli</module> -->
@@ -50,6 +51,7 @@
     <stackgres.crd.version>v1beta1</stackgres.crd.version>
     <stackgres.operatorName>stackgres-operator</stackgres.operatorName>
     <stackgres.operatorNamespace>stackgres</stackgres.operatorNamespace>
+    <stackgres.operatorImageVersion>development-jvm</stackgres.operatorImageVersion>
     <stackgres.operatorIP>localhost</stackgres.operatorIP>
     <stackgres.operatorVersion>${project.version}</stackgres.operatorVersion>
     <stackgres.documentation.uri>https://stackgres.io/doc/</stackgres.documentation.uri>
@@ -74,6 +76,7 @@
     <pmd.version>6.28.0</pmd.version>
     <docker-junit-extension.version>1.2.15</docker-junit-extension.version>
     <jersey.version>2.29</jersey.version>
+    <fluent-process.version>1.0.1</fluent-process.version>
     <log4j.version>2.13.3</log4j.version>
     <jooq.version>3.13.4</jooq.version>
     <jetbrains-annotations.version>20.0.0</jetbrains-annotations.version>
@@ -173,6 +176,11 @@
         <version>8.0.1</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>com.ongres</groupId>
+        <artifactId>fluent-process</artifactId>
+        <version>${fluent-process.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -195,6 +203,12 @@
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>value</artifactId>
+      <version>${immutables.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
+      <artifactId>annotate</artifactId>
       <version>${immutables.version}</version>
       <scope>provided</scope>
     </dependency>
@@ -297,6 +311,37 @@
         <groupId>org.jboss.jandex</groupId>
         <artifactId>jandex-maven-plugin</artifactId>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>${checkstyle-plugin.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>${checkstyle.version}</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>validate</id>
+            <phase>verify</phase>
+            <configuration>
+              <violationSeverity>error</violationSeverity>
+              <failOnViolation>true</failOnViolation>
+              <failsOnError>true</failsOnError>
+              <consoleOutput>true</consoleOutput>
+              <linkXRef>false</linkXRef>
+              <includeResources>false</includeResources>
+              <includeTestSourceDirectory>false</includeTestSourceDirectory>
+              <includeTestResources>false</includeTestResources>
+            </configuration>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
     <pluginManagement>
       <plugins>
@@ -334,6 +379,9 @@
           <groupId>io.openapitools.swagger</groupId>
           <artifactId>swagger-maven-plugin</artifactId>
           <version>${swagger-maven-plugin.version}</version>
+          <configuration>
+            <skip>true</skip>
+          </configuration>
         </plugin>
         <!--This plugin's configuration is used to store Eclipse m2e settings only.
             It has no influence on the Maven build itself.-->
@@ -383,37 +431,6 @@
       <id>safer</id> <!-- Slower but safer profile used to look for errors before pushing to SCM -->
       <build>
         <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-checkstyle-plugin</artifactId>
-            <version>${checkstyle-plugin.version}</version>
-            <dependencies>
-              <dependency>
-                <groupId>com.puppycrawl.tools</groupId>
-                <artifactId>checkstyle</artifactId>
-                <version>${checkstyle.version}</version>
-              </dependency>
-            </dependencies>
-            <executions>
-              <execution>
-                <id>validate</id>
-                <phase>verify</phase>
-                <configuration>
-                  <violationSeverity>error</violationSeverity>
-                  <failOnViolation>true</failOnViolation>
-                  <failsOnError>true</failsOnError>
-                  <consoleOutput>true</consoleOutput>
-                  <linkXRef>false</linkXRef>
-                  <includeResources>false</includeResources>
-                  <includeTestSourceDirectory>false</includeTestSourceDirectory>
-                  <includeTestResources>false</includeTestResources>
-                </configuration>
-                <goals>
-                  <goal>check</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
           <plugin>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-maven-plugin</artifactId>

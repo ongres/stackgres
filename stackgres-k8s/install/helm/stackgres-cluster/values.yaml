@@ -4,6 +4,8 @@ cluster:
   # restartRole: 
   restartClusterRole: cluster-admin
   restartReducedImpact: true
+  restartPrimaryFirst: false
+  restartTimeout: 300
   postgresVersion: '12.3'
   instances: 1
   sgInstanceProfile: size-xs
@@ -32,6 +34,7 @@ cluster:
     sgPoolingConfig: pgbouncerconf
   distributedLogs:
     sgDistributedLogs: distributedlogs
+    retention: 7 days
   #restore:
   #  initialData:
   #    fromBackup:

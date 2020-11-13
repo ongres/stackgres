@@ -1,6 +1,7 @@
 ---
 title: Cluster Restart
 weight: 4
+url: install/restart
 ---
 
 This procedure can be used in general after a configuration change that requires restart (including
@@ -22,10 +23,7 @@ kubectl get sgclusters.stackgres.io -A --template '
 The restart procedure will generate a service disruption. The service disruption will start for the
  read write connections when the primary pod is deleted and will end when Patroni elect the new
  primary. For read only connections the service disruption will start when only one replica exists
- and the replica pod is deleted and will end when Patroni set the role of the pod to replica. If
- Postgres `max_connections`, `max_prepared_transactions` or `max_locks_per_transaction` are changed
- to a greater value than they were set before the change the service disruption for read only
- connection will last at most as the disruption for the read write connections.
+ and the replica pod is deleted and will end when Patroni set the role of the pod to replica.
 
 There are two restart strategy:
 
@@ -38,6 +36,12 @@ There are two restart strategy:
 
 Those procedures includes some shell script snippet examples. In those snippet we assume the
  following environment variables are set with values of the StackGres cluster you want to restart:
+
+NOTE: If any of postgres's parameters `max_connections`, `max_prepared_transactions`, `max_wal_senders`,
+ `max_wal_senders` or `max_locks_per_transaction` are changed to a lower value than they were set
+ the primary have to be restarted before any replica can be restarted too, the service disruption
+ for read write connection will last longer in this case depending how long it take to the primary
+ to restart.
 
 ```shell
 NAMESPACE=default
@@ -72,6 +76,23 @@ while kubectl get pod -n "$NAMESPACE" \
   | grep -F "pod/$READ_ONLY_POD" | wc -l | grep -q 0; do sleep 1; done
 ```
 
+## 5. \[In-place Restart\] - Restart primary first
+
+**\[Optional, if `max_connections`, `max_prepared_transactions`, `max_wal_senders`,
+ `max_wal_senders` or `max_locks_per_transaction` are changed to a lower value than they were set\]**
+
+```shell
+PRIMARY_POD="$(kubectl get pod -n "$NAMESPACE" \
+    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=master" -o name | head -n 1)"
+PRIMARY_POD="${PRIMARY_POD#pod/}"
+
+echo "Restart primary instance $PRIMARY_POD"
+kubectl exec -t -n "$NAMESPACE" "$PRIMARY_POD" -- patronictl restart "$SGCLUSTER" "$PRIMARY_POD" --force
+
+echo "Waiting for primary pod $PRIMARY_POD"
+kubectl wait --for=condition=Ready -n "$NAMESPACE" "pod/$PRIMARY_POD"
+```
+
 ## 2. \[In-place Restart\] - Check read-only pods to restart
 
 Check which read-only pods requires to be restarted.
@@ -104,9 +125,6 @@ A new one will be created, and will also have the new components. Wait until ful
 ```shell
 echo "Waiting for pod $READ_ONLY_POD"
 kubectl wait --for=condition=Ready -n "$NAMESPACE" "pod/$READ_ONLY_POD"
-while kubectl get -n "$NAMESPACE" pod \
-    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=replica" -o name \
-  | grep -F "pod/$READ_ONLY_POD" | wc -l | grep -q 0; do sleep 1; done
 ```
 
 ## 4. \[In-place Restart\] - Repeat two previous steps
@@ -155,20 +173,8 @@ kubectl delete -n "$NAMESPACE" pod "$PRIMARY_POD"
 A new read-only (or primary if there were only a single instance) instance will be created. Wait until it is fully operational.
 
 ```shell
-if [ -n "$READ_ONLY_POD" ]
-then
-  echo "Waiting for pod $PRIMARY_POD"
-  kubectl wait --for=condition=Ready -n "$NAMESPACE" pod "$PRIMARY_POD"
-  while kubectl get pod -n "$NAMESPACE" \
-      -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=replica" -o name \
-    | grep -F "pod/$PRIMARY_POD" | wc -l | grep -q 0; do sleep 1; done
-else
-  echo "Waiting for pod $PRIMARY_POD"
-  kubectl wait --for=condition=Ready -n "$NAMESPACE" pod "$PRIMARY_POD"
-  while kubectl get pod -n "$NAMESPACE" \
-      -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=master" -o name \
-    | grep -F "pod/$PRIMARY_POD" | wc -l | grep -q 0; do sleep 1; done
-fi
+echo "Waiting for pod $PRIMARY_POD"
+kubectl wait --for=condition=Ready -n "$NAMESPACE" pod "$PRIMARY_POD"
 ```
 
 ## 7. \[Reduced-impact Restart\] - Scale back the cluster size, editing the

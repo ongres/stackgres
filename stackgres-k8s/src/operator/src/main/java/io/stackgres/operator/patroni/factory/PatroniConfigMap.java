@@ -18,12 +18,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
@@ -42,7 +43,7 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
   public static final String POSTGRES_PORT_NAME = "pgport";
   public static final String POSTGRES_REPLICATION_PORT_NAME = "pgreplication";
 
-  private static final Logger PATRONI_LOGGER = LoggerFactory.getLogger("patroni");
+  private static final Logger PATRONI_LOGGER = LoggerFactory.getLogger("io.stackgres.patroni");
 
   private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -77,9 +78,9 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
         .orElse("0.0.0.0"); // NOPMD
     final int pgRawPort = clusterContext.getSidecars().stream()
         .filter(entry -> entry.getSidecar() instanceof Envoy)
-        .map(entry -> Envoy.PG_REPL_ENTRY_PORT)
+        .map(entry -> EnvoyUtil.PG_REPL_ENTRY_PORT)
         .findFirst()
-        .orElse(Envoy.PG_PORT);
+        .orElse(EnvoyUtil.PG_PORT);
     Map<String, String> data = new HashMap<>();
     data.put("PATRONI_SCOPE", labelFactory.clusterScope(cluster));
     data.put("PATRONI_KUBERNETES_SCOPE_LABEL", labelFactory.getLabelMapper().clusterScopeKey());
@@ -87,7 +88,7 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
     data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
     data.put("PATRONI_SUPERUSER_USERNAME", "postgres");
     data.put("PATRONI_REPLICATION_USERNAME", "replicator");
-    data.put("PATRONI_POSTGRESQL_LISTEN", pgHost + ":" + Envoy.PG_PORT);
+    data.put("PATRONI_POSTGRESQL_LISTEN", pgHost + ":" + EnvoyUtil.PG_PORT);
     data.put("PATRONI_POSTGRESQL_CONNECT_ADDRESS",
         "${PATRONI_KUBERNETES_POD_IP}:" + pgRawPort);
 

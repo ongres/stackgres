@@ -5,23 +5,17 @@
 
 package io.stackgres.operator.app;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.stackgres.common.app.AbstractReconciliationClock;
 import io.stackgres.operator.controller.ClusterReconciliationCycle;
 import io.stackgres.operator.controller.DistributedLogsReconciliationCycle;
 
 @ApplicationScoped
-public class ReconciliationClockImpl implements ReconciliationClock {
+public class ReconciliationClockImpl extends AbstractReconciliationClock {
 
-  private final ScheduledExecutorService scheduledExecutorService =
-      Executors.newScheduledThreadPool(1, r -> new Thread(r, "ClusterControllerShceduler"));
-
-  private ClusterReconciliationCycle clusterReconciliationCycle;
+  private final ClusterReconciliationCycle clusterReconciliationCycle;
   private final DistributedLogsReconciliationCycle distributedLogsReconciliationCycle;
 
   @Inject
@@ -32,23 +26,8 @@ public class ReconciliationClockImpl implements ReconciliationClock {
   }
 
   @Override
-  public void start() {
-    clusterReconciliationCycle.start();
-    distributedLogsReconciliationCycle.start();
-
-    scheduledExecutorService.scheduleAtFixedRate(
-        this::reconcile, 0, 10, TimeUnit.SECONDS);
-
-  }
-
-  private void reconcile() {
+  protected void reconcile() {
     clusterReconciliationCycle.reconcile();
     distributedLogsReconciliationCycle.reconcile();
-  }
-
-  @Override
-  public void stop() {
-    scheduledExecutorService.shutdown();
-    clusterReconciliationCycle.stop();
   }
 }

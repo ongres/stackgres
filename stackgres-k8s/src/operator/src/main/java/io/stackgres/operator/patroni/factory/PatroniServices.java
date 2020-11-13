@@ -35,8 +35,6 @@ import org.jooq.lambda.Seq;
 @ApplicationScoped
 public class PatroniServices implements StackGresClusterResourceStreamFactory {
 
-  public static final int POSTGRES_SERVICE_PORT = 5432;
-  public static final int REPLICATION_SERVICE_PORT = 5433;
   private LabelFactoryDelegator factoryDelegator;
 
   public static String readWriteName(StackGresClusterContext clusterContext) {
@@ -162,13 +160,13 @@ public class PatroniServices implements StackGresClusterResourceStreamFactory {
         .withPorts(new ServicePortBuilder()
                 .withProtocol("TCP")
                 .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
-                .withPort(POSTGRES_SERVICE_PORT)
+                .withPort(PatroniUtil.POSTGRES_SERVICE_PORT)
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_PORT_NAME))
                 .build(),
             new ServicePortBuilder()
                 .withProtocol("TCP")
                 .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
-                .withPort(REPLICATION_SERVICE_PORT)
+                .withPort(PatroniUtil.REPLICATION_SERVICE_PORT)
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME))
                 .build())
         .withType(serviceType.name())
@@ -212,13 +210,13 @@ public class PatroniServices implements StackGresClusterResourceStreamFactory {
         .withPorts(new ServicePortBuilder()
                 .withProtocol("TCP")
                 .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
-                .withPort(POSTGRES_SERVICE_PORT)
+                .withPort(PatroniUtil.POSTGRES_SERVICE_PORT)
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_PORT_NAME))
                 .build(),
             new ServicePortBuilder()
                 .withProtocol("TCP")
                 .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
-                .withPort(REPLICATION_SERVICE_PORT)
+                .withPort(PatroniUtil.REPLICATION_SERVICE_PORT)
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME))
                 .build())
         .withType(serviceType.name())

@@ -61,6 +61,7 @@ update_k8s_config() {
   chmod 700 "$KUBECONFIG"
   )
 
+  chmod 700 "$KUBECONFIG"
   # fix for Unable to connect to the server: x509: certificate is valid for <ips>, not <ip>
   kubectl config set "clusters.kind-$KIND_NAME.insecure-skip-tls-verify" --set-raw-bytes true
   kubectl config unset "clusters.kind-$KIND_NAME.certificate-authority-data"
