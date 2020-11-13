@@ -13,5 +13,8 @@ cd "$(dirname "$0")"
 mkdir -p target
 rm -rf target/public
 cp -a public target/public
-mkdir -p target/public/js/components/forms/help
-"$SHELL" $SHELL_XTRACE ../../ci/utils/crds2description_json.sh ../jobs/src/main/resources/crds target/public/js/components/forms/help
+
+mkdir -p target/public/info
+"$SHELL" $SHELL_XTRACE ../api-web/src/main/swagger/build.sh
+cp ../api-web/target/swagger-merged.json target/public/info/sg-tooltips.json
+

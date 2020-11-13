@@ -50,7 +50,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 
 			<div class="content">
 				<h2>Cluster Details</h2>
-				<table class="clusterConfig">
+				<table class="clusterConfig" v-if="tooltips.hasOwnProperty('sgcluster')">
 					<thead>
 						<th></th>
 						<th></th>
@@ -61,18 +61,21 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						<tr>
 							<td class="label">
 								Postgres Version
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresVersion.description"></span>
 							</td>
 							<td colspan="3">{{ cluster.data.spec.postgresVersion }}</td>
 						</tr>
 						<tr>
 							<td class="label">
 								Instances
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.instances.description"></span>
 							</td>
 							<td colspan="3">{{ cluster.data.spec.instances }}</td>
 						</tr>
 						<tr>
 							<td class="label">
 								Instance Profile
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.sgInstanceProfile.description"></span>
 							</td>
 							<td colspan="3" v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
 								<router-link :to="'/admin/profiles/'+currentNamespace+'/'+cluster.data.spec.sgInstanceProfile">
@@ -84,24 +87,29 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						<tr>
 							<td class="label" rowspan="3">
 								Pods
+								<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.spec.pods.description"></span>
 							</td>
 							<td class="label" :rowspan="Object.keys(cluster.data.spec.pods.persistentVolume).length">
 								Persistent Volume
+								<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.spec.pods.persistentVolume.description"></span>
 							</td>
 							<td class="label">
 								Volume Size
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.pods.persistentVolume.size.description"></span>
 							</td>
 							<td>{{ cluster.data.spec.pods.persistentVolume.size }}</td>
 						</tr>
 						<tr v-if="(typeof cluster.data.spec.pods.persistentVolume.storageClass !== 'undefined')">
 							<td class="label">
 								Storage Class
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.pods.persistentVolume.storageClass.description"></span>
 							</td>
 							<td>{{ cluster.data.spec.pods.persistentVolume.size }}</td>
 						</tr>
 						<tr>
 							<td class="label">
 								Connection Pooling
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.configurations.sgPoolingConfig.description"></span>
 							</td>
 							<td colspan="2">
 								<template v-if="(typeof cluster.data.spec.configurations.sgPoolingConfig !== 'undefined')">
@@ -115,6 +123,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						<tr>
 							<td class="label">
 								Metrics Exporter
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.pods.disableMetricsExporter.description"></span>
 							</td>
 							<td colspan="2">
 								<template v-if="!cluster.data.spec.pods.disableMetricsExporter">
@@ -128,9 +137,11 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						<tr>
 							<td class="label" :rowspan="Object.keys(cluster.data.spec.configurations).length">
 								Configurations
+								<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.spec.configurations.description"></span>
 							</td>
 							<td class="label">
 								Postgres
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.configurations.sgPostgresConfig.description"></span>
 							</td>
 							<td colspan="2">
 								<router-link :to="'/admin/configurations/postgres/'+currentNamespace+'/'+cluster.data.spec.configurations.sgPostgresConfig">
@@ -142,6 +153,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						<tr v-if="(typeof cluster.data.spec.configurations.sgPoolingConfig !== 'undefined')">
 							<td class="label">
 								Connection Pooling
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.configurations.sgPoolingConfig.description"></span>
 							</td>
 							<td colspan="2">
 								<router-link :to="'/admin/configurations/connectionpooling/'+currentNamespace+'/'+cluster.data.spec.configurations.sgPoolingConfig">
@@ -153,6 +165,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						<tr v-if="(typeof cluster.data.spec.configurations.sgBackupConfig !== 'undefined')">
 							<td class="label">
 								Managed Backups
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.configurations.sgBackupConfig.description"></span>
 							</td>
 							<td colspan="2">
 								<router-link :to="'/admin/configurations/backup/'+currentNamespace+'/'+cluster.data.spec.configurations.sgBackupConfig">
@@ -164,6 +177,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						<tr>
 							<td class="label">
 								Prometheus Autobind
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.prometheusAutobind.description"></span>
 							</td>
 							<td colspan="3">
 								<template v-if="(typeof cluster.data.spec.prometheusAutobind !== 'undefined')">
@@ -180,6 +194,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 							</td>
 							<td class="label">
 								Cluster Pod Anti Affinity
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.nonProductionOptions.disableClusterPodAntiAffinity.description"></span>
 							</td>
 							<td colspan="2">
 								<template v-if="typeof cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined'">
@@ -196,9 +211,11 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 									<tr>
 										<td class="label" rowspan="3">
 											Initial Data
+											<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.initialData.description"></span>
 										</td>
 										<td class="label">
 											Download Disk Concurrency
+											<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.initialData.restore.downloadDiskConcurrency.description"></span>
 										</td>
 										<td colspan="2">
 											{{ cluster.data.spec.initialData.restore.downloadDiskConcurrency }}
@@ -207,6 +224,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 									<tr>
 										<td class="label" rowspan="2">
 											Restored from Backup
+											<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.initialData.restore.fromBackup.description"></span>
 										</td>
 										<td class="label">
 											Backup UID
@@ -242,9 +260,11 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 									<tr>
 										<td class="label" rowspan="3">
 											Initial Data
+											<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.initialData.description"></span>
 										</td>
 										<td class="label">
 											Download Disk Concurrency
+											<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.initialData.restore.downloadDiskConcurrency.description"></span>
 										</td>
 										<td colspan="2">
 											{{ cluster.data.spec.initialData.restore.downloadDiskConcurrency }}
@@ -253,6 +273,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 									<tr>
 										<td class="label" rowspan="2">
 											Restored from Backup
+											<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.initialData.restore.fromBackup.description"></span>
 										</td>
 										<td class="label">
 											Backup UID
@@ -274,7 +295,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 
 				<div class="podsMetadata" v-if="hasProp(cluster, 'data.spec.pods.metadata') || hasProp(cluster, 'data.spec.pods.scheduling')">
 					<h2>Pods Details</h2>
-					<table v-if="hasProp(cluster, 'data.spec.pods.metadata.labels')" class="clusterConfig">
+					<table v-if="hasProp(cluster, 'data.spec.pods.metadata.labels') && tooltips.hasOwnProperty('sgcluster')" class="clusterConfig">
 						<thead>
 							<th></th>
 							<th></th>
@@ -285,9 +306,11 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 							<tr v-for="(item, index) in unparseProps(cluster.data.spec.pods.metadata.labels)">
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.metadata.labels).length">
 									Pods Metadata
+									<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.pods.metadata.description"></span>
 								</td>
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.metadata.labels).length">
 									Labels
+									<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.pods.metadata.labels.description"></span>
 								</td>
 								<td class="label">
 									{{ item.annotation }}
@@ -299,7 +322,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						</tbody>
 					</table>
 
-					<table v-if="hasProp(cluster, 'data.spec.pods.scheduling.nodeSelector')" class="clusterConfig">
+					<table v-if="hasProp(cluster, 'data.spec.pods.scheduling.nodeSelector') && tooltips.hasOwnProperty('sgcluster')" class="clusterConfig">
 						<thead>
 							<th></th>
 							<th></th>
@@ -310,9 +333,11 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 							<tr v-for="(item, index) in unparseProps(cluster.data.spec.pods.scheduling.nodeSelector)">
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.scheduling.nodeSelector).length">
 									Pods Scheduling
+									<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.pods.scheduling.description"></span>
 								</td>
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.scheduling.nodeSelector).length">
 									Node Selectors
+									<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.pods.scheduling.nodeSelector.description"></span>
 								</td>
 								<td class="label">
 									{{ item.annotation }}
@@ -325,8 +350,8 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 					</table>
 				</div>
 
-				<div class="scripts" v-if="hasProp(cluster, 'data.spec.initialData.scripts')">
-					<h2>Scripts</h2>
+				<div class="scripts" v-if="hasProp(cluster, 'data.spec.initialData.scripts') && tooltips.hasOwnProperty('sgcluster')">
+					<h2>Scripts <span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.initialData.scripts.description"></span></h2>
 					<table class="clusterConfig">
 						<thead>
 							<th></th>
@@ -401,8 +426,8 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 					</table>
 				</div>
 
-				<div class="resourcesMetadata" v-if="hasProp(cluster, 'data.spec.metadata.annotations')">
-					<h2>Resources Metadata</h2>
+				<div class="resourcesMetadata" v-if="hasProp(cluster, 'data.spec.metadata.annotations') && tooltips.hasOwnProperty('sgcluster')">
+					<h2>Resources Metadata <span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.metadata.description"></span></h2>
 					<table v-if="hasProp(cluster, 'data.spec.metadata.annotations.allResources')" class="clusterConfig">
 						<thead>
 							<th></th>
@@ -414,6 +439,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 							<tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.allResources)">
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.allResources).length">
 									All Resources
+									<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.metadata.annotations.allResources.description"></span>
 								</td>
 								<td class="label">
 									{{ item.annotation }}
@@ -436,6 +462,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 							<tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.pods)">
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.pods).length">
 									Pods
+									<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.metadata.annotations.pods.description"></span>
 								</td>
 								<td class="label">
 									{{ item.annotation }}
@@ -470,8 +497,8 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 					</table>
 				</div>	
 
-				<div class="postgresServices" v-if="hasProp(cluster, 'data.spec.postgresServices') && ((hasProp(cluster, 'data.spec.postgresServices.primary') && cluster.data.spec.postgresServices.primary.enabled) || (hasProp(cluster, 'data.spec.postgresServices.replicas') && cluster.data.spec.postgresServices.replicas.enabled))">
-					<h2>Postgres Services</h2>
+				<div class="postgresServices" v-if="tooltips.hasOwnProperty('sgcluster') && hasProp(cluster, 'data.spec.postgresServices') && ((hasProp(cluster, 'data.spec.postgresServices.primary') && cluster.data.spec.postgresServices.primary.enabled) || (hasProp(cluster, 'data.spec.postgresServices.replicas') && cluster.data.spec.postgresServices.replicas.enabled))">
+					<h2>Postgres Services <span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresServices.description"></span></h2>
 					<table v-if="hasProp(cluster, 'data.spec.postgresServices.primary') && cluster.data.spec.postgresServices.primary.enabled" class="clusterConfig">
 						<thead>
 							<th></th>
@@ -483,12 +510,15 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 							<tr>
 								<td class="label" v-if="!hasProp(cluster, 'data.spec.postgresServices.primary.annotations')">
 									Primary
+									<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresServices.primary.description"></span>
 								</td>
 								<td class="label" v-else :rowspan="Object.keys(cluster.data.spec.postgresServices.primary.annotations).length+1">
 									Primary
+									<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresServices.primary.description"></span>
 								</td>
 								<td class="label">
 									Type
+									<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresServices.primary.type.description"></span>
 								</td>
 								<td colspan="2">
 									{{ cluster.data.spec.postgresServices.primary.type }}
@@ -497,6 +527,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 							<tr v-for="(item, index) in unparseProps(cluster.data.spec.postgresServices.primary.annotations)">
 								<td v-if="index == 0" class="label" :rowspan="Object.keys(cluster.data.spec.postgresServices.primary.annotations).length">
 									Annotations
+									<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresServices.primary.annotations.description"></span>
 								</td>
 								<td class="label">
 									{{ item.annotation }}
@@ -519,12 +550,15 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 							<tr>
 								<td class="label" v-if="!hasProp(cluster, 'data.spec.postgresServices.replicas.annotations')">
 									Replicas
+									<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresServices.replicas.description"></span>
 								</td>
 								<td class="label" v-else :rowspan="Object.keys(cluster.data.spec.postgresServices.replicas.annotations).length+1">
 									Replicas
+									<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresServices.replicas.description"></span>
 								</td>
 								<td class="label">
 									Type
+									<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresServices.replicas.type.description"></span>
 								</td>
 								<td colspan="2">
 									{{ cluster.data.spec.postgresServices.replicas.type }}
@@ -533,6 +567,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 							<tr v-for="(item, index) in unparseProps(cluster.data.spec.postgresServices.replicas.annotations)">
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.postgresServices.replicas.annotations).length">
 									Annotations
+									<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresServices.replicas.annotations.description"></span>
 								</td>
 								<td class="label">
 									{{ item.annotation }}
@@ -577,6 +612,10 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 		})
 	},
 	computed: {
+
+		tooltips () {
+			return store.state.tooltips
+		},
 
 		clusters () {
 			//console.log(store.state.currentCluster);

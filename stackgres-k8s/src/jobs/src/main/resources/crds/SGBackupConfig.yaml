@@ -27,9 +27,9 @@ spec:
                 name:
                   type: string
                   description: |
-                    The name of this Backup Configuration. StackGres supports [Continuous Archiving](https://www.postgresql.org/docs/current/continuous-archiving.html)-based backups, which help achieve near-zero data loss in case of recovery from a backup. And they will be performed automatically. An SGBackupConfig contains the necessary configuration for automatic backups, and this field is the name of the given configuration, that may be referenced by zero or more SGClusters, and if so it would be referenced by this name. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the `-` character allowed anywhere except the first or last character.
+                    Name of the Backup Configuration. StackGres supports [Continuous Archiving](https://www.postgresql.org/docs/current/continuous-archiving.html)-based backups which are performed automatically, helping achieve near-zero data loss in case of recovery from a backup. An SGBackupConfig contains the necessary configuration to perform these automatic backups and may be referenced by zero or more SGClusters, and if so it would be referenced by its name. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the `-` character allowed anywhere except the first or last character.
 
-                    This name needs to be unique across all backup configurations in the same namespace.
+                    The name must be unique across all backup configurations in the same namespace.
             spec:
               type: object
               properties:
@@ -44,28 +44,28 @@ spec:
                         Continuous Archiving backups are composed of periodic *base backups* and all the WAL segments produced in between those base backups. This parameter specifies at what time and with what frequency to start performing a new base backup.
 
                         Use cron syntax (`m h dom mon dow`) for this parameter, i.e., 5 values separated by spaces:
-                        *  `m`: minute, 0 to 59
-                        *  `h`: hour, 0 to 23
-                        *  `dom`: day of month, 1 to 31 (recommended not to set it higher than 28)
-                        *  `mon`: month, 1 to 12
-                        *  `dow`: day of week, 0 to 7 (0 and 7 both represent Sunday)
+                        *  `m`: minute, 0 to 59.
+                        *  `h`: hour, 0 to 23.
+                        *  `dom`: day of month, 1 to 31 (recommended not to set it higher than 28).
+                        *  `mon`: month, 1 to 12.
+                        *  `dow`: day of week, 0 to 7 (0 and 7 both represent Sunday).
 
-                        Also ranges of values (`start-end`), the symbol `*` (meaning `first-last`) or even `*/N`, where `N` is a number, meaning "every `N`, may be used. All times are UTC. It is recommended to avoid 00:00 as base backup time, to avoid overlapping with any other external operations happening at this time.
+                        Also ranges of values (`start-end`), the symbol `*` (meaning `first-last`) or even `*/N`, where `N` is a number, meaning ""every `N`, may be used. All times are UTC. It is recommended to avoid 00:00 as base backup time, to avoid overlapping with any other external operations happening at this time.
 
-                        If not provided, full backups will be performed each day at 05:00 UTC
+                        If not set, full backups are performed each day at 05:00 UTC.
                     retention:
                       type: integer
                       minimum: 1
                       description: |
-                        Based on this parameter, an automatic retention policy is defined to delete old base backups.
-                        This parameter specifies the number of base backups to keep, in a sliding window.
+                        When an automatic retention policy is defined to delete old base backups, this parameter specifies the number of base backups to keep, in a sliding window.
+
                         Consequently, the time range covered by backups is `periodicity*retention`, where `periodicity` is the separation between backups as specified by the `cronSchedule` property.
 
                         Default is 5.
                     compression:
                       type: string
                       description: |
-                        Select the backup compression algorithm. Possible options are: lz4, lzma, brotli. The default method is `lz4`. LZ4 is the fastest method, but compression ratio is the worst. LZMA is way slower, but it compresses backups about 6 times better than LZ4. Brotli is a good trade-off between speed and compression ratio, being about 3 times better than LZ4.
+                        Specifies the backup compression algorithm. Possible options are: lz4, lzma, brotli. The default method is `lz4`. LZ4 is the fastest method, but compression ratio is the worst. LZMA is way slower, but it compresses backups about 6 times better than LZ4. Brotli is a good trade-off between speed and compression ratio, being about 3 times better than LZ4.
                       enum: ["lz4", "lzma", "brotli"]
                     performance:
                       type: object
@@ -73,7 +73,7 @@ spec:
                         maxNetworkBandwitdh:
                           type: integer
                           description: |
-                            Maximum storage upload bandwidth to be used when storing the backup. In bytes (per second).
+                            Maximum storage upload bandwidth used when storing a backup. In bytes (per second).
                         maxDiskBandwitdh:
                           type: integer
                           description: |
@@ -82,7 +82,7 @@ spec:
                           type: integer
                           minimum: 1
                           description: |
-                            Backup storage may use several concurrent streams to store the data. This parameter configures the number of parallel streams to use. By default, it will use 1 (one stream).
+                            Backup storage may use several concurrent streams to store the data. This parameter configures the number of parallel streams to use. By default, it's set to 1 (use one stream).
                 storage:
                   type: object
                   description: |

@@ -25,16 +25,25 @@ var PgConfig = Vue.component("PostgresConfig", {
 			</header>
 
 			<div class="content">
-				<table id="postgres" class="configurations pgConfig">
+				<table id="postgres" class="configurations pgConfig" v-if="tooltips.hasOwnProperty('sgpostgresconfig')">
 					<thead class="sort">
-						<th @click="sort('data.metadata.name')" class="sorted desc name">
-							<span>Name</span>
+						<th class="sorted desc name">
+							<span @click="sort('data.metadata.name')">
+								Name
+							</span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.metadata.name.description"></span>
 						</th>
-						<th @click="sort('data.spec.postgresVersion')" class="desc postgresVersion">
-							<span>PG</span>
+						<th class="desc postgresVersion">
+							<span @click="sort('data.spec.postgresVersion')">
+								PG
+							</span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.spec.postgresVersion.description"></span>
 						</th>
 						<th class="config">
-							<span>Parameters</span>
+							<span>
+								Parameters
+							</span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.spec['postgresql.conf'].description"></span>
 						</th>
 						<th class="actions"></th>
 					</thead>
@@ -77,16 +86,20 @@ var PgConfig = Vue.component("PostgresConfig", {
 							<tr :style="$route.params.name == conf.name ? 'display: table-row' : ''" :class="$route.params.name == conf.name ? 'open details pgConfig' : 'details pgConfig'">
 								<td colspan="4">
 									<div class="configurationDetails">
-										<span class="title">Configuration Details</span>	
 										<table>
+											<thead>
+												<th colspan="2" class="label">
+													Configuration Details
+												</th>
+											</thead>
 											<tbody>
 												<tr>
-													<td class="label">Postgres Version</td>
+													<td class="label">Postgres Version <span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.spec.postgresVersion.description"></span></td>
 													<td>{{ conf.data.spec.postgresVersion }}</td>
 												</tr>
 												<template v-if="conf.data.status.clusters.length">
 													<tr>
-														<td class="label">Used on</td>
+														<td class="label">Used on <span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.status.clusters.description"></span></td>
 														<td class="usedOn">
 															<ul>
 																<li v-for="c in conf.data.status.clusters">
@@ -104,8 +117,13 @@ var PgConfig = Vue.component("PostgresConfig", {
 									</div>
 									<div class="paramDetails" v-if="conf.data.status['postgresql.conf'].length">
 										<template v-if="conf.data.status.defaultParameters.length != conf.data.status['postgresql.conf'].length">
-											<span class="title">Parameters</span>	
 											<table>
+												<thead>
+													<th colspan="2" class="label">
+														Parameters
+														<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.spec['postgresql.conf'].description"></span>
+													</th>
+												</thead>
 												<tbody>
 													<tr v-for="param in conf.data.status['postgresql.conf']" v-if="!conf.data.status.defaultParameters.includes(param.parameter)">
 														<td class="label">
@@ -126,8 +144,13 @@ var PgConfig = Vue.component("PostgresConfig", {
 										</template>
 
 										<template v-if="conf.data.status.defaultParameters.length">
-											<span class="title">Default Parameters</span>	
 											<table class="defaultParams">
+												<thead>
+													<th colspan="2" class="label">
+														Default Parameters
+														<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.status.defaultParameters.description"></span>
+													</th>
+												</thead>
 												<tbody>
 													<tr v-for="param in conf.data.status['postgresql.conf']" v-if="conf.data.status.defaultParameters.includes(param.parameter)">
 														<td class="label">
@@ -173,6 +196,10 @@ var PgConfig = Vue.component("PostgresConfig", {
 		currentNamespace () { 
 			return store.state.currentNamespace
 		},
+
+		tooltips() {
+			return store.state.tooltips
+		}
 
 	},
 	mounted: function() {

@@ -29,9 +29,9 @@ spec:
                 name:
                   type: string
                   description: |
-                    The name of the backup created (automatic backups) or to be created (if requesting manual creation). It must follow [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the `-` character allowed anywhere except the first or last character.
+                    Name of the backup. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the `-` character allowed anywhere except the first or last character.
 
-                    This name needs to be unique across all StackGres backups in the same namespace.
+                    The name must be unique across all StackGres backups in the same namespace."
             spec:
               type: object
               properties:
@@ -57,7 +57,7 @@ spec:
                       type: string
                       enum: [Running, Completed, Failed]
                       description: |
-                        The status of the backup.
+                        Status of the backup.
                     failure:
                       type: string
                       description: |
@@ -65,7 +65,7 @@ spec:
                     jobPod:
                       type: string
                       description: |
-                        The name of pod assigned to this backup. StackGres utilizes internally a locking mechanism based on the pod name of the job that creates the backup.
+                        Name of the pod assigned to the backup. StackGres utilizes internally a locking mechanism based on the pod name of the job that creates the backup.
                     managedLifecycle:
                       type: boolean
                       description: |
@@ -77,40 +77,40 @@ spec:
                           type: string
                           # format: date-time
                           description: |
-                            The start time of backup.
+                            Start time of backup.
                         end:
                           type: string
                           # format: date-time
                           description: |
-                            The end time of backup.
+                            End time of backup.
                         stored:
                           type: string
                           # format: date-time
                           description: |
-                            The time at which the backup is safely stored in the object storage.
+                            Time at which the backup is safely stored in the object storage.
                 backupInformation:
                   type: object
                   properties:
                     hostname:
                       type: string
                       description: |
-                        The hostname of instance where the backup is taken.
+                        Hostname of the instance where the backup is taken from.
                     sourcePod:
                       type: string
                       description: |
-                        The pod where the backup is taken.
+                        Pod where the backup is taken from.
                     systemIdentifier:
                       type: string
                       description: |
-                        The Postgres *system identifier* of the cluster this backup is taken from.
+                        Postgres *system identifier* of the cluster this backup is taken from.
                     postgresVersion:
                       type: string
                       description: |
-                        The Postgres version of the server where backup is taken.
+                        Postgres version of the server where the backup is taken from.
                     pgData:
                       type: string
                       description: |
-                        The data directory where the backup is taken.
+                        Data directory where the backup is taken from.
                     size:
                       type: object
                       properties:
@@ -130,19 +130,19 @@ spec:
                         start:
                           type: string
                           description: |
-                            The LSN of when backup started.
+                            LSN of when the backup started.
                         end:
                           type: string
                           description: |
-                            The LSN of when backup finished.
+                            LSN of when the backup finished.
                     startWalFile:
                       type: string
                       description: |
-                        The WAL segment file name when backup was started.
+                        WAL segment file name when the backup was started.
                     timeline:
                       type: string
                       description: |
-                        The backup timeline.
+                        Backup timeline.
                     controlData:
                       type: object
                       description: |
@@ -318,7 +318,7 @@ spec:
                           type: string
                           enum: [s3, s3Compatible, gcs, azureBlob]
                           description: |
-                            Determine the type of object storage used for storing the base backups and WAL segments.
+                            Specifies the type of object storage used for storing the base backups and WAL segments.
                             Possible values:
                             *  `s3`: Amazon Web Services S3 (Simple Storage Service).
                             *  `s3Compatible`: non-AWS services that implement a compatibility API with AWS S3.
@@ -343,15 +343,15 @@ spec:
                             region:
                               type: string
                               description: |
-                                The AWS S3 region. The Region may be detected using s3:GetBucketLocation, but if you wish to avoid giving permissions to this API call or forbid it from the applicable IAM policy, you must then specify this property.
+                                AWS S3 region. The Region may be detected using s3:GetBucketLocation, but to avoid giving permissions to this API call or forbid it from the applicable IAM policy, this property must be explicitely specified.
                             storageClass:
                               type: string
                               description: |
-                                The [Amazon S3 Storage Class](https://aws.amazon.com/s3/storage-classes/) to use for the backup object storage. By default, the `STANDARD` storage class is used. Other supported values include `STANDARD_IA` for Infrequent Access and `REDUCED_REDUNDANCY`.
+                                [Amazon S3 Storage Class](https://aws.amazon.com/s3/storage-classes/) used for the backup object storage. By default, the `STANDARD` storage class is used. Other supported values include `STANDARD_IA` for Infrequent Access and `REDUCED_REDUNDANCY`.
                             awsCredentials:
                               type: object
                               description: |
-                                The credentials to access AWS S3 for writing and reading.
+                                Credentials to access AWS S3 for writing and reading.
                               properties:
                                 secretKeySelectors:
                                   type: object
@@ -415,15 +415,15 @@ spec:
                             region:
                               type: string
                               description: |
-                                The AWS S3 region. The Region may be detected using s3:GetBucketLocation, but if you wish to avoid giving permissions to this API call or forbid it from the applicable IAM policy, you must then specify this property.
+                                AWS S3 region. The Region may be detected using s3:GetBucketLocation, but to avoid giving permissions to this API call or forbid it from the applicable IAM policy, this property must be explicitely specified.
                             storageClass:
                               type: string
                               description: |
-                                The [Amazon S3 Storage Class](https://aws.amazon.com/s3/storage-classes/) to use for the backup object storage. By default, the `STANDARD` storage class is used. Other supported values include `STANDARD_IA` for Infrequent Access and `REDUCED_REDUNDANCY`.
+                                [Amazon S3 Storage Class](https://aws.amazon.com/s3/storage-classes/) used for the backup object storage. By default, the `STANDARD` storage class is used. Other supported values include `STANDARD_IA` for Infrequent Access and `REDUCED_REDUNDANCY`.
                             awsCredentials:
                               type: object
                               description: |
-                                The credentials to access AWS S3 for writing and reading.
+                                Credentials to access AWS S3 for writing and reading.
                               properties:
                                 secretKeySelectors:
                                   type: object
@@ -479,7 +479,7 @@ spec:
                             gcpCredentials:
                               type: object
                               description: |
-                                The credentials to access GCS for writing and reading.
+                                Credentials to access GCS for writing and reading.
                               properties:
                                 fetchCredentialsFromMetadataService:
                                   type: boolean
@@ -527,7 +527,7 @@ spec:
                             azureCredentials:
                               type: object
                               description: |
-                                The credentials to access Azure Blob Storage for writing and reading.
+                                Credentials to access Azure Blob Storage for writing and reading.
                               properties:
                                 secretKeySelectors:
                                   type: object

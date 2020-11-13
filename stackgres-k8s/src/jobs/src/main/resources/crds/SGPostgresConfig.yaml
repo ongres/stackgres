@@ -27,16 +27,16 @@ spec:
                 name:
                   type: string
                   description: |
-                    The name of this Postgres Configuration. This Postgres configuration may be referenced by zero or more SGClusters, and if so it would be referenced by this name. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the `-` character allowed anywhere except the first or last character.
+                    Name of the Postgres Configuration. The configuration may be referenced by zero or more SGClusters, and if so it would be referenced by its name. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the `-` character allowed anywhere except the first or last character.
 
-                    This name needs to be unique across all Postgres configurations in the same namespace.
+                    The name must be unique across all Postgres configurations in the same namespace.
             spec:
               type: object
               properties:
                 postgresVersion:
                   type: string
                   description: |
-                    The **major** Postgres version this configuration is for. Postgres major versions contain one number starting with version 10 (`10`, `11`, `12`, etc), and two numbers separated by a dot for previous versions (`9.6`, `9.5`, etc).
+                    The **major** Postgres version the configuration is for. Postgres major versions contain one number starting with version 10 (`10`, `11`, `12`, etc), and two numbers separated by a dot for previous versions (`9.6`, `9.5`, etc).
 
                     Note that Postgres maintains full compatibility across minor versions, and hence a configuration for a given major version will work for any minor version of that same major version.
 
@@ -46,7 +46,7 @@ spec:
                   additionalProperties:
                     type: string
                   description: |
-                    The `postgresql.conf` parameters that this configuration contains. They are represented as an object, where the keys are valid names for the `postgresql.conf` configuration file parameters of the given `postgresVersion`. You may check [postgresqlco.nf](https://postgresqlco.nf) as a reference on how to tune and find the valid parameters for a given major version.
+                    The `postgresql.conf` parameters the configuration contains, represented as an object where the keys are valid names for the `postgresql.conf` configuration file parameters of the given `postgresVersion`. You may check [postgresqlco.nf](https://postgresqlco.nf) as a reference on how to tune and find the valid parameters for a given major version.
               required: ["postgresVersion", "postgresql.conf"]
             status:
               type: object
@@ -54,7 +54,7 @@ spec:
                 defaultParameters:
                   type: array
                   description: |
-                    A list of names of parameters that are set to theirs default value.
+                    List of parameters which are set to their default value.
                   items:
                     type: string
                     description: |

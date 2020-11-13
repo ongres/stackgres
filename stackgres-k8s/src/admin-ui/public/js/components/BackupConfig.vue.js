@@ -26,28 +26,36 @@ var BackupConfig = Vue.component("BackupConfig", {
 
 
 			<div class="content">
-				<table id="backup" class="configurations backupConfig">
+				<table id="backup" class="configurations backupConfig" v-if="tooltips.hasOwnProperty('sgbackupconfig')">
 					<thead class="sort">
-						<th @click="sort('data.metadata.name')" class="sorted desc name">
-							<span>Name</span>
+						<th class="sorted desc name">
+							<span @click="sort('data.metadata.name')">
+								Name
+							</span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.metadata.name.description"></span>
 						</th>
-						<th @click="sort('data.spec.baseBackups.retention')" class="desc retention">
-							<span>Retention</span>
+						<th class="desc retention">
+							<span @click="sort('data.spec.baseBackups.retention')">Retention</span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.retention.description"></span>
 						</th>
-						<th @click="sort('data.spec.baseBackups.cronSchedule')" class="desc cronSchedule">
-							<span>Full Schedule</span>
+						<th class="desc cronSchedule">
+							<span @click="sort('data.spec.baseBackups.cronSchedule')">Full Schedule</span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.cronSchedule.description"></span>
 						</th>
-						<th @click="sort('data.spec.baseBackups.compression')" class="desc compression">
-							<span>Compression Method</span>
+						<th class="desc compression">
+							<span @click="sort('data.spec.baseBackups.compression')">Compression Method</span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.compression.description"></span>
 						</th>
-						<th @click="sort('data.spec.baseBackups.performance.uploadDiskConcurrency')" class="desc uploadDiskConcurrency">
-							<span>Upload Disk Concurrency</span>
+						<th class="desc uploadDiskConcurrency">
+							<span @click="sort('data.spec.baseBackups.performance.uploadDiskConcurrency')">Upload Disk Concurrency</span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.performance.uploadDiskConcurrency.description"></span>
 						</th>
 						<!--<th @click="sort('data.spec.tarSizeThreshold')" class="desc tarSizeThreshold">
 							<span>Tar Size Threshold</span>
 						</th>-->
-						<th @click="sort('data.spec.storage.type')" class="desc storageType">
-							<span>Storage Type</span>
+						<th class="desc storageType">
+							<span @click="sort('data.spec.storage.type')">Storage Type</span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.type.description"></span>
 						</th>
 						<th class="actions"></th>
 					</thead>
@@ -98,66 +106,75 @@ var BackupConfig = Vue.component("BackupConfig", {
 									</a>
 								</td>
 							</tr>
-							<tr :class="[ $route.params.name == conf.name ? 'open show' : '', 'sgbackupconfig-'+conf.data.metadata.namespace+'-'+conf.name ]" class="details" :style="$route.params.name == conf.name ? 'display: table-row;' : ''">
+							<tr :class="[ $route.params.name == conf.name ? 'open' : '', 'sgbackupconfig-'+conf.data.metadata.namespace+'-'+conf.name ]" class="details" :style="$route.params.name == conf.name ? 'display: table-row;' : ''">
 								<td colspan="7">
 									<div class="configurationDetails">
-										<span class="title">Configuration Details</span>	
 										<table>
+											<thead>
+												<th colspan="2" class="label">
+													Configuration Details
+												</th>
+											</thead>
 											<tbody>
 												<tr v-if="typeof conf.data.spec.baseBackups.retention !== 'undefined'">
-													<td class="label">Retention</td>
+													<td class="label">
+														Retention
+														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.retention.description"></span>
+													</td>
 													<td>
 														{{ conf.data.spec.baseBackups.retention }}
 													</td>
 												</tr>
-												<tr v-if="typeof conf.data.spec.baseBackups.retention !== 'undefined'">
-													<td class="label">Full Schedule</td>
+												<tr v-if="hasProp(conf, 'data.spec.baseBackups.fullSchedule')">
+													<td class="label">
+														Full Schedule
+														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.fullSchedule.description"></span>
+													</td>
 													<td>
 														{{ conf.data.spec.baseBackups.cronSchedule | prettyCRON }}
 													</td>
 												</tr>
-												<tr v-if="typeof conf.data.spec.baseBackups.compression !== 'undefined'">
+												<tr v-if="hasProp(conf, 'data.spec.baseBackups.compression')">
 													<td class="label">
 														Compression Method
+														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.compression.description"></span>
 													</td>
 													<td>
 														{{ conf.data.spec.baseBackups.compression }}
 													</td>
 												</tr>
-												<tr v-if="( (typeof conf.data.spec.baseBackups.performance !== 'undefined') && (typeof conf.data.spec.baseBackups.performance.maxNetworkBandwitdh !== 'undefined') )">
+												<tr v-if="hasProp(conf, 'data.spec.baseBackups.performance.maxNetworkBandwitdh')">
 													<td class="label">
 														Max Network Bandwitdh
+														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.fullSchedule.description"></span>
 													</td>
 													<td>
 														{{ conf.data.spec.baseBackups.performance.maxNetworkBandwitdh }}
 													</td>
 												</tr>
-												<tr v-if="( (typeof conf.data.spec.baseBackups.performance !== 'undefined') && (typeof conf.data.spec.baseBackups.performance.maxDiskBandwitdh !== 'undefined') )">
+												<tr v-if="hasProp(conf, 'data.spec.baseBackups.performance.maxDiskBandwitdh')">
 													<td class="label">
 														Max Disk Bandwitdh
+														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.performance.maxDiskBandwitdh.description"></span>
 													</td>
 													<td>
 														{{ conf.data.spec.baseBackups.performance.maxDiskBandwitdh }}
 													</td>
 												</tr>
-												<tr v-if="( (typeof conf.data.spec.baseBackups.performance !== 'undefined') && (typeof conf.data.spec.baseBackups.performance.uploadDiskConcurrency !== 'undefined') )">
+												<tr v-if="hasProp(conf, 'data.spec.baseBackups.performance.uploadDiskConcurrency')">
 													<td class="label">
 														Upload Disk Concurrency
+														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.performance.uploadDiskConcurrency.description"></span>
 													</td>
 													<td>
 														{{ conf.data.spec.baseBackups.performance.uploadDiskConcurrency }}
 													</td>
 												</tr>
-												<tr>
-													<td class="label">
-														Storage Type
-													</td>
-													<td>
-														{{ conf.data.spec.storage.type }}
-													</td>
-												</tr>
 												<tr v-if="conf.data.status.clusters.length">
-													<td class="label">Used on</td>
+													<td class="label">
+														Used on
+														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.status.clusters.description"></span>
+													</td>
 													<td class="usedOn">
 														<ul>
 															<li v-for="c in conf.data.status.clusters">
@@ -173,103 +190,246 @@ var BackupConfig = Vue.component("BackupConfig", {
 										</table>
 									</div>
 									<div class="configurationDetails storageDetails">
-										<span class="title">Storage Details</span>	
-										<ul class="yaml">
-											<template v-if="conf.data.spec.storage.type === 's3'">
-												<li>
-													<strong class="label">bucket:</strong> {{ conf.data.spec.storage.s3.bucket }}
-												</li>
-												<li v-if="typeof conf.data.spec.storage.s3.path !== 'undefined'">
-													<strong class="label">path:</strong> {{ conf.data.spec.storage.s3.path }}
-												</li>
-												<li v-if="hasProp(conf,'data.spec.storage.s3.awsCredentials.accessKeyId')">
-													<strong class="label">awsCredentials:</strong> 
-													<ul>
-														<li>
-															<strong class="label">accessKeyId:</strong> {{ conf.data.spec.storage.s3.awsCredentials.accessKeyId }}
-														</li>
-														<li>
-															<strong class="label">secretAccessKey:</strong> ****
-														</li>
-													</ul>
-												</li>
-												<li v-if="typeof conf.data.spec.storage.s3.region !== 'undefined'">
-													<strong class="label">region:</strong> {{ conf.data.spec.storage.s3.region }}
-												</li>
-												<li v-if="typeof conf.data.spec.storage.s3.storageClass !== 'undefined'">
-													<strong class="label">storageClass:</strong> {{ conf.data.spec.storage.s3.storageClass }}
-												</li>
-											</template>
-											<template v-else-if="conf.data.spec.storage.type === 's3Compatible'">
-												<li>
-													<strong class="label">bucket:</strong> {{ conf.data.spec.storage.s3Compatible.bucket }}
-												</li>
-												<li v-if="typeof conf.data.spec.storage.s3Compatible.path !== 'undefined'">
-													<strong class="label">path:</strong> {{ conf.data.spec.storage.s3Compatible.path }}
-												</li>
-												<li v-if="hasProp(conf,'data.spec.storage.s3Compatible.awsCredentials.accessKeyId')">
-													<strong class="label">awsCredentials:</strong> 
-													<ul>
-														<li>
-															<strong class="label">accessKeyId:</strong> {{ conf.data.spec.storage.s3Compatible.awsCredentials.accessKeyId }}
-														</li>
-														<li>
-															<strong class="label">secretAccessKey:</strong> ****
-														</li>
-													</ul>
-												</li>
-												<li v-if="typeof conf.data.spec.storage.s3Compatible.region !== 'undefined'">
-													<strong class="label">region:</strong> {{ conf.data.spec.storage.s3Compatible.region }}
-												</li>
-												<li v-if="typeof conf.data.spec.storage.s3Compatible.storageClass !== 'undefined'">
-													<strong class="label">storageClass:</strong> {{ conf.data.spec.storage.s3Compatible.storageClass }}
-												</li>
-												<li v-if="typeof conf.data.spec.storage.s3Compatible.endpoint !== 'undefined'">
-													<strong class="label">endpoint:</strong> {{ conf.data.spec.storage.s3Compatible.endpoint }}
-												</li>
-												<li v-if="typeof conf.data.spec.storage.s3Compatible.enablePathStyleAddressing !== 'undefined'">
-													<strong class="label">enablePathStyleAddressing:</strong> {{ conf.data.spec.storage.s3Compatible.enablePathStyleAddressing }}
-												</li>
-											</template>
-											<template v-else-if="conf.data.spec.storage.type === 'gcs'">
-												<li>
-													<strong class="label">bucket:</strong> {{ conf.data.spec.storage.gcs.bucket }}
-												</li>
-												<li v-if="typeof conf.data.spec.storage.gcs.path !== 'undefined'">
-													<strong class="label">path:</strong> {{ conf.data.spec.storage.gcs.path }}
-												</li>
-												<li>
-													<strong class="label">gcpCredentials:</strong> 
-													<ul>
-														<li v-if="hasProp(conf, 'data.spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService')">
-															<strong class="label">fetchCredentialsFromMetadataService:</strong> {{ conf.data.spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService }}
-														</li>
-														<li v-else>
-															<strong class="label">serviceAccountJSON:</strong> ****
-														</li>
-													</ul>
-												</li>
-											</template>
-											<template v-else-if="conf.data.spec.storage.type === 'azureBlob'">
-												<li>
-													<strong class="label">bucket:</strong> {{ conf.data.spec.storage.azureBlob.bucket }}
-												</li>
-												<li v-if="typeof conf.data.spec.storage.azureBlob.path !== 'undefined'">
-													<strong class="label">path:</strong> {{ conf.data.spec.storage.azureBlob.path }}
-												</li>
-												<li v-if="hasProp(conf,'data.spec.storage.azureBlob.azureCredentials.storageAccount')">
-													<strong class="label">azureCredentials:</strong> 
-													<ul>
-														<li>
-															<strong class="label">storageAccount:</strong> {{ conf.data.spec.storage.azureBlob.azureCredentials.storageAccount }}
-														</li>
-														<li>
-															<strong class="label">accessKey:</strong> ****
-														</li>
-													</ul>
-												</li>
-											</template>
-										</ul>
+										<table>
+											<thead>
+												<th colspan="2" class="label">
+													Storage Details
+													<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.description"></span>
+												</th>
+											</thead>
+											<tbody>
+												<tr>
+													<td class="label">
+														Storage Type
+														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.type.description"></span>
+													</td>
+													<td>
+														{{ conf.data.spec.storage.type }}
+													</td>
+												</tr>
+												<template v-if="conf.data.spec.storage.type == 's3'">
+													<tr>
+														<td class="label">
+															Bucket
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3.bucket.description"></span>
+														</td>
+														<td>
+															{{ conf.data.spec.storage.s3.bucket }}
+														</td>
+													</tr>
+													<tr v-if="hasProp(conf, 'data.spec.storage.s3.path')">
+														<td class="label">
+															Path
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3.path.description"></span>
+														</td>
+														<td>
+															{{ conf.data.spec.storage.s3.path }}
+														</td>
+													</tr>
+													<tr v-if="hasProp(conf, 'data.spec.storage.s3.region')">
+														<td class="label">
+															Region
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3.region.description"></span>
+														</td>
+														<td>
+															{{ conf.data.spec.storage.s3.region }}
+														</td>
+													</tr>
+													<tr v-if="hasProp(conf, 'data.spec.storage.s3.storageClass')">
+														<td class="label">
+															Bucket
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3.storageClass.description"></span>
+														</td>
+														<td>
+															{{ conf.data.spec.storage.s3.path }}
+														</td>
+													</tr>
+													<tr>
+														<td colspan="2" class="label">
+															AWS Credentials
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3.awsCredentials.description"></span>
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Access Key ID
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId.description"></span>
+														</td>
+														<td>
+															********
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Secret Access Key
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey.description"></span>
+														</td>
+														<td>
+															********
+														</td>
+													</tr>
+												</template>
+												<template v-else-if="conf.data.spec.storage.type === 's3Compatible'">
+													<tr>
+														<td class="label">
+															Bucket
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3Compatible.bucket.description"></span>
+														</td>
+														<td>
+															{{ conf.data.spec.storage.s3Compatible.bucket }}
+														</td>
+													</tr>
+													<tr v-if="hasProp(conf, 'data.spec.storage.s3Compatible.path')">
+														<td class="label">
+															Path
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3Compatible.path.description"></span>
+														</td>
+														<td>
+															{{ conf.data.spec.storage.s3Compatible.path }}
+														</td>
+													</tr>
+													<tr v-if="hasProp(conf, 'data.spec.storage.s3Compatible.enablePathStyleAddressing')">
+														<td class="label">
+															Path Style Addressing
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3Compatible.enablePathStyleAddressing.description"></span>
+														</td>
+														<td>
+															{{ conf.data.spec.storage.s3Compatible.enablePathStyleAddressing ? 'Enabled' : 'Disabled'}}
+														</td>
+													</tr>
+													<tr v-if="hasProp(conf, 'data.spec.storage.s3Compatible.endpoint')">
+														<td class="label">
+															Endpoint
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3Compatible.endpoint.description"></span>
+														</td>
+														<td>
+															{{ conf.data.spec.storage.s3Compatible.endpoint }}
+														</td>
+													</tr>
+													<tr v-if="hasProp(conf, 'data.spec.storage.s3Compatible.region')">
+														<td class="label">
+															Region
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3Compatible.region.description"></span>
+														</td>
+														<td>
+															{{ conf.data.spec.storage.s3Compatible.region }}
+														</td>
+													</tr>
+													<tr v-if="hasProp(conf, 'data.spec.storage.s3Compatible.storageClass')">
+														<td class="label">
+															Bucket
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3Compatible.storageClass.description"></span>
+														</td>
+														<td>
+															{{ conf.data.spec.storage.s3Compatible.path }}
+														</td>
+													</tr>
+													<tr>
+														<td colspan="2" class="label">
+															AWS Credentials
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3Compatible.awsCredentials.description"></span>
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Access Key ID
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.description"></span>
+														</td>
+														<td>
+															********
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Secret Access Key
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.description"></span>
+														</td>
+														<td>
+															********
+														</td>
+													</tr>
+												</template>
+												<template v-else-if="conf.data.spec.storage.type === 'gcs'">
+													<tr>
+														<td class="label">
+															Bucket
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.gcs.bucket.description"></span>
+														</td>
+														<td>
+															{{ conf.data.spec.storage.gcs.bucket }}
+														</td>
+													</tr>
+													<tr v-if="hasProp(conf, 'data.spec.storage.gcs.path')">
+														<td class="label">
+															Path
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.gcs.path.description"></span>
+														</td>
+														<td>
+															{{ conf.data.spec.storage.gcs.path }}
+														</td>
+													</tr>
+													<tr>
+														<td colspan="2" class="label">
+															GCS Credentials
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.gcs.gcpCredentials.description"></span>
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Service Account JSON
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.gcs.gcpCredentials.serviceAccountJSON.description"></span>
+														</td>
+														<td>
+															********
+														</td>
+													</tr>
+												</template>
+												<template v-else-if="conf.data.spec.storage.type === 'azureBlob'">
+													<tr>
+														<td class="label">
+															Bucket
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.azureBlob.bucket.description"></span>
+														</td>
+														<td>
+															{{ conf.data.spec.storage.azureBlob.bucket }}
+														</td>
+													</tr>
+													<tr v-if="hasProp(conf, 'data.spec.storage.azureBlob.path')">
+														<td class="label">
+															Path
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.azureBlob.path.description"></span>
+														</td>
+														<td>
+															{{ conf.data.spec.storage.azureBlob.path }}
+														</td>
+													</tr>
+													<tr>
+														<td colspan="2" class="label">
+															Azure Credentials
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.azureBlob.azureCredentials.description"></span>
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Storage Account
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount.description"></span>
+														</td>
+														<td>
+															********
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Access Key
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey.description"></span>
+														</td>
+														<td>
+															********
+														</td>
+													</tr>
+												</template>
+											</tbody>
+										</table>
 									</div>
 								</td>
 							</tr>
@@ -298,6 +458,10 @@ var BackupConfig = Vue.component("BackupConfig", {
 		currentNamespace () {
 			return store.state.currentNamespace
 		},
+
+		tooltips () {
+			return store.state.tooltips
+		}
 
 	},
 	mounted: function() {

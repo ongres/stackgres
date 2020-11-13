@@ -12,67 +12,67 @@ schema:
           The index to disambiguate logs that has the same `logTime` value.
       logType:
         description: |
-          The source of the log entry: `pa` for Patroni; `pg` for Postgres
+          Source of the log entry: `pa` for Patroni; `pg` for Postgres.
       podName:
         description: |
-          The name of the pod where the log entry was originated
+          Name of the pod where the log entry was originated.
       role:
         description: |
-          The role of the pod where the log entry was originated. Can be `null`, `Primary`, `Replica`, `Uninitialized` or `Standby`
+          Role of the pod where the log entry was originated. Can be `null`, `Primary`, `Replica`, `Uninitialized` or `Standby`.
       errorLevel:
         description: |
-          The error level of the log entry.
+          Error level of the log entry.
       message:
         description: |
-          The error message of the log entry.
+          Error message of the log entry.
       userName:
         description: |
-          The user name associated with the postgres log entry.
+          User name associated with the Postgres log entry.
       databaseName:
         description: |
-          The database name associated with the postgres log entry.
+          Database name associated with the Postgres log entry.
       processId:
         description: |
-          The process ID associated with the postgres log entry.
+          Process ID associated with the Postgres log entry.
       connectionFrom:
         description: |
-          The the host and port of the client (separated by colon) associated with the postgres log entry.
+          Host and port of the client (separated by colon) associated with the Postgres log entry.
       sessionId:
         description: |
-          The session ID associated with the postgres log entry.
+          Session ID associated with the Postgres log entry.
       sessionLineNum:
         description: |
-          The session line number associated with the postgres log entry.
+          Session line number associated with the Postgres log entry.
       commandTag:
         description: |
-          The command tag associated with the postgres log entry.
+          Command tag associated with the Postgres log entry.
       sessionStartTime:
         description: |
-          The session start time associated with the postgres log entry.
+          Session start time associated with the Postgres log entry.
       virtualTransactionId:
         description: |
-          The virtual transaction ID associated with the postgres log entry.
+          Virtual transaction ID associated with the Postgres log entry.
       transactionId:
         description: |
-          The transaction ID associated with the postgres log entry.
+          Transaction ID associated with the Postgres log entry.
       sqlStateCode:
         description: |
-          The SQL state code associated with the postgres log entry.
+          SQL state code associated with the Postgres log entry.
       detail:
         description: |
-          The detail associated with the postgres log entry.
+          Detail associated with the Postgres log entry.
       hint:
         description: |
-          An hint associated with the postgres log entry.
+          Hint associated with the Postgres log entry.
       internalQuery:
         description: |
-          The internal query associated with the postgres log entry.
+          Internal query associated with the Postgres log entry.
       internalQueryPos:
         description: |
-          The internal query position associated with the postgres log entry.
+          Internal query position associated with the Postgres log entry.
       context:
         description: |
-          The context associated with the postgres log entry.
+          Context associated with the Postgres log entry.
       query:
         description: |
           The query associated with the postgres log entry.
@@ -81,7 +81,7 @@ schema:
           The query position associated with the postgres log entry.
       location:
         description: |
-          The location associated with the postgres log entry.
+          Location associated with the Postgres log entry.
       applicationName:
         description: |
-          The application name associated with the postgres log entry.
+          Application name associated with the postgres log entry.

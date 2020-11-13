@@ -27,26 +27,32 @@ var ClusterOverview = Vue.component("ClusterOverview", {
 					<thead>
 						<th>
 							<span>StackGres Cluster</span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.metadata.name.description"></span>
 						</th>
 
 						<th>
 							<span>Instances</span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.spec.instances.description"></span>
 						</th>
 
 						<th>
 							<span>CPU</span>
+							<span class="helpTooltip"  :data-tooltip="tooltips.sgprofile.spec.cpu.description"></span>
 						</th>
 
 						<th>
 							<span>Memory</span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgprofile.spec.memory.description"></span>
 						</th>
 
 						<th>
 							<span>Disk</span>
+							<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.pods.persistentVolume.size.description"></span>
 						</th>
 
 						<th>
 							<span>Health</span>
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.podsReady.description.slice(0, -2) + ' / ' + tooltips.sgcluster.spec.instances.description"></span>
 						</th>
 						
 						<th class="actions"></th>
@@ -131,6 +137,10 @@ var ClusterOverview = Vue.component("ClusterOverview", {
 		profiles () {
 			return store.state.profiles
 		},
+
+		tooltips () {
+			return store.state.tooltips
+		}
 	},
 	methods: {
 		deleteCluster: function(clusterName) {

@@ -738,16 +738,8 @@ const store = new Vuex.Store({
       },
       forbidden: []
     },
-    tooltips: {
-      description: 'Click on a question mark to get help and tips about that field.', 
-      SGCluster: {},
-      SGBackup: {},
-      SGPostgresConfig: {},
-      SGBackupConfig: {},
-      SGPoolingConfig: {},
-      SGInstanceProfile: {},
-      SGDistributedLogs: {}
-    },
+    tooltipsText: 'Click on a question mark to get help and tips about that field.',
+    tooltips: {},
     deleteItem: {
       kind: '',
       namespace: '',
@@ -979,11 +971,13 @@ const store = new Vuex.Store({
     },
 
     setTooltips (state, tooltips) {
-      state.tooltips[tooltips.kind] = tooltips.description;
+      Object.keys(tooltips).forEach(function(key){
+        state.tooltips['sg' + key.replace('Dto','').toLowerCase()] = tooltips[key];
+      })
     },
 
-    setTooltipDescription (state, description) {
-      state.tooltips.description = description;
+    setTooltipsText (state, tooltipsText) {
+      state.tooltipsText = tooltipsText;
     },
 
     showLogs (state, show) {
@@ -1011,7 +1005,6 @@ if( (window.location.pathname === '/admin/index.html') && ( (store.state.loginTo
   router.push('/admin/overview/default');
 }  
 
-
 Vue.mixin({
   data: function(){
     return {
@@ -1019,6 +1012,7 @@ Vue.mixin({
     }
   },
   computed: {
+
     loggedIn () {
 			if (typeof store.state.loginToken !== 'undefined')
 				return store.state.loginToken.length > 0
@@ -1037,12 +1031,37 @@ Vue.mixin({
 		currentComponent() {
 			return this.$route.matched[0].components.default.options.name
 		}
+
   },
   methods: {
 
     setContentTooltip( el ) {
       $('#contentTooltip .info .content').html($(el).html());
       $('#contentTooltip').addClass('show');
+    },
+
+    helpTooltip(kind, field) {
+      const crd = store.state.tooltips[kind];
+      let param = crd;
+
+      if(field == 'spec.postgresql.conf') {
+        param =  crd.spec['postgresql.conf']
+      } else if (field == 'spec.pgBouncer.pgbouncer.ini') {
+        param =  crd.spec.pgBouncer['pgbouncer.ini']
+      } else {
+        params = field.split('.');
+        params.forEach(function(item, index){
+          if( !index ) // First level
+            param = param[item]
+          else if (param.type == 'object')
+            param = param.properties[item]
+          else if (param.type == 'array')
+            param = param.items.properties[item]
+        })
+      }
+      
+      store.commit('setTooltipsText', param.description)
+      $('#helpTooltip').show()
     },
 
     hasProp (obj, propertyPath) {
@@ -1183,19 +1202,14 @@ Vue.mixin({
 
     loadTooltips: function( kind, lang = 'EN' ) {
 
-      if( !store.state.tooltips[kind].hasOwnProperty('metadata.name') ) {
-        //console.log("Reading "+kind+" tooltips");
+      fetch('/admin/info/sg-tooltips.json')
+      .then(response => response.json())
+      .then(data => {
 
-        fetch('/admin/js/components/forms/help/crd-'+kind+'-EN.json')
-        .then(response => response.json())
-        .then(data => 
-            store.commit('setTooltips', { 
-              kind: kind, 
-              description: data 
-            })
-          );
-        
-      }
+        var tooltips = data.components.schemas;
+        cleanupTooltips(tooltips)
+        store.commit('setTooltips', tooltips)
+      });
 
     },
 
@@ -1209,22 +1223,17 @@ Vue.mixin({
       let param = crd;
 
       if(field == 'spec.postgresql.conf') {
-        param =  crd.spec.properties['postgresql.conf']
+        param =  crd.spec['postgresql.conf']
       } else if (field == 'spec.pgBouncer.pgbouncer.ini') {
-        param =  crd.spec.properties.pgBouncer.properties['pgbouncer.ini']
+        param =  crd.spec.pgBouncer['pgbouncer.ini']
       } else {
         params = field.split('.');
         params.forEach(function(item, index){
-          if( !index ) // First level
-            param = param[item]
-          else if (param.type == 'object')
-            param = param.properties[item]
-          else if (param.type == 'array')
-            param = param.items.properties[item]
+          param = param[item]
         })
       }
 
-      store.commit("setTooltipDescription", param['description']);
+      store.commit("setTooltipsText", param.description);
 
     },
 
@@ -1276,6 +1285,10 @@ Vue.mixin({
         $('#clone').fadeIn().addClass('show');
       }
     }
+  },
+
+  beforeCreate: function() {
+    store.commit('setTooltipsText','Click on a question mark to get help and tips about that field.');
   }
 });
 
@@ -1777,6 +1790,10 @@ const vm = new Vue({
       }
     }.bind(this), 10000);
 
+  },
+
+  computed: {
+
   }
 });
 
@@ -1820,6 +1837,30 @@ Vue.filter('formatTimestamp',function(t, part){
     }
       
 });
+
+
+function cleanupTooltips( obj ) {
+  Object.keys(obj).forEach(function(key){
+    if((obj[key].type != 'array') && obj[key].hasOwnProperty('properties')){
+      var desc = ''
+      
+      if(obj[key].hasOwnProperty('description'))
+        desc = obj[key].description
+
+      obj[key] = obj[key].properties
+      obj[key].description = desc
+      cleanupTooltips(obj[key])
+      
+    } else if ( (obj[key].type == 'array') && obj[key].items.hasOwnProperty('properties')){
+      //obj[key] = obj[key].items.properties
+      //obj[key].properties["description"] = obj[key].items.hasOwnProperty('description') ? obj[key].items.description : ''
+      
+      Object.keys(obj[key].items.properties).forEach(function(k){
+        obj[key][k] = obj[key].items.properties[k]
+      })      
+    } 
+  })
+}
 
 function notFound() {
   store.commit('notFound',true)
@@ -2370,36 +2411,12 @@ $(document).ready(function(){
     e.preventDefault(); 
   });
 
-  $(document).on("click", ".sort th", function(){
-    /* if( $(this).hasClass("sorted") ){
-      if($(this).hasClass("asc"))
-        $(this).removeClass("asc").addClass("desc");
-      else
-        $(this).removeClass("desc").addClass("asc");
-    } else {
-      $(".sorted").removeClass("sorted asc desc");
-      $(this).addClass("sorted");
-    } */
-
+  $(document).on("click", ".sort th span:not(.helpTooltip)", function(){
     $(".sorted").removeClass("sorted");
     $(this).addClass("sorted");
     $(".sort th").toggleClass("desc asc")   
   });
 
-/*   $(document).on("click", "table.backups tr.base td:not(.actions), table.profiles tr.base td:not(.actions), table.pgConfig tr.base td:not(.actions), table.poolConfig tr.base td:not(.actions)", function(){
-    $(this).parent().next().toggle().addClass("open");
-    $(this).parent().toggleClass("open");
-  });
-
- */
-  /* $(document).on('focus','.filter.open .options', function(){
-    if( $('.filter.open').find('.active').length )
-      $('.filter.open').addClass('filtered');
-    else
-      $('.filter.open').removeClass('filtered');
-    
-      $('.filter.open').removeClass("open");
-  }); */
 
   // Show configurations details when the row is clicked
   $(document).on('click', 'table:not(.backups):not(.logs) tr.base > td:not(.actions)', function(){    
@@ -2513,13 +2530,13 @@ $(document).ready(function(){
   onmousemove = function (e) {
 
     if( (window.innerWidth - e.clientX) > 420 ) {
-      $('#nameTooltip').css({
+      $('#nameTooltip, #infoTooltip').css({
         "top": e.clientY+20, 
         "right": "auto",
         "left": e.clientX+20
       })
     } else {
-      $('#nameTooltip').css({
+      $('#nameTooltip, #infoTooltip').css({
         "top": e.clientY+20, 
         "left": "auto",
         "right": window.innerWidth - e.clientX + 20
@@ -2541,6 +2558,39 @@ $(document).ready(function(){
     $('#nameTooltip').removeClass('show');
   });
 
+  $(document).on('click','[data-tooltip]', function(e){
+    if( (window.innerWidth - e.clientX) > 420 ) {
+      $('#helpTooltip').css({
+        "top": e.clientY+10, 
+        "right": "auto",
+        "left": e.clientX+10
+      })
+    } else {
+      $('#helpTooltip').css({
+        "top": e.clientY+10, 
+        "left": "auto",
+        "right": window.innerWidth - e.clientX + 10
+      })
+    }
+
+    if(!$(this).hasClass('show')) {
+      store.commit('setTooltipsText', $(this).data('tooltip'))
+      $('.helpTooltip.show').removeClass('show')
+      $('#helpTooltip').addClass('show').show()
+    } else {
+      store.commit('setTooltipsText','Click on a question mark to get help and tips about that field.')
+      $('#helpTooltip').removeClass('show').hide()
+    }
+
+    $(this).toggleClass('show')  
+  })
+
+  $(document).on("click", "#helpTooltip a", function(e) {
+    e.preventDefault()
+    window.open($(this).prop('href'));
+    return false;
+  })
+
   $(document).on('click','a.help', function(){
     $('a.help.active').removeClass('active')
     $(this).addClass('active')
@@ -2558,5 +2608,37 @@ $(document).ready(function(){
       $('#contentTooltip .content').html('');
     }
   });
+
+ /*  onmousemove = function (e) {
+
+    if( (window.innerWidth - e.clientX) > 420 ) {
+      $('#helpTooltip:not(.show)').css({
+        "top": e.clientY+20, 
+        "right": "auto",
+        "left": e.clientX+20
+      })
+    } else {
+      $('#helpTooltip:not(.show)').css({
+        "top": e.clientY+20, 
+        "left": "auto",
+        "right": window.innerWidth - e.clientX + 20
+      })
+    }
+  } */
+
+  // Hide divs on click out
+  $(document).click(function(event) { 
+    var $target = $(event.target);
+    
+    if( $('.hideOnClick.show').length && !$target.closest('.show').length) {
+      $('.hideOnClick.show').removeClass('show').fadeOut()
+      $('.helpTooltip.show').removeClass('show')
+    }
+  });
+
+  $(window).on('scroll', function(){
+    $('#helpTooltip.show').removeClass('show').fadeOut()
+    $('.helpTooltip.show').removeClass('show')
+  })
 
 });
