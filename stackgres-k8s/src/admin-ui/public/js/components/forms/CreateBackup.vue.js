@@ -87,7 +87,7 @@ var CreateBackup = Vue.component("CreateBackup", {
             advancedMode: false,
             backupName: '',
             backupNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
-            backupCluster: '',
+            backupCluster: (vm.$route.params.hasOwnProperty('cluster')) ? vm.$route.params.cluster : '',
             managedLifecycle: ''
         }
 	},
