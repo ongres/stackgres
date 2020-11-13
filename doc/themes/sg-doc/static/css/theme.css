@@ -238,6 +238,9 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
     padding: 0;
     margin: 0;
 }
+#sidebar ul ul{
+    position: relative;
+}
 #sidebar ul.searched a {
     color: #00adb5;
 }
@@ -313,9 +316,39 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
     display: inline;
 }
 #sidebar ul li li {
-    padding-left: 1rem;
-    text-indent: 0.2rem;
+    padding-left: 1.3rem;
+    /*text-indent: 0.2rem;*/
+    position: relative;
 }
+#sidebar ul ul:before {
+    content: "";
+    display: inline;
+    height: calc(100% - 16px);
+    border-left: 2px solid #e6e6e7;
+    position: absolute;
+    top: 0;
+    left: 2px;
+}
+#sidebar ul ul li:before {
+    content: " ";
+    display: inline;
+    border-top: 2px solid #e6e6e7;
+    width: 12px;
+    position: absolute;
+    left: 2px;
+    top: 14px;
+}
+#sidebar ul ul li:last-of-type:after {
+    content: "";
+    display: inherit;
+    background: var(--MENU-SECTIONS-ACTIVE-BG-color);
+    width: 15px;
+    height: calc(100% - 16px);
+    z-index: 1;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+   }
 #main {
     background: #f0f0f0;
     margin: 0 0 1.563rem 0;
@@ -1112,7 +1145,7 @@ pre .copy-to-clipboard:hover {
 }
 
 #sidebar ul li .read-icon {
-    display: none;
+    display: none !important;
     float: right;
     min-width: 16px;
     margin: 4px 0 0 0;
