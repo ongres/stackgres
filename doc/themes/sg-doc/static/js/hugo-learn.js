@@ -88,7 +88,7 @@ jQuery(document).ready(function() {
     var content = $(element).html().replace(/&amp;/g, '&');
     $(element).parent().replaceWith('<div class="mermaid" align="center">' + content + '</div>');
   });
-});
 
-//Scroll to active sidebar section on load
-$('.highlightable').scrollTop($('.highlightable').scrollTop() + $('ul.topics > li.parent').position().top);
+  //Scroll to active sidebar section on load
+  $('.highlightable').scrollTop($('.highlightable').scrollTop() + $('ul.topics > li.parent').position().top);
+});
