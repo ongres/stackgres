@@ -87,6 +87,7 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
 
   @Override
   public Container getContainer(StackGresGeneratorContext context) {
+    StackGresCluster cluster = context.getClusterContext().getCluster();
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION,
@@ -131,6 +132,11 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
             new EnvVarBuilder()
                 .withName("PG_EXPORTER_EXTEND_QUERY_PATH")
                 .withValue("/var/opt/postgres-exporter/queries.yaml")
+                .build(),
+            new EnvVarBuilder()
+                .withName("PG_EXPORTER_CONSTANT_LABELS")
+                .withValue("cluster_name=" + cluster.getMetadata().getName()
+                    + ", namespace=" + cluster.getMetadata().getNamespace())
                 .build())
         .withPorts(new ContainerPortBuilder()
             .withContainerPort(9187)
