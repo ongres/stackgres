@@ -37,4 +37,4 @@ proxyPaths.forEach((proxyPath) => {
         return url;
       }
   }));
-});
+})

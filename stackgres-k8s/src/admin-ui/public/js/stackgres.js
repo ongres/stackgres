@@ -2461,22 +2461,6 @@ $(document).ready(function(){
     //$(this).next().toggleClass("open");
   })
 
-  /* $(document).on("change","form input, form select, form textarea",function(){
-
-    if($(this).val().length) {
-      $(this).addClass("changed");
-      $(this).parents("fieldset, div").first().addClass("changed");
-    } else {
-      $(this).removeClass("changed");
-      $(this).parents("fieldset, div").first().removeClass("changed");
-    }
-    
-  }); */
-
-  $(document).on("change","#advancedMode",function(){
-    $(this).prop("disabled","disabled")
-  });
-
   $(document).on("click", "#current-namespace , #ns-select a", function(){
     $("#current-namespace").toggleClass("open");
     $("#ns-select").slideToggle();
