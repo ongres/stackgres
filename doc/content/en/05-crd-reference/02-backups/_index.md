@@ -137,6 +137,7 @@ status:
 
 | Property                               | Required | Updatable |Type     | Default   | Description |
 |:---------------------------------------|----------|-----------|:--------|:----------|:------------|
+| compression                            |          | ✓         | string  | lz4       | {{< crd-field-description SGBackup.status.sgBackupConfig.compression >}} |
 | [storage](#storage-configuration)      |          | ✓         | object  |           | {{< crd-field-description SGBackup.status.sgBackupConfig.storage >}} |
 
 ## Storage Configuration

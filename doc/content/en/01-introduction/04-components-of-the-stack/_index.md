@@ -1,7 +1,7 @@
 ---
 title: "Components of the Stack"
 weight: 4
-url: intro/stackcomponents
+url: intro/stack-components
 ---
 
 Running Postgres in production requires "a RedHat" of PostgreSQL. A curated set of open source components built,
@@ -147,7 +147,7 @@ as part of the [Helm chart]({{% relref "03-production-installation/02-installati
 and you can follow the steps there to set the Helm chart needed parameters so that monitoring integration works as expected. 
 Please, read and review the steps and notes for a successful installation.
 
-Please note that Prometheus is to be removed from the Helm chart at some point, so the actual instructions will change and be obsolete.
+Please note that Prometheus will be removed from the Helm chart at some point, so the actual instructions will change and become obsolete.
 
 ### Grafana integration
 
