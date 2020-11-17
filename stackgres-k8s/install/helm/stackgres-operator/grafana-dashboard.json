@@ -54,7 +54,7 @@
   "gnetId": 9628,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1605604628082,
+  "iteration": 1605632699681,
   "links": [],
   "panels": [
     {
@@ -2884,7 +2884,7 @@
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "Updated data",
+          "title": "Updated data (Rows)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -2901,7 +2901,7 @@
           "yaxes": [
             {
               "$$hashKey": "object:820",
-              "format": "bytes",
+              "format": "short",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -2991,7 +2991,7 @@
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "Fetched data (SELECT)",
+          "title": "Fetched data (Rows)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -3007,7 +3007,9 @@
           },
           "yaxes": [
             {
-              "format": "bytes",
+              "$$hashKey": "object:394",
+              "decimals": null,
+              "format": "short",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -3015,6 +3017,7 @@
               "show": true
             },
             {
+              "$$hashKey": "object:395",
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -3313,7 +3316,7 @@
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "Returned data",
+          "title": "Returned data (Rows)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -3329,7 +3332,8 @@
           },
           "yaxes": [
             {
-              "format": "bytes",
+              "$$hashKey": "object:425",
+              "format": "short",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -3337,6 +3341,7 @@
               "show": true
             },
             {
+              "$$hashKey": "object:426",
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -3527,7 +3532,7 @@
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "Deleted data",
+          "title": "Deleted data (Rows)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -3543,7 +3548,8 @@
           },
           "yaxes": [
             {
-              "format": "bytes",
+              "$$hashKey": "object:716",
+              "format": "short",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -3551,6 +3557,7 @@
               "show": true
             },
             {
+              "$$hashKey": "object:717",
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -7141,6 +7148,6 @@
   },
   "timezone": "",
   "title": "StackGres Dashboard",
-  "uid": "000000040",
-  "version": 27
+  "uid": "000000041",
+  "version": 12
 }
