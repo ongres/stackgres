@@ -1,6 +1,6 @@
 pg_replication:
   master: true
-  query: "SELECT EXTRACT(EPOCH FROM (now() - pg_last_xact_replay_timestamp())) as lag"
+  query: "SELECT EXTRACT(EPOCH FROM (now() - pg_last_xact_replay_timestamp())) as lag, CASE WHEN pg_is_in_recovery() THEN 1 ELSE 0 END as is_replica"
   metrics:
     - lag:
         usage: "GAUGE"
@@ -563,274 +563,66 @@ pg_table_bloat:
       WHERE datname NOT IN ('template0', 'template1')
     )
     SELECT datname, ss.* FROM databases,
-      LATERAL (SELECT * FROM dblink(
+    LATERAL (SELECT * FROM dblink(
         'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
-        'WITH constants AS (' || E'\n'
-        || '-- define some constants for sizes of things' || E'\n'
-        || '-- for reference down the query and easy maintenance' || E'\n'
-        || 'SELECT current_setting(''block_size'')::numeric AS bs, 23 AS hdr, 8 AS ma),' || E'\n'
-        || 'no_stats AS (' || E'\n'
-        || '    -- screen out table who have attributes' || E'\n'
-        || '    -- which dont have stats, such as JSON' || E'\n'
-        || '    SELECT table_schema, table_name,' || E'\n'
-        || '        n_live_tup::numeric as est_rows,' || E'\n'
-        || '        pg_table_size(relid)::numeric as table_size' || E'\n'
-        || '    FROM information_schema.columns' || E'\n'
-        || '        JOIN pg_catalog.pg_stat_user_tables as psut' || E'\n'
-        || '          ON table_schema = psut.schemaname' || E'\n'
-        || '          AND table_name = psut.relname' || E'\n'
-        || '        LEFT OUTER JOIN pg_catalog.pg_stats' || E'\n'
-        || '        ON table_schema = pg_stats.schemaname' || E'\n'
-        || '            AND table_name = pg_stats.tablename' || E'\n'
-        || '            AND column_name = attname' || E'\n'
-        || '    WHERE attname IS NULL' || E'\n'
-        || '        AND table_schema NOT IN (''pg_catalog'', ''information_schema'')' || E'\n'
-        || '    GROUP BY table_schema, table_name, relid, n_live_tup),' || E'\n'
-        || 'null_headers AS (' || E'\n'
-        || '    -- calculate null header sizes' || E'\n'
-        || '    -- omitting tables which dont have complete stats' || E'\n'
-        || '    -- and attributes which aren''t visible' || E'\n'
-        || '    SELECT' || E'\n'
-        || '        hdr+1+(sum(case when null_frac <> 0 THEN 1 else 0 END)/8) as nullhdr,' || E'\n'
-        || '        SUM((1-null_frac)*avg_width) as datawidth,' || E'\n'
-        || '        MAX(null_frac) as maxfracsum,' || E'\n'
-        || '        schemaname,' || E'\n'
-        || '        tablename,' || E'\n'
-        || '        hdr, ma, bs' || E'\n'
-        || '    FROM pg_catalog.pg_stats CROSS JOIN constants' || E'\n'
-        || '        LEFT OUTER JOIN no_stats' || E'\n'
-        || '            ON schemaname = no_stats.table_schema' || E'\n'
-        || '            AND tablename = no_stats.table_name' || E'\n'
-        || '    WHERE schemaname NOT IN (''pg_catalog'', ''information_schema'')' || E'\n'
-        || '        AND no_stats.table_name IS NULL' || E'\n'
-        || '        AND EXISTS ( SELECT 1' || E'\n'
-        || '            FROM information_schema.columns' || E'\n'
-        || '                WHERE schemaname = columns.table_schema' || E'\n'
-        || '                    AND tablename = columns.table_name )' || E'\n'
-        || '    GROUP BY schemaname, tablename, hdr, ma, bs),' || E'\n'
-        || 'data_headers AS (' || E'\n'
-        || '    -- estimate header and row size' || E'\n'
-        || '    SELECT' || E'\n'
-        || '        ma, bs, hdr, schemaname, tablename,' || E'\n'
-        || '        (datawidth+(hdr+ma-(case when hdr%ma=0 THEN ma ELSE hdr%ma END)))::numeric AS datahdr,' || E'\n'
-        || '        (maxfracsum*(nullhdr+ma-(case when nullhdr%ma=0 THEN ma ELSE nullhdr%ma END))) AS nullhdr2' || E'\n'
-        || '    FROM null_headers),' || E'\n'
-        || 'table_estimates AS (' || E'\n'
-        || '    -- make estimates of how large the table should be' || E'\n'
-        || '    -- based on row and page size' || E'\n'
-        || '    SELECT schemaname, tablename, bs,' || E'\n'
-        || '        reltuples::numeric as est_rows, relpages * bs as table_bytes,' || E'\n'
-        || '    CEIL((reltuples*' || E'\n'
-        || '            (datahdr + nullhdr2 + 4 + ma -' || E'\n'
-        || '                (CASE WHEN datahdr%ma=0' || E'\n'
-        || '                    THEN ma ELSE datahdr%ma END)' || E'\n'
-        || '                )/(bs-20))) * bs AS expected_bytes,' || E'\n'
-        || '        reltoastrelid' || E'\n'
-        || '    FROM data_headers' || E'\n'
-        || '        JOIN pg_catalog.pg_class ON tablename = relname' || E'\n'
-        || '        JOIN pg_catalog.pg_namespace ON relnamespace = pg_namespace.oid' || E'\n'
-        || '            AND schemaname = nspname' || E'\n'
-        || '    WHERE pg_class.relkind = ''r''),' || E'\n'
-        || 'estimates_with_toast AS (' || E'\n'
-        || '    -- add in estimated TOAST table sizes' || E'\n'
-        || '    -- estimate based on 4 toast tuples per page because we dont have' || E'\n'
-        || '    -- anything better.  also append the no_data tables' || E'\n'
-        || '    SELECT schemaname, tablename,' || E'\n'
-        || '        TRUE as can_estimate,' || E'\n'
-        || '        est_rows,' || E'\n'
-        || '        table_bytes + ( coalesce(toast.relpages, 0) * bs ) as table_bytes,' || E'\n'
-        || '        expected_bytes + ( ceil( coalesce(toast.reltuples, 0) / 4 ) * bs ) as expected_bytes' || E'\n'
-        || '    FROM table_estimates LEFT OUTER JOIN pg_catalog.pg_class as toast' || E'\n'
-        || '        ON table_estimates.reltoastrelid = toast.oid' || E'\n'
-        || '            AND toast.relkind = ''t''),' || E'\n'
-        || 'table_estimates_plus AS (' || E'\n'
-        || '-- add some extra metadata to the table data' || E'\n'
-        || '-- and calculations to be reused' || E'\n'
-        || '-- including whether we cant estimate it' || E'\n'
-        || '-- or whether we think it might be compressed' || E'\n'
-        || '    SELECT schemaname, tablename, can_estimate,' || E'\n'
-        || '            est_rows,' || E'\n'
-        || '            CASE WHEN table_bytes > 0' || E'\n'
-        || '                THEN table_bytes::NUMERIC' || E'\n'
-        || '                ELSE NULL::NUMERIC END' || E'\n'
-        || '                AS table_bytes,' || E'\n'
-        || '            CASE WHEN expected_bytes > 0' || E'\n'
-        || '                THEN expected_bytes::NUMERIC' || E'\n'
-        || '                ELSE NULL::NUMERIC END' || E'\n'
-        || '                    AS expected_bytes,' || E'\n'
-        || '            CASE WHEN expected_bytes > 0 AND table_bytes > 0' || E'\n'
-        || '                AND expected_bytes <= table_bytes' || E'\n'
-        || '                THEN (table_bytes - expected_bytes)::NUMERIC' || E'\n'
-        || '                ELSE 0::NUMERIC END AS bloat_bytes' || E'\n'
-        || '    FROM estimates_with_toast' || E'\n'
-        || '    UNION ALL' || E'\n'
-        || '    SELECT table_schema, table_name, FALSE,' || E'\n'
-        || '        est_rows, table_size,' || E'\n'
-        || '        NULL::NUMERIC, NULL::NUMERIC' || E'\n'
-        || '    FROM no_stats),' || E'\n'
-        || 'bloat_data AS (' || E'\n'
-        || '    -- do final math calculations and formatting' || E'\n'
-        || '    select schemaname, tablename, can_estimate,' || E'\n'
-        || '        table_bytes, round(table_bytes/(1024^2)::NUMERIC,3) as table_size_mb,' || E'\n'
-        || '        expected_bytes, round(expected_bytes/(1024^2)::NUMERIC,3) as expected_mb,' || E'\n'
-        || '        round(bloat_bytes*100/table_bytes) as pct_bloat,' || E'\n'
-        || '        round(bloat_bytes/(1024::NUMERIC^2),2) as bloat_mb,' || E'\n'
-        || '        table_bytes, expected_bytes, est_rows' || E'\n'
-        || '    FROM table_estimates_plus' || E'\n'
-        || ')' || E'\n'
-        || '-- filter output for bloated tables' || E'\n'
-        || 'SELECT schemaname, tablename AS relname,' || E'\n'
-        || '    est_rows,' || E'\n'
-        || '    pct_bloat, bloat_mb as size_mb,' || E'\n'
-        || '    table_size_mb' || E'\n'
-        || 'FROM bloat_data' || E'\n'
-        || '-- this where clause defines which tables actually appear' || E'\n'
-        || '-- in the bloat chart' || E'\n'
-        || '-- clause below filters for tables which are either 10%' || E'\n'
-        || '-- bloated and more than 20mb in size, or more than 25%' || E'\n'
-        || '-- bloated and more than 1GB in size' || E'\n'
-        || '-- WHERE ( pct_bloat >= 5 AND bloat_mb >= 20 )' || E'\n'
-        || 'ORDER BY pct_bloat DESC;')
-        AS (schemaname name, relname name, est_rows numeric, pct_bloat numeric, size_mb numeric, table_size_mb numeric)) AS ss;
-  metrics:
-    - datname:
-        usage: "LABEL"
-        description: "Database Name"
-    - schemaname:
-        usage: "LABEL"
-        description: "Schema Name"
-    - relname:
-        usage: "LABEL"
-        description: "Table Name"
-    - est_rows:
-        usage: "GAUGE"
-        description: "Estimated rows"
-    - pct_bloat:
-        usage: "GAUGE"
-        description: "Percentage of bloat"
-    - size_mb:
-        usage: "GAUGE"
-        description: "Table Bloat in MB"
-    - table_size_mb:
-        usage: "GAUGE"
-        description: "Table Size in MB"
-
-pg_index:
-  master: true
-  query: |
-    SET max_parallel_workers_per_gather = 0;
-    WITH databases AS (
-      SELECT datname FROM pg_database
-      WHERE datname NOT IN ('template0', 'template1')
-    )
-    SELECT datname, ss.* FROM databases,
-      LATERAL (SELECT * FROM dblink(
-        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
-        '-- btree index stats query' || E'\n'
-        || '-- estimates bloat for btree indexes' || E'\n'
-        || 'WITH btree_index_atts AS (' || E'\n'
-        || '    SELECT nspname,' || E'\n'
-        || '        indexclass.relname as indexname,' || E'\n'
-        || '        indexclass.reltuples,' || E'\n'
-        || '        indexclass.relpages,' || E'\n'
-        || '        indrelid, indexrelid,' || E'\n'
-        || '        indexclass.relam,' || E'\n'
-        || '        tableclass.relname as tablename,' || E'\n'
-        || '        regexp_split_to_table(indkey::text, '' '')::smallint AS attnum,' || E'\n'
-        || '        indexrelid as index_oid' || E'\n'
-        || '    FROM pg_catalog.pg_index' || E'\n'
-        || '    JOIN pg_catalog.pg_class AS indexclass ON pg_index.indexrelid = indexclass.oid' || E'\n'
-        || '    JOIN pg_catalog.pg_class AS tableclass ON pg_index.indrelid = tableclass.oid' || E'\n'
-        || '    JOIN pg_catalog.pg_namespace ON pg_namespace.oid = indexclass.relnamespace' || E'\n'
-        || '    JOIN pg_catalog.pg_am ON indexclass.relam = pg_am.oid' || E'\n'
-        || '    WHERE pg_am.amname = ''btree'' and indexclass.relpages > 0' || E'\n'
-        || '        AND nspname NOT IN (''pg_catalog'',''information_schema'')' || E'\n'
-        || '    ),' || E'\n'
-        || 'index_item_sizes AS (' || E'\n'
-        || '    SELECT' || E'\n'
-        || '    ind_atts.nspname, ind_atts.indexname,' || E'\n'
-        || '    ind_atts.reltuples, ind_atts.relpages, ind_atts.relam,' || E'\n'
-        || '    indrelid AS table_oid, index_oid,' || E'\n'
-        || '    current_setting(''block_size'')::numeric AS bs,' || E'\n'
-        || '    8 AS maxalign,' || E'\n'
-        || '    24 AS pagehdr,' || E'\n'
-        || '    CASE WHEN max(coalesce(pg_stats.null_frac,0)) = 0' || E'\n'
-        || '        THEN 2' || E'\n'
-        || '        ELSE 6' || E'\n'
-        || '    END AS index_tuple_hdr,' || E'\n'
-        || '    sum( (1-coalesce(pg_stats.null_frac, 0)) * coalesce(pg_stats.avg_width, 1024) ) AS nulldatawidth' || E'\n'
-        || '    FROM pg_catalog.pg_attribute' || E'\n'
-        || '    JOIN btree_index_atts AS ind_atts ON pg_attribute.attrelid = ind_atts.indexrelid AND pg_attribute.attnum = ind_atts.attnum' || E'\n'
-        || '    JOIN pg_catalog.pg_stats ON pg_stats.schemaname = ind_atts.nspname' || E'\n'
-        || '        -- stats for regular index columns' || E'\n'
-        || '        AND ( (pg_stats.tablename = ind_atts.tablename AND pg_stats.attname = pg_catalog.pg_get_indexdef(pg_attribute.attrelid, pg_attribute.attnum, TRUE))' || E'\n' 
-        || '        -- stats for functional indexes' || E'\n'
-        || '        OR   (pg_stats.tablename = ind_atts.indexname AND pg_stats.attname = pg_attribute.attname))' || E'\n'
-        || '    WHERE pg_attribute.attnum > 0' || E'\n'
-        || '    GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9' || E'\n'
-        || '),' || E'\n'
-        || 'index_aligned_est AS (' || E'\n'
-        || '    SELECT maxalign, bs, nspname, indexname, reltuples,' || E'\n'
-        || '        relpages, relam, table_oid, index_oid,' || E'\n'
-        || '        coalesce (' || E'\n'
-        || '            ceil (' || E'\n'
-        || '                reltuples * ( 6' || E'\n'
-        || '                    + maxalign' || E'\n'
-        || '                    - CASE' || E'\n'
-        || '                        WHEN index_tuple_hdr%maxalign = 0 THEN maxalign' || E'\n'
-        || '                        ELSE index_tuple_hdr%maxalign' || E'\n'
-        || '                    END' || E'\n'
-        || '                    + nulldatawidth' || E'\n'
-        || '                    + maxalign' || E'\n'
-        || '                    - CASE /* Add padding to the data to align on MAXALIGN */' || E'\n'
-        || '                        WHEN nulldatawidth::integer%maxalign = 0 THEN maxalign' || E'\n'
-        || '                        ELSE nulldatawidth::integer%maxalign' || E'\n'
-        || '                    END' || E'\n'
-        || '                )::numeric' || E'\n'
-        || '            / ( bs - pagehdr::NUMERIC )' || E'\n'
-        || '            +1 )' || E'\n'
-        || '        , 0 )' || E'\n'
-        || '    as expected' || E'\n'
-        || '    FROM index_item_sizes' || E'\n'
-        || '),' || E'\n'
-        || 'raw_bloat AS (' || E'\n'
-        || '    SELECT current_database() as dbname, nspname, pg_class.relname AS tablename, indexname,' || E'\n'
-        || '        bs*(index_aligned_est.relpages)::bigint AS totalbytes, expected,' || E'\n'
-        || '        CASE' || E'\n'
-        || '            WHEN index_aligned_est.relpages <= expected' || E'\n'
-        || '                THEN 0' || E'\n'
-        || '                ELSE bs*(index_aligned_est.relpages-expected)::bigint' || E'\n'
-        || '            END AS wastedbytes,' || E'\n'
-        || '        CASE' || E'\n'
-        || '            WHEN index_aligned_est.relpages <= expected' || E'\n'
-        || '                THEN 0' || E'\n'
-        || '                ELSE bs*(index_aligned_est.relpages-expected)::bigint * 100 / (bs*(index_aligned_est.relpages)::bigint)' || E'\n' 
-        || '            END AS realbloat,' || E'\n'
-        || '        pg_relation_size(index_aligned_est.table_oid) as table_bytes,' || E'\n'
-        || '        stat.idx_scan as index_scans' || E'\n'
-        || '    FROM index_aligned_est' || E'\n'
-        || '    JOIN pg_catalog.pg_class ON pg_class.oid=index_aligned_est.table_oid' || E'\n'
-        || '    JOIN pg_catalog.pg_stat_user_indexes AS stat ON index_aligned_est.index_oid = stat.indexrelid' || E'\n'
-        || '),' || E'\n'
-        || 'format_bloat AS (' || E'\n'
-        || 'SELECT nspname as schemaname, tablename, indexname,' || E'\n'
-        || '        round(realbloat) as bloat_pct, round(wastedbytes/(1024^2)::NUMERIC) as bloat_mb,' || E'\n'
-        || '        round(totalbytes/(1024^2)::NUMERIC,3) as index_mb,' || E'\n'
-        || '        round(table_bytes/(1024^2)::NUMERIC,3) as table_mb,' || E'\n'
-        || '        index_scans' || E'\n'
-        || 'FROM raw_bloat' || E'\n'
-        || ')' || E'\n'
-        || '-- final query outputting the bloated indexes' || E'\n'
-        || '-- change the where and order by to change' || E'\n'
-        || '-- what shows up as bloated' || E'\n'
-        || 'SELECT schemaname,' || E'\n'
-        || '    tablename, indexname AS indexrelname,' || E'\n'
-        || '    bloat_pct, bloat_mb,' || E'\n'
-        || '    index_mb, table_mb, index_scans' || E'\n'
-        || 'FROM format_bloat' || E'\n'
-        || '--WHERE ( bloat_pct > 50 and bloat_mb > 10 )' || E'\n'
-        || 'ORDER BY bloat_mb DESC;' || E'\n')
-        AS (schemaname name, tablename name, indexrelname name, bloat_pct numeric, bloat_mb numeric, index_mb numeric, table_mb numeric, index_scans bigint)) AS ss
+        '-- https://github.com/ioguix/pgsql-bloat-estimation' || E'\n'
+        || ' SELECT schemaname, tablename, bs*tblpages AS real_size,' || E'\n'
+        || ' (tblpages-est_tblpages)*bs AS extra_size,' || E'\n'
+        || ' CASE WHEN tblpages - est_tblpages > 0' || E'\n'
+        || '     THEN 100 * (tblpages - est_tblpages)/tblpages::float' || E'\n'
+        || '     ELSE 0' || E'\n'
+        || ' END AS extra_ratio, fillfactor,' || E'\n'
+        || ' CASE WHEN tblpages - est_tblpages_ff > 0' || E'\n'
+        || '     THEN (tblpages-est_tblpages_ff)*bs' || E'\n'
+        || '     ELSE 0' || E'\n'
+        || ' END AS bloat_size,' || E'\n'
+        || ' CASE WHEN tblpages - est_tblpages_ff > 0' || E'\n'
+        || '     THEN 100 * (tblpages - est_tblpages_ff)/tblpages::float' || E'\n'
+        || '     ELSE 0' || E'\n'
+        || ' END AS bloat_ratio, is_na' || E'\n'
+        || ' FROM (' || E'\n'
+        || ' SELECT ceil( reltuples / ( (bs-page_hdr)/tpl_size ) ) + ceil( toasttuples / 4 ) AS est_tblpages,' || E'\n'
+        || '     ceil( reltuples / ( (bs-page_hdr)*fillfactor/(tpl_size*100) ) ) + ceil( toasttuples / 4 ) AS est_tblpages_ff,' || E'\n'
+        || '     tblpages, fillfactor, bs, tblid, schemaname, tablename, heappages, toastpages, is_na' || E'\n'
+        || ' FROM (' || E'\n'
+        || '     SELECT' || E'\n'
+        || '     ( 4 + tpl_hdr_size + tpl_data_size + (2*ma)' || E'\n'
+        || '         - CASE WHEN tpl_hdr_size%ma = 0 THEN ma ELSE tpl_hdr_size%ma END' || E'\n'
+        || '         - CASE WHEN ceil(tpl_data_size)::int%ma = 0 THEN ma ELSE ceil(tpl_data_size)::int%ma END' || E'\n'
+        || '     ) AS tpl_size, bs - page_hdr AS size_per_block, (heappages + toastpages) AS tblpages, heappages,' || E'\n'
+        || '     toastpages, reltuples, toasttuples, bs, page_hdr, tblid, schemaname, tablename, fillfactor, is_na' || E'\n'
+        || '     FROM (' || E'\n'
+        || '     SELECT' || E'\n'
+        || '         tbl.oid AS tblid, ns.nspname AS schemaname, tbl.relname AS tablename, tbl.reltuples,' || E'\n'
+        || '         tbl.relpages AS heappages, coalesce(toast.relpages, 0) AS toastpages,' || E'\n'
+        || '         coalesce(toast.reltuples, 0) AS toasttuples,' || E'\n'
+        || '         coalesce(substring(' || E'\n'
+        || '         array_to_string(tbl.reloptions, '' '')' || E'\n'
+        || '         FROM ''fillfactor=([0-9]+)'')::smallint, 100) AS fillfactor,' || E'\n'
+        || '         current_setting(''block_size'')::numeric AS bs,' || E'\n'
+        || '         CASE WHEN version()~''mingw32'' OR version()~''64-bit|x86_64|ppc64|ia64|amd64'' THEN 8 ELSE 4 END AS ma,' || E'\n'
+        || '         24 AS page_hdr,' || E'\n'
+        || '         23 + CASE WHEN MAX(coalesce(s.null_frac,0)) > 0 THEN ( 7 + count(s.attname) ) / 8 ELSE 0::int END' || E'\n'
+        || '         + CASE WHEN bool_or(att.attname = ''oid'' and att.attnum < 0) THEN 4 ELSE 0 END AS tpl_hdr_size,' || E'\n'
+        || '         sum( (1-coalesce(s.null_frac, 0)) * coalesce(s.avg_width, 0) ) AS tpl_data_size,' || E'\n'
+        || '         bool_or(att.atttypid = ''pg_catalog.name''::regtype)' || E'\n'
+        || '         OR sum(CASE WHEN att.attnum > 0 THEN 1 ELSE 0 END) <> count(s.attname) AS is_na' || E'\n'
+        || '     FROM pg_attribute AS att' || E'\n'
+        || '         JOIN pg_class AS tbl ON att.attrelid = tbl.oid' || E'\n'
+        || '         JOIN pg_namespace AS ns ON ns.oid = tbl.relnamespace' || E'\n'
+        || '         LEFT JOIN pg_stats AS s ON s.schemaname=ns.nspname' || E'\n'
+        || '         AND s.tablename = tbl.relname AND s.inherited=false AND s.attname=att.attname' || E'\n'
+        || '         LEFT JOIN pg_class AS toast ON tbl.reltoastrelid = toast.oid' || E'\n'
+        || '     WHERE NOT att.attisdropped' || E'\n'
+        || '         AND tbl.relkind in (''r'',''m'')' || E'\n'
+        || '     GROUP BY 1,2,3,4,5,6,7,8,9,10' || E'\n'
+        || '     ORDER BY 2,3' || E'\n'
+        || '     ) AS s' || E'\n'
+        || ' ) AS s2' || E'\n'
+        || ' ) AS s3' || E'\n'
+        || ' where schemaname not in (''information_schema'',''pg_catalog'')' || E'\n'
+        || ' ORDER BY schemaname, tablename' || E'\n')
+       As (schemaname character varying, tablename character varying, real_size numeric, extra_size numeric, extra_ratio numeric, fillfactor numeric, bloat_size numeric, bloat_ratio numeric, is_na boolean)) AS ss;
   metrics:
     - datname:
         usage: "LABEL"
@@ -841,21 +633,185 @@ pg_index:
     - tablename:
         usage: "LABEL"
         description: "Table Name"
-    - indexrelname:
+    - real_size:
+        usage: "GAUGE"
+        description: "Table real size"
+    - extra_size:
+        usage: "GAUGE"
+        description: "Estimated extra size not used/needed in the table. This extra size is composed by the fillfactor, bloat and alignment padding spaces"
+    - extra_ratio:
+        usage: "GAUGE"
+        description: "Estimated ratio of the real size used by extra_size"
+    - fillfactor:
+        usage: "GAUGE"
+        description: "Table fillfactor"
+    - bloat_size:
+        usage: "GAUGE"
+        description: "Estimated size of the bloat without the extra space kept for the fillfactor."
+    - bloat_ratio:
+        usage: "GAUGE"
+        description: "Estimated ratio of the real size used by bloat_size"
+    - is_na:
+        usage: "GAUGE"
+        description: "Estimation not aplicable, If true, do not trust the stats"
+
+pg_index:
+  master: true
+  query: |
+    SET max_parallel_workers_per_gather = 0;
+    WITH databases AS (
+      SELECT datname FROM pg_database
+      WHERE datname NOT IN ('template0', 'template1')
+    )
+    SELECT datname, ss.* FROM databases,
+    LATERAL (SELECT * FROM dblink(
+        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
+        '-- https://github.com/ioguix/pgsql-bloat-estimation' || E'\n'
+      || ' SELECT nspname AS schema_name, tblname, idxname, bs*(relpages)::bigint AS real_size,' || E'\n'
+      || '  bs*(relpages-est_pages)::bigint AS extra_size,' || E'\n'
+      || '  100 * (relpages-est_pages)::float / relpages AS extra_ratio,' || E'\n'
+      || '  fillfactor,' || E'\n'
+      || '  CASE WHEN relpages > est_pages_ff' || E'\n'
+      || '  THEN bs*(relpages-est_pages_ff)' || E'\n'
+      || '  ELSE 0' || E'\n'
+      || '  END AS bloat_size,' || E'\n'
+      || '  100 * (relpages-est_pages_ff)::float / relpages AS bloat_ratio,' || E'\n'
+      || '  is_na' || E'\n'
+      || '  FROM (' || E'\n'
+      || '  SELECT coalesce(1 +' || E'\n'
+      || '          ceil(reltuples/floor((bs-pageopqdata-pagehdr)/(4+nulldatahdrwidth)::float)), 0' || E'\n'
+      || '      ) AS est_pages,' || E'\n'
+      || '      coalesce(1 +' || E'\n'
+      || '          ceil(reltuples/floor((bs-pageopqdata-pagehdr)*fillfactor/(100*(4+nulldatahdrwidth)::float))), 0' || E'\n'
+      || '      ) AS est_pages_ff,' || E'\n'
+      || '      bs, nspname, tblname, idxname, relpages, fillfactor, is_na' || E'\n'
+      || '  FROM (' || E'\n'
+      || '      SELECT maxalign, bs, nspname, tblname, idxname, reltuples, relpages, idxoid, fillfactor,' || E'\n'
+      || '          ( index_tuple_hdr_bm +' || E'\n'
+      || '              maxalign - CASE -- Add padding to the index tuple header to align on MAXALIGN' || E'\n'
+      || '                  WHEN index_tuple_hdr_bm%maxalign = 0 THEN maxalign' || E'\n'
+      || '                  ELSE index_tuple_hdr_bm%maxalign' || E'\n'
+      || '              END' || E'\n'
+      || '              + nulldatawidth + maxalign - CASE -- Add padding to the data to align on MAXALIGN' || E'\n'
+      || '                  WHEN nulldatawidth = 0 THEN 0' || E'\n'
+      || '                  WHEN nulldatawidth::integer%maxalign = 0 THEN maxalign' || E'\n'
+      || '                  ELSE nulldatawidth::integer%maxalign' || E'\n'
+      || '              END' || E'\n'
+      || '          )::numeric AS nulldatahdrwidth, pagehdr, pageopqdata, is_na' || E'\n'
+      || '      FROM (' || E'\n'
+      || '          SELECT n.nspname, i.tblname, i.idxname, i.reltuples, i.relpages,' || E'\n'
+      || '              i.idxoid, i.fillfactor, current_setting(''block_size'')::numeric AS bs,' || E'\n'
+      || '              CASE' || E'\n'
+      || '              WHEN version() ~ ''mingw32'' OR version() ~ ''64-bit|x86_64|ppc64|ia64|amd64'' THEN 8' || E'\n'
+      || '              ELSE 4' || E'\n'
+      || '              END AS maxalign,' || E'\n'
+      || '              24 AS pagehdr,' || E'\n'
+      || '              16 AS pageopqdata,' || E'\n'
+      || '              CASE WHEN max(coalesce(s.null_frac,0)) = 0' || E'\n'
+      || '                  THEN 2 -- IndexTupleData size' || E'\n'
+      || '                  ELSE 2 + (( 32 + 8 - 1 ) / 8)' || E'\n'
+      || '              END AS index_tuple_hdr_bm,' || E'\n'
+      || '              sum( (1-coalesce(s.null_frac, 0)) * coalesce(s.avg_width, 1024)) AS nulldatawidth,' || E'\n'
+      || '              max( CASE WHEN i.atttypid = ''pg_catalog.name''::regtype THEN 1 ELSE 0 END ) > 0 AS is_na' || E'\n'
+      || '          FROM (' || E'\n'
+      || '              SELECT ct.relname AS tblname, ct.relnamespace, ic.idxname, ic.attpos, ic.indkey, ic.indkey[ic.attpos], ic.reltuples, ic.relpages, ic.tbloid, ic.idxoid, ic.fillfactor,' || E'\n'
+      || '                  coalesce(a1.attnum, a2.attnum) AS attnum, coalesce(a1.attname, a2.attname) AS attname, coalesce(a1.atttypid, a2.atttypid) AS atttypid,' || E'\n'
+      || '                  CASE WHEN a1.attnum IS NULL' || E'\n'
+      || '                  THEN ic.idxname' || E'\n'
+      || '                  ELSE ct.relname' || E'\n'
+      || '                  END AS attrelname' || E'\n'
+      || '              FROM (' || E'\n'
+      || '                  SELECT idxname, reltuples, relpages, tbloid, idxoid, fillfactor, indkey,' || E'\n'
+      || '                      pg_catalog.generate_series(1,indnatts) AS attpos' || E'\n'
+      || '                  FROM (' || E'\n'
+      || '                      SELECT ci.relname AS idxname, ci.reltuples, ci.relpages, i.indrelid AS tbloid,' || E'\n'
+      || '                          i.indexrelid AS idxoid,' || E'\n'
+      || '                          coalesce(substring(' || E'\n'
+      || '                              array_to_string(ci.reloptions, '' '')' || E'\n'
+      || '                              from ''fillfactor=([0-9]+)'')::smallint, 90) AS fillfactor,' || E'\n'
+      || '                          i.indnatts,' || E'\n'
+      || '                          pg_catalog.string_to_array(pg_catalog.textin(' || E'\n'
+      || '                              pg_catalog.int2vectorout(i.indkey)),'' '')::int[] AS indkey' || E'\n'
+      || '                      FROM pg_catalog.pg_index i' || E'\n'
+      || '                      JOIN pg_catalog.pg_class ci ON ci.oid = i.indexrelid' || E'\n'
+      || '                      WHERE ci.relam=(SELECT oid FROM pg_am WHERE amname = ''btree'')' || E'\n'
+      || '                      AND ci.relpages > 0' || E'\n'
+      || '                  ) AS idx_data' || E'\n'
+      || '              ) AS ic' || E'\n'
+      || '              JOIN pg_catalog.pg_class ct ON ct.oid = ic.tbloid' || E'\n'
+      || '              LEFT JOIN pg_catalog.pg_attribute a1 ON' || E'\n'
+      || '                  ic.indkey[ic.attpos] <> 0' || E'\n'
+      || '                  AND a1.attrelid = ic.tbloid' || E'\n'
+      || '                  AND a1.attnum = ic.indkey[ic.attpos]' || E'\n'
+      || '              LEFT JOIN pg_catalog.pg_attribute a2 ON' || E'\n'
+      || '                  ic.indkey[ic.attpos] = 0' || E'\n'
+      || '                  AND a2.attrelid = ic.idxoid' || E'\n'
+      || '                  AND a2.attnum = ic.attpos' || E'\n'
+      || '          ) i' || E'\n'
+      || '          JOIN pg_catalog.pg_namespace n ON n.oid = i.relnamespace' || E'\n'
+      || '          JOIN pg_catalog.pg_stats s ON s.schemaname = n.nspname' || E'\n'
+      || '                                      AND s.tablename = i.attrelname' || E'\n'
+      || '                                      AND s.attname = i.attname' || E'\n'
+      || '          GROUP BY 1,2,3,4,5,6,7,8,9,10,11' || E'\n'
+      || '      ) AS rows_data_stats' || E'\n'
+      || '  ) AS rows_hdr_pdg_stats' || E'\n'
+      || '  ) AS relation_stats' || E'\n'
+      || '  WHERE nspname != ''pg_catalog'' ' || E'\n'
+      || '  ORDER BY nspname, tblname, idxname;' || E'\n')
+      As (schema_name character varying, tblname character varying, idxname character varying, real_size numeric, extra_size numeric, extra_ratio numeric, fillfactor numeric, bloat_size numeric, bloat_ratio numeric, is_na boolean)) AS ss;
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Database Name"
+    - schema_name:
+        usage: "LABEL"
+        description: "Schema Name"
+    - tblname:
+        usage: "LABEL"
+        description: "Table Name"
+    - idxname:
         usage: "LABEL"
         description: "Index Name"
-    - bloat_pct:
+    - real_size:
         usage: "GAUGE"
-        description: "Percentage Bloat"
-    - bloat_mb:
+        description: "Index size"
+    - extra_size:
         usage: "GAUGE"
-        description: "Bloat in MB"
-    - index_mb:
+        description: "Index extra size"
+    - extra_ratio:
         usage: "GAUGE"
-        description: "Index size in MB"
-    - table_mb:
+        description: "Index extra size ratio"
+    - fillfactor:
         usage: "GAUGE"
-        description: "Table size in MB"
-    - index_scans:
+        description: "Fillfactor"
+    - bloat_size:
         usage: "GAUGE"
-        description: "Count of index scans"
+        description: "Estimate index bloat size"
+    - bloat_ratio:
+        usage: "GAUGE"
+        description: "Estimate index bloat size ratio"
+    - is_na:
+        usage: "GAUGE"
+        description: "Estimate Not aplicable, bad statistic"
+
+pg_replication_status:
+  master: true
+  query: |
+    select application_name,
+    client_addr,
+    state,
+    pg_wal_lsn_diff(pg_stat_replication.sent_lsn, pg_stat_replication.replay_lsn) AS lag_size
+    FROM pg_stat_replication;
+  metrics:
+    - application_name:
+        usage: "LABEL"
+        description: "Application or node name"
+    - client_addr:
+        usage: "LABEL"
+        description: "Client ip address"
+    - state:
+        usage: "LABEL"
+        description: "Client replication state"
+    - lag_size_bytes:
+        usage: "GAUGE"
+        description: "Replication lag size in bytes"
