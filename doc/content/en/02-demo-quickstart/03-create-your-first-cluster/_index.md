@@ -112,7 +112,7 @@ To clean up the resources created by the demo run:
 
 ```
 helm uninstall --keep-history simple
-helm get hooks -n connectivity-5f2bb6bf connectivity | kubectl delete --ignore-not-found -n connectivity-5f2bb6bf -f -
+helm get hooks simple | kubectl delete --ignore-not-found -f -
 helm uninstall simple
 ```
 

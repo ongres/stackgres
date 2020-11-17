@@ -137,7 +137,25 @@ status:
 
 | Property                               | Required | Updatable |Type     | Default   | Description |
 |:---------------------------------------|----------|-----------|:--------|:----------|:------------|
+| [baseBackups](#base-backups)           |          | ✓         | object  |           | {{< crd-field-description SGBackup.status.sgBackupConfig.baseBackups >}} |
 | [storage](#storage-configuration)      |          | ✓         | object  |           | {{< crd-field-description SGBackup.status.sgBackupConfig.storage >}} |
+
+## Base Backups
+
+| Property                                 | Required | Updatable |Type     | Default   | Description |
+|:-----------------------------------------|----------|-----------|:--------|:----------|:------------|
+| retention                                |          | ✓         | integer | 5         | {{< crd-field-description SGBackup.status.sgBackupConfig.baseBackups.retention >}} |
+| cronSchedule                             |          | ✓         | string  | 05:00 UTC | {{< crd-field-description SGBackup.status.sgBackupConfig.baseBackups.cronSchedule >}} |
+| compression                              |          | ✓         | string  | lz4       | {{< crd-field-description SGBackup.status.sgBackupConfig.baseBackups.compression >}} |
+| [performance](#base-backup-performance)  |          | ✓         | object  |           | {{< crd-field-description SGBackup.status.sgBackupConfig.baseBackups.performance >}} |
+
+## Base Backup Performance
+
+| Property                               | Required | Updatable |Type     | Default   | Description |
+|:---------------------------------------|----------|-----------|:--------|:----------|:------------|
+| maxDiskBandwitdh                       |          | ✓         | integer | unlimited | {{< crd-field-description SGBackup.status.sgBackupConfig.baseBackups.performance.maxDiskBandwitdh >}} |
+| maxNetworkBandwitdh                    |          | ✓         | integer | unlimited | {{< crd-field-description SGBackup.status.sgBackupConfig.baseBackups.performance.maxNetworkBandwitdh >}} |
+| uploadDiskConcurrency                  |          | ✓         | integer | 1         | {{< crd-field-description SGBackup.status.sgBackupConfig.baseBackups.performance.uploadDiskConcurrency >}} |
 
 ## Storage Configuration
 
