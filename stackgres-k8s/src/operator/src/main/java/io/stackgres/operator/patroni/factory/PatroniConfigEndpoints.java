@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.ClusterStatefulSetEnvVars;
 import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.ObjectMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -68,6 +69,20 @@ public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFac
         .patroniClusterLabels(cluster);
     Map<String, String> params = new HashMap<>(DefaultValues.getDefaultValues());
 
+    Optional<StackGresPostgresConfig> pgconfig = clusterContext.getPostgresConfig();
+    if (pgconfig.isPresent()) {
+      Map<String, String> userParams = pgconfig.get().getSpec().getPostgresqlConf();
+      // Blacklist removal
+      for (String bl : Blocklist.getBlocklistParameters()) {
+        userParams.remove(bl);
+      }
+      for (Map.Entry<String, String> userParam : userParams.entrySet()) {
+        params.put(userParam.getKey(), userParam.getValue());
+      }
+    }
+
+    params.put("port", String.valueOf(EnvoyUtil.PG_PORT));
+
     if (clusterContext.getBackupContext().isPresent()) {
       params.put("archive_command",
           "exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value() + "'"
@@ -92,18 +107,6 @@ public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFac
     params.put("wal_level", "logical");
     params.put("wal_log_hints", "on");
     params.put("archive_mode", "on");
-
-    Optional<StackGresPostgresConfig> pgconfig = clusterContext.getPostgresConfig();
-    if (pgconfig.isPresent()) {
-      Map<String, String> userParams = pgconfig.get().getSpec().getPostgresqlConf();
-      // Blacklist removal
-      for (String bl : Blocklist.getBlocklistParameters()) {
-        userParams.remove(bl);
-      }
-      for (Map.Entry<String, String> userParam : userParams.entrySet()) {
-        params.put(userParam.getKey(), userParam.getValue());
-      }
-    }
 
     PatroniConfig patroniConf = new PatroniConfig();
     patroniConf.setTtl(30);
