@@ -55,21 +55,10 @@ public class PgPooling
   private static final String IMAGE_PREFIX = "docker.io/ongres/pgbouncer:v%s-build-%s";
   private static final String DEFAULT_VERSION = StackGresComponents.get("pgbouncer");
   private static final String CONFIG_SUFFIX = "-connection-pooling-config";
-  private static final Map<String, String> defaultPgBouncerInt = ImmutableMap
+  private static final Map<String, String> DEFAULT_PARAMETERS = ImmutableMap
       .<String, String>builder()
       .put("listen_port", Integer.toString(EnvoyUtil.PG_POOL_PORT))
-      .put("listen_addr", "127.0.0.1") // NOPMD
       .put("unix_socket_dir", ClusterStatefulSetPath.PG_RUN_PATH.path())
-      .put("auth_type", "md5")
-      .put("auth_user", "authenticator")
-      .put("auth_query", "SELECT usename, passwd FROM pg_shadow WHERE usename=$1")
-      .put("admin_users", "postgres")
-      .put("stats_users", "postgres")
-      .put("application_name_add_host", "1")
-      .put("ignore_startup_parameters", "extra_float_digits")
-      .put("max_db_connections", "100")
-      .put("max_user_connections", "100")
-      .put("default_pool_size", "100")
       .build();
   private final LabelFactory<StackGresCluster> labelFactory;
   private final CustomResourceFinder<StackGresPoolingConfig> poolingConfigScanner;
@@ -107,7 +96,7 @@ public class PgPooling
       params.put(entry.getKey(), entry.getValue());
     }
 
-    Map<String, String> pgbouncerIniParams = new LinkedHashMap<>(defaultPgBouncerInt);
+    Map<String, String> pgbouncerIniParams = new LinkedHashMap<>(DEFAULT_PARAMETERS);
     pgbouncerIniParams.putAll(params);
 
     String pgBouncerConfig = pgbouncerIniParams.entrySet().stream()
