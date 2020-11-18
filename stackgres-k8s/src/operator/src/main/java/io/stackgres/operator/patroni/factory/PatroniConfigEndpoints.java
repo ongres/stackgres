@@ -32,6 +32,7 @@ import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.configuration.PatroniConfig;
 import io.stackgres.operator.patroni.factory.parameters.Blocklist;
 import io.stackgres.operator.patroni.factory.parameters.DefaultValues;
+import io.stackgres.operator.sidecars.envoy.Envoy;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
@@ -68,6 +69,20 @@ public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFac
         .patroniClusterLabels(cluster);
     Map<String, String> params = new HashMap<>(DefaultValues.getDefaultValues());
 
+    Optional<StackGresPostgresConfig> pgconfig = clusterContext.getPostgresConfig();
+    if (pgconfig.isPresent()) {
+      Map<String, String> userParams = pgconfig.get().getSpec().getPostgresqlConf();
+      // Blacklist removal
+      for (String bl : Blocklist.getBlocklistParameters()) {
+        userParams.remove(bl);
+      }
+      for (Map.Entry<String, String> userParam : userParams.entrySet()) {
+        params.put(userParam.getKey(), userParam.getValue());
+      }
+    }
+
+    params.put("port", String.valueOf(Envoy.PG_PORT));
+
     if (clusterContext.getBackupContext().isPresent()) {
       params.put("archive_command",
           "exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value() + "'"
@@ -92,18 +107,6 @@ public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFac
     params.put("wal_level", "logical");
     params.put("wal_log_hints", "on");
     params.put("archive_mode", "on");
-
-    Optional<StackGresPostgresConfig> pgconfig = clusterContext.getPostgresConfig();
-    if (pgconfig.isPresent()) {
-      Map<String, String> userParams = pgconfig.get().getSpec().getPostgresqlConf();
-      // Blacklist removal
-      for (String bl : Blocklist.getBlocklistParameters()) {
-        userParams.remove(bl);
-      }
-      for (Map.Entry<String, String> userParam : userParams.entrySet()) {
-        params.put(userParam.getKey(), userParam.getValue());
-      }
-    }
 
     PatroniConfig patroniConf = new PatroniConfig();
     patroniConf.setTtl(30);
