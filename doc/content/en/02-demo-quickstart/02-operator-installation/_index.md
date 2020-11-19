@@ -34,7 +34,7 @@ You can also install the StackGres operator using [helm version 3.1.x](https://g
 kubectl create namespace stackgres
 
 helm install --namespace stackgres stackgres-operator \
-  {{< download-url >}}/helm-operator.tgz \
+  {{< download-url >}}/helm/stackgres-operator.tgz \
   --set-string adminui.service.type=LoadBalancer
 ```
 

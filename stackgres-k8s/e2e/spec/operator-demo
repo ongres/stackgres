@@ -156,7 +156,7 @@ test_packages() {
   kubectl create namespace "${OPERATOR_NAMESPACE}"
 
   helm install --namespace "${OPERATOR_NAMESPACE}" stackgres-operator \
-    "${STACKGRES_PACKAGES}/helm-operator.tgz" \
+    "${STACKGRES_PACKAGES}/stackgres-operator.tgz" \
     --set adminui.service.type=LoadBalancer
 
   if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^endpoints/stackgres-operator$"
@@ -177,7 +177,7 @@ test_packages() {
 
   echo "Creating demo package cluster"
   helm install --namespace "${CLUSTER_NAMESPACE}" "${CLUSTER_NAME}" \
-    "${STACKGRES_PACKAGES}/demo-helm-cluster.tgz" \
+    "${STACKGRES_PACKAGES}/stackgres-cluster-demo.tgz" \
     --set cluster.sgInstanceProfile=size-xs \
     --set cluster.instances=2 \
     --set nonProductionOptions.createMinio=false \

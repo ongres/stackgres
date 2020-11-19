@@ -11,7 +11,7 @@ Upgrade the operator with the following command:
 ```bash
 helm upgrade --namespace stackgres stackgres-operator \
   --values my-operator-values.yml \
-  {{< download-url >}}/helm-operator.tgz
+  {{< download-url >}}/helm/stackgres-operator.tgz
 ```
 
 Upgrade of an operator can serve two purpose:

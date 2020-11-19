@@ -105,7 +105,7 @@ You can also install a StackGres cluster using [helm vesion 3.x](https://github.
 
 ```
 helm install simple \
-  {{< download-url >}}/demo-helm-cluster.tgz
+  {{< download-url >}}/helm/stackgres-cluster-demo.tgz
 ```
 
 To clean up the resources created by the demo run:

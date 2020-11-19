@@ -30,9 +30,9 @@ helm dependency update stackgres-operator
 helm dependency update stackgres-cluster
 mkdir -p "target/packages"
 helm package stackgres-operator -d "target/packages"
-mv "target/packages/stackgres-operator-$STACKGRES_VERSION.tgz" target/packages/helm-operator.tgz
+mv "target/packages/stackgres-operator-$STACKGRES_VERSION.tgz" target/packages/stackgres-operator.tgz
 helm package stackgres-cluster -d "target/packages"
-mv "target/packages/stackgres-cluster-$STACKGRES_VERSION.tgz" target/packages/demo-helm-cluster.tgz
-mkdir -p "target/public/downloads/stackgres-k8s/stackgres"
-rm -rf "target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION"
-cp -a target/packages "target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION"
+mv "target/packages/stackgres-cluster-$STACKGRES_VERSION.tgz" target/packages/stackgres-cluster-demo.tgz
+mkdir -p "target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION"
+rm -rf "target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION/helm"
+cp -a target/packages "target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION/helm"
