@@ -54,7 +54,7 @@ helm install --namespace stackgres stackgres-operator \
         --set-string grafana.user=admin \
         --set-string grafana.password=prom-operator \
         --set-string adminui.service.type=LoadBalancer \
-        {{< download-url >}}/helm-operator.tgz
+        {{< download-url >}}/helm/stackgres-operator.tgz
 ```
 
 In the previous example StackGres have included several options to the installation, including the needed options to enable

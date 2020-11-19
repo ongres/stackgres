@@ -56,7 +56,7 @@ e2e_test() {
 
 test_yamls() {
   echo "Installing operator.yml"
-  kubectl create -n "${STACKGRES_YAML_NAMESPACE}" -f "${STACKGRES_YAMLS}/demo-operator.yml"
+  kubectl create -n "${STACKGRES_YAML_NAMESPACE}" -f "${STACKGRES_YAMLS}/stackgres-operator-demo.yml"
 
   if ! wait_services_available "$STACKGRES_YAML_NAMESPACE" 1 "^endpoints/stackgres-operator$"
   then
@@ -75,8 +75,8 @@ test_yamls() {
   fi
 
   echo "Creating demo cluster"
-  kubectl create --namespace "${CLUSTER_NAMESPACE}" -f "${STACKGRES_YAMLS}/demo-simple-config.yml" 
-  kubectl create --namespace "${CLUSTER_NAMESPACE}" -f "${STACKGRES_YAMLS}/demo-simple-cluster.yml"
+  kubectl create --namespace "${CLUSTER_NAMESPACE}" -f "${STACKGRES_YAMLS}/stackgres-simple-config-demo.yml" 
+  kubectl create --namespace "${CLUSTER_NAMESPACE}" -f "${STACKGRES_YAMLS}/stackgres-simple-cluster-demo.yml"
 
   if wait_pods_running "${CLUSTER_NAMESPACE}" 2
   then
@@ -87,7 +87,7 @@ test_yamls() {
   fi
 
   echo "Creating MinIO resources"
-  kubectl create --namespace "${CLUSTER_NAMESPACE}" -f "${STACKGRES_YAMLS}/demo-minio.yml"
+  kubectl create --namespace "${CLUSTER_NAMESPACE}" -f "${STACKGRES_YAMLS}/minio-demo.yml"
 
   if wait_pods_running "${CLUSTER_NAMESPACE}" 3
   then
@@ -114,7 +114,7 @@ test_yamls() {
   fi
 
   echo "Deleting MinIO resources"
-  kubectl delete --namespace "${CLUSTER_NAMESPACE}" -f "${STACKGRES_YAMLS}/demo-minio.yml"
+  kubectl delete --namespace "${CLUSTER_NAMESPACE}" -f "${STACKGRES_YAMLS}/minio-demo.yml"
 
   if wait_pods_terminated "${CLUSTER_NAMESPACE}" 2
   then
@@ -125,8 +125,8 @@ test_yamls() {
   fi
 
   echo "Deleting demo cluster"
-  kubectl delete --namespace "${CLUSTER_NAMESPACE}" -f "${STACKGRES_YAMLS}/demo-simple-cluster.yml"
-  kubectl delete --namespace "${CLUSTER_NAMESPACE}" -f "${STACKGRES_YAMLS}/demo-simple-config.yml" 
+  kubectl delete --namespace "${CLUSTER_NAMESPACE}" -f "${STACKGRES_YAMLS}/stackgres-simple-cluster-demo.yml"
+  kubectl delete --namespace "${CLUSTER_NAMESPACE}" -f "${STACKGRES_YAMLS}/stackgres-simple-config-demo.yml" 
 
   if wait_pods_terminated "${CLUSTER_NAMESPACE}" 0
   then
@@ -137,7 +137,7 @@ test_yamls() {
   fi
 
   echo "Deleting demo operator"
-  kubectl delete --namespace "${STACKGRES_YAML_NAMESPACE}" -f "${STACKGRES_YAMLS}/demo-operator.yml"
+  kubectl delete --namespace "${STACKGRES_YAML_NAMESPACE}" -f "${STACKGRES_YAMLS}/stackgres-operator-demo.yml"
 
   if wait_until is_demo_operator_namespace_removed
   then
@@ -157,7 +157,7 @@ test_packages() {
   kubectl create namespace "${OPERATOR_NAMESPACE}"
 
   helm install --namespace "${OPERATOR_NAMESPACE}" stackgres-operator \
-    "${STACKGRES_PACKAGES}/helm-operator.tgz" \
+    "${STACKGRES_PACKAGES}/stackgres-operator.tgz" \
     --set adminui.service.type=LoadBalancer
 
   if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^endpoints/stackgres-operator$"
@@ -178,7 +178,7 @@ test_packages() {
 
   echo "Creating demo package cluster"
   helm install --namespace "${CLUSTER_NAMESPACE}" "${CLUSTER_NAME}" \
-    "${STACKGRES_PACKAGES}/demo-helm-cluster.tgz" \
+    "${STACKGRES_PACKAGES}/stackgres-cluster-demo.tgz" \
     --set cluster.sgInstanceProfile=size-xs \
     --set cluster.instances=2 \
     --set nonProductionOptions.createMinio=false \

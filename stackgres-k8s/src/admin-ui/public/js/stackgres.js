@@ -1903,13 +1903,9 @@ function checkAuthError(error) {
     if(error.response.status == 401 ) {
       document.cookie = 'sgToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
       store.commit('setLoginToken');
-      router.push('/admin/index.html');
-      clearInterval(vm.pooling);
-      //store.replaceState({})
-      $('#signup').addClass('login').fadeIn();
-        
+      window.location.replace('/admin/')
+      process.exit(1);
     } else if(error.response.status == 403 ) {
-      //console.log(error.response)
       
       // Little hack to store the right plural kind to validate RBAC permissions
       if(error.response.config.url.includes('sgcluster/stats'))
