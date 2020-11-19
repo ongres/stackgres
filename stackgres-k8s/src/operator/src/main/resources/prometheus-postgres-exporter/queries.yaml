@@ -815,3 +815,331 @@ pg_replication_status:
     - lag_size_bytes:
         usage: "GAUGE"
         description: "Replication lag size in bytes"
+
+# PGBOUNCER QUERIES
+
+pgbouncer_show_clients:
+  master: true
+  query: |
+    SELECT _.type,
+    _."user",
+    _.database,
+    _.state,
+    _.addr,
+    _.port,
+    _.local_addr,
+    _.local_port,
+    _.connect_time,
+    _.request_time,
+    _.wait,
+    _.wait_us,
+    _.close_needed,
+    _.ptr,
+    _.link,
+    _.remote_pid,
+    _.tls
+    FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show clients'::text)
+    _(type text, "user" text, database text, state text, addr text, port integer, local_addr text, local_port integer,
+    connect_time timestamp with time zone, request_time timestamp with time zone, wait integer, wait_us integer, close_needed integer,
+    ptr text, link text, remote_pid integer, tls text);
+  metrics:
+    - type:
+        usage: "LABEL"
+        description: "C, for client."
+    - user:
+        usage: "LABEL"
+        description: "Client connected user"
+    - database:
+        usage: "LABEL"
+        description: "Database name"
+    - state:
+        usage: "LABEL"
+        description: "State of the client connection, one of active or waiting"
+    - addr:
+        usage: "LABEL"
+        description: "IP address of client"
+    - port:
+        usage: "GAUGE"
+        description: "Port client is connected to"
+    - local_addr:
+        usage: "LABEL"
+        description: "Connection end address on local machine"
+    - local_port:
+        usage: "GAUGE"
+        description: "Connection end port on local machine"
+    - connect_time:
+        usage: "LABEL"
+        description: "Timestamp of connect time"
+    - request_time:
+        usage: "LABEL"
+        description: "Timestamp of latest client request"
+    - wait:
+        usage: "GAUGE"
+        description: "Current waiting time in seconds"
+    - wait_us:
+        usage: "GAUGE"
+        description: "Microsecond part of the current waiting time"
+    - close_needed:
+        usage: "GAUGE"
+        description: "not used for clients"
+    - ptr:
+        usage: "LABEL"
+        description: "Address of internal object for this connection. Used as unique ID"
+    - link:
+        usage: "LABEL"
+        description: "Address of server connection the client is paired with"
+    - remote_pid:
+        usage: "GAUGE"
+        description: "Process ID, in case client connects over Unix socket and OS supports getting it"
+    - tls:
+        usage: "LABEL"
+        description: "A string with TLS connection information, or empty if not using TLS"
+
+pgbouncer_show_pools:
+  master: true
+  query: |
+    SELECT _.database,
+    _."user",
+    _.cl_active,
+    _.cl_waiting,
+    _.sv_active,
+    _.sv_idle,
+    _.sv_used,
+    _.sv_tested,
+    _.sv_login,
+    _.maxwait,
+    _.maxwait_us,
+    _.pool_mode
+    FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show pools'::text)
+    _(database text, "user" text, cl_active integer, cl_waiting integer, sv_active integer, sv_idle integer,
+    sv_used integer, sv_tested integer, sv_login integer, maxwait integer, maxwait_us integer, pool_mode text);
+  metrics:
+    - database:
+        usage: "LABEL"
+        description: "Database name"
+    - user:
+        usage: "LABEL"
+        description: "User name"
+    - cl_active:
+        usage: "GAUGE"
+        description: "Client connections that are linked to server connection and can process queries"
+    - cl_waiting:
+        usage: "GAUGE"
+        description: "Client connections that have sent queries but have not yet got a server connection"
+    - sv_active:
+        usage: "GAUGE"
+        description: "Server connections that are linked to a client"
+    - sv_idle:
+        usage: "GAUGE"
+        description: "Server connections that are unused and immediately usable for client queries"
+    - sv_used:
+        usage: "GAUGE"
+        description: "Server connections that have been idle for more than server_check_delay so they need server_check_query to run on them"
+    - sv_tested:
+        usage: "GAUGE"
+        description: "Server connections that are currently running either server_reset_query or server_check_query"
+    - sv_login:
+        usage: "GAUGE"
+        description: "Server connections currently in the process of logging in"
+    - maxwait:
+        usage: "GAUGE"
+        description: "How long the first oldest client in the queue has waited, in seconds"
+    - maxwait_us:
+        usage: "GAUGE"
+        description: "Microsecond part of the maximum waiting time"
+    - pool_mode:
+        usage: "LABEL"
+        description: "The pooling mode in use"
+
+pgbouncer_show_databases:
+  master: true
+  query: |
+    select _.name,
+    _.host,
+    _.port,
+    _.database,
+    _.force_user,
+    _.pool_size,
+    _.reserve_pool,
+    _.pool_mode,
+    _.max_connections,
+    _.current_connections,
+    _.paused,
+    _.disabled
+    FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show databases'::text)
+    _(name text, host text, port integer, database text, force_user text, pool_size integer, reserve_pool integer,
+    pool_mode text, max_connections integer, current_connections integer, paused boolean, disabled boolean);
+  metrics:
+    - name:
+        usage: "LABEL"
+        description: "Name of configured database entry"
+    - host:
+        usage: "LABEL"
+        description: "Host pgbouncer connects to"
+    - port:
+        usage: "GAUGE"
+        description: "Port pgbouncer connects to"
+    - database:
+        usage: "LABEL"
+        description: "Actual database name pgbouncer connects to."
+    - force_user:
+        usage: "LABEL"
+        description: "When the user is part of the connection string the connection between pgbouncer and PostgreSQL is forced to the given user"
+    - pool_size:
+        usage: "GAUGE"
+        description: "Maximum number of server connections"
+    - reserve_pool:
+        usage: "GAUGE"
+        description: "Maximum number of additional connections for this database"
+    - pool_mode:
+        usage: "LABEL"
+        description: "The database override pool_mode"
+    - max_connections:
+        usage: "GAUGE"
+        description: "Maximum number of allowed connections for this database"
+    - current_connections:
+        usage: "GAUGE"
+        description: "Current number of connections for this database"
+    - paused:
+        usage: "GAUGE"
+        description: "1 if this database is currently paused, else 0"
+    - disabled:
+        usage: "GAUGE"
+        description: "1 if this database is currently paused, else 0"
+
+pgbouncer_show_stats_totals:
+  master: true
+  query: |
+    select _.database,
+    _.xact_count,
+    _.query_count,
+    _.bytes_received,
+    _.bytes_sent,
+    _.xact_time,
+    _.query_time,
+    _.wait_time
+    FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show stats_totals'::text)
+    _(database text, xact_count bigint, query_count bigint, bytes_received bigint, bytes_sent bigint, xact_time bigint,
+    query_time bigint, wait_time bigint);
+  metrics:
+    - database:
+        usage: "LABEL"
+        description: "Database name"
+    - xact_count:
+        usage: "GAUGE"
+        description: "Number of SQL transactions pooled"
+    - query_count:
+        usage: "GAUGE"
+        description: "Number of SQL queries pooled"
+    - bytes_received:
+        usage: "GAUGE"
+        description: "Volume in bytes of network traffic received"
+    - bytes_sent:
+        usage: "GAUGE"
+        description: "Volume in bytes of network traffic sent"
+    - xact_time:
+        usage: "GAUGE"
+        description: "Number of microseconds spent by pgbouncer when connected to PostgreSQL in a transaction"
+    - query_time:
+        usage: "GAUGE"
+        description: "Number of microseconds spent by pgbouncer when actively connected to PostgreSQL"
+    - wait_time:
+        usage: "GAUGE"
+        description: "Time spent by clients waiting for a server, in microseconds"
+
+pgbouncer_show_stats:
+  master: true
+  query: |
+    select _.database,
+    _.total_xact_count,
+    _.total_query_count,
+    _.total_received,
+    _.total_sent,
+    _.total_xact_time,
+    _.total_query_time,
+    _.total_wait_time,
+    _.avg_xact_count,
+    _.avg_query_count,
+    _.avg_recv,
+    _.avg_sent,
+    _.avg_xact_time,
+    _.avg_query_time,
+    _.avg_wait_time
+    FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show stats'::text)
+    _(database text, total_xact_count bigint, total_query_count bigint, total_received bigint, total_sent bigint,total_xact_time bigint, total_query_time bigint,
+    total_wait_time bigint, avg_xact_count bigint, avg_query_count bigint, avg_recv bigint, avg_sent bigint, avg_xact_time bigint, avg_query_time bigint,
+    avg_wait_time bigint);
+  metrics:
+    - database:
+        usage: "LABEL"
+        description: "Database name"
+    - total_xact_count:
+        usage: "GAUGE"
+        description: "Total number of SQL transactions pooled"
+    - total_query_count:
+        usage: "GAUGE"
+        description: "Total number of SQL queries pooled"
+    - total_received:
+        usage: "GAUGE"
+        description: "Total volume in bytes of network traffic received"
+    - total_sent:
+        usage: "GAUGE"
+        description: "Total volume in bytes of network traffic sent"
+    - total_xact_time:
+        usage: "GAUGE"
+        description: "Total number of microseconds spent by pgbouncer when connected to PostgreSQL in a transaction"
+    - total_query_time:
+        usage: "GAUGE"
+        description: "Total number of microseconds spent by pgbouncer when actively connected to PostgreSQL"
+    - total_wait_time:
+        usage: "GAUGE"
+        description: "Time spent by clients waiting for a server, in microseconds"
+    - avg_xact_count:
+        usage: "GAUGE"
+        description: "Average transactions per second in last stat period"
+    - avg_query_count:
+        usage: "GAUGE"
+        description: "Average queries per second in last stat period"
+    - avg_recv:
+        usage: "GAUGE"
+        description: "Average received from clients bytes per second"
+    - avg_sent:
+        usage: "GAUGE"
+        description: "Average sent to clients bytes per second"
+    - avg_xact_time:
+        usage: "GAUGE"
+        description: "Average transaction duration, in microseconds"
+    - avg_query_time:
+        usage: "GAUGE"
+        description: "Average query duration, in microseconds"
+    - avg_wait_time:
+        usage: "GAUGE"
+        description: "Time spent by clients waiting for a server, in microseconds average per second"
+
+disk:
+  master: true
+  query: |
+    WITH disk AS (
+      SELECT '/var/lib/postgresql/' AS path),
+    walwriter AS (
+      SELECT pid from pg_stat_activity where backend_type IN ('walwriter', 'walreceiver')) LIMIT 1,
+    df AS (
+      SELECT df('/proc/' || pid || '/root' || path) AS line FROM walwriter, disk)
+    SELECT df[7] AS path, df[2] fs_type, df[3] AS total_size,  df[4] AS user_size, df[5] AS available_size
+      FROM (SELECT regexp_split_to_array(line, E'\\s+') AS df FROM df OFFSET 1 LIMIT 1) AS df
+  metrics:
+    - path:
+        usage: "LABEL"
+        description: "Mount path of the disk"
+    - fs_type:
+        usage: "LABEL"
+        description: "Filesystem type of the disk"
+    - total_size_bytes:
+        usage: "GAUGE"
+        description: "Total disk size in bytes"
+    - used_size_bytes:
+        usage: "GAUGE"
+        description: "Used disk size in bytes"
+    - available_size_bytes:
+        usage: "GAUGE"
+        description: "Available disk size in bytes"
