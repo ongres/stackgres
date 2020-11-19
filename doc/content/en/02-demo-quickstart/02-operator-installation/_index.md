@@ -12,17 +12,17 @@ We ship some kubernetes resources files in order to allow installation of the St
  operator with the following command:
 
 ```
-kubectl apply -f {{< download-url >}}/demo-operator.yml
+kubectl apply -f {{< download-url >}}/stackgres-operator-demo.yml
 ```
 
-> The `demo-operator.yml` will expose the UI as with a LoadBalancer. Note that enabling this feature
+> The `stackgres-operator-demo.yml` will expose the UI as with a LoadBalancer. Note that enabling this feature
 > will probably incur in some fee that depend on the host of the kubernetes cluster (for example
 > this is true for EKS, GKE and AKS).
 
 To clean up the resources created by the demo just run:
 
 ```
-kubectl delete --ignore-not-found -f {{< download-url >}}/demo-operator.yml
+kubectl delete --ignore-not-found -f {{< download-url >}}/stackgres-operator-demo.yml
 ```
 
 ## Installation with helm
