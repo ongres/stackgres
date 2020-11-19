@@ -2,6 +2,7 @@
 title: Basics
 weight: 1
 url: administration/cluster/distributedlogs/basics
+draft: true
 ---
 
 ## Connect to Distributed Log Cluster
