@@ -174,5 +174,5 @@ helm install --namespace stackgres stackgres-operator \
         --set-string grafana.user=admin \
         --set-string grafana.password=${grafana_admin_cred} \
         --set-string adminui.service.type=LoadBalancer \
-        {{< download-url >}}/helm-operator.tgz
+        {{< download-url >}}/helm/stackgres-operator.tgz
 ```
