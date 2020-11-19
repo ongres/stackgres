@@ -1,5 +1,9 @@
 #!/bin/sh
 
+get_k8s_env_version() {
+  true
+}
+
 reuse_k8s() {
   kubectl version
 }

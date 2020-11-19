@@ -11,6 +11,12 @@ fi
 
 export K8S_K3D_NAME K8S_VERSION K8S_K3S_VERSION
 
+get_k8s_env_version() {
+  echo "K3D version $(k3d version | head -n 1 | cut -d ' ' -f 3)"
+  echo "K3S version $(k3d version | tail -n 1 | cut -d ' ' -f 3)"
+  echo
+}
+
 update_k8s_config() {
   mkdir -p "$HOME/.kube"
   mkdir -p "$HOME/.config/k3d/$K8S_K3D_NAME"

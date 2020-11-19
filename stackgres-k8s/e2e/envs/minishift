@@ -6,6 +6,11 @@ export K8S_MINISHIFT_MEMORY="${K8S_MINISHIFT_MEMORY:-4GB}"
 export K8S_MINISHIFT_DISK="${K8S_MINISHIFT_DISK:-20GB}"
 export K8S_MINISHIFT_VMDRIVER="${K8S_MINISHIFT_VMDRIVER:-kvm}"
 
+get_k8s_env_version() {
+  echo "minishift version $(minishift version | head -n 1 | cut -d ' ' -f 2)"
+  echo
+}
+
 update_minishift_config() {
   eval "$(minishift oc-env)"
 
