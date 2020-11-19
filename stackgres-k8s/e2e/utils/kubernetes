@@ -21,6 +21,10 @@ setup_k8s() {
   else
     reuse_k8s
   fi
+
+  echo "Kubernetes version set is $K8S_VERSION (on $E2E_ENV environment) [kubectl:$(kubectl version | head -n 1 | cut -d , -f 3 | cut -d '"' -f 2) kubernetes:$(kubectl version | tail -n 1 | cut -d , -f 3 | cut -d '"' -f 2)]."
+  echo
+  get_k8s_env_version
 }
 
 create_namespace_if_not_exists() {

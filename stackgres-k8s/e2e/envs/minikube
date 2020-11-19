@@ -6,6 +6,11 @@ export K8S_MINIKUBE_DISK="${K8S_MINIKUBE_DISK:-20GB}"
 export K8S_MINIKUBE_DRIVER="${K8S_MINIKUBE_DRIVER:-virtualbox}"
 export K8S_MINIKUBE_FEATURE_GATES="${K8S_MINIKUBE_FEATURE_GATES:-x}"
 
+get_k8s_env_version() {
+  echo "minikube version $(minikube version | head -n 1 | cut -d ' ' -f 3)"
+  echo
+}
+
 reuse_k8s() {
   if ! minikube status > /dev/null 2>&1
   then

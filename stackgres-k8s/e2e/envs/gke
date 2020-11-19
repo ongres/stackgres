@@ -21,6 +21,11 @@ export E2E_USE_INTERMIDIATE_PRIVATE_REPO=true
 
 export K8S_GKE_NAME K8S_VERSION K8S_GKE_REGION K8S_GKE_NODE_LOCATIONS K8S_GKE_MACHINE_TYPE K8S_GKE_DISK_SIZE K8S_GKE_PROJECT K8S_GKE_OPTS USE_INTERMIDIATE_PRIVATE_REPO
 
+get_k8s_env_version() {
+  echo "gcloud version $(gcloud version | tr '\n' ' ')"
+  echo
+}
+
 reuse_k8s() {
   if ! gcloud -q beta container --project "$K8S_GKE_PROJECT" clusters describe "$K8S_GKE_NAME" --region "$K8S_GKE_REGION" 2>&1 \
     | grep -q "status: RUNNING"
@@ -43,7 +48,7 @@ reset_k8s() {
     --node-locations "$K8S_GKE_NODE_LOCATIONS" \
     --machine-type "$K8S_GKE_MACHINE_TYPE" \
     --disk-size "$K8S_GKE_DISK_SIZE" \
-    --num-nodes 3 \
+    --num-nodes 1 \
     --cluster-version "$K8S_VERSION" \
     --no-enable-autoupgrade \
     --workload-pool="$K8S_GKE_PROJECT.svc.id.goog" \

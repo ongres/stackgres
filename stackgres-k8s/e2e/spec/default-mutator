@@ -100,6 +100,7 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   postgresVersion: "11"
+  postgresql.conf: {}
 EOF
   local PATCH="$(kubectl get sgpgconfig -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json \
     | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
@@ -202,7 +203,7 @@ spec: {}
 EOF
   local PATCH="$(kubectl get sgpoolconfig -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json \
     | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
-    | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])|.spec.pgBouncer["pgbouncer.ini"].unsignificant = true' \
+    | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])|.spec.pgBouncer["pgbouncer.ini"].unsignificant = "true"' \
     | kubectl create -f - --dry-run=client -o yaml)"
   kubectl patch sgpoolconfig -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" --type merge -p "$PATCH"
 
@@ -242,7 +243,7 @@ EOF
 create_empty_sgbackupconfig() {
 
   kubectl delete sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --ignore-not-found
-  cat << EOF | kubectl create -f -
+  cat << EOF | kubectl create --validate=false -f -
 apiVersion: stackgres.io/v1beta1
 kind: SGBackupConfig
 metadata:
@@ -278,7 +279,7 @@ EOF
 update_empty_sgbackupconfig() {
 
   kubectl delete sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --ignore-not-found
-  cat << EOF | kubectl create -f -
+  cat << EOF | kubectl create --validate=false -f -
 apiVersion: stackgres.io/v1beta1
 kind: SGBackupConfig
 metadata:
@@ -317,7 +318,7 @@ EOF
 create_empty_sginstanceprofile() {
 
   kubectl delete sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" --ignore-not-found
-  cat << EOF | kubectl create -f -
+  cat << EOF | kubectl create --validate=false -f -
 apiVersion: stackgres.io/v1beta1
 kind: SGInstanceProfile
 metadata:
@@ -352,7 +353,7 @@ EOF
 update_empty_sginstanceprofile() {
 
   kubectl delete sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" --ignore-not-found
-  cat << EOF | kubectl create -f -
+  cat << EOF | kubectl create --validate=false -f -
 apiVersion: stackgres.io/v1beta1
 kind: SGInstanceProfile
 metadata:
