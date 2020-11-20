@@ -27,7 +27,6 @@ import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
-import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -56,8 +55,7 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
     final StackGresClusterContext clusterContext = context.getClusterContext();
     final StackGresCluster cluster = clusterContext.getCluster();
-    final String pgVersion = StackGresComponents.calculatePostgresVersion(
-        cluster.getSpec().getPostgresVersion());
+    final String pgVersion = cluster.getSpec().getPostgresVersion();
 
     final String patroniLabels;
     final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);

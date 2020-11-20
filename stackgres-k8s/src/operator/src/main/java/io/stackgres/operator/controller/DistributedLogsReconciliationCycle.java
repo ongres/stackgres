@@ -203,7 +203,8 @@ public class DistributedLogsReconciliationCycle
     distributedLogsCluster.getMetadata().setUid(
         distributedLogs.getMetadata().getUid());
     final StackGresClusterSpec spec = new StackGresClusterSpec();
-    spec.setPostgresVersion(StackGresComponents.LATEST);
+    spec.setPostgresVersion(StackGresComponents.calculatePostgresVersion(
+        StackGresComponents.LATEST));
     spec.setInstances(1);
     final StackGresClusterPod pod = new StackGresClusterPod();
     final StackGresPodPersistentVolume persistentVolume = new StackGresPodPersistentVolume();

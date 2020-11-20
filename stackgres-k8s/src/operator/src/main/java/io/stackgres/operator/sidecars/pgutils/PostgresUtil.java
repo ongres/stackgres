@@ -14,7 +14,6 @@ import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
-import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 
 @Sidecar(StackgresClusterContainers.POSTGRES_UTIL)
@@ -29,8 +28,7 @@ public class PostgresUtil implements StackGresClusterSidecarResourceFactory<Void
 
   @Override
   public Container getContainer(StackGresGeneratorContext context) {
-    String pgVersion = StackGresComponents.calculatePostgresVersion(
-        context.getClusterContext().getCluster().getSpec().getPostgresVersion());
+    String pgVersion = context.getClusterContext().getCluster().getSpec().getPostgresVersion();
 
     return new ContainerBuilder()
         .withName(NAME)
