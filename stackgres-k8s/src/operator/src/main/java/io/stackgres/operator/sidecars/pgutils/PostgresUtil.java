@@ -14,7 +14,6 @@ import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
-import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 
 @Sidecar(StackgresClusterContainers.POSTGRES_UTIL)

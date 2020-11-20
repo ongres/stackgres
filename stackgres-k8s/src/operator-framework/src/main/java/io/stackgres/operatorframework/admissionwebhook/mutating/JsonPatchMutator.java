@@ -71,11 +71,14 @@ public interface JsonPatchMutator<T> {
     return operations;
   }
 
-  default List<JsonPatchOperation> applyReplaceValue(JsonPointer basePointer,
+  default JsonPatchOperation applyReplaceValue(JsonPointer basePointer,
       JsonNode valueNode) {
-    List<JsonPatchOperation> operations = new ArrayList<>();
-    operations.add(new ReplaceOperation(basePointer, valueNode));
-    return operations;
+    return new ReplaceOperation(basePointer, valueNode);
+  }
+
+  default JsonPatchOperation applyAddValue(JsonPointer basePointer,
+      JsonNode valueNode) {
+    return new AddOperation(basePointer, valueNode);
   }
 
 }

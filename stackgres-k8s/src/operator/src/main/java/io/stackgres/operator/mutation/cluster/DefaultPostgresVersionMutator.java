@@ -41,17 +41,25 @@ public class DefaultPostgresVersionMutator implements ClusterMutator {
     final String postgresVersion = review.getRequest().getObject().getSpec()
         .getPostgresVersion();
 
-    if (postgresVersion != null) {
-      final String calculatedPostgresVersion = StackGresComponents.calculatePostgresVersion(
-          postgresVersion);
+    if (review.getRequest().getOperation() == Operation.CREATE
+        || review.getRequest().getOperation() == Operation.UPDATE) {
+      if (postgresVersion != null) {
+        final String calculatedPostgresVersion = StackGresComponents.calculatePostgresVersion(
+            postgresVersion);
 
-      if (!calculatedPostgresVersion.equals(postgresVersion)
-          && (review.getRequest().getOperation() == Operation.CREATE
-          || review.getRequest().getOperation() == Operation.UPDATE)) {
+        if (!calculatedPostgresVersion.equals(postgresVersion)) {
 
-        JsonNode target = mapper.valueToTree(calculatedPostgresVersion);
+          JsonNode target = mapper.valueToTree(calculatedPostgresVersion);
+          ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
+          operations.add(applyReplaceValue(postgresVersionPointer, target));
+
+          return operations.build();
+        }
+      } else {
+        JsonNode target = mapper.valueToTree(StackGresComponents.calculatePostgresVersion(
+            StackGresComponents.LATEST));
         ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
-        operations.addAll(applyReplaceValue(postgresVersionPointer, target));
+        operations.add(applyAddValue(postgresVersionPointer, target));
 
         return operations.build();
       }

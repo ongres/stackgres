@@ -58,6 +58,23 @@ class DefaultPostgresVersionMutatorTest {
   }
 
   @Test
+  void clusteWithNoPostgresVersion_shouldSetFinalValue() throws JsonPatchException {
+
+    review.getRequest().getObject().getSpec().setPostgresVersion(null);
+
+    List<JsonPatchOperation> operations = mutator.mutate(review);
+
+    JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
+
+    JsonPatch jp = new JsonPatch(operations);
+    JsonNode newConfig = jp.apply(crJson);
+
+    String actualPostgresVersion = newConfig.get("spec").get("postgresVersion").asText();
+    assertEquals("12.4", actualPostgresVersion);
+
+  }
+
+  @Test
   void clusteWithLatestPostgresVersion_shouldSetFinalValue() throws JsonPatchException {
 
     review.getRequest().getObject().getSpec().setPostgresVersion(StackGresComponents.LATEST);
