@@ -56,8 +56,7 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
     final StackGresClusterContext clusterContext = context.getClusterContext();
     final StackGresCluster cluster = clusterContext.getCluster();
-    final String pgVersion = StackGresComponents.calculatePostgresVersion(
-        cluster.getSpec().getPostgresVersion());
+    final String pgVersion = cluster.getSpec().getPostgresVersion();
 
     final String patroniLabels;
     final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);

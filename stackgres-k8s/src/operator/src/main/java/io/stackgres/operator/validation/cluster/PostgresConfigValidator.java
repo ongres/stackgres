@@ -72,8 +72,7 @@ public class PostgresConfigValidator implements ClusterValidator {
       fail(errorPostgresMismatchUri, message);
     }
 
-    String calculatedPgVersion = StackGresComponents.calculatePostgresVersion(givenPgVersion);
-    String givenMajorVersion = StackGresComponents.getPostgresMajorVersion(calculatedPgVersion);
+    String givenMajorVersion = StackGresComponents.getPostgresMajorVersion(givenPgVersion);
     String namespace = cluster.getMetadata().getNamespace();
 
     switch (review.getRequest().getOperation()) {
@@ -91,8 +90,7 @@ public class PostgresConfigValidator implements ClusterValidator {
 
         String oldPgVersion = oldCluster.getSpec().getPostgresVersion();
 
-        String oldCalculatedPgVersion = StackGresComponents.calculatePostgresVersion(oldPgVersion);
-        if (!calculatedPgVersion.equals(oldCalculatedPgVersion)) {
+        if (!givenPgVersion.equals(oldPgVersion)) {
           fail(errorForbiddenUpdateUri, "pgVersion cannot be updated");
         }
 

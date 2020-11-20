@@ -29,8 +29,7 @@ public class PostgresUtil implements StackGresClusterSidecarResourceFactory<Void
 
   @Override
   public Container getContainer(StackGresGeneratorContext context) {
-    String pgVersion = StackGresComponents.calculatePostgresVersion(
-        context.getClusterContext().getCluster().getSpec().getPostgresVersion());
+    String pgVersion = context.getClusterContext().getCluster().getSpec().getPostgresVersion();
 
     return new ContainerBuilder()
         .withName(NAME)
