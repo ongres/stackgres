@@ -97,8 +97,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
   public Container getContainer(StackGresGeneratorContext context) {
     final StackGresClusterContext clusterContext = context.getClusterContext();
     final StackGresCluster cluster = clusterContext.getCluster();
-    final String pgVersion = StackGresComponents.calculatePostgresVersion(
-        cluster.getSpec().getPostgresVersion());
+    final String pgVersion = cluster.getSpec().getPostgresVersion();
 
     ResourceRequirements podResources = resourceRequirementsFactory
         .createResource(clusterContext);
