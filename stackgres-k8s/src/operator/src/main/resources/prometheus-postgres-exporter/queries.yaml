@@ -1116,30 +1116,47 @@ pgbouncer_show_stats:
         usage: "GAUGE"
         description: "Time spent by clients waiting for a server, in microseconds average per second"
 
-disk:
+node_filesystem:
   master: true
   query: |
-    WITH disk AS (
-      SELECT '/var/lib/postgresql/' AS path),
-    walwriter AS (
-      SELECT pid from pg_stat_activity where backend_type IN ('walwriter', 'walreceiver')) LIMIT 1,
-    df AS (
-      SELECT df('/proc/' || pid || '/root' || path) AS line FROM walwriter, disk)
-    SELECT df[7] AS path, df[2] fs_type, df[3] AS total_size,  df[4] AS user_size, df[5] AS available_size
-      FROM (SELECT regexp_split_to_array(line, E'\\s+') AS df FROM df OFFSET 1 LIMIT 1) AS df
+    WITH mounts AS (
+      SELECT columns[1] AS device,
+        columns[2] AS mountpoint
+        FROM (SELECT regexp_split_to_array(line, E'\\s+') AS columns
+            FROM mounts() AS line) AS mounts
+      WHERE columns[2] LIKE '/var/%')
+    SELECT CASE WHEN columns[1] <> '-' THEN columns[1] ELSE NULL END AS device,
+        CASE WHEN columns[2] <> '-' THEN columns[2] ELSE NULL END AS mountpoint,
+        CASE WHEN columns[3] <> '-' THEN columns[3] ELSE NULL END AS fstype,
+        CASE WHEN columns[4] <> '-' THEN columns[4] ELSE NULL END AS size_bytes,
+        CASE WHEN columns[5] <> '-' THEN columns[5] ELSE NULL END AS avail_bytes,
+        CASE WHEN columns[6] <> '-' THEN columns[6] ELSE NULL END AS files,
+        CASE WHEN columns[7] <> '-' THEN columns[7] ELSE NULL END AS files_free,
+        CASE WHEN columns[8] <> '-' AND columns[8] <> 'timeout' THEN TRUE ELSE FALSE END AS device_error
+      FROM (SELECT regexp_split_to_array(line, E'\\s+') AS columns
+          FROM (SELECT df(mountpoint) AS line FROM mounts) AS df) AS df
   metrics:
-    - path:
+    - device:
         usage: "LABEL"
-        description: "Mount path of the disk"
-    - fs_type:
+        description: "Device of the filesystem."
+    - mountpoint:
         usage: "LABEL"
-        description: "Filesystem type of the disk"
-    - total_size_bytes:
+        description: "Mount point of the filesystem."
+    - fstype:
+        usage: "LABEL"
+        description: "The type of filesystem."
+    - size_bytes:
         usage: "GAUGE"
-        description: "Total disk size in bytes"
-    - used_size_bytes:
+        description: "Filesystem size in bytes."
+    - avail_bytes:
         usage: "GAUGE"
-        description: "Used disk size in bytes"
-    - available_size_bytes:
+        description: "Filesystem space available to non-root users in bytes."
+    - files:
         usage: "GAUGE"
-        description: "Available disk size in bytes"
+        description: "Filesystem total file nodes."
+    - files_free:
+        usage: "GAUGE"
+        description: "Filesystem total free file nodes."
+    - device_error:
+        usage: "GAUGE"
+        description: "Whether an error occurred while getting statistics for the given device."
