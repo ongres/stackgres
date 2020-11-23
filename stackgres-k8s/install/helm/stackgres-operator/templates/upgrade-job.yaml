@@ -1,0 +1,48 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name }}-upgrade"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: stackgres-operator
+    scope: init
+    job: upgrade
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weigth": "-100"
+spec:
+  template:
+    metadata:
+      labels:
+        app: stackgres-operator
+        scope: init
+        job: upgrade
+    spec:
+      serviceAccountName: {{ .Release.Name }}-init
+      containers:
+      - name: "{{ .Release.Name }}-upgrade"
+        image: "bitnami/kubectl:1.18.3"
+        imagePullPolicy: "IfNotPresent"
+        command:
+          - "/bin/bash"
+          - "-ecx"
+          - |
+            true
+            {{- if .Release.IsUpgrade }}
+            kubectl get sgcluster -A --template '{{ "{{" }} range .items {{ "}}" }}{{ "{{" }} printf "%s:%s\n" .metadata.namespace .metadata.name {{ "}}" }}{{ "{{" }} end {{ "}}" }}' \
+              | while read CLUSTER
+                do
+                  if kubectl get sgcluster -n "${CLUSTER%:*}" "${CLUSTER#*:}" \
+                    --template '{{ "{{" }} index .metadata.annotations "stackgres.io/operatorVersion" {{ "}}" }}' \
+                    | grep -q '0\.9\(\.[012]\)\?\(-.*\)\?$'
+                  then
+                    kubectl get sgcluster -n "${CLUSTER%:*}" "${CLUSTER#*:}" -o json \
+                      | sed 's/"postgresVersion": "latest"/"postgresVersion": "12.4"/' \
+                      | sed 's/"postgresVersion": "12"/"postgresVersion": "12.4"/' \
+                      | sed 's/"postgresVersion": "11"/"postgresVersion": "11.9"/' \
+                      | kubectl patch sgcluster -n "${CLUSTER%:*}" "${CLUSTER#*:}" --type merge -p "$(cat)"
+                  fi
+                done
+            {{- end }}
+      restartPolicy: OnFailure

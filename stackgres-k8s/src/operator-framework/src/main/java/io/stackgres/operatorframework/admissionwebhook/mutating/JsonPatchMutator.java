@@ -45,9 +45,8 @@ public interface JsonPatchMutator<T> {
     return new ReplaceOperation(path, value);
   }
 
-  default List<JsonPatchOperation> applyDefaults(JsonPointer basePointer,
-                                                 JsonNode defaultNode,
-                                                 JsonNode incomingNode) {
+  default List<JsonPatchOperation> applyDefaults(JsonPointer basePointer, JsonNode defaultNode,
+      JsonNode incomingNode) {
 
     List<JsonPatchOperation> operations = new ArrayList<>();
 
@@ -70,6 +69,16 @@ public interface JsonPatchMutator<T> {
     }
 
     return operations;
+  }
+
+  default JsonPatchOperation applyReplaceValue(JsonPointer basePointer,
+      JsonNode valueNode) {
+    return new ReplaceOperation(basePointer, valueNode);
+  }
+
+  default JsonPatchOperation applyAddValue(JsonPointer basePointer,
+      JsonNode valueNode) {
+    return new AddOperation(basePointer, valueNode);
   }
 
 }
