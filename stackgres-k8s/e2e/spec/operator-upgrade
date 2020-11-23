@@ -131,17 +131,14 @@ check_operator_upgrade() {
 
 check_cluster_1() {
   check_mock_data_samehost "$CLUSTER_NAME-1"
-  wait_until kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-1" --for condition=PendingRestart
 }
 
 check_cluster_2() {
   check_mock_data_samehost "$CLUSTER_NAME-2"
-  wait_until kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-2" --for condition=PendingRestart
 }
 
 check_cluster_3() {
   check_mock_data_samehost "$CLUSTER_NAME-3"
-  wait_until kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-3" --for condition=PendingRestart
 }
 
 check_cluster_1_restart() {
