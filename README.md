@@ -36,7 +36,7 @@ with GraalVM allowing amazingly fast boot time and incredibly low RSS memory.
 
 ### Getting Started
 
-Please, have a look at the [demo / quickstart](https://stackgres.io/doc/latest/02-demo-quickstart/)
+Please, have a look at the [demo / quickstart](https://stackgres.io/doc/latest/demo/quickstart/)
  section of our documentation to know how to start using StackGres.
 
 ---

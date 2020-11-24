@@ -1,3 +1,42 @@
+# Release 0.9.3
+
+## NOTES
+
+Here it comes StackGres 0.9.3!! :tada: :bottle_with_popping_cork: 
+
+We want you to be safe and a bit more powerful so we bring to you some bugfixes and small changes!
+
+## UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 0.9 version or above) helm chart issue following commands (replace namespace and release name if you used something different):
+
+```
+NAMESPACE=stackgres
+RELEASE=stackgres-operator
+helm upgrade -n "$NAMESPACE" "$RELEASE" https://stackgres.io/downloads/stackgres-k8s/stackgres/0.9.3/helm/stackgres-operator.tgz
+```
+
+## CHANGES
+
+* Added cluster namespace and name labels to prometheus postgres exporter metrics
+* Added pgbouncer and disk stats to prometheus postgres exporter metrics and dashboard
+
+## FIXES
+
+* Fixed default pooling configuration to not limit downstream connections to postgres (they are now limited to [`max_connections`](https://postgresqlco.nf/en/doc/param/max_connections/)). This only affect installation that uses default pooling configuration.
+* Fixed slow queries in prometheus postgres exporter sidecar for table and index bloats
+* Fixed some grafana dashboard panels units
+* Added workaround for JIT memory leak in postgres. See https://www.postgresql.org/message-id/flat/20201111121420.GA666413%40roeckx.be#81aedc67713fbc01b4443ee586580fb5 
+* Fixed some UI bugs
+
+# KNOWN ISSUES
+
+* Kubernetes 1.18 is not supported yet, see #439
+* Kubernetes 1.11 requires PodShareProcessNamespace feature gate to be enabled (not tested in any kubernetes environment except for MiniShift 3.11)
+
 # Release 0.9.2
 
 ## NOTES
