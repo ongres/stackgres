@@ -17,7 +17,14 @@ kind is primarily designed for testing Kubernetes 1.11+, initially targeting the
 2. Create a kind cluster
 
     ```bash
-    kind create cluster --image kindest/node:v1.17.5
+    kind create cluster --image kindest/node:v1.17.11
+    ```
+
+We recommend to use the latest version available in the `1.17` tag. For checking the latest available version for the `kindest/node`, you can do so as follows:
+
+    ```bash
+    curl https://registry.hub.docker.com/v2/repositories/kindest/node/tags/ \
+        | jq '.results[] | select(.name|test("1.17")) | .name'
     ```
 
 3. Install NFS utility for backups:
