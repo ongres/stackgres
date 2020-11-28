@@ -15,7 +15,8 @@ Each component of your infrastructure needs to be isolated in different namespac
 
 ```bash
 kubectl create namespace stackgres
-kubectl create namespace monitoring
+kubectl create namespace monitoring # This should be already created if you followed pre-requisites
+                                    # steps.
 kubectl create namespace my-cluster
 ```
 
@@ -23,29 +24,15 @@ kubectl create namespace my-cluster
 
 The `monitoring` namespace was created to deploy the Prometheus Operator, which will result in a running Grafana instance.
 
-### Installing Prometheus Server
 
-First, add the Prometheus Community repositories:
-
-```bash
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo add stable https://kubernetes-charts.storage.googleapis.com/
-helm repo update
-```
-
-Install the [Prometheus Server Operator](https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus):
-
-```bash
-helm install --namespace monitoring prometheus-operator prometheus-community/prometheus
-```
-
-> StackGres provides more and advanced options for monitoring installation, see [Create a more advanced cluster]({{% relref "04-administration-guide/07-create-a-more-advanced-cluster" %}}) in the [Administration Guide]({{% relref "04-administration-guide" %}}).
 
 ## StackGres Operator installation
 
 Now that we have configured a Backup storage place, as indicated in the pre-requisites, 
 and a monitoring system already in place for proper observability, 
 we can proceed to the StackGres Operator itself!
+
+> The `grafana.webHost` value may change if the installation is not Prometheus' default, as well as `grafana.user` and `grafana.password`. Take note of above section's secret outputs and replace them accordingly.
 
 ```bash
 helm install --namespace stackgres stackgres-operator \
@@ -60,7 +47,7 @@ helm install --namespace stackgres stackgres-operator \
 In the previous example StackGres have included several options to the installation, including the needed options to enable
 the monitoring. Follow the [Cluster Parameters]({{% relref "03-production-installation/06-cluster-parameters" %}}) section for a described list.
 
-> The `grafana.webHost` value may change if the installation is not Prometheus' default, as well as `grafana.user` and `grafana.password`.
+
 
 ## Creating and customizing your Postgres Clusters 
 
@@ -107,7 +94,10 @@ EOF
 
 You can easily declare the StackGres supported variables and setup your specific configuration.
 
-Lets move forward and create our pooling CR
+The pooling CR, is a key piece of a cluster (currently PgBouncer as the default software fot this), as it provides connection scaling capabilities.
+We'll cover all more details about this in the [Customizing Pooling configuration section]({{% relref "04-administration-guide/05-customize-connection-pooling-configuration" %}}).
+
+For better performance and stability, it is recommended to use `pool_mode` in `transaction`. An example configuration would be like this:
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -120,12 +110,12 @@ spec:
   pgBouncer:
     pgbouncer.ini:
       pool_mode: transaction
-      max_client_conn: '200'
-      default_pool_size: '200'
+      max_client_conn: '1000'
+      default_pool_size: '80'
 EOF
 ```
 
-The longest step for this demonstration is the backup CR
+The longest step for this demonstration is the backup CR:
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -194,7 +184,7 @@ EOF
 ```
 
 On AWS you will need to define some parameters if already you don't have defined it.
-As bottom here is some variables and the needed permissions on S3
+As bottom here is some variables and the needed permissions on S3:
 
 ```bash
 S3_BACKUP_BUCKET=backup.my-cluster.stackgres.io
@@ -297,7 +287,7 @@ data:
 EOF
 ```
 
-Finally create the SGDistributedLogs CR to enable a [distributed log cluster]({{% relref "05-crd-reference/06-distributed-logs" %}}) 
+Finally create the SGDistributedLogs CR to enable a [distributed log cluster]({{% relref "05-crd-reference/06-distributed-logs" %}}):
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -322,7 +312,8 @@ But that is not all, StackGres lets you include several `initialData` script to 
 In the given example, we are creating an user to perform some queries using the k8s secret capabilities.
 
 ```bash
-kubectl -n demo create secret generic pgbench-user-password-secret --from-literal=pgbench-create-user-sql="create user admin password 'admin123'"
+kubectl -n my-cluster create secret generic pgbench-user-password-secret \
+  --from-literal=pgbench-create-user-sql="create user admin password 'admin123'"
 ```
 
 As you can see, has been created a secret key and its value which will be used in the StackGres cluster creation.
@@ -379,18 +370,28 @@ Awesome, now you can relax and wait for the SGCluster spinning up.
 
 Once the cluster is up and running, we need to expose the main entrypoint port for being accessed remotely:
 
-```
-kubectl port-forward test-0 --address 0.0.0.0 7777:5432
+> WARNING: You don't expose in production to 0.0.0.0 interface, rather than that you need to place the IP of an internal interface to be able to connect remotely within you private network.
+
+
+```bash
+kubectl port-forward -n my-cluster --address 0.0.0.0 statefulset/cluster 7777:7432
 ```
 
 In the namespace of the cluster, you should be able to see a set of secrets, we'll get the main superuser password:
 
 ```
-kubectl get secrets  test -o jsonpath='{.data.superuser-password}' | base64 -d
+kubectl get secrets -n my-cluster test -o jsonpath='{.data.superuser-password}' | base64 -d
 ```
 
-You can connect within the following command:
 
-```
+You should be able to connect by issuing any client application with the connection string as follows:
+
+```bash
 psql -h <the ip of the cluster> -p 7777 -U postgres
+```
+
+It is also possible to open a direct port-forward towards the main Postgres pod as follows:
+
+```
+kubectl port-forward test-0 --address 0.0.0.0 7777:5432
 ```
