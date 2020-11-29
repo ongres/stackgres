@@ -5,23 +5,6 @@ url: administration/cluster/pool/custom/config
 draft: true
 ---
 
-## Disabling Pooling
-
-Certain set of applications, particularly those for reporting or OLAP, may not need a pooling middleware to issue large queries and low amount of connections. It is possible to disable pooling by setting `disableConnectionPooling` to `true` at the Cluster configuration (for more information, see [CRD Cluster Pods configuration]({{% relref "05-crd-reference/05-postgres-clusters/" %}}) ).
-
-```bash
-apiVersion: stackgres.io/v1beta1
-kind: SGCluster
-metadata:
-  name: stackgres
-spec:
-  pods:
-    disableConnectionPooling: false
-...
-```
-
-Either way, if your application does internal pooling or it already has a pooling middleware, you can consider disabling internal pooling mechanisms. Although, we encourage the user to keep pooling enabled internally, as it serves as a contention barrier for unexpected connection spikes that may occur, bringing more stability to the cluster. 
-
 ## Transaction Mode
 
 This configuration is recommended for most efficient pool allocations:
@@ -42,9 +25,31 @@ spec:
 EOF
 ```
 
+## Session Mode emulating Postgres behavior
+
+Even tho the main purpose of a pooling tool is to queue connections, sometimes your application may not be handling connection handling properly, which requires a more strict configuration as follows:
+
+```bash
+cat << EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGPoolingConfig
+metadata:
+  namespace: my-cluster
+  name: poolconfig-session-hardlimit
+spec:
+  pgBouncer:
+    pgbouncer.ini:
+      pool_mode: session
+      max_client_conn: '80'
+      default_pool_size: '80'
+EOF
+```
+
+Within this, you can limit the connections to the pooling layer and the server side, simulating what Postgres does when `max_connections` is overpassed. In this case, `max_client_conn` specifies the amount of allowed client connections and the `default_pool_side`, the number of server-side connections.
+
 ## Session Mode with Connection release through timeouts
 
-This configuration requires more insights and specifications to be known from the application used against the cluster. What it is intended here, is to release connections that are _idle in transaction_.
+This configuration requires more insights and specifications to be known from the application used against the cluster. What it is intended here, is to release connections that are idle are idle in transaction.
 
 You'll notice that the bellow is ordered from variables that affect client-side to the server-side, incrementally. If your application sets a client timeout when connection is idle, you may not need to do this, although several production clusters may be source for not only one, but many applications within different connection handlings.
 
