@@ -34,7 +34,7 @@ This will create a cluster using latest available PostgreSQL version with 2 node
 
 By default backup are not enabled. To enable them you have to provide a storage configuration (AWS S3,
  Google Cloud Storage or Azure Blob Storage). We ship a kubernetes resources file in order to allow
- easy installation of minio service that is compatible with AWS S3.
+ easy installation of [Minio](https://min.io/) service that is compatible with AWS S3.
 
 Clean up the previously created cluster:
 
