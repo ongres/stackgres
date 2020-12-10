@@ -40,18 +40,57 @@ setup_images() {
       || ! helm list --all-namespaces | grep -q "^stackgres-operator\s"
     )
   then
+    build_components
     (
-    cd "$STACKGRES_PATH/src"
-    ./mvnw -q clean package -DskipTests
-    (
-    echo 'sh operator/src/main/buildah/build-image-jvm.sh'
-    echo 'sh api-web/src/main/buildah/build-image-jvm.sh'
-    echo 'sh jobs/src/main/buildah/build-image-jvm.sh'
-    echo 'sh distributedlogs-controller/src/main/buildah/build-image-jvm.sh'
-    echo 'sh admin-ui/build.sh; sh admin-ui/buildah/build.sh'
-    ) | xargs -n 1 -I % -P 0 sh -c %
-    )
+    echo build_operator_image
+    echo build_restapi_image
+    echo build_jobs_image
+    echo build_distributedlogs_controller_image
+    echo build_adminui_image
+    ) | xargs -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE -c %
   fi
+}
+
+build_components() {
+  (
+  cd "$STACKGRES_PATH/src"
+  ./mvnw -q clean package -DskipTests
+  )
+}
+
+build_operator_image() {
+  (
+  cd "$STACKGRES_PATH/src"
+  sh operator/src/main/buildah/build-image-jvm.sh
+  )
+}
+
+build_restapi_image() {
+  (
+  cd "$STACKGRES_PATH/src"
+  sh api-web/src/main/buildah/build-image-jvm.sh
+  )
+}
+
+build_jobs_image() {
+  (
+  cd "$STACKGRES_PATH/src"
+  sh jobs/src/main/buildah/build-image-jvm.sh
+  )
+}
+
+build_distributedlogs_controller_image() {
+  (
+  cd "$STACKGRES_PATH/src"
+  sh distributedlogs-controller/src/main/buildah/build-image-jvm.sh
+  )
+}
+
+build_adminui_image() {
+  (
+  cd "$STACKGRES_PATH/src"
+  sh admin-ui/build.sh; sh admin-ui/buildah/build.sh
+  )
 }
 
 create_operator_certificate() {

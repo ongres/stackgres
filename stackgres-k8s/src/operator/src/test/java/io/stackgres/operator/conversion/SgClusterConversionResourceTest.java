@@ -8,7 +8,6 @@ package io.stackgres.operator.conversion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)

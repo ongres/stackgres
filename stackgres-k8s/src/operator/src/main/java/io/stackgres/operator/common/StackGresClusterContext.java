@@ -23,6 +23,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.ResourceUtil;
@@ -50,6 +51,8 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
   public abstract ImmutableList<SidecarEntry<?>> getSidecars();
 
   public abstract ImmutableList<StackGresBackup> getBackups();
+
+  public abstract ImmutableList<StackGresDbOps> getDbOps();
 
   public abstract Optional<Prometheus> getPrometheus();
 

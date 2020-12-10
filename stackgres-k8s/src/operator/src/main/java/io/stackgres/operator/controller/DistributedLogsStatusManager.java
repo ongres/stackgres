@@ -14,7 +14,6 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -30,13 +29,12 @@ public class DistributedLogsStatusManager extends AbstractClusterStatusManager<
     StackGresDistributedLogsContext, StackGresDistributedLogsCondition> {
 
   @Inject
-  public DistributedLogsStatusManager(KubernetesClientFactory clientFactory,
-      LabelFactory<StackGresDistributedLogs> labelFactory) {
-    super(clientFactory, labelFactory);
+  public DistributedLogsStatusManager(LabelFactory<StackGresDistributedLogs> labelFactory) {
+    super(labelFactory);
   }
 
   public DistributedLogsStatusManager() {
-    super(null, null);
+    super(null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 

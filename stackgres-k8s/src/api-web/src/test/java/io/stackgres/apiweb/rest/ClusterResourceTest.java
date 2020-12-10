@@ -436,8 +436,7 @@ class ClusterResourceTest
       CustomResourceScheduler<StackGresCluster> scheduler,
       AbstractResourceTransformer<ClusterDto, StackGresCluster> transformer) {
     ClusterTransformer clusterTransformer = getTransformer();
-    final ClusterLabelFactory labelFactory = new ClusterLabelFactory();
-    labelFactory.setLabelMapper(new ClusterLabelMapper());
+    final ClusterLabelFactory labelFactory = new ClusterLabelFactory(new ClusterLabelMapper());
     final ClusterDtoFinder dtoFinder = new ClusterDtoFinder();
     dtoFinder.setClusterFinder(finder);
     dtoFinder.setPodFinder(podFinder);

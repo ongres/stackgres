@@ -44,7 +44,7 @@ public class PatroniServices implements StackGresClusterResourceStreamFactory {
 
   public static String readOnlyName(StackGresClusterContext clusterContext) {
     String name = clusterContext.getCluster().getMetadata().getName();
-    return ResourceUtil.resourceName(name + PatroniUtil.READ_ONLY_SERVICE);
+    return PatroniUtil.readOnlyName(name);
   }
 
   public String failoverName(StackGresClusterContext clusterContext) {

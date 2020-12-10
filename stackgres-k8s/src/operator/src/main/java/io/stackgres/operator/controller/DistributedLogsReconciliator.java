@@ -94,7 +94,7 @@ public class DistributedLogsReconciliator
   @Override
   protected void onPostConfigReconcilied(KubernetesClient client,
       StackGresDistributedLogsContext context) {
-    statusManager.updatePendingRestart(context);
+    statusManager.updatePendingRestart(context, client);
     context.getDistributedLogs().setStatus(
         Optional.ofNullable(context.getDistributedLogs().getStatus())
         .orElseGet(() -> new StackGresDistributedLogsStatus()));

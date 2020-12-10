@@ -267,7 +267,7 @@ spec:
                         Name of the [SGDistributedLogs](https://stackgres.io/doc/latest/04-postgres-cluster-management/06-distributed-logs/) to use for this cluster. It must exist.
                     retention:
                       type: string
-                      pattern: '[0-9]+ (minutes?|hours?|days?|months?)'
+                      pattern: '^[0-9]+ (minutes?|hours?|days?|months?)'
                       description: |
                         Define a retention window with the syntax `<integer> (minutes|hours|days|months)` in which log entries are kept.
                          Log entries will be removed when they get older more than the double of the specified retention window.

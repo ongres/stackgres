@@ -25,6 +25,7 @@ public class Main {
   private static final Boolean CRD_UPGRADE = CrdUpgradeProperty
       .CRD_UPGRADE.getBoolean();
 
+  @SuppressWarnings("deprecation")
   public static void main(String[] args) {
 
     final KubernetesClientFactoryImpl kubernetesClientFactory = new KubernetesClientFactoryImpl();

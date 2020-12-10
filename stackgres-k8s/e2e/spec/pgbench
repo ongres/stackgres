@@ -1,0 +1,77 @@
+#!/bin/sh
+
+e2e_test() {
+  run_test "Checking that pgbench is working" check_pgbench_is_working
+}
+
+check_pgbench_is_working() {
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGDbOps
+metadata:
+  name: benchmark
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: benchmark
+  benchmark:
+    type: pgbench
+    pgbench:
+      databaseSize: 512Mi
+      duration: PT1M
+EOF
+
+  if kubectl wait --timeout 180s -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+    --for condition=Completed
+  then
+    echo "SUCCESS. pgbench completed."
+  else
+    echo "FAILED. pgbench failed."
+    return 1
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+    --template '{{ .status.benchmark.pgbench.scaleFactor }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
+  then
+    echo "SUCCESS. pgbench returned an scale factor."
+  else
+    echo "FAILED. pgbench did not returned an scale factor."
+    return 1
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+    --template '{{ .status.benchmark.pgbench.transactionsProcessed }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
+  then
+    echo "SUCCESS. pgbench returned an transactions processed."
+  else
+    echo "FAILED. pgbench did not returned an transactions processed."
+    return 1
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+    --template '{{ .status.benchmark.pgbench.latencyAverage }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
+  then
+    echo "SUCCESS. pgbench returned an average latency."
+  else
+    echo "FAILED. pgbench did not returned an average latency."
+    return 1
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+    --template '{{ .status.benchmark.pgbench.tpsIncludingConnectionsEstablishing }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
+  then
+    echo "SUCCESS. pgbench returned an tps including connections establishing."
+  else
+    echo "FAILED. pgbench did not returned an tps including connections establishing."
+    return 1
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+    --template '{{ .status.benchmark.pgbench.tpsExcludingConnectionsEstablishing }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
+  then
+    echo "SUCCESS. pgbench returned an tps excluding connections establishing."
+  else
+    echo "FAILED. pgbench did not returned an tps excluding connections establishing."
+    return 1
+  fi
+}

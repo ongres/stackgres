@@ -20,6 +20,8 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsDefinition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDefinition;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -73,7 +75,8 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
           || !hasCustomResource(client, StackGresPoolingConfigDefinition.NAME)
           || !hasCustomResource(client, StackGresBackupConfigDefinition.NAME)
           || !hasCustomResource(client, StackGresBackupDefinition.NAME)
-          || !hasCustomResource(client, StackGresDistributedLogsDefinition.NAME)) {
+          || !hasCustomResource(client, StackGresDistributedLogsDefinition.NAME)
+          || !hasCustomResource(client, StackGresDbOpsDefinition.NAME)) {
         throw new RuntimeException("Some required CRDs does not exists");
       }
 
@@ -110,6 +113,9 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
 
     KubernetesDeserializer.registerCustomKind(StackGresDistributedLogsDefinition.APIVERSION,
         StackGresDistributedLogsDefinition.KIND, StackGresDistributedLogs.class);
+
+    KubernetesDeserializer.registerCustomKind(StackGresDbOpsDefinition.APIVERSION,
+        StackGresDbOpsDefinition.KIND, StackGresDbOps.class);
 
     handlerSelector.registerKinds();
     distributedLogsHandlerSelector.registerKinds();

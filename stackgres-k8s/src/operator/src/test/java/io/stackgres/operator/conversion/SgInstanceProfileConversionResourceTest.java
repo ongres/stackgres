@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.conversion;
 
-import io.quarkus.test.Mock;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -61,20 +61,14 @@ public abstract class EventEmitter {
         event.getInvolvedObject().getKind(),
         involvedObject.getKind())
         && Objects.equals(
-            event.getInvolvedObject().getNamespace(),
-            involvedObject.getMetadata().getNamespace())
-        && Objects.equals(
-            event.getInvolvedObject().getName(),
-            involvedObject.getMetadata().getName())
-        && Objects.equals(
             event.getInvolvedObject().getUid(),
             involvedObject.getMetadata().getUid())
         && Objects.equals(
-            event.getReason(),
-            reason.reason())
-        && Objects.equals(
             event.getType(),
             reason.type().type())
+        && Objects.equals(
+            event.getReason(),
+            reason.reason())
         && Objects.equals(
             event.getMessage(),
             message);

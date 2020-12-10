@@ -1,6 +1,7 @@
 SGBackup.yaml
 SGBackupConfig.yaml
 SGCluster.yaml
+SGDbOps.yaml
 SGDistributedLogs.yaml
 SGInstanceProfile.yaml
 SGPoolingConfig.yaml

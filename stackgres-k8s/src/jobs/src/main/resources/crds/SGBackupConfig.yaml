@@ -105,12 +105,12 @@ spec:
                       properties:
                         bucket:
                           type: string
-                          pattern: '((s3|https?)://)?[^/]+(/[^/]*)*$'
+                          pattern: '^((s3|https?)://)?[^/]+(/[^/]*)*$'
                           description: |
                             AWS S3 bucket name.
                         path:
                           type: string
-                          pattern: '(/[^/]*)*$'
+                          pattern: '^(/[^/]*)*$'
                           description: |
                             Optional path within the S3 bucket. Note that StackGres generates in any case a folder per StackGres cluster, using the `SGCluster.metadata.name`.
                         region:
@@ -168,12 +168,12 @@ spec:
                       properties:
                         bucket:
                           type: string
-                          pattern: '((s3|https?)://)?[^/]+(/[^/]*)*$'
+                          pattern: '^((s3|https?)://)?[^/]+(/[^/]*)*$'
                           description: |
                             Bucket name.
                         path:
                           type: string
-                          pattern: '(/[^/]*)*$'
+                          pattern: '^(/[^/]*)*$'
                           description: |
                             Optional path within the S3 bucket. Note that StackGres generates in any case a folder per StackGres cluster, using the `SGCluster.metadata.name`.
                         enablePathStyleAddressing:

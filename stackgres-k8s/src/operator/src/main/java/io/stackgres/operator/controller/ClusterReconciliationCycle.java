@@ -44,6 +44,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.storages.AwsCredentials;
@@ -103,6 +104,7 @@ public class ClusterReconciliationCycle
   private final CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
   private final CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
   private final CustomResourceScanner<StackGresBackup> backupScanner;
+  private final CustomResourceScanner<StackGresDbOps> dbOpsScanner;
   private final ResourceFinder<Secret> secretFinder;
   private final CustomResourceScanner<PrometheusConfig> prometheusScanner;
 
@@ -124,6 +126,7 @@ public class ClusterReconciliationCycle
     @Inject CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
     @Inject CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
     @Inject CustomResourceScanner<StackGresBackup> backupScanner;
+    @Inject CustomResourceScanner<StackGresDbOps> dbOpsScanner;
     @Inject ResourceFinder<Secret> secretFinder;
     @Inject CustomResourceScanner<PrometheusConfig> prometheusScanner;
   }
@@ -143,6 +146,7 @@ public class ClusterReconciliationCycle
     this.postgresConfigFinder = parameters.postgresConfigFinder;
     this.backupConfigFinder = parameters.backupConfigFinder;
     this.backupScanner = parameters.backupScanner;
+    this.dbOpsScanner = parameters.dbOpsScanner;
     this.secretFinder = parameters.secretFinder;
     this.prometheusScanner = parameters.prometheusScanner;
   }
@@ -160,6 +164,7 @@ public class ClusterReconciliationCycle
     this.postgresConfigFinder = null;
     this.backupConfigFinder = null;
     this.backupScanner = null;
+    this.dbOpsScanner = null;
     this.secretFinder = null;
     this.prometheusScanner = null;
   }
@@ -255,6 +260,7 @@ public class ClusterReconciliationCycle
             .map(Unchecked.function(sidecar -> getSidecarEntry(cluster, sidecar)))
             .collect(ImmutableList.toImmutableList()))
         .backups(getBackups(cluster))
+        .dbOps(getDbOps(cluster))
         .labels(labelFactory.clusterLabels(cluster))
         .clusterNamespace(labelFactory.clusterNamespace(cluster))
         .clusterName(labelFactory.clusterName(cluster))
@@ -348,6 +354,15 @@ public class ClusterReconciliationCycle
     return backupScanner.getResources(namespace)
             .stream()
             .filter(backup -> backup.getSpec().getSgCluster().equals(name))
+            .collect(ImmutableList.toImmutableList());
+  }
+
+  private ImmutableList<StackGresDbOps> getDbOps(StackGresCluster cluster) {
+    final String namespace = cluster.getMetadata().getNamespace();
+    final String name = cluster.getMetadata().getName();
+    return dbOpsScanner.getResources(namespace)
+            .stream()
+            .filter(dbOps -> dbOps.getSpec().getSgCluster().equals(name))
             .collect(ImmutableList.toImmutableList());
   }
 

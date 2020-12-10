@@ -26,6 +26,8 @@ import org.jooq.lambda.Seq;
 @ApplicationScoped
 public class PatroniSecret implements StackGresClusterResourceStreamFactory {
 
+  public static final String SUPERUSER_PASSWORD_KEY = "superuser-password";
+
   private LabelFactoryDelegator factoryDelegator;
 
   public static String name(StackGresClusterContext clusterContext) {
@@ -45,7 +47,7 @@ public class PatroniSecret implements StackGresClusterResourceStreamFactory {
         .clusterLabels(cluster);
 
     Map<String, String> data = new HashMap<>();
-    data.put("superuser-password", generatePassword());
+    data.put(SUPERUSER_PASSWORD_KEY, generatePassword());
     data.put("replication-password", generatePassword());
     data.put("authenticator-password", generatePassword());
 

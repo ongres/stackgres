@@ -14,7 +14,6 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.StackGresClusterContext;
@@ -25,25 +24,16 @@ import org.jooq.lambda.tuple.Tuple2;
 public abstract class AbstractClusterStatusManager<T extends StackGresClusterContext,
     C extends Condition> extends ConditionUpdater<T, C> {
 
-  private final KubernetesClientFactory clientFactory;
   private final LabelFactory<?> labelFactory;
 
-  public AbstractClusterStatusManager(KubernetesClientFactory clientFactory,
-      LabelFactory<?> labelFactory) {
-    this.clientFactory = clientFactory;
+  public AbstractClusterStatusManager(LabelFactory<?> labelFactory) {
     this.labelFactory = labelFactory;
   }
 
   /**
    * Update pending restart status condition.
    */
-  public void updatePendingRestart(T context) {
-    try (KubernetesClient client = clientFactory.create()) {
-      updatePendingRestart(context, client);
-    }
-  }
-
-  private void updatePendingRestart(T context, KubernetesClient client) {
+  public void updatePendingRestart(T context, KubernetesClient client) {
     if (isPendingRestart(context)) {
       updateCondition(getPodRequiresRestart(), context, client);
     } else {
