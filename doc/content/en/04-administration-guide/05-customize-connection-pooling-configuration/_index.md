@@ -8,17 +8,17 @@ If you happen to be reading this, it's because you are aware of your application
 
 A simple way to target this correctly, is to verify the usage of Prepared Statements, on top of which `session` mode will be the only compatible.
 
-Some applications, do not handling connection closing properly, which may require to add certain timeouts for releasing server connections.
+Some applications, do not handle connection closing properly, which may require to add certain timeouts for releasing server connections.
 
 
 ## Reloading configuration
 
 In the [Customizing Pooling configuration section]({{% relref "04-administration-guide/05-customize-connection-pooling-configuration/00-customize-connection-pooling-configuration" %}}), it is explained the different sauces for scaling connections properly.
 
-Each configuration, once applied, need to be _reloaded_. This can be done by getting the corresponding master node pod name and issue the same signal it is done on most of the environments:
+Each configuration, once applied, need to be _reloaded_. This can be done by getting the corresponding primary node pod name and issue the same signal it is done on most of the environments:
 
 ```
-MASTER=$(kubectl get pod -l role=master -n my-cluster -o json | jq -r '.items[].metadata.name')
-kubectl exec -n my-cluster -it ${MASTER} -c postgres-util -- pkill --signal HUP pgbouncer
+PRIMARY=$(kubectl get pod -l role=master -n my-cluster -o json | jq -r '.items[].metadata.name')
+kubectl exec -n my-cluster -it ${PRIMARY} -c postgres-util -- pkill --signal HUP pgbouncer
 ```
 
