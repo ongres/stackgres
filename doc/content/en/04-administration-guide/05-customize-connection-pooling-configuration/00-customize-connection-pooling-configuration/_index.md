@@ -20,8 +20,7 @@ spec:
 ...
 ```
 
-Either way, if your application does internal pooling or it already has a pooling middleware, you can consider disabling internal pooling mechanisms. Although, we encourage the user to keep pooling enabled internally, as it serves as a contention barrier for unexpected connection spikes that may occur, bringing more stability to the cluster.
-
+Either way, if your application does internal pooling or it already has a pooling middleware, you can consider disabling internal pooling mechanisms. Although, we encourage the user to keep pooling enabled internally, as it serves as a contention barrier for unexpected connection spikes that may occur, bringing more stability to the cluster. 
 
 ## Transaction Mode
 
@@ -45,7 +44,7 @@ EOF
 
 ## Session Mode with Connection release through timeouts
 
-This configuration requires more insights and specifications to be known from the application used against the cluster. What it is intended here, is to release connections that are idle are idle in transaction.
+This configuration requires more insights and specifications to be known from the application used against the cluster. What it is intended here, is to release connections that are _idle in transaction_.
 
 You'll notice that the bellow is ordered from variables that affect client-side to the server-side, incrementally. If your application sets a client timeout when connection is idle, you may not need to do this, although several production clusters may be source for not only one, but many applications within different connection handlings.
 
