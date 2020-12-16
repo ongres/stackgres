@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.dbops;
+package io.stackgres.operator.dbops.factory;
 
 import java.time.Instant;
 import java.util.List;
@@ -14,11 +14,13 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
+import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.common.ImmutableStackGresDbOpsContext;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresDbOpsContext;
@@ -54,15 +56,11 @@ public class DbOps
       StackGresDbOps dbOps, Instant now) {
     StackGresDbOpsContext dbOpsContext = ImmutableStackGresDbOpsContext.builder()
         .from(context.getClusterContext())
+        .ownerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(dbOps)))
         .currentDbOps(dbOps)
         .build();
     if (isToRunAfter(dbOps, now)
         || isCompleted(dbOps)) {
-      return Seq.empty();
-    }
-
-    if (isFailed(dbOps)
-        && isMaxRetriesReached(dbOps)) {
       return Seq.empty();
     }
 
@@ -106,7 +104,7 @@ public class DbOps
     .orElse(0) >= Optional.of(dbOps)
     .map(StackGresDbOps::getSpec)
     .map(StackGresDbOpsSpec::getMaxRetries)
-    .orElse(1);
+    .orElse(0);
   }
 
   public static boolean isFailed(StackGresDbOps dbOps) {

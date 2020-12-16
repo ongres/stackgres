@@ -16,7 +16,7 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.operator.backup.BackupJob;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.dbops.DbOps;
+import io.stackgres.operator.dbops.factory.DbOps;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 

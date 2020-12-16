@@ -271,6 +271,7 @@ class PatroniServicesTest {
         .clusterName(defaultCluster.getMetadata().getName())
         .scheduledBackupKey(StackGresContext.SCHEDULED_BACKUP_KEY)
         .backupKey(StackGresContext.BACKUP_KEY)
+        .dbOpsKey(StackGresContext.DB_OPS_KEY)
         .build();
   }
 

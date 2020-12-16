@@ -157,26 +157,31 @@ spec:
                       properties:
                         scaleFactor:
                           type: number
+                          nullable: true
                           description: |
                             The scale factor user to run pgbench (`--scale`).
                         transactionsProcessed:
                           type: integer
+                          nullable: true
                           description: |
                             The number of transaction processed.
                         latencyAverage:
                           type: number
+                          nullable: true
                           description: |
                             Average latency of transactions.
                         latencyStddev:
                           type: number
+                          nullable: true
                           description: |
                             Stdandard deviation latency of transactions.
                         tpsIncludingConnectionsEstablishing:
                           type: number
+                          nullable: true
                           description: |
                             Number of transaction per second including connection establishing.
                         tpsExcludingConnectionsEstablishing:
                           type: number
+                          nullable: true
                           description: |
                             Number of transaction per second excluding connection establishing.
-

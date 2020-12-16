@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.dbops;
+package io.stackgres.operator.dbops.factory;
 
 import java.util.Map;
 import java.util.stream.Stream;

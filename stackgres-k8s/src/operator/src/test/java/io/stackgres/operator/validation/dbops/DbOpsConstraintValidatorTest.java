@@ -112,7 +112,7 @@ class DbOpsConstraintValidatorTest extends ConstraintValidationTest<StackGresDbO
   void invalidLowMaxRetries_shouldFail() {
 
     StackGresDbOpsReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setMaxRetries(0);
+    review.getRequest().getObject().getSpec().setMaxRetries(-1);
 
     checkErrorCause(StackGresDbOpsSpec.class, "spec.maxRetries",
         review, Min.class);

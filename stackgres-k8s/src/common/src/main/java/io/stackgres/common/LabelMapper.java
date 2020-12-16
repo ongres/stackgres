@@ -30,8 +30,8 @@ public interface LabelMapper<T extends CustomResource> {
     return StackGresContext.SCHEDULED_BACKUP_KEY;
   }
 
-  default String pgbenchKey() {
-    return StackGresContext.PGBENCH_KEY;
+  default String dbOpsKey() {
+    return StackGresContext.DB_OPS_KEY;
   }
 
   default String clusterScopeKey() {

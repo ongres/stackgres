@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.dbops;
+package io.stackgres.operator.dbops.factory;
 
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -59,8 +60,10 @@ public class PgbenchJob
 
   public static String pgbenchJobName(StackGresDbOps dbOps) {
     String name = dbOps.getMetadata().getName();
-    return ResourceUtil.resourceName(
-        name + "-pgbench-" + getCurrentRetry(dbOps));
+    UUID uid = UUID.fromString(dbOps.getMetadata().getUid());
+    return ResourceUtil.resourceName(name + "-pgbench-"
+        + Long.toHexString(uid.getMostSignificantBits())
+        + "-" + getCurrentRetry(dbOps));
   }
 
   private static Integer getCurrentRetry(StackGresDbOps dbOps) {
@@ -107,7 +110,7 @@ public class PgbenchJob
       StackGresDbOpsBenchmark benchmark, StackGresDbOpsPgbench pgbench) {
     final String namespace = dbOps.getMetadata().getNamespace();
     final String name = dbOps.getMetadata().getName();
-    final Map<String, String> labels = labelFactory.pgbenchPodLabels(context.getCluster());
+    final Map<String, String> labels = labelFactory.dbOpsPodLabels(context.getCluster());
     final String timeout = Optional.of(dbOps)
         .map(StackGresDbOps::getSpec)
         .map(StackGresDbOpsSpec::getTimeout)
@@ -115,9 +118,10 @@ public class PgbenchJob
         .map(Object::toString)
         .orElseGet(() -> String.valueOf(Integer.MAX_VALUE));
     final String pgVersion = context.getCluster().getSpec().getPostgresVersion();
+    final String primaryServiceDns = PatroniServices.readWriteName(context);
     final String serviceDns;
     if (benchmark.isConnectionTypePrimaryService()) {
-      serviceDns = PatroniServices.readWriteName(context);
+      serviceDns = primaryServiceDns;
     } else {
       serviceDns = PatroniServices.readOnlyName(context);
     }
@@ -207,6 +211,10 @@ public class PgbenchJob
                     .withValue(serviceDns)
                     .build(),
                     new EnvVarBuilder()
+                    .withName("PRIMARY_PGHOST")
+                    .withValue(primaryServiceDns)
+                    .build(),
+                    new EnvVarBuilder()
                     .withName("PGUSER")
                     .withValue("postgres")
                     .build(),
@@ -228,11 +236,18 @@ public class PgbenchJob
                     .withValue(duration)
                     .build(),
                     new EnvVarBuilder()
-                    .withName("USE_PREPARED_STATEMENTS")
+                    .withName("PROTOCOL")
                     .withValue(Optional.of(pgbench)
                         .map(StackGresDbOpsPgbench::getUsePreparedStatements)
+                        .map(usePreparedStatements -> usePreparedStatements ? "prepared" : "simple")
+                        .orElse("simple"))
+                    .build(),
+                    new EnvVarBuilder()
+                    .withName("READ_WRITE")
+                    .withValue(Optional.of(benchmark)
+                        .map(StackGresDbOpsBenchmark::isConnectionTypePrimaryService)
                         .map(String::valueOf)
-                        .orElse("false"))
+                        .orElse("true"))
                     .build(),
                     new EnvVarBuilder()
                     .withName("CLIENTS")
@@ -251,11 +266,13 @@ public class PgbenchJob
                 .build())
             .withCommand("/bin/bash", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
                 ClusterStatefulSetPath.LOCAL_BIN_RUN_PGBENCH_SH_PATH.path())
-            .withVolumeMounts(ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
-                volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_RUN_PGBENCH_SH_PATH.filename())
-                .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_RUN_PGBENCH_SH_PATH.path())
-                .withReadOnly(true)))
+            .withVolumeMounts(
+                ClusterStatefulSetVolumeConfig.SHARED.volumeMount(context),
+                ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
+                    volumeMountBuilder -> volumeMountBuilder
+                    .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_RUN_PGBENCH_SH_PATH.filename())
+                    .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_RUN_PGBENCH_SH_PATH.path())
+                    .withReadOnly(true)))
             .build(),
             new ContainerBuilder()
             .withName("set-pgbench-result")
@@ -290,14 +307,19 @@ public class PgbenchJob
                 .build())
             .withCommand("/bin/bash", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
                 ClusterStatefulSetPath.LOCAL_BIN_SET_PGBENCH_RESULT_SH_PATH.path())
-            .withVolumeMounts(ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
-                volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_SET_PGBENCH_RESULT_SH_PATH.filename())
-                .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_SET_PGBENCH_RESULT_SH_PATH.path())
-                .withReadOnly(true)))
+            .withVolumeMounts(
+                ClusterStatefulSetVolumeConfig.SHARED.volumeMount(context),
+                ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
+                    volumeMountBuilder -> volumeMountBuilder
+                    .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_SET_PGBENCH_RESULT_SH_PATH
+                        .filename())
+                    .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_SET_PGBENCH_RESULT_SH_PATH
+                        .path())
+                    .withReadOnly(true)))
             .build())
-        .withVolumes(new VolumeBuilder(
-            ClusterStatefulSetVolumeConfig.TEMPLATES.volume(context))
+        .withVolumes(
+            ClusterStatefulSetVolumeConfig.SHARED.volume(context),
+            new VolumeBuilder(ClusterStatefulSetVolumeConfig.TEMPLATES.volume(context))
             .editConfigMap()
             .withDefaultMode(0555) // NOPMD
             .endConfigMap()

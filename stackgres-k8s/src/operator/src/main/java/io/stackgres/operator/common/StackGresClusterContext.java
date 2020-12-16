@@ -74,6 +74,8 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
 
   public abstract String getBackupKey();
 
+  public abstract String getDbOpsKey();
+
   @Override
   public abstract ImmutableMap<String, String> getLabels();
 
@@ -92,9 +94,16 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
     return resource instanceof Pod
         && resource.getMetadata().getNamespace().equals(getClusterNamespace())
         && (Objects.equals(resource.getMetadata().getLabels().get(getScheduledBackupKey()),
-        StackGresContext.RIGHT_VALUE)
+            StackGresContext.RIGHT_VALUE)
             || Objects.equals(resource.getMetadata().getLabels().get(getBackupKey()),
                 StackGresContext.RIGHT_VALUE));
+  }
+
+  public boolean isDbOpsPod(HasMetadata resource) {
+    return resource instanceof Pod
+        && resource.getMetadata().getNamespace().equals(getClusterNamespace())
+        && Objects.equals(resource.getMetadata().getLabels().get(getDbOpsKey()),
+                StackGresContext.RIGHT_VALUE);
   }
 
   /**

@@ -37,7 +37,8 @@ public enum ClusterStatefulSetPath implements VolumePath {
   BACKUP_SECRET_PATH(BASE_SECRET_PATH, ClusterStatefulSetEnvVars.BACKUP_ENV.value()),
   RESTORE_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSetEnvVars.RESTORE_ENV.value()),
   RESTORE_SECRET_PATH(BASE_SECRET_PATH, ClusterStatefulSetEnvVars.RESTORE_ENV.value()),
-  TEMPLATES_PATH("/templates");
+  TEMPLATES_PATH("/templates"),
+  SHARED_PATH("/shared");
 
   private final String path;
   private final String subPath;

@@ -267,6 +267,7 @@ public class ClusterReconciliationCycle
         .clusterKey(labelFactory.getLabelMapper().clusterKey())
         .scheduledBackupKey(labelFactory.getLabelMapper().scheduledBackupKey())
         .backupKey(labelFactory.getLabelMapper().backupKey())
+        .dbOpsKey(labelFactory.getLabelMapper().dbOpsKey())
         .ownerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(cluster)))
         .restoreContext(getRestoreContext(cluster))
         .prometheus(getPrometheus(cluster))

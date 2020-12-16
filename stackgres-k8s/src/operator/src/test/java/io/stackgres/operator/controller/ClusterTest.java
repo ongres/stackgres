@@ -117,7 +117,7 @@ class ClusterTest {
   }
 
   @Test
-  void givenSimpleConfigurationWithoutConnectedClusters_itShouldNotFail() {
+  void givenSimpleConfiguration_itShouldNotFail() {
     when(clusterScanner.getResources()).thenReturn(clusterList.getItems());
     reconciliationCycle.getExistingContexts();
   }

@@ -49,7 +49,7 @@ public class StackGresDbOpsSpec implements KubernetesResource {
   private String timeout;
 
   @JsonProperty("maxRetries")
-  @Min(value = 1, message = "maxRetries must be greather or equals to 1.")
+  @Min(value = 0, message = "maxRetries must be greather or equals to 0.")
   @Max(value = 10, message = "maxRetries must be less or equals to 10.")
   private Integer maxRetries;
 

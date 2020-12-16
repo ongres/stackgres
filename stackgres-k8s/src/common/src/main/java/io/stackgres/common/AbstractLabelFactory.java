@@ -74,11 +74,11 @@ public abstract class AbstractLabelFactory<T extends CustomResource> implements 
   }
 
   @Override
-  public Map<String, String> pgbenchPodLabels(StackGresCluster resource) {
+  public Map<String, String> dbOpsPodLabels(StackGresCluster resource) {
     return ImmutableMap.of(getLabelMapper().appKey(), getLabelMapper().appName(),
         getLabelMapper().clusterUidKey(), ResourceUtil.labelValue(clusterUid(resource)),
         getLabelMapper().clusterNameKey(), ResourceUtil.labelValue(clusterName(resource)),
-        getLabelMapper().backupKey(), StackGresContext.RIGHT_VALUE);
+        getLabelMapper().dbOpsKey(), StackGresContext.RIGHT_VALUE);
   }
 
   @Override
