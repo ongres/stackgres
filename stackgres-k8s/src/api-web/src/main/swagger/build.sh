@@ -61,20 +61,33 @@ KNOWN_TYPES=" $(for SCHEMA_PATH in "$SCHEMAS_PATH"/*.yaml
   do
     yq -r '.type' "$SCHEMA_PATH"
   done | tr '\n' ' ') "
+ORPHAN_TYPES="$(
 for TYPE in $(yq -r '.components.schemas|keys|.[]' "$MERGED_SWAGGER_YAML_FILE")
 do
   if ! cat << EOF | grep -qF " $TYPE "
 $KNOWN_TYPES
 EOF
   then
-    echo "Removing orphan type $TYPE"
-    cp "$MERGED_SWAGGER_YAML_FILE" "$MERGED_SWAGGER_YAML_FILE.tmp"
-    yq -y "del(.components.schemas[\"$TYPE\"])" \
-      "$MERGED_SWAGGER_YAML_FILE.tmp" \
-      | sed "/^\s\+\$ref: '#\/components\/schemas\/$TYPE'$/d" \
-      > "$MERGED_SWAGGER_YAML_FILE"
-    rm "$MERGED_SWAGGER_YAML_FILE.tmp"
+    printf "$TYPE "
   fi
+done)"
+DELETE_ORPHANS_FILTER="$(
+echo '.'
+for TYPE in $ORPHAN_TYPES
+do
+  echo " | del(.components.schemas[\"$TYPE\"])"
+done)"
+
+echo "Removing orphan types $ORPHAN_TYPES"
+cp "$MERGED_SWAGGER_YAML_FILE" "$MERGED_SWAGGER_YAML_FILE.tmp"
+yq -y "$DELETE_ORPHANS_FILTER" \
+  "$MERGED_SWAGGER_YAML_FILE.tmp" > "$MERGED_SWAGGER_YAML_FILE"
+rm "$MERGED_SWAGGER_YAML_FILE.tmp"
+
+for TYPE in $ORPHAN_TYPES
+do
+  sed -i "/^\s\+\$ref: '#\/components\/schemas\/$TYPE'$/d" \
+    "$MERGED_SWAGGER_YAML_FILE"
 done
 
 if [ "$(yq -r '. as $o|paths|select(.[0] == "paths" and .[(length - 1)] == "$ref")|. as $a|$o|getpath($a)|split("/")|.[(length - 1)]' "$MERGED_SWAGGER_YAML_FILE" | sort | uniq)" != \
