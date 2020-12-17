@@ -15,6 +15,8 @@ import io.stackgres.apiweb.dto.dbops.DbOpsBenchmark;
 import io.stackgres.apiweb.dto.dbops.DbOpsBenchmarkStatus;
 import io.stackgres.apiweb.dto.dbops.DbOpsCondition;
 import io.stackgres.apiweb.dto.dbops.DbOpsDto;
+import io.stackgres.apiweb.dto.dbops.DbOpsMajorVersionUpgrade;
+import io.stackgres.apiweb.dto.dbops.DbOpsMajorVersionUpgradeStatus;
 import io.stackgres.apiweb.dto.dbops.DbOpsPgbench;
 import io.stackgres.apiweb.dto.dbops.DbOpsPgbenchStatus;
 import io.stackgres.apiweb.dto.dbops.DbOpsRepack;
@@ -29,6 +31,8 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmark;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmarkStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsCondition;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsMajorVersionUpgrade;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbench;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbenchStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsRepack;
@@ -80,6 +84,8 @@ public class DbOpsTransformer
     transformation.setBenchmark(getCustomResourceBenchmark(source.getBenchmark()));
     transformation.setVacuum(getCustomResourceVacuum(source.getVacuum()));
     transformation.setRepack(getCustomResourceRepack(source.getRepack()));
+    transformation.setMajorVersionUpgrade(
+        getCustomResourceMajorVersionUpgrade(source.getMajorVersionUpgrade()));
     return transformation;
   }
 
@@ -166,6 +172,18 @@ public class DbOpsTransformer
     transformation.setExcludeExtension(source.getExcludeExtension());
   }
 
+  private StackGresDbOpsMajorVersionUpgrade getCustomResourceMajorVersionUpgrade(
+      DbOpsMajorVersionUpgrade source) {
+    if (source == null) {
+      return null;
+    }
+    StackGresDbOpsMajorVersionUpgrade transformation =
+        new StackGresDbOpsMajorVersionUpgrade();
+    transformation.setLink(source.getLink());
+    transformation.setCheck(source.getCheck());
+    return transformation;
+  }
+
   private StackGresDbOpsStatus getCustomResourceStatus(DbOpsStatus source) {
     if (source == null) {
       return null;
@@ -232,6 +250,8 @@ public class DbOpsTransformer
         getResourceBenchmark(source.getBenchmark()));
     transformation.setVacuum(getResourceVacuum(source.getVacuum()));
     transformation.setRepack(getResourceRepack(source.getRepack()));
+    transformation.setMajorVersionUpgrade(
+        getResourceMajorVersionUpgrade(source.getMajorVersionUpgrade()));
     return transformation;
   }
 
@@ -316,6 +336,18 @@ public class DbOpsTransformer
     transformation.setExcludeExtension(source.getExcludeExtension());
   }
 
+  private DbOpsMajorVersionUpgrade getResourceMajorVersionUpgrade(
+      StackGresDbOpsMajorVersionUpgrade source) {
+    if (source == null) {
+      return null;
+    }
+    DbOpsMajorVersionUpgrade transformation =
+        new DbOpsMajorVersionUpgrade();
+    transformation.setLink(source.getLink());
+    transformation.setCheck(source.getCheck());
+    return transformation;
+  }
+
   private DbOpsStatus getResourceStatus(StackGresDbOpsStatus source) {
     if (source == null) {
       return null;
@@ -326,6 +358,8 @@ public class DbOpsTransformer
     transformation.setOpRetries(source.getOpRetries());
     transformation.setOpStarted(source.getOpStarted());
     transformation.setBenchmark(getResourceBenchmarkStatus(source.getBenchmark()));
+    transformation.setMajorVersionUpgrade(
+        getResourceMajorVersionUpgradeStatus(source.getMajorVersionUpgrade()));
     return transformation;
   }
 
@@ -366,6 +400,20 @@ public class DbOpsTransformer
         source.getTpsIncludingConnectionsEstablishing());
     transformation.setTpsExcludingConnectionsEstablishing(
         source.getTpsExcludingConnectionsEstablishing());
+    return transformation;
+  }
+
+  private DbOpsMajorVersionUpgradeStatus getResourceMajorVersionUpgradeStatus(
+      StackGresDbOpsMajorVersionUpgradeStatus source) {
+    if (source == null) {
+      return null;
+    }
+    DbOpsMajorVersionUpgradeStatus transformation = new DbOpsMajorVersionUpgradeStatus();
+    transformation.setPrimaryInstance(source.getPrimaryInstance());
+    transformation.setInitialInstances(source.getInitialInstances());
+    transformation.setPendingToRestartInstances(source.getPendingToRestartInstances());
+    transformation.setRestartedInstances(source.getRestartedInstances());
+    transformation.setFailure(source.getFailure());
     return transformation;
   }
 

@@ -24,6 +24,7 @@ import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsDefinition;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
@@ -92,7 +93,7 @@ public class DbOpsRole implements StackGresClusterResourceStreamFactory {
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups("")
             .withResources("pods")
-            .withVerbs("get", "list", "watch")
+            .withVerbs("get", "list", "watch", "delete")
             .build())
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups("")
@@ -105,6 +106,11 @@ public class DbOpsRole implements StackGresClusterResourceStreamFactory {
             .withVerbs("create")
             .build())
         .addToRules(new PolicyRuleBuilder()
+            .withApiGroups("apps")
+            .withResources("statefulsets")
+            .withVerbs("get")
+            .build())
+        .addToRules(new PolicyRuleBuilder()
             .withApiGroups("")
             .withResources("events")
             .withVerbs("get", "list", "create", "patch", "update")
@@ -113,6 +119,12 @@ public class DbOpsRole implements StackGresClusterResourceStreamFactory {
             .withApiGroups(StackGresProperty.CRD_GROUP.getString())
             .withResources(
                 StackGresDbOpsDefinition.PLURAL)
+            .withVerbs("get", "list", "watch", "patch")
+            .build())
+        .addToRules(new PolicyRuleBuilder()
+            .withApiGroups(StackGresProperty.CRD_GROUP.getString())
+            .withResources(
+                StackGresClusterDefinition.PLURAL)
             .withVerbs("get", "list", "watch", "patch")
             .build())
         .build();

@@ -55,8 +55,8 @@ public abstract class DbOpsJob
 
   private final StackGresPodSecurityContext clusterPodSecurityContext;
   private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;
-  private final LabelFactory<StackGresCluster> labelFactory;
   private final ImmutableMap<DbOpsStatusCondition, String> conditions;
+  protected final LabelFactory<StackGresCluster> labelFactory;
 
   @Inject
   public DbOpsJob(StackGresPodSecurityContext clusterPodSecurityContext,
@@ -65,7 +65,6 @@ public abstract class DbOpsJob
     super();
     this.clusterPodSecurityContext = clusterPodSecurityContext;
     this.clusterStatefulSetEnvironmentVariables = clusterStatefulSetEnvironmentVariables;
-    this.labelFactory = labelFactory;
     this.conditions = Optional.ofNullable(objectMapper)
         .map(om -> Seq.of(DbOpsStatusCondition.values())
             .map(c -> Tuple.tuple(c, c.getCondition()))
@@ -73,6 +72,7 @@ public abstract class DbOpsJob
             .map(t -> t.map2(Unchecked.function(objectMapper::writeValueAsString)))
             .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2)))
         .orElse(ImmutableMap.of());
+    this.labelFactory = labelFactory;
   }
 
   public String jobName(StackGresDbOps dbOps) {
@@ -111,7 +111,6 @@ public abstract class DbOpsJob
         .map(Duration::getSeconds)
         .map(Object::toString)
         .orElseGet(() -> String.valueOf(Integer.MAX_VALUE));
-    final String pgVersion = context.getCluster().getSpec().getPostgresVersion();
     final String retries = String.valueOf(getCurrentRetry(dbOps));
     return new JobBuilder()
         .withNewMetadata()
@@ -136,7 +135,7 @@ public abstract class DbOpsJob
         .withServiceAccountName(DbOpsRole.roleName(context))
         .withInitContainers(new ContainerBuilder()
             .withName("set-dbops-running")
-            .withImage(StackGresContext.KUBECTL_IMAGE)
+            .withImage(getSetResultImage())
             .withImagePullPolicy("IfNotPresent")
             .withEnv(ImmutableList.<EnvVar>builder()
                 .addAll(clusterStatefulSetEnvironmentVariables.listResources(context))
@@ -175,8 +174,7 @@ public abstract class DbOpsJob
         .withContainers(
             new ContainerBuilder()
             .withName("run-dbops")
-            .withImage(String.format(PostgresUtil.IMAGE_NAME, pgVersion,
-                StackGresProperty.CONTAINER_BUILD.getString()))
+            .withImage(getRunImage(context))
             .withImagePullPolicy("IfNotPresent")
             .withEnv(ImmutableList.<EnvVar>builder()
                 .addAll(clusterStatefulSetEnvironmentVariables.listResources(context))
@@ -187,18 +185,18 @@ public abstract class DbOpsJob
                 .addAll(runEnvVars)
                 .build())
             .withCommand("/bin/bash", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
-                runScriptPath())
+                runScript().path())
             .withVolumeMounts(
                 ClusterStatefulSetVolumeConfig.SHARED.volumeMount(context),
                 ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
                     volumeMountBuilder -> volumeMountBuilder
-                    .withSubPath(runScriptFilename())
-                    .withMountPath(runScriptPath())
+                    .withSubPath(runScript().filename())
+                    .withMountPath(runScript().path())
                     .withReadOnly(true)))
             .build(),
             new ContainerBuilder()
             .withName("set-dbops-result")
-            .withImage(StackGresContext.KUBECTL_IMAGE)
+            .withImage(getSetResultImage())
             .withImagePullPolicy("IfNotPresent")
             .withEnv(ImmutableList.<EnvVar>builder()
                 .addAll(clusterStatefulSetEnvironmentVariables.listResources(context))
@@ -228,13 +226,13 @@ public abstract class DbOpsJob
                     .toList())
                 .build())
             .withCommand("/bin/bash", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
-                setResultStriptPath())
+                setResultScript().path())
             .withVolumeMounts(
                 ClusterStatefulSetVolumeConfig.SHARED.volumeMount(context),
                 ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
                     volumeMountBuilder -> volumeMountBuilder
-                    .withSubPath(setResultScriptFilename())
-                    .withMountPath(setResultStriptPath())
+                    .withSubPath(setResultScript().filename())
+                    .withMountPath(setResultScript().path())
                     .withReadOnly(true)))
             .build())
         .withVolumes(
@@ -253,12 +251,18 @@ public abstract class DbOpsJob
   protected abstract List<EnvVar> getRunEnvVars(StackGresDbOpsContext context,
       StackGresDbOps dbOps);
 
-  protected abstract String setResultScriptFilename();
+  protected String getRunImage(StackGresDbOpsContext context) {
+    return String.format(PostgresUtil.IMAGE_NAME,
+        context.getCluster().getSpec().getPostgresVersion(),
+        StackGresProperty.CONTAINER_BUILD.getString());
+  }
 
-  protected abstract String setResultStriptPath();
+  protected abstract ClusterStatefulSetPath runScript();
 
-  protected abstract String runScriptFilename();
+  protected String getSetResultImage() {
+    return StackGresContext.KUBECTL_IMAGE;
+  }
 
-  protected abstract String runScriptPath();
+  protected abstract ClusterStatefulSetPath setResultScript();
 
 }

@@ -78,12 +78,12 @@
       },
       "spec": {
         "instances": 1,
-        "postgresVersion": "11.4",
+        "postgresVersion": "12.0",
+        "sgInstanceProfile": "size-xs",
         "configurations": {
           "sgPostgresConfig": "postgresconf",
           "sgPoolingConfig": "pgbouncerconf"
         },
-        "sgInstanceProfile": "size-xs",
         "pods":{
           "persistentVolume": {
             "size": "5Gi",

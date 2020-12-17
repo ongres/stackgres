@@ -40,6 +40,9 @@ public class DbOpsSpec {
   @JsonProperty("repack")
   private DbOpsRepack repack;
 
+  @JsonProperty("majorVersionUpgrade")
+  private DbOpsMajorVersionUpgrade majorVersionUpgrade;
+
   public String getSgCluster() {
     return sgCluster;
   }
@@ -102,6 +105,14 @@ public class DbOpsSpec {
 
   public void setRepack(DbOpsRepack repack) {
     this.repack = repack;
+  }
+
+  public DbOpsMajorVersionUpgrade getMajorVersionUpgrade() {
+    return majorVersionUpgrade;
+  }
+
+  public void setMajorVersionUpgrade(DbOpsMajorVersionUpgrade majorVersionUpgrade) {
+    this.majorVersionUpgrade = majorVersionUpgrade;
   }
 
   @Override

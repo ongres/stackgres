@@ -18,25 +18,27 @@ ___
 
 **Spec**
 
-| Property                  | Required | Updatable | Default | Type    | Description |
-|:--------------------------|----------|-----------|:--------|:--------|:------------|
-| sgCluster                 | ✓        |           |         | string  | {{< crd-field-description SGDbOps.spec.sgCluster >}} |
-| op                        | ✓        |           |         | string  | {{< crd-field-description SGDbOps.spec.op >}} |
-| runAt                     |          |           |         | string  | {{< crd-field-description SGDbOps.spec.runAt >}} |
-| timeout                   |          |           |         | string  | {{< crd-field-description SGDbOps.spec.timeout >}} |
-| maxRetries                |          |           |         | integer | {{< crd-field-description SGDbOps.spec.maxRetries >}} |
-| [benchmark](#benchmark)   |          |           |         | object  | {{< crd-field-description SGDbOps.spec.benchmark >}} |
-| [vacuum](#vacuum)         |          |           |         | object  | {{< crd-field-description SGDbOps.spec.vacuum >}} |
-| [repack](#repack)         |          |           |         | object  | {{< crd-field-description SGDbOps.spec.repack >}} |
+| Property                                              | Required | Updatable | Default | Type    | Description |
+|:------------------------------------------------------|----------|-----------|:--------|:--------|:------------|
+| sgCluster                                             | ✓        |           |         | string  | {{< crd-field-description SGDbOps.spec.sgCluster >}} |
+| op                                                    | ✓        |           |         | string  | {{< crd-field-description SGDbOps.spec.op >}} |
+| runAt                                                 |          |           |         | string  | {{< crd-field-description SGDbOps.spec.runAt >}} |
+| timeout                                               |          |           |         | string  | {{< crd-field-description SGDbOps.spec.timeout >}} |
+| maxRetries                                            |          |           |         | integer | {{< crd-field-description SGDbOps.spec.maxRetries >}} |
+| [benchmark](#benchmark)                               |          |           |         | object  | {{< crd-field-description SGDbOps.spec.benchmark >}} |
+| [vacuum](#vacuum)                                     |          |           |         | object  | {{< crd-field-description SGDbOps.spec.vacuum >}} |
+| [repack](#repack)                                     |          |           |         | object  | {{< crd-field-description SGDbOps.spec.repack >}} |
+| [majorVersionUpgrade](#major-version-upgrade)         |          |           |         | object  | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade >}} |
 
 **Status**
 
-| Property                         | Required | Updatable | Default | Type    | Description |
-|:---------------------------------|----------|-----------|:--------|:--------|:------------|
-| [conditions](#conditions)        |          |           |         | array   | {{< crd-field-description SGDbOps.status.conditions >}} |
-| opRetries                        |          |           |         | integer | {{< crd-field-description SGDbOps.status.opRetries >}} |
-| opStarted                        |          |           |         | string  | {{< crd-field-description SGDbOps.status.opStarted >}} |
-| [benchmark](#benchmark-status)   |          |           |         | object  | {{< crd-field-description SGDbOps.status.benchmark >}} |
+| Property                                               | Required | Updatable | Default | Type    | Description |
+|:-------------------------------------------------------|----------|-----------|:--------|:--------|:------------|
+| [conditions](#conditions)                              |          |           |         | array   | {{< crd-field-description SGDbOps.status.conditions >}} |
+| opRetries                                              |          |           |         | integer | {{< crd-field-description SGDbOps.status.opRetries >}} |
+| opStarted                                              |          |           |         | string  | {{< crd-field-description SGDbOps.status.opStarted >}} |
+| [benchmark](#benchmark-status)                         |          |           |         | object  | {{< crd-field-description SGDbOps.status.benchmark >}} |
+| [majorVersionUpgrade](#major-version-upgrade-status)   |          |           |         | object  | {{< crd-field-description SGDbOps.status.majorVersionUpgrade >}} |
 
 ## Benchmark
 
@@ -98,6 +100,14 @@ ___
 | noAnalyze                                  |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.repack.databases.items.noAnalyze >}} |
 | excludeExtension                           |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.repack.databases.items.excludeExtension >}} |
 
+## Major Version Upgrade
+
+| Property                                   | Required | Updatable | Type     | Default                      | Description |
+|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
+| link                                       |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.link >}} |
+| clone                                      |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.clone >}} |
+| check                                      |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.check >}} |
+
 ## Conditions
 
 | Property                                   | Required | Updatable | Type     | Default                      | Description |
@@ -123,6 +133,16 @@ ___
 | latencyAverage                             |          |           | numeric  |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.latencyAverage >}} |
 | tpsIncludingConnectionsEstablishing        |          |           | numeric  |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.tpsIncludingConnectionsEstablishing >}} |
 | tpsExcludingConnectionsEstablishing        |          |           | numeric  |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.tpsExcludingConnectionsEstablishing >}} |
+
+## Major Version Upgrade Status
+
+| Property                                   | Required | Updatable | Type     | Default                      | Description |
+|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
+| primaryInstance                            |          |           | string   |                              | {{< crd-field-description SGDbOps.status.majorVersionUpgrade.primaryInstance >}} |
+| initialInstances                           |          |           | array    |                              | {{< crd-field-description SGDbOps.status.majorVersionUpgrade.initialInstances >}} |
+| pendingToRestartInstances                  |          |           | array    |                              | {{< crd-field-description SGDbOps.status.majorVersionUpgrade.pendingToRestartInstances >}} |
+| restartedInstances                         |          |           | array    |                              | {{< crd-field-description SGDbOps.status.majorVersionUpgrade.restartedInstances >}} |
+| failure                                    |          |           | string   |                              | {{< crd-field-description SGDbOps.status.majorVersionUpgrade.failure >}} |
 
 Example:
 

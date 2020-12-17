@@ -45,6 +45,9 @@ public class StackGresDbOpsStatus implements KubernetesResource {
   @JsonProperty("benchmark")
   private StackGresDbOpsBenchmarkStatus benchmark;
 
+  @JsonProperty("majorVersionUpgrade")
+  private StackGresDbOpsMajorVersionUpgradeStatus majorVersionUpgrade;
+
   @ReferencedField("opStarted")
   interface OpStarted extends FieldReference { }
 
@@ -94,9 +97,17 @@ public class StackGresDbOpsStatus implements KubernetesResource {
     this.benchmark = benchmark;
   }
 
+  public StackGresDbOpsMajorVersionUpgradeStatus getMajorVersionUpgrade() {
+    return majorVersionUpgrade;
+  }
+
+  public void setMajorVersionUpgrade(StackGresDbOpsMajorVersionUpgradeStatus majorVersionUpgrade) {
+    this.majorVersionUpgrade = majorVersionUpgrade;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(benchmark, conditions, opRetries, opStarted);
+    return Objects.hash(benchmark, conditions, majorVersionUpgrade, opRetries, opStarted);
   }
 
   @Override
@@ -110,6 +121,7 @@ public class StackGresDbOpsStatus implements KubernetesResource {
     StackGresDbOpsStatus other = (StackGresDbOpsStatus) obj;
     return Objects.equals(benchmark, other.benchmark)
         && Objects.equals(conditions, other.conditions)
+        && Objects.equals(majorVersionUpgrade, other.majorVersionUpgrade)
         && Objects.equals(opRetries, other.opRetries) && Objects.equals(opStarted, other.opStarted);
   }
 

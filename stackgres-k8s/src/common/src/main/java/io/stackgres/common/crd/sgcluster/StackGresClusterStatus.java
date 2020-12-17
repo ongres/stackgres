@@ -30,12 +30,24 @@ public class StackGresClusterStatus implements KubernetesResource {
   @Valid
   private List<StackGresClusterCondition> conditions = new ArrayList<>();
 
+  @JsonProperty("dbOps")
+  @Valid
+  private StackGresClusterDbOpsStatus dbOps;
+
   public List<StackGresClusterCondition> getConditions() {
     return conditions;
   }
 
   public void setConditions(List<StackGresClusterCondition> conditions) {
     this.conditions = conditions;
+  }
+
+  public StackGresClusterDbOpsStatus getDbOps() {
+    return dbOps;
+  }
+
+  public void setDbOps(StackGresClusterDbOpsStatus dbOps) {
+    this.dbOps = dbOps;
   }
 
   @Override
@@ -47,19 +59,20 @@ public class StackGresClusterStatus implements KubernetesResource {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof StackGresClusterStatus)) {
       return false;
     }
-    StackGresClusterStatus that = (StackGresClusterStatus) o;
-    return Objects.equals(conditions, that.conditions);
+    StackGresClusterStatus other = (StackGresClusterStatus) obj;
+    return Objects.equals(conditions, other.conditions)
+        && Objects.equals(dbOps, other.dbOps);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(conditions);
+    return Objects.hash(conditions, dbOps);
   }
 }

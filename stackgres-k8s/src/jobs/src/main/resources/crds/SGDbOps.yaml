@@ -45,6 +45,7 @@ spec:
                     * `benchmark`: run a benchmark on the specified SGCluster and report the results in the status.
                     * `vacuum`: perform a [vacuum](https://www.postgresql.org/docs/current/sql-vacuum.html) operation on the specified SGCluster.
                     * `repack`: run [`pg_repack`](https://github.com/reorg/pg_repack) command on the specified SGCluster.
+                    * `majorVersionUpgrade`: perform a major version upgrade of PostgreSQL using [`pg_upgrade`](https://www.postgresql.org/docs/current/pgupgrade.html) command.
                 runAt:
                   type: string
                   description: |
@@ -235,6 +236,29 @@ spec:
                             type: boolean
                             description: |
                               If true don't repack tables which belong to specific extension. By default false.
+                majorVersionUpgrade:
+                  type: object
+                  description: |
+                    Configuration of major version upgrade (see also [`pg_upgrade`](https://www.postgresql.org/docs/current/pgupgrade.html) command)
+                  properties:
+                    link:
+                      type: boolean
+                      description: |
+                        If true use hard links instead of copying files to the new cluster. This option is mutually exclusive with `clone`. By default false.
+                    clone:
+                      type: boolean
+                      description: |
+                        If true use efficient file cloning (also known as "reflinks" on some systems) instead of copying files to the new cluster.
+                        This can result in near-instantaneous copying of the data files, giving the speed advantages of `link` while leaving the old
+                         cluster untouched. This option is mutually exclusive with `link`. By default false.
+
+                        File cloning is only supported on some operating systems and file systems. If it is selected but not supported, the pg_upgrade
+                         run will error. At present, it is supported on Linux (kernel 4.5 or later) with Btrfs and XFS (on file systems created with
+                         reflink support), and on macOS with APFS.
+                    check:
+                      type: boolean
+                      description: |
+                        If true check clusters before changing any data. By default false.
               required: ["sgCluster", "op"]
             status:
               type: object
@@ -313,3 +337,34 @@ spec:
                           nullable: true
                           description: |
                             Number of transaction per second excluding connection establishing.
+                majorVersionUpgrade:
+                  type: object
+                  description: |
+                    The results of a major version upgrade
+                  properties:
+                    primaryInstance:
+                      type: string
+                      description: |
+                        The primary instance when the operation started
+                    initialInstances:
+                      type: array
+                      description: |
+                        The instances present when the operation started
+                      items:
+                        type: string
+                    pendingToRestartInstances:
+                      type: array
+                      description: |
+                        The instances that are pending to be restarted
+                      items:
+                        type: string
+                    restartedInstances:
+                      type: array
+                      description: |
+                        The instances that have been restarted
+                      items:
+                        type: string
+                    failure:
+                      type: string
+                      description: |
+                        A failure message (when available)

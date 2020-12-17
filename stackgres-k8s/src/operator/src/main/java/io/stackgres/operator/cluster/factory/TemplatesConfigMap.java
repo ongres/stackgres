@@ -46,6 +46,9 @@ public class TemplatesConfigMap
     Map<String, String> data = new HashMap<String, String>();
 
     for (String resource : new String[] {
+        ClusterStatefulSetPath.LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_SETUP_SCRIPTS_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_START_PATRONI_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_START_PATRONI_WITH_RESTORE_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_POST_INIT_SH_PATH.filename(),
@@ -62,6 +65,11 @@ public class TemplatesConfigMap
         ClusterStatefulSetPath.LOCAL_BIN_SET_VACUUM_RESULT_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_RUN_REPACK_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_SET_REPACK_RESULT_SH_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_RUN_MAJOR_VERSION_UPGRADE_SH_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_SET_MAJOR_VERSION_UPGRADE_RESULT_SH_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_COPY_BINARIES_SH_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_MAJOR_VERSION_UPGRADE_SH_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_RESET_PATRONI_INITIALIZE_SH_PATH.filename(),
     }) {
       data.put(resource, Unchecked.supplier(() -> Resources
           .asCharSource(ClusterStatefulSet.class.getResource("/templates/" + resource),

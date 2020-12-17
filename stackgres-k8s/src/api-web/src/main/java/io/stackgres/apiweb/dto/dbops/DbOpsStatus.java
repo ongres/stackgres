@@ -32,6 +32,9 @@ public class DbOpsStatus {
   @JsonProperty("benchmark")
   private DbOpsBenchmarkStatus benchmark;
 
+  @JsonProperty("majorVersionUpgrade")
+  private DbOpsMajorVersionUpgradeStatus majorVersionUpgrade;
+
   public List<DbOpsCondition> getConditions() {
     return conditions;
   }
@@ -62,6 +65,14 @@ public class DbOpsStatus {
 
   public void setBenchmark(DbOpsBenchmarkStatus benchmark) {
     this.benchmark = benchmark;
+  }
+
+  public DbOpsMajorVersionUpgradeStatus getMajorVersionUpgrade() {
+    return majorVersionUpgrade;
+  }
+
+  public void setMajorVersionUpgrade(DbOpsMajorVersionUpgradeStatus majorVersionUpgrade) {
+    this.majorVersionUpgrade = majorVersionUpgrade;
   }
 
   @Override

@@ -36,16 +36,19 @@ public class DbOps
   private final DbOpsBenchmark benchmark;
   private final DbOpsVacuumJob vacuumJob;
   private final DbOpsRepackJob repackJob;
+  private final DbOpsMajorVersionUpgradeJob majorVersionUpgradeJob;
   private final DbOpsRole role;
 
   @Inject
   public DbOps(DbOpsBenchmark benchmark,
       DbOpsVacuumJob vacuumJob,
       DbOpsRepackJob repackJob,
+      DbOpsMajorVersionUpgradeJob majorVersionUpgradeJob,
       DbOpsRole role) {
     this.benchmark = benchmark;
     this.vacuumJob = vacuumJob;
     this.repackJob = repackJob;
+    this.majorVersionUpgradeJob = majorVersionUpgradeJob;
     this.role = role;
   }
 
@@ -100,6 +103,17 @@ public class DbOps
           .with(dbOpsContext)
           .of(HasMetadata.class)
           .append(repackJob)
+          .stream();
+    }
+
+    if (Optional.of(dbOps)
+        .map(StackGresDbOps::getSpec)
+        .map(StackGresDbOpsSpec::isOpMajorVersionUpgrade)
+        .orElse(false)) {
+      return ResourceGenerator
+          .with(dbOpsContext)
+          .of(HasMetadata.class)
+          .append(majorVersionUpgradeJob)
           .stream();
     }
 

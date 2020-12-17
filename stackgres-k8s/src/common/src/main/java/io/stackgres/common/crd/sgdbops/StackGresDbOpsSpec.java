@@ -65,6 +65,10 @@ public class StackGresDbOpsSpec implements KubernetesResource {
   @Valid
   private StackGresDbOpsRepack repack;
 
+  @JsonProperty("majorVersionUpgrade")
+  @Valid
+  private StackGresDbOpsMajorVersionUpgrade majorVersionUpgrade;
+
   @ReferencedField("op")
   interface Op extends FieldReference { }
 
@@ -87,13 +91,15 @@ public class StackGresDbOpsSpec implements KubernetesResource {
   interface Repack extends FieldReference { }
 
   @JsonIgnore
-  @AssertTrue(message = "op must be one of benchmark, vacuum or repack",
+  @AssertTrue(message = "op must be one of benchmark, vacuum, repack"
+      + " or majorVersionUpgrade",
       payload = Op.class)
   public boolean isOpValid() {
     return op == null || ImmutableList.of(
         "benchmark",
         "vacuum",
-        "repack"
+        "repack",
+        "majorVersionUpgrade"
         ).contains(op);
   }
 
@@ -146,6 +152,11 @@ public class StackGresDbOpsSpec implements KubernetesResource {
   @JsonIgnore
   public boolean isOpRepack() {
     return Objects.equals(op, "repack");
+  }
+
+  @JsonIgnore
+  public boolean isOpMajorVersionUpgrade() {
+    return Objects.equals(op, "majorVersionUpgrade");
   }
 
   public String getSgCluster() {
@@ -212,9 +223,18 @@ public class StackGresDbOpsSpec implements KubernetesResource {
     this.repack = repack;
   }
 
+  public StackGresDbOpsMajorVersionUpgrade getMajorVersionUpgrade() {
+    return majorVersionUpgrade;
+  }
+
+  public void setMajorVersionUpgrade(StackGresDbOpsMajorVersionUpgrade majorVersionUpgrade) {
+    this.majorVersionUpgrade = majorVersionUpgrade;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(benchmark, maxRetries, op, repack, runAt, sgCluster, timeout, vacuum);
+    return Objects.hash(benchmark, majorVersionUpgrade, maxRetries, op, repack, runAt, sgCluster,
+        timeout, vacuum);
   }
 
   @Override
@@ -227,6 +247,7 @@ public class StackGresDbOpsSpec implements KubernetesResource {
     }
     StackGresDbOpsSpec other = (StackGresDbOpsSpec) obj;
     return Objects.equals(benchmark, other.benchmark)
+        && Objects.equals(majorVersionUpgrade, other.majorVersionUpgrade)
         && Objects.equals(maxRetries, other.maxRetries) && Objects.equals(op, other.op)
         && Objects.equals(repack, other.repack) && Objects.equals(runAt, other.runAt)
         && Objects.equals(sgCluster, other.sgCluster) && Objects.equals(timeout, other.timeout)

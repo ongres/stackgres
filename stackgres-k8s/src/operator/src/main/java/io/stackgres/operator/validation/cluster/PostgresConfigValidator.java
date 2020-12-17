@@ -5,10 +5,10 @@
 
 package io.stackgres.operator.validation.cluster;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+import java.util.function.Function;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -21,6 +21,8 @@ import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple2;
 
 @Singleton
 @ValidationType(ErrorType.INVALID_CR_REFERENCE)
@@ -28,7 +30,7 @@ public class PostgresConfigValidator implements ClusterValidator {
 
   private final CustomResourceFinder<StackGresPostgresConfig> configFinder;
 
-  private final Set<String> supportedPostgresVersions;
+  private final List<String> supportedPostgresVersions;
 
   private final String errorCrReferencerUri;
   private final String errorPostgresMismatchUri;
@@ -42,10 +44,9 @@ public class PostgresConfigValidator implements ClusterValidator {
 
   public PostgresConfigValidator(
       CustomResourceFinder<StackGresPostgresConfig> configFinder,
-      List<String> supportedPostgresVersions) {
+      List<String> orderedSupportedPostgresVersions) {
     this.configFinder = configFinder;
-    this.supportedPostgresVersions = new HashSet<String>(
-        supportedPostgresVersions);
+    this.supportedPostgresVersions = new ArrayList<String>(orderedSupportedPostgresVersions);
     this.errorCrReferencerUri = ErrorType.getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
     this.errorPostgresMismatchUri = ErrorType.getErrorTypeUri(ErrorType.PG_VERSION_MISMATCH);
     this.errorForbiddenUpdateUri = ErrorType.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE);
@@ -69,7 +70,7 @@ public class PostgresConfigValidator implements ClusterValidator {
     if (givenPgVersion != null && !isPostgresVersionSupported(givenPgVersion)) {
       final String message = "Unsupported postgresVersion " + givenPgVersion
           + ".  Supported postgres versions are: "
-          + StackGresComponents.getAllOrderedPostgresVersions().toString(", ");
+          + Seq.seq(supportedPostgresVersions).toString(", ");
       fail(errorPostgresMismatchUri, message);
     }
 
@@ -89,12 +90,32 @@ public class PostgresConfigValidator implements ClusterValidator {
           validateAgainstConfiguration(givenMajorVersion, pgConfig, namespace);
         }
 
+        long givenMajorVersionIndex = Seq.seq(supportedPostgresVersions)
+            .map(StackGresComponents::calculatePostgresVersion)
+            .map(StackGresComponents::getPostgresMajorVersion)
+            .grouped(Function.identity())
+            .map(t -> t.v1)
+            .zipWithIndex()
+            .filter(t -> t.v1.equals(givenMajorVersion))
+            .map(Tuple2::v2)
+            .findAny()
+            .get();
         String oldPgVersion = oldCluster.getSpec().getPostgresVersion();
         String oldMajorVersion = StackGresComponents.getPostgresMajorVersion(oldPgVersion);
+        long oldMajorVersionIndex = Seq.seq(supportedPostgresVersions)
+            .map(StackGresComponents::calculatePostgresVersion)
+            .map(StackGresComponents::getPostgresMajorVersion)
+            .grouped(Function.identity())
+            .map(t -> t.v1)
+            .zipWithIndex()
+            .filter(t -> t.v1.equals(oldMajorVersion))
+            .map(Tuple2::v2)
+            .findAny()
+            .get();
 
-        if (!givenMajorVersion.equals(oldMajorVersion)) {
+        if (givenMajorVersionIndex > oldMajorVersionIndex) {
           fail(errorForbiddenUpdateUri,
-              "postgresVersion can not be changed to a different major version");
+              "postgresVersion can not be changed to a previous major version");
         }
 
         break;

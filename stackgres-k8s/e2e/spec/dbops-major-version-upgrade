@@ -1,0 +1,233 @@
+#!/bin/sh
+
+export E2E_SOURCE_POSTGRES_VERSION="${E2E_SOURCE_POSTGRES_VERSION:-11.8}"
+export E2E_TARGET_POSTGRES_VERSION="${E2E_TARGET_POSTGRES_VERSION:-12.3}"
+export E2E_STORAGE_CLASS_REFLINK_ENABLED="${E2E_STORAGE_CLASS_REFLINK_ENABLED:-false}"
+
+e2e_test_install() {
+  true
+}
+
+e2e_test() {
+  run_test "Checking that major version upgrade is working" check_major_version_upgrade_is_working
+
+  run_test "Checking that major version upgrade check is working" check_major_version_upgrade_check_is_working
+
+  run_test "Checking that major version upgrade link is working" check_major_version_upgrade_link_is_working
+
+  run_test "Checking that major version upgrade clone is working" check_major_version_upgrade_clone_is_working
+
+  run_test "Checking that major version upgrade timeout works correctly" check_major_version_upgrade_timed_out
+
+  run_test "Checking that major version upgrade can be repeated if failed" check_major_version_upgrade_repeat
+}
+
+reset_cluster() {
+  remove_cluster_if_exists "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  wait_until eval '[ "$(kubectl get pvc -n "$CLUSTER_NAMESPACE" --template "{{ .items | len }}")" = 0 ]'
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string cluster.postgresVersion="$E2E_SOURCE_POSTGRES_VERSION"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
+
+  create_or_replace_cluster "$CLUSTER_NAME-for-major-version-upgrade" "$CLUSTER_NAMESPACE" 1 \
+    --set cluster.create=false \
+    --set instanceProfiles=null \
+    --set cluster.configurations.sgPostgresConfig=postgresconf-for-major-version-upgrade \
+    --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-major-version-upgrade \
+    --set-string cluster.postgresVersion="$E2E_TARGET_POSTGRES_VERSION"
+
+  generate_mock_data "$CLUSTER_NAME"
+  check_mock_data_samehost "$CLUSTER_NAME"
+  check_mock_data_replication "$CLUSTER_NAME"
+
+  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
+    -p "$(cat << EOF
+[
+  {"op":"replace","path":"/spec/postgresVersion","value":"$E2E_TARGET_POSTGRES_VERSION"},
+  {"op":"replace","path":"/spec/configurations/sgPostgresConfig","value":"postgresconf-for-major-version-upgrade"}
+]
+EOF
+        )"
+}
+
+check_major_version_upgrade_is_working() {
+  reset_cluster
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGDbOps
+metadata:
+  name: major-version-upgrade
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: majorVersionUpgrade
+EOF
+
+  check_major_version_upgrade
+
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" major-version-upgrade
+}
+
+check_major_version_upgrade_check_is_working() {
+  reset_cluster
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGDbOps
+metadata:
+  name: major-version-upgrade
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: majorVersionUpgrade
+  majorVersionUpgrade:
+    check: true
+EOF
+
+  check_major_version_upgrade
+
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" major-version-upgrade
+}
+
+check_major_version_upgrade_link_is_working() {
+  reset_cluster
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGDbOps
+metadata:
+  name: major-version-upgrade
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: majorVersionUpgrade
+  majorVersionUpgrade:
+    link: true
+EOF
+
+  check_major_version_upgrade
+
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" major-version-upgrade
+}
+
+check_major_version_upgrade_clone_is_working() {
+  if [ "$E2E_STORAGE_CLASS_REFLINK_ENABLED" != true ]
+  then
+    echo "Skipping test since reflink is not supposed to be supported by default storage class"
+    return
+  fi
+
+  reset_cluster
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGDbOps
+metadata:
+  name: major-version-upgrade
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: majorVersionUpgrade
+  majorVersionUpgrade:
+    clone: true
+EOF
+
+  check_major_version_upgrade
+
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" major-version-upgrade
+}
+
+check_major_version_upgrade() {
+  if kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "major-version-upgrade" \
+    --for condition=Completed
+  then
+    echo "SUCCESS. major version upgrade completed."
+  else
+    echo "FAILED. major version upgrade failed."
+    return 1
+  fi
+
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
+    -l "cluster-name=$CLUSTER_NAME,db-ops=true" \
+    -o name 2>/dev/null | wc -l)" = 1 ]
+  then
+    echo "SUCCESS. major version upgrade job was not removed after completion."
+  else
+    echo "FAILED. major version upgrade job was removed after completion."
+    return 1
+  fi
+
+  check_mock_data_samehost "$CLUSTER_NAME"
+  check_mock_data_replication "$CLUSTER_NAME"
+}
+
+check_major_version_upgrade_timed_out() {
+  reset_cluster
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGDbOps
+metadata:
+  name: major-version-upgrade
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: majorVersionUpgrade
+  timeout: PT1S
+EOF
+
+  if kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops major-version-upgrade \
+    --for condition=Failed
+  then
+    echo "SUCCESS. major version upgrade failed."
+  else
+    echo "FAILED. major version upgrade did not fail."
+    return 1
+  fi
+
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
+    -l "cluster-name=$CLUSTER_NAME,db-ops=true" \
+    -o name 2>/dev/null | wc -l)" = 1 ]
+  then
+    echo "SUCCESS. major version upgrade job was not removed after failure."
+  else
+    echo "FAILED. major version upgrade job was removed after failure."
+    return 1
+  fi
+
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" major-version-upgrade
+
+  if wait_until eval '[ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
+    -l "cluster-name=$CLUSTER_NAME,db-ops=true" \
+    -o name 2>/dev/null | wc -l)" = 0 ]'
+  then
+    echo "SUCCESS. major version upgrade job was removed after sgdbops was removed."
+  else
+    echo "FAILED. major version upgrade job was not removed after sgdbops was removed."
+    return 1
+  fi
+
+  check_mock_data_samehost "$CLUSTER_NAME"
+  check_mock_data_replication "$CLUSTER_NAME"
+}
+
+check_major_version_upgrade_repeat() {
+    cat << EOF | kubectl create -f -
+  apiVersion: stackgres.io/v1beta1
+  kind: SGDbOps
+  metadata:
+    name: major-version-upgrade
+    namespace: $CLUSTER_NAMESPACE
+  spec:
+    sgCluster: $CLUSTER_NAME
+    op: majorVersionUpgrade
+EOF
+
+  check_major_version_upgrade
+
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" major-version-upgrade
+}
