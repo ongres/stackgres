@@ -24,10 +24,6 @@ grep "^version: \"$STACKGRES_VERSION\"$" stackgres-cluster/Chart.yaml
 grep "^appVersion: \"$STACKGRES_VERSION\"$" stackgres-cluster/Chart.yaml
 helm lint stackgres-cluster
 
-helm repo add stable https://kubernetes-charts.storage.googleapis.com
-helm repo update
-helm dependency update stackgres-operator
-helm dependency update stackgres-cluster
 rm -rf "target/packages"
 mkdir -p "target/packages"
 helm package stackgres-operator -d "target/packages"

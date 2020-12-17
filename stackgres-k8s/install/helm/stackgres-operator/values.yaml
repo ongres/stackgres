@@ -73,9 +73,7 @@ grafana:
   password: prom-operator
   # Set the HTTP scheme used by grafana:
   schema: http
-  # Copy and paste grafana service hostname:
-  # - kubectl get service prometheus-operator-grafana --template $'{{ .metadata.name }}.{{ .metadata.namespace }}.svc\n'
-  # webHost: "prometheus-operator-grafana.default.svc"
+  # webHost: "kube-prometheus-stack-grafana.default.svc"
   #Use follwing fields to indicate a secret where the grafana admin credentials are stored (replace user/password)
   #secretNamespace:
   #secretName:
@@ -91,7 +89,7 @@ grafana:
   # url: "http://localhost:3000/d/000000039/postgresql-database?orgId=1&refresh=10s"
   # Create and copy/paste grafana API token:
   # - Grafana > Configuration > API Keys > Add API key (for viewer) > Copy key value
-  # token: "eyJrIjoidXc4NXJPa1VOdmNHVkFYMGJuME9zcnJucnBYRU1FQTMiLCJuIjoic3RhY2tncmVzIiwiaWQiOjF9"
+  # token: 
 
 #Following options are for developers only, but can also be useful in some cases ;)
 developer: {}
@@ -106,8 +104,3 @@ developer: {}
   # externalRestApiIp: 172.17.0.1
   # externalRestApiPort: 8081
 
-#Setting prometheus-operator.create to true will install prometheus-operator and embed grafana in the stackgres UI
-prometheus-operator:
-  create: false
-  prometheusOperator:
-    createCustomResource: false
