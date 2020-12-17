@@ -16,13 +16,9 @@ cert:
 prometheus:
   allowAutobind: |
     If set to false disable automatic bind to prometheus
-     created using the [prometheus operator](https://github.com/coreos/prometheus-operator).
+     created using the [prometheus operator](https://github.com/prometheus-operator/prometheus-operator).
      If disabled the cluster will not be binded to prometheus automatically and will require manual
      interventin by the kubernetes cluster administrator.
-prometheus-operator:
-  create: |
-    Create a prometheus operator and embed his grafana with StackGres
-     by setting this to true. Default false.
 adminui:
   service:
     type: |
@@ -66,7 +62,7 @@ grafana:
      grafana)
   password: |
     The password to access grafana. By default prom-operator (the default in for
-     stable/prometheus-operator helm chart). (used to embed automatically grafana)
+     kube-prometheus-stack helm chart). (used to embed automatically grafana)
   secretNamespace: |
     The namespace of secret with credentials to access grafana. (used to
      embed automatically grafana, alternative to use `grafana.user` and `grafana.password`)

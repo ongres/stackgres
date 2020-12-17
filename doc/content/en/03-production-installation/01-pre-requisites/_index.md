@@ -70,7 +70,7 @@ If you already have a Grafana installation in your system you can embed it autom
  StackGres UI by setting the property `grafana.autoEmbed=true`:
 
 ```
-helm install --namespace prometheus prometheus-operator stable/prometheus-operator \
+helm install --namespace stackgres stackgres-operator {{< download-url >}}/helm/stackgres-operator.tgz \
   --set grafana.autoEmbed=true
 ```
 

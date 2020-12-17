@@ -41,7 +41,6 @@ You can specify following parameters values:
 | Parameter | Description | Default |
 |:----------|:------------|:--------|
 | `prometheus.allowAutobind` | {{< description stackgres-operator.prometheus.allowAutobind >}} | true |
-| `prometheus-operator.create` | {{< description stackgres-operator.prometheus-operator.create >}} | false |
 
 ## Certificates Parameters
 
