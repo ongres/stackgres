@@ -138,7 +138,7 @@ Which monitoring solution can we use to monitor a Postgres cluster?
 
 StackGres approach here is to enable as much monitoring solution as possible. Currently, only Prometheus can connect
 to StackGres stats using the [PostgreSQL Server Exporter](https://github.com/wrouesnel/postgres_exporter) 
-and integrates as a sidecar offering an auto binding mechanism if prometheus is installed using the [prometheus operator](https://github.com/coreos/prometheus-operator).
+and integrates as a sidecar offering an auto binding mechanism if prometheus is installed using the [prometheus operator](https://github.com/prometheus-operator/prometheus-operator).
 
 Take in account that Prometheus is a dependency and that StackGres expects that you install and configure it separately.
 
@@ -155,7 +155,7 @@ By default helm chart of [prometheus operator](https://github.com/coreos/prometh
  with grafana and StackGres offer an integration to allow monitoring a StackGres cluster pod
  directly from the StackGres UI. There are various options to achieve it.
 
-StackGres includes three ways to perform such integration.
+StackGres includes two ways to perform such integration.
 
 - [Automatic integration]({{% relref "/03-production-installation/01-pre-requisites/#integrating-pre-existing-grafanas" %}})
 - [Manual integration]({{% relref "/03-production-installation/01-pre-requisites/#manual-integration" %}})

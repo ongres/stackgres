@@ -1,4 +1,4 @@
-{{- if or (index .Values "prometheus-operator").create .Values.grafana.autoEmbed }}
+{{- if .Values.grafana.autoEmbed }}
 apiVersion: batch/v1
 kind: Job
 metadata:

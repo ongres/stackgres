@@ -29,12 +29,20 @@ do
   cat "$CRD" >> "target/templates/stackgres-operator-demo.yml"
   echo --- >> "target/templates/stackgres-operator-demo.yml"
 done
-helm repo add stable https://kubernetes-charts.storage.googleapis.com
-helm repo add minio https://helm.min.io/
 
+for HELM_REPO in 'minio|https://helm.min.io/'
+do
+  if ! helm repo list | grep -q "\s${HELM_REPO#*|}\s*$"
+  then
+    if helm repo list | grep -q "^${HELM_REPO%|*}"
+    then
+      helm repo remove "${HELM_REPO%|*}"
+    fi
+    helm repo add "${HELM_REPO%|*}" "${HELM_REPO#*|}"
+    helm repo add minio https://helm.min.io/
+  fi
+done
 helm repo update
-helm dependency update target/stackgres-operator
-helm dependency update target/stackgres-cluster
 
 helm template --namespace stackgres stackgres-operator \
   "target/stackgres-operator" \
