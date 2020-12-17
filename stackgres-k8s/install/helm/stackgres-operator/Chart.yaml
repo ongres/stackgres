@@ -21,8 +21,3 @@ engine: gotpl
 icon: https://assets.gitlab-static.net/uploads/-/system/project/avatar/12584701/logo-stackgres.png?width=64
 appVersion: "1.0-SNAPSHOT"
 deprecated: false
-dependencies:
-  - name: prometheus-operator
-    version: 8.13.4
-    repository: https://kubernetes-charts.storage.googleapis.com/
-    condition: prometheus-operator.create
