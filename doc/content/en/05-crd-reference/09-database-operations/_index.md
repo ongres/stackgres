@@ -26,6 +26,8 @@ ___
 | timeout                   |          |           |         | string  | {{< crd-field-description SGDbOps.spec.timeout >}} |
 | maxRetries                |          |           |         | integer | {{< crd-field-description SGDbOps.spec.maxRetries >}} |
 | [benchmark](#benchmark)   |          |           |         | object  | {{< crd-field-description SGDbOps.spec.benchmark >}} |
+| [vacuum](#vacuum)         |          |           |         | object  | {{< crd-field-description SGDbOps.spec.vacuum >}} |
+| [repack](#repack)         |          |           |         | object  | {{< crd-field-description SGDbOps.spec.repack >}} |
 
 **Status**
 
@@ -53,6 +55,48 @@ ___
 | usePreparedStatements                      |          |           | boolean  | false                        | {{< crd-field-description SGDbOps.spec.benchmark.pgbench.usePreparedStatements >}} |
 | concurrentClients                          |          |           | integer  | 1                            | {{< crd-field-description SGDbOps.spec.benchmark.pgbench.concurrentClients >}} |
 | threads                                    |          |           | integer  | 1                            | {{< crd-field-description SGDbOps.spec.benchmark.pgbench.threads >}} |
+
+## Vacuum
+
+| Property                                   | Required | Updatable | Type     | Default                      | Description |
+|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
+| full                                       |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.vacuum.full >}} |
+| freeze                                     |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.vacuum.freeze >}} |
+| analyze                                    |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.vacuum.analyze >}} |
+| disablePageSkipping                        |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.vacuum.disablePageSkipping >}} |
+| [databases](#vacuum-database)              |          |           | array    |                              | {{< crd-field-description SGDbOps.spec.vacuum.databases >}} |
+
+## Vacuum database
+
+| Property                                   | Required | Updatable | Type     | Default                      | Description |
+|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
+| name                                       | ✓        |           | string   |                              | {{< crd-field-description SGDbOps.spec.vacuum.databases.items.name >}} |
+| full                                       |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.vacuum.databases.items.full >}} |
+| freeze                                     |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.vacuum.databases.items.freeze >}} |
+| analyze                                    |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.vacuum.databases.items.analyze >}} |
+| disablePageSkipping                        |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.vacuum.databases.items.disablePageSkipping >}} |
+
+## Repack
+
+| Property                                   | Required | Updatable | Type     | Default                      | Description |
+|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
+| noOrder                                    |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.repack.noOrder >}} |
+| waitTimeout                                |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.repack.waitTimeout >}} |
+| noKillBackend                              |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.repack.noKillBackend >}} |
+| noAnalyze                                  |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.repack.noAnalyze >}} |
+| excludeExtension                           |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.repack.excludeExtension >}} |
+| [databases](#repack-database)              |          |           | array    |                              | {{< crd-field-description SGDbOps.spec.repack.databases >}} |
+
+## Repack database
+
+| Property                                   | Required | Updatable | Type     | Default                      | Description |
+|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
+| name                                       | ✓        |           | string   |                              | {{< crd-field-description SGDbOps.spec.repack.databases.items.name >}} |
+| noOrder                                    |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.repack.databases.items.noOrder >}} |
+| waitTimeout                                |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.repack.databases.items.waitTimeout >}} |
+| noKillBackend                              |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.repack.databases.items.noKillBackend >}} |
+| noAnalyze                                  |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.repack.databases.items.noAnalyze >}} |
+| excludeExtension                           |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.repack.databases.items.excludeExtension >}} |
 
 ## Conditions
 

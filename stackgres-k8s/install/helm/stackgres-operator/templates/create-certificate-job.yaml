@@ -109,14 +109,6 @@ spec:
             
             kubectl apply -f /tmp/validating-webhook-configuration.yaml
             kubectl apply -f /tmp/mutating-webhook-configuration.yaml
-            kubectl apply -f /tmp/certificate-secret.yaml            
-            {{- if .Release.IsInstall }}
-            kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
-            kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
-            {{- else }}
-            kubectl scale --timeout 1h --replicas 0 -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
-            kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'            
-            kubectl rollout restart -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
-            {{- end }}
+            kubectl apply -f /tmp/certificate-secret.yaml
       restartPolicy: OnFailure
 {{ end }}

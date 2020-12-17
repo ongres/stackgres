@@ -1,5 +1,10 @@
 #!/bin/sh
 
+until grep -q '^EXIT_CODE=' "$SHARED_PATH/pgbench.out" 2>/dev/null
+do
+  sleep 1
+done
+
 eval_in_place() {
 eval "cat << EVAL_IN_PLACE_EOF
 $*
@@ -78,3 +83,5 @@ else
 EOF
     )"
 fi
+
+exit "$EXIT_CODE"

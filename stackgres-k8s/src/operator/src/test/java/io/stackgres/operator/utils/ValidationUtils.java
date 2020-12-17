@@ -120,14 +120,24 @@ public class ValidationUtils {
   public static String getConstraintMessage(Class<?> from, String field, Class<? extends Annotation> constraint) {
     try {
       Annotation annotation;
-      try {
-        annotation = from.getDeclaredField(field).getAnnotation(constraint);
-      } catch (NoSuchFieldException e) {
+      AssertionFailedError ex = new AssertionFailedError(
+          constraint.getName() + " is not valid constraint annotation");
+      while (true) {
+        try {
+          annotation = from.getDeclaredField(field).getAnnotation(constraint);
+          break;
+        } catch (NoSuchFieldException e) {
+          ex.addSuppressed(e);
+        }
         try {
           annotation = from.getDeclaredMethod(field).getAnnotation(constraint);
-        } catch (NoSuchMethodException e1) {
-          e1.addSuppressed(e);
-          throw new AssertionFailedError(field + " field or method not found", e1);
+          break;
+        } catch (NoSuchMethodException e) {
+          ex.addSuppressed(e);
+        }
+        from = from.getSuperclass();
+        if (from == Object.class) {
+          throw ex;
         }
       }
 

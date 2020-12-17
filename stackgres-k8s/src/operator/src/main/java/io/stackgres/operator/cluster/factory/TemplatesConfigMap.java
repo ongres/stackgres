@@ -55,9 +55,13 @@ public class TemplatesConfigMap
         ClusterStatefulSetPath.ETC_GROUP_PATH.filename(),
         ClusterStatefulSetPath.ETC_SHADOW_PATH.filename(),
         ClusterStatefulSetPath.ETC_GSHADOW_PATH.filename(),
-        ClusterStatefulSetPath.LOCAL_BIN_SET_PGBENCH_RUNNING_SH_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RUNNING_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_RUN_PGBENCH_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_SET_PGBENCH_RESULT_SH_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_RUN_VACUUM_SH_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_SET_VACUUM_RESULT_SH_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_RUN_REPACK_SH_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_SET_REPACK_RESULT_SH_PATH.filename(),
     }) {
       data.put(resource, Unchecked.supplier(() -> Resources
           .asCharSource(ClusterStatefulSet.class.getResource("/templates/" + resource),

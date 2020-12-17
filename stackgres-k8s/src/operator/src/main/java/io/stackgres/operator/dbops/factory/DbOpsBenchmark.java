@@ -23,11 +23,11 @@ import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 public class DbOpsBenchmark
     implements SubResourceStreamFactory<HasMetadata, StackGresDbOpsContext> {
 
-  private final PgbenchJob pgbench;
+  private final DbOpsPgbenchJob pgbenchJob;
 
   @Inject
-  public DbOpsBenchmark(PgbenchJob pgbench) {
-    this.pgbench = pgbench;
+  public DbOpsBenchmark(DbOpsPgbenchJob pgbenchJob) {
+    this.pgbenchJob = pgbenchJob;
   }
 
   @Override
@@ -40,7 +40,7 @@ public class DbOpsBenchmark
       return ResourceGenerator
           .with(context)
           .of(HasMetadata.class)
-          .append(pgbench)
+          .append(pgbenchJob)
           .stream();
     }
 

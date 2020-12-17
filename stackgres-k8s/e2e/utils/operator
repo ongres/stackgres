@@ -277,7 +277,7 @@ install_operator() {
   kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null 2>&1 \
     || kubectl create namespace "$OPERATOR_NAMESPACE"
 
-  if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" -o
+  if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" -o \
     -z "$STACKGRES_PREVIOUS_VERSION" ]
   then
     install_operator_previous_version "$@"

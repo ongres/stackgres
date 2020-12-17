@@ -57,8 +57,13 @@ public class StackGresDbOpsSpec implements KubernetesResource {
   @Valid
   private StackGresDbOpsBenchmark benchmark;
 
-  @ReferencedField("benchmark")
-  interface Benchmark extends FieldReference { }
+  @JsonProperty("vacuum")
+  @Valid
+  private StackGresDbOpsVacuum vacuum;
+
+  @JsonProperty("repack")
+  @Valid
+  private StackGresDbOpsRepack repack;
 
   @ReferencedField("op")
   interface Op extends FieldReference { }
@@ -72,11 +77,24 @@ public class StackGresDbOpsSpec implements KubernetesResource {
   @ReferencedField("maxRetries")
   interface MaxRetries extends FieldReference { }
 
+  @ReferencedField("benchmark")
+  interface Benchmark extends FieldReference { }
+
+  @ReferencedField("vacuum")
+  interface Vacuum extends FieldReference { }
+
+  @ReferencedField("repack")
+  interface Repack extends FieldReference { }
+
   @JsonIgnore
-  @AssertTrue(message = "op must be benchmark",
+  @AssertTrue(message = "op must be one of benchmark, vacuum or repack",
       payload = Op.class)
   public boolean isOpValid() {
-    return op == null || ImmutableList.of("benchmark").contains(op);
+    return op == null || ImmutableList.of(
+        "benchmark",
+        "vacuum",
+        "repack"
+        ).contains(op);
   }
 
   @JsonIgnore
@@ -118,6 +136,16 @@ public class StackGresDbOpsSpec implements KubernetesResource {
   @JsonIgnore
   public boolean isOpBenchmark() {
     return Objects.equals(op, "benchmark");
+  }
+
+  @JsonIgnore
+  public boolean isOpVacuum() {
+    return Objects.equals(op, "vacuum");
+  }
+
+  @JsonIgnore
+  public boolean isOpRepack() {
+    return Objects.equals(op, "repack");
   }
 
   public String getSgCluster() {
@@ -168,9 +196,25 @@ public class StackGresDbOpsSpec implements KubernetesResource {
     this.benchmark = benchmark;
   }
 
+  public StackGresDbOpsVacuum getVacuum() {
+    return vacuum;
+  }
+
+  public void setVacuum(StackGresDbOpsVacuum vacuum) {
+    this.vacuum = vacuum;
+  }
+
+  public StackGresDbOpsRepack getRepack() {
+    return repack;
+  }
+
+  public void setRepack(StackGresDbOpsRepack repack) {
+    this.repack = repack;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(benchmark, maxRetries, op, runAt, sgCluster, timeout);
+    return Objects.hash(benchmark, maxRetries, op, repack, runAt, sgCluster, timeout, vacuum);
   }
 
   @Override
@@ -184,8 +228,9 @@ public class StackGresDbOpsSpec implements KubernetesResource {
     StackGresDbOpsSpec other = (StackGresDbOpsSpec) obj;
     return Objects.equals(benchmark, other.benchmark)
         && Objects.equals(maxRetries, other.maxRetries) && Objects.equals(op, other.op)
-        && Objects.equals(runAt, other.runAt) && Objects.equals(sgCluster, other.sgCluster)
-        && Objects.equals(timeout, other.timeout);
+        && Objects.equals(repack, other.repack) && Objects.equals(runAt, other.runAt)
+        && Objects.equals(sgCluster, other.sgCluster) && Objects.equals(timeout, other.timeout)
+        && Objects.equals(vacuum, other.vacuum);
   }
 
   @Override

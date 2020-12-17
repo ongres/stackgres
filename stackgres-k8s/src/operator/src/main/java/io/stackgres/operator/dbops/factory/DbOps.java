@@ -34,11 +34,18 @@ public class DbOps
     implements SubResourceStreamFactory<HasMetadata, StackGresGeneratorContext> {
 
   private final DbOpsBenchmark benchmark;
+  private final DbOpsVacuumJob vacuumJob;
+  private final DbOpsRepackJob repackJob;
   private final DbOpsRole role;
 
   @Inject
-  public DbOps(DbOpsBenchmark benchmark, DbOpsRole role) {
+  public DbOps(DbOpsBenchmark benchmark,
+      DbOpsVacuumJob vacuumJob,
+      DbOpsRepackJob repackJob,
+      DbOpsRole role) {
     this.benchmark = benchmark;
+    this.vacuumJob = vacuumJob;
+    this.repackJob = repackJob;
     this.role = role;
   }
 
@@ -59,8 +66,7 @@ public class DbOps
         .ownerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(dbOps)))
         .currentDbOps(dbOps)
         .build();
-    if (isToRunAfter(dbOps, now)
-        || isCompleted(dbOps)) {
+    if (isToRunAfter(dbOps, now)) {
       return Seq.empty();
     }
 
@@ -72,6 +78,28 @@ public class DbOps
           .with(dbOpsContext)
           .of(HasMetadata.class)
           .append(benchmark)
+          .stream();
+    }
+
+    if (Optional.of(dbOps)
+        .map(StackGresDbOps::getSpec)
+        .map(StackGresDbOpsSpec::isOpVacuum)
+        .orElse(false)) {
+      return ResourceGenerator
+          .with(dbOpsContext)
+          .of(HasMetadata.class)
+          .append(vacuumJob)
+          .stream();
+    }
+
+    if (Optional.of(dbOps)
+        .map(StackGresDbOps::getSpec)
+        .map(StackGresDbOpsSpec::isOpRepack)
+        .orElse(false)) {
+      return ResourceGenerator
+          .with(dbOpsContext)
+          .of(HasMetadata.class)
+          .append(repackJob)
           .stream();
     }
 
