@@ -34,6 +34,12 @@ public class DbOpsSpec {
   @JsonProperty("benchmark")
   private DbOpsBenchmark benchmark;
 
+  @JsonProperty("vacuum")
+  private DbOpsVacuum vacuum;
+
+  @JsonProperty("repack")
+  private DbOpsRepack repack;
+
   public String getSgCluster() {
     return sgCluster;
   }
@@ -80,6 +86,22 @@ public class DbOpsSpec {
 
   public void setBenchmark(DbOpsBenchmark benchmark) {
     this.benchmark = benchmark;
+  }
+
+  public DbOpsVacuum getVacuum() {
+    return vacuum;
+  }
+
+  public void setVacuum(DbOpsVacuum vacuum) {
+    this.vacuum = vacuum;
+  }
+
+  public DbOpsRepack getRepack() {
+    return repack;
+  }
+
+  public void setRepack(DbOpsRepack repack) {
+    this.repack = repack;
   }
 
   @Override

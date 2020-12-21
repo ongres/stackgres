@@ -21,7 +21,6 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.batch.Job;
 import io.fabric8.kubernetes.api.model.batch.JobBuilder;
@@ -32,17 +31,13 @@ import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmark;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsDefinition;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbench;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.StackGresDbOpsContext;
 import io.stackgres.operator.common.StackGresPodSecurityContext;
-import io.stackgres.operator.patroni.factory.PatroniSecret;
-import io.stackgres.operator.patroni.factory.PatroniServices;
 import io.stackgres.operator.sidecars.pgutils.PostgresUtil;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
@@ -113,6 +108,7 @@ public abstract class DbOpsJob
         .map(StackGresDbOps::getSpec)
         .map(StackGresDbOpsSpec::getTimeout)
         .map(Duration::parse)
+        .map(Duration::getSeconds)
         .map(Object::toString)
         .orElseGet(() -> String.valueOf(Integer.MAX_VALUE));
     final String pgVersion = context.getCluster().getSpec().getPostgresVersion();
@@ -254,80 +250,8 @@ public abstract class DbOpsJob
         .build();
   }
 
-  protected List<EnvVar> getRunEnvVars(StackGresDbOpsContext context, StackGresDbOps dbOps) {
-    StackGresDbOpsBenchmark benchmark = dbOps.getSpec().getBenchmark();
-    StackGresDbOpsPgbench pgbench = benchmark.getPgbench();
-    final String primaryServiceDns = PatroniServices.readWriteName(context);
-    final String serviceDns;
-    if (benchmark.isConnectionTypePrimaryService()) {
-      serviceDns = primaryServiceDns;
-    } else {
-      serviceDns = PatroniServices.readOnlyName(context);
-    }
-    final String scale = Quantity.getAmountInBytes(Quantity.parse(pgbench.getDatabaseSize()))
-        .divide(Quantity.getAmountInBytes(Quantity.parse("16Mi")))
-        .toPlainString();
-    final String duration = String.valueOf(Duration.parse(pgbench.getDuration()).getSeconds());
-    List<EnvVar> runEnvVars = ImmutableList.of(
-        new EnvVarBuilder()
-        .withName("PGHOST")
-        .withValue(serviceDns)
-        .build(),
-        new EnvVarBuilder()
-        .withName("PRIMARY_PGHOST")
-        .withValue(primaryServiceDns)
-        .build(),
-        new EnvVarBuilder()
-        .withName("PGUSER")
-        .withValue("postgres")
-        .build(),
-        new EnvVarBuilder()
-        .withName("PGPASSWORD")
-        .withNewValueFrom()
-        .withNewSecretKeyRef()
-        .withName(PatroniSecret.name(context))
-        .withKey(PatroniSecret.SUPERUSER_PASSWORD_KEY)
-        .endSecretKeyRef()
-        .endValueFrom()
-        .build(),
-        new EnvVarBuilder()
-        .withName("SCALE")
-        .withValue(scale)
-        .build(),
-        new EnvVarBuilder()
-        .withName("DURATION")
-        .withValue(duration)
-        .build(),
-        new EnvVarBuilder()
-        .withName("PROTOCOL")
-        .withValue(Optional.of(pgbench)
-            .map(StackGresDbOpsPgbench::getUsePreparedStatements)
-            .map(usePreparedStatements -> usePreparedStatements ? "prepared" : "simple")
-            .orElse("simple"))
-        .build(),
-        new EnvVarBuilder()
-        .withName("READ_WRITE")
-        .withValue(Optional.of(benchmark)
-            .map(StackGresDbOpsBenchmark::isConnectionTypePrimaryService)
-            .map(String::valueOf)
-            .orElse("true"))
-        .build(),
-        new EnvVarBuilder()
-        .withName("CLIENTS")
-        .withValue(Optional.of(pgbench)
-            .map(StackGresDbOpsPgbench::getConcurrentClients)
-            .map(String::valueOf)
-            .orElse("1"))
-        .build(),
-        new EnvVarBuilder()
-        .withName("JOBS")
-        .withValue(Optional.of(pgbench)
-            .map(StackGresDbOpsPgbench::getThreads)
-            .map(String::valueOf)
-            .orElse("1"))
-        .build());
-    return runEnvVars;
-  }
+  protected abstract List<EnvVar> getRunEnvVars(StackGresDbOpsContext context,
+      StackGresDbOps dbOps);
 
   protected abstract String setResultScriptFilename();
 

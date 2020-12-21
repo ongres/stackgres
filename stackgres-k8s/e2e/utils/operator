@@ -47,7 +47,7 @@ setup_images() {
     echo build_jobs_image
     echo build_distributedlogs_controller_image
     echo build_adminui_image
-    ) | xargs -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE -c %
+    ) | xargs -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" %
   fi
 }
 

@@ -5,6 +5,7 @@
 
 package io.stackgres.apiweb.transformer;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -16,16 +17,31 @@ import io.stackgres.apiweb.dto.dbops.DbOpsCondition;
 import io.stackgres.apiweb.dto.dbops.DbOpsDto;
 import io.stackgres.apiweb.dto.dbops.DbOpsPgbench;
 import io.stackgres.apiweb.dto.dbops.DbOpsPgbenchStatus;
+import io.stackgres.apiweb.dto.dbops.DbOpsRepack;
+import io.stackgres.apiweb.dto.dbops.DbOpsRepackConfig;
+import io.stackgres.apiweb.dto.dbops.DbOpsRepackDatabase;
 import io.stackgres.apiweb.dto.dbops.DbOpsSpec;
 import io.stackgres.apiweb.dto.dbops.DbOpsStatus;
+import io.stackgres.apiweb.dto.dbops.DbOpsVacuum;
+import io.stackgres.apiweb.dto.dbops.DbOpsVacuumConfig;
+import io.stackgres.apiweb.dto.dbops.DbOpsVacuumDatabase;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmark;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmarkStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbench;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbenchStatus;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsRepack;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsRepackConfig;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsRepackDatabase;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsVacuum;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsVacuumConfig;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsVacuumDatabase;
+import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
 public class DbOpsTransformer
@@ -62,6 +78,8 @@ public class DbOpsTransformer
     transformation.setTimeout(source.getTimeout());
     transformation.setMaxRetries(source.getMaxRetries());
     transformation.setBenchmark(getCustomResourceBenchmark(source.getBenchmark()));
+    transformation.setVacuum(getCustomResourceVacuum(source.getVacuum()));
+    transformation.setRepack(getCustomResourceRepack(source.getRepack()));
     return transformation;
   }
 
@@ -91,6 +109,61 @@ public class DbOpsTransformer
     transformation.setConcurrentClients(source.getConcurrentClients());
     transformation.setThreads(source.getThreads());
     return transformation;
+  }
+
+  private StackGresDbOpsVacuum getCustomResourceVacuum(
+      DbOpsVacuum source) {
+    if (source == null) {
+      return null;
+    }
+    StackGresDbOpsVacuum transformation =
+        new StackGresDbOpsVacuum();
+    setCustomResourceVacuumConfig(source, transformation);
+    transformation.setDatabases(Seq.seq(Optional.ofNullable(source.getDatabases())
+        .stream())
+        .flatMap(List::stream)
+        .map(database -> Tuple.tuple(database, new StackGresDbOpsVacuumDatabase()))
+        .peek(t -> t.v2.setName(t.v1.getName()))
+        .peek(t -> setCustomResourceVacuumConfig(t.v1, t.v2))
+        .map(Tuple2::v2)
+        .toList());
+    return transformation;
+  }
+
+  protected void setCustomResourceVacuumConfig(DbOpsVacuumConfig source,
+      StackGresDbOpsVacuumConfig transformation) {
+    transformation.setFull(source.getFull());
+    transformation.setFreeze(source.getFreeze());
+    transformation.setAnalyze(source.getAnalyze());
+    transformation.setDisablePageSkipping(source.getDisablePageSkipping());
+  }
+
+  private StackGresDbOpsRepack getCustomResourceRepack(
+      DbOpsRepack source) {
+    if (source == null) {
+      return null;
+    }
+    StackGresDbOpsRepack transformation =
+        new StackGresDbOpsRepack();
+    setCustomResourceRepackConfig(source, transformation);
+    transformation.setDatabases(Seq.seq(Optional.ofNullable(source.getDatabases())
+        .stream())
+        .flatMap(List::stream)
+        .map(database -> Tuple.tuple(database, new StackGresDbOpsRepackDatabase()))
+        .peek(t -> t.v2.setName(t.v1.getName()))
+        .peek(t -> setCustomResourceRepackConfig(t.v1, t.v2))
+        .map(Tuple2::v2)
+        .toList());
+    return transformation;
+  }
+
+  protected void setCustomResourceRepackConfig(DbOpsRepackConfig source,
+      StackGresDbOpsRepackConfig transformation) {
+    transformation.setNoOrder(source.getNoOrder());
+    transformation.setWaitTimeout(source.getWaitTimeout());
+    transformation.setNoKillBackend(source.getNoKillBackend());
+    transformation.setNoAnalyze(source.getNoAnalyze());
+    transformation.setExcludeExtension(source.getExcludeExtension());
   }
 
   private StackGresDbOpsStatus getCustomResourceStatus(DbOpsStatus source) {
@@ -157,6 +230,8 @@ public class DbOpsTransformer
     transformation.setMaxRetries(source.getMaxRetries());
     transformation.setBenchmark(
         getResourceBenchmark(source.getBenchmark()));
+    transformation.setVacuum(getResourceVacuum(source.getVacuum()));
+    transformation.setRepack(getResourceRepack(source.getRepack()));
     return transformation;
   }
 
@@ -184,6 +259,61 @@ public class DbOpsTransformer
     transformation.setConcurrentClients(source.getConcurrentClients());
     transformation.setThreads(source.getThreads());
     return transformation;
+  }
+
+  private DbOpsVacuum getResourceVacuum(
+      StackGresDbOpsVacuum source) {
+    if (source == null) {
+      return null;
+    }
+    DbOpsVacuum transformation =
+        new DbOpsVacuum();
+    setResourceVacuumConfig(source, transformation);
+    transformation.setDatabases(Seq.seq(Optional.ofNullable(source.getDatabases())
+        .stream())
+        .flatMap(List::stream)
+        .map(database -> Tuple.tuple(database, new DbOpsVacuumDatabase()))
+        .peek(t -> t.v2.setName(t.v1.getName()))
+        .peek(t -> setResourceVacuumConfig(t.v1, t.v2))
+        .map(Tuple2::v2)
+        .toList());
+    return transformation;
+  }
+
+  protected void setResourceVacuumConfig(StackGresDbOpsVacuumConfig source,
+      DbOpsVacuumConfig transformation) {
+    transformation.setFull(source.getFull());
+    transformation.setFreeze(source.getFreeze());
+    transformation.setAnalyze(source.getAnalyze());
+    transformation.setDisablePageSkipping(source.getDisablePageSkipping());
+  }
+
+  private DbOpsRepack getResourceRepack(
+      StackGresDbOpsRepack source) {
+    if (source == null) {
+      return null;
+    }
+    DbOpsRepack transformation =
+        new DbOpsRepack();
+    setResourceRepackConfig(source, transformation);
+    transformation.setDatabases(Seq.seq(Optional.ofNullable(source.getDatabases())
+        .stream())
+        .flatMap(List::stream)
+        .map(database -> Tuple.tuple(database, new DbOpsRepackDatabase()))
+        .peek(t -> t.v2.setName(t.v1.getName()))
+        .peek(t -> setResourceRepackConfig(t.v1, t.v2))
+        .map(Tuple2::v2)
+        .toList());
+    return transformation;
+  }
+
+  protected void setResourceRepackConfig(StackGresDbOpsRepackConfig source,
+      DbOpsRepackConfig transformation) {
+    transformation.setNoOrder(source.getNoOrder());
+    transformation.setWaitTimeout(source.getWaitTimeout());
+    transformation.setNoKillBackend(source.getNoKillBackend());
+    transformation.setNoAnalyze(source.getNoAnalyze());
+    transformation.setExcludeExtension(source.getExcludeExtension());
   }
 
   private DbOpsStatus getResourceStatus(StackGresDbOpsStatus source) {

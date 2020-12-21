@@ -111,11 +111,11 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
     KubernetesDeserializer.registerCustomKind(StackGresBackupDefinition.APIVERSION,
         StackGresBackupDefinition.KIND, StackGresBackup.class);
 
-    KubernetesDeserializer.registerCustomKind(StackGresDistributedLogsDefinition.APIVERSION,
-        StackGresDistributedLogsDefinition.KIND, StackGresDistributedLogs.class);
-
     KubernetesDeserializer.registerCustomKind(StackGresDbOpsDefinition.APIVERSION,
         StackGresDbOpsDefinition.KIND, StackGresDbOps.class);
+
+    KubernetesDeserializer.registerCustomKind(StackGresDistributedLogsDefinition.APIVERSION,
+        StackGresDistributedLogsDefinition.KIND, StackGresDistributedLogs.class);
 
     handlerSelector.registerKinds();
     distributedLogsHandlerSelector.registerKinds();

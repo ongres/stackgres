@@ -137,6 +137,10 @@ check_repack_specific_databases_is_working() {
     -q "CREATE DATABASE test1"
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" \
     -q "CREATE DATABASE test2;"
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" \
+     -d "test1" -q "CREATE EXTENSION pg_repack"
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" \
+     -d "test2" -q "CREATE EXTENSION pg_repack"
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1beta1
 kind: SGDbOps
@@ -181,6 +185,17 @@ check_repack() {
 }
 
 check_repack_timed_out() {
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" \
+     -q "CREATE TABLE public.test(i int PRIMARY KEY)"
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" \
+     -q "$(cat << 'EOF'
+DO $$BEGIN
+  LOCK TABLE public.test;
+  PERFORM pg_sleep(600);
+END$$;
+EOF
+      )" &
+  trap_kill "$!"
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1beta1
 kind: SGDbOps
@@ -191,9 +206,6 @@ spec:
   sgCluster: $CLUSTER_NAME
   op: repack
   timeout: PT1S
-  repack:
-    full: true
-    analyze: true
 EOF
 
   if kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "repack" \

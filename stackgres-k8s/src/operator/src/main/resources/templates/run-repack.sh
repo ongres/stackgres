@@ -2,6 +2,31 @@
 
 set +e
 
+run_command() {
+  COMMAND='pg_repack'
+  if "$NO_ORDER"
+  then
+    COMMAND="$COMMAND"' -n'
+  fi
+  if [ -n "$WAIT_TIMEOUT" ]
+  then
+    COMMAND="$COMMAND"" -T $WAIT_TIMEOUT"
+  fi
+  if "$NO_KILL_BACKEND"
+  then
+    COMMAND="$COMMAND"' -D'
+  fi
+  if "$NO_ANALYZE"
+  then
+    COMMAND="$COMMAND"' -Z'
+  fi
+  if "$EXCLUDE_EXTENSION"
+  then
+    COMMAND="$COMMAND"' -C'
+  fi
+  $COMMAND "$@"
+}
+
 touch "$SHARED_PATH/repack.out"
 touch "$SHARED_PATH/repack.err"
 
@@ -16,35 +41,14 @@ TIMEOUT_PID="$!"
 (
 set -e
 
-COMMAND='pg_repack'
-if "$NO_ORDER"
-then
-  COMMAND="$COMMAND"' -n'
-fi
-if [ -n "$WAIT_TIMEOUT" ]
-then
-  COMMAND="$COMMAND"" -T $WAIT_TIMEOUT"
-fi
-if "$NO_KILL_BACKEND"
-then
-  COMMAND="$COMMAND"' -D'
-fi
-if "$NO_ANALYZE"
-then
-  COMMAND="$COMMAND"' -Z'
-fi
-if "$EXCLUDE_EXTENSION"
-then
-  COMMAND="$COMMAND"' -C'
-fi
-
 if [ -z "$DATABASES" ]
 then
-  $COMMAND -a
+  run_command -a
 else
-  echo "$DATABASES" | while read DATABASE
+  echo "$DATABASES" | while read CONFIG DATABASE
     do
-      $COMMAND -d "$DATABASE"
+      eval "$CONFIG"
+      run_command -d "$DATABASE"
     done
 fi
 ) >> "$SHARED_PATH/repack.out" 2>> "$SHARED_PATH/repack.err" &
