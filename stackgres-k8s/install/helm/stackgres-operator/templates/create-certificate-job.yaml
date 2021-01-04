@@ -16,7 +16,7 @@ spec:
   template:
     metadata:
       labels:
-        app: "{{ .Release.Name }}-create-certificate"
+        app: stackgres-operator
         scope: init
         job: create-certificate
     spec:
