@@ -46,6 +46,9 @@ spec:
                     * `vacuum`: perform a [vacuum](https://www.postgresql.org/docs/current/sql-vacuum.html) operation on the specified SGCluster.
                     * `repack`: run [`pg_repack`](https://github.com/reorg/pg_repack) command on the specified SGCluster.
                     * `majorVersionUpgrade`: perform a major version upgrade of PostgreSQL using [`pg_upgrade`](https://www.postgresql.org/docs/current/pgupgrade.html) command.
+                    * `restart`: perform a restart of the cluster.
+                    * `minorVersionUpgrade`: perform a minor version upgrade of PostgreSQL.
+                    * `securityUpgrade`: perform a security upgrade of the cluster.
                 runAt:
                   type: string
                   description: |
@@ -259,6 +262,58 @@ spec:
                       type: boolean
                       description: |
                         If true check clusters before changing any data. By default false.
+                restart:
+                  type: object
+                  description: |
+                    Configuration of restart
+                  properties:
+                    method:
+                      type: string
+                      description: |
+                        The method used to perform the restart operation. Available methods are:
+
+                        * `InPlace`: the in-place method does not require more resources than those that are available.
+                          In case only an instance of the StackGres cluster is present this mean the service disruption will
+                          last longer so we encourage use the reduced impact restart and especially for a production environment.
+                        * `ReducedImpact`: this procedure is the same as the in-place method but require additional
+                          resources in order to spawn a new updated replica that will be removed when the procedure completes.
+                    restartPrimaryFirst:
+                      type: boolean
+                      description: |
+                        If true, restart primary pod at the beginning of the operation. By default is fasle.
+                        
+                        Required to avoid losing data when `max_connections`, `max_prepared_transactions`, `max_wal_senders`,
+                         `max_wal_senders` or `max_locks_per_transaction` are changed to a lower value than they were set.
+                minorVersionUpgrade:
+                  type: object
+                  description: |
+                    Configuration of restart
+                  properties:
+                    method:
+                      type: string
+                      description: |
+                        The method used to perform the minor version upgrade operation. Available methods are:
+
+                        * `InPlace`: the in-place method does not require more resources than those that are available.
+                          In case only an instance of the StackGres cluster is present this mean the service disruption will
+                          last longer so we encourage use the reduced impact restart and especially for a production environment.
+                        * `ReducedImpact`: this procedure is the same as the in-place method but require additional
+                          resources in order to spawn a new updated replica that will be removed when the procedure completes.
+                securityUpgrade:
+                  type: object
+                  description: |
+                    Configuration of security upgrade
+                  properties:
+                    method:
+                      type: string
+                      description: |
+                        The method used to perform the security upgrade operation. Available methods are:
+
+                        * `InPlace`: the in-place method does not require more resources than those that are available.
+                          In case only an instance of the StackGres cluster is present this mean the service disruption will
+                          last longer so we encourage use the reduced impact restart and especially for a production environment.
+                        * `ReducedImpact`: this procedure is the same as the in-place method but require additional
+                          resources in order to spawn a new updated replica that will be removed when the procedure completes.
               required: ["sgCluster", "op"]
             status:
               type: object
@@ -364,6 +419,111 @@ spec:
                         The instances that have been restarted
                       items:
                         type: string
+                    failure:
+                      type: string
+                      description: |
+                        A failure message (when available)
+                restart:
+                  type: object
+                  description: |
+                    The results of a restart
+                  properties:
+                    primaryInstance:
+                      type: string
+                      description: |
+                        The primary instance when the operation started
+                    initialInstances:
+                      type: array
+                      description: |
+                        The instances present when the operation started
+                      items:
+                        type: string
+                    pendingToRestartInstances:
+                      type: array
+                      description: |
+                        The instances that are pending to be restarted
+                      items:
+                        type: string
+                    restartedInstances:
+                      type: array
+                      description: |
+                        The instances that have been restarted
+                      items:
+                        type: string
+                    switchoverInitiated:
+                      type: string
+                      description: |
+                        An ISO 8601 date indicating if and when the switchover took place
+                    failure:
+                      type: string
+                      description: |
+                        A failure message (when available)
+                minorVersionUpgrade:
+                  type: object
+                  description: |
+                    The results of a minor version upgrade
+                  properties:
+                    primaryInstance:
+                      type: string
+                      description: |
+                        The primary instance when the operation started
+                    initialInstances:
+                      type: array
+                      description: |
+                        The instances present when the operation started
+                      items:
+                        type: string
+                    pendingToRestartInstances:
+                      type: array
+                      description: |
+                        The instances that are pending to be restarted
+                      items:
+                        type: string
+                    restartedInstances:
+                      type: array
+                      description: |
+                        The instances that have been restarted
+                      items:
+                        type: string
+                    switchoverInitiated:
+                      type: string
+                      description: |
+                        An ISO 8601 date indicating if and when the switchover took place
+                    failure:
+                      type: string
+                      description: |
+                        A failure message (when available)
+                securityUpgrade:
+                  type: object
+                  description: |
+                    The results of a security upgrade
+                  properties:
+                    primaryInstance:
+                      type: string
+                      description: |
+                        The primary instance when the operation started
+                    initialInstances:
+                      type: array
+                      description: |
+                        The instances present when the operation started
+                      items:
+                        type: string
+                    pendingToRestartInstances:
+                      type: array
+                      description: |
+                        The instances that are pending to be restarted
+                      items:
+                        type: string
+                    restartedInstances:
+                      type: array
+                      description: |
+                        The instances that have been restarted
+                      items:
+                        type: string
+                    switchoverInitiated:
+                      type: string
+                      description: |
+                        An ISO 8601 date indicating if and when the switchover took place
                     failure:
                       type: string
                       description: |

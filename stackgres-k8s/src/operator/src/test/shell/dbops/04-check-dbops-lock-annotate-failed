@@ -1,0 +1,32 @@
+#!/bin/sh
+
+. "$TEST_SHELL_PATH/dbops/abstract-dbops"
+
+test_shell() {
+  LOCK_SLEEP=0
+  echo 0 > "$TEST_TARGET_PATH/lock_annotation_count"
+  test_dbops
+}
+
+run_op() {
+  sleep 1
+}
+
+mock kubectl kubectl_mock_overwrite
+
+kubectl_mock_overwrite() {
+  mokked
+  case "$*" in
+    ("annotate $CLUSTER_CRD_NAME "*)
+    local ANNOTATION_COUNT="$(cat "$TEST_TARGET_PATH/lock_annotation_count")"
+    echo "$((ANNOTATION_COUNT + 1))" > "$TEST_TARGET_PATH/lock_annotation_count"
+    if [ "$ANNOTATION_COUNT" = 1 ]
+    then
+      return 1
+    fi
+    ;;
+    *)
+    not_mokked
+    ;;
+  esac
+}

@@ -1,14 +1,13 @@
-#!/bin/bash
+#!/bin/sh
 
-shopt -s expand_aliases
-
+LOCAL_BIN_SHELL_UTILS_PATH="$PROJECT_PATH/src/main/resources/templates/shell-utils"
 CLUSTER_NAMESPACE=test
 CLUSTER_NAME=test
-CRONJOB_NAME=test
 POD_NAME=test
-BACKUP_NAME=test
 BACKUP_CRD_NAME=sgbackups.stackgres.io
+BACKUP_NAME=test
 BACKUP_CONFIG_CRD_NAME=sgbackupconfigs.stackgres.io
+CRONJOB_NAME=test
 BACKUP_PHASE_RUNNING=Running
 BACKUP_PHASE_COMPLETED=Completed
 BACKUP_PHASE_FAILED=Failed
@@ -20,16 +19,21 @@ PATRONI_ROLE_KEY=role
 PATRONI_PRIMARY_ROLE=master
 PATRONI_REPLICA_ROLE=replica
 BACKUP_ENV=backup
+LOCK_SLEEP=0
 
-alias kubectl=kubectl_mock
+test_backup() {
+  . "$PROJECT_PATH/src/main/resources/templates/create-backup.sh"
+}
 
-COUNT=0
+mock kubectl kubectl_mock
+
 kubectl_mock() {
+  mokked
   case "$*" in
     ("get cronjob.batch "*)
     echo '
       LOCK_POD=test
-      LOCK_TIMESTAMP=$(date +%s)
+      LOCK_TIMESTAMP="$(date +%s)"
       RESOURCE_VERSION=test
       '
     ;;
@@ -88,7 +92,7 @@ EOF
 EOF
       ;;
       ("pg_controldata "*)
-      cat "$(dirname "$0")/pg_controldata"
+      cat "$TEST_SHELL_PATH/backup/pg_controldata"
       ;;
     esac
     ;;
@@ -98,16 +102,12 @@ EOF
       (*" for each existing backup"*)
       ;;
       (*" wal-g backup-list "*)
-      cat "$(dirname "$0")/wal-g-backup-list"
+      cat "$TEST_SHELL_PATH/backup/wal-g-backup-list"
       ;;
     esac
     ;;
     *)
-    >&2 echo "$*"
-    >&2 echo "Mock missing!"
-    exit 1
+    not_mokked
     ;;
   esac
 }
-
-. "$1"

@@ -232,6 +232,14 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                             ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.filename())
                         .withMountPath(
                             ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
+                        .withReadOnly(true)),
+                    ClusterStatefulSetVolumeConfig.TEMPLATES
+                    .volumeMount(clusterContext,
+                        volumeMountBuilder -> volumeMountBuilder
+                        .withSubPath(
+                            ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.filename())
+                        .withMountPath(
+                            ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.path())
                         .withReadOnly(true)))
                 .build())
             .withVolumes(new VolumeBuilder(ClusterStatefulSetVolumeConfig.TEMPLATES

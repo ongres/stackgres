@@ -16,6 +16,60 @@ unit tests:
       junit:
         - stackgres-k8s/src/*/target/surefire-reports/TEST-*.xml
 
+shell unit tests busybox:
+  image:
+    name: busybox:1.31.1
+    entrypoint:
+      - /bin/sh
+      - -c
+  stage: test
+  tags:
+    - stackgres-runner
+  script:
+    - 'sh stackgres-k8s/src/operator/src/test/shell/test-shell.sh'
+  artifacts:
+    expire_in: 1 week
+    when: always
+    reports:
+      junit:
+        - stackgres-k8s/src/operator/target/shell/shell-tests-junit-report.xml
+
+shell unit tests bitnami kubectl:
+  image:
+    name: bitnami/kubectl:1.19.2
+    entrypoint:
+    - /bin/sh
+    - -c
+  stage: test
+  tags:
+    - stackgres-runner
+  script:
+    - 'sh stackgres-k8s/src/operator/src/test/shell/test-shell.sh'
+  artifacts:
+    expire_in: 1 week
+    when: always
+    reports:
+      junit:
+        - stackgres-k8s/src/operator/target/shell/shell-tests-junit-report.xml
+
+shell unit tests patroni:
+  image:
+    name: ongres/patroni:v1.6.5-pg12.4-build-5.1
+    entrypoint:
+    - /bin/sh
+    - -c
+  stage: test
+  tags:
+    - stackgres-runner
+  script:
+    - 'sh stackgres-k8s/src/operator/src/test/shell/test-shell.sh'
+  artifacts:
+    expire_in: 1 week
+    when: always
+    reports:
+      junit:
+        - stackgres-k8s/src/operator/target/shell/shell-tests-junit-report.xml
+
 .e2e tests:
   stage: test
   image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:11.0

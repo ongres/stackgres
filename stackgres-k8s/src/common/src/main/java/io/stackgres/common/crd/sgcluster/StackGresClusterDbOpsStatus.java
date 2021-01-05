@@ -27,6 +27,18 @@ public class StackGresClusterDbOpsStatus implements KubernetesResource {
   @Valid
   private StackGresClusterDbOpsMajorVersionUpgradeStatus majorVersionUpgrade;
 
+  @JsonProperty("restart")
+  @Valid
+  private StackGresClusterDbOpsRestartStatus restart;
+
+  @JsonProperty("minorVersionUpgrade")
+  @Valid
+  private StackGresClusterDbOpsMinorVersionUpgradeStatus minorVersionUpgrade;
+
+  @JsonProperty("securityUpgrade")
+  @Valid
+  private StackGresClusterDbOpsSecurityUpgradeStatus securityUpgrade;
+
   public StackGresClusterDbOpsMajorVersionUpgradeStatus getMajorVersionUpgrade() {
     return majorVersionUpgrade;
   }
@@ -36,9 +48,34 @@ public class StackGresClusterDbOpsStatus implements KubernetesResource {
     this.majorVersionUpgrade = majorVersionUpgrade;
   }
 
+  public StackGresClusterDbOpsRestartStatus getRestart() {
+    return restart;
+  }
+
+  public void setRestart(StackGresClusterDbOpsRestartStatus restart) {
+    this.restart = restart;
+  }
+
+  public StackGresClusterDbOpsMinorVersionUpgradeStatus getMinorVersionUpgrade() {
+    return minorVersionUpgrade;
+  }
+
+  public void setMinorVersionUpgrade(
+      StackGresClusterDbOpsMinorVersionUpgradeStatus minorVersionUpgrade) {
+    this.minorVersionUpgrade = minorVersionUpgrade;
+  }
+
+  public StackGresClusterDbOpsSecurityUpgradeStatus getSecurityUpgrade() {
+    return securityUpgrade;
+  }
+
+  public void setSecurityUpgrade(StackGresClusterDbOpsSecurityUpgradeStatus securityUpgrade) {
+    this.securityUpgrade = securityUpgrade;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(majorVersionUpgrade);
+    return Objects.hash(majorVersionUpgrade, minorVersionUpgrade, restart, securityUpgrade);
   }
 
   @Override
@@ -50,7 +87,10 @@ public class StackGresClusterDbOpsStatus implements KubernetesResource {
       return false;
     }
     StackGresClusterDbOpsStatus other = (StackGresClusterDbOpsStatus) obj;
-    return Objects.equals(majorVersionUpgrade, other.majorVersionUpgrade);
+    return Objects.equals(majorVersionUpgrade, other.majorVersionUpgrade)
+        && Objects.equals(minorVersionUpgrade, other.minorVersionUpgrade)
+        && Objects.equals(restart, other.restart)
+        && Objects.equals(securityUpgrade, other.securityUpgrade);
   }
 
   @Override

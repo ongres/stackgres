@@ -350,3 +350,42 @@ spec:
                           type: boolean
                           description: |
                             Run `pg_upgrade` with check option before performing the real upgrade
+                    restart:
+                      type: object
+                      description: |
+                        The minor version upgrade configuration and status
+                      properties:
+                        initialInstances:
+                          type: string
+                          description: |
+                            A comma separated list of instances that this operation is targetting
+                        primaryInstance:
+                          type: string
+                          description: |
+                            The primary instance that this operation is targetting
+                    minorVersionUpgrade:
+                      type: object
+                      description: |
+                        The minor version upgrade configuration and status
+                      properties:
+                        initialInstances:
+                          type: string
+                          description: |
+                            A comma separated list of instances that this operation is targetting
+                        primaryInstance:
+                          type: string
+                          description: |
+                            The primary instance that this operation is targetting
+                    securityUpgrade:
+                      type: object
+                      description: |
+                        The minor version upgrade configuration and status
+                      properties:
+                        initialInstances:
+                          type: string
+                          description: |
+                            A comma separated list of instances that this operation is targetting
+                        primaryInstance:
+                          type: string
+                          description: |
+                            The primary instance that this operation is targetting

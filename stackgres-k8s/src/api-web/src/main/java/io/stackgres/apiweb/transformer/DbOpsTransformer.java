@@ -17,11 +17,17 @@ import io.stackgres.apiweb.dto.dbops.DbOpsCondition;
 import io.stackgres.apiweb.dto.dbops.DbOpsDto;
 import io.stackgres.apiweb.dto.dbops.DbOpsMajorVersionUpgrade;
 import io.stackgres.apiweb.dto.dbops.DbOpsMajorVersionUpgradeStatus;
+import io.stackgres.apiweb.dto.dbops.DbOpsMinorVersionUpgrade;
+import io.stackgres.apiweb.dto.dbops.DbOpsMinorVersionUpgradeStatus;
 import io.stackgres.apiweb.dto.dbops.DbOpsPgbench;
 import io.stackgres.apiweb.dto.dbops.DbOpsPgbenchStatus;
 import io.stackgres.apiweb.dto.dbops.DbOpsRepack;
 import io.stackgres.apiweb.dto.dbops.DbOpsRepackConfig;
 import io.stackgres.apiweb.dto.dbops.DbOpsRepackDatabase;
+import io.stackgres.apiweb.dto.dbops.DbOpsRestart;
+import io.stackgres.apiweb.dto.dbops.DbOpsRestartStatus;
+import io.stackgres.apiweb.dto.dbops.DbOpsSecurityUpgrade;
+import io.stackgres.apiweb.dto.dbops.DbOpsSecurityUpgradeStatus;
 import io.stackgres.apiweb.dto.dbops.DbOpsSpec;
 import io.stackgres.apiweb.dto.dbops.DbOpsStatus;
 import io.stackgres.apiweb.dto.dbops.DbOpsVacuum;
@@ -33,11 +39,17 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmarkStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsMajorVersionUpgrade;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsMajorVersionUpgradeStatus;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsMinorVersionUpgrade;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsMinorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbench;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbenchStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsRepack;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsRepackConfig;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsRepackDatabase;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsRestart;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsRestartStatus;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsSecurityUpgrade;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsSecurityUpgradeStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsVacuum;
@@ -58,7 +70,6 @@ public class DbOpsTransformer
         .orElseGet(StackGresDbOps::new);
     transformation.setMetadata(getCustomResourceMetadata(source, original));
     transformation.setSpec(getCustomResourceSpec(source.getSpec()));
-    transformation.setStatus(getCustomResourceStatus(source.getStatus()));
     return transformation;
   }
 
@@ -86,6 +97,12 @@ public class DbOpsTransformer
     transformation.setRepack(getCustomResourceRepack(source.getRepack()));
     transformation.setMajorVersionUpgrade(
         getCustomResourceMajorVersionUpgrade(source.getMajorVersionUpgrade()));
+    transformation.setRestart(
+        getCustomResourceRestart(source.getRestart()));
+    transformation.setMinorVersionUpgrade(
+        getCustomResourceMinorVersionUpgrade(source.getMinorVersionUpgrade()));
+    transformation.setSecurityUpgrade(
+        getCustomResourceSecurityUpgrade(source.getSecurityUpgrade()));
     return transformation;
   }
 
@@ -184,58 +201,37 @@ public class DbOpsTransformer
     return transformation;
   }
 
-  private StackGresDbOpsStatus getCustomResourceStatus(DbOpsStatus source) {
+  private StackGresDbOpsRestart getCustomResourceRestart(
+      DbOpsRestart source) {
     if (source == null) {
       return null;
     }
-    StackGresDbOpsStatus transformation = new StackGresDbOpsStatus();
-    transformation.setConditions(source.getConditions().stream()
-        .map(this::getCustomResourceCondition).collect(Collectors.toList()));
-    transformation.setOpRetries(source.getOpRetries());
-    transformation.setOpStarted(source.getOpStarted());
-    transformation.setBenchmark(getCustomResourceBenchmarkStatus(source.getBenchmark()));
+    StackGresDbOpsRestart transformation =
+        new StackGresDbOpsRestart();
+    transformation.setMethod(source.getMethod());
+    transformation.setRestartPrimaryFirst(source.getRestartPrimaryFirst());
     return transformation;
   }
 
-  private StackGresDbOpsCondition getCustomResourceCondition(DbOpsCondition source) {
+  private StackGresDbOpsMinorVersionUpgrade getCustomResourceMinorVersionUpgrade(
+      DbOpsMinorVersionUpgrade source) {
     if (source == null) {
       return null;
     }
-    StackGresDbOpsCondition transformation = new StackGresDbOpsCondition();
-    transformation.setType(source.getType());
-    transformation.setStatus(source.getStatus());
-    transformation.setLastTransitionTime(source.getLastTransitionTime());
-    transformation.setReason(source.getReason());
-    transformation.setMessage(source.getMessage());
+    StackGresDbOpsMinorVersionUpgrade transformation =
+        new StackGresDbOpsMinorVersionUpgrade();
+    transformation.setMethod(source.getMethod());
     return transformation;
   }
 
-  private StackGresDbOpsBenchmarkStatus getCustomResourceBenchmarkStatus(
-      DbOpsBenchmarkStatus source) {
+  private StackGresDbOpsSecurityUpgrade getCustomResourceSecurityUpgrade(
+      DbOpsSecurityUpgrade source) {
     if (source == null) {
       return null;
     }
-    StackGresDbOpsBenchmarkStatus transformation =
-        new StackGresDbOpsBenchmarkStatus();
-    transformation.setPgbench(getCustomResourcePgbenchStatus(source.getPgbench()));
-    return transformation;
-  }
-
-  private StackGresDbOpsPgbenchStatus getCustomResourcePgbenchStatus(
-      DbOpsPgbenchStatus source) {
-    if (source == null) {
-      return null;
-    }
-    StackGresDbOpsPgbenchStatus transformation =
-        new StackGresDbOpsPgbenchStatus();
-    transformation.setScaleFactor(source.getScaleFactor());
-    transformation.setTransactionsProcessed(source.getTransactionsProcessed());
-    transformation.setLatencyAverage(source.getLatencyAverage());
-    transformation.setLatencyStddev(source.getLatencyStddev());
-    transformation.setTpsIncludingConnectionsEstablishing(
-        source.getTpsIncludingConnectionsEstablishing());
-    transformation.setTpsExcludingConnectionsEstablishing(
-        source.getTpsExcludingConnectionsEstablishing());
+    StackGresDbOpsSecurityUpgrade transformation =
+        new StackGresDbOpsSecurityUpgrade();
+    transformation.setMethod(source.getMethod());
     return transformation;
   }
 
@@ -252,6 +248,12 @@ public class DbOpsTransformer
     transformation.setRepack(getResourceRepack(source.getRepack()));
     transformation.setMajorVersionUpgrade(
         getResourceMajorVersionUpgrade(source.getMajorVersionUpgrade()));
+    transformation.setRestart(
+        getResourceRestart(source.getRestart()));
+    transformation.setMinorVersionUpgrade(
+        getResourceMinorVersionUpgrade(source.getMinorVersionUpgrade()));
+    transformation.setSecurityUpgrade(
+        getResourceSecurityUpgrade(source.getSecurityUpgrade()));
     return transformation;
   }
 
@@ -348,6 +350,40 @@ public class DbOpsTransformer
     return transformation;
   }
 
+  private DbOpsRestart getResourceRestart(
+      StackGresDbOpsRestart source) {
+    if (source == null) {
+      return null;
+    }
+    DbOpsRestart transformation =
+        new DbOpsRestart();
+    transformation.setMethod(source.getMethod());
+    transformation.setRestartPrimaryFirst(source.getRestartPrimaryFirst());
+    return transformation;
+  }
+
+  private DbOpsMinorVersionUpgrade getResourceMinorVersionUpgrade(
+      StackGresDbOpsMinorVersionUpgrade source) {
+    if (source == null) {
+      return null;
+    }
+    DbOpsMinorVersionUpgrade transformation =
+        new DbOpsMinorVersionUpgrade();
+    transformation.setMethod(source.getMethod());
+    return transformation;
+  }
+
+  private DbOpsSecurityUpgrade getResourceSecurityUpgrade(
+      StackGresDbOpsSecurityUpgrade source) {
+    if (source == null) {
+      return null;
+    }
+    DbOpsSecurityUpgrade transformation =
+        new DbOpsSecurityUpgrade();
+    transformation.setMethod(source.getMethod());
+    return transformation;
+  }
+
   private DbOpsStatus getResourceStatus(StackGresDbOpsStatus source) {
     if (source == null) {
       return null;
@@ -360,6 +396,12 @@ public class DbOpsTransformer
     transformation.setBenchmark(getResourceBenchmarkStatus(source.getBenchmark()));
     transformation.setMajorVersionUpgrade(
         getResourceMajorVersionUpgradeStatus(source.getMajorVersionUpgrade()));
+    transformation.setRestart(
+        getResourceRestartStatus(source.getRestart()));
+    transformation.setMinorVersionUpgrade(
+        getResourceMinorVersionUpgradeStatus(source.getMinorVersionUpgrade()));
+    transformation.setSecurityUpgrade(
+        getResourceSecurityUpgradeStatus(source.getSecurityUpgrade()));
     return transformation;
   }
 
@@ -413,6 +455,51 @@ public class DbOpsTransformer
     transformation.setInitialInstances(source.getInitialInstances());
     transformation.setPendingToRestartInstances(source.getPendingToRestartInstances());
     transformation.setRestartedInstances(source.getRestartedInstances());
+    transformation.setFailure(source.getFailure());
+    return transformation;
+  }
+
+  private DbOpsRestartStatus getResourceRestartStatus(
+      StackGresDbOpsRestartStatus source) {
+    if (source == null) {
+      return null;
+    }
+    DbOpsRestartStatus transformation = new DbOpsRestartStatus();
+    transformation.setPrimaryInstance(source.getPrimaryInstance());
+    transformation.setInitialInstances(source.getInitialInstances());
+    transformation.setPendingToRestartInstances(source.getPendingToRestartInstances());
+    transformation.setRestartedInstances(source.getRestartedInstances());
+    transformation.setSwitchoverInitiated(source.getSwitchoverInitiated());
+    transformation.setFailure(source.getFailure());
+    return transformation;
+  }
+
+  private DbOpsMinorVersionUpgradeStatus getResourceMinorVersionUpgradeStatus(
+      StackGresDbOpsMinorVersionUpgradeStatus source) {
+    if (source == null) {
+      return null;
+    }
+    DbOpsMinorVersionUpgradeStatus transformation = new DbOpsMinorVersionUpgradeStatus();
+    transformation.setPrimaryInstance(source.getPrimaryInstance());
+    transformation.setInitialInstances(source.getInitialInstances());
+    transformation.setPendingToRestartInstances(source.getPendingToRestartInstances());
+    transformation.setRestartedInstances(source.getRestartedInstances());
+    transformation.setSwitchoverInitiated(source.getSwitchoverInitiated());
+    transformation.setFailure(source.getFailure());
+    return transformation;
+  }
+
+  private DbOpsSecurityUpgradeStatus getResourceSecurityUpgradeStatus(
+      StackGresDbOpsSecurityUpgradeStatus source) {
+    if (source == null) {
+      return null;
+    }
+    DbOpsSecurityUpgradeStatus transformation = new DbOpsSecurityUpgradeStatus();
+    transformation.setPrimaryInstance(source.getPrimaryInstance());
+    transformation.setInitialInstances(source.getInitialInstances());
+    transformation.setPendingToRestartInstances(source.getPendingToRestartInstances());
+    transformation.setRestartedInstances(source.getRestartedInstances());
+    transformation.setSwitchoverInitiated(source.getSwitchoverInitiated());
     transformation.setFailure(source.getFailure());
     return transformation;
   }

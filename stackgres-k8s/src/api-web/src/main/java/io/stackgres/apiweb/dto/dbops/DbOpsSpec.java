@@ -43,6 +43,15 @@ public class DbOpsSpec {
   @JsonProperty("majorVersionUpgrade")
   private DbOpsMajorVersionUpgrade majorVersionUpgrade;
 
+  @JsonProperty("restart")
+  private DbOpsRestart restart;
+
+  @JsonProperty("minorVersionUpgrade")
+  private DbOpsMinorVersionUpgrade minorVersionUpgrade;
+
+  @JsonProperty("securityUpgrade")
+  private DbOpsSecurityUpgrade securityUpgrade;
+
   public String getSgCluster() {
     return sgCluster;
   }
@@ -113,6 +122,30 @@ public class DbOpsSpec {
 
   public void setMajorVersionUpgrade(DbOpsMajorVersionUpgrade majorVersionUpgrade) {
     this.majorVersionUpgrade = majorVersionUpgrade;
+  }
+
+  public DbOpsRestart getRestart() {
+    return restart;
+  }
+
+  public void setRestart(DbOpsRestart restart) {
+    this.restart = restart;
+  }
+
+  public DbOpsMinorVersionUpgrade getMinorVersionUpgrade() {
+    return minorVersionUpgrade;
+  }
+
+  public void setMinorVersionUpgrade(DbOpsMinorVersionUpgrade minorVersionUpgrade) {
+    this.minorVersionUpgrade = minorVersionUpgrade;
+  }
+
+  public DbOpsSecurityUpgrade getSecurityUpgrade() {
+    return securityUpgrade;
+  }
+
+  public void setSecurityUpgrade(DbOpsSecurityUpgrade securityUpgrade) {
+    this.securityUpgrade = securityUpgrade;
   }
 
   @Override

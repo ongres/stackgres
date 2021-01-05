@@ -69,6 +69,18 @@ public class StackGresDbOpsSpec implements KubernetesResource {
   @Valid
   private StackGresDbOpsMajorVersionUpgrade majorVersionUpgrade;
 
+  @JsonProperty("restart")
+  @Valid
+  private StackGresDbOpsRestart restart;
+
+  @JsonProperty("minorVersionUpgrade")
+  @Valid
+  private StackGresDbOpsMinorVersionUpgrade minorVersionUpgrade;
+
+  @JsonProperty("securityUpgrade")
+  @Valid
+  private StackGresDbOpsSecurityUpgrade securityUpgrade;
+
   @ReferencedField("op")
   interface Op extends FieldReference { }
 
@@ -91,15 +103,18 @@ public class StackGresDbOpsSpec implements KubernetesResource {
   interface Repack extends FieldReference { }
 
   @JsonIgnore
-  @AssertTrue(message = "op must be one of benchmark, vacuum, repack"
-      + " or majorVersionUpgrade",
+  @AssertTrue(message = "op must be one of benchmark, vacuum, repack,"
+      + " majorVersionUpgrade, restart, minorVersionUpgrade or securityUpgrade",
       payload = Op.class)
   public boolean isOpValid() {
     return op == null || ImmutableList.of(
         "benchmark",
         "vacuum",
         "repack",
-        "majorVersionUpgrade"
+        "majorVersionUpgrade",
+        "restart",
+        "minorVersionUpgrade",
+        "securityUpgrade"
         ).contains(op);
   }
 
@@ -157,6 +172,21 @@ public class StackGresDbOpsSpec implements KubernetesResource {
   @JsonIgnore
   public boolean isOpMajorVersionUpgrade() {
     return Objects.equals(op, "majorVersionUpgrade");
+  }
+
+  @JsonIgnore
+  public boolean isOpRestart() {
+    return Objects.equals(op, "restart");
+  }
+
+  @JsonIgnore
+  public boolean isOpMinorVersionUpgrade() {
+    return Objects.equals(op, "minorVersionUpgrade");
+  }
+
+  @JsonIgnore
+  public boolean isOpSecurityUpgrade() {
+    return Objects.equals(op, "securityUpgrade");
   }
 
   public String getSgCluster() {
@@ -231,10 +261,34 @@ public class StackGresDbOpsSpec implements KubernetesResource {
     this.majorVersionUpgrade = majorVersionUpgrade;
   }
 
+  public StackGresDbOpsRestart getRestart() {
+    return restart;
+  }
+
+  public void setRestart(StackGresDbOpsRestart restart) {
+    this.restart = restart;
+  }
+
+  public StackGresDbOpsMinorVersionUpgrade getMinorVersionUpgrade() {
+    return minorVersionUpgrade;
+  }
+
+  public void setMinorVersionUpgrade(StackGresDbOpsMinorVersionUpgrade minorVersionUpgrade) {
+    this.minorVersionUpgrade = minorVersionUpgrade;
+  }
+
+  public StackGresDbOpsSecurityUpgrade getSecurityUpgrade() {
+    return securityUpgrade;
+  }
+
+  public void setSecurityUpgrade(StackGresDbOpsSecurityUpgrade securityUpgrade) {
+    this.securityUpgrade = securityUpgrade;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(benchmark, majorVersionUpgrade, maxRetries, op, repack, runAt, sgCluster,
-        timeout, vacuum);
+    return Objects.hash(benchmark, majorVersionUpgrade, maxRetries, minorVersionUpgrade, op, repack,
+        restart, runAt, securityUpgrade, sgCluster, timeout, vacuum);
   }
 
   @Override
@@ -248,8 +302,11 @@ public class StackGresDbOpsSpec implements KubernetesResource {
     StackGresDbOpsSpec other = (StackGresDbOpsSpec) obj;
     return Objects.equals(benchmark, other.benchmark)
         && Objects.equals(majorVersionUpgrade, other.majorVersionUpgrade)
-        && Objects.equals(maxRetries, other.maxRetries) && Objects.equals(op, other.op)
-        && Objects.equals(repack, other.repack) && Objects.equals(runAt, other.runAt)
+        && Objects.equals(maxRetries, other.maxRetries)
+        && Objects.equals(minorVersionUpgrade, other.minorVersionUpgrade)
+        && Objects.equals(op, other.op) && Objects.equals(repack, other.repack)
+        && Objects.equals(restart, other.restart) && Objects.equals(runAt, other.runAt)
+        && Objects.equals(securityUpgrade, other.securityUpgrade)
         && Objects.equals(sgCluster, other.sgCluster) && Objects.equals(timeout, other.timeout)
         && Objects.equals(vacuum, other.vacuum);
   }

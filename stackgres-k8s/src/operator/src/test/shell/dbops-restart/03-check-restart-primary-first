@@ -1,0 +1,10 @@
+#!/bin/sh
+
+RESTART_PRIMARY_FIRST=true
+REDUCED_IMPACT=true
+
+. "$TEST_SHELL_PATH/dbops-restart/abstract-restart"
+
+test_shell() {
+  test_dbops_restart
+}

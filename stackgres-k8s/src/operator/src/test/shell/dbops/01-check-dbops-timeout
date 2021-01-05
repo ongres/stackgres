@@ -1,0 +1,14 @@
+#!/bin/sh
+
+. "$TEST_SHELL_PATH/dbops/abstract-dbops"
+
+TIMEOUT=0
+
+test_shell() {
+  ! test_dbops
+  echo "Test result $?"
+}
+
+run_op() {
+  sleep 300
+}

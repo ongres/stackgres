@@ -1,0 +1,7 @@
+#!/bin/sh
+
+. "$TEST_SHELL_PATH/backup/abstract-backup"
+
+test_shell() {
+  test_backup
+}

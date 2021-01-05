@@ -10,6 +10,7 @@ import java.util.Optional;
 
 import javax.validation.constraints.AssertTrue;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -41,6 +42,7 @@ public class StackGresDbOpsMajorVersionUpgrade implements KubernetesResource {
   @ReferencedField("clone")
   interface Clone extends FieldReference { }
 
+  @JsonIgnore
   @AssertTrue(message = "link and clone are mutually exclusive",
       payload = { Link.class, Clone.class })
   public boolean isOnlyLinkOrOnlyClone() {

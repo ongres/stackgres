@@ -290,7 +290,7 @@ EOF
   fi
 done
 
-cat << EOF >> "$TARGET_PATH/e2e-tests-junit-report.xml"
+cat << EOF > "$TARGET_PATH/e2e-tests-junit-report.xml"
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites time="$(($(date +%s) - START))">
   <testsuite name="e2e tests" tests="$(echo "$SPECS" | tr ' ' '\n' | wc -l)" time="$(($(date +%s) - START))">

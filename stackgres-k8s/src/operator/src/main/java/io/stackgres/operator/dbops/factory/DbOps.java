@@ -37,18 +37,24 @@ public class DbOps
   private final DbOpsVacuumJob vacuumJob;
   private final DbOpsRepackJob repackJob;
   private final DbOpsMajorVersionUpgradeJob majorVersionUpgradeJob;
+  private final DbOpsRestartJob restartJob;
+  private final DbOpsMinorVersionUpgradeJob minorVersionUpgradeJob;
+  private final DbOpsSecurityUpgradeJob securityUpgradeJob;
   private final DbOpsRole role;
 
   @Inject
-  public DbOps(DbOpsBenchmark benchmark,
-      DbOpsVacuumJob vacuumJob,
-      DbOpsRepackJob repackJob,
-      DbOpsMajorVersionUpgradeJob majorVersionUpgradeJob,
-      DbOpsRole role) {
+  public DbOps(DbOpsBenchmark benchmark, DbOpsVacuumJob vacuumJob, DbOpsRepackJob repackJob,
+      DbOpsMajorVersionUpgradeJob majorVersionUpgradeJob, DbOpsRestartJob restartJob,
+      DbOpsMinorVersionUpgradeJob minorVersionUpgradeJob,
+      DbOpsSecurityUpgradeJob securityUpgradeJob, DbOpsRole role) {
+    super();
     this.benchmark = benchmark;
     this.vacuumJob = vacuumJob;
     this.repackJob = repackJob;
     this.majorVersionUpgradeJob = majorVersionUpgradeJob;
+    this.restartJob = restartJob;
+    this.minorVersionUpgradeJob = minorVersionUpgradeJob;
+    this.securityUpgradeJob = securityUpgradeJob;
     this.role = role;
   }
 
@@ -114,6 +120,39 @@ public class DbOps
           .with(dbOpsContext)
           .of(HasMetadata.class)
           .append(majorVersionUpgradeJob)
+          .stream();
+    }
+
+    if (Optional.of(dbOps)
+        .map(StackGresDbOps::getSpec)
+        .map(StackGresDbOpsSpec::isOpRestart)
+        .orElse(false)) {
+      return ResourceGenerator
+          .with(dbOpsContext)
+          .of(HasMetadata.class)
+          .append(restartJob)
+          .stream();
+    }
+
+    if (Optional.of(dbOps)
+        .map(StackGresDbOps::getSpec)
+        .map(StackGresDbOpsSpec::isOpMinorVersionUpgrade)
+        .orElse(false)) {
+      return ResourceGenerator
+          .with(dbOpsContext)
+          .of(HasMetadata.class)
+          .append(minorVersionUpgradeJob)
+          .stream();
+    }
+
+    if (Optional.of(dbOps)
+        .map(StackGresDbOps::getSpec)
+        .map(StackGresDbOpsSpec::isOpSecurityUpgrade)
+        .orElse(false)) {
+      return ResourceGenerator
+          .with(dbOpsContext)
+          .of(HasMetadata.class)
+          .append(securityUpgradeJob)
           .stream();
     }
 
