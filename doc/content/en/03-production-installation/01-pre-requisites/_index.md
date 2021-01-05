@@ -11,6 +11,61 @@ environment on top of which it needs to request the necessary resources.
 
 StackGres is able to run on any Kubernetes installation from 1.11 to 1.17 version, to maintain support for some version, please follow up the open discussion at" [#666](https://gitlab.com/ongresinc/stackgres/-/issues/666).
 
+## Data Storage
+
+When setting up a K8s environment the Storage Class by default is created with one main restriction and this is represented with the parameter `allowVolumeExpansion: false` this will not allow you to expand your disk when these are filling up. It is recommended to create a new Storage Class with at least these next parameters:
+
+- `reclaimPolicy: Retain`
+- `volumeBindingMode: WaitForFirstConsumer`
+- `allowVolumeExpansion: true`
+
+Here is an example working in a AWS environment:
+
+```
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: io1
+provisioner: kubernetes.io/aws-ebs
+parameters:
+  type: io1
+  iopsPerGB: "50"
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+```
+
+and if you're using GKE:
+
+```
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ssd
+provisioner: kubernetes.io/gce-pd
+parameters:
+  type: pd-ssd
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+```
+
+Check the [Storage Class documentation](https://kubernetes.io/docs/concepts/storage/storage-classes/) for more details and other providers.
+
+Do not forget using your custom Storage Class when you create a cluster, check the required parameters in [Cluster Parameters]({{% relref "03-production-installation/06-cluster-parameters/#pods" %}})
+
+**Important note:**
+Make sure you include these parameters in order to avoid some of the next errors:
+
+- Autoscaler not working as expected:
+`cluster-autoscaler  pod didn't trigger scale-up (it wouldn't fit if a new node is added)`
+
+- Volumes not assigned:
+`N node(s) had no available volume zone`
+
+- Losing data by accidentally removing a volume:
+`reclaimPolicy: Retain` will guarantee the volume is not delete when a claim no longer exist.
+
 ## Backups
 
 All the configuration for this matter can be found at [Backup Configuration documentation]({{% relref "05-crd-reference/02-backups/#configuration" %}}). By default, backups are scheduled daily (`config.backup.fullSchedule`) at `05:00 UTC` and with a retention policy (`config.backup.retention`) of 5 full-backups removed on rotation. You will have to find out the correct time window and retention policy that fit your needs.
@@ -20,13 +75,13 @@ In the next section, you'll be able to see how to done this [via Helm]({{% relre
 ### Storage
 
 StackGres support Backups with the following storage options:
- 
+
 * AWS S3
 * Google CLoud Storage
 * Azure Blob Storage
 
 
-> Examples are using [MinIO](https://min.io/) service as a S3 compatible service for 
+> Examples are using [MinIO](https://min.io/) service as a S3 compatible service for
 > quick setups on local Kubernetes Cluster. Although, for production setups, StackGres Team recommends
 > emphatically to pick a Storage as a Service for this purpose.
 
@@ -48,7 +103,7 @@ To extend the CRD for the backups, all the reference can be found at [CRD Refere
 
 ### Restore
 
-StackGres can perform a database restoration from a StackGres backup by just setting the UID of 
+StackGres can perform a database restoration from a StackGres backup by just setting the UID of
  the backup CR that represents the backup that we want to restore. Like this:
 
 ``` yaml
@@ -60,7 +115,7 @@ cluster:
 
 ## Monitoring
 
-As early indicated in [Component of the Stack]({{% relref "01-introduction/04-components-of-the-stack/#monitoring" %}}), StackGres at the moment supports Prometheus integration only. 
+As early indicated in [Component of the Stack]({{% relref "01-introduction/04-components-of-the-stack/#monitoring" %}}), StackGres at the moment supports Prometheus integration only.
 
 ## Grafana Integration and Pre-requisites
 
