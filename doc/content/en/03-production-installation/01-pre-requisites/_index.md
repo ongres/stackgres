@@ -180,6 +180,69 @@ kubectl port-forward "$GRAFANA_POD" --address 0.0.0.0 9999:3000 --namespace moni
 ```
 
 
+
+### Installing Community Prometheus Stack
+
+If the user is willing to install a full Prometheus Stack (State Metrics, Node Exporter and Grafana), there is a community chart that provides this at [kube-prometheus-stack installation instructions](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/README.md).
+
+
+First, add the Prometheus Community repositories:
+
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add stable https://charts.helm.sh/stable
+helm repo update
+```
+
+Create the `monitoring` namespace:
+
+```bash
+kubectl create namespace monitoring 
+```
+
+You'll need to update your CRDs for this operator or create those if this is the first time creating it. Example CRDs are:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.42.0/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
+kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.42.0/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
+kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.42.0/example/prometheus-operator-crd/monitoring.coreos.com_probes.yaml
+kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.42.0/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
+kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.42.0/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
+kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.42.0/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
+kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.42.0/example/prometheus-operator-crd/monitoring.coreos.com_thanosrulers.yaml
+```
+
+
+Install the [Prometheus Server Operator](https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus):
+
+```bash
+helm install --namespace monitoring prometheus prometheus-community/kube-prometheus-stack --set grafana.enabled=true
+```
+
+> StackGres provides more and advanced options for monitoring installation, see [Create a more advanced cluster]({{% relref "04-administration-guide/07-create-a-more-advanced-cluster" %}}) in the [Administration Guide]({{% relref "04-administration-guide" %}}).
+
+
+Once the operator is installed, take note of the generated secrets as you they are need to be specified at StackGres operator installation. By default is `user=admin` and `password=prom-operator`:
+
+```bash
+kubectl get --namespace monitoring secret prometheus-grafana --template '{{ printf "%s\n" ( index .data "admin-password" | base64decode) }}'
+kubectl get --namespace monitoring secret prometheus-grafana --template '{{ printf "%s\n" ( index .data "admin-user" | base64decode) }}'
+```
+
+Grafana's hostname also can be queried as:
+
+```
+kubectl get --namespace monitoring deployments prometheus-grafana -o json | jq -r '.metadata.name'
+```
+
+For accessing Grafana's dashboard remotely, it can be done through the following step (it will be available at `<your server ip>:9999`):
+
+```bash
+GRAFANA_POD=$(kubectl get pods --namespace monitoring -l "app.kubernetes.io/name=grafana" -o jsonpath="{.items[0].metadata.name}")
+kubectl port-forward "$GRAFANA_POD" --address 0.0.0.0 9999:3000 --namespace monitoring
+```
+
+
 ### Pre-existing Grafana Integration and Pre-requisites
 
 #### Integrating Grafana

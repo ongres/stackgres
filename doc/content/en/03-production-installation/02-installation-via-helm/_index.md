@@ -25,22 +25,6 @@ kubectl create namespace my-cluster
 The `monitoring` namespace was created to deploy the Prometheus Operator, which will result in a running Grafana instance.
 
 
-First, add the Prometheus Community repositories:
-
-```bash
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo add stable https://charts.helm.sh/stable
-helm repo update
-```
-
-Install the [Prometheus Server Operator](https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus):
-
-```bash
-helm install --namespace monitoring prometheus-operator prometheus-community/prometheus
-```
-
-> StackGres provides more and advanced options for monitoring installation, see [Create a more advanced cluster]({{% relref "04-administration-guide/07-create-a-more-advanced-cluster" %}}) in the [Administration Guide]({{% relref "04-administration-guide" %}}).
-
 ## StackGres Operator installation
 
 Now that we have configured a Backup storage place, as indicated in the pre-requisites, 
