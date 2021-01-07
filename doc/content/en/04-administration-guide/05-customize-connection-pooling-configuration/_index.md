@@ -13,12 +13,12 @@ Some applications, do not handle connection closing properly, which may require 
 
 ## Reloading configuration
 
-In the [Customizing Pooling configuration section]({{% relref "04-administration-guide/05-customize-connection-pooling-configuration/00-customize-connection-pooling-configuration" %}}), it is explained the different sauces for scaling connections properly.
+In the [Customizing Pooling configuration section]({{% relref "05-crd-reference/05-postgres-clusters/" %}}), it is explained the different sauces for scaling connections properly.
 
 Each configuration, once applied, need to be _reloaded_. This can be done by getting the corresponding primary node pod name and issue the same signal it is done on most of the environments:
 
 ```
-PRIMARY=$(kubectl get pod -l role=master -n my-cluster -o json | jq -r '.items[].metadata.name')
+PRIMARY=$(kubectl get pod -l role=master -n my-cluster -o name)
 kubectl exec -n my-cluster -it ${PRIMARY} -c postgres-util -- pkill --signal HUP pgbouncer
 ```
 

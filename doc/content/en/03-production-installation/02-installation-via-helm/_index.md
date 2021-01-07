@@ -24,6 +24,7 @@ kubectl create namespace my-cluster
 
 The `monitoring` namespace was created to deploy the Prometheus Operator, which will result in a running Grafana instance.
 
+> For advanced options to the monitoring installation, see the [Monitoring session]({{% relref "03-production-installation/01-pre-requisites/04-monitoring" %}}) in the [Production Installation]({{% relref "03-production-installation" %}}).
 
 
 ## StackGres Operator installation
