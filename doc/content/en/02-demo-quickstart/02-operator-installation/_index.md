@@ -80,7 +80,7 @@ kubectl port-forward "$POD_NAME" 8443:9443 --namespace stackgres
 
 Then open the browser at following address [`localhost:8443/admin/`]](`https://localhost:8443/admin/`)
 
-The UI will ask for a username and a password. By default those are `admin` and a randomly generated password. You can run the command bellow to get the user and password auto-generated:
+The UI will ask for a username and a password. By default those are `admin` and a randomly generated password. You can run the command below to get the user and password auto-generated:
 
 ```bash
 kubectl get secret -n stackgres stackgres-restapi --template 'username = {{ printf "%s\n" (.data.k8sUsername | base64decode) }}password = {{ printf "%s\n" ( .data.clearPassword | base64decode) }}'
@@ -88,7 +88,7 @@ kubectl get secret -n stackgres stackgres-restapi --template 'username = {{ prin
 
 ## Changing the UI password
 
-You can use the command bellow to change the password:
+You can use the command below to change the password:
 
 ```bash
 NEW_USER=admin
