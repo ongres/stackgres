@@ -26,7 +26,7 @@ Besides the [standard PostgreSQL extensions](https://www.postgresql.org/docs/cur
 
 Check the current [version on the releases]({{% relref "/01-introduction/06-versions#additional-extensions-included-on-stackgres" %}}) page.
 
-To list all available extensions, use the view [`pg_avaiable_extensions`](https://www.postgresql.org/docs/current/view-pg-available-extensions.html), like bellow:
+To list all available extensions, use the view [`pg_avaiable_extensions`](https://www.postgresql.org/docs/current/view-pg-available-extensions.html), like below:
 
 ```sql
 postgres=# select * from pg_available_extensions ;
@@ -105,7 +105,7 @@ postgres=# \dxi
 
 ### Custom `shared_preload_libraries` for extensions
 
-Both `timescaledb` and `pg_stat_statements` need a custom configuration. To fix that is necessary to add a new configuration that contains the custom value on `shared_preload_libraries`, like the example bellow:
+Both `timescaledb` and `pg_stat_statements` need a custom configuration. To fix that is necessary to add a new configuration that contains the custom value on `shared_preload_libraries`, like the example below:
 
 ```bash
 cat << 'EOF' | kubectl create -f -
