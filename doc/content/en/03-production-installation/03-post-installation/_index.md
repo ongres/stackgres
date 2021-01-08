@@ -10,7 +10,7 @@ StackGres publish a Web UI that can be accessed by pointing to port 443 with DNS
 `stackgres-operator.stackgres.svc`. It is not recommended to expose this Web UI to public
 internet without protecting it with some secure access bridge. 
 
-You can expose the UI using the bellow command:
+You can expose the UI using the command below:
 
 ```
 POD_NAME=$(kubectl get pods --namespace stackgres -l "app=stackgres-restapi" -o jsonpath="{.items[0].metadata.name}")

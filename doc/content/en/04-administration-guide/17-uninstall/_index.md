@@ -9,7 +9,7 @@ url: administration/uninstall
 
 ### Database clusters
 
-Assuming that your cluster is running on the `default` namespace, execute the commands bellow to find and delete the clusters:
+Assuming that your cluster is running on the `default` namespace, execute the commands below to find and delete the clusters:
 
 ```bash
 ## List the available clusters
@@ -36,7 +36,7 @@ No resources found in default namespace.
 
 ### Other objects
 
-The `SGCluster` depends on other objects to work properly, such as [backups]({{% relref "/05-crd-reference/02-backups/" %}}), [backup configurations]({{% relref "/05-crd-reference/03-backup-config/" %}}), [connection pooling]({{% relref "/05-crd-reference/07-connection-pooling-configuration/" %}}), [distributed logs]({{% relref "/05-crd-reference/06-distributed-logs" %}}), [instance profiles]({{% relref "/05-crd-reference/08-instance-profiles" %}}),  and [postgres configurations]({{% relref "/05-crd-reference/04-postgres-configuration" %}}). Execute the commands bellow to find and delete those objects:
+The `SGCluster` depends on other objects to work properly, such as [backups]({{% relref "/05-crd-reference/02-backups/" %}}), [backup configurations]({{% relref "/05-crd-reference/03-backup-config/" %}}), [connection pooling]({{% relref "/05-crd-reference/07-connection-pooling-configuration/" %}}), [distributed logs]({{% relref "/05-crd-reference/06-distributed-logs" %}}), [instance profiles]({{% relref "/05-crd-reference/08-instance-profiles" %}}),  and [postgres configurations]({{% relref "/05-crd-reference/04-postgres-configuration" %}}). Execute the commands below to find and delete those objects:
 
 ```bash
 ## List all sg* objects:
@@ -113,7 +113,7 @@ configmap "my-db-cluster-prometheus-postgres-exporter-config" deleted
 
 ### Using Helm
 
-Execute the steps bellow to remove the helm install:
+Execute the steps below to remove the helm install:
 
 ```bash
 ## locate the namespace that the operator was installed
@@ -138,7 +138,7 @@ This tutorial expects that the operator was installed on the `stackgres` namespa
 
 ### Operator deployments
 
-Execute the commands bellow to find and remove the operator deployments:
+Execute the commands below to find and remove the operator deployments:
 
 ```bash
 ## list the deployments in the `stackgres` namespace
@@ -155,7 +155,7 @@ deployment.apps "stackgres-restapi" deleted
 
 ### CRDs 
 
-Execute the commands bellow to find and remove the Custom Resource Definitions (CRDs):
+Execute the commands below to find and remove the Custom Resource Definitions (CRDs):
 
 ```bash
 ## list all *.stackgres.io CRDs
@@ -182,7 +182,7 @@ customresourcedefinition.apiextensions.k8s.io "sgpoolconfigs.stackgres.io" delet
 
 ### Cluster Role Bindings
 
-Execute the commands bellow to find and remove the Custom Resource Definitions (CRDs):
+Execute the commands below to find and remove the Custom Resource Definitions (CRDs):
 
 ```bash
 ## list all
@@ -201,7 +201,7 @@ clusterrolebinding.rbac.authorization.k8s.io "stackgres-restapi-admin" deleted
 
 ### Cluster Roles
 
-Execute the commands bellow to find and remove the Custom Resource Definitions (CRDs):
+Execute the commands below to find and remove the Custom Resource Definitions (CRDs):
 
 ```bash
 ## list all
