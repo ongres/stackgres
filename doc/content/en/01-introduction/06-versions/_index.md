@@ -19,7 +19,7 @@ url: intro/versions
 
 ### Additional extensions included on StackGres
 
-All extensions bellow are available for both PostgreSQL 11 and 12:
+All extensions below are available for both PostgreSQL 11 and 12:
 
 | Extension | Version |
 | ------ | ----------- |
@@ -46,7 +46,7 @@ All extensions bellow are available for both PostgreSQL 11 and 12:
 
 ### Additional extensions included on StackGres
 
-All extensions bellow are available for both PostgreSQL 11 and 12:
+All extensions below are available for both PostgreSQL 11 and 12:
 
 | Extension | Version |
 | ------ | ----------- |
@@ -73,7 +73,7 @@ All extensions bellow are available for both PostgreSQL 11 and 12:
 
 ### Additional extensions included on StackGres
 
-All extensions bellow are available for both PostgreSQL 11 and 12:
+All extensions below are available for both PostgreSQL 11 and 12:
 
 | Extension | Version |
 | ------ | ----------- |
@@ -100,7 +100,7 @@ All extensions bellow are available for both PostgreSQL 11 and 12:
 
 ### Additional extensions included on StackGres
 
-All extensions bellow are available for both PostgreSQL 11 and 12:
+All extensions below are available for both PostgreSQL 11 and 12:
 
 | Extension | Version |
 | ------ | ----------- |
