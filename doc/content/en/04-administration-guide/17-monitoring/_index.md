@@ -5,3 +5,5 @@ url: administration/monitoring
 ---
 
 ## Monitoring
+
+Take a look of each metrics descriptions exposed by StackGres.
