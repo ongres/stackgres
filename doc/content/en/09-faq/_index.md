@@ -1,7 +1,7 @@
 ---
 title: FAQ
-weight: 8
-pre: "<b>8. </b>"
+weight: 9
+pre: "<b>9. </b>"
 chapter: false
 url: faq
 ---
@@ -26,7 +26,7 @@ No, this won’t happen. That's our promise. We respect others who switch to or 
 
 ## What PostgreSQL versions are supported?
 
-As of now, PostgreSQL major version 11. Version 12 (currently in beta) will be added soon.
+As of now, PostgreSQL major version 11 and 12. Version 13 will be added soon.
 
 ## Where can I run StackGres?
 
@@ -38,7 +38,7 @@ High Availability and automatic failover are based on [Patroni](https://github.c
 
 ## Is there connection pooling?
 
-Yes, we use [pgbouncer](https://www.pgbouncer.org/). Most Postgres DBaaS solutions don't include connection pooling as part of their managed service. Yet, in most real-life scenarios, PostgreSQL should be fronted by a connection pooler. There are many reasons for this, but the main ones are excessive memory consumption and degraded performance under too many connections —where too many can be as low as several hundreds or even a few thousand. That's why we include it in StackGres.
+Yes, we use [pgbouncer](https://www.pgbouncer.org/). Most Postgres DBaaS solutions don't include connection pooling as part of their managed service. Yet, in most real-life scenarios, PostgreSQL should be fronted by a connection pooler. There are many reasons for this, but the main ones are excessive memory consumption and degraded performance under too many connections — where too many can be as low as several hundreds or even a few thousand. That's why we include it in StackGres.
 
 ## What “OS” are container images based on? Why not Alpine?
 
