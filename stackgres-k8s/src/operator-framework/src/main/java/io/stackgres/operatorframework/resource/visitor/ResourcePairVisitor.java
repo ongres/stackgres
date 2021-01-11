@@ -831,10 +831,18 @@ public class ResourcePairVisitor<T, C> {
   public PairVisitor<EnvVar, T> visitEnvVar(PairVisitor<EnvVar, T> pairVisitor) {
     return pairVisitor.visit()
         .visit(EnvVar::getName, EnvVar::setName)
-        .visit(EnvVar::getValue, EnvVar::setValue)
+        .visitUsingDefaultFrom(EnvVar::getValue, EnvVar::setValue,
+            this::defaultEnvVarValue)
         .visitWith(EnvVar::getValueFrom, EnvVar::setValueFrom,
             this::visitEnvVarSource)
         .visitMap(EnvVar::getAdditionalProperties);
+  }
+
+  /**
+   * Default env var value based on valueFrom presence.
+   */
+  public String defaultEnvVarValue(EnvVar envVar) {
+    return envVar.getValueFrom() == null ? "" : null;
   }
 
   /**

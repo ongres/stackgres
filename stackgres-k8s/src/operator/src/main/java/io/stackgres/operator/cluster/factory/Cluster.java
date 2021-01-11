@@ -9,12 +9,14 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.operator.backup.BackupJob;
 import io.stackgres.operator.common.StackGresGeneratorContext;
+import io.stackgres.operator.dbops.factory.DbOps;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 
@@ -30,26 +32,33 @@ public class Cluster
   private final RestoreConfigMap restoreConfigMap;
   private final RestoreSecret restoreSecret;
   private final BackupJob backupJob;
+  private final DbOps dbOps;
   private final AnnotationDecorator annotationDecorator;
 
+  @Dependent
+  public static class Parameters {
+    @Inject ClusterStatefulSet clusterStatefulSet;
+    @Inject BackupCronJob backupCronJob;
+    @Inject BackupConfigMap backupConfigMap;
+    @Inject BackupSecret backupSecret;
+    @Inject RestoreConfigMap restoreConfigMap;
+    @Inject RestoreSecret restoreSecret;
+    @Inject BackupJob backupJob;
+    @Inject DbOps dbOps;
+    @Inject AnnotationDecorator annotationDecorator;
+  }
+
   @Inject
-  public Cluster(ClusterStatefulSet clusterStatefulSet,
-                 BackupConfigMap backupConfigMap,
-                 RestoreConfigMap restoreConfigMap,
-                 BackupSecret backupSecret,
-                 RestoreSecret restoreSecret,
-                 BackupCronJob backupCronJob,
-                 BackupJob backupJob,
-                 AnnotationDecorator annotationDecorator) {
-    super();
-    this.clusterStatefulSet = clusterStatefulSet;
-    this.backupCronJob = backupCronJob;
-    this.backupConfigMap = backupConfigMap;
-    this.backupSecret = backupSecret;
-    this.restoreConfigMap = restoreConfigMap;
-    this.restoreSecret = restoreSecret;
-    this.backupJob = backupJob;
-    this.annotationDecorator = annotationDecorator;
+  public Cluster(Parameters parameters) {
+    this.clusterStatefulSet = parameters.clusterStatefulSet;
+    this.backupCronJob = parameters.backupCronJob;
+    this.backupConfigMap = parameters.backupConfigMap;
+    this.backupSecret = parameters.backupSecret;
+    this.restoreConfigMap = parameters.restoreConfigMap;
+    this.restoreSecret = parameters.restoreSecret;
+    this.backupJob = parameters.backupJob;
+    this.dbOps = parameters.dbOps;
+    this.annotationDecorator = parameters.annotationDecorator;
   }
 
   @Override
@@ -64,6 +73,7 @@ public class Cluster
         .append(restoreConfigMap)
         .append(restoreSecret)
         .append(backupJob)
+        .append(dbOps)
         .stream()
         .collect(ImmutableList.toImmutableList());
     annotationDecorator.decorate(context.getClusterContext().getCluster(), resources);

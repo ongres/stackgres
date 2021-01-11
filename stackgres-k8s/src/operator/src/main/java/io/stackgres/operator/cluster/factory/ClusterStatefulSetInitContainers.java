@@ -6,16 +6,26 @@
 package io.stackgres.operator.cluster.factory;
 
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
+import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
+import io.stackgres.common.StackgresClusterContainers;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.patroni.factory.Patroni;
+import io.stackgres.operator.patroni.factory.PatroniServices;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 import org.jooq.lambda.Seq;
 
@@ -24,11 +34,13 @@ public class ClusterStatefulSetInitContainers
     implements SubResourceStreamFactory<Container, StackGresClusterContext> {
 
   private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;
+  private final PatroniServices patroniServices;
 
   public ClusterStatefulSetInitContainers(
-      ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables) {
-    super();
+      ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables,
+      PatroniServices patroniServices) {
     this.clusterStatefulSetEnvironmentVariables = clusterStatefulSetEnvironmentVariables;
+    this.patroniServices = patroniServices;
   }
 
   @Override
@@ -37,7 +49,8 @@ public class ClusterStatefulSetInitContainers
         Optional.of(setupScriptsContainer(config)),
         Optional.of(createSetupArbitraryUser(config)))
         .filter(Optional::isPresent)
-        .map(Optional::get);
+        .map(Optional::get)
+        .append(setupMajorVersionUpgrade(config));
   }
 
   private Container createSetupDataPathsContainer(StackGresClusterContext config) {
@@ -45,12 +58,13 @@ public class ClusterStatefulSetInitContainers
         .withName("setup-data-paths")
         .withImage(StackGresContext.BUSYBOX_IMAGE)
         .withImagePullPolicy("IfNotPresent")
-        .withCommand("/bin/sh", "-ecx", Stream.of(
-            "mkdir -p \"$PG_DATA_PATH\"",
-            "chmod -R 700 \"$PG_DATA_PATH\"")
-            .collect(Collectors.joining(" && ")))
+        .withCommand("/bin/sh", "-ex",
+            ClusterStatefulSetPath.TEMPLATES_PATH.path()
+            + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH.filename())
         .withEnv(clusterStatefulSetEnvironmentVariables.listResources(config))
-        .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(config))
+        .withVolumeMounts(
+            ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(config),
+            ClusterStatefulSetVolumeConfig.DATA.volumeMount(config))
         .build();
   }
 
@@ -59,24 +73,9 @@ public class ClusterStatefulSetInitContainers
         .withName("setup-arbitrary-user")
         .withImage(StackGresContext.BUSYBOX_IMAGE)
         .withImagePullPolicy("IfNotPresent")
-        .withCommand("/bin/sh", "-ecx", Seq.of(
-            "USER=postgres",
-            "UID=$(id -u)",
-            "GID=$(id -g)",
-            "SHELL=/bin/sh",
-            "cp \"$TEMPLATES_PATH/passwd\" /local/etc/.",
-            "cp \"$TEMPLATES_PATH/group\" /local/etc/.",
-            "cp \"$TEMPLATES_PATH/shadow\" /local/etc/.",
-            "cp \"$TEMPLATES_PATH/gshadow\" /local/etc/.",
-            "echo \"$USER:x:$UID:$GID::$PG_BASE_PATH:$SHELL\" >> /local/etc/passwd",
-            "chmod 644 /local/etc/passwd",
-            "echo \"$USER:x:$GID:\" >> /local/etc/group",
-            "chmod 644 /local/etc/group",
-            "echo \"$USER\"':!!:18179:0:99999:7:::' >> /local/etc/shadow",
-            "chmod 000 /local/etc/shadow",
-            "echo \"$USER\"':!::' >> /local/etc/gshadow",
-            "chmod 000 /local/etc/gshadow")
-            .collect(Collectors.joining(" && ")))
+        .withCommand("/bin/sh", "-ex",
+            ClusterStatefulSetPath.TEMPLATES_PATH.path()
+            + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH.filename())
         .withEnv(clusterStatefulSetEnvironmentVariables.listResources(config))
         .withVolumeMounts(
             ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(config),
@@ -93,27 +92,179 @@ public class ClusterStatefulSetInitContainers
         .withName("setup-scripts")
         .withImage(StackGresContext.BUSYBOX_IMAGE)
         .withImagePullPolicy("IfNotPresent")
-        .withCommand("/bin/sh", "-ecx", Seq.of(
-            "cp $TEMPLATES_PATH/start-patroni.sh \"$LOCAL_BIN_PATH\"",
-            "cp $TEMPLATES_PATH/start-patroni-with-restore.sh \"$LOCAL_BIN_PATH\"",
-            "cp $TEMPLATES_PATH/post-init.sh \"$LOCAL_BIN_PATH\"",
-            "cp $TEMPLATES_PATH/exec-with-env \"$LOCAL_BIN_PATH\"",
-            "sed -i \"s#\\${POSTGRES_PORT}#${POSTGRES_PORT}#g\""
-                + " \"$LOCAL_BIN_PATH/post-init.sh\"",
-            "sed -i \"s#\\${BASE_ENV_PATH}#${BASE_ENV_PATH}#g\""
-                + " \"$LOCAL_BIN_PATH/exec-with-env\"",
-            "sed -i \"s#\\${BASE_SECRET_PATH}#${BASE_SECRET_PATH}#g\""
-                + " \"$LOCAL_BIN_PATH/exec-with-env\"",
-            "chmod a+x \"$LOCAL_BIN_PATH/start-patroni.sh\"",
-            "chmod a+x \"$LOCAL_BIN_PATH/start-patroni-with-restore.sh\"",
-            "chmod a+x \"$LOCAL_BIN_PATH/post-init.sh\"",
-            "chmod a+x \"$LOCAL_BIN_PATH/exec-with-env\"")
-            .collect(Collectors.joining(" && ")))
+        .withCommand("/bin/sh", "-ex",
+            ClusterStatefulSetPath.TEMPLATES_PATH.path()
+            + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_SCRIPTS_SH_PATH.filename())
         .withEnv(clusterStatefulSetEnvironmentVariables.listResources(config))
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(config),
             ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
                 ClusterStatefulSetPath.LOCAL_BIN_PATH, config))
         .build();
+  }
+
+  private Stream<Container> setupMajorVersionUpgrade(StackGresClusterContext config) {
+    if (!Optional.of(config.getCluster())
+        .map(StackGresCluster::getStatus)
+        .map(StackGresClusterStatus::getDbOps)
+        .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
+        .map(majorVersionUpgrade -> true)
+        .orElse(false)) {
+      return Stream.of();
+    }
+    StackGresClusterDbOpsMajorVersionUpgradeStatus majorVersionUpgradeStatus =
+        Optional.of(config.getCluster())
+        .map(StackGresCluster::getStatus)
+        .map(StackGresClusterStatus::getDbOps)
+        .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
+        .get();
+    String primaryInstance = majorVersionUpgradeStatus.getPrimaryInstance();
+    String targetVersion = majorVersionUpgradeStatus.getTargetPostgresVersion();
+    String sourceVersion = majorVersionUpgradeStatus.getSourcePostgresVersion();
+    String locale = majorVersionUpgradeStatus.getLocale();
+    String encoding = majorVersionUpgradeStatus.getEncoding();
+    String dataChecksum = majorVersionUpgradeStatus.getDataChecksum().toString();
+    String link = majorVersionUpgradeStatus.getLink().toString();
+    String clone = majorVersionUpgradeStatus.getClone().toString();
+    String check = majorVersionUpgradeStatus.getCheck().toString();
+    return Stream.of(
+        new ContainerBuilder()
+        .withName("copy-binaries")
+        .withImage(String.format(Patroni.IMAGE_NAME,
+            Patroni.DEFAULT_VERSION,
+            sourceVersion,
+            StackGresProperty.CONTAINER_BUILD.getString()))
+        .withImagePullPolicy("IfNotPresent")
+        .withCommand("/bin/sh", "-ex",
+            ClusterStatefulSetPath.TEMPLATES_PATH.path()
+            + "/" + ClusterStatefulSetPath.LOCAL_BIN_COPY_BINARIES_SH_PATH.filename())
+        .withEnv(clusterStatefulSetEnvironmentVariables.listResources(config))
+        .addToEnv(
+            new EnvVarBuilder()
+            .withName("PRIMARY_INSTANCE")
+            .withValue(primaryInstance)
+            .build(),
+            new EnvVarBuilder()
+            .withName("SOURCE_VERSION")
+            .withValue(sourceVersion)
+            .build(),
+            new EnvVarBuilder()
+            .withName("POD_NAME")
+            .withValueFrom(new EnvVarSourceBuilder()
+                .withFieldRef(new ObjectFieldSelector("v1", "metadata.name"))
+                .build())
+            .build())
+        .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(config),
+            ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(config),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.LOCAL_BIN_PATH, config))
+        .build(),
+        new ContainerBuilder()
+        .withName(StackgresClusterContainers.MAJOR_VERSION_UPGRADE)
+        .withImage(String.format(Patroni.IMAGE_NAME,
+            Patroni.DEFAULT_VERSION,
+            targetVersion,
+            StackGresProperty.CONTAINER_BUILD.getString()))
+        .withImagePullPolicy("IfNotPresent")
+        .withCommand("/bin/sh", "-ex",
+            ClusterStatefulSetPath.TEMPLATES_PATH.path()
+            + "/" + ClusterStatefulSetPath.LOCAL_BIN_MAJOR_VERSION_UPGRADE_SH_PATH.filename())
+        .withEnv(clusterStatefulSetEnvironmentVariables.listResources(config))
+        .addToEnv(
+            new EnvVarBuilder()
+            .withName("PRIMARY_INSTANCE")
+            .withValue(primaryInstance)
+            .build(),
+            new EnvVarBuilder()
+            .withName("TARGET_VERSION")
+            .withValue(targetVersion)
+            .build(),
+            new EnvVarBuilder()
+            .withName("SOURCE_VERSION")
+            .withValue(sourceVersion)
+            .build(),
+            new EnvVarBuilder()
+            .withName("LOCALE")
+            .withValue(locale)
+            .build(),
+            new EnvVarBuilder()
+            .withName("ENCODING")
+            .withValue(encoding)
+            .build(),
+            new EnvVarBuilder()
+            .withName("DATA_CHECKSUM")
+            .withValue(dataChecksum)
+            .build(),
+            new EnvVarBuilder()
+            .withName("LINK")
+            .withValue(link)
+            .build(),
+            new EnvVarBuilder()
+            .withName("CLONE")
+            .withValue(clone)
+            .build(),
+            new EnvVarBuilder()
+            .withName("CHECK")
+            .withValue(check)
+            .build(),
+            new EnvVarBuilder()
+            .withName("POD_NAME")
+            .withValueFrom(new EnvVarSourceBuilder()
+                .withFieldRef(new ObjectFieldSelector("v1", "metadata.name"))
+                .build())
+            .build())
+        .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(config),
+            ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(config),
+            ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                config,
+                volumeMountBuilder -> volumeMountBuilder
+                .withSubPath(ClusterStatefulSetPath.PG_UPGRADE_PATH.filename()
+                    + "/" + sourceVersion + "/bin")
+                .withMountPath("/usr/lib/postgresql/" + sourceVersion + "/bin")),
+            ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                config,
+                volumeMountBuilder -> volumeMountBuilder
+                .withSubPath(ClusterStatefulSetPath.PG_UPGRADE_PATH.filename()
+                    + "/" + sourceVersion + "/lib")
+                .withMountPath("/usr/lib/postgresql/" + sourceVersion + "/lib")),
+            ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                config,
+                volumeMountBuilder -> volumeMountBuilder
+                .withSubPath(ClusterStatefulSetPath.PG_UPGRADE_PATH.filename()
+                    + "/" + sourceVersion + "/share")
+                .withMountPath("/usr/share/postgresql/" + sourceVersion)))
+        .build(),
+        new ContainerBuilder()
+        .withName("reset-patroni-initialize")
+        .withImage(StackGresContext.KUBECTL_IMAGE)
+        .withImagePullPolicy("IfNotPresent")
+        .withCommand("/bin/sh", "-ex",
+            ClusterStatefulSetPath.TEMPLATES_PATH.path()
+            + "/" + ClusterStatefulSetPath.LOCAL_BIN_RESET_PATRONI_INITIALIZE_SH_PATH.filename())
+        .withEnv(clusterStatefulSetEnvironmentVariables.listResources(config))
+        .addToEnv(
+            new EnvVarBuilder()
+            .withName("PRIMARY_INSTANCE")
+            .withValue(primaryInstance)
+            .build(),
+            new EnvVarBuilder()
+            .withName("POD_NAME")
+            .withValueFrom(new EnvVarSourceBuilder()
+                .withFieldRef(new ObjectFieldSelector("v1", "metadata.name"))
+                .build())
+            .build(),
+            new EnvVarBuilder()
+            .withName("CLUSTER_NAMESPACE")
+            .withValue(config.getCluster().getMetadata().getNamespace())
+            .build(),
+            new EnvVarBuilder()
+            .withName("PATRONI_ENDPOINT_NAME")
+            .withValue(patroniServices.configName(config))
+            .build())
+        .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(config),
+            ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(config),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.LOCAL_BIN_PATH, config))
+        .build());
   }
 
 }

@@ -16,6 +16,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.validation.FieldReference;
+import io.stackgres.common.validation.FieldReference.ReferencedField;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -35,8 +37,15 @@ public class StackGresClusterScriptEntry {
   @Valid
   private StackGresClusterScriptFrom scriptFrom;
 
+  @ReferencedField("script")
+  interface Script extends FieldReference { }
+
+  @ReferencedField("scriptFrom")
+  interface ScriptFrom extends FieldReference { }
+
   @JsonIgnore
-  @AssertTrue(message = "script and scriptFrom are mutually exclusive and one of them is required.")
+  @AssertTrue(message = "script and scriptFrom are mutually exclusive and one of them is required.",
+      payload = { Script.class, ScriptFrom.class })
   public boolean areScriptAndScriptFromMutuallyExclusiveAndOneRequired() {
     return (script != null && scriptFrom == null) // NOPMD
         || (script == null && scriptFrom != null); // NOPMD

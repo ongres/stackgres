@@ -21,7 +21,7 @@ import io.stackgres.operator.common.StackGresGeneratorContext;
 public class PostgresUtil implements StackGresClusterSidecarResourceFactory<Void> {
 
   private static final String NAME = StackgresClusterContainers.POSTGRES_UTIL;
-  private static final String IMAGE_NAME = "docker.io/ongres/postgres-util:v%s-build-%s";
+  public static final String IMAGE_NAME = "docker.io/ongres/postgres-util:v%s-build-%s";
 
   public PostgresUtil() {
   }

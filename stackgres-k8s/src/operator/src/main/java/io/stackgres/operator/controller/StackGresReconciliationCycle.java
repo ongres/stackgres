@@ -24,21 +24,21 @@ public abstract class StackGresReconciliationCycle<T extends ResourceHandlerCont
 
   private static final String STACKGRES_IO_RECONCILIATION = "stackgres.io/reconciliation-pause";
 
-  private final CustomResourceScanner<H> clusterScanner;
+  private final CustomResourceScanner<H> customResourceScanner;
 
   protected StackGresReconciliationCycle(String name,
       Supplier<KubernetesClient> clientSupplier,
       ResourceGeneratorReconciliator<T, H, S> reconciliator,
       Function<T, H> resourceGetter,
       S handlerSelector,
-      CustomResourceScanner<H> clusterScanner) {
+      CustomResourceScanner<H> customResourceScanner) {
     super(name, clientSupplier, reconciliator, resourceGetter, handlerSelector);
-    this.clusterScanner = clusterScanner;
+    this.customResourceScanner = customResourceScanner;
   }
 
   @Override
   protected ImmutableList<T> getExistingContexts() {
-    return clusterScanner.getResources()
+    return customResourceScanner.getResources()
         .stream().filter(r -> Optional.ofNullable(r.getMetadata().getAnnotations())
             .map(annotations -> annotations.get(STACKGRES_IO_RECONCILIATION))
             .map(Boolean::parseBoolean)

@@ -8,6 +8,7 @@ rules:
   resources:
   - pods
   - pods/exec
+  - pods/log
   - services
   - endpoints
   - persistentvolumeclaims
@@ -49,6 +50,7 @@ rules:
   - sgbackupconfigs
   - sgbackups
   - sgdistributedlogs
+  - sgdbops
   verbs:
   - create
   - watch

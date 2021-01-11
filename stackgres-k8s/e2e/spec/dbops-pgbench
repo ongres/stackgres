@@ -1,0 +1,234 @@
+#!/bin/sh
+
+e2e_test_install_pods() {
+  echo 2
+}
+
+e2e_test() {
+  run_test "Checking that pgbench is working" check_pgbench_is_working
+
+  run_test "Checking that pgbench is working with 10 clients and threads" check_pgbench_many_is_working
+
+  run_test "Checking that pgbench is working with prepared statements" check_pgbench_prepared_is_working
+
+  run_test "Checking that pgbench is working for replicas" check_pgbench_replicas_is_working
+
+  run_test "Checking that pgbench timeout works correctly" check_pgbench_timed_out
+}
+
+check_pgbench_is_working() {
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGDbOps
+metadata:
+  name: benchmark
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: benchmark
+  benchmark:
+    type: pgbench
+    pgbench:
+      databaseSize: 64Mi
+      duration: PT10S
+EOF
+
+  check_pgbench
+
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" benchmark
+}
+
+check_pgbench_many_is_working() {
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGDbOps
+metadata:
+  name: benchmark
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: benchmark
+  benchmark:
+    type: pgbench
+    pgbench:
+      databaseSize: 64Mi
+      duration: PT10S
+      concurrentClients: 10
+      threads: 10
+EOF
+
+  check_pgbench
+
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" benchmark
+}
+
+check_pgbench_prepared_is_working() {
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGDbOps
+metadata:
+  name: benchmark
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: benchmark
+  benchmark:
+    type: pgbench
+    pgbench:
+      databaseSize: 64Mi
+      duration: PT10S
+      usePreparedStatements: true
+EOF
+
+  check_pgbench
+
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" benchmark
+}
+
+check_pgbench_replicas_is_working() {
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGDbOps
+metadata:
+  name: benchmark
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: benchmark
+  benchmark:
+    type: pgbench
+    pgbench:
+      databaseSize: 64Mi
+      duration: PT10S
+    connectionType: replicas-service
+EOF
+
+  check_pgbench
+
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" benchmark
+}
+
+check_pgbench() {
+  if kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+    --for condition=Completed
+  then
+    echo "SUCCESS. pgbench completed."
+  else
+    echo "FAILED. pgbench failed."
+    return 1
+  fi
+
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
+    -l "cluster-name=$CLUSTER_NAME,db-ops=true" \
+    -o name 2>/dev/null | wc -l)" = 1 ]
+  then
+    echo "SUCCESS. pgbench job was not removed after completion."
+  else
+    echo "FAILED. pgbench job was removed after completion."
+    return 1
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+    --template '{{ .status.benchmark.pgbench.scaleFactor }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
+  then
+    echo "SUCCESS. pgbench returned the scale factor."
+  else
+    echo "FAILED. pgbench did not returned the scale factor."
+    return 1
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+    --template '{{ .status.benchmark.pgbench.transactionsProcessed }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
+  then
+    echo "SUCCESS. pgbench returned the transactions processed."
+  else
+    echo "FAILED. pgbench did not returned the transactions processed."
+    return 1
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+    --template '{{ .status.benchmark.pgbench.latencyAverage }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
+  then
+    echo "SUCCESS. pgbench returned the average latency."
+  else
+    echo "FAILED. pgbench did not returned the average latency."
+    return 1
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+    --template '{{ .status.benchmark.pgbench.latencyStddev}}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
+  then
+    echo "SUCCESS. pgbench returned the latency standard deviation."
+  else
+    echo "FAILED. pgbench did not returned the latency standard deviation."
+    return 1
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+    --template '{{ .status.benchmark.pgbench.tpsIncludingConnectionsEstablishing }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
+  then
+    echo "SUCCESS. pgbench returned the tps including connections establishing."
+  else
+    echo "FAILED. pgbench did not returned the tps including connections establishing."
+    return 1
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+    --template '{{ .status.benchmark.pgbench.tpsExcludingConnectionsEstablishing }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
+  then
+    echo "SUCCESS. pgbench returned the tps excluding connections establishing."
+  else
+    echo "FAILED. pgbench did not returned the tps excluding connections establishing."
+    return 1
+  fi
+}
+
+check_pgbench_timed_out() {
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGDbOps
+metadata:
+  name: benchmark
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: benchmark
+  timeout: PT1S
+  benchmark:
+    type: pgbench
+    pgbench:
+      databaseSize: 64Mi
+      duration: PT10S
+EOF
+
+  if kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+    --for condition=Failed
+  then
+    echo "SUCCESS. pgbench failed."
+  else
+    echo "FAILED. pgbench did not fail."
+    return 1
+  fi
+
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
+    -l "cluster-name=$CLUSTER_NAME,db-ops=true" \
+    -o name 2>/dev/null | wc -l)" = 1 ]
+  then
+    echo "SUCCESS. pgbench job was not removed after failure."
+  else
+    echo "FAILED. pgbench job was removed after failure."
+    return 1
+  fi
+
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" benchmark
+
+  if wait_until eval '[ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
+    -l "cluster-name=$CLUSTER_NAME,db-ops=true" \
+    -o name 2>/dev/null | wc -l)" = 0 ]'
+  then
+    echo "SUCCESS. pgbench job was removed after sgdbops was removed."
+  else
+    echo "FAILED. pgbench job was not removed after sgdbops was removed."
+    return 1
+  fi
+}

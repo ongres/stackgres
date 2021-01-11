@@ -27,6 +27,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsDefinition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDefinition;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDefinition;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDefinition;
@@ -143,7 +144,8 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
                 StackGresPostgresConfigDefinition.PLURAL,
                 StackGresPoolingConfigDefinition.PLURAL,
                 StackGresProfileDefinition.PLURAL,
-                StackGresDistributedLogsDefinition.PLURAL)
+                StackGresDistributedLogsDefinition.PLURAL,
+                StackGresDbOpsDefinition.PLURAL)
             .withVerbs("get", "list", "watch", "patch")
             .build())
         .build();

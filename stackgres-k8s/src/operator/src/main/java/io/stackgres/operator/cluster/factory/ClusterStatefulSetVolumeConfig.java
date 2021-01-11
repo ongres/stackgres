@@ -29,6 +29,8 @@ public enum ClusterStatefulSetVolumeConfig {
       "socket", ClusterStatefulSetPath.PG_RUN_PATH)),
   SHARED_MEMORY(VolumeConfig.inMemoryEmptyDir(
       "dshm", ClusterStatefulSetPath.SHARED_MEMORY_PATH)),
+  SHARED(VolumeConfig.onDiskEmptyDir(
+      "shared", ClusterStatefulSetPath.SHARED_PATH)),
   LOCAL(VolumeConfig.onDiskEmptyDir(
       "local", ImmutableList.of(
           VolumePathConfig.of(ClusterStatefulSetPath.LOCAL_BIN_PATH),

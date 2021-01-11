@@ -32,6 +32,10 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDoneable;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsDefinition;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsDoneable;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsList;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDefinition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDoneable;
@@ -117,6 +121,13 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
         StackGresBackup.class,
         StackGresBackupList.class,
         StackGresBackupDoneable.class,
+        reconcileCluster()));
+
+    monitors.add(createWatcher(
+        StackGresDbOpsDefinition.CONTEXT,
+        StackGresDbOps.class,
+        StackGresDbOpsList.class,
+        StackGresDbOpsDoneable.class,
         reconcileCluster()));
 
     monitors.add(createWatcher(

@@ -23,6 +23,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.ResourceUtil;
@@ -51,6 +52,8 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
 
   public abstract ImmutableList<StackGresBackup> getBackups();
 
+  public abstract ImmutableList<StackGresDbOps> getDbOps();
+
   public abstract Optional<Prometheus> getPrometheus();
 
   public abstract List<StackGresClusterScriptEntry> getInternalScripts();
@@ -71,6 +74,8 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
 
   public abstract String getBackupKey();
 
+  public abstract String getDbOpsKey();
+
   @Override
   public abstract ImmutableMap<String, String> getLabels();
 
@@ -89,9 +94,16 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
     return resource instanceof Pod
         && resource.getMetadata().getNamespace().equals(getClusterNamespace())
         && (Objects.equals(resource.getMetadata().getLabels().get(getScheduledBackupKey()),
-        StackGresContext.RIGHT_VALUE)
+            StackGresContext.RIGHT_VALUE)
             || Objects.equals(resource.getMetadata().getLabels().get(getBackupKey()),
                 StackGresContext.RIGHT_VALUE));
+  }
+
+  public boolean isDbOpsPod(HasMetadata resource) {
+    return resource instanceof Pod
+        && resource.getMetadata().getNamespace().equals(getClusterNamespace())
+        && Objects.equals(resource.getMetadata().getLabels().get(getDbOpsKey()),
+                StackGresContext.RIGHT_VALUE);
   }
 
   /**

@@ -1,0 +1,370 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: sgdbops.stackgres.io
+spec:
+  group: stackgres.io
+  scope: Namespaced
+  names:
+    kind: SGDbOps
+    listKind: SGDbOpsList
+    plural: sgdbops
+    singular: sgdbops
+    shortNames:
+      - sgdo
+  versions:
+    - name: v1beta1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          required: ["metadata", "spec"]
+          type: object
+          properties:
+            metadata:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: |
+                    Name of the Database Operation. A database operation represents a ""kind"" of operation on a StackGres cluster, classified by a given name. The operation reference one SGCluster by its name. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the `-` character allowed anywhere except the first or last character.
+
+                    The name must be unique across all database operations in the same namespace."
+            spec:
+              type: object
+              properties:
+                sgCluster:
+                  type: string
+                  description: |
+                    The name of SGCluster on which the operation will be performed
+                op:
+                  type: string
+                  description: |
+                    The kind of operation that will be performed on the SGCluster. Available operations are:
+
+                    * `benchmark`: run a benchmark on the specified SGCluster and report the results in the status.
+                    * `vacuum`: perform a [vacuum](https://www.postgresql.org/docs/current/sql-vacuum.html) operation on the specified SGCluster.
+                    * `repack`: run [`pg_repack`](https://github.com/reorg/pg_repack) command on the specified SGCluster.
+                    * `majorVersionUpgrade`: perform a major version upgrade of PostgreSQL using [`pg_upgrade`](https://www.postgresql.org/docs/current/pgupgrade.html) command.
+                runAt:
+                  type: string
+                  description: |
+                    An ISO 8601 date, that holds UTC scheduled date of the operation execution.
+
+                    If not specified or date it’s in the past it will be interpreted as ASAP.
+                timeout:
+                  type: string
+                  description: |
+                    An ISO 8601 duration format `PnDTnHnMn.nS`, that specify a timeout after which the operation execution will not be performed.
+
+                    If the operation can not be performed due to timeout expiration the condition `Failed` will have a status of `True` and and the reason will be `TimedOut`.
+
+                    If not specified the operation will never fail for timeout expiration.
+                maxRetries:
+                  type: integer
+                  description: |
+                    The maximum number of retries the operation is allowed to do after a failure.
+
+                    If not specified this default to `1`. Can not be greater than `10`.
+                benchmark:
+                  type: object
+                  description: |
+                    Configuration of the benchmark
+                  properties:
+                    type:
+                      type: string
+                      description: |
+                        The type of benchmark that will be performed on the SGCluster. Available benchamrks are:
+
+                        * `pgbench`: run [pgnech](https://www.postgresql.org/docs/current/pgbench.html) on the specified SGCluster and report the results in the status.
+                    pgbench:
+                      type: object
+                      description: |
+                        Configuration of [pgbench](https://www.postgresql.org/docs/current/pgbench.html) benchmark
+                      properties:
+                        databaseSize:
+                          type: string
+                          pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi|Ti)$'
+                          description: |
+                            Size of the database to generate. This size is specified either in Mebibytes, Gibibytes or Tebibytes (multiples of 2^20, 2^30 or 2^40, respectively).
+                        duration:
+                          type: string
+                          description: |
+                            An ISO 8601 duration format `PnDTnHnMn.nS`, that specify the duration of the benchmark.
+                        usePreparedStatements:
+                          type: boolean
+                          description: |
+                            Use extended query protocol with prepared statements. If not specified is considered `false`.
+                        concurrentClients:
+                          type: integer
+                          description: |
+                            Number of clients simulated, that is, number of concurrent database sessions. Default is 1.
+                        threads:
+                          type: integer
+                          description: |
+                            Number of worker threads within pgbench. Using more than one thread can be helpful on multi-CPU machines. Clients are distributed as evenly as possible among available threads. Default is 1.
+                      required: [ "databaseSize", "duration" ]
+                    connectionType:
+                      type: string
+                      description: |
+                        Specify where the benchmark connection will be directed:
+
+                        * `primary-service`: Connect to the primary service
+                        * `replicas-service`: Connect to the replicas service
+                  required: [ "type" ]
+                vacuum:
+                  type: object
+                  description: |
+                    Configuration of [vacuum](https://www.postgresql.org/docs/current/sql-vacuum.html) operation
+                  properties:
+                    full:
+                      type: boolean
+                      description: |
+                        If true selects "full" vacuum, which can reclaim more space, but takes much longer and exclusively locks the table.
+                        This method also requires extra disk space, since it writes a new copy of the table and doesn't release the old copy
+                         until the operation is complete. Usually this should only be used when a significant amount of space needs to be
+                         reclaimed from within the table. By default false
+                    freeze:
+                      type: boolean
+                      description: |
+                        If true selects aggressive "freezing" of tuples. Specifying FREEZE is equivalent to performing VACUUM with the
+                         vacuum_freeze_min_age and vacuum_freeze_table_age parameters set to zero. Aggressive freezing is always performed
+                         when the table is rewritten, so this option is redundant when FULL is specified. By default false
+                    analyze:
+                      type: boolean
+                      description: |
+                        If true, updates statistics used by the planner to determine the most efficient way to execute a query. By default true
+                    disablePageSkipping:
+                      type: boolean
+                      description: |
+                        Normally, VACUUM will skip pages based on the visibility map. Pages where all tuples are known to be frozen can always be
+                         skipped, and those where all tuples are known to be visible to all transactions may be skipped except when performing an
+                         aggressive vacuum. Furthermore, except when performing an aggressive vacuum, some pages may be skipped in order to avoid
+                         waiting for other sessions to finish using them. This option disables all page-skipping behavior, and is intended to be
+                         used only when the contents of the visibility map are suspect, which should happen only if there is a hardware or
+                         software issue causing database corruption. By default false
+                    databases:
+                      type: array
+                      description: |
+                        List of database to vacuum or repack, don't specify to select all databases
+                      items:
+                        type: object
+                        required: [ "name" ]
+                        properties:
+                          name:
+                            type: string
+                            description: the name of the database
+                          full:
+                            type: boolean
+                            description: |
+                              If true selects "full" vacuum, which can reclaim more space, but takes much longer and exclusively locks the table.
+                              This method also requires extra disk space, since it writes a new copy of the table and doesn't release the old copy
+                               until the operation is complete. Usually this should only be used when a significant amount of space needs to be
+                               reclaimed from within the table. By default false
+                          freeze:
+                            type: boolean
+                            description: |
+                              If true selects aggressive "freezing" of tuples. Specifying FREEZE is equivalent to performing VACUUM with the
+                               vacuum_freeze_min_age and vacuum_freeze_table_age parameters set to zero. Aggressive freezing is always performed
+                               when the table is rewritten, so this option is redundant when FULL is specified. By default false
+                          analyze:
+                            type: boolean
+                            description: |
+                              If true, updates statistics used by the planner to determine the most efficient way to execute a query. By default true
+                          disablePageSkipping:
+                            type: boolean
+                            description: |
+                              Normally, VACUUM will skip pages based on the visibility map. Pages where all tuples are known to be frozen can always be
+                               skipped, and those where all tuples are known to be visible to all transactions may be skipped except when performing an
+                               aggressive vacuum. Furthermore, except when performing an aggressive vacuum, some pages may be skipped in order to avoid
+                               waiting for other sessions to finish using them. This option disables all page-skipping behavior, and is intended to be
+                               used only when the contents of the visibility map are suspect, which should happen only if there is a hardware or
+                               software issue causing database corruption. By default false
+                repack:
+                  type: object
+                  description: |
+                    Configuration of [`pg_repack`](https://github.com/reorg/pg_repack) command
+                  properties:
+                    noOrder:
+                      type: boolean
+                      description: |
+                        If true do vacuum full instead of cluster. By default false.
+                    waitTimeout:
+                      type: string
+                      description: |
+                        If specified, an ISO 8601 duration format `PnDTnHnMn.nS` to set a timeout to cancel other backends on conflict.
+                    noKillBackend:
+                      type: boolean
+                      description: |
+                        If true don't kill other backends when timed out. By default false.
+                    noAnalyze:
+                      type: boolean
+                      description: |
+                        If true don't analyze at end. By default false.
+                    excludeExtension:
+                      type: boolean
+                      description: |
+                        If true don't repack tables which belong to specific extension. By default false.
+                    databases:
+                      type: array
+                      description: |
+                        List of database to vacuum or repack, don't specify to select all databases
+                      items:
+                        type: object
+                        required: [ "name" ]
+                        properties:
+                          name:
+                            type: string
+                            description: the name of the database
+                          noOrder:
+                            type: boolean
+                            description: |
+                              If true do vacuum full instead of cluster. By default false.
+                          waitTimeout:
+                            type: string
+                            description: |
+                              If specified, an ISO 8601 duration format `PnDTnHnMn.nS` to set a timeout to cancel other backends on conflict.
+                          noKillBackend:
+                            type: boolean
+                            description: |
+                              If true don't kill other backends when timed out. By default false.
+                          noAnalyze:
+                            type: boolean
+                            description: |
+                              If true don't analyze at end. By default false.
+                          excludeExtension:
+                            type: boolean
+                            description: |
+                              If true don't repack tables which belong to specific extension. By default false.
+                majorVersionUpgrade:
+                  type: object
+                  description: |
+                    Configuration of major version upgrade (see also [`pg_upgrade`](https://www.postgresql.org/docs/current/pgupgrade.html) command)
+                  properties:
+                    link:
+                      type: boolean
+                      description: |
+                        If true use hard links instead of copying files to the new cluster. This option is mutually exclusive with `clone`. By default false.
+                    clone:
+                      type: boolean
+                      description: |
+                        If true use efficient file cloning (also known as "reflinks" on some systems) instead of copying files to the new cluster.
+                        This can result in near-instantaneous copying of the data files, giving the speed advantages of `link` while leaving the old
+                         cluster untouched. This option is mutually exclusive with `link`. By default false.
+
+                        File cloning is only supported on some operating systems and file systems. If it is selected but not supported, the pg_upgrade
+                         run will error. At present, it is supported on Linux (kernel 4.5 or later) with Btrfs and XFS (on file systems created with
+                         reflink support), and on macOS with APFS.
+                    check:
+                      type: boolean
+                      description: |
+                        If true check clusters before changing any data. By default false.
+              required: ["sgCluster", "op"]
+            status:
+              type: object
+              properties:
+                conditions:
+                  type: array
+                  description: |
+                    Possible conditions are:
+
+                    * Running: to indicate when the operation is actually running
+                    * Completed: to indicate when the operation is completed successfully
+                    * Failed: to indicate when the operation had failed
+                  items:
+                    type: object
+                    properties:
+                      lastTransitionTime:
+                        description: Last time the condition transitioned from one status to another.
+                        type: string
+                      message:
+                        description: A human readable message indicating details about the transition.
+                        type: string
+                      reason:
+                        description: The reason for the condition's last transition.
+                        type: string
+                      status:
+                        description: Status of the condition, one of True, False, Unknown.
+                        type: string
+                      type:
+                        description: Type of deployment condition.
+                        type: string
+                opRetries:
+                  type: integer
+                  description: |
+                    The number of retries performed by the operation
+                opStarted:
+                  type: string
+                  description: |
+                    The ISO 8601 timestamp of when the operation started running
+                benchmark:
+                  type: object
+                  description: |
+                    The results of the benchmark
+                  properties:
+                    pgbench:
+                      type: object
+                      description: |
+                        The results of the pgbench benchmark
+                      properties:
+                        scaleFactor:
+                          type: number
+                          nullable: true
+                          description: |
+                            The scale factor user to run pgbench (`--scale`).
+                        transactionsProcessed:
+                          type: integer
+                          nullable: true
+                          description: |
+                            The number of transaction processed.
+                        latencyAverage:
+                          type: number
+                          nullable: true
+                          description: |
+                            Average latency of transactions.
+                        latencyStddev:
+                          type: number
+                          nullable: true
+                          description: |
+                            Stdandard deviation latency of transactions.
+                        tpsIncludingConnectionsEstablishing:
+                          type: number
+                          nullable: true
+                          description: |
+                            Number of transaction per second including connection establishing.
+                        tpsExcludingConnectionsEstablishing:
+                          type: number
+                          nullable: true
+                          description: |
+                            Number of transaction per second excluding connection establishing.
+                majorVersionUpgrade:
+                  type: object
+                  description: |
+                    The results of a major version upgrade
+                  properties:
+                    primaryInstance:
+                      type: string
+                      description: |
+                        The primary instance when the operation started
+                    initialInstances:
+                      type: array
+                      description: |
+                        The instances present when the operation started
+                      items:
+                        type: string
+                    pendingToRestartInstances:
+                      type: array
+                      description: |
+                        The instances that are pending to be restarted
+                      items:
+                        type: string
+                    restartedInstances:
+                      type: array
+                      description: |
+                        The instances that have been restarted
+                      items:
+                        type: string
+                    failure:
+                      type: string
+                      description: |
+                        A failure message (when available)

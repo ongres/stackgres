@@ -81,7 +81,7 @@ public class ClusterReconciliator
 
   @Override
   protected void onPostConfigReconcilied(KubernetesClient client, StackGresClusterContext context) {
-    statusManager.updatePendingRestart(context);
+    statusManager.updatePendingRestart(context, client);
   }
 
 }

@@ -119,13 +119,31 @@ public class ValidationUtils {
 
   public static String getConstraintMessage(Class<?> from, String field, Class<? extends Annotation> constraint) {
     try {
-      final Annotation annotation = from.getDeclaredField(field).getAnnotation(constraint);
+      Annotation annotation;
+      AssertionFailedError ex = new AssertionFailedError(
+          constraint.getName() + " is not valid constraint annotation");
+      while (true) {
+        try {
+          annotation = from.getDeclaredField(field).getAnnotation(constraint);
+          break;
+        } catch (NoSuchFieldException e) {
+          ex.addSuppressed(e);
+        }
+        try {
+          annotation = from.getDeclaredMethod(field).getAnnotation(constraint);
+          break;
+        } catch (NoSuchMethodException e) {
+          ex.addSuppressed(e);
+        }
+        from = from.getSuperclass();
+        if (from == Object.class) {
+          throw ex;
+        }
+      }
 
       Method messageMethod = annotation.getClass().getDeclaredMethod("message");
 
       return (String) messageMethod.invoke(annotation);
-    } catch (NoSuchFieldException e) {
-      throw new AssertionFailedError(field + " field not found", e);
     } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
       throw new AssertionFailedError(constraint.getName() + " is not valid constraint annotation", e);
     }

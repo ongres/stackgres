@@ -49,8 +49,8 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
 
   public static final String POST_INIT_SUFFIX = "-post-init";
 
-  private static final String IMAGE_NAME = "docker.io/ongres/patroni:v%s-pg%s-build-%s";
-  private static final String DEFAULT_VERSION = StackGresComponents.get("patroni");
+  public static final String IMAGE_NAME = "docker.io/ongres/patroni:v%s-pg%s-build-%s";
+  public static final String DEFAULT_VERSION = StackGresComponents.get("patroni");
 
   private final PatroniRequirements resourceRequirementsFactory;
   private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;

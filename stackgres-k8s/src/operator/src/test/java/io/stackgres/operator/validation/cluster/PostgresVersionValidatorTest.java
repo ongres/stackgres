@@ -45,11 +45,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PostgresVersionValidatorTest {
 
   private static final ImmutableList<String> supportedPostgresVersions =
-      ImmutableList.of("12.0", "11.5");
+      ImmutableList.of("12.0", "11.5", "11.4");
   private static final ImmutableList<String> allSupportedPostgresVersions =
-      Seq.seq(supportedPostgresVersions)
-      .append(StackGresComponents.LATEST)
-      .append(Seq.seq(supportedPostgresVersions).map(StackGresComponents::getPostgresMajorVersion))
+      Seq.of(StackGresComponents.LATEST)
+      .append(Seq.seq(supportedPostgresVersions)
+          .flatMap(version -> Seq.of(StackGresComponents.getPostgresMajorVersion(version), version)))
       .collect(ImmutableList.toImmutableList());
 
   private static String getRandomPostgresVersion() {
@@ -263,27 +263,20 @@ class PostgresVersionValidatorTest {
   }
 
   @Test
-  void givenMajorPostgresVersionUpdate_shouldFail() {
+  void givenMajorPostgresVersionUpdate_shouldPass() throws ValidationFailed {
 
     final StackGresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/major_postgres_version_update.json",
             StackGresClusterReview.class);
 
-    ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
-      validator.validate(review);
-    });
-
-    String resultMessage = exception.getResult().getMessage();
-
-    assertEquals("postgresVersion can not be changed to a different major version", resultMessage);
-
+    validator.validate(review);
   }
 
   @Test
-  void givenMinorPostgresVersionUpdate_shouldFail() {
+  void givenWrongMajorPostgresVersionUpdate_shouldFail() {
 
     final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/minor_postgres_version_update.json",
+        .readFromJson("cluster_allow_requests/wrong_major_postgres_version_update.json",
             StackGresClusterReview.class);
 
     ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
@@ -292,9 +285,18 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("Unsupported postgresVersion 11.4.  Supported postgres versions are: "
-        + StackGresComponents.getAllOrderedPostgresVersions().toString(", "), resultMessage);
+    assertEquals("postgresVersion can not be changed to a previous major version", resultMessage);
 
+  }
+
+  @Test
+  void givenMinorPostgresVersionUpdate_shouldPass() throws ValidationFailed {
+
+    final StackGresClusterReview review = JsonUtil
+        .readFromJson("cluster_allow_requests/minor_postgres_version_update.json",
+            StackGresClusterReview.class);
+
+    validator.validate(review);
   }
 
   @Test

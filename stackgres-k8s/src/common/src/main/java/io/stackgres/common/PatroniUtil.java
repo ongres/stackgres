@@ -18,4 +18,8 @@ public class PatroniUtil {
   public static String readWriteName(String clusterName) {
     return ResourceUtil.resourceName(clusterName + READ_WRITE_SERVICE);
   }
+
+  public static String readOnlyName(String clusterName) {
+    return ResourceUtil.resourceName(clusterName + READ_ONLY_SERVICE);
+  }
 }

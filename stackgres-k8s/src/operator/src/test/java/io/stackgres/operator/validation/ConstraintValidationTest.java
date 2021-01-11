@@ -5,7 +5,9 @@
 
 package io.stackgres.operator.validation;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.lang.annotation.Annotation;
 
@@ -112,8 +114,13 @@ public abstract class ConstraintValidationTest<T extends AdmissionReview<?>> {
 
   protected void checkErrorCause(Class<?> outerClass, String fieldPath, T review,
                                  Class<? extends Annotation> constraint){
+    checkErrorCause(outerClass, fieldPath, fieldPath, review, constraint);
+  }
 
-    String lastField = getLastField(fieldPath);
+  protected void checkErrorCause(Class<?> outerClass, String fieldPath, String validationPath,
+      T review, Class<? extends Annotation> constraint){
+
+    String lastField = getLastField(validationPath);
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> validator.validate(review));
 

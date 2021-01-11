@@ -14,7 +14,6 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -30,13 +29,12 @@ public class ClusterStatusManager extends AbstractClusterStatusManager<
     StackGresClusterContext, StackGresClusterCondition> {
 
   @Inject
-  public ClusterStatusManager(KubernetesClientFactory clientFactory,
-      LabelFactory<StackGresCluster> labelFactory) {
-    super(clientFactory, labelFactory);
+  public ClusterStatusManager(LabelFactory<StackGresCluster> labelFactory) {
+    super(labelFactory);
   }
 
   public ClusterStatusManager() {
-    super(null, null);
+    super(null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 

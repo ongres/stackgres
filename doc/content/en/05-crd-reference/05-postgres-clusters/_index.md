@@ -163,7 +163,7 @@ Specifies the cluster initialization data configurations
 | Property                          | Required | Updatable | Type     | Default | Description |
 |:----------------------------------|----------|-----------|:---------|:--------|:------------|
 | [restore](#restore-configuration) |          |           | object   |         | {{< crd-field-description SGCluster.spec.initialData.restore >}} |
-| [scripts](#scripts-configuration) |          |           | object   |         | {{< crd-field-description SGCluster.spec.initialData.scripts >}} |
+| [scripts](#scripts-configuration) |          |           | array    |         | {{< crd-field-description SGCluster.spec.initialData.scripts >}} |
 
 ## Restore configuration
 

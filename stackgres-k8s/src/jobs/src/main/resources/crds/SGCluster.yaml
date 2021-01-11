@@ -267,7 +267,7 @@ spec:
                         Name of the [SGDistributedLogs](https://stackgres.io/doc/latest/04-postgres-cluster-management/06-distributed-logs/) to use for this cluster. It must exist.
                     retention:
                       type: string
-                      pattern: '[0-9]+ (minutes?|hours?|days?|months?)'
+                      pattern: '^[0-9]+ (minutes?|hours?|days?|months?)'
                       description: |
                         Define a retention window with the syntax `<integer> (minutes|hours|days|months)` in which log entries are kept.
                          Log entries will be removed when they get older more than the double of the specified retention window.
@@ -300,3 +300,53 @@ spec:
                       type:
                         description: Type of deployment condition.
                         type: string
+                dbOps:
+                  type: object
+                  description: |
+                    Used by some [SGDbOps](https://stackgres.io/doc/latest/reference/crd/sgdbops) to indicate the operation configuration and status to the operator.
+                  properties:
+                    majorVersionUpgrade:
+                      type: object
+                      description: |
+                        The major version upgrade configuration and status
+                      properties:
+                        initialInstances:
+                          type: string
+                          description: |
+                            A comma separated list of instances that this operation is targetting
+                        primaryInstance:
+                          type: string
+                          description: |
+                            The primary instance that this operation is targetting
+                        sourcePostgresVersion:
+                          type: string
+                          description: |
+                            The source PostgreSQL version
+                        targetPostgresVersion:
+                          type: string
+                          description: |
+                            The target PostgreSQL version
+                        locale:
+                          type: string
+                          description: |
+                            The PostgreSQL locale
+                        encoding:
+                          type: string
+                          description: |
+                            The PostgreSQL encoding
+                        dataChecksum:
+                          type: boolean
+                          description: |
+                            Indicate if PostgreSQL data checksum is enabled
+                        link:
+                          type: boolean
+                          description: |
+                            Use `--link` option when running `pg_upgrade`
+                        clone:
+                          type: boolean
+                          description: |
+                            Use `--clone` option when running `pg_upgrade`
+                        check:
+                          type: boolean
+                          description: |
+                            Run `pg_upgrade` with check option before performing the real upgrade

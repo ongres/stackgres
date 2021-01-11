@@ -40,18 +40,57 @@ setup_images() {
       || ! helm list --all-namespaces | grep -q "^stackgres-operator\s"
     )
   then
+    build_components
     (
-    cd "$STACKGRES_PATH/src"
-    ./mvnw -q clean package -DskipTests
-    (
-    echo 'sh operator/src/main/buildah/build-image-jvm.sh'
-    echo 'sh api-web/src/main/buildah/build-image-jvm.sh'
-    echo 'sh jobs/src/main/buildah/build-image-jvm.sh'
-    echo 'sh distributedlogs-controller/src/main/buildah/build-image-jvm.sh'
-    echo 'sh admin-ui/build.sh; sh admin-ui/buildah/build.sh'
-    ) | xargs -n 1 -I % -P 0 sh -c %
-    )
+    echo build_operator_image
+    echo build_restapi_image
+    echo build_jobs_image
+    echo build_distributedlogs_controller_image
+    echo build_adminui_image
+    ) | xargs -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" %
   fi
+}
+
+build_components() {
+  (
+  cd "$STACKGRES_PATH/src"
+  ./mvnw -q clean package -DskipTests
+  )
+}
+
+build_operator_image() {
+  (
+  cd "$STACKGRES_PATH/src"
+  sh operator/src/main/buildah/build-image-jvm.sh
+  )
+}
+
+build_restapi_image() {
+  (
+  cd "$STACKGRES_PATH/src"
+  sh api-web/src/main/buildah/build-image-jvm.sh
+  )
+}
+
+build_jobs_image() {
+  (
+  cd "$STACKGRES_PATH/src"
+  sh jobs/src/main/buildah/build-image-jvm.sh
+  )
+}
+
+build_distributedlogs_controller_image() {
+  (
+  cd "$STACKGRES_PATH/src"
+  sh distributedlogs-controller/src/main/buildah/build-image-jvm.sh
+  )
+}
+
+build_adminui_image() {
+  (
+  cd "$STACKGRES_PATH/src"
+  sh admin-ui/build.sh; sh admin-ui/buildah/build.sh
+  )
 }
 
 create_operator_certificate() {
@@ -238,7 +277,7 @@ install_operator() {
   kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null 2>&1 \
     || kubectl create namespace "$OPERATOR_NAMESPACE"
 
-  if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" -o
+  if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" -o \
     -z "$STACKGRES_PREVIOUS_VERSION" ]
   then
     install_operator_previous_version "$@"
@@ -307,6 +346,8 @@ upgrade_operator() {
     --set-string "operator.image.pullPolicy=$(operator_pull_policy)" \
     --set-string restapi.image.name="${RESTAPI_IMAGE_NAME%:*}" --set-string restapi.image.tag="${RESTAPI_IMAGE_NAME#*:}" \
     --set-string "restapi.image.pullPolicy=$(operator_pull_policy)" \
+    --set-string jobs.image.name="${JOBS_IMAGE_NAME%:*}" --set-string jobs.image.tag="${JOBS_IMAGE_NAME#*:}" \
+    --set-string "jobs.image.pullPolicy=$(operator_pull_policy)" \
     --set-string adminui.image.name="${ADMINUI_IMAGE_NAME%:*}" --set-string adminui.image.tag="${ADMINUI_IMAGE_NAME#*:}" \
     --set-string "adminui.image.pullPolicy=$(operator_pull_policy)" \
     --reuse-values \

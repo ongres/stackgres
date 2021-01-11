@@ -32,12 +32,12 @@
         <dependency>
             <groupId>org.jboss.slf4j</groupId>
             <artifactId>slf4j-jboss-logging</artifactId>
-            <version>1.2.0.Final</version>
+            <version>1.2.0.Final</version><!--$NO-MVN-MAN-VER$-->
         </dependency>
         <dependency>
             <groupId>org.graalvm.sdk</groupId>
             <artifactId>graal-sdk</artifactId>
-            <version>${graalvm.version}</version>
+            <version>${graalvm.version}</version><!--$NO-MVN-MAN-VER$-->
         </dependency>
         <dependency>
             <groupId>org.graalvm.nativeimage</groupId>

@@ -48,7 +48,7 @@
       },
       "spec": {
         "instances": 1,
-        "postgresVersion": "11.4",
+        "postgresVersion": "11.5",
         "sgInstanceProfile": "size-xs",
         "configurations": {
           "sgPostgresConfig": "postgresconf",
@@ -78,7 +78,7 @@
       },
       "spec": {
         "instances": 1,
-        "postgresVersion": "11.3",
+        "postgresVersion": "11.4",
         "configurations": {
           "sgPostgresConfig": "postgresconf",
           "sgPoolingConfig": "pgbouncerconf"
