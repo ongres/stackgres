@@ -13,7 +13,7 @@ Some applications, do not handle connection closing properly, which may require 
 
 ## Reloading configuration
 
-In the [Customizing Pooling configuration section]({{% relref "05-crd-reference/05-postgres-clusters/" %}}), it is explained the different sauces for scaling connections properly.
+In the [Customizing Pooling configuration section]({{% relref "05-crd-reference/07-connection-pooling-configuration/#pgbouncer" %}}), it is explained the different sauces for scaling connections properly.
 
 Each configuration, once applied, need to be _reloaded_. This can be done by getting the corresponding primary node pod name and issue the same signal it is done on most of the environments:
 
