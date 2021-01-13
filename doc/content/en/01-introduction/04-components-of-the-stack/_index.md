@@ -114,7 +114,7 @@ all the logs in Postgres using [Timescale](https://github.com/timescale/timescal
 
 ## Proxy
 
-How do I locate the master, if it might be changing? How do I obtain traffic metrics? It is possible to manage traffic:
+How do I locate the master, if it might be changing? How do I obtain traffic [metrics]({{% relref "04-administration-guide/17-monitoring/01-metrics/#envoy-proxy-metrics" %}})? It is possible to manage traffic:
 duplicate, A/B to test cluster or event inspect it?
 
 [Envoy](https://www.envoyproxy.io/) is an open source edge and service proxy, designed for cloud-native applications. It is
