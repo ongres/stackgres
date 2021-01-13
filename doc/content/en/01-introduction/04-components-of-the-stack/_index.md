@@ -122,6 +122,8 @@ extensible in order to provide advanced functionality based on the actual traffi
 in order to offer stats) or on connection characteristic (like the TLS certificate in order to chose to which node the
 connection have to be dispatched.
 
+OnGres Inc. sponsors the Envoy Proxy project, with contributions such as exposing [stat metrics](https://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/network_filters/postgres_proxy_filter#statistics) and SSL support (currently WIP).
+
 ## Monitoring
 
 Which monitoring solution can we use to monitor a Postgres cluster?
