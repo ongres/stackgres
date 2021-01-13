@@ -119,7 +119,6 @@ ___
 | Property                                   | Required | Updatable | Type     | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
 | method                                     |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.restart.method >}} |
-| restartPrimaryFirst                        |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.restart.restartPrimaryFirst >}} |
 
 ## Minor Version Upgrade
 

@@ -277,13 +277,6 @@ spec:
                           last longer so we encourage use the reduced impact restart and especially for a production environment.
                         * `ReducedImpact`: this procedure is the same as the in-place method but require additional
                           resources in order to spawn a new updated replica that will be removed when the procedure completes.
-                    restartPrimaryFirst:
-                      type: boolean
-                      description: |
-                        If true, restart primary pod at the beginning of the operation. By default is fasle.
-                        
-                        Required to avoid losing data when `max_connections`, `max_prepared_transactions`, `max_wal_senders`,
-                         `max_wal_senders` or `max_locks_per_transaction` are changed to a lower value than they were set.
                 minorVersionUpgrade:
                   type: object
                   description: |

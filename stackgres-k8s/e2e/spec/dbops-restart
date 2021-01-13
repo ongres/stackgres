@@ -12,8 +12,6 @@ e2e_test() {
 
   run_test "Checking that restart in-place is working" check_restart_in_place_is_working
 
-  run_test "Checking that restart with restart primary first is working" check_restart_with_restart_primary_first_is_working
-
   run_test "Checking that restart timeout works correctly" check_restart_timed_out
 
   run_test "Checking that restart can be repeated if failed" check_restart_repeat
@@ -75,27 +73,6 @@ spec:
   op: restart
   restart:
     method: InPlace
-EOF
-
-  check_restart
-
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" restart
-}
-
-check_restart_with_restart_primary_first_is_working() {
-  reset_cluster
-
-  cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
-kind: SGDbOps
-metadata:
-  name: restart
-  namespace: $CLUSTER_NAMESPACE
-spec:
-  sgCluster: $CLUSTER_NAME
-  op: restart
-  restart:
-    restartPrimaryFirst: true
 EOF
 
   check_restart

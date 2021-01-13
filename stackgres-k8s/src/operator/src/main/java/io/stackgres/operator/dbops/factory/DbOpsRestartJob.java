@@ -72,7 +72,7 @@ public class DbOpsRestartJob extends DbOpsJob {
             .withValue(Optional.ofNullable(restart)
                 .map(StackGresDbOpsRestart::getRestartPrimaryFirst)
                 .map(String::valueOf)
-                .orElse("false"))
+                .orElse("true"))
             .build(),
             new EnvVarBuilder()
             .withName("CLUSTER_CRD_NAME")

@@ -69,7 +69,7 @@ public class DbOpsMinorVersionUpgradeJob extends DbOpsJob {
             .build(),
             new EnvVarBuilder()
             .withName("RESTART_PRIMARY_FIRST")
-            .withValue("false")
+            .withValue("true")
             .build(),
             new EnvVarBuilder()
             .withName("CLUSTER_CRD_NAME")
