@@ -18,3 +18,8 @@ mkdir -p target/public/info
 "$SHELL" $SHELL_XTRACE ../api-web/src/main/swagger/build.sh
 cp ../api-web/target/swagger-merged.json target/public/info/sg-tooltips.json
 
+
+# Export SG version to show on the UI
+grep '<artifactId>stackgres-parent</artifactId>' "../pom.xml" -A 2 -B 2 \
+ | grep -oP '(?<=<version>).*?(?=</version>)' \
+ | xargs -I % echo '{"version":"%"}' > target/public/info/sg-info.json
