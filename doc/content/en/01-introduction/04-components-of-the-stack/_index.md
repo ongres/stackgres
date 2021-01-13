@@ -12,7 +12,7 @@ Exists an ecosystem of tools built around Postgres that can be used to build a P
 we call the stack of components.
 
 Choosing the right component of this stack is an hard task. Exists many components that overlap functionalities or have
-pros and cons to take into account before choosing one over another. It is required an high understanding of all the 
+pros and cons to take into account before choosing one over another. It is required an high understanding of all the
 components in order to chose the ones that fit together and provide a production ready Postgres distribution.
 
 ![Components of the Stack](stack.png "Components of the Stack")
@@ -58,7 +58,7 @@ Exists 3 alternatives solutions:
 
 Which one to chose?
 
-The StackGres chosen solution is PgBouncer. It is enough simple and stable to be used for connection pooling. 
+The StackGres chosen solution is PgBouncer. It is enough simple and stable to be used for connection pooling.
 The disadvantage is the lack of multithreading that can lead to CPU saturation when connections increase over certain limit
 that depends on the performance of a single CPU's core where it is running. Odyssey will be a good candidate to replace
 PgBouncer when it will become more mature.
@@ -66,7 +66,7 @@ PgBouncer when it will become more mature.
 ## High availability
 
 If a Postgres instance goes down or is not working properly we want our cluster to recover by choosing a working instance
-to convert to the new master and configure all the other instances and the application to point to this new master. We want
+to convert to the new primary and configure all the other instances and the application to point to this new primary. We want
 all this to happen without manual intervention.
 
 A high availability solution allow to achieve this feature. Exists many solutions to this problem and is really hard to chose
@@ -80,7 +80,7 @@ one among them:
 * [Stolon](https://github.com/sorintlab/stolon)
 
 Patroni is the HA solution chosen for StackGres. It is a well proved solution that relies on distributed consensus
-algorithms in order to provide a consistent mechanism for master election. In particular it is able to use the same
+algorithms in order to provide a consistent mechanism for primary election. In particular it is able to use the same
 distributed consensus algorithm used by Kubernetes so that it does not requires installation of other services.
 
 ## Backup and disaster recovery
@@ -114,13 +114,15 @@ all the logs in Postgres using [Timescale](https://github.com/timescale/timescal
 
 ## Proxy
 
-How do I locate the master, if it might be changing? How do I obtain traffic [metrics]({{% relref "04-administration-guide/17-monitoring/01-metrics/#envoy-proxy-metrics" %}})? It is possible to manage traffic:
+How do I locate the primary, if it might be changing? How do I obtain traffic [metrics]({{% relref "04-administration-guide/17-monitoring/01-metrics/#envoy-proxy-metrics" %}})? It is possible to manage traffic:
 duplicate, A/B to test cluster or event inspect it?
 
 [Envoy](https://www.envoyproxy.io/) is an open source edge and service proxy, designed for cloud-native applications. It is
 extensible in order to provide advanced functionality based on the actual traffic (for example the Postgres could be parsed
 in order to offer stats) or on connection characteristic (like the TLS certificate in order to chose to which node the
 connection have to be dispatched.
+
+It is also capable of exporting [metrics]({{% relref "04-administration-guide/17-monitoring/01-metrics/#envoy-proxy-metrics" %}}) using well established prometheus format.
 
 ## Monitoring
 
@@ -137,14 +139,14 @@ Which monitoring solution can we use to monitor a Postgres cluster?
 
 
 StackGres approach here is to enable as much monitoring solution as possible. Currently, only Prometheus can connect
-to StackGres stats using the [PostgreSQL Server Exporter](https://github.com/wrouesnel/postgres_exporter) 
+to StackGres stats using the [PostgreSQL Server Exporter](https://github.com/wrouesnel/postgres_exporter)
 and integrates as a sidecar offering an auto binding mechanism if prometheus is installed using the [prometheus operator](https://github.com/prometheus-operator/prometheus-operator).
 
 Take in account that Prometheus is a dependency and that StackGres expects that you install and configure it separately.
 
-Of course, StackGres provides an option to deploy Prometheus alongside the StackGres Operator 
-as part of the [Helm chart]({{% relref "03-production-installation/02-installation-via-helm" %}}) 
-and you can follow the steps there to set the Helm chart needed parameters so that monitoring integration works as expected. 
+Of course, StackGres provides an option to deploy Prometheus alongside the StackGres Operator
+as part of the [Helm chart]({{% relref "03-production-installation/02-installation-via-helm" %}})
+and you can follow the steps there to set the Helm chart needed parameters so that monitoring integration works as expected.
 Please, read and review the steps and notes for a successful installation.
 
 Please note that Prometheus will be removed from the Helm chart at some point, so the actual instructions will change and become obsolete.
