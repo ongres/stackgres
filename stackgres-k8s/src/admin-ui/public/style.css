@@ -99,7 +99,7 @@ h1, h2, h3, h4, h5, h6 {
     color: #fff;
 }
 
-.form button.textBtn, .darkmode .form button.textBtn {
+.form button.textBtn {
     padding: 0;
     background: transparent;
     color: var(--blue);
@@ -394,214 +394,6 @@ form#login .warning {
     fill: var(--blue);
 }
 
-.darkmode {
-    color: #e3e3e3;
-    background: #171717;
-    /*transition: all .5s ease-in;*/
-}
-
-.darkmode #nav {
-    background: #222222;
-    /*transition: all .5s ease-in;*/
-
-}
-
-.darkmode #side, .darkmode #nav {
-    background: #1e1e1e;
-    /*transition: all .5s ease-in;*/
-}
-
-.darkmode #nav svg {
-    fill: #7A7B85;
-}
-
-.darkmode a.help g path {
-    fill: #171717;
-}
-
-.darkmode .form button, button, .darkmode a.btn:not(.clear), .darkmode .applyBtn, .darkmode .closeLog:hover, .darkmode .toolbar .filter.open .toggle, .darkmode .toolbar .filter.open .toggle:after, .darkmode .options label.active span, .darkmode .filter .options .active, .darkmode .options input[type="checkbox"].active + span {
-    color: #171717;
-}
-
-.darkmode .daterangepicker td.active:not(:hover) {
-    color: #171717;
-}
-
-.darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode #logo h1, .darkmode .options label, .darkmode .options select, .darkmode ul.select li.selected {
-    color: #e3e3e3;
-}
-
-.darkmode #sets h4, .darkmode h4, .darkmode #sets h3, .darkmode h3, .darkmode h2, .darkmode thead, .darkmode .tabs a, .darkmode #keyword, .darkmode .options li.textFilter .search, .darkmode #help h3.title, .darkmode table.clusterConfig td.label, .darkmode .details th, .darkmode tr.details table td.label, .darkmode .yaml .label, .darkmode .logMessage .param, .darkmode .logDetails td.param, .darkmode tr.details table th.label {
-    color: #a5a5a5;
-}
-
-.darkmode .options label, .darkmode .options select {
-    background-color: #444;
-}
-
-.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode #ns-select, .darkmode .set.active:not(.conf):not(.backups), .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode table.clusterConfig td, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .toolbar .toggle, .darkmode .options, .darkmode .tooltip, .darkmode #helpTooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select, .darkmode .options li.textFilter .search, .darkmode #nav .right > div#clone, .darkmode header .actions, .darkmode #contentTooltip .info {
-    border-color: #333333;
-}
-
-
-.darkmode ul.tabs, .darkmode .content h2, .darkmode .form .header, .darkmode .set.active:not(.conf), .darkmode table.poolConfig tr.details .paramDetails table, .darkmode table.pgConfig tr.details .paramDetails table {
-    border-color: #333333;
-}
-
-.darkmode tr:nth-child(4n+2), .darkmode .options, .darkmode .tooltip, .darkmode #nav .tooltip:before, .darkmode table tr:nth-child(even):not(.base), .darkmode #nav .right > div#clone {
-    background: #1e1e1e;
-}
-
-/*.darkmode .actions svg path {
-    fill: #7A7B85;
-}*/
-
-.darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode #helpTooltip {
-    background-color: #1b1b1b;    
-}
-
-.darkmode .set.active, .darkmode .set.active a:hover, .darkmode .set:hover a:hover, .darkmode .set:not(.active) > ul li, .darkmode #keyword, .darkmode ul.select, .darkmode ul.select.active, .darkmode ul.select.active ul, .darkmode .options li.textFilter .search {
-    background-color: rgba(122, 123, 133, .10);
-}
-
-.darkmode ul#postgresVersion, .darkmode ul#postgresVersion ul, .darkmode table.pgConfig tr:nth-child(4n-2), .darkmode table.pgConfig tr:nth-child(4n-2) + tr.details, .darkmode table.poolConfig tr:nth-child(4n-2), .darkmode table.poolConfig tr:nth-child(4n-2) + tr.details, .darkmode table.backupConfig tr:nth-child(4n-2), .darkmode table.backupConfig tr:nth-child(4n-2) + tr.details, .darkmode table.backups thead, .darkmode #backups th.actions, .darkmode #contentTooltip tr:nth-child(odd), .darkmode #contentTooltip .info {
-    background-color: #171717;
-}
-
-.darkmode ul#postgresVersion a:hover, .darkmode ul.select.active li.selected {
-    background: rgba(122, 123, 133, .10);
-}
-
-.darkmode .set.conf.active{
-    background-color: #1e1e1e;
-}
-
-.darkmode .form input[disabled="disabled"], .darkmode .form select[disabled="disabled"], .darkmode .form textarea[disabled="disabled"], .darkmode .form fieldset[disabled="disabled"], .darkmode label.switch[disabled="disabled"] {
-    background: rgba(51, 51, 51, .75);
-}
-
-.darkmode .form label, .darkmode ul.select a {
-    color: #A5A5A5;
-}
-
-.darkmode ul.select.active li.selected {
-    background: #181618;
-    color: #cdcdcd;
-}
-
-
-/*.darkmode .item:hover {
-    background-color: #2a2e38 !important;
-}*/
-
-.darkmode #nav .tooltip:before {
-    top: -6px;
-}
-
-.darkmode #loader {
-    mix-blend-mode: screen;
-    filter: invert(1) grayscale(1);
-}
-
-.darkmode tr.details.open {
-    background: #323642;
-}
-
-.darkmode table table tbody {
-    border-top-color: #333333;
-    border-bottom: 0;
-}
-
-/*.darkmode tr.details {
-    border: 1px solid #333333;
-}*/
-
-.darkmode tr:nth-child(even), .darkmode tr:nth-child(even) + tr.details {
-    background: #1e1e1e;
-}
-
-.darkmode #backups tr:nth-child(4n+2), .darkmode tr:nth-child(4n+2) + tr.details {
-    background: #171717;
-}
-
-/*.darkmode #backups tr.base.Completed.open {
-    border: 1px solid #333333;
-}*/
-
-.darkmode table table + table {
-    border-top: 1px solid #333333;
-}
-
-.darkmode #ns-select a:hover {
-    background: transparent !important;
-}
-
-.darkmode .clusterInfo tr, .darkmode .podStatus tr, .darkmode .clusterConfig tr {
-    background: #1e1e1e;
-}
-
-.darkmode table.backupConfig tr.base:first-of-type {
-    border-top: 1px solid #333333;
-}
-
-.darkmode table.backupConfig  {
-    border-bottom: 1px solid #333333;
-}
-
-.darkmode table.backupConfig tr:nth-child(4n-2), .darkmode table.backupConfig tr:nth-child(4n-2) + tr.details, .darkmode table.podStatus tr:nth-child(4n-2) {
-    background: #171717;
-}
-
-.darkmode table.backupConfig tr.base.open {
-    border-top: 1px solid #333333;
-}
-
-/*.darkmode table.backupConfig tr.details.open, .darkmode table.backupConfig tr.base.open {
-    border: 1px solid #333333;
-}*/
-
-.darkmode #delete .tooltip  h3 {
-    border-bottom: 1px solid #333333;
-}
-
-.darkmode #delete .tooltip form input {
-    background: #1b1b1b;
-    border: 1px solid #333333;
-    color: var(--gray3);
-} 
-
-.darkmode .grafana iframe {
-    border: none;
-}
-
-.darkmode .podStatus .primary span, .darkmode .pr span, .darkmode .role.pr span {
-    color: var(--gray2);
-    background: #D3D3D640;
-}
-
-.darkmode .podStatus .replica span, .darkmode .re span, .darkmode .role.re span {
-    color: var(--gray3);
-    background: #A6A7AE40;
-}
-
-.darkmode table.loading:after {
-    background: url('img/loader.gif') center center no-repeat rgba(0,0,0,.5);
-    background-size: 80px;
-}
-
-/* Dark mode - Log in */
-
-.darkmode #nav .right > div#signup {
-    background: #1e1e1e;
-    border-color: #333333;
-
-}
-
-.darkmode #signup input {
-    background: #1b1b1b;
-    border-color: #333333;
-    color: #e3e3e3;
-}
 
 #signup input:focus {
     border-color: var(--blue);
@@ -848,6 +640,7 @@ ul.zg-ul-select.active li.active:hover {
     list-style: none;
     line-height: 50px;
     display: none;
+    margin-top: -1px;
 }
 
 #ns-select a {
@@ -1034,7 +827,7 @@ ul.zg-ul-select.active li.active:hover {
 .set:not(.active) > ul.show {
     display: block;
     position: fixed;
-    left: 340px;
+    left: 339px;
     z-index: 2;
 }
 
@@ -1047,11 +840,10 @@ ul.zg-ul-select.active li.active:hover {
     bottom: 0;
     right: 0;
     z-index: 0;
+    border: 1px solid;
 }
 
-.darkmode .set:not(.active) ul.show:before {
-    background-color: #1e1e1e;
-}
+
 
 .set:not(.active) > ul li {
     background: #fff;
@@ -2280,7 +2072,7 @@ ul.select a.active {
     width: 100%;
     height: 220px;
     max-height: 220px;
-    border-radius: 0;
+    border-radius: 6px;
     max-width: 100%;
     min-width: 100%;
 }
@@ -2442,14 +2234,14 @@ button {
     margin-left: 10px;
 }
 
-.form button.border, .btn.border, .darkmode #clone a.btn.border {
+.form button.border, .btn.border {
     color: var(--blue);
     background: transparent;
     border: 1px solid var(--blue);
     font-size: .9rem;
 }
 
-.form button.border:hover, .btn.border:hover, .daterangepicker button.cancelBtn, .btn.clear:hover, .darkmode #clone a.btn.border:hover {
+.form button.border:hover, .btn.border:hover, .daterangepicker button.cancelBtn, .btn.clear:hover {
     background-color: rgba(0, 173, 181, .25);
 }
 
@@ -2457,9 +2249,6 @@ button.cancelBtn:hover {
     background-color: rgba(0, 173, 181, .25) !important;
 }
 
-.darkmode .daterangepicker td.available:hover, .darkmode #side a.router-link-exact-active {
-    color: #fff;
-}
 
 .list-create {
     display: inline-block;
@@ -2622,7 +2411,7 @@ fieldset {
     color: var(--blue);
 }
 
-.form .alert, .darkmode .form .alert {
+.form .alert {
     border-color: #ff8873;
 }
 
@@ -3014,7 +2803,7 @@ td.timestamp span.ms, span.timestamp span.ms {
     padding-left: 0;
 } */
 
-tr.details tr, .darkmode table.clusterConfig tr {
+tr.details tr {
     background: transparent !important;
 }
 
@@ -3026,10 +2815,7 @@ table table {
 /*body:not(.darkmode) tr.base.open {
     border: 1px solid #f0f0f1;
 }
-
-.darkmode tr.base.open {
-    border: 1px solid #333333;
-}*/
+*/
 
 table table tbody {
     border-top-color: #f0f0f1;
@@ -3066,10 +2852,6 @@ tr.details table th, tr.details table td {
     padding-left: 15px;
     border: 1px solid #f0f0f1;
     vertical-align: middle;
-}
-
-.darkmode tr.details table, .darkmode tr.details table th, .darkmode tr.details table td, .darkmode .backupConfig .storageDetails ul.yaml {
-    border-color: #333333;;
 }
 
 tr.details table .label {
@@ -3358,7 +3140,7 @@ table.backupConfig tr.base.open {
     color: var(--gray3);
 }
 
-.toolbar .filtered .toggle:after, .darkmode a.btn.border {
+.toolbar .filtered .toggle:after {
     color: var(--blue);
 }
 
@@ -3439,11 +3221,6 @@ table.backupConfig tr.base.open {
     border-radius: 10px;
     cursor: pointer;
 }
-
-.darkmode .filter.columns label, .darkmode .filter.columns input[type="checkbox"], .darkmode td.usedOn li {
-    border-color: #333333;
-}
-
 .filter .options .active {
     background-color: var(--blue);
     color: #fff;
@@ -3598,9 +3375,6 @@ table.logs thead, table.backups > thead {
     opacity: 0.6;
 }
 
-.darkmode table.logs tbody:hover > tr.base, .darkmode table.backups tbody:hover > tr.base {
-    opacity: 0.5;
-}
 
 table.logs tbody:hover > tr.base:hover, table.backups tbody:hover > tr.base:hover {
     opacity: 1.0;
@@ -3937,20 +3711,8 @@ table.logs table.logMessage tr, #backups .details thead {
     vertical-align: middle;
 }
 
-.darkmode table.logs thead {
-    background: transparent;
-}
-
 table.logs th {
     background: #fff;
-}
-
-.darkmode table.logs th {
-    background: #171717;
-}
-
-.darkmode table.logs tr, .darkmode .logInfo.open .logMessage tr {
-    background: #1e1e1e;
 }
 
 table.logs tr.item:not(:first-of-type)) {
@@ -3963,14 +3725,6 @@ table.logs tr.base {
 
 table.logs tr.base td {
     height: 39px !important; 
-}
-
-.darkmode table.logs tr:nth-child(4n), .darkmode table.logs tr:nth-child(4n) + tr.logInfo, .darkmode .logInfo.open table tr {
-    background: #171717;
-}
-
-.darkmode .logDetails table,.darkmode .logMessage .param, .darkmode .logInfo.open .logMessage p, .darkmode .logDetails td.param, .darkmode .logDetails.postgres tr:not(:last-of-type), .darkmode .logDetails.patroni tr:not(:last-of-type),.darkmode table.logs thead, .darkmode table.backups thead, .darkmode .logInfo.open .logMessage {
-    border-color: #333333;
 }
 
 .logs td.actions svg {
@@ -4070,10 +3824,6 @@ td.operation.Reset > span {
     border: none;
 }
 
-.darkmode #log .calendar, .darkmode #log .calendar li span {
-    border-color: #333333;
-}
-
 #datePicker {
     position: absolute;
     left: 0;
@@ -4095,7 +3845,7 @@ td.operation.Reset > span {
     right: 40px !important;
     font-family: "Nunito", sans-serif !important;
     border-radius: 6px !important;
-    border-color: var(--gray1) !important;
+    border-color: var(--gray1);
     box-shadow: 0 0 20px rgba(0,0,0,.05);
     padding: 20px !important;
 }
@@ -4160,7 +3910,7 @@ td.operation.Reset > span {
 
 .daterangepicker .drp-buttons {
     /*padding-top: 0 !important;*/
-    border-color: var(--gray2) !important;
+    border-color: var(--gray2);
 }
 
 .daterangepicker:before, .daterangepicker:after {
@@ -4185,74 +3935,13 @@ td.today.available {
     color: var(--gray3) !important;
 }
 
-.darkmode .daterangepicker td.off, .darkmode .daterangepicker td.off.in-range, .darkmode .daterangepicker td.off.start-date, .darkmode .daterangepicker td.off.end-date {
-    color: #7A7B85 !important;
-}
-
-
-.darkmode .daterangepicker {
-    background: #1e1e1e;
-    border: 1px solid #333333 !important;
-}
-
-.darkmode .daterangepicker .calendar-table th, .darkmode .daterangepicker .calendar-table td {
-    border-radius: 0;
-}
-
 .daterangepicker .calendar-table th.month {
     font-size: 13px;
     color: var(--gray4);
 }
 
-
-.darkmode .daterangepicker td.in-range {
-    background-color: #333;
-    color: #fff;
-}
-
 .daterangepicker td.available:not(.off):not(.in-range):not(.active) {
     color: var(--gray5);
-}
-
-.darkmode .daterangepicker td.available:not(.off):not(.in-range):not(.active), .darkmode #helpTooltip {
-    /*background: #252525 !important;*/
-    color: #e3e3e3;
-}
-
-.darkmode .daterangepicker select.hourselect, .darkmode .daterangepicker select.minuteselect, .darkmode .daterangepicker select.secondselect, .darkmode .daterangepicker select.ampmselect {
-    background: #252525;
-    border: 1px solid #333;
-    color: #ababab;
-}
-
-.darkmode .daterangepicker .calendar-table .next span, .darkmode .daterangepicker .calendar-table .prev span {
-    border-color: #adadad;
-}
-
-.darkmode .daterangepicker td.available:not(.in-range):hover, .darkmode .daterangepicker th.available:hover {
-    border-radius: 0 !important;
-}
-
-.darkmode .daterangepicker td.start-date:not(.end-date) {
-    border-radius: 4px 0 0 4px !important;
-}
-
-.darkmode .daterangepicker td.end-date:not(.start-date) {
-    border-radius: 0 4px 4px 0 !important;
-}
-
-
-.darkmode .daterangepicker .drp-buttons {
-    border-color: #333 !important;
-    color: #e3e3e3;
-}
-
-.darkmode .daterangepicker th.available:hover {
-    background: transparent !important;
-}
-
-.darkmode .daterangepicker td.available:hover {
-    background: #252525 !important;
 }
 
 .daterangepicker .calendar-time {
@@ -4260,14 +3949,6 @@ td.today.available {
     padding-top: 20px;
     margin-top: 10px !important;
     
-}
-
-.darkmode .daterangepicker .calendar-time {
-    border-color: #333333;
-}
-
-.darkmode #logTooltip.show, .darkmode #nameTooltip.show {
-    background: #1b1b1b;
 }
 
 /* Tooltip Styling Luis */
@@ -4479,6 +4160,7 @@ table.logs .podName {
     padding: 20px 25px;
     border-radius: 5px;
     box-shadow: 0 10px 20px rgba(0,0,0,.1);
+    border: 1px solid;
 }
 
 span.closeLog {
@@ -4968,10 +4650,6 @@ tr.details td:last-of-type .configurationDetails table {
     align-items: center;
     opacity: 0;
     transition: opacity .2s ease-in;
-}
-
-.darkmode #contentTooltip {
-    background: rgba(23, 23, 23, .75);
 }
 
 #contentTooltip.show {
