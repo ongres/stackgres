@@ -11,7 +11,9 @@ export E2E_CONTAINER_NAME="${E2E_CONTAINER_NAME:-stackgres-e2e}"
 
 if ! docker inspect "$E2E_DOCKER_IMAGE" > /dev/null 2>&1
 then
-  docker build -f "$STACKGRES_PATH/src/operator/src/test/docker/Dockerfile.it" -t "$E2E_DOCKER_IMAGE" .
+  docker build --network host \
+    -f "$STACKGRES_PATH/src/operator/src/test/docker/Dockerfile.it" \
+    -t "$E2E_DOCKER_IMAGE" .
 fi
 
 ENV_PATH="$TARGET_PATH/envs.$$"
@@ -23,6 +25,7 @@ then
   docker rm -fv "$E2E_CONTAINER_NAME"
 fi
 docker run "$([ -t 1 ] && echo '-i' || echo '-it')" \
+  --network host \
   --rm --name "$E2E_CONTAINER_NAME" \
   -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro \
   -v /etc/shadow:/etc/shadow:ro -v /etc/gshadow:/etc/gshadow:ro \
