@@ -22,7 +22,16 @@ shell unit tests:
   tags:
     - stackgres-runner
   script:
-    - 'sh stackgres-k8s/src/operator/src/test/shell/run-in-docker.sh'
+    - |
+      set +e
+      cp -a . /tmp/stackgres
+      (
+        cd /tmp/stackgres
+        sh stackgres-k8s/src/operator/src/test/shell/run-in-docker.sh
+      )
+      EXIT_CODE="$?"
+      cp -a /tmp/stackgres/stackgres-k8s/src/operator/target stackgres-k8s/src/operator/target
+      exit "$EXIT_CODE"
   artifacts:
     expire_in: 1 week
     when: always

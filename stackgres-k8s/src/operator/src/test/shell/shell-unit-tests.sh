@@ -96,7 +96,7 @@ run_all_tests() {
       FAIL_TESTS="$FAIL_TESTS $TEST_NAME"
       FAIL=true
       cat << EOF >> "$TARGET_PATH/shell-unit-tests-junit-report.results.xml"
-    <testcase classname="$TEST_NAME" name="$TEST_NAME" time="$(($(date +%s) - TEST_START))">
+    <testcase classname="shell unit tests" name="$TEST_NAME" time="$(($(date +%s) - TEST_START))">
       <failure message="$TEST_NAME failed" type="ERROR">
       <![CDATA[
       $(cat "$TEST_TARGET_PATH/log")
@@ -107,7 +107,7 @@ EOF
     else
       OK_TESTS="$OK_TESTS $TEST_NAME"
       cat << EOF >> "$TARGET_PATH/shell-unit-tests-junit-report.results.xml"
-    <testcase classname="$TEST_NAME" name="$TEST_NAME" time="$(($(date +%s) - TEST_START))" />
+    <testcase classname="shell unit tests" name="$TEST_NAME" time="$(($(date +%s) - TEST_START))" />
 EOF
     fi
   done
@@ -115,7 +115,7 @@ EOF
   cat << EOF > "$TARGET_PATH/shell-unit-tests-junit-report.xml"
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites time="$(($(date +%s) - START))">
-  <testsuite name="shell tests" tests="$(echo "$TESTS" | wc -l)" time="$(($(date +%s) - START))">
+  <testsuite name="shell unit tests" tests="$(echo "$TESTS" | wc -l)" time="$(($(date +%s) - START))">
 $(cat "$TARGET_PATH/shell-unit-tests-junit-report.results.xml")
   </testsuite>
 </testsuites>
