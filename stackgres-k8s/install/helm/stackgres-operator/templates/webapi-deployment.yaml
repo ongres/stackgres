@@ -13,11 +13,7 @@ metadata:
   name: {{ .Values.restapi.name }}
   namespace: {{ .Release.Namespace }}
 spec:
-  {{- if and .Release.IsInstall (or (not .Values.cert.key) (not .Values.cert.crt)) }}
-  replicas: 0
-  {{- else }}
   replicas: 1
-  {{- end }}
   selector:
     matchLabels:
       app: {{ .Values.restapi.name }}

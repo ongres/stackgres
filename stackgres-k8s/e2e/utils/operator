@@ -144,7 +144,14 @@ EOF
 setup_operator() {
   if [ "$E2E_SKIP_SETUP" = true ]
   then
-    return
+    if helm list -A | grep -q '^stackgres-operator[[:space:]]'
+    then
+      OPERATOR_NAMESPACE="$(helm list -A | grep '^stackgres-operator[[:space:]]' \
+        | sed 's/[[:space:]]\+/ /g' | cut -d ' ' -f 2)"
+      return
+    fi
+    echo "Can not skip operator setup. Helm chart stackgres-operator release was not found!"
+    return 1
   fi
 
   if ! helm list --all-namespaces | grep -q "^stackgres-operator\s" \
@@ -283,6 +290,10 @@ install_operator() {
     install_operator_previous_version "$@"
   fi
 
+  install_operator_only "$@"
+}
+
+install_operator_only() {
   if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" = true ]
   then
     echo "Installing operator intermediate repo"
@@ -305,7 +316,6 @@ install_operator() {
     --set-string "adminui.image.pullPolicy=$(operator_pull_policy)" \
     $E2E_OPERATOR_OPTS "$@"
   fi
-  
 }
 
 install_operator_previous_version() {
@@ -379,10 +389,14 @@ upgrade_operator_from_private_repository() {
 }
 
 delete_operator() {
+  delete_operator_only
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+}
+
+delete_operator_only() {
   ! helm get notes stackgres-operator --namespace "$OPERATOR_NAMESPACE" > /dev/null \
     || helm delete stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$@" \
     || true
-  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
 }
 
 get_installed_operator_values() {
@@ -419,7 +433,7 @@ reinstall_operator_if_not_as_expected() {
     k8s_cleanup
 
     kubectl create namespace "$OPERATOR_NAMESPACE"
-    install_operator -f "$TARGET_PATH/operator-values.yaml"
+    install_operator_only -f "$TARGET_PATH/operator-values.yaml"
     wait_pods_running "$OPERATOR_NAMESPACE"
     if helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator | grep -q externalOperatorIp \
       && helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator | grep -q externalOperatorPort

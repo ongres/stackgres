@@ -51,8 +51,8 @@ e2e_test_install() {
 }
 
 e2e_test_uninstall() {
-  delete_operator
-  install_operator
+  delete_operator_only
+  install_operator_only
   wait_pods_running "$OPERATOR_NAMESPACE" 2
 }
 

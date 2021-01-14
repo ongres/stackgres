@@ -44,7 +44,8 @@ e2e_test_uninstall() {
   k8s_cleanup_namespace "${OPERATOR_NAMESPACE}"
   k8s_cleanup_namespace "${STACKGRES_YAML_NAMESPACE}"
 
-  install_operator
+  kubectl create namespace "${OPERATOR_NAMESPACE}"
+  install_operator_only
   wait_pods_running "$OPERATOR_NAMESPACE" 2
 }
 
