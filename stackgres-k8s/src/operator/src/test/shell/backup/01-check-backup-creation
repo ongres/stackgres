@@ -2,6 +2,6 @@
 
 . "$TEST_SHELL_PATH/backup/abstract-backup"
 
-test_shell() {
-  test_backup
+shell_unit_test() {
+  shell_unit_test_backup
 }

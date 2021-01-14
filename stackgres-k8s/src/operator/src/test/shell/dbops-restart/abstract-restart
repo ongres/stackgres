@@ -10,12 +10,12 @@ KEBAB_OP_NAME='restart'
 POD_0_RESTARTED=false
 POD_1_RESTARTED=false
 
-test_dbops_restart() {
+shell_unit_test_dbops_restart() {
   echo false > "$TEST_TARGET_PATH/pod_0_restarted"
   echo false > "$TEST_TARGET_PATH/pod_1_restarted"
   echo "pod/test-0" > "$TEST_TARGET_PATH/primary_pod"
 
-  test_dbops
+  shell_unit_test_dbops
 }
 
 mock kubectl kubectl_mock

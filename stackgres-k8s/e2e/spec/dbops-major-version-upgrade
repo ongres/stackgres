@@ -142,7 +142,7 @@ EOF
 }
 
 check_major_version_upgrade() {
-  if kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "major-version-upgrade" \
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "major-version-upgrade" \
     --for condition=Completed
   then
     echo "SUCCESS. major version upgrade completed."
@@ -161,7 +161,9 @@ check_major_version_upgrade() {
     return 1
   fi
 
+  wait_until run_query -i 0 -q "SELECT 1;"
   check_mock_data_samehost "$CLUSTER_NAME"
+  wait_until run_query -i 1 -q "SELECT 1;"
   check_mock_data_replication "$CLUSTER_NAME"
 }
 
@@ -180,7 +182,7 @@ spec:
   timeout: PT1S
 EOF
 
-  if kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops major-version-upgrade \
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops major-version-upgrade \
     --for condition=Failed
   then
     echo "SUCCESS. major version upgrade failed."

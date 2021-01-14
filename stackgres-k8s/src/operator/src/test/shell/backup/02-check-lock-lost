@@ -2,9 +2,9 @@
 
 . "$TEST_SHELL_PATH/backup/abstract-backup"
 
-test_shell() {
+shell_unit_test() {
   echo test > "$TEST_TARGET_PATH/lock_pod"
-  ! (test_backup)
+  ! (shell_unit_test_backup)
 }
 
 mock kubectl kubectl_mock_overwrite

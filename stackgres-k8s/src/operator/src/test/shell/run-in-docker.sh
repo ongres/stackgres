@@ -14,7 +14,6 @@ TARGET_PATH="$PROJECT_PATH/target/shell"
 SHELL_XTRACE=$(! echo $- | grep -q x || echo " -x")
 
 test -f "$PROJECT_PATH/pom.xml"
-rm -rf "$TARGET_PATH"
 mkdir -p "$TARGET_PATH"
 
 run_in_all_containers() {
@@ -37,6 +36,11 @@ run_in_all_containers() {
     else
       FAIL=true
       FAIL_IMAGE_NAMES="$FAIL_IMAGE_NAMES $IMAGE_NAME"
+    fi
+    if [ -f "$TARGET_PATH/shell-unit-tests-junit-report.xml" ]
+    then
+      sed 's/<testsuite name="shell tests" /<testsuite name="shell tests using '"$IMAGE_NAME"'" /' "$TARGET_PATH/shell-unit-tests-junit-report.xml" \
+        > "$TARGET_PATH/shell-unit-tests-junit-report-$INDEX.xml"
     fi
     echo
     echo "Run using image $IMAGE_NAME completed"
@@ -65,7 +69,7 @@ run_in_container() {
     -v "$HOME":"$HOME":rw -e PROMPT_COMMAND= \
     -v /var/run/docker.sock:/var/run/docker.sock -v "$(realpath "$(pwd)/$PROJECT_PATH"):/project" -w /project \
     --entrypoint /bin/sh \
-    "$IMAGE_NAME" -c "sh $SHELL_XTRACE src/test/shell/test-shell.sh $*"
+    "$IMAGE_NAME" -c "sh $SHELL_XTRACE src/test/shell/shell-unit-tests.sh $*"
 }
 
 if [ "$#" = 0 ]

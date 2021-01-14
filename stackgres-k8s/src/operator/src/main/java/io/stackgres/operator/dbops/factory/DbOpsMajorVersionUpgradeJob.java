@@ -55,6 +55,11 @@ public class DbOpsMajorVersionUpgradeJob extends DbOpsJob {
   }
 
   @Override
+  protected boolean isExclusiveOp() {
+    return true;
+  }
+
+  @Override
   protected List<EnvVar> getRunEnvVars(StackGresDbOpsContext context, StackGresDbOps dbOps) {
     StackGresDbOpsMajorVersionUpgrade majorVersionUpgrade =
         dbOps.getSpec().getMajorVersionUpgrade();

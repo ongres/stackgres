@@ -21,7 +21,7 @@ PATRONI_REPLICA_ROLE=replica
 BACKUP_ENV=backup
 LOCK_SLEEP=0
 
-test_backup() {
+shell_unit_test_backup() {
   . "$PROJECT_PATH/src/main/resources/templates/create-backup.sh"
 }
 

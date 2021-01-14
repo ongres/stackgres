@@ -311,9 +311,11 @@ spec:
                         The major version upgrade configuration and status
                       properties:
                         initialInstances:
-                          type: string
+                          type: array
                           description: |
-                            A comma separated list of instances that this operation is targetting
+                            The instances that this operation is targetting
+                          items:
+                            type: string
                         primaryInstance:
                           type: string
                           description: |
@@ -356,9 +358,11 @@ spec:
                         The minor version upgrade configuration and status
                       properties:
                         initialInstances:
-                          type: string
+                          type: array
                           description: |
-                            A comma separated list of instances that this operation is targetting
+                            The instances that this operation is targetting
+                          items:
+                            type: string
                         primaryInstance:
                           type: string
                           description: |
@@ -369,9 +373,11 @@ spec:
                         The minor version upgrade configuration and status
                       properties:
                         initialInstances:
-                          type: string
+                          type: array
                           description: |
-                            A comma separated list of instances that this operation is targetting
+                            The instances that this operation is targetting
+                          items:
+                            type: string
                         primaryInstance:
                           type: string
                           description: |
@@ -382,9 +388,11 @@ spec:
                         The minor version upgrade configuration and status
                       properties:
                         initialInstances:
-                          type: string
+                          type: array
                           description: |
-                            A comma separated list of instances that this operation is targetting
+                            The instances that this operation is targetting
+                          items:
+                            type: string
                         primaryInstance:
                           type: string
                           description: |

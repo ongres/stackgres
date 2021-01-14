@@ -3,10 +3,10 @@
 . "$TEST_SHELL_PATH/dbops/abstract-dbops"
 
 shell_unit_test() {
-  TIMEOUT=0
-  ! (shell_unit_test_dbops)
+  EXCLUSIVE_OP=true
+  shell_unit_test_dbops
 }
 
 run_op() {
-  sleep 300
+  true
 }

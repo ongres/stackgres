@@ -55,6 +55,11 @@ public class DbOpsRestartJob extends DbOpsJob {
   }
 
   @Override
+  protected boolean isExclusiveOp() {
+    return true;
+  }
+
+  @Override
   protected List<EnvVar> getRunEnvVars(StackGresDbOpsContext context, StackGresDbOps dbOps) {
     StackGresDbOpsRestart restart =
         dbOps.getSpec().getRestart();

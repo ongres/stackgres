@@ -37,7 +37,19 @@ run_op() {
 [
   {"op":"add","path":"/status/dbOps","value": {
       "majorVersionUpgrade":{
-        "initialInstances": "$(printf '%s' "$INITIAL_INSTANCES" | tr '\n' ',')",
+        "initialInstances": [$(
+          FIRST=true
+          for INSTANCE in $INITIAL_INSTANCES
+          do
+            if "$FIRST"
+            then
+              printf '%s' "\"$INSTANCE\""
+              FIRST=false
+            else
+              printf '%s' ",\"$INSTANCE\""
+            fi
+          done
+          )],
         "primaryInstance": "$PRIMARY_INSTANCE",
         "sourcePostgresVersion": "$SOURCE_VERSION",
         "targetPostgresVersion": "$TARGET_VERSION",
@@ -152,17 +164,22 @@ EOF
     echo "Waiting cluster upscale"
     echo
 
-    printf '%s' "$INITIAL_INSTANCES" | while read INSTANCE
-      do
-        echo "Waiting instance $INSTANCE to become ready..."
+    for INSTANCE in $INITIAL_INSTANCES
+    do
+      if [ "$INSTANCE" = "$PRIMARY_INSTANCE" ]
+      then
+        continue
+      fi
 
-        wait_for_instance "$INSTANCE"
+      echo "Waiting instance $INSTANCE to become ready..."
 
-        echo "done"
-        echo
+      wait_for_instance "$INSTANCE"
 
-        update_status
-      done
+      echo "done"
+      echo
+
+      update_status
+    done
 
     echo "Cluster upscale done"
     echo
@@ -184,6 +201,8 @@ EOF
 }
 
 update_status() {
+  STATEFULSET_UPDATE_REVISION="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --template '{{ .status.updateRevision }}')"
   if [ "$1" = "init" ]
   then
     PENDING_TO_RESTART_INSTANCES="$INITIAL_INSTANCES"
@@ -195,12 +214,24 @@ update_status() {
           if ! printf '%s' "$PODS" | cut -d / -f 2 | grep -q "^$INSTANCE$"
           then
             echo "$INSTANCE"
+            continue
+          fi
+          PATRONI_STATUS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$INSTANCE" \
+            --template '{{ .metadata.annotations.status }}')"
+          POD_STATEFULSET_REVISION="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$INSTANCE" \
+            --template '{{ index .metadata.labels "controller-revision-hash" }}')"
+          if [ "$STATEFULSET_UPDATE_REVISION" != "$POD_STATEFULSET_REVISION" ] \
+            || echo "$PATRONI_STATUS" | grep -q '"pending_restart":true'
+          then
+            echo "$INSTANCE"
           fi
         done)"
   fi
   PENDING_TO_RESTART_INSTANCES_COUNT="$(echo "$PENDING_TO_RESTART_INSTANCES" | tr ' ' 's' | tr '\n' ' ' | wc -w)"
-  RESTARTED_PODS="$(kubectl get pods -n "$CLUSTER_NAMESPACE" -l "$CLUSTER_POD_LABELS" -o name)"
-  RESTARTED_INSTANCES="$(printf '%s' "$RESTARTED_PODS" | cut -d / -f 2 | sort)"
+  EXISTING_PODS="$(kubectl get pods -n "$CLUSTER_NAMESPACE" -l "$CLUSTER_POD_LABELS" -o name)"
+  RESTARTED_INSTANCES="$(echo "$EXISTING_PODS" | cut -d / -f 2 | grep -v "^\($(
+      echo "$PENDING_TO_RESTART_INSTANCES" | tr '\n' ' ' | sed '{s/ $//;s/ /\\|/g}'
+    )\)$" | sort)"
   RESTARTED_INSTANCES_COUNT="$(echo "$RESTARTED_INSTANCES" | tr ' ' 's' | tr '\n' ' ' | wc -w)"
   echo "Pending to $NORMALIZED_OP_NAME instances:"
   if [ "$PENDING_TO_RESTART_INSTANCES_COUNT" = 0 ]
@@ -246,7 +277,7 @@ update_status() {
         )],
       "restartedInstances": [$(
         FIRST=true
-        for INSTANCE in $PENDING_TO_RESTART_INSTANCES
+        for INSTANCE in $RESTARTED_INSTANCES
         do
           if "$FIRST"
           then

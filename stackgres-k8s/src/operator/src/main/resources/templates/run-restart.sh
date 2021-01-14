@@ -19,7 +19,19 @@ run_op() {
 [
   {"op":"add","path":"/status/dbOps","value": {
       "$OP_NAME":{
-        "initialInstances": "$(printf '%s' "$INITIAL_INSTANCES" | tr '\n' ',')",
+        "initialInstances": [$(
+          FIRST=true
+          for INSTANCE in $INITIAL_INSTANCES
+          do
+            if "$FIRST"
+            then
+              printf '%s' "\"$INSTANCE\""
+              FIRST=false
+            else
+              printf '%s' ",\"$INSTANCE\""
+            fi
+          done
+          )],
         "primaryInstance": "$PRIMARY_INSTANCE"
       }
     }
@@ -59,9 +71,6 @@ EOF
   fi
   echo "Found primary instance $PRIMARY_INSTANCE"
   echo
-
-  STATEFULSET_UPDATE_REVISION="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    --template '{{ .status.updateRevision }}')"
 
   INITIAL_INSTANCES_COUNT="$(printf '%s' "$INITIAL_INSTANCES" | tr ' ' 's' | tr '\n' ' ' | wc -w)"
   echo "Initial instances:"
@@ -263,9 +272,17 @@ EOF
 }
 
 update_status() {
+  STATEFULSET_UPDATE_REVISION="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --template '{{ .status.updateRevision }}')"
   PENDING_TO_RESTART_INSTANCES="$(echo "$INITIAL_INSTANCES" \
     | while read -r INSTANCE
       do
+        PODS="$(kubectl get pods -n "$CLUSTER_NAMESPACE" -l "$CLUSTER_POD_LABELS" -o name)"
+        if ! printf '%s' "$PODS" | cut -d / -f 2 | grep -q "^$INSTANCE$"
+        then
+          echo "$INSTANCE"
+          continue
+        fi
         PATRONI_STATUS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$INSTANCE" \
           --template '{{ .metadata.annotations.status }}')"
         POD_STATEFULSET_REVISION="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$INSTANCE" \
@@ -330,7 +347,7 @@ update_status() {
         )],
       "restartedInstances": [$(
         FIRST=true
-        for INSTANCE in $PENDING_TO_RESTART_INSTANCES
+        for INSTANCE in $RESTARTED_INSTANCES
         do
           if "$FIRST"
           then

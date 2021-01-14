@@ -6,6 +6,6 @@ CLONE=false
 
 . "$TEST_SHELL_PATH/dbops-major-version-upgrade/abstract-major-version-upgrade"
 
-test_shell() {
-  test_dbops_major_version_upgrade
+shell_unit_test() {
+  shell_unit_test_dbops_major_version_upgrade
 }

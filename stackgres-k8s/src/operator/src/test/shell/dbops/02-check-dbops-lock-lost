@@ -2,10 +2,11 @@
 
 . "$TEST_SHELL_PATH/dbops/abstract-dbops"
 
-test_shell() {
+shell_unit_test() {
+  EXCLUSIVE_OP=true
   LOCK_SLEEP=0
   echo test > "$TEST_TARGET_PATH/lock_pod"
-  ! (test_dbops)
+  ! (shell_unit_test_dbops)
 }
 
 run_op() {

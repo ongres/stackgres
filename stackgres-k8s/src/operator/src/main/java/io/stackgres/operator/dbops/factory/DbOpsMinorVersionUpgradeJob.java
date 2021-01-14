@@ -55,6 +55,11 @@ public class DbOpsMinorVersionUpgradeJob extends DbOpsJob {
   }
 
   @Override
+  protected boolean isExclusiveOp() {
+    return true;
+  }
+
+  @Override
   protected List<EnvVar> getRunEnvVars(StackGresDbOpsContext context, StackGresDbOps dbOps) {
     StackGresDbOpsMinorVersionUpgrade minorVersionUpgrade =
         dbOps.getSpec().getMinorVersionUpgrade();

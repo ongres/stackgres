@@ -81,7 +81,7 @@ EOF
 }
 
 check_restart() {
-  if kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "restart" \
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "restart" \
     --for condition=Completed
   then
     echo "SUCCESS. restart completed."
@@ -119,7 +119,7 @@ spec:
   timeout: PT1S
 EOF
 
-  if kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops restart \
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops restart \
     --for condition=Failed
   then
     echo "SUCCESS. restart failed."

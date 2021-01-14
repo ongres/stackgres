@@ -5,6 +5,7 @@
 
 package io.stackgres.common.crd.sgcluster;
 
+import java.util.List;
 import java.util.Objects;
 
 import javax.validation.constraints.NotNull;
@@ -25,7 +26,7 @@ public class StackGresClusterDbOpsMajorVersionUpgradeStatus implements Kubernete
 
   @JsonProperty("initialInstances")
   @NotNull
-  private String initialInstances;
+  private List<String> initialInstances;
 
   @JsonProperty("primaryInstance")
   @NotNull
@@ -63,11 +64,11 @@ public class StackGresClusterDbOpsMajorVersionUpgradeStatus implements Kubernete
   @NotNull
   private Boolean check;
 
-  public String getInitialInstances() {
+  public List<String> getInitialInstances() {
     return initialInstances;
   }
 
-  public void setInitialInstances(String initialInstances) {
+  public void setInitialInstances(List<String> initialInstances) {
     this.initialInstances = initialInstances;
   }
 

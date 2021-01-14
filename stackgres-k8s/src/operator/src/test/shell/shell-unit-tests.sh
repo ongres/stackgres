@@ -36,9 +36,9 @@ TEST_SHELL_PATH="$TEST_SHELL_PATH"
 TEST_PATH="$TEST_PATH"
 TEST_NAME="$TEST_NAME"
 TEST_TARGET_PATH="$TEST_TARGET_PATH"
-. "$TEST_SHELL_PATH/test-shell.sh"
+. "$TEST_SHELL_PATH/shell-unit-tests.sh"
 . "$TEST_PATH"
-test_shell
+shell_unit_test
 EOF
       )"
     echo "$?" > "$TEST_TARGET_PATH/exit_code"
@@ -67,7 +67,7 @@ EOF
 }
 
 run_all_tests() {
-  rm -f "$TARGET_PATH/shell-tests-junit-report.results.xml"
+  rm -f "$TARGET_PATH/shell-unit-tests-junit-report.results.xml"
   local START="$(date +%s)"
   local TEST_PATHS="$(ls -1 "$PROJECT_PATH/src/test/shell"/*/[0-9][0-9]-*)"
   local FAIL=false
@@ -95,7 +95,7 @@ run_all_tests() {
     then
       FAIL_TESTS="$FAIL_TESTS $TEST_NAME"
       FAIL=true
-      cat << EOF >> "$TARGET_PATH/shell-tests-junit-report.results.xml"
+      cat << EOF >> "$TARGET_PATH/shell-unit-tests-junit-report.results.xml"
     <testcase classname="$TEST_NAME" name="$TEST_NAME" time="$(($(date +%s) - TEST_START))">
       <failure message="$TEST_NAME failed" type="ERROR">
       <![CDATA[
@@ -106,17 +106,17 @@ run_all_tests() {
 EOF
     else
       OK_TESTS="$OK_TESTS $TEST_NAME"
-      cat << EOF >> "$TARGET_PATH/shell-tests-junit-report.results.xml"
+      cat << EOF >> "$TARGET_PATH/shell-unit-tests-junit-report.results.xml"
     <testcase classname="$TEST_NAME" name="$TEST_NAME" time="$(($(date +%s) - TEST_START))" />
 EOF
     fi
   done
 
-  cat << EOF > "$TARGET_PATH/shell-tests-junit-report.xml"
+  cat << EOF > "$TARGET_PATH/shell-unit-tests-junit-report.xml"
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites time="$(($(date +%s) - START))">
   <testsuite name="shell tests" tests="$(echo "$TESTS" | wc -l)" time="$(($(date +%s) - START))">
-$(cat "$TARGET_PATH/shell-tests-junit-report.results.xml")
+$(cat "$TARGET_PATH/shell-unit-tests-junit-report.results.xml")
   </testsuite>
 </testsuites>
 EOF

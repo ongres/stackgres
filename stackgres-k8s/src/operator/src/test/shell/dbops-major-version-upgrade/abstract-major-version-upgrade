@@ -12,13 +12,13 @@ POD_1_RESTARTED=false
 PATRONI_CONTAINER_NAME=patroni
 MAJOR_VERSION_UPGRADE_CONTAINER_NAME=major-version-upgrade
 
-test_dbops_major_version_upgrade() {
+shell_unit_test_dbops_major_version_upgrade() {
   (
   echo "pod/test-0"
   echo "pod/test-1"
   ) > "$TEST_TARGET_PATH/cluster_pods"
 
-  test_dbops
+  shell_unit_test_dbops
 }
 
 mock kubectl kubectl_mock

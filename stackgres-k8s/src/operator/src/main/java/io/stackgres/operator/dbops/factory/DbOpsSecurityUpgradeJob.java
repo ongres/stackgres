@@ -51,7 +51,12 @@ public class DbOpsSecurityUpgradeJob extends DbOpsJob {
 
   @Override
   protected String operation() {
-    return "restart";
+    return "security-upgrade";
+  }
+
+  @Override
+  protected boolean isExclusiveOp() {
+    return true;
   }
 
   @Override

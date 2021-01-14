@@ -214,6 +214,10 @@ public abstract class DbOpsJob
                     .withValue(dbOps.getSpec().getOp())
                     .build(),
                     new EnvVarBuilder()
+                    .withName("EXCLUSIVE_OP")
+                    .withValue(String.valueOf(isExclusiveOp()))
+                    .build(),
+                    new EnvVarBuilder()
                     .withName("NORMALIZED_OP_NAME")
                     .withValue(UPPERCASE_PATTERN
                         .matcher(dbOps.getSpec().getOp())
@@ -348,6 +352,10 @@ public abstract class DbOpsJob
         .endTemplate()
         .endSpec()
         .build();
+  }
+
+  protected boolean isExclusiveOp() {
+    return false;
   }
 
   protected List<EnvVar> getRunEnvVars(StackGresDbOpsContext context,

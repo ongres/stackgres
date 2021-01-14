@@ -2,9 +2,9 @@
 
 . "$TEST_SHELL_PATH/backup/abstract-backup"
 
-test_shell() {
+shell_unit_test() {
   echo 0 > "$TEST_TARGET_PATH/lock_annotation_count"
-  test_backup
+  shell_unit_test_backup
 }
 
 mock kubectl kubectl_mock_overwrite

@@ -2,9 +2,9 @@
 
 . "$TEST_SHELL_PATH/backup/abstract-backup"
 
-test_shell() {
+shell_unit_test() {
   date +%s > "$TEST_TARGET_PATH/lock_timestamp"
-  ! (test_backup)
+  ! (shell_unit_test_backup)
 }
 
 mock kubectl kubectl_mock_overwrite

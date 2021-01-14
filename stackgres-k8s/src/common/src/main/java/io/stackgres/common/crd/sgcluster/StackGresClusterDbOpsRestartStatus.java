@@ -5,6 +5,7 @@
 
 package io.stackgres.common.crd.sgcluster;
 
+import java.util.List;
 import java.util.Objects;
 
 import javax.validation.constraints.NotNull;
@@ -25,17 +26,17 @@ public class StackGresClusterDbOpsRestartStatus implements KubernetesResource {
 
   @JsonProperty("initialInstances")
   @NotNull
-  private String initialInstances;
+  private List<String> initialInstances;
 
   @JsonProperty("primaryInstance")
   @NotNull
   private String primaryInstance;
 
-  public String getInitialInstances() {
+  public List<String> getInitialInstances() {
     return initialInstances;
   }
 
-  public void setInitialInstances(String initialInstances) {
+  public void setInitialInstances(List<String> initialInstances) {
     this.initialInstances = initialInstances;
   }
 

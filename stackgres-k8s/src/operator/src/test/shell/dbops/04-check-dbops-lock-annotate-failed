@@ -2,10 +2,11 @@
 
 . "$TEST_SHELL_PATH/dbops/abstract-dbops"
 
-test_shell() {
+shell_unit_test() {
+  EXCLUSIVE_OP=true
   LOCK_SLEEP=0
   echo 0 > "$TEST_TARGET_PATH/lock_annotation_count"
-  test_dbops
+  shell_unit_test_dbops
 }
 
 run_op() {
