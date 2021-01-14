@@ -302,6 +302,22 @@ Specifies the service configuration for the cluster:
 |:--------------------------------|----------|-----------|:---------|:----------|:----------------------------------------------------------------------------|
 | type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.primary.type >}}  |
 
+## Postgres Services
+
+Specifies the service configuration for the cluster:
+
+| Property                        | Required | Updatable | Type     | Default   | Description                                                            |
+|:--------------------------------|----------|-----------|:---------|:----------|:-----------------------------------------------------------------------|
+| [Primary](#service-type)        |          | ✓         | object   |           | {{< crd-field-description SGCluster.spec.postgresServices.primary >}}  |
+| [Replicas](#service-type)       |          | ✓         | object   |           | {{< crd-field-description SGCluster.spec.postgresServices.replicas >}} |
+
+### service type
+
+
+| Property                        | Required | Updatable | Type     | Default   | Description                                                                 |
+|:--------------------------------|----------|-----------|:---------|:----------|:----------------------------------------------------------------------------|
+| Type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.primary.type >}}  |
+
 ## Non Production options
 
 The following options should NOT be enabled in a production environment.
