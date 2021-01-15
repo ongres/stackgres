@@ -164,7 +164,7 @@ Specifies the cluster initialization data configurations
 | Property                          | Required | Updatable | Type     | Default | Description |
 |:----------------------------------|----------|-----------|:---------|:--------|:------------|
 | [restore](#restore-configuration) |          |           | object   |         | {{< crd-field-description SGCluster.spec.initialData.restore >}} |
-| [scripts](#scripts-configuration) |          |           | array    |         | {{< crd-field-description SGCluster.spec.initialData.scripts >}} |
+| [scripts](#scripts-configuration) |          |           | object   |         | {{< crd-field-description SGCluster.spec.initialData.scripts >}} |
 
 ## Restore configuration
 
@@ -269,6 +269,38 @@ spec:
   distributedLogs: 
     sgDistributedLogs: distributedlogs
 ```
+
+## Postgres Services
+
+Specifies the service configuration for the cluster:
+
+| Property                        | Required | Updatable | Type     | Default   | Description                                                            |
+|:--------------------------------|----------|-----------|:---------|:----------|:-----------------------------------------------------------------------|
+| [Primary](#service-type)        |          | ✓         | object   |           | {{< crd-field-description SGCluster.spec.postgresServices.primary >}}  |
+| [Replicas](#service-type)       |          | ✓         | object   |           | {{< crd-field-description SGCluster.spec.postgresServices.replicas >}} |
+
+### service type
+
+
+| Property                        | Required | Updatable | Type     | Default   | Description                                                                 |
+|:--------------------------------|----------|-----------|:---------|:----------|:----------------------------------------------------------------------------|
+| Type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.primary.type >}}  |
+
+## Postgres Services
+
+Specifies the service configuration for the cluster:
+
+| Property                        | Required | Updatable | Type     | Default   | Description                                                            |
+|:--------------------------------|----------|-----------|:---------|:----------|:-----------------------------------------------------------------------|
+| [primary](#service-type)        |          | ✓         | object   |           | {{< crd-field-description SGCluster.spec.postgresServices.primary >}}  |
+| [replicas](#service-type)       |          | ✓         | object   |           | {{< crd-field-description SGCluster.spec.postgresServices.replicas >}} |
+
+### service type
+
+
+| Property                        | Required | Updatable | Type     | Default   | Description                                                                 |
+|:--------------------------------|----------|-----------|:---------|:----------|:----------------------------------------------------------------------------|
+| type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.primary.type >}}  |
 
 ## Postgres Services
 
