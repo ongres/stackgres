@@ -55,11 +55,13 @@ pre {
 b, strong, label, th {
     font-weight: 600;
 }
-.default-animation, #header #logo-svg, #header #logo-svg path, #sidebar, #sidebar ul, #body, #body .padding, #body .nav {
+
+/* .default-animation, #header #logo-svg, #header #logo-svg path, #sidebar, #sidebar ul, #body, #body .padding, #body .nav {
     -webkit-transition: all 0.5s ease;
     -moz-transition: all 0.5s ease;
     transition: all 0.5s ease;
-}
+} */
+
 #grav-logo {
     max-width: 60%;
 }
@@ -286,6 +288,7 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
 }
 #sidebar ul li > a {
     padding: 4px 0;
+    transition: none;
 }
 #sidebar ul li.visited > a .read-icon {
     color: var(--baseColor);
@@ -435,13 +438,14 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
 }
 #body-inner {
     margin-bottom: 5rem;
+    padding-top: 10px;
 }
 #chapter {
     /* display: flex;
     align-items: center;
     justify-content: center; */
     height: 100%;
-    padding: 2rem 0;
+    padding: 0;
 }
 #chapter #body-inner {
     padding-bottom: 2rem;
@@ -473,7 +477,9 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
     padding: 0;
     color: #b3b3b3;
     font-size: 13px;
+    min-height: 150px;
 }
+
 #footer p {
     margin: 0;
     padding: 0 1rem;
@@ -494,9 +500,10 @@ h2, h3, h4, h5, h6 {
 }
 h1 {
     font-family: 'Poppins', sans-serif;
-    text-transform: uppercase;
+    /* text-transform: uppercase; */
     font-weight: 500;
     font-size: 1.5rem;
+    margin-top: 0;
 }
 blockquote {
     border-left: 5px solid var(--baseColor);
@@ -1024,7 +1031,9 @@ td {
 }
 #top-bar {
     padding: 0;
-    min-height: 3rem;
+    display: inline-block;
+    width: 100%;
+    /* min-height: 3rem; */
 }
 #top-github-link {
     position: relative;
@@ -1052,7 +1061,22 @@ td {
         width: 230px;
     }
     #body {
-        margin-left: 230px;
+        margin-left: calc(230px + 5vw);
+        max-width: calc(100vw - 230px - 10vw);
+    }
+
+    code {
+        max-width: 100%;
+        display: inline-block;
+        overflow-x: auto;
+    }
+
+    #top-bar {
+        display: none !important;
+    }
+
+    #chapter {
+        padding-top: 0;
     }
 }
 @media only all and (max-width: 47.938em) {
@@ -1063,6 +1087,8 @@ td {
     #body {
         margin-left: 0;
         width: 100%;
+        max-width: 100%;
+        padding: 0 5vw;
     }
     .sidebar-hidden {
         overflow: hidden;

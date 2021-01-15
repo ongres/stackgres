@@ -748,6 +748,7 @@ body:not(.active) #header nav a:hover {
     border-radius: 100%;
     padding: 12px 14px;
     cursor: pointer;
+    display: none;
 }
 
 #darkmode:hover {
@@ -836,11 +837,11 @@ p+h1 {
     right: 4px;
 }
 
-#breadcrumbs a.highlight {
+#breadcrumbs a {
     margin: 0 5px;
 }
 
-#breadcrumbs a.highlight:first-child {
+#breadcrumbs a:first-child {
     margin-left: 0;
 }
 
@@ -881,16 +882,16 @@ p+h1 {
 
     #header .follow {
         position: fixed;
-        bottom: 80px;
-        right: 27px;
+        bottom: 85px;
+        right: 30px;
         z-index: 10;
     }
 
     #header .follow a {
         display: block;
-        width: 42px;
-        height: 42px;
-        line-height: 42px;
+        width: 45px;
+        height: 45px;
+        line-height: 45px;
         background: var(--baseGradient);
         border-radius: 100%;
         margin-top: 8px;
@@ -1084,8 +1085,10 @@ p+h1 {
     }
 
     h1:not(.postTitle), .h1 {
-        font-size: 3rem;
+        font-size: 2rem;
+        line-height: 1;
         margin: 20px 0 30px;
+        padding-bottom: 10px;
     }
 
     #header {
@@ -1113,6 +1116,29 @@ p+h1 {
 }
 
 @media screen and (max-width: 768px) {
+
+    #sidebar {
+        width: 100vw;
+        padding: 0 calc(5vw + 1rem);
+        left: -100vw;
+        transition: left .3s ease-out;
+        background: var(--bgColor);
+        z-index: 999;
+    }
+    #sidebar.show {
+        left: 0;
+        transition: left .3s ease-out;
+    }
+
+    #showSidebar {
+        float: right;
+        margin-right: calc(5vw + 1rem);
+        margin-top: 5px;
+    }
+
+    #sidebar #header-wrapper, #sidebar-toggle-span {
+        display: none;
+    }
 
 }
 
