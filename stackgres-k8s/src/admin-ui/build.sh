@@ -16,6 +16,7 @@ cp -a public target/public
 mkdir -p target/public/js/components/forms/help
 "$SHELL" $SHELL_XTRACE ../../ci/utils/crds2description_json.sh ../../install/helm/stackgres-operator/crds target/public/js/components/forms/help
 
+mkdir -p target/public/info
 # Export SG version to show on the UI
 grep '<artifactId>stackgres-parent</artifactId>' "../pom.xml" -A 2 -B 2 \
  | grep -oP '(?<=<version>).*?(?=</version>)' \
