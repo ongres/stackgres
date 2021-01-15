@@ -665,6 +665,11 @@ aside {
     position: absolute;
 }
 
+#sgVersion {
+    font-size: 12px;
+    letter-spacing: 1px;
+}
+
 #nav #logo svg {
     width: auto;
     height: auto;
