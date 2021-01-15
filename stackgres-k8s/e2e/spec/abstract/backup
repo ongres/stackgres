@@ -238,7 +238,7 @@ check_manual_backup() {
 
 create_backup() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGBackup
 metadata:
   namespace: "$CLUSTER_NAMESPACE"

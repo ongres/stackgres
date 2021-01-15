@@ -2,7 +2,7 @@
   "apiVersion": "v1",
   "items": [
     {
-        "apiVersion": "stackgres.io/v1beta1",
+        "apiVersion": "stackgres.io/v1",
         "kind": "SGDistributedLogs",
         "metadata": {
             "creationTimestamp": "2020-04-23T11:06:26Z",
@@ -16,7 +16,7 @@
             "name": "distributedlogs",
             "namespace": "stackgres",
             "resourceVersion": "2780",
-            "selfLink": "/apis/stackgres.io/v1beta1/namespaces/stackgres/sgdistributedlogs/distributedlogs",
+            "selfLink": "/apis/stackgres.io/v1/namespaces/stackgres/sgdistributedlogs/distributedlogs",
             "uid": "008af052-7fcd-4665-b3b9-6d7dedbc543c"
         },
         "spec": {

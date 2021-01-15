@@ -1,7 +1,7 @@
 [
   {
     "kind": "SGPoolingConfig",
-    "apiVersion": "stackgres.io/v1beta1",
+    "apiVersion": "stackgres.io/v1",
     "metadata": {
       "annotations": {
         "helm.sh/hook": "pre-install"
@@ -11,7 +11,7 @@
       "name": "pgbouncerconf",
       "namespace": "stackgres",
       "resourceVersion": "9938",
-      "selfLink": "/apis/stackgres.io/v1beta1/namespaces/stackgres/sgpoolconfigs/pgbouncerconf",
+      "selfLink": "/apis/stackgres.io/v1/namespaces/stackgres/sgpoolconfigs/pgbouncerconf",
       "uid": "43fd5702-017a-11ea-9ca4-0242ac110004"
     },
     "spec": {

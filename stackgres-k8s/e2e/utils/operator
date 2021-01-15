@@ -125,7 +125,7 @@ EOF
   openssl rsa -in "$TARGET_PATH/server-key.pem" -pubout -out "$TARGET_PATH/server-pub.pem"
 
   cat << EOF | kubectl create -f -
-apiVersion: certificates.k8s.io/v1beta1
+apiVersion: certificates.k8s.io/v1
 kind: CertificateSigningRequest
 metadata:
   name: stackgres-operator

@@ -1,7 +1,7 @@
 [
   {
     "kind": "SGPostgresConfig",
-    "apiVersion": "stackgres.io/v1beta1",
+    "apiVersion": "stackgres.io/v1",
     "metadata": {
       "annotations": {
         "helm.sh/hook": "pre-install"
@@ -11,7 +11,7 @@
       "name": "postgresconf",
       "namespace": "stackgres",
       "resourceVersion": "9939",
-      "selfLink": "/apis/stackgres.io/v1beta1/namespaces/stackgres/sgpgconfigs/postgresconf",
+      "selfLink": "/apis/stackgres.io/v1/namespaces/stackgres/sgpgconfigs/postgresconf",
       "uid": "440c5c94-017a-11ea-9ca4-0242ac110004"
     },
     "spec": {

@@ -5,12 +5,12 @@
     "kind": {
       "kind": "SGDistributedLogs",
       "group": "stackgres.io",
-      "version": "v1beta1"
+      "version": "v1"
     },
     "resource": {
       "group": "stackgres.io",
       "resource": "sgdistributedlogs",
-      "version": "v1beta1"
+      "version": "v1"
     },
     "subResource": null,
     "requestKind": null,
@@ -29,7 +29,7 @@
       "username": "system:serviceaccount:kube-system:tiller"
     },
     "object": {
-        "apiVersion": "stackgres.io/v1beta1",
+        "apiVersion": "stackgres.io/v1",
         "kind": "SGDistributedLogs",
         "metadata": {
             "creationTimestamp": "2020-04-23T11:06:26Z",
@@ -43,7 +43,7 @@
             "name": "distributedlogs",
             "namespace": "distributed-logs",
             "resourceVersion": "2780",
-            "selfLink": "/apis/stackgres.io/v1beta1/namespaces/distributed-logs/sgdistributedlogs/distributedlogs",
+            "selfLink": "/apis/stackgres.io/v1/namespaces/distributed-logs/sgdistributedlogs/distributedlogs",
             "uid": "008af052-7fcd-4665-b3b9-6d7dedbc543c"
         },
         "spec": {
@@ -65,7 +65,7 @@
         }
     },
     "oldObject": {
-        "apiVersion": "stackgres.io/v1beta1",
+        "apiVersion": "stackgres.io/v1",
         "kind": "SGDistributedLogs",
         "metadata": {
             "creationTimestamp": "2020-04-23T11:06:26Z",
@@ -79,7 +79,7 @@
             "name": "distributedlogs",
             "namespace": "distributed-logs",
             "resourceVersion": "2780",
-            "selfLink": "/apis/stackgres.io/v1beta1/namespaces/distributed-logs/sgdistributedlogs/distributedlogs",
+            "selfLink": "/apis/stackgres.io/v1/namespaces/distributed-logs/sgdistributedlogs/distributedlogs",
             "uid": "008af052-7fcd-4665-b3b9-6d7dedbc543c"
         },
         "spec": {
@@ -103,5 +103,5 @@
     "options": null,
     "dryRun": false
   },
-  "apiVersion": "admission.k8s.io/v1beta1"
+  "apiVersion": "admission.k8s.io/v1"
 }

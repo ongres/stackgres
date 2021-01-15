@@ -1,5 +1,5 @@
 {
-    "apiVersion": "stackgres.io/v1beta1",
+    "apiVersion": "stackgres.io/v1",
     "kind": "SGBackupConfig",
     "metadata": {
         "creationTimestamp": "2019-11-08T14:46:41Z",
@@ -7,7 +7,7 @@
         "name": "backupconf",
         "namespace": "stackgres",
         "resourceVersion": "38910",
-        "selfLink": "/apis/stackgres.io/v1beta1/namespaces/stackgres/sgbackupconfigs/backupconf",
+        "selfLink": "/apis/stackgres.io/v1/namespaces/stackgres/sgbackupconfigs/backupconf",
         "uid": "93bc7621-0236-11ea-a1d5-0242ac110003"
     },
     "spec": {

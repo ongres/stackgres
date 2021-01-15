@@ -5,12 +5,12 @@
     "kind": {
       "kind": "SGPoolingConfig",
       "group": "stackgres.io",
-      "version": "v1beta1"
+      "version": "v1"
     },
     "resource": {
       "group": "stackgres.io",
       "resource": "sgpoolconfigs",
-      "version": "v1beta1"
+      "version": "v1"
     },
     "subResource": null,
     "requestKind": null,
@@ -30,7 +30,7 @@
     },
     "object": {
       "kind": "SGPoolingConfig",
-      "apiVersion": "stackgres.io/v1beta1",
+      "apiVersion": "stackgres.io/v1",
       "metadata": {
         "annotations": {
           "helm.sh/hook": "pre-install"
@@ -53,7 +53,7 @@
     },
     "oldObject": {
       "kind": "SGPoolingConfig",
-      "apiVersion": "stackgres.io/v1beta1",
+      "apiVersion": "stackgres.io/v1",
       "metadata": {
         "annotations": {
           "helm.sh/hook": "pre-install"
@@ -77,5 +77,5 @@
     "options": null,
     "dryRun": false
   },
-  "apiVersion": "admission.k8s.io/v1beta1"
+  "apiVersion": "admission.k8s.io/v1"
 }

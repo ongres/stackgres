@@ -57,7 +57,7 @@ check_major_version_upgrade_is_working() {
   reset_cluster
 
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: major-version-upgrade
@@ -76,7 +76,7 @@ check_major_version_upgrade_check_is_working() {
   reset_cluster
 
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: major-version-upgrade
@@ -97,7 +97,7 @@ check_major_version_upgrade_link_is_working() {
   reset_cluster
 
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: major-version-upgrade
@@ -124,7 +124,7 @@ check_major_version_upgrade_clone_is_working() {
   reset_cluster
 
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: major-version-upgrade
@@ -171,7 +171,7 @@ check_major_version_upgrade_timed_out() {
   reset_cluster
 
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: major-version-upgrade
@@ -219,7 +219,7 @@ EOF
 
 check_major_version_upgrade_repeat() {
     cat << EOF | kubectl create -f -
-  apiVersion: stackgres.io/v1beta1
+  apiVersion: stackgres.io/v1
   kind: SGDbOps
   metadata:
     name: major-version-upgrade

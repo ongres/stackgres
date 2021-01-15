@@ -20,7 +20,7 @@ e2e_test() {
 
 check_repack_is_working() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: repack
@@ -37,7 +37,7 @@ EOF
 
 check_repack_no_order_is_working() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: repack
@@ -56,7 +56,7 @@ EOF
 
 check_repack_wait_timeout_is_working() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: repack
@@ -75,7 +75,7 @@ EOF
 
 check_repack_no_kill_backend_is_working() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: repack
@@ -94,7 +94,7 @@ EOF
 
 check_repack_no_analyze_is_working() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: repack
@@ -113,7 +113,7 @@ EOF
 
 check_repack_exclude_extension_is_working() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: repack
@@ -142,7 +142,7 @@ check_repack_specific_databases_is_working() {
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" \
      -d "test2" -q "CREATE EXTENSION pg_repack"
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: repack
@@ -197,7 +197,7 @@ EOF
       )" &
   trap_kill "$!"
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: repack

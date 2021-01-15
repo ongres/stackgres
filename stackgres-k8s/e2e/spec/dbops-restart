@@ -44,7 +44,7 @@ check_restart_is_working() {
   reset_cluster
 
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: restart
@@ -63,7 +63,7 @@ check_restart_in_place_is_working() {
   reset_cluster
 
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: restart
@@ -108,7 +108,7 @@ check_restart_timed_out() {
   reset_cluster
 
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: restart
@@ -156,7 +156,7 @@ EOF
 
 check_restart_repeat() {
     cat << EOF | kubectl create -f -
-  apiVersion: stackgres.io/v1beta1
+  apiVersion: stackgres.io/v1
   kind: SGDbOps
   metadata:
     name: restart

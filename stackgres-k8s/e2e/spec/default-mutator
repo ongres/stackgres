@@ -44,7 +44,7 @@ create_empty_sgpgconfig() {
 
   kubectl delete sgpgconfig -n "$CLUSTER_NAMESPACE" "$PGCONFIG" --ignore-not-found
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGPostgresConfig
 metadata:
   name: $PGCONFIG
@@ -93,7 +93,7 @@ update_empty_sgpgconfig() {
 
   kubectl delete sgpgconfig -n "$CLUSTER_NAMESPACE" "$PGCONFIG" --ignore-not-found
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGPostgresConfig
 metadata:
   name: $PGCONFIG
@@ -146,7 +146,7 @@ create_empty_sgpoolconfig() {
 
   kubectl delete sgpoolconfig -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" --ignore-not-found
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGPoolingConfig
 metadata:
   name: $PGCBOUNCER
@@ -194,7 +194,7 @@ update_empty_sgpoolconfig() {
 
   kubectl delete sgpoolconfig -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" --ignore-not-found
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGPoolingConfig
 metadata:
   name: $PGCBOUNCER
@@ -244,7 +244,7 @@ create_empty_sgbackupconfig() {
 
   kubectl delete sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --ignore-not-found
   cat << EOF | kubectl create --validate=false -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGBackupConfig
 metadata:
   name: $BACKUP_CONFIG
@@ -280,7 +280,7 @@ update_empty_sgbackupconfig() {
 
   kubectl delete sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --ignore-not-found
   cat << EOF | kubectl create --validate=false -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGBackupConfig
 metadata:
   name: $BACKUP_CONFIG
@@ -319,7 +319,7 @@ create_empty_sginstanceprofile() {
 
   kubectl delete sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" --ignore-not-found
   cat << EOF | kubectl create --validate=false -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGInstanceProfile
 metadata:
   name: $INSTANCE_PROFILE
@@ -354,7 +354,7 @@ update_empty_sginstanceprofile() {
 
   kubectl delete sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" --ignore-not-found
   cat << EOF | kubectl create --validate=false -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGInstanceProfile
 metadata:
   name: $INSTANCE_PROFILE
@@ -393,7 +393,7 @@ create_empty_cluster_with_default_pgbouncer() {
 
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-pgbouncer" --ignore-not-found
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME-pgbouncer
@@ -422,7 +422,7 @@ EOF
 
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-reused" --ignore-not-found
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME-reused
@@ -453,7 +453,7 @@ EOF
 create_empty_cluster_with_no_sidecars() {
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-nosidecars" --ignore-not-found
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME-nosidecars
@@ -497,7 +497,7 @@ create_empty_cluster() {
 
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --ignore-not-found
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
@@ -593,7 +593,7 @@ update_empty_cluster() {
 
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --ignore-not-found
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
@@ -651,7 +651,7 @@ EOF
 create_empty_cluster_on_operator_namespace() {
   kubectl delete sgcluster -n "$OPERATOR_NAMESPACE" "$CLUSTER_NAME" --ignore-not-found
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
@@ -682,7 +682,7 @@ EOF
 create_cluster_with_previous_postgres_version() {
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --ignore-not-found
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
@@ -714,7 +714,7 @@ create_empty_distributedlogs() {
 
   kubectl delete sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" --ignore-not-found
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDistributedLogs
 metadata:
   name: $DISTRIBUTEDLOGS_NAME
@@ -761,7 +761,7 @@ update_empty_distributedlogs() {
 create_empty_distributedlogs_on_operator_namespace() {
   kubectl delete sgdistributedlogs -n "$OPERATOR_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" --ignore-not-found
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDistributedLogs
 metadata:
   name: $DISTRIBUTEDLOGS_NAME

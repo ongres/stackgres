@@ -5,12 +5,12 @@
     "kind": {
       "kind": "SGPoolingConfig",
       "group": "stackgres.io",
-      "version": "v1beta1"
+      "version": "v1"
     },
     "resource": {
       "group": "stackgres.io",
       "resource": "sgpoolconfigs",
-      "version": "v1beta1"
+      "version": "v1"
     },
     "subResource": null,
     "requestKind": null,
@@ -31,5 +31,5 @@
     "options": null,
     "dryRun": false
   },
-  "apiVersion": "admission.k8s.io/v1beta1"
+  "apiVersion": "admission.k8s.io/v1"
 }

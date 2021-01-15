@@ -124,7 +124,7 @@ test_cluster_pod_count() {
   BACKUP_NAME="${CLUSTER_NAME}-0-$(shuf -i 0-65535 -n 1)"
 
     cat << EOF | kubectl create -f -
-  apiVersion: stackgres.io/v1beta1
+  apiVersion: stackgres.io/v1
   kind: SGBackup
   metadata:
     namespace: "$CLUSTER_NAMESPACE"

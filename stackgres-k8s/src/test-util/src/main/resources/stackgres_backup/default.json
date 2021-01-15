@@ -1,12 +1,12 @@
 {
   "kind": "SGBackup",
-  "apiVersion": "stackgres.io/v1beta1",
+  "apiVersion": "stackgres.io/v1",
   "metadata": {
     "name": "backup-with-default-storage-bded7e9a-3939-11ea-be74-0242ac110002",
     "namespace": "backup-with-default-storage",
     "ownerReferences": [
       {
-        "apiVersion": "batch/v1beta1",
+        "apiVersion": "batch/v1",
         "kind": "CronJob",
         "name": "backup-with-default-storage-backup",
         "uid": "769faf87-3939-11ea-be74-0242ac110002"

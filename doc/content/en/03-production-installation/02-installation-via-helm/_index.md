@@ -58,7 +58,7 @@ You can instruct StackGres to create your cluster with different hardware specif
 
 ```yaml
 cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGInstanceProfile
 metadata:
   namespace: my-cluster
@@ -77,7 +77,7 @@ Start with PostgreSQL configuration using th `SGPostgresConfig` as follow
 
 ```yaml
 cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGPostgresConfig
 metadata:
   namespace: my-cluster
@@ -101,7 +101,7 @@ For better performance and stability, it is recommended to use `pool_mode` in `t
 
 ```yaml
 cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGPoolingConfig
 metadata:
   namespace: my-cluster
@@ -119,7 +119,7 @@ The longest step for this demonstration is the backup CR:
 
 ```yaml
 cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGBackupConfig
 metadata:
   namespace: my-cluster
@@ -138,7 +138,7 @@ Alternatively, StackGres could be instructed to use [Google Cloud Storage](https
 
 ```yaml
 cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGBackupConfig
 metadata:
   namespace: my-cluster
@@ -163,7 +163,7 @@ Or [AWS S3](https://aws.amazon.com/s3/) if you want
 
 ```yaml
 cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGBackupConfig
 metadata:
   namespace: my-cluster
@@ -291,7 +291,7 @@ Finally create the SGDistributedLogs CR to enable a [distributed log cluster]({{
 
 ```yaml
 cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDistributedLogs
 metadata:
   namespace: my-cluster
@@ -322,7 +322,7 @@ All the necessary steps were performed to create your first StackGres Cluster, l
 
 ```yaml
 cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   namespace: my-cluster

@@ -33,7 +33,7 @@ ___
 Example:
 
 ```yaml
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGBackupConfig
 metadata:
   name: backupconf

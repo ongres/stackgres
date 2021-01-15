@@ -13,6 +13,7 @@ public interface ConversionUtil {
   String CONNPOOLCONFIG_CONVERSION_PATH =  CONVERSION_PATH + "/sgpoolconfig";
   String BACKUPCONFIG_CONVERSION_PATH = CONVERSION_PATH + "/sgbackupconfig";
   String BACKUP_CONVERSION_PATH = CONVERSION_PATH + "/sgbackup";
+  String DBOPS_CONVERSION_PATH = CONVERSION_PATH + "/sgdbops";
   String PROFILE_CONVERSION_PATH = CONVERSION_PATH + "/sginstanceprofile";
   String DISTRIBUTED_LOGS_CONVERSION_PATH = CONVERSION_PATH + "/sgdistributedlogs";
 }

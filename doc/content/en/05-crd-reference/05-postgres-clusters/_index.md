@@ -35,7 +35,7 @@ ___
 Example:
 
 ```yaml
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: stackgres
@@ -78,7 +78,7 @@ A sidecar container is a container that adds functionality to PostgreSQL or to t
 The following example, disable all optional sidecars:
 
 ```yaml
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: stackgres
@@ -99,7 +99,7 @@ Holds the configurations of the persistent volume that the cluster pods are goin
 | storageClass |          |           | string   | default storage class               | {{< crd-field-description SGCluster.spec.pods.persistentVolume.storageClass >}} |
 
 ```yaml
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: stackgres
@@ -120,7 +120,7 @@ Holds custom metadata information for StackGres pods to have.
 | labels       |          |           | string   | default storage class               | {{< crd-field-description SGCluster.spec.pods.metadata.labels >}} |
 
 ```yaml
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: stackgres
@@ -146,7 +146,7 @@ Example:
 
 ``` yaml
 
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: stackgres
@@ -180,7 +180,7 @@ By default, stackgres it's creates as an empty database. To create a cluster wit
 Example:
 
 ```yaml
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: stackgres
@@ -207,7 +207,7 @@ By default, stackgres creates as an empty database. To execute some scripts, we 
 Example:
 
 ```yaml
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: stackgres
@@ -261,7 +261,7 @@ Specifies the distributed logs cluster to send logs to:
 Example:
 
 ```yaml
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: stackgres

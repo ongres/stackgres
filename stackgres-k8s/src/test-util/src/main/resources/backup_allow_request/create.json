@@ -5,12 +5,12 @@
     "kind": {
       "kind": "SGBackup",
       "group": "stackgres.io",
-      "version": "v1beta1"
+      "version": "v1"
     },
     "resource": {
       "group": "stackgres.io",
       "resource": "sgbackups",
-      "version": "v1beta1"
+      "version": "v1"
     },
     "subResource": null,
     "requestKind": null,
@@ -30,13 +30,13 @@
     },
     "object": {
       "kind": "SGBackup",
-      "apiVersion": "stackgres.io/v1beta1",
+      "apiVersion": "stackgres.io/v1",
       "metadata": {
         "name": "backup-with-default-storage-bded7e9a-3939-11ea-be74-0242ac110002",
         "namespace": "backup-with-default-storage",
         "ownerReferences": [
           {
-            "apiVersion": "batch/v1beta1",
+            "apiVersion": "batch/v1",
             "kind": "CronJob",
             "name": "backup-with-default-storage-backup",
             "uid": "769faf87-3939-11ea-be74-0242ac110002"
@@ -84,5 +84,5 @@
     "options": null,
     "dryRun": false
   },
-  "apiVersion": "admission.k8s.io/v1beta1"
+  "apiVersion": "admission.k8s.io/v1"
 }

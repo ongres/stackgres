@@ -47,12 +47,12 @@ public abstract class ConversionResourceTest<T extends CustomResource> {
 
     final List<ObjectNode> objects = conversionReview.getRequest().getObjects();
 
-    when(pipeline.convert("stackgres.io/v1beta1", objects))
+    when(pipeline.convert("stackgres.io/v1", objects))
         .thenReturn(objects);
 
     ConversionReviewResponse response = conversionResource.convert(conversionReview);
 
-    verify(pipeline).convert("stackgres.io/v1beta1", objects);
+    verify(pipeline).convert("stackgres.io/v1", objects);
 
     assertEquals(objects, response.getResponse().getConvertedObjects());
     assertEquals("Success", response.getResponse().getResult().getStatus());
@@ -67,7 +67,7 @@ public abstract class ConversionResourceTest<T extends CustomResource> {
 
     final List<ObjectNode> objects = conversionReview.getRequest().getObjects();
 
-    when(pipeline.convert("stackgres.io/v1beta1", objects))
+    when(pipeline.convert("stackgres.io/v1", objects))
         .thenThrow(new RuntimeException("Any exception"));
 
     ConversionReviewResponse response = conversionResource.convert(conversionReview);
@@ -75,7 +75,7 @@ public abstract class ConversionResourceTest<T extends CustomResource> {
     assertEquals("Failed", response.getResponse().getResult().getStatus());
     assertEquals(conversionReview.getRequest().getUid(), response.getResponse().getUid());
 
-    verify(pipeline).convert("stackgres.io/v1beta1", objects);
+    verify(pipeline).convert("stackgres.io/v1", objects);
   }
 
 
@@ -83,7 +83,7 @@ public abstract class ConversionResourceTest<T extends CustomResource> {
     ConversionReview conversionReview = new ConversionReview();
     conversionReview.setRequest(new ConversionRequest());
     conversionReview.getRequest().setUid(UUID.randomUUID());
-    conversionReview.getRequest().setDesiredApiVersion("stackgres.io/v1beta1");
+    conversionReview.getRequest().setDesiredApiVersion("stackgres.io/v1");
     conversionReview.getRequest().setObjects(Collections.singletonList(mapper.valueToTree(object)));
     return conversionReview;
   }

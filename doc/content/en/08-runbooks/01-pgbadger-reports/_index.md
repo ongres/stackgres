@@ -14,7 +14,7 @@ Before start, be sure that you have a `SGCluster` runing that is using a `SGDist
 
 ```yaml
 ---
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDistributedLogs
 metadata:
   namespace: default
@@ -32,7 +32,7 @@ To generate a pgbadger report, a few configuration parameters are necessary:
 
 ```yaml
 ---
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGPostgresConfig
 metadata:
   name: my-postgres-config
@@ -61,7 +61,7 @@ The final `SGCluster` should be something like this:
 
 ```yaml
 ---
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: my-db-cluster

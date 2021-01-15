@@ -1,5 +1,5 @@
 {{ if and .Values.distributedLogs.enabled .Values.distributedLogs.create }}
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDistributedLogs
 metadata:
   name: {{ .Values.cluster.distributedLogs.sgDistributedLogs }}
