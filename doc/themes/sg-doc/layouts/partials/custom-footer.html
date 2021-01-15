@@ -18,11 +18,36 @@
 
 <script>
   jQuery(document).ready(function($){
-    
+
+    // Check cookie for current color sceheme
+    if( getCookie('sgTheme') === 'light') {
+      console.log('Switching to lightmode');
+      $('body').removeClass('darkmode');
+      $('#darkmode').removeClass('active');
+    } else {
+      document.cookie = "sgTheme=dark; Path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT";
+    }
+
   })
+
+  function getCookie(cname) {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for(var i = 0; i < ca.length; i++) {
+      var c = ca[i];
+      while (c.charAt(0) == ' ') {
+        c = c.substring(1);
+      }
+      if (c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
+      }
+    }
+    return "";
+  }
 
   function toggleDarkmode() {
     $('body').toggleClass('darkmode')
+    document.cookie = "sgTheme=" + ($('body').hasClass('darkmode') ? 'dark' : 'light') + "; Path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT";
   }
 
   function navToggle() {
