@@ -1,6 +1,15 @@
 pg_replication:
   master: true
-  query: "SELECT EXTRACT(EPOCH FROM (now() - pg_last_xact_replay_timestamp())) as lag, CASE WHEN pg_is_in_recovery() THEN 1 ELSE 0 END as is_replica"
+  query: |
+    select
+    case
+      when pg_last_wal_receive_lsn() = pg_last_wal_replay_lsn() then 0
+      else extract (EPOCH FROM now() - pg_last_xact_replay_timestamp())::integer
+    end as lag,
+    case
+      when pg_is_in_recovery() then 1
+      else 0
+    end as is_replica;
   metrics:
     - lag:
         usage: "GAUGE"
