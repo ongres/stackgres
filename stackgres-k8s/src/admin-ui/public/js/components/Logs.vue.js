@@ -300,7 +300,7 @@ var Logs = Vue.component("Logs", {
 										<td class="connectionFrom hasTooltip" v-if="showColumns.connectionFrom">
 											<span>{{ log.connectionFrom }}</span>
 										</td>
-										<td class="applicationName hasTooltip" v-if="showColumns.applicatioName">
+										<td class="applicationName hasTooltip" v-if="showColumns.applicationName">
 											<span>{{ log.applicationName }}</span>
 										</td>
 									</tr>
