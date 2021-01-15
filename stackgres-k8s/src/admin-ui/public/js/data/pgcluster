@@ -1,5 +1,5 @@
 {
-  "apiVersion": "stackgres.io/v1beta1",
+  "apiVersion": "stackgres.io/v1",
   "kind": "SGCluster",
   "metadata": {
       "creationTimestamp": "2019-09-11T11:58:45Z",
@@ -7,7 +7,7 @@
       "name": "stackgres",
       "namespace": "default",
       "resourceVersion": "705",
-      "selfLink": "/apis/stackgres.io/v1beta1/namespaces/default/sgclusters/stackgres",
+      "selfLink": "/apis/stackgres.io/v1/namespaces/default/sgclusters/stackgres",
       "uid": "02eb2f60-b428-4ec4-88f0-989df44f3407"
   },
   "spec": {

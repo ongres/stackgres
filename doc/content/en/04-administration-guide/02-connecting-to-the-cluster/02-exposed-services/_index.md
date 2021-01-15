@@ -39,7 +39,7 @@ NodePort is a k8s mechanism to expose a service into a dynamic in each cluster n
 
 ```yaml
 ---
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: my-db-cluster
@@ -93,7 +93,7 @@ Update the SGCluster configuration like below:
 
 ```yaml
 ---
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: my-db-cluster

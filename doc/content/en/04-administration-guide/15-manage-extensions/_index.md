@@ -110,7 +110,7 @@ Both `timescaledb` and `pg_stat_statements` need a custom configuration. To fix 
 ```bash
 cat << 'EOF' | kubectl create -f -
 
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGPostgresConfig
 metadata:
   name: custom-conf
@@ -120,7 +120,7 @@ spec:
     shared_preload_libraries: pg_stat_statements,timescaledb
 
 ---
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: extensions

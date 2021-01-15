@@ -2,7 +2,7 @@
     "apiVersion": "v1",
     "items": [
         {
-          "apiVersion": "stackgres.io/v1beta1",
+          "apiVersion": "stackgres.io/v1",
           "kind": "SGPostgresConfig",
           "metadata": {
             "creationTimestamp": "2019-09-27T11:23:22Z",
@@ -10,7 +10,7 @@
             "name": "postgresconf",
             "namespace": "stackgres",
             "resourceVersion": "1130",
-            "selfLink": "/apis/stackgres.io/v1beta1/namespaces/default/sgpgconfigs/postgresconf",
+            "selfLink": "/apis/stackgres.io/v1/namespaces/default/sgpgconfigs/postgresconf",
             "uid": "3658bd63-33cb-4948-8318-63183cbd2cf1"
           },
           "spec": {

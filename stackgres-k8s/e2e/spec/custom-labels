@@ -3,7 +3,7 @@
 e2e_test_install() {
   kubectl create namespace "$CLUSTER_NAMESPACE"
   cat <<EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGInstanceProfile
 metadata:
   name: size-xs
@@ -45,7 +45,7 @@ check_label(){
 direct_custom_labels(){
   local RANDOM_VALUE=$(ramdom_string)
   cat <<EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
@@ -121,7 +121,7 @@ create_cluster_with_api(){
 
 create_api_custom_labels(){
   cat <<EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
@@ -163,7 +163,7 @@ get_api_custom_labels() {
 
   local RANDOM_VALUE=$(ramdom_string)
   cat <<EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME

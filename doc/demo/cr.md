@@ -12,7 +12,7 @@
 `profiles-cr.yaml` Custom resources for instances size(memory and cpu):
 
 ```
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGInstanceProfile
 metadata:
   name: size-xs
@@ -22,7 +22,7 @@ spec:
   cpu: "500m"
   memory: "512Mi"
 ---
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGInstanceProfile
 metadata:
   name: size-s
@@ -32,7 +32,7 @@ spec:
   cpu: "1"
   memory: "2Gi"
 ---
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGInstanceProfile
 metadata:
   name: size-m
@@ -42,7 +42,7 @@ spec:
   cpu: "2"
   memory: "4Gi"
 ---
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGInstanceProfile
 metadata:
   name: size-l
@@ -52,7 +52,7 @@ spec:
   cpu: "4"
   memory: "8Gi"
 ---
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGInstanceProfile
 metadata:
   name: size-xl
@@ -62,7 +62,7 @@ spec:
   cpu: "6"
   memory: "16Gi"
 ---
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGInstanceProfile
 metadata:
   name: size-xxl
@@ -74,7 +74,7 @@ spec:
 ```
 `pgconfig-cr.yaml`  Custom resource for PosgreSQL configuration:
 ```
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGPostgresConfig
 metadata:
   name: postgresconf
@@ -92,7 +92,7 @@ spec:
 `pgbouncerconfig-cr.yaml` Custom resource for pgbouncer configuration:
 
 ```
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGPoolingConfig
 metadata:
   name: pgbouncerconf
@@ -108,7 +108,7 @@ spec:
 `cluster-cr.yaml` Custom resource for StackGres cluster
 
 ``` yaml
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: jaundiced-ladybug

@@ -26,7 +26,7 @@ ___
 Example:
 
 ```yaml
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
   kind: SGInstanceProfile
   metadata:
     name: size-l

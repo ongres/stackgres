@@ -14,40 +14,41 @@ e2e_test_install() {
   
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+  create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \
     --set instanceProfiles[0].name=size-xs \
     --set instanceProfiles[0].cpu=250m \
     --set instanceProfiles[0].memory=512Mi \
     --set-string configurations.postgresconfig.postgresql\.conf.max_connections=100
-  create_or_replace_cluster "$CLUSTER_NAME-for-restart-primary-first" "$CLUSTER_NAMESPACE" 1 \
+  create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
+    "$CLUSTER_NAME-for-restart-primary-first" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \
     --set instanceProfiles=null \
     --set cluster.configurations.sgPostgresConfig=postgresconf-for-restart-primary-first \
     --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-restart-primary-first \
     --set-string configurations.postgresconfig.postgresql\.conf.max_connections=100
-  create_or_replace_cluster "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1 \
+  create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
+    "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.postgresVersion=latest
-  create_or_replace_cluster "$CLUSTER_NAME-2" "$CLUSTER_NAMESPACE" 2 \
+  create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
+    "$CLUSTER_NAME-2" "$CLUSTER_NAMESPACE" 2 \
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.postgresVersion=latest \
     --set cluster.configurations.sgPostgresConfig=postgresconf-for-restart-primary-first \
     --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-restart-primary-first
-  create_or_replace_cluster "$CLUSTER_NAME-3" "$CLUSTER_NAMESPACE" 3 \
+  create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
+    "$CLUSTER_NAME-3" "$CLUSTER_NAMESPACE" 3 \
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.postgresVersion=latest
   wait_pods_running "$CLUSTER_NAMESPACE" 6
 
   generate_mock_data "$CLUSTER_NAME-1"
   check_mock_data_samehost "$CLUSTER_NAME-1"
-  ! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-1" --for condition=PendingRestart
   generate_mock_data "$CLUSTER_NAME-2"
   check_mock_data "$CLUSTER_NAME-2"
-  ! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-2" --for condition=PendingRestart
   generate_mock_data "$CLUSTER_NAME-3"
   check_mock_data "$CLUSTER_NAME-3"
-  ! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-3" --for condition=PendingRestart
 }
 
 e2e_test_uninstall() {
@@ -254,5 +255,22 @@ check_conversion_webhook_configured(){
 
 }
 
+create_or_replace_cluster_for_version() {
+  local VERSION="$1"
+  local RELEASE="$2"
+  local NAMESPACE="$3"
+  local INSTANCES="$4"
+  shift 4
 
+  if helm get values "$RELEASE" --namespace "$NAMESPACE" > /dev/null 2>&1
+  then
+    helm upgrade "$RELEASE" --namespace "$NAMESPACE" "$CLUSTER_PREVIOUS_VERSION_HELM_URL" \
+        --reuse-values --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"   
+  else
+    create_namespace_if_not_exists "$NAMESPACE"
+    helm install "$RELEASE" "$CLUSTER_PREVIOUS_VERSION_HELM_URL" \
+      --namespace "$NAMESPACE" \
+      --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
+  fi
+}
 

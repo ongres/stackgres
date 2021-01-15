@@ -47,7 +47,7 @@ The following options should NOT be enabled in a production environment.
 Example:
 
 ```yaml
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDistributedLogs
 metadata:
   name: distributedlogs

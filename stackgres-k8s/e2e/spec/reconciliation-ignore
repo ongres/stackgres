@@ -4,7 +4,7 @@ e2e_test_install() {
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
   cat <<EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGInstanceProfile
 metadata:
   name: size-xs
@@ -38,7 +38,7 @@ e2e_test() {
 ignore_sgcluster_create(){
 
     cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
@@ -103,7 +103,7 @@ resume_sgcluster_reconciliation(){
 
 ignore_sgdistributedlogs_create(){
   cat <<EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDistributedLogs
 metadata:
   name: $CLUSTER_NAME-logs

@@ -2,7 +2,7 @@
   "apiVersion": "v1",
   "items": [
     {
-      "apiVersion": "stackgres.io/v1beta1",
+      "apiVersion": "stackgres.io/v1",
       "kind": "SGPoolingConfig",
       "metadata": {
         "creationTimestamp": "2019-09-30T11:10:03Z",
@@ -10,7 +10,7 @@
         "name": "pgbouncerconf",
         "namespace": "stackgres",
         "resourceVersion": "214286",
-        "selfLink": "/apis/stackgres.io/v1beta1/namespaces/default/sgpoolconfigs/pgbouncerconf",
+        "selfLink": "/apis/stackgres.io/v1/namespaces/default/sgpoolconfigs/pgbouncerconf",
         "uid": "ceaa793f-2d97-48b7-91e4-8086b22f1c4c"
       },
       "spec": {

@@ -148,6 +148,11 @@ k8s_webhook_cleanup() {
     | grep -v "^[^/]\+/\($(excluded_mutatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_mutatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | xargs -r -n 1 -I % -P 0 kubectl delete %
+  kubectl get crd -o name \
+    | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | xargs -r -n 1 -I @ -P 0 "$SHELL" $SHELL_XTRACE \
+      -ec "$(k8s_remove_crd_conversion_webhhok_script)"
 }
 
 helm_cleanup_but_operator() {
@@ -235,6 +240,15 @@ helm_cleanup_chart() {
   ! helm status "$1" --namespace "$2" 2> /dev/null \
     || helm delete "$1" --namespace "$2" \
     || ! helm status "$1" --namespace "$2" 2> /dev/null
+}
+
+k8s_remove_crd_conversion_webhhok_script() {
+  cat << EOF
+if [ "\$(kubectl get "@" --template '{{ if .spec.conversion }}true{{ end }}' || true)" = true ]
+then
+  kubectl patch "@" --type json -p '[{"op":"remove","path":"/spec/conversion"}]'
+fi
+EOF
 }
 
 k8s_finalize_namespace_script() {

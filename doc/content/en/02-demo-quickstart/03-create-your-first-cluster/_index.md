@@ -13,7 +13,7 @@ To create your first StackGres cluster you have to create a simple custom resour
 
 ```shell
 cat << 'EOF' | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: simple
@@ -48,7 +48,7 @@ Create the minio service and the backup configuration with default parameters:
 kubectl create -f {{< download-url >}}/minio-demo.yml
 
 cat << 'EOF' | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGBackupConfig
 metadata:
   name: simple
@@ -75,7 +75,7 @@ Then create the StackGres cluster indicating the previously created backup confi
 
 ```bash
 cat << 'EOF' | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: simple

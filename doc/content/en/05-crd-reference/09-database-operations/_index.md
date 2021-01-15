@@ -204,7 +204,7 @@ ___
 Example:
 
 ```yaml
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: benchmark

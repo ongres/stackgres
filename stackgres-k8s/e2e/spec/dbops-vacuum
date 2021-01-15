@@ -18,7 +18,7 @@ e2e_test() {
 
 check_vacuum_is_working() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: vacuum
@@ -35,7 +35,7 @@ EOF
 
 check_vacuum_full_is_working() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: vacuum
@@ -54,7 +54,7 @@ EOF
 
 check_vacuum_freeze_is_working() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: vacuum
@@ -73,7 +73,7 @@ EOF
 
 check_vacuum_analyze_is_working() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: vacuum
@@ -92,7 +92,7 @@ EOF
 
 check_vacuum_disable_page_skipping_is_working() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: vacuum
@@ -117,7 +117,7 @@ check_vacuum_specific_databases_is_working() {
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" \
     -q "CREATE DATABASE test2;"
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: vacuum
@@ -161,7 +161,7 @@ check_vacuum() {
 
 check_vacuum_timed_out() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: vacuum

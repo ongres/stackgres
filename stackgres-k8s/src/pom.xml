@@ -48,7 +48,7 @@
   <properties>
     <stackgres.containerBuild>5.1</stackgres.containerBuild>
     <stackgres.group>stackgres.io</stackgres.group>
-    <stackgres.crd.version>v1beta1</stackgres.crd.version>
+    <stackgres.crd.version>v1</stackgres.crd.version>
     <stackgres.operatorName>stackgres-operator</stackgres.operatorName>
     <stackgres.operatorNamespace>stackgres</stackgres.operatorNamespace>
     <stackgres.operatorImageVersion>development-jvm</stackgres.operatorImageVersion>

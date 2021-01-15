@@ -18,7 +18,7 @@ e2e_test() {
 
 check_pgbench_is_working() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: benchmark
@@ -40,7 +40,7 @@ EOF
 
 check_pgbench_many_is_working() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: benchmark
@@ -64,7 +64,7 @@ EOF
 
 check_pgbench_prepared_is_working() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: benchmark
@@ -87,7 +87,7 @@ EOF
 
 check_pgbench_replicas_is_working() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: benchmark
@@ -185,7 +185,7 @@ check_pgbench() {
 
 check_pgbench_timed_out() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: benchmark

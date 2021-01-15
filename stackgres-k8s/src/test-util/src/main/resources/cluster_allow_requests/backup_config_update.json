@@ -5,23 +5,23 @@
     "kind": {
       "kind": "SGCluster",
       "group": "stackgres.io",
-      "version": "v1beta1"
+      "version": "v1"
     },
     "resource": {
       "group": "stackgres.io",
       "resource": "sgclusters",
-      "version": "v1beta1"
+      "version": "v1"
     },
     "subResource": null,
     "requestKind": {
       "kind": "SGCluster",
       "group": "stackgres.io",
-      "version": "v1beta1"
+      "version": "v1"
     },
     "requestResource": {
       "group": "stackgres.io",
       "resource": "sgclusters",
-      "version": "v1beta1"
+      "version": "v1"
     },
     "requestSubResource": null,
     "name": null,
@@ -38,7 +38,7 @@
     },
     "object": {
       "kind": "SGCluster",
-      "apiVersion": "stackgres.io/v1beta1",
+      "apiVersion": "stackgres.io/v1",
       "metadata": {
         "creationTimestamp": "2019-09-27T09:09:34Z",
         "generation": 1,
@@ -69,7 +69,7 @@
     },
     "oldObject": {
       "kind": "SGCluster",
-      "apiVersion": "stackgres.io/v1beta1",
+      "apiVersion": "stackgres.io/v1",
       "metadata": {
         "creationTimestamp": "2019-09-27T09:09:34Z",
         "generation": 1,
@@ -107,5 +107,5 @@
     },
     "dryRun": false
   },
-  "apiVersion": "admission.k8s.io/v1beta1"
+  "apiVersion": "admission.k8s.io/v1"
 }

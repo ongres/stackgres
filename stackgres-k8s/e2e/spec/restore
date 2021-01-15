@@ -20,7 +20,7 @@ e2e_test_install() {
   BACKUP_NAME="$CLUSTER_NAME-backup-0-$(shuf -i 0-65535 -n 1)"
 
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGBackup
 metadata:
   namespace: "$CLUSTER_NAMESPACE-backup"
@@ -131,7 +131,7 @@ check_backup_pg_version() {
   ALTERNATIVE_MAYOR_PG_VERSION="${ALTERNATIVE_PG_VERSION%.*}"
 
   cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGPostgresConfig
 metadata:
   name: pgconfig-alter
@@ -142,7 +142,7 @@ spec:
 EOF
 
   cat << EOF > "$LOG_PATH/alter-restore-cluster.yaml"
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME-alter
@@ -183,7 +183,7 @@ check_restore_default_values(){
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" 
 
   cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME

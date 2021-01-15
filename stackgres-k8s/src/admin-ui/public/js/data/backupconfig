@@ -1,7 +1,7 @@
 [
   {
     "kind": "SGBackupConfig",
-    "apiVersion": "stackgres.io/v1beta1",
+    "apiVersion": "stackgres.io/v1",
     "metadata": {
       "annotations": {
         "helm.sh/hook": "pre-install"
@@ -11,7 +11,7 @@
       "name": "backupconf",
       "namespace": "stackgres",
       "resourceVersion": "502749",
-      "selfLink": "/apis/stackgres.io/v1beta1/namespaces/stackgres/sgbackupconfigs/backupconf",
+      "selfLink": "/apis/stackgres.io/v1/namespaces/stackgres/sgbackupconfigs/backupconf",
       "uid": "f481a840-14f5-11ea-bbf8-0242ac110011"
     },
     "spec": {

@@ -4,7 +4,7 @@ e2e_test_install() {
   kubectl create namespace "$CLUSTER_NAMESPACE"
   PGCBOUNCER="pgbouncer"
   cat <<EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGInstanceProfile
 metadata:
   name: size-xs
@@ -14,7 +14,7 @@ spec:
   memory: '512Mi'
 EOF
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGPoolingConfig
 metadata:
   name: $PGCBOUNCER
@@ -27,7 +27,7 @@ spec:
 EOF
 
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME

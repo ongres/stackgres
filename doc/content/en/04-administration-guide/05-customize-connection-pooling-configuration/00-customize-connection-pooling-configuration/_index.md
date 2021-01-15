@@ -10,7 +10,7 @@ draft: true
 Certain set of applications, particularly those for reporting or OLAP, may not need a pooling middleware to issue large queries and low amount of connections. It is possible to disable pooling by setting `disableConnectionPooling` to `true` at the Cluster configuration (for more information, see [CRD Cluster Pods configuration]({{% relref "05-crd-reference/05-postgres-clusters/" %}}) ).
 
 ```bash
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: stackgres
@@ -28,7 +28,7 @@ This configuration is recommended for most efficient pool allocations:
 
 ```bash
 cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGPoolingConfig
 metadata:
   namespace: my-cluster
@@ -51,7 +51,7 @@ You'll notice that the bellow is ordered from variables that affect client-side 
 
 ```bash
 cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGPoolingConfig
 metadata:
   namespace: my-cluster
