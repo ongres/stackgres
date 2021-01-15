@@ -159,15 +159,15 @@ body, #sets h4, #sets h3, #side a.router-link-exact-active, th, .tabs a, #keywor
     background-color: var(--bgColor);
 }
 
- #side, .set.conf.active, #nav, .set:not(.active) ul.show:before, .tooltip, #contentTooltip .info, .set.active:not(.conf):not(.backups), .set.active:not(.conf), #current-namespace, .set, #ns-select, ul.breadcrumbs, header .actions, #keyword, table.backups thead, .toolbar .toggle, .options, hr, .darkmode .daterangepicker, .darkmode .daterangepicker .calendar-time, .darkmode .daterangepicker .drp-buttons, tbody, tr.details table th, tr.details table td,  td.usedOn li, .content h2, ul.tabs, table.clusterConfig td, table.logs thead, .options li.textFilter .search, .filter.columns label, .filter.columns input[type="checkbox"], .darkmode .daterangepicker select.hourselect, .message, .form .header, fieldset, ul.select, .form select, .form input, label.switch, #nav .right > div#clone, .form textarea, #logTooltip.show, #nameTooltip.show, #helpTooltip, #nav .right > div#signup, #signup input, #delete .tooltip h3, #delete .tooltip form input, .grafana iframe {
+ #side, .set.conf.active, #nav, .set:not(.active) ul.show:before, .tooltip, #contentTooltip .info, .set.active:not(.conf):not(.backups), .set.active:not(.conf), #current-namespace, .set, #ns-select, ul.breadcrumbs, header .actions, #keyword, table.backups thead, .toolbar .toggle, .options, hr, .darkmode .daterangepicker, .darkmode .daterangepicker .calendar-time, .darkmode .daterangepicker .drp-buttons, tbody, tr.details table th, tr.details table td,  td.usedOn li, .content h2, ul.tabs, table.clusterConfig td, table.logs thead, .options li.textFilter .search, .filter.columns label, .filter.columns input[type="checkbox"], .darkmode .daterangepicker select.hourselect, .message, .form .header, fieldset, ul.select, .form select, .form input, label.switch, #nav .right > div#clone, .form textarea, #logTooltip.show, #nameTooltip.show, #helpTooltip, #nav .right > div#signup, #signup input, #delete .tooltip h3, #delete .tooltip form input, .grafana iframe, .logInfo.open .logMessage, .logMessage .param, .logDetails.postgres tr:not(:last-of-type), .logDetails.patroni tr:not(:last-of-type), .logDetails table, .logDetails td.param {
     border-color: var(--borderColor);
 }
 
- .set.active, .set.active a:hover, .clusterInfo tr, .podStatus tr, #backups tr:nth-child(4n+2), table tr:nth-child(4n+2) + tr.details, #contentTooltip tr:nth-child(odd), table.pgConfig tr:nth-child(4n-2), table.pgConfig tr:nth-child(4n-2) + tr.details, table.poolConfig tr:nth-child(4n-2), table.poolConfig tr:nth-child(4n-2) + tr.details, table.backupConfig tr:nth-child(4n-2),  table.backupConfig tr:nth-child(4n-2) + tr.details, ul.select.active li.selected {
+ .set.active, .set.active a:hover, .clusterInfo tr, .podStatus tr, #backups tr:nth-child(4n+2), table tr:nth-child(4n+2) + tr.details, #contentTooltip tr:nth-child(odd), table.pgConfig tr:nth-child(4n-2), table.pgConfig tr:nth-child(4n-2) + tr.details, table.poolConfig tr:nth-child(4n-2), table.poolConfig tr:nth-child(4n-2) + tr.details, table.backupConfig tr:nth-child(4n-2),  table.backupConfig tr:nth-child(4n-2) + tr.details, ul.select.active li.selected, tr:nth-child(even) + tr.details tr:nth-child(even), tr:nth-child(even) + tr.details th, table.logs tr:nth-child(4n-2), table.logs tr:nth-child(4n-2) + tr.logInfo, table.logs tr:nth-child(even) + .logInfo table.logMessage, table.logs tr:nth-child(even) + .logInfo tr:nth-child(odd) {
     background-color: var(--activeBg);
 }
 
- tr:nth-child(even), tr:nth-child(even) + tr.details, table tr:nth-child(even):not(.base), .form input, ul#postgresVersion, .form select, .form textarea, #keyword, .options label, .options select, #signup form input {
+ tr:nth-child(even), tr:nth-child(even) + tr.details, table tr:nth-child(even):not(.base), .form input, ul#postgresVersion, .form select, .form textarea, #keyword, .options label, .options select, #signup form input, #side a.router-link-exact-active, table tr:nth-child(4n+2) + tr.details th, table tr:nth-child(4n+2) + tr.details tr:nth-child(even), tr:nth-child(even) + tr.logInfo, table.logs tr:nth-child(4n-2) + .logInfo table.logMessage {
     background-color: var(--inputBg);
 }
 
@@ -175,7 +175,7 @@ body, #sets h4, #sets h3, #side a.router-link-exact-active, th, .tabs a, #keywor
     background-color: transparent;
 }
 
-.form input[disabled="disabled"], .form select[disabled="disabled"] {
+.form input[disabled="disabled"], .form select[disabled="disabled"], .form textarea[disabled="disabled"], .form fieldset[disabled="disabled"], label.switch[disabled="disabled"], ul.select a:hover {
     background-color: var(--borderColor);
 }
 
@@ -191,11 +191,11 @@ body, #sets h4, #sets h3, #side a.router-link-exact-active, th, .tabs a, #keywor
 /*Images*/
 
 .helpTooltip {
-    background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNSAxNSI+PHBhdGggZmlsbD0iIzA2MDUyOCIgZD0iTTcuNSwwQzMuNCwwLDAsMy40LDAsNy41QzAsMTEuNiwzLjQsMTUsNy41LDE1UzE1LDExLjYsMTUsNy41QzE1LDMuNCwxMS42LDAsNy41LDB6IE04LDExLjJjLTAuMiwwLjEtMC40LDAuMi0wLjYsMC4yaDBjLTAuMiwwLTAuNC0wLjEtMC42LTAuMmMtMC4yLTAuMi0wLjMtMC40LTAuMy0wLjdjMC0wLjIsMC4xLTAuNSwwLjMtMC42QzcsOS43LDcuMiw5LjcsNy40LDkuN2MwLjIsMCwwLjQsMC4xLDAuNiwwLjNjMC4yLDAuMiwwLjMsMC40LDAuMiwwLjZDOC4zLDEwLjgsOC4yLDExLDgsMTEuMnogTTkuOCw2LjZDOS43LDYuOCw5LjYsNyw5LjQsNy4xQzkuMyw3LjMsOSw3LjUsOC42LDcuOUM4LjUsOCw4LjQsOC4xLDguNCw4LjFjMCwwLjEtMC4xLDAuMS0wLjEsMC4yYzAsMCwwLDAuMS0wLjEsMC4yYzAsMC4xLDAsMC4yLTAuMSwwLjNDOC4xLDksOCw5LjEsNy45LDkuMkM3LjcsOS4zLDcuNiw5LjQsNy40LDkuNGgwQzcuMiw5LjQsNyw5LjMsNi44LDkuMkM2LjcsOSw2LjYsOC44LDYuNiw4LjZjMC0wLjMsMC0wLjUsMC4xLTAuN0M2LjgsNy42LDcsNy41LDcuMSw3LjNjMC4yLTAuMiwwLjQtMC40LDAuNi0wLjVDNy45LDYuNiw4LDYuNCw4LjEsNi40YzAuMS0wLjEsMC4xLTAuMiwwLjItMC4zYzAtMC4xLDAuMS0wLjIsMC4xLTAuM2MwLTAuMi0wLjEtMC40LTAuMi0wLjVDOCw1LjEsNy44LDUuMSw3LjUsNS4xQzcuMyw1LDcuMSw1LjEsNi45LDUuM0M2LjcsNS41LDYuNiw1LjcsNi41LDZDNi40LDYuNCw2LjEsNi42LDUuNyw2LjZoMGMtMC4yLDAtMC40LTAuMS0wLjUtMC4yQzUsNi4zLDQuOSw2LjEsNC45LDUuOXYwYzAtMC40LDAuMS0wLjcsMC4zLTFjMC4yLTAuMywwLjUtMC42LDAuOS0wLjhjMC40LTAuMiwwLjktMC4zLDEuNC0wLjNDOCwzLjcsOC40LDMuOCw4LjgsNGMwLjQsMC4yLDAuNywwLjQsMC45LDAuN2MwLjIsMC4zLDAuMywwLjcsMC4zLDFDMTAsNi4xLDEwLDYuMyw5LjgsNi42eiIvPjwvc3ZnPg==);
+    background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNSAxNSI+PHBhdGggZmlsbD0iIzA2MDUyOCIgZD0iTTcuNSwwQzMuNCwwLDAsMy40LDAsNy41QzAsMTEuNiwzLjQsMTUsNy41LDE1UzE1LDExLjYsMTUsNy41QzE1LDMuNCwxMS42LDAsNy41LDB6IE04LDExLjJjLTAuMiwwLjEtMC40LDAuMi0wLjYsMC4yaDBjLTAuMiwwLTAuNC0wLjEtMC42LTAuMmMtMC4yLTAuMi0wLjMtMC40LTAuMy0wLjdjMC0wLjIsMC4xLTAuNSwwLjMtMC42QzcsOS43LDcuMiw5LjcsNy40LDkuN2MwLjIsMCwwLjQsMC4xLDAuNiwwLjNjMC4yLDAuMiwwLjMsMC40LDAuMiwwLjZDOC4zLDEwLjgsOC4yLDExLDgsMTEuMnogTTkuOCw2LjZDOS43LDYuOCw5LjYsNyw5LjQsNy4xQzkuMyw3LjMsOSw3LjUsOC42LDcuOUM4LjUsOCw4LjQsOC4xLDguNCw4LjFjMCwwLjEtMC4xLDAuMS0wLjEsMC4yYzAsMCwwLDAuMS0wLjEsMC4yYzAsMC4xLDAsMC4yLTAuMSwwLjNDOC4xLDksOCw5LjEsNy45LDkuMkM3LjcsOS4zLDcuNiw5LjQsNy40LDkuNGgwQzcuMiw5LjQsNyw5LjMsNi44LDkuMkM2LjcsOSw2LjYsOC44LDYuNiw4LjZjMC0wLjMsMC0wLjUsMC4xLTAuN0M2LjgsNy42LDcsNy41LDcuMSw3LjNjMC4yLTAuMiwwLjQtMC40LDAuNi0wLjVDNy45LDYuNiw4LDYuNCw4LjEsNi40YzAuMS0wLjEsMC4xLTAuMiwwLjItMC4zYzAtMC4xLDAuMS0wLjIsMC4xLTAuM2MwLTAuMi0wLjEtMC40LTAuMi0wLjVDOCw1LjEsNy44LDUuMSw3LjUsNS4xQzcuMyw1LDcuMSw1LjEsNi45LDUuM0M2LjcsNS41LDYuNiw1LjcsNi41LDZDNi40LDYuNCw2LjEsNi42LDUuNyw2LjZoMGMtMC4yLDAtMC40LTAuMS0wLjUtMC4yQzUsNi4zLDQuOSw2LjEsNC45LDUuOXYwYzAtMC40LDAuMS0wLjcsMC4zLTFjMC4yLTAuMywwLjUtMC42LDAuOS0wLjhjMC40LTAuMiwwLjktMC4zLDEuNC0wLjNDOCwzLjcsOC40LDMuOCw4LjgsNGMwLjQsMC4yLDAuNywwLjQsMC45LDAuN2MwLjIsMC4zLDAuMywwLjcsMC4zLDFDMTAsNi4xLDEwLDYuMyw5LjgsNi42eiIvPjwvc3ZnPg==) !important;
 }
 
 .darkmode .helpTooltip {
-    background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNSAxNSI+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTcuNSwwQzMuNCwwLDAsMy40LDAsNy41QzAsMTEuNiwzLjQsMTUsNy41LDE1UzE1LDExLjYsMTUsNy41QzE1LDMuNCwxMS42LDAsNy41LDB6IE04LDExLjJjLTAuMiwwLjEtMC40LDAuMi0wLjYsMC4yaDBjLTAuMiwwLTAuNC0wLjEtMC42LTAuMmMtMC4yLTAuMi0wLjMtMC40LTAuMy0wLjdjMC0wLjIsMC4xLTAuNSwwLjMtMC42QzcsOS43LDcuMiw5LjcsNy40LDkuN2MwLjIsMCwwLjQsMC4xLDAuNiwwLjNjMC4yLDAuMiwwLjMsMC40LDAuMiwwLjZDOC4zLDEwLjgsOC4yLDExLDgsMTEuMnogTTkuOCw2LjZDOS43LDYuOCw5LjYsNyw5LjQsNy4xQzkuMyw3LjMsOSw3LjUsOC42LDcuOUM4LjUsOCw4LjQsOC4xLDguNCw4LjFjMCwwLjEtMC4xLDAuMS0wLjEsMC4yYzAsMCwwLDAuMS0wLjEsMC4yYzAsMC4xLDAsMC4yLTAuMSwwLjNDOC4xLDksOCw5LjEsNy45LDkuMkM3LjcsOS4zLDcuNiw5LjQsNy40LDkuNGgwQzcuMiw5LjQsNyw5LjMsNi44LDkuMkM2LjcsOSw2LjYsOC44LDYuNiw4LjZjMC0wLjMsMC0wLjUsMC4xLTAuN0M2LjgsNy42LDcsNy41LDcuMSw3LjNjMC4yLTAuMiwwLjQtMC40LDAuNi0wLjVDNy45LDYuNiw4LDYuNCw4LjEsNi40YzAuMS0wLjEsMC4xLTAuMiwwLjItMC4zYzAtMC4xLDAuMS0wLjIsMC4xLTAuM2MwLTAuMi0wLjEtMC40LTAuMi0wLjVDOCw1LjEsNy44LDUuMSw3LjUsNS4xQzcuMyw1LDcuMSw1LjEsNi45LDUuM0M2LjcsNS41LDYuNiw1LjcsNi41LDZDNi40LDYuNCw2LjEsNi42LDUuNyw2LjZoMGMtMC4yLDAtMC40LTAuMS0wLjUtMC4yQzUsNi4zLDQuOSw2LjEsNC45LDUuOXYwYzAtMC40LDAuMS0wLjcsMC4zLTFjMC4yLTAuMywwLjUtMC42LDAuOS0wLjhjMC40LTAuMiwwLjktMC4zLDEuNC0wLjNDOCwzLjcsOC40LDMuOCw4LjgsNGMwLjQsMC4yLDAuNywwLjQsMC45LDAuN2MwLjIsMC4zLDAuMywwLjcsMC4zLDFDMTAsNi4xLDEwLDYuMyw5LjgsNi42eiIvPjwvc3ZnPg==);
+    background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNSAxNSI+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTcuNSwwQzMuNCwwLDAsMy40LDAsNy41QzAsMTEuNiwzLjQsMTUsNy41LDE1UzE1LDExLjYsMTUsNy41QzE1LDMuNCwxMS42LDAsNy41LDB6IE04LDExLjJjLTAuMiwwLjEtMC40LDAuMi0wLjYsMC4yaDBjLTAuMiwwLTAuNC0wLjEtMC42LTAuMmMtMC4yLTAuMi0wLjMtMC40LTAuMy0wLjdjMC0wLjIsMC4xLTAuNSwwLjMtMC42QzcsOS43LDcuMiw5LjcsNy40LDkuN2MwLjIsMCwwLjQsMC4xLDAuNiwwLjNjMC4yLDAuMiwwLjMsMC40LDAuMiwwLjZDOC4zLDEwLjgsOC4yLDExLDgsMTEuMnogTTkuOCw2LjZDOS43LDYuOCw5LjYsNyw5LjQsNy4xQzkuMyw3LjMsOSw3LjUsOC42LDcuOUM4LjUsOCw4LjQsOC4xLDguNCw4LjFjMCwwLjEtMC4xLDAuMS0wLjEsMC4yYzAsMCwwLDAuMS0wLjEsMC4yYzAsMC4xLDAsMC4yLTAuMSwwLjNDOC4xLDksOCw5LjEsNy45LDkuMkM3LjcsOS4zLDcuNiw5LjQsNy40LDkuNGgwQzcuMiw5LjQsNyw5LjMsNi44LDkuMkM2LjcsOSw2LjYsOC44LDYuNiw4LjZjMC0wLjMsMC0wLjUsMC4xLTAuN0M2LjgsNy42LDcsNy41LDcuMSw3LjNjMC4yLTAuMiwwLjQtMC40LDAuNi0wLjVDNy45LDYuNiw4LDYuNCw4LjEsNi40YzAuMS0wLjEsMC4xLTAuMiwwLjItMC4zYzAtMC4xLDAuMS0wLjIsMC4xLTAuM2MwLTAuMi0wLjEtMC40LTAuMi0wLjVDOCw1LjEsNy44LDUuMSw3LjUsNS4xQzcuMyw1LDcuMSw1LjEsNi45LDUuM0M2LjcsNS41LDYuNiw1LjcsNi41LDZDNi40LDYuNCw2LjEsNi42LDUuNyw2LjZoMGMtMC4yLDAtMC40LTAuMS0wLjUtMC4yQzUsNi4zLDQuOSw2LjEsNC45LDUuOXYwYzAtMC40LDAuMS0wLjcsMC4zLTFjMC4yLTAuMywwLjUtMC42LDAuOS0wLjhjMC40LTAuMiwwLjktMC4zLDEuNC0wLjNDOCwzLjcsOC40LDMuOCw4LjgsNGMwLjQsMC4yLDAuNywwLjQsMC45LDAuN2MwLjIsMC4zLDAuMywwLjcsMC4zLDFDMTAsNi4xLDEwLDYuMyw5LjgsNi42eiIvPjwvc3ZnPg==) !important;
 }
 
 header .actions a.documentation:before {
@@ -212,4 +212,13 @@ header .actions a.documentation:before {
 
 .darkmode #contentTooltip {
     background-color: #060528e6;
+}
+
+#side svg path, .breadcrumbs svg path {
+    fill: var(--baseColor)
+}
+
+/* Extra Libraries Override */
+.daterangepicker .calendar-table tr {
+    background: transparent !important;
 }
