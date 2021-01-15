@@ -19,17 +19,18 @@ ___
 
 **Spec**
 
-| Property                                                                                   | Required | Updatable | Type     | Default                             | Description |
-|:-------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
-| postgresVersion                                                                            | ✓        | ✓         | string   |                                     | {{< crd-field-description SGCluster.spec.postgresVersion >}} |
-| instances                                                                                  | ✓        | ✓         | integer  |                                     | {{< crd-field-description SGCluster.spec.instances >}} |
-| [sgInstanceProfile]({{% relref "/05-crd-reference/08-instance-profiles" %}}) |          |           | string   | will be generated                   | {{< crd-field-description SGCluster.spec.sgInstanceProfile >}} |
-| [pods](#pods)                                                                              | ✓        | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.pods >}} |
-| [configurations](#configurations)                                                          |          |           | object   |                                     | {{< crd-field-description SGCluster.spec.configurations >}} |
-| prometheusAutobind                                                                         |          | ✓         | boolean  | false                               | {{< crd-field-description SGCluster.spec.prometheusAutobind >}} |
-| [initialData](#initial-data-configuration)                                                 |          |           | object   |                                     | {{< crd-field-description SGCluster.spec.initialData >}} |
-| [distributedLogs](#distributed-logs)                                                       |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.distributedLogs >}} |
-| [nonProductionOptions](#non-production-options)                                            |          | ✓         | array    |                                     | {{< crd-field-description SGCluster.spec.nonProductionOptions >}} |
+| Property                                                                                   | Required | Updatable | Type     | Default                             | Description                                                        |
+|:-------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:-------------------------------------------------------------------|
+| postgresVersion                                                                            | ✓        | ✓         | string   |                                     | {{< crd-field-description SGCluster.spec.postgresVersion >}}       |
+| instances                                                                                  | ✓        | ✓         | integer  |                                     | {{< crd-field-description SGCluster.spec.instances >}}             |
+| [sgInstanceProfile]({{% relref "/05-crd-reference/08-instance-profiles" %}})               |          |           | string   | will be generated                   | {{< crd-field-description SGCluster.spec.sgInstanceProfile >}}     |
+| [pods](#pods)                                                                              | ✓        | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.pods >}}                  |
+| [configurations](#configurations)                                                          |          |           | object   |                                     | {{< crd-field-description SGCluster.spec.configurations >}}        |
+| prometheusAutobind                                                                         |          | ✓         | boolean  | false                               | {{< crd-field-description SGCluster.spec.prometheusAutobind >}}    |
+| [initialData](#initial-data-configuration)                                                 |          |           | object   |                                     | {{< crd-field-description SGCluster.spec.initialData >}}           |
+| [distributedLogs](#distributed-logs)                                                       |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.distributedLogs >}}       |
+| [postgresServices](#postgres-services)                                                     |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.postgresServices >}}      |
+| [nonProductionOptions](#non-production-options)                                            |          | ✓         | array    |                                     | {{< crd-field-description SGCluster.spec.nonProductionOptions >}}  |
 
 Example:
 
@@ -268,6 +269,22 @@ spec:
   distributedLogs: 
     sgDistributedLogs: distributedlogs
 ```
+
+## Postgres Services
+
+Specifies the service configuration for the cluster:
+
+| Property                        | Required | Updatable | Type     | Default   | Description                                                            |
+|:--------------------------------|----------|-----------|:---------|:----------|:-----------------------------------------------------------------------|
+| [Primary](#service-type)        |          | ✓         | object   |           | {{< crd-field-description SGCluster.spec.postgresServices.primary >}}  |
+| [Replicas](#service-type)       |          | ✓         | object   |           | {{< crd-field-description SGCluster.spec.postgresServices.replicas >}} |
+
+### service type
+
+
+| Property                        | Required | Updatable | Type     | Default   | Description                                                                 |
+|:--------------------------------|----------|-----------|:---------|:----------|:----------------------------------------------------------------------------|
+| Type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.primary.type >}}  |
 
 ## Non Production options
 
