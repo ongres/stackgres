@@ -99,6 +99,18 @@ body.yellow ::selection {
     border-radius: 3px;
 }
 
+.textGradient {
+    color: var(--baseColor);
+    background-image: var(--baseGradient);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+a.textGradient:hover {
+    color: var(--baseLightColor);
+    background-position: center right;
+}
+
 body, html {
     font-family: 'Poppins', sans-serif;
 }
@@ -163,11 +175,11 @@ body, #sets h4, #sets h3, #side a.router-link-exact-active, th, .tabs a, #keywor
     border-color: var(--borderColor);
 }
 
- .set.active, .set.active a:hover, .clusterInfo tr, .podStatus tr, #backups tr:nth-child(4n+2), table tr:nth-child(4n+2) + tr.details, #contentTooltip tr:nth-child(odd), table.pgConfig tr:nth-child(4n-2), table.pgConfig tr:nth-child(4n-2) + tr.details, table.poolConfig tr:nth-child(4n-2), table.poolConfig tr:nth-child(4n-2) + tr.details, table.backupConfig tr:nth-child(4n-2),  table.backupConfig tr:nth-child(4n-2) + tr.details, ul.select.active li.selected, tr:nth-child(even) + tr.details tr:nth-child(even), tr:nth-child(even) + tr.details th, table.logs tr:nth-child(4n-2), table.logs tr:nth-child(4n-2) + tr.logInfo, table.logs tr:nth-child(even) + .logInfo table.logMessage, table.logs tr:nth-child(even) + .logInfo tr:nth-child(odd) {
+.set.active, .set.active a:hover, .clusterInfo tr, .podStatus tr, #backups > tbody tr:nth-child(4n+2), table tr:nth-child(4n+2) + tr.details, #contentTooltip tr:nth-child(odd), table.pgConfig tr:nth-child(4n-2), table.pgConfig tr:nth-child(4n-2) + tr.details, table.poolConfig tr:nth-child(4n-2), table.poolConfig tr:nth-child(4n-2) + tr.details, table.backupConfig tr:nth-child(4n-2),  table.backupConfig tr:nth-child(4n-2) + tr.details, ul.select.active li.selected, tr:nth-child(even) + tr.details tr:nth-child(even), table.logs tr:nth-child(4n-2), table.logs tr:nth-child(4n-2) + tr.logInfo, table.logs tr:nth-child(even) + .logInfo table.logMessage, table.logs tr:nth-child(even) + .logInfo tr:nth-child(odd), table.backups > tbody tr:nth-child(4n-2), tr:nth-child(even) + tr.details th {
     background-color: var(--activeBg);
 }
 
- tr:nth-child(even), tr:nth-child(even) + tr.details, table tr:nth-child(even):not(.base), .form input, ul#postgresVersion, .form select, .form textarea, #keyword, .options label, .options select, #signup form input, #side a.router-link-exact-active, table tr:nth-child(4n+2) + tr.details th, table tr:nth-child(4n+2) + tr.details tr:nth-child(even), tr:nth-child(even) + tr.logInfo, table.logs tr:nth-child(4n-2) + .logInfo table.logMessage {
+tr:nth-child(even), tr:nth-child(even) + tr.details, table tr:nth-child(even):not(.base), .form input, ul#postgresVersion, .form select, .form textarea, #keyword, .options label, .options select, #signup form input, #side a.router-link-exact-active, table tr:nth-child(4n+2) + tr.details th, table tr:nth-child(4n+2) + tr.details tr:nth-child(even), tr:nth-child(even) + tr.logInfo, table.logs tr:nth-child(4n-2) + .logInfo table.logMessage {
     background-color: var(--inputBg);
 }
 

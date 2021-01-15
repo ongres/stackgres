@@ -2615,9 +2615,9 @@ tr:nth-child(even), tr:nth-child(even) + tr.details {
     background: #fafafa;
 }
 
-#backups tr:nth-child(4n+2), tr:nth-child(4n+2) + tr.details {
+/* #backups tr:nth-child(4n+2), tr:nth-child(4n+2) + tr.details {
     background: #fff;
-}
+} */
 
 /* #backups tr.base.Completed.open {
     border-top: 1px solid #f0f0f1;
