@@ -26,7 +26,6 @@ The `monitoring` namespace was created to deploy the Prometheus Operator, which 
 
 > For advanced options to the monitoring installation, see the [Monitoring session]({{% relref "03-production-installation/01-pre-requisites/04-monitoring" %}}) in the [Production Installation]({{% relref "03-production-installation" %}}).
 
-
 ## StackGres Operator installation
 
 Now that we have configured a Backup storage place, as indicated in the pre-requisites, 
