@@ -1,0 +1,12 @@
+#!/bin/sh
+
+. "$TEST_SHELL_PATH/dbops/abstract-dbops"
+
+shell_unit_test() {
+  EXCLUSIVE_OP=true
+  shell_unit_test_dbops
+}
+
+run_op() {
+  true
+}

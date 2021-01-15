@@ -1,0 +1,130 @@
+#!/bin/sh
+
+. "$TEST_SHELL_PATH/abstract-dbops"
+
+RUN_SCRIPT_PATH="$PROJECT_PATH/src/main/resources/templates/run-major-version-upgrade.sh"
+SET_RESULT_SCRIPT_PATH=""
+OP_NAME=majorVersionUpgrade
+NORMALIZED_OP_NAME='major version upgrade'
+KEBAB_OP_NAME='major-version-upgrade'
+POD_0_RESTARTED=false
+POD_1_RESTARTED=false
+PATRONI_CONTAINER_NAME=patroni
+MAJOR_VERSION_UPGRADE_CONTAINER_NAME=major-version-upgrade
+
+shell_unit_test_dbops_major_version_upgrade() {
+  (
+  echo "pod/test-0"
+  echo "pod/test-1"
+  ) > "$TEST_TARGET_PATH/cluster_pods"
+
+  shell_unit_test_dbops
+}
+
+mock kubectl kubectl_mock
+
+kubectl_mock() {
+  mokked
+  case "$*" in
+    ("get $CLUSTER_CRD_NAME "*)
+    echo '
+      LOCK_POD=test
+      LOCK_TIMESTAMP="$(date +%s)"
+      RESOURCE_VERSION=test
+      '
+    ;;
+    ("annotate $CLUSTER_CRD_NAME "*)
+    ;;
+    ("get $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template {{ if .status.dbOps }}{{ if .status.dbOps.$OP_NAME }}true{{ end }}{{ end }}")
+    ;;
+    ("get $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME --template {{ if .status }}true{{ else }}false{{ end }}")
+    printf false
+    ;;
+    ("get $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME --template {{ if .status.$OP_NAME }}replace{{ else }}add{{ end }}")
+    printf add
+    ;;
+    ("get pods -n $CLUSTER_NAMESPACE -l $CLUSTER_POD_LABELS -o name")
+    cat "$TEST_TARGET_PATH/cluster_pods"
+    ;;
+    ("get pods -n $CLUSTER_NAMESPACE -l $CLUSTER_PRIMARY_POD_LABELS -o name")
+    echo "pod/test-0"
+    ;;
+    ("get pod -n $CLUSTER_NAMESPACE test-0 -o name")
+    echo "pod/test-0"
+    ;;
+    ("get pod -n $CLUSTER_NAMESPACE test-1 -o name")
+    echo "pod/test-1"
+    ;;
+    ("get pod -n $CLUSTER_NAMESPACE test-0 --template {{ range .spec.containers }}{{ if eq .name \"$PATRONI_CONTAINER_NAME\" }}{{ .image }}{{ end }}{{ end }}")
+    echo 'ongres/patroni:v1.6.5-pg11.8-build-5.1'
+    ;;
+    ("get pod -n $CLUSTER_NAMESPACE test-0 --template {{ .metadata.annotations.status }}")
+    echo '"pending_restart":false'
+    ;;
+    ("get pod -n $CLUSTER_NAMESPACE test-1 --template {{ .metadata.annotations.status }}")
+    echo '"pending_restart":false'
+    ;;
+    ("get pod -n $CLUSTER_NAMESPACE test-0 --template {{ index .metadata.labels \"controller-revision-hash\" }}")
+    if "$POD_0_RESTARTED"
+    then
+      echo hash-1
+    else
+      echo hash-0
+    fi
+    ;;
+    ("get pod -n $CLUSTER_NAMESPACE test-1 --template {{ index .metadata.labels \"controller-revision-hash\" }}")
+    if "$POD_1_RESTARTED"
+    then
+      echo hash-1
+    else
+      echo hash-0
+    fi
+    ;;
+    ("get sts -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template {{ .status.updateRevision }}")
+    echo "hash-1"
+    ;;
+    ("get sts -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template {{ range .spec.template.spec.initContainers }}{{ if eq .name \"$MAJOR_VERSION_UPGRADE_CONTAINER_NAME\" }}true{{ end }}{{ end }}")
+    echo "true"
+    ;;
+    ("patch $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --type=json -p "*"{\"op\":\"replace\",\"path\":\"/spec/instances\",\"value\":1}"*)
+    (
+    echo "pod/test-0"
+    ) > "$TEST_TARGET_PATH/cluster_pods"
+    ;;
+    ("patch $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --type=json -p "*"{\"op\":\"replace\",\"path\":\"/spec/instances\",\"value\":2}"*)
+    (
+    echo "pod/test-0"
+    echo "pod/test-1"
+    ) > "$TEST_TARGET_PATH/cluster_pods"
+    ;;
+    ("patch $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --type=json -p "*)
+    ;;
+    ("patch $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME --type=json -p "*)
+    ;;
+    ("wait pod -n $CLUSTER_NAMESPACE test-"*" --for condition=Ready --timeout 0")
+    ;;
+    ("delete pod -n $CLUSTER_NAMESPACE test-0")
+    POD_0_RESTARTED=true
+    ;;
+    ("delete pod -n $CLUSTER_NAMESPACE test-1")
+    POD_1_RESTARTED=true
+    ;;
+    ("exec -n $CLUSTER_NAMESPACE test-0 -c patroni -- psql "*)
+    STDIN="$(cat)"
+    case "$STDIN" in
+      (*"SHOW lc_collate"*)
+      echo 'en_US.UTF-8'
+      ;;
+      (*"SHOW server_encoding"*)
+      echo 'UTF8'
+      ;;
+      (*"data_checksums"*)
+      echo 'true'
+      ;;
+    esac
+    ;;
+    *)
+    not_mokked
+    ;;
+  esac
+}

@@ -10,10 +10,10 @@ EVAL_IN_PLACE_EOF
 LAST_TRANSITION_TIME="$(date -Iseconds -u)"
 STARTED="$LAST_TRANSITION_TIME"
 
-if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" "$DB_OPS_CRD_NAME" "$DB_OPS_NAME" \
+if [ "$(kubectl get "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" \
   --template '{{ if .status }}true{{ else }}false{{ end }}')" = "false" ]
 then
-  kubectl patch -n "$CLUSTER_NAMESPACE" "$DB_OPS_CRD_NAME" "$DB_OPS_NAME" --type=json \
+  kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=json \
     -p "$(cat << EOF
 [
   {"op":"add","path":"/status","value":{
@@ -30,7 +30,7 @@ then
 EOF
     )"
 else
-  kubectl patch -n "$CLUSTER_NAMESPACE" "$DB_OPS_CRD_NAME" "$DB_OPS_NAME" --type=json \
+  kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=json \
     -p "$(cat << EOF
 [
   {"op":"replace","path":"/status","value":{

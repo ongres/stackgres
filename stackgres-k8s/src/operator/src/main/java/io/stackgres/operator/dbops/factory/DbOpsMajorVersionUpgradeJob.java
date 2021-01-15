@@ -55,6 +55,11 @@ public class DbOpsMajorVersionUpgradeJob extends DbOpsJob {
   }
 
   @Override
+  protected boolean isExclusiveOp() {
+    return true;
+  }
+
+  @Override
   protected List<EnvVar> getRunEnvVars(StackGresDbOpsContext context, StackGresDbOps dbOps) {
     StackGresDbOpsMajorVersionUpgrade majorVersionUpgrade =
         dbOps.getSpec().getMajorVersionUpgrade();
@@ -141,13 +146,8 @@ public class DbOpsMajorVersionUpgradeJob extends DbOpsJob {
   }
 
   @Override
-  protected ClusterStatefulSetPath runScript() {
+  protected ClusterStatefulSetPath getRunScript() {
     return ClusterStatefulSetPath.LOCAL_BIN_RUN_MAJOR_VERSION_UPGRADE_SH_PATH;
-  }
-
-  @Override
-  protected ClusterStatefulSetPath setResultScript() {
-    return ClusterStatefulSetPath.LOCAL_BIN_SET_MAJOR_VERSION_UPGRADE_RESULT_SH_PATH;
   }
 
 }

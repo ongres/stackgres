@@ -25,8 +25,9 @@ get_pod_reason() {
   kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -o jsonpath='{.status.conditions[0].reason}'
 }
 
-get_first_node_name(){
-  kubectl get nodes -o jsonpath='{.items[0].metadata.name}'
+get_first_worker_node_name(){
+  kubectl get node --template '{{ range .items }}{{ .metadata.name }}:{{ range .spec.taints }}{{ range $k,$v := . }}{{ printf "%s=%s " $k $v }}{{ end }}:{{ end }}{{ printf "\n" }}{{ end }}' \
+    | grep -v ':effect=NoSchedule key=node.kubernetes\.io/master :' | cut -d : -f 1 | head -n 1
 }
 
 check_cluster_not_deployed() {
@@ -45,7 +46,7 @@ check_cluster_not_deployed() {
 
 check_cluster_deployed_after_node_configured() {
 
-  NODE_NAME=$(get_first_node_name)
+  NODE_NAME=$(get_first_worker_node_name)
 
   kubectl label nodes "$NODE_NAME" "$NODE_LABEL_KEY"="$NODE_LABEL_VALUE"
 

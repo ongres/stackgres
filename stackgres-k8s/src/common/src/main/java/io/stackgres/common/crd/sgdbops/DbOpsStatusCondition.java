@@ -13,6 +13,7 @@ public enum DbOpsStatusCondition {
   DB_OPS_RUNNING(Type.RUNNING, Status.TRUE, "OperationRunning"),
   DB_OPS_FAILED(Type.FAILED, Status.TRUE, "OperationFailed"),
   DB_OPS_TIMED_OUT(Type.FAILED, Status.TRUE, "OperationTimedOut"),
+  DB_OPS_LOCK_LOST(Type.FAILED, Status.TRUE, "OperationLockLost"),
   DB_OPS_FALSE_FAILED(Type.FAILED, Status.FALSE, "OperationNotFailed"),
   DB_OPS_COMPLETED(Type.COMPLETED, Status.TRUE, "OperationCompleted"),
   DB_OPS_FALSE_COMPLETED(Type.COMPLETED, Status.FALSE, "OperationNotCompleted");

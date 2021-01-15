@@ -123,13 +123,8 @@ public class DbOpsVacuumJob extends DbOpsJob {
   }
 
   @Override
-  protected ClusterStatefulSetPath runScript() {
+  protected ClusterStatefulSetPath getRunScript() {
     return ClusterStatefulSetPath.LOCAL_BIN_RUN_VACUUM_SH_PATH;
-  }
-
-  @Override
-  protected ClusterStatefulSetPath setResultScript() {
-    return ClusterStatefulSetPath.LOCAL_BIN_SET_VACUUM_RESULT_SH_PATH;
   }
 
 }

@@ -29,6 +29,9 @@ ___
 | [vacuum](#vacuum)                                     |          |           |         | object  | {{< crd-field-description SGDbOps.spec.vacuum >}} |
 | [repack](#repack)                                     |          |           |         | object  | {{< crd-field-description SGDbOps.spec.repack >}} |
 | [majorVersionUpgrade](#major-version-upgrade)         |          |           |         | object  | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade >}} |
+| [restart](#restart)                                   |          |           |         | object  | {{< crd-field-description SGDbOps.spec.restart >}} |
+| [minorVersionUpgrade](#minor-version-upgrade)         |          |           |         | object  | {{< crd-field-description SGDbOps.spec.minorVersionUpgrade >}} |
+| [securityUpgrade](#secutiry-upgrade)                  |          |           |         | object  | {{< crd-field-description SGDbOps.spec.securityUpgrade >}} |
 
 **Status**
 
@@ -39,6 +42,9 @@ ___
 | opStarted                                              |          |           |         | string  | {{< crd-field-description SGDbOps.status.opStarted >}} |
 | [benchmark](#benchmark-status)                         |          |           |         | object  | {{< crd-field-description SGDbOps.status.benchmark >}} |
 | [majorVersionUpgrade](#major-version-upgrade-status)   |          |           |         | object  | {{< crd-field-description SGDbOps.status.majorVersionUpgrade >}} |
+| [restart](#restart-status)                             |          |           |         | object  | {{< crd-field-description SGDbOps.status.restart >}} |
+| [minorVersionUpgrade](#minor-version-upgrade-status)   |          |           |         | object  | {{< crd-field-description SGDbOps.status.minorVersionUpgrade >}} |
+| [securityUpgrade](#secutiry-upgrade-status)            |          |           |         | object  | {{< crd-field-description SGDbOps.status.securityUpgrade >}} |
 
 ## Benchmark
 
@@ -108,6 +114,24 @@ ___
 | clone                                      |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.clone >}} |
 | check                                      |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.check >}} |
 
+## Restart
+
+| Property                                   | Required | Updatable | Type     | Default                      | Description |
+|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
+| method                                     |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.restart.method >}} |
+
+## Minor Version Upgrade
+
+| Property                                   | Required | Updatable | Type     | Default                      | Description |
+|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
+| method                                     |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.minorVersionUpgrade.method >}} |
+
+## Security Upgrade
+
+| Property                                   | Required | Updatable | Type     | Default                      | Description |
+|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
+| method                                     |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.securityUpgrade.method >}} |
+
 ## Conditions
 
 | Property                                   | Required | Updatable | Type     | Default                      | Description |
@@ -143,6 +167,39 @@ ___
 | pendingToRestartInstances                  |          |           | array    |                              | {{< crd-field-description SGDbOps.status.majorVersionUpgrade.pendingToRestartInstances >}} |
 | restartedInstances                         |          |           | array    |                              | {{< crd-field-description SGDbOps.status.majorVersionUpgrade.restartedInstances >}} |
 | failure                                    |          |           | string   |                              | {{< crd-field-description SGDbOps.status.majorVersionUpgrade.failure >}} |
+
+## Restart Status
+
+| Property                                   | Required | Updatable | Type     | Default                      | Description |
+|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
+| primaryInstance                            |          |           | string   |                              | {{< crd-field-description SGDbOps.status.restart.primaryInstance >}} |
+| initialInstances                           |          |           | array    |                              | {{< crd-field-description SGDbOps.status.restart.initialInstances >}} |
+| pendingToRestartInstances                  |          |           | array    |                              | {{< crd-field-description SGDbOps.status.restart.pendingToRestartInstances >}} |
+| restartedInstances                         |          |           | array    |                              | {{< crd-field-description SGDbOps.status.restart.restartedInstances >}} |
+| switchoverInitiated                        |          |           | boolean  |                              | {{< crd-field-description SGDbOps.status.restart.switchoverInitiated >}} |
+| failure                                    |          |           | string   |                              | {{< crd-field-description SGDbOps.status.restart.failure >}} |
+
+## Minor Version Upgrade Status
+
+| Property                                   | Required | Updatable | Type     | Default                      | Description |
+|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
+| primaryInstance                            |          |           | string   |                              | {{< crd-field-description SGDbOps.status.minorVersionUpgrade.primaryInstance >}} |
+| initialInstances                           |          |           | array    |                              | {{< crd-field-description SGDbOps.status.minorVersionUpgrade.initialInstances >}} |
+| pendingToRestartInstances                  |          |           | array    |                              | {{< crd-field-description SGDbOps.status.minorVersionUpgrade.pendingToRestartInstances >}} |
+| restartedInstances                         |          |           | array    |                              | {{< crd-field-description SGDbOps.status.minorVersionUpgrade.restartedInstances >}} |
+| switchoverInitiated                        |          |           | boolean  |                              | {{< crd-field-description SGDbOps.status.minorVersionUpgrade.switchoverInitiated >}} |
+| failure                                    |          |           | string   |                              | {{< crd-field-description SGDbOps.status.minorVersionUpgrade.failure >}} |
+
+## Security Upgrade Status
+
+| Property                                   | Required | Updatable | Type     | Default                      | Description |
+|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
+| primaryInstance                            |          |           | string   |                              | {{< crd-field-description SGDbOps.status.securityUpgrade.primaryInstance >}} |
+| initialInstances                           |          |           | array    |                              | {{< crd-field-description SGDbOps.status.securityUpgrade.initialInstances >}} |
+| pendingToRestartInstances                  |          |           | array    |                              | {{< crd-field-description SGDbOps.status.securityUpgrade.pendingToRestartInstances >}} |
+| restartedInstances                         |          |           | array    |                              | {{< crd-field-description SGDbOps.status.securityUpgrade.restartedInstances >}} |
+| switchoverInitiated                        |          |           | boolean  |                              | {{< crd-field-description SGDbOps.status.securityUpgrade.switchoverInitiated >}} |
+| failure                                    |          |           | string   |                              | {{< crd-field-description SGDbOps.status.securityUpgrade.failure >}} |
 
 Example:
 

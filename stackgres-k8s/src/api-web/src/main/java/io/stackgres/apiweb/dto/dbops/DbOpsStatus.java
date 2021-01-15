@@ -35,6 +35,15 @@ public class DbOpsStatus {
   @JsonProperty("majorVersionUpgrade")
   private DbOpsMajorVersionUpgradeStatus majorVersionUpgrade;
 
+  @JsonProperty("restart")
+  private DbOpsRestartStatus restart;
+
+  @JsonProperty("minorVersionUpgrade")
+  private DbOpsMinorVersionUpgradeStatus minorVersionUpgrade;
+
+  @JsonProperty("securityUpgrade")
+  private DbOpsSecurityUpgradeStatus securityUpgrade;
+
   public List<DbOpsCondition> getConditions() {
     return conditions;
   }
@@ -73,6 +82,30 @@ public class DbOpsStatus {
 
   public void setMajorVersionUpgrade(DbOpsMajorVersionUpgradeStatus majorVersionUpgrade) {
     this.majorVersionUpgrade = majorVersionUpgrade;
+  }
+
+  public DbOpsRestartStatus getRestart() {
+    return restart;
+  }
+
+  public void setRestart(DbOpsRestartStatus restart) {
+    this.restart = restart;
+  }
+
+  public DbOpsMinorVersionUpgradeStatus getMinorVersionUpgrade() {
+    return minorVersionUpgrade;
+  }
+
+  public void setMinorVersionUpgrade(DbOpsMinorVersionUpgradeStatus minorVersionUpgrade) {
+    this.minorVersionUpgrade = minorVersionUpgrade;
+  }
+
+  public DbOpsSecurityUpgradeStatus getSecurityUpgrade() {
+    return securityUpgrade;
+  }
+
+  public void setSecurityUpgrade(DbOpsSecurityUpgradeStatus securityUpgrade) {
+    this.securityUpgrade = securityUpgrade;
   }
 
   @Override

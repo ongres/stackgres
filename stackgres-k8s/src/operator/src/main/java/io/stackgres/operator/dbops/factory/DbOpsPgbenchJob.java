@@ -129,12 +129,12 @@ public class DbOpsPgbenchJob extends DbOpsJob {
   }
 
   @Override
-  protected ClusterStatefulSetPath runScript() {
+  protected ClusterStatefulSetPath getRunScript() {
     return ClusterStatefulSetPath.LOCAL_BIN_RUN_PGBENCH_SH_PATH;
   }
 
   @Override
-  protected ClusterStatefulSetPath setResultScript() {
+  protected ClusterStatefulSetPath getSetResultScript() {
     return ClusterStatefulSetPath.LOCAL_BIN_SET_PGBENCH_RESULT_SH_PATH;
   }
 

@@ -311,9 +311,11 @@ spec:
                         The major version upgrade configuration and status
                       properties:
                         initialInstances:
-                          type: string
+                          type: array
                           description: |
-                            A comma separated list of instances that this operation is targetting
+                            The instances that this operation is targetting
+                          items:
+                            type: string
                         primaryInstance:
                           type: string
                           description: |
@@ -350,3 +352,48 @@ spec:
                           type: boolean
                           description: |
                             Run `pg_upgrade` with check option before performing the real upgrade
+                    restart:
+                      type: object
+                      description: |
+                        The minor version upgrade configuration and status
+                      properties:
+                        initialInstances:
+                          type: array
+                          description: |
+                            The instances that this operation is targetting
+                          items:
+                            type: string
+                        primaryInstance:
+                          type: string
+                          description: |
+                            The primary instance that this operation is targetting
+                    minorVersionUpgrade:
+                      type: object
+                      description: |
+                        The minor version upgrade configuration and status
+                      properties:
+                        initialInstances:
+                          type: array
+                          description: |
+                            The instances that this operation is targetting
+                          items:
+                            type: string
+                        primaryInstance:
+                          type: string
+                          description: |
+                            The primary instance that this operation is targetting
+                    securityUpgrade:
+                      type: object
+                      description: |
+                        The minor version upgrade configuration and status
+                      properties:
+                        initialInstances:
+                          type: array
+                          description: |
+                            The instances that this operation is targetting
+                          items:
+                            type: string
+                        primaryInstance:
+                          type: string
+                          description: |
+                            The primary instance that this operation is targetting

@@ -48,6 +48,15 @@ public class StackGresDbOpsStatus implements KubernetesResource {
   @JsonProperty("majorVersionUpgrade")
   private StackGresDbOpsMajorVersionUpgradeStatus majorVersionUpgrade;
 
+  @JsonProperty("restart")
+  private StackGresDbOpsRestartStatus restart;
+
+  @JsonProperty("minorVersionUpgrade")
+  private StackGresDbOpsMinorVersionUpgradeStatus minorVersionUpgrade;
+
+  @JsonProperty("securityUpgrade")
+  private StackGresDbOpsSecurityUpgradeStatus securityUpgrade;
+
   @ReferencedField("opStarted")
   interface OpStarted extends FieldReference { }
 
@@ -105,9 +114,34 @@ public class StackGresDbOpsStatus implements KubernetesResource {
     this.majorVersionUpgrade = majorVersionUpgrade;
   }
 
+  public StackGresDbOpsRestartStatus getRestart() {
+    return restart;
+  }
+
+  public void setRestart(StackGresDbOpsRestartStatus restart) {
+    this.restart = restart;
+  }
+
+  public StackGresDbOpsMinorVersionUpgradeStatus getMinorVersionUpgrade() {
+    return minorVersionUpgrade;
+  }
+
+  public void setMinorVersionUpgrade(StackGresDbOpsMinorVersionUpgradeStatus minorVersionUpgrade) {
+    this.minorVersionUpgrade = minorVersionUpgrade;
+  }
+
+  public StackGresDbOpsSecurityUpgradeStatus getSecurityUpgrade() {
+    return securityUpgrade;
+  }
+
+  public void setSecurityUpgrade(StackGresDbOpsSecurityUpgradeStatus securityUpgrade) {
+    this.securityUpgrade = securityUpgrade;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(benchmark, conditions, majorVersionUpgrade, opRetries, opStarted);
+    return Objects.hash(benchmark, conditions, majorVersionUpgrade, minorVersionUpgrade, opRetries,
+        opStarted, restart, securityUpgrade);
   }
 
   @Override
@@ -122,7 +156,10 @@ public class StackGresDbOpsStatus implements KubernetesResource {
     return Objects.equals(benchmark, other.benchmark)
         && Objects.equals(conditions, other.conditions)
         && Objects.equals(majorVersionUpgrade, other.majorVersionUpgrade)
-        && Objects.equals(opRetries, other.opRetries) && Objects.equals(opStarted, other.opStarted);
+        && Objects.equals(minorVersionUpgrade, other.minorVersionUpgrade)
+        && Objects.equals(opRetries, other.opRetries) && Objects.equals(opStarted, other.opStarted)
+        && Objects.equals(restart, other.restart)
+        && Objects.equals(securityUpgrade, other.securityUpgrade);
   }
 
   @Override

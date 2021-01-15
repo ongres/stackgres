@@ -7,9 +7,12 @@ package io.stackgres.operator.dbops.factory;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -50,6 +53,8 @@ import org.slf4j.LoggerFactory;
 
 public abstract class DbOpsJob
     implements SubResourceStreamFactory<HasMetadata, StackGresDbOpsContext> {
+
+  private static final Pattern UPPERCASE_PATTERN = Pattern.compile("(\\p{javaUpperCase})");
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DbOpsJob.class);
 
@@ -101,6 +106,7 @@ public abstract class DbOpsJob
 
   private Job createJob(StackGresDbOpsContext context, StackGresDbOps dbOps) {
     List<EnvVar> runEnvVars = getRunEnvVars(context, dbOps);
+    List<EnvVar> setResultEnvVars = getSetResultEnvVars(context, dbOps);
     final String namespace = dbOps.getMetadata().getNamespace();
     final String name = dbOps.getMetadata().getName();
     final Map<String, String> labels = labelFactory.dbOpsPodLabels(context.getCluster());
@@ -139,7 +145,24 @@ public abstract class DbOpsJob
             .withImagePullPolicy("IfNotPresent")
             .withEnv(ImmutableList.<EnvVar>builder()
                 .addAll(clusterStatefulSetEnvironmentVariables.listResources(context))
-                .add(new EnvVarBuilder()
+                .add(
+                    new EnvVarBuilder()
+                    .withName("OP_NAME")
+                    .withValue(dbOps.getSpec().getOp())
+                    .build(),
+                    new EnvVarBuilder()
+                    .withName("NORMALIZED_OP_NAME")
+                    .withValue(UPPERCASE_PATTERN
+                        .matcher(dbOps.getSpec().getOp())
+                        .replaceAll(result -> " " + result.group(1).toLowerCase(Locale.US)))
+                    .build(),
+                    new EnvVarBuilder()
+                    .withName("KEBAB_OP_NAME")
+                    .withValue(UPPERCASE_PATTERN
+                        .matcher(dbOps.getSpec().getOp())
+                        .replaceAll(result -> "-" + result.group(1).toLowerCase(Locale.US)))
+                    .build(),
+                    new EnvVarBuilder()
                     .withName("CLUSTER_NAMESPACE")
                     .withValue(namespace)
                     .build(),
@@ -162,14 +185,21 @@ public abstract class DbOpsJob
                         .build())
                     .toList())
                 .build())
-            .withCommand("/bin/bash", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
+            .withCommand("/bin/sh", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
                 ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RUNNING_SH_PATH.path())
-            .withVolumeMounts(ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
-                volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RUNNING_SH_PATH
-                    .filename())
-                .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RUNNING_SH_PATH.path())
-                .withReadOnly(true)))
+            .withVolumeMounts(
+                ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
+                    volumeMountBuilder -> volumeMountBuilder
+                    .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RUNNING_SH_PATH
+                        .filename())
+                    .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RUNNING_SH_PATH
+                        .path())
+                    .withReadOnly(true)),
+                ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
+                    volumeMountBuilder -> volumeMountBuilder
+                    .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.filename())
+                    .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.path())
+                    .withReadOnly(true)))
             .build())
         .withContainers(
             new ContainerBuilder()
@@ -178,29 +208,89 @@ public abstract class DbOpsJob
             .withImagePullPolicy("IfNotPresent")
             .withEnv(ImmutableList.<EnvVar>builder()
                 .addAll(clusterStatefulSetEnvironmentVariables.listResources(context))
-                .add(new EnvVarBuilder()
+                .add(
+                    new EnvVarBuilder()
+                    .withName("OP_NAME")
+                    .withValue(dbOps.getSpec().getOp())
+                    .build(),
+                    new EnvVarBuilder()
+                    .withName("EXCLUSIVE_OP")
+                    .withValue(String.valueOf(isExclusiveOp()))
+                    .build(),
+                    new EnvVarBuilder()
+                    .withName("NORMALIZED_OP_NAME")
+                    .withValue(UPPERCASE_PATTERN
+                        .matcher(dbOps.getSpec().getOp())
+                        .replaceAll(result -> " " + result.group(1).toLowerCase(Locale.US)))
+                    .build(),
+                    new EnvVarBuilder()
+                    .withName("KEBAB_OP_NAME")
+                    .withValue(UPPERCASE_PATTERN
+                        .matcher(dbOps.getSpec().getOp())
+                        .replaceAll(result -> "-" + result.group(1).toLowerCase(Locale.US)))
+                    .build(),
+                    new EnvVarBuilder()
+                    .withName("RUN_SCRIPT_PATH")
+                    .withValue(Optional.ofNullable(getRunScript())
+                        .map(ClusterStatefulSetPath::path)
+                        .orElse(""))
+                    .build(),
+                    new EnvVarBuilder()
                     .withName("TIMEOUT")
                     .withValue(timeout)
                     .build())
                 .addAll(runEnvVars)
                 .build())
-            .withCommand("/bin/bash", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
-                runScript().path())
+            .withCommand("/bin/sh", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
+                ClusterStatefulSetPath.LOCAL_BIN_RUN_DBOPS_SH_PATH.path())
             .withVolumeMounts(
                 ClusterStatefulSetVolumeConfig.SHARED.volumeMount(context),
                 ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
                     volumeMountBuilder -> volumeMountBuilder
-                    .withSubPath(runScript().filename())
-                    .withMountPath(runScript().path())
+                    .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_RUN_DBOPS_SH_PATH.filename())
+                    .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_RUN_DBOPS_SH_PATH.path())
+                    .withReadOnly(true)),
+                ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
+                    volumeMountBuilder -> volumeMountBuilder
+                    .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.filename())
+                    .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.path())
+                    .withReadOnly(true)),
+                ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
+                    volumeMountBuilder -> volumeMountBuilder
+                    .withSubPath(getRunScript().filename())
+                    .withMountPath(getRunScript().path())
                     .withReadOnly(true)))
             .build(),
             new ContainerBuilder()
             .withName("set-dbops-result")
-            .withImage(getSetResultImage())
+            .withImage(StackGresContext.KUBECTL_IMAGE)
             .withImagePullPolicy("IfNotPresent")
             .withEnv(ImmutableList.<EnvVar>builder()
                 .addAll(clusterStatefulSetEnvironmentVariables.listResources(context))
-                .add(new EnvVarBuilder()
+                .add(
+                    new EnvVarBuilder()
+                    .withName("OP_NAME")
+                    .withValue(dbOps.getSpec().getOp())
+                    .build(),
+                    new EnvVarBuilder()
+                    .withName("NORMALIZED_OP_NAME")
+                    .withValue(UPPERCASE_PATTERN
+                        .matcher(dbOps.getSpec().getOp())
+                        .replaceAll(result -> " " + result.group(1).toLowerCase(Locale.US)))
+                    .build(),
+                    new EnvVarBuilder()
+                    .withName("KEBAB_OP_NAME")
+                    .withValue(UPPERCASE_PATTERN
+                        .matcher(dbOps.getSpec().getOp())
+                        .replaceAll(result -> "-" + result.group(1).toLowerCase(Locale.US)))
+                    .build(),
+                    new EnvVarBuilder()
+                    .withName("SET_RESULT_SCRIPT_PATH")
+                    .withValue(Optional.ofNullable(getSetResultScript())
+                        .map(ClusterStatefulSetPath::path)
+                        .orElse(""))
+                    .build(),
+                    new EnvVarBuilder()
                     .withName("CLUSTER_NAMESPACE")
                     .withValue(namespace)
                     .build(),
@@ -224,16 +314,32 @@ public abstract class DbOpsJob
                         .withValue(conditions.get(c))
                         .build())
                     .toList())
+                .addAll(setResultEnvVars)
                 .build())
-            .withCommand("/bin/bash", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
-                setResultScript().path())
+            .withCommand("/bin/sh", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
+                ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RESULT_SH_PATH.path())
             .withVolumeMounts(
                 ClusterStatefulSetVolumeConfig.SHARED.volumeMount(context),
                 ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
                     volumeMountBuilder -> volumeMountBuilder
-                    .withSubPath(setResultScript().filename())
-                    .withMountPath(setResultScript().path())
+                    .withSubPath(
+                        ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RESULT_SH_PATH.filename())
+                    .withMountPath(
+                        ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RESULT_SH_PATH.path())
+                    .withReadOnly(true)),
+                ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
+                    volumeMountBuilder -> volumeMountBuilder
+                    .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.filename())
+                    .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.path())
                     .withReadOnly(true)))
+            .addAllToVolumeMounts(Optional.ofNullable(getSetResultScript())
+                .map(script -> ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
+                    volumeMountBuilder -> volumeMountBuilder
+                    .withSubPath(script.filename())
+                    .withMountPath(script.path())
+                    .withReadOnly(true)))
+                .stream()
+                .collect(Collectors.toList()))
             .build())
         .withVolumes(
             ClusterStatefulSetVolumeConfig.SHARED.volume(context),
@@ -248,8 +354,19 @@ public abstract class DbOpsJob
         .build();
   }
 
-  protected abstract List<EnvVar> getRunEnvVars(StackGresDbOpsContext context,
-      StackGresDbOps dbOps);
+  protected boolean isExclusiveOp() {
+    return false;
+  }
+
+  protected List<EnvVar> getRunEnvVars(StackGresDbOpsContext context,
+      StackGresDbOps dbOps) {
+    return ImmutableList.of();
+  }
+
+  protected List<EnvVar> getSetResultEnvVars(StackGresDbOpsContext context,
+      StackGresDbOps dbOps) {
+    return ImmutableList.of();
+  }
 
   protected String getRunImage(StackGresDbOpsContext context) {
     return String.format(PostgresUtil.IMAGE_NAME,
@@ -257,12 +374,14 @@ public abstract class DbOpsJob
         StackGresProperty.CONTAINER_BUILD.getString());
   }
 
-  protected abstract ClusterStatefulSetPath runScript();
+  protected abstract ClusterStatefulSetPath getRunScript();
 
   protected String getSetResultImage() {
     return StackGresContext.KUBECTL_IMAGE;
   }
 
-  protected abstract ClusterStatefulSetPath setResultScript();
+  protected ClusterStatefulSetPath getSetResultScript() {
+    return null;
+  }
 
 }

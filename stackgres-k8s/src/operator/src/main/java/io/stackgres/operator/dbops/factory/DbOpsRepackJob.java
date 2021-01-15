@@ -133,13 +133,8 @@ public class DbOpsRepackJob extends DbOpsJob {
   }
 
   @Override
-  protected ClusterStatefulSetPath runScript() {
+  protected ClusterStatefulSetPath getRunScript() {
     return ClusterStatefulSetPath.LOCAL_BIN_RUN_REPACK_SH_PATH;
-  }
-
-  @Override
-  protected ClusterStatefulSetPath setResultScript() {
-    return ClusterStatefulSetPath.LOCAL_BIN_SET_REPACK_RESULT_SH_PATH;
   }
 
 }
