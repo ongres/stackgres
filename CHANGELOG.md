@@ -1,3 +1,45 @@
+# Release 1.0.0-alpha1
+
+## NOTES
+
+We are proud to present StackGres 1.0.0-alpha1!! :fireworks: :bottle_with_popping_cork: 
+
+This is our first 1.0 series release and it comes with some very useful features to automate your StackGres daily tasks. This is an alpha version so new features !
+
+## UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 0.9 version or above) helm chart issue following commands (replace namespace and release name if you used something different):
+
+```
+NAMESPACE=stackgres
+RELEASE=stackgres-operator
+helm upgrade -n "$NAMESPACE" "$RELEASE" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.0.0-alpha1/helm/stackgres-operator.tgz
+```
+
+## CHANGES
+
+* StackGres CRD have now a stable version
+* Database operations:
+  * Major Version Upgrade
+  * Minor Version Upgrade
+  * Security Upgrade
+  * Restart
+  * Vacuum
+  * Repack
+  * Pgbench benchmark
+* Fresh new amazing UI interface
+
+## FIXES
+
+* Exclusive lock was not correctly failing when lost for backup jobs
+
+# KNOWN ISSUES
+
+* StackGres 1.0.0-alpha1 only supports Kubernetes 1.16+
+
 # Release 0.9.3
 
 ## NOTES
