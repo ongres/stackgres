@@ -5,14 +5,11 @@
 
 package io.stackgres.jobs.crdupgrade;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceConversionBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
-import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionVersion;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.ServiceReferenceBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.WebhookClientConfigBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.WebhookConversionBuilder;
@@ -64,11 +61,6 @@ public class WebhookConfiguratorImpl implements WebhookConfigurator {
             + name + " not found"));
     customResourceDefinition.getSpec().setPreserveUnknownFields(false);
 
-    final List<String> conversionReviewVersions = customResourceDefinition.getSpec()
-        .getVersions()
-        .stream().map(CustomResourceDefinitionVersion::getName)
-        .collect(Collectors.toList());
-
     String conversionPath = "/stackgres/conversion/" + singular;
     customResourceDefinition.getSpec().setConversion(new CustomResourceConversionBuilder()
         .withStrategy("Webhook")
@@ -81,7 +73,7 @@ public class WebhookConfiguratorImpl implements WebhookConfigurator {
                     .withPath(conversionPath)
                     .build())
                 .build())
-            .withConversionReviewVersions(conversionReviewVersions)
+            .withConversionReviewVersions("v1", "v1beta1")
             .build())
         .build());
     crdWriter.update(customResourceDefinition);
