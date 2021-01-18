@@ -146,7 +146,10 @@ check_distributed_logs_attach_to_clusters() {
 }
 
 check_distributed_logs_query_endpoint() {
-  if get_logs_count_with_text distributed-logs-works | grep -q "^1$"
+  local RESPONSE
+
+  RESPONSE="$(get_logs_count_with_text distributed-logs-works)"
+  if echo "$RESPONSE" | grep -q "^1$"
   then
     echo "SUCCESS: Cluster log entry included in json response"
   else
@@ -154,7 +157,8 @@ check_distributed_logs_query_endpoint() {
     return 1
   fi
 
-  if get_logs_count_with_text_after_log_with_text distributed-logs-works distributed-logs-still-works | grep -q "^1$"
+  RESPONSE="$(get_logs_count_with_text_after_log_with_text distributed-logs-works distributed-logs-still-works)"
+  if echo "$RESPONSE" | grep -q "^1$"
   then
     echo "SUCCESS: Cluster log entry included in next json response with asc ordering"
   else
@@ -162,7 +166,8 @@ check_distributed_logs_query_endpoint() {
     return 1
   fi
 
-  if get_logs_count_with_text_before_log_with_text distributed-logs-works distributed-logs-worked | grep -q "^1$"
+  RESPONSE="$(get_logs_count_with_text_before_log_with_text distributed-logs-works distributed-logs-worked)"
+  if echo "$RESPONSE" | grep -q "^1$"
   then
     echo "SUCCESS: Cluster log entry included in next json response with desc ordering"
   else
@@ -170,7 +175,8 @@ check_distributed_logs_query_endpoint() {
     return 1
   fi
 
-  if get_logs_count_between_log_with_texts_desc distributed-logs-still-works distributed-logs-works distributed-logs-worked | grep -q "^2$"
+  RESPONSE="$(get_logs_count_between_log_with_texts_desc distributed-logs-still-works distributed-logs-works distributed-logs-worked)"
+  if echo "$RESPONSE" | grep -q "^2$"
   then
     echo "SUCCESS: Cluster log entries included in json response with from, to and desc ordering "
   else
@@ -178,7 +184,8 @@ check_distributed_logs_query_endpoint() {
     return 1
   fi
 
-  if get_logs_count_between_log_with_texts_asc distributed-logs-worked distributed-logs-works distributed-logs-still-works | grep -q "^2$"
+  RESPONSE="$(get_logs_count_between_log_with_texts_asc distributed-logs-worked distributed-logs-works distributed-logs-still-works)"
+  if echo "$RESPONSE" | grep -q "^2$"
   then
     echo "SUCCESS: Cluster log entries included in json response with from, to and asc ordering"
   else
@@ -186,20 +193,22 @@ check_distributed_logs_query_endpoint() {
     return 1
   fi
 
-  if get_postgres_logs_count_with_text distributed-logs-works | grep -q "^1$"
+  RESPONSE="$(get_postgres_logs_count_with_text distributed-logs-works)"
+  if echo "$RESPONSE" | grep -q "^1$"
   then
-    echo "SUCCESS: Cluster log entry included in json response"
+    echo "SUCCESS: Cluster log entry included in json response for postgres"
   else
-    echo "FAIL: Cluster log entry not included in json response"
+    echo "FAIL: Cluster log entry not included in json response for postgres"
     return 1
   fi
 
-  if get_patroni_logs_count_with_text distributed-logs-works | grep -q "^0$"
+  RESPONSE="$(get_patroni_logs_count)"
+  if echo "$RESPONSE" | grep -q "^0$"
   then
-    echo "SUCCESS: Cluster log entry not included in json response"
-  else
-    echo "FAIL: Cluster log entry included in json response"
+    echo "FAIL: Cluster log entry not included in json response for patroni"
     return 1
+  else
+    echo "SUCCESS: Cluster log entry included in json response for patroni"
   fi
 
   for field in \
@@ -210,7 +219,8 @@ check_distributed_logs_query_endpoint() {
     userName \
     databaseName
   do
-    if get_logs_count_with_filter_of_log_with_text distributed-logs-works "$field" | grep -q "^1$"
+    RESPONSE="$(get_logs_count_with_filter_of_log_with_text distributed-logs-works "$field")"
+    if echo "$RESPONSE" | grep -q "^1$"
     then
       echo "SUCCESS: Cluster log entry included in json response with filter on $field"
     else
@@ -292,13 +302,13 @@ get_postgres_logs_count_with_text() {
     | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | length"
 }
 
-get_patroni_logs_count_with_text() {
+get_patroni_logs_count() {
   local FILTER="{\"logType\":\"pa\"}"
   local RESULT="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1&logType=pa" \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?logType=pa" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
-    | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | length"
+    | jq -r "map(select(.message != null)) | length"
 }
 
 get_logs_count_with_filter_of_log_with_text() {
