@@ -40,3 +40,11 @@ operator-namespace-api:15
 operator-upgrade:430
 prometheus-dependency:321
 prometheus-integration:307
+dbops-restart:900
+dbops-pgbench:355
+shared-memory:138
+pgbouncer-sync:28
+reconciliation-ignore:63
+dbops-major-version-upgrade:1091
+dbops-repack:753
+dbops-vacuum:700
