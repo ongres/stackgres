@@ -542,12 +542,13 @@ get_previous_operator_version() {
     if [ -n "$SUFFIX" ]
     then
       PATCH="${PATCH%-*}"
-      for i in alpha beta
+      local A_SUFFIX
+      for A_SUFFIX in alpha beta
       do
-        if [ "${SUFFIX%%[0-9]*}" = "$i" ]
+        if [ "${SUFFIX%%[0-9]*}" = "$A_SUFFIX" ]
         then
-          SUFFIX=$i
-          SUFFIX_VERSION="${SUFFIX#$i}"
+          SUFFIX_VERSION="${SUFFIX#$A_SUFFIX}"
+          SUFFIX="$A_SUFFIX"
         fi
       done
     fi
