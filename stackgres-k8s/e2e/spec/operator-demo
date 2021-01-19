@@ -6,7 +6,7 @@ e2e_exclusive_lock() {
 
 e2e_test_install() {
   local TARGET_IMAGE_TAG
-  if [ "${STACKGRES_VERSION#*-}" != "SNAPSHOT" ]
+  if [ "${STACKGRES_VERSION##*-}" != "SNAPSHOT" ]
   then
     TARGET_IMAGE_TAG="$STACKGRES_VERSION-jvm"
   else 

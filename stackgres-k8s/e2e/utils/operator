@@ -782,7 +782,7 @@ get_operator_image_tag() {
   if [ "$VERSION" = "$STACKGRES_VERSION" ]
   then
     echo "${IMAGE_TAG%-jvm}$SUFFIX"
-  elif [ "${VERSION#*-}" = "SNAPSHOT" ]
+  elif [ "${VERSION##*-}" = "SNAPSHOT" ]
   then
     if [ "$CARDINALITY" = "3" ] \
       && [ "$(echo "$VERSION" | tr '.' '\n' | tail -n 1)" != "0" ]
