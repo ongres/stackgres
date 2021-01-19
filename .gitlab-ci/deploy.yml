@@ -44,6 +44,13 @@ deploy jobs jvm image:
     IMAGE_TAG_SUFFIX: "-jvm"
     IMAGE_NAME: "stackgres/jobs"
 
+deploy distributedlogs-controller jvm image:
+  extends: .deploy image
+  image: quay.io/buildah/stable:v1.15.0
+  variables:
+    IMAGE_TAG_SUFFIX: "-jvm"
+    IMAGE_NAME: "stackgres/distributedlogs-controller"
+
 deploy operator native image:
   extends: .deploy image
   image: quay.io/buildah/stable:v1.15.0
@@ -86,6 +93,18 @@ deploy adminui image:
   variables:
     IMAGE_TAG_SUFFIX: ""
     IMAGE_NAME: "stackgres/admin-ui"
+
+deploy distributedlogs-controller native image:
+  extends: .deploy image
+  image: quay.io/buildah/stable:v1.15.0
+  variables:
+    IMAGE_TAG_SUFFIX: ""
+    IMAGE_NAME: "stackgres/distributedlogs-controller"
+  only:
+    variables:
+      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
+      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_DEPLOY
 
 deploy helm packages and templates:
   image: mikesir87/aws-cli:latest
