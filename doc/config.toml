@@ -35,63 +35,63 @@ home = [ "HTML", "RSS", "JSON"]
         # Main Menu EN
         [[languages.en.menu.main]]
             name    = "Features"
-            url     = "/features"
+            url     = "https://stackgres.io/features"
             weight  = 1
         [[languages.en.menu.main]]
             name    = "Install"
-            url     = "/install"
+            url     = "https://stackgres.io/install"
             weight  = 2
         [[languages.en.menu.main]]
             name    = "Pricing"
-            url     = "/pricing"
+            url     = "https://stackgres.io/pricing"
             weight  = 3
         [[languages.en.menu.main]]
             name    = "Documentation"
-            url     = "/doc/latest"
+            url     = "https://stackgres.io/doc/latest"
             weight  = 4
         [[languages.en.menu.main]]
             name    = "Community"
-            url     = "/community"
+            url     = "https://stackgres.io/community"
             weight  = 5
         [[languages.en.menu.main]]
             name    = "Blog"
-            url     = "/blog"
+            url     = "https://stackgres.io/blog"
             weight  = 6
         [[languages.en.menu.main]]
             name    = "Contact"
-            url     = "/contact"
+            url     = "https://stackgres.io/contact"
             weight  = 7
 
         # Product EN
         [[languages.en.menu.product]]
             name    = "Features"
-            url     = "/features"
+            url     = "https://stackgres.io/features"
             weight  = 1
         [[languages.en.menu.product]]
             name    = "Install"
-            url     = "/install"
+            url     = "https://stackgres.io/install"
             weight  = 2
         [[languages.en.menu.product]]
             name    = "Pricing"
-            url     = "/pricing"
+            url     = "https://stackgres.io/pricing"
             weight  = 3
         [[languages.en.menu.product]]
             name    = "Contact"
-            url     = "/contact"
+            url     = "https://stackgres.io/contact"
             weight  = 4
         
         # Resources EN
         [[languages.en.menu.resources]]
             name    = "Documentation"
-            url     = "/doc/latest"
+            url     = "https://stackgres.io/doc/latest"
             weight  = 1
         [[languages.en.menu.resources]]
             name    = "Community"
-            url     = "/community"
+            url     = "https://stackgres.io/community"
             weight  = 2
         [[languages.en.menu.resources]]
             name    = "Blog"
-            url     = "/blog"
+            url     = "https://stackgres.io/blog"
             weight  = 3
         
         # More EN
