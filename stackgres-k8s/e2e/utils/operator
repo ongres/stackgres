@@ -193,32 +193,25 @@ setup_operator() {
 load_operator_k8s() {
   if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
   then
-    if ! docker inspect "$OPERATOR_IMAGE_NAME" >/dev/null 2>&1 \
-      || ! docker inspect "$RESTAPI_IMAGE_NAME" >/dev/null 2>&1 \
-      || ! docker inspect "$JOBS_IMAGE_NAME" >/dev/null 2>&1 \
-      || ! docker inspect "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" >/dev/null 2>&1 \
-      || ! docker inspect "$ADMINUI_IMAGE_NAME" >/dev/null 2>&1 
+    if [ -n "$E2E_OPERATOR_REGISTRY" ]
     then
-      if [ -n "$E2E_OPERATOR_REGISTRY" ]
-      then
-        docker login \
-          -u "$E2E_OPERATOR_REGISTRY_USER" \
-          -p "$E2E_OPERATOR_REGISTRY_PASSWORD" \
-          "$E2E_OPERATOR_REGISTRY"
-      fi
-      docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$OPERATOR_IMAGE_NAME"
-      docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$RESTAPI_IMAGE_NAME"
-      docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$JOBS_IMAGE_NAME"
-      docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
-      docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$ADMINUI_IMAGE_NAME"
-      if [ -n "$E2E_OPERATOR_REGISTRY" ]
-      then
-        docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$OPERATOR_IMAGE_NAME" "$OPERATOR_IMAGE_NAME"
-        docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
-        docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$JOBS_IMAGE_NAME" "$JOBS_IMAGE_NAME"
-        docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
-        docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
-      fi
+      docker login \
+        -u "$E2E_OPERATOR_REGISTRY_USER" \
+        -p "$E2E_OPERATOR_REGISTRY_PASSWORD" \
+        "$E2E_OPERATOR_REGISTRY"
+    fi
+    docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$OPERATOR_IMAGE_NAME"
+    docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$RESTAPI_IMAGE_NAME"
+    docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$JOBS_IMAGE_NAME"
+    docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
+    docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$ADMINUI_IMAGE_NAME"
+    if [ -n "$E2E_OPERATOR_REGISTRY" ]
+    then
+      docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$OPERATOR_IMAGE_NAME" "$OPERATOR_IMAGE_NAME"
+      docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
+      docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$JOBS_IMAGE_NAME" "$JOBS_IMAGE_NAME"
+      docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
+      docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
     fi
   fi
 
@@ -244,36 +237,11 @@ load_operator_k8s() {
     load_operator_k8s
   fi
 
-  if docker image inspect "$OPERATOR_IMAGE_NAME" >/dev/null 2>&1
-  then 
-    load_image_k8s "$OPERATOR_IMAGE_NAME"
-  else
-    echo "Image $OPERATOR_IMAGE_NAME not found in cache!"
-  fi
-  if docker image inspect "$RESTAPI_IMAGE_NAME" >/dev/null 2>&1
-  then 
-    load_image_k8s "$RESTAPI_IMAGE_NAME"
-  else
-    echo "Image $RESTAPI_IMAGE_NAME not found in cache!"
-  fi
-  if docker image inspect "$JOBS_IMAGE_NAME" >/dev/null 2>&1
-  then 
-    load_image_k8s "$JOBS_IMAGE_NAME"
-  else
-    echo "Image $JOBS_IMAGE_NAME not found in cache!"
-  fi
-  if docker image inspect "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" >/dev/null 2>&1
-  then 
-    load_image_k8s "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
-  else
-    echo "Image $DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME not found in cache!"
-  fi
-  if docker image inspect "$ADMINUI_IMAGE_NAME" >/dev/null 2>&1
-  then 
-    load_image_k8s "$ADMINUI_IMAGE_NAME"
-  else
-    echo "Image $ADMINUI_IMAGE_NAME not found in cache!"
-  fi
+  load_image_k8s "$OPERATOR_IMAGE_NAME"
+  load_image_k8s "$RESTAPI_IMAGE_NAME"
+  load_image_k8s "$JOBS_IMAGE_NAME"
+  load_image_k8s "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
+  load_image_k8s "$ADMINUI_IMAGE_NAME"
 }
 
 operator_pull_policy() {
