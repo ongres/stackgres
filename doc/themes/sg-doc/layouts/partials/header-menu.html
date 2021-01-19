@@ -27,7 +27,7 @@
 					{{ $currentPage := (eq "Documentation" .Name) }}
 					{{ $url := urls.Parse .URL }}
 					{{ $baseurl := urls.Parse $.Site.Params.Baseurl }}
-					<li class="{{ if $currentPage }}active{{ end }}"><a href="{{ .URL | relURL }}" {{ if ne $url.Host $baseurl.Host }}target="_blank" {{ end }}>{{ .Name }}</a></li>
+					<li class="{{ if $currentPage }}active{{ end }}"><a href="{{ .URL | relURL }}">{{ .Name }}</a></li>
 				{{ end }}
 			</ul>
 		</nav>
