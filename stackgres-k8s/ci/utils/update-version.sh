@@ -46,7 +46,7 @@ cd "$(dirname "$0")/../../.."
 VERSION="$1"
 DEVELOPMENT_IMAGE_TAG="${2:-development}"
 IMAGE_TAG="${VERSION}-jvm"
-if [ "${VERSION#*-}" = "SNAPSHOT" ]
+if [ "${VERSION##*-}" = "SNAPSHOT" ]
 then
   IMAGE_TAG="${DEVELOPMENT_IMAGE_TAG}-jvm"
 fi
