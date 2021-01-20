@@ -54,7 +54,13 @@ test_yamls() {
   echo "Installing operator.yml"
   kubectl create -n "${STACKGRES_YAML_NAMESPACE}" -f "${STACKGRES_YAMLS}/stackgres-operator-demo.yml"
 
-  if ! wait_services_available "$STACKGRES_YAML_NAMESPACE" 1 "^endpoints/stackgres-operator$"
+  kubectl get jobs -n "$STACKGRES_YAML_NAMESPACE" -o name \
+    | while read JOB
+    do
+      kubectl wait -n "$STACKGRES_YAML_NAMESPACE" "$JOB" --for condition=Complete --timeout "${E2E_TIMEOUT}s"
+    done
+
+  if ! wait_services_available "$STACKGRES_YAML_NAMESPACE" 1 "^stackgres-operator$"
   then
     echo "FAILED. The demo StackGres operator service was not available."
     return 1
@@ -62,7 +68,7 @@ test_yamls() {
     echo "SUCCESS. The demo StackGres operator service was available."
   fi
 
-  if ! wait_services_available "$STACKGRES_YAML_NAMESPACE" 1 "^endpoints/stackgres-restapi$"
+  if ! wait_services_available "$STACKGRES_YAML_NAMESPACE" 1 "^stackgres-restapi$"
   then
     echo "FAILED. The demo StackGres restapi service was not available."
     return 1
@@ -156,7 +162,7 @@ test_packages() {
     "${STACKGRES_PACKAGES}/stackgres-operator.tgz" \
     --set adminui.service.type=LoadBalancer
 
-  if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^endpoints/stackgres-operator$"
+  if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator$"
   then
     echo "FAILED. The StackGres operator service was not available."
     return 1
@@ -164,7 +170,7 @@ test_packages() {
     echo "SUCCESS. The StackGres operator service was available."
   fi
 
-  if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^endpoints/stackgres-restapi$"
+  if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-restapi$"
   then
     echo "FAILED. The StackGres restapi service was not available."
     return 1

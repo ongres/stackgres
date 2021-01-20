@@ -26,7 +26,7 @@ public class PatroniEndpointsHandler extends AbstractClusterResourceHandler {
         && resource.getMetadata().getNamespace().equals(
             context.getCluster().getMetadata().getNamespace())
         && (resource.getMetadata().getName().equals(
-            context.getCluster().getMetadata().getName())
+            PatroniServices.name(context))
         || resource.getMetadata().getName().equals(
             PatroniServices.readWriteName(context))
         || resource.getMetadata().getName().equals(

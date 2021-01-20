@@ -59,7 +59,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
   private final PatroniSecret patroniSecret;
   private final PatroniRole patroniRole;
   private final PatroniServices patroniServices;
-  private final PatroniConfigEndpoints patroniConfigEndpoints;
+  private final PatroniEndpoints patroniConfigEndpoints;
   private final LabelFactoryDelegator factoryDelegator;
 
   @Inject
@@ -67,7 +67,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
       PatroniScriptsConfigMap patroniScriptsConfigMap,
       PatroniSecret patroniSecret,
       PatroniRole patroniRole, PatroniServices patroniServices,
-      PatroniConfigEndpoints patroniConfigEndpoints,
+      PatroniEndpoints patroniConfigEndpoints,
       PatroniRequirements resourceRequirementsFactory,
       ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables,
       PatroniEnvironmentVariables patroniEnvironmentVariables,

@@ -16,6 +16,7 @@ import javax.inject.Inject;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.LabelFactory;
@@ -36,7 +37,7 @@ import io.stackgres.operator.sidecars.envoy.Envoy;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
-public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFactory {
+public class PatroniEndpoints implements StackGresClusterResourceStreamFactory {
 
   public static final String PATRONI_CONFIG_KEY = "config";
 
@@ -47,9 +48,8 @@ public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFac
   private final PatroniServices patroniServices;
 
   @Inject
-  public PatroniConfigEndpoints(ObjectMapperProvider objectMapperProvider,
-                                LabelFactoryDelegator factoryDelegator,
-                                PatroniServices patroniServices) {
+  public PatroniEndpoints(ObjectMapperProvider objectMapperProvider,
+      LabelFactoryDelegator factoryDelegator, PatroniServices patroniServices) {
     super();
     this.objectMapper = objectMapperProvider.objectMapper();
     this.factoryDelegator = factoryDelegator;
@@ -61,6 +61,13 @@ public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFac
    */
   @Override
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
+    return Seq.of(
+        Optional.of(createConfigEndpoints(context)))
+        .filter(Optional::isPresent)
+        .map(Optional::get);
+  }
+
+  private Endpoints createConfigEndpoints(StackGresGeneratorContext context) {
     final StackGresClusterContext clusterContext = context.getClusterContext();
     final StackGresCluster cluster = clusterContext.getCluster();
     final String namespace = cluster.getMetadata().getNamespace();
@@ -122,7 +129,7 @@ public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFac
     } catch (JsonProcessingException ex) {
       throw new RuntimeException(ex);
     }
-    return Seq.of(new EndpointsBuilder()
+    return new EndpointsBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(patroniServices.configName(clusterContext))
@@ -130,7 +137,7 @@ public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFac
         .withAnnotations(ImmutableMap.of(PATRONI_CONFIG_KEY, patroniConfigJson))
         .withOwnerReferences(clusterContext.getOwnerReferences())
         .endMetadata()
-        .build());
+        .build();
   }
 
 }

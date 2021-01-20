@@ -37,7 +37,13 @@ public class PatroniServices implements StackGresClusterResourceStreamFactory {
 
   public static final int POSTGRES_SERVICE_PORT = 5432;
   public static final int REPLICATION_SERVICE_PORT = 5433;
+
   private LabelFactoryDelegator factoryDelegator;
+
+  public static String name(StackGresClusterContext clusterContext) {
+    String name = clusterContext.getCluster().getMetadata().getName();
+    return PatroniUtil.name(name);
+  }
 
   public static String readWriteName(StackGresClusterContext clusterContext) {
     String name = clusterContext.getCluster().getMetadata().getName();
@@ -72,14 +78,8 @@ public class PatroniServices implements StackGresClusterResourceStreamFactory {
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
     final StackGresClusterContext clusterContext = context.getClusterContext();
     final StackGresCluster cluster = clusterContext.getCluster();
-    final String namespace = cluster.getMetadata().getNamespace();
 
-    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
-
-    final Map<String, String> clusterLabels = labelFactory.clusterLabels(cluster);
-
-    Service config = createConfigService(namespace, configName(clusterContext),
-        clusterLabels, context);
+    Service config = createConfigService(context);
 
     Seq<HasMetadata> services = Seq.of(config);
 
@@ -91,6 +91,8 @@ public class PatroniServices implements StackGresClusterResourceStreamFactory {
         .orElse(true);
 
     if (isPrimaryServiceEnabled) {
+      Service patroni = createPatroniService(context);
+      services = services.append(patroni);
       Service primary = createPrimaryService(context);
       services = services.append(primary);
     }
@@ -110,14 +112,19 @@ public class PatroniServices implements StackGresClusterResourceStreamFactory {
     return services;
   }
 
-  private Service createConfigService(String namespace, String serviceName,
-                                      Map<String, String> labels,
-                                      StackGresGeneratorContext context) {
+  private Service createConfigService(StackGresGeneratorContext context) {
+    final StackGresClusterContext clusterContext = context.getClusterContext();
+    final StackGresCluster cluster = clusterContext.getCluster();
+
+    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
+
+    final Map<String, String> clusterLabels = labelFactory.clusterLabels(cluster);
+
     return new ServiceBuilder()
         .withNewMetadata()
-        .withNamespace(namespace)
-        .withName(serviceName)
-        .withLabels(labels)
+        .withNamespace(cluster.getMetadata().getNamespace())
+        .withName(configName(clusterContext))
+        .withLabels(clusterLabels)
         .withOwnerReferences(context.getClusterContext().getOwnerReferences())
         .endMetadata()
         .withNewSpec()
@@ -126,16 +133,13 @@ public class PatroniServices implements StackGresClusterResourceStreamFactory {
         .build();
   }
 
-  private Service createPrimaryService(StackGresGeneratorContext context) {
-
+  private Service createPatroniService(StackGresGeneratorContext context) {
     StackGresClusterContext clusterContext = context.getClusterContext();
     StackGresCluster cluster = clusterContext.getCluster();
 
     final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
-    final Map<String, String> primaryLabels = labelFactory.patroniPrimaryLabels(cluster);
 
-    final String namespace = cluster.getMetadata().getNamespace();
-    final String serviceName = readWriteName(clusterContext);
+    final Map<String, String> primaryLabels = labelFactory.patroniPrimaryLabels(cluster);
 
     Map<String, String> annotations = Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getPostgresServices)
@@ -143,49 +147,67 @@ public class PatroniServices implements StackGresClusterResourceStreamFactory {
         .map(StackGresClusterPostgresService::getAnnotations)
         .orElse(ImmutableMap.of());
 
-    StackGresClusterPostgresServiceType serviceType = Optional.ofNullable(cluster.getSpec())
+    String serviceType = Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getPostgresServices)
         .map(StackGresClusterPostgresServices::getPrimary)
         .map(StackGresClusterPostgresService::getType)
-        .orElse(StackGresClusterPostgresServiceType.ClusterIP);
+        .orElse(StackGresClusterPostgresServiceType.CLUSTER_IP.type());
 
     return new ServiceBuilder()
         .withNewMetadata()
-        .withNamespace(namespace)
-        .withName(serviceName)
+        .withNamespace(cluster.getMetadata().getNamespace())
+        .withName(name(clusterContext))
         .withLabels(primaryLabels)
         .withOwnerReferences(context.getClusterContext().getOwnerReferences())
         .withAnnotations(annotations)
         .endMetadata()
         .withNewSpec()
-        .withSelector(primaryLabels)
         .withPorts(new ServicePortBuilder()
                 .withProtocol("TCP")
                 .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
                 .withPort(POSTGRES_SERVICE_PORT)
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_PORT_NAME))
                 .build(),
-            new ServicePortBuilder()
+                new ServicePortBuilder()
                 .withProtocol("TCP")
                 .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
                 .withPort(REPLICATION_SERVICE_PORT)
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME))
                 .build())
-        .withType(serviceType.name())
+        .withType(serviceType)
+        .endSpec()
+        .build();
+  }
+
+  private Service createPrimaryService(StackGresGeneratorContext context) {
+    StackGresClusterContext clusterContext = context.getClusterContext();
+    StackGresCluster cluster = clusterContext.getCluster();
+
+    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
+
+    final Map<String, String> clusterLabels = labelFactory.clusterLabels(cluster);
+
+    return new ServiceBuilder()
+        .withNewMetadata()
+        .withNamespace(cluster.getMetadata().getNamespace())
+        .withName(readWriteName(clusterContext))
+        .withLabels(clusterLabels)
+        .withOwnerReferences(context.getClusterContext().getOwnerReferences())
+        .endMetadata()
+        .withNewSpec()
+        .withType("ExternalName")
+        .withExternalName(name(clusterContext) + "." + cluster.getMetadata().getNamespace()
+            + ".svc.cluster.local")
         .endSpec()
         .build();
   }
 
   private Service createReplicaService(StackGresGeneratorContext context) {
-
     StackGresClusterContext clusterContext = context.getClusterContext();
     StackGresCluster cluster = clusterContext.getCluster();
 
     final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
     final Map<String, String> replicaLabels = labelFactory.patroniReplicaLabels(cluster);
-
-    final String namespace = cluster.getMetadata().getNamespace();
-    final String serviceName = readOnlyName(clusterContext);
 
     Map<String, String> annotations = Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getPostgresServices)
@@ -193,16 +215,16 @@ public class PatroniServices implements StackGresClusterResourceStreamFactory {
         .map(StackGresClusterPostgresService::getAnnotations)
         .orElse(ImmutableMap.of());
 
-    StackGresClusterPostgresServiceType serviceType = Optional.ofNullable(cluster.getSpec())
+    String serviceType = Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getPostgresServices)
         .map(StackGresClusterPostgresServices::getReplicas)
         .map(StackGresClusterPostgresService::getType)
-        .orElse(StackGresClusterPostgresServiceType.ClusterIP);
+        .orElse(StackGresClusterPostgresServiceType.CLUSTER_IP.type());
 
     return new ServiceBuilder()
         .withNewMetadata()
-        .withNamespace(namespace)
-        .withName(serviceName)
+        .withNamespace(cluster.getMetadata().getNamespace())
+        .withName(readOnlyName(clusterContext))
         .withLabels(replicaLabels)
         .withOwnerReferences(context.getClusterContext().getOwnerReferences())
         .withAnnotations(annotations)
@@ -221,7 +243,7 @@ public class PatroniServices implements StackGresClusterResourceStreamFactory {
                 .withPort(REPLICATION_SERVICE_PORT)
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME))
                 .build())
-        .withType(serviceType.name())
+        .withType(serviceType)
         .endSpec()
         .build();
   }

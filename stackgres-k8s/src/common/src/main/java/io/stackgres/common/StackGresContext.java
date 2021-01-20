@@ -37,6 +37,9 @@ public interface StackGresContext {
 
   String STACKGRES_KEY_PREFIX = "stackgres.io/";
   String VERSION_KEY = STACKGRES_KEY_PREFIX + "operatorVersion";
+  String RECONCILIATION_PAUSE_KEY = STACKGRES_KEY_PREFIX + "reconciliation-pause";
+  String RECONCILIATION_PAUSE_UNTIL_RESTART_KEY =
+      STACKGRES_KEY_PREFIX + "reconciliation-pause-until-restart";
 
   String AUTH_KEY = "api.stackgres.io/auth";
   String AUTH_USER_VALUE = "user";

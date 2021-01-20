@@ -37,12 +37,12 @@ public class ClusterStatefulSetPodHandler extends AbstractClusterResourceHandler
   }
 
   @Override
-  public boolean skipCreation() {
+  public boolean skipCreation(StackGresClusterContext context, HasMetadata requiredResource) {
     return true;
   }
 
   @Override
-  public boolean skipDeletion() {
+  public boolean skipDeletion(StackGresClusterContext context, HasMetadata existingResource) {
     return true;
   }
 

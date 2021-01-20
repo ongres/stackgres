@@ -13,6 +13,10 @@ public class PatroniUtil {
   public static final String FAILOVER_SERVICE = "-failover";
   public static final String CONFIG_SERVICE = "-config";
 
+  public static String name(String clusterName) {
+    return ResourceUtil.resourceName(clusterName);
+  }
+
   public static String readWriteName(String clusterName) {
     return ResourceUtil.resourceName(clusterName + READ_WRITE_SERVICE);
   }

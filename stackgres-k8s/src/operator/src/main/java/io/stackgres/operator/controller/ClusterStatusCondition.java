@@ -28,7 +28,7 @@ public enum ClusterStatusCondition {
     return new StackGresClusterCondition(type, status, reason);
   }
 
-  private enum Type {
+  public enum Type {
 
     PENDING_RESTART("PendingRestart"),
     FAILED("Failed");
@@ -44,7 +44,7 @@ public enum ClusterStatusCondition {
     }
   }
 
-  private enum Status {
+  public enum Status {
 
     TRUE("True"),
     FALSE("False"),

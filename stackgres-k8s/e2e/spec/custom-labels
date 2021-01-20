@@ -1,6 +1,9 @@
 #!/bin/sh
 
 e2e_test_install() {
+  NODE_LABEL_KEY=$(ramdom_string)
+  NODE_LABEL_VALUE=$(ramdom_string)
+
   kubectl create namespace "$CLUSTER_NAMESPACE"
   cat <<EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1beta1
@@ -14,7 +17,6 @@ spec:
 EOF
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
-
 }
 
 e2e_test() {
@@ -28,10 +30,9 @@ e2e_test() {
 }
 
 check_label(){
-  local INSTANCE="$1"
-  local EXPECTED_LABEL_VALUE="$2"
+  local EXPECTED_LABEL_VALUE="$1"
 
-  local ACTUAL_LABEL=$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$INSTANCE" -o jsonpath="{.metadata.labels.test-label}")
+  local ACTUAL_LABEL=$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath="{.spec.template.metadata.labels.test-label}")
 
   if assert_string_equal "$EXPECTED_LABEL_VALUE" "$ACTUAL_LABEL"
   then 
@@ -59,35 +60,28 @@ spec:
         test-label: '$RANDOM_VALUE'
     persistentVolume:
       size: '128Mi'
+    scheduling:
+      nodeSelector:
+        $NODE_LABEL_KEY: $NODE_LABEL_VALUE
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
     disableClusterPodAntiAffinity: true  
 EOF
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 3
-
-  check_label "0" "$RANDOM_VALUE"
-  check_label "1" "$RANDOM_VALUE"
+  wait_until check_label "$RANDOM_VALUE"
 
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
-
-  wait_pods_terminated "$CLUSTER_NAMESPACE" 1
-
 }
 
 helm_custom_labels(){
   local RANDOM_VALUE=$(ramdom_string)
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
     --set cluster.pods.metadata.labels.test-label="$RANDOM_VALUE"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 3
-
-  check_label "0" "$RANDOM_VALUE"
-  check_label "1" "$RANDOM_VALUE"
+  wait_until check_label "$RANDOM_VALUE"
 
   helm uninstall "$CLUSTER_NAME" --namespace "$CLUSTER_NAMESPACE"
-
-  wait_pods_terminated "$CLUSTER_NAMESPACE" 1
 }
 
 get_cluster_json() {
@@ -99,7 +93,6 @@ get_cluster_json() {
     | jq 'del(.apiVersion) | del(.kind)' \
     | jq ".spec.pods.metadata.labels[\"test-label\"]=\"$LABEL_VALUE\"" )
   echo "$CLUSTER_JSON"
-  
 }
 
 assert_http_status_succcess(){
@@ -132,6 +125,9 @@ spec:
   pods:
     persistentVolume:
       size: '128Mi'
+    scheduling:
+      nodeSelector:
+        $NODE_LABEL_KEY: $NODE_LABEL_VALUE
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
     disableClusterPodAntiAffinity: true  
@@ -145,22 +141,14 @@ EOF
 
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
 
-  wait_pods_terminated "$CLUSTER_NAMESPACE"  1
-
-  wait_pods_running "$CLUSTER_NAMESPACE" 1
-  
   create_cluster_with_api
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 3
-
-  check_label "0" "$RANDOM_VALUE"
-  check_label "1" "$RANDOM_VALUE"
+  wait_until check_label "$RANDOM_VALUE"
 
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
 }
 
 get_api_custom_labels() {
-
   local RANDOM_VALUE=$(ramdom_string)
   cat <<EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1beta1
@@ -177,15 +165,15 @@ spec:
         test-label: '$RANDOM_VALUE'
     persistentVolume:
       size: '128Mi'
+    scheduling:
+      nodeSelector:
+        $NODE_LABEL_KEY: $NODE_LABEL_VALUE
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
     disableClusterPodAntiAffinity: true  
 EOF
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 3
-
   local LABEL_VALUE=$(run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | jq '.spec.pods.metadata.labels["test-label"]' -r)
 
   assert_string_equal "$RANDOM_VALUE" "$LABEL_VALUE"
-
 }
