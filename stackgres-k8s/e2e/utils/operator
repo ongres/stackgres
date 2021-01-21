@@ -489,217 +489,6 @@ get_component_versions() {
   "$X_UNSET" || set -x
 }
 
-get_previous_operator_version() {
-  local VERSION="$1"
-
-  local CARDINALITY="$(echo "$VERSION" | tr '.' '\n' | wc -l)"
-  local MAJOR=""
-  local MINOR
-  local PATCH="0"
-  local SUFFIX=""
-  local SUFFIX_VERSION=""
-  local VERSION_SUFFIX=""
-  local i
-
-  if [ "$CARDINALITY" -eq 3 ]
-  then
-    MAJOR="$(echo "$VERSION" | tr '.' '\n' | head -n 1)"
-    MINOR="$(echo "$VERSION" | tr '.' '\n' | head -n 2 | tail -n 1)"
-    PATCH="$(echo "$VERSION" | tr '.' '\n' | tail -n 1)"
-    SUFFIX="${PATCH##*-}"
-    if [ -n "$SUFFIX" ]
-    then
-      PATCH="${PATCH%-*}"
-      local A_SUFFIX
-      for A_SUFFIX in alpha beta
-      do
-        if [ "${SUFFIX%%[0-9]*}" = "$A_SUFFIX" ]
-        then
-          SUFFIX_VERSION="${SUFFIX#$A_SUFFIX}"
-          SUFFIX="$A_SUFFIX"
-        fi
-      done
-    fi
-  fi
-
-  if [ "$CARDINALITY" -eq 2 ]
-  then
-    MAJOR="$(echo "$VERSION" | tr '.' '\n' | head -n 1)"
-    MINOR="$(echo "$VERSION" | tr '.' '\n' | tail -n 1)"
-    SUFFIX="${MINOR##*-}"
-    if [ -n "$SUFFIX" ]
-    then
-      MINOR="${MINOR%-*}"
-      local A_SUFFIX
-      for A_SUFFIX in alpha beta
-      do
-        if [ "${SUFFIX%%[0-9]*}" = "$A_SUFFIX" ]
-        then
-          SUFFIX_VERSION="${SUFFIX#$A_SUFFIX}"
-          SUFFIX="$A_SUFFIX"
-        fi
-      done
-    fi
-  fi
-
-  if [ -z "$MAJOR" ]
-  then
-    return 1
-  fi
-
-  if [ "$SUFFIX" = alpha ] || [ "$SUFFIX" = beta ]
-  then
-    if [ "$SUFFIX_VERSION" -gt 1 ]
-    then
-      SUFFIX_VERSION="$((SUFFIX_VERSION - 1))"
-      VERSION_SUFFIX="-$SUFFIX$SUFFIX_VERSION"
-    else
-      if [ "$SUFFIX" = "beta" ]
-      then
-        SUFFIX=alpha
-        SUFFIX_VERSION=1
-        while true
-        do
-          if curl -s -f "$(get_pom_url "$(
-            echo "$MAJOR.$MINOR.$PATCH-$SUFFIX$SUFFIX_VERSION" \
-              | fix_zero_patch_prior_0_9)")" > /dev/null 2>&1
-          then
-            VERSION_SUFFIX="-$SUFFIX$SUFFIX_VERSION"
-            SUFFIX_VERSION="$((SUFFIX_VERSION + 1))"
-          else
-            break
-          fi
-        done
-      fi
-    fi
-  fi
-
-  if [ "$SUFFIX" = "SNAPSHOT" ] && [ "$PATCH" = 0 ]
-  then
-    for SUFFIX in beta alpha
-    do
-      SUFFIX_VERSION=1
-      while true
-      do
-        if curl -s -f "$(get_pom_url "$(
-          echo "$MAJOR.$MINOR.$PATCH-$SUFFIX$SUFFIX_VERSION" \
-            | fix_zero_patch_prior_0_9)")" > /dev/null 2>&1
-        then
-          VERSION_SUFFIX="-$SUFFIX$SUFFIX_VERSION"
-          SUFFIX_VERSION="$((SUFFIX_VERSION + 1))"
-        else
-          break
-        fi
-      done
-      if [ -n "$VERSION_SUFFIX" ]
-      then
-        break
-      fi
-    done
-  fi
-
-  local FOUND=false
-  if [ -z "$VERSION_SUFFIX" ]
-  then
-    while true
-    do
-      if [ "$PATCH" -gt "0" ]
-      then
-        PATCH="$((PATCH - 1))"
-        if curl -s -f "$(get_pom_url "$(
-          echo "$MAJOR.$MINOR.$PATCH" \
-            | fix_zero_patch_prior_0_9)")" > /dev/null 2>&1
-        then
-          FOUND=true
-          break
-        fi
-      else
-        break
-      fi
-    done
-    if [ "$FOUND" != true ]
-    then
-      while true
-      do
-        if [ "$MINOR" -gt 0 ]
-        then
-          MINOR="$((MINOR - 1))"
-        else
-          if [ "$MAJOR" -gt 0 ]
-          then
-            MAJOR="$((MAJOR - 1))"
-          else
-            return 1
-          fi
-          if [ "$MAJOR" -eq 0 ]
-          then
-            MINOR=9 # Specific of StackGres project
-          else
-            MINOR=0
-          fi
-          while true
-          do
-            if curl -s -f "$(get_pom_url "$(
-              echo "$MAJOR.$MINOR.$PATCH" \
-                | fix_zero_patch_prior_0_9)")" > /dev/null 2>&1
-            then
-              FOUND=true
-              MINOR="$((MINOR + 1))"
-            else
-              break
-            fi
-          done
-          if [ "$FOUND" = true ]
-          then
-            MINOR="$((MINOR - 1))"
-          else
-            return 1
-          fi
-        fi
-        while true
-        do
-          if curl -s -f "$(get_pom_url "$(
-            echo "$MAJOR.$MINOR.$PATCH" \
-              | fix_zero_patch_prior_0_9)")" > /dev/null 2>&1
-          then
-            FOUND=true
-            PATCH="$((PATCH + 1))"
-          else
-            break
-          fi
-        done
-        if [ "$FOUND" = true ]
-        then
-          PATCH="$((PATCH - 1))"
-          break
-        fi
-      done
-      while true
-      do
-        if [ "$PATCH" -gt "0" ]
-        then
-          if curl -s -f "$(get_pom_url "$(
-            echo "$MAJOR.$MINOR.$PATCH" \
-              | fix_zero_patch_prior_0_9)")" > /dev/null 2>&1
-          then
-            FOUND=true
-            break
-          fi
-          PATCH="$((PATCH - 1))"
-        else
-          break
-        fi
-      done
-    fi
-  fi
-  echo "$MAJOR.$MINOR.$PATCH$VERSION_SUFFIX" \
-    | fix_zero_patch_prior_0_9
-}
-
-fix_zero_patch_prior_0_9() {
-  sed 's/^\(0\.[0-9]\)\.0/\1/'
-}
-
 get_version_as_number() {
   local VERSION="$1"
 
@@ -712,61 +501,59 @@ get_version_as_number() {
   local VERSION_SUFFIX=""
   local i
 
+  if [ "$CARDINALITY" -gt 3 ]
+  then
+    echo "Unexpeted version format for $VERSION"
+    return 1
+  fi
+
+  MAJOR="$(echo "$VERSION" | cut -d . -f 1)"
+  MINOR="$(echo "$VERSION" | cut -d . -f 2)"
   if [ "$CARDINALITY" -eq 3 ]
   then
-    MAJOR="$(echo "$VERSION" | tr '.' '\n' | head -n 1)"
-    MINOR="$(echo "$VERSION" | tr '.' '\n' | head -n 2 | tail -n 1)"
-    PATCH="$(echo "$VERSION" | tr '.' '\n' | tail -n 1)"
-    SUFFIX="${PATCH##*-}"
-    if [ -n "$SUFFIX" ]
-    then
-      PATCH="${PATCH%-*}"
-      local A_SUFFIX
-      for A_SUFFIX in alpha beta
-      do
-        if [ "${SUFFIX%%[0-9]*}" = "$A_SUFFIX" ]
-        then
-          SUFFIX_VERSION="${SUFFIX#$A_SUFFIX}"
-          SUFFIX="$A_SUFFIX"
-        fi
-      done
-    fi
+    PATCH="$(echo "$VERSION" | cut -d . -f 3)"
+    SUFFIX="${PATCH#*-}"
+    PATCH="${PATCH%%-*}"
+  else
+    SUFFIX="${MINOR#*-}"
+    MINOR="${MINOR%%-*}"
   fi
 
-  if [ "$CARDINALITY" -eq 2 ]
+  if [ "${SUFFIX%-SNAPSHOT}" != "$SUFFIX" ]
   then
-    MAJOR="$(echo "$VERSION" | tr '.' '\n' | head -n 1)"
-    MINOR="$(echo "$VERSION" | tr '.' '\n' | tail -n 1)"
-    SUFFIX="${MINOR##*-}"
-    if [ -n "$SUFFIX" ]
-    then
-      MINOR="${MINOR%-*}"
-      for i in alpha beta
-      do
-        if [ "${SUFFIX%%[0-9]*}" = "$i" ]
-        then
-          SUFFIX=$i
-          SUFFIX_VERSION="${SUFFIX#$i}"
-        fi
-      done
-    fi
+    SUFFIX="${SUFFIX%-SNAPSHOT}"
   fi
+
+  if [ "${SUFFIX%%[0-9]*}" = "$SUFFIX" ]
+  then
+    echo "Unexpeted version format for $VERSION"
+    return 1
+  fi
+  SUFFIX_VERSION="${SUFFIX#${SUFFIX%%[0-9]*}}"
+  SUFFIX="${SUFFIX%$SUFFIX_VERSION}"
 
   local SUFFIX_MAJOR_VERSION
-  if [ "$SUFFIX" = "SNAPSHOT" ]
-  then
-    SUFFIX_MAJOR_VERSION=0
-  elif [ "$SUFFIX" = "alpha" ]
+  if [ "$SUFFIX" = "alpha" ]
   then
     SUFFIX_MAJOR_VERSION=1
   elif [ "$SUFFIX" = "beta" ]
   then
     SUFFIX_MAJOR_VERSION=2
-  else
+  elif [ -z "$SUFFIX" ]
+  then
     SUFFIX_MAJOR_VERSION=3
+  else
+    echo "Unexpeted version format for $VERSION"
+    return 1
   fi
 
-  printf "%03d%03d%03d%d%03d\n" "$MAJOR" "$MINOR" "$PATCH" "$SUFFIX_MAJOR_VERSION" "$SUFFIX_VERSION"
+  local RELEASE_VERSION=1
+  if [ "${VERSION##*-}" = "SNAPSHOT" ]
+  then
+    RELEASE_VERSION=0
+  fi
+
+  printf "%03d%03d%03d%d%03d%d\n" "$MAJOR" "$MINOR" "$PATCH" "$SUFFIX_MAJOR_VERSION" "$SUFFIX_VERSION" "$RELEASE_VERSION"
 }
 
 get_operator_image_tag() {
@@ -839,7 +626,7 @@ export STACKGRES_RESTAPI_IMAGE="$(get_restapi_image "$STACKGRES_VERSION")"
 export STACKGRES_ADMINUI_IMAGE="$(get_adminui_image "$STACKGRES_VERSION")"
 
 setup_versions() {
-  export STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-$(get_previous_operator_version "$STACKGRES_VERSION")}"
+  export STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-0.9.3}"
   export OPERATOR_PREVIOUS_VERSION_HELM_URL="${OPERATOR_PREVIOUS_VERSION_HELM_URL:-$(get_operator_helm_url "$STACKGRES_PREVIOUS_VERSION")}"
   export CLUSTER_PREVIOUS_VERSION_HELM_URL="${CLUSTER_PREVIOUS_VERSION_HELM_URL:-$(get_cluster_helm_url "$STACKGRES_PREVIOUS_VERSION")}"
   export STACKGRES_PREVIOUS_OPERATOR_IMAGE="$(get_operator_image "$STACKGRES_PREVIOUS_VERSION")"
