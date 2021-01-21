@@ -137,6 +137,16 @@ spec:
         {{ $label }}: {{ $value }}
         {{- end }}
       {{- end }}
+      {{- if .Values.cluster.pods.scheduling.tolerations }}
+      tolerations:
+        {{- range .Values.cluster.pods.scheduling.tolerations }}
+        - effect: {{ .effect }}
+          key: {{ .key }}
+          operator: {{ .operator }}
+          value: {{ .value }}
+          tolerationSeconds: {{ .tolerationSeconds }}
+        {{- end }}
+      {{- end }}
     {{- end }} 
   {{- if .Values.distributedLogs.enabled }}
   distributedLogs:

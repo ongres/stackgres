@@ -5,14 +5,13 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-
-import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
+import io.fabric8.kubernetes.api.model.Toleration;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
@@ -20,8 +19,9 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class PodScheduling {
 
-  @NotEmpty
   private Map<String, String> nodeSelector;
+
+  private List<Toleration> tolerations;
 
   public Map<String, String> getNodeSelector() {
     return nodeSelector;
@@ -31,27 +31,19 @@ public class PodScheduling {
     this.nodeSelector = nodeSelector;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    PodScheduling that = (PodScheduling) o;
-    return Objects.equals(nodeSelector, that.nodeSelector);
+  public List<Toleration> getTolerations() {
+    return tolerations;
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(nodeSelector);
+  public void setTolerations(List<Toleration> tolerations) {
+    this.tolerations = tolerations;
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("nodeSelector", nodeSelector)
+        .add("tolerations", tolerations)
         .toString();
   }
 }
