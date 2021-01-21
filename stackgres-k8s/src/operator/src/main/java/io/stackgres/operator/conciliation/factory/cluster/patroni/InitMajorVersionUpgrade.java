@@ -6,8 +6,9 @@
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -22,14 +23,12 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.stackgres.common.ClusterStatefulSetEnvVars;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
@@ -64,7 +63,7 @@ public class InitMajorVersionUpgrade implements ContainerFactory<StackGresCluste
             .map(StackGresCluster::getStatus)
             .map(StackGresClusterStatus::getDbOps)
             .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
-            .get();
+            .orElseThrow();
     String primaryInstance = majorVersionUpgradeStatus.getPrimaryInstance();
     String targetVersion = majorVersionUpgradeStatus.getTargetPostgresVersion();
     String sourceVersion = majorVersionUpgradeStatus.getSourcePostgresVersion();
@@ -84,10 +83,6 @@ public class InitMajorVersionUpgrade implements ContainerFactory<StackGresCluste
         ImmutableMap.of(StackGresComponent.POSTGRESQL,
             targetVersion));
 
-    final String patroniImageName = StackGresComponent.PATRONI.findImageName(
-        StackGresComponent.LATEST,
-        ImmutableMap.of(StackGresComponent.POSTGRESQL,
-            context.getSource().getSpec().getPostgresVersion()));
     return
         new ContainerBuilder()
             .withName(StackgresClusterContainers.MAJOR_VERSION_UPGRADE)
@@ -222,6 +217,11 @@ public class InitMajorVersionUpgrade implements ContainerFactory<StackGresCluste
                         .withMountPath(ClusterStatefulSetPath.PG_EXTENSION_PATH.path(
                             context, sourceEnvVars))))
             .build();
+  }
+
+  @Override
+  public Map<String, String> getComponentVersions(StackGresClusterContext context) {
+    return Map.of();
   }
 
   @Override

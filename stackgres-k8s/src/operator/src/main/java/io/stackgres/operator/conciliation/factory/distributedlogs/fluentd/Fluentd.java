@@ -70,7 +70,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContext>,
   private LabelFactory<StackGresDistributedLogs> labelFactory;
 
   @Override
-  public Map<String, String> getComponentVersions(StackGresDistributedLogsContext context) {
+  public Map<String, String> getComponentVersions(DistributedLogsContext context) {
     return ImmutableMap.of(
         StackGresContext.FLUENTD_VERSION_KEY,
         StackGresComponent.FLUENTD.findLatestVersion());

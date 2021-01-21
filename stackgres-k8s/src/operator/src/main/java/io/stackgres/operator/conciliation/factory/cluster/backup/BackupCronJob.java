@@ -39,7 +39,7 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;

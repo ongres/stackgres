@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.factory.distributedlogs.fluentd;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -55,6 +56,11 @@ public class SetupConfig implements ContainerFactory<DistributedLogsContext> {
   @Override
   public List<Volume> getVolumes(DistributedLogsContext context) {
     return List.of();
+  }
+
+  @Override
+  public Map<String, String> getComponentVersions(DistributedLogsContext context) {
+    return Map.of();
   }
 }
 

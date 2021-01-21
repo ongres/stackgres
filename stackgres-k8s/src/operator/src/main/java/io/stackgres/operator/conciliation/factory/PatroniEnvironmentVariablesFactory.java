@@ -13,6 +13,7 @@ import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
+import io.stackgres.common.EnvoyUtil;
 import org.jooq.lambda.Seq;
 
 public abstract class PatroniEnvironmentVariablesFactory<T>
@@ -20,6 +21,28 @@ public abstract class PatroniEnvironmentVariablesFactory<T>
 
   protected List<EnvVar> createPatroniEnvVars(HasMetadata cluster) {
     return Seq.of(
+        new EnvVarBuilder()
+            .withName("PATRONI_RESTAPI_LISTEN")
+            .withValue("0.0.0.0:" + EnvoyUtil.PATRONI_ENTRY_PORT)
+            .build(),
+        new EnvVarBuilder()
+            .withName("PATRONI_RESTAPI_CONNECT_ADDRESS")
+            .withValue("${PATRONI_KUBERNETES_POD_IP}:" + EnvoyUtil.PATRONI_ENTRY_PORT)
+            .build(),
+        new EnvVarBuilder()
+            .withName("PATRONI_RESTAPI_USERNAME")
+            .withValue("superuser")
+            .build(),
+        new EnvVarBuilder()
+            .withName("PATRONI_RESTAPI_PASSWORD")
+            .withValueFrom(new EnvVarSourceBuilder()
+                .withSecretKeyRef(
+                    new SecretKeySelectorBuilder()
+                        .withName(cluster.getMetadata().getName())
+                        .withKey("restapi-password")
+                        .build())
+                .build())
+            .build(),
         new EnvVarBuilder().withName("PATRONI_NAME")
             .withValueFrom(new EnvVarSourceBuilder()
                 .withFieldRef(
@@ -74,5 +97,6 @@ public abstract class PatroniEnvironmentVariablesFactory<T>
         new EnvVarBuilder().withName("PATRONI_authenticator_OPTIONS")
             .withValue("superuser")
             .build()).toList();
+
   }
 }

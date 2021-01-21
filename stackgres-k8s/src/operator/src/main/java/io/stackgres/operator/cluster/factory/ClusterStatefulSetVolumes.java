@@ -11,6 +11,7 @@ import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.Volume;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 
 @ApplicationScoped

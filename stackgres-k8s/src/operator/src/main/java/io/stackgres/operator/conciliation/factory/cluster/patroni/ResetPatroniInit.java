@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -25,7 +26,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgrad
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
@@ -34,7 +34,7 @@ import io.stackgres.operator.conciliation.factory.InitContainer;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
-@InitContainer(order = 5)
+@InitContainer(order = 4)
 public class ResetPatroniInit implements ContainerFactory<StackGresClusterContext> {
 
   private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;
@@ -107,5 +107,10 @@ public class ResetPatroniInit implements ContainerFactory<StackGresClusterContex
   @Override
   public List<Volume> getVolumes(StackGresClusterContext context) {
     return List.of();
+  }
+
+  @Override
+  public Map<String, String> getComponentVersions(StackGresClusterContext context) {
+    return Map.of();
   }
 }

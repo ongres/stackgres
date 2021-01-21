@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.fluentbit;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -31,7 +32,6 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
@@ -39,6 +39,7 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 import org.slf4j.Logger;

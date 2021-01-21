@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.cluster.factory;
+package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,7 +16,6 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
@@ -27,8 +26,6 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterStatefulSet;
 import io.stackgres.operator.conciliation.factory.cluster.backup.BackupConfigMap;
 import io.stackgres.operator.conciliation.factory.cluster.backup.BackupSecret;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.TemplatesConfigMap;
 import io.stackgres.operator.conciliation.factory.cluster.restore.RestoreConfigMap;
 import io.stackgres.operator.conciliation.factory.cluster.restore.RestoreSecret;
 import org.jooq.lambda.Seq;
@@ -99,6 +96,11 @@ public enum ClusterStatefulSetVolumeConfig {
     this.volumeConfig = volumeConfig;
   }
 
+  public Collection<VolumeMount> volumeMounts(StackGresClusterContext context) {
+    return new ArrayList<>(volumeConfig.volumeMounts(context));
+  }
+
+
   public static Stream<VolumeMount> volumeMounts(io.stackgres.operator.common.StackGresClusterContext context,
                                                  ClusterStatefulSetVolumeConfig... configs) {
     return Seq.of(configs)
@@ -106,18 +108,19 @@ public enum ClusterStatefulSetVolumeConfig {
         .flatMap(volumeConfig -> volumeConfig.volumeMounts(context).stream());
   }
 
-  public static Stream<VolumeMount> volumeMounts(ClusterContext context) {
+  public static Stream<VolumeMount> volumeMounts(io.stackgres.operator.common.StackGresClusterContext context) {
     return volumeMounts(context, values());
   }
 
-  public static Stream<VolumeMount> volumeMounts(ClusterContext context,
+  public static Stream<VolumeMount> volumeMounts(StackGresClusterContext context,
                                                  ClusterStatefulSetVolumeConfig... configs) {
     return Seq.of(configs)
         .map(ClusterStatefulSetVolumeConfig::config)
         .flatMap(volumeConfig -> volumeConfig.volumeMounts(context).stream());
   }
 
-  public static Stream<Volume> volumes(ClusterContext context) {
+
+  public static Stream<Volume> volumes(StackGresClusterContext context) {
     return Seq.of(values())
         .map(ClusterStatefulSetVolumeConfig::config)
         .map(volumeConfig -> volumeConfig.volume(context))
@@ -129,11 +132,7 @@ public enum ClusterStatefulSetVolumeConfig {
     return volumeConfig;
   }
 
-  public Collection<VolumeMount> volumeMounts(StackGresClusterContext context) {
-    return new ArrayList<>(volumeConfig.volumeMounts(context));
-  }
-
-  public VolumeMount volumeMount(ClusterContext context) {
+  public VolumeMount volumeMount(StackGresClusterContext context) {
     return volumeConfig.volumeMounts(context)
         .stream()
         .findFirst()
@@ -153,11 +152,11 @@ public enum ClusterStatefulSetVolumeConfig {
             "Volume mount " + volumeConfig.name() + " is not available for this context"));
   }
 
-  public VolumeMount volumeMount(ClusterStatefulSetPath path, ClusterContext context) {
+  public VolumeMount volumeMount(ClusterStatefulSetPath path, StackGresClusterContext context) {
     return volumeConfig.volumeMount(path, context)
         .orElseThrow(() -> new IllegalStateException(
-            "Volume mount " + volumeConfig.name() + " with path " + path.path(context)
-            + " and subPath " + path.subPath(context) + " is not available for this context"));
+            "Volume mount " + volumeConfig.name() + " with path " + path.path()
+                + " and subPath " + path.subPath() + " is not available for this context"));
   }
 
   public VolumeMount volumeMount(ClusterStatefulSetPath path, StackGresClusterContext context,
@@ -167,27 +166,17 @@ public enum ClusterStatefulSetVolumeConfig {
         .map(volumeMountOverride)
         .map(VolumeMountBuilder::build)
         .orElseThrow(() -> new IllegalStateException(
-            "Volume mount " + volumeConfig.name() + " with path " + path.path(context)
-            + " and subPath " + path.subPath(context) + " is not available for this context"));
+            "Volume mount " + volumeConfig.name() + " with path " + path.path()
+                + " and subPath " + path.subPath() + " is not available for this context"));
   }
 
   public Volume volume(StackGresClusterContext context) {
     return volumeConfig.volume(context)
         .orElseThrow(() -> new IllegalStateException(
             "Volume " + volumeConfig.name()
-            + " is not configured or not available for this context"));
+                + " is not configured or not available for this context"));
   }
 
-  public static Stream<VolumeMount> allVolumeMounts(StackGresClusterContext context) {
-    return allVolumeMounts(context, values());
-  }
-
-  public static Stream<VolumeMount> allVolumeMounts(StackGresClusterContext context,
-      ClusterStatefulSetVolumeConfig...configs) {
-    return Seq.of(configs)
-        .map(ClusterStatefulSetVolumeConfig::config)
-        .flatMap(volumeConfig -> volumeConfig.volumeMounts(context).stream());
-  }
 
   public static Stream<Volume> allVolumes(StackGresClusterContext context) {
     return Seq.of(values())

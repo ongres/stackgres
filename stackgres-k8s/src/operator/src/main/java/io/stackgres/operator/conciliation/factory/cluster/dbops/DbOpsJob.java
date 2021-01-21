@@ -37,7 +37,7 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operatorframework.resource.ResourceUtil;

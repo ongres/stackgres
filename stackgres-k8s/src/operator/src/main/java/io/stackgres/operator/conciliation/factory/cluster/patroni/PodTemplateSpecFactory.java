@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -58,7 +59,8 @@ public class PodTemplateSpecFactory
   private final InitContainerFactoryDiscover<StackGresClusterContext>
       initContainerFactoryDiscoverer;
 
-  private final ClusterStatefulSetVolumes volumesFactory;
+  private final ClusterStatefulSetVolumeFactoryDiscoverer<StackGresClusterContext>
+      volumeFactoryDiscoverer;
 
   @Inject
   public PodTemplateSpecFactory(
@@ -66,12 +68,13 @@ public class PodTemplateSpecFactory
       LabelFactory<StackGresCluster> labelFactory,
       ContainerFactoryDiscoverer<StackGresClusterContext> containerFactoryDiscoverer,
       InitContainerFactoryDiscover<StackGresClusterContext> initContainerFactoryDiscoverer,
-      ClusterStatefulSetVolumes volumesFactory) {
+      ClusterStatefulSetVolumes volumesFactory,
+      ClusterStatefulSetVolumeFactoryDiscoverer<StackGresClusterContext> volumeFactoryDiscoverer) {
     this.podSecurityContext = podSecurityContext;
     this.labelFactory = labelFactory;
     this.containerFactoryDiscoverer = containerFactoryDiscoverer;
     this.initContainerFactoryDiscoverer = initContainerFactoryDiscoverer;
-    this.volumesFactory = volumesFactory;
+    this.volumeFactoryDiscoverer = volumeFactoryDiscoverer;
   }
 
   @Override
@@ -158,7 +161,7 @@ public class PodTemplateSpecFactory
         .withShareProcessNamespace(Boolean.TRUE)
         .withServiceAccountName(PatroniRoleGenerator.roleName(context))
         .withSecurityContext(podSecurityContext.createResource(context))
-        .withVolumes(volumesFactory.listResources(context))
+        .withVolumes(buildVolumes(context))
         .addAllToVolumes(volumes)
         .withContainers(containers)
         .withInitContainers(initContainers)
@@ -175,5 +178,15 @@ public class PodTemplateSpecFactory
         .map(StackGresClusterPod::getMetadata)
         .map(StackGresClusterPodMetadata::getLabels)
         .orElse(ImmutableMap.of());
+  }
+
+  protected List<Volume> buildVolumes(StackGresClusterContext context) {
+    var volumeFactories = volumeFactoryDiscoverer
+        .discoverFactories(context);
+
+    List<Volume> volumes = new ArrayList<>();
+    volumeFactories.forEach(volumesFactory -> volumes.addAll(volumesFactory.buildVolumes(context)));
+
+    return volumes;
   }
 }
