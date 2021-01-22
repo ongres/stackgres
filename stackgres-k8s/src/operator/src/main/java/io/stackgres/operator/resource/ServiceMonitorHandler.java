@@ -21,7 +21,6 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.customresource.prometheus.Endpoint;
 import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
@@ -36,8 +35,6 @@ import io.stackgres.operatorframework.resource.visitor.ResourcePairVisitor;
 public class ServiceMonitorHandler
     extends AbstractPausableResourceHandler<StackGresClusterContext> {
 
-  private LabelFactoryDelegator factoryDelegator;
-
   private LabelFactory<StackGresCluster> labelFactory;
 
   @Override
@@ -47,21 +44,21 @@ public class ServiceMonitorHandler
 
   @Override
   public boolean equals(StackGresClusterContext context,
-      HasMetadata existingResource, HasMetadata requiredResource) {
+                        HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.equals(new ServiceMonitorVisitor<>(),
         existingResource, requiredResource);
   }
 
   @Override
   public HasMetadata update(StackGresClusterContext context,
-      HasMetadata existingResource, HasMetadata requiredResource) {
+                            HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.update(new ServiceMonitorVisitor<>(),
         existingResource, requiredResource);
   }
 
   @Override
   public Stream<HasMetadata> getResources(KubernetesClient client,
-      StackGresClusterContext context) {
+                                          StackGresClusterContext context) {
     return getServiceMonitorClient(client)
         .map(crClient -> crClient
             .inAnyNamespace()

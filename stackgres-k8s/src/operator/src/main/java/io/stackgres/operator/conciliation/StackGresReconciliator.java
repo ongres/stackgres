@@ -89,7 +89,7 @@ public abstract class StackGresReconciliator<T extends CustomResource> {
   public abstract void onError(Exception e, T context);
 
   @Inject
-  public void setClusterScanner(CustomResourceScanner<T> clusterScanner) {
+  public synchronized void setClusterScanner(CustomResourceScanner<T> clusterScanner) {
     this.clusterScanner = clusterScanner;
   }
 

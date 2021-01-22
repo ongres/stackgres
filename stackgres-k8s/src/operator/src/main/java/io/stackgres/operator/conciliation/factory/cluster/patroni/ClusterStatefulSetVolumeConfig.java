@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableList;
@@ -100,25 +99,12 @@ public enum ClusterStatefulSetVolumeConfig {
     return new ArrayList<>(volumeConfig.volumeMounts(context));
   }
 
-
-  public static Stream<VolumeMount> volumeMounts(io.stackgres.operator.common.StackGresClusterContext context,
-                                                 ClusterStatefulSetVolumeConfig... configs) {
-    return Seq.of(configs)
-        .map(ClusterStatefulSetVolumeConfig::config)
-        .flatMap(volumeConfig -> volumeConfig.volumeMounts(context).stream());
-  }
-
-  public static Stream<VolumeMount> volumeMounts(io.stackgres.operator.common.StackGresClusterContext context) {
-    return volumeMounts(context, values());
-  }
-
   public static Stream<VolumeMount> volumeMounts(StackGresClusterContext context,
                                                  ClusterStatefulSetVolumeConfig... configs) {
     return Seq.of(configs)
         .map(ClusterStatefulSetVolumeConfig::config)
         .flatMap(volumeConfig -> volumeConfig.volumeMounts(context).stream());
   }
-
 
   public static Stream<Volume> volumes(StackGresClusterContext context) {
     return Seq.of(values())
@@ -141,7 +127,8 @@ public enum ClusterStatefulSetVolumeConfig {
   }
 
   public VolumeMount volumeMount(StackGresClusterContext context,
-                                 Function<VolumeMountBuilder, VolumeMountBuilder> volumeMountOverride) {
+                                 Function<VolumeMountBuilder,
+                                     VolumeMountBuilder> volumeMountOverride) {
     return volumeConfig.volumeMounts(context)
         .stream()
         .map(VolumeMountBuilder::new)
@@ -154,17 +141,6 @@ public enum ClusterStatefulSetVolumeConfig {
 
   public VolumeMount volumeMount(ClusterStatefulSetPath path, StackGresClusterContext context) {
     return volumeConfig.volumeMount(path, context)
-        .orElseThrow(() -> new IllegalStateException(
-            "Volume mount " + volumeConfig.name() + " with path " + path.path()
-                + " and subPath " + path.subPath() + " is not available for this context"));
-  }
-
-  public VolumeMount volumeMount(ClusterStatefulSetPath path, StackGresClusterContext context,
-                                 Function<VolumeMountBuilder, VolumeMountBuilder> volumeMountOverride) {
-    return volumeConfig.volumeMount(path, context)
-        .map(VolumeMountBuilder::new)
-        .map(volumeMountOverride)
-        .map(VolumeMountBuilder::build)
         .orElseThrow(() -> new IllegalStateException(
             "Volume mount " + volumeConfig.name() + " with path " + path.path()
                 + " and subPath " + path.subPath() + " is not available for this context"));

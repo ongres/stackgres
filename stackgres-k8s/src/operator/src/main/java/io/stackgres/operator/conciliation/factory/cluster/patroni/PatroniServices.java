@@ -83,7 +83,7 @@ public class PatroniServices implements
     final Map<String, String> clusterLabels = labelFactory.clusterLabels(cluster);
 
     Service config = createConfigService(namespace, configName(context),
-        clusterLabels, context);
+        clusterLabels);
     Service rest = createPatroniRestService(context);
 
     Seq<HasMetadata> services = Seq.of(config, rest);
@@ -118,8 +118,7 @@ public class PatroniServices implements
   }
 
   private Service createConfigService(String namespace, String serviceName,
-                                      Map<String, String> labels,
-                                      StackGresClusterContext context) {
+                                      Map<String, String> labels) {
     return new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(namespace)

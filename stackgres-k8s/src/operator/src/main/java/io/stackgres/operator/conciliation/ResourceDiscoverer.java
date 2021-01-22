@@ -22,7 +22,7 @@ public abstract class ResourceDiscoverer<T> {
 
   public void init(Instance<T> instance) {
     resourceHub = Arrays.stream(StackGresVersion.values())
-        .collect(Collectors.toMap(Function.identity(), (v -> new ArrayList<>())));
+        .collect(Collectors.toMap(Function.identity(), v -> new ArrayList<>()));
 
     instance.select(new OperatorVersionBinderLiteral()).stream().forEach(f -> {
       OperatorVersionBinder operatorVersionTarget = f.getClass()

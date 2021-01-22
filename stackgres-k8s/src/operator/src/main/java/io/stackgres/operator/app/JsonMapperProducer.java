@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 public class JsonMapperProducer {
 
   @Produces
-  public JsonMapper buildJsonMapper(){
+  public JsonMapper buildJsonMapper() {
     JsonMapper mapper = new JsonMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     mapper.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);

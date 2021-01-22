@@ -51,5 +51,4 @@ public class ServiceComparator extends StackGresAbstractComparator {
     return diff.size() - ignore == 0;
   }
 
-
 }

@@ -14,7 +14,6 @@ import javax.inject.Inject;
 
 import io.stackgres.operator.conciliation.InitContainerFactoryDiscover;
 import io.stackgres.operator.conciliation.ResourceDiscoverer;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;

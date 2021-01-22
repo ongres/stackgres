@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.VolumePath;
+import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple3;
@@ -241,11 +242,14 @@ public class VolumeConfig {
 
   }
 
-  public List<VolumeMount> volumeMounts(ClusterContext context, String subPath) {
-    return volumeMountFactory.apply(context);
+  public List<VolumeMount> volumeMounts(
+      io.stackgres.operator.common.StackGresClusterContext context) {
+    return List.of();
   }
 
-
+  public List<VolumeMount> volumeMounts(StackGresClusterContext context, String subPath) {
+    return volumeMountFactory.apply(context);
+  }
 
   public Optional<Volume> volume(ClusterContext context) {
     return volumeFactory.apply(context);

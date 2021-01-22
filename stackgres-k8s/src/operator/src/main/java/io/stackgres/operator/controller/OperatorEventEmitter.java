@@ -14,10 +14,9 @@ import io.stackgres.operatorframework.resource.EventReason;
 @ApplicationScoped
 public class OperatorEventEmitter extends AbstractEventEmitter<Service> {
 
-   /**
+  /**
    * Send an event.
    */
-
   @Override
   public void sendEvent(EventReason reason, String message, Service involvedObject) {
     emitEvent(reason, message, involvedObject);

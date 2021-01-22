@@ -52,7 +52,6 @@ public class PatroniConfigEndpoints
   @Override
   public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
 
-
     PatroniConfig patroniConf = new PatroniConfig();
     patroniConf.setTtl(30);
     patroniConf.setLoopWait(10);

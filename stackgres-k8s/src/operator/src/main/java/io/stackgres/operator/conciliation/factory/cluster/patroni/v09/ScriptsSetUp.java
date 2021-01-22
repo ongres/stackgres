@@ -18,8 +18,7 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.StackGresContext;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
@@ -27,7 +26,7 @@ import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactory;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactoryDiscoverer;
-import org.jetbrains.annotations.NotNull;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
 import org.jooq.lambda.Seq;
 
 @Singleton
@@ -49,7 +48,7 @@ public class ScriptsSetUp implements ContainerFactory<StackGresClusterContext> {
   public Container getContainer(StackGresClusterContext context) {
     return new ContainerBuilder()
         .withName("setup-scripts")
-        .withImage(StackGresContext.BUSYBOX_IMAGE)
+        .withImage(StackGresComponent.KUBECTL.findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ecx", Seq.of(
             "cp $TEMPLATES_PATH/start-patroni.sh \"$LOCAL_BIN_PATH\"",
@@ -84,7 +83,6 @@ public class ScriptsSetUp implements ContainerFactory<StackGresClusterContext> {
     return List.of();
   }
 
-  @NotNull
   private List<EnvVar> getClusterEnvVars(StackGresClusterContext context) {
     List<EnvVar> clusterEnvVars = new ArrayList<>();
 

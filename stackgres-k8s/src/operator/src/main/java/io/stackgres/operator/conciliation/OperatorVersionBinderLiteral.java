@@ -12,6 +12,8 @@ import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 public class OperatorVersionBinderLiteral extends AnnotationLiteral<OperatorVersionBinder>
     implements OperatorVersionBinder {
 
+  private static final long serialVersionUID = 1L;
+
   @Override
   public StackGresVersion startAt() {
     return StackGresVersion.V09;

@@ -49,7 +49,6 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnviron
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap;
 import io.stackgres.operator.patroni.factory.PatroniScriptsConfigMap;
-import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V093)
@@ -135,7 +134,6 @@ public class Patroni implements ContainerFactory<StackGresClusterContext> {
 
     ResourceRequirements podResources = requirementsFactory
         .createResource(context);
-
 
     final String startScript = context.getRestoreBackup().isPresent()
         ? "/start-patroni-with-restore.sh" : "/start-patroni.sh";
@@ -230,8 +228,6 @@ public class Patroni implements ContainerFactory<StackGresClusterContext> {
     }
   }
 
-
-  @NotNull
   private List<EnvVar> getClusterEnvVars(StackGresClusterContext context) {
     List<EnvVar> clusterEnvVars = new ArrayList<>();
 

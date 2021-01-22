@@ -9,9 +9,10 @@ import java.util.regex.Pattern;
 
 public class CronJobComparator extends StackGresAbstractComparator {
 
-  protected static final IgnorePatch[] IGNORE_PATTERS = {
+  private static final IgnorePatch[] IGNORE_PATTERS = {
       new PatchPattern(Pattern
-          .compile("/spec/jobTemplate/spec/template/spec/containers/\\d+/env/\\d+/valueFrom/fieldRef/apiVersion"),
+          .compile("/spec/jobTemplate/spec/template/spec/containers/\\d+/"
+              + "env/\\d+/valueFrom/fieldRef/apiVersion"),
           "add",
           "v1"),
       new PatchPattern(Pattern

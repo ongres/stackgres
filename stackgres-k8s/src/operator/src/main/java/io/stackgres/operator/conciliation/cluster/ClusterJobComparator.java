@@ -26,7 +26,7 @@ public class ClusterJobComparator extends StackGresAbstractComparator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ClusterJobComparator.class);
 
-  private static final IgnorePatch[] IGNORE_PATTERS = {
+  private static final IgnorePatch[] IGNORE_PATCH_PATTERNS = {
       new SimpleIgnorePatch("/spec/template/metadata/labels/controller-uid",
           "add"),
       new SimpleIgnorePatch("/spec/template/metadata/labels/job-name",
@@ -77,7 +77,7 @@ public class ClusterJobComparator extends StackGresAbstractComparator {
 
   @Override
   protected IgnorePatch[] getPatchPattersToIgnore() {
-    return IGNORE_PATTERS;
+    return IGNORE_PATCH_PATTERNS;
   }
 
   @Override
@@ -87,18 +87,17 @@ public class ClusterJobComparator extends StackGresAbstractComparator {
 
     int ignore = countPatchesToIgnore(diff);
 
-    if (LOGGER.isTraceEnabled()) {
-      if (diff.size() - ignore != 0) {
-        for (JsonNode jsonPatch : diff) {
-          JsonPatch patch = new JsonPatch(jsonPatch);
-          if (Arrays.stream(getPatchPattersToIgnore())
-              .noneMatch(patchPattern -> patchPattern.matches(patch))) {
-            LOGGER.trace("Job diff {}", jsonPatch.toPrettyString());
-          }
+    final int actualDifferences = diff.size() - ignore;
+    if (LOGGER.isTraceEnabled() && actualDifferences != 0) {
+      for (JsonNode jsonPatch : diff) {
+        JsonPatch patch = new JsonPatch(jsonPatch);
+        if (Arrays.stream(getPatchPattersToIgnore())
+            .noneMatch(patchPattern -> patchPattern.matches(patch))) {
+          LOGGER.trace("Job diff {}", jsonPatch.toPrettyString());
         }
       }
     }
 
-    return diff.size() - ignore == 0;
+    return actualDifferences == 0;
   }
 }

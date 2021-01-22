@@ -106,10 +106,10 @@ public class PatroniConfigMap implements ResourceGenerator<StackGresClusterConte
     data.put("PATRONI_SCRIPTS",
         Optional.ofNullable(
             cluster.getSpec().getInitData())
-        .map(StackGresClusterInitData::getScripts)
-        .map(List::size)
-        .map(String::valueOf)
-        .orElse("0"));
+            .map(StackGresClusterInitData::getScripts)
+            .map(List::size)
+            .map(String::valueOf)
+            .orElse("0"));
 
     return Seq.of(new ConfigMapBuilder()
         .withNewMetadata()

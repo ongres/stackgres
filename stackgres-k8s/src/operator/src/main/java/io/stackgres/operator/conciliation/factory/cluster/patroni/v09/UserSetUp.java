@@ -17,8 +17,8 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.Volume;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
@@ -26,7 +26,7 @@ import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactory;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactoryDiscoverer;
-import org.jetbrains.annotations.NotNull;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
 import org.jooq.lambda.Seq;
 
 @Singleton
@@ -36,7 +36,6 @@ public class UserSetUp implements ContainerFactory<StackGresClusterContext> {
 
   private final ClusterEnvironmentVariablesFactoryDiscoverer<StackGresClusterContext>
       clusterEnvVarFactoryDiscoverer;
-
 
   @Inject
   public UserSetUp(
@@ -49,7 +48,7 @@ public class UserSetUp implements ContainerFactory<StackGresClusterContext> {
   public Container getContainer(StackGresClusterContext context) {
     return new ContainerBuilder()
         .withName("setup-arbitrary-user")
-        .withImage(StackGresContext.BUSYBOX_IMAGE)
+        .withImage(StackGresComponent.KUBECTL.findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ecx", Seq.of(
             "USER=postgres",

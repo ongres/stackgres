@@ -8,15 +8,11 @@ package io.stackgres.operator.conciliation.comparator;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.internal.PatchUtils;
 import io.fabric8.zjsonpatch.JsonDiff;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.conciliation.ReconciliationScope;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 public class SecretComparator implements ResourceComparator {

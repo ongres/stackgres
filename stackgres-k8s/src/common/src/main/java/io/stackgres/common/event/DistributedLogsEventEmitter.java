@@ -14,9 +14,7 @@ import io.stackgres.operatorframework.resource.EventReason;
 public class DistributedLogsEventEmitter extends AbstractEventEmitter<StackGresDistributedLogs> {
 
   @Override
-  public void sendEvent(EventReason reason,
-                        String message,
-                        StackGresDistributedLogs context) {
+  public void sendEvent(EventReason reason, String message, StackGresDistributedLogs context) {
 
     emitEvent(reason, message, context);
 

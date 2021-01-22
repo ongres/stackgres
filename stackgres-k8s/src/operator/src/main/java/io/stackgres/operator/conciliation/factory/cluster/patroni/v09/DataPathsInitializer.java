@@ -16,8 +16,8 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.Volume;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
@@ -25,6 +25,7 @@ import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactory;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactoryDiscoverer;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
@@ -46,7 +47,7 @@ public class DataPathsInitializer implements ContainerFactory<StackGresClusterCo
   public Container getContainer(StackGresClusterContext context) {
     return new ContainerBuilder()
         .withName("setup-data-paths")
-        .withImage(StackGresContext.BUSYBOX_IMAGE)
+        .withImage(StackGresComponent.KUBECTL.findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ecx", String.join(" && ",
             "mkdir -p \"$PG_DATA_PATH\"",

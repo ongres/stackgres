@@ -5,20 +5,8 @@
 
 package io.stackgres.operator.patroni.factory;
 
-import java.util.stream.Stream;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
-import com.google.common.collect.ImmutableMap;
-import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.LabelFactory;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
-import io.stackgres.operator.common.LabelFactoryDelegator;
-import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
+import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.tuple.Tuple4;
 
@@ -32,13 +20,6 @@ public class PatroniScriptsConfigMap {
   public static final String SCRIPT_NAME_FOR_DATABASE = "%05d-%s.%s";
 
   public static String name(StackGresClusterContext clusterContext,
-                            Tuple4<StackGresClusterScriptEntry, Long, String, Long> indexedScript) {
-    return ResourceUtil.cutVolumeName(
-        ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName()
-            + "-" + normalizedResourceName(indexedScript)));
-  }
-
-  public static String name(io.stackgres.operator.conciliation.cluster.StackGresClusterContext clusterContext,
                             Tuple4<StackGresClusterScriptEntry, Long, String, Long> indexedScript) {
     return ResourceUtil.cutVolumeName(
         ResourceUtil.resourceName(clusterContext.getSource().getMetadata().getName()
@@ -84,6 +65,5 @@ public class PatroniScriptsConfigMap {
   public static String encodeDatabase(String database) {
     return database.replaceAll("\\\\", "\\\\\\\\").replaceAll("/", "\\\\h");
   }
-
 
 }

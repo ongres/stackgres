@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster;
+package io.stackgres.operator.conciliation.factory.cluster.v09;
 
 import java.util.Collection;
 import java.util.List;
@@ -22,7 +22,7 @@ import io.stackgres.operator.conciliation.factory.Decorator;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V093)
-public class OwnerReferenceDecorator09 implements Decorator<StackGresCluster> {
+public class OwnerReferenceDecorator implements Decorator<StackGresCluster> {
 
   @Override
   public void decorate(StackGresCluster cluster,
@@ -33,9 +33,8 @@ public class OwnerReferenceDecorator09 implements Decorator<StackGresCluster> {
       resource.getMetadata().setOwnerReferences(ownerReferences);
       if (resource.getKind().equals("StatefulSet")) {
         StatefulSet sts = (StatefulSet) resource;
-        sts.getSpec().getVolumeClaimTemplates().forEach(vct -> {
-          vct.getMetadata().setOwnerReferences(ownerReferences);
-        });
+        sts.getSpec().getVolumeClaimTemplates().forEach(vct ->
+            vct.getMetadata().setOwnerReferences(ownerReferences));
       }
     });
   }

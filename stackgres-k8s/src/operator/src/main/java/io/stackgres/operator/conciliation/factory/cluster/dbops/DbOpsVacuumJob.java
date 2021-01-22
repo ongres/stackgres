@@ -8,7 +8,6 @@ package io.stackgres.operator.conciliation.factory.cluster.dbops;
 import java.util.List;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 

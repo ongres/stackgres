@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableList;
@@ -142,7 +141,8 @@ public enum ClusterStatefulSetVolumeConfig {
   }
 
   public VolumeMount volumeMount(StackGresClusterContext context,
-                                 Function<VolumeMountBuilder, VolumeMountBuilder> volumeMountOverride) {
+                                 Function<VolumeMountBuilder,
+                                     VolumeMountBuilder> volumeMountOverride) {
     return volumeConfig.volumeMounts(context)
         .stream()
         .map(VolumeMountBuilder::new)
@@ -161,7 +161,8 @@ public enum ClusterStatefulSetVolumeConfig {
   }
 
   public VolumeMount volumeMount(ClusterStatefulSetPath path, StackGresClusterContext context,
-                                 Function<VolumeMountBuilder, VolumeMountBuilder> volumeMountOverride) {
+                                 Function<VolumeMountBuilder,
+                                     VolumeMountBuilder> volumeMountOverride) {
     return volumeConfig.volumeMount(path, context)
         .map(VolumeMountBuilder::new)
         .map(volumeMountOverride)

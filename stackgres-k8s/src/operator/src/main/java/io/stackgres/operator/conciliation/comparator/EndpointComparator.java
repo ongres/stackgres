@@ -46,19 +46,18 @@ public class EndpointComparator extends StackGresAbstractComparator {
 
     int ignore = countPatchesToIgnore(diff);
 
-    if (LOGGER.isTraceEnabled()){
-      if (diff.size() - ignore != 0){
-        for (JsonNode jsonPatch : diff) {
-          JsonPatch patch = new JsonPatch(jsonPatch);
-          if (Arrays.stream(getPatchPattersToIgnore())
-              .noneMatch(patchPattern -> patchPattern.matches(patch))) {
-            LOGGER.trace("Endpoints diff {}", jsonPatch.toPrettyString());
-          }
+    final int actualDifferences = diff.size() - ignore;
+    if (LOGGER.isTraceEnabled() && actualDifferences != 0) {
+      for (JsonNode jsonPatch : diff) {
+        JsonPatch patch = new JsonPatch(jsonPatch);
+        if (Arrays.stream(getPatchPattersToIgnore())
+            .noneMatch(patchPattern -> patchPattern.matches(patch))) {
+          LOGGER.trace("Endpoints diff {}", jsonPatch.toPrettyString());
         }
       }
     }
 
-    return diff.size() - ignore == 0;
+    return actualDifferences == 0;
   }
 
   private static class FunctionValuePattern extends PatchPattern {

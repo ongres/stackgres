@@ -25,12 +25,10 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterRestorePitr;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.PatroniEnvironmentVariablesFactory;
-import io.stackgres.operator.conciliation.factory.ResourceFactory;
 
 @Singleton
 public class ClusterPatroniEnvVarFactory
-    extends PatroniEnvironmentVariablesFactory<StackGresClusterContext>
-    implements ResourceFactory<StackGresClusterContext, List<EnvVar>> {
+    extends PatroniEnvironmentVariablesFactory<StackGresClusterContext> {
 
   @Override
   public List<EnvVar> createResource(StackGresClusterContext context) {

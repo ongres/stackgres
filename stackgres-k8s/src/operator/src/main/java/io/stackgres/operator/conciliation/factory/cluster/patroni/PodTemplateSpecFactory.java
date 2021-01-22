@@ -38,7 +38,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumes;
 import io.stackgres.operator.conciliation.ContainerFactoryDiscoverer;
 import io.stackgres.operator.conciliation.InitContainerFactoryDiscover;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -68,7 +67,6 @@ public class PodTemplateSpecFactory
       LabelFactory<StackGresCluster> labelFactory,
       ContainerFactoryDiscoverer<StackGresClusterContext> containerFactoryDiscoverer,
       InitContainerFactoryDiscover<StackGresClusterContext> initContainerFactoryDiscoverer,
-      ClusterStatefulSetVolumes volumesFactory,
       ClusterStatefulSetVolumeFactoryDiscoverer<StackGresClusterContext> volumeFactoryDiscoverer) {
     this.podSecurityContext = podSecurityContext;
     this.labelFactory = labelFactory;

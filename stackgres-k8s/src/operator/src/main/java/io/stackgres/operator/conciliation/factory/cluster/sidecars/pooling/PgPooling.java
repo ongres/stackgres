@@ -19,7 +19,7 @@ import io.stackgres.operator.conciliation.factory.RunningContainer;
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
 @RunningContainer(order = 4)
-public class PgPooling extends AbstractPgPooling{
+public class PgPooling extends AbstractPgPooling {
 
   @Inject
   protected PgPooling(LabelFactory<StackGresCluster> labelFactory) {

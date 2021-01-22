@@ -27,7 +27,6 @@ import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.distributedlogs.common.DistributedLogsControllerEventReason;
 import io.stackgres.distributedlogs.common.ImmutableStackGresDistributedLogsContext;

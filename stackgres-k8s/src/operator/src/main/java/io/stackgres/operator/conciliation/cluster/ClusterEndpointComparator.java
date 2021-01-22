@@ -10,7 +10,6 @@ import javax.enterprise.context.ApplicationScoped;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import io.stackgres.operator.conciliation.comparator.EndpointComparator;
-import io.stackgres.operator.conciliation.comparator.StackGresAbstractComparator;
 
 @ReconciliationScope(value = StackGresCluster.class, kind = "Endpoints")
 @ApplicationScoped

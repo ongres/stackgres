@@ -10,9 +10,6 @@ import java.util.Map;
 
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresProperty;
-import io.stackgres.common.StackGresUtil;
-import io.stackgres.operator.configuration.OperatorPropertyContext;
 
 public enum StackGresVersion {
 
@@ -23,9 +20,6 @@ public enum StackGresVersion {
   V10A1("1.0.0-alpha1"),
   V10A2("1.0.0-alpha2"),
   V10("1.0");
-
-  public static final String LATEST = StackGresVersion
-      .sanitizeVersion(StackGresProperty.OPERATOR_VERSION.getString());
 
   private final String version;
 
@@ -60,6 +54,5 @@ public enum StackGresVersion {
   public String getVersion() {
     return version;
   }
-
 
 }

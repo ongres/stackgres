@@ -24,7 +24,6 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
-import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
@@ -48,8 +47,8 @@ public class DataPathsInitializer implements ContainerFactory<StackGresClusterCo
         .withImage(StackGresComponent.KUBECTL.findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ex",
-        ClusterStatefulSetPath.TEMPLATES_PATH.path()
-            + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH.filename())
+            ClusterStatefulSetPath.TEMPLATES_PATH.path()
+                + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH.filename())
         .withEnv(getClusterEnvVars(context))
         .withVolumeMounts(
             ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context),
@@ -68,7 +67,6 @@ public class DataPathsInitializer implements ContainerFactory<StackGresClusterCo
     return List.of();
   }
 
-  @NotNull
   private List<EnvVar> getClusterEnvVars(StackGresClusterContext context) {
     List<EnvVar> clusterEnvVars = new ArrayList<>();
 

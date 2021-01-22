@@ -37,9 +37,11 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.Patroni;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
+import io.stackgres.operator.conciliation.factory.cluster.sidecars.pgutils.AbstractPostgresUtil;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
@@ -264,15 +266,15 @@ public abstract class DbOpsJob implements JobFactory {
                             .withName("NORMALIZED_OP_NAME")
                             .withValue(UPPERCASE_PATTERN
                                 .matcher(dbOps.getSpec().getOp())
-                                .replaceAll(result -> " "
-                                    + result.group(1).toLowerCase(Locale.US)))
+                                .replaceAll(result -> " " + result.group(1)
+                                    .toLowerCase(Locale.US)))
                             .build(),
                         new EnvVarBuilder()
                             .withName("KEBAB_OP_NAME")
                             .withValue(UPPERCASE_PATTERN
                                 .matcher(dbOps.getSpec().getOp())
-                                .replaceAll(result -> "-"
-                                    + result.group(1).toLowerCase(Locale.US)))
+                                .replaceAll(result -> "-" + result.group(1)
+                                    .toLowerCase(Locale.US)))
                             .build(),
                         new EnvVarBuilder()
                             .withName("RUN_SCRIPT_PATH")

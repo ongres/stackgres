@@ -24,7 +24,6 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
-import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
@@ -33,7 +32,6 @@ public class UserSetUp implements ContainerFactory<StackGresClusterContext> {
 
   private final ClusterEnvironmentVariablesFactoryDiscoverer<StackGresClusterContext>
       clusterEnvVarFactoryDiscoverer;
-
 
   @Inject
   public UserSetUp(
