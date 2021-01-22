@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.fabric8.kubernetes.api.model.batch.CronJob;
 import io.fabric8.kubernetes.api.model.batch.CronJobBuilder;
 import io.fabric8.kubernetes.api.model.batch.JobTemplateSpecBuilder;
 import io.stackgres.common.LabelFactory;
@@ -39,7 +40,6 @@ import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.common.StackGresPodSecurityContext;
 import io.stackgres.operator.patroni.factory.PatroniRole;
 import org.jooq.lambda.Seq;
-import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,176 +70,189 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
    */
   @Override
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
+    return Seq.of(context.getClusterContext().getBackupContext())
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .map(StackGresBackupContext::getBackupConfig)
+        .map(backupConfig -> createCronJob(context, backupConfig));
+  }
+
+  private CronJob createCronJob(StackGresGeneratorContext context,
+      StackGresBackupConfig backupConfig) {
     StackGresClusterContext clusterContext = context.getClusterContext();
     String namespace = clusterContext.getCluster().getMetadata().getNamespace();
     String name = clusterContext.getCluster().getMetadata().getName();
     final StackGresCluster cluster = clusterContext.getCluster();
     Map<String, String> labels = labelFactory.scheduledBackupPodLabels(cluster);
-    return Seq.of(clusterContext.getBackupContext())
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .map(StackGresBackupContext::getBackupConfig)
-        .map(Unchecked.function(backupConfig -> new CronJobBuilder()
+    return new CronJobBuilder()
+        .withNewMetadata()
+        .withNamespace(namespace)
+        .withName(ClusterStatefulSet.backupName(clusterContext))
+        .withLabels(labels)
+        .withOwnerReferences(context.getClusterContext().getOwnerReferences())
+        .endMetadata()
+        .withNewSpec()
+        .withConcurrencyPolicy("Allow")
+        .withFailedJobsHistoryLimit(10)
+        .withStartingDeadlineSeconds(5 * 60L)
+        .withSchedule(Optional.of(backupConfig)
+            .map(StackGresBackupConfig::getSpec)
+            .map(StackGresBackupConfigSpec::getBaseBackups)
+            .map(StackGresBaseBackupConfig::getCronSchedule)
+            .orElse("0 5 * * *"))
+        .withJobTemplate(new JobTemplateSpecBuilder()
             .withNewMetadata()
             .withNamespace(namespace)
             .withName(ClusterStatefulSet.backupName(clusterContext))
             .withLabels(labels)
-            .withOwnerReferences(context.getClusterContext().getOwnerReferences())
             .endMetadata()
             .withNewSpec()
-            .withConcurrencyPolicy("Allow")
-            .withFailedJobsHistoryLimit(10)
-            .withStartingDeadlineSeconds(5 * 60L)
-            .withSchedule(Optional.of(backupConfig)
-                .map(StackGresBackupConfig::getSpec)
-                .map(StackGresBackupConfigSpec::getBaseBackups)
-                .map(StackGresBaseBackupConfig::getCronSchedule)
-                .orElse("0 5 * * *"))
-            .withJobTemplate(new JobTemplateSpecBuilder()
-                .withNewMetadata()
-                .withNamespace(namespace)
-                .withName(ClusterStatefulSet.backupName(clusterContext))
-                .withLabels(labels)
-                .endMetadata()
-                .withNewSpec()
-                .withBackoffLimit(3)
-                .withCompletions(1)
-                .withParallelism(1)
-                .withNewTemplate()
-                .withNewMetadata()
-                .withNamespace(namespace)
-                .withName(ClusterStatefulSet.backupName(clusterContext))
-                .withLabels(labels)
-                .endMetadata()
-                .withNewSpec()
-                .withSecurityContext(clusterPodSecurityContext.createResource(clusterContext))
-                .withRestartPolicy("OnFailure")
-                .withServiceAccountName(PatroniRole.roleName(clusterContext))
-                .withContainers(new ContainerBuilder()
-                    .withName("create-backup")
-                    .withImage(StackGresContext.KUBECTL_IMAGE)
-                    .withImagePullPolicy("IfNotPresent")
-                    .withEnv(ImmutableList.<EnvVar>builder()
-                        .addAll(clusterStatefulSetEnvironmentVariables.listResources(
-                            clusterContext))
-                        .add(new EnvVarBuilder()
-                                .withName("CLUSTER_NAMESPACE")
-                                .withValue(namespace)
-                                .build(),
-                            new EnvVarBuilder()
-                                .withName("CLUSTER_NAME")
-                                .withValue(name)
-                                .build(),
-                            new EnvVarBuilder()
-                                .withName("CRONJOB_NAME")
-                                .withValue(ClusterStatefulSet.backupName(clusterContext))
-                                .build(),
-                            new EnvVarBuilder()
-                                .withName("BACKUP_CONFIG_CRD_NAME")
-                                .withValue(StackGresBackupConfigDefinition.NAME)
-                                .build(),
-                            new EnvVarBuilder()
-                                .withName("BACKUP_CONFIG")
-                                .withValue(backupConfig.getMetadata().getName())
-                                .build(),
-                            new EnvVarBuilder()
-                                .withName("BACKUP_CRD_KIND")
-                                .withValue(StackGresBackupDefinition.KIND)
-                                .build(),
-                            new EnvVarBuilder()
-                                .withName("BACKUP_CRD_NAME")
-                                .withValue(StackGresBackupDefinition.NAME)
-                                .build(),
-                            new EnvVarBuilder()
-                                .withName("BACKUP_CRD_APIVERSION")
-                                .withValue(StackGresBackupDefinition.APIVERSION)
-                                .build(),
-                            new EnvVarBuilder()
-                                .withName("BACKUP_PHASE_RUNNING")
-                                .withValue(BackupPhase.RUNNING.label())
-                                .build(),
-                            new EnvVarBuilder()
-                                .withName("BACKUP_PHASE_COMPLETED")
-                                .withValue(BackupPhase.COMPLETED.label())
-                                .build(),
-                            new EnvVarBuilder()
-                                .withName("BACKUP_PHASE_FAILED")
-                                .withValue(BackupPhase.FAILED.label())
-                                .build(),
-                            new EnvVarBuilder()
-                                .withName("PATRONI_ROLE_KEY")
-                                .withValue(StackGresContext.ROLE_KEY)
-                                .build(),
-                            new EnvVarBuilder()
-                                .withName("PATRONI_PRIMARY_ROLE")
-                                .withValue(StackGresContext.PRIMARY_ROLE)
-                                .build(),
-                            new EnvVarBuilder()
-                                .withName("PATRONI_REPLICA_ROLE")
-                                .withValue(StackGresContext.REPLICA_ROLE)
-                                .build(),
-                            new EnvVarBuilder()
-                                .withName("SCHEDULED_BACKUP_KEY")
-                                .withValue(StackGresContext.SCHEDULED_BACKUP_KEY)
-                                .build(),
-                            new EnvVarBuilder()
-                                .withName("RIGHT_VALUE")
-                                .withValue(StackGresContext.RIGHT_VALUE)
-                                .build(),
-                            new EnvVarBuilder()
-                                .withName("PATRONI_CLUSTER_LABELS")
-                                .withValue(labelFactory.patroniClusterLabels(cluster)
-                                    .entrySet()
-                                    .stream()
-                                    .map(e -> e.getKey() + "=" + e.getValue())
-                                    .collect(Collectors.joining(",")))
-                                .build(),
-                            new EnvVarBuilder().withName("POD_NAME")
-                                .withValueFrom(
-                                    new EnvVarSourceBuilder()
-                                        .withFieldRef(
-                                            new ObjectFieldSelectorBuilder()
-                                                .withFieldPath("metadata.name")
-                                                .build())
-                                        .build())
-                                .build(),
-                            new EnvVarBuilder()
-                                .withName("RETAIN")
-                                .withValue(Optional.of(backupConfig)
-                                    .map(StackGresBackupConfig::getSpec)
-                                    .map(StackGresBackupConfigSpec::getBaseBackups)
-                                    .map(StackGresBaseBackupConfig::getRetention)
-                                    .map(String::valueOf)
-                                    .orElse("5"))
-                                .build(),
-                            new EnvVarBuilder()
-                                .withName("WINDOW")
-                                .withValue("3600")
-                                .build())
-                        .build())
-                    .withCommand("/bin/bash", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
-                        ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
-                    .withVolumeMounts(ClusterStatefulSetVolumeConfig.TEMPLATES
-                        .volumeMount(clusterContext,
-                            volumeMountBuilder -> volumeMountBuilder
-                            .withSubPath(
-                                ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.filename())
-                            .withMountPath(
-                                ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
-                            .withReadOnly(true)))
+            .withBackoffLimit(3)
+            .withCompletions(1)
+            .withParallelism(1)
+            .withNewTemplate()
+            .withNewMetadata()
+            .withNamespace(namespace)
+            .withName(ClusterStatefulSet.backupName(clusterContext))
+            .withLabels(labels)
+            .endMetadata()
+            .withNewSpec()
+            .withSecurityContext(clusterPodSecurityContext.createResource(clusterContext))
+            .withRestartPolicy("OnFailure")
+            .withServiceAccountName(PatroniRole.roleName(clusterContext))
+            .withContainers(new ContainerBuilder()
+                .withName("create-backup")
+                .withImage(StackGresContext.KUBECTL_IMAGE)
+                .withImagePullPolicy("IfNotPresent")
+                .withEnv(ImmutableList.<EnvVar>builder()
+                    .addAll(clusterStatefulSetEnvironmentVariables.listResources(
+                        clusterContext))
+                    .add(new EnvVarBuilder()
+                            .withName("CLUSTER_NAMESPACE")
+                            .withValue(namespace)
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("CLUSTER_NAME")
+                            .withValue(name)
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("CRONJOB_NAME")
+                            .withValue(ClusterStatefulSet.backupName(clusterContext))
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("BACKUP_CONFIG_CRD_NAME")
+                            .withValue(StackGresBackupConfigDefinition.NAME)
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("BACKUP_CONFIG")
+                            .withValue(backupConfig.getMetadata().getName())
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("BACKUP_CRD_KIND")
+                            .withValue(StackGresBackupDefinition.KIND)
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("BACKUP_CRD_NAME")
+                            .withValue(StackGresBackupDefinition.NAME)
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("BACKUP_CRD_APIVERSION")
+                            .withValue(StackGresBackupDefinition.APIVERSION)
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("BACKUP_PHASE_RUNNING")
+                            .withValue(BackupPhase.RUNNING.label())
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("BACKUP_PHASE_COMPLETED")
+                            .withValue(BackupPhase.COMPLETED.label())
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("BACKUP_PHASE_FAILED")
+                            .withValue(BackupPhase.FAILED.label())
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("PATRONI_ROLE_KEY")
+                            .withValue(StackGresContext.ROLE_KEY)
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("PATRONI_PRIMARY_ROLE")
+                            .withValue(StackGresContext.PRIMARY_ROLE)
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("PATRONI_REPLICA_ROLE")
+                            .withValue(StackGresContext.REPLICA_ROLE)
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("SCHEDULED_BACKUP_KEY")
+                            .withValue(StackGresContext.SCHEDULED_BACKUP_KEY)
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("RIGHT_VALUE")
+                            .withValue(StackGresContext.RIGHT_VALUE)
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("PATRONI_CLUSTER_LABELS")
+                            .withValue(labelFactory.patroniClusterLabels(cluster)
+                                .entrySet()
+                                .stream()
+                                .map(e -> e.getKey() + "=" + e.getValue())
+                                .collect(Collectors.joining(",")))
+                            .build(),
+                        new EnvVarBuilder().withName("POD_NAME")
+                            .withValueFrom(
+                                new EnvVarSourceBuilder()
+                                    .withFieldRef(
+                                        new ObjectFieldSelectorBuilder()
+                                            .withFieldPath("metadata.name")
+                                            .build())
+                                    .build())
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("RETAIN")
+                            .withValue(Optional.of(backupConfig)
+                                .map(StackGresBackupConfig::getSpec)
+                                .map(StackGresBackupConfigSpec::getBaseBackups)
+                                .map(StackGresBaseBackupConfig::getRetention)
+                                .map(String::valueOf)
+                                .orElse("5"))
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("WINDOW")
+                            .withValue("3600")
+                            .build())
                     .build())
-                .withVolumes(new VolumeBuilder(ClusterStatefulSetVolumeConfig.TEMPLATES
-                    .volume(clusterContext))
-                    .editConfigMap()
-                    .withDefaultMode(0555) // NOPMD
-                    .endConfigMap()
-                    .build())
-                .endSpec()
-                .endTemplate()
-                .endSpec()
+                .withCommand("/bin/bash", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
+                    ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
+                .withVolumeMounts(ClusterStatefulSetVolumeConfig.TEMPLATES
+                    .volumeMount(clusterContext,
+                        volumeMountBuilder -> volumeMountBuilder
+                        .withSubPath(
+                            ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.filename())
+                        .withMountPath(
+                            ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
+                        .withReadOnly(true)),
+                    ClusterStatefulSetVolumeConfig.TEMPLATES
+                    .volumeMount(clusterContext,
+                        volumeMountBuilder -> volumeMountBuilder
+                        .withSubPath(
+                            ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.filename())
+                        .withMountPath(
+                            ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.path())
+                        .withReadOnly(true)))
+                .build())
+            .withVolumes(new VolumeBuilder(ClusterStatefulSetVolumeConfig.TEMPLATES
+                .volume(clusterContext))
+                .editConfigMap()
+                .withDefaultMode(0555) // NOPMD
+                .endConfigMap()
                 .build())
             .endSpec()
-            .build()));
+            .endTemplate()
+            .endSpec()
+            .build())
+        .endSpec()
+        .build();
   }
 
 }

@@ -16,6 +16,31 @@ unit tests:
       junit:
         - stackgres-k8s/src/*/target/surefire-reports/TEST-*.xml
 
+shell unit tests:
+  image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:9.0
+  stage: test
+  tags:
+    - stackgres-runner
+  script:
+    - |
+      set +e
+      cp -a . /tmp/stackgres
+      (
+        cd /tmp/stackgres
+        sh stackgres-k8s/src/operator/src/test/shell/run-in-docker.sh
+      )
+      EXIT_CODE="$?"
+      cp -a /tmp/stackgres/stackgres-k8s/src/operator/target stackgres-k8s/src/operator/target
+      exit "$EXIT_CODE"
+  artifacts:
+    expire_in: 1 week
+    when: always
+    paths:
+    - stackgres-k8s/src/operator/target/shell
+    reports:
+      junit:
+        - stackgres-k8s/src/operator/target/shell/shell-unit-tests-junit-report-*.xml
+
 .e2e tests:
   stage: test
   image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:9.0

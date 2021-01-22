@@ -45,6 +45,10 @@ public class TemplatesConfigMap
     Map<String, String> data = new HashMap<String, String>();
 
     for (String resource : new String[] {
+        ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_SETUP_SCRIPTS_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_START_PATRONI_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_START_PATRONI_WITH_RESTORE_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_POST_INIT_SH_PATH.filename(),

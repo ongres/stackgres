@@ -234,11 +234,19 @@ public class BackupJob implements StackGresClusterResourceStreamFactory {
                     .build())
                 .withCommand("/bin/bash", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
                     ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
-                .withVolumeMounts(ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
-                    volumeMountBuilder -> volumeMountBuilder
-                    .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.filename())
-                    .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
-                    .withReadOnly(true)))
+                .withVolumeMounts(
+                    ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
+                        volumeMountBuilder -> volumeMountBuilder
+                        .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH
+                            .filename())
+                        .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH
+                            .path())
+                        .withReadOnly(true)),
+                    ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
+                        volumeMountBuilder -> volumeMountBuilder
+                        .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.filename())
+                        .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.path())
+                        .withReadOnly(true)))
                 .build())
             .withVolumes(new VolumeBuilder(ClusterStatefulSetVolumeConfig.TEMPLATES.volume(context))
                 .editConfigMap()
