@@ -7,56 +7,47 @@ e2e_test_install() {
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
-    --set "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
-
-}
-
-e2e_test() {
-  run_test "Cluster with no mathing nodes should not be deployed" check_cluster_not_deployed
-
-  run_test "Adding the needed labels to the node it should be able to schedule it" check_cluster_deployed_after_node_configured
-}
-
-get_pod_phase() {
-  kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -o jsonpath='{.status.phase}'
-}
-
-get_pod_reason() {
-  kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -o jsonpath='{.status.conditions[0].reason}'
-}
-
-get_first_node_name(){
-  kubectl get nodes -o jsonpath='{.items[0].metadata.name}'
-}
-
-check_cluster_not_deployed() {
-
-  echo "Waiting for pod to be pending"  
-  wait_until eval '[ $(get_pod_phase) = "Pending" ]'
-
-  echo "Waiting for pod have a reason"
-  wait_until eval '[ $(get_pod_reason) != "" ]'
-
-  SCHEDULE_REASON=$(get_pod_reason)
-
-  assert_string_equal "Unschedulable" "$SCHEDULE_REASON"
-
-}
-
-check_cluster_deployed_after_node_configured() {
-
-  NODE_NAME=$(get_first_node_name)
-
-  kubectl label nodes "$NODE_NAME" "$NODE_LABEL_KEY"="$NODE_LABEL_VALUE"
-
-  wait_until eval '[ $(get_pod_phase) = "Running" ]'
+    --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
 
 }
 
 e2e_test_uninstall() {
-  kubectl label nodes "$NODE_NAME" "$NODE_LABEL_KEY"- || true
-
   helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
+}
+
+e2e_test() {
+  run_test "sgcluster has specified node selector" check_sgcluster_has_node_selector
+
+  run_test "StatefulSet has specified node selector" check_sts_has_node_selector
+}
+
+check_sgcluster_has_node_selector() {
+  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --template "{{ (index .spec.pods.scheduling.nodeSelector \"$NODE_LABEL_KEY\") }}")" \
+    = "$NODE_LABEL_VALUE" ]
+  then
+    echo "SUCCESS. sgcluster has the configured node selector"
+  else
+    echo "FAIL. sgcluster has not the configured node selector"
+    return 1
+  fi
+}
+
+check_sts_has_node_selector() {
+  echo "Waiting for sts with node selector"  
+  try_function wait_until eval "$(cat << 'EOF'
+[ "$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+  --template "{{ (index .spec.template.spec.nodeSelector \"$NODE_LABEL_KEY\") }}")" \
+  = "$NODE_LABEL_VALUE" ]
+EOF
+    )"
+  if "$RESULT"
+  then
+    echo "SUCCESS. StatefulSet has the configured node selector"
+  else
+    echo "FAIL. StatefulSet has not the configured node selector"
+    return 1
+  fi
 }
