@@ -19,4 +19,4 @@ schema:
         properties:
           clusters:
             description: |
-              The list of [SGClusters](https://stackgres.io/doc/latest/04-postgres-cluster-management/01-postgres-clusters/) that are using this configuration.
+              List of [SGClusters](https://stackgres.io/doc/latest/04-postgres-cluster-management/01-postgres-clusters/) that are using this configuration.
