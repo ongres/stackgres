@@ -3,12 +3,19 @@
 . "$(dirname "$0")/e2e"
 echo "Preparing environment"
 
+echo "Setup versions"
 setup_versions
+echo "Setup images"
 setup_images
+echo "Setup k8s"
 setup_k8s
+echo "Setup cache"
 setup_cache
+echo "Setup helm"
 setup_helm
+echo "Setup operator"
 setup_operator
+echo "Setup logs"
 setup_logs
 
 echo "Functional tests results" > "$TARGET_PATH/logs/results.log"

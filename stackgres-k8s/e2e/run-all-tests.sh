@@ -133,7 +133,6 @@ SPECS="$(
               | grep -nxF "${LINE##*spec/}" | cut -d : -f 1)"
             tail -n "+$INDEX" "$E2E_PATH/test.stats" | head -n 1
           else
-            SPECS_NO_STATS="$SPECS_NO_STATS ${LINE##*spec/}"
             echo "${LINE##*spec/}:3600"
           fi
         done \
@@ -143,6 +142,22 @@ SPECS="$(
           if [ "$(( (${LINE%%:*} - 1) % BATCH_COUNT))" = "$((BATCH_INDEX - 1))" ]
           then
             echo "$SPEC_PATH/$(echo "$LINE" | cut -d : -f 2)"
+          fi
+        done
+  done)"
+
+SPECS_NO_STATS="$(
+  SPEC_COUNT="$(echo "$SPECS" | tr ' ' '\n' | wc -l)"
+  BATCH_COUNT="$(( (SPEC_COUNT + E2E_PARALLELISM - 1) / E2E_PARALLELISM ))"
+  for BATCH_INDEX in $(seq 1 $BATCH_COUNT)
+  do
+    echo "$SPECS"  \
+      | while IFS="$(printf '\n')" read LINE
+        do
+          if ! [ -f "$E2E_PATH/test.stats" ] \
+            || ! cat "$E2E_PATH/test.stats" | cut -d : -f 1 | grep -qxF "${LINE##*spec/}"
+          then
+            echo "${LINE##*spec/}"
           fi
         done
   done)"
@@ -190,12 +205,19 @@ $(echo "$SPECS" | \
 
 echo "Preparing environment"
 
+echo "Setup versions"
 setup_versions
+echo "Setup images"
 setup_images
+echo "Setup k8s"
 setup_k8s
+echo "Setup cache"
 setup_cache
+echo "Setup helm"
 setup_helm
+echo "Setup operator"
 setup_operator
+echo "Setup logs"
 setup_logs
 
 rm -f "$TARGET_PATH/e2e-tests-junit-report.results.xml"
@@ -290,7 +312,7 @@ EOF
   fi
 done
 
-cat << EOF >> "$TARGET_PATH/e2e-tests-junit-report.xml"
+cat << EOF > "$TARGET_PATH/e2e-tests-junit-report.xml"
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites time="$(($(date +%s) - START))">
   <testsuite name="e2e tests" tests="$(echo "$SPECS" | tr ' ' '\n' | wc -l)" time="$(($(date +%s) - START))">

@@ -40,3 +40,6 @@ operator-namespace-api:15
 operator-upgrade:430
 prometheus-dependency:321
 prometheus-integration:307
+reconciliation-ignore:63
+shared-memory:138
+pgbouncer-sync:28

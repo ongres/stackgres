@@ -11,47 +11,49 @@ e2e_test_install() {
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
   install_operator_previous_version
+  
   kubectl create namespace "$CLUSTER_NAMESPACE"
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+
+  create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \
     --set instanceProfiles[0].name=size-xs \
     --set instanceProfiles[0].cpu=250m \
     --set instanceProfiles[0].memory=512Mi \
     --set-string configurations.postgresconfig.postgresql\.conf.max_connections=100
-  create_or_replace_cluster "$CLUSTER_NAME-for-restart-primary-first" "$CLUSTER_NAMESPACE" 1 \
+  create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
+    "$CLUSTER_NAME-for-restart-primary-first" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \
     --set instanceProfiles=null \
     --set cluster.configurations.sgPostgresConfig=postgresconf-for-restart-primary-first \
     --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-restart-primary-first \
     --set-string configurations.postgresconfig.postgresql\.conf.max_connections=100
-  create_or_replace_cluster "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1 \
+  create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
+    "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.postgresVersion=latest
-  create_or_replace_cluster "$CLUSTER_NAME-2" "$CLUSTER_NAMESPACE" 2 \
+  create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
+    "$CLUSTER_NAME-2" "$CLUSTER_NAMESPACE" 2 \
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.postgresVersion=latest \
     --set cluster.configurations.sgPostgresConfig=postgresconf-for-restart-primary-first \
     --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-restart-primary-first
-  create_or_replace_cluster "$CLUSTER_NAME-3" "$CLUSTER_NAMESPACE" 3 \
+  create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
+    "$CLUSTER_NAME-3" "$CLUSTER_NAMESPACE" 3 \
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.postgresVersion=latest
-
   wait_pods_running "$CLUSTER_NAMESPACE" 6
 
   generate_mock_data "$CLUSTER_NAME-1"
   check_mock_data_samehost "$CLUSTER_NAME-1"
-  ! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-1" --for condition=PendingRestart
   generate_mock_data "$CLUSTER_NAME-2"
   check_mock_data "$CLUSTER_NAME-2"
-  ! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-2" --for condition=PendingRestart
   generate_mock_data "$CLUSTER_NAME-3"
   check_mock_data "$CLUSTER_NAME-3"
-  ! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-3" --for condition=PendingRestart
 }
 
 e2e_test_uninstall() {
-  delete_operator
-  install_operator
+  delete_operator_only
+  install_operator_only
   wait_pods_running "$OPERATOR_NAMESPACE" 2
 }
 
@@ -127,7 +129,9 @@ check_operator_upgrade() {
     echo "Used restapi image is $POD_RESTAPI_IMAGE"
     return 1
   fi
+
 }
+
 
 check_cluster_1() {
   check_mock_data_samehost "$CLUSTER_NAME-1"
@@ -167,7 +171,7 @@ check_cluster_restart() {
   local CLUSTER_SIZE="$2"
   local REDUCED_IMPACT="$3"
   local RESTART_PRIMARY_FIRST="$4"
-  local CURRENT_TIMESTAMP="$(date --utc +%s)"
+  local STS_UPDATE_REVISION="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .status.updateRevision }}')"
 
   local POD
   local PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
@@ -206,16 +210,15 @@ check_cluster_restart() {
     return 1
   fi
 
-  local CREATION_TIMESTAMP
-  local CREATION_TIMESTAMPS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+  local POD_CONTROLLER_REVISION_HASH
+  local POD_CONTROLLER_REVISION_HASHES="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
       -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true" -o json \
     | jq ".items[]|select(.metadata.name | startswith(\"$CLUSTER_NAME\"))" \
-    | jq -r '.metadata.creationTimestamp' \
-    | xargs -r -n 1 -I @ date --utc +%s -d @)"
+    | jq -r '.metadata.labels."controller-revision-hash"')"
 
-  for CREATION_TIMESTAMP in $CREATION_TIMESTAMPS
+  for POD_CONTROLLER_REVISION_HASH in $POD_CONTROLLER_REVISION_HASHES
   do
-    if [ "$CREATION_TIMESTAMP" -le "$CURRENT_TIMESTAMP" ]
+    if [ "$POD_CONTROLLER_REVISION_HASH" != "$STS_UPDATE_REVISION" ]
     then
       echo "FAILURE. Cluster restart did not updated sucesfully some pods"
       return 1

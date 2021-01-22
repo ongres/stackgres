@@ -7,11 +7,12 @@ e2e_exclusive_lock() {
 e2e_test_install() {
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
+  kubectl create namespace "$OPERATOR_NAMESPACE"
 }
 
 e2e_test_uninstall() {
-  delete_operator
-  install_operator
+  delete_operator_only
+  install_operator_only
   wait_pods_running "$OPERATOR_NAMESPACE" 2
 }
 
@@ -25,57 +26,56 @@ e2e_test() {
 }
 
 check_operator_install() {
-  install_operator
+  install_operator_only
 
-  for app in operator restapi; do
-    if kubectl rollout status -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}"; then
-      echo "SUCCESS. Deployment 'stackgres-${app}' was rolled out."
-      continue
-    fi
-
-    echo "FAILED. Deployment 'stackgres-${app}' was not rolled out."
-    return 1
-  done
+  check_operator_installed
 }
 
 check_operator_upgrade() {
   upgrade_operator
 
-  for app in operator restapi; do
-    if kubectl rollout status -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}"; then
-      echo "SUCCESS. Deployment 'stackgres-${app}' was rolled out."
-      continue
-    fi
-
-    echo "FAILED. Deployment 'stackgres-${app}' was not rolled out."
-    return 1
-  done
+  check_operator_installed
 }
 
 check_operator_delete() {
-  delete_operator
+  delete_operator_only
 }
 
 check_operator_install_outside() {
-  delete_operator
+  delete_operator_only
 
-  install_operator --set-string service.type=NodePort --set service.nodePort=31111
+  install_operator_only --set-string service.type=NodePort --set service.nodePort=31111
 
-  for app in operator restapi; do
-    if kubectl rollout status -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}"; then
-      echo "SUCCESS. Deployment 'stackgres-${app}' was rolled out."
-      continue
-    fi
-
-    echo "FAILED. Deployment 'stackgres-${app}' was not rolled out."
-    return 1
-  done
+  check_operator_installed
 }
 
 check_operator_install_load_balancer() {
-  delete_operator
+  delete_operator_only
 
-  install_operator --set service.loadBalancer.enabled=true
+  install_operator_only --set service.loadBalancer.enabled=true
+
+  check_operator_installed
+}
+
+check_operator_install_with_wait() {
+  delete_operator_only
+
+  install_operator_only  --wait
+
+  check_operator_installed
+}
+
+check_operator_installed() {
+  for app in operator restapi; do
+    REPLICAS="$(kubectl get -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}" --template '{{ .spec.replicas }}')"
+    if [ "$REPLICAS" = "1" ]; then
+      echo "SUCCESS. Deployment 'stackgres-${app}' has 1 replica."
+      continue
+    fi
+
+    echo "FAILED. Deployment 'stackgres-${app}' was $REPLICAS replicas."
+    return 1
+  done
 
   for app in operator restapi; do
     if kubectl rollout status -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}"; then
@@ -84,23 +84,6 @@ check_operator_install_load_balancer() {
     fi
 
     echo "FAILED. Deployment 'stackgres-${app}' was not rolled out."
-    return 1
-  done
-}
-
-check_operator_install_with_wait() {
-  delete_operator
-
-  install_operator \
-    --wait
-
-  for app in operator restapi; do
-    if kubectl rollout status -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}"; then
-      echo "SUCCESS. Deployment 'stackgres-${app}' was rolled out after using --wait parameter."
-      continue
-    fi
-
-    echo "FAILED. Deployment 'stackgres-${app}' was not rolled out after using --wait parameter."
     return 1
   done
 }

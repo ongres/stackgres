@@ -58,6 +58,7 @@ update_k8s_config() {
   else
     mv "$HOME/.kube/config-$KIND_NAME" "$KUBECONFIG"
   fi
+  chmod 700 "$KUBECONFIG"
   )
 
   chmod 700 "$KUBECONFIG"

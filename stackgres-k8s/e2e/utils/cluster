@@ -16,7 +16,7 @@ remove_cluster_if_exists() {
   local RELEASE="$1"
   local NAMESPACE="$2"
 
-  if helm get "$RELEASE" "$NAMESPACE" > /dev/null 2>&1
+  if helm get values "$RELEASE"  --namespace "$NAMESPACE" > /dev/null 2>&1
   then
     remove_cluster "$RELEASE" "$NAMESPACE"
   fi
