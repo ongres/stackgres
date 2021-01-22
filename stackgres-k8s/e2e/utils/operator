@@ -206,9 +206,13 @@ load_operator_k8s() {
     docker tag "$ORIGINAL_OPERATOR_IMAGE_NAME" "$OPERATOR_IMAGE_NAME"
     docker tag "$ORIGINAL_RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
     docker tag "$ORIGINAL_ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
-    load_operator_k8s
+    load_operator_k8s_only
+  else
+    load_operator_k8s_only
   fi
+}
 
+load_operator_k8s_only() {
   load_image_k8s "$OPERATOR_IMAGE_NAME"
   load_image_k8s "$RESTAPI_IMAGE_NAME"
   load_image_k8s "$ADMINUI_IMAGE_NAME"

@@ -245,3 +245,22 @@ check_cluster_restart() {
 
   check_mock_data_samehost "$CLUSTER_NAME"
 }
+
+create_or_replace_cluster_for_version() {
+  local VERSION="$1"
+  local RELEASE="$2"
+  local NAMESPACE="$3"
+  local INSTANCES="$4"
+  shift 4
+
+  if helm get values "$RELEASE" --namespace "$NAMESPACE" > /dev/null 2>&1
+  then
+    helm upgrade "$RELEASE" --namespace "$NAMESPACE" "$CLUSTER_PREVIOUS_VERSION_HELM_URL" \
+        --reuse-values --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"   
+  else
+    create_namespace_if_not_exists "$NAMESPACE"
+    helm install "$RELEASE" "$CLUSTER_PREVIOUS_VERSION_HELM_URL" \
+      --namespace "$NAMESPACE" \
+      --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
+  fi
+}
