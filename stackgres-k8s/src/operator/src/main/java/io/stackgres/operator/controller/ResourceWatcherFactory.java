@@ -8,11 +8,8 @@ package io.stackgres.operator.controller;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.WatcherException;
-import io.stackgres.common.KubernetesClientFactory;
 import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.client.KubernetesClientException;
+import io.fabric8.kubernetes.client.WatcherException;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.resource.ResourceFinder;
@@ -35,7 +32,7 @@ public class ResourceWatcherFactory extends AbstractResourceWatcherFactory {
     this.serviceFinder = serviceFinder;
     this.eventEmitter = eventEmitter;
   }
-    
+
   @Override
   public void onError(WatcherException cause) {
     Service operatorService = serviceFinder

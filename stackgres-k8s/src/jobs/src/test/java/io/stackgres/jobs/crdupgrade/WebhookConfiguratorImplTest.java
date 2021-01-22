@@ -103,7 +103,7 @@ class WebhookConfiguratorImplTest {
     ArgumentCaptor<CustomResourceDefinition> crdCaptor = ArgumentCaptor
         .forClass(CustomResourceDefinition.class);
 
-    doNothing().when(crdWriter).update(crdCaptor.capture());
+    when(crdWriter.update(crdCaptor.capture())).thenReturn(definition);
 
     webhookConfigurator.configureWebhook(definition.getMetadata().getName(),
         certificate);

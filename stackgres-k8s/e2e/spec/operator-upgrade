@@ -199,9 +199,6 @@ check_operator_upgrade() {
     --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"
 
 
-  kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -o yaml > after-sts.yaml
-  kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1-0" -o yaml > after-pod.yaml
-
   POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
     | grep '/operator:' | sed 's#^[^/]\+/\([^/]\+/[^:]\+\)#\1#')"
@@ -239,10 +236,12 @@ check_cluster_1() {
 }
 
 check_cluster_2() {
+  check_sts_is_not_altered "$CLUSTER_NAME-1"
   check_mock_data_samehost "$CLUSTER_NAME-2"
 }
 
 check_cluster_3() {
+  check_sts_is_not_altered "$CLUSTER_NAME-1"
   check_mock_data_samehost "$CLUSTER_NAME-3"
 }
 

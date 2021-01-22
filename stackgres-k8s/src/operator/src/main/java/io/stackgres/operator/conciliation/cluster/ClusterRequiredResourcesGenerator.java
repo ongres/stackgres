@@ -109,7 +109,7 @@ public class ClusterRequiredResourcesGenerator
         .orElseThrow(() -> new IllegalArgumentException(
             "SGCluster " + clusterNamespace + "/" + clusterName + " have a non existent "
                 + StackGresProfile.KIND + " " + spec.getResourceProfile()));
-   final Optional<StackGresBackupConfig> backupConfig = Optional
+    final Optional<StackGresBackupConfig> backupConfig = Optional
         .ofNullable(clusterConfiguration.getBackupConfig())
         .flatMap(backupConfigName -> backupConfigFinder
             .findByNameAndNamespace(backupConfigName, clusterNamespace));

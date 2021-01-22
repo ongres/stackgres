@@ -32,6 +32,8 @@ import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
@@ -70,7 +72,11 @@ public abstract class AbstractPgPooling
 
   @Override
   public boolean isActivated(StackGresClusterContext context) {
-    return context.getPoolingConfig().isPresent();
+    return Optional.ofNullable(context.getSource().getSpec())
+        .map(StackGresClusterSpec::getPod)
+        .map(StackGresClusterPod::getDisableConnectionPooling)
+        .map(disable -> !disable)
+        .orElse(true);
   }
 
   @Override

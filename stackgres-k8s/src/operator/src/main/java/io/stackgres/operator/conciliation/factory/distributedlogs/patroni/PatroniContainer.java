@@ -35,6 +35,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
+import io.stackgres.operator.conciliation.factory.AbstractPatroniTemplatesConfigMap;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
@@ -222,14 +223,14 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContext
         new VolumeBuilder()
             .withName("distributed-logs-templates")
             .withConfigMap(new ConfigMapVolumeSourceBuilder()
-                .withName("distributed-logs-templates")
+                 .withName(AbstractPatroniTemplatesConfigMap.name(source))
                 .withOptional(false)
                 .build())
             .build(),
         new VolumeBuilder()
             .withName(DISTRIBUTED_LOGS_TEMPLATE_NAME)
             .withConfigMap(new ConfigMapVolumeSourceBuilder()
-                .withName(DISTRIBUTED_LOGS_TEMPLATE_NAME)
+                .withName(PatroniInitScriptConfigMap.name(source))
                 .withOptional(false)
                 .build())
             .build());

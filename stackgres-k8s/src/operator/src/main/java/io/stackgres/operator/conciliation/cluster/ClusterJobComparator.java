@@ -69,6 +69,10 @@ public class ClusterJobComparator extends StackGresAbstractComparator {
       new PatchPattern(Pattern
           .compile("/spec/template/spec/containers/\\d+/env/\\d+/value"),
           "remove"),
+      new PatchPattern(Pattern
+          .compile("/spec/template/spec/containers/\\d+/env/\\d+/valueFrom/fieldRef/apiVersion"),
+          "add",
+          "v1"),
       new SimpleIgnorePatch("/spec/selector",
           "add"),
       new SimpleIgnorePatch("/status",

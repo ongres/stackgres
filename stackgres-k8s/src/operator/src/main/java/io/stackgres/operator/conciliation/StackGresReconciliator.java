@@ -5,6 +5,9 @@
 
 package io.stackgres.operator.conciliation;
 
+import java.util.Optional;
+import java.util.stream.Stream;
+
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -18,6 +21,8 @@ public abstract class StackGresReconciliator<T extends CustomResource> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StackGresReconciliator.class);
 
+  private static final String STACKGRES_IO_RECONCILIATION = "stackgres.io/reconciliation-pause";
+
   private CustomResourceScanner<T> clusterScanner;
 
   private Conciliator<T> clusterConciliator;
@@ -25,7 +30,7 @@ public abstract class StackGresReconciliator<T extends CustomResource> {
   private HandlerDelegator<T> handlerDelegator;
 
   public synchronized void reconcile() {
-    clusterScanner.getResources().forEach(cluster -> {
+    getExistentSources().forEach(cluster -> {
       final ObjectMeta metadata = cluster.getMetadata();
       final String clusterId = metadata.getNamespace() + "/" + metadata.getName();
       LOGGER.info("Checking reconciliation status of cluster "
@@ -78,6 +83,15 @@ public abstract class StackGresReconciliator<T extends CustomResource> {
       }
     });
 
+  }
+
+  private Stream<T> getExistentSources() {
+    return clusterScanner.getResources().stream()
+        .filter(r -> Optional.ofNullable(r.getMetadata().getAnnotations())
+            .map(annotations -> annotations.get(STACKGRES_IO_RECONCILIATION))
+            .map(Boolean::parseBoolean)
+            .map(b -> !b)
+            .orElse(true));
   }
 
   public abstract void onPostReconciliation(T config);

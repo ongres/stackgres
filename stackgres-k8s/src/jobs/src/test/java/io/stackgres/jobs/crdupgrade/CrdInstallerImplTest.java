@@ -47,7 +47,8 @@ class CrdInstallerImplTest {
     when(customResourceDefinitionFinder.findByName(definition.getMetadata().getName()))
         .thenReturn(Optional.empty());
 
-    doNothing().when(customResourceDefinitionWriter).create(any(CustomResourceDefinition.class));
+    when(customResourceDefinitionWriter.create(any(CustomResourceDefinition.class)))
+        .thenReturn(definition);
 
     crdInstaller.installCrd(definition.getMetadata().getName(), definition.getSpec().getNames().getKind());
 
@@ -63,7 +64,8 @@ class CrdInstallerImplTest {
         .thenAnswer((Answer<Optional<CustomResourceDefinition>>) invocationOnMock ->
             Optional.of(crdLoader.load(definition.getSpec().getNames().getKind())));
 
-    doNothing().when(customResourceDefinitionWriter).update(any(CustomResourceDefinition.class));
+    when(customResourceDefinitionWriter.update(any(CustomResourceDefinition.class)))
+        .thenReturn(definition);
 
     crdInstaller.installCrd(definition.getMetadata().getName(), definition.getSpec().getNames().getKind());
 

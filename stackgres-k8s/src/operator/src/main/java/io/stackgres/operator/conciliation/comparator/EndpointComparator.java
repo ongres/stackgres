@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.conciliation.comparator;
 
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -14,12 +13,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.internal.PatchUtils;
 import io.fabric8.zjsonpatch.JsonDiff;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class EndpointComparator extends StackGresAbstractComparator {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(EndpointComparator.class);
 
   private static final IgnorePatch[] IGNORE_PATCH_PATTERNS = {
       new SimpleIgnorePatch("/metadata/annotations/initialize",
@@ -46,18 +41,7 @@ public class EndpointComparator extends StackGresAbstractComparator {
 
     int ignore = countPatchesToIgnore(diff);
 
-    final int actualDifferences = diff.size() - ignore;
-    if (LOGGER.isTraceEnabled() && actualDifferences != 0) {
-      for (JsonNode jsonPatch : diff) {
-        JsonPatch patch = new JsonPatch(jsonPatch);
-        if (Arrays.stream(getPatchPattersToIgnore())
-            .noneMatch(patchPattern -> patchPattern.matches(patch))) {
-          LOGGER.trace("Endpoints diff {}", jsonPatch.toPrettyString());
-        }
-      }
-    }
-
-    return actualDifferences == 0;
+    return diff.size() - ignore == 0;
   }
 
   private static class FunctionValuePattern extends PatchPattern {

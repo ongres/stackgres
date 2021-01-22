@@ -14,9 +14,13 @@ import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.internal.PatchUtils;
 import io.fabric8.zjsonpatch.JsonDiff;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class StackGresAbstractComparator
     implements ResourceComparator {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(StackGresAbstractComparator.class);
 
   @Override
   public boolean isResourceContentEqual(HasMetadata r1, HasMetadata r2) {
@@ -24,6 +28,17 @@ public abstract class StackGresAbstractComparator
         PatchUtils.patchMapper().valueToTree(r2));
 
     int ignore = countPatchesToIgnore(diff);
+
+    final int actualDifferences = diff.size() - ignore;
+    if (LOGGER.isTraceEnabled() && actualDifferences != 0) {
+      for (JsonNode jsonPatch : diff) {
+        JsonPatch patch = new JsonPatch(jsonPatch);
+        if (Arrays.stream(getPatchPattersToIgnore())
+            .noneMatch(patchPattern -> patchPattern.matches(patch))) {
+          LOGGER.trace("{} diff {}", r1.getKind(), jsonPatch.toPrettyString());
+        }
+      }
+    }
 
     return diff.size() - ignore == 0;
   }

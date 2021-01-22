@@ -21,7 +21,7 @@ public abstract class AbstractPatroniTemplatesConfigMap<T>
 
   private static final String TEMPLATES_SUFFIX = "-templates";
 
-  public String name(CustomResource resource) {
+  public static String name(CustomResource resource) {
     return ResourceUtil.resourceName(resource.getMetadata().getName() + TEMPLATES_SUFFIX);
   }
 

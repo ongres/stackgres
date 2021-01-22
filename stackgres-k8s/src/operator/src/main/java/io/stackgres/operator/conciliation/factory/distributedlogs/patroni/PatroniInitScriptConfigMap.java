@@ -30,6 +30,10 @@ public class PatroniInitScriptConfigMap implements
 
   private final LabelFactory<StackGresDistributedLogs> labelFactory;
 
+  public static String name(StackGresDistributedLogs distributedLogs) {
+    return distributedLogs.getMetadata().getName() + "-template";
+  }
+
   @Inject
   public PatroniInitScriptConfigMap(LabelFactory<StackGresDistributedLogs> labelFactory) {
     this.labelFactory = labelFactory;
@@ -45,13 +49,13 @@ public class PatroniInitScriptConfigMap implements
             StandardCharsets.UTF_8)
         .read()).get();
     return Stream.of(new ConfigMapBuilder()
-            .withNewMetadata()
-            .withNamespace(cluster.getMetadata().getNamespace())
-            .withName("distributed-logs-template")
-            .withLabels(labelFactory.patroniClusterLabels(cluster))
-            .withOwnerReferences(context.getOwnerReferences())
-            .endMetadata()
-            .withData(ImmutableMap.of("distributed-logs-template.sql", data))
-            .build());
+        .withNewMetadata()
+        .withNamespace(cluster.getMetadata().getNamespace())
+        .withName(name(cluster))
+        .withLabels(labelFactory.patroniClusterLabels(cluster))
+        .withOwnerReferences(context.getOwnerReferences())
+        .endMetadata()
+        .withData(ImmutableMap.of("distributed-logs-template.sql", data))
+        .build());
   }
 }
