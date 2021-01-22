@@ -6,7 +6,6 @@
 package io.stackgres.operator.cluster.factory;
 
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
