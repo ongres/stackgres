@@ -46,13 +46,8 @@ class PostgresConfigResourceTest
   }
 
   @Override
-  protected PostgresConfigResource getService(
-      CustomResourceScanner<StackGresPostgresConfig> scanner,
-      CustomResourceFinder<StackGresPostgresConfig> finder,
-      CustomResourceScheduler<StackGresPostgresConfig> scheduler,
-      CustomResourceScanner<StackGresCluster> clusterScanner,
-      AbstractDependencyResourceTransformer<PostgresConfigDto, StackGresPostgresConfig> transformer) {
-    return new PostgresConfigResource(scanner, finder, scheduler, clusterScanner, transformer);
+  protected PostgresConfigResource getService() {
+    return new PostgresConfigResource();
   }
 
   @Override

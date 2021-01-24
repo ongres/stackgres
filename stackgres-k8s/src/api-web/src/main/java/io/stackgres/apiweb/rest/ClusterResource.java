@@ -106,7 +106,6 @@ public class ClusterResource
       ResourceFinder<Secret> secretFinder,
       ResourceFinder<ConfigMap> configMapFinder,
       ResourceFinder<Service> serviceFinder) {
-    super(null, finder, scheduler, transformer);
     this.clusterScanner = clusterScanner;
     this.clusterFinder = clusterFinder;
     this.clusterResourceStatsFinder = clusterResourceStatsFinder;
@@ -119,7 +118,6 @@ public class ClusterResource
   }
 
   public ClusterResource() {
-    super(null, null, null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.clusterScanner = null;
     this.clusterFinder = null;

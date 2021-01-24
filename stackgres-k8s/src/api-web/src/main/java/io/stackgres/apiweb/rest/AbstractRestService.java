@@ -7,6 +7,7 @@ package io.stackgres.apiweb.rest;
 
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
@@ -27,20 +28,17 @@ import org.jooq.lambda.Seq;
 public abstract class AbstractRestService<T extends ResourceDto, R extends CustomResource<?, ?>>
     implements ResourceRestService<T> {
 
-  private final CustomResourceScanner<R> scanner;
-  private final CustomResourceFinder<R> finder;
-  private final CustomResourceScheduler<R> scheduler;
-  private final ResourceTransformer<T, R> transformer;
+  @Inject
+  CustomResourceScanner<R> scanner;
 
-  public AbstractRestService(CustomResourceScanner<R> scanner,
-      CustomResourceFinder<R> finder, CustomResourceScheduler<R> scheduler,
-      ResourceTransformer<T, R> transformer) {
-    super();
-    this.scanner = scanner;
-    this.finder = finder;
-    this.scheduler = scheduler;
-    this.transformer = transformer;
-  }
+  @Inject
+  CustomResourceFinder<R> finder;
+
+  @Inject
+  CustomResourceScheduler<R> scheduler;
+
+  @Inject
+  ResourceTransformer<T, R> transformer;
 
   /**
    * Looks for all resources of type <code>{R}</code> that are installed in the kubernetes cluster.

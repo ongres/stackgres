@@ -9,6 +9,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import javax.inject.Inject;
+
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -22,7 +24,8 @@ public abstract class AbstractCustomResourceScheduler
     <T extends CustomResource<?, ?>, L extends CustomResourceList<T>>
     implements CustomResourceScheduler<T> {
 
-  private final KubernetesClientFactory clientFactory;
+  @Inject
+  KubernetesClientFactory clientFactory;
 
   private final Class<T> customResourceClass;
   private final Class<L> customResourceListClass;
@@ -36,7 +39,6 @@ public abstract class AbstractCustomResourceScheduler
     this.customResourceListClass = customResourceListClass;
   }
 
-  @Override
   public void create(T resource) {
     try (KubernetesClient client = clientFactory.create()) {
       getCustomResourceEndpoints(client)
@@ -45,7 +47,6 @@ public abstract class AbstractCustomResourceScheduler
     }
   }
 
-  @Override
   public void update(T resource) {
     try (KubernetesClient client = clientFactory.create()) {
       getCustomResourceEndpoints(client)

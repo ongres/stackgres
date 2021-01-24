@@ -68,7 +68,6 @@ import io.stackgres.apiweb.resource.ClusterDtoFinder;
 import io.stackgres.apiweb.resource.ClusterDtoScanner;
 import io.stackgres.apiweb.resource.ClusterStatsDtoFinder;
 import io.stackgres.apiweb.resource.ResourceTransactionHandler;
-import io.stackgres.apiweb.transformer.AbstractResourceTransformer;
 import io.stackgres.apiweb.transformer.ClusterPodTransformer;
 import io.stackgres.apiweb.transformer.ClusterStatsTransformer;
 import io.stackgres.apiweb.transformer.ClusterTransformer;
@@ -91,9 +90,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
-import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.common.resource.CustomResourceScanner;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.PersistentVolumeClaimFinder;
 import io.stackgres.common.resource.PodExecutor;
 import io.stackgres.common.resource.PodFinder;
@@ -467,11 +463,8 @@ class ClusterResourceTest
   }
 
   @Override
-  protected ClusterResource getService(
-      CustomResourceScanner<StackGresCluster> scanner,
-      CustomResourceFinder<StackGresCluster> finder,
-      CustomResourceScheduler<StackGresCluster> scheduler,
-      AbstractResourceTransformer<ClusterDto, StackGresCluster> transformer) {
+  protected ClusterResource getService() {
+
     ClusterTransformer clusterTransformer = getTransformer();
     final ClusterLabelFactory labelFactory = new ClusterLabelFactory(new ClusterLabelMapper());
     final ClusterDtoFinder dtoFinder = new ClusterDtoFinder();

@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Objects;
 
 import javax.enterprise.context.RequestScoped;
-import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -17,13 +16,8 @@ import javax.ws.rs.core.MediaType;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.pgconfig.PostgresConfigDto;
-import io.stackgres.apiweb.transformer.DependencyResourceTransformer;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.common.resource.CustomResourceScanner;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -37,36 +31,21 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 public class PostgresConfigResource extends
     AbstractDependencyRestService<PostgresConfigDto, StackGresPostgresConfig> {
 
-  @Inject
-  public PostgresConfigResource(
-      CustomResourceScanner<StackGresPostgresConfig> scanner,
-      CustomResourceFinder<StackGresPostgresConfig> finder,
-      CustomResourceScheduler<StackGresPostgresConfig> scheduler,
-      CustomResourceScanner<StackGresCluster> clusterScanner,
-      DependencyResourceTransformer<PostgresConfigDto, StackGresPostgresConfig> transformer) {
-    super(scanner, finder, scheduler, clusterScanner, transformer);
-  }
-
-  public PostgresConfigResource() {
-    super(null, null, null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-  }
-
   @Override
   public boolean belongsToCluster(StackGresPostgresConfig resource, StackGresCluster cluster) {
     return cluster.getMetadata().getNamespace().equals(
         resource.getMetadata().getNamespace())
         && Objects.equals(cluster.getSpec().getConfiguration().getPostgresConfig(),
-            resource.getMetadata().getName());
+        resource.getMetadata().getName());
   }
 
   @Operation(
       responses = {
           @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
+              content = {@Content(
                   mediaType = "application/json",
                   array = @ArraySchema(
-                      schema = @Schema(implementation = PostgresConfigDto.class))) })
+                      schema = @Schema(implementation = PostgresConfigDto.class)))})
       })
   @CommonApiResponses
   @Authenticated
@@ -78,9 +57,9 @@ public class PostgresConfigResource extends
   @Operation(
       responses = {
           @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
+              content = {@Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = PostgresConfigDto.class)) })
+                  schema = @Schema(implementation = PostgresConfigDto.class))})
       })
   @CommonApiResponses
   @Authenticated

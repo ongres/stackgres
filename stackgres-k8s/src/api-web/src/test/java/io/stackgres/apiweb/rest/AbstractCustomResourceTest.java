@@ -51,7 +51,11 @@ public abstract class AbstractCustomResourceTest<T extends ResourceDto, R extend
     dto = getDto();
 
     transformer = getTransformer();
-    service = getService(scanner, finder, scheduler, transformer);
+    service = getService();
+    service.finder = finder;
+    service.scanner = scanner;
+    service.scheduler = scheduler;
+    service.transformer = transformer;
   }
 
   @Test
@@ -131,11 +135,7 @@ public abstract class AbstractCustomResourceTest<T extends ResourceDto, R extend
 
   protected abstract AbstractResourceTransformer<T, R> getTransformer();
 
-  protected abstract S getService(
-      CustomResourceScanner<R> scanner,
-      CustomResourceFinder<R> finder,
-      CustomResourceScheduler<R> scheduler,
-      AbstractResourceTransformer<T, R> transformer);
+  protected abstract S getService();
 
   protected abstract String getResourceNamespace();
 

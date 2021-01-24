@@ -15,12 +15,8 @@ import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigDto;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
 import io.stackgres.apiweb.transformer.PoolingConfigTransformer;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
-import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.common.resource.CustomResourceScanner;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,13 +43,8 @@ class PgbouncerConfigResourceTest
   }
 
   @Override
-  protected ConnectionPoolingConfigResource getService(
-      CustomResourceScanner<StackGresPoolingConfig> scanner,
-      CustomResourceFinder<StackGresPoolingConfig> finder,
-      CustomResourceScheduler<StackGresPoolingConfig> scheduler,
-      CustomResourceScanner<StackGresCluster> clusterScanner,
-      AbstractDependencyResourceTransformer<PoolingConfigDto, StackGresPoolingConfig> transformer) {
-    return new ConnectionPoolingConfigResource(scanner, finder, scheduler, clusterScanner, transformer);
+  protected ConnectionPoolingConfigResource getService() {
+    return new ConnectionPoolingConfigResource();
   }
 
   @Override

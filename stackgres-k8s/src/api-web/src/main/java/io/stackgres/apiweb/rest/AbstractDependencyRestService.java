@@ -7,6 +7,7 @@ package io.stackgres.apiweb.rest;
 
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
@@ -30,23 +31,20 @@ public abstract class AbstractDependencyRestService
     <T extends ResourceDto, R extends CustomResource<?, ?>>
     implements ResourceRestService<T> {
 
-  private final CustomResourceScanner<R> scanner;
-  private final CustomResourceFinder<R> finder;
-  private final CustomResourceScheduler<R> scheduler;
-  private final CustomResourceScanner<StackGresCluster> clusterScanner;
-  private final DependencyResourceTransformer<T, R> transformer;
+  @Inject
+  CustomResourceScanner<R> scanner;
 
-  AbstractDependencyRestService(CustomResourceScanner<R> scanner,
-      CustomResourceFinder<R> finder, CustomResourceScheduler<R> scheduler,
-      CustomResourceScanner<StackGresCluster> clusterScanner,
-      DependencyResourceTransformer<T, R> transformer) {
-    super();
-    this.scanner = scanner;
-    this.finder = finder;
-    this.scheduler = scheduler;
-    this.clusterScanner = clusterScanner;
-    this.transformer = transformer;
-  }
+  @Inject
+  CustomResourceFinder<R> finder;
+
+  @Inject
+  CustomResourceScheduler<R> scheduler;
+
+  @Inject
+  CustomResourceScanner<StackGresCluster> clusterScanner;
+
+  @Inject
+  DependencyResourceTransformer<T, R> transformer;
 
   public abstract boolean belongsToCluster(R resource, StackGresCluster cluster);
 

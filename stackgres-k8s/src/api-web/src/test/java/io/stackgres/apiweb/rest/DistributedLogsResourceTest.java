@@ -46,13 +46,8 @@ class DistributedLogsResourceTest
   }
 
   @Override
-  protected DistributedLogsResource getService(
-      CustomResourceScanner<StackGresDistributedLogs> scanner,
-      CustomResourceFinder<StackGresDistributedLogs> finder,
-      CustomResourceScheduler<StackGresDistributedLogs> scheduler,
-      CustomResourceScanner<StackGresCluster> clusterScanner,
-      AbstractDependencyResourceTransformer<DistributedLogsDto, StackGresDistributedLogs> transformer) {
-    return new DistributedLogsResource(scanner, finder, scheduler, clusterScanner, transformer);
+  protected DistributedLogsResource getService() {
+    return new DistributedLogsResource();
   }
 
   @Override

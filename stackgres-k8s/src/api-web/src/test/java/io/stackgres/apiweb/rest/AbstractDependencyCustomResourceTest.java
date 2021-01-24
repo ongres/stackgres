@@ -57,7 +57,12 @@ abstract class AbstractDependencyCustomResourceTest<T extends ResourceDto, R ext
     clusters = getClusterList();
 
     transformer = getTransformer();
-    service = getService(scanner, finder, scheduler, clusterScanner, transformer);
+    service = getService();
+    service.scheduler = scheduler;
+    service.clusterScanner = clusterScanner;
+    service.scanner = scanner;
+    service.finder = finder;
+    service.transformer = transformer;
   }
 
   @Test
@@ -135,12 +140,7 @@ abstract class AbstractDependencyCustomResourceTest<T extends ResourceDto, R ext
 
   protected abstract AbstractDependencyResourceTransformer<T, R> getTransformer();
 
-  protected abstract S getService(
-      CustomResourceScanner<R> scanner,
-      CustomResourceFinder<R> finder,
-      CustomResourceScheduler<R> scheduler,
-      CustomResourceScanner<StackGresCluster> clusterScanner,
-      AbstractDependencyResourceTransformer<T, R> transformer);
+  protected abstract S getService();
 
   protected abstract String getResourceNamespace();
 

@@ -5,9 +5,7 @@
 
 package io.stackgres.apiweb.rest;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -23,10 +21,6 @@ import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
 import io.stackgres.apiweb.transformer.BackupConfigTransformer;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigList;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.common.resource.CustomResourceScanner;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.common.resource.ResourceWriter;
@@ -84,14 +78,12 @@ class BackupConfigResourceTest
   }
 
   @Override
-  protected BackupConfigResource getService(
-      CustomResourceScanner<StackGresBackupConfig> scanner,
-      CustomResourceFinder<StackGresBackupConfig> finder,
-      CustomResourceScheduler<StackGresBackupConfig> scheduler,
-      CustomResourceScanner<StackGresCluster> clusterScanner,
-      AbstractDependencyResourceTransformer<BackupConfigDto, StackGresBackupConfig> transformer) {
-    return new BackupConfigResource(scanner, finder, scheduler, clusterScanner, transformer,
-        secretFinder, secretWriter);
+  protected BackupConfigResource getService() {
+
+    final BackupConfigResource backupConfigResource = new BackupConfigResource();
+    backupConfigResource.secretFinder = secretFinder;
+    backupConfigResource.secretWriter = secretWriter;
+    return backupConfigResource;
   }
 
   @Override

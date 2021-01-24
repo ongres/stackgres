@@ -46,11 +46,8 @@ class BackupResourceTest
   }
 
   @Override
-  protected BackupResource getService(
-      CustomResourceScanner<StackGresBackup> scanner, CustomResourceFinder<StackGresBackup> finder,
-      CustomResourceScheduler<StackGresBackup> scheduler,
-      AbstractResourceTransformer<BackupDto, StackGresBackup> transformer) {
-    return new BackupResource(scanner, finder, scheduler, transformer);
+  protected BackupResource getService() {
+    return new BackupResource();
   }
 
   @Override
