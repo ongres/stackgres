@@ -321,6 +321,11 @@ $(cat "$TARGET_PATH/e2e-tests-junit-report.results.xml")
 </testsuites>
 EOF
 
+if [ "$K8S_DELETE" = true ]
+then
+  delete_k8s || true
+fi
+
 if $OVERALL_RESULT
 then
   cat "$TARGET_PATH/logs/results.log"

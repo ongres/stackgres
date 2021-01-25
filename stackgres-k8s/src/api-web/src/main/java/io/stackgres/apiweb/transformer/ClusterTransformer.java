@@ -223,6 +223,7 @@ public class ClusterTransformer
         .map(sourceScheduling -> {
           StackGresPodScheduling targetScheduling = new StackGresPodScheduling();
           targetScheduling.setNodeSelector(sourceScheduling.getNodeSelector());
+          targetScheduling.setTolerations(sourceScheduling.getTolerations());
           return targetScheduling;
         }).orElse(null));
     transformation.setDistributedLogs(
@@ -400,6 +401,7 @@ public class ClusterTransformer
         .map(sourcePodScheduling -> {
           PodScheduling podScheduling = new PodScheduling();
           podScheduling.setNodeSelector(sourcePodScheduling.getNodeSelector());
+          podScheduling.setTolerations(sourcePodScheduling.getTolerations());
           return podScheduling;
         }).orElse(null));
 

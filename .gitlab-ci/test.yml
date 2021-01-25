@@ -84,6 +84,12 @@ shell unit tests:
     - export E2E_OPERATOR_REGISTRY_PATH=/$CI_PROJECT_PATH/
     - export E2E_FORCE_IMAGE_PULL=true
     - |
+      if [ "$K8S_REUSE" = false ]
+      then
+        export K8S_DELETE=true
+        export E2E_SPEC_TRY_UNINSTALL_ON_FAILURE=true
+      fi
+    - |
       flock -s /tmp/stackgres-build-operator-native-executable \
         flock -s /tmp/stackgres-build-restapi-native-executable \
         flock -s /tmp/stackgres-build-jobs-native-executable \
