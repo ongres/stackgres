@@ -3,6 +3,10 @@
 export E2E_TIMEOUT="${E2E_TIMEOUT:-180}"
 
 wait_until() {
+  notrace_function traceable_wait_until "$@"
+}
+
+traceable_wait_until() {
   local RESULT
   local EXIT_CODE
   local START="$(date +%s)"

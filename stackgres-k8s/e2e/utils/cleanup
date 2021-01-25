@@ -59,6 +59,10 @@ env_excluded_clusterrolebindings() {
 }
 
 helm_cleanup() {
+  notrace_function traceable_helm_cleanup "$@"
+}
+
+traceable_helm_cleanup() {
   echo "Cleanup of helm"
    helm list --all-namespaces \
     | awk 'FNR > 1 { printf("helm delete %s --namespace %s\n", $1, $2) }' \
@@ -69,6 +73,10 @@ helm_cleanup() {
 }
 
 k8s_cleanup() {
+  notrace_function traceable_k8s_cleanup "$@"
+}
+
+traceable_k8s_cleanup() {
   echo "Cleanup of k8s"
   k8s_webhook_cleanup
   kubectl get crd -o name \
@@ -106,6 +114,10 @@ k8s_cleanup() {
 }
 
 k8s_async_cleanup() {
+  notrace_function traceable_k8s_async_cleanup "$@"
+}
+
+traceable_k8s_async_cleanup() {
   echo "Async cleanup of k8s"
   k8s_webhook_cleanup
   kubectl get crd -o name \
@@ -139,6 +151,10 @@ k8s_async_cleanup() {
 }
 
 k8s_webhook_cleanup() {
+  notrace_function traceable_k8s_webhook_cleanup "$@"
+}
+
+traceable_k8s_webhook_cleanup() {
   echo "Cleanup of k8s webhooks"
   kubectl get validatingwebhookconfigurations.admissionregistration.k8s.io -o name \
     | grep -v "^[^/]\+/\($(excluded_validatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
@@ -156,6 +172,10 @@ k8s_webhook_cleanup() {
 }
 
 helm_cleanup_but_operator() {
+  notrace_function traceable_helm_cleanup_but_operator "$@"
+}
+
+traceable_helm_cleanup_but_operator() {
   echo "Cleanup of helm excluding operator"
   helm list --all-namespaces \
     | grep -v "stackgres-operator\s\+$OPERATOR_NAMESPACE\s" \
@@ -168,6 +188,10 @@ helm_cleanup_but_operator() {
 }
 
 k8s_cleanup_but_operator() {
+  notrace_function traceable_k8s_cleanup_but_operator "$@"
+}
+
+traceable_k8s_cleanup_but_operator() {
   echo "Cleanup of k8s excluding operator"
   kubectl get crd -o name \
     | grep -v '\.stackgres\.io$' \
@@ -195,6 +219,10 @@ k8s_cleanup_but_operator() {
 }
 
 k8s_async_cleanup_but_operator() {
+  notrace_function traceable_k8s_async_cleanup_but_operator "$@"
+}
+
+traceable_k8s_async_cleanup_but_operator() {
   echo "Async cleanup of k8s excluding operator"
   kubectl get crd -o name \
     | grep -v '\.stackgres\.io$' \
@@ -218,6 +246,10 @@ k8s_async_cleanup_but_operator() {
 }
 
 k8s_cleanup_namespace() {
+  notrace_function traceable_k8s_cleanup_namespace "$@"
+}
+
+traceable_k8s_cleanup_namespace() {
   echo "Cleanup of k8s namespace $1"
   local TIMEOUT="$( (echo 6; echo "$((E2E_TIMEOUT / 40))") | sort -n -r | head -n 1)"
   ! kubectl get namespace "$1" -o name >/dev/null 2>&1 \
@@ -228,6 +260,10 @@ k8s_cleanup_namespace() {
 }
 
 k8s_async_cleanup_namespace() {
+  notrace_function traceable_k8s_async_cleanup_namespace "$@"
+}
+
+traceable_k8s_async_cleanup_namespace() {
   echo "Async cleanup of k8s namespace $1"
   ! kubectl get namespace "$1" -o name >/dev/null 2>&1 \
     || kubectl delete namespace --wait=false "$1" \
@@ -235,7 +271,12 @@ k8s_async_cleanup_namespace() {
     || ! kubectl get namespace "$1" >/dev/null 2>&1
 }
 
+
 helm_cleanup_chart() {
+  notrace_function traceable_helm_cleanup_chart "$@"
+}
+
+traceable_helm_cleanup_chart() {
   echo "Cleanup of chart $1 in namespace $2"
   ! helm status "$1" --namespace "$2" 2> /dev/null \
     || helm delete "$1" --namespace "$2" \

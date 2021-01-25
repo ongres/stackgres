@@ -1,9 +1,19 @@
 #!/bin/sh
+
+e2e_test_install() {
+  NODE_LABEL_KEY=$(ramdom_string)
+  NODE_LABEL_VALUE=$(ramdom_string)
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
+}
+
 e2e_test() {
   run_test "Trying to delete size-xs with cluster running" delete_with_cluster
 
   run_test "Trying to delete size-xs without cluster running" delete_whitout_cluster
 }
+
 delete_with_cluster(){
   if ERROR=$(kubectl delete -n "$CLUSTER_NAMESPACE" sginstanceprofiles.stackgres.io size-xs 2>&1)
   then
@@ -24,10 +34,7 @@ delete_with_cluster(){
 }
 
 delete_whitout_cluster(){
-
   kubectl get -n "$CLUSTER_NAMESPACE" sgclusters.stackgres.io "$CLUSTER_NAME" -o yaml | kubectl delete -f -
-
-  wait_pods_terminated "$CLUSTER_NAMESPACE"
 
   if ERROR=$(kubectl get -n "$CLUSTER_NAMESPACE" sginstanceprofiles.stackgres.io size-xs 2>&1)
   then
@@ -37,5 +44,4 @@ delete_whitout_cluster(){
     echo "FAIL: It should be able to delete the size-xs. ERROR ${ERROR}"
     return 1
   fi
-
 }

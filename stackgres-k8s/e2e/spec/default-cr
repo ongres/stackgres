@@ -37,8 +37,6 @@ e2e_test() {
 }
 
 check_existence(){
-
-  
   if wait_until eval "get_default_cr '$1.stackgres.io'"
   then
     echo "$2 found" 
@@ -55,82 +53,59 @@ check_update(){
     return 1
   else
     echo "$2 not updated"
-    return 0
   fi
 }
 
 check_delete(){
-
    if kubectl delete "$1.stackgres.io" -n "$OPERATOR_NAMESPACE" "$2"
   then
     echo "$2 deleted. Should not be able to delete the $2"
     return 1
   else
      echo "$2 not deleted"
-    return 0
   fi
-
 }
 
-
 default_pg_config(){
-
   check_existence sgpgconfigs "Default pg config"
-  
 }
 
 default_pg_config_update(){
-
   local DEFAULT_PGCONFIG="$(get_default_pgconfig -o jsonpath='{.items[0].metadata.name}')"
   check_update sgpgconfigs $DEFAULT_PGCONFIG '[{"op":"replace", "path": "/spec/postgresql.conf/shared_buffers", "value":"512MB"}]'  
-
 }
 
 default_pg_config_delete(){
-
   local DEFAULT_PGCONFIG="$(get_default_pgconfig -o jsonpath='{.items[0].metadata.name}')"
   check_delete sgpgconfigs $DEFAULT_PGCONFIG
-
 }
 
 default_pg_bouncer(){
-
   check_existence sgpoolconfigs "Default connection pooling"
-  
 }
 
 default_pg_bouncer_update(){
-
   local DEFAULT_PGCBOUNCER="$(get_default_conn_pool -o jsonpath='{.items[0].metadata.name}' )"
   check_update sgpoolconfigs "$DEFAULT_PGCBOUNCER" '[{"op":"replace", "path": "/spec/pgbouncer.ini/max_client_conn", "value":"400"}]'
-
 }
 
 default_pg_bouncer_delete(){
-
   local DEFAULT_PGCBOUNCER="$(get_default_conn_pool -o jsonpath='{.items[0].metadata.name}' )"
   check_delete sgpoolconfigs "$DEFAULT_PGCBOUNCER"
-
 }
 
 default_instance_profile(){
-
   check_existence sginstanceprofiles "Default resource profile"
-  
 }
 
 default_instance_profile_update(){
-
   local DEFAULT_PROFILE="$(get_default_profile -o jsonpath='{.items[0].metadata.name}')"
   check_update sginstanceprofiles "$DEFAULT_PROFILE" '[{"op":"replace", "path": "/spec/cpu", "value":"2"}]'
-
 }
 
 default_instance_profile_delete(){
-
   local DEFAULT_PROFILE="$(get_default_profile -o jsonpath='{.items[0].metadata.name}')"
   check_delete sginstanceprofiles "$DEFAULT_PROFILE"
-  
 }
 
 default_backup(){
@@ -140,12 +115,9 @@ default_backup(){
 default_backup_update(){
   local DEFAULT_BACKUP="$(get_default_backupconf -o jsonpath='{.items[0].metadata.name}')"
   check_update sgbackupconfigs "$DEFAULT_BACKUP" '[{"op":"replace", "path": "/spec/baseBackups/retention", "value":10}]'
-
 }
 
 default_backup_delete(){
-
   local DEFAULT_BACKUP="$(get_default_backupconf -o jsonpath='{.items[0].metadata.name}')"
   check_delete sgbackupconfigs "$DEFAULT_BACKUP"
-
 }

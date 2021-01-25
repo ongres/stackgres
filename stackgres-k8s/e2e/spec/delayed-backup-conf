@@ -11,12 +11,10 @@ e2e_test() {
 }
 
 add_backup_manually(){
-
   install_minio
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
-  
-  
+
   cat << EOF | kubectl apply -f -
   apiVersion: stackgres.io/v1beta1
   kind: SGBackupConfig
@@ -51,5 +49,4 @@ EOF
     --patch '[{"op":"add","path":"/spec/configurations/sgBackupConfig","value":"backupconf"}]'
 
   check_backup 0
-
 }

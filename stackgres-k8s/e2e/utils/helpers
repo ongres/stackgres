@@ -1,0 +1,37 @@
+#!/bin/sh
+
+try_function() {
+  local E_UNSET=true
+  if echo "$-" | grep -q e
+  then
+    E_UNSET=false
+  fi
+  "$E_UNSET" || set +e
+  (set -e; "$@")
+  EXIT_CODE="$?"
+  "$E_UNSET" || set -e
+  RESULT=false
+  if [ "$EXIT_CODE" = 0 ]
+  then
+    RESULT=true
+  fi
+}
+
+notrace_function() {
+  local X_UNSET=true
+  if echo "$-" | grep -q e
+  then
+    X_UNSET=false
+  fi
+  "$X_UNSET" || set +x
+  try_function "$@"
+  "$X_UNSET" || set -x
+  return "$EXIT_CODE"
+}
+
+if [ "E2E_TRACE_ALL" = true ]
+then
+  notrace_function() {
+    "$@"
+  }
+fi
