@@ -1,5 +1,5 @@
 unit tests:
-  image: docker.io/ongres/ubi-graalvm-maven:19.3.1-java8
+  image: docker.io/ongres/ubi-graalvm-maven:20.1.0-java11
   stage: test
   variables:
     # skipped due to but in quarkus junit extension initialization
@@ -17,7 +17,7 @@ unit tests:
         - stackgres-k8s/src/*/target/surefire-reports/TEST-*.xml
 
 shell unit tests:
-  image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:9.0
+  image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:11.0
   stage: test
   tags:
     - stackgres-runner
@@ -43,7 +43,7 @@ shell unit tests:
 
 .e2e tests:
   stage: test
-  image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:9.0
+  image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:11.0
   tags:
     - stackgres-runner
   dependencies:
@@ -84,18 +84,22 @@ shell unit tests:
     - export E2E_OPERATOR_REGISTRY_PATH=/$CI_PROJECT_PATH/
     - export E2E_FORCE_IMAGE_PULL=true
     - |
-      set +e
       flock -s /tmp/stackgres-build-operator-native-executable \
         flock -s /tmp/stackgres-build-restapi-native-executable \
+        flock -s /tmp/stackgres-build-jobs-native-executable \
+        flock -s /tmp/stackgres-build-distributedlogs-controller-native-executable \
         flock "/tmp/stackgres-integration-test$SUFFIX" \
         timeout -s KILL 3600 \
-        "$E2E_SHELL" $SHELL_XTRACE stackgres-k8s/e2e/run-all-tests.sh
+        "$E2E_SHELL" $SHELL_XTRACE -c "$(cat << EOF)"
+      set +e
+      "$E2E_SHELL" $SHELL_XTRACE stackgres-k8s/e2e/run-all-tests.sh
       EXIT_CODE="$?"
       if [ "$K8S_REUSE" = false ]
       then
         "$E2E_SHELL" $SHELL_XTRACE stackgres-k8s/e2e/e2e delete_k8s
       fi
       exit "$EXIT_CODE"
+      EOF
   artifacts:
     expire_in: 1 week
     when: always
