@@ -5,21 +5,17 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_install() {
-  local TARGET_IMAGE_TAG=development
-  if [ "${STACKGRES_VERSION#*-}" != "SNAPSHOT" ]
+  local TARGET_IMAGE_TAG
+  if [ "${STACKGRES_VERSION##*-}" != "SNAPSHOT" ]
   then
-    TARGET_IMAGE_TAG="$STACKGRES_VERSION"
-    if [ "${IMAGE_TAG#*-}" = "jvm" ]
-    then
-      TARGET_IMAGE_TAG="$TARGET_IMAGE_TAG-jvm"
-    fi
+    TARGET_IMAGE_TAG="$STACKGRES_VERSION-jvm"
   else 
     DEFAULT_IMAGE_VERSION=$(grep tag "$OPERATOR_CHART_PATH/values.yaml" | head -1 | awk '{print $2}')
     DEFAULT_IMAGE_VERSION="${DEFAULT_IMAGE_VERSION#?}"
     DEFAULT_IMAGE_VERSION="${DEFAULT_IMAGE_VERSION%?}"
     TARGET_IMAGE_TAG="$DEFAULT_IMAGE_VERSION"
   fi
- 
+
   if [ "$IMAGE_TAG" != "$TARGET_IMAGE_TAG" ]
   then
     docker tag "$OPERATOR_IMAGE_NAME" stackgres/operator:"$TARGET_IMAGE_TAG"
@@ -43,7 +39,8 @@ e2e_test_uninstall() {
   k8s_cleanup_namespace "${OPERATOR_NAMESPACE}"
   k8s_cleanup_namespace "${STACKGRES_YAML_NAMESPACE}"
 
-  install_operator
+  kubectl create namespace "${OPERATOR_NAMESPACE}"
+  install_operator_only
   wait_pods_running "$OPERATOR_NAMESPACE" 2
 }
 

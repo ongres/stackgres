@@ -21,55 +21,55 @@ schema:
       pods:
         items:
           description: |
-            A pod that hold an instance of this cluster
+            Pod that holds an instance of a cluster
           properties:
               namespace:
                 description: |
-                  The namespace of the pod.
+                  Namespace of the pod.
               name:
                 description: |
-                  The name of the pod.
+                  Name of the pod.
               role:
                 description: |
-                  The role of the instance hold by this pod.
+                  Role of the instance hold by the pod.
               ip:
                 description: |
-                  The IP of the pod.
+                  IP of the pod.
               status:
                 description: |
-                  The status of the pod:
+                  Status of the pod:
                   
-                  * **Available**: The instance hold by this pod is available.
-                  * **Unavailable**: The instance hold by this pod is unavailable.
+                  * **Available**: The instance hold by the pod is available.
+                  * **Unavailable**: The instance hold by the pod is unavailable.
                   * **Pending**: The pod has been accepted by the Kubernetes system, but one or more of the container images has not been created. This includes time before being scheduled as well as time spent downloading images over the network, which could take a while.
                   * **Failed**: All containers in the pod have terminated, and at least one container has terminated in failure. The container either exited with non-zero status or was terminated by the system.
                   * **Unknown**: For some reason the state of the pod could not be obtained, typically due to an error in communicating with the host of the pod.
               containers:
                 type: integer
                 description: |
-                  The number of containers that are contained in this pod.
+                  Number of total containers in the pod.
               containersReady:
                 type: integer
                 description: |
-                  The number of ready containers that are contained in this pod.
+                  Number of ready containers contained in the pod.
               cpuRequested:
                 description: |
-                  The CPU requested for this pod.
+                  CPU requested for the pod.
               cpuFound:
                 description: |
-                  The CPU actually reserved for this pod.
+                  CPU actually reserved for the pod.
               cpuPsiAvg10:
                 description: |
-                  The global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) CPU share of time average on a window of 10 seconds.
+                  Global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) CPU share of time average on a window of 10 seconds.
               cpuPsiAvg60:
                 description: |
-                  The global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) CPU share of time average on a window of 60 seconds.
+                  Global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) CPU share of time average on a window of 60 seconds.
               cpuPsiAvg300:
                 description: |
-                  The global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) CPU share of time average on a window of 300 seconds.
+                  Global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) CPU share of time average on a window of 300 seconds.
               cpuPsiTotal:
                 description: |
-                  The global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) CPU total share of time.
+                  Global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) CPU total share of time.
               cpuPsiCgroupAvg10:
                 description: |
                   The cgroup [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) CPU share of time average on a window of 10 seconds.
@@ -84,25 +84,25 @@ schema:
                   The cgroup [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) CPU total share of time.
               memoryRequested:
                 description: |
-                  The memory requested for this pod.
+                  Memory requested for this pod.
               memoryFound:
                 description: |
-                  The memory actually reserved for this pod.
+                  Memory actually reserved for this pod.
               memoryUsed:
                 description: |
                   The memory used by this pod.
               memoryPsiAvg10:
                 description: |
-                  The global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) memory share of time average on a window of 10 seconds.
+                  Global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) memory share of time average on a window of 10 seconds.
               memoryPsiAvg60:
                 description: |
-                  The global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) memory share of time average on a window of 60 seconds.
+                  Global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) memory share of time average on a window of 60 seconds.
               memoryPsiAvg300:
                 description: |
-                  The global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) memory share of time average on a window of 300 seconds.
+                  Global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) memory share of time average on a window of 300 seconds.
               memoryPsiTotal:
                 description: |
-                  The global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) memory total share of time.
+                  Global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) memory total share of time.
               memoryPsiCgroupAvg10:
                 description: |
                   The cgroup [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) memory share of time average on a window of 10 seconds.
@@ -117,16 +117,16 @@ schema:
                   The cgroup [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) memory total share of time.
               memoryPsiFullAvg10:
                 description: |
-                  The global full [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) memory share of time average on a window of 10 seconds.
+                  Global full [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) memory share of time average on a window of 10 seconds.
               memoryPsiFullAvg60:
                 description: |
-                  The global full [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) memory share of time average on a window of 60 seconds.
+                  Global full [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) memory share of time average on a window of 60 seconds.
               memoryPsiFullAvg300:
                 description: |
-                  The global full [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) memory share of time average on a window of 300 seconds.
+                  Global full [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) memory share of time average on a window of 300 seconds.
               memoryPsiFullTotal:
                 description: |
-                  The global full [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) memory total share of time.
+                  Global full [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) memory total share of time.
               memoryPsiFullCgroupAvg10:
                 description: |
                   The cgroup full [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) memory share of time average on a window of 10 seconds.
@@ -141,25 +141,25 @@ schema:
                   The cgroup full [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) memory total share of time.
               diskRequested:
                 description: |
-                  The disk requested for this pod.
+                  Disk requested for this pod.
               diskFound:
                 description: |
-                  The disk actually reserved for this pod.
+                  Disk actually reserved for this pod.
               diskUsed:
                 description: |
-                  The disk used by this pod.
+                  Disk used by this pod.
               diskPsiAvg10:
                 description: |
-                  The global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) disk share of time average on a window of 10 seconds.
+                  Global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) disk share of time average on a window of 10 seconds.
               diskPsiAvg60:
                 description: |
-                  The global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) disk share of time average on a window of 60 seconds.
+                  Global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) disk share of time average on a window of 60 seconds.
               diskPsiAvg300:
                 description: |
-                  The global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) disk share of time average on a window of 300 seconds.
+                  Global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) disk share of time average on a window of 300 seconds.
               diskPsiTotal:
                 description: |
-                  The global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) disk total share of time.
+                  Global [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) disk total share of time.
               diskPsiCgroupAvg10:
                 description: |
                   The cgroup [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) disk share of time average on a window of 10 seconds.
@@ -174,16 +174,16 @@ schema:
                   The cgroup [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) disk total share of time.
               diskPsiFullAvg10:
                 description: |
-                  The global full [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) disk share of time average on a window of 10 seconds.
+                  Global full [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) disk share of time average on a window of 10 seconds.
               diskPsiFullAvg60:
                 description: |
-                  The global full [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) disk share of time average on a window of 60 seconds.
+                  Global full [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) disk share of time average on a window of 60 seconds.
               diskPsiFullAvg300:
                 description: |
-                  The global full [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) disk share of time average on a window of 300 seconds.
+                  Global full [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) disk share of time average on a window of 300 seconds.
               diskPsiFullTotal:
                 description: |
-                  The global full [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) disk total share of time.
+                  Global full [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) disk total share of time.
               diskPsiFullCgroupAvg10:
                 description: |
                   The cgroup full [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) disk share of time average on a window of 10 seconds.
@@ -198,16 +198,16 @@ schema:
                   The cgroup full [PSI](https://www.kernel.org/doc/html/latest/accounting/psi.html) disk total share of time.
               averageLoad1m:
                 description: |
-                  The average load on a window of 1 minute.
+                  Average load on a window of 1 minute.
               averageLoad5m:
                 description: |
-                  The average load on a window of 5 minute.
+                  Average load on a window of 5 minute.
               averageLoad10m:
                 description: |
-                  The average load on a window of 10 minute.
+                  Average load on a window of 10 minute.
       podsReady:
         description: |
-          The number of pods of this cluster that are ready.
+          Number of pods of the cluster that are ready.
       spec:
         properties:
           initialData:

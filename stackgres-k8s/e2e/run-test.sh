@@ -3,12 +3,19 @@
 . "$(dirname "$0")/e2e"
 echo "Preparing environment"
 
+echo "Setup versions"
 setup_versions
+echo "Setup images"
 setup_images
+echo "Setup k8s"
 setup_k8s
+echo "Setup cache"
 setup_cache
+echo "Setup helm"
 setup_helm
+echo "Setup operator"
 setup_operator
+echo "Setup logs"
 setup_logs
 
 echo "Functional tests results" > "$TARGET_PATH/logs/results.log"
@@ -29,6 +36,12 @@ then
     exit 1
   else 
     try_function spec "$SPEC_PATH/$E2E_ENV/$SPEC_TO_RUN"
+
+    if [ "$K8S_DELETE" = true ]
+    then
+      delete_k8s || true
+    fi
+
     if "$RESULT"
     then
       cat "$TARGET_PATH/logs/results.log"
@@ -39,6 +52,12 @@ then
   fi
 else
   try_function spec "$SPEC_PATH/$SPEC_TO_RUN"
+
+  if [ "$K8S_DELETE" = true ]
+  then
+    delete_k8s || true
+  fi
+
   if "$RESULT"
   then
     cat "$TARGET_PATH/logs/results.log"

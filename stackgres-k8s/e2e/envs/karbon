@@ -1,0 +1,32 @@
+#!/bin/sh
+
+export K8S_EXCLUDED_CLUSTER_ROLES='csi-node-runner elasticsearch-logging external-provisioner-runner flannel fluent-bit-logging ntnx-events-printer'
+export K8S_EXCLUDED_NAMESPACES=ntnx-system
+export K8S_EXCLUDED_CLUSTER_ROLES_BINDINGS='csi-node-role csi-provisioner-role elasticsearch-logging flannel fluent-bit-logging kubelet-api-admin ntnx-events-printer'
+export K8S_REUSE=true
+export E2E_BUILD_IMAGES=false
+export E2E_DISABLE_CACHE=true
+export E2E_SKIP_OPERATOR_LOAD=true
+
+get_k8s_env_version() {
+  true
+}
+
+reuse_k8s() {
+  kubectl version
+}
+
+reset_k8s() {
+  echo "Can not reset k8s cluster when using karbon configured k8s cluster"
+  exit 1
+}
+
+delete_k8s() {
+  echo "Can not delete k8s cluster when using karbon configured k8s cluster"
+  exit 1
+}
+
+load_image_k8s() {
+  echo "Can not load operator to k8s cluster when using karbon configured k8s cluster"
+  exit 1
+}

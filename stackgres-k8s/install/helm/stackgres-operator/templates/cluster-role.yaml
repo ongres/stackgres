@@ -47,7 +47,6 @@ rules:
   - sgpoolconfigs
   - sgbackupconfigs
   - sgbackups
-  - sgrestoreconfigs
   - sgdistributedlogs
   verbs:
   - create

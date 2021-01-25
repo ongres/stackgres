@@ -12,14 +12,14 @@ usage() {
 }
 
 yq_update_file() {
-  [ $# -ge 2 ]
+  [ "$#" -ge 2 ]
   local INDEX=0
   local OFFSET
-  while [ $# -gt 2 ]
+  while [ "$#" -gt 2 ]
   do
-    OFFSET=$(tail -n +"$((INDEX+1))" "$(eval "echo \$$#")" | grep -n "$1")
-    OFFSET=${OFFSET%%:*}
-    INDEX=$((INDEX+OFFSET))
+    OFFSET="$(tail -n +"$((INDEX+1))" "$(eval "echo \$$#")" | grep -n "$1")"
+    OFFSET="${OFFSET%%:*}"
+    INDEX="$((INDEX+OFFSET))"
     shift
   done
   [ "$INDEX" -ge 0 ]
@@ -35,7 +35,7 @@ EOF
   rm "$2.bak"
 }
 
-[ $# -ge 1 ] || usage
+[ "$#" -ge 1 ] || usage
 
 command -v jq > /dev/null || message_and_exit 'The program `jq` is required to be in PATH' 8
 command -v yq > /dev/null || message_and_exit 'The program `yq` (https://kislyuk.github.io/yq/) is required to be in PATH' 16
@@ -46,7 +46,7 @@ cd "$(dirname "$0")/../../.."
 VERSION="$1"
 DEVELOPMENT_IMAGE_TAG="${2:-development}"
 IMAGE_TAG="${VERSION}-jvm"
-if [ "${VERSION#*-}" = "SNAPSHOT" ]
+if [ "${VERSION##*-}" = "SNAPSHOT" ]
 then
   IMAGE_TAG="${DEVELOPMENT_IMAGE_TAG}-jvm"
 fi

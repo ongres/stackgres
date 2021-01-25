@@ -16,6 +16,31 @@ unit tests:
       junit:
         - stackgres-k8s/src/*/target/surefire-reports/TEST-*.xml
 
+shell unit tests:
+  image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:9.0
+  stage: test
+  tags:
+    - stackgres-runner
+  script:
+    - |
+      set +e
+      cp -a . /tmp/stackgres
+      (
+        cd /tmp/stackgres
+        sh stackgres-k8s/src/operator/src/test/shell/run-in-docker.sh
+      )
+      EXIT_CODE="$?"
+      cp -a /tmp/stackgres/stackgres-k8s/src/operator/target stackgres-k8s/src/operator/target
+      exit "$EXIT_CODE"
+  artifacts:
+    expire_in: 1 week
+    when: always
+    paths:
+    - stackgres-k8s/src/operator/target/shell
+    reports:
+      junit:
+        - stackgres-k8s/src/operator/target/shell/shell-unit-tests-junit-report-*.xml
+
 .e2e tests:
   stage: test
   image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:9.0
@@ -58,6 +83,12 @@ unit tests:
     - export E2E_OPERATOR_REGISTRY=$CI_REGISTRY
     - export E2E_OPERATOR_REGISTRY_PATH=/$CI_PROJECT_PATH/
     - export E2E_FORCE_IMAGE_PULL=true
+    - |
+      if [ "$K8S_REUSE" = false ]
+      then
+        export K8S_DELETE=true
+        export E2E_SPEC_TRY_UNINSTALL_ON_FAILURE=true
+      fi
     - |
       flock -s /tmp/stackgres-build-operator-native-executable \
         flock -s /tmp/stackgres-build-restapi-native-executable \

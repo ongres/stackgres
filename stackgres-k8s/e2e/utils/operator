@@ -38,16 +38,41 @@ setup_images() {
       || ! helm list --all-namespaces | grep -q "^stackgres-operator\s"
     )
   then
+    build_components
     (
-    cd "$STACKGRES_PATH/src"
-    ./mvnw -q clean package -DskipTests
-    (
-    echo 'sh operator/src/main/buildah/build-image-jvm.sh'
-    echo 'sh api-web/src/main/buildah/build-image-jvm.sh'
-    echo 'sh admin-ui/build.sh; sh admin-ui/buildah/build.sh'
-    ) | xargs -n 1 -I % -P 0 sh -c %
-    )
+    echo build_operator_image
+    echo build_restapi_image
+    echo build_adminui_image
+    ) | xargs -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" %
   fi
+}
+
+build_components() {
+  (
+  cd "$STACKGRES_PATH/src"
+  ./mvnw -q clean package -DskipTests
+  )
+}
+
+build_operator_image() {
+  (
+  cd "$STACKGRES_PATH/src"
+  sh operator/src/main/buildah/build-image-jvm.sh
+  )
+}
+
+build_restapi_image() {
+  (
+  cd "$STACKGRES_PATH/src"
+  sh api-web/src/main/buildah/build-image-jvm.sh
+  )
+}
+
+build_adminui_image() {
+  (
+  cd "$STACKGRES_PATH/src"
+  sh admin-ui/build.sh; sh admin-ui/buildah/build.sh
+  )
 }
 
 create_operator_certificate() {
@@ -101,7 +126,14 @@ EOF
 setup_operator() {
   if [ "$E2E_SKIP_SETUP" = true ]
   then
-    return
+    if helm list -A | grep -q '^stackgres-operator[[:space:]]'
+    then
+      OPERATOR_NAMESPACE="$(helm list -A | grep '^stackgres-operator[[:space:]]' \
+        | sed 's/[[:space:]]\+/ /g' | cut -d ' ' -f 2)"
+      return
+    fi
+    echo "Can not skip operator setup. Helm chart stackgres-operator release was not found!"
+    return 1
   fi
 
   if ! helm list --all-namespaces | grep -q "^stackgres-operator\s" \
@@ -143,26 +175,21 @@ setup_operator() {
 load_operator_k8s() {
   if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
   then
-    if ! docker inspect "$OPERATOR_IMAGE_NAME" >/dev/null 2>&1 \
-      || ! docker inspect "$RESTAPI_IMAGE_NAME" >/dev/null 2>&1 \
-      || ! docker inspect "$ADMINUI_IMAGE_NAME" >/dev/null 2>&1
+    if [ -n "$E2E_OPERATOR_REGISTRY" ]
     then
-      if [ -n "$E2E_OPERATOR_REGISTRY" ]
-      then
-        docker login \
-          -u "$E2E_OPERATOR_REGISTRY_USER" \
-          -p "$E2E_OPERATOR_REGISTRY_PASSWORD" \
-          "$E2E_OPERATOR_REGISTRY"
-      fi
-      docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$OPERATOR_IMAGE_NAME"
-      docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$RESTAPI_IMAGE_NAME"
-      docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$ADMINUI_IMAGE_NAME"
-      if [ -n "$E2E_OPERATOR_REGISTRY" ]
-      then
-        docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$OPERATOR_IMAGE_NAME" "$OPERATOR_IMAGE_NAME"
-        docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
-        docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
-      fi
+      docker login \
+        -u "$E2E_OPERATOR_REGISTRY_USER" \
+        -p "$E2E_OPERATOR_REGISTRY_PASSWORD" \
+        "$E2E_OPERATOR_REGISTRY"
+    fi
+    docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$OPERATOR_IMAGE_NAME"
+    docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$RESTAPI_IMAGE_NAME"
+    docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$ADMINUI_IMAGE_NAME"
+    if [ -n "$E2E_OPERATOR_REGISTRY" ]
+    then
+      docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$OPERATOR_IMAGE_NAME" "$OPERATOR_IMAGE_NAME"
+      docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
+      docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
     fi
   fi
 
@@ -179,27 +206,16 @@ load_operator_k8s() {
     docker tag "$ORIGINAL_OPERATOR_IMAGE_NAME" "$OPERATOR_IMAGE_NAME"
     docker tag "$ORIGINAL_RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
     docker tag "$ORIGINAL_ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
-    load_operator_k8s
+    load_operator_k8s_only
+  else
+    load_operator_k8s_only
   fi
+}
 
-  if docker image inspect "$OPERATOR_IMAGE_NAME" >/dev/null 2>&1
-  then 
-    load_image_k8s "$OPERATOR_IMAGE_NAME"
-  else
-    echo "Image $OPERATOR_IMAGE_NAME not found in cache!"
-  fi
-  if docker image inspect "$RESTAPI_IMAGE_NAME" >/dev/null 2>&1
-  then 
-    load_image_k8s "$RESTAPI_IMAGE_NAME"
-  else
-    echo "Image $RESTAPI_IMAGE_NAME not found in cache!"
-  fi
-  if docker image inspect "$ADMINUI_IMAGE_NAME" >/dev/null 2>&1
-  then 
-    load_image_k8s "$ADMINUI_IMAGE_NAME"
-  else
-    echo "Image $ADMINUI_IMAGE_NAME not found in cache!"
-  fi
+load_operator_k8s_only() {
+  load_image_k8s "$OPERATOR_IMAGE_NAME"
+  load_image_k8s "$RESTAPI_IMAGE_NAME"
+  load_image_k8s "$ADMINUI_IMAGE_NAME"
 }
 
 operator_pull_policy() {
@@ -210,12 +226,16 @@ install_operator() {
   kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null 2>&1 \
     || kubectl create namespace "$OPERATOR_NAMESPACE"
 
-  if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" -a \
-    -n "$STACKGRES_PREVIOUS_VERSION" ]
+  if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" -o \
+    -z "$STACKGRES_PREVIOUS_VERSION" ]
   then
     install_operator_previous_version "$@"
   fi
 
+  install_operator_only "$@"
+}
+
+install_operator_only() {
   if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" = true ]
   then
     echo "Installing operator intermediate repo"
@@ -236,7 +256,6 @@ install_operator() {
     --set-string "adminui.image.pullPolicy=$(operator_pull_policy)" \
     $E2E_OPERATOR_OPTS "$@"
   fi
-  
 }
 
 install_operator_previous_version() {
@@ -299,15 +318,20 @@ upgrade_operator_from_private_repository() {
       --set-string "restapi.image.pullPolicy=$(operator_pull_policy)" \
       --set-string adminui.image.name="$PRIVATE_ADMINUI_IMAGE_NAME" --set-string adminui.image.tag="$ADMINUI_IMAGE_TAG" \
       --set-string "adminui.image.pullPolicy=$(operator_pull_policy)" \
+      --set-string serviceAccount.create="true" \
       --set-string serviceAccount.repoCredentials="regcred" \
       "$@"
 }
 
 delete_operator() {
+  delete_operator_only
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+}
+
+delete_operator_only() {
   ! helm get notes stackgres-operator --namespace "$OPERATOR_NAMESPACE" > /dev/null \
     || helm delete stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$@" \
     || true
-  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
 }
 
 get_installed_operator_values() {
@@ -344,7 +368,7 @@ reinstall_operator_if_not_as_expected() {
     k8s_cleanup
 
     kubectl create namespace "$OPERATOR_NAMESPACE"
-    install_operator -f "$TARGET_PATH/operator-values.yaml"
+    install_operator_only -f "$TARGET_PATH/operator-values.yaml"
     wait_pods_running "$OPERATOR_NAMESPACE"
     if helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator | grep -q externalOperatorIp \
       && helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator | grep -q externalOperatorPort
@@ -432,216 +456,6 @@ get_component_versions() {
   "$X_UNSET" || set -x
 }
 
-get_previous_operator_version() {
-  local VERSION="$1"
-
-  local CARDINALITY="$(echo "$VERSION" | tr '.' '\n' | wc -l)"
-  local MAJOR=""
-  local MINOR
-  local PATCH="0"
-  local SUFFIX=""
-  local SUFFIX_VERSION=""
-  local VERSION_SUFFIX=""
-  local i
-
-  if [ "$CARDINALITY" -eq 3 ]
-  then
-    MAJOR="$(echo "$VERSION" | tr '.' '\n' | head -n 1)"
-    MINOR="$(echo "$VERSION" | tr '.' '\n' | head -n 2 | tail -n 1)"
-    PATCH="$(echo "$VERSION" | tr '.' '\n' | tail -n 1)"
-    SUFFIX="${PATCH##*-}"
-    if [ -n "$SUFFIX" ]
-    then
-      PATCH="${PATCH%-*}"
-      for i in alpha beta
-      do
-        if [ "${SUFFIX%%[0-9]*}" = "$i" ]
-        then
-          SUFFIX=$i
-          SUFFIX_VERSION="${SUFFIX#$i}"
-        fi
-      done
-    fi
-  fi
-
-  if [ "$CARDINALITY" -eq 2 ]
-  then
-    MAJOR="$(echo "$VERSION" | tr '.' '\n' | head -n 1)"
-    MINOR="$(echo "$VERSION" | tr '.' '\n' | tail -n 1)"
-    SUFFIX="${MINOR##*-}"
-    if [ -n "$SUFFIX" ]
-    then
-      MINOR="${MINOR%-*}"
-      local A_SUFFIX
-      for A_SUFFIX in alpha beta
-      do
-        if [ "${SUFFIX%%[0-9]*}" = "$A_SUFFIX" ]
-        then
-          SUFFIX_VERSION="${SUFFIX#$A_SUFFIX}"
-          SUFFIX="$A_SUFFIX"
-        fi
-      done
-    fi
-  fi
-
-  if [ -z "$MAJOR" ]
-  then
-    return 1
-  fi
-
-  if [ "$SUFFIX" = alpha ] || [ "$SUFFIX" = beta ]
-  then
-    if [ "$SUFFIX_VERSION" -gt 1 ]
-    then
-      SUFFIX_VERSION="$((SUFFIX_VERSION - 1))"
-      VERSION_SUFFIX="-$SUFFIX$SUFFIX_VERSION"
-    else
-      if [ "$SUFFIX" = "beta" ]
-      then
-        SUFFIX=alpha
-        SUFFIX_VERSION=1
-        while true
-        do
-          if curl -s -f "$(get_pom_url "$(
-            echo "$MAJOR.$MINOR.$PATCH-$SUFFIX$SUFFIX_VERSION" \
-              | fix_zero_patch_prior_0_9)")" > /dev/null 2>&1
-          then
-            VERSION_SUFFIX="-$SUFFIX$SUFFIX_VERSION"
-            SUFFIX_VERSION="$((SUFFIX_VERSION + 1))"
-          else
-            break
-          fi
-        done
-      fi
-    fi
-  fi
-
-  if [ "$SUFFIX" = "SNAPSHOT" ] && [ "$PATCH" = 0 ]
-  then
-    for SUFFIX in beta alpha
-    do
-      SUFFIX_VERSION=1
-      while true
-      do
-        if curl -s -f "$(get_pom_url "$(
-          echo "$MAJOR.$MINOR.$PATCH-$SUFFIX$SUFFIX_VERSION" \
-            | fix_zero_patch_prior_0_9)")" > /dev/null 2>&1
-        then
-          VERSION_SUFFIX="-$SUFFIX$SUFFIX_VERSION"
-          SUFFIX_VERSION="$((SUFFIX_VERSION + 1))"
-        else
-          break
-        fi
-      done
-      if [ -n "$VERSION_SUFFIX" ]
-      then
-        break
-      fi
-    done
-  fi
-
-  local FOUND=false
-  if [ -z "$VERSION_SUFFIX" ]
-  then
-    while true
-    do
-      if [ "$PATCH" -gt "0" ]
-      then
-        PATCH="$((PATCH - 1))"
-        if curl -s -f "$(get_pom_url "$(
-          echo "$MAJOR.$MINOR.$PATCH" \
-            | fix_zero_patch_prior_0_9)")" > /dev/null 2>&1
-        then
-          FOUND=true
-          break
-        fi
-      else
-        break
-      fi
-    done
-    if [ "$FOUND" != true ]
-    then
-      while true
-      do
-        if [ "$MINOR" -gt 0 ]
-        then
-          MINOR="$((MINOR - 1))"
-        else
-          if [ "$MAJOR" -gt 0 ]
-          then
-            MAJOR="$((MAJOR - 1))"
-          else
-            return 1
-          fi
-          if [ "$MAJOR" -eq 0 ]
-          then
-            MINOR=9 # Specific of StackGres project
-          else
-            MINOR=0
-          fi
-          while true
-          do
-            if curl -s -f "$(get_pom_url "$(
-              echo "$MAJOR.$MINOR.$PATCH" \
-                | fix_zero_patch_prior_0_9)")" > /dev/null 2>&1
-            then
-              FOUND=true
-              MINOR="$((MINOR + 1))"
-            else
-              break
-            fi
-          done
-          if [ "$FOUND" = true ]
-          then
-            MINOR="$((MINOR - 1))"
-          else
-            return 1
-          fi
-        fi
-        while true
-        do
-          if curl -s -f "$(get_pom_url "$(
-            echo "$MAJOR.$MINOR.$PATCH" \
-              | fix_zero_patch_prior_0_9)")" > /dev/null 2>&1
-          then
-            FOUND=true
-            PATCH="$((PATCH + 1))"
-          else
-            break
-          fi
-        done
-        if [ "$FOUND" = true ]
-        then
-          PATCH="$((PATCH - 1))"
-          break
-        fi
-      done
-      while true
-      do
-        if [ "$PATCH" -gt "0" ]
-        then
-          if curl -s -f "$(get_pom_url "$(
-            echo "$MAJOR.$MINOR.$PATCH" \
-              | fix_zero_patch_prior_0_9)")" > /dev/null 2>&1
-          then
-            FOUND=true
-            break
-          fi
-          PATCH="$((PATCH - 1))"
-        else
-          break
-        fi
-      done
-    fi
-  fi
-  echo "$MAJOR.$MINOR.$PATCH$VERSION_SUFFIX" \
-    | fix_zero_patch_prior_0_9
-}
-
-fix_zero_patch_prior_0_9() {
-  sed 's/^\(0\.[0-9]\)\.0/\1/'
-}
-
 get_version_as_number() {
   local VERSION="$1"
 
@@ -654,61 +468,59 @@ get_version_as_number() {
   local VERSION_SUFFIX=""
   local i
 
+  if [ "$CARDINALITY" -gt 3 ]
+  then
+    echo "Unexpeted version format for $VERSION"
+    return 1
+  fi
+
+  MAJOR="$(echo "$VERSION" | cut -d . -f 1)"
+  MINOR="$(echo "$VERSION" | cut -d . -f 2)"
   if [ "$CARDINALITY" -eq 3 ]
   then
-    MAJOR="$(echo "$VERSION" | tr '.' '\n' | head -n 1)"
-    MINOR="$(echo "$VERSION" | tr '.' '\n' | head -n 2 | tail -n 1)"
-    PATCH="$(echo "$VERSION" | tr '.' '\n' | tail -n 1)"
-    SUFFIX="${PATCH##*-}"
-    if [ -n "$SUFFIX" ]
-    then
-      PATCH="${PATCH%-*}"
-      local A_SUFFIX
-      for A_SUFFIX in alpha beta
-      do
-        if [ "${SUFFIX%%[0-9]*}" = "$A_SUFFIX" ]
-        then
-          SUFFIX_VERSION="${SUFFIX#$A_SUFFIX}"
-          SUFFIX="$A_SUFFIX"
-        fi
-      done
-    fi
+    PATCH="$(echo "$VERSION" | cut -d . -f 3)"
+    SUFFIX="${PATCH#*-}"
+    PATCH="${PATCH%%-*}"
+  else
+    SUFFIX="${MINOR#*-}"
+    MINOR="${MINOR%%-*}"
   fi
 
-  if [ "$CARDINALITY" -eq 2 ]
+  if [ "${SUFFIX%-SNAPSHOT}" != "$SUFFIX" ]
   then
-    MAJOR="$(echo "$VERSION" | tr '.' '\n' | head -n 1)"
-    MINOR="$(echo "$VERSION" | tr '.' '\n' | tail -n 1)"
-    SUFFIX="${MINOR##*-}"
-    if [ -n "$SUFFIX" ]
-    then
-      MINOR="${MINOR%-*}"
-      for i in alpha beta
-      do
-        if [ "${SUFFIX%%[0-9]*}" = "$i" ]
-        then
-          SUFFIX=$i
-          SUFFIX_VERSION="${SUFFIX#$i}"
-        fi
-      done
-    fi
+    SUFFIX="${SUFFIX%-SNAPSHOT}"
   fi
+
+  if [ "${SUFFIX%%[0-9]*}" = "$SUFFIX" ]
+  then
+    echo "Unexpeted version format for $VERSION"
+    return 1
+  fi
+  SUFFIX_VERSION="${SUFFIX#${SUFFIX%%[0-9]*}}"
+  SUFFIX="${SUFFIX%$SUFFIX_VERSION}"
 
   local SUFFIX_MAJOR_VERSION
-  if [ "$SUFFIX" = "SNAPSHOT" ]
-  then
-    SUFFIX_MAJOR_VERSION=0
-  elif [ "$SUFFIX" = "alpha" ]
+  if [ "$SUFFIX" = "alpha" ]
   then
     SUFFIX_MAJOR_VERSION=1
   elif [ "$SUFFIX" = "beta" ]
   then
     SUFFIX_MAJOR_VERSION=2
-  else
+  elif [ -z "$SUFFIX" ]
+  then
     SUFFIX_MAJOR_VERSION=3
+  else
+    echo "Unexpeted version format for $VERSION"
+    return 1
   fi
 
-  printf "%03d%03d%03d%d%03d\n" "$MAJOR" "$MINOR" "$PATCH" "$SUFFIX_MAJOR_VERSION" "$SUFFIX_VERSION"
+  local RELEASE_VERSION=1
+  if [ "${VERSION##*-}" = "SNAPSHOT" ]
+  then
+    RELEASE_VERSION=0
+  fi
+
+  printf "%03d%03d%03d%d%03d%d\n" "$MAJOR" "$MINOR" "$PATCH" "$SUFFIX_MAJOR_VERSION" "$SUFFIX_VERSION" "$RELEASE_VERSION"
 }
 
 get_operator_image_tag() {
@@ -724,7 +536,7 @@ get_operator_image_tag() {
   if [ "$VERSION" = "$STACKGRES_VERSION" ]
   then
     echo "${IMAGE_TAG%-jvm}$SUFFIX"
-  elif [ "${VERSION#*-}" = "SNAPSHOT" ]
+  elif [ "${VERSION##*-}" = "SNAPSHOT" ]
   then
     if [ "$CARDINALITY" = "3" ] \
       && [ "$(echo "$VERSION" | tr '.' '\n' | tail -n 1)" != "0" ]
@@ -766,13 +578,24 @@ get_operator_helm_url() {
   echo "https://stackgres.io/downloads/stackgres-k8s/stackgres/$VERSION/helm/stackgres-operator.tgz"
 }
 
+get_cluster_helm_url() {
+  local VERSION="$1"
+  if [ "$(get_version_as_number "$VERSION")" -le "$(get_version_as_number 0.9.2)" ]
+  then
+    echo "https://stackgres.io/downloads/stackgres-k8s/stackgres/$VERSION/demo-helm-cluster.tgz"
+    return
+  fi
+  echo "https://stackgres.io/downloads/stackgres-k8s/stackgres/$VERSION/helm/stackgres-cluster-demo.tgz"
+}
+
 export STACKGRES_OPERATOR_IMAGE="$(get_operator_image "$STACKGRES_VERSION")"
 export STACKGRES_RESTAPI_IMAGE="$(get_restapi_image "$STACKGRES_VERSION")"
 export STACKGRES_ADMINUI_IMAGE="$(get_adminui_image "$STACKGRES_VERSION")"
 
 setup_versions() {
-  export STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-$(get_previous_operator_version "$STACKGRES_VERSION")}"
+  export STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-0.9.3}"
   export OPERATOR_PREVIOUS_VERSION_HELM_URL="${OPERATOR_PREVIOUS_VERSION_HELM_URL:-$(get_operator_helm_url "$STACKGRES_PREVIOUS_VERSION")}"
+  export CLUSTER_PREVIOUS_VERSION_HELM_URL="${CLUSTER_PREVIOUS_VERSION_HELM_URL:-$(get_cluster_helm_url "$STACKGRES_PREVIOUS_VERSION")}"
   export STACKGRES_PREVIOUS_OPERATOR_IMAGE="$(get_operator_image "$STACKGRES_PREVIOUS_VERSION")"
   export STACKGRES_PREVIOUS_RESTAPI_IMAGE="$(get_restapi_image "$STACKGRES_PREVIOUS_VERSION")"
   export STACKGRES_PREVIOUS_ADMINUI_IMAGE="$(get_adminui_image "$STACKGRES_PREVIOUS_VERSION")"

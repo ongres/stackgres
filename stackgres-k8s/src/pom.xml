@@ -35,7 +35,6 @@
     <module>operator</module>
     <module>api-web</module>
     <module>test-util</module>
-      <!-- <module>cli</module> -->
   </modules>
 
   <scm>

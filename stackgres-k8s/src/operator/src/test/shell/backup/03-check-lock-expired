@@ -1,0 +1,30 @@
+#!/bin/sh
+
+. "$TEST_SHELL_PATH/backup/abstract-backup"
+
+shell_unit_test() {
+  date +%s > "$TEST_TARGET_PATH/lock_timestamp"
+  ! (shell_unit_test_backup)
+}
+
+mock kubectl kubectl_mock_overwrite
+
+kubectl_mock_overwrite() {
+  mokked
+  case "$*" in
+    ("get cronjob.batch "*)
+    echo '
+      LOCK_POD=test
+      LOCK_TIMESTAMP='"$(cat "$TEST_TARGET_PATH/lock_timestamp")"'
+      RESOURCE_VERSION=test
+      '
+    echo 0 > "$TEST_TARGET_PATH/lock_timestamp"
+    ;;
+    ("get $BACKUP_CRD_NAME -n $CLUSTER_NAMESPACE --template $BACKUP_CR_TEMPLATE")
+    sleep 300
+    ;;
+    *)
+    not_mokked
+    ;;
+  esac
+}
