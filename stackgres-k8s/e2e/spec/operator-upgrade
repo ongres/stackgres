@@ -273,4 +273,3 @@ create_or_replace_cluster_for_version() {
       --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
   fi
 }
-

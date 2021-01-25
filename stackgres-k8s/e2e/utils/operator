@@ -234,9 +234,13 @@ load_operator_k8s() {
     docker tag "$ORIGINAL_JOBS_IMAGE_NAME" "$JOBS_IMAGE_NAME"
     docker tag "$ORIGINAL_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
     docker tag "$ORIGINAL_ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
-    load_operator_k8s
+    load_operator_k8s_only
+  else
+    load_operator_k8s_only
   fi
+}
 
+load_operator_k8s_only() {
   load_image_k8s "$OPERATOR_IMAGE_NAME"
   load_image_k8s "$RESTAPI_IMAGE_NAME"
   load_image_k8s "$JOBS_IMAGE_NAME"

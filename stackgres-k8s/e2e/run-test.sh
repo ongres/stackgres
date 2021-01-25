@@ -36,6 +36,12 @@ then
     exit 1
   else 
     try_function spec "$SPEC_PATH/$E2E_ENV/$SPEC_TO_RUN"
+
+    if [ "$K8S_DELETE" = true ]
+    then
+      delete_k8s || true
+    fi
+
     if "$RESULT"
     then
       cat "$TARGET_PATH/logs/results.log"
@@ -46,6 +52,12 @@ then
   fi
 else
   try_function spec "$SPEC_PATH/$SPEC_TO_RUN"
+
+  if [ "$K8S_DELETE" = true ]
+  then
+    delete_k8s || true
+  fi
+
   if "$RESULT"
   then
     cat "$TARGET_PATH/logs/results.log"

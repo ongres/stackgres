@@ -28,7 +28,13 @@ spec:
           - "/bin/bash"
           - "-ecx"
           - |
-            true
+            {{- range $path, $_ := .Files.Glob "crds/*" }}
+            cat << 'EOF' > /tmp/crd.yaml
+{{ $.Files.Get $path | indent 12 }}
+            EOF
+            kubectl apply -f /tmp/crd.yaml
+            {{- end }}
+            
             {{- if .Release.IsUpgrade }}
             kubectl get sgcluster -A --template '{{ "{{" }} range .items {{ "}}" }}{{ "{{" }} printf "%s:%s\n" .metadata.namespace .metadata.name {{ "}}" }}{{ "{{" }} end {{ "}}" }}' \
               | while read CLUSTER
