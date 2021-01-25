@@ -84,18 +84,17 @@ shell unit tests:
     - export E2E_OPERATOR_REGISTRY_PATH=/$CI_PROJECT_PATH/
     - export E2E_FORCE_IMAGE_PULL=true
     - |
-      set +e
+      if [ "$K8S_REUSE" = false ]
+      then
+        export K8S_DELETE=true
+        export E2E_SPEC_TRY_UNINSTALL_ON_FAILURE=true
+      fi
+    - |
       flock -s /tmp/stackgres-build-operator-native-executable \
         flock -s /tmp/stackgres-build-restapi-native-executable \
         flock "/tmp/stackgres-integration-test$SUFFIX" \
         timeout -s KILL 3600 \
         "$E2E_SHELL" $SHELL_XTRACE stackgres-k8s/e2e/run-all-tests.sh
-      EXIT_CODE="$?"
-      if [ "$K8S_REUSE" = false ]
-      then
-        "$E2E_SHELL" $SHELL_XTRACE stackgres-k8s/e2e/e2e delete_k8s
-      fi
-      exit "$EXIT_CODE"
   artifacts:
     expire_in: 1 week
     when: always
