@@ -84,7 +84,7 @@ var Grafana = Vue.component("Grafana", {
 				.fail(function( jqXHR, textStatus, errorThrown ) {
 						notify({
 								title: errorThrown,
-								detail: 'There was a problem when trying to access Grafana\'s dashboard. Please confirm you have setup your monitoring credentials properly',
+								detail: 'There was a problem when trying to access Grafana\'s dashboard. Please confirm you have setup the operator\'s credentials to view Grafana properly',
 								type: 'https://stackgres.io/doc/latest/install/prerequisites/monitoring/#installing-grafana-and-create-basic-dashboards',
 								status: 403
 						},'error')
@@ -98,7 +98,7 @@ var Grafana = Vue.component("Grafana", {
 				}       
 		});
 		//console.log(this.$route)
-		
+
 	},
 	computed: {
 		currentNamespace () {
