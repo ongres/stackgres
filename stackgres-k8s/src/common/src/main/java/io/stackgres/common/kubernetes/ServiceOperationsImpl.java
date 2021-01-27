@@ -14,14 +14,16 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.base.OperationContext;
 import okhttp3.OkHttpClient;
 
-public class ServiceOperationsImpl extends io.fabric8.kubernetes.client.dsl.internal.ServiceOperationsImpl {
+public class ServiceOperationsImpl
+    extends io.fabric8.kubernetes.client.dsl.internal.ServiceOperationsImpl {
 
   public ServiceOperationsImpl(OkHttpClient client, Config config) {
     this(client, config, null);
   }
 
   public ServiceOperationsImpl(OkHttpClient client, Config config, String namespace) {
-    this(new OperationContext().withOkhttpClient(client).withConfig(config).withNamespace(namespace));
+    this(new OperationContext().withOkhttpClient(client)
+        .withConfig(config).withNamespace(namespace));
   }
 
   public ServiceOperationsImpl(OperationContext context) {
@@ -38,40 +40,32 @@ public class ServiceOperationsImpl extends io.fabric8.kubernetes.client.dsl.inte
 
   @Override
   public Service replace(Service item) {
-      try {
-        if (item.getSpec() == null
-            || item.getSpec().getType() == null
-            || !item.getSpec().getType().equals("ExternalName")) {
-          Service old = fromServer().get();
-          item = new ServiceBuilder(item)
-              .editSpec()
-              .withClusterIP(old.getSpec().getClusterIP())
-              .endSpec()
-              .build();
-        }
-        return super.replace(item);
-      } catch (Exception e) {
-        throw KubernetesClientException.launderThrowable(forOperationType("replace"), e);
+    try {
+      if (item.getSpec() == null || item.getSpec().getType() == null
+          || !item.getSpec().getType().equals("ExternalName")) {
+        Service old = fromServer().get();
+        item = new ServiceBuilder(item).editSpec().withClusterIP(old.getSpec().getClusterIP())
+            .endSpec().build();
       }
+      return super.replace(item);
+    } catch (Exception e) {
+      throw KubernetesClientException.launderThrowable(forOperationType("replace"), e);
+    }
   }
 
   @Override
   public Service patch(Service item) {
-      try {
-        if (item.getSpec() == null
-            || item.getSpec().getType() == null
-            || !item.getSpec().getType().equals("ExternalName")) {
-          Service old = fromServer().get();
-          item = new ServiceBuilder(item)
-              .editSpec()
-              .withClusterIP(old.getSpec().getClusterIP())
-              .endSpec()
-              .build();
-        }
-        return super.patch(item);
-      } catch (Exception e) {
-        throw KubernetesClientException.launderThrowable(forOperationType("patch"), e);
+    try {
+      if (item.getSpec() == null || item.getSpec().getType() == null
+          || !item.getSpec().getType().equals("ExternalName")) {
+        Service old = fromServer().get();
+        item = new ServiceBuilder(item).editSpec().withClusterIP(old.getSpec().getClusterIP())
+            .endSpec().build();
       }
+      return super.patch(item);
+    } catch (Exception e) {
+      throw KubernetesClientException.launderThrowable(forOperationType("patch"), e);
+    }
   }
 
 }

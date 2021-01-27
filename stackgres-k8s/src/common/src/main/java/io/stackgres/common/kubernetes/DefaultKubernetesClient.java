@@ -38,7 +38,8 @@ public class DefaultKubernetesClient extends io.fabric8.kubernetes.client.Defaul
   }
 
   @Override
-  public MixedOperation<Service, ServiceList, DoneableService, ServiceResource<Service, DoneableService>> services() {
+  public MixedOperation<Service, ServiceList, DoneableService,
+      ServiceResource<Service, DoneableService>> services() {
     return new ServiceOperationsImpl(httpClient, getConfiguration());
   }
 
