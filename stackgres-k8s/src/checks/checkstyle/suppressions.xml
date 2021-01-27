@@ -5,7 +5,6 @@
 <suppressions>
   <suppress checks=".*" files=".*/target/.*" />
   <suppress checks=".*" files=".*/generated/.*" />
-  <suppress checks=".*" files=".*/io/stackgres/common/kubernetes/.*" />
 
   <suppress checks="MissingJavadocMethod" files=".java" />
 </suppressions>
