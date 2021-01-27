@@ -22,7 +22,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.ObjectMapperProvider;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.patroni.factory.PatroniConfigEndpoints;
+import io.stackgres.operator.patroni.factory.PatroniEndpoints;
 import io.stackgres.operator.patroni.factory.PatroniServices;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
 import io.stackgres.operatorframework.resource.visitor.PairVisitor;
@@ -112,7 +112,7 @@ public class PatroniConfigEndpointsHandler extends AbstractClusterResourceHandle
     public Map.Entry<String, String> tranformExistingEndpointsAnnotations(
         Map.Entry<String, String> leftEntry, Map.Entry<String, String> rightEntry) {
       if (leftEntry != null
-          && leftEntry.getKey().equals(PatroniConfigEndpoints.PATRONI_CONFIG_KEY)) {
+          && leftEntry.getKey().equals(PatroniEndpoints.PATRONI_CONFIG_KEY)) {
         try {
           JsonNode existingPatroniConfig = readOrderedTree(leftEntry.getValue());
           String existingRightEntryValue = objectMapper.writeValueAsString(existingPatroniConfig);
@@ -128,28 +128,19 @@ public class PatroniConfigEndpointsHandler extends AbstractClusterResourceHandle
     public Map.Entry<String, String> tranformRequiredEndpointsAnnotations(
         Map.Entry<String, String> leftEntry, Map.Entry<String, String> rightEntry) {
       if ((rightEntry != null //NOPMD
-          && rightEntry.getKey().equals(PatroniConfigEndpoints.PATRONI_CONFIG_KEY))
+          && rightEntry.getKey().equals(PatroniEndpoints.PATRONI_CONFIG_KEY))
           || (leftEntry != null //NOPMD
-          && leftEntry.getKey().equals(PatroniConfigEndpoints.PATRONI_CONFIG_KEY))) {
+          && leftEntry.getKey().equals(PatroniEndpoints.PATRONI_CONFIG_KEY))) {
         final JsonNode requiredPatroniConfig;
         try {
           requiredPatroniConfig = readOrderedTree(rightEntry.getValue());
         } catch (IOException ex) {
           throw new RuntimeException(ex);
         }
-        JsonNode existingPatroniConfig;
         try {
-          existingPatroniConfig = readOrderedTree(leftEntry.getValue());
-        } catch (IOException ex) {
-          LOGGER.warn("Error reading existing patroni configuration", ex);
-          existingPatroniConfig = requiredPatroniConfig;
-        }
-        try {
-          final JsonNode modifiedPatroniConfig = existingPatroniConfig;
-          ObjectNode.class.cast(modifiedPatroniConfig)
-              .set("postgresql", requiredPatroniConfig.get("postgresql"));
-          String modifiedLeftEntryValue = objectMapper.writeValueAsString(modifiedPatroniConfig);
-          return new SimpleEntry<>(rightEntry.getKey(), modifiedLeftEntryValue);
+          String requiredPatroniConfigValue = objectMapper.writeValueAsString(
+              requiredPatroniConfig);
+          return new SimpleEntry<>(rightEntry.getKey(), requiredPatroniConfigValue);
         } catch (JsonProcessingException ex) {
           throw new RuntimeException(ex);
         }

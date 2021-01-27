@@ -24,10 +24,9 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
-import io.stackgres.operatorframework.resource.AbstractResourceHandler;
 
 public abstract class AbstractDistributedLogsResourceHandler
-    extends AbstractResourceHandler<StackGresDistributedLogsContext> {
+    extends AbstractPausableResourceHandler<StackGresDistributedLogsContext> {
 
   protected static final ImmutableMap<Class<? extends HasMetadata>,
       Function<KubernetesClient,

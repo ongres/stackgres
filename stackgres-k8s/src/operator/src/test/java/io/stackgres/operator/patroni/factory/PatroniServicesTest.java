@@ -149,7 +149,7 @@ class PatroniServicesTest {
 
     Service primaryService = getPrimaryService(services);
 
-    assertEquals(StackGresClusterPostgresServiceType.ClusterIP.name(),
+    assertEquals(StackGresClusterPostgresServiceType.CLUSTER_IP.type(),
         primaryService.getSpec().getType());
 
   }
@@ -157,13 +157,13 @@ class PatroniServicesTest {
   @Test
   void ifPrimaryServiceTypeIsLoadBalancer_serviceTypeShouldBeLoadBalancer() {
 
-    enablePrimaryService(StackGresClusterPostgresServiceType.LoadBalancer);
+    enablePrimaryService(StackGresClusterPostgresServiceType.LOAD_BALANCER);
 
     Stream<HasMetadata> services = patroniServices.streamResources(generatorContext);
 
     Service primaryService = getPrimaryService(services);
 
-    assertEquals(StackGresClusterPostgresServiceType.LoadBalancer.name(),
+    assertEquals(StackGresClusterPostgresServiceType.LOAD_BALANCER.type(),
         primaryService.getSpec().getType());
 
   }
@@ -225,7 +225,7 @@ class PatroniServicesTest {
 
     Service ReplicaService = getReplicaService(services);
 
-    assertEquals(StackGresClusterPostgresServiceType.ClusterIP.name(),
+    assertEquals(StackGresClusterPostgresServiceType.CLUSTER_IP.type(),
         ReplicaService.getSpec().getType());
 
   }
@@ -233,13 +233,13 @@ class PatroniServicesTest {
   @Test
   void ifReplicaServiceTypeIsLoadBalancer_serviceTypeShouldBeLoadBalancer() {
 
-    enableReplicaService(StackGresClusterPostgresServiceType.LoadBalancer);
+    enableReplicaService(StackGresClusterPostgresServiceType.LOAD_BALANCER);
 
     Stream<HasMetadata> services = patroniServices.streamResources(generatorContext);
 
     Service ReplicaService = getReplicaService(services);
 
-    assertEquals(StackGresClusterPostgresServiceType.LoadBalancer.name(),
+    assertEquals(StackGresClusterPostgresServiceType.LOAD_BALANCER.type(),
         ReplicaService.getSpec().getType());
 
   }
@@ -298,7 +298,7 @@ class PatroniServicesTest {
         .getSpec()
         .getPostgresServices()
         .getPrimary();
-    primary.setType(type);
+    primary.setType(type.type());
   }
 
   private void enableReplicaService(StackGresClusterPostgresServiceType type) {
@@ -307,7 +307,7 @@ class PatroniServicesTest {
         .getSpec()
         .getPostgresServices()
         .getReplicas();
-    primary.setType(type);
+    primary.setType(type.type());
   }
 
   private void enablePrimaryService(Map<String,String> annotations){
@@ -331,7 +331,7 @@ class PatroniServicesTest {
   private Service getPrimaryService(Stream<HasMetadata> services) {
     return services
         .filter(s -> s.getKind().equals("Service"))
-        .filter(s -> s.getMetadata().getName().endsWith(PatroniUtil.READ_WRITE_SERVICE))
+        .filter(s -> s.getMetadata().getName().equals(PatroniUtil.name(defaultCluster.getMetadata().getName())))
         .map(s -> (Service) s)
         .findFirst().orElseGet(() -> fail("No postgres primary service found"));
   }

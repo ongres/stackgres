@@ -6,12 +6,14 @@
 package io.stackgres.operator.resource;
 
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -25,14 +27,13 @@ import io.stackgres.operator.customresource.prometheus.ServiceMonitorDefinition;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorDoneable;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorList;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
-import io.stackgres.operatorframework.resource.ResourceHandler;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import io.stackgres.operatorframework.resource.visitor.PairVisitor;
 import io.stackgres.operatorframework.resource.visitor.ResourcePairVisitor;
 
 @ApplicationScoped
 public class ServiceMonitorHandler
-    implements ResourceHandler<StackGresClusterContext> {
+    extends AbstractPausableResourceHandler<StackGresClusterContext> {
 
   private LabelFactoryDelegator factoryDelegator;
 
@@ -175,6 +176,13 @@ public class ServiceMonitorHandler
           .visitList(NamespaceSelector::getMatchNames, NamespaceSelector::setMatchNames);
     }
 
+  }
+
+  @Override
+  protected <M extends HasMetadata> Function<KubernetesClient, MixedOperation<? extends HasMetadata,
+        ? extends KubernetesResourceList<? extends HasMetadata>, ?,
+        ? extends Resource<? extends HasMetadata, ?>>> getResourceOperations(M resource) {
+    throw new UnsupportedOperationException();
   }
 
   @Inject

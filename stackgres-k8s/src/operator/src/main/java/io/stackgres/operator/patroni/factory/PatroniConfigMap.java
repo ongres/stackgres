@@ -30,6 +30,7 @@ import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.sidecars.envoy.Envoy;
+import io.stackgres.operator.sidecars.pooling.PgPooling;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 import org.slf4j.Logger;
@@ -69,21 +70,15 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
       throw new RuntimeException(ex);
     }
 
-    final String pgHost = clusterContext.getSidecars().stream()
-        .filter(entry -> entry.getSidecar() instanceof Envoy)
-        .map(entry -> "127.0.0.1") // NOPMD
-        .findFirst()
-        .orElse("0.0.0.0"); // NOPMD
-    final int pgRawPort = clusterContext.getSidecars().stream()
-        .filter(entry -> entry.getSidecar() instanceof Envoy)
-        .map(entry -> EnvoyUtil.PG_REPL_ENTRY_PORT)
-        .findFirst()
-        .orElse(EnvoyUtil.PG_PORT);
+    final String pgHost = getPgHost(clusterContext);
+    final int pgPort = getPgPort(clusterContext);
+    final int pgRawPort = getPgRawPort(clusterContext);
     Map<String, String> data = new HashMap<>();
     data.put("PATRONI_SCOPE", labelFactory.clusterScope(cluster));
     data.put("PATRONI_KUBERNETES_SCOPE_LABEL", labelFactory.getLabelMapper().clusterScopeKey());
     data.put("PATRONI_KUBERNETES_LABELS", patroniLabels);
     data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
+    data.put("PATRONI_KUBERNETES_PORTS", getKubernetesPorts(pgPort, pgRawPort));
     data.put("PATRONI_SUPERUSER_USERNAME", "postgres");
     data.put("PATRONI_REPLICATION_USERNAME", "replicator");
     data.put("PATRONI_POSTGRESQL_LISTEN", pgHost + ":" + EnvoyUtil.PG_PORT);
@@ -125,6 +120,53 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(data))
         .build());
+  }
+
+  public static int getPgRawPort(final StackGresClusterContext clusterContext) {
+    return clusterContext.getSidecars().stream()
+        .filter(entry -> entry.getSidecar() instanceof Envoy)
+        .map(entry -> EnvoyUtil.PG_REPL_ENTRY_PORT)
+        .findFirst()
+        .orElse(EnvoyUtil.PG_PORT);
+  }
+
+  public static int getPgPort(final StackGresClusterContext clusterContext) {
+    return Seq.of(
+        clusterContext.getSidecars().stream()
+        .filter(entry -> entry.getSidecar() instanceof Envoy)
+        .map(entry -> EnvoyUtil.PG_ENTRY_PORT)
+        .findFirst(),
+        clusterContext.getSidecars().stream()
+        .filter(entry -> entry.getSidecar() instanceof PgPooling)
+        .map(entry -> EnvoyUtil.PG_POOL_PORT)
+        .findFirst())
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .findFirst()
+        .orElse(EnvoyUtil.PG_PORT);
+  }
+
+  public static String getPgHost(final StackGresClusterContext clusterContext) {
+    return clusterContext.getSidecars().stream()
+        .filter(entry -> entry.getSidecar() instanceof Envoy)
+        .map(entry -> "127.0.0.1") // NOPMD
+        .findFirst()
+        .orElse("0.0.0.0");  // NOPMD
+  }
+
+  public static String getKubernetesPorts(final StackGresClusterContext clusterContext) {
+    return getKubernetesPorts(getPgPort(clusterContext), getPgRawPort(clusterContext));
+  }
+
+  public static String getKubernetesPorts(final int pgPort, final int pgRawPort) {
+    return "["
+        + "{\"protocol\":\"TCP\","
+            + "\"name\":\"" + POSTGRES_PORT_NAME + "\","
+            + "\"port\":" + pgPort + "},"
+        + "{\"protocol\":\"TCP\","
+            + "\"name\":\"" + POSTGRES_REPLICATION_PORT_NAME + "\","
+            + "\"port\":" + pgRawPort + "}"
+        + "]";
   }
 
   @Inject

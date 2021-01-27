@@ -23,7 +23,9 @@ public interface ResourceHandlerSelector<T extends ResourceHandlerContext> {
 
   boolean skipCreation(T context, HasMetadata requiredResource);
 
-  boolean skipDeletion(T context, HasMetadata requiredResource);
+  boolean skipUpdate(T config, HasMetadata existingResource, HasMetadata requiredResource);
+
+  boolean skipDeletion(T context, HasMetadata existingResource);
 
   void registerKinds();
 

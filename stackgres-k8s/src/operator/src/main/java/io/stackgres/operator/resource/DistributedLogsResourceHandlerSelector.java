@@ -92,13 +92,21 @@ public class DistributedLogsResourceHandlerSelector
     }
 
     @Override
-    public boolean skipCreation() {
-      return handler.skipCreation();
+    public boolean skipCreation(StackGresDistributedLogsContext context,
+        HasMetadata requiredResource) {
+      return handler.skipCreation(context, requiredResource);
     }
 
     @Override
-    public boolean skipDeletion() {
-      return handler.skipDeletion();
+    public boolean skipUpdate(StackGresDistributedLogsContext context, HasMetadata existingResource,
+        HasMetadata requiredResource) {
+      return handler.skipUpdate(context, existingResource, requiredResource);
+    }
+
+    @Override
+    public boolean skipDeletion(StackGresDistributedLogsContext context,
+        HasMetadata existingResource) {
+      return handler.skipDeletion(context, existingResource);
     }
 
     @Override

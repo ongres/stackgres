@@ -12,7 +12,8 @@ wait_services_available() {
   local END="$(($(date +%s) + (E2E_TIMEOUT * EXPECTED_AVAILABLE_SERVICES)))"
   while [ "$(date +%s)" -lt "$END" ]
   do
-    AVAILABLE_SERVICES="$(kubectl get endpoints "$NAMESPACE_OPT" -o name \
+    AVAILABLE_SERVICES="$(kubectl get endpoints "$NAMESPACE_OPT" \
+      --template '{{ range .items }}{{ $name := .metadata.name }}{{ with .subsets }}{{ range . }}{{ printf "%s\n" $name }}{{ end }}{{ end }}{{ end }}' \
       | grep "$EXPECTED_AVAILABLE_SERVICES_EXPRESSION" | wc -l)"
     if [ "$AVAILABLE_SERVICES" -ge "$EXPECTED_AVAILABLE_SERVICES" ]
     then
