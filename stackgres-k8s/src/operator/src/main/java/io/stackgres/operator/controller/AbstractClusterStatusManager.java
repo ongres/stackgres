@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import javax.validation.constraints.NotNull;
 
+import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -22,6 +23,8 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.StackGresClusterContext;
@@ -106,8 +109,31 @@ public abstract class AbstractClusterStatusManager<T extends StackGresClusterCon
    * Check pending restart status condition.
    */
   public boolean isPendingRestart(T context) {
-    return isStatefulSetPendingRestart(context)
+    return isClusterPendingUpgrade(context)
+        || isStatefulSetPendingRestart(context)
         || isPatroniPendingRestart(context);
+  }
+
+  private boolean isClusterPendingUpgrade(T context) {
+    final Map<String, String> podClusterLabels =
+        labelFactory.patroniClusterLabels(context.getCluster());
+
+    return context.getExistingResources()
+        .stream()
+        .map(Tuple2::v1)
+        .filter(Pod.class::isInstance)
+        .map(Pod.class::cast)
+        .filter(pod -> pod.getMetadata() != null
+            && pod.getMetadata().getAnnotations() != null
+            && podClusterLabels.entrySet().stream()
+            .allMatch(podClusterLabel -> pod.getMetadata().getLabels().entrySet().stream()
+                .anyMatch(podLabel -> Objects.equals(podLabel, podClusterLabel))))
+        .anyMatch(pod -> Optional.ofNullable(pod.getMetadata().getAnnotations())
+            .orElse(ImmutableMap.of())
+            .entrySet()
+            .stream()
+            .noneMatch(e -> e.getKey().equals(StackGresContext.VERSION_KEY)
+                && e.getValue().equals(StackGresProperty.OPERATOR_VERSION.getString())));
   }
 
   private boolean isStatefulSetPendingRestart(T context) {

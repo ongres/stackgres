@@ -12,16 +12,11 @@ import javax.enterprise.context.ApplicationScoped;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.test.Mock;
 import io.stackgres.common.KubernetesClientFactory;
-import io.stackgres.testutil.CrdUtils;
 import io.stackgres.testutil.KubernetesServerSupplier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Mock
 @ApplicationScoped
 public class MockKubernetesClientFactory  implements KubernetesClientFactory {
-
-  private final static Logger LOGGER = LoggerFactory.getLogger(MockKubernetesClientFactory.class);
 
   private final KubernetesServerSupplier serverSupplier = new KubernetesServerSupplier();
 

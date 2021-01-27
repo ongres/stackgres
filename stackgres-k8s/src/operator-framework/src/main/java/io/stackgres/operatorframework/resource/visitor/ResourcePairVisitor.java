@@ -6,6 +6,7 @@
 package io.stackgres.operatorframework.resource.visitor;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.Affinity;
@@ -20,6 +21,7 @@ import io.fabric8.kubernetes.api.model.EnvFromSource;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarSource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.NodeSelector;
@@ -47,6 +49,7 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
+import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeDevice;
@@ -78,68 +81,60 @@ public class ResourcePairVisitor<T, C> {
   }
 
   /**
-   * Compare resources skipping non-static fields and considering null as default
-   * if any is defined.
+   * Compare resources skipping non-static fields and considering null as default if any is defined.
    */
   public static boolean equals(HasMetadata left, HasMetadata right) {
     return equals(new ResourcePairVisitor<Boolean, Void>(null), left, right);
   }
 
   /**
-   * Compare resources skipping non-static fields and considering null as default
-   * if any is defined.
+   * Compare resources skipping non-static fields and considering null as default if any is defined.
    */
   public static <C> boolean equals(C context, HasMetadata left, HasMetadata right) {
     return equals(new ResourcePairVisitor<Boolean, C>(context), left, right);
   }
 
   /**
-   * Compare resources skipping non-static fields and considering null as default
-   * if any is defined using the specified visitor.
+   * Compare resources skipping non-static fields and considering null as default if any is defined
+   * using the specified visitor.
    */
-  public static <C> boolean equals(
-      ResourcePairVisitor<Boolean, C> resourceVisitor,
+  public static <C> boolean equals(ResourcePairVisitor<Boolean, C> resourceVisitor,
       HasMetadata left, HasMetadata right) {
-    return resourceVisitor.visit(
-        new PairComparator<>(left, right)).result();
+    return resourceVisitor.visit(new PairComparator<>(left, right)).result();
   }
 
   /**
-   * Update left resource with right resource skipping non-static fields
-   * and considering null as default if defined.
+   * Update left resource with right resource skipping non-static fields and considering null as
+   * default if defined.
    */
   public static HasMetadata update(HasMetadata toUpdate, HasMetadata withUpdates) {
     return update(new ResourcePairVisitor<HasMetadata, Void>(null), toUpdate, withUpdates);
   }
 
   /**
-   * Update left resource with right resource skipping non-static fields
-   * and considering null as default if defined.
+   * Update left resource with right resource skipping non-static fields and considering null as
+   * default if defined.
    */
   public static <C> HasMetadata update(C context, HasMetadata toUpdate, HasMetadata withUpdates) {
     return update(new ResourcePairVisitor<HasMetadata, C>(context), toUpdate, withUpdates);
   }
 
   /**
-   * Update left resource with right resource skipping non-static fields
-   * and considering null as default if defined using the specified visitor.
+   * Update left resource with right resource skipping non-static fields and considering null as
+   * default if defined using the specified visitor.
    */
   public static <C> HasMetadata update(ResourcePairVisitor<HasMetadata, C> resourceVisitor,
       HasMetadata toUpdate, HasMetadata withUpdates) {
-    return resourceVisitor.visit(
-        new PairUpdater<>(toUpdate, withUpdates)).result();
+    return resourceVisitor.visit(new PairUpdater<>(toUpdate, withUpdates)).result();
   }
 
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<HasMetadata, T> visit(
-      PairVisitor<HasMetadata, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visit(HasMetadata::getApiVersion, HasMetadata::setApiVersion)
+  public PairVisitor<HasMetadata, T> visit(PairVisitor<HasMetadata, T> pairVisitor) {
+    return pairVisitor.visit().visit(HasMetadata::getApiVersion, HasMetadata::setApiVersion)
         .visit(HasMetadata::getKind)
-        .visitWith(HasMetadata::getMetadata, HasMetadata::setMetadata,
-            this::visitMetadata)
+        .visitWith(HasMetadata::getMetadata, HasMetadata::setMetadata, this::visitMetadata)
         .lastVisitIfBothInstanceOf(StatefulSet.class, this::visitStatefulSet)
         .lastVisitIfBothInstanceOf(Service.class, this::visitService)
         .lastVisitIfBothInstanceOf(ServiceAccount.class, this::visitServiceAccount)
@@ -158,8 +153,7 @@ public class ResourcePairVisitor<T, C> {
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<HasMetadata, T> visitUnknown(
-      PairVisitor<HasMetadata, T> pairVisitor) {
+  public PairVisitor<HasMetadata, T> visitUnknown(PairVisitor<HasMetadata, T> pairVisitor) {
     throw new IllegalStateException(
         "Can not compare resources of type " + pairVisitor.left.getKind());
   }
@@ -167,29 +161,23 @@ public class ResourcePairVisitor<T, C> {
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<StatefulSet, T> visitStatefulSet(
-      PairVisitor<StatefulSet, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visitWith(StatefulSet::getSpec, StatefulSet::setSpec,
-            this::visitStatefulSetSpec);
+  public PairVisitor<StatefulSet, T> visitStatefulSet(PairVisitor<StatefulSet, T> pairVisitor) {
+    return pairVisitor.visit().visitWith(StatefulSet::getSpec, StatefulSet::setSpec,
+        this::visitStatefulSetSpec);
   }
 
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<CronJob, T> visitCronJob(
-      PairVisitor<CronJob, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visitWith(CronJob::getSpec, CronJob::setSpec,
-            this::visitCronJobSpec)
+  public PairVisitor<CronJob, T> visitCronJob(PairVisitor<CronJob, T> pairVisitor) {
+    return pairVisitor.visit().visitWith(CronJob::getSpec, CronJob::setSpec, this::visitCronJobSpec)
         .visitMap(CronJob::getAdditionalProperties);
   }
 
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<CronJobSpec, T> visitCronJobSpec(
-      PairVisitor<CronJobSpec, T> pairVisitor) {
+  public PairVisitor<CronJobSpec, T> visitCronJobSpec(PairVisitor<CronJobSpec, T> pairVisitor) {
     return pairVisitor.visit()
         .visit(CronJobSpec::getConcurrencyPolicy, CronJobSpec::setConcurrencyPolicy)
         .visit(CronJobSpec::getFailedJobsHistoryLimit, CronJobSpec::setFailedJobsHistoryLimit)
@@ -206,11 +194,8 @@ public class ResourcePairVisitor<T, C> {
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<Job, T> visitJob(
-      PairVisitor<Job, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visitWith(Job::getSpec, Job::setSpec,
-            this::visitJobSpec)
+  public PairVisitor<Job, T> visitJob(PairVisitor<Job, T> pairVisitor) {
+    return pairVisitor.visit().visitWith(Job::getSpec, Job::setSpec, this::visitJobSpec)
         .visitMap(Job::getAdditionalProperties);
   }
 
@@ -220,8 +205,7 @@ public class ResourcePairVisitor<T, C> {
   public PairVisitor<JobTemplateSpec, T> visitJobTemplateSpec(
       PairVisitor<JobTemplateSpec, T> pairVisitor) {
     return pairVisitor.visit()
-        .visitWith(JobTemplateSpec::getMetadata, JobTemplateSpec::setMetadata,
-            this::visitMetadata)
+        .visitWith(JobTemplateSpec::getMetadata, JobTemplateSpec::setMetadata, this::visitMetadata)
         .visitWith(JobTemplateSpec::getSpec, JobTemplateSpec::setSpec,
             this::visitJobSpecFromJobTemplateSpec)
         .visitMap(JobTemplateSpec::getAdditionalProperties);
@@ -239,24 +223,21 @@ public class ResourcePairVisitor<T, C> {
         .visit(JobSpec::getManualSelector, JobSpec::setManualSelector)
         .visit(JobSpec::getParallelism, JobSpec::setParallelism)
         .visit(JobSpec::getTtlSecondsAfterFinished, JobSpec::setTtlSecondsAfterFinished)
-        .visitWith(JobSpec::getTemplate, JobSpec::setTemplate,
-            this::visitPodTemplateSpec)
+        .visitWith(JobSpec::getTemplate, JobSpec::setTemplate, this::visitPodTemplateSpec)
         .visitMap(JobSpec::getAdditionalProperties);
   }
 
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<JobSpec, T> visitJobSpec(
-      PairVisitor<JobSpec, T> pairVisitor) {
+  public PairVisitor<JobSpec, T> visitJobSpec(PairVisitor<JobSpec, T> pairVisitor) {
     return pairVisitor.visit()
         .visit(JobSpec::getActiveDeadlineSeconds, JobSpec::setActiveDeadlineSeconds)
         .visit(JobSpec::getBackoffLimit, JobSpec::setBackoffLimit)
         .visit(JobSpec::getCompletions, JobSpec::setCompletions)
         .visit(JobSpec::getManualSelector, JobSpec::setManualSelector)
         .visit(JobSpec::getParallelism, JobSpec::setParallelism)
-        .visit(JobSpec::getTtlSecondsAfterFinished, JobSpec::setTtlSecondsAfterFinished,
-            300)
+        .visit(JobSpec::getTtlSecondsAfterFinished, JobSpec::setTtlSecondsAfterFinished, 300)
         .visitWith(JobSpec::getTemplate, JobSpec::setTemplate,
             this::visitPodTemplateSpecFromJobSpec)
         .visitMap(JobSpec::getAdditionalProperties);
@@ -267,10 +248,8 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<PersistentVolume, T> visitPersistentVolume(
       PairVisitor<PersistentVolume, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visitWith(PersistentVolume::getSpec, PersistentVolume::setSpec,
-            this::visitPersistentVolumeSpec)
-        .visitMap(PersistentVolume::getAdditionalProperties);
+    return pairVisitor.visit().visitWith(PersistentVolume::getSpec, PersistentVolume::setSpec,
+        this::visitPersistentVolumeSpec).visitMap(PersistentVolume::getAdditionalProperties);
   }
 
   /**
@@ -321,20 +300,18 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<VolumeNodeAffinity, T> visitVolumeNodeAffinity(
       PairVisitor<VolumeNodeAffinity, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visitWith(VolumeNodeAffinity::getRequired, VolumeNodeAffinity::setRequired,
-            this::visitNodeSelector)
+    return pairVisitor.visit().visitWith(VolumeNodeAffinity::getRequired,
+        VolumeNodeAffinity::setRequired, this::visitNodeSelector)
         .visitMap(VolumeNodeAffinity::getAdditionalProperties);
   }
 
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<NodeSelector, T> visitNodeSelector(
-      PairVisitor<NodeSelector, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visitListWith(NodeSelector::getNodeSelectorTerms, NodeSelector::setNodeSelectorTerms,
-            this::visitNodeSelectorTerm)
+  public PairVisitor<NodeSelector, T> visitNodeSelector(PairVisitor<NodeSelector, T> pairVisitor) {
+    return pairVisitor
+        .visit().visitListWith(NodeSelector::getNodeSelectorTerms,
+            NodeSelector::setNodeSelectorTerms, this::visitNodeSelectorTerm)
         .visitMap(NodeSelector::getAdditionalProperties);
   }
 
@@ -366,22 +343,17 @@ public class ResourcePairVisitor<T, C> {
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<Service, T> visitService(
-      PairVisitor<Service, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visitWith(Service::getSpec, Service::setSpec,
-            this::visitServiceSpec);
+  public PairVisitor<Service, T> visitService(PairVisitor<Service, T> pairVisitor) {
+    return pairVisitor.visit().visitWith(Service::getSpec, Service::setSpec,
+        this::visitServiceSpec);
   }
 
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<Endpoints, T> visitEndpoints(
-      PairVisitor<Endpoints, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visitMap(Endpoints::getAdditionalProperties)
-        .visitListWith(Endpoints::getSubsets, Endpoints::setSubsets,
-            this::visitEndpointSubset);
+  public PairVisitor<Endpoints, T> visitEndpoints(PairVisitor<Endpoints, T> pairVisitor) {
+    return pairVisitor.visit().visitMap(Endpoints::getAdditionalProperties)
+        .visitListWith(Endpoints::getSubsets, Endpoints::setSubsets, this::visitEndpointSubset);
   }
 
   /**
@@ -399,18 +371,15 @@ public class ResourcePairVisitor<T, C> {
    * Visit using a pair visitor.
    */
   public PairVisitor<Role, T> visitRole(PairVisitor<Role, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visitList(Role::getRules, Role::setRules)
+    return pairVisitor.visit().visitList(Role::getRules, Role::setRules)
         .visitMap(Role::getAdditionalProperties);
   }
 
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<RoleBinding, T> visitRoleBinding(
-      PairVisitor<RoleBinding, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visit(RoleBinding::getRoleRef, RoleBinding::setRoleRef)
+  public PairVisitor<RoleBinding, T> visitRoleBinding(PairVisitor<RoleBinding, T> pairVisitor) {
+    return pairVisitor.visit().visit(RoleBinding::getRoleRef, RoleBinding::setRoleRef)
         .visitList(RoleBinding::getSubjects, RoleBinding::setSubjects)
         .visitMap(RoleBinding::getAdditionalProperties);
   }
@@ -420,26 +389,22 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<Secret, T> visitSecret(PairVisitor<Secret, T> pairVisitor) {
     return pairVisitor.visit()
-        .transformRight(secret -> secret.getData() == null && secret.getStringData() != null
-          ? new SecretBuilder(secret)
-              .withData(secret.getStringData().entrySet().stream()
-                  .collect(Collectors.toMap(
-                      Map.Entry::getKey,
-                      e -> ResourceUtil.encodeSecret(e.getValue()))))
-              .withStringData(null)
-              .build()
-              : secret)
-        .visit(Secret::getType, Secret::setType)
-        .visitMap(Secret::getData, Secret::setData);
+        .transformRight(
+            secret -> secret.getData() == null && secret.getStringData() != null
+                ? new SecretBuilder(secret)
+                    .withData(secret.getStringData().entrySet().stream()
+                        .collect(Collectors.toMap(Map.Entry::getKey,
+                            e -> ResourceUtil.encodeSecret(e.getValue()))))
+                    .withStringData(null).build()
+                : secret)
+        .visit(Secret::getType, Secret::setType).visitMap(Secret::getData, Secret::setData);
   }
 
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<ConfigMap, T> visitConfigMap(
-      PairVisitor<ConfigMap, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visit(ConfigMap::getAdditionalProperties)
+  public PairVisitor<ConfigMap, T> visitConfigMap(PairVisitor<ConfigMap, T> pairVisitor) {
+    return pairVisitor.visit().visit(ConfigMap::getAdditionalProperties)
         .visitMap(ConfigMap::getData, ConfigMap::setData)
         .visitMap(ConfigMap::getBinaryData, ConfigMap::setBinaryData);
   }
@@ -450,18 +415,17 @@ public class ResourcePairVisitor<T, C> {
   public PairVisitor<StatefulSetSpec, T> visitStatefulSetSpec(
       PairVisitor<StatefulSetSpec, T> pairVisitor) {
     return pairVisitor.visit()
-        .visit(StatefulSetSpec::getPodManagementPolicy,
-            StatefulSetSpec::setPodManagementPolicy, "OrderedReady")
+        .visit(StatefulSetSpec::getPodManagementPolicy, StatefulSetSpec::setPodManagementPolicy,
+            "OrderedReady")
         .visit(StatefulSetSpec::getReplicas, StatefulSetSpec::setReplicas)
-        .visit(StatefulSetSpec::getRevisionHistoryLimit,
-            StatefulSetSpec::setRevisionHistoryLimit, 10)
+        .visit(StatefulSetSpec::getRevisionHistoryLimit, StatefulSetSpec::setRevisionHistoryLimit,
+            10)
         .visit(StatefulSetSpec::getSelector, StatefulSetSpec::setSelector)
         .visit(StatefulSetSpec::getServiceName, StatefulSetSpec::setServiceName)
         .visit(StatefulSetSpec::getUpdateStrategy, StatefulSetSpec::setUpdateStrategy)
         .visitMap(StatefulSetSpec::getAdditionalProperties)
         .visitListWith(StatefulSetSpec::getVolumeClaimTemplates,
-            StatefulSetSpec::setVolumeClaimTemplates,
-            this::visitPersistentVolumeClaim)
+            StatefulSetSpec::setVolumeClaimTemplates, this::visitPersistentVolumeClaim)
         .visitWith(StatefulSetSpec::getTemplate, StatefulSetSpec::setTemplate,
             this::visitPodTemplateSpec);
   }
@@ -487,18 +451,16 @@ public class ResourcePairVisitor<T, C> {
   public PairVisitor<PersistentVolumeClaimSpec, T> visitPersistentVolumeClaimSpec(
       PairVisitor<PersistentVolumeClaimSpec, T> pairVisitor) {
     return pairVisitor.visit()
-        .visit(PersistentVolumeClaimSpec::getDataSource,
-            PersistentVolumeClaimSpec::setDataSource)
+        .visit(PersistentVolumeClaimSpec::getDataSource, PersistentVolumeClaimSpec::setDataSource)
         .visit(PersistentVolumeClaimSpec::getSelector, PersistentVolumeClaimSpec::setSelector)
         .visit(PersistentVolumeClaimSpec::getStorageClassName,
             PersistentVolumeClaimSpec::setStorageClassName)
-        .visit(PersistentVolumeClaimSpec::getVolumeMode,
-            PersistentVolumeClaimSpec::setVolumeMode, "Filesystem")
+        .visit(PersistentVolumeClaimSpec::getVolumeMode, PersistentVolumeClaimSpec::setVolumeMode,
+            "Filesystem")
         .visitList(PersistentVolumeClaimSpec::getAccessModes,
             PersistentVolumeClaimSpec::setAccessModes)
         .visitMap(PersistentVolumeClaimSpec::getAdditionalProperties)
-        .visitWith(PersistentVolumeClaimSpec::getResources,
-            PersistentVolumeClaimSpec::setResources,
+        .visitWith(PersistentVolumeClaimSpec::getResources, PersistentVolumeClaimSpec::setResources,
             this::visitResourceRequirements);
   }
 
@@ -507,8 +469,7 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<ResourceRequirements, T> visitResourceRequirements(
       PairVisitor<ResourceRequirements, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visitMap(ResourceRequirements::getAdditionalProperties)
+    return pairVisitor.visit().visitMap(ResourceRequirements::getAdditionalProperties)
         .visitMap(ResourceRequirements::getLimits, ResourceRequirements::setLimits)
         .visitMap(ResourceRequirements::getRequests, ResourceRequirements::setRequests);
   }
@@ -519,11 +480,9 @@ public class ResourcePairVisitor<T, C> {
   public PairVisitor<PodTemplateSpec, T> visitPodTemplateSpec(
       PairVisitor<PodTemplateSpec, T> pairVisitor) {
     return pairVisitor.visit()
-        .visitWith(PodTemplateSpec::getMetadata, PodTemplateSpec::setMetadata,
-        this::visitMetadata)
+        .visitWith(PodTemplateSpec::getMetadata, PodTemplateSpec::setMetadata, this::visitMetadata)
         .visitMap(PodTemplateSpec::getAdditionalProperties)
-        .visitWith(PodTemplateSpec::getSpec, PodTemplateSpec::setSpec,
-            this::visitPodSpec);
+        .visitWith(PodTemplateSpec::getSpec, PodTemplateSpec::setSpec, this::visitPodSpec);
   }
 
   /**
@@ -533,21 +492,18 @@ public class ResourcePairVisitor<T, C> {
       PairVisitor<PodTemplateSpec, T> pairVisitor) {
     return pairVisitor.visit()
         .visitWith(PodTemplateSpec::getMetadata, PodTemplateSpec::setMetadata,
-        this::visitMetadataWithoutLabels)
+            this::visitMetadataWithoutLabels)
         .visitMap(PodTemplateSpec::getAdditionalProperties)
-        .visitWith(PodTemplateSpec::getSpec, PodTemplateSpec::setSpec,
-            this::visitPodSpec);
+        .visitWith(PodTemplateSpec::getSpec, PodTemplateSpec::setSpec, this::visitPodSpec);
   }
 
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<PodSpec, T> visitPodSpec(
-      PairVisitor<PodSpec, T> pairVisitor) {
+  public PairVisitor<PodSpec, T> visitPodSpec(PairVisitor<PodSpec, T> pairVisitor) {
     return pairVisitor.visit()
         .visit(PodSpec::getActiveDeadlineSeconds, PodSpec::setActiveDeadlineSeconds)
-        .visit(PodSpec::getAutomountServiceAccountToken,
-            PodSpec::setAutomountServiceAccountToken)
+        .visit(PodSpec::getAutomountServiceAccountToken, PodSpec::setAutomountServiceAccountToken)
         .visit(PodSpec::getDnsConfig, PodSpec::setDnsConfig)
         .visit(PodSpec::getDnsPolicy, PodSpec::setDnsPolicy, "ClusterFirst")
         .visit(PodSpec::getEnableServiceLinks, PodSpec::setEnableServiceLinks)
@@ -566,23 +522,19 @@ public class ResourcePairVisitor<T, C> {
         .visit(PodSpec::getServiceAccountName, PodSpec::setServiceAccountName)
         .visit(PodSpec::getShareProcessNamespace, PodSpec::setShareProcessNamespace)
         .visit(PodSpec::getSubdomain, PodSpec::setSubdomain)
-        .visit(PodSpec::getTerminationGracePeriodSeconds,
-            PodSpec::setTerminationGracePeriodSeconds, 30L)
+        .visit(PodSpec::getTerminationGracePeriodSeconds, PodSpec::setTerminationGracePeriodSeconds,
+            30L)
         .visitWithUsingDefaultFrom(PodSpec::getSecurityContext, PodSpec::setSecurityContext,
-            this::visitPodSecurityContext,
-            PodSecurityContext::new)
+            this::visitPodSecurityContext, PodSecurityContext::new)
         .visitList(PodSpec::getHostAliases, PodSpec::setHostAliases)
         .visitList(PodSpec::getImagePullSecrets, PodSpec::setImagePullSecrets)
         .visitList(PodSpec::getReadinessGates, PodSpec::setReadinessGates)
         .visitList(PodSpec::getTolerations, PodSpec::setTolerations)
-        .visitListWith(PodSpec::getVolumes, PodSpec::setVolumes,
-            this::visitVolume)
+        .visitListWith(PodSpec::getVolumes, PodSpec::setVolumes, this::visitVolume)
         .visitMap(PodSpec::getAdditionalProperties)
         .visitMap(PodSpec::getNodeSelector, PodSpec::setNodeSelector)
-        .visitWith(PodSpec::getAffinity, PodSpec::setAffinity,
-            this::visitAffinity)
-        .visitListWith(PodSpec::getContainers, PodSpec::setContainers,
-            this::visitContainer)
+        .visitWith(PodSpec::getAffinity, PodSpec::setAffinity, this::visitAffinity)
+        .visitListWith(PodSpec::getContainers, PodSpec::setContainers, this::visitContainer)
         .visitListWith(PodSpec::getInitContainers, PodSpec::setInitContainers,
             this::visitContainer);
   }
@@ -592,8 +544,7 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<PodSecurityContext, T> visitPodSecurityContext(
       PairVisitor<PodSecurityContext, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visit(PodSecurityContext::getFsGroup, PodSecurityContext::setFsGroup)
+    return pairVisitor.visit().visit(PodSecurityContext::getFsGroup, PodSecurityContext::setFsGroup)
         .visit(PodSecurityContext::getRunAsGroup, PodSecurityContext::setRunAsGroup)
         .visit(PodSecurityContext::getRunAsNonRoot, PodSecurityContext::setRunAsNonRoot)
         .visit(PodSecurityContext::getRunAsUser, PodSecurityContext::setRunAsUser)
@@ -607,38 +558,29 @@ public class ResourcePairVisitor<T, C> {
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<Volume, T> visitVolume(
-      PairVisitor<Volume, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visit(Volume::getName, Volume::setName)
+  public PairVisitor<Volume, T> visitVolume(PairVisitor<Volume, T> pairVisitor) {
+    return pairVisitor.visit().visit(Volume::getName, Volume::setName)
         .visit(Volume::getAwsElasticBlockStore, Volume::setAwsElasticBlockStore)
         .visit(Volume::getAzureDisk, Volume::setAzureDisk)
         .visit(Volume::getAzureFile, Volume::setAzureFile)
-        .visit(Volume::getCephfs, Volume::setCephfs)
-        .visit(Volume::getCinder, Volume::setCinder)
-        .visitWith(Volume::getConfigMap, Volume::setConfigMap,
-            this::visitConfigMapVolumeSource)
-        .visit(Volume::getCsi, Volume::setCsi)
-        .visit(Volume::getDownwardAPI, Volume::setDownwardAPI)
-        .visit(Volume::getEmptyDir, Volume::setEmptyDir)
-        .visit(Volume::getFc, Volume::setFc)
+        .visit(Volume::getCephfs, Volume::setCephfs).visit(Volume::getCinder, Volume::setCinder)
+        .visitWith(Volume::getConfigMap, Volume::setConfigMap, this::visitConfigMapVolumeSource)
+        .visit(Volume::getCsi, Volume::setCsi).visit(Volume::getDownwardAPI, Volume::setDownwardAPI)
+        .visit(Volume::getEmptyDir, Volume::setEmptyDir).visit(Volume::getFc, Volume::setFc)
         .visit(Volume::getFlexVolume, Volume::setFlexVolume)
         .visit(Volume::getFlocker, Volume::setFlocker)
         .visit(Volume::getGcePersistentDisk, Volume::setGcePersistentDisk)
         .visit(Volume::getGitRepo, Volume::setGitRepo)
         .visit(Volume::getGlusterfs, Volume::setGlusterfs)
-        .visit(Volume::getHostPath, Volume::setHostPath)
-        .visit(Volume::getIscsi, Volume::setIscsi)
+        .visit(Volume::getHostPath, Volume::setHostPath).visit(Volume::getIscsi, Volume::setIscsi)
         .visit(Volume::getNfs, Volume::setNfs)
         .visitWith(Volume::getPersistentVolumeClaim, Volume::setPersistentVolumeClaim,
             this::visitPersistentVolumeClaimVolumeSource)
         .visit(Volume::getPhotonPersistentDisk, Volume::setPhotonPersistentDisk)
         .visit(Volume::getPortworxVolume, Volume::setPortworxVolume)
         .visit(Volume::getProjected, Volume::setProjected)
-        .visit(Volume::getQuobyte, Volume::setQuobyte)
-        .visit(Volume::getRbd, Volume::setRbd)
-        .visit(Volume::getScaleIO, Volume::setScaleIO)
-        .visit(Volume::getSecret, Volume::setSecret)
+        .visit(Volume::getQuobyte, Volume::setQuobyte).visit(Volume::getRbd, Volume::setRbd)
+        .visit(Volume::getScaleIO, Volume::setScaleIO).visit(Volume::getSecret, Volume::setSecret)
         .visit(Volume::getStorageos, Volume::setStorageos)
         .visit(Volume::getVsphereVolume, Volume::setVsphereVolume)
         .visitMap(Volume::getAdditionalProperties);
@@ -649,10 +591,8 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<ConfigMapVolumeSource, T> visitConfigMapVolumeSource(
       PairVisitor<ConfigMapVolumeSource, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visit(ConfigMapVolumeSource::getName, ConfigMapVolumeSource::setName)
-        .visit(ConfigMapVolumeSource::getDefaultMode, ConfigMapVolumeSource::setDefaultMode,
-            420)
+    return pairVisitor.visit().visit(ConfigMapVolumeSource::getName, ConfigMapVolumeSource::setName)
+        .visit(ConfigMapVolumeSource::getDefaultMode, ConfigMapVolumeSource::setDefaultMode, 420)
         .visitList(ConfigMapVolumeSource::getItems, ConfigMapVolumeSource::setItems)
         .visit(ConfigMapVolumeSource::getOptional, ConfigMapVolumeSource::setOptional)
         .visitMap(ConfigMapVolumeSource::getAdditionalProperties);
@@ -674,17 +614,13 @@ public class ResourcePairVisitor<T, C> {
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<Container, T> visitContainer(
-      PairVisitor<Container, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visit(Container::getImage, Container::setImage)
+  public PairVisitor<Container, T> visitContainer(PairVisitor<Container, T> pairVisitor) {
+    return pairVisitor.visit().visit(Container::getImage, Container::setImage)
         .visit(Container::getImagePullPolicy, Container::setImagePullPolicy, "Always")
         .visit(Container::getLifecycle, Container::setLifecycle)
-        .visitWith(Container::getLivenessProbe, Container::setLivenessProbe,
-            this::visitProbe)
+        .visitWith(Container::getLivenessProbe, Container::setLivenessProbe, this::visitProbe)
         .visit(Container::getName, Container::setName)
-        .visitWith(Container::getReadinessProbe, Container::setReadinessProbe,
-            this::visitProbe)
+        .visitWith(Container::getReadinessProbe, Container::setReadinessProbe, this::visitProbe)
         .visitWithUsingDefaultFrom(Container::getResources, Container::setResources,
             this::visitResourceRequirements, ResourceRequirements::new)
         .visit(Container::getSecurityContext, Container::setSecurityContext)
@@ -698,12 +634,9 @@ public class ResourcePairVisitor<T, C> {
         .visit(Container::getWorkingDir, Container::setWorkingDir)
         .visitList(Container::getArgs, Container::setArgs)
         .visitList(Container::getCommand, Container::setCommand)
-        .visitListWith(Container::getEnv, Container::setEnv,
-            this::visitEnvVar)
-        .visitListWith(Container::getEnvFrom, Container::setEnvFrom,
-            this::visitEnvFromSource)
-        .visitListWith(Container::getPorts, Container::setPorts,
-            this::visitContainerPort)
+        .visitListWith(Container::getEnv, Container::setEnv, this::visitEnvVar)
+        .visitListWith(Container::getEnvFrom, Container::setEnvFrom, this::visitEnvFromSource)
+        .visitListWith(Container::getPorts, Container::setPorts, this::visitContainerPort)
         .visitListWith(Container::getVolumeDevices, Container::setVolumeDevices,
             this::visitVolumeDevice)
         .visitListWith(Container::getVolumeMounts, Container::setVolumeMounts,
@@ -714,10 +647,8 @@ public class ResourcePairVisitor<T, C> {
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<Probe, T> visitProbe(
-      PairVisitor<Probe, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visit(Probe::getExec, Probe::setExec)
+  public PairVisitor<Probe, T> visitProbe(PairVisitor<Probe, T> pairVisitor) {
+    return pairVisitor.visit().visit(Probe::getExec, Probe::setExec)
         .visit(Probe::getFailureThreshold, Probe::setFailureThreshold, 3)
         .visit(Probe::getHttpGet, Probe::setHttpGet)
         .visit(Probe::getInitialDelaySeconds, Probe::setInitialDelaySeconds)
@@ -731,14 +662,10 @@ public class ResourcePairVisitor<T, C> {
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<Affinity, T> visitAffinity(
-      PairVisitor<Affinity, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visitMap(Affinity::getAdditionalProperties)
-        .visitWith(Affinity::getNodeAffinity, Affinity::setNodeAffinity,
-            this::visitNodeAffinity)
-        .visitWith(Affinity::getPodAffinity, Affinity::setPodAffinity,
-            this::visitPodAffinity)
+  public PairVisitor<Affinity, T> visitAffinity(PairVisitor<Affinity, T> pairVisitor) {
+    return pairVisitor.visit().visitMap(Affinity::getAdditionalProperties)
+        .visitWith(Affinity::getNodeAffinity, Affinity::setNodeAffinity, this::visitNodeAffinity)
+        .visitWith(Affinity::getPodAffinity, Affinity::setPodAffinity, this::visitPodAffinity)
         .visitWith(Affinity::getPodAntiAffinity, Affinity::setPodAntiAffinity,
             this::visitPodAntiAffinity);
   }
@@ -746,13 +673,11 @@ public class ResourcePairVisitor<T, C> {
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<NodeAffinity, T> visitNodeAffinity(
-      PairVisitor<NodeAffinity, T> pairVisitor) {
+  public PairVisitor<NodeAffinity, T> visitNodeAffinity(PairVisitor<NodeAffinity, T> pairVisitor) {
     return pairVisitor.visit()
         .visit(NodeAffinity::getRequiredDuringSchedulingIgnoredDuringExecution,
             NodeAffinity::setRequiredDuringSchedulingIgnoredDuringExecution)
-        .visitList(
-            NodeAffinity::getPreferredDuringSchedulingIgnoredDuringExecution,
+        .visitList(NodeAffinity::getPreferredDuringSchedulingIgnoredDuringExecution,
             NodeAffinity::setPreferredDuringSchedulingIgnoredDuringExecution)
         .visitMap(NodeAffinity::getAdditionalProperties);
   }
@@ -760,14 +685,11 @@ public class ResourcePairVisitor<T, C> {
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<PodAffinity, T> visitPodAffinity(
-      PairVisitor<PodAffinity, T> pairVisitor) {
+  public PairVisitor<PodAffinity, T> visitPodAffinity(PairVisitor<PodAffinity, T> pairVisitor) {
     return pairVisitor.visit()
-        .visitList(
-            PodAffinity::getPreferredDuringSchedulingIgnoredDuringExecution,
+        .visitList(PodAffinity::getPreferredDuringSchedulingIgnoredDuringExecution,
             PodAffinity::setPreferredDuringSchedulingIgnoredDuringExecution)
-        .visitList(
-            PodAffinity::getRequiredDuringSchedulingIgnoredDuringExecution,
+        .visitList(PodAffinity::getRequiredDuringSchedulingIgnoredDuringExecution,
             PodAffinity::setRequiredDuringSchedulingIgnoredDuringExecution)
         .visitMap(PodAffinity::getAdditionalProperties);
   }
@@ -778,12 +700,10 @@ public class ResourcePairVisitor<T, C> {
   public PairVisitor<PodAntiAffinity, T> visitPodAntiAffinity(
       PairVisitor<PodAntiAffinity, T> pairVisitor) {
     return pairVisitor.visit()
-        .visitListWith(
-            PodAntiAffinity::getPreferredDuringSchedulingIgnoredDuringExecution,
+        .visitListWith(PodAntiAffinity::getPreferredDuringSchedulingIgnoredDuringExecution,
             PodAntiAffinity::setPreferredDuringSchedulingIgnoredDuringExecution,
             this::visitWeightedPodAffinityTerm)
-        .visitListWith(
-            PodAntiAffinity::getRequiredDuringSchedulingIgnoredDuringExecution,
+        .visitListWith(PodAntiAffinity::getRequiredDuringSchedulingIgnoredDuringExecution,
             PodAntiAffinity::setRequiredDuringSchedulingIgnoredDuringExecution,
             this::visitPodAffinityTerm)
         .visitMap(PodAntiAffinity::getAdditionalProperties);
@@ -829,19 +749,16 @@ public class ResourcePairVisitor<T, C> {
    * Visit using a pair visitor.
    */
   public PairVisitor<EnvVar, T> visitEnvVar(PairVisitor<EnvVar, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visit(EnvVar::getName, EnvVar::setName)
+    return pairVisitor.visit().visit(EnvVar::getName, EnvVar::setName)
         .visit(EnvVar::getValue, EnvVar::setValue)
-        .visitWith(EnvVar::getValueFrom, EnvVar::setValueFrom,
-            this::visitEnvVarSource)
+        .visitWith(EnvVar::getValueFrom, EnvVar::setValueFrom, this::visitEnvVarSource)
         .visitMap(EnvVar::getAdditionalProperties);
   }
 
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<EnvVarSource, T> visitEnvVarSource(
-      PairVisitor<EnvVarSource, T> pairVisitor) {
+  public PairVisitor<EnvVarSource, T> visitEnvVarSource(PairVisitor<EnvVarSource, T> pairVisitor) {
     return pairVisitor.visit()
         .visitWith(EnvVarSource::getConfigMapKeyRef, EnvVarSource::setConfigMapKeyRef,
             this::visitConfigMapKeySelector)
@@ -859,8 +776,7 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<ConfigMapKeySelector, T> visitConfigMapKeySelector(
       PairVisitor<ConfigMapKeySelector, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visit(ConfigMapKeySelector::getKey, ConfigMapKeySelector::setKey)
+    return pairVisitor.visit().visit(ConfigMapKeySelector::getKey, ConfigMapKeySelector::setKey)
         .visit(ConfigMapKeySelector::getName, ConfigMapKeySelector::setName)
         .visit(ConfigMapKeySelector::getOptional, ConfigMapKeySelector::setOptional)
         .visitMap(ConfigMapKeySelector::getAdditionalProperties);
@@ -894,8 +810,7 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<SecretKeySelector, T> visitSecretKeySelector(
       PairVisitor<SecretKeySelector, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visit(SecretKeySelector::getKey, SecretKeySelector::setKey)
+    return pairVisitor.visit().visit(SecretKeySelector::getKey, SecretKeySelector::setKey)
         .visit(SecretKeySelector::getName, SecretKeySelector::setName)
         .visit(SecretKeySelector::getOptional, SecretKeySelector::setOptional)
         .visitMap(SecretKeySelector::getAdditionalProperties);
@@ -906,8 +821,7 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<EnvFromSource, T> visitEnvFromSource(
       PairVisitor<EnvFromSource, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visit(EnvFromSource::getConfigMapRef, EnvFromSource::setConfigMapRef)
+    return pairVisitor.visit().visit(EnvFromSource::getConfigMapRef, EnvFromSource::setConfigMapRef)
         .visit(EnvFromSource::getPrefix, EnvFromSource::setPrefix)
         .visit(EnvFromSource::getSecretRef, EnvFromSource::setSecretRef)
         .visitMap(EnvFromSource::getAdditionalProperties);
@@ -930,10 +844,8 @@ public class ResourcePairVisitor<T, C> {
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<VolumeDevice, T> visitVolumeDevice(
-      PairVisitor<VolumeDevice, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visit(VolumeDevice::getName, VolumeDevice::setName)
+  public PairVisitor<VolumeDevice, T> visitVolumeDevice(PairVisitor<VolumeDevice, T> pairVisitor) {
+    return pairVisitor.visit().visit(VolumeDevice::getName, VolumeDevice::setName)
         .visit(VolumeDevice::getDevicePath, VolumeDevice::setDevicePath)
         .visitMap(VolumeDevice::getAdditionalProperties);
   }
@@ -941,10 +853,8 @@ public class ResourcePairVisitor<T, C> {
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<VolumeMount, T> visitVolumeMount(
-      PairVisitor<VolumeMount, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visit(VolumeMount::getName, VolumeMount::setName)
+  public PairVisitor<VolumeMount, T> visitVolumeMount(PairVisitor<VolumeMount, T> pairVisitor) {
+    return pairVisitor.visit().visit(VolumeMount::getName, VolumeMount::setName)
         .visit(VolumeMount::getMountPath, VolumeMount::setMountPath)
         .visit(VolumeMount::getMountPropagation, VolumeMount::setMountPropagation)
         .visit(VolumeMount::getReadOnly, VolumeMount::setReadOnly, false)
@@ -956,15 +866,25 @@ public class ResourcePairVisitor<T, C> {
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<ServiceSpec, T> visitServiceSpec(
-      PairVisitor<ServiceSpec, T> pairVisitor) {
-    return pairVisitor.visit()
+  public PairVisitor<ServiceSpec, T> visitServiceSpec(PairVisitor<ServiceSpec, T> pairVisitor) {
+    if (Optional.ofNullable(pairVisitor.right.getType()).filter(type -> type.equals("ExternalName"))
+        .isPresent()) {
+      pairVisitor = pairVisitor.visit().visit(ServiceSpec::getClusterIP, ServiceSpec::setClusterIP);
+    }
+
+    return pairVisitor.visit(ServiceSpec::getExternalName, ServiceSpec::setExternalName)
+        .visit(ServiceSpec::getExternalTrafficPolicy, ServiceSpec::setExternalTrafficPolicy)
         .visit(ServiceSpec::getHealthCheckNodePort, ServiceSpec::setHealthCheckNodePort)
-        .visit(ServiceSpec::getPublishNotReadyAddresses,
-            ServiceSpec::setPublishNotReadyAddresses)
+        .visit(ServiceSpec::getIpFamily, ServiceSpec::setIpFamily)
+        .visit(ServiceSpec::getLoadBalancerIP, ServiceSpec::setLoadBalancerIP)
+        .visit(ServiceSpec::getPublishNotReadyAddresses, ServiceSpec::setPublishNotReadyAddresses)
         .visit(ServiceSpec::getSessionAffinity, ServiceSpec::setSessionAffinity, "None")
         .visit(ServiceSpec::getSessionAffinityConfig, ServiceSpec::setSessionAffinityConfig)
         .visit(ServiceSpec::getType, ServiceSpec::setType, "ClusterIP")
+        .visitList(ServiceSpec::getExternalIPs, ServiceSpec::setExternalIPs)
+        .visitList(ServiceSpec::getLoadBalancerSourceRanges,
+            ServiceSpec::setLoadBalancerSourceRanges)
+        .visitListWith(ServiceSpec::getPorts, ServiceSpec::setPorts, this::visitServicePort)
         .visitMap(ServiceSpec::getAdditionalProperties)
         .visitMap(ServiceSpec::getSelector, ServiceSpec::setSelector);
   }
@@ -972,10 +892,31 @@ public class ResourcePairVisitor<T, C> {
   /**
    * Visit using a pair visitor.
    */
+  public PairVisitor<ServicePort, T> visitServicePort(PairVisitor<ServicePort, T> pairVisitor) {
+    return pairVisitor.visit().visit(ServicePort::getName, ServicePort::setName)
+        .visit(ServicePort::getNodePort, ServicePort::setNodePort)
+        .visit(ServicePort::getPort, ServicePort::setPort)
+        .visit(ServicePort::getNodePort, ServicePort::setNodePort)
+        .visit(ServicePort::getProtocol, ServicePort::setProtocol, "TCP")
+        .visitWithUsingDefaultFrom(ServicePort::getTargetPort, ServicePort::setTargetPort,
+            this::visitIntOrString, () -> new IntOrString(pairVisitor.right.getPort()))
+        .visitMap(ServicePort::getAdditionalProperties);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<IntOrString, T> visitIntOrString(PairVisitor<IntOrString, T> pairVisitor) {
+    return pairVisitor.visit().visit(IntOrString::getIntVal, IntOrString::setIntVal)
+        .visit(IntOrString::getStrVal, IntOrString::setStrVal);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
   public PairVisitor<EndpointSubset, T> visitEndpointSubset(
       PairVisitor<EndpointSubset, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visitList(EndpointSubset::getAddresses, EndpointSubset::setAddresses)
+    return pairVisitor.visit().visitList(EndpointSubset::getAddresses, EndpointSubset::setAddresses)
         .visitList(EndpointSubset::getNotReadyAddresses, EndpointSubset::setNotReadyAddresses)
         .visitList(EndpointSubset::getPorts, EndpointSubset::setPorts)
         .visitMap(EndpointSubset::getAdditionalProperties);
@@ -984,26 +925,37 @@ public class ResourcePairVisitor<T, C> {
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<Pod, T> visitPod(
-      PairVisitor<Pod, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visitWith(Pod::getSpec, Pod::setSpec,
-            this::visitPodSpec)
+  public PairVisitor<Pod, T> visitPod(PairVisitor<Pod, T> pairVisitor) {
+    return pairVisitor.visit().visitWith(Pod::getSpec, Pod::setSpec, this::visitPodSpec)
         .visitMap(Pod::getAdditionalProperties);
   }
 
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<ObjectMeta, T> visitMetadata(
-      PairVisitor<ObjectMeta, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visit(ObjectMeta::getClusterName, ObjectMeta::setClusterName)
-        .visit(ObjectMeta::getName)
-        .visit(ObjectMeta::getNamespace)
-        .visitMap(ObjectMeta::getAdditionalProperties, (objectMeta, map) -> map
-            .forEach(objectMeta::setAdditionalProperty))
+  public PairVisitor<ObjectMeta, T> visitMetadata(PairVisitor<ObjectMeta, T> pairVisitor) {
+    return pairVisitor.visit().visit(ObjectMeta::getClusterName, ObjectMeta::setClusterName)
+        .visit(ObjectMeta::getName).visit(ObjectMeta::getNamespace)
+        .visitMapTransformed(ObjectMeta::getAnnotations, ObjectMeta::setAnnotations,
+            this::leftAnnotationTransformer, this::rightAnnotationTransformer)
+        .visitMap(ObjectMeta::getAdditionalProperties,
+            (objectMeta, map) -> map.forEach(objectMeta::setAdditionalProperty))
         .visitMap(ObjectMeta::getLabels, ObjectMeta::setLabels);
+  }
+
+  public Map.Entry<String, String> leftAnnotationTransformer(
+      Map.Entry<String, String> leftAnnotation,
+      Map.Entry<String, String> rightAnnotation) {
+    if (rightAnnotation != null) {
+      return rightAnnotation;
+    }
+    return leftAnnotation;
+  }
+
+  public Map.Entry<String, String> rightAnnotationTransformer(
+      Map.Entry<String, String> leftAnnotation,
+      Map.Entry<String, String> rightAnnotation) {
+    return rightAnnotation;
   }
 
   /**
@@ -1011,12 +963,10 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<ObjectMeta, T> visitMetadataWithoutLabels(
       PairVisitor<ObjectMeta, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visit(ObjectMeta::getClusterName, ObjectMeta::setClusterName)
-        .visit(ObjectMeta::getName)
-        .visit(ObjectMeta::getNamespace)
-        .visitMap(ObjectMeta::getAdditionalProperties, (objectMeta, map) -> map
-            .forEach(objectMeta::setAdditionalProperty));
+    return pairVisitor.visit().visit(ObjectMeta::getClusterName, ObjectMeta::setClusterName)
+        .visit(ObjectMeta::getName).visit(ObjectMeta::getNamespace)
+        .visitMap(ObjectMeta::getAdditionalProperties,
+            (objectMeta, map) -> map.forEach(objectMeta::setAdditionalProperty));
   }
 
 }

@@ -5,14 +5,20 @@
 
 package io.stackgres.operator.controller;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
 import io.stackgres.operator.resource.DistributedLogsResourceHandlerSelector;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliator;
+import org.jooq.lambda.tuple.Tuple2;
 
 public class DistributedLogsReconciliator
     extends AbstractReconciliator<StackGresDistributedLogsContext,
@@ -52,6 +58,30 @@ public class DistributedLogsReconciliator
         + contextResource.getMetadata().getName() + " updated", contextResource);
     statusManager.sendCondition(
         DistributedLogsStatusCondition.FALSE_FAILED.getCondition(), context);
+  }
+
+  @Override
+  protected void onPreConfigReconcilied() {
+    statusManager.updatePendingRestart(context);
+    boolean isRestartPending = statusManager.isPendingRestart(context);
+    context.getRequiredResources().stream()
+        .map(Tuple2::v1)
+        .forEach(resource -> {
+          if (!isRestartPending
+              && Optional.ofNullable(resource.getMetadata())
+              .map(ObjectMeta::getAnnotations)
+              .map(annotations -> annotations
+                  .get(StackGresContext.RECONCILIATION_PAUSE_UNTIL_RESTART_KEY))
+              .map(Boolean::valueOf)
+              .orElse(false)) {
+            Map<String, String> annotations = new HashMap<>(
+                resource.getMetadata().getAnnotations());
+            annotations.put(
+                StackGresContext.RECONCILIATION_PAUSE_UNTIL_RESTART_KEY,
+                String.valueOf(Boolean.FALSE));
+            resource.getMetadata().setAnnotations(annotations);
+          }
+        });
   }
 
   @Override

@@ -3,7 +3,7 @@
 e2e_test_install() {
   NODE_LABEL_KEY=$(ramdom_string)
   NODE_LABEL_VALUE=$(ramdom_string)
-  
+
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \

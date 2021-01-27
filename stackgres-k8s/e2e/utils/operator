@@ -162,8 +162,8 @@ setup_operator() {
       if [ "$E2E_WAIT_OPERATOR" = true ]
       then
         wait_pods_running "$OPERATOR_NAMESPACE"
-        wait_services_available "$OPERATOR_NAMESPACE" 1 "^endpoints/stackgres-operator$"
-        wait_services_available "$OPERATOR_NAMESPACE" 1 "^endpoints/stackgres-restapi$"
+        wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator$"
+        wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-restapi$"
       fi
     fi
   else
@@ -226,8 +226,8 @@ install_operator() {
   kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null 2>&1 \
     || kubectl create namespace "$OPERATOR_NAMESPACE"
 
-  if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" -o \
-    -z "$STACKGRES_PREVIOUS_VERSION" ]
+  if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" -a \
+    -n "$STACKGRES_PREVIOUS_VERSION" ]
   then
     install_operator_previous_version "$@"
   fi
