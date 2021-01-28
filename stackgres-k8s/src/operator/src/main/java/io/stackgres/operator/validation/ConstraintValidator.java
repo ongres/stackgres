@@ -5,20 +5,25 @@
 
 package io.stackgres.operator.validation;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.validation.ConstraintViolation;
 
+import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.fabric8.kubernetes.api.model.StatusDetailsBuilder;
 import io.stackgres.common.ErrorType;
+import io.stackgres.common.validation.FieldReference;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
+import org.jooq.lambda.Seq;
 
 public abstract class ConstraintValidator<T extends AdmissionReview<?>> implements Validator<T> {
 
@@ -41,16 +46,18 @@ public abstract class ConstraintValidator<T extends AdmissionReview<?>> implemen
         StatusDetailsBuilder detailsBuilder = new StatusDetailsBuilder();
 
         violations.forEach(violation -> {
-          final String field = getOffendingField(violation);
+          final List<String> fields = getOffendingFields(violation);
           final String reason = violation
               .getConstraintDescriptor()
               .getAnnotation().annotationType()
               .getName();
-          detailsBuilder.addNewCause(field, violation.getMessage(), reason);
+          fields.forEach(field -> detailsBuilder
+              .addNewCause(field, violation.getMessage(), reason));
         });
-        if (violations.size() == 1) {
+        if (violations.stream().map(this::getOffendingFields)
+            .flatMap(List::stream).count() == 1) {
           violations.forEach(violation -> detailsBuilder
-              .withName(getOffendingField(violation)));
+              .withName(getOffendingFields(violation).get(0)));
         }
         Status status = new StatusBuilder()
             .withCode(422)
@@ -64,8 +71,21 @@ public abstract class ConstraintValidator<T extends AdmissionReview<?>> implemen
     }
   }
 
-  private static String getOffendingField(ConstraintViolation<Object> violation) {
-    return violation.getPropertyPath().toString();
+  private List<String> getOffendingFields(ConstraintViolation<Object> violation) {
+    final String propertyPath = violation.getPropertyPath().toString();
+    if (Seq.seq(violation.getConstraintDescriptor().getPayload())
+        .map(fieldReference -> Optional.ofNullable(fieldReference
+            .getAnnotation(FieldReference.ReferencedField.class)))
+        .anyMatch(Optional::isPresent)) {
+      final String basePath = propertyPath.substring(0, propertyPath.lastIndexOf('.'));
+      return Seq.seq(violation.getConstraintDescriptor().getPayload())
+          .map(fieldReference -> fieldReference
+              .getAnnotation(FieldReference.ReferencedField.class))
+          .map(FieldReference.ReferencedField::value)
+          .map(field -> basePath + "." + field)
+          .collect(ImmutableList.toImmutableList());
+    }
+    return ImmutableList.of(propertyPath);
   }
 
   @Inject

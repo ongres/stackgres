@@ -5,8 +5,13 @@
 
 package io.stackgres.common.crd;
 
+import javax.validation.constraints.AssertTrue;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.validation.FieldReference;
+import io.stackgres.common.validation.FieldReference.ReferencedField;
 
 @RegisterForReflection
 @JsonIgnoreProperties(ignoreUnknown = true,
@@ -21,6 +26,26 @@ public class ConfigMapKeySelector extends io.fabric8.kubernetes.api.model.Config
 
   public ConfigMapKeySelector(String key, String name) {
     super(key, name, false);
+  }
+
+  @ReferencedField("key")
+  interface Key extends FieldReference { }
+
+  @ReferencedField("name")
+  interface Name extends FieldReference { }
+
+  @JsonIgnore
+  @AssertTrue(message = "key must not be empty.",
+      payload = Key.class)
+  public boolean isKeyNotNull() {
+    return getKey() != null && !getKey().isEmpty();
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "name must not be empty.",
+      payload = Name.class)
+  public boolean isNameNotNull() {
+    return getName() != null && !getName().isEmpty();
   }
 
 }
