@@ -139,3 +139,6 @@ cypress.env.json
 videos/
 *.mp4
 doc/themes/sg-doc/static/sg-swagger.yaml
+
+# UI Info folder
+stackgres-k8s/src/admin-ui/public
