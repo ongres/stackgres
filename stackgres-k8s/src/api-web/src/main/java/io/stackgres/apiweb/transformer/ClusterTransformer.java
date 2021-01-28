@@ -34,6 +34,7 @@ import io.stackgres.apiweb.dto.cluster.PodScheduling;
 import io.stackgres.common.ArcUtil;
 import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
@@ -48,7 +49,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgcluster.StackGresPodScheduling;
-import io.stackgres.common.crd.sgcluster.StackgresClusterConfiguration;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
@@ -118,7 +118,7 @@ public class ClusterTransformer
     final ClusterConfiguration sourceClusterConfiguration = source.getConfigurations();
 
     if (sourceClusterConfiguration != null) {
-      transformation.setConfiguration(new StackgresClusterConfiguration());
+      transformation.setConfiguration(new StackGresClusterConfiguration());
       transformation.getConfiguration().setBackupConfig(
           source.getConfigurations().getSgBackupConfig());
       transformation.getConfiguration()
