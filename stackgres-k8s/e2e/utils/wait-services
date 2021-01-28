@@ -5,7 +5,7 @@ wait_services_available() {
 }
 
 traceable_wait_services_available() {
-  local NAMESPACE_OPT="$([ -z "$1" ] && echo "--all-namespaces" || echo "--namespace=$1")"
+  local NAMESPACE_OPT="$([ -z "$1" ] && printf "%s" "--all-namespaces" || printf "%s" "--namespace=$1")"
   local EXPECTED_AVAILABLE_SERVICES="${2:-1}"
   local EXPECTED_AVAILABLE_SERVICES_EXPRESSION="${3:-.*}"
   if ! [ "$EXPECTED_AVAILABLE_SERVICES" -ge 1 ] 2>/dev/null
@@ -14,11 +14,13 @@ traceable_wait_services_available() {
     return 1
   fi
   local END="$(($(date +%s) + (E2E_TIMEOUT * EXPECTED_AVAILABLE_SERVICES)))"
+  local SERVICES
+  local AVAILABLE_SERVICES
   while [ "$(date +%s)" -lt "$END" ]
   do
     ENDPOINTS="$(kubectl get endpoints "$NAMESPACE_OPT" \
       --template '{{ range .items }}{{ $name := .metadata.name }}{{ with .subsets }}{{ range . }}{{ printf "%s\n" $name }}{{ end }}{{ end }}{{ end }}' 2>/dev/null)"
-    AVAILABLE_ENDPOINTS="$(echo "$SERVICES" \
+    AVAILABLE_SERVICES="$(printf "%s" "$ENDPOINTS" \
       | grep "$EXPECTED_AVAILABLE_SERVICES_EXPRESSION" | wc -l)"
     if [ "$AVAILABLE_SERVICES" -ge "$EXPECTED_AVAILABLE_SERVICES" ]
     then
