@@ -64,7 +64,7 @@ traceable_wait_pods_terminated() {
   local REMAINING_PODS
   while [ "$(date +%s)" -lt "$END" ]
   do
-    PODS="$(kubectl get pods "$NAMESPACE_OPT" 2>/dev/null)"
+    PODS="$(kubectl get pods "$NAMESPACE_OPT" -o name 2>/dev/null)"
     REMAINING_PODS="$(echo "$PODS" | wc -l)"
     if [ "$REMAINING_PODS" -le "$EXPECTED_REMAINING_PODS" ]
     then
