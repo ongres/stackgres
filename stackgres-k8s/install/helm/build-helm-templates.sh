@@ -15,6 +15,16 @@ cp -a stackgres-operator "target/."
 cp -a stackgres-cluster "target/."
 sed -i '/^kubeVersion: .*$/d' "target/stackgres-operator/Chart.yaml"
 sed -i '/^kubeVersion: .*$/d' "target/stackgres-cluster/Chart.yaml"
+find target/stackgres-operator -type l \
+  | while read LINK
+    do
+      ln -f -s "../$(readlink "$LINK")" "$LINK"
+    done
+find target/stackgres-cluster -type l \
+  | while read LINK
+    do
+      ln -f -s "../$(readlink "$LINK")" "$LINK"
+    done
 
 mkdir -p "target/templates"
 cat << EOF > "target/templates/stackgres-operator-demo.yml"
