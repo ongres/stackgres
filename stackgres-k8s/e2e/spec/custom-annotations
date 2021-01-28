@@ -1,6 +1,9 @@
 #!/bin/sh
 
 e2e_test_install() {
+  NODE_LABEL_KEY=$(ramdom_string)
+  NODE_LABEL_VALUE=$(ramdom_string)
+
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
   cat <<EOF | kubectl apply -f -
@@ -48,23 +51,21 @@ spec:
   pods:
     persistentVolume:
       size: '128Mi'
+    scheduling:
+      nodeSelector:
+        $NODE_LABEL_KEY: $NODE_LABEL_VALUE
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
     disableClusterPodAntiAffinity: true  
 EOF
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_until check_sts_annotation "$POD_RANDOM_VALUE"
 
-  check_pod_annotation "0" "$POD_RANDOM_VALUE"
-  check_pod_annotation "1" "$POD_RANDOM_VALUE"
-
-  check_service_annotation "primary" "$SERVICE_RANDOM_VALUE"
-  check_service_annotation "replicas" "$SERVICE_RANDOM_VALUE"
+  wait_until check_service_annotation "" "$SERVICE_RANDOM_VALUE"
+  wait_until check_service_annotation "primary" "$SERVICE_RANDOM_VALUE"
+  wait_until check_service_annotation "replicas" "$SERVICE_RANDOM_VALUE"
 
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
-
-  wait_pods_terminated "$CLUSTER_NAMESPACE" 1
-
 }
 
 helm_custom_annotations(){
@@ -72,20 +73,17 @@ helm_custom_annotations(){
   local SERVICE_RANDOM_VALUE=$(ramdom_string)
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
     --set cluster.metadata.annotations.pods.test-annotation="$POD_RANDOM_VALUE" \
     --set cluster.metadata.annotations.services.service-annotation="$SERVICE_RANDOM_VALUE"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_until check_sts_annotation "$POD_RANDOM_VALUE"
 
-  check_pod_annotation "0" "$POD_RANDOM_VALUE"
-  check_pod_annotation "1" "$POD_RANDOM_VALUE"
-
-  check_service_annotation "primary" "$SERVICE_RANDOM_VALUE"
-  check_service_annotation "replicas" "$SERVICE_RANDOM_VALUE"
+  wait_until check_service_annotation "" "$SERVICE_RANDOM_VALUE"
+  wait_until check_service_annotation "primary" "$SERVICE_RANDOM_VALUE"
+  wait_until check_service_annotation "replicas" "$SERVICE_RANDOM_VALUE"
 
   helm uninstall "$CLUSTER_NAME" --namespace "$CLUSTER_NAMESPACE"
-
-  wait_pods_terminated "$CLUSTER_NAMESPACE" 1
 }
 
 get_cluster_json() {
@@ -99,7 +97,6 @@ get_cluster_json() {
     | jq ".spec.metadata.annotations.pods[\"test-annotation\"]=\"$POD_ANNOTATION_VALUE\"" \
     | jq ".spec.metadata.annotations.services[\"service-annotation\"]=\"$SERVICE_ANNOTATION_VALUE\"" )
   echo "$CLUSTER_JSON"
-  
 }
 
 assert_http_status_succcess(){
@@ -120,7 +117,6 @@ create_cluster_with_api(){
 }
 
 create_api_custom_annotations(){
-  
   cat <<EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1
 kind: SGCluster
@@ -133,6 +129,9 @@ spec:
   pods:
     persistentVolume:
       size: '128Mi'
+    scheduling:
+      nodeSelector:
+        $NODE_LABEL_KEY: $NODE_LABEL_VALUE
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
     disableClusterPodAntiAffinity: true  
@@ -147,26 +146,18 @@ EOF
 
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
 
-  wait_pods_terminated "$CLUSTER_NAMESPACE"  1
-
-  wait_pods_running "$CLUSTER_NAMESPACE" 1
-  
   create_cluster_with_api
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_until check_sts_annotation "$POD_RANDOM_VALUE"
 
-  check_pod_annotation "0" "$POD_RANDOM_VALUE"
-  check_pod_annotation "1" "$POD_RANDOM_VALUE"
-
-  check_service_annotation "primary" "$SERVICE_RANDOM_VALUE"
-  check_service_annotation "replicas" "$SERVICE_RANDOM_VALUE"
+  wait_until check_service_annotation "" "$SERVICE_RANDOM_VALUE"
+  wait_until check_service_annotation "primary" "$SERVICE_RANDOM_VALUE"
+  wait_until check_service_annotation "replicas" "$SERVICE_RANDOM_VALUE"
 
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
-
 }
 
 get_api_custom_annotations() {
-
   local POD_RANDOM_VALUE=$(ramdom_string)
   local SERVICE_RANDOM_VALUE=$(ramdom_string)
 
@@ -188,17 +179,16 @@ spec:
   pods:
     persistentVolume:
       size: '128Mi'
+    scheduling:
+      nodeSelector:
+        $NODE_LABEL_KEY: $NODE_LABEL_VALUE
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
     disableClusterPodAntiAffinity: true  
 EOF
-
-  wait_pods_running "$CLUSTER_NAMESPACE" 3
-
   local POD_ANNOTATION_VALUE=$(run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | jq '.spec.metadata.annotations.pods["test-annotation"]' -r)
   local SERVICE_ANNOTATION_VALUE=$(run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | jq '.spec.metadata.annotations.services["service-annotation"]' -r)
 
   assert_string_equal "$POD_RANDOM_VALUE" "$POD_ANNOTATION_VALUE"
   assert_string_equal "$SERVICE_RANDOM_VALUE" "$SERVICE_ANNOTATION_VALUE"
-
 }

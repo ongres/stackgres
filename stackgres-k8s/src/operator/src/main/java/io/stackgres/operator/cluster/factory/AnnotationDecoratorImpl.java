@@ -34,7 +34,6 @@ public class AnnotationDecoratorImpl implements AnnotationDecorator {
 
   @Override
   public void decorate(StackGresCluster cluster, Iterable<? extends HasMetadata> resources) {
-
     Map<String, String> allResourcesAnnotations = Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getMetadata)
         .map(StackGresClusterSpecMetadata::getAnnotations)
@@ -67,7 +66,6 @@ public class AnnotationDecoratorImpl implements AnnotationDecorator {
       Map<String, String> resourceAnnotations = Optional.ofNullable(resource.getMetadata())
           .map(ObjectMeta::getAnnotations)
           .orElse(new HashMap<>());
-
       switch (resource.getKind()) {
         case "Service":
           resourceAnnotations.putAll(servicesAnnotations);

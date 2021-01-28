@@ -11,7 +11,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServiceType;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -20,7 +19,7 @@ public class ClusterPostgresService {
 
   private Boolean enabled;
 
-  private StackGresClusterPostgresServiceType type;
+  private String type;
 
   private Map<String, String> annotations;
 
@@ -32,11 +31,11 @@ public class ClusterPostgresService {
     this.enabled = enabled;
   }
 
-  public StackGresClusterPostgresServiceType getType() {
+  public String getType() {
     return type;
   }
 
-  public void setType(StackGresClusterPostgresServiceType type) {
+  public void setType(String type) {
     this.type = type;
   }
 

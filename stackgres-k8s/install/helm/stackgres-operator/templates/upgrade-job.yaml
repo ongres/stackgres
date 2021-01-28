@@ -39,15 +39,19 @@ spec:
             kubectl get sgcluster -A --template '{{ "{{" }} range .items {{ "}}" }}{{ "{{" }} printf "%s:%s\n" .metadata.namespace .metadata.name {{ "}}" }}{{ "{{" }} end {{ "}}" }}' \
               | while read CLUSTER
                 do
-                  if kubectl get sgcluster -n "${CLUSTER%:*}" "${CLUSTER#*:}" \
-                    --template '{{ "{{" }} index .metadata.annotations "stackgres.io/operatorVersion" {{ "}}" }}' \
-                    | grep -q '0\.9\(\.[012]\)\?\(-.*\)\?$'
+                  OPERATOR_VERSION="$(kubectl get sgcluster -n "${CLUSTER%:*}" "${CLUSTER#*:}" \
+                    --template '{{ "{{" }} index .metadata.annotations "stackgres.io/operatorVersion" {{ "}}" }}')"
+                  if echo "$OPERATOR_VERSION" | grep -q '^0\.9\(\.[012]\)\?\(-.*\)\?$'
                   then
                     kubectl get sgcluster -n "${CLUSTER%:*}" "${CLUSTER#*:}" -o json \
                       | sed 's/"postgresVersion": "latest"/"postgresVersion": "12.4"/' \
                       | sed 's/"postgresVersion": "12"/"postgresVersion": "12.4"/' \
                       | sed 's/"postgresVersion": "11"/"postgresVersion": "11.9"/' \
                       | kubectl patch sgcluster -n "${CLUSTER%:*}" "${CLUSTER#*:}" --type merge -p "$(cat)"
+                  fi
+                  if echo "$OPERATOR_VERSION" | grep -q '^0\.9\(\.[0123]\)\?\(-.*\)\?$'
+                  then
+                    kubectl annotate service -n "${CLUSTER%:*}" "${CLUSTER#*:}-primary" stackgres.io/reconciliation-pause-until-restart=true
                   fi
                 done
             {{- end }}

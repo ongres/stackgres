@@ -48,11 +48,11 @@ public abstract class ResourceGeneratorReconciliator<
 
   @Override
   public void reconcile(KubernetesClient client, T context) {
+    onPreConfigReconcilied(client, context);
+
     H contextResource = resourceGetter.apply(context);
     deleteUnwantedResources(client, context);
     Operation result = createOrUpdateRequiredResources(client, context);
-
-    onPreConfigReconcilied(client, context);
 
     if (result == Operation.UPDATED) {
       logger.info("{} updated: '{}.{}'", name,
@@ -83,13 +83,13 @@ public abstract class ResourceGeneratorReconciliator<
           entry -> Objects.equals(entry.getValue(),
               existingResource.v1.getMetadata().getLabels().get(entry.getKey())))) {
         if (handlerSelector.skipDeletion(context, existingResource.v1)) {
-          logger.trace("Skip deletion for resource {}.{} of type {}",
+          logger.trace("Skip deletion of resource {}.{} of type {}",
               existingResource.v1.getMetadata().getNamespace(),
               existingResource.v1.getMetadata().getName(),
               existingResource.v1.getKind());
           continue;
         }
-        logger.debug("Deleteing resource {}.{} of type {}"
+        logger.debug("Deleting resource {}.{} of type {}"
             + " since do not belong to any existing {}",
             existingResource.v1.getMetadata().getNamespace(),
             existingResource.v1.getMetadata().getName(),
@@ -98,14 +98,14 @@ public abstract class ResourceGeneratorReconciliator<
       } else if (!existingResource.v2.isPresent()
           && !handlerSelector.isManaged(context, existingResource.v1)) {
         if (handlerSelector.skipDeletion(context, existingResource.v1)) {
-          logger.trace("Skip deletion for resource {}.{} of type {}",
+          logger.trace("Skip deletion of resource {}.{} of type {}",
               existingResource.v1.getMetadata().getNamespace(),
               existingResource.v1.getMetadata().getName(),
               existingResource.v1.getKind());
           continue;
         }
-        logger.debug("Deleteing resource {}.{} of type {}"
-            + " since does not belong to existing {}",
+        logger.debug("Deleting resource {}.{} of type {}"
+            + " since do not belong to existing {}",
             existingResource.v1.getMetadata().getNamespace(),
             existingResource.v1.getMetadata().getName(),
             existingResource.v1.getKind(), name);
@@ -132,6 +132,13 @@ public abstract class ResourceGeneratorReconciliator<
       }
       if (matchingResource.isPresent()) {
         HasMetadata existingResource = matchingResource.get();
+        if (handlerSelector.skipUpdate(context, existingResource, requiredResource.v1)) {
+          logger.trace("Skip update for resource {}.{} of type {}",
+              requiredResource.v1.getMetadata().getNamespace(),
+              requiredResource.v1.getMetadata().getName(),
+              requiredResource.v1.getKind());
+          continue;
+        }
         logger.debug("Updating resource {}.{} of type {}"
             + " to meet {} requirements",
             existingResource.getMetadata().getNamespace(),
@@ -160,8 +167,11 @@ public abstract class ResourceGeneratorReconciliator<
         HasMetadata updatedRequiredResource = Unchecked.supplier(() -> objectMapper.treeToValue(
             objectMapper.valueToTree(requiredResource.v1), requiredResource.v1.getClass())).get();
         handlerSelector.update(context, updatedRequiredResource, requiredResource.v1);
-        handlerSelector.create(client, context, updatedRequiredResource);
-        created = true;
+        HasMetadata createdResource = handlerSelector
+            .create(client, context, updatedRequiredResource);
+        if (createdResource != null) {
+          created = true;
+        }
       }
     }
 

@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operatorframework.reconciliation.ResourceGeneratorReconciliationCycle;
 import io.stackgres.operatorframework.reconciliation.ResourceGeneratorReconciliator;
@@ -21,8 +22,6 @@ import io.stackgres.operatorframework.resource.ResourceHandlerSelector;
 public abstract class StackGresReconciliationCycle<T extends ResourceHandlerContext,
     H extends CustomResource, S extends ResourceHandlerSelector<T>>
     extends ResourceGeneratorReconciliationCycle<T, H, S> {
-
-  private static final String STACKGRES_IO_RECONCILIATION = "stackgres.io/reconciliation-pause";
 
   private final CustomResourceScanner<H> customResourceScanner;
 
@@ -40,7 +39,7 @@ public abstract class StackGresReconciliationCycle<T extends ResourceHandlerCont
   protected ImmutableList<T> getExistingContexts() {
     return customResourceScanner.getResources()
         .stream().filter(r -> Optional.ofNullable(r.getMetadata().getAnnotations())
-            .map(annotations -> annotations.get(STACKGRES_IO_RECONCILIATION))
+            .map(annotations -> annotations.get(StackGresContext.RECONCILIATION_PAUSE_KEY))
             .map(Boolean::parseBoolean)
             .map(b -> !b)
             .orElse(true))

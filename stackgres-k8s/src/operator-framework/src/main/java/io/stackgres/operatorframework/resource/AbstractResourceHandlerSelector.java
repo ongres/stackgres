@@ -35,12 +35,18 @@ public abstract class AbstractResourceHandlerSelector<T extends ResourceHandlerC
 
   @Override
   public boolean skipCreation(T context, HasMetadata requiredResource) {
-    return selectResourceHandler(context, requiredResource).skipCreation();
+    return selectResourceHandler(context, requiredResource).skipCreation(context, requiredResource);
   }
 
   @Override
-  public boolean skipDeletion(T context, HasMetadata requiredResource) {
-    return selectResourceHandler(context, requiredResource).skipDeletion();
+  public boolean skipUpdate(T context, HasMetadata existingResource, HasMetadata requiredResource) {
+    return selectResourceHandler(context, requiredResource)
+        .skipUpdate(context, existingResource, requiredResource);
+  }
+
+  @Override
+  public boolean skipDeletion(T context, HasMetadata existingResource) {
+    return selectResourceHandler(context, existingResource).skipDeletion(context, existingResource);
   }
 
   @Override

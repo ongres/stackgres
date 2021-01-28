@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.controller;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -15,8 +17,10 @@ import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsEventReason;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -26,6 +30,7 @@ import io.stackgres.common.resource.DistributedLogsScheduler;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
 import io.stackgres.operator.resource.DistributedLogsResourceHandlerSelector;
 import io.stackgres.operatorframework.reconciliation.ResourceGeneratorReconciliator;
+import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
 public class DistributedLogsReconciliator
@@ -67,6 +72,31 @@ public class DistributedLogsReconciliator
   public static DistributedLogsReconciliator create(Consumer<Parameters> consumer) {
     Stream<Parameters> parameters = Optional.of(new Parameters()).stream().peek(consumer);
     return new DistributedLogsReconciliator(parameters.findAny().get());
+  }
+
+  @Override
+  protected void onPreConfigReconcilied(KubernetesClient client,
+      StackGresDistributedLogsContext context) {
+    statusManager.updatePendingRestart(context, client);
+    boolean isRestartPending = statusManager.isPendingRestart(context);
+    context.getRequiredResources().stream()
+        .map(Tuple2::v1)
+        .forEach(resource -> {
+          if (!isRestartPending
+              && Optional.ofNullable(resource.getMetadata())
+              .map(ObjectMeta::getAnnotations)
+              .map(annotations -> annotations
+                  .get(StackGresContext.RECONCILIATION_PAUSE_UNTIL_RESTART_KEY))
+              .map(Boolean::valueOf)
+              .orElse(false)) {
+            Map<String, String> annotations = new HashMap<>(
+                resource.getMetadata().getAnnotations());
+            annotations.put(
+                StackGresContext.RECONCILIATION_PAUSE_UNTIL_RESTART_KEY,
+                String.valueOf(Boolean.FALSE));
+            resource.getMetadata().setAnnotations(annotations);
+          }
+        });
   }
 
   @Override

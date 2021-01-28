@@ -15,6 +15,10 @@ public class PatroniUtil {
   public static final int POSTGRES_SERVICE_PORT = 5432;
   public static final int REPLICATION_SERVICE_PORT = 5433;
 
+  public static String name(String clusterName) {
+    return ResourceUtil.resourceName(clusterName);
+  }
+
   public static String readWriteName(String clusterName) {
     return ResourceUtil.resourceName(clusterName + READ_WRITE_SERVICE);
   }

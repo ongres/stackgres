@@ -37,6 +37,11 @@ public class EmptyResourceHandlerSelector<T extends ResourceHandlerContext>
   }
 
   @Override
+  public boolean skipUpdate(T config, HasMetadata existingResource, HasMetadata requiredResource) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public boolean skipDeletion(T context, HasMetadata requiredResource) {
     throw new UnsupportedOperationException();
   }

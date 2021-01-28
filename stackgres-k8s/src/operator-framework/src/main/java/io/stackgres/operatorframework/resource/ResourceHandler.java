@@ -21,11 +21,16 @@ public interface ResourceHandler<T extends ResourceHandlerContext> {
     return false;
   }
 
-  default boolean skipCreation() {
+  default boolean skipCreation(T context, HasMetadata requiredResource) {
     return false;
   }
 
-  default boolean skipDeletion() {
+  default boolean skipUpdate(T context, HasMetadata existingResource,
+      HasMetadata requiredResource) {
+    return false;
+  }
+
+  default boolean skipDeletion(T context, HasMetadata existingResource) {
     return false;
   }
 

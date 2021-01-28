@@ -6,6 +6,7 @@
 package io.stackgres.operatorframework.resource.visitor;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.Affinity;
@@ -20,6 +21,7 @@ import io.fabric8.kubernetes.api.model.EnvFromSource;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarSource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.NodeSelector;
@@ -47,6 +49,7 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
+import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeDevice;
@@ -964,17 +967,49 @@ public class ResourcePairVisitor<T, C> {
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<ServiceSpec, T> visitServiceSpec(
-      PairVisitor<ServiceSpec, T> pairVisitor) {
-    return pairVisitor.visit()
+  public PairVisitor<ServiceSpec, T> visitServiceSpec(PairVisitor<ServiceSpec, T> pairVisitor) {
+    if (Optional.ofNullable(pairVisitor.right.getType()).filter(type -> type.equals("ExternalName"))
+        .isPresent()) {
+      pairVisitor = pairVisitor.visit().visit(ServiceSpec::getClusterIP, ServiceSpec::setClusterIP);
+    }
+
+    return pairVisitor.visit(ServiceSpec::getExternalName, ServiceSpec::setExternalName)
+        .visit(ServiceSpec::getExternalTrafficPolicy, ServiceSpec::setExternalTrafficPolicy)
         .visit(ServiceSpec::getHealthCheckNodePort, ServiceSpec::setHealthCheckNodePort)
-        .visit(ServiceSpec::getPublishNotReadyAddresses,
-            ServiceSpec::setPublishNotReadyAddresses)
+        .visit(ServiceSpec::getIpFamily, ServiceSpec::setIpFamily)
+        .visit(ServiceSpec::getLoadBalancerIP, ServiceSpec::setLoadBalancerIP)
+        .visit(ServiceSpec::getPublishNotReadyAddresses, ServiceSpec::setPublishNotReadyAddresses)
         .visit(ServiceSpec::getSessionAffinity, ServiceSpec::setSessionAffinity, "None")
         .visit(ServiceSpec::getSessionAffinityConfig, ServiceSpec::setSessionAffinityConfig)
         .visit(ServiceSpec::getType, ServiceSpec::setType, "ClusterIP")
+        .visitList(ServiceSpec::getExternalIPs, ServiceSpec::setExternalIPs)
+        .visitList(ServiceSpec::getLoadBalancerSourceRanges,
+            ServiceSpec::setLoadBalancerSourceRanges)
+        .visitListWith(ServiceSpec::getPorts, ServiceSpec::setPorts, this::visitServicePort)
         .visitMap(ServiceSpec::getAdditionalProperties)
         .visitMap(ServiceSpec::getSelector, ServiceSpec::setSelector);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<ServicePort, T> visitServicePort(PairVisitor<ServicePort, T> pairVisitor) {
+    return pairVisitor.visit().visit(ServicePort::getName, ServicePort::setName)
+        .visit(ServicePort::getNodePort, ServicePort::setNodePort)
+        .visit(ServicePort::getPort, ServicePort::setPort)
+        .visit(ServicePort::getNodePort, ServicePort::setNodePort)
+        .visit(ServicePort::getProtocol, ServicePort::setProtocol, "TCP")
+        .visitWithUsingDefaultFrom(ServicePort::getTargetPort, ServicePort::setTargetPort,
+            this::visitIntOrString, () -> new IntOrString(pairVisitor.right.getPort()))
+        .visitMap(ServicePort::getAdditionalProperties);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<IntOrString, T> visitIntOrString(PairVisitor<IntOrString, T> pairVisitor) {
+    return pairVisitor.visit().visit(IntOrString::getIntVal, IntOrString::setIntVal)
+        .visit(IntOrString::getStrVal, IntOrString::setStrVal);
   }
 
   /**
@@ -1003,15 +1038,29 @@ public class ResourcePairVisitor<T, C> {
   /**
    * Visit using a pair visitor.
    */
-  public PairVisitor<ObjectMeta, T> visitMetadata(
-      PairVisitor<ObjectMeta, T> pairVisitor) {
-    return pairVisitor.visit()
-        .visit(ObjectMeta::getClusterName, ObjectMeta::setClusterName)
-        .visit(ObjectMeta::getName)
-        .visit(ObjectMeta::getNamespace)
-        .visitMap(ObjectMeta::getAdditionalProperties, (objectMeta, map) -> map
-            .forEach(objectMeta::setAdditionalProperty))
+  public PairVisitor<ObjectMeta, T> visitMetadata(PairVisitor<ObjectMeta, T> pairVisitor) {
+    return pairVisitor.visit().visit(ObjectMeta::getClusterName, ObjectMeta::setClusterName)
+        .visit(ObjectMeta::getName).visit(ObjectMeta::getNamespace)
+        .visitMapTransformed(ObjectMeta::getAnnotations, ObjectMeta::setAnnotations,
+            this::leftAnnotationTransformer, this::rightAnnotationTransformer)
+        .visitMap(ObjectMeta::getAdditionalProperties,
+            (objectMeta, map) -> map.forEach(objectMeta::setAdditionalProperty))
         .visitMap(ObjectMeta::getLabels, ObjectMeta::setLabels);
+  }
+
+  public Map.Entry<String, String> leftAnnotationTransformer(
+      Map.Entry<String, String> leftAnnotation,
+      Map.Entry<String, String> rightAnnotation) {
+    if (rightAnnotation != null) {
+      return rightAnnotation;
+    }
+    return leftAnnotation;
+  }
+
+  public Map.Entry<String, String> rightAnnotationTransformer(
+      Map.Entry<String, String> leftAnnotation,
+      Map.Entry<String, String> rightAnnotation) {
+    return rightAnnotation;
   }
 
   /**

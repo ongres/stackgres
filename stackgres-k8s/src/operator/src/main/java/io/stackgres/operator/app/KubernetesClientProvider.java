@@ -7,9 +7,9 @@ package io.stackgres.operator.app;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.KubernetesClientFactory;
+import io.stackgres.common.kubernetes.DefaultKubernetesClient;
 
 @ApplicationScoped
 public class KubernetesClientProvider implements KubernetesClientFactory {
