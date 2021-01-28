@@ -2,12 +2,13 @@
 
 run_test() {
   local TEST_NAME="$1"
+  shift
   echo
   echo "----------------------------------------------------------------"
   echo "Running test $TEST_NAME"
   echo "----------------------------------------------------------------"
   echo
-  try_function "$2"
+  try_function "$@"
   if ! "$RESULT"
   then
     return "$EXIT_CODE"
