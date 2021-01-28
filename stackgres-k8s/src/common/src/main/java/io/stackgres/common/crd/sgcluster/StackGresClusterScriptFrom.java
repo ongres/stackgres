@@ -10,6 +10,7 @@ import java.util.Objects;
 import javax.validation.Valid;
 import javax.validation.constraints.AssertTrue;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -39,6 +40,7 @@ public class StackGresClusterScriptFrom {
   @ReferencedField("configMapKeyRef")
   interface ConfigMapKeyRef extends FieldReference { }
 
+  @JsonIgnore
   @AssertTrue(message = "secretKeyRef and configMapKeyRef are mutually exclusive and one of them is"
       + " required.",
       payload = { SecretKeyRef.class, ConfigMapKeyRef.class })

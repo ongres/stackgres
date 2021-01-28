@@ -119,6 +119,11 @@ public abstract class ConstraintValidationTest<T extends AdmissionReview<?>> {
 
   protected void checkErrorCause(Class<?> outerClass, String fieldPath, String validationPath,
       T review, Class<? extends Annotation> constraint){
+    checkErrorCause(outerClass, new String[] { fieldPath }, validationPath, review, constraint);
+  }
+
+  protected void checkErrorCause(Class<?> outerClass, String[] fieldPaths, String validationPath,
+      T review, Class<? extends Annotation> constraint){
 
     String lastField = getLastField(validationPath);
 
@@ -126,9 +131,8 @@ public abstract class ConstraintValidationTest<T extends AdmissionReview<?>> {
 
     String message = ValidationUtils.getConstraintMessage(outerClass, lastField, constraint);
 
-    ValidationUtils.checkErrorCause(ex.getResult(), fieldPath, message,
+    ValidationUtils.checkErrorCause(ex.getResult(), fieldPaths, message,
         constraint.getName());
-
   }
 
   private static String getLastField(String fieldPath) {

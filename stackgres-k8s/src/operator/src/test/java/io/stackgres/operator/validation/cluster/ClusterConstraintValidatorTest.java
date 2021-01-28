@@ -11,9 +11,9 @@ import java.util.HashMap;
 import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.Pattern;
 
-import io.fabric8.kubernetes.api.model.Toleration;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
+import io.stackgres.common.crd.Toleration;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
@@ -102,9 +102,9 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
     review.getRequest().getObject().getSpec().getInitData().getScripts().add(new StackGresClusterScriptEntry());
 
-    checkErrorCause(StackGresClusterScriptEntry.class, "spec.initData.scripts[0].script",
-        "spec.pod.scripts[0].isScriptMutuallyExclusiveAndRequired", review, AssertTrue.class);
-    checkErrorCause(StackGresClusterScriptEntry.class, "spec.initData.scripts[0].scriptFrom",
+    checkErrorCause(StackGresClusterScriptEntry.class,
+        new String[] { "spec.initData.scripts[0].script",
+            "spec.initData.scripts[0].scriptFrom" },
         "spec.pod.scripts[0].isScriptMutuallyExclusiveAndRequired", review, AssertTrue.class);
   }
 
@@ -120,9 +120,9 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().getConfigMapKeyRef().setName("test");
     review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().getConfigMapKeyRef().setKey("test");
 
-    checkErrorCause(StackGresClusterScriptEntry.class, "spec.initData.scripts[0].script",
-        "spec.pod.scripts[0].isScriptMutuallyExclusiveAndRequired", review, AssertTrue.class);
-    checkErrorCause(StackGresClusterScriptEntry.class, "spec.initData.scripts[0].scriptFrom",
+    checkErrorCause(StackGresClusterScriptEntry.class,
+        new String[] { "spec.initData.scripts[0].script",
+            "spec.initData.scripts[0].scriptFrom" },
         "spec.pod.scripts[0].isScriptMutuallyExclusiveAndRequired", review, AssertTrue.class);
   }
 
@@ -162,10 +162,11 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     review.getRequest().getObject().getSpec().getInitData().getScripts().add(new StackGresClusterScriptEntry());
     review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).setScriptFrom(new StackGresClusterScriptFrom());
 
-    checkErrorCause(StackGresClusterScriptFrom.class, "spec.initData.scripts[0].scriptFrom.secretKeyRef",
-        "spec.pod.scripts[0].scriptFrom.isSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndRequired", review, AssertTrue.class);
-    checkErrorCause(StackGresClusterScriptFrom.class, "spec.initData.scripts[0].scriptFrom.configMapKeyRef",
-        "spec.pod.scripts[0].scriptFrom.isSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndRequired", review, AssertTrue.class);
+    checkErrorCause(StackGresClusterScriptFrom.class,
+        new String[] { "spec.initData.scripts[0].scriptFrom.secretKeyRef",
+            "spec.initData.scripts[0].scriptFrom.configMapKeyRef" },
+        "spec.pod.scripts[0].scriptFrom.isSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndRequired",
+        review, AssertTrue.class);
   }
 
   @Test
@@ -182,10 +183,11 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().getSecretKeyRef().setName("test");
     review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().getSecretKeyRef().setKey("test");
 
-    checkErrorCause(StackGresClusterScriptFrom.class, "spec.initData.scripts[0].scriptFrom.secretKeyRef",
-        "spec.pod.scripts[0].scriptFrom.isSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndRequired", review, AssertTrue.class);
-    checkErrorCause(StackGresClusterScriptFrom.class, "spec.initData.scripts[0].scriptFrom.configMapKeyRef",
-        "spec.pod.scripts[0].scriptFrom.isSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndRequired", review, AssertTrue.class);
+    checkErrorCause(StackGresClusterScriptFrom.class,
+        new String[] { "spec.initData.scripts[0].scriptFrom.secretKeyRef",
+            "spec.initData.scripts[0].scriptFrom.configMapKeyRef" },
+        "spec.pod.scripts[0].scriptFrom.isSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndRequired",
+        review, AssertTrue.class);
   }
 
   @Test
@@ -299,8 +301,9 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().add(new Toleration());
     review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0).setKey("");
 
-    checkErrorCause(StackGresPodScheduling.class, "spec.pod.scheduling.tolerations",
-        "spec.pod.scheduling.isTolerationOperatorExistsWhenKeyIsEmpty", review, AssertTrue.class);
+    checkErrorCause(Toleration.class,
+        new String[] { "spec.pod.scheduling.tolerations[0].key", "spec.pod.scheduling.tolerations[0].operator" },
+        "spec.pod.scheduling.tolerations[0].isOperatorExistsWhenKeyIsEmpty", review, AssertTrue.class);
   }
 
   @Test
@@ -312,8 +315,8 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0).setKey("test");
     review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0).setOperator("NotExists");
 
-    checkErrorCause(StackGresPodScheduling.class, "spec.pod.scheduling.tolerations",
-        "spec.pod.scheduling.isTolerationOperatorValid", review, AssertTrue.class);
+    checkErrorCause(Toleration.class, "spec.pod.scheduling.tolerations[0].operator",
+        "spec.pod.scheduling.isOperatorValid", review, AssertTrue.class);
   }
 
   @Test
@@ -325,8 +328,8 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0).setKey("test");
     review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0).setEffect("NeverSchedule");
 
-    checkErrorCause(StackGresPodScheduling.class, "spec.pod.scheduling.tolerations",
-        "spec.pod.scheduling.isTolerationEffectValid", review, AssertTrue.class);
+    checkErrorCause(Toleration.class, "spec.pod.scheduling.tolerations[0].effect",
+        "spec.pod.scheduling.isEffectValid", review, AssertTrue.class);
   }
 
 }
