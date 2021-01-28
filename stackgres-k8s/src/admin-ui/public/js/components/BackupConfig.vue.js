@@ -377,7 +377,7 @@ var BackupConfig = Vue.component("BackupConfig", {
 													<tr>
 														<td class="label">
 															Service Account JSON
-															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.gcs.gcpCredentials.serviceAccountJSON.description"></span>
+															<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.description"></span>
 														</td>
 														<td>
 															********
