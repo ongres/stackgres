@@ -19,7 +19,7 @@ try_function() {
 
 notrace_function() {
   local X_UNSET=true
-  if echo "$-" | grep -q e
+  if echo "$-" | grep -q x
   then
     X_UNSET=false
   fi
