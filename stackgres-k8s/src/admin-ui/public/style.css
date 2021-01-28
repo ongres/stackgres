@@ -3576,7 +3576,7 @@ tr.no-results:first-child:last-child {
 
 table.logs, table.backups {
     margin-bottom: 0;
-    max-height: calc(100vh - 310px) !important;
+    /* max-height: calc(100vh - 310px) !important; */
     border: none !important;
 }
 
@@ -4246,18 +4246,27 @@ table.loading:after {
     border-radius: 100%;
     content: " ";
     position: fixed;
+<<<<<<< HEAD
     bottom: 60px;
     right: 50px;
     width: 50px;
     height: 50px;
     background: url(img/loader.gif) center center no-repeat rgba(0,0,0,.1);
     background-size: 30px;
+=======
+    top: 289px;
+    right: 40px;
+    width: calc(100vw - 430px);
+    height: calc(100vh - 334px) !important;
+    background: url(img/loader.gif) center center no-repeat rgba(255,255,255,.7);
+    background-size: 4vw;
+>>>>>>> 3a89914c (fix: background color on tables loading overlay)
     opacity: 1;
     transition: opacity .4s ease-in;
 }
 
 .darkmode table.loading:after {
-    background: url(img/loader.gif) center center no-repeat rgba(6, 5, 40, .6);
+    background: url(img/loader.gif) center center no-repeat rgba(0,0,0,.5);
     background-size: 4vw;
 }
 
