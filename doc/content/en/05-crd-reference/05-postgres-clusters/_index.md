@@ -23,13 +23,14 @@ ___
 |:-------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:-------------------------------------------------------------------|
 | postgresVersion                                                                            | ✓        | ✓         | string   |                                     | {{< crd-field-description SGCluster.spec.postgresVersion >}}       |
 | instances                                                                                  | ✓        | ✓         | integer  |                                     | {{< crd-field-description SGCluster.spec.instances >}}             |
-| [sgInstanceProfile]({{% relref "/05-crd-reference/08-instance-profiles" %}})               |          |           | string   | will be generated                   | {{< crd-field-description SGCluster.spec.sgInstanceProfile >}}     |
+| [sgInstanceProfile]({{% relref "/05-crd-reference/08-instance-profiles" %}})               |          | ✓         | string   | will be generated                   | {{< crd-field-description SGCluster.spec.sgInstanceProfile >}}     |
+| [metadata](#metadata)                                                                      |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.metadata >}}              |
+| [postgresServices](#postgres-services)                                                     |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.postgresServices >}}      |
 | [pods](#pods)                                                                              | ✓        | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.pods >}}                  |
-| [configurations](#configurations)                                                          |          |           | object   |                                     | {{< crd-field-description SGCluster.spec.configurations >}}        |
+| [configurations](#configurations)                                                          |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.configurations >}}        |
 | prometheusAutobind                                                                         |          | ✓         | boolean  | false                               | {{< crd-field-description SGCluster.spec.prometheusAutobind >}}    |
 | [initialData](#initial-data-configuration)                                                 |          |           | object   |                                     | {{< crd-field-description SGCluster.spec.initialData >}}           |
 | [distributedLogs](#distributed-logs)                                                       |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.distributedLogs >}}       |
-| [postgresServices](#postgres-services)                                                     |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.postgresServices >}}      |
 | [nonProductionOptions](#non-production-options)                                            |          | ✓         | array    |                                     | {{< crd-field-description SGCluster.spec.nonProductionOptions >}}  |
 
 Example:
@@ -48,17 +49,75 @@ spec:
   sgInstanceProfile: 'size-xs'
 ```
 
+### Metadata
+
+Holds custom metadata information for StackGres generated resources to have.
+
+| Property                      | Required | Updatable | Type     | Default        | Description |
+|:------------------------------|----------|-----------|:---------|:---------------|:------------|
+| [annotations](#annotations)   |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.metadata.annotations >}} |
+
+### Annotations
+
+Holds custom annotations for StackGres generated resources to have.
+
+| Property                      | Required | Updatable | Type     | Default        | Description |
+|:------------------------------|----------|-----------|:---------|:---------------|:------------|
+| allResources                  |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.metadata.annotations.allResources >}} |
+| pods                          |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.metadata.annotations.pods >}} |
+| services                      |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.metadata.annotations.services >}} |
+
+```yaml
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
+metadata:
+  name: stackgres
+spec:
+  pods:
+    metadata:
+      annotations:
+        customAnnotations: customAnnotationValue
+      labels:
+        customLabel: customLabelValue
+```
+
+## Postgres Services
+
+Specifies the service configuration for the cluster:
+
+| Property                            | Required | Updatable | Type     | Default   | Description                                                            |
+|:------------------------------------|----------|-----------|:---------|:----------|:-----------------------------------------------------------------------|
+| [Primary](#primary-service-type)    |          | ✓         | object   |           | {{< crd-field-description SGCluster.spec.postgresServices.primary >}}  |
+| [Replicas](#replicas-service-type)  |          | ✓         | object   |           | {{< crd-field-description SGCluster.spec.postgresServices.replicas >}} |
+
+### Primary service type
+
+| Property                        | Required | Updatable | Type     | Default   | Description                                                                 |
+|:--------------------------------|----------|-----------|:---------|:----------|:----------------------------------------------------------------------------|
+| enabled                         |          | ✓         | boolean  | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.primary.enabled >}}  |
+| type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.primary.type >}}  |
+| annotations                     |          | ✓         | object   | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.primary.annotations >}}  |
+
+### Replicas service type
+
+| Property                        | Required | Updatable | Type     | Default   | Description                                                                 |
+|:--------------------------------|----------|-----------|:---------|:----------|:----------------------------------------------------------------------------|
+| enabled                         |          | ✓         | boolean  | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.replicas.enabled >}}  |
+| type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.replicas.type >}}  |
+| annotations                     |          | ✓         | object   | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.replicas.annotations >}}  |
+
 ## Pods
 
 Cluster's pod configuration
 
 | Property                               | Required | Updatable | Type     | Default                             | Description |
 |:---------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
-| [persistentVolume](#persistent-volume) | ✓        |           | object   |                                     | {{< crd-field-description SGCluster.spec.pods.persistentVolume >}} |
-| disableConnectionPooling               |          |           | boolean  | false                               | {{< crd-field-description SGCluster.spec.pods.disableConnectionPooling >}} |
-| disableMetricsExporter                 |          |           | boolean  | false                               | {{< crd-field-description SGCluster.spec.pods.disableMetricsExporter >}} |
-| disablePostgresUtil                    |          |           | boolean  | false                               | {{< crd-field-description SGCluster.spec.pods.disablePostgresUtil >}} |
-| [metadata](#metadata)                  |          |           | object   |                                     | {{< crd-field-description SGCluster.spec.pods.metadata >}} |
+| [persistentVolume](#persistent-volume) | ✓        | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.pods.persistentVolume >}} |
+| disableConnectionPooling               |          | ✓         | boolean  | false                               | {{< crd-field-description SGCluster.spec.pods.disableConnectionPooling >}} |
+| disableMetricsExporter                 |          | ✓         | boolean  | false                               | {{< crd-field-description SGCluster.spec.pods.disableMetricsExporter >}} |
+| disablePostgresUtil                    |          | ✓         | boolean  | false                               | {{< crd-field-description SGCluster.spec.pods.disablePostgresUtil >}} |
+| [metadata](#pods-metadata)             |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.pods.metadata >}} |
+| [scheduling](#scheduling)              |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.pods.scheduling >}} |
 
 ### Sidecar containers
 
@@ -96,7 +155,7 @@ Holds the configurations of the persistent volume that the cluster pods are goin
 | Property     | Required | Updatable | Type     | Default                             | Description |
 |:-------------|----------|-----------|:---------|:------------------------------------|:------------|
 | size         | ✓        | ✓         | string   |                                     | {{< crd-field-description SGCluster.spec.pods.persistentVolume.size >}} |
-| storageClass |          |           | string   | default storage class               | {{< crd-field-description SGCluster.spec.pods.persistentVolume.storageClass >}} |
+| storageClass |          | ✓         | string   | default storage class               | {{< crd-field-description SGCluster.spec.pods.persistentVolume.storageClass >}} |
 
 ```yaml
 apiVersion: stackgres.io/v1
@@ -110,14 +169,13 @@ spec:
       storageClass: default
 ```
 
-
-### Metadata
+### Pods metadata
 
 Holds custom metadata information for StackGres pods to have.
 
-| Property     | Required | Updatable | Type     | Default                             | Description |
-|:-------------|----------|-----------|:---------|:------------------------------------|:------------|
-| labels       |          |           | string   | default storage class               | {{< crd-field-description SGCluster.spec.pods.metadata.labels >}} |
+| Property     | Required | Updatable | Type     | Default          | Description |
+|:-------------|----------|-----------|:---------|:-----------------|:------------|
+| labels       |          | ✓         | string   |                  | {{< crd-field-description SGCluster.spec.pods.metadata.labels >}} |
 
 ```yaml
 apiVersion: stackgres.io/v1
@@ -132,18 +190,39 @@ spec:
       labels:
         customLabel: customLabelValue
 ```
+
+### Scheduling
+
+Holds scheduling configuration for StackGres pods to have.
+
+| Property                    | Required | Updatable | Type     | Default        | Description |
+|:----------------------------|----------|-----------|:---------|:---------------|:------------|
+| nodeSelector                |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeSelector >}} |
+| [tolerations](#tolerations) |          | ✓         | array    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations >}} |
+
+#### Tolerations
+
+Holds scheduling configuration for StackGres pods to have.
+
+| Property  | Required | Updatable | Type     | Default                 | Description |
+|:----------|----------|-----------|:---------|:------------------------|:------------|
+| key       |          | ✓         | string   |                         | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeSelector >}} |
+| operator  |          | ✓         | string   | Equal                   | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations >}} |
+| value     |          | ✓         | string   |                         | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations >}} |
+| effect    |          | ✓         | string   | match all taint effects | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations >}} |
+
 ## Configurations
 
 Custom configurations to be applied to the cluster.
 
-| Property                                                                                                                        | Required | Updatable | Type     | Default           | Description |
-|:--------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------|:------------|
-| [sgPostgresConfig]({{% relref "05-crd-reference/04-postgres-configuration" %}})          |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPostgresConfig >}} |
-| [sgPoolingConfig]({{% relref "05-crd-reference/07-connection-pooling-configuration" %}}) |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPoolingConfig >}} |
-| [sgBackupConfig]({{% relref "05-crd-reference/02-backups/#backup-configuration" %}}) |          | ✓         | string   |                   | {{< crd-field-description SGCluster.spec.configurations.sgBackupConfig >}} |
+| Property                                                                                  | Required | Updatable | Type     | Default           | Description |
+|:------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------|:------------|
+| [sgPostgresConfig]({{% relref "05-crd-reference/04-postgres-configuration" %}})           |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPostgresConfig >}} |
+| [sgPoolingConfig]({{% relref "05-crd-reference/07-connection-pooling-configuration" %}})  |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPoolingConfig >}} |
+| [sgBackupConfig]({{% relref "05-crd-reference/02-backups/#backup-configuration" %}})      |          | ✓         | string   |                   | {{< crd-field-description SGCluster.spec.configurations.sgBackupConfig >}} |
 
 Example: 
-
+ 
 ``` yaml
 
 apiVersion: stackgres.io/v1
@@ -269,22 +348,6 @@ spec:
   distributedLogs: 
     sgDistributedLogs: distributedlogs
 ```
-
-## Postgres Services
-
-Specifies the service configuration for the cluster:
-
-| Property                        | Required | Updatable | Type     | Default   | Description                                                            |
-|:--------------------------------|----------|-----------|:---------|:----------|:-----------------------------------------------------------------------|
-| [Primary](#service-type)        |          | ✓         | object   |           | {{< crd-field-description SGCluster.spec.postgresServices.primary >}}  |
-| [Replicas](#service-type)       |          | ✓         | object   |           | {{< crd-field-description SGCluster.spec.postgresServices.replicas >}} |
-
-### service type
-
-
-| Property                        | Required | Updatable | Type     | Default   | Description                                                                 |
-|:--------------------------------|----------|-----------|:---------|:----------|:----------------------------------------------------------------------------|
-| Type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.primary.type >}}  |
 
 ## Non Production options
 

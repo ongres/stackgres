@@ -9,23 +9,43 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import javax.validation.constraints.NotEmpty;
+import javax.validation.Valid;
+import javax.validation.constraints.AssertTrue;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
-import io.fabric8.kubernetes.api.model.Toleration;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.crd.Toleration;
+import io.stackgres.common.validation.FieldReference;
+import io.stackgres.common.validation.FieldReference.ReferencedField;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
 public class StackGresPodScheduling {
 
-  @NotEmpty
+  @JsonProperty("nodeSelector")
   private Map<String, String> nodeSelector;
 
+  @JsonProperty("tolerations")
+  @Valid
   private List<Toleration> tolerations;
+
+  @ReferencedField("nodeSelector")
+  interface NodeSelector extends FieldReference { }
+
+  @ReferencedField("tolerations")
+  interface TolerationField extends FieldReference { }
+
+  @JsonIgnore
+  @AssertTrue(message = "nodeSelector can not be empty.",
+      payload = NodeSelector.class)
+  public boolean isNodeSelectorNotEmpty() {
+    return nodeSelector == null || !nodeSelector.isEmpty();
+  }
 
   public Map<String, String> getNodeSelector() {
     return nodeSelector;
