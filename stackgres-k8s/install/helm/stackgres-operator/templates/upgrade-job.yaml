@@ -36,7 +36,10 @@ spec:
             {{- end }}
             
             {{- if .Release.IsUpgrade }}
-            kubectl get sgcluster -A --template '{{ "{{" }} range .items {{ "}}" }}{{ "{{" }} printf "%s:%s\n" .metadata.namespace .metadata.name {{ "}}" }}{{ "{{" }} end {{ "}}" }}' \
+            cat << 'EOF' > /tmp/prometheus-postgres-exporter-init.sql
+{{ $.Files.Get "prometheus-postgres-exporter-init.sql" | indent 12 }}
+            EOF
+            kubectl get sgcluster -A --template '{{ "{{ range .items }}{{ printf \"%s:%s\\n\" .metadata.namespace .metadata.name }}{{ end }}" }}' \
               | while read CLUSTER
                 do
                   OPERATOR_VERSION="$(kubectl get sgcluster -n "${CLUSTER%:*}" "${CLUSTER#*:}" \
@@ -51,7 +54,16 @@ spec:
                   fi
                   if echo "$OPERATOR_VERSION" | grep -q '^0\.9\(\.[0123]\)\?\(-.*\)\?$'
                   then
-                    kubectl annotate service -n "${CLUSTER%:*}" "${CLUSTER#*:}-primary" stackgres.io/reconciliation-pause-until-restart=true
+                    kubectl annotate service -n "${CLUSTER%:*}" "${CLUSTER#*:}-primary" \
+                      --overwrite stackgres.io/reconciliation-pause-until-restart=true
+                    PRIMARY_POD="$(kubectl get pod -n "${CLUSTER%:*}" \
+                      -l "app=StackGresCluster,cluster-name=${CLUSTER#*:},cluster=true,role=master" \
+                      -o name | head -n 1)"
+                    POSTGRES_PASSWORD="$(kubectl get secret -n "${CLUSTER%:*}" "${CLUSTER#*:}" \
+                      --template '{{ "{{ printf \"%s\" (index .data \"superuser-password\" | base64decode) }}" }}')"
+                    cat /tmp/prometheus-postgres-exporter-init.sql | \
+                      kubectl exec -i -n "${CLUSTER%:*}" "$PRIMARY_POD" -c patroni -- \
+                        sh -c "PGPASSWORD='$POSTGRES_PASSWORD' psql -h '${CLUSTER#*:}-primary'"
                   fi
                 done
             {{- end }}
