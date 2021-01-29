@@ -28,10 +28,18 @@ e2e_add_source() {
   E2E_SOURCES="$((E2E_SOURCES + 1))"
 }
 
-for util in $(find "$E2E_PATH/utils" -type f)
+UTIL_PATHS="$(find "$E2E_PATH/utils" -type f)"
+for UTIL_PATH in $UTIL_PATHS
 do
-  . "$util"
+  . "$UTIL_PATH"
 done
+
+e2e_list_utils() {
+  for UTIL_PATH in $UTIL_PATHS
+  do
+    echo "$(basename "$UTIL_PATH")"
+  done
+}
 
 while [ "$E2E_SOURCES" -gt 0 ]
 do

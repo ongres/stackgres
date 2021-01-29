@@ -1,6 +1,9 @@
 #!/bin/sh
 
 e2e_test_install() {
+  NODE_LABEL_KEY=$(ramdom_string)
+  NODE_LABEL_VALUE=$(ramdom_string)
+
   DEFAULT_PGCONFIG="defaultpgconfig"
   PGCBOUNCER="pgbouncer"
   PGCONFIG="postgresconf"
@@ -15,33 +18,45 @@ e2e_test_install() {
 
 e2e_test_uninstall() {
   k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
-
-  kubectl delete sgclusters.stackgres.io -n "$OPERATOR_NAMESPACE" "$CLUSTER_NAME"
-  kubectl delete sgdistributedlogs.stackgres.io -n "$OPERATOR_NAMESPACE" "$DISTRIBUTEDLOGS_NAME"
 }
 
 e2e_test() {
-  run_test "creating an empty sgpgconfig should be filled with default configurations" create_empty_sgpgconfig
-  run_test "updating an empty sgpgconfig should be filled with default configurations" update_empty_sgpgconfig
-  run_test "creating an empty sgpoolconfig should be filled with default configurations" create_empty_sgpoolconfig
-  run_test "updating an empty sgpoolconfig should be filled with default configurations" update_empty_sgpoolconfig
-  run_test "creating an empty sgbackupconfig should be filled with default configurations" create_empty_sgbackupconfig
-  run_test "updating an empty sgbackupconfig should be filled with default configurations" update_empty_sgbackupconfig
-  run_test "creating an empty sginstanceprofile should be filled with default configurations" create_empty_sginstanceprofile
-  run_test "updating an empty sginstanceprofile should be filled with default configurations" update_empty_sginstanceprofile
-  run_test "if default configuration are already created it should create the cluster" create_empty_cluster_with_default_pgbouncer
-  run_test "if the sidecars are specifically set to be empty the operator should not add any sidecar" create_empty_cluster_with_no_sidecars
-  run_test "creating an empty cluster should trigger the creation of all default configurations" create_empty_cluster
-  run_test "updating a cluster without annotations should trigger the creation of annotations" update_empty_cluster
-  run_test "creating en empty cluster in the operator should not fail" create_empty_cluster_on_operator_namespace
-  run_test "creating an empty cluster with previous postgres version should not fail" create_cluster_with_previous_postgres_version
-  run_test "creating an empty distributed logs should trigger the creation of all default configurations" create_empty_distributedlogs
-  run_test "updating a distributed logs without annotations should trigger the creation of annotations" update_empty_distributedlogs
-  run_test "creating en empty distributed logs in the operator should no fail" create_empty_distributedlogs_on_operator_namespace
+  run_test "Creating an empty sgpgconfig should be filled with default configurations" create_empty_sgpgconfig
+
+  run_test "Updating an empty sgpgconfig should be filled with default configurations" update_empty_sgpgconfig
+
+  run_test "Creating an empty sgpoolconfig should be filled with default configurations" create_empty_sgpoolconfig
+
+  run_test "Updating an empty sgpoolconfig should be filled with default configurations" update_empty_sgpoolconfig
+
+  run_test "Creating an empty sgbackupconfig should be filled with default configurations" create_empty_sgbackupconfig
+
+  run_test "Updating an empty sgbackupconfig should be filled with default configurations" update_empty_sgbackupconfig
+
+  run_test "Creating an empty sginstanceprofile should be filled with default configurations" create_empty_sginstanceprofile
+
+  run_test "Updating an empty sginstanceprofile should be filled with default configurations" update_empty_sginstanceprofile
+
+  run_test "If default configuration are already created it should create the cluster" create_empty_cluster_with_default_pgbouncer
+
+  run_test "If the sidecars are specifically set to be empty the operator should not add any sidecar" create_empty_cluster_with_no_sidecars
+
+  run_test "Creating an empty cluster should trigger the creation of all default configurations" create_empty_cluster
+
+  run_test "Updating a cluster without annotations should trigger the creation of annotations" update_empty_cluster
+
+  run_test "Creating en empty cluster in the operator should not fail" create_empty_cluster_on_operator_namespace
+
+  run_test "Creating an empty cluster with previous postgres version should not fail" create_cluster_with_previous_postgres_version
+
+  run_test "Creating an empty distributed logs should trigger the creation of all default configurations" create_empty_distributedlogs
+
+  run_test "Updating a distributed logs without annotations should trigger the creation of annotations" update_empty_distributedlogs
+
+  run_test "Creating en empty distributed logs in the operator should no fail" create_empty_distributedlogs_on_operator_namespace
 }
 
 create_empty_sgpgconfig() {
-
   kubectl delete sgpgconfig -n "$CLUSTER_NAMESPACE" "$PGCONFIG" --ignore-not-found
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
@@ -86,11 +101,9 @@ EOF
   else
     echo "Success. Defaults annotations filled"
   fi
-
 }
 
 update_empty_sgpgconfig() {
-
   kubectl delete sgpgconfig -n "$CLUSTER_NAMESPACE" "$PGCONFIG" --ignore-not-found
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
@@ -139,11 +152,9 @@ EOF
   else
     echo "Success. Defaults annotations filled"
   fi
-
 }
 
 create_empty_sgpoolconfig() {
-
   kubectl delete sgpoolconfig -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" --ignore-not-found
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
@@ -191,7 +202,6 @@ EOF
 }
 
 update_empty_sgpoolconfig() {
-
   kubectl delete sgpoolconfig -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" --ignore-not-found
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
@@ -241,7 +251,6 @@ EOF
 }
 
 create_empty_sgbackupconfig() {
-
   kubectl delete sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --ignore-not-found
   cat << EOF | kubectl create --validate=false -f -
 apiVersion: stackgres.io/v1
@@ -277,7 +286,6 @@ EOF
 }
 
 update_empty_sgbackupconfig() {
-
   kubectl delete sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --ignore-not-found
   cat << EOF | kubectl create --validate=false -f -
 apiVersion: stackgres.io/v1
@@ -316,7 +324,6 @@ EOF
 }
 
 create_empty_sginstanceprofile() {
-
   kubectl delete sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" --ignore-not-found
   cat << EOF | kubectl create --validate=false -f -
 apiVersion: stackgres.io/v1
@@ -351,7 +358,6 @@ EOF
 }
 
 update_empty_sginstanceprofile() {
-
   kubectl delete sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" --ignore-not-found
   cat << EOF | kubectl create --validate=false -f -
 apiVersion: stackgres.io/v1
@@ -390,7 +396,6 @@ EOF
 }
 
 create_empty_cluster_with_default_pgbouncer() {
-
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-pgbouncer" --ignore-not-found
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
@@ -404,6 +409,9 @@ spec:
   pods:
     persistentVolume:
       size: '5Gi'
+    scheduling:
+      nodeSelector:
+        $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
@@ -420,7 +428,6 @@ EOF
 
   kubectl delete sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-pgbouncer"
 
-  kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-reused" --ignore-not-found
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
 kind: SGCluster
@@ -436,6 +443,9 @@ spec:
     disableConnectionPooling: false
     disableMetricsExporter: true
     disablePostgresUtil: true
+    scheduling:
+      nodeSelector:
+        $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
@@ -448,10 +458,10 @@ EOF
     return 1
   fi
 
+  kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-reused"
 }
 
 create_empty_cluster_with_no_sidecars() {
-  kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-nosidecars" --ignore-not-found
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
 kind: SGCluster
@@ -467,6 +477,9 @@ spec:
     disableConnectionPooling: true
     disableMetricsExporter: true
     disablePostgresUtil: true
+    scheduling:
+      nodeSelector:
+        $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
@@ -491,11 +504,10 @@ EOF
 
   assert_string_equal "true" "$DISABLED_POSTGRES_UTIL"
 
+  kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-nosidecars"
 }
 
 create_empty_cluster() {
-
-  kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --ignore-not-found
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
 kind: SGCluster
@@ -508,6 +520,9 @@ spec:
   pods:
     persistentVolume:
       size: '512Mi'
+    scheduling:
+      nodeSelector:
+        $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
@@ -587,11 +602,10 @@ EOF
   assert_string_contains "pgbouncer" "$INSTALLED_CONTAINERS"
   assert_string_contains "postgres-util" "$INSTALLED_CONTAINERS"
 
+  kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
 }
 
 update_empty_cluster() {
-
-  kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --ignore-not-found
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
 kind: SGCluster
@@ -604,6 +618,9 @@ spec:
   pods:
     persistentVolume:
       size: '512Mi'
+    scheduling:
+      nodeSelector:
+        $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
@@ -646,10 +663,10 @@ EOF
   assert_string_contains "pgbouncer" "$INSTALLED_CONTAINERS"
   assert_string_contains "postgres-util" "$INSTALLED_CONTAINERS"
 
+  kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
 }
 
 create_empty_cluster_on_operator_namespace() {
-  kubectl delete sgcluster -n "$OPERATOR_NAMESPACE" "$CLUSTER_NAME" --ignore-not-found
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
 kind: SGCluster
@@ -665,6 +682,9 @@ spec:
     disableConnectionPooling: true
     disableMetricsExporter: true
     disablePostgresUtil: true
+    scheduling:
+      nodeSelector:
+        $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
@@ -677,10 +697,10 @@ EOF
     return 1
   fi
 
+  kubectl delete sgcluster -n "$OPERATOR_NAMESPACE" "$CLUSTER_NAME"
 }
 
 create_cluster_with_previous_postgres_version() {
-  kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --ignore-not-found
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
 kind: SGCluster
@@ -696,6 +716,9 @@ spec:
     disableConnectionPooling: true
     disableMetricsExporter: true
     disablePostgresUtil: true
+    scheduling:
+      nodeSelector:
+        $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
@@ -708,11 +731,10 @@ EOF
     return 1
   fi
 
+  kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
 }
 
 create_empty_distributedlogs() {
-
-  kubectl delete sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" --ignore-not-found
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
 kind: SGDistributedLogs
@@ -735,11 +757,9 @@ EOF
   else
     echo "Success. Defaults annotations created"
   fi
-
 }
 
 update_empty_distributedlogs() {
-
   local PATCH="$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o json \
     | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
     | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])' \
@@ -756,10 +776,10 @@ update_empty_distributedlogs() {
     echo "Success. Defaults annotations created"
   fi
 
+  kubectl delete sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME"
 }
 
 create_empty_distributedlogs_on_operator_namespace() {
-  kubectl delete sgdistributedlogs -n "$OPERATOR_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" --ignore-not-found
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
 kind: SGDistributedLogs
@@ -775,10 +795,11 @@ EOF
 
   if kubectl get sgdistributedlogs.stackgres.io -n "$OPERATOR_NAMESPACE" "$DISTRIBUTEDLOGS_NAME"
   then
-    echo "Good. distributed logs was created on the operator namespace "
+    echo "Good. distributed logs was created on the operator namespace"
   else
-    echo "Fail. distributed logs was not created on the operator namespace "
+    echo "Fail. distributed logs was not created on the operator namespace"
     return 1
   fi
 
+  kubectl delete sgdistributedlogs.stackgres.io -n "$OPERATOR_NAMESPACE" "$DISTRIBUTEDLOGS_NAME"
 }
