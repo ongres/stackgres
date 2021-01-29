@@ -6,18 +6,8 @@ url: administration/patroni/management
 
 Once you hace a StackGres cluster installed you'll have a Full HA PostgreSQL configuration and depending of the size of your cluster you´ll have something like this:
 
-{{<mermaid>}}
-graph TB
-    stackgres-0 -.-> stackgres-1
-    stackgres-0 -.-> stackgres-2
-    stackgres-0 -.-> stackgres-N
-    subgraph PostgreSQL StackGres Cluster
-        stackgres-0(Primary Database)
-        stackgres-1(DB Replica 1)
-        stackgres-2(DB Replica 2)
-        stackgres-N(DB Replica<i>...N</i>)
-    end
-{{</mermaid>}}
+
+![Patroni Management](patroni-management.png "Patroni Management")
 
 These represents the containers of the StackGres cluster and you can list them using `kubectl` command like:
 
