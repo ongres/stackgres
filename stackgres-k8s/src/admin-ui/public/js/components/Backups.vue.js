@@ -271,10 +271,10 @@ var Backups = Vue.component("Backups", {
 														</td>
 														<td class="timestamp">
 															<span class='time'>
-																{{ back.duration | formatTimestamp('time') }}
+																{{ getBackupDuration(back.data.status.process.timing.start, back.data.status.process.timing.stored) | formatTimestamp('time') }}
 															</span>
 															<span class='ms'>
-																{{ back.duration | formatTimestamp('ms') }}
+																{{ getBackupDuration(back.data.status.process.timing.start, back.data.status.process.timing.stored) | formatTimestamp('ms') }}
 															</span>
 														</td>
 													</tr>
@@ -727,6 +727,12 @@ var Backups = Vue.component("Backups", {
 			//console.log("#"+count);
 			return store.state.backups;
 			
+		},
+
+		getBackupDuration( start, stored ) {
+			let begin = moment(start);
+			let finish = moment(stored);
+			return(new Date(moment.duration(finish.diff(begin))).toISOString());
 		}
 	},
 
