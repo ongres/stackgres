@@ -1,17 +1,17 @@
 #!/bin/sh
 
 e2e_test_install() {
-  install_minio
+  NODE_LABEL_KEY=$(ramdom_string)
+  NODE_LABEL_VALUE=$(ramdom_string)
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
-
-  wait_pods_running "$CLUSTER_NAMESPACE" 2
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
 }
 
 e2e_test() {
-  run_test "Trying to delete backupconfig with cluster running" delete_with_cluster
+  run_test "Trying to delete backupconfig with cluster created" delete_with_cluster
 
-  run_test "Trying to delete backupconfig without cluster running" delete_whitout_cluster
+  run_test "Trying to delete backupconfig without cluster created" delete_whitout_cluster
 }
 
 delete_with_cluster() {
@@ -36,8 +36,6 @@ delete_with_cluster() {
 
 delete_whitout_cluster() {
   kubectl get -n "$CLUSTER_NAMESPACE" sgclusters.stackgres.io "$CLUSTER_NAME" -o yaml | kubectl delete -f -
-
-  wait_pods_terminated "$CLUSTER_NAMESPACE" 1
 
   if ERROR=$(kubectl delete -n "$CLUSTER_NAMESPACE" sgbackupconfigs.stackgres.io backupconf 2>&1) 
   then

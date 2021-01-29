@@ -1,6 +1,13 @@
 #!/bin/sh
 
 . "$(dirname "$0")/e2e"
+
+echo "Utils loaded:"
+e2e_list_utils | while read UTIL_PATH
+  do
+    echo " - $UTIL_PATH"
+  done
+
 echo "Preparing environment"
 
 echo "Setup versions"

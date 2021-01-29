@@ -1,6 +1,10 @@
 #!/bin/sh
 
 setup_logs() {
+  notrace_function traceable_setup_logs "$@"
+}
+
+traceable_setup_logs() {
   if [ "$E2E_DISABLE_LOGS" = "true" ]
   then
     return

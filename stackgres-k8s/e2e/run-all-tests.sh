@@ -2,6 +2,12 @@
 
 . "$(dirname "$0")/e2e"
 
+echo "Utils loaded:"
+e2e_list_utils | while read UTIL_PATH
+  do
+    echo " - $UTIL_PATH"
+  done
+
 E2E_PARALLELISM="${E2E_PARALLELISM:-8}"
 E2E_RETRY="${E2E_RETRY:-2}"
 E2E_ONLY_INCLUDES="${E2E_ONLY_INCLUDES}"

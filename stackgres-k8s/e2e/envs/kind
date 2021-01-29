@@ -170,8 +170,6 @@ delete_k8s() {
 
   kind delete cluster --name "$KIND_NAME" || true
 
-  rm -f "$(kind get kubeconfig-path --name "$KIND_NAME")"
-
   echo "...done"
 }
 

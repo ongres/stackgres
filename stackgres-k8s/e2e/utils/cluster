@@ -41,5 +41,5 @@ create_or_replace_cluster() {
 }
 
 has_cluster_generated_resources() {
-  kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" > /dev/null
+  kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" > /dev/null 2>&1
 }
