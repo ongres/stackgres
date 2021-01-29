@@ -4,6 +4,10 @@ export E2E_PULLED_IMAGES_PATH="${E2E_PULLED_IMAGES_PATH:-$TARGET_PATH/pulled-ima
 export E2E_USE_INTERMIDIATE_PRIVATE_REPO="${E2E_USE_INTERMIDIATE_PRIVATE_REPO:-false}"
 
 setup_cache() {
+  notrace_function traceable_setup_cache "$@"
+}
+
+traceable_setup_cache() {
   if [ "$E2E_DISABLE_CACHE" = "true" ]
   then
     return

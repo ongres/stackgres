@@ -1,9 +1,13 @@
 #!/bin/sh
 
 e2e_test_install() {
+  NODE_LABEL_KEY=$(ramdom_string)
+  NODE_LABEL_VALUE=$(ramdom_string)
+
   BACKUPCONF="backupconf"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 --set cluster.create=false --set cluster.configurations.sgBackupConfig="$BACKUPCONF" \
+    --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
     --set configurations.backupconfig.create=true \
     --set-string configurations.backupconfig.storage.s3Compatible.bucket=test \
     --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.name=test \

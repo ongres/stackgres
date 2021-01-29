@@ -2,6 +2,7 @@
 
 e2e_test_install() {
   kubectl create namespace "$CLUSTER_NAMESPACE"
+
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1

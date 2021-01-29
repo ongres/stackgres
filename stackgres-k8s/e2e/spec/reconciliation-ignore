@@ -1,6 +1,9 @@
 #!/bin/sh
 
 e2e_test_install() {
+  NODE_LABEL_KEY=$(ramdom_string)
+  NODE_LABEL_VALUE=$(ramdom_string)
+
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
   cat <<EOF | kubectl apply -f -
@@ -13,10 +16,8 @@ spec:
   cpu: '500m'
   memory: '512Mi'
 EOF
- kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" || true
 
- export RECONCILIATION_IGNORE_ANNOTATION="stackgres.io/reconciliation-pause"
-
+  RECONCILIATION_IGNORE_ANNOTATION="stackgres.io/reconciliation-pause"
 }
 
 
@@ -36,7 +37,6 @@ e2e_test() {
 }
 
 ignore_sgcluster_create(){
-
     cat << EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1beta1
 kind: SGCluster
@@ -51,6 +51,9 @@ spec:
   pods:
     persistentVolume:
       size: '128Mi'
+    scheduling:
+      nodeSelector:
+        $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
     disableClusterPodAntiAffinity: true  
@@ -58,16 +61,15 @@ EOF
 
   if wait_until -t "15" has_cluster_generated_resources
   then
-    echo "Cluster where created"
+    echo "FAIL. Cluster where created"
     return 1
   else
-    echo "Cluster resources wheren't created"
+    echo "SUCCESS. Cluster resources wheren't created"
   fi
 
 }
 
 ignore_sgcluster_patch(){
-
   kubectl annotate sgcluster "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION-"
 
   wait_until has_cluster_generated_resources
@@ -88,7 +90,6 @@ ignore_sgcluster_patch(){
 }
 
 resume_sgcluster_reconciliation(){
-
   kubectl annotate sgcluster "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION"-
 
   if wait_until -t "15" eval '[ $(get_cluster_replicas) = 2 ]'
@@ -98,7 +99,6 @@ resume_sgcluster_reconciliation(){
     echo "Fail. SGCluster is being ignored"
     return 1
   fi
-
 }
 
 ignore_sgdistributedlogs_create(){
@@ -124,11 +124,9 @@ EOF
   else
     echo "Success. Distributed logs cluster resources wheren't created"
   fi
-  
 }
 
 ignore_sgdistributedlogs_patch(){
-
   kubectl annotate sgdistributedlogs "$CLUSTER_NAME-logs" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=false" --overwrite
 
   wait_until has_logs_generated_resources
@@ -148,7 +146,6 @@ ignore_sgdistributedlogs_patch(){
 }
 
 resume_sgdistributedlogs_reconciliation(){
-
   kubectl annotate sgdistributedlogs "$CLUSTER_NAME-logs" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=false" --overwrite
 
   if wait_until -t "15" eval '[ $(get_sgdistributedlogs_replicas) = 1 ]'

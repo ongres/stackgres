@@ -3,7 +3,8 @@
 e2e_test_install() {
   PGPOOLING=pgbouncerconf
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 --set cluster.create=false --set cluster.poolingconfig="$PGPOOLING"
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set cluster.create=false --set cluster.poolingconfig="$PGPOOLING"
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 

@@ -1,20 +1,29 @@
 #!/bin/sh
 
 wait_pods_running() {
-  local NAMESPACE_OPT="$([ -z "$1" ] && echo "--all-namespaces" || echo "--namespace=$1")"
+  notrace_function traceable_wait_pods_running "$@"
+}
+
+traceable_wait_pods_running() {
+  local NAMESPACE_OPT="$([ -z "$1" ] && printf "%s" "--all-namespaces" || printf "%s" "--namespace=$1")"
   local EXPECTED_RUNNING_PODS="${2:-1}"
   if [ "$EXPECTED_RUNNING_PODS" -lt 1 ]
   then
     >&2 echo "Must specify a number of expected running pods of 1 or more"
     return 1
   fi
+  local PODS
+  local RUNNING_PODS
+  local RUNNING_CONTAINERS
+  local EXPECTED_CONTAINERS
   local END="$(($(date +%s) + (E2E_TIMEOUT * EXPECTED_RUNNING_PODS)))"
   while [ "$(date +%s)" -lt "$END" ]
   do
-    RUNNING_PODS="$(kubectl get pods "$NAMESPACE_OPT" | grep "Running" | wc -l)"
-    RUNNING_CONTAINERS="$(kubectl get pods "$NAMESPACE_OPT" | grep "Running" \
+    PODS="$(kubectl get pods "$NAMESPACE_OPT" 2>/dev/null)"
+    RUNNING_PODS="$(printf "%s" "$PODS" | grep "Running" | wc -l)"
+    RUNNING_CONTAINERS="$(printf "%s" "$PODS" | grep "Running" \
       | grep '[0-9]\+/[0-9]\+' -o | cut -d '/' -f 1 | tr '\n' ' ')"
-    EXPECTED_CONTAINERS="$(kubectl get pods "$NAMESPACE_OPT" | grep "Running" \
+    EXPECTED_CONTAINERS="$(printf "%s" "$PODS" | grep "Running" \
       | grep '[0-9]\+/[0-9]\+' -o | cut -d '/' -f 2 | tr '\n' ' ')"
     if [ "$RUNNING_PODS" -ge "$EXPECTED_RUNNING_PODS" ] \
       && [ "$RUNNING_CONTAINERS" = "$EXPECTED_CONTAINERS" ]
@@ -32,7 +41,11 @@ wait_pods_running() {
 }
 
 wait_pods_terminated() {
-  local NAMESPACE_OPT="$([ -z "$1" ] && echo "--all-namespaces" || echo "--namespace=$1")"
+  notrace_function traceable_wait_pods_terminated "$@"
+}
+
+traceable_wait_pods_terminated() {
+  local NAMESPACE_OPT="$([ -z "$1" ] && printf "%s" "--all-namespaces" || printf "%s" "--namespace=$1")"
   local EXPECTED_REMAINING_PODS="${2:-0}"
   if [ "$EXPECTED_REMAINING_PODS" -lt 0 ]
   then
@@ -46,9 +59,12 @@ wait_pods_terminated() {
   else
     END="$(($(date +%s) + E2E_TIMEOUT))"
   fi
+  local PODS
+  local REMAINING_PODS
   while [ "$(date +%s)" -lt "$END" ]
   do
-    REMAINING_PODS="$(kubectl get pods "$NAMESPACE_OPT" -o name | wc -l)"
+    PODS="$(kubectl get pods "$NAMESPACE_OPT" -o name 2>/dev/null)"
+    REMAINING_PODS="$(printf "%s" "$PODS" | wc -l)"
     if [ "$REMAINING_PODS" -le "$EXPECTED_REMAINING_PODS" ]
     then
       echo "$([ -z "$1" ] && echo "All pods terminated" || echo "All pods terminated in namespace $1")"
