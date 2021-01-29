@@ -52,27 +52,27 @@ var CreateBackupConfig = Vue.component("CreateBackupConfig", {
                     </div>                    
                     
                     <div class="col">
-                        <label for="backupConfigFullScheduleMin">Minute <span class="req">*</span></label>
+                        <label for="backupConfigFullScheduleMin" title="Minute *">Minute <span class="req">*</span></label>
                         <input v-model="backupConfigFullScheduleMin" required>
                     </div>
 
                     <div class="col">
-                        <label for="backupConfigFullScheduleHour">Hour <span class="req">*</span></label>
+                        <label for="backupConfigFullScheduleHour" title="Hour *">Hour <span class="req">*</span></label>
                         <input v-model="backupConfigFullScheduleHour" required>
                     </div>
 
                     <div class="col">
-                        <label for="backupConfigFullScheduleDOM">Day of Month <span class="req">*</span></label>
+                        <label for="backupConfigFullScheduleDOM" title="Day of Month *">Day of Month <span class="req">*</span></label>
                         <input v-model="backupConfigFullScheduleDOM" required>
                     </div>
 
                     <div class="col">
-                        <label for="backupConfigFullScheduleMonth">Month <span class="req">*</span></label>
+                        <label for="backupConfigFullScheduleMonth" title="Month *">Month <span class="req">*</span></label>
                         <input v-model="backupConfigFullScheduleMonth" required>
                     </div>
 
                     <div class="col">
-                        <label for="backupConfigFullScheduleDOW">Day of Week <span class="req">*</span></label>
+                        <label for="backupConfigFullScheduleDOW" title="Day of Week *">Day of Week <span class="req">*</span></label>
                         <input v-model="backupConfigFullScheduleDOW" required>
                     </div>
 
