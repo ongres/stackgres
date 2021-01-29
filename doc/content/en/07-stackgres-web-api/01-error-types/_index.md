@@ -2,9 +2,11 @@
 title: Error Responses
 weight: 1
 url: api/responses/error
+aliases: 
+  - /07-developer-documentation/01-error-types
 ---
 
-The operator error responses follows the (RFC 7807)[https://datatracker.ietf.org/doc/rfc7807/?include_text=1].
+The operator error responses follows the [RFC 7807](https://datatracker.ietf.org/doc/rfc7807/?include_text=1).
 
 That means that all of error messages follows the following structure:
 
