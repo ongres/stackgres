@@ -430,7 +430,7 @@ form#login .warning {
     background-color: #444;
 }
 
-.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode #ns-select, .darkmode .set.active:not(.conf):not(.backups), .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode table.clusterConfig td, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .toolbar .toggle, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select, .darkmode .options li.textFilter .search, .darkmode #nav .right > div#clone, .darkmode header .actions {
+.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode #ns-select, .darkmode .set.active:not(.conf):not(.backups), .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode table.clusterConfig td, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .toolbar .toggle, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select, .darkmode .options li.textFilter .search, .darkmode #nav .right > div#clone, .darkmode header .actions, .darkmode #contentTooltip .info {
     border-color: #333333;
 }
 
@@ -455,7 +455,7 @@ form#login .warning {
     background-color: rgba(122, 123, 133, .10);
 }
 
-.darkmode ul#postgresVersion, .darkmode ul#postgresVersion ul, .darkmode table.pgConfig tr:nth-child(4n-2), .darkmode table.pgConfig tr:nth-child(4n-2) + tr.details, .darkmode table.poolConfig tr:nth-child(4n-2), .darkmode table.poolConfig tr:nth-child(4n-2) + tr.details, .darkmode table.backupConfig tr:nth-child(4n-2), .darkmode table.backupConfig tr:nth-child(4n-2) + tr.details {
+.darkmode ul#postgresVersion, .darkmode ul#postgresVersion ul, .darkmode table.pgConfig tr:nth-child(4n-2), .darkmode table.pgConfig tr:nth-child(4n-2) + tr.details, .darkmode table.poolConfig tr:nth-child(4n-2), .darkmode table.poolConfig tr:nth-child(4n-2) + tr.details, .darkmode table.backupConfig tr:nth-child(4n-2), .darkmode table.backupConfig tr:nth-child(4n-2) + tr.details, .darkmode #contentTooltip tr:nth-child(odd), .darkmode #contentTooltip .info {
     background-color: #171717;
 }
 
@@ -478,6 +478,10 @@ form#login .warning {
 .darkmode ul.select.active li.selected {
     background: #181618;
     color: #cdcdcd;
+}
+
+.darkmode #contentTooltip {
+    background: rgba(23, 23, 23, .75);
 }
 
 
