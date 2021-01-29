@@ -77,11 +77,21 @@ spec:
                 echo -n .
                 sleep 5
               done
-              echo approved
+              echo "approved"
             fi
+            echo -n "Waiting for CSR certificate generation..."
+            until kubectl get csr '{{ .Release.Name }}' \
+              --template '{{ "{{ if .status }}{{ if .status.certificate }}true{{ end }}{{ end }}" }}' \
+              | grep -q '^true$'
+            do
+              echo -n .
+              sleep 5
+            done
+            echo "certificate generated"
+
             KEY="$(cat /tmp/root.key | base64 | tr -d '\n')"
             PUB="$(cat /tmp/root.pem | base64 | tr -d '\n')"
-            CRT="$(kubectl get csr '{{ .Release.Name }}' -o jsonpath='{.status.certificate}')"
+            CRT="$(kubectl get csr '{{ .Release.Name }}' --template '{{ "{{ .status.certificate }}" }}')"
             
             if [ -z "$CRT" ]
             then
