@@ -10,6 +10,7 @@ import java.util.Objects;
 import javax.validation.Valid;
 import javax.validation.constraints.AssertTrue;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -17,6 +18,8 @@ import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
+import io.stackgres.common.validation.FieldReference;
+import io.stackgres.common.validation.FieldReference.ReferencedField;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -31,9 +34,17 @@ public class StackGresClusterScriptFrom {
   @Valid
   private ConfigMapKeySelector configMapKeyRef;
 
+  @ReferencedField("secretKeyRef")
+  interface SecretKeyRef extends FieldReference { }
+
+  @ReferencedField("configMapKeyRef")
+  interface ConfigMapKeyRef extends FieldReference { }
+
+  @JsonIgnore
   @AssertTrue(message = "secretKeyRef and configMapKeyRef are mutually exclusive and one of them is"
-      + " required.")
-  public boolean areSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndOneRequired() {
+      + " required.",
+      payload = { SecretKeyRef.class, ConfigMapKeyRef.class })
+  public boolean isSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndRequired() {
     return (secretKeyRef != null && configMapKeyRef == null) // NOPMD
         || (secretKeyRef == null && configMapKeyRef != null); //NOPMD
   }

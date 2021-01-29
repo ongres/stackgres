@@ -18,7 +18,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackgresClusterConfiguration {
+public class StackGresClusterConfiguration {
 
   @JsonProperty("sgPostgresConfig")
   @NotBlank(message = "You need to associate a Postgres configuration to this cluster")
@@ -71,7 +71,7 @@ public class StackgresClusterConfiguration {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    StackgresClusterConfiguration that = (StackgresClusterConfiguration) o;
+    StackGresClusterConfiguration that = (StackGresClusterConfiguration) o;
     return Objects.equals(postgresConfig, that.postgresConfig)
         && Objects.equals(connectionPoolingConfig, that.connectionPoolingConfig)
         && Objects.equals(backupConfig, that.backupConfig);

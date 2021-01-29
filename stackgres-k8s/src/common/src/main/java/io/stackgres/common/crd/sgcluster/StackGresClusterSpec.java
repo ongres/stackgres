@@ -37,7 +37,7 @@ public class StackGresClusterSpec implements KubernetesResource {
   @JsonProperty("configurations")
   @NotNull(message = "cluster configuration cannot be null")
   @Valid
-  private StackgresClusterConfiguration configuration;
+  private StackGresClusterConfiguration configuration;
 
   @JsonProperty("sgInstanceProfile")
   @NotNull(message = "resource profile must not be null")
@@ -83,11 +83,11 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.postgresVersion = postgresVersion;
   }
 
-  public StackgresClusterConfiguration getConfiguration() {
+  public StackGresClusterConfiguration getConfiguration() {
     return configuration;
   }
 
-  public void setConfiguration(StackgresClusterConfiguration configuration) {
+  public void setConfiguration(StackGresClusterConfiguration configuration) {
     this.configuration = configuration;
   }
 

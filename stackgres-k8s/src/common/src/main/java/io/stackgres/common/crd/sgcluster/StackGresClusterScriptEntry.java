@@ -44,9 +44,9 @@ public class StackGresClusterScriptEntry {
   interface ScriptFrom extends FieldReference { }
 
   @JsonIgnore
-  @AssertTrue(message = "script and scriptFrom are mutually exclusive and one of them is required.",
+  @AssertTrue(message = "script and scriptFrom are mutually exclusive and required.",
       payload = { Script.class, ScriptFrom.class })
-  public boolean areScriptAndScriptFromMutuallyExclusiveAndOneRequired() {
+  public boolean isScriptMutuallyExclusiveAndRequired() {
     return (script != null && scriptFrom == null) // NOPMD
         || (script == null && scriptFrom != null); // NOPMD
   }
