@@ -72,14 +72,33 @@ var Grafana = Vue.component("Grafana", {
 		let vc = this;
 		var url = '';
 
-		$.get("/grafana", function(data) {
-			url = data;
-			url += (url.includes('?') ? '&' : '?') + 'theme='+vc.theme+'&kiosk&var-instance=';
+		$.get("/grafana")
+		.done(function( data, textStatus, jqXHR ) {
+				url = data;
+				url += (url.includes('?') ? '&' : '?') + 'theme='+vc.theme+'&kiosk&var-instance=';
 
-			vc.grafana = url;
+				$.get(url)
+				.done(function( data, textStatus, jqXHR ) {
+						vc.grafana = url;
+				})
+				.fail(function( jqXHR, textStatus, errorThrown ) {
+						notify({
+								title: errorThrown,
+								detail: 'There was a problem when trying to access Grafana\'s dashboard. Please confirm you have setup the operator\'s credentials to view Grafana properly',
+								type: 'https://stackgres.io/doc/latest/install/prerequisites/monitoring/#installing-grafana-and-create-basic-dashboards',
+								status: 403
+						},'error')
+						$('#grafana').remove();
+				});
+		})
+		.fail(function( jqXHR, textStatus, errorThrown ) {
+				if(textStatus == 'error') {
+						notify('There was a problem when trying to access Grafana\'s dashboard','message')
+						$('#grafana').hide()
+				}       
 		});
-
 		//console.log(this.$route)
+
 	},
 	computed: {
 		currentNamespace () {
