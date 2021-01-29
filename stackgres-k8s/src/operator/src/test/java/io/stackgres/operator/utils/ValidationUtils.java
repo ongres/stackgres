@@ -12,8 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ThreadLocalRandom;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -26,6 +24,7 @@ import io.fabric8.kubernetes.api.model.StatusDetails;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.function.Executable;
 import org.opentest4j.AssertionFailedError;
 
@@ -69,17 +68,24 @@ public class ValidationUtils {
   }
 
   public static void checkErrorCause(Status status, String field, String message, String reason) {
+    checkErrorCause(status, new String[] { field }, message, reason);
+  }
+
+  public static void checkErrorCause(Status status, String[] fields, String message, String reason) {
     final StatusDetails details = status.getDetails();
     assertNotNull(details);
+    assertEquals(fields.length, details.getCauses().size());
     if (details.getCauses().size() == 1) {
-      assertEquals(field, details.getName());
+      assertEquals(fields[0], details.getName());
     }
-    StatusCause cause = details.getCauses().stream()
-        .filter(statusCause -> statusCause.getField().equals(field))
-        .findFirst().orElseThrow(() -> new AssertionFailedError("Not cause with the field "
-            + field + " was found"));
-    assertEquals(message, cause.getMessage());
-    assertEquals(reason, cause.getReason());
+    Seq.of(fields).forEach(field -> {
+      StatusCause cause = details.getCauses().stream()
+          .filter(statusCause -> statusCause.getField().equals(field))
+          .findFirst().orElseThrow(() -> new AssertionFailedError("Not cause with the field "
+              + field + " was found"));
+      assertEquals(message, cause.getMessage());
+      assertEquals(reason, cause.getReason());
+    });
   }
 
   public static String generateErrorTypeDocumentationUri(ErrorType constraintViolation) {
@@ -119,15 +125,34 @@ public class ValidationUtils {
 
   }
 
-  public static String getConstraintMessage(Class<?> from, String field, Class<? extends Annotation> constraint) {
+  public static String getConstraintMessage(Class<?> from, String fieldOrMethod, Class<? extends Annotation> constraint) {
     try {
-      final Annotation annotation = from.getDeclaredField(field).getAnnotation(constraint);
+      Annotation annotation;
+      AssertionFailedError ex = new AssertionFailedError(
+          constraint.getName() + " for field / method " + fieldOrMethod
+          + " is not valid constraint annotation");
+      while (true) {
+        try {
+          annotation = from.getDeclaredField(fieldOrMethod).getAnnotation(constraint);
+          break;
+        } catch (NoSuchFieldException e) {
+          ex.addSuppressed(e);
+        }
+        try {
+          annotation = from.getDeclaredMethod(fieldOrMethod).getAnnotation(constraint);
+          break;
+        } catch (NoSuchMethodException e) {
+          ex.addSuppressed(e);
+        }
+        from = from.getSuperclass();
+        if (from == Object.class) {
+          throw ex;
+        }
+      }
 
       Method messageMethod = annotation.getClass().getDeclaredMethod("message");
 
       return (String) messageMethod.invoke(annotation);
-    } catch (NoSuchFieldException e) {
-      throw new AssertionFailedError(field + " field not found", e);
     } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
       throw new AssertionFailedError(constraint.getName() + " is not valid constraint annotation", e);
     }

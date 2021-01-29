@@ -11,8 +11,8 @@ import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.common.crd.sgcluster.StackgresClusterConfiguration;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
 
@@ -20,7 +20,7 @@ public interface ClusterConfigurationMutator {
 
   static JsonPointer getTargetPointer(String field) throws NoSuchFieldException {
     String jsonField = ClusterMutator
-        .getJsonMappingField(field, StackgresClusterConfiguration.class);
+        .getJsonMappingField(field, StackGresClusterConfiguration.class);
     return getTargetPointer().append(jsonField);
   }
 
@@ -35,13 +35,13 @@ public interface ClusterConfigurationMutator {
   static List<JsonPatchOperation> ensureConfigurationNode(StackGresClusterReview review) {
 
     final StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
-    StackgresClusterConfiguration configuration = spec.getConfiguration();
+    StackGresClusterConfiguration configuration = spec.getConfiguration();
 
     if (configuration == null) {
 
       try {
 
-        configuration = new StackgresClusterConfiguration();
+        configuration = new StackGresClusterConfiguration();
         spec.setConfiguration(configuration);
         final JsonPointer confPointer = getTargetPointer();
         final AddOperation configurationAdd = new AddOperation(confPointer,

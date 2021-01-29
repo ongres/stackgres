@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.api.model.PodAffinityTermBuilder;
 import io.fabric8.kubernetes.api.model.PodAntiAffinityBuilder;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
+import io.fabric8.kubernetes.api.model.TolerationBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
@@ -172,6 +173,10 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
                 .map(StackGresClusterSpec::getPod)
                 .map(StackGresClusterPod::getScheduling)
                 .map(StackGresPodScheduling::getTolerations)
+                .map(tolerations -> Seq.seq(tolerations)
+                    .map(TolerationBuilder::new)
+                    .map(TolerationBuilder::build)
+                    .toList())
                 .orElse(null))
             .withShareProcessNamespace(Boolean.TRUE)
             .withServiceAccountName(PatroniRole.roleName(clusterContext))

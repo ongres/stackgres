@@ -86,7 +86,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgcluster.StackGresPodScheduling;
-import io.stackgres.common.crd.sgcluster.StackgresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -502,7 +502,7 @@ class ClusterResourceTest
       assertEquals(resourceSpec.getResourceProfile(), dtoSpec.getSgInstanceProfile());
 
       final ClusterConfiguration dtoClusterConfigurations = dtoSpec.getConfigurations();
-      final StackgresClusterConfiguration resourceClusterConfiguration = resourceSpec.getConfiguration();
+      final StackGresClusterConfiguration resourceClusterConfiguration = resourceSpec.getConfiguration();
       if (resourceClusterConfiguration != null) {
         assertNotNull(dtoClusterConfigurations);
         assertEquals(resourceClusterConfiguration.getBackupConfig(), dtoClusterConfigurations.getSgBackupConfig());
@@ -664,7 +664,7 @@ class ClusterResourceTest
 
       final ClusterConfiguration dtoSpecConfigurations = dtoSpec.getConfigurations();
 
-      final StackgresClusterConfiguration resourceSpecConfiguration = resourceSpec
+      final StackGresClusterConfiguration resourceSpecConfiguration = resourceSpec
           .getConfiguration();
 
       if (dtoSpecConfigurations != null) {

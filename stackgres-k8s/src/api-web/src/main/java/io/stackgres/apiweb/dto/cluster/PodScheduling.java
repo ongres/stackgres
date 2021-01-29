@@ -11,8 +11,8 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
-import io.fabric8.kubernetes.api.model.Toleration;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.crd.Toleration;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
