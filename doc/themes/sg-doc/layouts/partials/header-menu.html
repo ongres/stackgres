@@ -1,0 +1,47 @@
+<div id="top"></div>
+<header id="header">
+	<a href="/" id="mobileLogo" title="Home" class="headerLogo noUnderline hideDesktop">
+		<svg id="Capa_2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500"><style>.st0{fill:#42a8c8}.st1{fill:#426d88}.st2{fill:#428bb4}.st3{fill:#16657c}.st4{fill:#39b54a}.st5{fill:#009245}.st6{fill:#f2c63f}.st7{fill:#f2b136}.st8{fill:#f2a130}.st9{fill:#ff7124}.st10{fill:#d93d1b}</style><switch><g><path class="st0" d="M5.2 273.7l110.7 126.8h268.2l110.7-126.8-110.7-126.8H115.9z"/><path class="st1" d="M115.9 400.5h268.4v56.4H115.9z"/><path class="st2" d="M115.9 456.8L5.2 330v-56.3l110.7 126.8z"/><path class="st3" d="M384.1 456.8L494.8 330v-56.3L384.1 400.5z"/><path class="st4" d="M465.7 253.4c0-47-96.6-85.2-215.7-85.2S34.4 206.3 34.4 253.4s96.5 85.2 215.6 85.2 215.7-38.2 215.7-85.2z"/><path class="st5" d="M465.7 253.4c0 47-96.6 85.2-215.7 85.2S34.4 300.4 34.4 253.4v46.9c14.9 41.3 106.5 85.2 215.6 85.2s200.8-43.9 215.7-85.2v-46.9z"/><path class="st6" d="M16.3 178.6L250 314.1l233.8-135.5L250 43.2z"/><path class="st7" d="M16.3 178.6v52.8L250 366.9v-52.8z"/><path class="st8" d="M483.8 178.6L250 314.1v52.8l233.8-135.5z"/><path class="st9" d="M68 212.4l364.1-53-92.4-106z"/><path class="st10" d="M68 212.4l364.1-53v47.8L68 260.1z"/></g></switch></svg>
+		<span class="textGradient">Stack<strong>Gres</strong></span>
+	</a>
+	<a href="#" id="showSidebar" class="textGradient highlight hideDesktop" onclick="toggleDiv('#sidebar')"><i class="fas fa-bars"></i> CONTENTS</a>
+	<div class="container inlineItems textCenter mobileMenu">
+
+		<button id="navToggle" onclick="navToggle()" class="hideDesktop">
+			<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="120" height="60" viewBox="0 0 120 60"><defs><linearGradient id="a" y1="0.5" x2="1" y2="0.5" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="var(--baseColor)"/><stop offset="1" stop-color="var(--baseLightColor)"/></linearGradient></defs><path d="M554,569.125H434a30,30,0,0,0,30-30,30.371,30.371,0,0,1,.6-6,30.008,30.008,0,0,1,58.8,0,30.375,30.375,0,0,1,.6,6A30,30,0,0,0,554,569.125Z" transform="translate(-434 -509.125)" fill="url(#a)"/></svg>
+			<span></span>
+			<span></span>
+			<span></span>
+		</button>
+
+		<a href="/" id="logo" title="Home" class="headerLogo fLeft noUnderline">
+			<svg id="Capa_2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500"><style>.st0{fill:#42a8c8}.st1{fill:#426d88}.st2{fill:#428bb4}.st3{fill:#16657c}.st4{fill:#39b54a}.st5{fill:#009245}.st6{fill:#f2c63f}.st7{fill:#f2b136}.st8{fill:#f2a130}.st9{fill:#ff7124}.st10{fill:#d93d1b}</style><switch><g><path class="st0" d="M5.2 273.7l110.7 126.8h268.2l110.7-126.8-110.7-126.8H115.9z"/><path class="st1" d="M115.9 400.5h268.4v56.4H115.9z"/><path class="st2" d="M115.9 456.8L5.2 330v-56.3l110.7 126.8z"/><path class="st3" d="M384.1 456.8L494.8 330v-56.3L384.1 400.5z"/><path class="st4" d="M465.7 253.4c0-47-96.6-85.2-215.7-85.2S34.4 206.3 34.4 253.4s96.5 85.2 215.6 85.2 215.7-38.2 215.7-85.2z"/><path class="st5" d="M465.7 253.4c0 47-96.6 85.2-215.7 85.2S34.4 300.4 34.4 253.4v46.9c14.9 41.3 106.5 85.2 215.6 85.2s200.8-43.9 215.7-85.2v-46.9z"/><path class="st6" d="M16.3 178.6L250 314.1l233.8-135.5L250 43.2z"/><path class="st7" d="M16.3 178.6v52.8L250 366.9v-52.8z"/><path class="st8" d="M483.8 178.6L250 314.1v52.8l233.8-135.5z"/><path class="st9" d="M68 212.4l364.1-53-92.4-106z"/><path class="st10" d="M68 212.4l364.1-53v47.8L68 260.1z"/></g></switch></svg>
+			<span class="textGradient">Stack<strong>Gres</strong></span>
+		</a>
+		
+		{{ $currentUrl := .URL }}
+		{{ with .Site.Menus.main }}
+		<nav id="mainMenu">
+			<ul class="raw inline">
+				{{ range . }}
+					{{ $currentPage := (eq "Documentation" .Name) }}
+					{{ $url := urls.Parse .URL }}
+					{{ $baseurl := urls.Parse $.Site.Params.Baseurl }}
+					<li class="{{ if $currentPage }}active{{ end }}"><a href="{{ .URL | relURL }}" {{ if ne $url.Host $baseurl.Host }}target="_blank" {{ end }}>{{ .Name }}</a></li>
+				{{ end }}
+			</ul>
+		</nav>
+		{{ end }}
+
+		<div class="follow fRight smText">
+			<a href="https://github.com/ongres/stackgres/" title="Star on GitHub" class="github textGradient" target="_blank">
+				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="13.998" height="13.398" viewBox="0 0 13.998 13.398"><path d="M7.69.465,5.981,3.929l-3.823.557A.838.838,0,0,0,1.7,5.915L4.461,8.61l-.654,3.807a.837.837,0,0,0,1.214.882l3.42-1.8,3.42,1.8a.837.837,0,0,0,1.214-.882L12.42,8.61l2.766-2.695a.838.838,0,0,0-.463-1.429L10.9,3.929,9.191.465a.838.838,0,0,0-1.5,0Z" transform="translate(-1.441 0.001)" fill="url(#a)"/></svg>
+				<span>Star on GitHub</span>
+			</a>
+			<a href="https://slack.stackgres.io/" title="Join our Slack" class="slack textGradient" target="_blank">
+				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="13.998" height="13.987" viewBox="0 0 13.998 13.987"><path d="M35.372,83.516v-1.47h1.47a1.47,1.47,0,1,1-1.47,1.47Zm-3.686,0V79.842a1.47,1.47,0,0,1,2.94,0v3.675a1.47,1.47,0,1,1-2.94,0Zm5.156-2.205a1.47,1.47,0,1,1,0-2.939h3.686a1.47,1.47,0,1,1,0,2.939Zm-8.831-1.47a1.468,1.468,0,0,1,1.47-1.47h1.471v1.47a1.47,1.47,0,0,1-2.94,0Zm11.036-2.216v-1.47a1.47,1.47,0,1,1,1.47,1.47Zm-3.675-1.47V72.47a1.47,1.47,0,1,1,2.939,0v3.686a1.47,1.47,0,0,1-2.939,0Zm-5.9,1.47a1.47,1.47,0,1,1,0-2.939h3.686a1.47,1.47,0,1,1,0,2.939Zm3.686-3.686a1.47,1.47,0,1,1,1.47-1.47v1.47Z" transform="translate(-28 -71)" fill="url(#a)"/></svg> 
+				<span>Join our Slack</span>
+			</a>
+		</div>
+	</div>
+</header>

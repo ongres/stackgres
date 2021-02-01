@@ -10,26 +10,104 @@ defaultContentLanguageInSubdir = false
 [params]
   description = "Documentation for StackGres"
   author = "OnGres"
-  showVisitedLinks = true
+  showVisitedLinks = false
   disableBreadcrumb = false
-  disableNextPrev = false
+  disableNextPrev = true
   themeVariant = "stackgres"
+  DisableShortcutsTitle = true
 
 [outputs]
 home = [ "HTML", "RSS", "JSON"]
 
-[Languages]
-	[Languages.en]
+[languages]
+	[languages.en]
 		title = "StackGres Documentation"
 		weight = 1
 		languageName = "English"
 		contentDir = "content/en"
 
-		[[Languages.en.menu.shortcuts]]
+		[[languages.en.menu.shortcuts]]
 		name = "<i class='fab fa-fw fa-gitlab'></i> GitLab repo"
 		identifier = "ds"
 		url = "https://gitlab.com/ongresinc/stackgres"
 		weight = 10
+
+        # Main Menu EN
+        [[languages.en.menu.main]]
+            name    = "Features"
+            url     = "https://stackgres.io/features"
+            weight  = 1
+        [[languages.en.menu.main]]
+            name    = "Install"
+            url     = "https://stackgres.io/install"
+            weight  = 2
+        [[languages.en.menu.main]]
+            name    = "Pricing"
+            url     = "https://stackgres.io/pricing"
+            weight  = 3
+        [[languages.en.menu.main]]
+            name    = "Documentation"
+            url     = "https://stackgres.io/doc/latest"
+            weight  = 4
+        [[languages.en.menu.main]]
+            name    = "Community"
+            url     = "https://stackgres.io/community"
+            weight  = 5
+        [[languages.en.menu.main]]
+            name    = "Blog"
+            url     = "https://stackgres.io/blog"
+            weight  = 6
+        [[languages.en.menu.main]]
+            name    = "Contact"
+            url     = "https://stackgres.io/contact"
+            weight  = 7
+
+        # Product EN
+        [[languages.en.menu.product]]
+            name    = "Features"
+            url     = "https://stackgres.io/features"
+            weight  = 1
+        [[languages.en.menu.product]]
+            name    = "Install"
+            url     = "https://stackgres.io/install"
+            weight  = 2
+        [[languages.en.menu.product]]
+            name    = "Pricing"
+            url     = "https://stackgres.io/pricing"
+            weight  = 3
+        [[languages.en.menu.product]]
+            name    = "Contact"
+            url     = "https://stackgres.io/contact"
+            weight  = 4
+        
+        # Resources EN
+        [[languages.en.menu.resources]]
+            name    = "Documentation"
+            url     = "https://stackgres.io/doc/latest"
+            weight  = 1
+        [[languages.en.menu.resources]]
+            name    = "Community"
+            url     = "https://stackgres.io/community"
+            weight  = 2
+        [[languages.en.menu.resources]]
+            name    = "Blog"
+            url     = "https://stackgres.io/blog"
+            weight  = 3
+        
+        # More EN
+        [[languages.en.menu.more]]
+            name    = "Star on GitHub"
+            url     = "https://github.com/ongres/stackgres/"
+            weight  = 1
+        [[languages.en.menu.more]]
+            name    = "Join our Slack"
+            url     = "https://slack.stackgres.io/"
+            weight  = 2
+        [[languages.en.menu.more]]
+            name    = "Stalk us on Twitter"
+            url     = "https://twitter.com/ongresinc"
+            weight  = 3
+        
 
 [markup.goldmark.renderer]
   unsafe= true

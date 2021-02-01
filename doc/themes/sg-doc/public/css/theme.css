@@ -20,20 +20,6 @@
     margin: 2px 0 -2px 0;
 }
 
-@font-face {
-    font-family: 'Nunito';
-    font-style: normal;
-    font-weight: 400;
-    src: url('https://fonts.googleapis.com/css?family=Nunito:400,400i&display=swap');
-}
-
-@font-face {
-    font-family: 'Ubuntu Mono';
-    font-style: normal;
-    font-weight: 400;
-    src: url('https://fonts.googleapis.com/css?family=Ubuntu+Mono&display=swap');
-}
-
 body {
     font-size: 1rem;
     background: #fff;
@@ -53,7 +39,7 @@ body #chapter h1 {
     }
 }
 a {
-    color: #00adb5;
+    color: var(--baseColor);
 }
 a:hover {
     color: #00c5ce;
@@ -78,7 +64,7 @@ b, strong, label, th {
     max-width: 60%;
 }
 #grav-logo path {
-    fill: #00adb5 !important;
+    fill: var(--baseColor) !important;
 }
 #sidebar {
     font-weight: 300 !important;
@@ -107,12 +93,12 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
 }
 #header a {
     display: inline-block;
-    color: #00adb5;
+    color: var(--baseColor);
 }
 #header #logo-svg {
     width: 8rem;
     height: 2rem;
-    color: #00adb5;
+    color: var(--baseColor);
 }
 #header #logo-svg path {
     fill: #fff;
@@ -125,7 +111,7 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
 
 }
 .searchbox label {
-    color: #00adb5;
+    color: var(--baseColor);
     position: absolute;
     left: 10px;
     top: 3px;
@@ -138,7 +124,7 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
     cursor: pointer;
 }
 .searchbox span:hover {
-    color: #00adb5;
+    color: var(--baseColor);
 }
 .searchbox input {
     display: inline-block;
@@ -182,7 +168,7 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
     font-weight: 400;
 }
 #sidebar a {
-    color: #00adb5;
+    color: var(--baseColor);
 }
 #sidebar a:hover {
     color: #00c5ce;
@@ -239,10 +225,10 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
     margin: 0;
 }
 #sidebar ul.searched a {
-    color: #00adb5;
+    color: var(--baseColor);
 }
 #sidebar ul.searched .search-match a {
-    color: #00adb5;
+    color: var(--baseColor);
 }
 #sidebar ul.searched .search-match a:hover {
     color: #00c5ce;
@@ -309,7 +295,7 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
     padding: 4px 0;
 }
 #sidebar ul li.visited > a .read-icon {
-    color: #00adb5;
+    color: var(--baseColor);
     display: inline;
 }
 #sidebar ul li li {
@@ -426,7 +412,7 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
     max-width: 80%;
 }
 #chapter h3 {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Poppins', sans-serif;
     font-weight: 300;
     text-align: center;
 }
@@ -447,24 +433,24 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
     margin: 0;
 }
 body {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Poppins', sans-serif;
     font-weight: 300;
     line-height: 1.6;
     font-size: 1rem !important;
 	color: #4D4F5C;
 }
 h2, h3, h4, h5, h6 {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Poppins', sans-serif;
     text-rendering: optimizeLegibility;
-    color: #00adb5;
+    color: var(--baseColor);
     font-weight: 400;
     letter-spacing: -1px;
 }
 h1 {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Poppins', sans-serif;
     text-transform: uppercase;
     font-weight: 500;
-    color: #00adb5;
+    color: var(--baseColor);
     font-size: 1.5rem;
 }
 blockquote {
@@ -626,7 +612,7 @@ code, kbd, pre, samp {
 code {
     border-radius: 2px;
     white-space: nowrap;
-    color: #00adb5;
+    color: var(--baseColor);
     background: rgba(0, 173, 181, 0.1);
     border-radius: 3px;
     padding: 0px 2px;
@@ -663,14 +649,14 @@ hr {
     padding: 25px;
     float: left;
     clear: both;
-    background: #00adb5;
+    background: var(--baseColor);
     color: #fff;
 }
 #body a.anchor-link {
     color: #f0f0f0;
 }
 #body a.anchor-link:hover {
-    color: #00adb5;
+    color: var(--baseColor);
 }
 #body-inner .tabs-wrapper.ui-theme-badges {
     background: #f0f0f0;
@@ -680,10 +666,10 @@ hr {
     text-transform: uppercase;
 }
 #body-inner .tabs-wrapper.ui-theme-badges .tabs-nav li a {
-    background: #00adb5;
+    background: var(--baseColor);
 }
 #body-inner .tabs-wrapper.ui-theme-badges .tabs-nav li.current a {
-    background: #00adb5;
+    background: var(--baseColor);
 }
 #body-inner pre {
     white-space: pre-wrap;
@@ -707,7 +693,7 @@ td {
     border: 1px solid #f0f0f0;
 }
 .button {
-    background: #00adb5;
+    background: var(--baseColor);
     color: #fff;
     border-radius: 20px;
     padding: 10px 35px;
@@ -720,12 +706,12 @@ td {
     color: #fff;
 }
 .button:active {
-    box-shadow: 0 1px 0 #00adb5;
+    box-shadow: 0 1px 0 var(--baseColor);
 }
 .button-secondary {
     background: #fff;
-    color: #00adb5;
-    border:  #00adb5 2px solid;
+    color: var(--baseColor);
+    border:  var(--baseColor) 2px solid;
     border-radius: 20px;
     padding: 10px 35px;
     text-transform: uppercase;
@@ -744,7 +730,7 @@ td {
     margin-left: -0.85rem;
     margin-right: -0.85rem;
     overflow: auto;
-    color: #00adb5;
+    color: var(--baseColor);
 }
 .bullet {
     float: left;
@@ -1118,12 +1104,12 @@ pre .copy-to-clipboard:hover {
     text-align: right;
 }
 #sidebar ul li.visited > a .read-icon {
-    color: #00adb5;
+    color: var(--baseColor);
     display: inline;
 }
 
 #sidebar #shortcuts h3 {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Poppins', sans-serif;
     color: #fff ;
     margin-top:1rem;
     padding-left: 1rem;

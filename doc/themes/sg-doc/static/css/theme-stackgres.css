@@ -1,33 +1,180 @@
-
-:root{
-    
-    --MAIN-TEXT-color:#4D4F5C; /* Color of text by default */
-    --MAIN-TITLES-TEXT-color: #00adb5; /* Color of titles h2-h3-h4-h5 */
-    --MAIN-LINK-color:#00adb5; /* Color of links */
-    --MAIN-LINK-HOVER-color:#00C5CE; /* Color of hovered links */
-    --MAIN-ANCHOR-color: #00adb5; /* color of anchors on titles */
-
-    --MENU-HEADER-BG-color:#fff; /* Background color of menu header */
-    --MENU-HEADER-BORDER-color: #f6f6f6; /*Color of menu header border */ 
-    
-    --MENU-SEARCH-BG-color:#fbfbfb; /* Search field background color (by default borders + icons) */
-    --MENU-SEARCH-BOX-color: #f0f0f1; /* Override search field border color */
-    --MENU-SEARCH-BOX-ICONS-color: #00adb5; /* Override search field icons color */
-
-    --MENU-SECTIONS-ACTIVE-BG-color:#fbfbfb; /* Background color of the active section and its childs */
-    --MENU-SECTIONS-BG-color:#fff; /* Background color of other sections */
-    --MENU-SECTIONS-LINK-color: #4d4f5c; /* Color of links in menu */
-    --MENU-SECTIONS-LINK-HOVER-color: #00adb5;  /* Color of links in menu, when hovered */
-    --MENU-SECTION-ACTIVE-CATEGORY-color: #00adb5; /* Color of active category text */
-    --MENU-SECTION-ACTIVE-CATEGORY-BG-color: #fbfbfb; /* Color of background for the active category (only) */
-
-    --MENU-VISITED-color: #00adb5; /* Color of 'page visited' icons in menu */
-    --MENU-SECTION-HR-color: #f0f0f0; /* Color of <hr> separator in menu */
-    
+/* SG 1.0 Color Variables */
+:root {
+    --white: #ffffff;
+    --mediumBlue: #383753;
+    --darkBlue: #060528;
+    --blue: #36A8FF;
+    --lBlue: #4DFFD8;
+    --yellow: #FABE25;
+    --lYellow: #FFFC66;
+    --green: #16A085;
+    --lGreen: #CCF52B;
+    --orange: #F7600F;
+    --lOrange: #FF9E17;
 }
 
 body {
+    --textColor: var(--darkBlue);
+    --bgColor: var(--white);
+    --borderColor: var(--mediumBlue) ;
+    --inputBg: #F5F4F5;
+    --activeBg: #f7f7fc;
+    --baseColor: var(--blue);
+    --baseLightColor: var(--lBlue);
+    --baseGradient: linear-gradient(to bottom right, var(--textColor), var(--baseColor));
+    --invertedGradient: linear-gradient(to bottom left, var(--textColor), var(--baseColor));
+    --verticalGradient: linear-gradient(to bottom, var(--textColor), var(--baseColor));
+
+    /* Hugo Theme Vars */
+    --MAIN-TEXT-color: var(--textColor); /* Color of text by default */
+    --MAIN-TITLES-TEXT-color: var(--textColor); /* Color of titles h2-h3-h4-h5 */
+    --MAIN-LINK-color: var(--baseColor); /* Color of links */
+    --MAIN-LINK-HOVER-color: var(--baseLightColor); /* Color of hovered links */
+    --MAIN-ANCHOR-color: var(--baseColor); /* color of anchors on titles */
+
+    --MENU-HEADER-BG-color: var(--bgColor); /* Background color of menu header */
+    --MENU-HEADER-BORDER-color: var(--borderColor); /*Color of menu header border */ 
+    
+    --MENU-SEARCH-BG-color: var(--bgColor); /* Search field background color (by default borders + icons) */
+    --MENU-SEARCH-BOX-color: var(--borderColor); /* Override search field border color */
+    --MENU-SEARCH-BOX-ICONS-color: var(--baseColor); /* Override search field icons color */
+
+    --MENU-SECTIONS-ACTIVE-BG-color: var(--bgColor); /* Background color of the active section and its childs */
+    --MENU-SECTIONS-BG-color: var(--bgColor); /* Background color of other sections */
+    --MENU-SECTIONS-LINK-color: var(--baseColor); /* Color of links in menu */
+    --MENU-SECTIONS-LINK-HOVER-color: var(--baseLightColor);  /* Color of links in menu, when hovered */
+    --MENU-SECTION-ACTIVE-CATEGORY-color: var(--textColor); /* Color of active category text */
+    --MENU-SECTION-ACTIVE-CATEGORY-BG-color: var(--bgColor); /* Color of background for the active category (only) */
+
+    --MENU-VISITED-color: var(--baseColor); /* Color of 'page visited' icons in menu */
+    --MENU-SECTION-HR-color: var(--borderColor); /* Color of <hr> separator in menu */
+}
+
+body.darkmode {
+    --textColor: var(--white);
+    --bgColor: var(--darkBlue);
+    --borderColor: var(--mediumBlue) ;
+    --activeBg: #161636;
+    --inputBg: #272642;
+    --baseColor: var(--blue);
+    --baseLightColor: var(--lBlue);
+    --baseGradient: linear-gradient(to bottom right, var(--baseColor), var(--baseLightColor));
+    --invertedGradient: linear-gradient(to bottom left, var(--baseColor), var(--baseLightColor));
+    --verticalGradient: linear-gradient(to bottom, var(--baseColor), var(--baseLightColor));
+
+    /* Hugo Theme Vars */
+    --MAIN-TEXT-color: var(--textColor); /* Color of text by default */
+    --MAIN-TITLES-TEXT-color: var(--textColor); /* Color of titles h2-h3-h4-h5 */
+    --MAIN-LINK-color: var(--baseColor); /* Color of links */
+    --MAIN-LINK-HOVER-color: var(--baseLightColor); /* Color of hovered links */
+    --MAIN-ANCHOR-color: var(--baseColor); /* color of anchors on titles */
+
+    --MENU-HEADER-BG-color: var(--bgColor); /* Background color of menu header */
+    --MENU-HEADER-BORDER-color: var(--borderColor); /*Color of menu header border */ 
+    
+    --MENU-SEARCH-BG-color: var(--bgColor); /* Search field background color (by default borders + icons) */
+    --MENU-SEARCH-BOX-color: var(--borderColor); /* Override search field border color */
+    --MENU-SEARCH-BOX-ICONS-color: var(--baseColor); /* Override search field icons color */
+
+    --MENU-SECTIONS-ACTIVE-BG-color: var(--bgColor); /* Background color of the active section and its childs */
+    --MENU-SECTIONS-BG-color: var(--bgColor); /* Background color of other sections */
+    --MENU-SECTIONS-LINK-color: var(--baseColor); /* Color of links in menu */
+    --MENU-SECTIONS-LINK-HOVER-color: var(--baseLightColor);  /* Color of links in menu, when hovered */
+    --MENU-SECTION-ACTIVE-CATEGORY-color: var(--textColor); /* Color of active category text */
+    --MENU-SECTION-ACTIVE-CATEGORY-BG-color: var(--bgColor); /* Color of background for the active category (only) */
+
+    --MENU-VISITED-color: var(--baseColor); /* Color of 'page visited' icons in menu */
+    --MENU-SECTION-HR-color: var(--borderColor); /* Color of <hr> separator in menu */
+}
+ 
+ 
+body.yellow {
+    --baseColor: var(--lYellow);
+    --baseLightColor: var(--yellow);
+}
+
+body.green {
+    --baseColor: var(--green);
+    --baseLightColor: var(--lGreen);
+}
+
+body.orange {
+    --baseColor: var(--orange);
+    --baseLightColor: var(--lOrange);
+}
+
+::selection {
+    background: var(--baseColor);
+    color: var(--darkBlue);
+}
+
+body.yellow ::selection {
+    background: var(--yellow);
+}
+
+::placeholder { /* Chrome/Opera/Safari */
+  color: var(--textColor) !important;
+    opacity: .5;
+}
+::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+    color: var(--textColor) !important;
+    opacity: .5;
+}
+::-moz-placeholder { /* Firefox 19+ */
+    color: var(--textColor) !important;
+    opacity: .5;
+}
+:-ms-input-placeholder { /* IE 10+ */
+    color: var(--textColor) !important;
+    opacity: .5;
+}
+:-moz-placeholder { /* Firefox 18- */
+    color: var(--textColor) !important;
+    opacity: .5;
+}
+
+*:focus, *:active {
+    outline: none;
+}
+
+::-webkit-scrollbar-track
+{
+    -webkit-box-shadow: none;
+    background-color: #F5F5F5;
+    border: 0;
+}
+
+::-webkit-scrollbar
+{
+    width: 5px;
+    height: 5px;
+    background-color: #F5F5F5;
+}
+
+::-webkit-scrollbar-thumb
+{
+    background-color: var(--baseColor);
+    border: 0;
+    border-radius: 3px;
+}
+
+/* End SG 1.0 Color vars */
+
+/* Font Import */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;&display=swap');
+
+
+body, html {
     color: var(--MAIN-TEXT-color) !important;
+    background: var(--bgColor);
+    font-weight: 300;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: subpixel-antialiased;
+    -moz-osx-font-smoothing: subpixel-antialiased;
+    font-smoothing: subpixel-antialiased;
 }
 
 textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[type="password"]:focus, input[type="search"]:focus, input[type="tel"]:focus, input[type="text"]:focus, input[type="url"]:focus, input[type="color"]:focus, input[type="date"]:focus, input[type="datetime"]:focus, input[type="datetime-local"]:focus, input[type="month"]:focus, input[type="time"]:focus, input[type="week"]:focus, select[multiple=multiple]:focus {
@@ -42,7 +189,6 @@ h2{
 }
 
 h3, h4, h5 {
-    color: #7A7B85;
     font-size: 1rem;
     text-transform: uppercase;
 }
@@ -85,14 +231,15 @@ a:hover {
 #sidebar #header-wrapper {
     background: var(--MENU-HEADER-BG-color);
     color: var(--MENU-SEARCH-BOX-color);
-    border-color: var(--MENU-HEADER-BORDER-color);
+    border: 0;
 }
 #sidebar .searchbox {
-	border-color: var(--MENU-SEARCH-BOX-color);
+	border: 0;
     background: var(--MENU-SEARCH-BG-color);
 }
-#sidebar ul.topics > li.parent, #sidebar ul.topics > li.active {
-    background: var(--MENU-SECTIONS-ACTIVE-BG-color);
+
+#sidebar ul .active ul li:last-of-type:after {
+    background: #161636;
 }
 
 #sidebar a {
@@ -104,8 +251,8 @@ a:hover {
 }
 
 #sidebar ul li.active > a {
-    background: var(--MENU-SECTION-ACTIVE-CATEGORY-BG-color);
-    color: var(--MENU-SECTION-ACTIVE-CATEGORY-color) !important;
+    background: var(--activeBg);
+    color: var(--MENU-SECTION-ACTIVE-CATEGORY-color);
     font-weight: 600;
 }
 
@@ -113,7 +260,888 @@ a:hover {
     border-color: var(--MENU-SECTION-HR-color);
 }
 
+/* SG 1.0 Styling */
+hr {
+    width: 100%;
+    background: var(--baseGradient);
+    display: block;
+    border: 0;
+    height: 1px;
+}
 
-#logo svg {
-    height: 80px;
+a, a:visited {
+    color: var(--baseColor);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all .2s ease-in;
+}
+
+#body p a, #body li a,  #body p a:visited, #body li a:visited {
+    text-decoration: underline;
+}
+
+a:hover {
+    transition: all .3s ease-out;
+    color: var(--baseLightColor);
+}
+
+strong, strong a {
+    font-weight: 700;
+}
+
+.btn, .btn:visited {
+    border-radius: 20px;
+    border: 0;
+    padding: 10px 35px;
+    color: var(--darkBlue);
+    font-size: .9rem;
+    display: inline-block;
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+    background-image: var(--baseGradient);
+    background-size: 200% auto;
+    text-decoration: none;
+    transition: all .2s ease-in;
+}
+
+.btn:hover, .btn:visited:hover {
+    color: var(--darkBlue);
+    background-position: right top;
+    transition: all .3s ease-out;
+}
+
+.btn svg {
+    position: relative;
+    top: 1px;
+    left: -2px;
+}
+
+a.btn.discordIcon svg {
+    top: 4px;
+}
+
+button {
+    background: transparent;
+    border: 0;
+    outline: none;
+    cursor: pointer;
+}
+
+img {
+    max-width: 100%;
+}
+
+.code {
+    font-family: 'Ubuntu Mono', monospace;
+    font-size: 0.9rem;
+    background: #00ADB51A;
+    padding: 2px 4px;
+    border-radius: 5px;
+    color: #00adb5;
+    margin: 1px;
+}
+
+.textGradient {
+    /* background-size: auto 300%; */
+    color: var(--baseColor);
+    background-image: var(--baseGradient);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+a.textGradient:hover {
+    /* background: var(--invertedGradient);     */
+    color: var(--baseLightColor);
+    background-position: center right;
+}
+
+a.raw {
+    font-weight: 300;
+    color: inherit;
+}
+
+a.raw:not(.noUnderline):hover {
+    color: var(--baseColor);
+}
+
+a.noUnderline {
+    text-decoration: none;
+}
+
+.bgGradient {
+    background: var(--baseGradient);
+    color: var(--darkBlue);
+}
+
+.bgGradient a {
+    color: var(--darkBlue);
+}
+
+.topBorderGradient {
+    border-top: 1px solid;
+    border-image-slice: 1;
+    border-width: 1px;
+    border-image-source: var(--baseGradient);
+}
+
+ul.raw {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+ul.inline li {
+    display: inline-block;
+}
+
+a.btn + a, a.arrow + a {
+    margin-left: 20px;
+}
+
+a.arrow {
+    border-bottom: 1px solid;
+    text-decoration: none;
+    position: relative;
+    color: var(--baseColor);
+    background-image: var(--baseGradient);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+a.arrow:after {
+    content: " ";
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMCIgdmlld0JveD0iMCAwIDEzIDEwIj48cGF0aCBkPSJNMTksMTAuMzc1SDguMzk0bDMuNDk0LTMuNDk0TDExLDYsNiwxMWw1LDUsLjg4MS0uODgxTDguMzk0LDExLjYyNUgxOVoiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE5IDE2KSByb3RhdGUoMTgwKSIgZmlsbD0iIzA2MDUyOCIvPjwvc3ZnPg==");
+    display: inline-block;
+    width: 20px;
+    height: 13px;
+    background-size: 12px;
+    background-position: 7px center;
+    background-repeat: no-repeat;
+    position: relative;
+    top: 2px;
+    transition: all .3s ease-in;
+}
+
+.arrow:hover:after {
+    width: 25px;
+    background-position-x: right;
+    transition: all .2s ease-in;
+}
+
+.yellow .arrow:after {
+    filter: hue-rotate(160deg) brightness(20);
+}
+
+.arrow:hover {
+    color: var(--baseLightColor)
+}
+
+a.arrow:after {
+    filter: hue-rotate(270deg) brightness(34);
+}
+
+a.arrow.noGradient, #topBar a.arrow {
+    -webkit-text-fill-color: initial;
+    -webkit-background-clip: initial;
+    background-image: initial;
+}
+
+tr:nth-child(even) {
+    background: var(--activeBg);
+}
+
+input[type="submit"] {
+    cursor: pointer;
+    width: auto;
+}
+
+.inlineItems > * {
+    display: inline-block;
+}
+
+.textCenter {
+    text-align: center;
+}
+
+.textRight {
+    text-align: right;
+}
+
+.fRight {
+    float: right;
+}
+
+.fLeft {
+    float: left;
+}
+
+.mText {
+    font-size: 1.1rem;
+}
+
+.smText {
+    font-size: .9rem;
+}
+
+.clearfix {
+    clear: both;
+    width: 100%;
+    display: block;
+}
+
+.sectionPad {
+    padding-top: 80px;
+    padding-bottom: 80px;
+}
+
+section.sectionPad:first-of-type {
+    padding-top: 0;
+}
+
+.hidden {
+    display: none;
+}
+
+.show {
+    display: block;
+}
+
+.border {
+    border: 1px solid var(--baseColor);
+    border-radius: 5px;
+}
+
+img.border {
+    border-radius: 5px;
+}
+
+.fullSize {
+    width: 100%;
+}
+
+/* Lightmode Fixes */
+pre code {
+    color: var(--textColor);
+}
+
+/* Header */
+#header  nav a, nav a:visited {
+    color: var(--textColor);
+    font-weight: 400;
+    letter-spacing: .5px;
+    text-decoration: none;
+}
+
+#header nav .active a:after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 110%;
+    width: 15px;
+    background-image: var(--baseGradient);
+    height: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#header nav .active a {
+    font-weight: bold;
+    position: relative;
+}
+
+body:not(.active) #header nav a:hover {
+    color: var(--baseColor);
+}
+
+#topBar {
+    padding: 7px 0;
+}
+
+#topBar a {
+    font-weight: normal;
+}
+
+#topBar a.arrow {
+    color: var(--darkBlue)
+}
+
+#topBar a.arrow:after {
+    filter: none;
+}
+
+#closeTop {
+    float: right;
+    margin-top: -15px;
+}
+
+#closeTop span {
+    width: 13px;
+    height: 2px;
+    background: var(--darkBlue);
+    display: block;
+    transform: rotate(45deg);
+    border-radius: 2px;
+}
+
+#closeTop span:last-child {
+    transform: rotate(-45deg);
+    position: relative;
+    top: -2px;
+}
+
+#header {
+    padding: 30px 0;
+    height: 90px;
+    background: var(--bgColor);
+    z-index: 999999;
+    box-shadow: 0 10px 30px var(--bgColor);
+    position: sticky;
+    position: -webkit-sticky;
+    top: 0;
+}
+
+.headerLogo svg {
+    width: 24px;
+    position: relative;
+    top: 5px;
+    margin-right: 1px;
+}
+
+.headerLogo {
+    font-size: 1.3rem;
+}
+
+#mainMenu {
+    margin-top: 5px;
+}
+
+#header .follow {
+    margin-top: 8px;
+}
+
+#mainMenu li {
+    margin: 0 8px;
+}
+
+#mainMenu a:hover {
+    color: var(--baseLightColor);
+}
+
+#header .follow a {
+    margin-left: 15px;
+}
+
+#header .follow path {
+    fill: var(--baseColor);
+}
+
+#header a.slack svg {
+    position: relative;
+    top: 2px;
+}
+
+#header a.github svg {
+    position: relative;
+    top: 1px;
+}
+
+/* footer */
+#goTop {
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    width: 45px;
+    height: 45px;
+    background-image: var(--baseGradient);
+    border-radius: 100%;
+}
+
+#goTop:hover {
+    transform: scale(1.1);
+    transition: all .2s ease-out;
+}
+
+#goTop svg {
+    width: 120%;
+    height: 120%;
+}
+
+
+#footer a.logo svg {
+    float: left;
+    width: 60px;
+    margin-right: 10px;
+}
+
+#footer .logo span.textGradient {
+    font-size: 32px;
+}
+
+#footer span.madeEasy {
+    color: #fff;
+    font-weight: 400;
+    font-size: .65rem;
+    position: relative;
+    top: -13px;
+}
+
+#colophon {
+    font-size: .75rem;
+    padding-top: 10px;
+    letter-spacing: .5px;
+    margin-bottom: 40px;
+}
+
+#colophon a {
+    color: #fff;
+    margin-left: 25px;
+    font-weight: 400;
+}
+
+#colophon a:hover, #fLinks a:hover {
+    color: var(--baseLightColor);
+}
+
+#fLinks, #subscribe {
+    padding: 40px 0;
+}
+
+#fLinks h4 {
+    font-weight: 400;
+    margin-bottom: 15px;
+}
+
+#fLinks li a {
+    color: #fff;
+    font-weight: 400;
+    font-size: .9rem;
+    margin-bottom: 5px;
+    display: block;
+}
+
+#goTop {
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    width: 45px;
+    height: 45px;
+    background-size: contain;
+}
+
+#goTop:hover {
+    transform: scale(1.1);
+    transition: all .2s ease-out;
+}
+
+#goTop svg {
+    width: 120%;
+    height: 120%;
+}
+
+#darkmode {
+    position: fixed;
+    right: 30px;
+    bottom: 90px;
+    width: 45px;
+    height: 45px;
+    background-image: var(--baseGradient);
+    border-radius: 100%;
+    padding: 12px 14px;
+    cursor: pointer;
+    display: none;
+}
+
+#darkmode:hover {
+    transform: scale(1.1);
+    transition: all .2s ease-out;
+}
+
+#darkmode svg {
+    width: 93%;
+    height: auto;
+}
+
+body:not(.darkmode) #darkmode svg, body:not(.darkmode) #goTop svg {
+    filter: invert(1)
+}
+
+#subscribe h5 {
+    font-weight: 400;
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
+
+input[type="text"]:focus, input[type="text"]:active, input[type="email"]:focus, input[type="email"]:active, textarea:focus, textarea:active, input:focus, input:active {
+    border-color: var(--baseColor) !important;
+    transition: all .3s ease-out;
+}
+
+#subscribe input#formsubmit {
+    width: 100%;
+    font-weight: 600;
+    padding: 10px 0;
+}
+
+/* General */
+
+#body li {
+    list-style: none;
+    position: relative;
+}
+
+#body li:before {
+    content: " ";
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    background-image: var(--baseGradient);
+    border-radius: 100%;
+    position: absolute;
+    top: 10px;
+    left: -20px;
+}
+
+h1 {
+    font-weight: bold;
+}
+
+p+h1 {
+    margin-top: 50px;
+}
+
+#sidebar {
+    top: 100px;
+    left: 5vw;
+}
+
+#sidebar .fa-search:before {
+    color: var(--textColor);
+    font-size: 11px;
+    position: relative;
+    top: -2px;
+    opacity: .4;
+}
+
+#sidebar a {
+    color: var(--textColor);
+}
+
+#sidebar a:hover, #sidebar ul.topics > li > a:hover b, #sidebar ul li.active > a:hover {
+    color: var(--baseColor);
+}
+
+#sidebar .fa-times:before {
+    font-size: 12px;
+    position: relative;
+    top: -1px;
+    right: 4px;
+}
+
+#breadcrumbs a {
+    margin: 0 5px;
+}
+
+#breadcrumbs a:first-child {
+    margin-left: 0;
+}
+
+
+#body #breadcrumbs span a {
+    font-size: 1rem;
+    color: var(--baseColor);
+}
+
+#body #breadcrumbs span a:hover {
+    color: var(--baseLightColor)
+}
+
+#body #breadcrumbs span.currentPage {
+    font-size: .9rem;
+}
+
+
+.hljs {
+    background: var(--activeBg);
+}
+
+/* Container Override */
+@media screen and (min-width: 0px) {
+    .container {
+        max-width: 90vw;
+        width: 90vw;
+    }
+}
+
+@media screen and (min-width: 2200px) {
+    .container {
+        max-width: 1800px;
+    }
+}
+
+@media screen and (min-width: 920px) and (max-width: 1240px) { 
+
+    #header .follow {
+        position: fixed;
+        bottom: 85px;
+        right: 30px;
+        z-index: 10;
+    }
+
+    #header .follow a {
+        display: block;
+        width: 45px;
+        height: 45px;
+        line-height: 45px;
+        background: var(--baseGradient);
+        border-radius: 100%;
+        margin-top: 8px;
+        position: relative;
+        overflow: visible;
+    }
+
+    #header .follow a svg path {
+        fill: var(--darkBlue);
+    }
+
+    #header .follow a span {
+        display: none;
+    }
+
+    #header .follow a:hover {
+        transform: scale(1.1);
+        transition: all .2s ease-out;
+    }
+
+    #mainMenu {
+        float: right;
+    }
+
+}
+
+
+@media screen and (max-width: 990px) { 
+    
+}
+
+
+@media screen and (min-width: 921px) {
+    .hideDesktop {
+        display: none !important;
+    }
+}
+
+@media screen and (max-width: 920px) { 
+
+    #goTop {
+        display: none;
+    }
+
+    #navToggle {
+        width: 100px;
+        height: 50px;
+        transform: translate(-50%, -50px);
+        position: absolute;
+        left: 50%;
+    }
+
+    #navToggle svg {
+        width: 100px;
+        height: 50px;
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+
+    #navToggle span {
+        height: 2px;
+        width: 20px;
+        display: block;
+        background: var(--darkBlue);
+        margin: 2px auto;
+        position: relative;
+    }
+
+    .menuOpen #navToggle stop {
+        stop-color: var(--baseColor);
+    }
+
+    .mobileMenu {
+        position: fixed;
+        bottom: 0;
+        z-index: 999999;
+        width: 100vw;
+        border-top-left-radius: 25px;
+        border-top-right-radius: 25px;
+        max-width: none;
+        max-height: 0;
+        background-image: var(--verticalGradient);
+        text-align: center;
+        transition: all .3s ease-out;
+    }
+
+    .mobileMenu.menuOpen {
+        max-height: 100vh;
+        padding-bottom: 20px;
+        transition: max-height .3s ease-out;
+    }
+    
+
+    #header.menuOpen:before {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        background: var(--darkBlue);
+        display: block;
+        content: " ";
+        top: 0;
+        left: 0;
+        opacity: .9;
+        z-index: 10;
+    }
+
+    #mainMenu, #header .follow {
+        display: none;
+        width: 100%;
+    }
+
+    .menuOpen #mainMenu, #header.menuOpen .follow {
+        display: block;
+        transition: all .3s ease-out;
+    }
+
+    #logo {
+        position: absolute;
+        left: 100vw;
+        transition: opacity .3s ease-in;
+    }
+
+    .menuOpen #logo {
+        opacity: 1;
+        left: 50%;
+        transform: translate(-50%, -100px);
+        transition: opacity .3s ease-in;
+    }
+
+    #header nav a, #header nav a:visited, #header nav a:hover {
+        color: var(--darkBlue) !important;
+        font-weight: bold;
+        letter-spacing: 0;
+    }
+
+    #header nav .active a:after {
+        background-color: var(--darkBlue);
+        background-image: none;
+    }
+
+    #mainMenu li {
+        display: block;
+        width: 100%;
+        margin: 10px 0;
+    }
+
+    #mainMenu {
+        padding-top: 20px;
+    }
+
+    #header .follow a {
+        margin: 10px 0;
+        display: block;
+        color: var(--darkBlue);
+        background-image: none;
+        -webkit-background-clip: initial;
+        -webkit-text-fill-color: initial;
+        font-size: 1rem;
+        font-weight: bold;
+        letter-spacing: 0;
+    }
+
+    #mainMenu li:last-child:after {
+        display: block;
+        content: " ";
+        width: 50px;
+        height: 2px;
+        background: var(--darkBlue);
+        left: calc(50% - 25px);
+        position: absolute;
+        margin-top: 12px;
+    }
+
+    #header .follow path {
+        fill: var(--darkBlue)
+    }
+
+    #header a.github svg {
+        top: 0px;
+        left: -1px;
+    }
+
+    #header a.slack svg {
+        top: 1px;
+        left: -1px;
+    }
+
+    #mobileLogo {
+        margin-left: calc(5vw + 15px);
+    }
+
+    h1:not(.postTitle), .h1 {
+        font-size: 2rem;
+        line-height: 1;
+        margin: 20px 0 30px;
+        padding-bottom: 10px;
+    }
+
+    #header {
+        position: relative;
+    }
+
+    .menuOpen #navToggle path {
+        fill: var(--baseColor);
+    }
+
+    .menuOpen #navToggle span:nth-child(4) {
+        transform: rotate(-45deg);
+        margin-top: -4px;
+    }
+    
+    .menuOpen #navToggle span:nth-child(3) {
+        transform: rotate(45deg);
+    }
+    .menuOpen #navToggle span {
+        transition: all .3s ease-out;
+    }
+    .menuOpen #navToggle span:nth-child(2) {
+        width: 0;
+    }
+}
+
+@media screen and (max-width: 768px) {
+
+    #sidebar {
+        width: 100vw;
+        padding: 0 calc(5vw + 1rem);
+        left: -100vw;
+        transition: left .3s ease-out;
+        background: var(--bgColor);
+        z-index: 999;
+    }
+    #sidebar.show {
+        left: 0;
+        transition: left .3s ease-out;
+    }
+
+    #showSidebar {
+        float: right;
+        margin-right: calc(5vw + 1rem);
+        margin-top: 5px;
+    }
+
+    #sidebar #header-wrapper, #sidebar-toggle-span {
+        display: none;
+    }
+
+}
+
+@media screen and (max-width: 640px) {
+    
 }
