@@ -1,7 +1,7 @@
 ---
 title: Backups
-weight: 2
-url: reference/crd/sgbackups
+weight: 7
+url: reference/crd/sgbackup
 ---
 
 ## Creating a backup
