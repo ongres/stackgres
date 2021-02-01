@@ -27,7 +27,11 @@
 					{{ $currentPage := (eq "Documentation" .Name) }}
 					{{ $url := urls.Parse .URL }}
 					{{ $baseurl := urls.Parse $.Site.Params.Baseurl }}
+<<<<<<< HEAD
 					<li class="{{ if $currentPage }}active{{ end }}"><a href="{{ .URL | relURL }}">{{ .Name }}</a></li>
+=======
+					<li class="{{ if $currentPage }}active{{ end }}"><a href="{{ .URL | relURL }}" {{ if ne $url.Host $baseurl.Host }}target="_blank" {{ end }}>{{ .Name }}</a></li>
+>>>>>>> 819-backport-doc-restyle-from-1-0-to-0-9
 				{{ end }}
 			</ul>
 		</nav>

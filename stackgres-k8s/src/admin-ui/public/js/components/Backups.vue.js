@@ -252,6 +252,7 @@ var Backups = Vue.component("Backups", {
 										</td>
 									</tr>
 									<tr class="details" :class="[ $route.params.uid == back.data.metadata.uid ? 'open' : '', 'sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name]" :style="$route.params.uid == back.data.metadata.uid ? 'display: table-row;' : ''" v-if="back.data.status.process.status === 'Completed'">
+<<<<<<< HEAD
 										<td :colspan="(isCluster) ? 6 : 8">
 											<div>
 												<table>
@@ -742,6 +743,279 @@ var Backups = Vue.component("Backups", {
 													</tbody>
 												</table>
 											</div>
+=======
+										<td :colspan="(isCluster) ? 3 : 4">
+											<table>
+												<thead>
+													<th colspan="2">Backup Details</th>
+												</thead>
+												<tbody>
+													<tr>
+														<td class="label">
+															Start Time
+														</td>
+														<td class="timestamp">
+															<span class='date'>
+																{{ back.data.status.process.timing.start | formatTimestamp('date') }}
+															</span>
+															<span class='time'>
+																{{ back.data.status.process.timing.start | formatTimestamp('time') }}
+															</span>
+															<span class='ms'>
+																{{ back.data.status.process.timing.start | formatTimestamp('ms') }} Z
+															</span>
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Elapsed
+														</td>
+														<td class="timestamp">
+															<span class='time'>
+																{{ getBackupDuration(back.data.status.process.timing.start, back.data.status.process.timing.stored) | formatTimestamp('time') }}
+															</span>
+															<span class='ms'>
+																{{ getBackupDuration(back.data.status.process.timing.start, back.data.status.process.timing.stored) | formatTimestamp('ms') }}
+															</span>
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															LSN (start ⇢ end)
+														</td>
+														<td>
+															{{ back.data.status.backupInformation.lsn.start }} ⇢ {{ back.data.status.backupInformation.lsn.end }}
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															UID
+														</td>
+														<td colspan="2">
+															{{ back.data.metadata.uid }}
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Source Pod
+														</td>
+														<td>
+															{{ back.data.status.backupInformation.hostname }}
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Timeline
+														</td>
+														<td>
+															{{ parseInt(back.data.status.backupInformation.startWalFile.substr(8)) }}
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															System Identifier
+														</td>
+														<td>
+															{{ back.data.status.backupInformation.systemIdentifier }}
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Storage Type
+														</td>
+														<td>
+															{{ back.data.status.sgBackupConfig.storage.type }}
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Job Pod
+														</td>
+														<td>
+															{{ back.data.status.process.jobPod }}
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Managed Lifecycle (status)
+														</td>
+														<td>
+															{{ back.data.status.process.managedLifecycle }}
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															End Time
+														</td>
+														<td class="timestamp">
+															<span class='date'>
+																{{ back.data.status.process.timing.end | formatTimestamp('date') }}
+															</span>
+															<span class='time'>
+																{{ back.data.status.process.timing.end | formatTimestamp('time') }}
+															</span>
+															<span class='ms'>
+																{{ back.data.status.process.timing.end | formatTimestamp('ms') }} Z
+															</span>
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Stored Time
+														</td>
+														<td class="timestamp">
+															<span class='date'>
+																{{ back.data.status.process.timing.stored | formatTimestamp('date') }}
+															</span>
+															<span class='time'>
+																{{ back.data.status.process.timing.stored | formatTimestamp('time') }}
+															</span>
+															<span class='ms'>
+																{{ back.data.status.process.timing.stored | formatTimestamp('ms') }} Z
+															</span>
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Hostname
+														</td>
+														<td>
+															{{ back.data.status.backupInformation.hostname }}
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															PG Data
+														</td>
+														<td>
+															{{ back.data.status.backupInformation.pgData }}
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Start Wal File
+														</td>
+														<td>
+															{{ back.data.status.backupInformation.startWalFile }}
+														</td>
+													</tr>
+													<tr v-if="(typeof back.data.status.backupInformation.controlData !== 'undefined')">
+														<td class="label">
+															Control Data
+														</td>
+														<td>
+															{{ back.data.status.backupInformation.controlData }}
+														</td>
+													</tr>
+												</tbody>
+											</table>
+										</td>
+										<td :colspan="(isCluster) ? 3 : 4">
+											<table>
+												<thead>
+													<th>Storage Details</th>
+												</thead>
+												<tbody>
+													<tr>
+														<td>
+															<ul class="yaml">
+																<template v-if="back.data.status.sgBackupConfig.storage.type === 's3'">
+																	<li>
+																		<strong class="label">bucket:</strong> {{ back.data.status.sgBackupConfig.storage.s3.bucket }}
+																	</li>
+																	<li v-if="typeof back.data.status.sgBackupConfig.storage.s3.path !== 'undefined'">
+																		<strong class="label">path:</strong> {{ back.data.status.sgBackupConfig.storage.s3.path }}
+																	</li>
+																	<li>
+																		<strong class="label">awsCredentials:</strong> 
+																		<ul>
+																			<li>
+																				<strong class="label">accessKeyId:</strong> ****
+																			</li>
+																			<li>
+																				<strong class="label">secretAccessKey:</strong> ****
+																			</li>
+																		</ul>
+																	</li>
+																	<li v-if="typeof back.data.status.sgBackupConfig.storage.s3.region !== 'undefined'">
+																		<strong class="label">region:</strong> {{ back.data.status.sgBackupConfig.storage.s3.region }}
+																	</li>
+																	<li v-if="typeof back.data.status.sgBackupConfig.storage.s3.storageClass !== 'undefined'">
+																		<strong class="label">storageClass:</strong> {{ back.data.status.sgBackupConfig.storage.s3.storageClass }}
+																	</li>
+																</template>
+																<template v-else-if="back.data.status.sgBackupConfig.storage.type === 's3Compatible'">
+																	<li>
+																		<strong class="label">bucket:</strong> {{ back.data.status.sgBackupConfig.storage.s3Compatible.bucket }}
+																	</li>
+																	<li v-if="typeof back.data.status.sgBackupConfig.storage.s3Compatible.path !== 'undefined'">
+																		<strong class="label">path:</strong> {{ back.data.status.sgBackupConfig.storage.s3Compatible.path }}
+																	</li>
+																	<li>
+																		<strong class="label">awsCredentials:</strong> 
+																		<ul>
+																			<li>
+																				<strong class="label">accessKeyId:</strong> ****
+																			</li>
+																			<li>
+																				<strong class="label">secretAccessKey:</strong> ****
+																			</li>
+																		</ul>
+																	</li>
+																	<li v-if="typeof back.data.status.sgBackupConfig.storage.s3Compatible.region !== 'undefined'">
+																		<strong class="label">region:</strong> {{ back.data.status.sgBackupConfig.storage.s3Compatible.region }}
+																	</li>
+																	<li v-if="typeof back.data.status.sgBackupConfig.storage.s3Compatible.storageClass !== 'undefined'">
+																		<strong class="label">storageClass:</strong> {{ back.data.status.sgBackupConfig.storage.s3Compatible.storageClass }}
+																	</li>
+																	<li>
+																		<strong class="label">endpoint:</strong> {{ back.data.status.sgBackupConfig.storage.s3Compatible.endpoint }}
+																	</li>
+																	<li v-if="typeof back.data.status.sgBackupConfig.storage.s3Compatible.enablePathStyleAddressing !== 'undefined'">
+																		<strong class="label">enablePathStyleAddressing:</strong> {{ back.data.status.sgBackupConfig.storage.s3Compatible.enablePathStyleAddressing }}
+																	</li>
+																</template>
+																<template v-else-if="back.data.status.sgBackupConfig.storage.type === 'gcs'">
+																	<li>
+																		<strong class="label">bucket:</strong> {{ back.data.status.sgBackupConfig.storage.gcs.bucket }}
+																	</li>
+																	<li v-if="typeof back.data.status.sgBackupConfig.storage.gcs.path !== 'undefined'">
+																		<strong class="label">path:</strong> {{ back.data.status.sgBackupConfig.storage.gcs.path }}
+																	</li>
+																	<li>
+																		<strong class="label">credentials:</strong> 
+																		<ul>
+																			<li>
+																				<strong class="label">serviceAccountJSON:</strong> ****
+																			</li>
+																		</ul>
+																	</li>
+																</template>
+																<template v-else-if="back.data.status.sgBackupConfig.storage.type === 'azureBlob'">
+																	<li>
+																		<strong class="label">bucket:</strong> {{ back.data.status.sgBackupConfig.storage.azureBlob.bucket }}
+																	</li>
+																	<li v-if="typeof back.data.status.sgBackupConfig.storage.azureBlob.path !== 'undefined'">
+																		<strong class="label">path:</strong> {{ back.data.status.sgBackupConfig.storage.azureBlob.path }}
+																	</li>
+																	<li>
+																		<strong class="label">azureCredentials:</strong> 
+																		<ul>
+																			<li>
+																				<strong class="label">storageAccount:</strong> ****
+																			</li>
+																			<li>
+																				<strong class="label">accessKey:</strong> ****
+																			</li>
+																		</ul>
+																	</li>
+																</template>
+															</ul>
+														</td>
+													</tr>
+												</tbody>
+											</table>
+>>>>>>> 819-backport-doc-restyle-from-1-0-to-0-9
 										</td>
 									</tr>
 									<tr class="details Running" :class="'backup-'+back.data.metadata.namespace+'-'+back.data.metadata.name" v-else-if="back.data.status.process.status === 'Running'">
@@ -959,6 +1233,12 @@ var Backups = Vue.component("Backups", {
 			//console.log("#"+count);
 			return store.state.backups;
 			
+		},
+
+		getBackupDuration( start, stored ) {
+			let begin = moment(start);
+			let finish = moment(stored);
+			return(new Date(moment.duration(finish.diff(begin))).toISOString());
 		}
 	},
 

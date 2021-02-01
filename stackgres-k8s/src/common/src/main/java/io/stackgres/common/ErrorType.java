@@ -5,6 +5,8 @@
 
 package io.stackgres.common;
 
+import org.jooq.lambda.Seq;
+
 public enum ErrorType {
 
   CONSTRAINT_VIOLATION("constraint-violation",
@@ -29,7 +31,6 @@ public enum ErrorType {
   INVALID_SECRET("invalid-secret",
       "Invalid secret");
 
-
   private String uri;
   private String title;
 
@@ -41,24 +42,31 @@ public enum ErrorType {
   public static String getErrorTypeUriPrefix() {
 
     String documentationUri = StackGresProperty.DOCUMENTATION_URI.getString();
+    String documentationVersion = getDocumentationVersion(
+        StackGresProperty.OPERATOR_VERSION.getString());
     String errorsPath = StackGresProperty.DOCUMENTATION_ERRORS_PATH.getString();
-    String operatorVersion = StackGresProperty.OPERATOR_VERSION.getString();
 
-    return documentationUri + operatorVersion + errorsPath;
+    return documentationUri + documentationVersion + errorsPath;
   }
 
   public static String getErrorTypeUri(ErrorType constraintViolation) {
 
     String documentationUri = StackGresProperty.DOCUMENTATION_URI.getString();
+    String documentationVersion = getDocumentationVersion(
+        StackGresProperty.OPERATOR_VERSION.getString());
     String errorsPath = StackGresProperty.DOCUMENTATION_ERRORS_PATH.getString();
-    String operatorVersion = StackGresProperty.OPERATOR_VERSION.getString();
 
     return String
         .format("%s%s%s%s",
             documentationUri,
-            operatorVersion,
+            documentationVersion,
             errorsPath,
             constraintViolation.getUri());
+  }
+
+  private static String getDocumentationVersion(String operatorVersion) {
+    return Seq.of(operatorVersion.split("\\.")).limit(2).toString(".")
+        + (operatorVersion.endsWith("-SNAPSHOT") ? "-dev" : "");
   }
 
   public static boolean isDocumentationUri(String uri) {

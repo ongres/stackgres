@@ -53,10 +53,17 @@ home = [ "HTML", "RSS", "JSON"]
             name    = "Community"
             url     = "https://stackgres.io/community"
             weight  = 5
+<<<<<<< HEAD
         #[[languages.en.menu.main]]
         #    name    = "Blog"
         #    url     = "https://stackgres.io/blog"
         #    weight  = 6
+=======
+        [[languages.en.menu.main]]
+            name    = "Blog"
+            url     = "https://stackgres.io/blog"
+            weight  = 6
+>>>>>>> 819-backport-doc-restyle-from-1-0-to-0-9
         [[languages.en.menu.main]]
             name    = "Contact"
             url     = "https://stackgres.io/contact"
@@ -89,10 +96,17 @@ home = [ "HTML", "RSS", "JSON"]
             name    = "Community"
             url     = "https://stackgres.io/community"
             weight  = 2
+<<<<<<< HEAD
         #[[languages.en.menu.resources]]
         #    name    = "Blog"
         #    url     = "https://stackgres.io/blog"
         #    weight  = 3
+=======
+        [[languages.en.menu.resources]]
+            name    = "Blog"
+            url     = "https://stackgres.io/blog"
+            weight  = 3
+>>>>>>> 819-backport-doc-restyle-from-1-0-to-0-9
         
         # More EN
         [[languages.en.menu.more]]

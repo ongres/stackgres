@@ -1,6 +1,6 @@
 ---
 title: Distributed logs
-weight: 6
+weight: 8
 url: reference/crd/sgdistributedlogs
 ---
 

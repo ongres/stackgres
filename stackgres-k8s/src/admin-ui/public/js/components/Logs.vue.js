@@ -205,7 +205,11 @@ var Logs = Vue.component("Logs", {
 						</div>-->
 					</div>
 
+<<<<<<< HEAD
 					<table class="logs" v-if="tooltips.hasOwnProperty('sgclusterlogentry')">
+=======
+					<table class="logs" v-on:scroll.passive="handleScroll">>
+>>>>>>> 819-backport-doc-restyle-from-1-0-to-0-9
 						<thead class="sort">
 							<th class="logTime sorted desc timestamp">
 								<span @click="sort()">Log Time</span>
@@ -338,7 +342,7 @@ var Logs = Vue.component("Logs", {
 										<td class="databaseName" v-if="showColumns.databaseName"></td>
 										<td class="processId" v-if="showColumns.processId"></td>
 										<td class="connectionFrom" v-if="showColumns.connectionFrom"></td>
-										<td class="applicationName" v-if="showColumns.applicatioName"></td>
+										<td class="applicationName" v-if="showColumns.applicationName"></td>
 									</tr>
 								</template>
 								<tr class="logInfo">
@@ -520,6 +524,8 @@ var Logs = Vue.component("Logs", {
 		return {
 			currentSortDir: 'desc',
 			records: 50,
+			fetching: false,
+			lastCall: '',
 			text: '',
 			logType: [],
 			errorLevel: '',
@@ -640,7 +646,7 @@ var Logs = Vue.component("Logs", {
 				}
 			})
 
-			onmousemove = function (e) {
+			$(document).on('mousemove', function (e) {
 
 				if( (window.innerWidth - e.clientX) > 420 ) {
 					$('#logTooltip').css({
@@ -655,7 +661,7 @@ var Logs = Vue.component("Logs", {
 						"right": window.innerWidth - e.clientX + 20
 					})
 				}
-			}
+			})
 
 			$(document).on('mouseenter', 'td.hasTooltip', function(){
 				c = $(this).children('span');
@@ -681,16 +687,6 @@ var Logs = Vue.component("Logs", {
 					vc.getLogs();
 			});
 			
-			$(document).on('click', '.toggle.date.open', function(){
-				//$('#datePicker').trigger('hide.daterangepicker');
-				//console.log('.toggle.date.open');
-				/*
-				if(vc.datePicker.length)
-					$('.applyBtn').click();
-				else
-					$('.cancelBtn').click();
-				*/
-			});
 
 			$('#datePicker').on('show.daterangepicker', function(ev, picker) {
 				//console.log('show.daterangepicker');
@@ -819,6 +815,8 @@ var Logs = Vue.component("Logs", {
 
 		getLogs(append = false, byDate = false) {
 
+			this.fetching = true;
+
 			$('table.logs').addClass('loading');
 
 			let params = '';
@@ -852,25 +850,43 @@ var Logs = Vue.component("Logs", {
 				params += '&role='+this.role;
 			}
 			
-			if(store.state.loginToken.search('Authentication Error') == -1) {
-				axios
-				.get(apiURL+'sgcluster/logs/'+this.$route.params.namespace+'/'+this.$route.params.name+params)
-				.then( function(response){
+			if( (store.state.loginToken.search('Authentication Error') == -1) ) {
 
-					if(append)
-						store.commit('appendLogs', response.data)
-					else
-						store.commit('setLogs', response.data)
+				let thisCall = apiURL+'sgcluster/logs/'+this.$route.params.namespace+'/'+this.$route.params.name+params;
+				
+				if (this.lastCall != thisCall) {
 
-					$('table.logs').removeClass('loading');
-					
-				}).catch(function(err) {
-					store.commit('setLogs', []);
-					console.log(err);
-					checkAuthError(err);
+					this.lastCall = thisCall;
 
-					$('table.logs').removeClass('loading');
-				});
+					axios
+					.get(thisCall)
+					.then( function(response){
+
+						if(append)
+							store.commit('appendLogs', response.data)
+						else
+							store.commit('setLogs', response.data)
+
+						$('table.logs').removeClass('loading');
+						this.fetching = false;
+						
+					}).catch(function(err) {
+						notify(
+							{
+							  title: 'Error',
+							  detail: 'There was an error while trying to fetch the information from the API, please refresh the window and try again.'
+							},
+							'error'
+						  );
+
+						store.commit('setLogs', []);
+						console.log(err);
+						checkAuthError(err);
+
+						$('table.logs').removeClass('loading');
+						this.fetching = false;
+					});
+				}
 			} else {
 				notify(
 					{
@@ -932,84 +948,29 @@ var Logs = Vue.component("Logs", {
 
 			let row;
 
-			/* if($(this).hasClass('toggleLogDetails'))
-				row = $(this).parents('tr').first();
-			else 
-				row = $(this);
-
-			console.log(row);
-
-			row.toggle();
-			row.next().toggleClass('open'); */
-
 			$('tr.logInfo.open').prev().toggle();
 			$('tr.logInfo.open').removeClass('open');
 			$('#log-'+id).toggle();
 			$('#log-'+id).next().toggleClass('open');
 			
 		},
-/* 
-		toggleLogDetails(logIndex) {
-
-			let row = $(this).parents('tr').first();
-
-			row.toggle();
-			row.next().toggleClass('open');
-			
-		}, */
 
 		filterLogs() {
 
 			let vc = this;
 		},
 
-		/* filterTable() {
+		handleScroll() {
+			let vc = this;
 
-			let bk = this;
+			if( ($('table.logs').scrollTop() + $('table.logs').innerHeight() >= $('table.logs')[0].scrollHeight) && store.state.logs.length && !vc.fetching && ($('table.logs').get(0).scrollHeight > $('table.logs').get(0).clientHeight)) {
+				ltime = store.state.logs[store.state.logs.length-1].logTime;
+				lindex = store.state.logs[store.state.logs.length-1].logTimeIndex;
+				vc.dateStart = ltime+','+lindex;
+				vc.getLogs(true, true);
+			}
+		}
 
-			$("table tr.base").each(function () {
-
-				let show = true;
-				let r = $(this);
-				let checkFilters = ['isPermanent', 'phase', 'postgresVersion']; // 'tested' is out for now
-
-				// Filter by Keyword
-				if(bk.keyword.length && (r.text().toLowerCase().indexOf(bk.keyword.toLowerCase()) === -1) )
-					show = false;
-
-				checkFilters.forEach(function(f){
-
-					if(bk[f].length){
-						let hasClass = 0;
-
-						bk[f].forEach(function(c){
-							if(r.children('.'+c).length)
-								hasClass++;
-						});
-
-						if(!hasClass)
-							show = false;
-					}
-					
-				})
-
-				//Filter by clusterName
-				if(bk.clusterName.length && (!r.children(".clusterName."+bk.clusterName).length))
-					show = false;
-
-				if(!show)
-					r.addClass("not-found");
-				else
-					r.removeClass("not-found");
-				
-				if(!$("tr.base:not(.not-found)").length)
-					$("tr.no-results").show();
-				else
-					$("tr.no-results").hide();
-
-			});
-			
-		} */
 	},
 	beforeDestroy: function() {
 		store.commit('setLogs', []);

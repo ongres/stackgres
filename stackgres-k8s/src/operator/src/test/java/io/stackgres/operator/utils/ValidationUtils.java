@@ -22,7 +22,6 @@ import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusCause;
 import io.fabric8.kubernetes.api.model.StatusDetails;
 import io.stackgres.common.ErrorType;
-import io.stackgres.common.StackGresProperty;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.function.Executable;
@@ -50,8 +49,7 @@ public class ValidationUtils {
   }
 
   public static void assertErrorType(ValidationFailed ex, ErrorType errorType) {
-    String errorTypeDocumentationUri = ValidationUtils
-        .generateErrorTypeDocumentationUri(errorType);
+    String errorTypeDocumentationUri = ErrorType.getErrorTypeUri(errorType);
 
     assertEquals(errorTypeDocumentationUri, ex.getResult().getReason(),
         "Error type didn't match. Status message: " + ex.getResult().getMessage());
@@ -86,19 +84,6 @@ public class ValidationUtils {
       assertEquals(message, cause.getMessage());
       assertEquals(reason, cause.getReason());
     });
-  }
-
-  public static String generateErrorTypeDocumentationUri(ErrorType constraintViolation) {
-    String documentationUri = StackGresProperty.DOCUMENTATION_URI.getString();
-    String operatorVersion = StackGresProperty.OPERATOR_VERSION.getString();
-    String errorsPath = StackGresProperty.DOCUMENTATION_ERRORS_PATH.getString();
-
-    return String
-        .format("%s%s%s%s",
-            documentationUri,
-            operatorVersion,
-            errorsPath,
-            constraintViolation.getUri());
   }
 
   public static String getNotNullMessage(Class<?> from, String field) {

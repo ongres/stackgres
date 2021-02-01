@@ -38,8 +38,8 @@ public abstract class ConstraintValidationTest<T extends AdmissionReview<?>> {
     validator.setConstraintValidator(factory.getValidator());
     validator.init();
 
-    this.errorTypeDocumentationUri = ValidationUtils
-        .generateErrorTypeDocumentationUri(ErrorType.CONSTRAINT_VIOLATION);
+    this.errorTypeDocumentationUri = ErrorType.getErrorTypeUri(
+        ErrorType.CONSTRAINT_VIOLATION);
 
   }
 

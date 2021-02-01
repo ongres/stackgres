@@ -394,6 +394,221 @@ form#login .warning {
     fill: var(--blue);
 }
 
+<<<<<<< HEAD
+=======
+.darkmode {
+    color: #e3e3e3;
+    background: #171717;
+    /*transition: all .5s ease-in;*/
+}
+
+.darkmode #nav {
+    background: #222222;
+    /*transition: all .5s ease-in;*/
+
+}
+
+.darkmode #side, .darkmode #nav {
+    background: #1e1e1e;
+    /*transition: all .5s ease-in;*/
+}
+
+.darkmode #nav svg {
+    fill: #7A7B85;
+}
+
+.darkmode a.help g path {
+    fill: #171717;
+}
+
+.darkmode .form button, button, .darkmode a.btn:not(.clear), .darkmode .applyBtn, .darkmode .closeLog:hover, .darkmode .toolbar .filter.open .toggle, .darkmode .toolbar .filter.open .toggle:after, .darkmode .options label.active span, .darkmode .filter .options .active, .darkmode .options input[type="checkbox"].active + span {
+    color: #171717;
+}
+
+.darkmode .daterangepicker td.active:not(:hover) {
+    color: #171717;
+}
+
+.darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode #logo h1, .darkmode .options label, .darkmode .options select, .darkmode ul.select li.selected, .darkmode table.clusterConfig a {
+    color: #e3e3e3;
+}
+
+.darkmode #sets h4, .darkmode h4, .darkmode #sets h3, .darkmode h3, .darkmode h2, .darkmode thead, .darkmode .tabs a, .darkmode #keyword, .darkmode .options li.textFilter .search, .darkmode #help h3.title, .darkmode table.clusterConfig td.label, .darkmode .details th, .darkmode tr.details table td.label, .darkmode .yaml .label, .darkmode .logMessage .param, .darkmode .logDetails td.param {
+    color: #a5a5a5;
+}
+
+.darkmode .options label, .darkmode .options select {
+    background-color: #444;
+}
+
+.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode #ns-select, .darkmode .set.active:not(.conf):not(.backups), .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode table.clusterConfig td, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .toolbar .toggle, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select, .darkmode .options li.textFilter .search, .darkmode #nav .right > div#clone, .darkmode header .actions, .darkmode #contentTooltip .info {
+    border-color: #333333;
+}
+
+
+.darkmode ul.tabs, .darkmode .content h2, .darkmode .form .header, .darkmode .set.active:not(.conf), .darkmode table.poolConfig tr.details .paramDetails table, .darkmode table.pgConfig tr.details .paramDetails table {
+    border-color: #333333;
+}
+
+.darkmode tr:nth-child(4n+2), .darkmode .options, .darkmode .tooltip, .darkmode #nav .tooltip:before, .darkmode table tr:nth-child(even):not(.base), .darkmode #nav .right > div#clone {
+    background: #1e1e1e;
+}
+
+/*.darkmode .actions svg path {
+    fill: #7A7B85;
+}*/
+
+.darkmode .form input, .darkmode .form select, .darkmode .form textarea {
+    background-color: #1b1b1b;    
+}
+
+.darkmode .set.active, .darkmode .set.active a:hover, .darkmode .set:hover a:hover, .darkmode .set:not(.active) > ul li, .darkmode #keyword, .darkmode ul.select, .darkmode ul.select.active, .darkmode ul.select.active ul, .darkmode .options li.textFilter .search {
+    background-color: rgba(122, 123, 133, .10);
+}
+
+.darkmode ul#postgresVersion, .darkmode ul#postgresVersion ul, .darkmode table.pgConfig tr:nth-child(4n-2), .darkmode table.pgConfig tr:nth-child(4n-2) + tr.details, .darkmode table.poolConfig tr:nth-child(4n-2), .darkmode table.poolConfig tr:nth-child(4n-2) + tr.details, .darkmode table.backupConfig tr:nth-child(4n-2), .darkmode table.backupConfig tr:nth-child(4n-2) + tr.details, .darkmode #contentTooltip tr:nth-child(odd), .darkmode #contentTooltip .info {
+    background-color: #171717;
+}
+
+.darkmode ul#postgresVersion a:hover, .darkmode ul.select.active li.selected {
+    background: rgba(122, 123, 133, .10);
+}
+
+.darkmode .set.conf.active{
+    background-color: #1e1e1e;
+}
+
+.darkmode .form input[disabled="disabled"], .darkmode .form select[disabled="disabled"], .darkmode .form textarea[disabled="disabled"], .darkmode .form fieldset[disabled="disabled"], .darkmode label.switch[disabled="disabled"] {
+    background: rgba(51, 51, 51, .75);
+}
+
+.darkmode .form label, .darkmode ul.select a {
+    color: #A5A5A5;
+}
+
+.darkmode ul.select.active li.selected {
+    background: #181618;
+    color: #cdcdcd;
+}
+
+.darkmode #contentTooltip {
+    background: rgba(23, 23, 23, .75);
+}
+
+
+/*.darkmode .item:hover {
+    background-color: #2a2e38 !important;
+}*/
+
+.darkmode #nav .tooltip:before {
+    top: -6px;
+}
+
+.darkmode #loader {
+    mix-blend-mode: screen;
+    filter: invert(1) grayscale(1);
+}
+
+.darkmode tr.details.open {
+    background: #323642;
+}
+
+.darkmode table table tbody {
+    border-top-color: #333333;
+    border-bottom: 0;
+}
+
+/*.darkmode tr.details {
+    border: 1px solid #333333;
+}*/
+
+.darkmode tr:nth-child(even), .darkmode tr:nth-child(even) + tr.details {
+    background: #1e1e1e;
+}
+
+.darkmode #backups tr:nth-child(4n+2), .darkmode tr:nth-child(4n+2) + tr.details {
+    background: #171717;
+}
+
+/*.darkmode #backups tr.base.Completed.open {
+    border: 1px solid #333333;
+}*/
+
+.darkmode table table + table {
+    border-top: 1px solid #333333;
+}
+
+.darkmode #ns-select a:hover {
+    background: transparent !important;
+}
+
+.darkmode .clusterInfo tr, .darkmode .podStatus tr, .darkmode .clusterConfig tr {
+    background: #1e1e1e;
+}
+
+.darkmode table.backupConfig tr.base:first-of-type {
+    border-top: 1px solid #333333;
+}
+
+.darkmode table.backupConfig  {
+    border-bottom: 1px solid #333333;
+}
+
+.darkmode table.backupConfig tr:nth-child(4n-2), .darkmode table.backupConfig tr:nth-child(4n-2) + tr.details, .darkmode table.podStatus tr:nth-child(4n-2) {
+    background: #171717;
+}
+
+.darkmode table.backupConfig tr.base.open {
+    border-top: 1px solid #333333;
+}
+
+/*.darkmode table.backupConfig tr.details.open, .darkmode table.backupConfig tr.base.open {
+    border: 1px solid #333333;
+}*/
+
+.darkmode #delete .tooltip  h3 {
+    border-bottom: 1px solid #333333;
+}
+
+.darkmode #delete .tooltip form input {
+    background: #1b1b1b;
+    border: 1px solid #333333;
+    color: var(--gray3);
+} 
+
+.darkmode .grafana iframe {
+    border: none;
+}
+
+.darkmode .podStatus .primary span, .darkmode .pr span, .darkmode .role.pr span {
+    color: var(--gray2);
+    background: #D3D3D640;
+}
+
+.darkmode .podStatus .replica span, .darkmode .re span, .darkmode .role.re span {
+    color: var(--gray3);
+    background: #A6A7AE40;
+}
+
+.darkmode table.loading:after {
+    background: url(img/loader.gif) center center no-repeat rgba(6, 5, 40, .9);
+    background-size: 30px;
+}
+
+/* Dark mode - Log in */
+
+.darkmode #nav .right > div#signup {
+    background: #1e1e1e;
+    border-color: #333333;
+
+}
+
+.darkmode #signup input {
+    background: #1b1b1b;
+    border-color: #333333;
+    color: #e3e3e3;
+}
+>>>>>>> 819-backport-doc-restyle-from-1-0-to-0-9
 
 #signup input:focus {
     border-color: var(--blue);
@@ -4004,8 +4219,14 @@ tr.logInfo.open:before {
 }
 
 /* Luis Logs & Filters */
+<<<<<<< HEAD
 table.logs, table.backups {
     max-height: calc(100vh - 353px);
+=======
+table.logs {
+    max-height: calc(100vh - 335px);
+    height: calc(100vh - 335px);
+>>>>>>> 819-backport-doc-restyle-from-1-0-to-0-9
     max-width: calc(100vw - 430px);
     display: inline-block;
     overflow: auto;
@@ -4021,14 +4242,24 @@ table.logs:after {
 }
 
 table.loading:after {
+    border-radius: 100%;
     content: " ";
     position: fixed;
+<<<<<<< HEAD
     top: 289px;
     right: 45px;
     width: calc(100vw - 439px);
     height: calc(100vh - 314px) !important;
     background: url(img/loader.gif) center center no-repeat rgba(255,255,255,.7);
     background-size: 4vw;
+=======
+    bottom: 60px;
+    right: 50px;
+    width: 50px;
+    height: 50px;
+    background: url(img/loader.gif) center center no-repeat rgba(0,0,0,.1);
+    background-size: 30px;
+>>>>>>> 819-backport-doc-restyle-from-1-0-to-0-9
     opacity: 1;
     transition: opacity .4s ease-in;
 }
