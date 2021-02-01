@@ -49,7 +49,7 @@
     <stackgres.crd.version>v1beta1</stackgres.crd.version>
     <stackgres.operatorVersion>${project.version}</stackgres.operatorVersion>
     <stackgres.documentation.uri>https://stackgres.io/doc/</stackgres.documentation.uri>
-    <stackgres.documentation.errorsPath>/07-developer-documentation/01-error-types#</stackgres.documentation.errorsPath>
+    <stackgres.documentation.errorsPath>/api/responses/error#</stackgres.documentation.errorsPath>
     <quarkus.http.ssl.certificate.file>/etc/operator/certs/server.crt</quarkus.http.ssl.certificate.file>
     <quarkus.http.ssl.certificate.key-file>/etc/operator/certs/root.key</quarkus.http.ssl.certificate.key-file>
 
