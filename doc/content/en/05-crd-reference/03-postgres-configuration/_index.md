@@ -1,6 +1,6 @@
 ---
 title: Postgres configuration
-weight: 4
+weight: 3
 url: reference/crd/sgpgconfig
 ---
 

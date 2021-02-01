@@ -1,6 +1,6 @@
 ---
 title: Connection pooling configuration
-weight: 7
+weight: 4
 url: reference/crd/sgpoolconfig
 ---
 

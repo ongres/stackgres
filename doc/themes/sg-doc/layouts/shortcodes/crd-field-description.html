@@ -52,8 +52,9 @@
 {{- else }}
 {{ errorf "Path %s was not found in CRD data/crds/%s.yaml" ($scratch.Get "CrdPath") (index $params 0) }}
 {{- end }}
+{{- $baseUrl := (print (trim .Site.BaseURL "/") "/") }}
 {{- with ($scratch.Get "CrdField").description }}
-<div>{{- ($scratch.Get "CrdField").description | markdownify -}}</div>
+<div>{{- replace (($scratch.Get "CrdField").description) "https://stackgres.io/doc/latest/" $baseUrl | markdownify -}}</div>
 {{- else }}
 <div></div>
 {{- end }}

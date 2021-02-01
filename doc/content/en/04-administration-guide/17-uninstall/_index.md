@@ -36,11 +36,15 @@ No resources found in default namespace.
 
 ### Other objects
 
-The `SGCluster` depends on other objects to work properly, such as [backups]({{% relref "/05-crd-reference/02-backups/" %}}), [backup configurations]({{% relref "/05-crd-reference/03-backup-config/" %}}), [connection pooling]({{% relref "/05-crd-reference/07-connection-pooling-configuration/" %}}), [distributed logs]({{% relref "/05-crd-reference/06-distributed-logs" %}}), [instance profiles]({{% relref "/05-crd-reference/08-instance-profiles" %}}),  and [postgres configurations]({{% relref "/05-crd-reference/04-postgres-configuration" %}}). Execute the commands below to find and delete those objects:
+The `SGCluster` depends on other objects to work properly, such as [instance profiles]({{% relref "/05-crd-reference/02-instance-profiles" %}}),
+ [postgres configurations]({{% relref "/05-crd-reference/03-postgres-configuration" %}}), [connection pooling]({{% relref "/05-crd-reference/04-connection-pooling-configuration/" %}}),
+ [backup configurations]({{% relref "/05-crd-reference/05-backup-config/" %}}), [backups]({{% relref "/05-crd-reference/06-backups/" %}}),
+ [distributed logs]({{% relref "/05-crd-reference/07-distributed-logs" %}}), .
+ Execute the commands below to find and delete those objects:
 
 ```bash
 ## List all sg* objects:
-❯ kubectl get sgbackupconfigs,sgbackups,sgdistributedlogs,sginstanceprofiles,sgpgconfigs,sgpoolconfigs -n default        
+❯ kubectl get sgbackupconfigs,sgbackups,sgdistributedlogs,sginstanceprofiles,sgpgconfigs,sgpoolconfigs -n default
 NAME                                                      AGE
 sgbackupconfig.stackgres.io/backup-config-minio-backend   162m
 
