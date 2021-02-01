@@ -488,6 +488,7 @@ var Logs = Vue.component("Logs", {
 			currentSortDir: 'desc',
 			records: 50,
 			fetching: false,
+			lastCall: '',
 			text: '',
 			logType: [],
 			errorLevel: '',
@@ -645,16 +646,6 @@ var Logs = Vue.component("Logs", {
 					vc.getLogs();
 			});
 			
-			$(document).on('click', '.toggle.date.open', function(){
-				//$('#datePicker').trigger('hide.daterangepicker');
-				//console.log('.toggle.date.open');
-				/*
-				if(vc.datePicker.length)
-					$('.applyBtn').click();
-				else
-					$('.cancelBtn').click();
-				*/
-			});
 
 			$('#datePicker').on('show.daterangepicker', function(ev, picker) {
 				//console.log('show.daterangepicker');
@@ -818,27 +809,43 @@ var Logs = Vue.component("Logs", {
 				params += '&role='+this.role;
 			}
 			
-			if(store.state.loginToken.search('Authentication Error') == -1) {
-				axios
-				.get(apiURL+'sgcluster/logs/'+this.$route.params.namespace+'/'+this.$route.params.name+params)
-				.then( function(response){
+			if( (store.state.loginToken.search('Authentication Error') == -1) ) {
 
-					if(append)
-						store.commit('appendLogs', response.data)
-					else
-						store.commit('setLogs', response.data)
+				let thisCall = apiURL+'sgcluster/logs/'+this.$route.params.namespace+'/'+this.$route.params.name+params;
+				
+				if (this.lastCall != thisCall) {
 
-					$('table.logs').removeClass('loading');
-					
-				}).catch(function(err) {
-					store.commit('setLogs', []);
-					console.log(err);
-					checkAuthError(err);
+					this.lastCall = thisCall;
 
-					$('table.logs').removeClass('loading');
-				});
+					axios
+					.get(thisCall)
+					.then( function(response){
 
-				this.fetching = false;
+						if(append)
+							store.commit('appendLogs', response.data)
+						else
+							store.commit('setLogs', response.data)
+
+						$('table.logs').removeClass('loading');
+						this.fetching = false;
+						
+					}).catch(function(err) {
+						notify(
+							{
+							  title: 'Error',
+							  detail: 'There was an error while trying to fetch the information from the API, please refresh the window and try again.'
+							},
+							'error'
+						  );
+
+						store.commit('setLogs', []);
+						console.log(err);
+						checkAuthError(err);
+
+						$('table.logs').removeClass('loading');
+						this.fetching = false;
+					});
+				}
 			} else {
 				notify(
 					{
@@ -900,31 +907,12 @@ var Logs = Vue.component("Logs", {
 
 			let row;
 
-			/* if($(this).hasClass('toggleLogDetails'))
-				row = $(this).parents('tr').first();
-			else 
-				row = $(this);
-
-			console.log(row);
-
-			row.toggle();
-			row.next().toggleClass('open'); */
-
 			$('tr.logInfo.open').prev().toggle();
 			$('tr.logInfo.open').removeClass('open');
 			$('#log-'+id).toggle();
 			$('#log-'+id).next().toggleClass('open');
 			
 		},
-/* 
-		toggleLogDetails(logIndex) {
-
-			let row = $(this).parents('tr').first();
-
-			row.toggle();
-			row.next().toggleClass('open');
-			
-		}, */
 
 		filterLogs() {
 
@@ -942,53 +930,6 @@ var Logs = Vue.component("Logs", {
 			}
 		}
 
-		/* filterTable() {
-
-			let bk = this;
-
-			$("table tr.base").each(function () {
-
-				let show = true;
-				let r = $(this);
-				let checkFilters = ['isPermanent', 'phase', 'postgresVersion']; // 'tested' is out for now
-
-				// Filter by Keyword
-				if(bk.keyword.length && (r.text().toLowerCase().indexOf(bk.keyword.toLowerCase()) === -1) )
-					show = false;
-
-				checkFilters.forEach(function(f){
-
-					if(bk[f].length){
-						let hasClass = 0;
-
-						bk[f].forEach(function(c){
-							if(r.children('.'+c).length)
-								hasClass++;
-						});
-
-						if(!hasClass)
-							show = false;
-					}
-					
-				})
-
-				//Filter by clusterName
-				if(bk.clusterName.length && (!r.children(".clusterName."+bk.clusterName).length))
-					show = false;
-
-				if(!show)
-					r.addClass("not-found");
-				else
-					r.removeClass("not-found");
-				
-				if(!$("tr.base:not(.not-found)").length)
-					$("tr.no-results").show();
-				else
-					$("tr.no-results").hide();
-
-			});
-			
-		} */
 	},
 	beforeDestroy: function() {
 		store.commit('setLogs', []);
