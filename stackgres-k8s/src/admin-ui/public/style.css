@@ -3355,7 +3355,7 @@ tr.no-results:first-child:last-child {
 
 table.logs, table.backups {
     margin-bottom: 0;
-    max-height: calc(100vh - 310px) !important;
+    /* max-height: calc(100vh - 310px) !important; */
     border: none !important;
 }
 
@@ -4005,7 +4005,8 @@ tr.logInfo.open:before {
 
 /* Luis Logs & Filters */
 table.logs, table.backups {
-    max-height: calc(100vh - 353px);
+    max-height: calc(100vh - 335px);
+    height: calc(100vh - 335px);
     max-width: calc(100vw - 430px);
     display: inline-block;
     overflow: auto;
@@ -4021,21 +4022,22 @@ table.logs:after {
 }
 
 table.loading:after {
+    border-radius: 100%;
     content: " ";
     position: fixed;
-    top: 289px;
-    right: 45px;
-    width: calc(100vw - 439px);
-    height: calc(100vh - 314px) !important;
-    background: url(img/loader.gif) center center no-repeat rgba(255,255,255,.7);
-    background-size: 4vw;
+    bottom: 60px;
+    right: 50px;
+    width: 50px;
+    height: 50px;
+    background: url(img/loader.gif) center center no-repeat rgba(0,0,0,.1);
+    background-size: 30px;
     opacity: 1;
     transition: opacity .4s ease-in;
 }
 
 .darkmode table.loading:after {
-    background: url(img/loader.gif) center center no-repeat rgba(6, 5, 40, .6);
-    background-size: 4vw;
+    background: url(img/loader.gif) center center no-repeat rgba(6, 5, 40, .9);
+    background-size: 30px;
 }
 
 table.logs tbody, table.backups > tbody {

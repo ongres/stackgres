@@ -205,7 +205,7 @@ var Logs = Vue.component("Logs", {
 						</div>-->
 					</div>
 
-					<table class="logs" v-if="tooltips.hasOwnProperty('sgclusterlogentry')">
+					<table class="logs" v-if="tooltips.hasOwnProperty('sgclusterlogentry')" v-on:scroll.passive="handleScroll">
 						<thead class="sort">
 							<th class="logTime sorted desc timestamp">
 								<span @click="sort()">Log Time</span>
@@ -338,7 +338,7 @@ var Logs = Vue.component("Logs", {
 										<td class="databaseName" v-if="showColumns.databaseName"></td>
 										<td class="processId" v-if="showColumns.processId"></td>
 										<td class="connectionFrom" v-if="showColumns.connectionFrom"></td>
-										<td class="applicationName" v-if="showColumns.applicatioName"></td>
+										<td class="applicationName" v-if="showColumns.applicationName"></td>
 									</tr>
 								</template>
 								<tr class="logInfo">
@@ -520,6 +520,8 @@ var Logs = Vue.component("Logs", {
 		return {
 			currentSortDir: 'desc',
 			records: 50,
+			fetching: false,
+			horizontalScroll: 0,
 			text: '',
 			logType: [],
 			errorLevel: '',
@@ -593,7 +595,7 @@ var Logs = Vue.component("Logs", {
 		}
 
 	},
-	mounted: function() {
+	created: function() {
 		
 		const vc = this;
 
@@ -626,21 +628,7 @@ var Logs = Vue.component("Logs", {
 			vc.records = parseInt((window.innerHeight - 350) / 30);
 			vc.getLogs(this.records);
 
-
-			$('table.logs').on('scroll', function() {
-				if( ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) && store.state.logs.length ) {
-					
-					//console.log(store.state.logs[store.state.logs.length-1]);
-
-					ltime = store.state.logs[store.state.logs.length-1].logTime;
-					lindex = store.state.logs[store.state.logs.length-1].logTimeIndex;
-					vc.dateStart = ltime+','+lindex;
-					vc.getLogs(true, true);
-
-				}
-			})
-
-			onmousemove = function (e) {
+			$(document).on('mousemove', function (e) {
 
 				if( (window.innerWidth - e.clientX) > 420 ) {
 					$('#logTooltip').css({
@@ -655,7 +643,7 @@ var Logs = Vue.component("Logs", {
 						"right": window.innerWidth - e.clientX + 20
 					})
 				}
-			}
+			})
 
 			$(document).on('mouseenter', 'td.hasTooltip', function(){
 				c = $(this).children('span');
@@ -819,6 +807,8 @@ var Logs = Vue.component("Logs", {
 
 		getLogs(append = false, byDate = false) {
 
+			this.fetching = true;
+
 			$('table.logs').addClass('loading');
 
 			let params = '';
@@ -871,6 +861,8 @@ var Logs = Vue.component("Logs", {
 
 					$('table.logs').removeClass('loading');
 				});
+
+				this.fetching = false;
 			} else {
 				notify(
 					{
@@ -962,6 +954,19 @@ var Logs = Vue.component("Logs", {
 
 			let vc = this;
 		},
+
+		handleScroll() {
+			let vc = this;
+
+			if( ($('table.logs').scrollTop() + $('table.logs').innerHeight() >= $('table.logs')[0].scrollHeight) && store.state.logs.length && !vc.fetching && ($('table.logs').get(0).scrollHeight > $('table.logs').get(0).clientHeight)) {
+				ltime = store.state.logs[store.state.logs.length-1].logTime;
+				lindex = store.state.logs[store.state.logs.length-1].logTimeIndex;
+				vc.dateStart = ltime+','+lindex;
+				vc.getLogs(true, true);
+			}
+
+			vc.horizontalScroll = $('table.logs').scrollLeft;
+		}
 
 		/* filterTable() {
 
