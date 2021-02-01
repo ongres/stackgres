@@ -267,7 +267,7 @@ var Logs = Vue.component("Logs", {
 										<td class="connectionFrom hasTooltip" v-if="showColumns.connectionFrom">
 											<span>{{ log.connectionFrom }}</span>
 										</td>
-										<td class="applicationName hasTooltip" v-if="showColumns.applicatioName">
+										<td class="applicationName hasTooltip" v-if="showColumns.applicationName">
 											<span>{{ log.applicationName }}</span>
 										</td>
 									</tr>
@@ -305,7 +305,7 @@ var Logs = Vue.component("Logs", {
 										<td class="databaseName" v-if="showColumns.databaseName"></td>
 										<td class="processId" v-if="showColumns.processId"></td>
 										<td class="connectionFrom" v-if="showColumns.connectionFrom"></td>
-										<td class="applicationName" v-if="showColumns.applicatioName"></td>
+										<td class="applicationName" v-if="showColumns.applicationName"></td>
 									</tr>
 								</template>
 								<tr class="logInfo">
