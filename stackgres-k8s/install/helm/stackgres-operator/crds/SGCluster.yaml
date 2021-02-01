@@ -51,7 +51,7 @@ spec:
             sgInstanceProfile:
               type: string
               description: |
-                Name of the [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-resource-profiles/). A SGInstanceProfile defines CPU and memory limits. Must exist before creating a cluster. When no profile is set, a default (currently: 1 core, 2 GiB RAM) one is used.
+                Name of the [SGInstanceProfile](https://stackgres.io/doc/latest/reference/crd/sginstanceprofile). A SGInstanceProfile defines CPU and memory limits. Must exist before creating a cluster. When no profile is set, a default (currently: 1 core, 2 GiB RAM) one is used.
             metadata:
               type: object
               description: Metadata information from cluster created resources.
@@ -201,17 +201,17 @@ spec:
                 sgPostgresConfig:
                   type: string
                   description: |
-                    Name of the [SGPostgresConfig](https://stackgres.io/doc/latest/04-postgres-cluster-management/02-configuration-tuning/02-postgres-configuration/) used for the cluster. It must exist. When not set, a default Postgres config, for the major version selected, is used.
+                    Name of the [SGPostgresConfig](https://stackgres.io/doc/latest/reference/crd/sgpgconfig) used for the cluster. It must exist. When not set, a default Postgres config, for the major version selected, is used.
                 sgPoolingConfig:
                   type: string
                   description: |
-                    Name of the [SGPoolingConfig](https://stackgres.io/doc/latest/04-postgres-cluster-management/02-configuration-tuning/03-connection-pooling-configuration/) used for this cluster. Each pod contains a sidecar with a connection pooler (currently: [PgBouncer](https://www.pgbouncer.org/)). The connection pooler is implemented as a sidecar.
+                    Name of the [SGPoolingConfig](https://stackgres.io/doc/latest/reference/crd/sgpoolconfig) used for this cluster. Each pod contains a sidecar with a connection pooler (currently: [PgBouncer](https://www.pgbouncer.org/)). The connection pooler is implemented as a sidecar.
 
                     If not set, a default configuration will be used. Disabling connection pooling altogether is possible if the disableConnectionPooling property of the pods object is set to true.
                 sgBackupConfig:
                   type: string
                   description: |
-                    Name of the [SGBackupConfig](https://stackgres.io/doc/latest/04-postgres-cluster-management/04-backups/) to use for the cluster. It defines the backups policy, storage and retention, among others, applied to the cluster. When not set, a default backup config is used.
+                    Name of the [SGBackupConfig](https://stackgres.io/doc/latest/reference/crd/sgbackupconfig) to use for the cluster. It defines the backups policy, storage and retention, among others, applied to the cluster. When not set, a default backup config is used.
             initialData:
               type: object
               description: Cluster initialization data options. Cluster may be initialized empty, or from a backup restoration. Specifying scripts to run on the database after cluster creation is also possible.
@@ -222,7 +222,7 @@ spec:
                     fromBackup:
                       type: string
                       description: |
-                        When set to the UID of an existing [SGBackup](https://stackgres.io/doc/latest/04-postgres-cluster-management/04-backups/), the cluster is initialized by restoring the backup data to it. If not set, the cluster is initialized empty. The selected backup must be in the same namespace.
+                        When set to the UID of an existing [SGBackup](https://stackgres.io/doc/latest/reference/crd/sgbackup), the cluster is initialized by restoring the backup data to it. If not set, the cluster is initialized empty. The selected backup must be in the same namespace.
                     downloadDiskConcurrency:
                       type: integer
                       minimum: 1
@@ -302,5 +302,5 @@ spec:
                 sgDistributedLogs:
                   type: string
                   description: |
-                    Name of the [SGDistributedLogs](https://stackgres.io/doc/latest/04-postgres-cluster-management/06-distributed-logs/) to use for this cluster. It must exist.
+                    Name of the [SGDistributedLogs](https://stackgres.io/doc/latest/reference/crd/sgdistributedlogs) to use for this cluster. It must exist.
           required: ["instances", "postgresVersion", "pods"]

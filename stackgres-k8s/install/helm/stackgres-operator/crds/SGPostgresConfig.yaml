@@ -40,7 +40,7 @@ spec:
 
                 Note that Postgres maintains full compatibility across minor versions, and hence a configuration for a given major version will work for any minor version of that same major version.
 
-                Check [StackGres component versions](https://stackgres.io/doc/latest/01-introduction/06-versions/) to see the Postgres versions supported by this version of StackGres.
+                Check [StackGres component versions](https://stackgres.io/doc/latest/intro/versions) to see the Postgres versions supported by this version of StackGres.
             postgresql.conf:
               type: object
               additionalProperties:
