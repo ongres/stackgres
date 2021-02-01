@@ -8,3 +8,53 @@
   ga('send', 'pageview');
 
 </script>
+
+<a id="darkmode" onclick="toggleDarkmode()">
+  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22"><g transform="translate(-89 -151)"><rect width="3" height="2" transform="translate(101 151) rotate(90)" fill="#060528"/><rect width="3" height="2" transform="translate(101 170) rotate(90)" fill="#060528"/><rect width="3" height="2" transform="translate(111 163) rotate(180)" fill="#060528"/><rect width="3" height="2" transform="translate(92 163) rotate(180)" fill="#060528"/><rect width="4" height="2" transform="translate(109.192 154.222) rotate(135)" fill="#060528"/><rect width="4" height="2" transform="translate(95.05 168.364) rotate(135)" fill="#060528"/><rect width="4" height="2" transform="translate(92.222 152.808) rotate(45)" fill="#060528"/><rect width="4" height="2" transform="translate(106.364 166.95) rotate(45)" fill="#060528"/><path d="M100,156a6,6,0,1,0,6,6A6,6,0,0,0,100,156Zm-4,6a4.007,4.007,0,0,1,4-4v8A4.007,4.007,0,0,1,96,162Z" fill="#060528"/></g></svg>
+</a>
+<a href="#top" id="goTop">
+  <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="78" height="78" viewBox="0 0 78 78"><path d="M26.566,12.921H9.787l5.527-5.527L13.91,6,6,13.91l7.91,7.91L15.3,20.426,9.787,14.9H26.566Z" transform="translate(47 15) rotate(90)" fill="#060528"></path></svg>
+</a>
+
+<script>
+  jQuery(document).ready(function($){
+
+    // Check cookie for current color sceheme
+    if( getCookie('sgTheme') === 'light') {
+      console.log('Switching to lightmode');
+      $('body').removeClass('darkmode');
+      $('#darkmode').removeClass('active');
+    } else {
+      document.cookie = "sgTheme=dark; Path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT";
+    }
+
+  })
+
+  function getCookie(cname) {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for(var i = 0; i < ca.length; i++) {
+      var c = ca[i];
+      while (c.charAt(0) == ' ') {
+        c = c.substring(1);
+      }
+      if (c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
+      }
+    }
+    return "";
+  }
+
+  function toggleDarkmode() {
+    $('body').toggleClass('darkmode')
+    document.cookie = "sgTheme=" + ($('body').hasClass('darkmode') ? 'dark' : 'light') + "; Path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT";
+  }
+
+  function navToggle() {
+    $('.mobileMenu, #header').toggleClass('menuOpen')
+  }
+
+  function toggleDiv(id) {
+    $(id).toggleClass('show')
+  }
+</script>
