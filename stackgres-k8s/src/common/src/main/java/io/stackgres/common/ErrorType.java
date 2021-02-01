@@ -31,10 +31,6 @@ public enum ErrorType {
   INVALID_SECRET("invalid-secret",
       "Invalid secret");
 
-  public static void main(String[] args) {
-    System.out.println(getDocumentationVersion("0.9.4-SNAPSHOT"));
-  }
-
   private String uri;
   private String title;
 
