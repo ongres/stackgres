@@ -1,10 +1,12 @@
-# StackGres
+<div align="center">
+   <h1>StackGres</h1>
+   <p><b>Enterprise Postgres made easy. On Kubernetes</b></p>
+   <a href="https://stackgres.io" target="_blank">
+      <img src="https://stackgres.io/img/favicon/android-chrome-192x192.png" alt="StackGres"/>
+   </a>
+</div>
 
-[![master status](https://gitlab.com/ongresinc/stackgres/badges/master/pipeline.svg?style=flat-square)](https://gitlab.com/ongresinc/stackgres/commits/master)
-
-> StackGres - Enterprise-grade, Full Stack PostgreSQL on Kubernetes
-
-StackGres is a full stack PostgreSQL distribution for Kubernetes, packed into an easy deployment unit.
+StackGres is a full-stack PostgreSQL distribution for Kubernetes, packed into an easy deployment unit.
 With a carefully selected and tuned set of surrounding PostgreSQL components.
 
 An enterprise-grade PostgreSQL stack needs several other ecosystem components and significant tuning.
@@ -13,31 +15,55 @@ backups and DR, centralized logging… we have built them all: a Postgres Stack.
 
 Postgres is not just the database. It is also all the ecosystem around it. If Postgres would be the
 Linux kernel, we need a PostgreSQL Distribution, surrounding PostgreSQL, to complement it with the
-components that are required for a production deployment. This is what we call a PostgreSQL Stack.
+components that are required for production deployment. This is what we call a PostgreSQL Stack.
 And the stack needs to be curated. There are often several software for the same functionality. And
-not all is of the same quality or maturity. There are many pros and cons, and they are often not
+not all are of the same quality or maturity. There are many pros and cons, and they are often not
 easy to evaluate. It is better to have an opinionated selection of components, that can be packaged
 and configured to work together in a predictable and trusted way.
 
-## Operator
 
-This repository holds one of the major components around StackGres, and is the StackGres Operator
+## Getting Started
+
+We recommend that you check our [documentation](https://stackgres.io/doc/latest/) and have a look at the [Demo / Quickstart](https://stackgres.io/doc/latest/demo/quickstart/) section to know how to start using StackGres.
+
+Also, on our web https://stackgres.io/install/, you can get the one-line command to install StackGres.
+
+## Features 
+
+- [Automated failover and High Availability with Patroni](https://stackgres.io/features/#automated-failover)
+- [You are in full control. You are the postgres user](https://stackgres.io/features/#full-control)
+- [Automated backups, lifecycle management](https://stackgres.io/features/#automated-backups)
+- [Fully-featured management Web Console](https://stackgres.io/features/#web-console)
+- [Automatic Prometheus integration. Built-in customized Grafana dashboards](https://stackgres.io/features/#prometheus-integration)
+- [Distributed logs for Postgres and Patroni](https://stackgres.io/features/#distributed-logs)
+- [High-level management CRDs. GitOps ready](https://stackgres.io/features/#management-crds)
+- [Integrated server-side connection pooling](https://stackgres.io/features/#connection-pooling)
+- [Enhanced observability via Envoy Proxy’s Postgres filter](https://stackgres.io/features/#envoy-proxy)
+- [Expertly tuned by default](https://stackgres.io/features/#expertly-tuned)
+- [Lightweight, secure container images based on RedHat’s UBI 8t](https://stackgres.io/features/#redhat-based)
+
+## Community
+
+Everybody is welcome in this open Community for StackGres, check out the different ways to collaborate: 
+
+- [Developer Documentation](https://stackgres.io/doc/latest/developer/): If you are a Kubernetes Administrator or a Java Developer, you might want to contribute back to StackGres, either by testing it, developing Kubernetes code (Helm, architecture) or Java’s core operator.
+- [Public dashboards](https://gitlab.com/ongresinc/stackgres/-/issues): If you want to see what’s coming down the road, check our issues. They are open so you can create issues yourself or comment on open issues. We welcome feedback, ideas and collaborations!
+- Join the [Slack](https://slack.stackgres.io/) & [Discord](https://discord.stackgres.io/) Community becoming an advocate, user, tester or contributor of StackGres.
+
+## About the Operator
+
+This repository holds one of the major components around StackGres and is the StackGres Operator
 build around Kubernetes. An Operator is a method of packaging, deploying and managing a Kubernetes
 application. Some applications, such as databases, required more hand-holding, and a cloud-native
 Postgres requires an operator to provide additional knowledge of how to maintain state and integrate
 all the components.
 
-This operator is build in pure-Java and uses the [Quarkus](https://quarkus.io/) framework a Kubernetes
+This operator is built in pure-Java and uses the [Quarkus](https://quarkus.io/) framework a Kubernetes
 Native Java stack tailored for GraalVM & OpenJDK HotSpot, crafted from the best of breed Java
 libraries and standards.
 
-The container image of StackGres is built on Red Hat Universal Base Image, and compiled as a native binary
+The container image of StackGres is built on Red Hat Universal Base Image and compiled as a native binary
 with GraalVM allowing amazingly fast boot time and incredibly low RSS memory.
-
-### Getting Started
-
-Please, have a look at the [demo / quickstart](https://stackgres.io/doc/latest/demo/quickstart/)
- section of our documentation to know how to start using StackGres.
 
 ---
 
