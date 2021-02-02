@@ -959,6 +959,12 @@ var Backups = Vue.component("Backups", {
 			//console.log("#"+count);
 			return store.state.backups;
 			
+		},
+
+		getBackupDuration( start, stored ) {
+			let begin = moment(start);
+			let finish = moment(stored);
+			return(new Date(moment.duration(finish.diff(begin))).toISOString());
 		}
 	},
 

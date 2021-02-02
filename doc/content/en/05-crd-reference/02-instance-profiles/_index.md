@@ -1,6 +1,6 @@
 ---
 title: Instance profiles
-weight: 8
+weight: 2
 url: reference/crd/sginstanceprofile
 ---
 

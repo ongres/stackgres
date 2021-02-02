@@ -7,7 +7,10 @@ draft: true
 
 ## Disabling Pooling
 
-Certain set of applications, particularly those for reporting or OLAP, may not need a pooling middleware to issue large queries and low amount of connections. It is possible to disable pooling by setting `disableConnectionPooling` to `true` at the Cluster configuration (for more information, see [CRD Cluster Pods configuration]({{% relref "05-crd-reference/05-postgres-clusters/" %}}) ).
+Certain set of applications, particularly those for reporting or OLAP, may not need a pooling
+ middleware to issue large queries and low amount of connections. It is possible to disable
+ pooling by setting `disableConnectionPooling` to `true` at the Cluster configuration (for more
+ information, see [CRD Cluster Pods configuration]({{% relref "05-crd-reference/01-postgres-clusters/" %}}) ).
 
 ```bash
 apiVersion: stackgres.io/v1
@@ -20,7 +23,10 @@ spec:
 ...
 ```
 
-Either way, if your application does internal pooling or it already has a pooling middleware, you can consider disabling internal pooling mechanisms. Although, we encourage the user to keep pooling enabled internally, as it serves as a contention barrier for unexpected connection spikes that may occur, bringing more stability to the cluster. 
+Either way, if your application does internal pooling or it already has a pooling middleware, you
+ can consider disabling internal pooling mechanisms. Although, we encourage the user to keep pooling
+ enabled internally, as it serves as a contention barrier for unexpected connection spikes that may
+ occur, bringing more stability to the cluster.
 
 ## Transaction Mode
 
@@ -44,9 +50,14 @@ EOF
 
 ## Session Mode with Connection release through timeouts
 
-This configuration requires more insights and specifications to be known from the application used against the cluster. What it is intended here, is to release connections that are _idle in transaction_.
+This configuration requires more insights and specifications to be known from the application used
+ against the cluster. What it is intended here, is to release connections that are
+ _idle in transaction_.
 
-You'll notice that the bellow is ordered from variables that affect client-side to the server-side, incrementally. If your application sets a client timeout when connection is idle, you may not need to do this, although several production clusters may be source for not only one, but many applications within different connection handlings.
+You'll notice that the bellow is ordered from variables that affect client-side to the server-side,
+ incrementally. If your application sets a client timeout when connection is idle, you may not need
+ to do this, although several production clusters may be source for not only one, but many
+ applications within different connection handlings.
 
 
 ```bash
@@ -70,4 +81,6 @@ spec:
 EOF
 ```
 
-When the server pool is fulfilled, incoming client connection stablish requests will be queued set in `wait` state by PgBouncer. This is why it is important to ensure that server connections are released properly, specially if they are keep during long periods of time.
+When the server pool is fulfilled, incoming client connection stablish requests will be queued set
+ in `wait` state by PgBouncer. This is why it is important to ensure that server connections are
+ released properly, specially if they are keep during long periods of time.
