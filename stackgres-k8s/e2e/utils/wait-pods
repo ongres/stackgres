@@ -20,7 +20,7 @@ traceable_wait_pods_running() {
   while [ "$(date +%s)" -lt "$END" ]
   do
     PODS="$(kubectl get pods "$NAMESPACE_OPT" 2>/dev/null)"
-    RUNNING_PODS="$(printf "%s" "$PODS" | grep "Running" | wc -l)"
+    RUNNING_PODS="$(printf "%s" "$PODS" | grep "Running" | tr '\n[:blank:]' ' -' | wc -w)"
     RUNNING_CONTAINERS="$(printf "%s" "$PODS" | grep "Running" \
       | grep '[0-9]\+/[0-9]\+' -o | cut -d '/' -f 1 | tr '\n' ' ')"
     EXPECTED_CONTAINERS="$(printf "%s" "$PODS" | grep "Running" \
@@ -64,7 +64,7 @@ traceable_wait_pods_terminated() {
   while [ "$(date +%s)" -lt "$END" ]
   do
     PODS="$(kubectl get pods "$NAMESPACE_OPT" -o name 2>/dev/null)"
-    REMAINING_PODS="$(printf "%s" "$PODS" | wc -l)"
+    REMAINING_PODS="$(printf "%s" "$PODS" | tr '\n[:blank:]' ' -' | wc -w)"
     if [ "$REMAINING_PODS" -le "$EXPECTED_REMAINING_PODS" ]
     then
       echo "$([ -z "$1" ] && echo "All pods terminated" || echo "All pods terminated in namespace $1")"

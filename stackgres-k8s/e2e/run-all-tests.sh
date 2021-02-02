@@ -334,8 +334,8 @@ fi
 
 if $OVERALL_RESULT
 then
-  cat "$TARGET_PATH/logs/results.log"
+  cat "$TARGET_PATH/logs/results.log" | sort
 else
-  cat "$TARGET_PATH/logs/results.log"
+  cat "$TARGET_PATH/logs/results.log" | sort
   exit 1
 fi

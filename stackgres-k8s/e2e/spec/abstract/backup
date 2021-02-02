@@ -283,9 +283,10 @@ check_backup_retention() {
 
   if wait_until eval '! kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" > /dev/null 2>&1'
   then
-    echo "SUCCESS. The backup retention has been honored. Old backups deleted"
+    echo "SUCCESS. The backup retention has been honored. Old backups $BACKUP_NAME deleted"
   else
-    echo "FAIL. The backup retention has not been honored. Old backups not deleted"
+    echo "FAIL. The backup retention has not been honored. Old backups $BACKUP_NAME not deleted"
+    kubectl get sgbackup -n "$CLUSTER_NAMESPACE"
     return 1
   fi
 
