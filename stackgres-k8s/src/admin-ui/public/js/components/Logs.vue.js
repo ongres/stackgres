@@ -205,11 +205,7 @@ var Logs = Vue.component("Logs", {
 						</div>-->
 					</div>
 
-<<<<<<< HEAD
-					<table class="logs" v-if="tooltips.hasOwnProperty('sgclusterlogentry')">
-=======
-					<table class="logs" v-on:scroll.passive="handleScroll">>
->>>>>>> 819-backport-doc-restyle-from-1-0-to-0-9
+					<table class="logs" v-if="tooltips.hasOwnProperty('sgclusterlogentry')" v-on:scroll.passive="handleScroll">
 						<thead class="sort">
 							<th class="logTime sorted desc timestamp">
 								<span @click="sort()">Log Time</span>

@@ -394,8 +394,6 @@ form#login .warning {
     fill: var(--blue);
 }
 
-<<<<<<< HEAD
-=======
 .darkmode {
     color: #e3e3e3;
     background: #171717;
@@ -608,7 +606,6 @@ form#login .warning {
     border-color: #333333;
     color: #e3e3e3;
 }
->>>>>>> 819-backport-doc-restyle-from-1-0-to-0-9
 
 #signup input:focus {
     border-color: var(--blue);
@@ -3935,7 +3932,7 @@ table.logs th {
     background: #fff;
 }
 
-table.logs tr.item:not(:first-of-type)) {
+table.logs tr.item:not(:first-of-type) {
     margin-top: -4px;
 }
 
@@ -4219,14 +4216,9 @@ tr.logInfo.open:before {
 }
 
 /* Luis Logs & Filters */
-<<<<<<< HEAD
 table.logs, table.backups {
-    max-height: calc(100vh - 353px);
-=======
-table.logs {
     max-height: calc(100vh - 335px);
     height: calc(100vh - 335px);
->>>>>>> 819-backport-doc-restyle-from-1-0-to-0-9
     max-width: calc(100vw - 430px);
     display: inline-block;
     overflow: auto;
@@ -4245,21 +4237,12 @@ table.loading:after {
     border-radius: 100%;
     content: " ";
     position: fixed;
-<<<<<<< HEAD
-    top: 289px;
-    right: 45px;
-    width: calc(100vw - 439px);
-    height: calc(100vh - 314px) !important;
-    background: url(img/loader.gif) center center no-repeat rgba(255,255,255,.7);
-    background-size: 4vw;
-=======
     bottom: 60px;
     right: 50px;
     width: 50px;
     height: 50px;
     background: url(img/loader.gif) center center no-repeat rgba(0,0,0,.1);
     background-size: 30px;
->>>>>>> 819-backport-doc-restyle-from-1-0-to-0-9
     opacity: 1;
     transition: opacity .4s ease-in;
 }
