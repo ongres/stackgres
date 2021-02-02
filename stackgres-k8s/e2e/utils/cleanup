@@ -326,3 +326,80 @@ then
 fi
 EOF
 }
+
+extract_excluded_envvars() {
+  echo "export K8S_EXCLUDED_NAMESPACES=\"$(kubectl get ns -o name | cut -d / -f 2 | tr '\n' ' ' | sed 's/ \+$//')\""
+  echo "export K8S_EXCLUDED_VALIDATING_WEBHOOK=\"$(kubectl get validatingwebhookconfigurations -o name | cut -d / -f 2 | tr '\n' ' ' | sed 's/ \+$//')\""
+  echo "export K8S_EXCLUDED_MUTATING_WEBHOOK=\"$(kubectl get mutatingwebhookconfigurations -o name | cut -d / -f 2 | tr '\n' ' ' | sed 's/ \+$//')\""
+  echo "export K8S_EXCLUDED_CRDS=\"$(kubectl get crds -o name | cut -d / -f 2 | tr '\n' ' ' | sed 's/ \+$//')\""
+  echo "export K8S_EXCLUDED_POD_SECURITY_POLICIES=\"$(kubectl get podsecuritypolicies -o name | cut -d / -f 2 | tr '\n' ' ' | sed 's/ \+$//')\""
+  echo "export K8S_EXCLUDED_CLUSTER_ROLES=\"$(kubectl get clusterroles -o name | cut -d / -f 2 | tr '\n' ' ' | sed 's/ \+$//')\""
+  echo "export K8S_EXCLUDED_CLUSTER_ROLES_BINDINGS=\"$(kubectl get clusterrolebindings -o name | cut -d / -f 2 | tr '\n' ' ' | sed 's/ \+$//')\""
+}
+
+extract_excluded_functions() {
+  echo "$(cat << EOF
+excluded_namespaces() {
+$(
+    RESOURCES="$(kubectl get ns -o name)"
+    extract_excluded_echo "$RESOURCES"
+)
+}
+
+excluded_validatingwebhookconfigurations() {
+$(
+    RESOURCES="$(kubectl get validatingwebhookconfigurations -o name)"
+    extract_excluded_echo "$RESOURCES"
+)
+}
+
+excluded_mutatingwebhookconfigurations() {
+$(
+    RESOURCES="$(kubectl get mutatingwebhookconfigurations -o name)"
+    extract_excluded_echo "$RESOURCES"
+)
+}
+
+excluded_customresourcedefinitions() {
+$(
+    RESOURCES="$(kubectl get crds -o name)"
+    extract_excluded_echo "$RESOURCES"
+)
+}
+
+excluded_podsecuritypolicies() {
+$(
+    RESOURCES="$(kubectl get podsecuritypolicies -o name)"
+    extract_excluded_echo "$RESOURCES"
+)
+}
+
+excluded_clusterroles() {
+$(
+    RESOURCES="$(kubectl get clusterroles -o name)"
+    extract_excluded_echo "$RESOURCES"
+)
+}
+
+excluded_clusterrolebindings() {
+$(
+    RESOURCES="$(kubectl get clusterrolebindings -o name)"
+    extract_excluded_echo "$RESOURCES"
+)
+}
+EOF
+    )"
+}
+
+extract_excluded_echo() {
+  if [ -z "$1" ]
+  then
+    echo "  true"
+  else
+    printf "%s" "$1" | cut -d / -f 2 \
+      | while read RESOURCE
+        do
+          echo "  echo \"$RESOURCE\""
+        done
+  fi
+}

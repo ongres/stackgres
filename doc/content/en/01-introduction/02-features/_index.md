@@ -8,3 +8,5 @@ url: intro/features
 * Enterprise-grade, highly opinionated PostgreSQL stack.
 * DB-as-a-Service without vendor lock-in. Root access.
 * Open source!
+
+Check out the [features page](https://stackgres.io/features/) to discover all the amazing things StackGres has built in.

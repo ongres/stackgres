@@ -40,6 +40,48 @@ helm upgrade -n "$NAMESPACE" "$RELEASE" https://stackgres.io/downloads/stackgres
 
 * StackGres 1.0.0-alpha1 only supports Kubernetes 1.16+
 
+# Release 0.9.4
+
+## NOTES
+
+Here it comes StackGres 0.9.4!! :tada: :bottle_with_popping_cork: 
+
+We want you to be safe and a bit more powerful so we bring to you some bugfixes and small changes!
+
+## UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 0.9 version or above) helm chart issue following commands (replace namespace and release name if you used something different):
+
+```
+NAMESPACE=stackgres
+RELEASE=stackgres-operator
+helm upgrade -n "$NAMESPACE" "$RELEASE" https://stackgres.io/downloads/stackgres-k8s/stackgres/0.9.4/helm/stackgres-operator.tgz
+```
+
+## CHANGES
+
+* Added support for node tolerations
+* Added support to pause reconciliation cycle for generated resources
+* Show StackGres version in the admin UI console
+
+## FIXES
+
+* Use primary service backed by Patroni's managed Endpoints to avoid any possible data loss
+* fluent-bit stop reading logs if line size is more than default buffer size (32k)
+* After upgrade to ~"affected_version::0.9.3" the prometheus postgres exporter stop working due to missing functions
+* Resources does not get the annotation after updating the sgcluster specs
+* Backup Job does not release lock when it expire
+* Removed prometheus-operator dependecy from StackGres operator helm chart since deprecated
+* Multiple UI bugfixes
+
+# KNOWN ISSUES
+
+* Kubernetes 1.18 is not supported yet, see #439
+* Kubernetes 1.11 requires PodShareProcessNamespace feature gate to be enabled (not tested in any kubernetes environment except for MiniShift 3.11)
+
 # Release 0.9.3
 
 ## NOTES
