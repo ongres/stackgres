@@ -782,7 +782,9 @@ var Logs = Vue.component("Logs", {
 
 		getLogs(append = false, byDate = false) {
 
-			this.fetching = true;
+			let vc = this;
+
+			vc.fetching = true;
 
 			$('table.logs').addClass('loading');
 
@@ -835,7 +837,7 @@ var Logs = Vue.component("Logs", {
 							store.commit('setLogs', response.data)
 
 						$('table.logs').removeClass('loading');
-						this.fetching = false;
+						vc.fetching = false;
 						
 					}).catch(function(err) {
 						notify(
@@ -851,7 +853,7 @@ var Logs = Vue.component("Logs", {
 						checkAuthError(err);
 
 						$('table.logs').removeClass('loading');
-						this.fetching = false;
+						vc.fetching = false;
 					});
 				}
 			} else {
