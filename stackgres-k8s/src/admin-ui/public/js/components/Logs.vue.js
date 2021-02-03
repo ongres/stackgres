@@ -628,20 +628,6 @@ var Logs = Vue.component("Logs", {
 			vc.records = parseInt((window.innerHeight - 350) / 30);
 			vc.getLogs(this.records);
 
-
-			$('table.logs').on('scroll', function() {
-				if( ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) && store.state.logs.length ) {
-					
-					//console.log(store.state.logs[store.state.logs.length-1]);
-
-					ltime = store.state.logs[store.state.logs.length-1].logTime;
-					lindex = store.state.logs[store.state.logs.length-1].logTimeIndex;
-					vc.dateStart = ltime+','+lindex;
-					vc.getLogs(true, true);
-
-				}
-			})
-
 			$(document).on('mousemove', function (e) {
 
 				if( (window.innerWidth - e.clientX) > 420 ) {
@@ -733,6 +719,13 @@ var Logs = Vue.component("Logs", {
 					$(this).removeClass('active')
 			});
 
+			$(window).on('resize', function() {
+				if(($('table.logs').height() - 40) > $('table.logs > tbody').height()) {
+					vc.records = parseInt((window.innerHeight - 350) / 30);
+					vc.getLogs(vc.records);
+				}			
+			})
+
 		});
 
 	},
@@ -811,7 +804,9 @@ var Logs = Vue.component("Logs", {
 
 		getLogs(append = false, byDate = false) {
 
-			this.fetching = true;
+			let vc = this;
+
+			vc.fetching = true;
 
 			$('table.logs').addClass('loading');
 
@@ -864,7 +859,7 @@ var Logs = Vue.component("Logs", {
 							store.commit('setLogs', response.data)
 
 						$('table.logs').removeClass('loading');
-						this.fetching = false;
+						vc.fetching = false;
 						
 					}).catch(function(err) {
 						notify(
@@ -880,7 +875,7 @@ var Logs = Vue.component("Logs", {
 						checkAuthError(err);
 
 						$('table.logs').removeClass('loading');
-						this.fetching = false;
+						vc.fetching = false;
 					});
 				}
 			} else {
