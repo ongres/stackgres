@@ -205,7 +205,7 @@ var Logs = Vue.component("Logs", {
 						</div>-->
 					</div>
 
-					<table class="logs" v-on:scroll.passive="handleScroll">>
+					<table class="logs" v-on:scroll.passive="handleScroll">
 						<thead class="sort">
 							<th class="logTime sorted desc timestamp" @click="sort()"><span>Log Time</span></th>
 							<th class="logType center label" v-if="showColumns.logType">Type</th>
@@ -695,6 +695,14 @@ var Logs = Vue.component("Logs", {
 				else
 					$(this).removeClass('active')
 			});
+
+			$(window).on('resize', function() {
+				if(($('table.logs').height() - 40) > $('table.logs > tbody').height()) {
+					vc.records = parseInt((window.innerHeight - 350) / 30);
+					vc.getLogs(vc.records);
+				}
+					
+			})
 
 		});
 
