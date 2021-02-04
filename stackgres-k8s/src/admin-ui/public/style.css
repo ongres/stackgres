@@ -332,7 +332,11 @@ form#login .warning {
 }
 
 .cron.row-20 label {
-    min-width: 90px;
+    min-width: 100%;
+    font-size: 90%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 
