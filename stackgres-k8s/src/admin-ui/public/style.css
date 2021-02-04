@@ -4257,9 +4257,6 @@ table.loading:after {
 }
 
 table.logs tbody, table.backups > tbody {
-    max-height: initial;
-    max-width: initial;
-    display: initial;
     overflow: initial;
     width: initial;
     min-width: 100%;
