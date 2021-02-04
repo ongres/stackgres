@@ -688,7 +688,7 @@ var Backups = Vue.component("Backups", {
 															<tr>
 																<td class="label">
 																	Service Account JSON
-																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.gcs.gcpCredentials.serviceAccountJSON.description"></span>
+																	<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.description"></span>
 																</td>
 																<td>
 																	********
