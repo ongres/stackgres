@@ -205,7 +205,7 @@ var Logs = Vue.component("Logs", {
 						</div>-->
 					</div>
 
-					<table class="logs" v-on:scroll.passive="handleScroll">>
+					<table class="logs" v-on:scroll.passive="handleScroll">
 						<thead class="sort">
 							<th class="logTime sorted desc timestamp" @click="sort()"><span>Log Time</span></th>
 							<th class="logType center label" v-if="showColumns.logType">Type</th>
@@ -696,6 +696,14 @@ var Logs = Vue.component("Logs", {
 					$(this).removeClass('active')
 			});
 
+			$(window).on('resize', function() {
+				if(($('table.logs').height() - 40) > $('table.logs > tbody').height()) {
+					vc.records = parseInt((window.innerHeight - 350) / 30);
+					vc.getLogs(vc.records);
+				}
+					
+			})
+
 		});
 
 	},
@@ -774,7 +782,9 @@ var Logs = Vue.component("Logs", {
 
 		getLogs(append = false, byDate = false) {
 
-			this.fetching = true;
+			let vc = this;
+
+			vc.fetching = true;
 
 			$('table.logs').addClass('loading');
 
@@ -827,7 +837,7 @@ var Logs = Vue.component("Logs", {
 							store.commit('setLogs', response.data)
 
 						$('table.logs').removeClass('loading');
-						this.fetching = false;
+						vc.fetching = false;
 						
 					}).catch(function(err) {
 						notify(
@@ -843,7 +853,7 @@ var Logs = Vue.component("Logs", {
 						checkAuthError(err);
 
 						$('table.logs').removeClass('loading');
-						this.fetching = false;
+						vc.fetching = false;
 					});
 				}
 			} else {

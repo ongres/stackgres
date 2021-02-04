@@ -4268,9 +4268,6 @@ table.loading:after {
     transition: opacity .4s ease-in;
 }
 table.logs tbody {
-    max-height: initial;
-    max-width: initial;
-    display: initial;
     overflow: initial;
     width: initial;
     min-width: 100%;

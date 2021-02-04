@@ -4,10 +4,11 @@ const express = require("express")
 const proxy = require('express-http-proxy');
 const app = express();
 
-app.use("/admin",express.static('public'));
 app.use(history({
-  index:"admin/index.html"
+  index:"/admin/index.html"
 }));
+app.use("/admin",express.static('public'));
+
 
 const target = process.env.SERVER;
 
@@ -36,4 +37,4 @@ proxyPaths.forEach((proxyPath) => {
         return url;
       }
   }));
-});
+})
