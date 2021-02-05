@@ -23,7 +23,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.test.Mock;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.OperatorProperty;
-import io.stackgres.common.kubernetes.DefaultKubernetesClient;
+import io.stackgres.common.workaround.DefaultKubernetesClient;
 import io.stackgres.operator.AbstractStackGresOperatorIt;
 import io.stackgres.testutil.CrdUtils;
 import io.stackgres.testutil.KubernetesServerSupplier;

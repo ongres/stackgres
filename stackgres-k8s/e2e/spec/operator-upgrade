@@ -251,6 +251,16 @@ check_cluster_restart() {
   done
 
   check_mock_data_samehost "$CLUSTER_NAME"
+
+  local PRIMARY_SERVICE_TYPE="$(kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-primary" \
+    --template '{{ .spec.type }}')"
+  if [ "$PRIMARY_SERVICE_TYPE" = "ExternalName" ]
+  then
+    echo "SUCCESS. Primary service is of type ExternalName"
+  else
+    echo "FAILURE. Primary service is not of type ExternalName"
+    return 1
+  fi
 }
 
 create_or_replace_cluster_for_version() {

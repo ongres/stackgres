@@ -3,6 +3,7 @@
   <Match>
     <Not>
       <Package name="~.*\.generated\..*" />
+      <Package name="~.*\.workaround\..*" />
     </Not>
   </Match>
 </FindBugsFilter>
