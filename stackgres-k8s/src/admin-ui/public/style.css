@@ -1115,6 +1115,7 @@ ul.zg-ul-select.active li.active:hover {
     height: 15px;
     margin-top: 16px;
     width: auto;
+    overflow: visible;
 }
 
 #side .set .addnew svg {
@@ -3168,7 +3169,7 @@ td.label span:not(.helpTooltip) {
     width: 70px;
     display: inline-block;
     text-align: center;
-    font-weight: bold;
+    font-weight: 600;
 }
 
 .podStatus .primary span, .pr span, .role.pr span {
@@ -3382,7 +3383,7 @@ table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + t
     padding: 20px;
     box-shadow: 0 0 20px rgba(0,0,0,.05);
     list-style: none;
-    width: 315px;
+    width: 325px;
 }
 
 .options.open {
@@ -3537,6 +3538,10 @@ tr.no-results:first-child:last-child {
     padding-top: 5px;
 }
 
+.options li.textFilter > span.clear {
+    padding: 4px 7px;
+}
+
 .options li.textFilter .search {
     padding: 0 10px 0 20px;
     border: 1px solid var(--gray2);
@@ -3571,7 +3576,7 @@ tr.no-results:first-child:last-child {
 
 table.logs, table.backups {
     margin-bottom: 0;
-    max-height: calc(100vh - 310px) !important;
+    /* max-height: calc(100vh - 310px) !important; */
     border: none !important;
 }
 
@@ -4252,7 +4257,7 @@ table.loading:after {
 }
 
 .darkmode table.loading:after {
-    background: url(img/loader.gif) center center no-repeat rgba(6, 5, 40, .6);
+    background: url(img/loader.gif) center center no-repeat rgba(0,0,0,.5);
     background-size: 4vw;
 }
 
@@ -5048,7 +5053,7 @@ td.label .helpTooltip {
     display: none;
 }
 
-fieldset .header:not(.open) {
+.form > fieldset > .header:not(.open) {
     border: 0;
 }
 
@@ -5073,14 +5078,14 @@ fieldset.accordion > .header {
     padding: 20px 20px 15px;
     margin-bottom: 0;
     cursor: pointer;
-    transition: all .3s ease-in;
+    /* transition: all .3s ease-in; */
 }
-
+/* 
 fieldset.accordion > .header.open {
-    margin-bottom: 15px;
     transition: all .3s ease-in;
-}
+} */
 
 fieldset.accordion .fields {
+    margin-top: 15px;
     padding: 0 20px;
 }
