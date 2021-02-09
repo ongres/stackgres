@@ -916,7 +916,7 @@
                     if(this.editMode) {
                         const res = axios
                         .put(
-                            apiURL+'sgcluster/', 
+                            process.env.VUE_APP_API_URL + '/sgcluster/', 
                             cluster 
                         )
                         .then(function (response) {
@@ -933,7 +933,7 @@
                     } else {
                         const res = axios
                         .post(
-                            apiURL+'sgcluster/', 
+                            process.env.VUE_APP_API_URL + '/sgcluster/', 
                             cluster 
                         )
                         .then(function (response) {

@@ -136,9 +136,15 @@
 </template>
 
 <script>
+	import store from '../store'
+	import axios from 'axios'
+	import { mixin } from "../components/mixins/mixin"
+
 
     export default {
-        name: 'Nav',
+        name: 'NavBar',
+
+		mixins: [mixin],
 
 		data: function() {
 			return {
@@ -203,7 +209,7 @@
 				const vc = this;
 
 				axios
-				.post(apiURL+'auth/login',{
+				.post(process.env.VUE_APP_API_URL + '/auth/login',{
 					username: this.loginUser,
 					password: this.loginPassword	
 				})
@@ -284,7 +290,7 @@
 
 				const res = axios
 				.post(
-					apiURL+endpoint, 
+					process.env.VUE_APP_API_URL + '//' + endpoint, 
 					store.state.cloneCRD.data 
 				)
 				.then(function (response) {

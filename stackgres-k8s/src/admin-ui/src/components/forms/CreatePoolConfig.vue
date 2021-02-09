@@ -160,7 +160,7 @@
                     if(this.editMode) {
                         const res = axios
                         .put(
-                            apiURL+'sgpoolconfig/', 
+                            process.env.VUE_APP_API_URL + '/sgpoolconfig/', 
                             config 
                         )
                         .then(function (response) {
@@ -177,7 +177,7 @@
                     } else {
                         const res = axios
                         .post(
-                            apiURL+'sgpoolconfig/', 
+                            process.env.VUE_APP_API_URL + '/sgpoolconfig/', 
                             config 
                         )
                         .then(function (response) {

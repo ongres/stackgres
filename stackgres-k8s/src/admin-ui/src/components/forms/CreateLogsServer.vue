@@ -222,7 +222,7 @@
                     if(this.editMode) {
                         const res = axios
                         .put(
-                            apiURL+'sgdistributedlogs/', 
+                            process.env.VUE_APP_API_URL + '/sgdistributedlogs/', 
                             cluster 
                         )
                         .then(function (response) {
@@ -239,7 +239,7 @@
                     } else {
                         const res = axios
                         .post(
-                            apiURL+'sgdistributedlogs/', 
+                            process.env.VUE_APP_API_URL + '/sgdistributedlogs/', 
                             cluster 
                         )
                         .then(function (response) {

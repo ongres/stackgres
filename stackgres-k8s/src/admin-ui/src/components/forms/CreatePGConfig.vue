@@ -169,7 +169,7 @@
                     if(this.editMode) {
                         const res = axios
                         .put(
-                            apiURL+'sgpgconfig/', 
+                            process.env.VUE_APP_API_URL + '/sgpgconfig/', 
                             config 
                         )
                         .then(function (response) {
@@ -185,7 +185,7 @@
                     } else {
                         const res = axios
                         .post(
-                            apiURL+'sgpgconfig/', 
+                            process.env.VUE_APP_API_URL + '/sgpgconfig/', 
                             config 
                         )
                         .then(function (response) {

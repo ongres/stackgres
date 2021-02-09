@@ -188,7 +188,7 @@
                     if(this.editMode) {
                         const res = axios
                         .put(
-                            apiURL+'sginstanceprofile/', 
+                            process.env.VUE_APP_API_URL + '/sginstanceprofile/', 
                             profile 
                         )
                         .then(function (response) {
@@ -206,7 +206,7 @@
                     } else {
                         const res = axios
                         .post(
-                            apiURL+'sginstanceprofile/', 
+                            process.env.VUE_APP_API_URL + '/sginstanceprofile/', 
                             profile 
                         )
                         .then(function (response) {

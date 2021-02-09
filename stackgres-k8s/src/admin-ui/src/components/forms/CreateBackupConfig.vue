@@ -656,7 +656,7 @@
                         
                         const res = axios
                         .put(
-                            apiURL+'sgbackupconfig/', 
+                            process.env.VUE_APP_API_URL + '/sgbackupconfig/', 
                             config 
                         )
                         .then(function (response) {
@@ -673,7 +673,7 @@
                     } else {
                         const res = axios
                         .post(
-                            apiURL+'sgbackupconfig/', 
+                            process.env.VUE_APP_API_URL + '/sgbackupconfig/', 
                             config 
                         )
                         .then(function (response) {

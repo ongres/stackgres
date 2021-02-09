@@ -178,7 +178,7 @@
                     if(this.editMode) {
                         const res = axios
                         .put(
-                            apiURL+'sgbackup/', 
+                            process.env.VUE_APP_API_URL + '/sgbackup/', 
                             backup 
                         )
                         .then(function (response) {
@@ -195,7 +195,7 @@
                     } else {
                         const res = axios
                         .post(
-                            apiURL+'sgbackup/', 
+                            process.env.VUE_APP_API_URL + '/sgbackup/', 
                             backup 
                         )
                         .then(function (response) {
