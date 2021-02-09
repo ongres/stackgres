@@ -848,7 +848,7 @@
 				
 				if( (store.state.loginToken.search('Authentication Error') == -1) ) {
 
-					let thisCall = apiURL+'sgcluster/logs/'+this.$route.params.namespace+'/'+this.$route.params.name+params;
+					let thisCall = process.env.VUE_APP_API_URL + '/sgcluster/logs/'+this.$route.params.namespace+'/'+this.$route.params.name+params;
 					
 					if (this.lastCall != thisCall) {
 

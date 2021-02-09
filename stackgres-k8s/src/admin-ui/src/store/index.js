@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import axios from 'axios'
 
 Vue.use(Vuex);
 
@@ -64,7 +65,7 @@ export default new Vuex.Store({
 
     setLoginToken (state, token = '') {
       state.loginToken = token;
-      axios.defaults.headers.common['Authorization'] = 'Bearer '+store.state.loginToken;
+      axios.defaults.headers.common['Authorization'] = 'Bearer ' + token;
     },
 
     setTheme (state, theme) {

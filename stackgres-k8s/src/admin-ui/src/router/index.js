@@ -19,7 +19,7 @@ import Backups from '../components/Backups.vue'
 import PgConfig from '../components/PgConfig.vue'
 import PoolConfig from '../components/PoolConfig.vue'
 import BackupConfig from '../components/BackupConfig.vue'
-import SGProfiles from '../components/SGProfiles.vue'
+import SGProfiles from '../components/SGProfile.vue'
 import LogsServer from '../components/LogsServer.vue'
 import Grafana from '../components/Grafana.vue'
 import NotFound from '../components/NotFound.vue'
@@ -129,6 +129,14 @@ const routes = [
   { 
     path: '/admin/crd/:action/logs/:namespace/:name', 
     component: CreateLogsServer,
+    meta: {
+      conditionalRoute: false
+    },
+  },
+  { 
+    path: '', 
+    component: ClusterOverview,
+    name: 'ClusterOverviewEmpty',
     meta: {
       conditionalRoute: false
     },
@@ -293,11 +301,11 @@ const routes = [
     meta: {
       conditionalRoute: false
     },
-  },
+  },/* 
   {
     path: '*',
     component: NotFound
-  }
+  } */
 ]
 
 const router = new VueRouter({
@@ -305,3 +313,5 @@ const router = new VueRouter({
   base: process.env.BASE_URL,
   routes
 });
+
+export default router;

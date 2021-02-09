@@ -17,12 +17,14 @@
   },
   "main": "index.js",
   "dependencies": {
+    "axios": "^0.21.1",
     "connect-history-api-fallback": "^1.6.0",
     "core-js": "^3.6.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-http-proxy": "^1.6.0",
     "vue": "^2.6.12",
+    "vue-axios": "^3.2.4",
     "vue-router": "^3.2.0",
     "vuex": "^3.4.0"
   },
@@ -44,8 +46,7 @@
       "node": true
     },
     "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
+      "plugin:vue/essential"
     ],
     "parserOptions": {
       "parser": "babel-eslint"

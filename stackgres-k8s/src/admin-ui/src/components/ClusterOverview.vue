@@ -162,7 +162,7 @@
 		
 					const res = axios
 					.delete(
-						apiURL+'sgcluster/', 
+						process.env.VUE_APP_API_URL + '/sgcluster/', 
 						{
 							data: {
 								"metadata": {

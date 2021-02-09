@@ -161,9 +161,13 @@
 </template>
 
 <script>
+	import store from '../store'
+	import { mixin } from "../components/mixins/mixin"
 
     export default {
         name: 'SideBar',
+
+		mixins: [mixin],
 
 		data: function() {
 
