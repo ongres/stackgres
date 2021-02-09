@@ -18,7 +18,7 @@ body {
     --bgColor: var(--white);
     --borderColor: #cfcfe5;
     --inputBg: #f2f2f7;
-    --rowBg:#141233;
+    --rowBg:#fff;
     --activeBg: #f7f7fc;
     --baseColor: var(--blue);
     --baseLightColor: var(--lBlue);
@@ -31,8 +31,8 @@ body.darkmode {
     --bgColor: var(--black);
     --borderColor: #2f2f2f ;
     --inputBg: rgba(255,255,255,.05);
-    --rowBg: #141233;
-    --activeBg: var(--inputBg);
+    --rowBg: #202020;
+    --activeBg: #292929;
     --baseColor: var(--blue);
     --baseLightColor: var(--lBlue);
     --baseGradient: linear-gradient(to bottom right, var(--baseColor), var(--baseLightColor));
@@ -132,7 +132,7 @@ th, table th, table.clusterConfig td.label, tr.details table .label, .yaml .labe
     text-transform: capitalize;
 }
 
-body, #sets h4, #sets h3, #side a.router-link-exact-active, th, .tabs a, #keyword, table.clusterConfig td.label, tr.details table .label, .details th, td.timestamp span.ms, span.timestamp span.ms, .yaml .label, #logo h1, #helpTooltip, .form label, .options label, .daterangepicker td.available:not(.off):not(.in-range):not(.active), .form input, .form select, .form textarea, ul.select, .options select, #delete .tooltip form input {
+body, #sets h4, #sets h3, #side a.router-link-exact-active, th, .tabs a, #keyword, table.clusterConfig td.label, tr.details table .label, .details th, td.timestamp span.ms, span.timestamp span.ms, .yaml .label, #logo h1, #helpTooltip, .form label, .options label, .daterangepicker td.available:not(.off):not(.in-range):not(.active), .form input, .form select, .form textarea, ul.select, .options select, #delete .tooltip form input, .darkmode #sets h4, .darkmode h4, .darkmode #sets h3, .darkmode h3, .darkmode h2, .darkmode thead, .darkmode .tabs a, .darkmode #keyword, .darkmode .options li.textFilter .search, .darkmode #help h3.title, .darkmode table.clusterConfig td.label, .darkmode .details th, .darkmode tr.details table td.label, .darkmode .yaml .label, .darkmode .logMessage .param, .darkmode .logDetails td.param, .darkmode .form label, .darkmode ul.select a {
     color: var(--textColor);
 }
 
@@ -164,8 +164,13 @@ body, #sets h4, #sets h3, #side a.router-link-exact-active, th, .tabs a, #keywor
     background-color: var(--blue) !important;
 }
 
+.btn {
+    font-weight: 600;
+}
+
 .btn:hover {
     background-color: var(--baseLightColor);
+    border-color: var(--baseLightColor);
 }
 
 .toolbar .btn:hover, button:hover {
@@ -184,11 +189,11 @@ body, #sets h4, #sets h3, #side a.router-link-exact-active, th, .tabs a, #keywor
     border-color: var(--borderColor);
 }
 
-.set.active, .set.active a:hover, .clusterInfo tr, .podStatus tr, #backups > tbody tr:nth-child(4n+2), table tr:nth-child(4n+2) + tr.details, #contentTooltip tr:nth-child(odd), table.pgConfig tr:nth-child(4n-2), table.pgConfig tr:nth-child(4n-2) + tr.details, table.poolConfig tr:nth-child(4n-2), table.poolConfig tr:nth-child(4n-2) + tr.details, table.backupConfig tr:nth-child(4n-2),  table.backupConfig tr:nth-child(4n-2) + tr.details, ul.select.active li.selected, tr:nth-child(even) + tr.details tr:nth-child(even), table.logs tr:nth-child(4n-2), table.logs tr:nth-child(4n-2) + tr.logInfo, table.logs tr:nth-child(even) + .logInfo table.logMessage, table.logs tr:nth-child(even) + .logInfo tr:nth-child(odd), table.backups > tbody tr:nth-child(4n-2), tr:nth-child(even) + tr.details th {
+.set.active, .set.active a:hover, .clusterInfo tr, .podStatus tr, #backups > tbody tr:nth-child(4n+2), table tr:nth-child(4n+2) + tr.details, #contentTooltip tr:nth-child(odd), table.pgConfig tr:nth-child(4n-2), table.pgConfig tr:nth-child(4n-2) + tr.details, table.poolConfig tr:nth-child(4n-2), table.poolConfig tr:nth-child(4n-2) + tr.details, table.backupConfig tr:nth-child(4n-2),  table.backupConfig tr:nth-child(4n-2) + tr.details, ul.select.active li.selected, tr:nth-child(even) + tr.details tr:nth-child(even), table.logs > tbody > tr:nth-child(4n-2), table.logs tr:nth-child(4n-2) + tr.logInfo, table.logs tr:nth-child(even) + .logInfo table.logMessage, table.logs tr:nth-child(even) + .logInfo tr:nth-child(odd), table.backups > tbody tr:nth-child(4n-2), tr:nth-child(even) + tr.details th, .darkmode .clusterInfo tr, .darkmode .podStatus tr, .darkmode .clusterConfig tr, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode ul#postgresVersion, .darkmode ul#postgresVersion ul, .darkmode table.pgConfig tr:nth-child(4n-2), .darkmode table.pgConfig tr:nth-child(4n-2) + tr.details, .darkmode table.poolConfig tr:nth-child(4n-2), .darkmode table.poolConfig tr:nth-child(4n-2) + tr.details, .darkmode table.backupConfig tr:nth-child(4n-2), .darkmode table.backupConfig tr:nth-child(4n-2) + tr.details, .darkmode #contentTooltip tr:nth-child(odd), .darkmode #contentTooltip .info, .darkmode ul.select.active li.selected, .clusterConfig tr:nth-child(odd), .darkmode #backups tr:nth-child(4n+2), .darkmode tr:nth-child(4n+2) + tr.details, table.backups > tbody tr:nth-child(4n-2) + tr.details, label.switch {
     background-color: var(--activeBg);
 }
 
-tr:nth-child(even), tr:nth-child(even) + tr.details, table tr:nth-child(even):not(.base), .form input, ul#postgresVersion, .form select, .form textarea, #keyword, .options label, .options select, #signup form input, #side a.router-link-exact-active, table tr:nth-child(4n+2) + tr.details th, table tr:nth-child(4n+2) + tr.details tr:nth-child(even), tr:nth-child(even) + tr.logInfo, table.logs tr:nth-child(4n-2) + .logInfo table.logMessage {
+.darkmode tr:nth-child(even), .darkmode tr:nth-child(even) + tr.details, .darkmode table tr:nth-child(even):not(.base), .form input, ul#postgresVersion, .form select, .form textarea, #keyword, .options label, .options select, #signup form input, #side a.router-link-exact-active, table tr:nth-child(4n+2) + tr.details th, table tr:nth-child(4n+2) + tr.details tr:nth-child(even), .logDetails tr:nth-child(even) {
     background-color: var(--inputBg);
 }
 
@@ -200,8 +205,12 @@ tr:nth-child(even), tr:nth-child(even) + tr.details, table tr:nth-child(even):no
     background-color: var(--borderColor);
 }
 
-.btn.border:hover {
+.btn.border:hover, .btn.border, .darkmode .btn.border, .darkmode a.btn.border:not(.clear) {
     color: var(--blue);
+}
+
+.darkmode table.backupConfig tr:nth-child(4n-2), .darkmode table.backupConfig tr:nth-child(4n-2) + tr.details, .darkmode table.podStatus tr:nth-child(4n-2), .darkmode tr:nth-child(even), .darkmode tr:nth-child(even) + tr.details, .podStatus tr:nth-child(even), tr:nth-child(even), tr:nth-child(even) + tr.details, tr:nth-child(even) + tr.logInfo, table.logs tr:nth-child(even) + .logInfo tr:nth-child(odd), table.logs tr:nth-child(4n-2) + .logInfo table.logMessage {
+    background: var(--rowBg);
 }
 
 .form input[disabled="disabled"], .form select[disabled="disabled"], .form textarea[disabled="disabled"], .form fieldset[disabled="disabled"], label.switch[disabled="disabled"] {
