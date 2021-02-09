@@ -177,6 +177,10 @@ body, #sets h4, #sets h3, #side a.router-link-exact-active, th, .tabs a, #keywor
     border-color: var(--lBlue);
 }
 
+.darkmode #side, .darkmode #nav {
+    background: transparent;
+}
+
 .btn, .toolbar .filter.open .toggle, .toolbar .filter.open .toggle:after, .btn:hover, .form .btn:not(.border), .options input[type="checkbox"].active + span, form#login button {
     color: var(--bgColor);
 }
