@@ -79,10 +79,16 @@
 </template>
 
 <script>
+    import {mixin} from '../mixins/mixin'
+    import router from '../../router'
+    import store from '../../store'
+    import axios from 'axios'
 
     export default {
         name: 'CreatePGConfig',
 
+        mixins: [mixin],
+        
         data: function() {
 
             const vm = this;
@@ -101,10 +107,6 @@
                 return store.state.allNamespaces
             },
 
-            currentNamespace () {
-                return store.state.currentNamespace
-            },
-
             tooltipsText() {
                 return store.state.tooltipsText
             },
@@ -114,7 +116,7 @@
                 var nameColission = false;
                 
                 store.state.pgConfig.forEach(function(item, index) {
-                    if( (item.name == vc.pgConfigName) && (item.data.metadata.namespace == store.state.currentNamespace ) )
+                    if( (item.name == vc.pgConfigName) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
                         nameColission = true
                 })
 
@@ -142,7 +144,7 @@
         methods: {
 
             createPGConfig: function(e) {
-                //e.preventDefault();
+                const vc = this;
 
                 let isValid = true;
                 
@@ -173,14 +175,14 @@
                             config 
                         )
                         .then(function (response) {
-                            notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message', 'sgpgconfig');
+                            vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message', 'sgpgconfig');
 
-                            vm.fetchAPI('sgpgconfig');
+                            vc.fetchAPI('sgpgconfig');
                             router.push('/admin/configurations/postgres/'+config.metadata.namespace+'/'+config.metadata.name);
                         })
                         .catch(function (error) {
                             console.log(error.response);
-                            notify(error.response.data,'error', 'sgpgconfig');
+                            vc.notify(error.response.data,'error', 'sgpgconfig');
                         });
                     } else {
                         const res = axios
@@ -189,9 +191,9 @@
                             config 
                         )
                         .then(function (response) {
-                            notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message', 'sgpgconfig');
+                            vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message', 'sgpgconfig');
             
-                            vm.fetchAPI('sgpgconfig');
+                            vc.fetchAPI('sgpgconfig');
                             router.push('/admin/configurations/postgres/'+config.metadata.namespace+'/'+config.metadata.name);
                             
                             /* store.commit('updatePGConfig', { 
@@ -202,7 +204,7 @@
                         })
                         .catch(function (error) {
                             console.log(error.response);
-                            notify(error.response.data,'error', 'sgpgconfig');
+                            vc.notify(error.response.data,'error', 'sgpgconfig');
                         });
                     }
                 }
@@ -210,7 +212,7 @@
             },
 
             cancel: function() {
-                router.push('/admin/configurations/postgres/'+store.state.currentNamespace);
+                router.push('/admin/configurations/postgres/'+vc.$route.params.namespace);
             },
 
             showFields: function( fields ) {

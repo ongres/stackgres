@@ -7,7 +7,7 @@
     "name": "Ongres"
   },
   "scripts": {
-    "serve": "vue-cli-service serve",
+    "serve": "vue-cli-service serve --port 8081",
     "build": "vue-cli-service build",
     "test:e2e": "cypress run --headless",
     "lint": "vue-cli-service lint",

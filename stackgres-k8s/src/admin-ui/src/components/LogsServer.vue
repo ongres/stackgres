@@ -4,7 +4,7 @@
             <ul class="breadcrumbs">
                 <li class="namespace">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20.026" height="27"><g fill="#00adb5"><path d="M1.513.9l-1.5 13a.972.972 0 001 1.1h18a.972.972 0 001-1.1l-1.5-13a1.063 1.063 0 00-1-.9h-15a1.063 1.063 0 00-1 .9zm.6 11.5l.9-8c0-.2.3-.4.5-.4h12.9a.458.458 0 01.5.4l.9 8a.56.56 0 01-.5.6h-14.7a.56.56 0 01-.5-.6zM1.113 17.9a1.063 1.063 0 011-.9h15.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-15.8a1.028 1.028 0 01-1-1.1zM3.113 23h13.8a.972.972 0 001-1.1 1.063 1.063 0 00-1-.9h-13.8a1.063 1.063 0 00-1 .9 1.028 1.028 0 001 1.1zM3.113 25.9a1.063 1.063 0 011-.9h11.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-11.8a1.028 1.028 0 01-1-1.1z"/></g></svg>
-                    <router-link :to="'/admin/overview/'+$route.params.namespace" title="Namespace Overview">{{ $route.params.namespace }}</router-link>
+                    <router-link :to="'/overview/'+$route.params.namespace" title="Namespace Overview">{{ $route.params.namespace }}</router-link>
                 </li>
                 <li>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path class="a" d="M19,15H5c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,14.6,19.6,15,19,15z"/><path class="a" d="M1,15L1,15c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,14.6,1.6,15,1,15z"/><path class="a" d="M19,11H5c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,10.6,19.6,11,19,11z"/><path class="a" d="M1,11L1,11c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,10.6,1.6,11,1,11z"/><path class="a" d="M19,7H5C4.4,7,4,6.6,4,6v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,6.6,19.6,7,19,7z"/><path d="M1,7L1,7C0.4,7,0,6.6,0,6v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,6.6,1.6,7,1,7z"/></svg>
@@ -18,7 +18,7 @@
             <div class="actions">
                 <a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/06-distributed-logs/" target="_blank" title="SGDistributedLogs Documentation">SGDistributedLogs Documentation</a>
                 <div>
-                    <router-link v-if="iCan('create','sgdistributedlogs',$route.params.namespace)" :to="'/admin/crd/create/logs/'+$route.params.namespace" class="add">Add New</router-link>
+                    <router-link v-if="iCan('create','sgdistributedlogs',$route.params.namespace)" :to="'/crd/create/logs/'+$route.params.namespace" class="add">Add New</router-link>
                 </div>	
             </div>		
         </header>
@@ -43,7 +43,7 @@
                 <tbody>
                     <tr class="no-results">
                         <td :colspan="3" v-if="iCan('create','sgdistributedlogs',$route.params.namespace)">
-                            No logs clusters have been found, would you like to <router-link :to="'/admin/crd/create/logs/'+$route.params.namespace" title="Add New Logs Cluster">create a new one?</router-link>
+                            No logs clusters have been found, would you like to <router-link :to="'/crd/create/logs/'+$route.params.namespace" title="Add New Logs Cluster">create a new one?</router-link>
                         </td>
                         <td v-else colspan="3">
                             No configurations have been found. You don't have enough permissions to create a new one
@@ -58,7 +58,7 @@
                                 {{ cluster.data.spec.persistentVolume.size }}
                             </td>
                             <td class="actions">
-                                <router-link v-if="iCan('patch','sgdistributedlogs',$route.params.namespace)" :to="'/admin/crd/edit/logs/'+$route.params.namespace+'/'+cluster.data.metadata.name" title="Edit Configuration">
+                                <router-link v-if="iCan('patch','sgdistributedlogs',$route.params.namespace)" :to="'/crd/edit/logs/'+$route.params.namespace+'/'+cluster.data.metadata.name" title="Edit Configuration">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M90,135.721v2.246a.345.345,0,0,0,.345.345h2.246a.691.691,0,0,0,.489-.2l8.042-8.041a.346.346,0,0,0,0-.489l-2.39-2.389a.345.345,0,0,0-.489,0L90.2,135.232A.691.691,0,0,0,90,135.721Zm13.772-8.265a.774.774,0,0,0,0-1.095h0l-1.82-1.82a.774.774,0,0,0-1.095,0h0l-1.175,1.176a.349.349,0,0,0,0,.495l2.421,2.421a.351.351,0,0,0,.5,0Z" transform="translate(-90 -124.313)"/></svg>
                                 </router-link>
                                 <a v-if="iCan('create','sgdistributedlogs',$route.params.namespace)" v-on:click="cloneCRD('SGDistributedLogs', $route.params.namespace, cluster.data.metadata.name)" class="cloneCRD" title="Clone Logs Cluster"><svg xmlns="http://www.w3.org/2000/svg" width="13.9" height="16" viewBox="0 0 20 20"><g><path fill="#00ADB5" d="M2.5,20c-0.5,0-1-0.4-1-1V5c0-0.5,0.4-1,1-1c0.6,0,1,0.4,1,1v12.4c0,0.3,0.3,0.6,0.6,0.6h9.4c0.5,0,1,0.4,1,1c0,0.5-0.4,1-1,1H2.5z"/><path fill="#00ADB5" d="M6.5,16c-0.5,0-0.9-0.4-0.9-0.9V0.9C5.6,0.4,6,0,6.5,0h11.1c0.5,0,0.9,0.4,0.9,0.9v14.1c0,0.5-0.4,0.9-0.9,0.9H6.5z M8,1.8c-0.3,0-0.6,0.3-0.6,0.6v11.2c0,0.3,0.3,0.6,0.6,0.6h8.1c0.3,0,0.6-0.3,0.6-0.6V2.4c0-0.3-0.3-0.6-0.6-0.6H8z"/><path fill="#00ADB5" d="M14.1,5.3H10c-0.5,0-0.9-0.4-0.9-0.9v0c0-0.5,0.4-0.9,0.9-0.9h4.1c0.5,0,0.9,0.4,0.9,0.9v0C15,4.9,14.6,5.3,14.1,5.3z"/><path fill="#00ADB5" d="M14.1,8.8H10C9.5,8.8,9.1,8.4,9.1,8v0c0-0.5,0.4-0.9,0.9-0.9h4.1C14.6,7.1,15,7.5,15,8v0C15,8.4,14.6,8.8,14.1,8.8z"/><path fill="#00ADB5" d="M14.1,12.4H10c-0.5,0-0.9-0.4-0.9-0.9v0c0-0.5,0.4-0.9,0.9-0.9h4.1c0.5,0,0.9,0.4,0.9,0.9v0C15,12,14.6,12.4,14.1,12.4z"/></g></svg></a>
@@ -94,7 +94,7 @@
                                                         <ul>
                                                             <li v-for="c in cluster.data.status.clusters">
                                                                 {{ c }}
-                                                                <router-link :to="'/admin/cluster/status/'+$route.params.namespace+'/'+c" title="Cluster Details">
+                                                                <router-link :to="'/cluster/status/'+$route.params.namespace+'/'+c" title="Cluster Details">
                                                                     <svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
                                                                 </router-link>
                                                             </li>
@@ -118,9 +118,14 @@
 </template>
 
 <script>
+    import {mixin} from './mixins/mixin'
+    import router from '../router'
+    import store from '../store'
 
     export default {
         name: 'LogsServer',
+
+        mixins: [mixin],
 
         data: function() {
             return {
@@ -135,6 +140,24 @@
             
         },
         mounted: function() {
+
+            const vc = this
+
+            // Show configurations details when the row is clicked
+			$(document).on('click', 'table tr.base > td:not(.actions)', function(){    
+				const table = $(this).parents('table');
+				if(!$(this).parent().hasClass('open')) {
+					if(table.hasClass('configurations'))
+						router.push('/configurations/'+table.prop('id')+'/'+vc.$route.params.namespace+'/'+$(this).parent().data('name'))
+					else
+						router.push('/'+table.prop('id')+'/'+vc.$route.params.namespace+'/'+$(this).parent().data('name'))
+				} else {
+					if(table.hasClass('configurations'))
+						router.push('/configurations/'+table.prop('id')+'/'+vc.$route.params.namespace)
+					else
+						router.push('/'+$(this).parents('table').prop('id')+'/'+vc.$route.params.namespace)
+				}
+			})
 
         },
         computed: {

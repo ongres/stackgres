@@ -10,6 +10,11 @@ export default new Vuex.Store({
     loginToken: '',
     showLogs: false,
     notFound: false,
+    currentPath: {
+      namespace: '',
+      name: '',
+      component: '',
+    },
     currentNamespace: '',
     ready: false,
     currentCluster: {},
@@ -71,6 +76,10 @@ export default new Vuex.Store({
     setTheme (state, theme) {
       state.theme = theme;
       document.cookie = "sgTheme="+theme+"; Path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT";
+    },
+
+    setCurrentPath (state, path) {
+      state.currentPath = path
     },
     
     setCurrentNamespace (state, namespace) {
