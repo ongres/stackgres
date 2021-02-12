@@ -7,14 +7,14 @@
             <ul class="breadcrumbs">
                 <li class="namespace">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20.026" height="27"><g fill="#00adb5"><path d="M1.513.9l-1.5 13a.972.972 0 001 1.1h18a.972.972 0 001-1.1l-1.5-13a1.063 1.063 0 00-1-.9h-15a1.063 1.063 0 00-1 .9zm.6 11.5l.9-8c0-.2.3-.4.5-.4h12.9a.458.458 0 01.5.4l.9 8a.56.56 0 01-.5.6h-14.7a.56.56 0 01-.5-.6zM1.113 17.9a1.063 1.063 0 011-.9h15.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-15.8a1.028 1.028 0 01-1-1.1zM3.113 23h13.8a.972.972 0 001-1.1 1.063 1.063 0 00-1-.9h-13.8a1.063 1.063 0 00-1 .9 1.028 1.028 0 001 1.1zM3.113 25.9a1.063 1.063 0 011-.9h11.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-11.8a1.028 1.028 0 01-1-1.1z"/></g></svg>
-                    <router-link :to="'/admin/overview/'+currentNamespace" title="Namespace Overview">{{ currentNamespace }}</router-link>
+                    <router-link :to="'/overview/'+$route.params.namespace" title="Namespace Overview">{{ $route.params.namespace }}</router-link>
                 </li>
                 <li>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path class="a" d="M19,15H5c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,14.6,19.6,15,19,15z"/><path class="a" d="M1,15L1,15c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,14.6,1.6,15,1,15z"/><path class="a" d="M19,11H5c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,10.6,19.6,11,19,11z"/><path class="a" d="M1,11L1,11c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,10.6,1.6,11,1,11z"/><path class="a" d="M19,7H5C4.4,7,4,6.6,4,6v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,6.6,19.6,7,19,7z"/><path d="M1,7L1,7C0.4,7,0,6.6,0,6v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,6.6,1.6,7,1,7z"/></svg>
-                    <router-link :to="'/admin/overview/'+currentNamespace" title="Namespace Overview">SGDistributedLogs</router-link>
+                    <router-link :to="'/overview/'+$route.params.namespace" title="Namespace Overview">SGDistributedLogs</router-link>
                 </li>
                 <li v-if="editMode">
-                    <router-link :to="'/admin/logs/'+$route.params.namespace+'/'+$route.params.name" title="Logs Server Details">{{ $route.params.name }}</router-link>
+                    <router-link :to="'/logs/'+$route.params.namespace+'/'+$route.params.name" title="Logs Server Details">{{ $route.params.name }}</router-link>
                 </li>
                 <li class="action">
                     {{ $route.params.action }}
@@ -106,10 +106,16 @@
 </template>
 
 <script>
+    import {mixin} from '../mixins/mixin'
+    import router from '../../router'
+    import store from '../../store'
+    import axios from 'axios'
 
     export default {
         name: 'CreateLogsServer',
 
+        mixins: [mixin],
+        
         data: function() {
 
             const vm = this;
@@ -131,9 +137,6 @@
         
         computed: {
 
-            currentNamespace () {
-                return store.state.currentNamespace
-            },
             allNamespaces () {
                 return store.state.allNamespaces
             },
@@ -191,7 +194,7 @@
         methods: {
 
             createCluster: function(e) {
-                //e.preventDefault();
+                const vc = this;
 
                 let isValid = true;
                 
@@ -226,15 +229,15 @@
                             cluster 
                         )
                         .then(function (response) {
-                            notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgcluster');
+                            vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgcluster');
 
-                            vm.fetchAPI('sgdistributedlogs');
-                            router.push('/admin/logs/'+cluster.metadata.namespace);
+                            vc.fetchAPI('sgdistributedlogs');
+                            router.push('/logs/'+cluster.metadata.namespace);
                             
                         })
                         .catch(function (error) {
                             console.log(error.response);
-                            notify(error.response.data,'error', 'sgdistributedlogs');
+                            vc.notify(error.response.data,'error', 'sgdistributedlogs');
                         });
                     } else {
                         const res = axios
@@ -243,10 +246,10 @@
                             cluster 
                         )
                         .then(function (response) {
-                            notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgcluster');
+                            vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgcluster');
 
-                            vm.fetchAPI('sgdistributedlogs');
-                            router.push('/admin/logs/'+cluster.metadata.namespace);
+                            vc.fetchAPI('sgdistributedlogs');
+                            router.push('/logs/'+cluster.metadata.namespace);
                             
                             /* store.commit('updateClusters', { 
                                 name: cluster.data.metadata.name,
@@ -256,7 +259,7 @@
                         })
                         .catch(function (error) {
                             console.log(error);
-                            notify(error.response.data,'error','sgdistributedlogs');
+                            vc.notify(error.response.data,'error','sgdistributedlogs');
                         });
                     }
 
@@ -266,9 +269,9 @@
 
             cancel: function() {
                 if(this.$route.params.action == 'create')
-                    router.push('/admin/logs/'+this.$route.params.namespace);
+                    router.push('/logs/'+this.$route.params.namespace);
                 else
-                    router.push('/admin/logs/'+this.$route.params.namespace+'/'+this.$route.params.name);
+                    router.push('/logs/'+this.$route.params.namespace+'/'+this.$route.params.name);
             },  
 
             showFields: function( fields ) {

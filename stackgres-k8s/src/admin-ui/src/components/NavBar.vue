@@ -42,7 +42,7 @@
 				</div>
 			</div>
 
-			<div id="reload">
+			<div id="reload" @click="fetchAPI()">
 				<svg xmlns="http://www.w3.org/2000/svg" width="20.001" height="20" viewBox="0 0 20.001 20"><g transform="translate(0 0)"><path d="M1.053,11.154A1.062,1.062,0,0,1,0,10.089,9.989,9.989,0,0,1,16.677,2.567l.484-.484a.486.486,0,0,1,.2-.121.541.541,0,0,1,.663.343l1.318,3.748a.522.522,0,0,1,.007.327.5.5,0,0,1-.627.323L18.7,6.7l-3.743-1.32a.531.531,0,0,1-.206-.13.52.52,0,0,1-.016-.733l.464-.465A7.9,7.9,0,0,0,2.092,10.1a1.04,1.04,0,0,1-1.039,1.057Z"/><path d="M18.947,8.844A1.063,1.063,0,0,1,20,9.91,9.989,9.989,0,0,1,3.323,17.434l-.484.484a.476.476,0,0,1-.2.121.541.541,0,0,1-.663-.343L.659,13.948a.522.522,0,0,1-.007-.327.5.5,0,0,1,.627-.323l.022.008,3.743,1.32a.531.531,0,0,1,.206.13.52.52,0,0,1,.016.733l-.464.465A7.9,7.9,0,0,0,17.908,9.9a1.04,1.04,0,0,1,1.039-1.057Z"/></g></svg>
 			</div>
 
@@ -148,6 +148,7 @@
 
 		data: function() {
 			return {
+				pooling: '',
 				sgVersion: '',
 				loginUser: '',
 				loginPassword: '',
@@ -214,14 +215,12 @@
 					password: this.loginPassword	
 				})
 				.then( function(response){
-					//console.log(response);
 					store.commit('setLoginToken', response.data.access_token);
 					$('#signup').fadeOut();
 					document.cookie = "sgToken="+response.data.access_token+"; Path=/";
-					vm.fetchAPI();
+					vc.fetchAPI();
 					
 					if(vc.$route.params.hasOwnProperty('namespace')) {
-						//console.log(vc.$route.matched[0].components.default.options.name)
 						store.commit('setCurrentNamespace', vc.$route.params.namespace);
 					} else {
 						store.commit('setCurrentNamespace', 'default');
@@ -297,7 +296,7 @@
 					//console.log("GOOD");
 					notify(store.state.cloneCRD.kind+' <strong>"'+store.state.cloneCRD.data.metadata.name+'"</strong> cloned successfully', 'message', store.state.cloneCRD.kind.toLowerCase());
 
-					vm.fetchAPI(endpoint);
+					vc.fetchAPI(endpoint);
 					$('#clone').fadeOut().removeClass('show');
 					$('#cloneName, #cloneNamespace').val('');				
 				})
@@ -321,6 +320,7 @@
 
 
 		},
+
 		mounted: function() {
 			let vc = this;
 
@@ -329,6 +329,13 @@
 			.then(data => 
 				vc.sgVersion = data.version
 			);
+
+			vc.fetchAPI();
+
+			vc.pooling = setInterval( function(){
+				if(store.state.loginToken.length > 0)
+					vc.fetchAPI();
+			}.bind(this), 10000);
 		}
 	}
 </script>
