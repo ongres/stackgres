@@ -734,21 +734,21 @@
                             vm.distributedLogs = (typeof c.data.spec.distributedLogs !== 'undefined') ? c.data.spec.distributedLogs.sgDistributedLogs : '';
                             vm.prometheusAutobind =  (typeof c.data.spec.prometheusAutobind !== 'undefined') ? c.data.spec.prometheusAutobind : false;
                             vm.disableClusterPodAntiAffinity = ( (typeof c.data.spec.nonProductionOptions !== 'undefined') && (typeof c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined') ) ? c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : false;
-                            vm.metricsExporter = hasProp(c, 'data.spec.pods.disableMetricsExporter') ? !c.data.spec.pods.disableMetricsExporter : true ;
-                            vm.postgresUtil = hasProp(c, 'data.spec.pods.disablePostgresUtil') ? !c.data.spec.pods.disablePostgresUtil : true ;
-                            vm.podsMetadata = hasProp(c, 'data.spec.pods.metadata.labels') ? vm.unparseProps(c.data.spec.pods.metadata.labels, 'label') : [];
-                            vm.podsScheduling = hasProp(c, 'data.spec.pods.scheduling.nodeSelector') ? vm.unparseProps(c.data.spec.pods.scheduling.nodeSelector, 'label') : [];
+                            vm.metricsExporter = vm.hasProp(c, 'data.spec.pods.disableMetricsExporter') ? !c.data.spec.pods.disableMetricsExporter : true ;
+                            vm.postgresUtil = vm.hasProp(c, 'data.spec.pods.disablePostgresUtil') ? !c.data.spec.pods.disablePostgresUtil : true ;
+                            vm.podsMetadata = vm.hasProp(c, 'data.spec.pods.metadata.labels') ? vm.unparseProps(c.data.spec.pods.metadata.labels, 'label') : [];
+                            vm.podsScheduling = vm.hasProp(c, 'data.spec.pods.scheduling.nodeSelector') ? vm.unparseProps(c.data.spec.pods.scheduling.nodeSelector, 'label') : [];
                             vm.pgConfigExists = true;
-                            vm.initScripts = hasProp(c, 'data.spec.initialData.scripts') ? c.data.spec.initialData.scripts : [];
-                            vm.annotationsAll = hasProp(c, 'data.spec.metadata.annotations.allResources') ? vm.unparseProps(c.data.spec.metadata.annotations.allResources) : [];
-                            vm.annotationsPods = hasProp(c, 'data.spec.metadata.annotations.pods') ? vm.unparseProps(c.data.spec.metadata.annotations.pods) : [];
-                            vm.annotationsServices = hasProp(c, 'data.spec.metadata.annotations.services') ? vm.unparseProps(c.data.spec.metadata.annotations.services) : [];
-                            vm.postgresServicesPrimary = hasProp(c, 'data.spec.postgresServices.primary.enabled') ? c.data.spec.postgresServices.primary.enabled : false;
-                            vm.postgresServicesPrimaryType = hasProp(c, 'data.spec.postgresServices.primary.type') ? c.data.spec.postgresServices.primary.type : 'ClusterIP';
-                            vm.postgresServicesPrimaryAnnotations = hasProp(c, 'data.spec.postgresServices.primary.annotations') ?  vm.unparseProps(c.data.spec.postgresServices.primary.annotations) : [];
-                            vm.postgresServicesReplicas = hasProp(c, 'data.spec.postgresServices.replicas.enabled') ? c.data.spec.postgresServices.replicas.enabled : false;
-                            vm.postgresServicesReplicasType = hasProp(c, 'data.spec.postgresServices.replicas.type') ? c.data.spec.postgresServices.replicas.type : 'ClusterIP';
-                            vm.postgresServicesReplicasAnnotations = hasProp(c, 'data.spec.postgresServices.replicas.annotations') ?  vm.unparseProps(c.data.spec.postgresServices.replicas.annotations) : [];
+                            vm.initScripts = vm.hasProp(c, 'data.spec.initialData.scripts') ? c.data.spec.initialData.scripts : [];
+                            vm.annotationsAll = vm.hasProp(c, 'data.spec.metadata.annotations.allResources') ? vm.unparseProps(c.data.spec.metadata.annotations.allResources) : [];
+                            vm.annotationsPods = vm.hasProp(c, 'data.spec.metadata.annotations.pods') ? vm.unparseProps(c.data.spec.metadata.annotations.pods) : [];
+                            vm.annotationsServices = vm.hasProp(c, 'data.spec.metadata.annotations.services') ? vm.unparseProps(c.data.spec.metadata.annotations.services) : [];
+                            vm.postgresServicesPrimary = vm.hasProp(c, 'data.spec.postgresServices.primary.enabled') ? c.data.spec.postgresServices.primary.enabled : false;
+                            vm.postgresServicesPrimaryType = vm.hasProp(c, 'data.spec.postgresServices.primary.type') ? c.data.spec.postgresServices.primary.type : 'ClusterIP';
+                            vm.postgresServicesPrimaryAnnotations = vm.hasProp(c, 'data.spec.postgresServices.primary.annotations') ?  vm.unparseProps(c.data.spec.postgresServices.primary.annotations) : [];
+                            vm.postgresServicesReplicas = vm.hasProp(c, 'data.spec.postgresServices.replicas.enabled') ? c.data.spec.postgresServices.replicas.enabled : false;
+                            vm.postgresServicesReplicasType = vm.hasProp(c, 'data.spec.postgresServices.replicas.type') ? c.data.spec.postgresServices.replicas.type : 'ClusterIP';
+                            vm.postgresServicesReplicasAnnotations = vm.hasProp(c, 'data.spec.postgresServices.replicas.annotations') ?  vm.unparseProps(c.data.spec.postgresServices.replicas.annotations) : [];
                             
                         }
                     });

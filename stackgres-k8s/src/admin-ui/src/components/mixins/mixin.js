@@ -789,7 +789,27 @@ export const mixin = {
         var res = regex.exec(text);
       
         return res[1] * Math.pow(1024, powers[res[2]]);
-      }
+      },
+      
+      hasProp(obj, propertyPath){
+        if(!propertyPath)
+            return false;
+      
+        var properties = propertyPath.split('.');
+      
+        for (var i = 0; i < properties.length; i++) {
+            var prop = properties[i];
+      
+            if(!obj || !obj.hasOwnProperty(prop)){
+                return false;
+            } else {
+                obj = obj[prop];
+            }
+        }
+      
+        return true;
+      },
+      
     },
   
     beforeCreate: function() {
