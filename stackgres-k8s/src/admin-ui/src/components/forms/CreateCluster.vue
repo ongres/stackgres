@@ -995,14 +995,19 @@
                 $('#postgresVersion [data-val="'+version+'"]').addClass('active');
             },
 
+            sanitizeString( string ) {
+               return string.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\t/g, "\\t").replace(/\f/g, "\\f").replace(/"/g,"\\\"").replace(/'/g,"\\\'").replace(/\&/g, "\\&"); 
+            },
+
             parseProps ( props, key = 'annotation' ) {
+                const vc = this
                 var jsonString = '{';
                 props.forEach(function(p, i){
                     if(p[key].length && p.value.length) {                    
                         if(i)
                             jsonString += ','
                         
-                        jsonString += '"'+sanitizeString(p[key])+'":"'+sanitizeString(p.value)+'"'
+                        jsonString += '"'+vc.sanitizeString(p[key])+'":"'+vc.sanitizeString(p.value)+'"'
                     }                
                 })
                 jsonString += '}'
