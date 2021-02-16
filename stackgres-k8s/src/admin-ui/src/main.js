@@ -6,6 +6,8 @@ import axios from 'axios'
 
 Vue.config.productionTip = false
 
+Vue.use(VueMarkdown);
+
 const vm = new Vue({
   router,
   store,
@@ -450,9 +452,7 @@ router.beforeEach((to, from, next) => {
 if( (window.location.pathname === '/admin/index.html') && ( (store.state.loginToken.length) || (getCookie('sgToken')) )  ) {
   store.commit('setCurrentNamespace', 'default');
   router.push('/overview/default');
-}  
-
-Vue.use(VueMarkdown);
+}
 
 // Check URL Params
 if( urlParams.has('darkmode') || (getCookie('sgTheme') === 'dark') ) {
@@ -676,11 +676,6 @@ function hasProp(obj, propertyPath){
 
   return true;
 }
-
-function sanitizeString( string ) {
-  return string.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\t/g, "\\t").replace(/\f/g, "\\f").replace(/"/g,"\\\"").replace(/'/g,"\\\'").replace(/\&/g, "\\&"); 
-}
-
 
 
 /* jQuery Init */
