@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
+import store from '../store'
 
 // Form Components
 import CreateCluster from '../components/forms/CreateCluster.vue'
@@ -343,5 +344,21 @@ const router = new VueRouter({
   base: process.env.BASE_URL,
   routes
 });
+
+router.beforeResolve((to, from, next) => {
+
+  if(!to.params.hasOwnProperty('namespace')) {
+    router.push('/overview/default')
+  } else {
+    store.commit('setCurrentPath', {
+      namespace: to.params.namespace,
+      name: to.params.hasOwnProperty('name') ? to.params.name : '',
+      component: to.name.length ? to.name : ''
+    })
+  }
+
+  next()
+  
+})
 
 export default router;
