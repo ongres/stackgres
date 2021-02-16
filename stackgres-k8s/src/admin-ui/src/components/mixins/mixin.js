@@ -1,7 +1,6 @@
 import store from '../../store'
 import axios from 'axios'
 
-
 export const mixin = {
 
     data: function(){
@@ -24,10 +23,6 @@ export const mixin = {
 
       isReady () {
         return store.state.ready
-      },
-
-      currentComponent() {
-        return this.$route.name
       }
   
     },
@@ -136,7 +131,10 @@ export const mixin = {
                   console.log(err);
                   vc.checkAuthError(err);
                 });
-                
+              
+              if(!index)
+                store.commit('flushClusters')
+              
               store.commit('updateClusters', cluster);
 
               // Set as current cluster if no other cluster has already been set
@@ -167,13 +165,8 @@ export const mixin = {
   
               response.data.forEach( function(item, index) {
                 
-                if(store.state.namespaces.indexOf(item.metadata.namespace) === -1) {
-                
+                if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
                   store.commit('updateNamespaces', item.metadata.namespace);
-  
-                } else {
-                  //console.log("Namespace ya existe");
-                }
   
                 //console.log(item);
                 if( (item.status !== null) && item.status.hasOwnProperty('process')) {
@@ -187,6 +180,9 @@ export const mixin = {
                   }
                   
                 }
+
+                if(!index)
+                  store.commit('flushBackups')
                   
                 store.commit('updateBackups', { 
                   name: item.metadata.name,
@@ -228,13 +224,11 @@ export const mixin = {
   
             response.data.forEach( function(item, index) {
                 
-              if(store.state.namespaces.indexOf(item.metadata.namespace) === -1) {
-              
+              if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
                 store.commit('updateNamespaces', item.metadata.namespace);
-
-              } else {
-                //console.log("Namespace ya existe");
-              }     
+              
+              if(!index)
+                store.commit('flushPGConfig')
                 
               store.commit('updatePGConfig', { 
                 name: item.metadata.name,
@@ -263,13 +257,11 @@ export const mixin = {
   
             response.data.forEach( function(item, index) {
                 
-                if(store.state.namespaces.indexOf(item.metadata.namespace) === -1) {
-                
+                if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
                   store.commit('updateNamespaces', item.metadata.namespace);
-  
-                } else {
-                  //console.log("Namespace ya existe");
-                }     
+                
+                if(!index)
+                  store.commit('flushPoolConfig')
                   
                 store.commit('updatePoolConfig', { 
                   name: item.metadata.name,
@@ -297,13 +289,11 @@ export const mixin = {
   
               response.data.forEach( function(item, index) {
                 
-                if(store.state.namespaces.indexOf(item.metadata.namespace) === -1) {
-                
+                if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
                   store.commit('updateNamespaces', item.metadata.namespace);
-  
-                } else {
-                  //console.log("Namespace ya existe");
-                }     
+                
+                if(!index)
+                  store.commit('flushBackupConfig')
                   
                 store.commit('updateBackupConfig', { 
                   name: item.metadata.name,
@@ -333,23 +323,21 @@ export const mixin = {
   
             response.data.forEach( function(item, index) {
                 
-                if(store.state.namespaces.indexOf(item.metadata.namespace) === -1) {
-                
-                  store.commit('updateNamespaces', item.metadata.namespace);
-  
-                } else {
-                  //console.log("Namespace ya existe");
-                }     
-                  
-                store.commit('updateProfiles', { 
-                  name: item.metadata.name,
-                  data: item
-                });
-  
+              if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
+                store.commit('updateNamespaces', item.metadata.namespace);
+              
+              if(!index)
+                store.commit('flushProfiles')
+
+              store.commit('updateProfiles', { 
+                name: item.metadata.name,
+                data: item
               });
   
+            });
+  
               // console.log("Profiles Data updated");
-            }).catch(function(err) {
+          }).catch(function(err) {
             console.log(err);
             vc.checkAuthError(err);
           });
@@ -411,9 +399,18 @@ export const mixin = {
             store.state.currentCluster.hasBackups = true; // Enable/Disable Backups button
         }
 
-          
-        if(!store.state.ready)
-          store.commit('setReady',true)
+        if(!Object.keys(store.state.tooltips).length) {
+          fetch('/admin/info/sg-tooltips.json')
+          .then(response => response.json())
+          .then(data => {
+            var tooltips = data.components.schemas;
+            vc.cleanupTooltips(tooltips)
+            store.commit('setTooltips', tooltips)
+
+            if(!store.state.ready)
+              store.commit('setReady',true)
+          });
+        }
   
         setTimeout(function(){
           //$("#loader").fadeOut(500);
@@ -505,13 +502,12 @@ export const mixin = {
   
       sort: function(s) {
               
-              //if s == current sort, reverse
-              if(s === this.currentSort) {
-                this.currentSortDir = this.currentSortDir==='asc'?'desc':'asc';
-              }
-              this.currentSort = s;
-  
-          },
+        if(s === this.currentSort) {
+          this.currentSortDir = this.currentSortDir==='asc'?'desc':'asc';
+        }
+        this.currentSort = s;
+
+      },
   
       deleteCRD: function( kind, namespace, name, redirect ) {
   
@@ -626,70 +622,6 @@ export const mixin = {
         }
       },
   
-      confirmDelete: function( confirmName ) {
-  
-        const vc = this;
-        const item = store.state.deleteItem;
-  
-        if(confirmName == item.name) { 
-          $("#delete .warning").fadeOut();
-
-          const res = axios
-          .delete(process.env.VUE_APP_API_URL + '/' + item.kind, 
-          {
-            data: {
-              "metadata": {
-                "name": item.name,
-                "namespace": item.namespace
-              }
-            }
-          })
-          .then(function (response) {
-            vc.notify('<span class="capitalize">'+item.kind+'</span> <strong>'+item.name+'</strong> deleted successfully', 'message', item.kind);
-  
-            $('.'+item.kind+'-'+item.namespace+'-'+item.name).addClass("hide");
-            vc.fetchAPI(item.kind);
-
-            if( (typeof item.redirect !== 'undefined') && item.redirect.length)
-              router.push(item.redirect);
-            
-            store.commit("setDeleteItem", {
-              kind: '',
-              namespace: '',
-              name: '',
-              redirect: ''
-            });
-
-            //$("#delete").removeClass("active");
-            $("#delete").removeClass("active");
-            vc.confirmDeleteName = '';
-          })
-          .catch(function (error) {
-            console.log(error);
-            vc.notify(error.response.data,'error',item.kind);
-            vc.checkAuthError(error)
-          });
-        } else {
-            $("#delete .warning").fadeIn();
-        }
-              
-      },
-  
-      loadTooltips: function( kind, lang = 'EN' ) {
-
-        const vc = this;
-  
-        fetch('/admin/info/sg-tooltips.json')
-        .then(response => response.json())
-        .then(data => {
-  
-          var tooltips = data.components.schemas;
-          vc.cleanupTooltips(tooltips)
-          store.commit('setTooltips', tooltips)
-        });
-  
-      },
-  
       showTooltip: function( kind, field ) {
   
         const label = $("[for='"+field+"']").first().text();
@@ -704,7 +636,7 @@ export const mixin = {
         } else if (field == 'spec.pgBouncer.pgbouncer.ini') {
           param =  crd.spec.pgBouncer['pgbouncer.ini']
         } else {
-          params = field.split('.');
+          let params = field.split('.');
           params.forEach(function(item, index){
             param = param[item]
           })

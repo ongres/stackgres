@@ -148,7 +148,7 @@
 </template>
 
 <script>
-	import {mixin} from './mixins/mixin'
+	import { mixin } from './mixins/mixin'
 	import router from '../router'
 	import store from '../store'
 
