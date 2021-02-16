@@ -460,7 +460,7 @@
                     store.state.backupConfig.forEach(function( config ){
                         if( (config.data.metadata.name === vm.$route.params.name) && (config.data.metadata.namespace === vm.$route.params.namespace) ) {
                             
-                            let tresholdSize = formatBytes(config.data.spec.tarSizeThreshold);
+                            let tresholdSize = vm.formatBytes(config.data.spec.tarSizeThreshold);
                             let tresholdUnit = '';            
                             let unitSizes = {
                                 "Ki": 1024, 
@@ -735,6 +735,10 @@
                     };
                     reader.readAsText(files[0]);
                 }
+            },
+
+            formatBytes (a) {
+                if(0==a)return"0 Bytes";var c=1024,d=2,e=["Bytes","Ki","Mi","Gi","Ti","Pi","Ei","Zi","Yi"],f=Math.floor(Math.log(a)/Math.log(c))+1;return parseFloat((a/Math.pow(c,f)).toFixed(d))+" "+e[f];
             }
 
         },

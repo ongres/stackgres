@@ -563,10 +563,6 @@ function getCookie(cname) {
   return "";
 }
 
-function formatBytes (a) {
-  if(0==a)return"0 Bytes";var c=1024,d=2,e=["Bytes","Ki","Mi","Gi","Ti","Pi","Ei","Zi","Yi"],f=Math.floor(Math.log(a)/Math.log(c))+1;return parseFloat((a/Math.pow(c,f)).toFixed(d))+" "+e[f];
-}
-
 function arraysMatch (arr1, arr2) {
 
   // Check if the arrays are the same length
