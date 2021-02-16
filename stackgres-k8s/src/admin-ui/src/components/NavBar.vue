@@ -138,7 +138,7 @@
 <script>
 	import store from '../store'
 	import axios from 'axios'
-	import { mixin } from "../components/mixins/mixin"
+	import { mixin } from './mixins/mixin'
 
 
     export default {
@@ -316,7 +316,56 @@
 				$("#delete .warning").hide();
 				this.confirmDeleteName = '';
 				store.commit('setConfirmDeleteName', '');
-			}
+			},
+
+			confirmDelete: function( confirmName ) {
+  
+				const vc = this;
+				const item = store.state.deleteItem;
+		
+				if(confirmName == item.name) { 
+					$("#delete .warning").fadeOut();
+
+					const res = axios
+					.delete(process.env.VUE_APP_API_URL + '/' + item.kind, 
+					{
+						data: {
+							"metadata": {
+								"name": item.name,
+								"namespace": item.namespace
+							}
+						}
+					})
+					.then(function (response) {
+						vc.notify('<span class="capitalize">'+item.kind+'</span> <strong>'+item.name+'</strong> deleted successfully', 'message', item.kind);
+			
+						$('.'+item.kind+'-'+item.namespace+'-'+item.name).addClass("hide");
+						vc.fetchAPI(item.kind);
+
+						if( (typeof item.redirect !== 'undefined') && item.redirect.length)
+							router.push(item.redirect);
+						
+						store.commit("setDeleteItem", {
+							kind: '',
+							namespace: '',
+							name: '',
+							redirect: ''
+						});
+
+						//$("#delete").removeClass("active");
+						$("#delete").removeClass("active");
+						vc.confirmDeleteName = '';
+					})
+					.catch(function (error) {
+						console.log(error);
+						vc.notify(error.response.data,'error',item.kind);
+						vc.checkAuthError(error)
+					});
+				} else {
+					$("#delete .warning").fadeIn();
+				}
+					
+			},
 
 
 		},

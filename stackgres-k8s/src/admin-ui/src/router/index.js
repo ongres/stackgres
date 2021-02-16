@@ -347,6 +347,7 @@ const router = new VueRouter({
 
 router.beforeResolve((to, from, next) => {
 
+  // Redirect to default namespace overview if no namespace on URL
   if(!to.params.hasOwnProperty('namespace')) {
     router.push('/overview/default')
   } else {

@@ -150,7 +150,7 @@
 <script>
 	import store from '../store'
 	import router from '../router'
-	import {mixin} from './mixins/mixin'
+	import { mixin } from './mixins/mixin'
 
     export default {
         name: 'ClusterStatus',
@@ -163,49 +163,6 @@
 			}
 		},
 		methods: {
-			
-			fetchAPI: function() {
-				vc = this;
-
-			},
-
-			deleteCluster: function(e) {
-				const vc = this
-
-				let confirmDelete = confirm("DELETE ITEM\nAre you sure you want to delete this item?")
-
-				if(confirmDelete) {
-					const cl = {
-						name: this.name,
-						namespace: this.namespace
-					}
-		
-					const res = axios
-					.delete(
-						process.env.VUE_APP_API_URL + '/sgcluster/', 
-						{
-							data: {
-								"metadata": {
-									"name": cl.name,
-									"namespace": cl.namespace
-								}
-							}
-						}
-					)
-					.then(function (response) {
-						console.log("DELETED");
-						//console.log(response);
-						notify('Cluster <strong>'+this.$route.params.name+'</strong> deleted successfully', 'message');
-						this.fetchAPI();
-						router.push('/overview/'+vc.$route.params.namespace);                        
-					})
-					.catch(function (error) {
-						console.log(error.response);
-						notify(error.response.data.message,'error');
-					});
-				}
-
-			}	
 
 		},
 		mounted: function() {

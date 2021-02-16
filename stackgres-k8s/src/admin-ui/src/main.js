@@ -38,11 +38,6 @@ var apiData = []
 
 var urlParams = new URLSearchParams(window.location.search);
 
-// Redirect to default namespace overview if no namespace on URL
-if(vm.$route.name == 'ClusterOverviewEmpty')
-  router.push('/overview/default')
-
-
 router.beforeEach((to, from, next) => { 
 
   // If loading CRD from direct URL validate if CRD exists on the API before loading
@@ -56,6 +51,7 @@ router.beforeEach((to, from, next) => {
 
     /* Check if Namespace exist */
     if(to.params.hasOwnProperty('namespace')) {
+      
       axios
       .get(process.env.VUE_APP_API_URL + '/namespace')
       .then( function(response){
