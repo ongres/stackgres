@@ -498,9 +498,9 @@
                             vm.backupConfigRetention = config.data.spec.baseBackups.retention;
                             vm.backupConfigTarSizeThreshold = tresholdSize.match(/\d+/g);
                             vm.backupConfigTarSizeThresholdUnit = tresholdUnit;
-                            vm.backupConfigMaxNetworkBandwitdh = hasProp(config, 'data.spec.baseBackups.performance.maxNetworkBandwitdh') ? config.data.spec.baseBackups.performance.maxNetworkBandwitdh : '';
-                            vm.backupConfigMaxDiskBandwitdh = hasProp(config, 'data.spec.baseBackups.performance.maxDiskBandwitdh') ? config.data.spec.baseBackups.performance.maxDiskBandwitdh : ''; 
-                            vm.backupConfigUploadDiskConcurrency = hasProp(config, 'data.spec.baseBackups.performance.uploadDiskConcurrency') ? config.data.spec.baseBackups.performance.uploadDiskConcurrency : 1;
+                            vm.backupConfigMaxNetworkBandwitdh = vm.hasProp(config, 'data.spec.baseBackups.performance.maxNetworkBandwitdh') ? config.data.spec.baseBackups.performance.maxNetworkBandwitdh : '';
+                            vm.backupConfigMaxDiskBandwitdh = vm.hasProp(config, 'data.spec.baseBackups.performance.maxDiskBandwitdh') ? config.data.spec.baseBackups.performance.maxDiskBandwitdh : ''; 
+                            vm.backupConfigUploadDiskConcurrency = vm.hasProp(config, 'data.spec.baseBackups.performance.uploadDiskConcurrency') ? config.data.spec.baseBackups.performance.uploadDiskConcurrency : 1;
                             vm.backupConfigStorageType = config.data.spec.storage.type;
         
                             //s3
@@ -508,8 +508,8 @@
                                 vm.backupS3Bucket = config.data.spec.storage.s3.bucket;
                                 vm.backupS3Path =  (typeof config.data.spec.storage.s3.path !== 'undefined') ? config.data.spec.storage.s3.path : '';
                                 vm.backupS3Region =  (typeof config.data.spec.storage.s3.region !== 'undefined') ? config.data.spec.storage.s3.region : '';
-                                vm.backupS3AccessKeyId = hasProp(config, 'data.spec.storage.s3.awsCredentials.accessKeyId') ? config.data.spec.storage.s3.awsCredentials.accessKeyId : '';
-                                vm.backupS3SecretAccessKey = hasProp(config, 'data.spec.storage.s3.awsCredentials.secretAccessKey') ? config.data.spec.storage.s3.awsCredentials.secretAccessKey : '';
+                                vm.backupS3AccessKeyId = vm.hasProp(config, 'data.spec.storage.s3.awsCredentials.accessKeyId') ? config.data.spec.storage.s3.awsCredentials.accessKeyId : '';
+                                vm.backupS3SecretAccessKey = vm.hasProp(config, 'data.spec.storage.s3.awsCredentials.secretAccessKey') ? config.data.spec.storage.s3.awsCredentials.secretAccessKey : '';
                                 vm.backupS3StorageClass = (typeof config.data.spec.storage.s3.storageClass !== 'undefined') ? config.data.spec.storage.s3.storageClass : '';
                             }
                             
@@ -519,8 +519,8 @@
                                 vm.backupS3CompatiblePath = (typeof config.data.spec.storage.s3Compatible.path !== 'undefined') ? config.data.spec.storage.s3Compatible.path : '';
                                 vm.backupS3CompatibleEndpoint = (typeof config.data.spec.storage.s3Compatible.endpoint !== 'undefined') ? config.data.spec.storage.s3Compatible.endpoint : '';
                                 vm.backupS3CompatibleRegion = (typeof config.data.spec.storage.s3Compatible.region !== 'undefined') ? config.data.spec.storage.s3Compatible.region : '';
-                                vm.backupS3CompatibleAccessKeyId = hasProp(config, 'data.spec.storage.s3Compatible.awsCredentials.accessKeyId') ? config.data.spec.storage.s3Compatible.awsCredentials.accessKeyId : '';
-                                vm.backupS3CompatibleSecretAccessKey = hasProp(config, 'data.spec.storage.s3Compatible.awsCredentials.secretAccessKey') ? config.data.spec.storage.s3Compatible.awsCredentials.secretAccessKey : '';
+                                vm.backupS3CompatibleAccessKeyId = vm.hasProp(config, 'data.spec.storage.s3Compatible.awsCredentials.accessKeyId') ? config.data.spec.storage.s3Compatible.awsCredentials.accessKeyId : '';
+                                vm.backupS3CompatibleSecretAccessKey = vm.hasProp(config, 'data.spec.storage.s3Compatible.awsCredentials.secretAccessKey') ? config.data.spec.storage.s3Compatible.awsCredentials.secretAccessKey : '';
                                 vm.backupS3CompatibleStorageClass = (typeof config.data.spec.storage.s3Compatible.storageClass !== 'undefined') ? config.data.spec.storage.s3Compatible.storageClass : '';
                                 vm.backupS3CompatibleEnablePathStyleAddressing = config.data.spec.storage.s3Compatible.enablePathStyleAddressing;
                             }
@@ -529,8 +529,8 @@
                             if(config.data.spec.storage.type === 'gcs') {
                                 vm.backupGCSBucket = config.data.spec.storage.gcs.bucket;
                                 vm.backupGCSPath = (typeof config.data.spec.storage.gcs.path !== 'undefined') ? config.data.spec.storage.gcs.path : '';
-                                vm.fetchGCSCredentials = hasProp(config, 'data.spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService') ? config.data.spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService : false ;
-                                vm.backupGCSServiceAccountJSON = hasProp(config, 'data.spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON') ? config.data.spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON : '';
+                                vm.fetchGCSCredentials = vm.hasProp(config, 'data.spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService') ? config.data.spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService : false ;
+                                vm.backupGCSServiceAccountJSON = vm.hasProp(config, 'data.spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON') ? config.data.spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON : '';
                             }
                             
                             //azure
