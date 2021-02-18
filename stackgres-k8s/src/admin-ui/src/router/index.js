@@ -2,6 +2,7 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 import store from '../store'
 import axios from 'axios'
+import moment from 'moment'
 
 // Form Components
 import CreateCluster from '../components/forms/CreateCluster.vue'
@@ -364,6 +365,7 @@ function getCookie(cname) {
 
 function notFound() {
   store.commit('notFound',true)
+  router.push('/not-found')
 }
 
 function checkLogin() {
@@ -527,7 +529,7 @@ router.beforeResolve((to, from, next) => {
 
         break
 
-      case 'PostgresConfig':
+      case 'PgConfig':
       case 'CreatePgConfig':
         
         /* Check if Postgres Config exists */
@@ -677,23 +679,10 @@ router.beforeResolve((to, from, next) => {
 
               response.data.forEach( function(item, index) {
                   
-                if( (item.status !== null) && item.status.hasOwnProperty('process')) {
-                  if( item.status.process.status === 'Completed' ) {
-                    //console.log('setting duration');
-                    start = moment(item.status.process.timing.start);
-                    finish = moment(item.status.process.timing.stored);
-                    duration = new Date(moment.duration(finish.diff(start))).toISOString();
-                  } 
-                } else {
-                  //console.log('duration not set');
-                  duration = '';
-                }
-                
-                  
                 store.commit('updateBackups', { 
                   name: item.metadata.name,
                   data: item,
-                  duration: duration,
+                  duration: '',
                   show: true
                 });
 
@@ -720,30 +709,16 @@ router.beforeResolve((to, from, next) => {
           .get(process.env.VUE_APP_API_URL + '/sgbackup')
           .then( function(response){
 
-            var found = false,
-                duration = ''
+            var found = false
 
             if(response.data.length) {
 
               response.data.forEach( function(item, index) {
                   
-                if( (item.status !== null) && item.status.hasOwnProperty('process')) {
-                  if( item.status.process.status === 'Completed' ) {
-                    //console.log('setting duration');
-                    start = moment(item.status.process.timing.start);
-                    finish = moment(item.status.process.timing.stored);
-                    duration = new Date(moment.duration(finish.diff(start))).toISOString();
-                  } 
-                } else {
-                  //console.log('duration not set');
-                  duration = '';
-                }
-                
-                  
                 store.commit('updateBackups', { 
                   name: item.metadata.name,
                   data: item,
-                  duration: duration,
+                  duration: '',
                   show: true
                 });
 
@@ -768,22 +743,65 @@ router.beforeResolve((to, from, next) => {
         
         break;
 
+      case 'LogsServer':
+
+        /* Check if requested Logs Server exists */
+        axios
+        .get(process.env.VUE_APP_API_URL + '/sgdistributedlogs')
+        .then( function(response){
+
+          var found = false
+          var logs = []
+
+          response.data.forEach( function(item, index) {
+              
+            logs.push({
+              name: item.metadata.name,
+              data: item
+            }) 
+
+            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
+              found = true;
+
+          });
+
+          if( to.params.hasOwnProperty('name') && !found)
+            notFound()
+          else {
+            store.commit('addLogsClusters', logs);
+            next()
+          }
+
+        }).catch(function(error) {
+          checkAuthError(error)
+          notFound()
+        });
+
+        break;
     }
 
   }
 
   // Redirect to default namespace overview if in base url
   if(to.name == 'BaseUrl') {
-    store.commit('setCurrentNamespace', 'default');
     router.push('/overview/default')
+    store.commit('setCurrentNamespace', 'default');
+    store.commit('setCurrentPath', {
+      namespace: 'default',
+      name: '',
+      component: 'ClusterOverview'
+    })
   } else {
 
     // Setup currentPath for sidebar use
     store.commit('setCurrentPath', {
-      namespace: to.params.namespace,
+      namespace: to.params.hasOwnProperty('namespace') ? to.params.namespace : '',
       name: to.params.hasOwnProperty('name') ? to.params.name : '',
       component: to.name.length ? to.name : ''
     })
+
+    if(to.name !== 'NotFound')
+      store.commit('notFound',false)
   }
 
   // If entering a Cluster, setup as current

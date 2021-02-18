@@ -244,7 +244,7 @@ export const mixin = {
           });
         }
   
-        if (!store.state.permissions.forbidden.includes('sgpoolonfigs') && ( !kind.length || (kind == 'sgpoolconfig') ) ){
+        if (!store.state.permissions.forbidden.includes('sgpoolconfigs') && ( !kind.length || (kind == 'sgpoolconfig') ) ){
   
           /* Connection Pooling Config */
           axios
