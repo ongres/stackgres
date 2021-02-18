@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 import store from '../store'
+import axios from 'axios'
 
 // Form Components
 import CreateCluster from '../components/forms/CreateCluster.vue'
@@ -332,11 +333,12 @@ const routes = [
     meta: {
       conditionalRoute: false
     },
-  },/* 
+  },
   {
     path: '*',
+    name: 'NotFound',
     component: NotFound
-  } */
+  }
 ]
 
 const router = new VueRouter({
@@ -345,12 +347,438 @@ const router = new VueRouter({
   routes
 });
 
+function getCookie(cname) {
+  var name = cname + "=";
+  var ca = document.cookie.split(';');
+  for(var i = 0; i < ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
+function notFound() {
+  store.commit('notFound',true)
+}
+
+function checkLogin() {
+  let loginToken = getCookie('sgToken');
+
+  if (!loginToken.length) {
+    if(!store.state.loginToken.length) {
+      $('#signup').addClass('login').fadeIn();
+      return false;
+    } else {
+      return true;
+    }
+  } else if ( !store.state.loginToken.length && (loginToken.length > 0) ) {
+    $('#signup').hide();
+    store.commit('setLoginToken', loginToken);
+    return true;
+  }
+}
+
+
+function checkAuthError(error) {
+  if(error.response) {
+    if(error.response.status == 401 ) {
+      document.cookie = 'sgToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      store.commit('setLoginToken');
+      window.location.replace('/admin/')
+      process.exit(1);
+    } else if(error.response.status == 403 ) {
+      
+      // Little hack to store the right plural kind to validate RBAC permissions
+      if(error.response.config.url.includes('sgcluster/stats'))
+        kind = 'stats'
+      else
+        kind = error.response.config.url.replace('/stackgres/','')+'s';
+      
+      store.commit('setNoPermissions', kind);
+    }
+  }
+  
+}
+
 router.beforeResolve((to, from, next) => {
 
-  // Redirect to default namespace overview if no namespace on URL
-  if(!to.params.hasOwnProperty('namespace')) {
+  // If loading CRD from direct URL validate if CRD exists on the API before loading
+  if( from.path == '/') {
+    const component = to.matched[0].components.default.name;
+
+    if(!checkLogin()) {
+      next(); 
+      return;
+    }
+
+    /* Check if Namespace exist */
+    if(to.params.hasOwnProperty('namespace')) {
+      
+      axios
+      .get(process.env.VUE_APP_API_URL + '/namespace')
+      .then( function(response){
+        store.commit('addNamespaces',response.data)
+        if(response.data.includes(to.params.namespace)) {
+          store.commit('setCurrentNamespace', to.params.namespace);
+        }
+        else {
+          checkAuthError(error)
+          notFound();
+        }
+      }).catch(function(error) {
+        checkAuthError(error)
+        notFound()
+      });
+    }
+      
+    switch(component) {
+
+      case 'CreateCluster':
+      case 'Logs':
+      case 'ClusterInfo':
+      case 'Grafana':
+      case 'ClusterStatus':
+
+        axios
+        .get(process.env.VUE_APP_API_URL + '/sgcluster')
+        .then( function(response){
+
+          var found = false,
+              stats = {};
+
+            if(component == 'ClusterStatus') {
+              /* Check for Cluster status */
+              axios
+              .get(process.env.VUE_APP_API_URL + '/sgcluster/stats/'+to.params.namespace+'/'+to.params.name)
+              .then( function(resp){
+                stats = resp.data;
+              }).catch(function(error) {
+                checkAuthError(error)
+                notFound()
+              });
+            } 
+
+          response.data.forEach( function(item, index) {
+
+            var cluster = {
+              name: item.metadata.name,
+              data: item,
+              hasBackups: false,
+              status: {},
+            };
+
+            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) ) {
+              cluster.status = stats;
+              store.commit('setCurrentCluster', cluster);
+              found = true;
+            }
+
+            store.commit('updateClusters', cluster);
+
+          });
+
+          if( to.params.hasOwnProperty('name') && !found)
+            notFound()
+          else
+            next()
+
+        }).catch(function(error) {
+            checkAuthError(error)
+          notFound()
+        });
+
+        break
+
+      case 'InstanceProfile':
+      case 'CreateProfile':
+        /* Check if Profile exists */
+        axios
+        .get(process.env.VUE_APP_API_URL + '/sginstanceprofile')
+        .then( function(response){
+
+          var found = false
+
+          response.data.forEach( function(item, index) {
+              
+            store.commit('updateProfiles', { 
+              name: item.metadata.name,
+              data: item
+            }); 
+
+            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
+              found = true;
+
+          });
+
+          if( to.params.hasOwnProperty('name') && !found)
+            notFound()
+          else
+            next()
+
+        }).catch(function(error) {
+          checkAuthError(error)
+          notFound()
+        });
+
+        break
+
+      case 'PostgresConfig':
+      case 'CreatePgConfig':
+        
+        /* Check if Postgres Config exists */
+        axios
+        .get(process.env.VUE_APP_API_URL + '/sgpgconfig')
+        .then( function(response){
+
+          var found = false
+
+          response.data.forEach( function(item, index) {
+              
+            store.commit('updatePGConfig', { 
+              name: item.metadata.name,
+              data: item
+            }); 
+
+            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
+              found = true;
+
+          });
+
+          if( to.params.hasOwnProperty('name') && !found)
+            notFound()
+          else
+            next()
+
+        }).catch(function(error) {
+          checkAuthError(error)
+          notFound()
+        });
+
+        break;
+
+      case 'PoolConfig':
+      case 'CreatePoolConfig':
+
+        /* Check if PgBouncer Config exists */
+        axios
+        .get(process.env.VUE_APP_API_URL + '/sgpoolconfig')
+        .then( function(response){
+
+          var found = false
+
+          response.data.forEach( function(item, index) {
+              
+            store.commit('updatePoolConfig', { 
+              name: item.metadata.name,
+              data: item
+            }); 
+
+            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
+              found = true;
+
+          });
+
+          if( to.params.hasOwnProperty('name') && !found)
+            notFound()
+          else
+            next()
+
+        }).catch(function(error) {
+          checkAuthError(error)
+          notFound()
+        });
+
+        break;
+      
+      case 'BackupConfig':
+      case 'CreateBackupConfig':
+        /* Check if BackupConfig Config exists */
+        axios
+        .get(process.env.VUE_APP_API_URL + '/sgbackupconfig')
+        .then( function(response){
+
+          var found = false
+
+          response.data.forEach( function(item, index) {
+              
+            store.commit('updateBackupConfig', { 
+              name: item.metadata.name,
+              data: item
+            }); 
+
+            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
+              found = true;
+
+          });
+
+          if( to.params.hasOwnProperty('name') && !found)
+            notFound()
+          else
+            next()
+
+        }).catch(function(error) {
+          checkAuthError(error)
+          notFound()
+        });
+
+        break;
+
+      case 'Backups':
+      case 'CreateBackup':
+        /* If filtered by Cluster, first check if Cluster exists */
+        if(to.params.hasOwnProperty('cluster')) {
+
+          axios
+          .get(process.env.VUE_APP_API_URL + '/sgcluster')
+          .then( function(response){
+  
+            var found = false
+  
+            response.data.forEach( function(item, index) {
+  
+              var cluster = {
+                name: item.metadata.name,
+                data: item,
+                hasBackups: false,
+                status: {},
+              };
+                
+              store.commit('updateClusters', cluster);
+  
+              if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) ) {
+                store.commit('setCurrentCluster', cluster);
+                found = true;
+              }
+  
+            });
+  
+            if( to.params.hasOwnProperty('name') && !found)
+              notFound()
+            else
+              next()
+  
+          }).catch(function(error) {
+            checkAuthError(error)
+            notFound()
+          });
+
+          axios
+          .get(process.env.VUE_APP_API_URL + '/sgbackup')
+          .then( function(response){ 
+            var found = false,
+                duration = '';
+
+            if(response.data.length) {
+
+              response.data.forEach( function(item, index) {
+                  
+                if( (item.status !== null) && item.status.hasOwnProperty('process')) {
+                  if( item.status.process.status === 'Completed' ) {
+                    //console.log('setting duration');
+                    start = moment(item.status.process.timing.start);
+                    finish = moment(item.status.process.timing.stored);
+                    duration = new Date(moment.duration(finish.diff(start))).toISOString();
+                  } 
+                } else {
+                  //console.log('duration not set');
+                  duration = '';
+                }
+                
+                  
+                store.commit('updateBackups', { 
+                  name: item.metadata.name,
+                  data: item,
+                  duration: duration,
+                  show: true
+                });
+
+                if( to.params.hasOwnProperty('uid') && (to.params.uid == item.metadata.uid) && (to.params.namespace == item.metadata.namespace) )
+                  found = true;
+
+              });
+            }
+
+            if( to.params.hasOwnProperty('uid') && !found) {
+              notFound()
+            }
+            else {
+              next()
+            }
+          }).catch(function(error) {
+            checkAuthError(error)
+            notFound()
+          });
+
+        } else {
+          
+          axios
+          .get(process.env.VUE_APP_API_URL + '/sgbackup')
+          .then( function(response){
+
+            var found = false,
+                duration = ''
+
+            if(response.data.length) {
+
+              response.data.forEach( function(item, index) {
+                  
+                if( (item.status !== null) && item.status.hasOwnProperty('process')) {
+                  if( item.status.process.status === 'Completed' ) {
+                    //console.log('setting duration');
+                    start = moment(item.status.process.timing.start);
+                    finish = moment(item.status.process.timing.stored);
+                    duration = new Date(moment.duration(finish.diff(start))).toISOString();
+                  } 
+                } else {
+                  //console.log('duration not set');
+                  duration = '';
+                }
+                
+                  
+                store.commit('updateBackups', { 
+                  name: item.metadata.name,
+                  data: item,
+                  duration: duration,
+                  show: true
+                });
+
+                if( to.params.hasOwnProperty('uid') && (to.params.uid == item.metadata.uid) && (to.params.namespace == item.metadata.namespace) )
+                  found = true;
+
+              });
+            }
+
+            if( to.params.hasOwnProperty('uid') && !found) {
+              notFound()
+            }
+            else {
+              next()
+            }
+
+          }).catch(function(error) {
+            checkAuthError(error)
+            notFound()
+          });
+        }
+        
+        break;
+
+    }
+
+  }
+
+  // Redirect to default namespace overview if in base url
+  if(to.name == 'BaseUrl') {
+    store.commit('setCurrentNamespace', 'default');
     router.push('/overview/default')
   } else {
+
+    // Setup currentPath for sidebar use
     store.commit('setCurrentPath', {
       namespace: to.params.namespace,
       name: to.params.hasOwnProperty('name') ? to.params.name : '',
@@ -358,7 +786,43 @@ router.beforeResolve((to, from, next) => {
     })
   }
 
-  next()
+  // If entering a Cluster, setup as current
+  if ( to.params.cluster === "cluster" ) {
+
+    let cluster = store.state.clusters.find(c => ( (to.params.name == c.name) && (to.params.namespace == c.data.metadata.namespace) ) );
+    
+    if ( typeof cluster !== "undefined" ) {
+      
+      store.commit('setCurrentCluster', cluster);
+    }  else {
+      //alert("Not found");
+      //window.location.href = '/admin/not-found.html';
+    }
+
+    $('.clu li.current').removeClass('current');
+	  $('li.cluster-'+store.state.currentNamespace+'-'+store.state.currentCluster.name).addClass('current');
+    
+  }
+
+  if (to.matched.some(record => record.meta.conditionalRoute)) { 
+      // this route requires condition to be accessed
+      // if not, redirect to home page.
+      //var nav = document.getElementById("nav"); 
+
+      //console.log(to);
+
+	    //console.log(router.history.current);
+
+
+      if (store.state.currentCluster == {} && ( from.path.includes("profiles") || from.path.includes("configurations") ) && (to.path != ('/admin/configuration/'+to.params.name)) ) { 
+          next({ path: '/admin/'}) 
+      } else { 
+          next() 
+      } 
+  } else { 
+      next() // make sure to always call next()! 
+  } 
+
   
 })
 
