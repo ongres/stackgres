@@ -131,7 +131,7 @@
 					</template>
 				</ul>
 			</div>
-			<div v-if="iCan('','sgbackups')" class="set backups" :class="currentPath.component.includes('Backups') ? 'active' : ''" >
+			<div v-if="iCan('','sgbackups')" class="set backups" :class="( currentPath.component.includes('Backups') && !currentPath.component.includes('Cluster') ) ? 'active' : ''" >
 				<router-link :to="'/backups/'+currentPath.namespace" title="Backups" class="nav-item">
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path class="a" d="M10.55.55A9.454 9.454 0 001.125 9.5H.479a.458.458 0 00-.214.053.51.51 0 00-.214.671l1.621 3.382a.49.49 0 00.213.223.471.471 0 00.644-.223l1.62-3.382A.51.51 0 004.2 10a.49.49 0 00-.479-.5H3.1a7.47 7.47 0 117.449 7.974 7.392 7.392 0 01-3.332-.781.988.988 0 00-.883 1.767 9.356 9.356 0 004.215.99 9.45 9.45 0 000-18.9z"/><path class="a" d="M13.554 10a3 3 0 10-3 3 3 3 0 003-3z"/></svg>
 					<h3>Cluster Backups</h3>
