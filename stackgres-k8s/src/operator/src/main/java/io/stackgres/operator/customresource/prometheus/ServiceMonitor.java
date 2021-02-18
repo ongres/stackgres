@@ -18,6 +18,10 @@ public class ServiceMonitor extends CustomResource {
 
   private ServiceMonitorSpec spec;
 
+  public ServiceMonitor() {
+    super("ServiceMonitor");
+  }
+
   public ServiceMonitorSpec getSpec() {
     return spec;
   }
