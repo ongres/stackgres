@@ -281,7 +281,9 @@
 				store.commit('setCloneCRD', {});
 			},
 
-			cloneCRD: function() {			
+			cloneCRD: function() {	
+				const vc = this
+
 				if(store.state.cloneCRD.kind == 'SGPoolingConfig')
 					var endpoint = 'sgpoolconfig'
 				else if (store.state.cloneCRD.kind == 'SGPostgresConfig')
@@ -296,7 +298,7 @@
 				)
 				.then(function (response) {
 					//console.log("GOOD");
-					notify(store.state.cloneCRD.kind+' <strong>"'+store.state.cloneCRD.data.metadata.name+'"</strong> cloned successfully', 'message', store.state.cloneCRD.kind.toLowerCase());
+					vc.notify(store.state.cloneCRD.kind+' <strong>"'+store.state.cloneCRD.data.metadata.name+'"</strong> cloned successfully', 'message', store.state.cloneCRD.kind.toLowerCase());
 
 					vc.fetchAPI(endpoint);
 					$('#clone').fadeOut().removeClass('show');
@@ -304,7 +306,7 @@
 				})
 				.catch(function (error) {
 					console.log(error.response);
-					notify(error.response.data,'error',endpoint);
+					vc.notify(error.response.data,'error',endpoint);
 					$('#clone').fadeOut().removeClass('show');
 				});
 			},
