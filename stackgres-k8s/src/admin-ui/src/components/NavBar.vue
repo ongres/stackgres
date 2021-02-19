@@ -221,13 +221,15 @@
 					document.cookie = "sgToken="+response.data.access_token+"; Path=/";
 					vc.fetchAPI();
 					
-					if(vc.$route.params.hasOwnProperty('namespace')) {
-						store.commit('setCurrentNamespace', vc.$route.params.namespace);
-						router.push('/overview/' + vc.$route.params.namespace);
-					} else {
-						store.commit('setCurrentNamespace', 'default');
-						router.push('/overview/default');
-					}
+					let ns = vc.$route.params.hasOwnProperty('namespace') ? vc.$route.params.namespace : 'default' 
+					store.commit('setCurrentNamespace', ns);
+					router.push('/overview/' + ns);
+					store.commit('setCurrentPath', {
+						namespace: ns,
+						name: '',
+						component: 'ClusterOverview'
+					})
+					
 				}
 				).catch(function(err) {
 					$('#login .warning').fadeIn();
@@ -241,9 +243,8 @@
 			logout: function() {
 				document.cookie = 'sgToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 				store.commit('setLoginToken');
-				router.push('/');
-				//store.replaceState({})
 				$('#signup').addClass('login').fadeIn();
+				router.push('/');
 			},
 
 			showPassword: function() {
