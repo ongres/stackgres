@@ -185,7 +185,7 @@
 			});
 
 			// Show configurations details when the row is clicked
-			$(document).on('click', 'table tr.base > td:not(.actions)', function(){    
+			$(document).on('click', 'table.connectionpooling tr.base > td:not(.actions)', function(){    
 				const table = $(this).parents('table');
 				if(!$(this).parent().hasClass('open')) {
 					if(table.hasClass('configurations'))
