@@ -4255,17 +4255,7 @@ table.loading:after {
     opacity: 1;
     transition: opacity .4s ease-in;
 }
-<<<<<<< HEAD
-
-.darkmode table.loading:after {
-    background: url(img/loader.gif) center center no-repeat rgba(0,0,0,.5);
-    background-size: 4vw;
-}
-
-table.logs tbody, table.backups > tbody {
-=======
 table.logs tbody {
->>>>>>> 836-add-runbook-explaining-how-to-restore-a-backup
     overflow: initial;
     width: initial;
     min-width: 100%;

@@ -37,8 +37,4 @@ proxyPaths.forEach((proxyPath) => {
         return url;
       }
   }));
-<<<<<<< HEAD
 })
-=======
-})
->>>>>>> 836-add-runbook-explaining-how-to-restore-a-backup

@@ -205,11 +205,7 @@ var Logs = Vue.component("Logs", {
 						</div>-->
 					</div>
 
-<<<<<<< HEAD
 					<table class="logs" v-if="tooltips.hasOwnProperty('sgclusterlogentry')" v-on:scroll.passive="handleScroll">
-=======
-					<table class="logs" v-on:scroll.passive="handleScroll">
->>>>>>> 836-add-runbook-explaining-how-to-restore-a-backup
 						<thead class="sort">
 							<th class="logTime sorted desc timestamp">
 								<span @click="sort()">Log Time</span>
@@ -727,12 +723,8 @@ var Logs = Vue.component("Logs", {
 				if(($('table.logs').height() - 40) > $('table.logs > tbody').height()) {
 					vc.records = parseInt((window.innerHeight - 350) / 30);
 					vc.getLogs(vc.records);
-<<<<<<< HEAD
-				}			
-=======
 				}
 					
->>>>>>> 836-add-runbook-explaining-how-to-restore-a-backup
 			})
 
 		});
