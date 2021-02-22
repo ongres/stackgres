@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.cluster;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -14,10 +15,12 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.LabelFactory;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
@@ -33,10 +36,14 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
+import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.factory.Decorator;
 import io.stackgres.operator.conciliation.factory.cluster.DecoratorDiscoverer;
+import io.stackgres.operator.configuration.OperatorPropertyContext;
+import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
+import io.stackgres.operator.customresource.prometheus.PrometheusInstallation;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
@@ -67,6 +74,10 @@ public class ClusterRequiredResourcesGenerator
 
   private final DecoratorDiscoverer<StackGresCluster> decoratorDiscoverer;
 
+  private final CustomResourceScanner<PrometheusConfig> prometheusScanner;
+
+  private final OperatorPropertyContext operatorContext;
+
   @Inject
   public ClusterRequiredResourcesGenerator(
       ResourceGenerationDiscoverer<StackGresClusterContext> generators,
@@ -77,7 +88,9 @@ public class ClusterRequiredResourcesGenerator
       CustomResourceScanner<StackGresBackup> backupScanner,
       LabelFactory<StackGresCluster> labelFactory,
       CustomResourceScanner<StackGresDbOps> dbOpsScanner,
-      DecoratorDiscoverer<StackGresCluster> decoratorDiscoverer) {
+      DecoratorDiscoverer<StackGresCluster> decoratorDiscoverer,
+      CustomResourceScanner<PrometheusConfig> prometheusScanner,
+      OperatorPropertyContext operatorContext) {
     this.generators = generators;
     this.backupConfigFinder = backupConfigFinder;
     this.postgresConfigFinder = postgresConfigFinder;
@@ -87,6 +100,8 @@ public class ClusterRequiredResourcesGenerator
     this.labelFactory = labelFactory;
     this.dbOpsScanner = dbOpsScanner;
     this.decoratorDiscoverer = decoratorDiscoverer;
+    this.prometheusScanner = prometheusScanner;
+    this.operatorContext = operatorContext;
   }
 
   @Override
@@ -156,6 +171,7 @@ public class ClusterRequiredResourcesGenerator
         .backups(backups)
         .restoreBackup(restoreBackup)
         .addAllDbOps(getDbOps(config))
+        .prometheus(getPrometheus(config))
         .internalScripts(Seq.of(getPostgresExporterInitScript()))
         .patroniClusterLabels(labelFactory.patroniClusterLabels(config))
         .clusterScope(labelFactory.clusterScope(config))
@@ -199,6 +215,44 @@ public class ClusterRequiredResourcesGenerator
             StandardCharsets.UTF_8)
         .read()).get());
     return script;
+  }
+
+  public Optional<Prometheus> getPrometheus(StackGresCluster cluster) {
+    boolean isAutobindAllowed = operatorContext.getBoolean(OperatorProperty.PROMETHEUS_AUTOBIND);
+
+    boolean isPrometheusAutobindEnabled = Optional.ofNullable(cluster.getSpec()
+        .getPrometheusAutobind()).orElse(false);
+
+    if (isAutobindAllowed && isPrometheusAutobindEnabled) {
+      LOGGER.trace("Prometheus auto bind enabled, looking for prometheus installations");
+
+      List<PrometheusInstallation> prometheusInstallations = prometheusScanner.findResources()
+          .map(pcs -> pcs.stream()
+              .filter(pc -> pc.getSpec().getServiceMonitorSelector().getMatchLabels() != null)
+              .filter(pc -> !pc.getSpec().getServiceMonitorSelector().getMatchLabels().isEmpty())
+              .map(pc -> {
+
+                PrometheusInstallation pi = new PrometheusInstallation();
+                pi.setNamespace(pc.getMetadata().getNamespace());
+
+                ImmutableMap<String, String> matchLabels = ImmutableMap
+                    .copyOf(pc.getSpec().getServiceMonitorSelector().getMatchLabels());
+
+                pi.setMatchLabels(matchLabels);
+                return pi;
+
+              })
+              .collect(Collectors.toList()))
+          .orElse(new ArrayList<>());
+
+      if (!prometheusInstallations.isEmpty()) {
+        return Optional.of(new Prometheus(true, prometheusInstallations));
+      } else {
+        return Optional.of(new Prometheus(false, null));
+      }
+    } else {
+      return Optional.of(new Prometheus(false, null));
+    }
   }
 
 }
