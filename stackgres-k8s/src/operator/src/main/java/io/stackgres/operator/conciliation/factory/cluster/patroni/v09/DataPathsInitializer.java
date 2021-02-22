@@ -29,7 +29,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefu
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V093)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V094)
 @InitContainer(order = 0)
 public class DataPathsInitializer implements ContainerFactory<StackGresClusterContext> {
 
@@ -49,11 +49,12 @@ public class DataPathsInitializer implements ContainerFactory<StackGresClusterCo
         .withName("setup-data-paths")
         .withImage(StackGresComponent.KUBECTL.findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
-        .withCommand("/bin/sh", "-ecx", String.join(" && ",
-            "mkdir -p \"$PG_DATA_PATH\"",
-            "chmod -R 700 \"$PG_DATA_PATH\""))
+        .withCommand("/bin/sh", "-ex",
+            io.stackgres.common.ClusterStatefulSetPath.TEMPLATES_PATH.path()
+                + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH.filename())
         .withEnv(getClusterEnvVars(context))
         .withVolumeMounts(
+            ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context),
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(context))
         .build();
   }

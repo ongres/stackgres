@@ -19,8 +19,8 @@ import io.stackgres.operator.conciliation.factory.cluster.sidecars.envoy.Abstrac
 
 @Singleton
 @Sidecar(AbstractEnvoy.NAME)
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V093)
-@RunningContainer(order = 4)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V094)
+@RunningContainer(order = 1)
 public class Envoy extends AbstractEnvoy {
   @Inject
   public Envoy(YamlMapperProvider yamlMapperProvider,

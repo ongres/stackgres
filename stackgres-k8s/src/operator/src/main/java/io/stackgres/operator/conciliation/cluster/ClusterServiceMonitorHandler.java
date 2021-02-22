@@ -14,9 +14,8 @@ import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operator.conciliation.ReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
-import io.stackgres.operator.customresource.prometheus.ServiceMonitorDefinition;
 
-@ReconciliationScope(value = StackGresCluster.class, kind = ServiceMonitorDefinition.KIND)
+@ReconciliationScope(value = StackGresCluster.class, kind = "ServiceMonitor")
 @ApplicationScoped
 public class ClusterServiceMonitorHandler  implements ReconciliationHandler {
 

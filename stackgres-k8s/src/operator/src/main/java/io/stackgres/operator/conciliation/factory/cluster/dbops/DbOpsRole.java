@@ -21,7 +21,6 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBindingBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
-import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -128,12 +127,12 @@ public class DbOpsRole implements ResourceGenerator<StackGresClusterContext> {
             .build())
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups(CommonDefinition.GROUP)
-            .withResources(CustomResource.getPlural(StackGresDbOps.class))
+            .withResources(HasMetadata.getPlural(StackGresDbOps.class))
             .withVerbs("get", "list", "watch", "patch")
             .build())
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups(CommonDefinition.GROUP)
-            .withResources(CustomResource.getPlural(StackGresCluster.class))
+            .withResources(HasMetadata.getPlural(StackGresCluster.class))
             .withVerbs("get", "list", "watch", "patch")
             .build())
         .build();

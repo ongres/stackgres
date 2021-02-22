@@ -9,7 +9,8 @@ public enum StackGresClusterPostgresServiceType {
 
   CLUSTER_IP("ClusterIP"),
   LOAD_BALANCER("LoadBalancer"),
-  NODE_PORT("NodePort");
+  NODE_PORT("NodePort"),
+  EXTERNAL_NAME("ExternalName");
 
   private final String type;
 

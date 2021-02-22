@@ -39,8 +39,6 @@ import org.jooq.lambda.Seq;
 public class PatroniServices implements
     ResourceGenerator<StackGresClusterContext> {
 
-  public static final int POSTGRES_SERVICE_PORT = 5432;
-  public static final int REPLICATION_SERVICE_PORT = 5433;
   public static final int PATRONI_SERVICE_PORT = 8008;
 
   private LabelFactory<StackGresCluster> labelFactory;

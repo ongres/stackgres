@@ -47,12 +47,23 @@ public class PatroniConfigMap implements ResourceGenerator<StackGresClusterConte
 
   private static final Logger PATRONI_LOGGER = LoggerFactory.getLogger("io.stackgres.patroni");
 
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   private LabelFactory<StackGresCluster> labelFactory;
 
   public static String name(ClusterContext clusterContext) {
     return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName());
+  }
+
+  public static String getKubernetesPorts(final int pgPort, final int pgRawPort) {
+    return "["
+        + "{\"protocol\":\"TCP\","
+        + "\"name\":\"" + POSTGRES_PORT_NAME + "\","
+        + "\"port\":" + pgPort + "},"
+        + "{\"protocol\":\"TCP\","
+        + "\"name\":\"" + POSTGRES_REPLICATION_PORT_NAME + "\","
+        + "\"port\":" + pgRawPort + "}"
+        + "]";
   }
 
   @Override
@@ -119,17 +130,6 @@ public class PatroniConfigMap implements ResourceGenerator<StackGresClusterConte
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(data))
         .build());
-  }
-
-  public static String getKubernetesPorts(final int pgPort, final int pgRawPort) {
-    return "["
-        + "{\"protocol\":\"TCP\","
-            + "\"name\":\"" + POSTGRES_PORT_NAME + "\","
-            + "\"port\":" + pgPort + "},"
-        + "{\"protocol\":\"TCP\","
-            + "\"name\":\"" + POSTGRES_REPLICATION_PORT_NAME + "\","
-            + "\"port\":" + pgRawPort + "}"
-        + "]";
   }
 
   @Inject

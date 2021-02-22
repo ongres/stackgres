@@ -24,6 +24,7 @@ import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.JobTemplateSpec;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
@@ -65,9 +66,11 @@ public class AnnotationDecoratorImpl implements Decorator<StackGresCluster> {
         .putAll(servicesSpecificAnnotations)
         .build();
 
+    final Map<String, String> clusterAnnotations = cluster.getMetadata().getAnnotations();
     Map<String, String> podAnnotations = ImmutableMap.<String, String>builder()
         .putAll(allResourcesAnnotations)
         .putAll(podSpecificAnnotations)
+        .put(StackGresContext.VERSION_KEY, clusterAnnotations.get(StackGresContext.VERSION_KEY))
         .build();
 
     resources.forEach(resource -> {

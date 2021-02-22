@@ -19,7 +19,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ReconciliationScope {
 
-  Class<? extends CustomResource> value();
+  Class<? extends CustomResource<?,?>> value();
 
   String kind();
 

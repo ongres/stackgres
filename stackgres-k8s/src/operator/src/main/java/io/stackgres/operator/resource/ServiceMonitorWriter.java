@@ -10,14 +10,13 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
-import io.stackgres.operator.customresource.prometheus.ServiceMonitorDefinition;
-import io.stackgres.operator.customresource.prometheus.ServiceMonitorDoneable;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorList;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
@@ -62,13 +61,11 @@ public class ServiceMonitorWriter implements ResourceWriter<ServiceMonitor> {
 
   }
 
-  private Optional<MixedOperation<ServiceMonitor, ServiceMonitorList, ServiceMonitorDoneable,
-      Resource<ServiceMonitor, ServiceMonitorDoneable>>> getServiceMonitorClient(
+  private Optional<MixedOperation<ServiceMonitor, ServiceMonitorList,
+      Resource<ServiceMonitor>>> getServiceMonitorClient(
       KubernetesClient client) {
-    return ResourceUtil.getCustomResource(client, ServiceMonitorDefinition.NAME)
-        .map(crd -> client.customResources(crd,
-            ServiceMonitor.class,
-            ServiceMonitorList.class,
-            ServiceMonitorDoneable.class));
+    return ResourceUtil.getCustomResource(client, CustomResource.getCRDName(ServiceMonitor.class))
+        .map(crd -> client.customResources(ServiceMonitor.class,
+            ServiceMonitorList.class));
   }
 }

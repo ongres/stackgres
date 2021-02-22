@@ -17,6 +17,7 @@ public enum StackGresVersion {
   V091("0.9.1"),
   V092("0.9.2"),
   V093("0.9.3"),
+  V094("0.9.4"),
   V10A1("1.0.0-alpha1"),
   V10A2("1.0.0-alpha2"),
   V10("1.0");
@@ -27,7 +28,8 @@ public enum StackGresVersion {
     this.version = version;
   }
 
-  public static <T extends CustomResource> StackGresVersion getClusterStackGresVersion(T cluster) {
+  public static <T extends CustomResource<?, ?>> StackGresVersion getClusterStackGresVersion(
+      T cluster) {
     final Map<String, String> annotations = cluster.getMetadata().getAnnotations();
     return parseVersion(annotations.get(StackGresContext.VERSION_KEY));
 

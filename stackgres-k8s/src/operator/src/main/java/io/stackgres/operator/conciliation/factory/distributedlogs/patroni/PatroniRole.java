@@ -21,7 +21,6 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBindingBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
-import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
@@ -139,18 +138,18 @@ public class PatroniRole implements
             .build())
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups(CommonDefinition.GROUP)
-            .withResources(CustomResource.getPlural(StackGresBackup.class))
+            .withResources(HasMetadata.getPlural(StackGresBackup.class))
             .withVerbs("list", "get", "create", "patch", "delete")
             .build())
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups(CommonDefinition.GROUP)
             .withResources(
-                CustomResource.getPlural(StackGresBackup.class),
-                CustomResource.getPlural(StackGresCluster.class),
-                CustomResource.getPlural(StackGresPostgresConfig.class),
-                CustomResource.getPlural(StackGresPoolingConfig.class),
-                CustomResource.getPlural(StackGresProfile.class),
-                CustomResource.getPlural(StackGresDistributedLogs.class))
+                HasMetadata.getPlural(StackGresBackup.class),
+                HasMetadata.getPlural(StackGresCluster.class),
+                HasMetadata.getPlural(StackGresPostgresConfig.class),
+                HasMetadata.getPlural(StackGresPoolingConfig.class),
+                HasMetadata.getPlural(StackGresProfile.class),
+                HasMetadata.getPlural(StackGresDistributedLogs.class))
             .withVerbs("get", "list", "watch", "patch")
             .build())
         .build();

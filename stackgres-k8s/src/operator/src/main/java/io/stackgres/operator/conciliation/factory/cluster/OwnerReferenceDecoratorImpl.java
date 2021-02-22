@@ -35,9 +35,8 @@ public class OwnerReferenceDecoratorImpl implements
       resource.getMetadata().setOwnerReferences(ownerReferences);
       if (resource.getKind().equals("StatefulSet")) {
         StatefulSet sts = (StatefulSet) resource;
-        sts.getSpec().getVolumeClaimTemplates().forEach(vct -> {
-          vct.getMetadata().setOwnerReferences(ownerReferences);
-        });
+        sts.getSpec().getVolumeClaimTemplates()
+            .forEach(vct -> vct.getMetadata().setOwnerReferences(ownerReferences));
       }
     });
   }

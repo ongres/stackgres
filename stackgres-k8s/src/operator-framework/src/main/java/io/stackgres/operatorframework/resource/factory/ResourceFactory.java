@@ -10,6 +10,6 @@ import io.fabric8.kubernetes.client.CustomResource;
 
 @FunctionalInterface
 public interface ResourceFactory<T extends HasMetadata,
-    C extends CustomResource> extends SubResourceFactory<T, C> {
+    C extends CustomResource<?, ?>> extends SubResourceFactory<T, C> {
 
 }

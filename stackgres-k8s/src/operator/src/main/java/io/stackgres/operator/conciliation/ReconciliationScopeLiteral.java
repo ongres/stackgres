@@ -16,17 +16,17 @@ public class ReconciliationScopeLiteral extends AnnotationLiteral<Reconciliation
 
   private static final long serialVersionUID = 1L;
 
-  Class<? extends CustomResource> value;
+  Class<? extends CustomResource<?, ?>> value;
 
   String kind;
 
-  public ReconciliationScopeLiteral(Class<? extends CustomResource> value, String kind) {
+  public ReconciliationScopeLiteral(Class<? extends CustomResource<?, ?>> value, String kind) {
     this.value = value;
     this.kind = kind;
   }
 
   @Override
-  public Class<? extends CustomResource> value() {
+  public Class<? extends CustomResource<?, ?>> value() {
     return value;
   }
 

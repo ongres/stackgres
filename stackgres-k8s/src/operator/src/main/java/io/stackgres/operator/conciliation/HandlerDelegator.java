@@ -8,7 +8,7 @@ package io.stackgres.operator.conciliation;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.CustomResource;
 
-public interface HandlerDelegator<T extends CustomResource> {
+public interface HandlerDelegator<T extends CustomResource<?, ?>> {
 
   HasMetadata create(HasMetadata resource);
 

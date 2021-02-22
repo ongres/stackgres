@@ -7,8 +7,6 @@ package io.stackgres.operator.conciliation.factory.cluster.patroni.v09;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -17,8 +15,8 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.Volume;
+import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresContext;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
@@ -27,10 +25,9 @@ import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactory;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactoryDiscoverer;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
-import org.jooq.lambda.Seq;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V093)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V094)
 @InitContainer(order = 2)
 public class UserSetUp implements ContainerFactory<StackGresClusterContext> {
 
@@ -50,24 +47,9 @@ public class UserSetUp implements ContainerFactory<StackGresClusterContext> {
         .withName("setup-arbitrary-user")
         .withImage(StackGresComponent.KUBECTL.findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
-        .withCommand("/bin/sh", "-ecx", Seq.of(
-            "USER=postgres",
-            "UID=$(id -u)",
-            "GID=$(id -g)",
-            "SHELL=/bin/sh",
-            "cp \"$TEMPLATES_PATH/passwd\" /local/etc/.",
-            "cp \"$TEMPLATES_PATH/group\" /local/etc/.",
-            "cp \"$TEMPLATES_PATH/shadow\" /local/etc/.",
-            "cp \"$TEMPLATES_PATH/gshadow\" /local/etc/.",
-            "echo \"$USER:x:$UID:$GID::$PG_BASE_PATH:$SHELL\" >> /local/etc/passwd",
-            "chmod 644 /local/etc/passwd",
-            "echo \"$USER:x:$GID:\" >> /local/etc/group",
-            "chmod 644 /local/etc/group",
-            "echo \"$USER\"':!!:18179:0:99999:7:::' >> /local/etc/shadow",
-            "chmod 000 /local/etc/shadow",
-            "echo \"$USER\"':!::' >> /local/etc/gshadow",
-            "chmod 000 /local/etc/gshadow")
-            .collect(Collectors.joining(" && ")))
+        .withCommand("/bin/sh", "-ex",
+            io.stackgres.common.ClusterStatefulSetPath.TEMPLATES_PATH.path()
+                + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH.filename())
         .withEnv(getClusterEnvVars(context))
         .withVolumeMounts(
             ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context),

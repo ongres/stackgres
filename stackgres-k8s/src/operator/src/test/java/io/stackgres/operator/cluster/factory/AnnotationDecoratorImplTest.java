@@ -26,6 +26,7 @@ import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
 import io.fabric8.kubernetes.api.model.batch.v1.JobTemplateSpec;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StringUtil;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.testutil.JsonUtil;
@@ -263,6 +264,22 @@ class AnnotationDecoratorImplTest {
           StatefulSet statefulSet = (StatefulSet) resource;
           checkResourceAnnotations(statefulSet.getSpec().getTemplate(),
               new Tuple2<>(podAnnotationKey, podAnnotationValue));
+        });
+
+  }
+
+  @Test
+  void clusterOperatorVersion_shouldBePresentInStatefulSetPodTemplates() {
+
+    annotationDecorator.decorate(defaultCluster, ImmutableList.of(), resources);
+
+    resources.stream()
+        .filter(r -> r.getKind().equals("StatefulSet"))
+        .forEach(resource -> {
+          StatefulSet statefulSet = (StatefulSet) resource;
+          checkResourceAnnotations(statefulSet.getSpec().getTemplate(),
+              new Tuple2<>(StackGresContext.VERSION_KEY, defaultCluster
+                  .getMetadata().getAnnotations().get(StackGresContext.VERSION_KEY)));
         });
 
   }

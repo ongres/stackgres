@@ -12,11 +12,11 @@ public enum PatroniVolumes {
 
   SOCKET("socket", new VolumeBuilder()
       .withNewEmptyDir()
-      .withNewMedium("Memory")
+      .withMedium("Memory")
       .endEmptyDir()),
   SHARED_MEMORY("dshm", new VolumeBuilder()
       .withNewEmptyDir()
-      .withNewMedium("Memory")
+      .withMedium("Memory")
       .endEmptyDir()),
   LOCAL("local", new VolumeBuilder()
       .withNewEmptyDir()

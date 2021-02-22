@@ -44,9 +44,9 @@ public interface ReconciliationOperations {
           .put(Secret.class, KubernetesClient::secrets)
           .put(ConfigMap.class, KubernetesClient::configMaps)
           .put(Endpoints.class, KubernetesClient::endpoints)
-          .put(CronJob.class, client -> client.batch().cronjobs())
+          .put(CronJob.class, client -> client.batch().v1().cronjobs())
           .put(Pod.class, KubernetesClient::pods)
-          .put(Job.class, client -> client.batch().jobs())
+          .put(Job.class, client -> client.batch().v1().jobs())
           .build();
 
 }

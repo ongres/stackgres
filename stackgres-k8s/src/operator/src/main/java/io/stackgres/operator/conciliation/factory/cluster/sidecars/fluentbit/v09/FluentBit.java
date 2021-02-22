@@ -19,7 +19,7 @@ import io.stackgres.operator.conciliation.factory.cluster.sidecars.fluentbit.Abs
 
 @Sidecar(AbstractFluentBit.NAME)
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V093)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V094)
 @RunningContainer(order = 4)
 public class FluentBit extends AbstractFluentBit {
 

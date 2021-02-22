@@ -17,7 +17,7 @@ import io.stackgres.common.resource.CustomResourceScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class StackGresReconciliator<T extends CustomResource> {
+public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StackGresReconciliator.class);
 

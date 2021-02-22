@@ -15,7 +15,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.CustomResource;
 import org.jooq.lambda.tuple.Tuple;
 
-public class Conciliator<T extends CustomResource> {
+public class Conciliator<T extends CustomResource<?, ?>> {
 
   private RequiredResourceGenerator<T> requiredResourceGenerator;
 

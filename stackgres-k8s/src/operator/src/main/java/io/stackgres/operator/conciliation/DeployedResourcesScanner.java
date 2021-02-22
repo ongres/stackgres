@@ -10,7 +10,7 @@ import java.util.List;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.CustomResource;
 
-public interface DeployedResourcesScanner<T extends CustomResource> {
+public interface DeployedResourcesScanner<T extends CustomResource<?, ?>> {
 
   List<HasMetadata> getDeployedResources(T config);
 }

@@ -7,8 +7,6 @@ package io.stackgres.operator.conciliation.factory.cluster.patroni.v09;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -27,10 +25,9 @@ import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactory;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactoryDiscoverer;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
-import org.jooq.lambda.Seq;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V093)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V094)
 @InitContainer(order = 1)
 public class ScriptsSetUp implements ContainerFactory<StackGresClusterContext> {
 
@@ -50,22 +47,9 @@ public class ScriptsSetUp implements ContainerFactory<StackGresClusterContext> {
         .withName("setup-scripts")
         .withImage(StackGresComponent.KUBECTL.findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
-        .withCommand("/bin/sh", "-ecx", Seq.of(
-            "cp $TEMPLATES_PATH/start-patroni.sh \"$LOCAL_BIN_PATH\"",
-            "cp $TEMPLATES_PATH/start-patroni-with-restore.sh \"$LOCAL_BIN_PATH\"",
-            "cp $TEMPLATES_PATH/post-init.sh \"$LOCAL_BIN_PATH\"",
-            "cp $TEMPLATES_PATH/exec-with-env \"$LOCAL_BIN_PATH\"",
-            "sed -i \"s#\\${POSTGRES_PORT}#${POSTGRES_PORT}#g\""
-                + " \"$LOCAL_BIN_PATH/post-init.sh\"",
-            "sed -i \"s#\\${BASE_ENV_PATH}#${BASE_ENV_PATH}#g\""
-                + " \"$LOCAL_BIN_PATH/exec-with-env\"",
-            "sed -i \"s#\\${BASE_SECRET_PATH}#${BASE_SECRET_PATH}#g\""
-                + " \"$LOCAL_BIN_PATH/exec-with-env\"",
-            "chmod a+x \"$LOCAL_BIN_PATH/start-patroni.sh\"",
-            "chmod a+x \"$LOCAL_BIN_PATH/start-patroni-with-restore.sh\"",
-            "chmod a+x \"$LOCAL_BIN_PATH/post-init.sh\"",
-            "chmod a+x \"$LOCAL_BIN_PATH/exec-with-env\"")
-            .collect(Collectors.joining(" && ")))
+        .withCommand("/bin/sh", "-ex",
+            ClusterStatefulSetPath.TEMPLATES_PATH.path()
+                + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_SCRIPTS_SH_PATH.filename())
         .withEnv(getClusterEnvVars(context))
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context),
             ClusterStatefulSetVolumeConfig.USER.volumeMount(

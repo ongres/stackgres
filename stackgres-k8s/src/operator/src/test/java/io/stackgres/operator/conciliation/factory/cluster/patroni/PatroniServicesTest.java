@@ -124,7 +124,7 @@ class PatroniServicesTest {
   }
 
   @Test
-  void ifPrimaryServiceIsNotDefined_itShouldDefaultToClusterIp() {
+  void ifPrimaryServiceIsNotDefined_itShouldDefaultToExternalName() {
 
     enablePrimaryService(true);
     defaultCluster.getSpec().getPostgresServices().getPrimary().setType(null);
@@ -133,19 +133,34 @@ class PatroniServicesTest {
 
     Service primaryService = getPrimaryService(services);
 
+    assertEquals(StackGresClusterPostgresServiceType.EXTERNAL_NAME.type(),
+        primaryService.getSpec().getType());
+
+  }
+
+  @Test
+  void ifPatroniyServiceIsNotDefined_itShouldDefaultToClusterIp() {
+
+    enablePrimaryService(true);
+    defaultCluster.getSpec().getPostgresServices().getPrimary().setType(null);
+
+    Stream<HasMetadata> services = patroniServices.generateResource(context);
+
+    Service primaryService = getPatroniService(services);
+
     assertEquals(StackGresClusterPostgresServiceType.CLUSTER_IP.type(),
         primaryService.getSpec().getType());
 
   }
 
   @Test
-  void ifPrimaryServiceTypeIsLoadBalancer_serviceTypeShouldBeLoadBalancer() {
+  void ifPatroniServiceTypeIsLoadBalancer_serviceTypeShouldBeLoadBalancer() {
 
     enablePrimaryService(StackGresClusterPostgresServiceType.LOAD_BALANCER);
 
     Stream<HasMetadata> services = patroniServices.generateResource(context);
 
-    Service primaryService = getPrimaryService(services);
+    Service primaryService = getPatroniService(services);
 
     assertEquals(StackGresClusterPostgresServiceType.LOAD_BALANCER.type(),
         primaryService.getSpec().getType());
@@ -153,7 +168,7 @@ class PatroniServicesTest {
   }
 
   @Test
-  void ifPrimaryServiceHasCustomAnnotations_ifShouldBeReflectedOnTheService() {
+  void ifPatroniServiceHasCustomAnnotations_ifShouldBeReflectedOnTheService() {
 
     String key = StringUtil.generateRandom();
     String annotation = StringUtil.generateRandom();
@@ -161,7 +176,7 @@ class PatroniServicesTest {
 
     Stream<HasMetadata> services = patroniServices.generateResource(context);
 
-    Service primaryService = getPrimaryService(services);
+    Service primaryService = getPatroniService(services);
 
     final Map<String, String> annotations = primaryService.getMetadata().getAnnotations();
     assertTrue(annotations.containsKey(key));
@@ -298,10 +313,18 @@ class PatroniServicesTest {
     replica.setAnnotations(annotations);
   }
 
+  private Service getPatroniService(Stream<HasMetadata> services) {
+    return services
+        .filter(s -> s.getKind().equals("Service"))
+        .filter(s -> s.getMetadata().getName().equals(defaultCluster.getMetadata().getName()))
+        .map(s -> (Service) s)
+        .findFirst().orElseGet(() -> fail("No postgres primary service found"));
+  }
+
   private Service getPrimaryService(Stream<HasMetadata> services) {
     return services
         .filter(s -> s.getKind().equals("Service"))
-        .filter(s -> s.getMetadata().getName().equals(PatroniUtil.name(defaultCluster.getMetadata().getName())))
+        .filter(s -> s.getMetadata().getName().equals(PatroniUtil.readWriteName(defaultCluster.getMetadata().getName())))
         .map(s -> (Service) s)
         .findFirst().orElseGet(() -> fail("No postgres primary service found"));
   }

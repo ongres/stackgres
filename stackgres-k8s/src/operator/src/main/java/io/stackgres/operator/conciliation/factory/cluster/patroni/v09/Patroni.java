@@ -51,7 +51,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigM
 import io.stackgres.operator.patroni.factory.PatroniScriptsConfigMap;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V093)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V094)
 @RunningContainer(order = 0)
 public class Patroni implements ContainerFactory<StackGresClusterContext> {
 
@@ -189,7 +189,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContext> {
             .build())
         .withLivenessProbe(new ProbeBuilder()
             .withHttpGet(new HTTPGetActionBuilder()
-                .withNewPath("/cluster")
+                .withPath("/cluster")
                 .withPort(new IntOrString(8008))
                 .withScheme("HTTP")
                 .build())
@@ -219,15 +219,6 @@ public class Patroni implements ContainerFactory<StackGresClusterContext> {
         StackGresContext.PATRONI_VERSION_KEY,
         StackGresComponent.PATRONI.findLatestVersion());
   }
-
-  protected String calculatePostgresVersion(StackGresCluster cluster) {
-    if (cluster.getSpec().getPostgresVersion().startsWith("11")) {
-      return "11.9";
-    } else {
-      return "12.4";
-    }
-  }
-
   private List<EnvVar> getClusterEnvVars(StackGresClusterContext context) {
     List<EnvVar> clusterEnvVars = new ArrayList<>();
 
