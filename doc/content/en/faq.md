@@ -1,11 +1,10 @@
 ---
 title: FAQ
-weight: 9
-pre: "<b>9. </b>"
+weight: 999
 chapter: false
+hidden: true
 url: faq
 ---
-
 
 ## Is StackGres a modified version of Postgres?
 
@@ -18,7 +17,6 @@ StackGres source code is licensed under the [OSI](https://opensource.org/license
 ## Is there a “GPL-free” commercial license for StackGres?
 
 Yes. Contact us at stackgres at ongres doc com if you want a trial or commercial license that does not contain the GPL clauses.
-
 
 ## Will you ever switch from an open-source license to a source-available one?
 
@@ -45,9 +43,9 @@ Yes, we use [pgbouncer](https://www.pgbouncer.org/). Most Postgres DBaaS solutio
 All StackGres container images are built on the [Red Hat Universal Base Image](https://developers.redhat.com/products/rhel/ubi/) (UBI) version 8, which is derived from [RHEL 8](https://www.redhat.com/en/enterprise-linux-8). Red Hat Universal Base Images (UBI) are OCI-compliant container base operating system images with complementary runtime languages and packages that are freely redistributable. UBI lets developers create the image once and deploy anywhere using enterprise-grade packages. For more information read the official [UBI-FAQ](https://developers.redhat.com/articles/ubi-faq/).
 Alpine images are even smaller than UBI. However, they have significant disadvantages. They:
 
-  - Use musl libc, which might trigger performance and/or compatibility problems with PostgreSQL and other components of its ecosystem, including third-party extensions.
-  - Don't have a trusted and long-term roadmap as Red Hat does.
-  - Don't have third-party support, whereas UBI images can be supported with an existing RHEL support contract.
+- Use musl libc, which might trigger performance and/or compatibility problems with PostgreSQL and other components of its ecosystem, including third-party extensions.
+- Don't have a trusted and long-term roadmap as Red Hat does.
+- Don't have third-party support, whereas UBI images can be supported with an existing RHEL support contract.
 
 ## Does StackGres have any affiliation with Red Hat?
 
@@ -68,4 +66,3 @@ No. [OnGres](https://ongres.com/) (“On Postgres”), the company behind StackG
 ## Any other question?
 
 If you think we should add answers to other questions, please [file an issue on our repository](https://gitlab.com/ongresinc/stackgres/issues/new)!
-
