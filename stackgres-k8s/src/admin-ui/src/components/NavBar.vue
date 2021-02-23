@@ -211,7 +211,7 @@
 				const vc = this;
 
 				axios
-				.post(process.env.VUE_APP_API_URL + '/auth/login',{
+				.post('/stackgres/auth/login',{
 					username: this.loginUser,
 					password: this.loginPassword	
 				})
@@ -294,7 +294,7 @@
 
 				const res = axios
 				.post(
-					process.env.VUE_APP_API_URL + '//' + endpoint, 
+					'/stackgres' + endpoint, 
 					store.state.cloneCRD.data 
 				)
 				.then(function (response) {
@@ -332,7 +332,7 @@
 					$("#delete .warning").fadeOut();
 
 					const res = axios
-					.delete(process.env.VUE_APP_API_URL + '/' + item.kind, 
+					.delete('/stackgres/' + item.kind, 
 					{
 						data: {
 							"metadata": {

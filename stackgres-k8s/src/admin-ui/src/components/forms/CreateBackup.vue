@@ -1,5 +1,5 @@
 <template>
-    <form id="create-backup" v-if="loggedIn && isReady">
+    <form id="create-backup" v-if="loggedIn && isReady" @submit.prevent="createBackup()">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(backup).length > 0"></template>
         <header>
@@ -181,7 +181,7 @@
                     if(this.editMode) {
                         const res = axios
                         .put(
-                            process.env.VUE_APP_API_URL + '/sgbackup/', 
+                            '/stackgres/sgbackup/', 
                             backup 
                         )
                         .then(function (response) {
@@ -198,7 +198,7 @@
                     } else {
                         const res = axios
                         .post(
-                            process.env.VUE_APP_API_URL + '/sgbackup/', 
+                            '/stackgres/sgbackup/', 
                             backup 
                         )
                         .then(function (response) {

@@ -70,7 +70,7 @@ export const mixin = {
   
         // Read and set user permissions
         axios
-        .get(process.env.VUE_APP_API_URL + '/auth/rbac/can-i')
+        .get('/stackgres/auth/rbac/can-i')
         .then( function(response) {
           //console.log(response.data)
           store.commit('setPermissions', response.data);
@@ -82,7 +82,7 @@ export const mixin = {
         if ( !store.state.permissions.forbidden.includes('namespaces') && ( !kind.length || (kind == 'namespaces') ) ) {
           /* Namespaces Data */
           axios
-          .get(process.env.VUE_APP_API_URL + '/namespace')
+          .get('/stackgres/namespace')
           .then( function(response){
   
             store.commit('addNamespaces', response.data);
@@ -96,7 +96,7 @@ export const mixin = {
         if ( !store.state.permissions.forbidden.includes('sgclusters') && ( !kind.length || (kind == 'cluster') ) ){
           /* Clusters Data */
           axios
-          .get(process.env.VUE_APP_API_URL + '/sgcluster',
+          .get('/stackgres/sgcluster',
             { headers: {
                 'content-type': 'application/json'
               }
@@ -118,7 +118,7 @@ export const mixin = {
                 store.commit('updateNamespaces', item.metadata.namespace);
 
               axios
-                .get(process.env.VUE_APP_API_URL + '/sgcluster/stats/'+item.metadata.namespace+'/'+item.metadata.name,
+                .get('/stackgres/sgcluster/stats/'+item.metadata.namespace+'/'+item.metadata.name,
                     { headers: {
                         'content-type': 'application/json'
                     }
@@ -154,7 +154,7 @@ export const mixin = {
           
           /* Backups */
           axios
-          .get(process.env.VUE_APP_API_URL + '/sgbackup',
+          .get('/stackgres/sgbackup',
             { headers: {
               'content-type': 'application/json'
             }
@@ -215,7 +215,7 @@ export const mixin = {
   
           /* PostgreSQL Config */
           axios
-          .get(process.env.VUE_APP_API_URL + '/sgpgconfig',
+          .get('/stackgres/sgpgconfig',
             { headers: {
               'content-type': 'application/json'
             }
@@ -248,7 +248,7 @@ export const mixin = {
   
           /* Connection Pooling Config */
           axios
-          .get(process.env.VUE_APP_API_URL + '/sgpoolconfig',
+          .get('/stackgres/sgpoolconfig',
             { headers: {
               'content-type': 'application/json'
             }
@@ -280,7 +280,7 @@ export const mixin = {
   
           /* Backup Config */
           axios
-          .get(process.env.VUE_APP_API_URL + '/sgbackupconfig',
+          .get('/stackgres/sgbackupconfig',
             { headers: {
               'content-type': 'application/json'
             }
@@ -314,7 +314,7 @@ export const mixin = {
   
           /* Profiles */
           axios
-          .get(process.env.VUE_APP_API_URL + '/sginstanceprofile',
+          .get('/stackgres/sginstanceprofile',
             { headers: {
               'content-type': 'application/json'
             }
@@ -346,7 +346,7 @@ export const mixin = {
         if (!store.state.permissions.forbidden.includes('storageclasss') && ( !kind.length || (kind == 'storageclass') )) {
           /* Storage Classes Data */
           axios
-          .get(process.env.VUE_APP_API_URL + '/storageclass',
+          .get('/stackgres/storageclass',
             { headers: {
                 //'content-type': 'application/json'
               }
@@ -365,7 +365,7 @@ export const mixin = {
         if (!store.state.permissions.forbidden.includes('sgdistributedlogs') && ( !kind.length || (kind == 'sgdistributedlogs') ) ){
           /* Distribude Logs Data */
           axios
-          .get(process.env.VUE_APP_API_URL + '/sgdistributedlogs',
+          .get('/stackgres/sgdistributedlogs',
             { headers: {
                 //'content-type': 'application/json'
               }

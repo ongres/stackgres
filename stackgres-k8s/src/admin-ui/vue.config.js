@@ -4,9 +4,9 @@ module.exports = {
     lintOnSave: false,
     devServer:{
       proxy: {
-        [process.env.VUE_APP_API_URL]: {
+        '^/stackgres': {
           target: process.env.VUE_APP_API_PROXY_URL,
-          pathRewrite: { ['^'+process.env.VUE_APP_API_URL]: '' },
+          pathRewrite: { '^/stackgres' : '' },
           changeOrigin: true,
           secure: false,
           logLevel: 'debug'
