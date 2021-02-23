@@ -1,5 +1,5 @@
 <template>
-    <form id="create-cluster" class="noSubmit" v-if="loggedIn && isReady">
+    <form id="create-cluster" class="noSubmit" v-if="loggedIn && isReady" @submit.prevent="createCluster()">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(cluster).length > 0"></template>
         <header>
@@ -920,7 +920,7 @@
                     if(this.editMode) {
                         const res = axios
                         .put(
-                            process.env.VUE_APP_API_URL + '/sgcluster/', 
+                            '/stackgres/sgcluster/', 
                             cluster 
                         )
                         .then(function (response) {
@@ -937,7 +937,7 @@
                     } else {
                         const res = axios
                         .post(
-                            process.env.VUE_APP_API_URL + '/sgcluster/', 
+                            '/stackgres/sgcluster/', 
                             cluster 
                         )
                         .then(function (response) {

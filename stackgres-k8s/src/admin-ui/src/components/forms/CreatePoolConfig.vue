@@ -1,5 +1,5 @@
 <template>
-    <form id="create-poolConfig" v-if="loggedIn && isReady">
+    <form id="create-poolConfig" v-if="loggedIn && isReady" @submit.prevent="createPoolConfig()">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
         <header>
@@ -162,7 +162,7 @@
                     if(this.editMode) {
                         const res = axios
                         .put(
-                            process.env.VUE_APP_API_URL + '/sgpoolconfig/', 
+                            '/stackgres/sgpoolconfig/', 
                             config 
                         )
                         .then(function (response) {
@@ -179,7 +179,7 @@
                     } else {
                         const res = axios
                         .post(
-                            process.env.VUE_APP_API_URL + '/sgpoolconfig/', 
+                            '/stackgres/sgpoolconfig/', 
                             config 
                         )
                         .then(function (response) {

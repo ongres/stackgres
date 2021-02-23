@@ -422,7 +422,7 @@ router.beforeResolve((to, from, next) => {
     if(to.params.hasOwnProperty('namespace')) {
       
       axios
-      .get(process.env.VUE_APP_API_URL + '/namespace')
+      .get('/stackgres/namespace')
       .then( function(response){
         store.commit('addNamespaces',response.data)
         if(response.data.includes(to.params.namespace)) {
@@ -447,7 +447,7 @@ router.beforeResolve((to, from, next) => {
       case 'ClusterStatus':
 
         axios
-        .get(process.env.VUE_APP_API_URL + '/sgcluster')
+        .get('/stackgres/sgcluster')
         .then( function(response){
 
           var found = false,
@@ -456,7 +456,7 @@ router.beforeResolve((to, from, next) => {
             if(component == 'ClusterStatus') {
               /* Check for Cluster status */
               axios
-              .get(process.env.VUE_APP_API_URL + '/sgcluster/stats/'+to.params.namespace+'/'+to.params.name)
+              .get('/stackgres/sgcluster/stats/'+to.params.namespace+'/'+to.params.name)
               .then( function(resp){
                 stats = resp.data;
               }).catch(function(error) {
@@ -500,7 +500,7 @@ router.beforeResolve((to, from, next) => {
       case 'CreateProfile':
         /* Check if Profile exists */
         axios
-        .get(process.env.VUE_APP_API_URL + '/sginstanceprofile')
+        .get('/stackgres/sginstanceprofile')
         .then( function(response){
 
           var found = false
@@ -534,7 +534,7 @@ router.beforeResolve((to, from, next) => {
         
         /* Check if Postgres Config exists */
         axios
-        .get(process.env.VUE_APP_API_URL + '/sgpgconfig')
+        .get('/stackgres/sgpgconfig')
         .then( function(response){
 
           var found = false
@@ -568,7 +568,7 @@ router.beforeResolve((to, from, next) => {
 
         /* Check if PgBouncer Config exists */
         axios
-        .get(process.env.VUE_APP_API_URL + '/sgpoolconfig')
+        .get('/stackgres/sgpoolconfig')
         .then( function(response){
 
           var found = false
@@ -601,7 +601,7 @@ router.beforeResolve((to, from, next) => {
       case 'CreateBackupConfig':
         /* Check if BackupConfig Config exists */
         axios
-        .get(process.env.VUE_APP_API_URL + '/sgbackupconfig')
+        .get('/stackgres/sgbackupconfig')
         .then( function(response){
 
           var found = false
@@ -636,7 +636,7 @@ router.beforeResolve((to, from, next) => {
         if(to.params.hasOwnProperty('cluster')) {
 
           axios
-          .get(process.env.VUE_APP_API_URL + '/sgcluster')
+          .get('/stackgres/sgcluster')
           .then( function(response){
   
             var found = false
@@ -670,7 +670,7 @@ router.beforeResolve((to, from, next) => {
           });
 
           axios
-          .get(process.env.VUE_APP_API_URL + '/sgbackup')
+          .get('/stackgres/sgbackup')
           .then( function(response){ 
             var found = false,
                 duration = '';
@@ -706,7 +706,7 @@ router.beforeResolve((to, from, next) => {
         } else {
           
           axios
-          .get(process.env.VUE_APP_API_URL + '/sgbackup')
+          .get('/stackgres/sgbackup')
           .then( function(response){
 
             var found = false
@@ -747,7 +747,7 @@ router.beforeResolve((to, from, next) => {
 
         /* Check if requested Logs Server exists */
         axios
-        .get(process.env.VUE_APP_API_URL + '/sgdistributedlogs')
+        .get('/stackgres/sgdistributedlogs')
         .then( function(response){
 
           var found = false
@@ -809,12 +809,8 @@ router.beforeResolve((to, from, next) => {
 
     let cluster = store.state.clusters.find(c => ( (to.params.name == c.name) && (to.params.namespace == c.data.metadata.namespace) ) );
     
-    if ( typeof cluster !== "undefined" ) {
-      
+    if ( typeof cluster !== "undefined" ) { 
       store.commit('setCurrentCluster', cluster);
-    }  else {
-      //alert("Not found");
-      //window.location.href = '/admin/not-found.html';
     }
 
     $('.clu li.current').removeClass('current');
@@ -823,15 +819,6 @@ router.beforeResolve((to, from, next) => {
   }
 
   if (to.matched.some(record => record.meta.conditionalRoute)) { 
-      // this route requires condition to be accessed
-      // if not, redirect to home page.
-      //var nav = document.getElementById("nav"); 
-
-      //console.log(to);
-
-	    //console.log(router.history.current);
-
-
       if (store.state.currentCluster == {} && ( from.path.includes("profiles") || from.path.includes("configurations") ) && (to.path != ('/admin/configuration/'+to.params.name)) ) { 
           next({ path: '/admin/'}) 
       } else { 

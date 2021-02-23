@@ -1,5 +1,5 @@
 <template>
-    <form id="create-logs-server" class="noSubmit" v-if="loggedIn && isReady">
+    <form id="create-logs-server" class="noSubmit" v-if="loggedIn && isReady" @submit.prevent="createCluster()">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(cluster).length > 0"></template>
 
@@ -225,7 +225,7 @@
                     if(this.editMode) {
                         const res = axios
                         .put(
-                            process.env.VUE_APP_API_URL + '/sgdistributedlogs/', 
+                            '/stackgres/sgdistributedlogs/', 
                             cluster 
                         )
                         .then(function (response) {
@@ -242,7 +242,7 @@
                     } else {
                         const res = axios
                         .post(
-                            process.env.VUE_APP_API_URL + '/sgdistributedlogs/', 
+                            '/stackgres/sgdistributedlogs/', 
                             cluster 
                         )
                         .then(function (response) {

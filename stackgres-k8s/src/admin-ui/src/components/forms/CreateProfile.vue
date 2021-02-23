@@ -1,5 +1,5 @@
 <template>
-    <form id="create-profile" v-if="loggedIn && isReady">
+    <form id="create-profile" v-if="loggedIn && isReady" @submit.prevent="createProfile()">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
 
@@ -190,7 +190,7 @@
                     if(this.editMode) {
                         axios
                         .put(
-                            process.env.VUE_APP_API_URL + '/sginstanceprofile', 
+                            '/stackgres/sginstanceprofile', 
                             profile 
                         )
                         .then(function (response) {
@@ -208,7 +208,7 @@
                     } else {
                         axios
                         .post(
-                            process.env.VUE_APP_API_URL + '/sginstanceprofile', 
+                            '/stackgres/sginstanceprofile', 
                             profile 
                         )
                         .then(function (response) {

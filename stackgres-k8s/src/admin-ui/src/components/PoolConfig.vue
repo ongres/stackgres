@@ -185,18 +185,12 @@
 			});
 
 			// Show configurations details when the row is clicked
-			$(document).on('click', 'table.connectionpooling tr.base > td:not(.actions)', function(){    
+			$(document).on('click', 'table.poolConfig tr.base > td:not(.actions)', function(){    
 				const table = $(this).parents('table');
 				if(!$(this).parent().hasClass('open')) {
-					if(table.hasClass('configurations'))
-						router.push('/configurations/'+table.prop('id')+'/'+vc.$route.params.namespace+'/'+$(this).parent().data('name'))
-					else
-						router.push('/'+table.prop('id')+'/'+vc.$route.params.namespace+'/'+$(this).parent().data('name'))
+					router.push('/configurations/connectionpooling/'+vc.$route.params.namespace+'/'+$(this).parent().data('name'))
 				} else {
-					if(table.hasClass('configurations'))
-						router.push('/configurations/'+table.prop('id')+'/'+vc.$route.params.namespace)
-					else
-						router.push('/'+$(this).parents('table').prop('id')+'/'+vc.$route.params.namespace)
+					router.push('/configurations/connectionpooling/'+vc.$route.params.namespace)
 				}
 			})
 		}

@@ -10,29 +10,15 @@ To install all node dependencies run:
 npm install
 ```
 
-## Environment Variables
-
-In order to enable API access to the UI, the environment variable for the API server must be provided.
-
-```sh
-VUE_APP_API_URL=/stackgres                              # Base API url
-```
+## Local deploy with API proxy
 
 When working on development mode, and if connecting to an external API, an extra variable must be set in order to enable the proxy to bypass CORS validations:
 
 ```sh
-VUE_APP_API_URL=/apiURL                                 # Local Proxy
 VUE_APP_API_PROXY_URL=https://api.host.com/stackgres    # External API address
 ```
 
-You can specify these variables by placing them in the corresponding mode files in project's root folder:
-
-```sh
-.env                # loaded in all cases
-.env.local          # loaded in all cases, used only in your local environment, ignored by git
-.env.[mode]         # only loaded in specified mode
-.env.[mode].local   # only loaded in specified mode, used only in your local environment, ignored by git (PREFERED METHOD)
-```
+You can specify this variable either manually on each run, or by placing it in the `.env.development.local` file in the project's root folder. Be aware that this variable will be used only on your local development environment.
 
 ## Running the UI (Compiles and hot-reloads for development)
 

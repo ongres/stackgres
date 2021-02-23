@@ -1,5 +1,5 @@
 <template>
-    <form id="create-backup-config" v-if="loggedIn && isReady">
+    <form id="create-backup-config" v-if="loggedIn && isReady" @submit.prevent="createBackupConfig()">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
 
@@ -658,7 +658,7 @@
                         
                         const res = axios
                         .put(
-                            process.env.VUE_APP_API_URL + '/sgbackupconfig/', 
+                            '/stackgres/sgbackupconfig/', 
                             config 
                         )
                         .then(function (response) {
@@ -675,7 +675,7 @@
                     } else {
                         const res = axios
                         .post(
-                            process.env.VUE_APP_API_URL + '/sgbackupconfig/', 
+                            '/stackgres/sgbackupconfig/', 
                             config 
                         )
                         .then(function (response) {
