@@ -3,9 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.common.kubernetes;
+package io.stackgres.common.workaround;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.DoneableService;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceList;
@@ -15,12 +14,7 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.ServiceResource;
 import okhttp3.OkHttpClient;
 
-/**
- * Class for Default Kubernetes Client implementing KubernetesClient interface.
- * It is thread safe.
- */
-@SuppressFBWarnings(value = "NM_SAME_SIMPLE_NAME_AS_SUPERCLASS",
-    justification = "Intentional name shadowing")
+//CHECKSTYLE:OFF
 public class DefaultKubernetesClient extends io.fabric8.kubernetes.client.DefaultKubernetesClient {
 
   public DefaultKubernetesClient() throws KubernetesClientException {

@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <FindBugsFilter>
 
-  <!-- Ignore Generated source code -->
+  <!-- Ignore Generated source code and workarounds -->
   <Match>
     <Or>
       <Package name="~.*\.generated\..*" />
-      <Source name="~.*generated-sources.*\.java" />
+      <Source name="~.*/generated-sources/.*\.java" />
+      <Package name="~.*\.workaround\..*" />
+      <Source name="~.*/workaround/.*\.java" />
     </Or>
   </Match>
 

@@ -723,7 +723,8 @@ var Logs = Vue.component("Logs", {
 				if(($('table.logs').height() - 40) > $('table.logs > tbody').height()) {
 					vc.records = parseInt((window.innerHeight - 350) / 30);
 					vc.getLogs(vc.records);
-				}			
+				}
+					
 			})
 
 		});
