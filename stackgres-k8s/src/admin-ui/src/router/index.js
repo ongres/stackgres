@@ -160,6 +160,14 @@ const routes = [
     },
   },
   { 
+    path: '/index.html', 
+    component: ClusterOverview,
+    name: 'BaseUrlIndex',
+    meta: {
+      conditionalRoute: false
+    },
+  },
+  { 
     path: '/overview', 
     component: ClusterOverview,
     name: 'ClusterOverviewEmpty',
@@ -783,7 +791,7 @@ router.beforeResolve((to, from, next) => {
   }
 
   // Redirect to default namespace overview if in base url
-  if(to.name == 'BaseUrl') {
+  if(to.name.includes('BaseUrl')) {
     router.push('/overview/default')
     store.commit('setCurrentNamespace', 'default');
     store.commit('setCurrentPath', {
