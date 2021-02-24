@@ -55,6 +55,7 @@ build_components() {
   (
   cd "$STACKGRES_PATH/src"
   ./mvnw -q clean package -DskipTests
+  sh api-web/src/main/swagger/build.sh
   )
 }
 
@@ -89,7 +90,10 @@ build_distributedlogs_controller_image() {
 build_adminui_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh admin-ui/build.sh; sh admin-ui/buildah/build.sh
+  sh -x admin-ui/npmw install
+  sh admin-ui/npmw run build
+  sh admin-ui/build.sh
+  sh admin-ui/buildah/build.sh
   )
 }
 
