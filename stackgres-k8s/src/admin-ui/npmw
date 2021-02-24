@@ -1,7 +1,7 @@
 #!/bin/sh
 PROJECT_PATH="$(realpath "$(dirname "$0")")"
 CONTAINER_NAME="${CONTAINER_NAME:-npmw-$(printf '%x' "$(date +%s)")}"
-docker run "$([ -t 1 ] && echo '-i' || echo '-it')" \
+docker run "$([ -t 1 ] && echo '-it' || echo '-i')" \
   --network host \
   --rm --name "$CONTAINER_NAME" \
   -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro \
