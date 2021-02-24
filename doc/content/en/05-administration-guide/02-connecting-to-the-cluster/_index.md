@@ -7,4 +7,4 @@ description: This page contains details about how to connect on the StackGres cl
 
 This page contains details about how to connect on the StackGres cluster.
 
-{{% children style="li" depth="1" description="true" %}}
+{{% children style="li" depth="1" description="true/_index.md" %}}
