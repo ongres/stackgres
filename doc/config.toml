@@ -26,16 +26,18 @@ home = [ "HTML", "RSS", "JSON"]
 		languageName = "English"
 		contentDir = "content/en"
 
-  [[Languages.en.menu.shortcuts]]
-    name = "<i class='fas fa-question-circle'></i> &nbsp;FAQ"
-    identifier = "faq"
-    url = "https://stackgres.io/doc/latest/faq"
-    weight = 10
-  [[Languages.en.menu.shortcuts]]
-    name = "<i class='fab fa-fw fa-gitlab'></i> GitLab repo"
-    identifier = "ds"
-    url = "https://gitlab.com/ongresinc/stackgres"
-    weight = 11
+        # Footer shortcuts menu
+        [[languages.en.menu.shortcuts]]
+            name = "<i class='fas fa-question-circle'></i> &nbsp;FAQ"
+            identifier = "faq"
+            url = "https://stackgres.io/doc/latest/faq"
+            weight = 10
+        
+        [[languages.en.menu.shortcuts]]
+            name = "<i class='fab fa-fw fa-gitlab'></i> GitLab repo"
+            identifier = "ds"
+            url = "https://gitlab.com/ongresinc/stackgres"
+            weight = 11
 
         # Main Menu EN
         [[languages.en.menu.main]]
