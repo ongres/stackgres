@@ -294,7 +294,7 @@
 
 				const res = axios
 				.post(
-					'/stackgres' + endpoint, 
+					'/stackgres/' + endpoint, 
 					store.state.cloneCRD.data 
 				)
 				.then(function (response) {
