@@ -30,16 +30,16 @@ my-db-cluster-2   5/5     Running   0          74s
 sgcluster.stackgres.io "my-db-cluster" deleted
 
 ## Check if the pods were deleted
-❯ kubectl get pods -n default             
+❯ kubectl get pods -n default
 No resources found in default namespace.
 ```
 
 ### Other objects
 
-The `SGCluster` depends on other objects to work properly, such as [instance profiles]({{% relref "/05-crd-reference/02-instance-profiles" %}}),
- [postgres configurations]({{% relref "/05-crd-reference/03-postgres-configuration" %}}), [connection pooling]({{% relref "/05-crd-reference/04-connection-pooling-configuration/" %}}),
- [backup configurations]({{% relref "/05-crd-reference/05-backup-config/" %}}), [backups]({{% relref "/05-crd-reference/06-backups/" %}}),
- [distributed logs]({{% relref "/05-crd-reference/07-distributed-logs" %}}), .
+The `SGCluster` depends on other objects to work properly, such as [instance profiles]({{% relref "/05-crd-reference/02-sginstanceprofile" %}}),
+ [postgres configurations]({{% relref "/05-crd-reference/03-sgpostgresconfig" %}}), [connection pooling]({{% relref "/05-crd-reference/04-sgpoolingconfig/" %}}),
+ [backup configurations]({{% relref "/05-crd-reference/05-sgbackupconfig/" %}}), [backups]({{% relref "/05-crd-reference/06-sgbackup/" %}}),
+ [distributed logs]({{% relref "/05-crd-reference/07-sgdistributedlogs" %}}), .
  Execute the commands below to find and delete those objects:
 
 ```bash

@@ -69,9 +69,9 @@ spec:
 EOF
 ```
 
-But not only the Instance Profile, you can instruct StackGres to changes PostgreSQL configuration using the CR [SGPostgresConfig]({{% relref "05-crd-reference/03-postgres-configuration" %}})
- or the PGBouncer setting with [SGPoolingConfig]({{% relref "05-crd-reference/04-connection-pooling-configuration" %}})
- and more, like the backup specification using [SGBackupConfig]({{% relref "05-crd-reference/05-backup-config" %}})
+But not only the Instance Profile, you can instruct StackGres to changes PostgreSQL configuration using the CR [SGPostgresConfig]({{% relref "05-crd-reference/03-sgpostgresconfig" %}})
+ or the PGBouncer setting with [SGPoolingConfig]({{% relref "05-crd-reference/04-sgpoolingconfig" %}})
+ and more, like the backup specification using [SGBackupConfig]({{% relref "05-crd-reference/05-sgbackupconfig" %}})
 
 The next code snippets will show you how to play with these CRs.
 
@@ -289,7 +289,7 @@ data:
 EOF
 ```
 
-Finally create the SGDistributedLogs CR to enable a [distributed log cluster]({{% relref "05-crd-reference/07-distributed-logs" %}}):
+Finally create the SGDistributedLogs CR to enable a [distributed log cluster]({{% relref "05-crd-reference/07-sgdistributedlogs" %}}):
 
 ```yaml
 cat << EOF | kubectl apply -f -
