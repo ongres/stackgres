@@ -8,6 +8,7 @@ package io.stackgres.common.extension;
 import java.net.URI;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,7 @@ import java.util.Optional;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableList;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.WebClientFactory.WebClient;
@@ -77,9 +79,7 @@ public abstract class ExtensionMetadataManager {
     return Optional
         .ofNullable(getExtensionsMetadata().indexSameMajorBuilds
             .get(new StackGresExtensionIndexSameMajorBuild(cluster, extension)))
-        .orElseThrow(
-            () -> new IllegalArgumentException("Can not find available version of extension "
-                + ExtensionUtil.getDescription(cluster, extension)));
+        .orElse(ImmutableList.of());
   }
 
   public StackGresExtensionMetadata getExtensionCandidateAnyVersion(
@@ -97,9 +97,11 @@ public abstract class ExtensionMetadataManager {
     return Optional
         .ofNullable(getExtensionsMetadata().indexedAnyVersions
             .get(new StackGresExtensionIndexAnyVersion(cluster, extension)))
-        .orElseThrow(
-            () -> new IllegalArgumentException("Can not find any version of extension "
-                + ExtensionUtil.getDescription(cluster, extension)));
+        .orElse(ImmutableList.of());
+  }
+
+  public Collection<StackGresExtensionMetadata> getExtensions() throws Exception {
+    return getExtensionsMetadata().index.values();
   }
 
   private ExtensionMetadataCache getExtensionsMetadata()

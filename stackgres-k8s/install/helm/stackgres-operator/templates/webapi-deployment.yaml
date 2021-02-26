@@ -72,6 +72,8 @@ spec:
           - name: USE_ARBITRARY_USER
             value: "true"
           {{- end }}
+          - name: EXTENSIONS_REPOSITORY_URLS
+            value: "{{ range $index, $element := .Values.extensions.repositoryUrls }}{{ if $index }},{{ end }}{{ $element }}{{ end }}"
         ports:
         - containerPort: 8080
           name: "resthttp"

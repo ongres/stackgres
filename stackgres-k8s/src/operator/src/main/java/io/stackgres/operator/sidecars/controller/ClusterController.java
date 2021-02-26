@@ -68,7 +68,7 @@ public class ClusterController implements StackGresClusterSidecarResourceFactory
             new EnvVarBuilder()
             .withName(ClusterControllerProperty.CLUSTER_CONTROLLER_EXTENSIONS_REPOSITORY_URLS
                 .getEnvironmentVariableName())
-            .withValue(OperatorProperty.OPERATOR_EXTENSIONS_REPOSITORY_URLS
+            .withValue(OperatorProperty.EXTENSIONS_REPOSITORY_URLS
                 .getString())
             .build(),
             new EnvVarBuilder()
@@ -172,7 +172,7 @@ public class ClusterController implements StackGresClusterSidecarResourceFactory
             new EnvVarBuilder()
             .withName(ClusterControllerProperty.CLUSTER_CONTROLLER_EXTENSIONS_REPOSITORY_URLS
                 .getEnvironmentVariableName())
-            .withValue(OperatorProperty.OPERATOR_EXTENSIONS_REPOSITORY_URLS
+            .withValue(OperatorProperty.EXTENSIONS_REPOSITORY_URLS
                 .getString())
             .build(),
             new EnvVarBuilder()

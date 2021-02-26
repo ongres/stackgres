@@ -13,7 +13,9 @@ import org.jooq.lambda.Unchecked;
 public enum WebApiProperty implements StackGresPropertyReader {
 
   RESTAPI_NAMESPACE("stackgres.restapiNamespace"),
-  GRAFANA_EMBEDDED("stackgres.prometheus.grafanaEmbedded");
+  GRAFANA_EMBEDDED("stackgres.prometheus.grafanaEmbedded"),
+  EXTENSIONS_REPOSITORY_URLS(
+      "stackgres.extensionsRepositoryUrls");
 
   private static final Properties APPLICATION_PROPERTIES =
       Unchecked.supplier(() -> StackGresPropertyReader

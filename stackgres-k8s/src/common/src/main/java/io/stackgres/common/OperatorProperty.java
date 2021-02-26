@@ -18,8 +18,8 @@ public enum OperatorProperty implements StackGresPropertyReader {
   GRAFANA_EMBEDDED("stackgres.prometheus.grafanaEmbedded"),
   AUTHENTICATION_SECRET_NAME("stackgres.authentication.secretName"),
   USE_ARBITRARY_USER("stackgres.useArbitraryUser"),
-  OPERATOR_EXTENSIONS_REPOSITORY_URLS(
-      "stackgres.operatorExtensionsRepositoryUrls");
+  EXTENSIONS_REPOSITORY_URLS(
+      "stackgres.extensionsRepositoryUrls");
 
   private static final Properties APPLICATION_PROPERTIES =
       Unchecked.supplier(() -> StackGresPropertyReader

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.mutation.cluster;
+package io.stackgres.apiweb.rest;
 
 import java.net.URI;
 
@@ -11,22 +11,22 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
+import io.stackgres.apiweb.config.WebApiProperty;
+import io.stackgres.apiweb.config.WebApiPropertyContext;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.extension.ExtensionMetadataManager;
-import io.stackgres.operator.configuration.OperatorPropertyContext;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
 public class ClusterExtensionMetadataManager extends ExtensionMetadataManager {
 
   @Inject
-  public ClusterExtensionMetadataManager(OperatorPropertyContext propertyContext) {
+  public ClusterExtensionMetadataManager(WebApiPropertyContext propertyContext) {
     super(
         new WebClientFactory(),
         Seq.of(propertyContext.getStringArray(
-            OperatorProperty.EXTENSIONS_REPOSITORY_URLS))
+            WebApiProperty.EXTENSIONS_REPOSITORY_URLS))
             .map(URI::create)
             .collect(ImmutableList.toImmutableList()));
   }

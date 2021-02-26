@@ -70,7 +70,7 @@ public class DistributedLogsController implements ContainerResourceFactory<Void,
             .withName(DistributedLogsControllerProperty
                 .DISTRIBUTEDLOGS_CONTROLLER_EXTENSIONS_REPOSITORY_URLS
                 .getEnvironmentVariableName())
-            .withValue(OperatorProperty.OPERATOR_EXTENSIONS_REPOSITORY_URLS
+            .withValue(OperatorProperty.EXTENSIONS_REPOSITORY_URLS
                 .getString())
             .build(),
             new EnvVarBuilder()
@@ -189,7 +189,7 @@ public class DistributedLogsController implements ContainerResourceFactory<Void,
             .withName(DistributedLogsControllerProperty
                 .DISTRIBUTEDLOGS_CONTROLLER_EXTENSIONS_REPOSITORY_URLS
                 .getEnvironmentVariableName())
-            .withValue(OperatorProperty.OPERATOR_EXTENSIONS_REPOSITORY_URLS
+            .withValue(OperatorProperty.EXTENSIONS_REPOSITORY_URLS
                 .getString())
             .build(),
             new EnvVarBuilder()
