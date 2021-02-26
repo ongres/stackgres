@@ -26,7 +26,6 @@ import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
-import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operatorframework.resource.ConditionUpdater;

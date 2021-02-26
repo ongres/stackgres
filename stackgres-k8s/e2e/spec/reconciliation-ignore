@@ -74,7 +74,7 @@ ignore_sgcluster_patch(){
 
   wait_until has_cluster_generated_resources
 
-  kubectl annotate sgcluster "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=true" --overwrite
+  kubectl annotate sgcluster "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=true"
 
   patch_sgcluster_instances "2"
 
@@ -126,11 +126,12 @@ EOF
 }
 
 ignore_sgdistributedlogs_patch(){
+  
   kubectl annotate sgdistributedlogs "$CLUSTER_NAME-logs" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=false" --overwrite
 
   wait_until has_logs_generated_resources
 
-  kubectl annotate sgdistributedlogs "$CLUSTER_NAME-logs" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=true" --overwrite
+  kubectl annotate sgdistributedlogs "$CLUSTER_NAME-logs" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=true"  --overwrite
 
   kubectl patch sts "$CLUSTER_NAME-logs" -n "$CLUSTER_NAMESPACE" --type='json' \
     -p='[{"op": "replace", "path": "/spec/replicas", "value": 2}]'

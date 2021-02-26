@@ -34,6 +34,11 @@ public class PatroniServices implements
 
   private LabelFactory<StackGresDistributedLogs> labelFactory;
 
+  public static String name(DistributedLogsContext clusterContext) {
+    String name = clusterContext.getSource().getMetadata().getName();
+    return PatroniUtil.name(name);
+  }
+
   public static String readWriteName(DistributedLogsContext clusterContext) {
     String name = clusterContext.getSource().getMetadata().getName();
     return PatroniUtil.readWriteName(name);
@@ -64,10 +69,11 @@ public class PatroniServices implements
     Service config = createConfigService(namespace, configName(context),
         clusterLabels, context);
 
+    Service patroni = createPatroniService(context);
     Service primary = createPrimaryService(context);
     Service replicas = createReplicaService(context);
 
-    return Stream.of(config, primary, replicas);
+    return Stream.of(config, patroni, primary, replicas);
   }
 
   private Service createConfigService(String namespace, String serviceName,
@@ -86,24 +92,18 @@ public class PatroniServices implements
         .build();
   }
 
-  private Service createPrimaryService(DistributedLogsContext context) {
-
+  private Service createPatroniService(DistributedLogsContext context) {
     StackGresDistributedLogs cluster = context.getSource();
 
     final Map<String, String> primaryLabels = labelFactory.patroniPrimaryLabels(cluster);
 
-    final String namespace = cluster.getMetadata().getNamespace();
-    final String serviceName = readWriteName(context);
-
     return new ServiceBuilder()
         .withNewMetadata()
-        .withNamespace(namespace)
-        .withName(serviceName)
+        .withNamespace(cluster.getMetadata().getNamespace())
+        .withName(name(context))
         .withLabels(primaryLabels)
-        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .withNewSpec()
-        .withSelector(primaryLabels)
         .withPorts(new ServicePortBuilder()
                 .withProtocol("TCP")
                 .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
@@ -117,6 +117,26 @@ public class PatroniServices implements
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME))
                 .build())
         .withType(StackGresClusterPostgresServiceType.CLUSTER_IP.type())
+        .endSpec()
+        .build();
+  }
+
+  private Service createPrimaryService(DistributedLogsContext context) {
+
+    StackGresDistributedLogs cluster = context.getSource();
+
+    final Map<String, String> primaryLabels = labelFactory.clusterLabels(cluster);
+
+    return new ServiceBuilder()
+        .withNewMetadata()
+        .withNamespace(cluster.getMetadata().getNamespace())
+        .withName(readWriteName(context))
+        .withLabels(primaryLabels)
+        .endMetadata()
+        .withNewSpec()
+        .withType("ExternalName")
+        .withExternalName(name(context) + "." + cluster.getMetadata().getNamespace()
+            + ".svc.cluster.local")
         .endSpec()
         .build();
   }

@@ -26,7 +26,6 @@ import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsCondition;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
@@ -149,8 +148,6 @@ public class DistributedLogsStatusManager
     }
     distributedLogs.getStatus().setConditions(conditions);
   }
-
-
 
   protected StackGresDistributedLogsCondition getFalsePendingRestart() {
     return DistributedLogsStatusCondition.FALSE_PENDING_RESTART.getCondition();
