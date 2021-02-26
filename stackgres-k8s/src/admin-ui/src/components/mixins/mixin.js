@@ -89,7 +89,7 @@ export const mixin = {
 
           }).catch(function(err) {
             console.log(err);
-            checkAuthError(err);
+            vc.checkAuthError(err);
           });
         }
   
