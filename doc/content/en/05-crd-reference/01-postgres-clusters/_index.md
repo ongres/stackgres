@@ -68,17 +68,15 @@ Holds custom annotations for StackGres generated resources to have.
 | services                      |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.metadata.annotations.services >}} |
 
 ```yaml
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: stackgres
 spec:
-  pods:
-    metadata:
-      annotations:
+  metadata:
+    annotations:
+      pods:
         customAnnotations: customAnnotationValue
-      labels:
-        customLabel: customLabelValue
 ```
 
 ## Postgres Services
@@ -185,8 +183,6 @@ metadata:
 spec:
   pods:
     metadata:
-      annotations:
-        customAnnotations: customAnnotationValue
       labels:
         customLabel: customLabelValue
 ```
