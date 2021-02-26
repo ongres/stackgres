@@ -41,7 +41,7 @@ public class StackGresExtensionIndexAnyVersion {
     this.name = extension.getName();
     this.publisher = extension.getPublisherOrDefault();
     this.postgresVersion = target.getPostgresVersion();
-    this.postgresExactVersion = target.getPostgresExactVersion();
+    this.postgresExactVersion = null;
     this.fromIndex = true;
     this.build = ExtensionUtil.getMajorBuildOrNull(target.getBuild());
     this.arch = target.getArchOrDefault();
@@ -50,7 +50,7 @@ public class StackGresExtensionIndexAnyVersion {
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, postgresVersion, publisher);
+    return Objects.hash(name, publisher);
   }
 
   @Override
@@ -63,25 +63,24 @@ public class StackGresExtensionIndexAnyVersion {
     }
     StackGresExtensionIndexAnyVersion other = (StackGresExtensionIndexAnyVersion) obj;
     if (Objects.equals(publisher, other.publisher)
-        && Objects.equals(name, other.name)
-        && Objects.equals(postgresVersion, other.postgresVersion)) {
+        && Objects.equals(name, other.name)) {
       if (fromIndex && other.fromIndex) {
         return Objects.equals(arch, other.arch)
             && Objects.equals(os, other.os)
             && Objects.equals(build, other.build)
-            && Objects.equals(postgresExactVersion, other.postgresExactVersion);
+            && Objects.equals(postgresVersion, other.postgresVersion);
       }
       if (fromIndex && !other.fromIndex) {
-        return (Objects.isNull(postgresExactVersion) // NOPMD
-            || Objects.equals(postgresExactVersion, other.postgresExactVersion)) // NOPMD
+        return (Objects.equals(postgresVersion, other.postgresVersion) // NOPMD
+            || Objects.equals(postgresVersion, other.postgresExactVersion)) // NOPMD
             && (Objects.isNull(build) // NOPMD
                 || (Objects.equals(arch, other.arch) // NOPMD
                 && Objects.equals(os, other.os)
                 && Objects.equals(build, other.build)));
       }
       if (!fromIndex && other.fromIndex) {
-        return (Objects.isNull(other.postgresExactVersion) // NOPMD
-            || Objects.equals(postgresExactVersion, other.postgresExactVersion)) // NOPMD
+        return (Objects.equals(other.postgresVersion, postgresVersion) // NOPMD
+            || Objects.equals(other.postgresVersion, postgresExactVersion)) // NOPMD
             && (Objects.isNull(other.build) // NOPMD
                 || (Objects.equals(arch, other.arch) // NOPMD
                 && Objects.equals(os, other.os)
@@ -91,6 +90,7 @@ public class StackGresExtensionIndexAnyVersion {
         return Objects.equals(arch, other.arch)
             && Objects.equals(os, other.os)
             && Objects.equals(build, other.build)
+            && Objects.equals(postgresVersion, other.postgresVersion)
             && Objects.equals(postgresExactVersion, other.postgresExactVersion);
       }
     }
@@ -101,7 +101,8 @@ public class StackGresExtensionIndexAnyVersion {
   public String toString() {
     return String.format(
         "%s/%s/%s/%s-pg%s%s",
-        publisher, arch, os, name, postgresVersion,
+        publisher, arch, os, name,
+        postgresExactVersion != null ? postgresExactVersion : postgresVersion,
         build != null ? "-build-" + build : "");
   }
 

@@ -17,22 +17,30 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class ExtensionUtilTest {
 
-  @Test
-  public void testExtensionsMetadataMap() {
-    StackGresExtensions extensionsMetadata = JsonUtil
+  final URI repository = URI.create("https://extensions.stackgres.io/postgres/repository?skipHostVerification=true");
+  final String pgVersion = StackGresComponent.POSTGRESQL.getOrderedVersions()
+      .findAny().get();
+  final String firstPgMajorVersion = StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
+      .get(0).get();
+  final String secondPgMajorVersion = StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
+      .get(1).get();
+  final String secondPgVersion = StackGresComponent.POSTGRESQL.findVersion(secondPgMajorVersion);
+  final String build = StackGresComponent.POSTGRESQL.findBuildVersion(pgVersion);
+
+  StackGresExtensions extensionsMetadata;
+
+  List<StackGresClusterExtension> extensions;
+
+  @BeforeEach
+  public void beforeEach() {
+    extensionsMetadata = JsonUtil
         .readFromJson("extension_metadata/index.json",
             StackGresExtensions.class);
-    final String pgVersion = StackGresComponent.POSTGRESQL.getOrderedVersions()
-        .findAny().get();
-    final String firstPgMajorVersion = StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
-        .get(0).get();
-    final String secondPgMajorVersion = StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
-        .get(1).get();
-    final String build = StackGresComponent.POSTGRESQL.findBuildVersion(pgVersion);
     extensionsMetadata.getExtensions().stream()
         .map(StackGresExtension::getVersions)
         .flatMap(List::stream)
@@ -54,10 +62,27 @@ public class ExtensionUtilTest {
         .flatMap(List::stream)
         .filter(target -> Objects.equals(target.getPostgresVersion(), "11"))
         .forEach(target -> target.setPostgresVersion(secondPgMajorVersion));
-    List<StackGresClusterExtension> extensions = JsonUtil
+    extensionsMetadata.getExtensions().stream()
+        .map(StackGresExtension::getVersions)
+        .flatMap(List::stream)
+        .map(StackGresExtensionVersion::getAvailableFor)
+        .flatMap(List::stream)
+        .filter(target -> Objects.equals(target.getPostgresVersion(), "12.4"))
+        .forEach(target -> target.setPostgresVersion(pgVersion));
+    extensionsMetadata.getExtensions().stream()
+        .map(StackGresExtension::getVersions)
+        .flatMap(List::stream)
+        .map(StackGresExtensionVersion::getAvailableFor)
+        .flatMap(List::stream)
+        .filter(target -> Objects.equals(target.getPostgresVersion(), "11.9"))
+        .forEach(target -> target.setPostgresVersion(secondPgVersion));
+    extensions = JsonUtil
         .readListFromJson("extension_metadata/extensions.json",
             StackGresClusterExtension.class);
-    final URI repository = URI.create("https://extensions.stackgres.io/postgres/repository?skipHostVerification=true");
+  }
+
+  @Test
+  public void testExtensionsMetadataMap() {
     StackGresClusterInstalledExtension installedExtension0 = new StackGresClusterInstalledExtension();
     installedExtension0.setName(extensions.get(0).getName());
     installedExtension0.setPublisher(extensionsMetadata.getPublishers().get(0).getId());
@@ -81,6 +106,15 @@ public class ExtensionUtilTest {
     installedExtension2.setVersion(extensions.get(2).getVersion());
     installedExtension2.setPostgresVersion(firstPgMajorVersion);
     installedExtension2.setBuild(build);
+    StackGresClusterInstalledExtension installedExtension3 = new StackGresClusterInstalledExtension();
+    installedExtension3.setName(extensions.get(3).getName());
+    installedExtension3.setPublisher(extensionsMetadata.getPublishers().get(0).getId());
+    installedExtension3.setRepository(repository.toASCIIString());
+    installedExtension3.setVersion(extensionsMetadata.getExtensions().stream()
+        .filter(e -> e.getName().equals(extensions.get(3).getName())).findAny().get()
+        .getVersions().get(0).getVersion());
+    installedExtension3.setPostgresVersion(pgVersion);
+    installedExtension3.setBuild(build);
     Map<StackGresExtensionIndex, StackGresExtensionMetadata> extensionMetadataMap =
         ExtensionUtil.toExtensionsMetadataIndex(
             repository, extensionsMetadata);
@@ -98,9 +132,16 @@ public class ExtensionUtilTest {
         .getExtension().getRepository());
     Assertions.assertNull(extensionMetadataMap.get(
         new StackGresExtensionIndex(installedExtension2)));
+    Assertions.assertNotNull(extensionMetadataMap.get(
+        new StackGresExtensionIndex(installedExtension3)));
+    Assertions.assertEquals(
+        repository.toASCIIString(),
+        extensionMetadataMap.get(new StackGresExtensionIndex(installedExtension3))
+        .getExtension().getRepository());
     installedExtension0.setPostgresVersion(secondPgMajorVersion);
     installedExtension1.setPostgresVersion(secondPgMajorVersion);
     installedExtension2.setPostgresVersion(secondPgMajorVersion);
+    installedExtension3.setPostgresVersion(secondPgVersion);
     Assertions.assertNotNull(extensionMetadataMap.get(
         new StackGresExtensionIndex(installedExtension0)));
     Assertions.assertNotEquals(
@@ -119,47 +160,18 @@ public class ExtensionUtilTest {
         repository.toASCIIString(),
         extensionMetadataMap.get(new StackGresExtensionIndex(installedExtension2))
         .getExtension().getRepository());
+    Assertions.assertNotNull(extensionMetadataMap.get(
+        new StackGresExtensionIndex(installedExtension3)));
+    Assertions.assertEquals(
+        repository.toASCIIString(),
+        extensionMetadataMap.get(new StackGresExtensionIndex(installedExtension3))
+        .getExtension().getRepository());
   }
 
   @Test
   public void testExtensionsMetadataMapSameMajorBuild() {
-    StackGresExtensions extensionsMetadata = JsonUtil
-        .readFromJson("extension_metadata/index.json",
-            StackGresExtensions.class);
-    final String pgVersion = StackGresComponent.POSTGRESQL.getOrderedVersions()
-        .findAny().get();
-    final String firstPgMajorVersion = StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
-        .get(0).get();
-    final String secondPgMajorVersion = StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
-        .get(1).get();
-    final String build = StackGresComponent.POSTGRESQL.findBuildVersion(pgVersion);
-    extensionsMetadata.getExtensions().stream()
-        .map(StackGresExtension::getVersions)
-        .flatMap(List::stream)
-        .map(StackGresExtensionVersion::getAvailableFor)
-        .flatMap(List::stream)
-        .filter(target -> Objects.equals(target.getBuild(), "5.1"))
-        .forEach(target -> target.setBuild(build));
-    extensionsMetadata.getExtensions().stream()
-        .map(StackGresExtension::getVersions)
-        .flatMap(List::stream)
-        .map(StackGresExtensionVersion::getAvailableFor)
-        .flatMap(List::stream)
-        .filter(target -> Objects.equals(target.getPostgresVersion(), "12"))
-        .forEach(target -> target.setPostgresVersion(firstPgMajorVersion));
-    extensionsMetadata.getExtensions().stream()
-        .map(StackGresExtension::getVersions)
-        .flatMap(List::stream)
-        .map(StackGresExtensionVersion::getAvailableFor)
-        .flatMap(List::stream)
-        .filter(target -> Objects.equals(target.getPostgresVersion(), "11"))
-        .forEach(target -> target.setPostgresVersion(secondPgMajorVersion));
     StackGresCluster cluster = new StackGresCluster();
     cluster.setSpec(new StackGresClusterSpec());
-    List<StackGresClusterExtension> extensions = JsonUtil
-        .readListFromJson("extension_metadata/extensions.json",
-            StackGresClusterExtension.class);
-    final URI repository = URI.create("https://extensions.stackgres.io/postgres/repository?skipHostVerification=true");
     Map<StackGresExtensionIndexSameMajorBuild, List<StackGresExtensionMetadata>> extensionMetadataMap =
         ExtensionUtil.toExtensionsMetadataIndexSameMajorBuilds(
             repository, extensionsMetadata);
@@ -182,6 +194,14 @@ public class ExtensionUtilTest {
         .get(0).getExtension().getRepository());
     Assertions.assertNull(extensionMetadataMap.get(
         new StackGresExtensionIndexSameMajorBuild(cluster, extensions.get(2))));
+    Assertions.assertNotNull(extensionMetadataMap.get(
+        new StackGresExtensionIndexSameMajorBuild(cluster, extensions.get(3))));
+    Assertions.assertEquals(1, extensionMetadataMap.get(
+        new StackGresExtensionIndexSameMajorBuild(cluster, extensions.get(3))).size());
+    Assertions.assertEquals(
+        repository.toASCIIString(),
+        extensionMetadataMap.get(new StackGresExtensionIndexSameMajorBuild(cluster, extensions.get(3)))
+        .get(0).getExtension().getRepository());
     cluster.getSpec().setPostgresVersion(secondPgMajorVersion);
     Assertions.assertNotNull(extensionMetadataMap.get(
         new StackGresExtensionIndexSameMajorBuild(cluster, extensions.get(0))));
@@ -207,47 +227,20 @@ public class ExtensionUtilTest {
         repository.toASCIIString(),
         extensionMetadataMap.get(new StackGresExtensionIndexSameMajorBuild(cluster, extensions.get(2)))
         .get(0).getExtension().getRepository());
+    Assertions.assertNotNull(extensionMetadataMap.get(
+        new StackGresExtensionIndexSameMajorBuild(cluster, extensions.get(3))));
+    Assertions.assertEquals(1, extensionMetadataMap.get(
+        new StackGresExtensionIndexSameMajorBuild(cluster, extensions.get(3))).size());
+    Assertions.assertEquals(
+        repository.toASCIIString(),
+        extensionMetadataMap.get(new StackGresExtensionIndexSameMajorBuild(cluster, extensions.get(3)))
+        .get(0).getExtension().getRepository());
   }
 
   @Test
   public void testExtensionsMetadataMapAnyVersion() {
-    StackGresExtensions extensionsMetadata = JsonUtil
-        .readFromJson("extension_metadata/index.json",
-            StackGresExtensions.class);
-    final String pgVersion = StackGresComponent.POSTGRESQL.getOrderedVersions()
-        .findAny().get();
-    final String firstPgMajorVersion = StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
-        .get(0).get();
-    final String secondPgMajorVersion = StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
-        .get(1).get();
-    final String build = StackGresComponent.POSTGRESQL.findBuildVersion(pgVersion);
-    extensionsMetadata.getExtensions().stream()
-        .map(StackGresExtension::getVersions)
-        .flatMap(List::stream)
-        .map(StackGresExtensionVersion::getAvailableFor)
-        .flatMap(List::stream)
-        .filter(target -> Objects.equals(target.getBuild(), "5.1"))
-        .forEach(target -> target.setBuild(build));
-    extensionsMetadata.getExtensions().stream()
-        .map(StackGresExtension::getVersions)
-        .flatMap(List::stream)
-        .map(StackGresExtensionVersion::getAvailableFor)
-        .flatMap(List::stream)
-        .filter(target -> Objects.equals(target.getPostgresVersion(), "12"))
-        .forEach(target -> target.setPostgresVersion(firstPgMajorVersion));
-    extensionsMetadata.getExtensions().stream()
-        .map(StackGresExtension::getVersions)
-        .flatMap(List::stream)
-        .map(StackGresExtensionVersion::getAvailableFor)
-        .flatMap(List::stream)
-        .filter(target -> Objects.equals(target.getPostgresVersion(), "11"))
-        .forEach(target -> target.setPostgresVersion(secondPgMajorVersion));
     StackGresCluster cluster = new StackGresCluster();
     cluster.setSpec(new StackGresClusterSpec());
-    List<StackGresClusterExtension> extensions = JsonUtil
-        .readListFromJson("extension_metadata/extensions.json",
-            StackGresClusterExtension.class);
-    final URI repository = URI.create("https://extensions.stackgres.io/postgres/repository?skipHostVerification=true");
     Map<StackGresExtensionIndexAnyVersion, List<StackGresExtensionMetadata>> extensionMetadataMap =
         ExtensionUtil.toExtensionsMetadataIndexAnyVersions(
             repository, extensionsMetadata);
@@ -276,6 +269,14 @@ public class ExtensionUtilTest {
         repository.toASCIIString(),
         extensionMetadataMap.get(new StackGresExtensionIndexAnyVersion(cluster, extensions.get(2)))
         .get(0).getExtension().getRepository());
+    Assertions.assertNotNull(extensionMetadataMap.get(
+        new StackGresExtensionIndexAnyVersion(cluster, extensions.get(3))));
+    Assertions.assertEquals(1, extensionMetadataMap.get(
+        new StackGresExtensionIndexAnyVersion(cluster, extensions.get(3))).size());
+    Assertions.assertEquals(
+        repository.toASCIIString(),
+        extensionMetadataMap.get(new StackGresExtensionIndexAnyVersion(cluster, extensions.get(3)))
+        .get(0).getExtension().getRepository());
     cluster.getSpec().setPostgresVersion(secondPgMajorVersion);
     Assertions.assertNotNull(extensionMetadataMap.get(
         new StackGresExtensionIndexAnyVersion(cluster, extensions.get(0))));
@@ -309,5 +310,13 @@ public class ExtensionUtilTest {
         repository.toASCIIString(),
         extensionMetadataMap.get(new StackGresExtensionIndexAnyVersion(cluster, extensions.get(2)))
         .get(1).getExtension().getRepository());
+    Assertions.assertNotNull(extensionMetadataMap.get(
+        new StackGresExtensionIndexAnyVersion(cluster, extensions.get(3))));
+    Assertions.assertEquals(1, extensionMetadataMap.get(
+        new StackGresExtensionIndexAnyVersion(cluster, extensions.get(3))).size());
+    Assertions.assertEquals(
+        repository.toASCIIString(),
+        extensionMetadataMap.get(new StackGresExtensionIndexAnyVersion(cluster, extensions.get(3)))
+        .get(0).getExtension().getRepository());
   }
 }

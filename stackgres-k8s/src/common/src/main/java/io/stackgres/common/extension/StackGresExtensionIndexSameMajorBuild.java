@@ -51,7 +51,7 @@ public class StackGresExtensionIndexSameMajorBuild {
     this.publisher = extension.getPublisherOrDefault();
     this.version = version.getVersion();
     this.postgresVersion = target.getPostgresVersion();
-    this.postgresExactVersion = target.getPostgresExactVersion();
+    this.postgresExactVersion = null;
     this.fromIndex = true;
     this.channels = Seq.seq(extension.getChannels())
         .filter(channel -> channel.v2().equals(version.getVersion()))
@@ -64,7 +64,7 @@ public class StackGresExtensionIndexSameMajorBuild {
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, postgresVersion, publisher);
+    return Objects.hash(name, publisher);
   }
 
   @Override
@@ -77,22 +77,21 @@ public class StackGresExtensionIndexSameMajorBuild {
     }
     StackGresExtensionIndexSameMajorBuild other = (StackGresExtensionIndexSameMajorBuild) obj;
     if (Objects.equals(publisher, other.publisher)
-        && Objects.equals(name, other.name)
-        && Objects.equals(postgresVersion, other.postgresVersion)) {
+        && Objects.equals(name, other.name)) {
       if (fromIndex && other.fromIndex) {
         return Objects.equals(channels, other.channels)
             && Objects.equals(version, other.version)
             && Objects.equals(arch, other.arch)
             && Objects.equals(os, other.os)
             && Objects.equals(build, other.build)
-            && Objects.equals(postgresExactVersion, other.postgresExactVersion);
+            && Objects.equals(postgresVersion, other.postgresVersion);
       }
       if (fromIndex && !other.fromIndex) {
         return (version.equals(other.version)
             || channels.stream()
             .anyMatch(channel -> channel.equals(other.version)))
-            && (Objects.isNull(postgresExactVersion) // NOPMD
-                || Objects.equals(postgresExactVersion, other.postgresExactVersion)) // NOPMD
+            && (Objects.equals(postgresVersion, other.postgresVersion) // NOPMD
+                || Objects.equals(postgresVersion, other.postgresExactVersion)) // NOPMD
             && (Objects.isNull(build) // NOPMD
                 || (Objects.equals(arch, other.arch) // NOPMD
                 && Objects.equals(os, other.os)
@@ -102,8 +101,8 @@ public class StackGresExtensionIndexSameMajorBuild {
         return (version.equals(other.version)
             || other.channels.stream()
             .anyMatch(channel -> channel.equals(version)))
-            && (Objects.isNull(other.postgresExactVersion) // NOPMD
-                || Objects.equals(postgresExactVersion, other.postgresExactVersion)) // NOPMD
+            && (Objects.equals(other.postgresVersion, postgresVersion) // NOPMD
+                || Objects.equals(other.postgresVersion, postgresExactVersion)) // NOPMD
             && (Objects.isNull(other.build) // NOPMD
                 || (Objects.equals(arch, other.arch) // NOPMD
                 && Objects.equals(os, other.os)
@@ -114,7 +113,7 @@ public class StackGresExtensionIndexSameMajorBuild {
             && Objects.equals(arch, other.arch)
             && Objects.equals(os, other.os)
             && Objects.equals(build, other.build)
-            && Objects.equals(postgresExactVersion, other.postgresExactVersion);
+            && Objects.equals(postgresVersion, other.postgresVersion);
       }
     }
     return false;
@@ -124,7 +123,8 @@ public class StackGresExtensionIndexSameMajorBuild {
   public String toString() {
     return String.format(
         "%s/%s/%s/%s-%s-pg%s%s%s",
-        publisher, arch, os, name, version, postgresVersion,
+        publisher, arch, os, name, version,
+        postgresExactVersion != null ? postgresExactVersion : postgresVersion,
         build != null ? "-build-" + build : "",
             channels.isEmpty() ? "" : " (channels: " + channels.stream()
             .collect(Collectors.joining(", ")) + ")");

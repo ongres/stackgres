@@ -65,9 +65,6 @@ class ExtensionsResourceTest {
         .forEach(target -> {
           target.setBuild(BUILD_MAJOR_VERSION);
           target.setPostgresVersion(POSTGRES_MAJOR_VERSION);
-          if (target.getPostgresExactVersion() != null) {
-            target.setPostgresExactVersion(POSTGRES_VERSION);
-          }
         });
     resource = new ExtensionsResource(clusterExtensionMetadataManager,
         new ExtensionsTransformer(clusterExtensionMetadataManager));
@@ -84,12 +81,15 @@ class ExtensionsResourceTest {
     ExtensionsDto extensionsDto = resource.get(POSTGRES_VERSION);
 
     assertThat(extensionsDto.getPublishers(), hasSize(1));
-    assertThat(extensionsDto.getExtensions(), hasSize(2));
+    assertThat(extensionsDto.getExtensions(), hasSize(3));
     assertEquals(1, extensionsDto.getExtensions().stream()
         .filter(extension -> extension.getName().equals("pgsodium"))
         .map(Extension::getVersions).count());
     assertEquals(1, extensionsDto.getExtensions().stream()
         .filter(extension -> extension.getName().equals("mysqlcompat"))
+        .map(Extension::getVersions).count());
+    assertEquals(1, extensionsDto.getExtensions().stream()
+        .filter(extension -> extension.getName().equals("plpgsql"))
         .map(Extension::getVersions).count());
   }
 

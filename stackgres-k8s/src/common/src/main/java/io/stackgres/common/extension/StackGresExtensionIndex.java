@@ -19,7 +19,6 @@ public class StackGresExtensionIndex {
   private final String publisher;
   private final String version;
   private final String postgresVersion;
-  private final String postgresExactVersion;
   private final boolean fromIndex;
   private final List<String> channels;
   private final String build;
@@ -31,7 +30,6 @@ public class StackGresExtensionIndex {
     this.publisher = installedExtension.getPublisher();
     this.version = installedExtension.getVersion();
     this.postgresVersion = installedExtension.getPostgresVersion();
-    this.postgresExactVersion = installedExtension.getPostgresExactVersion();
     this.fromIndex = false;
     this.channels = ImmutableList.of();
     this.build = installedExtension.getBuild();
@@ -45,7 +43,6 @@ public class StackGresExtensionIndex {
     this.publisher = extension.getPublisherOrDefault();
     this.version = version.getVersion();
     this.postgresVersion = target.getPostgresVersion();
-    this.postgresExactVersion = target.getPostgresExactVersion();
     this.fromIndex = true;
     this.channels = Seq.seq(extension.getChannels())
         .filter(channel -> channel.v2().equals(version.getVersion()))
@@ -72,8 +69,7 @@ public class StackGresExtensionIndex {
     StackGresExtensionIndex other = (StackGresExtensionIndex) obj;
     if (Objects.equals(publisher, other.publisher)
         && Objects.equals(name, other.name)
-        && Objects.equals(postgresVersion, other.postgresVersion)
-        && Objects.equals(postgresExactVersion, other.postgresExactVersion)) {
+        && Objects.equals(postgresVersion, other.postgresVersion)) {
       if (fromIndex && other.fromIndex) {
         return Objects.equals(channels, other.channels)
             && Objects.equals(version, other.version)
@@ -113,8 +109,7 @@ public class StackGresExtensionIndex {
   public String toString() {
     return String.format(
         "%s/%s/%s/%s-%s-pg%s%s%s",
-        publisher, arch, os, name, version,
-        postgresExactVersion == null ? postgresVersion : postgresExactVersion,
+        publisher, arch, os, name, version, postgresVersion,
         build != null ? "-build-" + build : "",
             channels.isEmpty() ? "" : " (channels: " + channels.stream()
             .collect(Collectors.joining(", ")) + ")");

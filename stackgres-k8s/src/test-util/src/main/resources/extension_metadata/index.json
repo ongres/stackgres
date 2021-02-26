@@ -55,5 +55,29 @@
     }],
     "url": "https://github.com/2ndQuadrant/mysqlcompat/",
     "source": "https://pgxn.org/dist/mysqlcompat/"
+  }, {
+    "name": "plpgsql",
+    "license": "PostgreSQL",
+    "description": "PL/pgSQL procedural language",
+    "channels": {
+      "stable": "1.0"
+    },
+    "tags": [
+      "core",
+      "language"
+    ],
+    "versions": [{
+      "version": "1.0",
+      "availableFor": [{
+        "build": "5.1",
+        "postgresVersion": "11.9"
+      }, {
+        "build": "5.1",
+        "postgresVersion": "12.4"
+      }]
+    }],
+    "url": "https://www.postgresql.org/docs/13/xplang.html",
+    "source": "https://github.com/postgres/postgres.git",
+    "abstract": "PL/pgSQL procedural language"
   }]
 }

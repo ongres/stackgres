@@ -40,9 +40,6 @@ public class StackGresClusterInstalledExtension {
   @NotNull(message = "postgresVersion cannot be null")
   private String postgresVersion;
 
-  @JsonProperty("postgresExactVersion")
-  private String postgresExactVersion;
-
   @JsonProperty("build")
   private String build;
 
@@ -86,14 +83,6 @@ public class StackGresClusterInstalledExtension {
     this.postgresVersion = postgresVersion;
   }
 
-  public String getPostgresExactVersion() {
-    return postgresExactVersion;
-  }
-
-  public void setPostgresExactVersion(String postgresExactVersion) {
-    this.postgresExactVersion = postgresExactVersion;
-  }
-
   public String getBuild() {
     return build;
   }
@@ -104,7 +93,7 @@ public class StackGresClusterInstalledExtension {
 
   @Override
   public int hashCode() {
-    return Objects.hash(build, name, postgresExactVersion, postgresVersion, publisher, repository,
+    return Objects.hash(build, name, postgresVersion, publisher, repository,
         version);
   }
 
@@ -118,7 +107,6 @@ public class StackGresClusterInstalledExtension {
     }
     StackGresClusterInstalledExtension other = (StackGresClusterInstalledExtension) obj;
     return Objects.equals(build, other.build) && Objects.equals(name, other.name)
-        && Objects.equals(postgresExactVersion, other.postgresExactVersion)
         && Objects.equals(postgresVersion, other.postgresVersion)
         && Objects.equals(publisher, other.publisher)
         && Objects.equals(repository, other.repository) && Objects.equals(version, other.version);

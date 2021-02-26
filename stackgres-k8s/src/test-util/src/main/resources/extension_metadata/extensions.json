@@ -6,4 +6,6 @@
 }, {
   "name": "mysqlcompat",
   "version": "0.0.6"
+}, {
+  "name": "plpgsql"
 }]
