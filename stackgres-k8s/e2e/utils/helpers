@@ -24,6 +24,8 @@ notrace_function() {
     X_UNSET=false
   fi
   "$X_UNSET" || set +x
+  local RESULT
+  local EXIT_CODE
   try_function "$@"
   "$X_UNSET" || set -x
   return "$EXIT_CODE"
