@@ -1,12 +1,12 @@
 ---
 title: Production Installation
-weight: 3
+weight: 4
 pre: "<b>4. </b>"
 chapter: true
 url: install
 ---
 
-### Chapter 3
+### Chapter 4
 
 # Production Installation
 

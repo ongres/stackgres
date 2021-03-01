@@ -1,12 +1,12 @@
 ---
 title: Operator API
-weight: 7
+weight: 8
 pre: "<b>8. </b>"
 chapter: true
 url: api
 ---
 
-### Chapter 7
+### Chapter 8
 
 # Operator API
 

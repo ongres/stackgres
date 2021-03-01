@@ -1,12 +1,12 @@
 ---
 title: Developer documentation
-weight: 6
+weight: 7
 pre: "<b>7. </b>"
 chapter: true
 url: developer
 ---
 
-### Chapter 6
+### Chapter 7
 
 # Developer documentation
 

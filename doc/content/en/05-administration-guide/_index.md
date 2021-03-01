@@ -1,12 +1,12 @@
 ---
 title: Administration Guide
-weight: 4
+weight: 5
 pre: "<b>5. </b>"
 chapter: true
 url: administration
 ---
 
-### Chapter 4
+### Chapter 5
 
 # Postgres Administration
 
