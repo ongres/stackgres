@@ -7,7 +7,7 @@ url: tutorial/prerequisites/object-storage/aws-s3
 First let's create the IAM policy that would allow the appropriate level of access to the S3 bucket:
 
 ```bash
-export S3_BACKUP_BUCKET=stackgres-backup
+export S3_BACKUP_BUCKET=YOUR_BUCKET_NAME
 
 read -d '' policy <<EOF
 {
