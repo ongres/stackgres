@@ -8,6 +8,8 @@ run_test() {
   echo "Running test $TEST_NAME"
   echo "----------------------------------------------------------------"
   echo
+  local RESULT
+  local EXIT_CODE
   try_function "$@"
   if ! "$RESULT"
   then

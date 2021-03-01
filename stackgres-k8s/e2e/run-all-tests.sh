@@ -260,8 +260,19 @@ do
       setup_k8s
     fi
     SPECS_FAILED=""
-    if ! echo "$SPECS_TO_RUN" | tr ' ' '\n' \
-      | xargs -r -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE -c "'$SHELL' $SHELL_XTRACE '$E2E_PATH/e2e' spec '%'"
+    echo "$SPECS_TO_RUN" | tr ' ' '\n' \
+      | xargs -r -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE -c "'$SHELL' $SHELL_XTRACE '$E2E_PATH/e2e' spec '%'" || true
+    BATCH_FAILED=false
+    for FAILED in $(find "$TARGET_PATH" -maxdepth 1 -type f -name '*.failed')
+    do
+      if [ "$(stat -c %Y "$FAILED" || echo 0)" -lt "$START" ]
+      then
+        continue
+      fi
+      BATCH_FAILED=true
+      break
+    done
+    if "$BATCH_FAILED"
     then
       if [ "$((COUNT%E2E_PARALLELISM))" -ne 0 ]
       then
