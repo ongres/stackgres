@@ -19,6 +19,7 @@ balancer:
 export SG_VERSION=1.0.0-alpha1
 
 helm install --namespace stackgres stackgres-operator \
+	--set grafana.autoEmbed=true \
         --set-string grafana.webHost=prometheus-grafana.monitoring \
         --set-string grafana.user=admin \
         --set-string grafana.password=prom-operator \
@@ -117,7 +118,7 @@ installation. Unless you changed it via helm parameters, the username will be `a
 generated and can be queried via the following command (pipe or redirect if on a non-public environment):
 
 ```bash
-kubectl get secret -n stackgres stackgres-restapi --template '{{ printf "password = %s\n" (.data.clearPassword | base64decode) }}'
+kubectl get secret -n stackgres stackgres-restapi --template '{{ print (.data.clearPassword | base64decode) }}'
 ```
 
 You should see a web UI similar to:
