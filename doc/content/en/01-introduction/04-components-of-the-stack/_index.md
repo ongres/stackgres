@@ -114,7 +114,7 @@ all the logs in Postgres using [Timescale](https://github.com/timescale/timescal
 
 ## Proxy
 
-How do I locate the primary, if it might be changing? How do I obtain traffic [metrics]({{% relref "04-administration-guide/18-monitoring-metrics" %}})? It is possible to manage traffic:
+How do I locate the primary, if it might be changing? How do I obtain traffic [metrics]({{% relref "05-administration-guide/18-monitoring-metrics" %}})? It is possible to manage traffic:
 duplicate, A/B to test cluster or event inspect it?
 
 [Envoy](https://www.envoyproxy.io/) is an open source edge and service proxy, designed for cloud-native applications. It is
@@ -122,7 +122,7 @@ extensible in order to provide advanced functionality based on the actual traffi
 in order to offer stats) or on connection characteristic (like the TLS certificate in order to chose to which node the
 connection have to be dispatched.
 
-It is also capable of [exporting metrics]({{% relref "04-administration-guide/18-monitoring-metrics/01-envoy-metrics/" %}}) using well established prometheus format.
+It is also capable of [exporting metrics]({{% relref "05-administration-guide/18-monitoring-metrics/01-envoy-metrics/" %}}) using well established prometheus format.
 
 OnGres Inc. sponsors the Envoy Proxy project, with contributions such as exposing [stat metrics](https://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/network_filters/postgres_proxy_filter#statistics) and SSL support (currently WIP).
 
@@ -146,7 +146,7 @@ and integrates as a sidecar offering an auto binding mechanism if prometheus is 
 Take in account that Prometheus is a dependency and that StackGres expects that you install and configure it separately.
 
 Of course, StackGres provides an option to deploy Prometheus alongside the StackGres Operator
-as part of the [Helm chart]({{% relref "03-production-installation/02-installation-via-helm" %}})
+as part of the [Helm chart]({{% relref "04-production-installation/02-installation-via-helm" %}})
 and you can follow the steps there to set the Helm chart needed parameters so that monitoring integration works as expected.
 Please, read and review the steps and notes for a successful installation.
 
@@ -160,8 +160,8 @@ By default helm chart of [prometheus operator](https://github.com/coreos/prometh
 
 StackGres includes two ways to perform such integration.
 
-- [Automatic integration]({{% relref "/03-production-installation/01-pre-requisites/#integrating-pre-existing-grafanas" %}})
-- [Manual integration]({{% relref "/03-production-installation/01-pre-requisites/#manual-integration" %}})
+- [Automatic integration]({{% relref "/04-production-installation/01-pre-requisites/#integrating-pre-existing-grafanas" %}})
+- [Manual integration]({{% relref "/04-production-installation/01-pre-requisites/#manual-integration" %}})
 
 Some manual steps are required in order to achieve such integration.
 
