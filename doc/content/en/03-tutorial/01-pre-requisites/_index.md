@@ -1,6 +1,6 @@
 ---
 title: Prerequisites
-weight: 2
+weight: 1
 url: tutorial/prerequisites
 ---
 
