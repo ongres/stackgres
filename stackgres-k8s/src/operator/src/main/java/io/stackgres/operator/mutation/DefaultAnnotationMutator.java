@@ -22,7 +22,8 @@ import io.stackgres.common.StackGresProperty;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
 
-public interface DefaultAnnotationMutator<R extends CustomResource, T extends AdmissionReview<R>>
+public interface DefaultAnnotationMutator
+    <R extends CustomResource<?, ?>, T extends AdmissionReview<R>>
     extends JsonPatchMutator<T> {
 
   JsonPointer ANNOTATION_POINTER = JsonPointer.of("metadata", "annotations");

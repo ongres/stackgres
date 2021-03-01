@@ -6,39 +6,30 @@
 package io.stackgres.operator.customresource.prometheus;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.google.common.base.MoreObjects;
+import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.model.annotation.Group;
+import io.fabric8.kubernetes.model.annotation.Version;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @RegisterForReflection
-public class ServiceMonitor extends CustomResource {
+@Group("monitoring.coreos.com")
+@Version("v1")
+public final class ServiceMonitor
+    extends CustomResource<ServiceMonitorSpec, Void>
+    implements Namespaced {
 
   private static final long serialVersionUID = 2719099984653736636L;
 
-  private ServiceMonitorSpec spec;
-
   public ServiceMonitor() {
-    super("ServiceMonitor");
+    super();
   }
 
-  public ServiceMonitorSpec getSpec() {
-    return spec;
-  }
-
-  public void setSpec(ServiceMonitorSpec spec) {
-    this.spec = spec;
-  }
-
+  // TODO: remove on update to Kubernetes-Client 5.2.0
   @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("apiVersion", getApiVersion())
-        .add("kind", getKind())
-        .add("metadata", getMetadata())
-        .add("spec", spec)
-        .toString();
+  protected Void initStatus() {
+    return null;
   }
 
 }

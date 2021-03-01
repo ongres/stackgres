@@ -7,10 +7,10 @@ package io.stackgres.operator.conversion;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDefinition;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 
 @ApplicationScoped
-@Conversion(StackGresPoolingConfigDefinition.KIND)
+@Conversion(StackGresPoolingConfig.KIND)
 public class SgPoolingConfigConversionPipeline implements ConversionPipeline {
 
 }

@@ -26,7 +26,8 @@ import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import org.jooq.lambda.Seq;
 
-public abstract class AbstractDependencyRestService<T extends ResourceDto, R extends CustomResource>
+public abstract class AbstractDependencyRestService
+    <T extends ResourceDto, R extends CustomResource<?, ?>>
     implements ResourceRestService<T> {
 
   private final CustomResourceScanner<R> scanner;

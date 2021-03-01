@@ -78,4 +78,10 @@
       </And>
     </Or>
   </Match>
+
+  <!-- Intentional masking to use Bean Validation -->
+  <Match>
+    <Bug pattern="MF_CLASS_MASKS_FIELD" />
+    <Package name="~io\.stackgres\.common\.crd.*" />
+  </Match>
 </FindBugsFilter>

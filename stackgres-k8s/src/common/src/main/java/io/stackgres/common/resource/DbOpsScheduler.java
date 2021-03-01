@@ -11,26 +11,19 @@ import javax.inject.Inject;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsDefinition;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsDoneable;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsList;
 
 @ApplicationScoped
 public class DbOpsScheduler
-    extends AbstractCustomResourceScheduler<StackGresDbOps,
-      StackGresDbOpsList, StackGresDbOpsDoneable> {
+    extends AbstractCustomResourceScheduler<StackGresDbOps, StackGresDbOpsList> {
 
   @Inject
   public DbOpsScheduler(KubernetesClientFactory clientFactory) {
-    super(clientFactory,
-        StackGresDbOpsDefinition.CONTEXT,
-        StackGresDbOps.class,
-        StackGresDbOpsList.class,
-        StackGresDbOpsDoneable.class);
+    super(clientFactory, StackGresDbOps.class, StackGresDbOpsList.class);
   }
 
   public DbOpsScheduler() {
-    super(null, null, null, null, null);
+    super(null, null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 

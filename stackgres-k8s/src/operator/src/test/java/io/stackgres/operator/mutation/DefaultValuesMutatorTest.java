@@ -24,7 +24,8 @@ import org.mockito.Mock;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
-public abstract class DefaultValuesMutatorTest<R extends CustomResource, T extends AdmissionReview<R>> {
+public abstract class DefaultValuesMutatorTest<R extends CustomResource<?, ?>,
+    T extends AdmissionReview<R>> {
 
   protected static final ObjectMapper mapper = new ObjectMapper();
 

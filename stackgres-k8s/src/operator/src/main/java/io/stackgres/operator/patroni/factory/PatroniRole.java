@@ -21,17 +21,17 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBindingBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
+import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.LabelFactory;
-import io.stackgres.common.StackGresProperty;
-import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigDefinition;
+import io.stackgres.common.crd.CommonDefinition;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsDefinition;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDefinition;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDefinition;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDefinition;
-import io.stackgres.common.crd.sgprofile.StackGresProfileDefinition;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
@@ -72,13 +72,13 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
     final Map<String, String> labels = labelFactory
         .clusterLabels(cluster);
     return new ServiceAccountBuilder()
-          .withNewMetadata()
-          .withName(roleName(clusterContext))
-          .withNamespace(cluster.getMetadata().getNamespace())
-          .withLabels(labels)
-          .withOwnerReferences(clusterContext.getOwnerReferences())
-          .endMetadata()
-          .build();
+        .withNewMetadata()
+        .withName(roleName(clusterContext))
+        .withNamespace(cluster.getMetadata().getNamespace())
+        .withLabels(labels)
+        .withOwnerReferences(clusterContext.getOwnerReferences())
+        .endMetadata()
+        .build();
   }
 
   /**
@@ -132,20 +132,20 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
             .withVerbs("get", "list", "create", "patch", "update")
             .build())
         .addToRules(new PolicyRuleBuilder()
-            .withApiGroups(StackGresProperty.CRD_GROUP.getString())
-            .withResources(StackGresBackupDefinition.PLURAL)
+            .withApiGroups(CommonDefinition.GROUP)
+            .withResources(CustomResource.getPlural(StackGresBackup.class))
             .withVerbs("list", "get", "create", "patch", "delete")
             .build())
         .addToRules(new PolicyRuleBuilder()
-            .withApiGroups(StackGresProperty.CRD_GROUP.getString())
+            .withApiGroups(CommonDefinition.GROUP)
             .withResources(
-                StackGresBackupConfigDefinition.PLURAL,
-                StackGresClusterDefinition.PLURAL,
-                StackGresPostgresConfigDefinition.PLURAL,
-                StackGresPoolingConfigDefinition.PLURAL,
-                StackGresProfileDefinition.PLURAL,
-                StackGresDistributedLogsDefinition.PLURAL,
-                StackGresDbOpsDefinition.PLURAL)
+                CustomResource.getPlural(StackGresBackupConfig.class),
+                CustomResource.getPlural(StackGresCluster.class),
+                CustomResource.getPlural(StackGresPostgresConfig.class),
+                CustomResource.getPlural(StackGresPoolingConfig.class),
+                CustomResource.getPlural(StackGresProfile.class),
+                CustomResource.getPlural(StackGresDistributedLogs.class),
+                CustomResource.getPlural(StackGresDbOps.class))
             .withVerbs("get", "list", "watch", "patch")
             .build())
         .build();

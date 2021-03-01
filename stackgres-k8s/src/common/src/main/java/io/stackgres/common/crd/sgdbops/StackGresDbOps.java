@@ -11,39 +11,58 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.model.annotation.Group;
+import io.fabric8.kubernetes.model.annotation.Kind;
+import io.fabric8.kubernetes.model.annotation.Version;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.CommonDefinition;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @RegisterForReflection
-public class StackGresDbOps extends CustomResource {
+@Group(CommonDefinition.GROUP)
+@Version(CommonDefinition.VERSION)
+@Kind(StackGresDbOps.KIND)
+public final class StackGresDbOps
+    extends CustomResource<StackGresDbOpsSpec, StackGresDbOpsStatus>
+    implements Namespaced {
 
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 4405727567343191955L;
 
+  public static final String KIND = "SGDbOps";
+
+  @JsonProperty("spec")
   @NotNull(message = "The specification is required")
   @Valid
   private StackGresDbOpsSpec spec;
 
+  @JsonProperty("status")
   @Valid
   private StackGresDbOpsStatus status;
 
   public StackGresDbOps() {
-    super(StackGresDbOpsDefinition.KIND);
+    super();
   }
 
+  @Override
   public StackGresDbOpsSpec getSpec() {
     return spec;
   }
 
+  @Override
   public void setSpec(StackGresDbOpsSpec spec) {
     this.spec = spec;
   }
 
+  @Override
   public StackGresDbOpsStatus getStatus() {
     return status;
   }
 
+  @Override
   public void setStatus(StackGresDbOpsStatus status) {
     this.status = status;
   }
@@ -62,11 +81,14 @@ public class StackGresDbOps extends CustomResource {
       return false;
     }
     StackGresDbOps other = (StackGresDbOps) obj;
-    return Objects.equals(spec, other.spec) && Objects.equals(status, other.status);
+    return Objects.equals(spec, other.spec)
+        && Objects.equals(status, other.status);
   }
 
   @Override
   public String toString() {
+    // TODO: review if this should return a YAML or keep the same format of toString().
+    // if the yaml is needed it should be called from another method.
     return StackGresUtil.toPrettyYaml(this);
   }
 }

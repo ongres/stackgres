@@ -33,12 +33,12 @@ public abstract class AbstractClusterResourceHandler
   protected static final ImmutableMap<Class<? extends HasMetadata>,
       Function<KubernetesClient,
       MixedOperation<? extends HasMetadata,
-          ? extends KubernetesResourceList<? extends HasMetadata>, ?,
-          ? extends Resource<? extends HasMetadata, ?>>>> STACKGRES_CLUSTER_RESOURCE_OPERATIONS =
+          ? extends KubernetesResourceList<? extends HasMetadata>,
+          ? extends Resource<? extends HasMetadata>>>> STACKGRES_CLUSTER_RESOURCE_OPERATIONS =
       ImmutableMap.<Class<? extends HasMetadata>, Function<KubernetesClient,
           MixedOperation<? extends HasMetadata,
-              ? extends KubernetesResourceList<? extends HasMetadata>, ?,
-              ? extends Resource<? extends HasMetadata, ?>>>>builder()
+              ? extends KubernetesResourceList<? extends HasMetadata>,
+              ? extends Resource<? extends HasMetadata>>>>builder()
       .put(StatefulSet.class, client -> client.apps().statefulSets())
       .put(Service.class, KubernetesClient::services)
       .put(ServiceAccount.class, KubernetesClient::serviceAccounts)
@@ -48,15 +48,15 @@ public abstract class AbstractClusterResourceHandler
       .put(ConfigMap.class, KubernetesClient::configMaps)
       .put(Endpoints.class, KubernetesClient::endpoints)
       .put(CronJob.class, client -> client.batch().cronjobs())
-      .put(Pod.class, client -> client.pods())
-      .put(PersistentVolumeClaim.class, client -> client.persistentVolumeClaims())
+      .put(Pod.class, KubernetesClient::pods)
+      .put(PersistentVolumeClaim.class, KubernetesClient::persistentVolumeClaims)
       .put(Job.class, client -> client.batch().jobs())
       .build();
 
   @Override
   protected <M extends HasMetadata> Function<KubernetesClient,
       MixedOperation<? extends HasMetadata, ? extends KubernetesResourceList<? extends HasMetadata>,
-          ?, ? extends Resource<? extends HasMetadata, ?>>> getResourceOperations(M resource) {
+           ? extends Resource<? extends HasMetadata>>> getResourceOperations(M resource) {
     return STACKGRES_CLUSTER_RESOURCE_OPERATIONS.get(resource.getClass());
   }
 

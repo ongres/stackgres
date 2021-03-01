@@ -9,7 +9,7 @@ import io.fabric8.kubernetes.client.CustomResourceList;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection
-public class StackGresPoolingConfigList extends CustomResourceList<StackGresPoolingConfig> {
+public final class StackGresPoolingConfigList extends CustomResourceList<StackGresPoolingConfig> {
 
   private static final long serialVersionUID = -1986325130709722399L;
 

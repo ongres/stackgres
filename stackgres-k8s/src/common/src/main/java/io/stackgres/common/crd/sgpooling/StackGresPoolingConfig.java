@@ -11,39 +11,60 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
+import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.model.annotation.Group;
+import io.fabric8.kubernetes.model.annotation.Kind;
+import io.fabric8.kubernetes.model.annotation.Singular;
+import io.fabric8.kubernetes.model.annotation.Version;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.crd.CommonDefinition;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @RegisterForReflection
-public class StackGresPoolingConfig extends CustomResource {
+@Group(CommonDefinition.GROUP)
+@Version(CommonDefinition.VERSION)
+@Kind(StackGresPoolingConfig.KIND)
+@Singular("sgpoolconfig")
+public final class StackGresPoolingConfig
+    extends CustomResource<StackGresPoolingConfigSpec, StackGresPoolingConfigStatus>
+    implements Namespaced {
 
   private static final long serialVersionUID = 2719099984653736636L;
 
+  public static final String KIND = "SGPoolingConfig";
+
+  @JsonProperty("spec")
   @NotNull(message = "The specification is required")
   @Valid
   private StackGresPoolingConfigSpec spec;
 
+  @JsonProperty("status")
   @Valid
   private StackGresPoolingConfigStatus status;
 
   public StackGresPoolingConfig() {
-    super(StackGresPoolingConfigDefinition.KIND);
+    super();
   }
 
+  @Override
   public StackGresPoolingConfigSpec getSpec() {
     return spec;
   }
 
+  @Override
   public void setSpec(StackGresPoolingConfigSpec spec) {
     this.spec = spec;
   }
 
+  @Override
   public StackGresPoolingConfigStatus getStatus() {
     return status;
   }
 
+  @Override
   public void setStatus(StackGresPoolingConfigStatus status) {
     this.status = status;
   }

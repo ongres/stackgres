@@ -13,9 +13,9 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
+import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operator.utils.ValidationUtils;
@@ -83,7 +83,7 @@ public abstract class DependenciesValidatorTest<T extends AdmissionReview<?>, V 
             + review.getRequest().getResource().getResource()
             + "." + review.getRequest().getKind().getGroup()
             + " " + review.getRequest().getName() + " because the "
-            + StackGresClusterDefinition.NAME + " "
+            + CustomResource.getCRDName(StackGresCluster.class) + " "
             + clusterList.getItems().get(0).getMetadata().getName() + " depends on it"
         , ex.getResult().getMessage());
   }

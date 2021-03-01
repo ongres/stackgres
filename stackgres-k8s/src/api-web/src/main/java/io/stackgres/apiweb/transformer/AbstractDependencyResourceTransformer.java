@@ -11,7 +11,7 @@ import io.stackgres.apiweb.dto.Metadata;
 import io.stackgres.apiweb.dto.ResourceDto;
 
 public abstract class AbstractDependencyResourceTransformer<T extends ResourceDto,
-    R extends CustomResource> implements DependencyResourceTransformer<T, R> {
+    R extends CustomResource<?, ?>> implements DependencyResourceTransformer<T, R> {
 
   protected ObjectMeta getCustomResourceMetadata(T source, R original) {
     ObjectMeta metadata = original != null ? original.getMetadata() : new ObjectMeta();

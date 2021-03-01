@@ -11,8 +11,6 @@ import org.jooq.lambda.Unchecked;
 
 public enum StackGresProperty implements StackGresPropertyReader {
 
-  CRD_GROUP("stackgres.group"),
-  CRD_VERSION("stackgres.crd.version"),
   CONTAINER_BUILD("stackgres.containerBuild"),
   OPERATOR_VERSION("stackgres.operatorVersion"),
   OPERATOR_IMAGE_VERSION("stackgres.operatorImageVersion"),

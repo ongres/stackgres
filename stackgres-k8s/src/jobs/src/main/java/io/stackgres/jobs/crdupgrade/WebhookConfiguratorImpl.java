@@ -13,18 +13,18 @@ import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition
 import io.fabric8.kubernetes.api.model.apiextensions.v1.ServiceReferenceBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.WebhookClientConfigBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.WebhookConversionBuilder;
-import io.stackgres.jobs.common.ResourceFinder;
-import io.stackgres.jobs.common.ResourceWriter;
-import io.stackgres.jobs.common.SecretFinder;
+import io.stackgres.common.resource.ResourceFinder;
+import io.stackgres.common.resource.ResourceWriter;
+import io.stackgres.common.resource.SecretFinder;
 
 public class WebhookConfiguratorImpl implements WebhookConfigurator {
 
-  private static final String OPERATOR_NAME = CrdUpgradeProperty.OPERATOR_NAME.getString();
+  String operatorName = CrdUpgradeProperty.OPERATOR_NAME.getString();
 
-  private static final String OPERATOR_NAMESPACE = CrdUpgradeProperty.OPERATOR_NAMESPACE
+  String operatorNamespace = CrdUpgradeProperty.OPERATOR_NAMESPACE
       .getString();
 
-  private static final String OPERATOR_SECRET_NAME = OPERATOR_NAME + "-certs";
+  String operatorSecretName = operatorName + "-certs";
 
   private final SecretFinder secretFinder;
 
@@ -35,9 +35,9 @@ public class WebhookConfiguratorImpl implements WebhookConfigurator {
   private CrdLoader crdLoader;
 
   public WebhookConfiguratorImpl(SecretFinder secretFinder,
-                                 ResourceFinder<CustomResourceDefinition> crdFinder,
-                                 ResourceWriter<CustomResourceDefinition> crdWriter,
-                                 CrdLoader crdLoader) {
+      ResourceFinder<CustomResourceDefinition> crdFinder,
+      ResourceWriter<CustomResourceDefinition> crdWriter,
+      CrdLoader crdLoader) {
     this.secretFinder = secretFinder;
     this.crdFinder = crdFinder;
     this.crdWriter = crdWriter;
@@ -50,26 +50,26 @@ public class WebhookConfiguratorImpl implements WebhookConfigurator {
     String webhookCaCert = getWebhookCaCert()
         .orElseThrow(() -> new RuntimeException("Operator certificates secret not found"));
 
-    crdLoader.scanDefinitions().forEach(definition -> configureWebhook(definition.getName(),
-        definition.getSingular(),
-        webhookCaCert));
+    crdLoader.scanDefinitions()
+        .forEach(crd -> configureWebhook(crd.getMetadata().getName(), webhookCaCert));
   }
 
-  protected void configureWebhook(String name, String singular, String webhookCaCert) {
+  protected void configureWebhook(String name, String webhookCaCert) {
     CustomResourceDefinition customResourceDefinition = crdFinder.findByName(name)
         .orElseThrow(() -> new RuntimeException("Custom Resource Definition "
             + name + " not found"));
     customResourceDefinition.getSpec().setPreserveUnknownFields(false);
 
-    String conversionPath = "/stackgres/conversion/" + singular;
+    String conversionPath = "/stackgres/conversion/"
+        + customResourceDefinition.getSpec().getNames().getSingular();
     customResourceDefinition.getSpec().setConversion(new CustomResourceConversionBuilder()
         .withStrategy("Webhook")
         .withWebhook(new WebhookConversionBuilder()
             .withClientConfig(new WebhookClientConfigBuilder()
                 .withCaBundle(webhookCaCert)
                 .withService(new ServiceReferenceBuilder()
-                    .withNamespace(OPERATOR_NAMESPACE)
-                    .withName(OPERATOR_NAME)
+                    .withNamespace(operatorNamespace)
+                    .withName(operatorName)
                     .withPath(conversionPath)
                     .build())
                 .build())
@@ -80,7 +80,7 @@ public class WebhookConfiguratorImpl implements WebhookConfigurator {
   }
 
   protected Optional<String> getWebhookCaCert() {
-    return secretFinder.findByNameAndNamespace(OPERATOR_SECRET_NAME, OPERATOR_NAMESPACE)
+    return secretFinder.findByNameAndNamespace(operatorSecretName, operatorNamespace)
         .map(Secret::getData)
         .map(data -> data.get("server.crt"));
   }

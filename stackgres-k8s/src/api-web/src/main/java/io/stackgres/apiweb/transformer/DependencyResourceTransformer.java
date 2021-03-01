@@ -11,7 +11,8 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.apiweb.dto.ResourceDto;
 import org.jetbrains.annotations.Nullable;
 
-public interface DependencyResourceTransformer<T extends ResourceDto, R extends CustomResource> {
+public interface DependencyResourceTransformer
+    <T extends ResourceDto, R extends CustomResource<?, ?>> {
 
   R toCustomResource(T resource, @Nullable R originalResource);
 

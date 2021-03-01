@@ -11,26 +11,19 @@ import javax.inject.Inject;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
-import io.stackgres.common.crd.sgcluster.StackGresClusterDoneable;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 
 @ApplicationScoped
 public class ClusterResourceScheduler extends
-    AbstractCustomResourceScheduler<StackGresCluster,
-        StackGresClusterList, StackGresClusterDoneable> {
+    AbstractCustomResourceScheduler<StackGresCluster, StackGresClusterList> {
 
   @Inject
   public ClusterResourceScheduler(KubernetesClientFactory clientFactory) {
-    super(clientFactory,
-        StackGresClusterDefinition.CONTEXT,
-        StackGresCluster.class,
-        StackGresClusterList.class,
-        StackGresClusterDoneable.class);
+    super(clientFactory, StackGresCluster.class, StackGresClusterList.class);
   }
 
   public ClusterResourceScheduler() {
-    super(null, null, null, null, null);
+    super(null, null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 

@@ -12,27 +12,22 @@ import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.resource.AbstractCustomResourceScanner;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
-import io.stackgres.operator.customresource.prometheus.PrometheusConfigDefinition;
-import io.stackgres.operator.customresource.prometheus.PrometheusConfigDoneable;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfigList;
 
 @ApplicationScoped
 public class PrometheusScanner
-    extends AbstractCustomResourceScanner<PrometheusConfig, PrometheusConfigList,
-        PrometheusConfigDoneable> {
+    extends AbstractCustomResourceScanner<PrometheusConfig, PrometheusConfigList> {
 
   /**
    * Create a {@code PrometheusScanner} instance.
    */
   @Inject
   public PrometheusScanner(KubernetesClientFactory clientFactory) {
-    super(clientFactory, PrometheusConfigDefinition.CONTEXT,
-        PrometheusConfig.class, PrometheusConfigList.class,
-        PrometheusConfigDoneable.class);
+    super(clientFactory, PrometheusConfig.class, PrometheusConfigList.class);
   }
 
   public PrometheusScanner() {
-    super(null, null, null, null, null);
+    super(null, null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 

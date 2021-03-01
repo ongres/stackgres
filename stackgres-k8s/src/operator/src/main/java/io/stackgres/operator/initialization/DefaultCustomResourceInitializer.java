@@ -5,12 +5,11 @@
 
 package io.stackgres.operator.initialization;
 
-import io.fabric8.kubernetes.client.CustomResource;
-
-public interface DefaultCustomResourceInitializer<T extends CustomResource> extends Initializer {
+public interface DefaultCustomResourceInitializer extends Initializer {
 
   void initialize();
 
+  @Override
   default void run() {
     initialize();
   }

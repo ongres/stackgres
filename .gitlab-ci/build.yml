@@ -1,5 +1,5 @@
 build:
-  image: docker.io/ongres/ubi-graalvm-maven:20.1.0-java11
+  image: docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11
   stage: build
   tags:
     - stackgres-runner
@@ -9,7 +9,7 @@ build:
     - 'mvn $MAVEN_CLI_OPTS clean verify -P safer'
     - 'sh -x stackgres-k8s/src/api-web/src/main/swagger/build.sh'
   cache:
-    paths:  
+    paths:
       - $CI_PROJECT_DIR/.m2/repository
   artifacts:
     expire_in: 1 week

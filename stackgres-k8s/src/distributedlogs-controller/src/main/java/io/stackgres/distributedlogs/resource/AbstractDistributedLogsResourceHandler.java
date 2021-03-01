@@ -24,13 +24,13 @@ public abstract class AbstractDistributedLogsResourceHandler
   protected static final ImmutableMap<Class<? extends HasMetadata>,
       Function<KubernetesClient,
       MixedOperation<? extends HasMetadata,
-          ? extends KubernetesResourceList<? extends HasMetadata>, ?,
-          ? extends Resource<? extends HasMetadata, ?>>>>
+          ? extends KubernetesResourceList<? extends HasMetadata>,
+          ? extends Resource<? extends HasMetadata>>>>
       STACKGRES_DISTRIBUTED_LOGS_RESOURCE_OPERATIONS =
       ImmutableMap.<Class<? extends HasMetadata>, Function<KubernetesClient,
           MixedOperation<? extends HasMetadata,
-              ? extends KubernetesResourceList<? extends HasMetadata>, ?,
-              ? extends Resource<? extends HasMetadata, ?>>>>builder()
+              ? extends KubernetesResourceList<? extends HasMetadata>,
+              ? extends Resource<? extends HasMetadata>>>>builder()
       .put(ConfigMap.class, KubernetesClient::configMaps)
       .put(Pod.class, KubernetesClient::pods)
       .build();
@@ -38,7 +38,7 @@ public abstract class AbstractDistributedLogsResourceHandler
   @Override
   protected <M extends HasMetadata> Function<KubernetesClient,
       MixedOperation<? extends HasMetadata, ? extends KubernetesResourceList<? extends HasMetadata>,
-          ?, ? extends Resource<? extends HasMetadata, ?>>> getResourceOperations(M resource) {
+          ? extends Resource<? extends HasMetadata>>> getResourceOperations(M resource) {
     return STACKGRES_DISTRIBUTED_LOGS_RESOURCE_OPERATIONS.get(resource.getClass());
   }
 

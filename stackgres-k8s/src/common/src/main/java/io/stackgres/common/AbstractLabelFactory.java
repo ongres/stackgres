@@ -12,7 +12,8 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceUtil;
 
-public abstract class AbstractLabelFactory<T extends CustomResource> implements LabelFactory<T> {
+public abstract class AbstractLabelFactory<T extends CustomResource<?, ?>>
+    implements LabelFactory<T> {
   @Override
   public Map<String, String> genericClusterLabels(StackGresCluster resource) {
     return ImmutableMap.of(getLabelMapper().appKey(), getLabelMapper().appName(),

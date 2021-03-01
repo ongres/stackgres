@@ -5,7 +5,8 @@
 
 package io.stackgres.operator.validation.backup;
 
-import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
@@ -13,7 +14,7 @@ import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 public interface BackupValidator extends Validator<BackupReview> {
 
   default void fail(String reason, String message) throws ValidationFailed {
-    fail(StackGresBackupDefinition.KIND, reason, message);
+    fail(HasMetadata.getKind(StackGresBackup.class), reason, message);
   }
 
 }

@@ -81,6 +81,7 @@ public final class ParserImplSubstitutions {
         return null;
       }
 
+      @SuppressWarnings("deprecation")
       @Override
       public String getSQL(boolean inline) {
         return null;
@@ -188,6 +189,7 @@ public final class ParserImplSubstitutions {
         return null;
       }
 
+      @SuppressWarnings("deprecation")
       @Override
       public String getSQL(boolean inline) {
         return null;

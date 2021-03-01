@@ -15,7 +15,7 @@ import io.stackgres.operatorframework.resource.ResourceHandlerSelector;
 
 public abstract class ResourceGeneratorReconciliationCycle<
       T extends ResourceHandlerContext,
-      H extends CustomResource,
+      H extends CustomResource<?, ?>,
       S extends ResourceHandlerSelector<T>>
     extends ReconciliationCycle<T, H, S> {
 

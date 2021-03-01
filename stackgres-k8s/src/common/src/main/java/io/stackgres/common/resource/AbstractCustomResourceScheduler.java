@@ -6,37 +6,29 @@
 package io.stackgres.common.resource;
 
 import io.fabric8.kubernetes.client.CustomResource;
-import io.fabric8.kubernetes.client.CustomResourceDoneable;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.Namespaceable;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.stackgres.common.KubernetesClientFactory;
 
-public abstract class AbstractCustomResourceScheduler<T extends CustomResource,
-    L extends CustomResourceList<T>, D extends CustomResourceDoneable<T>>
+public abstract class AbstractCustomResourceScheduler
+    <T extends CustomResource<?, ?>, L extends CustomResourceList<T>>
     implements CustomResourceScheduler<T> {
 
   private final KubernetesClientFactory clientFactory;
 
-  private final CustomResourceDefinitionContext customResourceDefinitionContext;
   private final Class<T> customResourceClass;
   private final Class<L> customResourceListClass;
-  private final Class<D> customResourceDoneClass;
 
   protected AbstractCustomResourceScheduler(
       KubernetesClientFactory clientFactory,
-      CustomResourceDefinitionContext customResourceDefinitionContext,
       Class<T> customResourceClass,
-      Class<L> customResourceListClass,
-      Class<D> customResourceDoneClass) {
+      Class<L> customResourceListClass) {
     this.clientFactory = clientFactory;
-    this.customResourceDefinitionContext = customResourceDefinitionContext;
     this.customResourceClass = customResourceClass;
     this.customResourceListClass = customResourceListClass;
-    this.customResourceDoneClass = customResourceDoneClass;
   }
 
   @Override
@@ -68,12 +60,9 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource,
     }
   }
 
-  private Namespaceable<NonNamespaceOperation<T, L, D, Resource<T, D>>> getCustomResourceEndpoints(
+  private Namespaceable<NonNamespaceOperation<T, L, Resource<T>>> getCustomResourceEndpoints(
       KubernetesClient client) {
-    return client.customResources(customResourceDefinitionContext,
-        customResourceClass,
-        customResourceListClass,
-        customResourceDoneClass);
+    return client.customResources(customResourceClass, customResourceListClass);
   }
 
 }

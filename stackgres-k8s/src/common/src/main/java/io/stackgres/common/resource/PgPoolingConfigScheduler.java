@@ -11,26 +11,19 @@ import javax.inject.Inject;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDefinition;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDoneable;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
 
 @ApplicationScoped
 public class PgPoolingConfigScheduler
-    extends AbstractCustomResourceScheduler<StackGresPoolingConfig,
-    StackGresPoolingConfigList, StackGresPoolingConfigDoneable> {
+    extends AbstractCustomResourceScheduler<StackGresPoolingConfig, StackGresPoolingConfigList> {
 
   @Inject
   public PgPoolingConfigScheduler(KubernetesClientFactory clientFactory) {
-    super(clientFactory,
-        StackGresPoolingConfigDefinition.CONTEXT,
-        StackGresPoolingConfig.class,
-        StackGresPoolingConfigList.class,
-        StackGresPoolingConfigDoneable.class);
+    super(clientFactory, StackGresPoolingConfig.class, StackGresPoolingConfigList.class);
   }
 
   public PgPoolingConfigScheduler() {
-    super(null, null, null, null, null);
+    super(null, null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 

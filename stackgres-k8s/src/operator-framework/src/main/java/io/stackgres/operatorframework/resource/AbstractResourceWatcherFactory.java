@@ -8,9 +8,9 @@ package io.stackgres.operatorframework.resource;
 import java.util.function.Consumer;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.Watcher.Action;
+import io.fabric8.kubernetes.client.WatcherException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +27,10 @@ public abstract class AbstractResourceWatcherFactory {
       WatcherListener<T> watcherListener) {
     return new WatcherInstance<>(actionConsumer, watcherListener);
   }
+
+  protected abstract void onError(WatcherException cause);
+
+  protected abstract void onClose();
 
   private class WatcherInstance<T extends HasMetadata> implements Watcher<T> {
 
@@ -52,31 +56,35 @@ public abstract class AbstractResourceWatcherFactory {
     }
 
     @Override
-    public void onClose(KubernetesClientException cause) {
-      if (cause == null) {
-        LOGGER.info("onClose was called");
-        AbstractResourceWatcherFactory.this.onClose();
-      } else {
-        LOGGER.error("onClose was called, ", cause);
-        AbstractResourceWatcherFactory.this.onError(cause);
-        watcherListener.watcherError(cause);
-      }
+    public void onClose(WatcherException cause) {
+      LOGGER.error("onClose was called, ", cause);
+      AbstractResourceWatcherFactory.this.onError(cause);
+      watcherListener.watcherError(cause);
     }
+
+    @Override
+    public void onClose() {
+      LOGGER.debug("Watcher closed");
+      AbstractResourceWatcherFactory.this.onClose();
+    }
+
   }
-
-  protected abstract void onError(KubernetesClientException cause);
-
-  protected abstract void onClose();
 
   public static class EmptyWatcherListener<T> implements WatcherListener<T> {
     @Override
-    public void eventReceived(Action action, T resource) {}
+    public void eventReceived(Action action, T resource) {
+      // empty watcher, ignore
+    }
 
     @Override
-    public void watcherError(Exception ex) {}
+    public void watcherError(WatcherException ex) {
+      // empty watcher, ignore
+    }
 
     @Override
-    public void watcherClosed() {}
+    public void watcherClosed() {
+      // empty watcher, ignore
+    }
   }
 
 }

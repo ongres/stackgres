@@ -9,7 +9,7 @@ import java.io.File;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 
@@ -28,12 +28,13 @@ public class KubernetesServerSupplier implements Supplier<KubernetesServer> {
       final NamespacedKubernetesClient client = server.getClient();
 
       File file = CrdUtils.getCrdsFolder();
-      for (File crdFile: Optional.ofNullable(file.listFiles()).orElse(new File[0])) {
+      for (File crdFile : Optional.ofNullable(file.listFiles()).orElse(new File[0])) {
         if (!crdFile.getName().endsWith(".yaml")) {
           continue;
         }
-        CustomResourceDefinition crd = client.customResourceDefinitions().load(crdFile).get();
-        client.customResourceDefinitions().create(crd);
+        CustomResourceDefinition crd =
+            client.apiextensions().v1().customResourceDefinitions().load(crdFile).get();
+        client.apiextensions().v1().customResourceDefinitions().create(crd);
       }
     }
     return server;

@@ -5,7 +5,6 @@
 
 package io.stackgres.common.resource;
 
-import io.fabric8.kubernetes.api.model.Doneable;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -14,8 +13,8 @@ import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.KubernetesClientFactory;
 
-public abstract class AbstractResourceWriter<T extends HasMetadata,
-    L extends KubernetesResourceList<T>, D extends Doneable<T>>
+public abstract class AbstractResourceWriter
+    <T extends HasMetadata, L extends KubernetesResourceList<T>>
     implements ResourceWriter<T> {
 
   private final KubernetesClientFactory clientFactory;
@@ -53,8 +52,7 @@ public abstract class AbstractResourceWriter<T extends HasMetadata,
     }
   }
 
-  protected abstract Namespaceable<
-      NonNamespaceOperation<T, L, D, Resource<T, D>>> getResourceEndpoints(
-      KubernetesClient client);
+  protected abstract Namespaceable<NonNamespaceOperation<T, L, Resource<T>>>
+      getResourceEndpoints(KubernetesClient client);
 
 }

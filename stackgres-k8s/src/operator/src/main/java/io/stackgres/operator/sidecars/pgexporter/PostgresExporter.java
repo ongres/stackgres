@@ -48,7 +48,6 @@ import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.customresource.prometheus.Endpoint;
 import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
-import io.stackgres.operator.customresource.prometheus.ServiceMonitorDefinition;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
@@ -214,8 +213,6 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
       if (Optional.ofNullable(c.getCreateServiceMonitor()).orElse(false)) {
         c.getPrometheusInstallations().forEach(pi -> {
           ServiceMonitor serviceMonitor = new ServiceMonitor();
-          serviceMonitor.setKind(ServiceMonitorDefinition.KIND);
-          serviceMonitor.setApiVersion(ServiceMonitorDefinition.APIVERSION);
           serviceMonitor.setMetadata(new ObjectMetaBuilder()
               .withNamespace(pi.getNamespace())
               .withName(serviceMonitorName(clusterContext))

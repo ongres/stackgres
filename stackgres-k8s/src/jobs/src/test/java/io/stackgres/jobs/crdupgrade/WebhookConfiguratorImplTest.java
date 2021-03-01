@@ -5,7 +5,9 @@
 
 package io.stackgres.jobs.crdupgrade;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
@@ -17,8 +19,8 @@ import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionSpec;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.ServiceReference;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.WebhookClientConfig;
-import io.stackgres.jobs.common.ResourceWriter;
-import io.stackgres.jobs.common.SecretFinder;
+import io.stackgres.common.resource.ResourceWriter;
+import io.stackgres.common.resource.SecretFinder;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -103,8 +105,7 @@ class WebhookConfiguratorImplTest {
 
     doNothing().when(crdWriter).update(crdCaptor.capture());
 
-    webhookConfigurator.configureWebhook(definition.getName(),
-        definition.getSingular(),
+    webhookConfigurator.configureWebhook(definition.getMetadata().getName(),
         certificate);
 
     CustomResourceDefinition crd = crdCaptor.getValue();
@@ -116,7 +117,7 @@ class WebhookConfiguratorImplTest {
     assertEquals("Webhook", conversion.getStrategy());
     assertEquals(OPERATOR_NAME, service.getName());
     assertEquals(OPERATOR_NAMESPACE, service.getNamespace());
-    assertEquals("/stackgres/conversion/" + definition.getSingular(),
+    assertEquals("/stackgres/conversion/" + definition.getSpec().getNames().getSingular(),
         service.getPath());
     assertEquals(certificate, clientConfig.getCaBundle());
     assertFalse(spec.getPreserveUnknownFields());

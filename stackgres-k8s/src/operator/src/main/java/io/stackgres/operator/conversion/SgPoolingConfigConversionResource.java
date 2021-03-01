@@ -14,7 +14,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDefinition;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +34,7 @@ public class SgPoolingConfigConversionResource implements ConversionResource {
 
   @Inject
   public SgPoolingConfigConversionResource(
-      @Conversion(StackGresPoolingConfigDefinition.KIND) ConversionPipeline pipeline) {
+      @Conversion(StackGresPoolingConfig.KIND) ConversionPipeline pipeline) {
     this.pipeline = pipeline;
   }
 

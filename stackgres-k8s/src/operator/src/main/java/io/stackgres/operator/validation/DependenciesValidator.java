@@ -12,9 +12,9 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
+import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
@@ -52,7 +52,8 @@ public abstract class DependenciesValidator<T extends AdmissionReview<?>> implem
         + " " + request.getResource().getResource()
         + "." + request.getKind().getGroup()
         + " " + request.getName() + " because the "
-        + StackGresClusterDefinition.NAME + " " + i.getMetadata().getName() + " depends on it";
+        + CustomResource.getCRDName(StackGresCluster.class) + " "
+        + i.getMetadata().getName() + " depends on it";
 
     Status status = new StatusBuilder()
         .withCode(409)

@@ -8,12 +8,12 @@ package io.stackgres.jobs.crdupgrade;
 import java.util.List;
 
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
-import io.stackgres.jobs.common.StackGresCustomResourceDefinition;
+import org.jetbrains.annotations.NotNull;
 
 public interface CrdLoader {
 
-  CustomResourceDefinition load(String kind);
+  CustomResourceDefinition load(@NotNull String kind);
 
-  List<StackGresCustomResourceDefinition> scanDefinitions();
+  List<CustomResourceDefinition> scanDefinitions();
 
 }

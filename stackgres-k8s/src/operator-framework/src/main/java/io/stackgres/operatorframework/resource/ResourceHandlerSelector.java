@@ -27,8 +27,6 @@ public interface ResourceHandlerSelector<T extends ResourceHandlerContext> {
 
   boolean skipDeletion(T context, HasMetadata existingResource);
 
-  void registerKinds();
-
   Stream<HasMetadata> getResources(KubernetesClient client, T context);
 
   Optional<HasMetadata> find(KubernetesClient client, T context,

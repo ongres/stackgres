@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
-    H extends CustomResource, S extends ResourceHandlerSelector<T>> {
+    H extends CustomResource<?, ?>, S extends ResourceHandlerSelector<T>> {
 
   protected final Logger logger = LoggerFactory.getLogger(getClass());
 

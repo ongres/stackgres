@@ -23,7 +23,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.stubbing.Answer;
 
-public abstract class DefaultKeeperTest<R extends CustomResource, T extends AdmissionReview<R>> {
+public abstract class DefaultKeeperTest<R extends CustomResource<?, ?>,
+    T extends AdmissionReview<R>> {
 
   @Mock
   private DefaultCustomResourceFactory<R> factory;

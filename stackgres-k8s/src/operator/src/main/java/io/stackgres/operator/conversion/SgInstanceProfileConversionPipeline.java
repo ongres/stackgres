@@ -7,10 +7,10 @@ package io.stackgres.operator.conversion;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.common.crd.sgprofile.StackGresProfileDefinition;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 
 @ApplicationScoped
-@Conversion(StackGresProfileDefinition.KIND)
+@Conversion(StackGresProfile.KIND)
 public class SgInstanceProfileConversionPipeline implements ConversionPipeline {
 
 }

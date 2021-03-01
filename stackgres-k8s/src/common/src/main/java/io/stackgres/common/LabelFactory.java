@@ -14,7 +14,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceUtil;
 
-public interface LabelFactory<T extends CustomResource> {
+public interface LabelFactory<T extends CustomResource<?, ?>> {
 
   Map<String, String> genericClusterLabels(StackGresCluster resource);
 

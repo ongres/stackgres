@@ -5,38 +5,33 @@
 
 package io.stackgres.common.workaround;
 
-import io.fabric8.kubernetes.api.model.DoneableService;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.ServiceResource;
 import okhttp3.OkHttpClient;
 
-//CHECKSTYLE:OFF
 public class DefaultKubernetesClient extends io.fabric8.kubernetes.client.DefaultKubernetesClient {
 
-  public DefaultKubernetesClient() throws KubernetesClientException {
+  public DefaultKubernetesClient() {
     super();
   }
 
-  public DefaultKubernetesClient(Config config) throws KubernetesClientException {
-    super(config);
-  }
-
-  public DefaultKubernetesClient(OkHttpClient httpClient, Config config)
-      throws KubernetesClientException {
-    super(httpClient, config);
-  }
-
-  public DefaultKubernetesClient(String masterUrl) throws KubernetesClientException {
+  public DefaultKubernetesClient(String masterUrl) {
     super(masterUrl);
   }
 
+  public DefaultKubernetesClient(Config config) {
+    super(config);
+  }
+
+  public DefaultKubernetesClient(OkHttpClient httpClient, Config config) {
+    super(httpClient, config);
+  }
+
   @Override
-  public MixedOperation<Service, ServiceList, DoneableService,
-      ServiceResource<Service, DoneableService>> services() {
+  public MixedOperation<Service, ServiceList, ServiceResource<Service>> services() {
     return new ServiceOperationsImpl(httpClient, getConfiguration());
   }
 

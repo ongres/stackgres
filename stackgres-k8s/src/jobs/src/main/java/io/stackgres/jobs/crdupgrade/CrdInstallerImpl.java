@@ -6,17 +6,19 @@
 package io.stackgres.jobs.crdupgrade;
 
 import java.util.Optional;
-import java.util.logging.Logger;
 
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionVersion;
-import io.stackgres.jobs.common.ResourceFinder;
-import io.stackgres.jobs.common.ResourceWriter;
+import io.stackgres.common.resource.ResourceFinder;
+import io.stackgres.common.resource.ResourceWriter;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CrdInstallerImpl implements CrdInstaller {
 
-  private static final Logger LOGGER = Logger.getLogger(CrdInstallerImpl.class.getName());
+  private static final Logger LOGGER = LoggerFactory.getLogger(CrdInstallerImpl.class);
 
   private final ResourceFinder<CustomResourceDefinition> customResourceDefinitionResourceFinder;
 
@@ -37,11 +39,12 @@ public class CrdInstallerImpl implements CrdInstaller {
   public void installCustomResourceDefinitions() {
 
     crdLoader.scanDefinitions()
-        .forEach(definition -> installCrd(definition.getName(), definition.getKind()));
+        .forEach(definition -> installCrd(definition.getMetadata().getName(),
+            definition.getSpec().getNames().getKind()));
 
   }
 
-  protected void installCrd(String name, String kind) {
+  protected void installCrd(@NotNull String name, @NotNull String kind) {
 
     Optional<CustomResourceDefinition> installedCrdOpt = customResourceDefinitionResourceFinder
         .findByName(name);
@@ -49,36 +52,36 @@ public class CrdInstallerImpl implements CrdInstaller {
     CustomResourceDefinition currentCrd = getDefinition(kind);
 
     if (installedCrdOpt.isPresent()) {
-      LOGGER.info("CRD " + name + " is present, patching it");
+      LOGGER.info("CRD {} is present, patching it", name);
       CustomResourceDefinition installedCrd = installedCrdOpt.get();
       if (!isCurrentCrdInstalled(currentCrd, installedCrd)) {
         upgradeCrd(currentCrd, installedCrd);
       }
       updateOldSchemas(currentCrd, installedCrd);
       customResourceDefinitionResourceWriter.update(installedCrd);
-      LOGGER.info("CRD " + name + " . Patched");
+      LOGGER.info("CRD {}. Patched", name);
 
     } else {
-      LOGGER.info("CRD " + name + " is not present, installing it");
+      LOGGER.info("CRD {} is not present, installing it", name);
       customResourceDefinitionResourceWriter.create(currentCrd);
-      LOGGER.info("CRD " + name + " . Installed");
+      LOGGER.info("CRD {} . Installed", name);
     }
   }
 
   private void updateOldSchemas(CustomResourceDefinition currentCrd,
-                                CustomResourceDefinition installedCrd) {
-    installedCrd.getSpec().getVersions().forEach(definition -> {
+      CustomResourceDefinition installedCrd) {
+    installedCrd.getSpec().getVersions().forEach(version -> {
       Optional<CustomResourceDefinitionVersion> currentDefinition = currentCrd.getSpec()
           .getVersions()
           .stream()
-          .filter(v -> v.getName().equals(definition.getName()))
+          .filter(v -> v.getName().equals(version.getName()))
           .findFirst();
-      currentDefinition.ifPresent(cd -> definition.setSchema(cd.getSchema()));
+      currentDefinition.ifPresent(cd -> version.setSchema(cd.getSchema()));
     });
   }
 
   private void upgradeCrd(CustomResourceDefinition currentCrd,
-                          CustomResourceDefinition installedCrd) {
+      CustomResourceDefinition installedCrd) {
 
     disableStorageVersions(installedCrd);
     addNewSchemaVersions(currentCrd, installedCrd);
@@ -92,7 +95,7 @@ public class CrdInstallerImpl implements CrdInstaller {
   }
 
   private void addNewSchemaVersions(CustomResourceDefinition currentCrd,
-                                    CustomResourceDefinition installedCrd) {
+      CustomResourceDefinition installedCrd) {
     ImmutableList<String> installedVersions = installedCrd.getSpec().getVersions()
         .stream().map(CustomResourceDefinitionVersion::getName)
         .collect(ImmutableList.toImmutableList());
@@ -108,13 +111,12 @@ public class CrdInstallerImpl implements CrdInstaller {
 
   }
 
-  private CustomResourceDefinition getDefinition(String definition) {
-
+  private CustomResourceDefinition getDefinition(@NotNull String definition) {
     return crdLoader.load(definition);
   }
 
   private boolean isCurrentCrdInstalled(CustomResourceDefinition currentCrd,
-                                        CustomResourceDefinition installedCrd) {
+      CustomResourceDefinition installedCrd) {
     final String currentVersion = currentCrd.getSpec().getVersions()
         .stream().filter(CustomResourceDefinitionVersion::getStorage).findFirst()
         .orElseThrow(() -> new RuntimeException("At least one CRD version must be stored"))
@@ -122,7 +124,6 @@ public class CrdInstallerImpl implements CrdInstaller {
     return installedCrd.getSpec().getVersions().stream()
         .map(CustomResourceDefinitionVersion::getName)
         .anyMatch(installedVersion -> installedVersion.equals(currentVersion));
-
   }
 
 }

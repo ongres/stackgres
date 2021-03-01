@@ -68,21 +68,22 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <!-- Dependencies versions -->
-    <quarkus.version>1.7.5.Final</quarkus.version>
+    <quarkus.version>1.12.1.Final</quarkus.version>
+    <kubernetes-client.version>5.1.1</kubernetes-client.version> <!-- TODO: remove initStatus in 5.2.0 -->
     <jool.version>0.9.14</jool.version>
     <immutables.version>2.8.8</immutables.version>
-    <checkstyle.version>8.36.2</checkstyle.version>
-    <spotbugs.version>4.1.3</spotbugs.version>
-    <pmd.version>6.28.0</pmd.version>
+    <checkstyle.version>8.41</checkstyle.version>
+    <spotbugs.version>4.2.1</spotbugs.version>
+    <pmd.version>6.31.0</pmd.version>
     <docker-junit-extension.version>1.2.15</docker-junit-extension.version>
-    <jersey.version>2.29</jersey.version>
+    <jersey.version>2.32</jersey.version>
     <fluent-process.version>1.0.1</fluent-process.version>
     <log4j.version>2.13.3</log4j.version>
     <jooq.version>3.13.4</jooq.version>
-    <jetbrains-annotations.version>20.0.0</jetbrains-annotations.version>
+    <jetbrains-annotations.version>20.1.0</jetbrains-annotations.version>
     <mockito.version>3.0.0</mockito.version>
-    <swagger-annotations.version>2.1.5</swagger-annotations.version>
-    <spotbugs-annotations.version>4.0.4</spotbugs-annotations.version>
+    <swagger-annotations.version>2.1.7</swagger-annotations.version>
+    <reflections.version>0.9.12</reflections.version>
     <!-- Plugins versions -->
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <jar-plugin.version>3.2.0</jar-plugin.version>
@@ -90,14 +91,14 @@
     <resources-plugin.version>3.1.0</resources-plugin.version>
     <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
     <failsafe-plugin.version>3.0.0-M5</failsafe-plugin.version>
-    <checkstyle-plugin.version>3.1.1</checkstyle-plugin.version>
-    <spotbugs-plugin.version>4.0.4</spotbugs-plugin.version>
-    <pmd-plugin.version>3.13.0</pmd-plugin.version>
+    <checkstyle-plugin.version>3.1.2</checkstyle-plugin.version>
+    <spotbugs-plugin.version>4.2.0</spotbugs-plugin.version>
+    <pmd-plugin.version>3.14.0</pmd-plugin.version>
     <enforcer-plugin.version>3.0.0-M3</enforcer-plugin.version>
     <dependency-plugin.version>3.1.1</dependency-plugin.version>
-    <docker-maven-plugin.version>0.33.0</docker-maven-plugin.version>
+    <docker-maven-plugin.version>0.34.1</docker-maven-plugin.version>
     <jandex-maven-plugin.version>1.0.8</jandex-maven-plugin.version>
-    <jandex.version>2.2.1.Final</jandex.version>
+    <jandex.version>2.2.3.Final</jandex.version>
     <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
     <build-helper-maven-plugin.version>3.2.0</build-helper-maven-plugin.version>
     <swagger-maven-plugin.version>2.1.5</swagger-maven-plugin.version>
@@ -114,6 +115,13 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>kubernetes-client-bom</artifactId>
+        <version>${kubernetes-client.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
       <dependency>
         <groupId>io.quarkus</groupId>
         <artifactId>quarkus-universe-bom</artifactId>
@@ -173,13 +181,19 @@
       <dependency>
         <groupId>org.ow2.asm</groupId>
         <artifactId>asm</artifactId>
-        <version>8.0.1</version>
+        <version>9.0</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>com.ongres</groupId>
         <artifactId>fluent-process</artifactId>
         <version>${fluent-process.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.reflections</groupId>
+        <artifactId>reflections</artifactId>
+        <version>${reflections.version}</version>
+        <scope>test</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -207,9 +221,9 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>annotate</artifactId>
-      <version>${immutables.version}</version>
+      <groupId>com.google.errorprone</groupId>
+      <artifactId>error_prone_annotations</artifactId>
+      <optional>true</optional>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -222,7 +236,7 @@
     <dependency>
       <groupId>com.github.spotbugs</groupId>
       <artifactId>spotbugs-annotations</artifactId>
-      <version>${spotbugs-annotations.version}</version>
+      <version>${spotbugs.version}</version>
       <exclusions>
         <exclusion>
           <groupId>com.google.code.findbugs</groupId>
@@ -248,6 +262,7 @@
         <configuration>
           <systemProperties>
             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+            <maven.home>${maven.home}</maven.home>
           </systemProperties>
           <classpathDependencyExcludes>
             <classpathDependencyScopeExclude>test</classpathDependencyScopeExclude>
@@ -322,25 +337,16 @@
             <version>${checkstyle.version}</version>
           </dependency>
         </dependencies>
-        <executions>
-          <execution>
-            <id>validate</id>
-            <phase>verify</phase>
-            <configuration>
-              <violationSeverity>error</violationSeverity>
-              <failOnViolation>true</failOnViolation>
-              <failsOnError>true</failsOnError>
-              <consoleOutput>true</consoleOutput>
-              <linkXRef>false</linkXRef>
-              <includeResources>false</includeResources>
-              <includeTestSourceDirectory>false</includeTestSourceDirectory>
-              <includeTestResources>false</includeTestResources>
-            </configuration>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
+        <configuration>
+          <violationSeverity>error</violationSeverity>
+          <failOnViolation>true</failOnViolation>
+          <failsOnError>true</failsOnError>
+          <consoleOutput>true</consoleOutput>
+          <linkXRef>false</linkXRef>
+          <includeResources>false</includeResources>
+          <includeTestSourceDirectory>false</includeTestSourceDirectory>
+          <includeTestResources>false</includeTestResources>
+        </configuration>
       </plugin>
     </plugins>
     <pluginManagement>
@@ -383,45 +389,6 @@
             <skip>true</skip>
           </configuration>
         </plugin>
-        <!--This plugin's configuration is used to store Eclipse m2e settings only.
-            It has no influence on the Maven build itself.-->
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>org.jboss.jandex</groupId>
-                    <artifactId>jandex-maven-plugin</artifactId>
-                    <versionRange>[1.0.6,)</versionRange>
-                    <goals>
-                      <goal>jandex</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <execute></execute>
-                  </action>
-                </pluginExecution>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>io.quarkus</groupId>
-                    <artifactId>quarkus-maven-plugin</artifactId>
-                    <versionRange>[${quarkus.version},)</versionRange>
-                    <goals>
-                      <goal>build</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore></ignore>
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
-        </plugin>
       </plugins>
     </pluginManagement>
   </build>
@@ -431,6 +398,19 @@
       <id>safer</id> <!-- Slower but safer profile used to look for errors before pushing to SCM -->
       <build>
         <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>validate</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
           <plugin>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-maven-plugin</artifactId>

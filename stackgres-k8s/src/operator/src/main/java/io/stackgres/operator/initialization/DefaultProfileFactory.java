@@ -8,7 +8,6 @@ package io.stackgres.operator.initialization;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.common.crd.sgprofile.StackGresProfileDefinition;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 
 @ApplicationScoped
@@ -27,8 +26,6 @@ public class DefaultProfileFactory extends AbstractCustomResourceFactory<StackGr
   StackGresProfile buildResource(String namespace) {
 
     StackGresProfile profile = new StackGresProfile();
-    profile.setApiVersion(StackGresProfileDefinition.APIVERSION);
-    profile.setKind(StackGresProfileDefinition.KIND);
     profile.getMetadata().setName(generateDefaultName());
     profile.getMetadata().setNamespace(namespace);
 

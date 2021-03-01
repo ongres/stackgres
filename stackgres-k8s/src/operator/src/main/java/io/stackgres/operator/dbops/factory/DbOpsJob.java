@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.batch.Job;
 import io.fabric8.kubernetes.api.model.batch.JobBuilder;
+import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
@@ -34,7 +35,6 @@ import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsDefinition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
@@ -172,7 +172,7 @@ public abstract class DbOpsJob
                     .build(),
                     new EnvVarBuilder()
                     .withName("DB_OPS_CRD_NAME")
-                    .withValue(StackGresDbOpsDefinition.NAME)
+                    .withValue(CustomResource.getCRDName(StackGresDbOps.class))
                     .build(),
                     new EnvVarBuilder()
                     .withName("CURRENT_RETRY")
@@ -300,7 +300,7 @@ public abstract class DbOpsJob
                     .build(),
                     new EnvVarBuilder()
                     .withName("DB_OPS_CRD_NAME")
-                    .withValue(StackGresDbOpsDefinition.NAME)
+                    .withValue(CustomResource.getCRDName(StackGresDbOps.class))
                     .build(),
                     new EnvVarBuilder()
                     .withName("JOB_POD_LABELS")

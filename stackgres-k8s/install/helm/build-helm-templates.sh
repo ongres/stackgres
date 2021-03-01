@@ -35,7 +35,7 @@ metadata:
 ---
 EOF
 
-for CRD in ../../src/jobs/src/main/resources/crds/*.yaml
+for CRD in ../../src/common/src/main/resources/crds/*.yaml
 do
   cat "$CRD" >> "target/templates/stackgres-operator-demo.yml"
   echo --- >> "target/templates/stackgres-operator-demo.yml"

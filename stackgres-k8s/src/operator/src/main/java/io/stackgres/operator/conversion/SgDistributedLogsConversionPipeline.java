@@ -7,10 +7,10 @@ package io.stackgres.operator.conversion;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDefinition;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 
 @ApplicationScoped
-@Conversion(StackGresDistributedLogsDefinition.KIND)
+@Conversion(StackGresDistributedLogs.KIND)
 public class SgDistributedLogsConversionPipeline implements ConversionPipeline {
 
 }

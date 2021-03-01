@@ -7,10 +7,10 @@ package io.stackgres.operator.conversion;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
 
 @ApplicationScoped
-@Conversion(StackGresBackupDefinition.KIND)
+@Conversion(StackGresBackup.KIND)
 public class SgBackupConversionPipeline implements ConversionPipeline {
 
 }

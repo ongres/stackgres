@@ -14,7 +14,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDefinition;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +34,7 @@ public class SgPostgresConfigConversionResource implements ConversionResource {
 
   @Inject
   public SgPostgresConfigConversionResource(
-      @Conversion(StackGresPostgresConfigDefinition.KIND) ConversionPipeline pipeline) {
+      @Conversion(StackGresPostgresConfig.KIND) ConversionPipeline pipeline) {
     this.pipeline = pipeline;
   }
 

@@ -10,7 +10,6 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapList;
-import io.fabric8.kubernetes.api.model.DoneableConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.Namespaceable;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
@@ -21,7 +20,7 @@ import io.stackgres.common.resource.AbstractResourceWriter;
 
 @ApplicationScoped
 public class ConfigMapWriter extends AbstractResourceWriter<
-    ConfigMap, ConfigMapList, DoneableConfigMap> {
+    ConfigMap, ConfigMapList> {
 
   @Inject
   public ConfigMapWriter(KubernetesClientFactory factory) {
@@ -38,8 +37,7 @@ public class ConfigMapWriter extends AbstractResourceWriter<
       <NonNamespaceOperation<
           ConfigMap,
           ConfigMapList,
-          DoneableConfigMap,
-          Resource<ConfigMap, DoneableConfigMap>>> getResourceEndpoints(KubernetesClient client) {
+          Resource<ConfigMap>>> getResourceEndpoints(KubernetesClient client) {
     return client.configMaps();
   }
 

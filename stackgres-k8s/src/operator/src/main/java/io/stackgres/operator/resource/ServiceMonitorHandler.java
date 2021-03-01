@@ -14,17 +14,15 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
+import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.customresource.prometheus.Endpoint;
 import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
-import io.stackgres.operator.customresource.prometheus.ServiceMonitorDefinition;
-import io.stackgres.operator.customresource.prometheus.ServiceMonitorDoneable;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorList;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -39,7 +37,7 @@ public class ServiceMonitorHandler
 
   @Override
   public boolean isHandlerForResource(HasMetadata resource) {
-    return ServiceMonitorDefinition.KIND.equals(resource.getKind());
+    return HasMetadata.getKind(ServiceMonitor.class).equals(resource.getKind());
   }
 
   @Override
@@ -57,12 +55,6 @@ public class ServiceMonitorHandler
   }
 
   @Override
-  public void registerKind() {
-    KubernetesDeserializer.registerCustomKind(ServiceMonitorDefinition.APIVERSION,
-        ServiceMonitorDefinition.KIND, ServiceMonitor.class);
-  }
-
-  @Override
   public Stream<HasMetadata> getResources(KubernetesClient client,
       StackGresClusterContext context) {
     return getServiceMonitorClient(client)
@@ -73,7 +65,7 @@ public class ServiceMonitorHandler
             .list()
             .getItems()
             .stream()
-            .map(cr -> (HasMetadata) cr))
+            .map(HasMetadata.class::cast))
         .orElse(Stream.empty());
   }
 
@@ -84,7 +76,7 @@ public class ServiceMonitorHandler
             .inNamespace(resource.getMetadata().getNamespace())
             .withName(resource.getMetadata().getName())
             .get()))
-        .map(cr -> (HasMetadata) cr);
+        .map(HasMetadata.class::cast);
   }
 
   @Override
@@ -116,14 +108,11 @@ public class ServiceMonitorHandler
         .orElse(null);
   }
 
-  private Optional<MixedOperation<ServiceMonitor, ServiceMonitorList, ServiceMonitorDoneable,
-      Resource<ServiceMonitor, ServiceMonitorDoneable>>> getServiceMonitorClient(
-          KubernetesClient client) {
-    return ResourceUtil.getCustomResource(client, ServiceMonitorDefinition.NAME)
-        .map(crd -> client.customResources(crd,
-            ServiceMonitor.class,
-            ServiceMonitorList.class,
-            ServiceMonitorDoneable.class));
+  private Optional<MixedOperation<ServiceMonitor, ServiceMonitorList, Resource<ServiceMonitor>>>
+      getServiceMonitorClient(KubernetesClient client) {
+    String crdName = CustomResource.getCRDName(ServiceMonitor.class);
+    return ResourceUtil.getCustomResource(client, crdName)
+        .map(crd -> client.customResources(ServiceMonitor.class, ServiceMonitorList.class));
   }
 
   private static class ServiceMonitorVisitor<T> extends ResourcePairVisitor<T, Void> {
@@ -179,9 +168,11 @@ public class ServiceMonitorHandler
   }
 
   @Override
-  protected <M extends HasMetadata> Function<KubernetesClient, MixedOperation<? extends HasMetadata,
-        ? extends KubernetesResourceList<? extends HasMetadata>, ?,
-        ? extends Resource<? extends HasMetadata, ?>>> getResourceOperations(M resource) {
+  protected <M extends HasMetadata> Function<KubernetesClient,
+      MixedOperation<? extends HasMetadata,
+      ? extends KubernetesResourceList<? extends HasMetadata>,
+      ? extends Resource<? extends HasMetadata>>>
+      getResourceOperations(M resource) {
     throw new UnsupportedOperationException();
   }
 

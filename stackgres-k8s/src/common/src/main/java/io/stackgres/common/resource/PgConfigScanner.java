@@ -11,24 +11,19 @@ import javax.inject.Inject;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDefinition;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDoneable;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigList;
 
 @ApplicationScoped
 public class PgConfigScanner extends
-    AbstractCustomResourceScanner<StackGresPostgresConfig, StackGresPostgresConfigList,
-    StackGresPostgresConfigDoneable> {
+    AbstractCustomResourceScanner<StackGresPostgresConfig, StackGresPostgresConfigList> {
 
   @Inject
   public PgConfigScanner(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresPostgresConfigDefinition.CONTEXT,
-        StackGresPostgresConfig.class, StackGresPostgresConfigList.class,
-        StackGresPostgresConfigDoneable.class);
+    super(clientFactory,         StackGresPostgresConfig.class, StackGresPostgresConfigList.class);
   }
 
   public PgConfigScanner() {
-    super(null, null, null, null, null);
+    super(null, null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 

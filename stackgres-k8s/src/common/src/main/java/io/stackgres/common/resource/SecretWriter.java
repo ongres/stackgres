@@ -8,7 +8,6 @@ package io.stackgres.common.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.fabric8.kubernetes.api.model.DoneableSecret;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretList;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -19,7 +18,7 @@ import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 
 @ApplicationScoped
-public class SecretWriter extends AbstractResourceWriter<Secret, SecretList, DoneableSecret> {
+public class SecretWriter extends AbstractResourceWriter<Secret, SecretList> {
 
   @Inject
   public SecretWriter(KubernetesClientFactory clientFactory) {
@@ -32,9 +31,8 @@ public class SecretWriter extends AbstractResourceWriter<Secret, SecretList, Don
   }
 
   @Override
-  protected Namespaceable<NonNamespaceOperation<Secret, SecretList,
-        DoneableSecret, Resource<Secret, DoneableSecret>>> getResourceEndpoints(
-      KubernetesClient client) {
+  protected Namespaceable<NonNamespaceOperation<Secret, SecretList, Resource<Secret>>>
+      getResourceEndpoints(KubernetesClient client) {
     return client.secrets();
   }
 

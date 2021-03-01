@@ -20,17 +20,17 @@ import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
-public abstract class AbstractDefaultResourceMutator<R extends CustomResource>
+public abstract class AbstractDefaultResourceMutator<T extends CustomResource<?, ?>>
     implements ClusterMutator {
 
-  private final DefaultCustomResourceFactory<R> resourceFactory;
-  private final CustomResourceFinder<R> finder;
-  private final CustomResourceScheduler<R> scheduler;
+  private final DefaultCustomResourceFactory<T> resourceFactory;
+  private final CustomResourceFinder<T> finder;
+  private final CustomResourceScheduler<T> scheduler;
 
   private transient JsonPointer targetPointer;
 
-  public AbstractDefaultResourceMutator(DefaultCustomResourceFactory<R> resourceFactory,
-      CustomResourceFinder<R> finder, CustomResourceScheduler<R> scheduler) {
+  protected AbstractDefaultResourceMutator(DefaultCustomResourceFactory<T> resourceFactory,
+      CustomResourceFinder<T> finder, CustomResourceScheduler<T> scheduler) {
     super();
     this.resourceFactory = resourceFactory;
     this.finder = finder;
@@ -48,7 +48,7 @@ public abstract class AbstractDefaultResourceMutator<R extends CustomResource>
 
     if (review.getRequest().getOperation() == Operation.CREATE) {
 
-      R defaultResource = resourceFactory.buildResource();
+      T defaultResource = resourceFactory.buildResource();
 
       StackGresCluster targetCluster = review.getRequest().getObject();
       String targetNamespace = targetCluster.getMetadata().getNamespace();

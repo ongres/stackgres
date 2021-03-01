@@ -14,23 +14,21 @@ import javax.enterprise.context.ApplicationScoped;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsCondition;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDefinition;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDoneable;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.distributedlogs.common.StackGresDistributedLogsContext;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
 
 @ApplicationScoped
-public class DistributedLogsStatusManager extends ConditionUpdater<
-    StackGresDistributedLogsContext, StackGresDistributedLogsCondition> {
+public class DistributedLogsStatusManager
+    extends ConditionUpdater<StackGresDistributedLogsContext, StackGresDistributedLogsCondition> {
 
   @Override
   protected List<StackGresDistributedLogsCondition> getConditions(
       StackGresDistributedLogsContext context) {
     return Optional.ofNullable(context.getDistributedLogs().getStatus())
         .map(StackGresDistributedLogsStatus::getConditions)
-        .orElseGet(() -> new ArrayList<>());
+        .orElseGet(ArrayList::new);
   }
 
   @Override
@@ -46,11 +44,8 @@ public class DistributedLogsStatusManager extends ConditionUpdater<
   protected void patch(StackGresDistributedLogsContext context,
       KubernetesClient client) {
     StackGresDistributedLogs distributedLogs = context.getDistributedLogs();
-    client.customResources(
-        StackGresDistributedLogsDefinition.CONTEXT,
-        StackGresDistributedLogs.class,
-        StackGresDistributedLogsList.class,
-        StackGresDistributedLogsDoneable.class)
+    client.customResources(StackGresDistributedLogs.class,
+        StackGresDistributedLogsList.class)
         .inNamespace(distributedLogs.getMetadata().getNamespace())
         .withName(distributedLogs.getMetadata().getName())
         .patch(distributedLogs);

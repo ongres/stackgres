@@ -1,17 +1,22 @@
 /*
- * Copyright (C) 2019 OnGres, Inc.
+ * Copyright (C) 2020 OnGres, Inc.
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.jobs.common;
+package io.stackgres.jobs.app;
+
+import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.KubernetesClientFactory;
 
-public class KubernetesClientFactoryImpl implements KubernetesClientFactory {
+@ApplicationScoped
+public class KubernetesClientProvider implements KubernetesClientFactory {
 
   @Override
   public KubernetesClient create() {
     return new DefaultKubernetesClient();
   }
+
 }

@@ -9,7 +9,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
+import io.fabric8.kubernetes.client.WatcherException;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.operatorframework.resource.AbstractResourceWatcherFactory;
 
@@ -32,7 +32,7 @@ public class ResourceWatcherFactory extends AbstractResourceWatcherFactory {
   }
 
   @Override
-  public void onError(KubernetesClientException cause) {
+  public void onError(WatcherException cause) {
     try (KubernetesClient client = clientFactory.create()) {
       eventController.sendEvent(OperatorEventReason.OPERATOR_ERROR,
           "Watcher was closed unexpectedly: " + (cause.getMessage() != null
@@ -43,6 +43,7 @@ public class ResourceWatcherFactory extends AbstractResourceWatcherFactory {
 
   @Override
   protected void onClose() {
+    // nothing to do
   }
 
 }

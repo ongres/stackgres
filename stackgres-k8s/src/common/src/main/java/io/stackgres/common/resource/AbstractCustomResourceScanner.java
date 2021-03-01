@@ -9,74 +9,61 @@ import java.util.List;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.client.CustomResource;
-import io.fabric8.kubernetes.client.CustomResourceDoneable;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.stackgres.common.KubernetesClientFactory;
+import org.jetbrains.annotations.Nullable;
 
-public abstract class AbstractCustomResourceScanner<T extends CustomResource,
-    L extends CustomResourceList<T>, D extends CustomResourceDoneable<T>>
+public abstract class AbstractCustomResourceScanner
+    <T extends CustomResource<?, ?>, L extends CustomResourceList<T>>
     implements CustomResourceScanner<T> {
 
   private final KubernetesClientFactory clientFactory;
-  private final CustomResourceDefinitionContext customResourceDefinitionContext;
+
   private final Class<T> customResourceClass;
   private final Class<L> customResourceListClass;
-  private final Class<D> customResourceDoneClass;
 
   protected AbstractCustomResourceScanner(KubernetesClientFactory clientFactory,
-      CustomResourceDefinitionContext customResourceDefinitionContext,
       Class<T> customResourceClass,
-      Class<L> customResourceListClass,
-      Class<D> customResourceDoneClass) {
+      Class<L> customResourceListClass) {
     super();
     this.clientFactory = clientFactory;
-    this.customResourceDefinitionContext = customResourceDefinitionContext;
     this.customResourceClass = customResourceClass;
     this.customResourceListClass = customResourceListClass;
-    this.customResourceDoneClass = customResourceDoneClass;
   }
 
   @Override
   public Optional<List<T>> findResources() {
+    String crdName = CustomResource.getCRDName(customResourceClass);
     try (KubernetesClient client = clientFactory.create()) {
-      return Optional.ofNullable(client.customResourceDefinitions()
-          .withName(customResourceDefinitionContext.getName())
+      return Optional.ofNullable(client.apiextensions().v1().customResourceDefinitions()
+          .withName(crdName)
           .get())
-          .map(crd -> client.customResources(customResourceDefinitionContext,
-              customResourceClass,
-              customResourceListClass,
-              customResourceDoneClass)
-          .inAnyNamespace()
-          .list()
-          .getItems());
+          .map(crd -> client.customResources(customResourceClass, customResourceListClass)
+              .inAnyNamespace()
+              .list()
+              .getItems());
     }
   }
 
   @Override
-  public Optional<List<T>> findResources(String namespace) {
+  public Optional<List<T>> findResources(@Nullable String namespace) {
+    String crdName = CustomResource.getCRDName(customResourceClass);
     try (KubernetesClient client = clientFactory.create()) {
-      return Optional.ofNullable(client.customResourceDefinitions()
-          .withName(customResourceDefinitionContext.getName())
+      return Optional.ofNullable(client.apiextensions().v1().customResourceDefinitions()
+          .withName(crdName)
           .get())
-          .map(crd -> client.customResources(customResourceDefinitionContext,
-              customResourceClass,
-              customResourceListClass,
-              customResourceDoneClass)
-          .inNamespace(namespace)
-          .list()
-          .getItems());
+          .map(crd -> client.customResources(customResourceClass, customResourceListClass)
+              .inNamespace(namespace)
+              .list()
+              .getItems());
     }
   }
 
   @Override
   public List<T> getResources() {
     try (KubernetesClient client = clientFactory.create()) {
-      return client.customResources(customResourceDefinitionContext,
-          customResourceClass,
-          customResourceListClass,
-          customResourceDoneClass)
+      return client.customResources(customResourceClass, customResourceListClass)
           .inAnyNamespace()
           .list()
           .getItems();
@@ -84,12 +71,9 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource,
   }
 
   @Override
-  public List<T> getResources(String namespace) {
+  public List<T> getResources(@Nullable String namespace) {
     try (KubernetesClient client = clientFactory.create()) {
-      return client.customResources(customResourceDefinitionContext,
-          customResourceClass,
-          customResourceListClass,
-          customResourceDoneClass)
+      return client.customResources(customResourceClass, customResourceListClass)
           .inNamespace(namespace)
           .list()
           .getItems();

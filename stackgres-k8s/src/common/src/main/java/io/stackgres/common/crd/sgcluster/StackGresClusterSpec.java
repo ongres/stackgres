@@ -173,28 +173,31 @@ public class StackGresClusterSpec implements KubernetesResource {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof StackGresClusterSpec)) {
       return false;
     }
-    StackGresClusterSpec that = (StackGresClusterSpec) o;
-    return instances == that.instances && Objects.equals(postgresVersion, that.postgresVersion)
-        && Objects.equals(configuration, that.configuration)
-        && Objects.equals(resourceProfile, that.resourceProfile)
-        && Objects.equals(initData, that.initData) && Objects.equals(pod, that.pod)
-        && Objects.equals(prometheusAutobind, that.prometheusAutobind)
-        && Objects.equals(distributedLogs, that.distributedLogs)
-        && Objects.equals(nonProduction, that.nonProduction)
-        && Objects.equals(postgresServices, that.postgresServices)
-        && Objects.equals(metadata, that.metadata);
+    StackGresClusterSpec other = (StackGresClusterSpec) obj;
+    return Objects.equals(configuration, other.configuration)
+        && Objects.equals(distributedLogs, other.distributedLogs)
+        && Objects.equals(initData, other.initData)
+        && instances == other.instances
+        && Objects.equals(metadata, other.metadata)
+        && Objects.equals(nonProduction, other.nonProduction)
+        && Objects.equals(pod, other.pod)
+        && Objects.equals(postgresServices, other.postgresServices)
+        && Objects.equals(postgresVersion, other.postgresVersion)
+        && Objects.equals(prometheusAutobind, other.prometheusAutobind)
+        && Objects.equals(resourceProfile, other.resourceProfile);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(instances, postgresVersion, configuration, resourceProfile,
-        initData, pod, prometheusAutobind, distributedLogs, nonProduction, metadata);
+    return Objects.hash(configuration, distributedLogs, initData, instances, metadata,
+        nonProduction, pod, postgresServices, postgresVersion, prometheusAutobind, resourceProfile);
   }
+
 }

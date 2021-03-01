@@ -9,93 +9,55 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.reflect.ClassPath;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.common.StackGresProperty;
+import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.stackgres.common.YamlMapperProvider;
+import io.stackgres.common.crd.CommonDefinition;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.testutil.CrdUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
+import org.reflections.Reflections;
 
-public class CrdMatchTest {
+@SuppressWarnings("rawtypes")
+class CrdMatchTest {
 
-  private static final String CRD_POD_VERSION = StackGresProperty.CRD_VERSION.getString();
+  private static final String CRD_VERSION = CommonDefinition.VERSION;
 
-  private static final String CRD_POD_GROUP = StackGresProperty.CRD_GROUP.getString();
+  private static final String CRD_GROUP = CommonDefinition.GROUP;
 
   private static File[] crdFiles;
 
   private static Map<String, CustomResourceDefinition> definitionsByKind;
 
+  private static Map<String, Class<? extends CustomResource>> classByKind;
+
   @BeforeAll
   static void beforeAll() throws Exception {
-
-    File crdFolder = CrdUtils.getCrdsFolder();
-
-    crdFiles = crdFolder.listFiles(file -> file.getName().endsWith(".yaml"));
-
-    List<CustomResourceDefinition> customResourceDefinitions = getCustomResourceDefinitions();
-
-    definitionsByKind = customResourceDefinitions
-        .stream()
-        .collect(Collectors.toMap(CustomResourceDefinition::getKind, Function.identity()));
-
+    crdFiles = CrdUtils.getCrdsFolder()
+        .listFiles(file -> file.getName().endsWith(".yaml"));
+    definitionsByKind = getCustomResourceClasses().stream()
+        .map(clazz -> CustomResourceDefinitionContext.v1CRDFromCustomResourceType(clazz).build())
+        .collect(Collectors.toMap(crd -> crd.getSpec().getNames().getKind(), Function.identity()));
+    classByKind = getCustomResourceClasses().stream()
+        .collect(Collectors.toMap(clazz -> HasMetadata.getKind(clazz), Function.identity()));
   }
 
-  private static List<CustomResourceDefinition> getCustomResourceDefinitions() throws IOException {
-
-    ClassLoader LOADER = Thread.currentThread().getContextClassLoader();
-
-    ClassPath CLASSPATH_SCANNER = ClassPath.from(LOADER);
-
-    ImmutableSet<ClassPath.ClassInfo> clazzes = CLASSPATH_SCANNER
-        .getTopLevelClassesRecursive("io.stackgres.common.crd");
-
-    return clazzes.stream()
-        .map(classInfo -> classInfo.load())
-        .filter(CustomResource.class::isAssignableFrom)
-        .filter(clazz -> {
-          try {
-            Class.forName(clazz.getName() + "Definition");
-            return true;
-          } catch (ClassNotFoundException ex) {
-            return false;
-          }
-        })
-        .map(clazz -> {
-          try {
-            return Class.forName(clazz.getName() + "Definition");
-          } catch (ClassNotFoundException e) {
-            throw new AssertionFailedError("Custom Resources "
-                + clazz.getName() + " definition is no accessible");
-          }
-        })
-        .filter(clazz -> clazz.isEnum())
-        .map(resurceDefinition -> {
-          CustomResourceDefinition crd = new CustomResourceDefinition();
-          try {
-            crd.setKind((String) resurceDefinition.getField("KIND").get(null));
-            crd.setSingular((String) resurceDefinition.getField("SINGULAR").get(null));
-            crd.setPlural((String) resurceDefinition.getField("PLURAL").get(null));
-            crd.setName((String) resurceDefinition.getField("NAME").get(null));
-            return crd;
-          } catch (Exception e) {
-            throw new AssertionFailedError("Class "
-                + resurceDefinition.getName() + "is not properly defined", e);
-          }
-        })
-        .collect(Collectors.toList());
+  private static Set<Class<? extends CustomResource>> getCustomResourceClasses() {
+    Reflections reflections = new Reflections("io.stackgres.common.crd");
+    return reflections.getSubTypesOf(CustomResource.class);
   }
 
   private static void withEveryYaml(Consumer<JsonNode> crdDefinition) throws IOException {
@@ -107,132 +69,110 @@ public class CrdMatchTest {
   }
 
   @Test
-  void crdVersion_ShouldMatchConfiguredVersion() throws IOException {
+  void apiVersion_ShouldMatchConfiguredVersion() throws IOException {
+    withEveryYaml(crdTree -> {
+      Class<? extends CustomResource> clazz = getCustomResourceClass(crdTree);
+      String apiVersion = HasMetadata.getApiVersion(clazz);
 
-    withEveryYaml((crdTree) -> {
       JsonNode crdInstallVersions = crdTree.get("spec").get("versions");
-
+      String group = crdTree.get("spec").get("group").asText();
       for (JsonNode crdInstallVersion : crdInstallVersions) {
-        assertEquals(CRD_POD_VERSION, crdInstallVersion.get("name").asText());
-
+        String version = crdInstallVersion.get("name").asText();
+        assertEquals(group + "/" + version, apiVersion, "Kind : " + HasMetadata.getKind(clazz));
       }
     });
+  }
 
+  @Test
+  void crdVersion_ShouldMatchConfiguredVersion() throws IOException {
+    withEveryYaml(crdTree -> {
+      JsonNode crdInstallVersions = crdTree.get("spec").get("versions");
+      Class<? extends CustomResource> clazz = getCustomResourceClass(crdTree);
+      for (JsonNode crdInstallVersion : crdInstallVersions) {
+        assertEquals(CRD_VERSION, crdInstallVersion.get("name").asText());
+
+        String version = HasMetadata.getVersion(clazz);
+        assertEquals(CRD_VERSION, version, "Kind : " + HasMetadata.getKind(clazz));
+      }
+    });
   }
 
   @Test
   void crdVersion_ShouldMatchConfiguredGroup() throws IOException {
-
-    withEveryYaml((crdTree) -> {
+    withEveryYaml(crdTree -> {
       String yamlGroup = crdTree.get("spec").get("group").asText();
+      assertEquals(CRD_GROUP, yamlGroup);
 
-      assertEquals(CRD_POD_GROUP, yamlGroup);
-
+      Class<? extends CustomResource> clazz = getCustomResourceClass(crdTree);
+      String group = HasMetadata.getGroup(clazz);
+      assertEquals(yamlGroup, group, "Kind : " + HasMetadata.getKind(clazz));
     });
-
   }
 
   @Test
   void customResourcesYamlSingular_shouldMatchWithSingularInJavaDefinition() throws IOException {
-
-    withEveryYaml((crdTree) -> {
-
+    withEveryYaml(crdTree -> {
       JsonNode crdNames = crdTree.get("spec").get("names");
-
-      CustomResourceDefinition definition = getDefinition(crdTree);
-
       String declaredSingular = crdNames.get("singular").asText();
+      CustomResourceDefinition definition = getDefinition(crdTree);
+      assertEquals(declaredSingular, definition.getSpec().getNames().getSingular());
 
-      assertEquals(definition.getSingular(), declaredSingular);
-
+      Class<? extends CustomResource> clazz = getCustomResourceClass(crdTree);
+      String singular = CustomResource.getSingular(clazz);
+      assertEquals(declaredSingular, singular, "Kind : " + HasMetadata.getKind(clazz));
     });
-
   }
 
   @Test
-  void CustomResourcesYamlDefinitionsPlural_ShouldMatchWithPluralInJavaDefinition() throws IOException {
-
-    withEveryYaml((crdTree) -> {
-
+  void CustomResourcesYamlDefinitionsPlural_ShouldMatchWithPluralInJavaDefinition()
+      throws IOException {
+    withEveryYaml(crdTree -> {
       JsonNode crdNames = crdTree.get("spec").get("names");
-
-      CustomResourceDefinition definition = getDefinition(crdTree);
-
       String declaredPlural = crdNames.get("plural").asText();
+      CustomResourceDefinition definition = getDefinition(crdTree);
+      assertEquals(declaredPlural, definition.getSpec().getNames().getPlural());
 
-      assertEquals(definition.getPlural(), declaredPlural);
-
+      Class<? extends CustomResource> clazz = getCustomResourceClass(crdTree);
+      String plural = CustomResource.getPlural(clazz);
+      assertEquals(declaredPlural, plural, "Kind : " + HasMetadata.getKind(clazz));
     });
-
   }
 
   @Test
   void CustomResourcesYamlMetadataName_ShouldMatchWithNameInJavaDefinition() throws IOException {
-
-    withEveryYaml((crdTree) -> {
-
+    withEveryYaml(crdTree -> {
       JsonNode metadataName = crdTree.get("metadata").get("name");
-
       CustomResourceDefinition definition = getDefinition(crdTree);
+      assertEquals(metadataName.asText(), definition.getMetadata().getName());
 
-      assertEquals(definition.getName(), metadataName.asText());
-
+      Class<? extends CustomResource> clazz = getCustomResourceClass(crdTree);
+      String name = CustomResource.getCRDName(clazz);
+      assertEquals(metadataName.asText(), name, "Kind : " + HasMetadata.getKind(clazz));
     });
+  }
 
+  @Test
+  void CustomResourcesYamlNamespaced_ShouldMatchWithNamespacedInJavaDefinition()
+      throws IOException {
+    withEveryYaml(crdTree -> {
+      JsonNode metadataName = crdTree.get("spec").get("scope");
+      CustomResourceDefinition definition = getDefinition(crdTree);
+      assertEquals(metadataName.asText(), definition.getSpec().getScope());
+    });
   }
 
   private static CustomResourceDefinition getDefinition(JsonNode crdTree) {
-
     String declaredKind = crdTree.get("spec").get("names").get("kind").asText();
-
     return Optional.ofNullable(definitionsByKind.get(declaredKind))
-        .orElseThrow(() -> new AssertionFailedError("Custom Resource definition "
+        .orElseThrow(() -> new AssertionFailedError("CustomResourceDefinition "
             + declaredKind + " does not exists. Available kinds: " + definitionsByKind.keySet()));
-
   }
 
-  private static class CustomResourceDefinition {
-
-    private String kind;
-
-    private String plural;
-
-    private String singular;
-
-    private String name;
-
-    public String getKind() {
-      return kind;
-    }
-
-    public void setKind(String kind) {
-      this.kind = kind;
-    }
-
-    public String getPlural() {
-      return plural;
-    }
-
-    public void setPlural(String plural) {
-      this.plural = plural;
-    }
-
-    public String getSingular() {
-      return singular;
-    }
-
-    public void setSingular(String singular) {
-      this.singular = singular;
-    }
-
-    public String getName() {
-      return name;
-    }
-
-    public void setName(String name) {
-      this.name = name;
-    }
-
+  private static Class<? extends CustomResource> getCustomResourceClass(JsonNode crdTree) {
+    String declaredKind = crdTree.get("spec").get("names").get("kind").asText();
+    return Optional.ofNullable(classByKind.get(declaredKind))
+        .orElseThrow(() -> new AssertionFailedError("CustomResourceDefinition "
+            + declaredKind + " does not exists. Available kinds: " + definitionsByKind.keySet()));
   }
 
 }

@@ -21,7 +21,7 @@ import org.jooq.lambda.tuple.Tuple2;
 
 public abstract class ResourceGeneratorReconciliator<
       T extends ResourceHandlerContext,
-      H extends CustomResource,
+      H extends CustomResource<?, ?>,
       S extends ResourceHandlerSelector<T>>
     extends Reconciliator<T> {
 

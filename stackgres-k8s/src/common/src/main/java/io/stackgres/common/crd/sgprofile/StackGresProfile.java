@@ -11,30 +11,69 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
+import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.model.annotation.Group;
+import io.fabric8.kubernetes.model.annotation.Kind;
+import io.fabric8.kubernetes.model.annotation.Version;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.crd.CommonDefinition;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @RegisterForReflection
-public class StackGresProfile extends CustomResource {
+@Group(CommonDefinition.GROUP)
+@Version(CommonDefinition.VERSION)
+@Kind(StackGresProfile.KIND)
+public final class StackGresProfile
+    extends CustomResource<StackGresProfileSpec, Void>
+    implements Namespaced {
 
   private static final long serialVersionUID = -5276087851826599719L;
 
+  public static final String KIND = "SGInstanceProfile";
+
+  @JsonProperty("spec")
   @NotNull(message = "The specification is required")
   @Valid
   private StackGresProfileSpec spec;
 
   public StackGresProfile() {
-    super(StackGresProfileDefinition.KIND);
+    super();
   }
 
+  // TODO: remove on update to Kubernetes-Client 5.2.0
+  @Override
+  protected Void initStatus() {
+    return null;
+  }
+
+  @Override
   public StackGresProfileSpec getSpec() {
     return spec;
   }
 
+  @Override
   public void setSpec(StackGresProfileSpec spec) {
     this.spec = spec;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(spec);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof StackGresProfile)) {
+      return false;
+    }
+    StackGresProfile other = (StackGresProfile) obj;
+    return Objects.equals(spec, other.spec);
   }
 
   @Override
@@ -45,23 +84,7 @@ public class StackGresProfile extends CustomResource {
         .add("kind", getKind())
         .add("metadata", getMetadata())
         .add("spec", spec)
+        .add("status", status)
         .toString();
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    StackGresProfile that = (StackGresProfile) o;
-    return Objects.equals(spec, that.spec);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(spec);
   }
 }

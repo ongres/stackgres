@@ -21,7 +21,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-public abstract class ConversionResourceTest<T extends CustomResource> {
+public abstract class ConversionResourceTest<T extends CustomResource<?, ?>> {
 
   private static final JsonMapper mapper = new JsonMapper();
 

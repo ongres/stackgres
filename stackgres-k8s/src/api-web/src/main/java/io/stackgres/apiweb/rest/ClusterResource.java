@@ -504,17 +504,18 @@ public class ClusterResource
       throw new BadRequestException("sort only accept asc or desc values");
     }
 
-    return distributedLogsFetcher.logs(
-        ImmutableDistributedLogsQueryParameters.builder()
-            .cluster(cluster)
-            .records(calculatedRecords)
-            .fromTimeAndIndex(fromTuple)
-            .toTimeAndIndex(toTuple)
-            .filters(filters.build())
-            .isSortAsc(Objects.equals("asc", sort))
-            .fullTextSearchQuery(Optional.ofNullable(text)
-                .map(FullTextSearchQuery::new))
-            .isFromInclusive(Optional.ofNullable(fromInclusive).orElse(false))
-            .build());
+    ImmutableDistributedLogsQueryParameters logs = ImmutableDistributedLogsQueryParameters.builder()
+        .cluster(cluster)
+        .records(calculatedRecords)
+        .fromTimeAndIndex(fromTuple)
+        .toTimeAndIndex(toTuple)
+        .filters(filters.build())
+        .isSortAsc(Objects.equals("asc", sort))
+        .fullTextSearchQuery(Optional.ofNullable(text)
+            .map(FullTextSearchQuery::new))
+        .isFromInclusive(Optional.ofNullable(fromInclusive).orElse(Boolean.FALSE))
+        .build();
+
+    return distributedLogsFetcher.logs(logs);
   }
 }
