@@ -6,7 +6,7 @@ url: tutorial/complete-cluster/pooling-config
 
 StackGres will deploy Postgres clusters, by default, with a sidecar with a connection pooler (set the
 [SGCluster.pods.disableConnectionPooling]({{% relref "06-crd-reference/01-postgres-clusters/#pods" %}}) property if you
-don't want such a connection pooler). The goal of this conenction pooler fronting the database is to allow to control
+don't want such a connection pooler). The goal of this connection pooler fronting the database is to allow to control
 the incoming connections (fan-in) and keep Postgres operating with a lower number of concurrent connections, while
 allowing a higher number of external connections.
 
@@ -38,7 +38,7 @@ kubectl apply -f sgpoolingconfig-pgbouncer1.yaml
 You may inspect the default values provided by StackGres by describing the created CRD:
 
 ```bash
-kubectl -n demo describe sgpoolconfig poolconfig1   
+kubectl -n demo describe sgpoolconfig poolconfig1
 ```
 
 ```plain

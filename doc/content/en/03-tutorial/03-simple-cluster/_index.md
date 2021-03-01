@@ -26,7 +26,7 @@ spec:
   instances: 2
   postgresVersion: 'latest'
   pods:
-    persistentVolume: 
+    persistentVolume:
       size: '5Gi'
 ```
 
@@ -65,12 +65,12 @@ and contains administrative tools. Run the command:
     ```plain
     psql (12.4 OnGres Inc.)
     Type "help" for help.
-    
-    postgres=# 
+
+    postgres=#
     ```
 
 1. Via the exposed Kubernetes service. Services are named `${cluster_name}-[primary|replicas]`. The `-primary` service
-always connect to the master (read-write) node, and the `-replicas` service to the load-balanced set of replicas
+always connect to the primary (read-write) node, and the `-replicas` service to the load-balanced set of replicas
 (read-only). We may create any pod that contains a Postgres client, and then connect using the service as a DNS for the
 Postgres host. We will also need to get the generated superuser password:
 
@@ -88,10 +88,10 @@ Postgres host. We will also need to get the generated superuser password:
     kubectl delete pod psql
     ```
 
-When connecting via the `postgres-util`, how do we know which pod is the master? StackGres uses
+When connecting via the `postgres-util`, how do we know which pod is the primary? StackGres uses
 [Patroni](https://github.com/zalando/patroni) for high availability. The main pod's container (called `patroni`)
 contains the Patroni CLI, which can be used to query the status of the cluster and the primary ("leader" in Patroni's
-terminolog) node:
+terminology) node:
 
 ```bash
 kubectl exec -t simple-0 -c patroni -- patronictl list
