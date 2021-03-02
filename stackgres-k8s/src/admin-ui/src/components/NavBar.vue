@@ -132,6 +132,15 @@
 		</div>
 		
 		<div id="helpTooltip" class="hideOnClick"><vue-markdown :source=tooltipsText></vue-markdown></div>
+		<div id="notFound" v-if="loggedIn && notFound">
+            <h1>Not Found</h1>
+            <p>
+                The resource you're looking for doesn't exist,<br/>
+                confirm your URL is correct and try again
+            </p>
+            <br/>
+            <router-link to="/overview/default" class="btn">Go to Default Dashboard</router-link>
+        </div>
 	</aside>
 </template>
 
@@ -197,11 +206,11 @@
 
 			tooltipsText () {
 				return store.state.tooltipsText
-			}
+			},
 
-			/* confirmDeleteName() {
-				return store.state.confirmDeleteName
-			}*/
+			notFound() {
+				return store.state.notFound
+			}
 		},
 
 		methods: {
@@ -393,3 +402,21 @@
 		}
 	}
 </script>
+
+
+<style scoped>
+	#notFound {
+		width: calc(100vw - 350px);
+		margin-left: 350px;
+	}
+
+    #notFound h1 {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    #notFound p {
+        margin-bottom: 20px;
+        font-size: 1rem;
+    }
+</style>

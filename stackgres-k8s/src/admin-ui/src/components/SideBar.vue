@@ -5,7 +5,7 @@
 			<h2>
 				<strong>{{ !currentPath.namespace.length ? 'SELECT' : '' }} NAMESPACE <span>▾</span></strong>
 				<br/>
-				{{ currentPath.namespace }}
+				<template v-if="!notFound">{{ currentPath.namespace }}</template>
 			</h2>
 		</div>
 
@@ -141,22 +141,6 @@
 				</router-link>
 			</div>
 		</div>
-		<!--
-		<div id="expanders">
-			<div class="collapse">
-				<svg xmlns="http://www.w3.org/2000/svg" width="11" height="13"><g><path d="M4.763 7.8a1 1 0 011.474 0l3.227 3.52A1 1 0 018.727 13H2.273a1 1 0 01-.737-1.676zM6.237 5.2a1 1 0 01-1.474 0L1.536 1.68A1 1 0 012.273 0h6.454a1 1 0 01.737 1.676z"/></g></svg>
-				Collapse All
-			</div>
-			<div class="expand">
-				<svg xmlns="http://www.w3.org/2000/svg" width="11" height="14"><g><path d="M6.237 13.2a1 1 0 01-1.474 0L1.536 9.68A1 1 0 012.273 8h6.454a1 1 0 01.737 1.676zM4.763.8a1 1 0 011.474 0l3.227 3.52A1 1 0 018.727 6H2.273a1 1 0 01-.737-1.676z"/></g></svg>
-				Expand All
-			</div>
-		</div>
-		-->
-
-		<!--<footer id="credits">
-			<span>STACK<strong>GRES</strong></span> coded with <span class="hearth">❤</span>︎ by Ongres
-		</footer>-->
 	</aside>
 </template>
 
@@ -172,7 +156,6 @@
 		data: function() {
 
 			return {
-				//clusters: null,
 			}
 
 		},

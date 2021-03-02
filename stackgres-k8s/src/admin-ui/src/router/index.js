@@ -373,7 +373,6 @@ function getCookie(cname) {
 
 function notFound() {
   store.commit('notFound',true)
-  router.push('/not-found')
 }
 
 function checkLogin() {
