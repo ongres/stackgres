@@ -27,6 +27,7 @@ import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
+import io.stackgres.common.resource.DistributedLogsScheduler;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
 
@@ -37,12 +38,15 @@ public class DistributedLogsStatusManager
 
   private final KubernetesClientFactory clientFactory;
   private final LabelFactory<StackGresDistributedLogs> labelFactory;
+  private final DistributedLogsScheduler distributedLogsScheduler;
 
   @Inject
   public DistributedLogsStatusManager(KubernetesClientFactory clientFactory,
-                                      LabelFactory<StackGresDistributedLogs> labelFactory) {
+                                      LabelFactory<StackGresDistributedLogs> labelFactory,
+                                      DistributedLogsScheduler distributedLogsScheduler) {
     this.clientFactory = clientFactory;
     this.labelFactory = labelFactory;
+    this.distributedLogsScheduler = distributedLogsScheduler;
   }
 
   @Override

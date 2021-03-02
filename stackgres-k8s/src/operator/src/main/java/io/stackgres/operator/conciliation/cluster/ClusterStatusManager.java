@@ -27,6 +27,7 @@ import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
+import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
 import org.slf4j.Logger;
@@ -43,11 +44,15 @@ public class ClusterStatusManager
 
   private final KubernetesClientFactory clientFactory;
 
+  private final CustomResourceScheduler<StackGresCluster> clusterScheduler;
+
   @Inject
   public ClusterStatusManager(LabelFactory<StackGresCluster> labelFactory,
-                              KubernetesClientFactory clientFactory) {
+                              KubernetesClientFactory clientFactory,
+                              CustomResourceScheduler<StackGresCluster> clusterScheduler) {
     this.labelFactory = labelFactory;
     this.clientFactory = clientFactory;
+    this.clusterScheduler = clusterScheduler;
   }
 
   private static String getClusterId(StackGresCluster cluster) {

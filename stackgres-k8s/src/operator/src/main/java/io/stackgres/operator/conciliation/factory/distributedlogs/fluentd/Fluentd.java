@@ -154,6 +154,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContext>,
             .withConfigMap(new ConfigMapVolumeSourceBuilder()
                 .withName(FluentdUtil.configName(
                     context.getSource()))
+                .withDefaultMode(420)
                 .build())
             .build(),
         new VolumeBuilder()
@@ -179,7 +180,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContext>,
         "fluentd.conf", getFluentdConfig(context));
 
     final Map<String, String> clusterLabels = labelFactory
-        .genericClusterLabels(cluster);
+        .clusterLabels(cluster);
     final ConfigMap configMap = new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(namespace)

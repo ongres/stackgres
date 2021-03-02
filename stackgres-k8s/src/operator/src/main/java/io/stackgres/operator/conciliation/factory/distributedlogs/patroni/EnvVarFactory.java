@@ -22,9 +22,9 @@ public class EnvVarFactory extends PatroniEnvironmentVariablesFactory<Distribute
   public List<EnvVar> createResource(DistributedLogsContext context) {
 
     return ImmutableList.<EnvVar>builder()
-        .addAll(createPatroniEnvVars(context.getSource()))
         .addAll(PatroniEnvPaths.getEnvVars())
         .addAll(DistributedLogsCommonEnvVars.getEnvVars())
+        .addAll(createPatroniEnvVars(context.getSource()))
         .build();
   }
 

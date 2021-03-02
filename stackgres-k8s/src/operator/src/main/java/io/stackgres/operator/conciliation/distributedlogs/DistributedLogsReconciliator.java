@@ -37,6 +37,14 @@ public class DistributedLogsReconciliator extends StackGresReconciliator<StackGr
 
   @Override
   public void onPostReconciliation(StackGresDistributedLogs config) {
+    refreshConnectedClusters(config);
+
+    distributedLogsScheduler.updateStatus(config);
+    statusManager.refreshCondition(config);
+
+  }
+
+  private void refreshConnectedClusters(StackGresDistributedLogs config) {
     var clusters = connectedClustersScanner.getConnectedClusters(config);
 
     config.setStatus(
@@ -53,10 +61,6 @@ public class DistributedLogsReconciliator extends StackGresReconciliator<StackGr
               return connectedCluster;
             })
             .collect(Collectors.toList()));
-
-    distributedLogsScheduler.update(config);
-    statusManager.refreshCondition(config);
-
   }
 
   @Override

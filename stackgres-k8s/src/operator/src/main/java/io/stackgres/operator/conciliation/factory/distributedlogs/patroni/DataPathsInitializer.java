@@ -14,6 +14,7 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
@@ -33,14 +34,19 @@ public class DataPathsInitializer implements ContainerFactory<DistributedLogsCon
         .withName("setup-data-paths")
         .withImage(StackGresComponent.KUBECTL.findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
-        .withCommand("/bin/sh", "-ecx", String.join(" && ",
-            "mkdir -p \"$PG_DATA_PATH\"",
-            "chmod -R 700 \"$PG_DATA_PATH\""))
+        .withCommand("/bin/sh", "-ex",
+            ClusterStatefulSetPath.TEMPLATES_PATH.path()
+                + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH.filename())
         .withEnv(PatroniEnvPaths.getEnvVars())
-        .withVolumeMounts(new VolumeMountBuilder()
-            .withName(DistributedLogsStatefulSet.dataName(context.getSource()))
-            .withMountPath(PatroniEnvPaths.PG_BASE_PATH.getPath())
-            .build())
+        .withVolumeMounts(
+            new VolumeMountBuilder()
+                .withName(DistributedLogsStatefulSet.dataName(context.getSource()))
+                .withMountPath(PatroniEnvPaths.PG_BASE_PATH.getPath())
+                .build(),
+            new VolumeMountBuilder()
+                .withName("distributed-logs-templates")
+                .withMountPath(PatroniEnvPaths.TEMPLATES_PATH.getPath())
+                .build())
         .build();
   }
 

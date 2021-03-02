@@ -37,6 +37,7 @@ import io.stackgres.common.resource.PostgresConfigFinder;
 import io.stackgres.common.resource.ProfileConfigFinder;
 import io.stackgres.common.resource.SecretFinder;
 import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.resource.PrometheusScanner;
 import io.stackgres.operator.resource.ServiceAccountFinder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,6 +65,9 @@ class ClusterRequiredResourcesGeneratorTest {
 
   @InjectMock
   SecretFinder secretFinder;
+
+  @InjectMock
+  PrometheusScanner prometheusScanner;
 
   @Inject
   ClusterRequiredResourcesGenerator generator;
@@ -93,6 +97,7 @@ class ClusterRequiredResourcesGeneratorTest {
     backups = JsonUtil.readFromJson("backup/list.json", StackGresBackupList.class).getItems();
     backups.forEach(this::setNamespace);
     minioSecret = JsonUtil.readFromJson("secret/minio.json", Secret.class);
+    lenient().when(prometheusScanner.findResources(any())).thenReturn(Optional.empty());
   }
 
   private void setNamespace(HasMetadata resource){

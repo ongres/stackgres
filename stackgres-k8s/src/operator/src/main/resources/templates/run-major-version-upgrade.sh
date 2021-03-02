@@ -3,7 +3,7 @@
 run_op() {
   set -e
 
-  if [ "$(kubectl get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+  if [ "$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     --template='{{ if .status.dbOps }}{{ if .status.dbOps.majorVersionUpgrade }}true{{ end }}{{ end }}')" != "true" ]
   then
     INITIAL_PODS="$(kubectl get pods -n "$CLUSTER_NAMESPACE" -l "$CLUSTER_POD_LABELS" -o name)"
@@ -20,9 +20,9 @@ run_op() {
     SOURCE_IMAGE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" \
       --template="{{ range .spec.containers }}{{ if eq .name \"$PATRONI_CONTAINER_NAME\" }}{{ .image }}{{ end }}{{ end }}")"
     SOURCE_VERSION="$(printf '%s' "$SOURCE_IMAGE" | sed 's/^.*-pg\([0-9]\+\.[0-9]\+\)-.*$/\1/')"
-    TARGET_VERSION="$(kubectl get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-      --template='{{ .spec.postgresVersion }}')"
-    LOCALE="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" \
+    TARGET_VERSION="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+      --template '{{ .spec.postgresVersion }}')"
+    LOCALE="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c patroni \
       -- psql -t -A -c "SHOW lc_collate")"
     ENCODING="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" \
       -- psql -t -A -c "SHOW server_encoding")"
@@ -38,53 +38,52 @@ run_op() {
     echo "Signaling major version upgrade started to cluster"
     echo
 
-    until kubectl patch "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
-        -p "$(cat << EOF
-[
-  {"op":"add","path":"/status/dbOps","value": {
-      "majorVersionUpgrade":{
-        "initialInstances": [$(
-          FIRST=true
-          for INSTANCE in $INITIAL_INSTANCES
-          do
-            if "$FIRST"
-            then
-              printf '%s' "\"$INSTANCE\""
-              FIRST=false
-            else
-              printf '%s' ",\"$INSTANCE\""
-            fi
-          done
-          )],
-        "primaryInstance": "$PRIMARY_INSTANCE",
-        "sourcePostgresVersion": "$SOURCE_VERSION",
-        "targetPostgresVersion": "$TARGET_VERSION",
-        "locale": "$LOCALE",
-        "encoding": "$ENCODING",
-        "dataChecksum": $DATA_CHECKSUM,
-        "link": $LINK,
-        "clone": $CLONE,
-        "check": $CHECK
+    DB_OPS_PATCH="$(cat << EOF
+      {
+        "dbOps": {
+          "majorVersionUpgrade":{
+            "initialInstances": [$(
+              FIRST=true
+              for INSTANCE in $INITIAL_INSTANCES
+              do
+                if "$FIRST"
+                then
+                  printf '%s' "\"$INSTANCE\""
+                  FIRST=false
+                else
+                  printf '%s' ",\"$INSTANCE\""
+                fi
+              done
+              )],
+            "primaryInstance": "$PRIMARY_INSTANCE",
+            "sourcePostgresVersion": "$SOURCE_VERSION",
+            "targetPostgresVersion": "$TARGET_VERSION",
+            "locale": "$LOCALE",
+            "encoding": "$ENCODING",
+            "dataChecksum": $DATA_CHECKSUM,
+            "link": $LINK,
+            "clone": $CLONE,
+            "check": $CHECK
+          }
+        }
       }
-    }
-  }
-]
 EOF
-        )"
+    )"
+
+
+    until kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | \
+     jq '.status |= . + '"$DB_OPS_PATCH" |
+     kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME"/status -f -
     do
-      kubectl patch "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
-        -p "$(cat << EOF
-[
-  {"op":"remove","path":"/status/dbOps"}
-]
-EOF
-        )"
+      kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | \
+      jq 'del(.status.dbOps)' | \
+      kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME"/status -f -
     done
   else
-    INITIAL_INSTANCES="$(kubectl get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    INITIAL_INSTANCES="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
       --template='{{ .status.dbOps.majorVersionUpgrade.initialInstances }}')"
-    INITIAL_INSTANCES="$(printf '%s' "$INITIAL_INSTANCES" | tr -d '[]' | tr ' ' '\n')"
-    PRIMARY_INSTANCE="$(kubectl get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    INITIAL_INSTANCES="$(printf '%s' "$INITIAL_INSTANCES" | tr ',' '\n')"
+    PRIMARY_INSTANCE="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
       --template='{{ .status.dbOps.majorVersionUpgrade.primaryInstance }}')"
 
     until kubectl patch "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
@@ -199,7 +198,7 @@ EOF
     echo "Downscaling cluster to 1 instance"
     echo
 
-    kubectl patch "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
+    kubectl patch "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
       -p "$(cat << EOF
 [
   {"op":"replace","path":"/spec/instances","value":1}
@@ -247,7 +246,7 @@ EOF
     echo "Upscaling cluster to $INITIAL_INSTANCES_COUNT instances"
     echo
 
-    kubectl patch "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
+    kubectl patch "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
       -p "$(cat << EOF
 [
   {"op":"replace","path":"/spec/instances","value":$INITIAL_INSTANCES_COUNT}
@@ -282,13 +281,9 @@ EOF
   echo "Signaling major version upgrade finished to cluster"
   echo
 
-  until kubectl patch "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
-      -p "$(cat << EOF
-[
-  {"op":"remove","path":"/status/dbOps"}
-]
-EOF
-      )"
+  until kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | \
+      jq 'del(.status.dbOps)' | \
+      kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME"/status -f -
   do
     sleep 1
   done

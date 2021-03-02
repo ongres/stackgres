@@ -93,6 +93,16 @@ public abstract class AbstractCustomResourceScheduler
     }
   }
 
+  @Override
+  public void updateStatus(T resource) {
+    try (KubernetesClient client = clientFactory.create()) {
+      getCustomResourceEndpoints(client)
+          .inNamespace(resource.getMetadata().getNamespace())
+          .withName(resource.getMetadata().getName())
+          .updateStatus(resource);
+    }
+  }
+
   private Namespaceable<NonNamespaceOperation<T, L, Resource<T>>> getCustomResourceEndpoints(
       KubernetesClient client) {
     return client.customResources(customResourceClass, customResourceListClass);

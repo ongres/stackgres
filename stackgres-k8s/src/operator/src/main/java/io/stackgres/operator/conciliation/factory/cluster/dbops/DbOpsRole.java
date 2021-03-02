@@ -133,7 +133,14 @@ public class DbOpsRole implements ResourceGenerator<StackGresClusterContext> {
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups(CommonDefinition.GROUP)
             .withResources(HasMetadata.getPlural(StackGresCluster.class))
-            .withVerbs("get", "list", "watch", "patch")
+            .withVerbs("get", "list", "watch", "patch", "update")
+            .build())
+        .addToRules(new PolicyRuleBuilder()
+            .withApiGroups(CommonDefinition.GROUP)
+            .withResources(
+                HasMetadata.getPlural(StackGresCluster.class) + "/status",
+                HasMetadata.getPlural(StackGresCluster.class) + "/status")
+            .withVerbs("update")
             .build())
         .build();
   }

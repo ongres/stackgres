@@ -63,5 +63,3 @@ public class SetupConfig implements ContainerFactory<DistributedLogsContext> {
     return Map.of();
   }
 }
-
-

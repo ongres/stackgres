@@ -152,6 +152,12 @@ public class PatroniRole implements
                 HasMetadata.getPlural(StackGresDistributedLogs.class))
             .withVerbs("get", "list", "watch", "patch")
             .build())
+        .addToRules(new PolicyRuleBuilder()
+            .withApiGroups(CommonDefinition.GROUP)
+            .withResources(
+                HasMetadata.getPlural(StackGresDistributedLogs.class) + "/status")
+            .withVerbs("update")
+            .build())
         .build();
   }
 

@@ -22,4 +22,6 @@ public interface CustomResourceScheduler<T extends CustomResource<?, ?>> {
 
   void delete(@NotNull T resource);
 
+  void updateStatus(T resource);
+
 }

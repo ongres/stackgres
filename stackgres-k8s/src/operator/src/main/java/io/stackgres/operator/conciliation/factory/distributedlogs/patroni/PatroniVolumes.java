@@ -18,6 +18,9 @@ public enum PatroniVolumes {
       .withNewEmptyDir()
       .withMedium("Memory")
       .endEmptyDir()),
+  SHARED("shared", new VolumeBuilder()
+      .withNewEmptyDir()
+      .endEmptyDir()),
   LOCAL("local", new VolumeBuilder()
       .withNewEmptyDir()
       .endEmptyDir()),

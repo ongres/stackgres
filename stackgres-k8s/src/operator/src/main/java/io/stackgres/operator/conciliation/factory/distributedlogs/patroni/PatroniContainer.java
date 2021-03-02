@@ -95,12 +95,12 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContext
                 .withMountPath(PatroniEnvPaths.PG_BASE_PATH.getPath())
                 .build(),
             new VolumeMountBuilder()
-                .withName(DSHM_VOLUME_NAME)
-                .withMountPath(PatroniEnvPaths.SHARED_MEMORY_PATH.getPath())
-                .build(),
-            new VolumeMountBuilder()
                 .withName(SOCKET_VOLUME_NAME)
                 .withMountPath(PatroniEnvPaths.PG_RUN_PATH.getPath())
+                .build(),
+            new VolumeMountBuilder()
+                .withName(DSHM_VOLUME_NAME)
+                .withMountPath(PatroniEnvPaths.SHARED_MEMORY_PATH.getPath())
                 .build(),
             new VolumeMountBuilder()
                 .withName(LOCAL_VOLUME_NAME)
@@ -205,6 +205,10 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContext
             .endEmptyDir()
             .build(),
         new VolumeBuilder()
+            .withName("shared")
+            .withNewEmptyDir()
+            .endEmptyDir().build(),
+        new VolumeBuilder()
             .withName(LOCAL_VOLUME_NAME)
             .withNewEmptyDir()
             .endEmptyDir()
@@ -212,6 +216,7 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContext
         new VolumeBuilder()
             .withName(PATRONI_ENV_VOLUME_NAME)
             .withConfigMap(new ConfigMapVolumeSourceBuilder()
+                .withDefaultMode(444)
                 .withName(source.getMetadata().getName())
                 .build())
             .build(),
@@ -223,7 +228,8 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContext
         new VolumeBuilder()
             .withName("distributed-logs-templates")
             .withConfigMap(new ConfigMapVolumeSourceBuilder()
-                 .withName(AbstractPatroniTemplatesConfigMap.name(source))
+                .withName(AbstractPatroniTemplatesConfigMap.name(source))
+                .withDefaultMode(444)
                 .withOptional(false)
                 .build())
             .build(),
@@ -231,6 +237,7 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContext
             .withName(DISTRIBUTED_LOGS_TEMPLATE_NAME)
             .withConfigMap(new ConfigMapVolumeSourceBuilder()
                 .withName(PatroniInitScriptConfigMap.name(source))
+                .withDefaultMode(420)
                 .withOptional(false)
                 .build())
             .build());

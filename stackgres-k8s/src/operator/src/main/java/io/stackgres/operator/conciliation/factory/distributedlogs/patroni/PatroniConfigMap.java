@@ -40,7 +40,6 @@ public class PatroniConfigMap implements ResourceGenerator<DistributedLogsContex
   public static final String PATRONI_RESTAPI_PORT_NAME = "patroniport";
 
   private static final Logger PATRONI_LOGGER = LoggerFactory.getLogger("io.stackgres.patroni");
-
   private final LabelFactory<StackGresDistributedLogs> labelFactory;
 
   private final JsonMapper objectMapper;
@@ -54,6 +53,17 @@ public class PatroniConfigMap implements ResourceGenerator<DistributedLogsContex
 
   public static String name(DistributedLogsContext clusterContext) {
     return ResourceUtil.resourceName(clusterContext.getSource().getMetadata().getName());
+  }
+
+  public static String getKubernetesPorts(final int pgPort, final int pgRawPort) {
+    return "["
+        + "{\"protocol\":\"TCP\","
+        + "\"name\":\"" + POSTGRES_PORT_NAME + "\","
+        + "\"port\":" + pgPort + "},"
+        + "{\"protocol\":\"TCP\","
+        + "\"name\":\"" + POSTGRES_REPLICATION_PORT_NAME + "\","
+        + "\"port\":" + pgRawPort + "}"
+        + "]";
   }
 
   @Override
@@ -106,17 +116,6 @@ public class PatroniConfigMap implements ResourceGenerator<DistributedLogsContex
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(data))
         .build());
-  }
-
-  public static String getKubernetesPorts(final int pgPort, final int pgRawPort) {
-    return "["
-        + "{\"protocol\":\"TCP\","
-        + "\"name\":\"" + POSTGRES_PORT_NAME + "\","
-        + "\"port\":" + pgPort + "},"
-        + "{\"protocol\":\"TCP\","
-        + "\"name\":\"" + POSTGRES_REPLICATION_PORT_NAME + "\","
-        + "\"port\":" + pgRawPort + "}"
-        + "]";
   }
 
 }

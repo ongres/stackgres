@@ -232,3 +232,5 @@ spec:
                 fluentdConfigHash:
                   type: string
                   description: The hash of the configuration file that is used by fluentd
+      subresources:
+        status: { }
