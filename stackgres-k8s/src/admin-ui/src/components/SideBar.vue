@@ -29,7 +29,7 @@
 				<ul v-if="iCan('list', 'sgclusters', currentPath.namespace)">
 					<template v-for="cluster in clusters">
 						<li v-if="cluster.data.metadata.namespace == currentPath.namespace" :class="'sgcluster-'+cluster.data.metadata.namespace+'-'+cluster.name">
-							<router-link :to="'/cluster/status/'+cluster.data.metadata.namespace+'/'+cluster.name" class="item cluster" :title="cluster.name">{{ cluster.name }}</router-link>
+							<router-link :to="'/cluster/status/'+cluster.data.metadata.namespace+'/'+cluster.name" class="item cluster" :title="cluster.name" :class="(currentPath.component.includes('Cluster') && (currentPath.name == cluster.name)) ? 'router-link-exact-active' : ''">{{ cluster.name }}</router-link>
 						</li>
 					</template>
 				</ul>
@@ -47,7 +47,7 @@
 				<ul v-if="iCan('list', 'sginstanceprofiles', currentPath.namespace)">
 					<template v-for="profile in profiles">
 						<li v-if="profile.data.metadata.namespace == currentPath.namespace" :class="'profile-'+profile.data.metadata.namespace+'-'+profile.name">
-							<router-link :to="'/profiles/'+profile.data.metadata.namespace+'/'+profile.name" class="item" :title="profile.name">{{ profile.name }}</router-link>
+							<router-link :to="'/profiles/'+profile.data.metadata.namespace+'/'+profile.name" class="item" :title="profile.name" :class="(currentPath.component.includes('Profile') && (currentPath.name == profile.name)) ? 'router-link-exact-active' : ''">{{ profile.name }}</router-link>
 						</li>
 					</template>
 				</ul>
@@ -72,7 +72,7 @@
 						<ul v-if="iCan('list', 'sgpgconfigs', currentPath.namespace)">
 							<template v-for="config in pgConfig">
 								<li v-if="config.data.metadata.namespace == currentPath.namespace" :class="'sgpgconfig-'+config.data.metadata.namespace+'-'+config.name">
-									<router-link :to="'/configurations/postgres/'+config.data.metadata.namespace+'/'+config.name" class="item pgconfig" :title="config.name">{{ config.name }}</router-link>
+									<router-link :to="'/configurations/postgres/'+config.data.metadata.namespace+'/'+config.name" class="item pgconfig" :title="config.name" :class="(currentPath.component.includes('PgConfig') && (currentPath.name == config.name)) ? 'router-link-exact-active' : ''">{{ config.name }}</router-link>
 								</li>
 							</template>
 						</ul>			
@@ -87,7 +87,7 @@
 						<ul v-if="iCan('list', 'sgpoolconfigs', currentPath.namespace)">
 							<template v-for="config in poolConfig">
 								<li v-if="config.data.metadata.namespace == currentPath.namespace" :class="'sgpoolconfig-'+config.data.metadata.namespace+'-'+config.name">
-									<router-link :to="'/configurations/connectionpooling/'+config.data.metadata.namespace+'/'+config.name" class="item" :title="config.name">{{ config.name }}</router-link>
+									<router-link :to="'/configurations/connectionpooling/'+config.data.metadata.namespace+'/'+config.name" class="item" :title="config.name" :class="(currentPath.component.includes('PoolConfig') && (currentPath.name == config.name)) ? 'router-link-exact-active' : ''">{{ config.name }}</router-link>
 								</li>
 							</template>
 						</ul>
@@ -108,7 +108,7 @@
 						<ul v-if="iCan('list', 'sgbackupconfigs', currentPath.namespace)">
 							<template v-for="config in bkConfig">
 								<li v-if="config.data.metadata.namespace == currentPath.namespace" :class="'sgbackupconfig-'+config.data.metadata.namespace+'-'+config.name">
-									<router-link :to="'/configurations/backup/'+config.data.metadata.namespace+'/'+config.name" class="item" :title="config.name">{{ config.name }}</router-link>
+									<router-link :to="'/configurations/backup/'+config.data.metadata.namespace+'/'+config.name" class="item" :title="config.name" :class="(currentPath.component.includes('BackupConfig') && (currentPath.name == config.name)) ? 'router-link-exact-active' : ''">{{ config.name }}</router-link>
 								</li>
 							</template>
 						</ul>
