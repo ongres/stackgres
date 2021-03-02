@@ -577,7 +577,48 @@
 							</tr>
 						</tbody>
 					</table>
-				</div>		
+				</div>
+
+				<div class="postgresExtensions" v-if="hasProp(cluster, 'data.spec.postgresExtensions') && cluster.data.spec.postgresExtensions.length">
+					<h2>Postgres Extensions <span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresServices.description"></span></h2>
+
+					<table class="clusterConfig">
+						<thead style="display: table-header-group">
+							<th>
+								Name
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresExtensions.name.description"></span>
+							</th>
+							<th>
+								Publisher
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresExtensions.publisher.description"></span>
+							</th>
+							<th>
+								Version
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresExtensions.version.description"></span>
+							</th>
+							<th>
+								Repository
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresExtensions.repository.description"></span>
+							</th>
+						</thead>
+						<tbody>
+							<tr v-for="ext in sortExtensions(cluster.data.spec.postgresExtensions)">
+								<td class="label">
+									{{ ext.name }}
+								</td>
+								<td>
+									{{ ext.publisher }}
+								</td>
+								<td>
+									{{ ext.version }}
+								</td>
+								<td>
+									<span class="trimText" :title="ext.repository">{{ ext.repository }}</span>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>	
 			</div>
 		</template>
 	</div>
@@ -611,6 +652,10 @@
 				
 				return propsArray
 			},
+
+			sortExtensions(ext) {
+				return [...ext].sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
+			}
 
 		},
 		created: function() {
@@ -648,3 +693,17 @@
 		} 
 	}
 </script>
+
+<style scoped>
+	.postgresExtensions th {
+		padding-left: 10px;
+	}
+
+	.trimText {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		display: block;
+		width: 250px;
+	}
+</style>

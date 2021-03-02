@@ -1,7 +1,7 @@
 <template>
     <form id="create-cluster" class="noSubmit" v-if="loggedIn && isReady" @submit.prevent="createCluster()">
         <!-- Vue reactivity hack -->
-        <template v-if="Object.keys(cluster).length > 0"></template>
+        <template v-if="Object.keys(clusters).length > 0"></template>
         <header>
             <ul class="breadcrumbs">
                 <li class="namespace">
@@ -33,8 +33,8 @@
                 </label>
             </div>
 
-            <fieldset class="accordion">
-                <div class="header open">
+            <fieldset class="accordion" id="basicSettings">
+                <div class="header open" @click="toggleAccordion('#basicSettings')">
                     <h3>Basic Cluster Settings</h3>
                     <button type="button" class="toggleFields textBtn">Collapse</button>
                 </div>
@@ -149,8 +149,8 @@
 
             <template v-if="advancedMode">
 
-                <fieldset class="accordion">
-                    <div class="header">
+                <fieldset class="accordion" id="customConfig">
+                    <div class="header" @click="toggleAccordion('#customConfig')">
                         <h3>Customized Configurations</h3>
                         <button type="button" class="toggleFields textBtn">Expand</button>
                     </div>
@@ -230,8 +230,8 @@
                     </div>
                 </fieldset>
 
-                <fieldset class="accordion" v-if="!editMode">
-                    <div class="header">
+                <fieldset class="accordion" v-if="!editMode" id="clusterInit">
+                    <div class="header" @click="toggleAccordion('#clusterInit')">
                         <h3>Cluster Initialization</h3>
                         <button type="button" class="toggleFields textBtn">Expand</button>
                     </div>
@@ -310,8 +310,8 @@
                     </div>
                 </fieldset>
 
-                <fieldset class="accordion" v-if="!editMode || (editMode && (postgresServicesPrimary || postgresServicesReplicas))">
-                    <div class="header">
+                <fieldset class="accordion" v-if="!editMode || (editMode && (postgresServicesPrimary || postgresServicesReplicas))" id="k8sService">
+                    <div class="header" @click="toggleAccordion('#k8sService')">
                         <h3>Customize generated Kubernetes service</h3>
                         <button type="button" class="toggleFields textBtn">Expand</button>
                     </div>
@@ -421,8 +421,8 @@
                     </div>
                 </fieldset>
 
-                <fieldset class="accordion podsMetadata" v-if="!editMode || (editMode && podsMetadata.length)">
-                    <div class="header">
+                <fieldset class="accordion podsMetadata" v-if="!editMode || (editMode && podsMetadata.length)" id="podsMetadata">
+                    <div class="header" @click="toggleAccordion('#podsMetadata')">
                         <h3>Metadata</h3>
                         <button type="button" class="toggleFields textBtn">Expand</button>
                     </div>
@@ -568,7 +568,89 @@
                     </div>
                 </fieldset>
 
-            </template>
+                <fieldset class="accordion" id="postgresExtensions">
+                    <div class="header" @click="toggleAccordion('#postgresExtensions')">
+                        <h3>Extensions</h3>
+                        <button type="button" class="toggleFields textBtn">Expand</button>
+                    </div>
+
+                    <div class="fields">
+                        <div class="toolbar">
+                            <div class="searchBar">
+                                <input id="keyword" v-model="searchExtension" class="search" placeholder="Search Extension..." autocomplete="off">
+                                <a @click="clearFilters()" class="btn clear border keyword" v-if="searchExtension.length">CLEAR</a>
+                            </div>
+                        </div>
+                        
+                        <div class="extHead">
+                            <span class="install">Install</span>
+                            <span class="name">Extension</span>
+                        </div>
+                        <ul class="extensionsList">
+                            <li class="extension notFound">No extensions match your search terms...</li>
+                            <li v-for="(ext, index) in extensionsList" v-if="!searchExtension.length || (ext.name+ext.description+ext.tags.toString()).includes(searchExtension)" class="extension" :class="( (viewExtension == index) && !searchExtension.length) ? 'show' : ''">
+                                <label class="hoverTooltip">
+                                    <input type="checkbox" class="plain" @change="setExtension(index)" :checked="(extIsSet(ext.name) !== -1)"/>
+                                    {{ ext.name }} <!--<span v-if="!extAvailableFor(index)" class="notCompatible" :title="!extAvailableFor(index) ? 'This extention is not compatible with the selected Postgres version' : ''"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16.001"><path class="a" d="M657.435,374.5l6.7,13.363h-13.4l6.7-13.363Zm0-1.45a1.157,1.157,0,0,0-.951.7l-6.83,13.608c-.523.93-.078,1.691.989,1.691h13.583c1.067,0,1.512-.761.989-1.691h0l-6.829-13.61a1.156,1.156,0,0,0-.951-.7Zm1,13a1,1,0,1,1-1-1,1,1,0,0,1,1,1Zm-1-2a1,1,0,0,1-1-1v-3a1,1,0,0,1,2,0v3a1,1,0,0,1-1,1Z" transform="translate(-649.435 -373.043)"/></svg> </span>-->
+                                </label>
+                                <button class="textBtn anchor toggleExt" @click.stop.prevent="viewExt(index)">-</button>
+
+                                <div v-if="( (viewExtension == index) && !searchExtension.length)" class="extDetails">
+                                    <div class="header">
+                                        <h4>Description</h4>
+                                    </div>
+                                    <p>{{ ext.description }}</p>
+    
+                                    <div class="header">
+                                        <h4>Tags</h4>
+                                    </div>
+                                    <div class="tags" v-if="ext.tags.length">
+                                        <span v-for="tag in ext.tags" class="extTag">
+                                            {{ tag }}
+                                        </span>
+                                    </div>
+
+                                    <!-- <template v-if="!extAvailableFor(index)">
+                                        <div class="header">
+                                            <h4>Notes</h4>
+                                        </div>
+                                        <p class="notCompatible">
+                                            <strong class="colorRed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16.001"><path class="a" d="M657.435,374.5l6.7,13.363h-13.4l6.7-13.363Zm0-1.45a1.157,1.157,0,0,0-.951.7l-6.83,13.608c-.523.93-.078,1.691.989,1.691h13.583c1.067,0,1.512-.761.989-1.691h0l-6.829-13.61a1.156,1.156,0,0,0-.951-.7Zm1,13a1,1,0,1,1-1-1,1,1,0,0,1,1,1Zm-1-2a1,1,0,0,1-1-1v-3a1,1,0,0,1,2,0v3a1,1,0,0,1-1,1Z" transform="translate(-649.435 -373.043)"/></svg>
+                                                Not Compatible
+                                            </strong><br/>
+                                            This extention is not compatible with the selected Postgres version
+                                        </p>
+                                    </template>-->
+
+                                    <div class="header">
+                                        <h4>Version</h4>
+                                    </div>
+                                    <select v-model="extVersion" @change="setExtVersion(extVersion)">
+                                        <option v-for="v in ext.versions" :selected="extVersion == v">{{ v }}</option>
+                                    </select>
+                                    <!-- <ul class="select">
+                                        <li class="selected">
+                                            {{ ext.channels[Object.keys(ext.channels)[0]] + ' | ' + Object.keys(ext.channels)[0] }}
+                                        </li>
+                                        <li v-for="(v, i) in ext.versions" :for="ext.name + '-' + v.version">
+                                            <strong>{{ v.version }}</strong>
+                                            <ul>
+                                                <li v-for="(version, channel) in ext.channels" v-if="version == v.version">
+                                                    <a @click="setExtVersion(index, channel, version)" :data-val="channel">
+                                                        {{ channel }}
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>-->
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </fieldset>
+
+            </template>            
 
             <template v-if="editMode">
                 <a class="btn" @click="createCluster">Update Cluster</a>
@@ -646,7 +728,13 @@
                 postgresServicesReplicas: true,
                 postgresServicesReplicasType: 'ClusterIP',
                 postgresServicesReplicasAnnotations: [ { annotation: '', value: '' } ],
-                hasStorageClass: true
+                hasStorageClass: true,
+                searchExtension: '',
+                extensionsList: [],
+                selectedExtensions: [],
+                viewExtension: -1,
+                extVersion: '',
+                initData: false,
             }
 
         },
@@ -704,12 +792,12 @@
             isReady() {
                 return store.state.ready
             },
-            cluster () {
+            
+            clusters () {
+                const vm = this
 
-                var vm = this;
-                var cluster = {};
-                
-                if(vm.$route.params.action === 'edit') {
+                // If in edit mode, load cluster information
+                if( (vm.$route.params.action === 'edit') && !vm.initData) {
                     store.state.clusters.forEach(function( c ){
                         if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
                         
@@ -749,12 +837,14 @@
                             vm.postgresServicesReplicas = vm.hasProp(c, 'data.spec.postgresServices.replicas.enabled') ? c.data.spec.postgresServices.replicas.enabled : false;
                             vm.postgresServicesReplicasType = vm.hasProp(c, 'data.spec.postgresServices.replicas.type') ? c.data.spec.postgresServices.replicas.type : 'ClusterIP';
                             vm.postgresServicesReplicasAnnotations = vm.hasProp(c, 'data.spec.postgresServices.replicas.annotations') ?  vm.unparseProps(c.data.spec.postgresServices.replicas.annotations) : [];
-                            
+                            vm.selectedExtensions = vm.hasProp(c, 'data.spec.postgresExtensions') ? c.data.spec.postgresExtensions : [];
+
+                            vm.initData = true
                         }
                     });
                 }
-
-                return cluster
+                
+                return store.state.clusters
             }
 
         },
@@ -873,6 +963,9 @@
                                     "sgDistributedLogs": this.distributedLogs
                                 }
                             })),
+                            ...(this.selectedExtensions.length && ({
+                                "postgresExtensions": this.selectedExtensions
+                            })),
                             ...( (this.restoreBackup.length || this.initScripts.length) && ({
                                     "initialData": {
                                         ...( this.restoreBackup.length && ({
@@ -990,9 +1083,21 @@
             },
 
             setVersion: function( version = 'latest') {
-                this.postgresVersion = version;
+                const vc = this
+                
+                vc.postgresVersion = version;
                 $('#postgresVersion .active, #postgresVersion').removeClass('active');
                 $('#postgresVersion [data-val="'+version+'"]').addClass('active');
+
+                axios
+                .get('/stackgres/extensions/' + version)
+                .then(function (response) {
+                    vc.extensionsList = vc.sortExtensions(response.data.extensions)
+                })
+                .catch(function (error) {
+                    console.log(error.response);
+                    vc.notify(error.response.data,'error','sgcluster');
+                });
             },
 
             sanitizeString( string ) {
@@ -1026,22 +1131,119 @@
                     propsArray.push(prop)
                 });
                 return propsArray
-            }
+            },
+
+            viewExt(index) {
+                this.viewExtension = (this.viewExtension == index) ? -1 : index
+
+                // Always set current extension version to its first option
+                this.extVersion = this.extensionsList[index].versions[0]
+            },
+
+            setExtension(index) {
+                const vc = this
+                let i = -1
+                
+                vc.selectedExtensions.forEach(function(ext, j) {
+                    if(ext.name == vc.extensionsList[index].name) {
+                        i = j
+                        return false
+                    }
+                })
+                
+                if( i == -1) // If not included, add extension
+                    vc.selectedExtensions.push({
+                        name: vc.extensionsList[index].name,
+                        version: !vc.extVersion.length ? vc.extensionsList[index].versions[0] : vc.extVersion,
+                        publisher: vc.extensionsList[index].publisher,
+                        repository: vc.extensionsList[index].repository
+                    })
+                else // If included, remove
+                    vc.selectedExtensions.splice(i, 1);
+            },
+
+            extIsSet(ext) {
+                const vc = this
+                var index = -1
+
+                vc.selectedExtensions.forEach(function(e, i){
+                    if(e.name == ext) {
+                        index = i
+                        return false
+                    }
+                })
+
+                return index
+            },
+
+            extAvailableFor(index) {
+                const vc = this
+                let available = false
+
+                vc.extensionsList[index].versions.forEach(function(v) {
+                    v.availableFor.forEach(function(vv) {
+                        if(vc.shortpostgresVersion == vv.postgresVersion) {
+                            available = true
+                            return false
+                        }
+                    })
+                })
+
+                return available
+            },
+
+            setExtVersion(version) {
+                const vc = this
+                let ext = vc.selectedExtensions.find(e => (vc.extensionsList[vc.viewExtension].name == e.name)); 
+                
+                if( typeof ext == 'undefined')
+                    vc.selectedExtensions.push({
+                        name: vc.extensionsList[vc.viewExtension].name,
+                        version: version,
+                        publisher: vc.extensionsList[vc.viewExtension].publisher,
+                        repository: vc.extensionsList[vc.viewExtension].repository
+                    })
+                else
+                    ext.version = version
+                
+                //$('li.extension.show .active, li.extension.show [data-val="'+version+'"]').toggleClass('active');
+                //$('li.extension.show li.selected').text(version + ' | ' + channel)
+            },
+
+            clearFilters() {
+                this.searchExtension = ''
+                this.viewExtension = -1
+            },
+
+            toggleAccordion(id) {
+                $(id + '> .fields').slideToggle()
+                $(id + '> .header').toggleClass('open')
+
+                if($(id + '> .header .toggleFields').text() == 'Expand')
+                    $(id + '> .header .toggleFields').text('Collapse')
+                else
+                    $(id + '> .header .toggleFields').text('Expand')
+            },
+
+            sortExtensions(ext) {
+				return [...ext].sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
+			}
 
         },
 
         created: function() {
             
-            $(document).on('click', '.accordion > .header', function(){
-                $(this).next().slideToggle()
-                $(this).toggleClass('open')
+            let vc = this;
 
-                if($(this).find('.toggleFields').text() == 'Expand')
-                    $(this).find('.toggleFields').text('Collapse')
-                else
-                    $(this).find('.toggleFields').text('Expand')
+            axios
+            .get('/stackgres/extensions/latest')
+            .then(function (response) {
+                vc.extensionsList =  vc.sortExtensions(response.data.extensions)
             })
-
+            .catch(function (error) {
+                console.log(error.response);
+                vc.notify(error.response.data,'error','sgcluster');
+            });
         },
 
         mounted: function() {
@@ -1053,3 +1255,221 @@
         }
     }
 </script>
+
+<style scoped>
+    input[type="checkbox"].plain:checked {
+        border-color: var(--blue);
+        background: var(--blue);
+    }
+
+    input[type="checkbox"].plain {
+        width: 14px;
+        height: 14px;
+        border-radius: 2px;
+        border: 1px solid var(--borderColor);
+        padding: 0;
+        display: inline-block;
+        cursor: pointer;
+        position: relative;
+        top: 0;
+        background: var(--bgColor);
+    }
+
+    input[type="checkbox"].plain:checked:after {
+        border: 2px solid #fff;
+        width: 3px;
+        height: 7px;
+        content: " ";
+        border-left: 0;
+        border-top: 0;
+        display: block;
+        transform: rotate(45deg);
+        position: relative;
+        top: 0px;
+        left: 4px;
+    }
+
+    input[type="radio"]:checked {
+        background: var(--blue);
+    }
+
+    #keyword {
+        width: 100%;
+        max-width: 100%;
+        height: 38px;
+        font-size: 100%;
+    }
+
+    .searchBar {
+        position: relative;
+        display: block;
+    }
+
+    .searchBar .clear {
+        position: absolute;
+        top: 0;
+        right: 10px;
+        border: 0;
+        padding: 7px 0;
+        z-index: 1;
+    }
+
+    .searchBar .clear:hover {
+        background: transparent;
+    }
+
+    .notCompatible svg {
+        fill: red;
+        width: 13px;
+        position: relative;
+        top: 1px;
+    }
+
+    .colorRed svg path {
+        fill: red;
+    }
+
+    ul.extensionsList {
+        list-style: none;
+        max-height: 500px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+    }
+
+    .extension > label {
+        font-weight: bold;
+        cursor: pointer;
+        width: calc(100% - 30px);
+    }
+
+    .extension > label input {
+        margin: 0 40px 0 14px;
+    }
+
+    span.notCompatible {
+        margin-left: 5px;
+    }
+
+    label[disabled], input[disabled] {
+        cursor: not-allowed !important;
+    }
+
+    button.toggleExt {
+        top: 10px;
+        position: absolute;
+        right: 12px;
+        width: 8px;
+        height: 8px;
+        border: 2px solid var(--textColor);
+        border-radius: 0;
+        transform: rotate(45deg);
+        color: transparent;
+        border-top: 0;
+        border-left: 0;
+        opacity: .4;
+    }
+
+    .extension.show button.toggleExt {
+        transform: rotate(-135deg);
+        top: 14px;
+    }
+    
+    li.extension {
+        padding: 8px 0;
+        position: relative;
+        width: 100%;
+        border: 1px solid transparent;
+    }
+
+    li.extension:nth-child(even), li.extension.notFound {
+        background: var(--activeBg);
+        border: 1px solid var(--activeBg);
+    }
+
+    .darkmode li.extension:nth-child(even) .header, .darkmode .form .extension select {
+        border-color: #555;
+    }
+
+    .extDetails {
+        padding: 20px 13px 10px;
+    }
+
+    .extHead .install {
+        margin-right: 30px;
+    }
+
+    .extHead {
+        font-weight: bold;
+        margin: 10px 0;
+        display: inline-block;
+    }
+
+    li.extension.notFound {
+        display: none;
+        padding: 12px 70px;
+    }
+
+    li.extension.notFound:first-child:last-child {
+        display: block;
+    }
+
+    li.extension.show > label:after {
+        height: 1px;
+        width: calc(100% + 30px);
+        content: " ";
+        margin-top: 10px;
+        display: block;
+        background: var(--borderColor);
+    }
+
+    li.extension:nth-child(even).show > label:after  {
+    background: var(--textColor);
+    opacity: .2;
+    }
+
+    li.extension.show {
+        border-color: var(--borderColor)
+    }
+
+    .darkmode li.extension:nth-child(even).show {
+        border-color: #555;
+    }
+
+    .colorRed {
+        color: red;
+    }
+
+    .extDetails * + .header {
+        margin-top: 25px;
+    }
+
+    .extension .tags {
+        margin-bottom: 5px;
+    }
+
+    .extTag {
+        display: inline-block;
+        margin-right: 10px;
+        border: 1px solid;
+        border-radius: 10px;
+        padding: 3px 10px;
+        font-size: 85%;
+        font-weight: bold;
+    }
+
+    .extDetails .notCompatible {
+        display: block;
+        border: 1px solid red;
+        border-radius: 3px;
+        padding: 10px;
+        background: rgb(255 0 0 / 5%);
+    }
+
+    .extDetails .notCompatible strong {
+        display: block;
+    }
+
+    .darkmode .extension > label input {
+        background: #fbfbfb;
+    }
+</style>
