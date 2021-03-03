@@ -21,6 +21,10 @@ import io.stackgres.apiweb.dto.extension.ExtensionsDto;
 import io.stackgres.apiweb.transformer.ExtensionsTransformer;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.jooq.lambda.Unchecked;
 
 @Path("/stackgres/extensions")
@@ -47,6 +51,14 @@ public class ExtensionsResource {
    */
   @Path("/{postgresVersion}")
   @GET
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ExtensionsDto.class)) })
+      })
+  @CommonApiResponses
   @Authenticated
   public ExtensionsDto get(@PathParam("postgresVersion") String postgresVersion) {
     StackGresCluster cluster = new StackGresCluster();
