@@ -5,10 +5,6 @@ build ui:
     - build
   script:
   - cd stackgres-k8s/src/admin-ui
-  - |
-    cat << 'EOF' > .env.production.local
-    VUE_APP_API_URL=/stackgres
-    EOF
   - npm install
   - npm run build
   - sh -x build.sh
