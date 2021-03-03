@@ -1093,10 +1093,29 @@
                 .get('/stackgres/extensions/' + version)
                 .then(function (response) {
                     vc.extensionsList = vc.sortExtensions(response.data.extensions)
+                   
+                    if(vc.selectedExtensions.length) {
+                        let nonValidExt = []
+                        
+                        vc.selectedExtensions.forEach(function(ext, index){
+                            let foundExt = vc.extensionsList.find(e => (ext.name == e.name))
+
+                            if(typeof foundExt == 'undefined') {
+                                nonValidExt.push(ext.name)
+                                vc.extensionsList.splice(index, 1);
+                            }
+                        })
+
+                        if(nonValidExt.length)
+                            vc.notify(( (nonValidExt.length > 1) ? 'Some' : 'One') + ' of the extensions you selected ' + ( (nonValidExt.length > 1) ? 'are' : 'is') + ' not available for the choosen Postgres version: <code>' + nonValidExt.join(", ") + '</code>','message','sgcluster');
+                    }
                 })
                 .catch(function (error) {
-                    console.log(error.response);
-                    vc.notify(error.response.data,'error','sgcluster');
+                    if(error.hasOwnProperty('response')) {
+                        console.log(error.response);
+                        vc.notify(error.response.data,'error','sgcluster');
+                    } else
+                        console.log(error)
                 });
             },
 
