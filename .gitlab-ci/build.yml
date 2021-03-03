@@ -4,7 +4,14 @@ build:
   tags:
     - stackgres-runner
   script:
+    - 'microdnf install python3-pip jq'
+    - 'pip3 install yamllint yq'
     - 'mvn $MAVEN_CLI_OPTS clean verify -P safer'
+    - 'sh -x stackgres-k8s/src/api-web/src/main/swagger/build.sh'
+    - |
+      sh -x stackgres-k8s/ci/utils/crds2description_json.sh \
+        stackgres-k8s/install/helm/stackgres-operator/crds \
+        stackgres-k8s/src/admin-ui/target/crds2description_json
   cache:
     paths:  
       - $CI_PROJECT_DIR/.m2/repository

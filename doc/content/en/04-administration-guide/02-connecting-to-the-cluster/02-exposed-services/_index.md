@@ -52,7 +52,7 @@ spec:
     replicas:
       type: NodePort
 ```
-> Check the [SGCluster reference]({{% relref "05-crd-reference/01-postgres-clusters" %}}) for more details about the cluster configuration.
+> Check the [SGCluster reference]({{% relref "05-crd-reference/01-sgcluster" %}}) for more details about the cluster configuration.
 
 Once applied, the service configuration is updated to `NodePort`:
 
@@ -106,7 +106,7 @@ spec:
     replicas:
       type: LoadBalancer
 ```
-> Check the [SGCluster reference]({{% relref "05-crd-reference/01-postgres-clusters" %}}) for more details about the cluster configuration.
+> Check the [SGCluster reference]({{% relref "05-crd-reference/01-sgcluster" %}}) for more details about the cluster configuration.
 
 Once updated, get the service information:
 

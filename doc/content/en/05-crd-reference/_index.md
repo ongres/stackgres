@@ -11,3 +11,5 @@ url: reference/crd
 # CRD Reference
 
 Alongside with the Administration Guide StackGres provides a detailed list of each CRD entry.
+
+{{% children style="li" depth="2" description="false" %}}
