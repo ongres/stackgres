@@ -15,4 +15,14 @@ STACKGRES_VERSION="${STACKGRES_VERSION:-$(
     | grep -o '<version>\([^<]\+\)</version>' | tr '<>' '  ' | cut -d ' ' -f 3)}"
 echo "current_version: \"$STACKGRES_VERSION\"" > "$(dirname "$0")/data/versions.yml"
 
+if [ ! -f "$(dirname "$0")/../stackgres-k8s/src/api-web/target/swagger-merged.yaml" ]
+then
+  echo "Please build Stackgres operator and swagger first:"
+  echo
+  echo "cd stackgres-k8s/src"
+  echo "./mvnw clean package -DskipTests"
+  echo "sh api-web/src/main/swagger/build.sh"
+  echo
+  exit 1
+fi
 cp "$(dirname "$0")/../stackgres-k8s/src/api-web/target/swagger-merged.yaml" "$(dirname "$0")/themes/sg-doc/static/sg-swagger.yaml"

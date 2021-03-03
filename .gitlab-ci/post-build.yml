@@ -2,8 +2,6 @@ build ui:
   image: alpine:3.12
   stage: post-build
   script:
-  - apk add py3-pip jq
-  - pip install yamllint yq
   - sh -x stackgres-k8s/src/admin-ui/build.sh
   artifacts:
     expire_in: 1 week
@@ -17,11 +15,6 @@ build documentation:
   dependencies:
     - build
   script:
-  - set -x
-  - apt update -y
-  - apt install -y jq python-pip
-  - pip install yq
-  - sh -x stackgres-k8s/src/api-web/src/main/swagger/build.sh
   - sh -x doc/build.sh
   - |
     STACKGRES_VERSION="$(
