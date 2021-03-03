@@ -44,6 +44,8 @@ public abstract class ExtensionMetadataManager {
       extensionsMetadataCache = CacheBuilder.newBuilder()
           .expireAfterWrite(Duration.of(1, ChronoUnit.HOURS))
           .initialCapacity(1).maximumSize(1).build();
+  private final Map<URI, ExtensionMetadataCache> uriCache =
+      new HashMap<>();
 
   private final WebClientFactory webClientFactory;
   private final List<URI> extensionsRepositoryUris;
@@ -95,7 +97,7 @@ public abstract class ExtensionMetadataManager {
   public List<StackGresExtensionMetadata> getExtensionsAnyVersion(
       StackGresCluster cluster, StackGresClusterExtension extension) throws Exception {
     return Optional
-        .ofNullable(getExtensionsMetadata().indexedAnyVersions
+        .ofNullable(getExtensionsMetadata().indexAnyVersions
             .get(new StackGresExtensionIndexAnyVersion(cluster, extension)))
         .orElse(ImmutableList.of());
   }
@@ -113,12 +115,8 @@ public abstract class ExtensionMetadataManager {
       justification = "False positive")
   private ExtensionMetadataCache downloadExtensionsMetadata()
       throws Exception {
-    Map<StackGresExtensionIndex, StackGresExtensionMetadata> extensionsMetadataIndex =
-        new HashMap<>();
-    Map<StackGresExtensionIndexSameMajorBuild, List<StackGresExtensionMetadata>>
-        extensionsMetadataIndexSameMajorBuilds = new HashMap<>();
-    Map<StackGresExtensionIndexAnyVersion, List<StackGresExtensionMetadata>>
-        extensionsMetadataIndexAnyVersions = new HashMap<>();
+    ExtensionMetadataCache cache = new ExtensionMetadataCache(
+        new HashMap<>(), new HashMap<>(), new HashMap<>());
     for (URI extensionsRepositoryUri : extensionsRepositoryUris) {
       try {
         boolean skipHostnameVerification =
@@ -129,50 +127,51 @@ public abstract class ExtensionMetadataManager {
         try (WebClient client = webClientFactory.create(skipHostnameVerification)) {
           StackGresExtensions repositoryExtensions = client.getJson(
               indexUri, StackGresExtensions.class);
-          Map<StackGresExtensionIndex, StackGresExtensionMetadata>
-              currentExtensionsMetadataIndex = ExtensionUtil.toExtensionsMetadataIndex(
-                  extensionsRepositoryUri, repositoryExtensions);
-          Map<StackGresExtensionIndexSameMajorBuild, List<StackGresExtensionMetadata>>
-              currentExtensionsMetadataIndexSameMajorBuilds =
-                  ExtensionUtil.toExtensionsMetadataIndexSameMajorBuilds(
-                      extensionsRepositoryUri, repositoryExtensions);
-          Map<StackGresExtensionIndexAnyVersion, List<StackGresExtensionMetadata>>
-              currentExtensionsMetadataIndexAnyVersions =
-                  ExtensionUtil.toExtensionsMetadataIndexAnyVersions(
-                      extensionsRepositoryUri, repositoryExtensions);
-          extensionsMetadataIndex.putAll(currentExtensionsMetadataIndex);
-          extensionsMetadataIndexSameMajorBuilds.putAll(
-              currentExtensionsMetadataIndexSameMajorBuilds);
-          extensionsMetadataIndexAnyVersions.putAll(
-              currentExtensionsMetadataIndexAnyVersions);
-        } catch (Exception ex) {
-          LOGGER.error("Can not download extensions metadata from {}", indexUri, ex);
+          ExtensionMetadataCache current = ExtensionMetadataCache.from(
+              extensionsRepositoryUri, repositoryExtensions);
+          cache.merge(current);
+          uriCache.put(extensionsRepositoryUri, current);
         }
       } catch (Exception ex) {
+        ExtensionMetadataCache previous = uriCache.get(extensionsRepositoryUri);
+        if (previous != null) {
+          cache.merge(previous);
+        }
         LOGGER.error("Can not download extensions metadata from {}", extensionsRepositoryUri, ex);
       }
     }
-    return new ExtensionMetadataCache(extensionsMetadataIndex,
-        extensionsMetadataIndexSameMajorBuilds,
-        extensionsMetadataIndexAnyVersions);
+    return cache;
   }
 
-  private static class ExtensionMetadataCache {
-    public final Map<StackGresExtensionIndex, StackGresExtensionMetadata> index;
-    public final Map<StackGresExtensionIndexSameMajorBuild, List<StackGresExtensionMetadata>>
+  static class ExtensionMetadataCache {
+    final Map<StackGresExtensionIndex, StackGresExtensionMetadata> index;
+    final Map<StackGresExtensionIndexSameMajorBuild, List<StackGresExtensionMetadata>>
         indexSameMajorBuilds;
-    public final Map<StackGresExtensionIndexAnyVersion, List<StackGresExtensionMetadata>>
-        indexedAnyVersions;
+    final Map<StackGresExtensionIndexAnyVersion, List<StackGresExtensionMetadata>>
+        indexAnyVersions;
 
-    private ExtensionMetadataCache(
+    static ExtensionMetadataCache from(URI repositoryUri, StackGresExtensions extensions) {
+      return new ExtensionMetadataCache(
+          ExtensionUtil.toExtensionsMetadataIndex(repositoryUri, extensions),
+          ExtensionUtil.toExtensionsMetadataIndexSameMajorBuilds(repositoryUri, extensions),
+          ExtensionUtil.toExtensionsMetadataIndexAnyVersions(repositoryUri, extensions));
+    }
+
+    ExtensionMetadataCache(
         Map<StackGresExtensionIndex, StackGresExtensionMetadata> index,
         Map<StackGresExtensionIndexSameMajorBuild, List<StackGresExtensionMetadata>>
             indexSameMajorBuilds,
         Map<StackGresExtensionIndexAnyVersion, List<StackGresExtensionMetadata>>
-            indexedAnyVersions) {
+            indexAnyVersions) {
       this.index = index;
       this.indexSameMajorBuilds = indexSameMajorBuilds;
-      this.indexedAnyVersions = indexedAnyVersions;
+      this.indexAnyVersions = indexAnyVersions;
+    }
+
+    void merge(ExtensionMetadataCache other) {
+      index.putAll(other.index);
+      indexSameMajorBuilds.putAll(other.indexSameMajorBuilds);
+      indexAnyVersions.putAll(other.indexAnyVersions);
     }
   }
 
