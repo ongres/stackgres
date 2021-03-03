@@ -27,7 +27,7 @@ const proxyPaths = ['/stackgres', '/grafana', "/api", "/d", "/public"]
 
 proxyPaths.forEach((proxyPath) => {
   app.use(proxyPath, proxy(target, {
-    proxyReqOptDecorator: function(proxyReqOpts, originalReq) {
+    proxyReqOptDecorator: function(proxyReqOpts) {
       proxyReqOpts.rejectUnauthorized = false
       return proxyReqOpts;
     },

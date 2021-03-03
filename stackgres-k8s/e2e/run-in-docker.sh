@@ -24,7 +24,7 @@ if docker ps -a | grep -q "\s$E2E_CONTAINER_NAME$"
 then
   docker rm -fv "$E2E_CONTAINER_NAME"
 fi
-docker run "$([ -t 1 ] && echo '-i' || echo '-it')" \
+docker run "$([ -t 1 ] && echo '-it' || echo '-i')" \
   --network host \
   --rm --name "$E2E_CONTAINER_NAME" \
   -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro \

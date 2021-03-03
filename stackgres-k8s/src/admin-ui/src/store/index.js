@@ -1,0 +1,273 @@
+import Vue from 'vue'
+import Vuex from 'vuex'
+import axios from 'axios'
+
+Vue.use(Vuex);
+
+export default new Vuex.Store({
+  state: {
+    theme: 'light',
+    loginToken: '',
+    showLogs: false,
+    notFound: false,
+    currentPath: {
+      namespace: '',
+      name: '',
+      component: '',
+    },
+    currentNamespace: '',
+    ready: false,
+    currentCluster: {},
+    currentPods: [],
+    namespaces: [],
+    allNamespaces: [],
+    clusters: [],
+    backups: [],
+    pgConfig: [],
+    poolConfig: [],
+    backupConfig: [],
+    profiles: [],
+    storageClasses: [],
+    logs: [],
+    logsClusters: [],
+    cloneCRD: {},
+    permissions: {
+      allowed: {
+        namespaced: [],
+        unnamespaced: []
+      },
+      forbidden: []
+    },
+    tooltipsText: 'Click on a question mark to get help and tips about that field.',
+    tooltips: {},
+    deleteItem: {
+      kind: '',
+      namespace: '',
+      name: '',
+      redirect: ''
+    },
+    confirmDeleteName: ''
+  },
+
+  mutations: {
+
+    notFound (state, notFound) {
+      state.notFound = notFound;
+    },
+    
+    setPermissions (state, permissions) {
+      state.permissions.allowed = permissions;
+    },
+
+    setNoPermissions (state, kind) {
+      if(!state.permissions.forbidden.includes(kind))
+        state.permissions.forbidden.push(kind)
+    },
+
+    setReady (state, ready) {
+      state.ready = ready;
+    }, 
+
+    setLoginToken (state, token = '') {
+      state.loginToken = token;
+      axios.defaults.headers.common['Authorization'] = 'Bearer ' + token;
+    },
+
+    setTheme (state, theme) {
+      state.theme = theme;
+      document.cookie = "sgTheme="+theme+"; Path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT";
+    },
+
+    setCurrentPath (state, path) {
+      state.currentPath = path
+    },
+    
+    setCurrentNamespace (state, namespace) {
+      state.currentNamespace = namespace;
+    },
+
+    updateNamespaces (state, namespace) {
+      state.namespaces.push(namespace);
+    },
+
+    addNamespaces (state, namespacesList) {
+      state.allNamespaces = [...namespacesList];
+    },
+
+    addLogsClusters (state, logsClusters) {
+      state.logsClusters = [...logsClusters];
+    },
+
+    addStorageClasses (state, storageClassesList) {
+      state.storageClasses = [...storageClassesList];
+    },
+
+    setCurrentCluster (state, cluster) {
+
+      state.currentCluster = cluster;
+      
+    },
+
+    setCurrentPods (state, pods) {
+      state.currentPods = pods;
+    },
+
+    updateClusters ( state, cluster ) {
+
+      let index = state.clusters.find(c => (cluster.data.metadata.name == c.name) && (cluster.data.metadata.namespace == c.data.metadata.namespace) ); 
+
+      if ( typeof index !== "undefined" ) {
+        index.data = cluster.data;
+      } else {
+        state.clusters.push( cluster );    
+      }
+
+    },
+
+    updateBackups ( state, backup ) {
+
+        let index = state.backups.find(p => (backup.data.metadata.name == p.name) && (backup.data.metadata.namespace == p.data.metadata.namespace) ); 
+
+        if ( typeof index !== "undefined" ) {
+          index.data = backup.data;
+        } else {
+          state.backups.push( backup );    
+        }
+
+    },
+    
+    showBackup ( state, show ) {
+
+      state.backups[show.pos].show = show.isVisible;
+
+    },
+
+    updatePGConfig ( state, config ) {
+
+      let index = state.pgConfig.find(c => (config.data.metadata.name == c.name) && (config.data.metadata.namespace == c.data.metadata.namespace) ); 
+
+      if ( typeof index !== "undefined" ) {
+        index.data = config.data;
+      } else {
+        state.pgConfig.push( config );    
+      }
+
+    },
+    updatePoolConfig ( state, config ) {
+
+      let index = state.poolConfig.find(c => (config.data.metadata.name == c.name) && (config.data.metadata.namespace == c.data.metadata.namespace) ); 
+
+      if ( typeof index !== "undefined" ) {
+        index.data = config.data;
+      } else {
+        state.poolConfig.push( config );    
+      }
+
+    },
+    updateBackupConfig ( state, config ) {
+
+      let index = state.backupConfig.find(c => (config.data.metadata.name == c.name) && (config.data.metadata.namespace == c.data.metadata.namespace) ); 
+
+      if ( typeof index !== "undefined" ) {
+        index.data = config.data;
+      } else {
+        state.backupConfig.push( config );    
+      }
+
+    },
+    updateProfiles ( state, profile ) {
+
+      let index = state.profiles.find(p => (profile.data.metadata.name == p.name) && (profile.data.metadata.namespace == p.data.metadata.namespace) ); 
+
+      if ( typeof index !== "undefined" ) {
+        index.data = profile.data;
+      } else {
+        state.profiles.push( profile );    
+      }
+
+    },
+
+    setCurrentNamespace (state, namespace) {
+      state.currentNamespace = namespace;
+    },
+
+    flushAllNamespaces (state) {
+      state.allNamespaces.length = 0;
+    },
+
+    flushClusters (state ) {
+      state.clusters.length = 0;
+    },
+
+    flushBackups (state ) {
+    	state.backups.length = 0;
+    },
+
+    flushPoolConfig (state ) {
+      state.poolConfig.length = 0;
+    },
+
+    flushPGConfig (state ) {
+      state.pgConfig.length = 0;
+    },
+
+    flushBackupConfig (state ) {
+      state.backupConfig.length = 0;
+    },
+
+    flushProfiles (state ) {
+      state.profiles.length = 0;
+    },
+
+    flushStorageClasses (state ) {
+      state.storageClasses.length = 0;
+    },
+
+    flushLogsClusters (state ) {
+      state.logsClusters.length = 0;
+    },
+
+    setDeleteItem (state, item) {
+      state.deleteItem = item;
+    },
+
+    setConfirmDeleteName (state, name) {
+      state.confirmDeleteName = name;
+    },
+
+    setLogs (state, logs) {
+      state.logs = logs;
+    },
+
+    appendLogs (state, logs) {
+      state.logs = state.logs.concat(logs);
+    },
+
+    setTooltips (state, tooltips) {
+      Object.keys(tooltips).forEach(function(key){
+        state.tooltips['sg' + key.replace('Dto','').toLowerCase()] = tooltips[key];
+      })
+    },
+
+    setTooltipsText (state, tooltipsText) {
+      state.tooltipsText = tooltipsText;
+    },
+
+    showLogs (state, show) {
+      state.showLogs = show;
+    },
+
+    setCloneCRD (state, crd) {
+      state.cloneCRD = crd;
+    },
+
+    setCloneName (state, name) {
+      state.cloneCRD.data.metadata.name = name;
+    },
+
+    setCloneNamespace (state, namespace) {
+      state.cloneCRD.data.metadata.namespace = namespace;
+    },
+    
+  }
+});
