@@ -2,8 +2,7 @@
 title: Database passwords
 weight: 19
 url: administration/passwords
-description: |
-    Describes how to get the auto-generated database passwords.
+description: Describes how to get the auto-generated database passwords.
 ---
 
 All passwords are stored by the StackGres Operator in a secret located in the same StackGres Cluster's namespace and by convention, using the same name.

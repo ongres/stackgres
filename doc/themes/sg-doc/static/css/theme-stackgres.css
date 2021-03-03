@@ -864,6 +864,28 @@ p+h1 {
     background: var(--activeBg);
 }
 
+/*Search*/
+.autocomplete-suggestions {
+    border: 1px solid var(--borderColor);
+    background-color: var(--activeBg);
+    border-radius: 5px;
+    margin-top: -1px;
+    position: fixed;
+    box-shadow: 5px 5px 15px 0px rgb(0 0 0 / 30%)
+}
+.autocomplete-suggestion {
+    color: var(--textColor);
+}
+.autocomplete-suggestion:hover, .autocomplete-suggestion.selected {
+    background-color: var(--inputBg);
+    color: var(--baseColor);
+}
+
+mark.highlight {
+    background: transparent;
+    color: inherit;
+}
+
 /* Container Override */
 @media screen and (min-width: 0px) {
     .container {

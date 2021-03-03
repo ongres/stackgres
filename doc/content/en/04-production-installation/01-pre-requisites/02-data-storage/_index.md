@@ -2,10 +2,7 @@
 title: Data Storage
 weight: 1
 url: install/prerequisites/storage
-description: |
-  Details about how to setup and configure the storage classes.
-
-  Storage classes are used by the database clusters and will impact performance and availability of the cluster.
+description: "Details about how to setup and configure the storage classes. Storage classes are used by the database clusters and will impact performance and availability of the cluster."
 ---
 
 When setting up a K8s environment the Storage Class by default is created with one main restriction and this is represented with the parameter `allowVolumeExpansion: false` this will not allow you to expand your disk when these are filling up. It is recommended to create a new Storage Class with at least these next parameters:
