@@ -2,8 +2,7 @@
 title: Through k8s internal DNS
 weight: 1
 url: administration/cluster/connection/dns
-description: |
-    Describes how to connect on the cluster inside the k8s environment.
+description: Describes how to connect on the cluster inside the k8s environment.
 ---
 
 With every StackGres cluster that you deploy a few of services will be deployed.  To connect to the database you only need to be aware of two services: the primary and the replica service. 

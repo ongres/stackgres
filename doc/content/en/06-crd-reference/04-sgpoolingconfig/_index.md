@@ -2,8 +2,7 @@
 title: SGPoolingConfig
 weight: 4
 url: reference/crd/sgpoolingconfig
-description: |
-  Details about SGPoolingConfig configurations
+description: Details about SGPoolingConfig configurations
 ---
 
 The connection pooling CR represent the configuration of PgBouncer.
