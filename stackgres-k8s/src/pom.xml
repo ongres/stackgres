@@ -61,9 +61,9 @@
     <stackgres.conversionWebhooks>false</stackgres.conversionWebhooks>
     <stackgres.crdUpgrade>false</stackgres.crdUpgrade>
     <stackgres.containerRegistry>docker.io</stackgres.containerRegistry>
-    <stackgres.container.patroni>1.6.5-build-5.1,1.6.5-build-6.0-dev</stackgres.container.patroni>
+    <stackgres.container.patroni>1.6.5-build-6.0-dev</stackgres.container.patroni>
     <stackgres.container.prometheus-postgres-exporter>0.8.0-build-5.1</stackgres.container.prometheus-postgres-exporter>
-    <stackgres.container.postgresql>11.8-build-5.1,11.9-build-5.1,12.3-build-5.1,12.4-build-5.1,11.11-build-6.0-dev,12.6-build-6.0-dev</stackgres.container.postgresql>
+    <stackgres.container.postgresql>11.8-build-6.0-dev,11.9-build-6.0-dev,11.11-build-6.0-dev,12.3-build-6.0-dev,12.4-build-6.0-dev,12.6-build-6.0-dev</stackgres.container.postgresql>
     <stackgres.container.envoy>1.15.0-build-5.1</stackgres.container.envoy>
     <stackgres.container.pgbouncer>1.13.0-build-5.1</stackgres.container.pgbouncer>
     <stackgres.container.fluentbit>1.4.4-build-5.1</stackgres.container.fluentbit>
