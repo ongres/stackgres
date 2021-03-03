@@ -106,4 +106,4 @@ Remember to remove the generated password hint from the secret to avoid security
 kubectl patch secrets --namespace stackgres stackgres-restapi --type json -p '[{"op":"remove","path":"/data/clearPassword"}]'
 ```
 
-> See [installation via helm]({{% relref "/03-production-installation/02-installation-via-helm" %}}) section in order to change those.
+> See [installation via helm]({{% relref "/04-production-installation/02-installation-via-helm" %}}) section in order to change those.
