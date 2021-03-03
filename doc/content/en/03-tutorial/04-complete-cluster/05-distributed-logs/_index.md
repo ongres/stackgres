@@ -10,7 +10,7 @@ pods are on different locations.
 
 StackGres has created a technology stack to send Postgres and Patroni logs to a separate location, called a `Distributed
 Logs Server`. This server is represented by the CRD
-[SGDistributedLogs]({{% relref "06-crd-reference/07-distributed-logs" %}}). It is a separate Postgres instance,
+[SGDistributedLogs]({{% relref "06-crd-reference/07-sgdistributedlogs" %}}). It is a separate Postgres instance,
 optimized for log storage, using the time-series Timescale extension to support high volume injection and automatic
 partitioning of logs, as well as log rotation.
 

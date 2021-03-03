@@ -6,7 +6,7 @@ url: tutorial/complete-cluster/postgres-config
 
 While StackGres comes with a carefully tuned, default Postgres configuration, you may want to set your own configuration
 and parameters. StackGres uses for this purpose the CRD
-[SGPostgresConfig]({{% relref "06-crd-reference/03-postgres-configuration" %}}). By using a CRD, coupled with a webhook
+[SGPostgresConfig]({{% relref "06-crd-reference/03-sgpostgresconfig" %}}). By using a CRD, coupled with a webhook
 validator, instead of a simple ConfigMap, StackGres is able to strongly validate the desired configuration, ensuring
 that parameters and values are valid for the major Postgres version, and within bounds.
 

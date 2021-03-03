@@ -13,7 +13,7 @@ Some applications, do not handle connection closing properly, which may require 
 
 ## Reloading configuration
 
-In the [Customizing Pooling configuration section]({{% relref "06-crd-reference/04-connection-pooling-configuration/#pgbouncer" %}}),
+In the [Customizing Pooling configuration section]({{% relref "06-crd-reference/04-sgpoolingconfig/#pgbouncer" %}}),
  it is explained the different sauces for scaling connections properly.
 
 Each configuration, once applied, need to be _reloaded_. This can be done by getting the
