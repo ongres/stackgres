@@ -11,7 +11,7 @@ connection pooling, tuned parameters by default, monitoring, and many others; an
 interface as part of its CRDs.
 
 The main CRD that drives Postgres cluster creation is called
-[SGCluster]({{% relref "06-crd-reference/01-postgres-clusters" %}}). Here we will create a simple one, which will
+[SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}}). Here we will create a simple one, which will
 include several values and parameters by default. The next section will create a more advanced cluster, while keeping
 the simplicity and hiding away the Postgres expertise required.
 

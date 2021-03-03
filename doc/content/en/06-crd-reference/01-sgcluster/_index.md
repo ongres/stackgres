@@ -1,7 +1,9 @@
 ---
-title: Postgres clusters
+title: SGCluster
 weight: 1
 url: reference/crd/sgcluster
+description: |
+  Details about SGCluster configurations
 ---
 
 StackGres PostgreSQL cluster can be created using a cluster Custom Resource (CR) in Kubernetes.
@@ -23,7 +25,7 @@ ___
 |:-------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:-------------------------------------------------------------------|
 | postgresVersion                                                                            | ✓        | ✓         | string   |                                     | {{< crd-field-description SGCluster.spec.postgresVersion >}}       |
 | instances                                                                                  | ✓        | ✓         | integer  |                                     | {{< crd-field-description SGCluster.spec.instances >}}             |
-| [sgInstanceProfile]({{% relref "/06-crd-reference/02-instance-profiles" %}})               |          | ✓         | string   | will be generated                   | {{< crd-field-description SGCluster.spec.sgInstanceProfile >}}     |
+| [sgInstanceProfile]({{% relref "/06-crd-reference/02-sginstanceprofile" %}})               |          | ✓         | string   | will be generated                   | {{< crd-field-description SGCluster.spec.sgInstanceProfile >}}     |
 | [metadata](#metadata)                                                                      |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.metadata >}}              |
 | [postgresServices](#postgres-services)                                                     |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.postgresServices >}}      |
 | [pods](#pods)                                                                              | ✓        | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.pods >}}                  |
@@ -217,9 +219,9 @@ Custom configurations to be applied to the cluster.
 
 | Property                                                                                  | Required | Updatable | Type     | Default           | Description |
 |:------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------|:------------|
-| [sgPostgresConfig]({{% relref "06-crd-reference/03-postgres-configuration" %}})           |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPostgresConfig >}} |
-| [sgPoolingConfig]({{% relref "06-crd-reference/04-connection-pooling-configuration" %}})  |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPoolingConfig >}} |
-| [sgBackupConfig]({{% relref "06-crd-reference/05-backup-config" %}})                     |          | ✓         | string   |                   | {{< crd-field-description SGCluster.spec.configurations.sgBackupConfig >}} |
+| [sgPostgresConfig]({{% relref "06-crd-reference/03-sgpostgresconfig" %}})           |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPostgresConfig >}} |
+| [sgPoolingConfig]({{% relref "06-crd-reference/04-sgpoolingconfig" %}})  |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPoolingConfig >}} |
+| [sgBackupConfig]({{% relref "06-crd-reference/05-sgbackupconfig" %}})                     |          | ✓         | string   |                   | {{< crd-field-description SGCluster.spec.configurations.sgBackupConfig >}} |
 
 Example: 
  
@@ -335,7 +337,7 @@ Specifies the distributed logs cluster to send logs to:
 
 | Property                                                                     | Required | Updatable | Type     | Default | Description |
 |:-----------------------------------------------------------------------------|----------|-----------|:---------|:--------|:------------|
-| [sgDistributedLogs]({{% relref "/06-crd-reference/07-distributed-logs" %}})  |          |           | string   |         | {{< crd-field-description SGCluster.spec.distributedLogs.sgDistributedLogs >}} |
+| [sgDistributedLogs]({{% relref "/06-crd-reference/07-sgdistributedlogs" %}})  |          |           | string   |         | {{< crd-field-description SGCluster.spec.distributedLogs.sgDistributedLogs >}} |
 
 Example:
 
