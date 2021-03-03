@@ -25,11 +25,7 @@ ___
 |:-------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:-------------------------------------------------------------------|
 | postgresVersion                                                                            | ✓        | ✓         | string   |                                     | {{< crd-field-description SGCluster.spec.postgresVersion >}}       |
 | instances                                                                                  | ✓        | ✓         | integer  |                                     | {{< crd-field-description SGCluster.spec.instances >}}             |
-<<<<<<< HEAD:doc/content/en/06-crd-reference/01-sgcluster/_index.md
-| [sgInstanceProfile]({{% relref "/05-crd-reference/02-sginstanceprofile" %}})               |          | ✓         | string   | will be generated                   | {{< crd-field-description SGCluster.spec.sgInstanceProfile >}}     |
-=======
-| [sgInstanceProfile]({{% relref "/06-crd-reference/02-instance-profiles" %}})               |          | ✓         | string   | will be generated                   | {{< crd-field-description SGCluster.spec.sgInstanceProfile >}}     |
->>>>>>> adc2d35a (doc: create new section: tutorial):doc/content/en/06-crd-reference/01-postgres-clusters/_index.md
+| [sgInstanceProfile]({{% relref "/06-crd-reference/02-sginstanceprofile" %}})               |          | ✓         | string   | will be generated                   | {{< crd-field-description SGCluster.spec.sgInstanceProfile >}}     |
 | [metadata](#metadata)                                                                      |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.metadata >}}              |
 | [postgresServices](#postgres-services)                                                     |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.postgresServices >}}      |
 | [pods](#pods)                                                                              | ✓        | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.pods >}}                  |
@@ -223,15 +219,9 @@ Custom configurations to be applied to the cluster.
 
 | Property                                                                                  | Required | Updatable | Type     | Default           | Description |
 |:------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------|:------------|
-<<<<<<< HEAD:doc/content/en/06-crd-reference/01-sgcluster/_index.md
-| [sgPostgresConfig]({{% relref "05-crd-reference/03-sgpostgresconfig" %}})           |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPostgresConfig >}} |
-| [sgPoolingConfig]({{% relref "05-crd-reference/04-sgpoolingconfig" %}})  |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPoolingConfig >}} |
-| [sgBackupConfig]({{% relref "05-crd-reference/05-sgbackupconfig" %}})                     |          | ✓         | string   |                   | {{< crd-field-description SGCluster.spec.configurations.sgBackupConfig >}} |
-=======
-| [sgPostgresConfig]({{% relref "06-crd-reference/03-postgres-configuration" %}})           |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPostgresConfig >}} |
-| [sgPoolingConfig]({{% relref "06-crd-reference/04-connection-pooling-configuration" %}})  |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPoolingConfig >}} |
-| [sgBackupConfig]({{% relref "06-crd-reference/05-backup-config" %}})                     |          | ✓         | string   |                   | {{< crd-field-description SGCluster.spec.configurations.sgBackupConfig >}} |
->>>>>>> adc2d35a (doc: create new section: tutorial):doc/content/en/06-crd-reference/01-postgres-clusters/_index.md
+| [sgPostgresConfig]({{% relref "06-crd-reference/03-sgpostgresconfig" %}})           |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPostgresConfig >}} |
+| [sgPoolingConfig]({{% relref "06-crd-reference/04-sgpoolingconfig" %}})  |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPoolingConfig >}} |
+| [sgBackupConfig]({{% relref "06-crd-reference/05-sgbackupconfig" %}})                     |          | ✓         | string   |                   | {{< crd-field-description SGCluster.spec.configurations.sgBackupConfig >}} |
 
 Example: 
  
@@ -347,11 +337,7 @@ Specifies the distributed logs cluster to send logs to:
 
 | Property                                                                     | Required | Updatable | Type     | Default | Description |
 |:-----------------------------------------------------------------------------|----------|-----------|:---------|:--------|:------------|
-<<<<<<< HEAD:doc/content/en/06-crd-reference/01-sgcluster/_index.md
-| [sgDistributedLogs]({{% relref "/05-crd-reference/07-sgdistributedlogs" %}})  |          |           | string   |         | {{< crd-field-description SGCluster.spec.distributedLogs.sgDistributedLogs >}} |
-=======
-| [sgDistributedLogs]({{% relref "/06-crd-reference/07-distributed-logs" %}})  |          |           | string   |         | {{< crd-field-description SGCluster.spec.distributedLogs.sgDistributedLogs >}} |
->>>>>>> adc2d35a (doc: create new section: tutorial):doc/content/en/06-crd-reference/01-postgres-clusters/_index.md
+| [sgDistributedLogs]({{% relref "/06-crd-reference/07-sgdistributedlogs" %}})  |          |           | string   |         | {{< crd-field-description SGCluster.spec.distributedLogs.sgDistributedLogs >}} |
 
 Example:
 

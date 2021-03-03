@@ -10,7 +10,7 @@ draft: true
 Certain set of applications, particularly those for reporting or OLAP, may not need a pooling
  middleware to issue large queries and low amount of connections. It is possible to disable
  pooling by setting `disableConnectionPooling` to `true` at the Cluster configuration (for more
- information, see [CRD Cluster Pods configuration]({{% relref "06-crd-reference/01-postgres-clusters/" %}}) ).
+ information, see [CRD Cluster Pods configuration]({{% relref "06-crd-reference/01-sgcluster/" %}}) ).
 
 ```bash
 apiVersion: stackgres.io/v1beta1

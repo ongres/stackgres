@@ -34,7 +34,7 @@ kubectl --namespace $CLUSTER_NAMESPACE create secret generic s3-backup-bucket-se
 ```
 
 Having the credentials secret created, we just need to create now a backup configuration. It is governed by the CRD
-[SGBackupConfig]({{% relref "06-crd-reference/05-backup-config" %}}). This CRD allows to specify, among others, the
+[SGBackupConfig]({{% relref "06-crd-reference/05-sgbackupconfig" %}}). This CRD allows to specify, among others, the
 retention window for the automated backups, when base backups are performed, performance parameters of the backup
 process, the object storage technology and parameters required and a reference to the above secret.
 

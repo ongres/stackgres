@@ -8,7 +8,7 @@ In the section [Create a simple cluster]({{% relref "03-tutorial/03-simple-clust
 create a simple cluster. Here a more advanced cluster will be created, referencing all the configurations and
 infrastructure already prepared.
 
-For more information, review the [SGCluster]({{% relref "06-crd-reference/01-postgres-clusters" %}}) CRD specification.
+For more information, review the [SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}}) CRD specification.
 Create the file `sgcluster-cluster1.yaml` with the following content:
 
 ```yaml
