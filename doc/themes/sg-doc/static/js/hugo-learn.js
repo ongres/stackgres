@@ -90,5 +90,6 @@ jQuery(document).ready(function() {
   });
 
   //Scroll to active sidebar section on load
-  $('.highlightable').scrollTop($('.highlightable').scrollTop() + $('ul.topics > li.parent').position().top);
+  if($('ul.topics > li.parent').length)
+    $('.highlightable').scrollTop($('.highlightable').scrollTop() + $('ul.topics > li.parent').position().top);
 });

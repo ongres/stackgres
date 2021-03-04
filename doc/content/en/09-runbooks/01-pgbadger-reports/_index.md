@@ -2,8 +2,7 @@
 title: PGBadger reports
 weight: 1
 url: runbooks/pgbadger-reports
-description: |
-  Details about how to generate a pgbadger report from the distributed logs server.
+description: Details about how to generate a pgbadger report from the distributed logs server.
 ---
 
 This tutorial expects that you have pgbadger installed on your machine. Check the [installation procedure](http://pgbadger.darold.net/documentation.html#INSTALLATION) to get it running properly.

@@ -2,8 +2,7 @@
 title: Exposing Services
 weight: 2
 url: administration/cluster/connection/exposed
-description: |
-    Describes how to connect on the cluster exposing its services on the internet.
+description: Describes how to connect on the cluster exposing its services on the internet.
 ---
 
 To allow access outside the k8s cluster is necessary to update the [services that exposes access to the StackGres cluster]({{% relref "/05-administration-guide/02-connecting-to-the-cluster/01-dns/" %}}) changing it to `NodePort` or `LoadBalancer`.

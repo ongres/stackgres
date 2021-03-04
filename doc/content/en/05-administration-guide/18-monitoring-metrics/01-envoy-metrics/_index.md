@@ -2,8 +2,7 @@
 title: Envoy
 weight: 1
 url: monitoring/metrics/envoy
-description: |
-    Contains details about the metrics collected by the envoy proxy with the Postgres filter.
+description: Contains details about the metrics collected by the envoy proxy with the Postgres filter.
 ---
 
 The list below contains details about the metrics enabled by the envoy proxy:
