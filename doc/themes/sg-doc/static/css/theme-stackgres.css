@@ -328,7 +328,7 @@ button {
 }
 
 img {
-    max-width: 100%;
+    max-width: 75%;
 }
 
 .code {
@@ -884,6 +884,49 @@ p+h1 {
 mark.highlight {
     background: transparent;
     color: inherit;
+}
+
+/*TOC*/
+#sidebar ul ul:before {
+    background: var(--baseColor) !important;
+    height: calc(100% - 5px);
+    height: calc(100% - 5px);
+}
+
+#sidebar ul ul li:before, #sidebar ul ul li.active:before {
+    content: "";
+    display: inline;
+    height: 2px;
+    width: 10px;
+    position: absolute;
+    background-color: var(--baseColor);
+    left: 4px;
+    top: 15px;
+}
+
+#sidebar ul ul li.active:before {
+    width: 20px;
+}
+
+#sidebar ul ul li:last-of-type:after {
+    content: "";
+    display: inline;
+    width: 4px;
+    height: calc(100% - 6px);
+    position: absolute;
+    background: var(--activeBg);
+    left: 1px;
+    top: 17px;
+}
+
+#sidebar ul ul li.active > a {
+    padding-left: 1.3rem;  
+    margin-left: -10px;
+}
+
+code.language-bash {
+    color: #93d1ff;
+    font-weight: bold;
 }
 
 /* Container Override */
