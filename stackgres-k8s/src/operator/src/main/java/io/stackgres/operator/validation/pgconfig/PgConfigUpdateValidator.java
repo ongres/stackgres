@@ -9,12 +9,13 @@ import javax.annotation.PostConstruct;
 import javax.inject.Singleton;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.fabric8.kubernetes.api.model.StatusDetailsBuilder;
 import io.stackgres.common.ErrorType;
-import io.stackgres.common.StackGresProperty;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDefinition;
+import io.stackgres.common.crd.CommonDefinition;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.validation.ValidationType;
@@ -49,12 +50,12 @@ public class PgConfigUpdateValidator implements PgConfigValidator {
 
         Status failedStatus = new StatusBuilder()
             .withCode(400)
-            .withKind(StackGresPostgresConfigDefinition.KIND)
+            .withKind(HasMetadata.getKind(StackGresPostgresConfig.class))
             .withReason(ErrorType.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE))
             .withDetails(new StatusDetailsBuilder()
                 .addNewCause(pgVersionPath, detail, "FieldNotUpdatable")
-                .withKind(StackGresPostgresConfigDefinition.KIND)
-                .withGroup(StackGresProperty.CRD_GROUP.getString())
+                .withKind(HasMetadata.getKind(StackGresPostgresConfig.class))
+                .withGroup(CommonDefinition.GROUP)
                 .withName(pgVersionPath)
                 .build())
             .build();

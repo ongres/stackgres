@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.stubbing.Answer;
 
-abstract class AbstractDependencyCustomResourceTest<T extends ResourceDto, R extends CustomResource,
+abstract class AbstractDependencyCustomResourceTest<T extends ResourceDto, R extends CustomResource<?, ?>,
     S extends AbstractDependencyRestService<T, R>> {
 
   @Mock

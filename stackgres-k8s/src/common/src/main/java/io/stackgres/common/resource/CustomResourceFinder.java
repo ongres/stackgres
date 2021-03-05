@@ -7,6 +7,8 @@ package io.stackgres.common.resource;
 
 import java.util.Optional;
 
+import org.jetbrains.annotations.NotNull;
+
 public interface CustomResourceFinder<T> {
 
   /**
@@ -15,6 +17,6 @@ public interface CustomResourceFinder<T> {
    * @param namespace the namespace in which the resource should be located
    * @return the result of the search
    */
-  Optional<T> findByNameAndNamespace(String name, String namespace);
+  @NotNull Optional<T> findByNameAndNamespace(String name, String namespace);
 
 }

@@ -16,8 +16,8 @@ import io.stackgres.common.resource.CustomResourceScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CustomResourceInitializer<T extends CustomResource>
-    implements DefaultCustomResourceInitializer<T> {
+public class CustomResourceInitializer<T extends CustomResource<?, ?>>
+    implements DefaultCustomResourceInitializer {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(CustomResourceInitializer.class);
@@ -40,7 +40,7 @@ public class CustomResourceInitializer<T extends CustomResource>
     String resourceNamespace = defaultResource.getMetadata().getNamespace();
     String resourceName = defaultResource.getMetadata().getName();
 
-    LOGGER.info("Initializing " + resourceName);
+    LOGGER.info("Initializing {}", resourceName);
 
     List<T> installedResources = resourceScanner.getResources(resourceNamespace);
 
@@ -56,9 +56,9 @@ public class CustomResourceInitializer<T extends CustomResource>
         .findFirst();
 
     if (installedDefaultResources.isPresent()) {
-      LOGGER.info("Default custom resource " + resourceName + " already installed");
+      LOGGER.info("Default custom resource {} already installed", resourceName);
     } else {
-      LOGGER.info("Installing default custom resource " + resourceName);
+      LOGGER.info("Installing default custom resource {}", resourceName);
       customResourceScheduler.create(defaultResource);
     }
   }

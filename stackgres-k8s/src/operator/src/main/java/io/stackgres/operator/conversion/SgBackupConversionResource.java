@@ -14,7 +14,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
-import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +34,7 @@ public class SgBackupConversionResource implements ConversionResource {
 
   @Inject
   public SgBackupConversionResource(
-      @Conversion(StackGresBackupDefinition.KIND) ConversionPipeline pipeline) {
+      @Conversion(StackGresBackup.KIND) ConversionPipeline pipeline) {
     this.pipeline = pipeline;
   }
 

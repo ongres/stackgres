@@ -10,6 +10,7 @@ import java.util.function.Function;
 
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.WatcherException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +66,7 @@ public class WatcherMonitor<T> implements AutoCloseable {
     }
 
     @Override
-    public void watcherError(Exception ex) {
+    public void watcherError(WatcherException ex) {
       onWatcherClosed(ex);
     }
 

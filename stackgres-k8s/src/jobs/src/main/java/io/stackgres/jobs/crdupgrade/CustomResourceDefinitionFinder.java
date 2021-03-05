@@ -9,9 +9,9 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.jobs.common.KubernetesClientFactory;
-import io.stackgres.jobs.common.ResourceFinder;
-import io.stackgres.jobs.common.ResourceWriter;
+import io.stackgres.common.KubernetesClientFactory;
+import io.stackgres.common.resource.ResourceFinder;
+import io.stackgres.common.resource.ResourceWriter;
 
 public class CustomResourceDefinitionFinder implements ResourceFinder<CustomResourceDefinition>,
     ResourceWriter<CustomResourceDefinition> {

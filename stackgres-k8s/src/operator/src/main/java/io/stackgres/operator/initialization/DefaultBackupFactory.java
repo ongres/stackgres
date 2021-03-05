@@ -8,7 +8,6 @@ package io.stackgres.operator.initialization;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigDefinition;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 
 @ApplicationScoped
@@ -21,8 +20,6 @@ public class DefaultBackupFactory extends AbstractCustomResourceFactory<StackGre
   StackGresBackupConfig buildResource(String namespace) {
     StackGresBackupConfig config = new StackGresBackupConfig();
 
-    config.setApiVersion(StackGresBackupConfigDefinition.APIVERSION);
-    config.setKind(StackGresBackupConfigDefinition.KIND);
     config.getMetadata().setNamespace(namespace);
     config.getMetadata().setName(generateDefaultName());
 

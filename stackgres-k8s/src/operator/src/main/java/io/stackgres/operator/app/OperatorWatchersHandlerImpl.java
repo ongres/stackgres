@@ -12,50 +12,32 @@ import java.util.function.Consumer;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.fabric8.kubernetes.api.model.Doneable;
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.KubernetesResourceList;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.client.CustomResourceList;
 import io.fabric8.kubernetes.client.Watcher.Action;
-import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.quarkus.runtime.Application;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
-import io.stackgres.common.crd.sgbackup.StackGresBackupDoneable;
 import io.stackgres.common.crd.sgbackup.StackGresBackupList;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigDefinition;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigDoneable;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigList;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
-import io.stackgres.common.crd.sgcluster.StackGresClusterDoneable;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsDefinition;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsDoneable;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsList;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDefinition;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDoneable;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDefinition;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDoneable;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigList;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDefinition;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDoneable;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.common.crd.sgprofile.StackGresProfileDefinition;
-import io.stackgres.common.crd.sgprofile.StackGresProfileDoneable;
 import io.stackgres.common.crd.sgprofile.StackGresProfileList;
 import io.stackgres.operator.controller.ClusterReconciliationCycle;
 import io.stackgres.operator.controller.DistributedLogsReconciliationCycle;
 import io.stackgres.operator.controller.ResourceWatcherFactory;
 import io.stackgres.operatorframework.resource.WatcherMonitor;
+import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped
 public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
@@ -81,77 +63,57 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
   @Override
   public void startWatchers() {
     monitors.add(createWatcher(
-        StackGresClusterDefinition.CONTEXT,
         StackGresCluster.class,
         StackGresClusterList.class,
-        StackGresClusterDoneable.class,
         reconcileCluster()
-          .andThen(reconcileDistributedLogs())));
+            .andThen(reconcileDistributedLogs())));
 
     monitors.add(createWatcher(
-        StackGresPostgresConfigDefinition.CONTEXT,
         StackGresPostgresConfig.class,
         StackGresPostgresConfigList.class,
-        StackGresPostgresConfigDoneable.class,
         reconcileCluster()));
 
     monitors.add(createWatcher(
-        StackGresPoolingConfigDefinition.CONTEXT,
         StackGresPoolingConfig.class,
         StackGresPoolingConfigList.class,
-        StackGresPoolingConfigDoneable.class,
         reconcileCluster()));
 
     monitors.add(createWatcher(
-        StackGresProfileDefinition.CONTEXT,
         StackGresProfile.class,
         StackGresProfileList.class,
-        StackGresProfileDoneable.class,
         reconcileCluster()));
 
     monitors.add(createWatcher(
-        StackGresBackupConfigDefinition.CONTEXT,
         StackGresBackupConfig.class,
         StackGresBackupConfigList.class,
-        StackGresBackupConfigDoneable.class,
         reconcileCluster()));
 
     monitors.add(createWatcher(
-        StackGresBackupDefinition.CONTEXT,
         StackGresBackup.class,
         StackGresBackupList.class,
-        StackGresBackupDoneable.class,
         reconcileCluster()));
 
     monitors.add(createWatcher(
-        StackGresDbOpsDefinition.CONTEXT,
         StackGresDbOps.class,
         StackGresDbOpsList.class,
-        StackGresDbOpsDoneable.class,
         reconcileCluster()));
 
     monitors.add(createWatcher(
-        StackGresDistributedLogsDefinition.CONTEXT,
         StackGresDistributedLogs.class,
         StackGresDistributedLogsList.class,
-        StackGresDistributedLogsDoneable.class,
         reconcileDistributedLogs()));
 
   }
 
-  private <R extends HasMetadata, L extends KubernetesResourceList<R>, D extends Doneable<R>>
-      WatcherMonitor<R> createWatcher(
-          CustomResourceDefinitionContext customResourceDefinitionContext,
-          Class<R> crClass, Class<L> listClass,
-          Class<D> doneableClass, Consumer<Action> consumer) {
+  private <T extends CustomResource<?, ?>,
+      L extends CustomResourceList<T>> WatcherMonitor<T> createWatcher(
+      @NotNull Class<T> crClass, @NotNull Class<L> listClass, @NotNull Consumer<Action> consumer) {
 
-    try (KubernetesClient client = kubeClient.create()) {
-      return new WatcherMonitor<>(watcherListener -> kubeClient.create()
-          .customResources(customResourceDefinitionContext, crClass, listClass, doneableClass)
-          .inAnyNamespace()
-          .watch(watcherFactory.createWatcher(consumer, watcherListener)),
-          () -> new Thread(() -> Application.currentApplication().stop()).start());
-    }
+    return new WatcherMonitor<>(watcherListener -> kubeClient.create()
+        .customResources(crClass, listClass)
+        .inAnyNamespace()
+        .watch(watcherFactory.createWatcher(consumer, watcherListener)),
+        () -> new Thread(() -> Application.currentApplication().stop()).start());
   }
 
   private Consumer<Action> reconcileCluster() {

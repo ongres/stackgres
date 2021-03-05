@@ -26,7 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-public abstract class DefaultStateMutatorTest<R extends CustomResource, T extends AdmissionReview<R>> {
+public abstract class DefaultStateMutatorTest<R extends CustomResource<?, ?>, T extends AdmissionReview<R>> {
 
   protected static final ObjectMapper mapper = new ObjectMapper();
 

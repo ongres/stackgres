@@ -24,13 +24,13 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.batch.CronJob;
 import io.fabric8.kubernetes.api.model.batch.CronJobBuilder;
 import io.fabric8.kubernetes.api.model.batch.JobTemplateSpecBuilder;
+import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgbackup.BackupPhase;
-import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigDefinition;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -142,7 +142,7 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                             .build(),
                         new EnvVarBuilder()
                             .withName("BACKUP_CONFIG_CRD_NAME")
-                            .withValue(StackGresBackupConfigDefinition.NAME)
+                            .withValue(CustomResource.getCRDName(StackGresBackupConfig.class))
                             .build(),
                         new EnvVarBuilder()
                             .withName("BACKUP_CONFIG")
@@ -150,15 +150,15 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                             .build(),
                         new EnvVarBuilder()
                             .withName("BACKUP_CRD_KIND")
-                            .withValue(StackGresBackupDefinition.KIND)
+                            .withValue(HasMetadata.getKind(StackGresBackup.class))
                             .build(),
                         new EnvVarBuilder()
                             .withName("BACKUP_CRD_NAME")
-                            .withValue(StackGresBackupDefinition.NAME)
+                            .withValue(CustomResource.getCRDName(StackGresBackup.class))
                             .build(),
                         new EnvVarBuilder()
                             .withName("BACKUP_CRD_APIVERSION")
-                            .withValue(StackGresBackupDefinition.APIVERSION)
+                            .withValue(HasMetadata.getApiVersion(StackGresBackup.class))
                             .build(),
                         new EnvVarBuilder()
                             .withName("BACKUP_PHASE_RUNNING")

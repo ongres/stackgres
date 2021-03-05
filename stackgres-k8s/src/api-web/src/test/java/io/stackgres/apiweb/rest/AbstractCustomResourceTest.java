@@ -28,7 +28,7 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-public abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends CustomResource,
+public abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends CustomResource<?, ?>,
     S extends AbstractRestService<T, R>> {
 
   @Mock

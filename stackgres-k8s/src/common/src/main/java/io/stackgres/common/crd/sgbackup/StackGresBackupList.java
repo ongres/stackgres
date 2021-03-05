@@ -9,7 +9,7 @@ import io.fabric8.kubernetes.client.CustomResourceList;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection
-public class StackGresBackupList extends CustomResourceList<StackGresBackup> {
+public final class StackGresBackupList extends CustomResourceList<StackGresBackup> {
 
   private static final long serialVersionUID = -1519749838799557685L;
 

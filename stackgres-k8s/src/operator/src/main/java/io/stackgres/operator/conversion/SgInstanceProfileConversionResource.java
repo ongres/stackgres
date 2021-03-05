@@ -14,7 +14,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
-import io.stackgres.common.crd.sgprofile.StackGresProfileDefinition;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +34,7 @@ public class SgInstanceProfileConversionResource implements ConversionResource {
 
   @Inject
   public SgInstanceProfileConversionResource(
-      @Conversion(StackGresProfileDefinition.KIND) ConversionPipeline pipeline) {
+      @Conversion(StackGresProfile.KIND) ConversionPipeline pipeline) {
     this.pipeline = pipeline;
   }
 

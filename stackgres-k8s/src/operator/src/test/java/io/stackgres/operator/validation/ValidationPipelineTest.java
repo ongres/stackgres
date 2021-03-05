@@ -18,7 +18,8 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipe
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public abstract class ValidationPipelineTest<R extends CustomResource, T extends AdmissionReview<R>> {
+public abstract class ValidationPipelineTest<R extends CustomResource<?, ?>,
+    T extends AdmissionReview<R>> {
 
   private UserInfo storageVersionUser;
 

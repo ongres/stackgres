@@ -8,7 +8,6 @@ package io.stackgres.operator.initialization;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDefinition;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 
@@ -22,8 +21,6 @@ public class DefaultPoolingFactory
   StackGresPoolingConfig buildResource(String namespace) {
 
     StackGresPoolingConfig config = new StackGresPoolingConfig();
-    config.setApiVersion(StackGresPoolingConfigDefinition.APIVERSION);
-    config.setKind(StackGresPoolingConfigDefinition.KIND);
     config.getMetadata().setName(generateDefaultName());
     config.getMetadata().setNamespace(namespace);
 

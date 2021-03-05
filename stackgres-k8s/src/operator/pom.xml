@@ -22,7 +22,6 @@
     <stackgres.authentication.secretName>stackgres-restapi</stackgres.authentication.secretName>
     <stackgres.prometheus.allowAutobind>true</stackgres.prometheus.allowAutobind>
     <stackgres.prometheus.grafanaEmbedded>false</stackgres.prometheus.grafanaEmbedded>
-    <quarkus.skipAugmentation>false</quarkus.skipAugmentation>
     <checks.location>${project.parent.basedir}/checks</checks.location>
   </properties>
 
@@ -88,6 +87,11 @@
       <version>${log4j.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.reflections</groupId>
+      <artifactId>reflections</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -151,15 +155,12 @@
         <groupId>io.quarkus</groupId>
         <artifactId>quarkus-maven-plugin</artifactId>
         <version>${quarkus.version}</version>
+        <extensions>true</extensions>
         <executions>
           <execution>
-            <id>quarkus-augmentation</id>
             <goals>
               <goal>build</goal>
             </goals>
-            <configuration>
-              <skip>${quarkus.skipAugmentation}</skip>
-            </configuration>
           </execution>
         </executions>
       </plugin>

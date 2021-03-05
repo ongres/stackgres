@@ -5,8 +5,9 @@
 
 package io.stackgres.operator.validation.cluster;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.ErrorType;
-import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -15,7 +16,7 @@ import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 public interface ClusterValidator extends Validator<StackGresClusterReview> {
 
   default void fail(String reason, String message) throws ValidationFailed {
-    fail(StackGresClusterDefinition.KIND, reason, message);
+    fail(HasMetadata.getKind(StackGresCluster.class), reason, message);
   }
 
   default void fail(String message) throws ValidationFailed {

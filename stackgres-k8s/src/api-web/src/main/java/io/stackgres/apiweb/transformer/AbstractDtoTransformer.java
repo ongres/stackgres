@@ -9,7 +9,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.apiweb.dto.Metadata;
 import io.stackgres.apiweb.dto.ResourceDto;
 
-public abstract class AbstractDtoTransformer<T extends ResourceDto, R extends CustomResource>
+public abstract class AbstractDtoTransformer<T extends ResourceDto, R extends CustomResource<?, ?>>
     implements DtoTransformer<T, R> {
 
   protected Metadata getDtoMetadata(R source) {

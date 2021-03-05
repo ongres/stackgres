@@ -12,17 +12,12 @@ import java.util.function.Consumer;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.fabric8.kubernetes.api.model.Doneable;
-import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.Watcher.Action;
-import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.quarkus.runtime.Application;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDefinition;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDoneable;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
 import io.stackgres.distributedlogs.common.DistributedLogsProperty;
 import io.stackgres.distributedlogs.controller.DistributedLogsControllerReconciliationCycle;
@@ -51,27 +46,20 @@ public class DistributedLogsControllerWatchersHandlerImpl
   @Override
   public void startWatchers() {
     monitors.add(createWatcher(
-        StackGresDistributedLogsDefinition.CONTEXT,
         StackGresDistributedLogs.class,
         StackGresDistributedLogsList.class,
-        StackGresDistributedLogsDoneable.class,
         reconcileDistributedLogs()));
 
   }
 
-  private <R extends HasMetadata, L extends KubernetesResourceList<R>, D extends Doneable<R>>
-      WatcherMonitor<R> createWatcher(
-          CustomResourceDefinitionContext customResourceDefinitionContext,
-          Class<R> crClass, Class<L> listClass,
-          Class<D> doneableClass, Consumer<Action> consumer) {
-
-    try (KubernetesClient client = clientFactory.create()) {
-      return new WatcherMonitor<>(watcherListener -> clientFactory.create()
-          .customResources(customResourceDefinitionContext, crClass, listClass, doneableClass)
-          .inNamespace(DistributedLogsProperty.DISTRIBUTEDLOGS_NAMESPACE.getString())
-          .watch(watcherFactory.createWatcher(consumer, watcherListener)),
-          () -> new Thread(() -> Application.currentApplication().stop()).start());
-    }
+  private <T extends CustomResource<?, ?>,
+      L extends KubernetesResourceList<T>> WatcherMonitor<T> createWatcher(
+      Class<T> crClass, Class<L> listClass, Consumer<Action> consumer) {
+    return new WatcherMonitor<>(watcherListener -> clientFactory.create()
+        .customResources(crClass, listClass)
+        .inNamespace(DistributedLogsProperty.DISTRIBUTEDLOGS_NAMESPACE.getString())
+        .watch(watcherFactory.createWatcher(consumer, watcherListener)),
+        () -> new Thread(() -> Application.currentApplication().stop()).start());
   }
 
   private Consumer<Action> reconcileDistributedLogs() {

@@ -5,10 +5,14 @@
 
 package io.stackgres.jobs;
 
+import javax.inject.Inject;
+
 import com.fasterxml.jackson.databind.SerializationFeature;
 import io.fabric8.kubernetes.client.utils.Serialization;
-import io.stackgres.jobs.common.KubernetesClientFactoryImpl;
-import io.stackgres.jobs.common.SecretFinder;
+import io.quarkus.runtime.QuarkusApplication;
+import io.quarkus.runtime.annotations.QuarkusMain;
+import io.stackgres.common.KubernetesClientFactory;
+import io.stackgres.common.resource.SecretFinder;
 import io.stackgres.jobs.crdupgrade.CrdInstaller;
 import io.stackgres.jobs.crdupgrade.CrdInstallerImpl;
 import io.stackgres.jobs.crdupgrade.CrdLoader;
@@ -18,33 +22,35 @@ import io.stackgres.jobs.crdupgrade.CustomResourceDefinitionFinder;
 import io.stackgres.jobs.crdupgrade.WebhookConfigurator;
 import io.stackgres.jobs.crdupgrade.WebhookConfiguratorImpl;
 
-public class Main {
+@QuarkusMain
+public class Main implements QuarkusApplication {
 
-  private static final Boolean CONVERSION_WEBHOOKS = CrdUpgradeProperty
-      .CONVERSION_WEBHOOKS.getBoolean();
-  private static final Boolean CRD_UPGRADE = CrdUpgradeProperty
-      .CRD_UPGRADE.getBoolean();
+  boolean conversionWebhooks =
+      CrdUpgradeProperty.CONVERSION_WEBHOOKS.getBoolean();
+  boolean crdUpgrade = CrdUpgradeProperty.CRD_UPGRADE.getBoolean();
 
-  @SuppressWarnings("deprecation")
-  public static void main(String[] args) {
+  @Inject
+  KubernetesClientFactory kubernetesClientFactory;
 
-    final KubernetesClientFactoryImpl kubernetesClientFactory = new KubernetesClientFactoryImpl();
+  @Override
+  public int run(String... args) throws Exception {
     /*
-     * This is a hack to prevent empty arrays being added to json serializer in native image.
-     * For some reason when CRDs are being serialized in json, in the native image the annotation
+     * This is a hack to prevent empty arrays being added to json serializer in native image. For
+     * some reason when CRDs are being serialized in json, in the native image the annotation
+     *
      * @JsonInclude(Include.NON_EMPTY) is ignored.
      */
     Serialization.jsonMapper().disable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS);
     final CrdLoader crdLoader = new CrdLoaderImpl(kubernetesClientFactory);
-    final CustomResourceDefinitionFinder crdFinder
-        = new CustomResourceDefinitionFinder(kubernetesClientFactory);
+    final CustomResourceDefinitionFinder crdFinder =
+        new CustomResourceDefinitionFinder(kubernetesClientFactory);
 
-    if (CRD_UPGRADE) {
+    if (crdUpgrade) {
       CrdInstaller crdInstaller = new CrdInstallerImpl(crdFinder, crdFinder, crdLoader);
       crdInstaller.installCustomResourceDefinitions();
     }
 
-    if (CONVERSION_WEBHOOKS) {
+    if (conversionWebhooks) {
       final SecretFinder secretFinder = new SecretFinder(kubernetesClientFactory);
       WebhookConfigurator webhookConfigurator = new WebhookConfiguratorImpl(
           secretFinder,
@@ -54,6 +60,7 @@ public class Main {
 
       webhookConfigurator.configureWebhooks();
     }
+    return 0;
   }
 
 }

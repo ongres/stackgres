@@ -11,8 +11,8 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 
-public abstract class AbstractDefaultCustomResourceInitializer<T extends CustomResource>
-    implements DefaultCustomResourceInitializer<T> {
+public abstract class AbstractDefaultCustomResourceInitializer<T extends CustomResource<?, ?>>
+    implements DefaultCustomResourceInitializer {
 
   private CustomResourceScheduler<T> customResourceScheduler;
   private DefaultFactoryProvider<DefaultCustomResourceFactory<T>> factoryProvider;

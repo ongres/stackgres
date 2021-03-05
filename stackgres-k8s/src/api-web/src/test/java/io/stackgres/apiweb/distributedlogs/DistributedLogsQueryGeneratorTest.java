@@ -28,10 +28,6 @@ public class DistributedLogsQueryGeneratorTest {
   private static final Properties EXPECTED = Unchecked.supplier(
       DistributedLogsQueryGeneratorTest::loadExpected).get();
 
-  {
-    System.setProperty("org.jooq.no-logo", "true");
-  }
-
   private static Properties loadExpected() throws IOException {
     Properties expected = new Properties();
     expected.load(DistributedLogsQueryGeneratorTest.class.getResourceAsStream(

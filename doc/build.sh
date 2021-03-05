@@ -4,7 +4,7 @@ set -e
 
 rm -Rf "$(dirname "$0")/data/crds"
 mkdir -p "$(dirname "$0")/data/crds"
-find "$(dirname "$0")/../stackgres-k8s/src/jobs/src/main/resources/crds" -name '*.yaml' \
+find "$(dirname "$0")/../stackgres-k8s/src/common/src/main/resources/crds" -name '*.yaml' \
   | while read -r FILE
     do
       cp "$FILE" "$(dirname "$0")/data/crds"

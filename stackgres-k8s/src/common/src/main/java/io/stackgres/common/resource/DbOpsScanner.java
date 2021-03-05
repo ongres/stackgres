@@ -11,24 +11,20 @@ import javax.inject.Inject;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsDefinition;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsDoneable;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsList;
 
 @ApplicationScoped
 public class DbOpsScanner
-    extends AbstractCustomResourceScanner<StackGresDbOps, StackGresDbOpsList,
-    StackGresDbOpsDoneable> {
+    extends AbstractCustomResourceScanner<StackGresDbOps, StackGresDbOpsList> {
 
   @Inject
   public DbOpsScanner(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresDbOpsDefinition.CONTEXT,
-        StackGresDbOps.class, StackGresDbOpsList.class,
-        StackGresDbOpsDoneable.class);
+    super(clientFactory,
+        StackGresDbOps.class, StackGresDbOpsList.class);
   }
 
   public DbOpsScanner() {
-    super(null, null, null, null, null);
+    super(null, null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 

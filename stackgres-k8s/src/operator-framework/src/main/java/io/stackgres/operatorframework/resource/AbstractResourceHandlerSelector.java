@@ -50,12 +50,6 @@ public abstract class AbstractResourceHandlerSelector<T extends ResourceHandlerC
   }
 
   @Override
-  public void registerKinds() {
-    getResourceHandlers()
-        .forEach(ResourceHandler::registerKind);
-  }
-
-  @Override
   public Stream<HasMetadata> getResources(KubernetesClient client, T context) {
     return getResourceHandlers()
         .flatMap(handler -> handler.getResources(client, context));

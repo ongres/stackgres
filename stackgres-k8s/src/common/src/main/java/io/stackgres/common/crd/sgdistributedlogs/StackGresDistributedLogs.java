@@ -13,14 +13,26 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
+import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.model.annotation.Group;
+import io.fabric8.kubernetes.model.annotation.Kind;
+import io.fabric8.kubernetes.model.annotation.Version;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.crd.CommonDefinition;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @RegisterForReflection
-public class StackGresDistributedLogs extends CustomResource {
+@Group(CommonDefinition.GROUP)
+@Version(CommonDefinition.VERSION)
+@Kind(StackGresDistributedLogs.KIND)
+public final class StackGresDistributedLogs
+    extends CustomResource<StackGresDistributedLogsSpec, StackGresDistributedLogsStatus>
+    implements Namespaced {
 
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2532422461817113881L;
+
+  public static final String KIND = "SGDistributedLogs";
 
   @JsonProperty("spec")
   @NotNull(message = "The specification is required")
@@ -32,21 +44,25 @@ public class StackGresDistributedLogs extends CustomResource {
   private StackGresDistributedLogsStatus status;
 
   public StackGresDistributedLogs() {
-    super(StackGresDistributedLogsDefinition.KIND);
+    super();
   }
 
+  @Override
   public StackGresDistributedLogsSpec getSpec() {
     return spec;
   }
 
+  @Override
   public void setSpec(StackGresDistributedLogsSpec spec) {
     this.spec = spec;
   }
 
+  @Override
   public StackGresDistributedLogsStatus getStatus() {
     return status;
   }
 
+  @Override
   public void setStatus(StackGresDistributedLogsStatus status) {
     this.status = status;
   }

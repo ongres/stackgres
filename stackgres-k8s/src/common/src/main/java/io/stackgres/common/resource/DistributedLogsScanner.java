@@ -11,24 +11,19 @@ import javax.inject.Inject;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDefinition;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDoneable;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
 
 @ApplicationScoped
 public class DistributedLogsScanner
-    extends AbstractCustomResourceScanner<StackGresDistributedLogs, StackGresDistributedLogsList,
-    StackGresDistributedLogsDoneable> {
+    extends AbstractCustomResourceScanner<StackGresDistributedLogs, StackGresDistributedLogsList> {
 
   @Inject
   public DistributedLogsScanner(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresDistributedLogsDefinition.CONTEXT,
-        StackGresDistributedLogs.class, StackGresDistributedLogsList.class,
-        StackGresDistributedLogsDoneable.class);
+    super(clientFactory, StackGresDistributedLogs.class, StackGresDistributedLogsList.class);
   }
 
   public DistributedLogsScanner() {
-    super(null, null, null, null, null);
+    super(null, null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 

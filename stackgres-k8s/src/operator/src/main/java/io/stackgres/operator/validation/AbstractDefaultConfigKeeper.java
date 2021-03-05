@@ -23,7 +23,7 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
 public abstract class AbstractDefaultConfigKeeper
-    <R extends CustomResource, T extends AdmissionReview<R>>
+    <R extends CustomResource<?, ?>, T extends AdmissionReview<R>>
     implements Validator<T> {
 
   private static final String ERROR_TYPE_URI =

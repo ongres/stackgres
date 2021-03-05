@@ -10,10 +10,11 @@ e2e_test_install() {
   PREVIOUS_CONTAINER_BUILD="$(get_container_build "$STACKGRES_PREVIOUS_VERSION")"
   PATRONI_IMAGE="$(get_component_images "$CONTAINER_BUILD" | grep '/patroni:' | sort | tail -n 1)"
   PREVIOUS_PATRONI_IMAGE="$(get_component_images "$PREVIOUS_CONTAINER_BUILD" | grep '/patroni:' | sort | tail -n 1)"
+  k8s_webhook_cleanup
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
   install_operator_previous_version
-  
+
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
@@ -282,7 +283,7 @@ create_or_replace_cluster_for_version() {
   if helm get values "$RELEASE" --namespace "$NAMESPACE" > /dev/null 2>&1
   then
     helm upgrade "$RELEASE" --namespace "$NAMESPACE" "$CLUSTER_PREVIOUS_VERSION_HELM_URL" \
-        --reuse-values --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"   
+        --reuse-values --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
   else
     create_namespace_if_not_exists "$NAMESPACE"
     helm install "$RELEASE" "$CLUSTER_PREVIOUS_VERSION_HELM_URL" \

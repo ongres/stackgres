@@ -968,15 +968,15 @@ public class ResourcePairVisitor<T, C> {
    * Visit using a pair visitor.
    */
   public PairVisitor<ServiceSpec, T> visitServiceSpec(PairVisitor<ServiceSpec, T> pairVisitor) {
-    if (Optional.ofNullable(pairVisitor.right.getType()).filter(type -> type.equals("ExternalName"))
-        .isPresent()) {
+    if (Optional.ofNullable(pairVisitor.right.getType())
+        .filter(type -> type.equals("ExternalName")).isPresent()) {
       pairVisitor = pairVisitor.visit().visit(ServiceSpec::getClusterIP, ServiceSpec::setClusterIP);
     }
 
     return pairVisitor.visit(ServiceSpec::getExternalName, ServiceSpec::setExternalName)
         .visit(ServiceSpec::getExternalTrafficPolicy, ServiceSpec::setExternalTrafficPolicy)
         .visit(ServiceSpec::getHealthCheckNodePort, ServiceSpec::setHealthCheckNodePort)
-        .visit(ServiceSpec::getIpFamily, ServiceSpec::setIpFamily)
+        .visitList(ServiceSpec::getIpFamilies, ServiceSpec::setIpFamilies)
         .visit(ServiceSpec::getLoadBalancerIP, ServiceSpec::setLoadBalancerIP)
         .visit(ServiceSpec::getPublishNotReadyAddresses, ServiceSpec::setPublishNotReadyAddresses)
         .visit(ServiceSpec::getSessionAffinity, ServiceSpec::setSessionAffinity, "None")

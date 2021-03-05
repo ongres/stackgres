@@ -19,7 +19,8 @@ import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
 
-public abstract class DefaultValuesMutator<R extends CustomResource, T extends AdmissionReview<R>>
+public abstract class DefaultValuesMutator<R extends CustomResource<?, ?>,
+    T extends AdmissionReview<R>>
     implements JsonPatchMutator<T> {
 
   protected static final ObjectMapper mapper = new ObjectMapper();

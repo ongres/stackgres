@@ -7,10 +7,12 @@ package io.stackgres.common.resource;
 
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
+
 public interface ResourceScanner<T> {
 
-  List<T> findResources();
+  @NotNull List<T> findResources();
 
-  List<T> findResourcesInNamespace(String namespace);
+  @NotNull List<T> findResourcesInNamespace(String namespace);
 
 }

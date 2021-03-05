@@ -31,13 +31,13 @@ public abstract class AbstractDistributedLogsResourceHandler
   protected static final ImmutableMap<Class<? extends HasMetadata>,
       Function<KubernetesClient,
       MixedOperation<? extends HasMetadata,
-          ? extends KubernetesResourceList<? extends HasMetadata>, ?,
-          ? extends Resource<? extends HasMetadata, ?>>>>
+          ? extends KubernetesResourceList<? extends HasMetadata>,
+          ? extends Resource<? extends HasMetadata>>>>
       STACKGRES_DISTRIBUTED_LOGS_RESOURCE_OPERATIONS =
       ImmutableMap.<Class<? extends HasMetadata>, Function<KubernetesClient,
           MixedOperation<? extends HasMetadata,
-              ? extends KubernetesResourceList<? extends HasMetadata>, ?,
-              ? extends Resource<? extends HasMetadata, ?>>>>builder()
+              ? extends KubernetesResourceList<? extends HasMetadata>,
+              ? extends Resource<? extends HasMetadata>>>>builder()
       .put(StatefulSet.class, client -> client.apps().statefulSets())
       .put(Service.class, KubernetesClient::services)
       .put(ServiceAccount.class, KubernetesClient::serviceAccounts)
@@ -46,14 +46,14 @@ public abstract class AbstractDistributedLogsResourceHandler
       .put(Secret.class, KubernetesClient::secrets)
       .put(ConfigMap.class, KubernetesClient::configMaps)
       .put(Endpoints.class, KubernetesClient::endpoints)
-      .put(Pod.class, client -> client.pods())
-      .put(PersistentVolumeClaim.class, client -> client.persistentVolumeClaims())
+      .put(Pod.class, KubernetesClient::pods)
+      .put(PersistentVolumeClaim.class, KubernetesClient::persistentVolumeClaims)
       .build();
 
   @Override
   protected <M extends HasMetadata> Function<KubernetesClient,
       MixedOperation<? extends HasMetadata, ? extends KubernetesResourceList<? extends HasMetadata>,
-          ?, ? extends Resource<? extends HasMetadata, ?>>> getResourceOperations(M resource) {
+           ? extends Resource<? extends HasMetadata>>> getResourceOperations(M resource) {
     return STACKGRES_DISTRIBUTED_LOGS_RESOURCE_OPERATIONS.get(resource.getClass());
   }
 

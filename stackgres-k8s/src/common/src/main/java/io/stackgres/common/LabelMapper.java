@@ -8,7 +8,7 @@ package io.stackgres.common;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.resource.ResourceUtil;
 
-public interface LabelMapper<T extends CustomResource> {
+public interface LabelMapper<T extends CustomResource<?, ?>> {
 
   default String appKey() {
     return StackGresContext.APP_KEY;

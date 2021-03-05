@@ -7,10 +7,10 @@ package io.stackgres.operator.conversion;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDefinition;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 
 @ApplicationScoped
-@Conversion(StackGresPostgresConfigDefinition.KIND)
+@Conversion(StackGresPostgresConfig.KIND)
 public class SgPostgresConfigConversionPipeline implements ConversionPipeline {
 
 }

@@ -46,7 +46,7 @@ public class ClusterInfoResource {
   @Authenticated
   public Response info() {
     try (KubernetesClient client = clientFactory.create()) {
-      return Response.ok().entity(client.settings().getMasterUrl()).build();
+      return Response.ok().entity(client.getMasterUrl()).build();
     }
   }
 }

@@ -6,14 +6,15 @@
 package io.stackgres.jobs.crdupgrade;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
-import io.stackgres.jobs.common.ResourceFinder;
-import io.stackgres.jobs.common.ResourceWriter;
-import io.stackgres.jobs.common.StackGresCustomResourceDefinition;
+import io.stackgres.common.resource.ResourceFinder;
+import io.stackgres.common.resource.ResourceWriter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,31 +43,31 @@ class CrdInstallerImplTest {
 
   @Test
   void installCrd_shouldInstallTheResourceIfDoesNotExists() {
-    StackGresCustomResourceDefinition definition = crdLoader.scanDefinitions().get(0);
-    when(customResourceDefinitionFinder.findByName(definition.getName()))
+    CustomResourceDefinition definition = crdLoader.scanDefinitions().get(0);
+    when(customResourceDefinitionFinder.findByName(definition.getMetadata().getName()))
         .thenReturn(Optional.empty());
 
     doNothing().when(customResourceDefinitionWriter).create(any(CustomResourceDefinition.class));
 
-    crdInstaller.installCrd(definition.getName(), definition.getKind());
+    crdInstaller.installCrd(definition.getMetadata().getName(), definition.getSpec().getNames().getKind());
 
-    verify(customResourceDefinitionFinder).findByName(definition.getName());
+    verify(customResourceDefinitionFinder).findByName(definition.getMetadata().getName());
     verify(customResourceDefinitionWriter).create(any(CustomResourceDefinition.class));
 
   }
 
   @Test
-  void installCrd_shouldPathTheResourceIfExists() {
-    StackGresCustomResourceDefinition definition = crdLoader.scanDefinitions().get(0);
-    when(customResourceDefinitionFinder.findByName(definition.getName()))
+  void installCrd_shouldPatchTheResourceIfExists() {
+    CustomResourceDefinition definition = crdLoader.scanDefinitions().get(0);
+    when(customResourceDefinitionFinder.findByName(definition.getMetadata().getName()))
         .thenAnswer((Answer<Optional<CustomResourceDefinition>>) invocationOnMock ->
-            Optional.of(crdLoader.load(definition.getKind())));
+            Optional.of(crdLoader.load(definition.getSpec().getNames().getKind())));
 
     doNothing().when(customResourceDefinitionWriter).update(any(CustomResourceDefinition.class));
 
-    crdInstaller.installCrd(definition.getName(), definition.getKind());
+    crdInstaller.installCrd(definition.getMetadata().getName(), definition.getSpec().getNames().getKind());
 
-    verify(customResourceDefinitionFinder).findByName(definition.getName());
+    verify(customResourceDefinitionFinder).findByName(definition.getMetadata().getName());
     verify(customResourceDefinitionWriter).update(any(CustomResourceDefinition.class));
 
   }

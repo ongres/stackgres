@@ -10,7 +10,6 @@ import java.util.List;
 import javax.enterprise.context.Dependent;
 
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDefinition;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.patroni.factory.parameters.Blocklist;
@@ -47,8 +46,6 @@ public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackG
     spec.setPostgresqlConf(getDefaultValues());
 
     StackGresPostgresConfig profile = new StackGresPostgresConfig();
-    profile.setApiVersion(StackGresPostgresConfigDefinition.APIVERSION);
-    profile.setKind(StackGresPostgresConfigDefinition.KIND);
     profile.getMetadata().setName(generateDefaultName());
     profile.getMetadata().setNamespace(namespace);
     profile.setSpec(spec);

@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.client.WatcherException;
 import org.junit.jupiter.api.Test;
 
 class WatcherMonitorTest {
@@ -39,7 +40,7 @@ class WatcherMonitorTest {
       for (int i = 0; i < WatcherMonitor.MAX_RETRIES - 1; i++){
         exceptionsToThrow.add(new RuntimeException());
       }
-      watcherListener.get().watcherError(new RuntimeException());
+      watcherListener.get().watcherError(new WatcherException(""));
 
       assertTrue(giveUpCalled.get(), "not giving up");
     }
@@ -91,12 +92,12 @@ class WatcherMonitorTest {
       for (int i = 0; i < WatcherMonitor.MAX_RETRIES - 2; i++){
         exceptionsToThrow.add(new RuntimeException());
       }
-      watcherListener.get().watcherError(new RuntimeException());
+      watcherListener.get().watcherError(new WatcherException(""));
 
       for (int i = 0; i < WatcherMonitor.MAX_RETRIES - 2; i++){
         exceptionsToThrow.add(new RuntimeException());
       }
-      watcherListener.get().watcherError(new RuntimeException());
+      watcherListener.get().watcherError(new WatcherException(""));
 
       assertFalse(giveUpCalled.get(), "counter not being reset");
     }

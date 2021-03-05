@@ -21,8 +21,8 @@ import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.client.internal.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,9 +30,9 @@ import org.slf4j.LoggerFactory;
 public class ResourceUtil {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ResourceUtil.class);
+  private static final String INDEX_PATTERN = "^.*-([0-9]+)$";
 
-  private ResourceUtil() {
-  }
+  private ResourceUtil() {}
 
   /**
    * Filter metadata of resources to find if the name match in the provided list.
@@ -85,7 +85,7 @@ public class ResourceUtil {
   }
 
   public static String getIndexPattern() {
-    return "^.*-([0-9]+)$";
+    return INDEX_PATTERN;
   }
 
   public static String getNameWithIndexPattern(String name) {
@@ -99,15 +99,14 @@ public class ResourceUtil {
   /**
    * Get a custom resource definition from Kubernetes.
    *
-   * @param client  Kubernetes client to call the API.
+   * @param client Kubernetes client to call the API.
    * @param crdName Name of the CDR to lookup.
    * @return the CustomResourceDefinition model.
    */
-  public static Optional<CustomResourceDefinitionContext> getCustomResource(KubernetesClient client,
+  public static Optional<CustomResourceDefinition> getCustomResource(KubernetesClient client,
       String crdName) {
-    return Optional.ofNullable(client.customResourceDefinitions()
-        .withName(crdName).get())
-        .map(CustomResourceDefinitionContext::fromCrd);
+    return Optional.ofNullable(client.apiextensions().v1().customResourceDefinitions()
+        .withName(crdName).get());
   }
 
   /**
@@ -116,13 +115,13 @@ public class ResourceUtil {
    * @param resource KubernetesResource that has metadata
    */
   public static void logAsYaml(HasMetadata resource) {
-    try {
-      if (LOGGER.isDebugEnabled()) {
+    if (LOGGER.isDebugEnabled()) {
+      try {
         LOGGER.debug("{}: {}", resource.getClass().getSimpleName(),
             SerializationUtils.dumpWithoutRuntimeStateAsYaml(resource));
+      } catch (JsonProcessingException e) {
+        LOGGER.debug("Error dump as Yaml:", e);
       }
-    } catch (JsonProcessingException e) {
-      LOGGER.debug("Error dump as Yaml:", e);
     }
   }
 

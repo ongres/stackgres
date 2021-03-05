@@ -24,13 +24,22 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.google.common.collect.ImmutableList;
-import io.fabric8.kubernetes.api.model.authorization.SubjectAccessReview;
-import io.fabric8.kubernetes.api.model.authorization.SubjectAccessReviewBuilder;
-import io.fabric8.kubernetes.api.model.authorization.SubjectAccessReviewStatus;
+import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReview;
+import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReviewBuilder;
+import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReviewStatus;
+import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.apiweb.dto.PermissionsListDto;
-import io.stackgres.common.StackGresProperty;
+import io.stackgres.common.crd.CommonDefinition;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -63,9 +72,9 @@ public class RbacResource {
   @Operation(
       responses = {
           @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
+              content = {@Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = SubjectAccessReviewStatus.class)) })
+                  schema = @Schema(implementation = SubjectAccessReviewStatus.class))})
       })
   @CommonApiResponses
   @GET
@@ -81,14 +90,14 @@ public class RbacResource {
           .withUser(user)
           .withNewResourceAttributes()
           .withNamespace(namespace)
-          .withGroup(group.orElse(StackGresProperty.CRD_GROUP.getString()))
+          .withGroup(group.orElse(CommonDefinition.GROUP))
           .withResource(resource)
           .withVerb(verb)
           .endResourceAttributes()
           .endSpec()
           .build();
 
-      review = client.subjectAccessReviewAuth()
+      review = client.authorization().v1().subjectAccessReview()
           .create(review);
 
       LOGGER.debug("{}", review);
@@ -105,9 +114,9 @@ public class RbacResource {
   @Operation(
       responses = {
           @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
+              content = {@Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = PermissionsListDto.class)) })
+                  schema = @Schema(implementation = PermissionsListDto.class))})
       })
   @CommonApiResponses
   @GET
@@ -119,9 +128,14 @@ public class RbacResource {
 
       List<String> verbs = ImmutableList.of("get", "list", "create", "patch", "delete");
       List<String> resourcesNamespaced = ImmutableList.of("pods", "secrets",
-          "sgbackupconfigs.stackgres.io", "sgbackups.stackgres.io", "sgclusters.stackgres.io",
-          "sgdistributedlogs.stackgres.io", "sginstanceprofiles.stackgres.io",
-          "sgpgconfigs.stackgres.io", "sgpoolconfigs.stackgres.io");
+          CustomResource.getCRDName(StackGresBackupConfig.class),
+          CustomResource.getCRDName(StackGresBackup.class),
+          CustomResource.getCRDName(StackGresCluster.class),
+          CustomResource.getCRDName(StackGresDistributedLogs.class),
+          CustomResource.getCRDName(StackGresProfile.class),
+          CustomResource.getCRDName(StackGresDbOps.class),
+          CustomResource.getCRDName(StackGresPostgresConfig.class),
+          CustomResource.getCRDName(StackGresPoolingConfig.class));
       List<String> resourcesUnnamespaced =
           ImmutableList.of("namespaces", "storageclasses.storage.k8s.io");
 
@@ -171,7 +185,7 @@ public class RbacResource {
           .endResourceAttributes()
           .endSpec()
           .build();
-      review = client.subjectAccessReviewAuth()
+      review = client.authorization().v1().subjectAccessReview()
           .create(review);
 
       if (Boolean.TRUE.equals(review.getStatus().getAllowed())) {

@@ -7,7 +7,7 @@ package io.stackgres.jobs.crdupgrade;
 
 import java.util.Properties;
 
-import io.stackgres.jobs.common.StackGresPropertyReader;
+import io.stackgres.common.StackGresPropertyReader;
 import org.jooq.lambda.Unchecked;
 
 public enum CrdUpgradeProperty implements StackGresPropertyReader {

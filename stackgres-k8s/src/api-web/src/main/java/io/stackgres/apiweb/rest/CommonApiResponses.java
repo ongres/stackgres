@@ -13,26 +13,23 @@ import java.lang.annotation.Target;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
-@ApiResponses({
-  @ApiResponse(responseCode = "400", description = "Bad Request",
-  content = { @Content(
-      mediaType = "application/json",
-      schema = @Schema(implementation = ErrorResponse.class)) }),
-  @ApiResponse(responseCode = "401", description = "Unauthorized",
-  content = { @Content(
-      mediaType = "application/json",
-      schema = @Schema(implementation = ErrorResponse.class)) }),
-  @ApiResponse(responseCode = "403", description = "Forbidden",
-  content = { @Content(
-      mediaType = "application/json",
-      schema = @Schema(implementation = ErrorResponse.class)) }),
-  @ApiResponse(responseCode = "500", description = "Internal Server Error",
-  content = { @Content(
-      mediaType = "application/json",
-      schema = @Schema(implementation = ErrorResponse.class)) })
-})
+@ApiResponse(responseCode = "400", description = "Bad Request",
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
+@ApiResponse(responseCode = "401", description = "Unauthorized",
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
+@ApiResponse(responseCode = "403", description = "Forbidden",
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
+@ApiResponse(responseCode = "500", description = "Internal Server Error",
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CommonApiResponses {

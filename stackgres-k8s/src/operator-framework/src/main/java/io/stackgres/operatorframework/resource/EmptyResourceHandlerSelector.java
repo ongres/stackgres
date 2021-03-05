@@ -47,10 +47,6 @@ public class EmptyResourceHandlerSelector<T extends ResourceHandlerContext>
   }
 
   @Override
-  public void registerKinds() {
-  }
-
-  @Override
   public Stream<HasMetadata> getResources(KubernetesClient client, T context) {
     return Stream.of();
   }

@@ -10,7 +10,7 @@ import javax.enterprise.context.ApplicationScoped;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.batch.Job;
-import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
 import io.stackgres.operatorframework.resource.visitor.PairVisitor;
@@ -28,7 +28,7 @@ public class BackupJobHandler extends AbstractClusterResourceHandler {
         && context.getBackups().stream().anyMatch(backup -> resource.getMetadata().getName().equals(
             BackupJob.backupJobName(backup, context)))
         && resource.getMetadata().getOwnerReferences().stream()
-        .anyMatch(owner -> owner.getKind().equals(StackGresBackupDefinition.KIND));
+        .anyMatch(owner -> owner.getKind().equals(HasMetadata.getKind(StackGresBackup.class)));
   }
 
   @Override

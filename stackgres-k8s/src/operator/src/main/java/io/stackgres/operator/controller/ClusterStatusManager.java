@@ -18,15 +18,13 @@ import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
-import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
-import io.stackgres.common.crd.sgcluster.StackGresClusterDoneable;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.operator.common.StackGresClusterContext;
 
 @ApplicationScoped
-public class ClusterStatusManager extends AbstractClusterStatusManager<
-    StackGresClusterContext, StackGresClusterCondition> {
+public class ClusterStatusManager
+    extends AbstractClusterStatusManager<StackGresClusterContext, StackGresClusterCondition> {
 
   @Inject
   public ClusterStatusManager(LabelFactory<StackGresCluster> labelFactory) {
@@ -43,7 +41,7 @@ public class ClusterStatusManager extends AbstractClusterStatusManager<
       StackGresClusterContext context) {
     return Optional.ofNullable(context.getCluster().getStatus())
         .map(StackGresClusterStatus::getConditions)
-        .orElseGet(() -> new ArrayList<>());
+        .orElseGet(ArrayList::new);
   }
 
   @Override
@@ -59,10 +57,7 @@ public class ClusterStatusManager extends AbstractClusterStatusManager<
   protected void patch(StackGresClusterContext context,
       KubernetesClient client) {
     StackGresCluster cluster = context.getCluster();
-    client.customResources(StackGresClusterDefinition.CONTEXT,
-        StackGresCluster.class,
-        StackGresClusterList.class,
-        StackGresClusterDoneable.class)
+    client.customResources(StackGresCluster.class, StackGresClusterList.class)
         .inNamespace(cluster.getMetadata().getNamespace())
         .withName(cluster.getMetadata().getName())
         .patch(cluster);

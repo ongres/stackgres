@@ -14,7 +14,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDefinition;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +34,7 @@ public class SgDistributedLogsConversionResource implements ConversionResource {
 
   @Inject
   public SgDistributedLogsConversionResource(
-      @Conversion(StackGresDistributedLogsDefinition.KIND) ConversionPipeline pipeline) {
+      @Conversion(StackGresDistributedLogs.KIND) ConversionPipeline pipeline) {
     this.pipeline = pipeline;
   }
 

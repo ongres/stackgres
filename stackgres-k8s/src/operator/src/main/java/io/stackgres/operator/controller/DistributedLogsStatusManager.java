@@ -18,15 +18,14 @@ import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsCondition;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDefinition;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDoneable;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
 
 @ApplicationScoped
-public class DistributedLogsStatusManager extends AbstractClusterStatusManager<
-    StackGresDistributedLogsContext, StackGresDistributedLogsCondition> {
+public class DistributedLogsStatusManager extends
+    AbstractClusterStatusManager
+    <StackGresDistributedLogsContext, StackGresDistributedLogsCondition> {
 
   @Inject
   public DistributedLogsStatusManager(LabelFactory<StackGresDistributedLogs> labelFactory) {
@@ -43,7 +42,7 @@ public class DistributedLogsStatusManager extends AbstractClusterStatusManager<
       StackGresDistributedLogsContext context) {
     return Optional.ofNullable(context.getDistributedLogs().getStatus())
         .map(StackGresDistributedLogsStatus::getConditions)
-        .orElseGet(() -> new ArrayList<>());
+        .orElseGet(ArrayList::new);
   }
 
   @Override
@@ -59,11 +58,7 @@ public class DistributedLogsStatusManager extends AbstractClusterStatusManager<
   protected void patch(StackGresDistributedLogsContext context,
       KubernetesClient client) {
     StackGresDistributedLogs distributedLogs = context.getDistributedLogs();
-    client.customResources(
-        StackGresDistributedLogsDefinition.CONTEXT,
-        StackGresDistributedLogs.class,
-        StackGresDistributedLogsList.class,
-        StackGresDistributedLogsDoneable.class)
+    client.customResources(StackGresDistributedLogs.class, StackGresDistributedLogsList.class)
         .inNamespace(distributedLogs.getMetadata().getNamespace())
         .withName(distributedLogs.getMetadata().getName())
         .patch(distributedLogs);

@@ -17,6 +17,7 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
+import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactory;
@@ -24,9 +25,7 @@ import io.stackgres.common.ObjectMapperProvider;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsDefinition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsRestart;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
 import io.stackgres.operator.common.StackGresDbOpsContext;
@@ -81,7 +80,7 @@ public class DbOpsRestartJob extends DbOpsJob {
             .build(),
             new EnvVarBuilder()
             .withName("CLUSTER_CRD_NAME")
-            .withValue(StackGresClusterDefinition.NAME)
+            .withValue(CustomResource.getCRDName(StackGresCluster.class))
             .build(),
             new EnvVarBuilder()
             .withName("CLUSTER_NAMESPACE")
@@ -99,7 +98,7 @@ public class DbOpsRestartJob extends DbOpsJob {
             .build(),
             new EnvVarBuilder()
             .withName("DB_OPS_CRD_NAME")
-            .withValue(StackGresDbOpsDefinition.NAME)
+            .withValue(CustomResource.getCRDName(StackGresDbOps.class))
             .build(),
             new EnvVarBuilder()
             .withName("DB_OPS_NAME")

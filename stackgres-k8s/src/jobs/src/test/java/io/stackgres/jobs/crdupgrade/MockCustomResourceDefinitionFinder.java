@@ -7,6 +7,7 @@ package io.stackgres.jobs.crdupgrade;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -14,8 +15,7 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
-import io.stackgres.jobs.common.ResourceFinder;
-import io.stackgres.jobs.common.StackGresCustomResourceDefinition;
+import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.testutil.CrdUtils;
 
 public class MockCustomResourceDefinitionFinder
@@ -58,21 +58,15 @@ public class MockCustomResourceDefinitionFinder
   }
 
   @Override
-  public List<StackGresCustomResourceDefinition> scanDefinitions() {
+  public List<CustomResourceDefinition> scanDefinitions() {
     return Arrays.stream(crdFolder.listFiles())
         .filter(file -> file.getName().endsWith(".yaml"))
         .map(file -> {
           try {
             return yamlMapper.readValue(file, CustomResourceDefinition.class);
           } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
           }
-        }).map(crd -> {
-          StackGresCustomResourceDefinition def = new StackGresCustomResourceDefinition();
-          def.setName(crd.getMetadata().getName());
-          def.setSingular(crd.getSpec().getNames().getSingular());
-          def.setKind(crd.getSpec().getNames().getKind());
-          return def;
-        }).collect(Collectors.toList());
+        }).collect(Collectors.toUnmodifiableList());
   }
 }

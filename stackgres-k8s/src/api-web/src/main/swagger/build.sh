@@ -12,7 +12,7 @@ SWAGGER_JSON_FILE="$APIWEB_PATH/target/swagger.json"
 MERGED_SWAGGER_YAML_FILE="$APIWEB_PATH/target/swagger-merged.yaml"
 MERGED_SWAGGER_JSON_FILE="$APIWEB_PATH/target/swagger-merged.json"
 STACKGRES_K8S_PATH="$APIWEB_PATH/../.."
-CRDS_PATH="$STACKGRES_K8S_PATH/src/jobs/src/main/resources/crds"
+CRDS_PATH="$STACKGRES_K8S_PATH/src/common/src/main/resources/crds"
 
 yq -y -s '.[0] * .[1]' "$SWAGGER_YAML_FILE" "$INFO_PATH" > "$MERGED_SWAGGER_YAML_FILE"
 

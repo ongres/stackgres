@@ -26,7 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-public abstract class InitializerTest<T extends CustomResource> {
+public abstract class InitializerTest<T extends CustomResource<?, ?>> {
 
   @Mock
   private CustomResourceScheduler<T> customResourceScheduler;

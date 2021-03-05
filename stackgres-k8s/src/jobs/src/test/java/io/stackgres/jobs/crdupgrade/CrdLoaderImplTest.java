@@ -7,8 +7,13 @@ package io.stackgres.jobs.crdupgrade;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,7 +21,7 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionNames;
-import io.stackgres.jobs.common.StackGresCustomResourceDefinition;
+import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.testutil.CrdUtils;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +35,7 @@ class CrdLoaderImplTest {
 
   @Test
   void scanDefinitions() {
-    List<StackGresCustomResourceDefinition> definitions = crdLoader.scanDefinitions();
+    List<CustomResourceDefinition> definitions = crdLoader.scanDefinitions();
 
     assertEquals(crdFolder.list((file, name) -> name.endsWith(".yaml")).length, definitions.size());
 
@@ -47,16 +52,15 @@ class CrdLoaderImplTest {
 
     definitions.forEach(def -> {
       var customResourceDefinition = customResourceDefinitions.stream()
-          .filter(crd -> crd.getMetadata().getName().equals(def.getName()))
+          .filter(crd -> crd.getMetadata().getName().equals(def.getMetadata().getName()))
           .findFirst()
           .orElseThrow(() -> new RuntimeException("There is no definition with name "
-              + def.getName()));
+              + def.getMetadata().getName()));
 
       final CustomResourceDefinitionNames names = customResourceDefinition.getSpec().getNames();
-      assertEquals(names.getKind(), def.getKind());
-      assertEquals(names.getSingular(), def.getSingular());
+      assertEquals(names.getKind(), def.getSpec().getNames().getKind());
+      assertEquals(names.getSingular(), def.getSpec().getNames().getSingular());
     });
-
-
   }
+
 }

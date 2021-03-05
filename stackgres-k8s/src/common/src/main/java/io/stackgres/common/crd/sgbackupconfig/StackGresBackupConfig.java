@@ -11,56 +11,80 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
+import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.model.annotation.Group;
+import io.fabric8.kubernetes.model.annotation.Kind;
+import io.fabric8.kubernetes.model.annotation.Version;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.crd.CommonDefinition;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @RegisterForReflection
-public class StackGresBackupConfig extends CustomResource {
+@Group(CommonDefinition.GROUP)
+@Version(CommonDefinition.VERSION)
+@Kind(StackGresBackupConfig.KIND)
+public final class StackGresBackupConfig
+    extends CustomResource<StackGresBackupConfigSpec, Void>
+    implements Namespaced {
 
   private static final long serialVersionUID = 8062109585634644327L;
 
+  public static final String KIND = "SGBackupConfig";
+
+  @JsonProperty("spec")
   @NotNull(message = "The specification is required")
   @Valid
   private StackGresBackupConfigSpec spec;
 
   public StackGresBackupConfig() {
-    super(StackGresBackupConfigDefinition.KIND);
+    super();
   }
 
+  // TODO: remove on update to Kubernetes-Client 5.2.0
+  @Override
+  protected Void initStatus() {
+    return null;
+  }
+
+  @Override
   public StackGresBackupConfigSpec getSpec() {
     return spec;
   }
 
+  @Override
   public void setSpec(StackGresBackupConfigSpec spec) {
     this.spec = spec;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(spec);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof StackGresBackupConfig)) {
+      return false;
+    }
+    StackGresBackupConfig other = (StackGresBackupConfig) obj;
+    return Objects.equals(spec, other.spec);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
+        .add("kind", getKind())
         .add("apiVersion", getApiVersion())
         .add("metadata", getMetadata())
         .add("spec", spec)
+        .add("status", status)
         .toString();
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    StackGresBackupConfig that = (StackGresBackupConfig) o;
-    return Objects.equals(spec, that.spec);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(spec);
   }
 }

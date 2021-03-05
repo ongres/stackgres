@@ -7,10 +7,10 @@ package io.stackgres.operator.conversion;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 
 @ApplicationScoped
-@Conversion(StackGresClusterDefinition.KIND)
+@Conversion(StackGresCluster.KIND)
 public class SgClusterConversionPipeline implements ConversionPipeline {
 
 }

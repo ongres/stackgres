@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.jetbrains.annotations.NotNull;
 
 public interface ResourceHandler<T extends ResourceHandlerContext> {
 
@@ -44,13 +45,13 @@ public interface ResourceHandler<T extends ResourceHandlerContext> {
 
   void registerKind();
 
-  Stream<HasMetadata> getResources(KubernetesClient client, T context);
+  Stream<HasMetadata> getResources(@NotNull KubernetesClient client, @NotNull T context);
 
-  Optional<HasMetadata> find(KubernetesClient client, HasMetadata resource);
+  Optional<HasMetadata> find(@NotNull KubernetesClient client, @NotNull HasMetadata resource);
 
-  HasMetadata create(KubernetesClient client, HasMetadata resource);
+  HasMetadata create(@NotNull KubernetesClient client, @NotNull HasMetadata resource);
 
-  HasMetadata patch(KubernetesClient client, HasMetadata resource);
+  HasMetadata patch(@NotNull KubernetesClient client, @NotNull HasMetadata resource);
 
-  boolean delete(KubernetesClient client, HasMetadata resource);
+  boolean delete(@NotNull KubernetesClient client, @NotNull HasMetadata resource);
 }

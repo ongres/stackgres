@@ -9,7 +9,8 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.apiweb.dto.ResourceDto;
 
-public abstract class AbstractResourceTransformer<T extends ResourceDto, R extends CustomResource>
+public abstract class AbstractResourceTransformer
+    <T extends ResourceDto, R extends CustomResource<?, ?>>
     extends AbstractDtoTransformer<T, R> implements ResourceTransformer<T, R> {
 
   public ObjectMeta getCustomResourceMetadata(T source, R original) {

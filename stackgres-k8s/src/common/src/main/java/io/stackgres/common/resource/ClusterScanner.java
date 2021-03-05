@@ -11,27 +11,22 @@ import javax.inject.Inject;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
-import io.stackgres.common.crd.sgcluster.StackGresClusterDoneable;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 
 @ApplicationScoped
 public class ClusterScanner
-    extends AbstractCustomResourceScanner<StackGresCluster, StackGresClusterList,
-    StackGresClusterDoneable> {
+    extends AbstractCustomResourceScanner<StackGresCluster, StackGresClusterList> {
 
   /**
    * Create a {@code ClusterScanner} instance.
    */
   @Inject
   public ClusterScanner(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresClusterDefinition.CONTEXT,
-        StackGresCluster.class, StackGresClusterList.class,
-        StackGresClusterDoneable.class);
+    super(clientFactory, StackGresCluster.class, StackGresClusterList.class);
   }
 
   public ClusterScanner() {
-    super(null, null, null, null, null);
+    super(null, null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 

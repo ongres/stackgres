@@ -20,7 +20,7 @@ import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.ResourceHandlerSelector;
 
 public abstract class StackGresReconciliationCycle<T extends ResourceHandlerContext,
-    H extends CustomResource, S extends ResourceHandlerSelector<T>>
+    H extends CustomResource<?, ?>, S extends ResourceHandlerSelector<T>>
     extends ResourceGeneratorReconciliationCycle<T, H, S> {
 
   private final CustomResourceScanner<H> customResourceScanner;
