@@ -16,6 +16,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.KubernetesClientFactory;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractReconciliationHandler implements ReconciliationHandler,
     ReconciliationOperations {
@@ -44,7 +45,8 @@ public abstract class AbstractReconciliationHandler implements ReconciliationHan
 
   @SuppressWarnings("unchecked")
   private <M extends HasMetadata> MixedOperation<M, ? extends KubernetesResourceList<M>,
-      ? extends Resource<M>> getResourceOperation(KubernetesClient client, M resource) {
+      ? extends Resource<M>> getResourceOperation(
+      @NotNull KubernetesClient client, @NotNull M resource) {
     return (MixedOperation<M, ? extends KubernetesResourceList<M>, ? extends Resource<M>>)
         Optional.ofNullable(getResourceOperations(resource))
             .map(function -> function.apply(client))
@@ -53,7 +55,8 @@ public abstract class AbstractReconciliationHandler implements ReconciliationHan
   }
 
   protected <M extends HasMetadata> Function<KubernetesClient,
-      MixedOperation<? extends HasMetadata, ? extends KubernetesResourceList<? extends HasMetadata>,
+      MixedOperation<? extends HasMetadata,
+          ? extends KubernetesResourceList<? extends HasMetadata>,
           ? extends Resource<? extends HasMetadata>>> getResourceOperations(M resource) {
     return STACKGRES_CLUSTER_RESOURCE_OPERATIONS.get(resource.getClass());
   }

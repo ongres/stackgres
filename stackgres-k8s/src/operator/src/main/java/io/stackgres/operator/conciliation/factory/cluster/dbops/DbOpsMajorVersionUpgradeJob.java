@@ -25,6 +25,7 @@ import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackgresClusterContainers;
+import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsMajorVersionUpgrade;
@@ -81,8 +82,12 @@ public class DbOpsMajorVersionUpgradeJob extends DbOpsJob {
                     .orElse("false"))
                 .build(),
             new EnvVarBuilder()
+                .withName("CRD_GROUP")
+                .withValue(CommonDefinition.GROUP)
+                .build(),
+            new EnvVarBuilder()
                 .withName("CLUSTER_CRD_NAME")
-                .withValue(CustomResource.getCRDName(StackGresCluster.class))
+                .withValue(CustomResource.getPlural(StackGresCluster.class))
                 .build(),
             new EnvVarBuilder()
                 .withName("CLUSTER_NAMESPACE")

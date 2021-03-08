@@ -41,7 +41,7 @@ class WebhookConfiguratorImplTest {
   @Mock
   private SecretFinder secretFinder;
 
-  private MockCustomResourceDefinitionFinder crdFinder
+  private final MockCustomResourceDefinitionFinder crdFinder
       = new MockCustomResourceDefinitionFinder();
 
   @Mock

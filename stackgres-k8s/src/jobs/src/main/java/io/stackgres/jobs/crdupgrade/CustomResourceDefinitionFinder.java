@@ -12,6 +12,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
+import org.jetbrains.annotations.NotNull;
 
 public class CustomResourceDefinitionFinder implements ResourceFinder<CustomResourceDefinition>,
     ResourceWriter<CustomResourceDefinition> {
@@ -23,7 +24,7 @@ public class CustomResourceDefinitionFinder implements ResourceFinder<CustomReso
   }
 
   @Override
-  public Optional<CustomResourceDefinition> findByName(String name) {
+  public @NotNull Optional<CustomResourceDefinition> findByName(String name) {
 
     try (KubernetesClient client = kubernetesClientFactory.create()) {
       return Optional.ofNullable(client.apiextensions().v1()
@@ -35,7 +36,8 @@ public class CustomResourceDefinitionFinder implements ResourceFinder<CustomReso
   }
 
   @Override
-  public Optional<CustomResourceDefinition> findByNameAndNamespace(String name, String namespace) {
+  public @NotNull Optional<CustomResourceDefinition> findByNameAndNamespace(
+      String name, String namespace) {
     return findByName(name);
   }
 

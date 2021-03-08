@@ -16,6 +16,7 @@ import io.fabric8.kubernetes.client.dsl.Deletable;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.resource.ResourceWriter;
+import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped
 public class PodWriter implements ResourceWriter<Pod> {
@@ -28,17 +29,17 @@ public class PodWriter implements ResourceWriter<Pod> {
   }
 
   @Override
-  public Pod create(Pod resource) {
+  public Pod create(@NotNull Pod resource) {
     return withEndpoint(resource, endpoint -> endpoint.create(resource));
   }
 
   @Override
-  public Pod update(Pod resource) {
+  public Pod update(@NotNull Pod resource) {
     return withEndpoint(resource, endpoint -> endpoint.patch(resource));
   }
 
   @Override
-  public void delete(Pod resource) {
+  public void delete(@NotNull Pod resource) {
     withEndpoint(resource, Deletable::delete);
   }
 

@@ -24,7 +24,9 @@ import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
@@ -145,11 +147,13 @@ public class PatroniRole implements
             .withApiGroups(CommonDefinition.GROUP)
             .withResources(
                 HasMetadata.getPlural(StackGresBackup.class),
+                HasMetadata.getPlural(StackGresBackupConfig.class),
                 HasMetadata.getPlural(StackGresCluster.class),
                 HasMetadata.getPlural(StackGresPostgresConfig.class),
                 HasMetadata.getPlural(StackGresPoolingConfig.class),
                 HasMetadata.getPlural(StackGresProfile.class),
-                HasMetadata.getPlural(StackGresDistributedLogs.class))
+                HasMetadata.getPlural(StackGresDistributedLogs.class),
+                HasMetadata.getPlural(StackGresDbOps.class))
             .withVerbs("get", "list", "watch", "patch")
             .build())
         .addToRules(new PolicyRuleBuilder()
