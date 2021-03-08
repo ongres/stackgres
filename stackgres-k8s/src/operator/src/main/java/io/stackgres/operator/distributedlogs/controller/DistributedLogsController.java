@@ -115,7 +115,6 @@ public class DistributedLogsController implements ContainerResourceFactory<Void,
   public Stream<Container> getInitContainers(StackGresDistributedLogsContext context) {
     return Stream.of(
         relocateBinaries(context),
-        mockBinaries(context),
         reconciliationCycle(context));
   }
 
@@ -135,25 +134,6 @@ public class DistributedLogsController implements ContainerResourceFactory<Void,
         .withVolumeMounts(
             ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context),
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(context))
-        .build();
-  }
-
-  private Container mockBinaries(StackGresDistributedLogsContext config) {
-    final String patroniImageName = StackGresComponent.PATRONI.findImageName(
-        StackGresComponent.LATEST,
-        ImmutableMap.of(StackGresComponent.POSTGRESQL,
-            config.getCluster().getSpec().getPostgresVersion()));
-    return new ContainerBuilder()
-        .withName("mock-binaries")
-        .withImage(patroniImageName)
-        .withImagePullPolicy("IfNotPresent")
-        .withCommand("/bin/sh", "-ex",
-            ClusterStatefulSetPath.TEMPLATES_PATH.path()
-            + "/" + ClusterStatefulSetPath.LOCAL_BIN_MOCK_BINARIES_SH_PATH.filename())
-        .withEnv(clusterStatefulSetEnvironmentVariables.listResources(config))
-        .withVolumeMounts(
-            ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(config),
-            ClusterStatefulSetVolumeConfig.DATA.volumeMount(config))
         .build();
   }
 
