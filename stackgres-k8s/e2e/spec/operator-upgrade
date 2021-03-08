@@ -9,7 +9,7 @@ e2e_exclusive_lock() {
 e2e_test_install() {
   PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION" | grep '/patroni:' | sort | tail -n 1)"
   PREVIOUS_PATRONI_IMAGE="$(get_component_images "$STACKGRES_PREVIOUS_VERSION" | grep '/patroni:' | sort | tail -n 1)"
-  k8s_webhook_cleanup
+  k8s_unnamespaced_cleanup
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
   install_operator_previous_version
