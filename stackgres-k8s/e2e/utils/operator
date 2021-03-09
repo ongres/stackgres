@@ -365,6 +365,7 @@ upgrade_operator() {
     --set-string "jobs.image.pullPolicy=$(operator_pull_policy)" \
     --set-string adminui.image.name="${ADMINUI_IMAGE_NAME%:*}" --set-string adminui.image.tag="${ADMINUI_IMAGE_NAME#*:}" \
     --set-string "adminui.image.pullPolicy=$(operator_pull_policy)" \
+    --set-string "extensions.repositoryUrls[0]=$EXTENSIONS_REPOSITORY_URL" \
     --reuse-values \
     $E2E_OPERATOR_OPTS "$@"
 }
