@@ -190,6 +190,9 @@ public class KubernetesPod {
   @JsonProperty("averageLoad10m")
   private String averageLoad10m;
 
+  @JsonProperty("connections")
+  private String connections;
+
   public String getNamespace() {
     return namespace;
   }
@@ -652,6 +655,14 @@ public class KubernetesPod {
 
   public void setAverageLoad10m(String averageLoad10m) {
     this.averageLoad10m = averageLoad10m;
+  }
+
+  public String getConnections() {
+    return connections;
+  }
+
+  public void setConnections(String connections) {
+    this.connections = connections;
   }
 
   @Override

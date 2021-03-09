@@ -112,6 +112,9 @@ public class ClusterStatsDto extends ResourceDto {
   @JsonProperty("averageLoad10m")
   private String averageLoad10m;
 
+  @JsonProperty("connections")
+  private String connections;
+
   @JsonProperty("pods")
   private List<KubernetesPod> pods;
 
@@ -364,6 +367,14 @@ public class ClusterStatsDto extends ResourceDto {
 
   public void setAverageLoad10m(String averageLoad10m) {
     this.averageLoad10m = averageLoad10m;
+  }
+
+  public String getConnections() {
+    return connections;
+  }
+
+  public void setConnections(String connections) {
+    this.connections = connections;
   }
 
   public List<KubernetesPod> getPods() {

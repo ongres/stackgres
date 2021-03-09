@@ -46,7 +46,8 @@ public enum PatroniStatsScripts {
   DISK_PSI_FULL_TOTAL("diskPsiFullTotal"),
   LOAD_1M("load1m"),
   LOAD_5M("load5m"),
-  LOAD_10M("load10m");
+  LOAD_10M("load10m"),
+  CONNECTIONS("connections");
 
   private static final ImmutableMap<PatroniStatsScripts, String> SCRIPTS = readScripts();
 
