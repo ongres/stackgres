@@ -119,6 +119,7 @@ public abstract class ExtensionMetadataManager {
         new HashMap<>(), new HashMap<>(), new HashMap<>());
     for (URI extensionsRepositoryUri : extensionsRepositoryUris) {
       try {
+        LOGGER.info("Downloading extensions metadata from {}", extensionsRepositoryUri);
         boolean skipHostnameVerification =
             ExtensionUtil.getUriQueryParameter(
                 extensionsRepositoryUri, SKIP_HOSTNAME_VERIFICATION_PARAMETER)
