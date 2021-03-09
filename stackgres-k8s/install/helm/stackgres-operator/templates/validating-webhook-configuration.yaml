@@ -129,4 +129,21 @@ webhooks:
         path: '/stackgres/validation/sgdistributedlogs'
       caBundle: {{ .Values.cert.crt }}
     admissionReviewVersions: ["v1beta1"]
+  - name: sgdbops.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
+    sideEffects: None
+    {{- end }}
+    rules:
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgdbops"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: {{ .Release.Namespace }}
+        name: {{ .Release.Name }}
+        path: '/stackgres/validation/sgdbops'
+      caBundle: {{ .Values.cert.crt }}
+    admissionReviewVersions: ["v1beta1"]
 {{- end }}
