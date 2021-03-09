@@ -516,9 +516,14 @@
 </template>
 
 <script>
+	import store from '../store'
+	import axios from 'axios'
+	import { mixin } from './mixins/mixin'
 
     export default {
         name: 'Logs',
+
+		mixins: [mixin],
 
 		data: function() {
 
@@ -563,6 +568,8 @@
 			
 			grafanaEmbedded() {
 				var grafana = false;
+				const vm = this;
+				
 				store.state.clusters.forEach(function( c ){
 					if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) && c.data.grafanaEmbedded ) {
 						grafana = true;
@@ -602,29 +609,74 @@
 
 			$(document).ready(function(){
 
-				$('#datePicker').daterangepicker({
-					"parentEl": "#log",
-					"autoApply": true,
-					"timePicker": true,
-					"timePicker24Hour": true,
-					"timePickerSeconds": true,
-					"opens": "left",
-					locale: {
-						cancelLabel: "Clear"
-					}
-				}, function(start, end, label) {
+				$(document).on('focus', '#datePicker', function() {
 
-					if(vc.currentSortDir === 'asc') {
-						vc.dateStart = start.format('YYYY-MM-DDTHH:mm:ss')+'Z';
-						vc.dateEnd = end.format('YYYY-MM-DDTHH:mm:ss')+'Z';
-					} else {
-						vc.dateEnd = start.format('YYYY-MM-DDTHH:mm:ss')+'Z';
-						vc.dateStart = end.format('YYYY-MM-DDTHH:mm:ss')+'Z';
-					}
+                    if(!$(this).val()) {
+						
+						$('#datePicker').daterangepicker({
+							"parentEl": "#log",
+							"autoApply": true,
+							"timePicker": true,
+							"timePicker24Hour": true,
+							"timePickerSeconds": true,
+							"opens": "left",
+							locale: {
+								cancelLabel: "Clear"
+							}
+						}, function(start, end, label) {
 
-					vc.datePicker = vc.dateStart+' / '+vc.dateEnd;
-					vc.getLogs(false, true);
-				});
+							if(vc.currentSortDir === 'asc') {
+								vc.dateStart = start.format('YYYY-MM-DDTHH:mm:ss')+'Z';
+								vc.dateEnd = end.format('YYYY-MM-DDTHH:mm:ss')+'Z';
+							} else {
+								vc.dateEnd = start.format('YYYY-MM-DDTHH:mm:ss')+'Z';
+								vc.dateStart = end.format('YYYY-MM-DDTHH:mm:ss')+'Z';
+							}
+
+							vc.datePicker = vc.dateStart+' / '+vc.dateEnd;
+							vc.getLogs(false, true);
+						});
+
+						$('#datePicker').on('show.daterangepicker', function(ev, picker) {
+							//console.log('show.daterangepicker');
+							$('#datePicker').parent().addClass('open');
+						});
+
+						$('#datePicker').on('hide.daterangepicker', function(ev, picker) {
+							//console.log('hide.daterangepicker');
+							$('#datePicker').parent().removeClass('open');
+
+							if($('#datePicker').val().length)
+								$('#datePicker').parent().parent().addClass('filtered')
+							else
+								$('#datePicker').parent().parent().removeClass('filtered')
+						});
+
+						$('#datePicker').on('cancel.daterangepicker', function(ev, picker) {
+							//console.log('cancel.daterangepicker');
+							vc.datePicker = '';
+							vc.dateStart = '';
+							vc.dateEnd = '';
+
+							$('#datePicker').parent().parent().removeClass('filtered')
+							
+							vc.getLogs();
+							$('#datePicker').parent().removeClass('open');
+						});
+
+						$('#datePicker').on('apply.daterangepicker', function(ev, picker) {
+							//console.log('apply.daterangepicker');
+							$('#datePicker').parent().removeClass('open');
+
+							if($('#datePicker').val().length)
+								$('#datePicker').parent().parent().addClass('filtered')
+							else
+								$('#datePicker').parent().parent().removeClass('filtered')
+								
+						});
+
+					}
+				})
 			
 				vc.records = parseInt((window.innerHeight - 350) / 30);
 				vc.getLogs(this.records);
@@ -670,45 +722,6 @@
 						vc.getLogs();
 				});
 				
-
-				$('#datePicker').on('show.daterangepicker', function(ev, picker) {
-					//console.log('show.daterangepicker');
-					$('#datePicker').parent().addClass('open');
-				});
-
-				$('#datePicker').on('hide.daterangepicker', function(ev, picker) {
-					//console.log('hide.daterangepicker');
-					$('#datePicker').parent().removeClass('open');
-
-					if($('#datePicker').val().length)
-						$('#datePicker').parent().parent().addClass('filtered')
-					else
-						$('#datePicker').parent().parent().removeClass('filtered')
-				});
-
-				$('#datePicker').on('cancel.daterangepicker', function(ev, picker) {
-					//console.log('cancel.daterangepicker');
-					vc.datePicker = '';
-					vc.dateStart = '';
-					vc.dateEnd = '';
-
-					$('#datePicker').parent().parent().removeClass('filtered')
-					
-					vc.getLogs();
-					$('#datePicker').parent().removeClass('open');
-				});
-
-				$('#datePicker').on('apply.daterangepicker', function(ev, picker) {
-					//console.log('apply.daterangepicker');
-					$('#datePicker').parent().removeClass('open');
-
-					if($('#datePicker').val().length)
-						$('#datePicker').parent().parent().addClass('filtered')
-					else
-						$('#datePicker').parent().parent().removeClass('filtered')
-						
-				});
-
 				$(document).on('click', '#datePicker', function(){
 					$(this).parent().toggleClass('open');
 				});

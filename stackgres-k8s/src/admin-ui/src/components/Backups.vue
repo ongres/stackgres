@@ -983,56 +983,53 @@
 			//vc.filterBackups();
 
 			$(document).ready(function(){
-				$('#datePicker').daterangepicker({
-					"autoApply": true,
-					"timePicker": true,
-					"timePicker24Hour": true,
-					"timePickerSeconds": true,
-					//"startDate": "04/02/2020",
-					//"endDate": "04/08/2020",
-					"opens": "left",
-					locale: {
-						cancelLabel: "Clear"
-					}
-				}, function(start, end, label) {
-					vc.dateStart = start.format('YYYY-MM-DD HH:mm:ss');
-					vc.dateEnd = end.format('YYYY-MM-DD HH:mm:ss');
-					vc.datePicker = vc.dateStart+' / '+vc.dateEnd;
-					vc.filterBackups();
-				});
+
+				$(document).on('focus', '#datePicker', function() {
+
+                    if(!$(this).val()) {
+						$('.daterangepicker').remove()
+
+						$('#datePicker').daterangepicker({
+							"autoApply": true,
+							"timePicker": true,
+							"timePicker24Hour": true,
+							"timePickerSeconds": true,
+							"opens": "left",
+							locale: {
+								cancelLabel: "Clear"
+							}
+						}, function(start, end, label) {
+							vc.dateStart = start.format('YYYY-MM-DD HH:mm:ss');
+							vc.dateEnd = end.format('YYYY-MM-DD HH:mm:ss');
+							vc.datePicker = vc.dateStart+' / '+vc.dateEnd;
+							vc.filterBackups();
+						});
+					
 				
-				$(document).on('click', '.toggle.date.open', function(){
-					//$('#datePicker').trigger('hide.daterangepicker');
-					//console.log('.toggle.date.open');
-					/*
-					if(vc.datePicker.length)
-						$('.applyBtn').click();
-					else
-						$('.cancelBtn').click();
-					*/
-				});
+						$('#datePicker').on('show.daterangepicker', function(ev, picker) {
+							//console.log('show.daterangepicker');
+							$('#datePicker').parent().addClass('open');
+						});
 
-				$('#datePicker').on('show.daterangepicker', function(ev, picker) {
-					//console.log('show.daterangepicker');
-					$('#datePicker').parent().addClass('open');
-				});
+						$('#datePicker').on('hide.daterangepicker', function(ev, picker) {
+							//console.log('hide.daterangepicker');
+							$('#datePicker').parent().removeClass('open');
+						});
 
-				$('#datePicker').on('hide.daterangepicker', function(ev, picker) {
-					//console.log('hide.daterangepicker');
-					$('#datePicker').parent().removeClass('open');
-				});
+						$('#datePicker').on('cancel.daterangepicker', function(ev, picker) {
+							//console.log('cancel.daterangepicker');
+							vc.datePicker = '';
+							$('#datePicker').parent().removeClass('open');
+							vc.filterBackups();
+						});
 
-				$('#datePicker').on('cancel.daterangepicker', function(ev, picker) {
-					//console.log('cancel.daterangepicker');
-					vc.datePicker = '';
-					$('#datePicker').parent().removeClass('open');
-					vc.filterBackups();
-				});
-
-				$('#datePicker').on('apply.daterangepicker', function(ev, picker) {
-					//console.log('apply.daterangepicker');
-					$('#datePicker').parent().removeClass('open');
-				});
+						$('#datePicker').on('apply.daterangepicker', function(ev, picker) {
+							//console.log('apply.daterangepicker');
+							$('#datePicker').parent().removeClass('open');
+						});
+					}
+				})
+				
 
 				$(document).on('change', '.filter select', function () {
 					if($(this).val().length)
@@ -1092,6 +1089,11 @@
 
 			});
 
-		}
+		},
+
+		beforeDestroy: function() {
+            $('.daterangepicker').remove()
+        }
+
 	}
 </script>
