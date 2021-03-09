@@ -87,6 +87,10 @@ to_json_string() {
   sed ':a;N;$!ba;s/\n/\\n/g' | sed 's/\(["\\\t]\)/\\\1/g' | tr '\t' 't'
 }
 
+date_iso8601() {
+  date +%Y-%m-%dT%H:%M:%SZ --utc
+}
+
 kill_with_childs() {
   (
   set +e

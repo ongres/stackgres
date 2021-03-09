@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. "$LOCAL_BIN_SHELL_UTILS_PATH"
+
 eval_in_place() {
 eval "cat << EVAL_IN_PLACE_EOF
 $*
@@ -94,7 +96,7 @@ set_result() {
   TIMED_OUT="$(grep '^TIMED_OUT=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | cut -d = -f 2)"
   LOCK_LOST="$(grep '^LOCK_LOST=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | cut -d = -f 2)"
   FAILURE="$(grep '^FAILURE=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | cut -d = -f 2 | sed 's/^\(.*\)$/"\1"/')"
-  LAST_TRANSITION_TIME="$(date -Iseconds -u)"
+  LAST_TRANSITION_TIME="$(date_iso8601)"
 
   if [ "$EXIT_CODE" = 0 ]
   then
