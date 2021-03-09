@@ -123,7 +123,7 @@ k8s_unnamespaced_cleanup() {
 
 traceable_k8s_unnamespaced_cleanup() {
   traceable_k8s_webhook_cleanup
-  echo "Cleanup of k8s CRcrds"
+  echo "Cleanup of k8s crds"
   kubectl get crd -o name \
     | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
