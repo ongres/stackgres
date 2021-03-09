@@ -80,6 +80,19 @@ EOF
     INITIAL_INSTANCES="$(printf '%s' "$INITIAL_INSTANCES" | tr -d '[]' | tr ',' '\n')"
     PRIMARY_INSTANCE="$(kubectl get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
       --template='{{ .status.dbOps.majorVersionUpgrade.primaryInstance }}')"
+
+    until kubectl patch "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
+        -p "$(cat << EOF
+[
+  {"op":"replace","path":"/status/dbOps/majorVersionUpgrade/link","value": $LINK},
+  {"op":"replace","path":"/status/dbOps/majorVersionUpgrade/clone","value": $CLONE},
+  {"op":"replace","path":"/status/dbOps/majorVersionUpgrade/check","value": $CHECK}
+]
+EOF
+        )"
+    do
+      sleep 1
+    done
   fi
 
   while true
