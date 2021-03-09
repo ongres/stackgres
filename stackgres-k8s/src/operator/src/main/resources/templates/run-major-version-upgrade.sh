@@ -113,6 +113,74 @@ EOF
 
   update_status init
 
+  if [ "${PRIMARY_INSTANCE##*-}" != "0" ]
+  then
+    if [ "$INITIAL_INSTANCES_COUNT" = 1 ]
+    then
+      echo "Upscaling cluster to 2 instances"
+      echo
+
+      kubectl patch "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
+        -p "$(cat << EOF
+[
+  {"op":"replace","path":"/spec/instances","value":2}
+]
+EOF
+          )"
+
+      echo "Waiting cluster upscale"
+      echo
+
+      echo "Waiting instance $INSTANCE to become ready..."
+
+      wait_for_instance "${PRIMARY_INSTANCE##*-}-0"
+
+      echo "done"
+      echo
+
+      echo "Cluster upscale done"
+      echo
+    fi
+    PREVIOUS_PRIMARY_INSTANCE="$PRIMARY_INSTANCE"
+    TARGET_INSTANCE="${PRIMARY_INSTANCE##*-}-0"
+    if kubectl wait pod -n "$CLUSTER_NAMESPACE" "$TARGET_INSTANCE" --for condition=Ready --timeout 0 >/dev/null 2>&1
+    then
+      echo "Performing switchover from primary $PRIMARY_INSTANCE to replica $TARGET_INSTANCE..."
+
+      kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c patroni -- \
+        patronictl switchover "$CLUSTER_NAME" --master "$PRIMARY_INSTANCE" --candidate "$TARGET_INSTANCE" --force \
+
+      echo "done"
+      echo
+
+      PRIMARY_INSTANCE="$TARGET_INSTANCE"
+
+      echo "Waiting primary instance $PRIMARY_INSTANCE to be ready..."
+
+      wait_for_instance "$PRIMARY_INSTANCE"
+
+      echo "done"
+      echo
+
+      RETRY=3
+      while [ "$RETRY" != 0 ]
+      do
+        CURRENT_PRIMARY_POD="$(kubectl get pods -n "$CLUSTER_NAMESPACE" -l "$CLUSTER_PRIMARY_POD_LABELS" -o name)"
+        if [ -n "$CURRENT_PRIMARY_POD" ]
+        then
+          break
+        fi
+        RETRY="$((RETRY-1))"
+        sleep 5
+      done
+      CURRENT_PRIMARY_INSTANCE="$(printf '%s' "$CURRENT_PRIMARY_POD" | cut -d / -f 2)"
+      if [ "$PRIMARY_INSTANCE" != "$CURRENT_PRIMARY_INSTANCE" ]
+      then
+        echo "FAILURE=Major version upgrade failed. Please check pod $PRIMARY_INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+        exit 1
+      fi
+  fi
+
   if [ "$INITIAL_INSTANCES_COUNT" -gt 1 ]
   then
     echo "Downscaling cluster to 1 instance"
