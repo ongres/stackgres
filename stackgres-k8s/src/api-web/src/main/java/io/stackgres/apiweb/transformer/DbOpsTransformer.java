@@ -197,6 +197,7 @@ public class DbOpsTransformer
     StackGresDbOpsMajorVersionUpgrade transformation =
         new StackGresDbOpsMajorVersionUpgrade();
     transformation.setLink(source.getLink());
+    transformation.setClone(source.getClone());
     transformation.setCheck(source.getCheck());
     return transformation;
   }
@@ -346,6 +347,7 @@ public class DbOpsTransformer
     DbOpsMajorVersionUpgrade transformation =
         new DbOpsMajorVersionUpgrade();
     transformation.setLink(source.getLink());
+    transformation.setClone(source.getClone());
     transformation.setCheck(source.getCheck());
     return transformation;
   }
