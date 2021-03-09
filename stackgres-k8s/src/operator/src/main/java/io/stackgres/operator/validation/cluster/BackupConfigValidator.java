@@ -32,19 +32,21 @@ public class BackupConfigValidator implements ClusterValidator {
 
   @Override
   public void validate(StackGresClusterReview review) throws ValidationFailed {
-
-    StackGresCluster cluster = review.getRequest().getObject();
-    String backupConfig = cluster.getSpec().getConfiguration().getBackupConfig();
-
     switch (review.getRequest().getOperation()) {
-      case CREATE:
+      case CREATE: {
+        StackGresCluster cluster = review.getRequest().getObject();
+        String backupConfig = cluster.getSpec().getConfiguration().getBackupConfig();
         checkIfBackupConfigExists(review, "Backup config " + backupConfig
             + " not found");
         break;
-      case UPDATE:
+      }
+      case UPDATE: {
+        StackGresCluster cluster = review.getRequest().getObject();
+        String backupConfig = cluster.getSpec().getConfiguration().getBackupConfig();
         checkIfBackupConfigExists(review, "Cannot update to backup config "
             + backupConfig + " because it doesn't exists");
         break;
+      }
       default:
     }
 
