@@ -5,12 +5,11 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-import javax.validation.constraints.NotBlank;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -18,7 +17,6 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 public class ClusterConfiguration {
 
   @JsonProperty("sgPostgresConfig")
-  @NotBlank(message = "You need to associate a Postgres configuration to this cluster")
   private String sgPostgresConfig;
 
   @JsonProperty("sgPoolingConfig")
@@ -49,5 +47,10 @@ public class ClusterConfiguration {
 
   public void setSgBackupConfig(String sgBackupConfig) {
     this.sgBackupConfig = sgBackupConfig;
+  }
+
+  @Override
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
 }

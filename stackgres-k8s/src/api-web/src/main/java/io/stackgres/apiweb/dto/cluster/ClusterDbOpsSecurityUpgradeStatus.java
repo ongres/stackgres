@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -14,32 +16,33 @@ import io.stackgres.common.StackGresUtil;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class ClusterDistributedLogs {
+public class ClusterDbOpsSecurityUpgradeStatus {
 
-  @JsonProperty("sgDistributedLogs")
-  private String distributedLogs;
+  @JsonProperty("initialInstances")
+  private List<String> initialInstances;
 
-  @JsonProperty("retention")
-  private String retention;
+  @JsonProperty("primaryInstance")
+  private String primaryInstance;
 
-  public String getDistributedLogs() {
-    return distributedLogs;
+  public List<String> getInitialInstances() {
+    return initialInstances;
   }
 
-  public void setDistributedLogs(String distributedLogs) {
-    this.distributedLogs = distributedLogs;
+  public void setInitialInstances(List<String> initialInstances) {
+    this.initialInstances = initialInstances;
   }
 
-  public String getRetention() {
-    return retention;
+  public String getPrimaryInstance() {
+    return primaryInstance;
   }
 
-  public void setRetention(String retention) {
-    this.retention = retention;
+  public void setPrimaryInstance(String primaryInstance) {
+    this.primaryInstance = primaryInstance;
   }
 
   @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
   }
+
 }

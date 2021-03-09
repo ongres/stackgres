@@ -8,8 +8,8 @@ package io.stackgres.apiweb.dto.cluster;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -40,10 +40,6 @@ public class ClusterRestore {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("backupUid", backupUid)
-        .add("downloadDiskConcurrency", downloadDiskConcurrency)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 }

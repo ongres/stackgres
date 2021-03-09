@@ -9,8 +9,8 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -49,10 +49,6 @@ public class ClusterSpecAnnotations {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("allResources", allResources)
-        .add("pods", pods)
-        .add("services", services)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 }

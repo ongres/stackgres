@@ -7,24 +7,21 @@ package io.stackgres.apiweb.dto.cluster;
 
 import java.util.List;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.ResourceDto;
+import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 public class ClusterDto extends ResourceDto {
 
   @JsonProperty("spec")
-  @NotNull(message = "The specification of the cluster is required")
-  @Valid
   private ClusterSpec spec;
 
+  @JsonProperty("status")
+  private ClusterStatus status;
+
   @JsonProperty("pods")
-  @Valid
   private List<KubernetesPod> pods;
 
   @JsonProperty("podsReady")
@@ -39,6 +36,14 @@ public class ClusterDto extends ResourceDto {
 
   public void setSpec(ClusterSpec spec) {
     this.spec = spec;
+  }
+
+  public ClusterStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(ClusterStatus status) {
+    this.status = status;
   }
 
   public List<KubernetesPod> getPods() {
@@ -67,14 +72,7 @@ public class ClusterDto extends ResourceDto {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("metadata", getMetadata())
-        .add("spec", spec)
-        .add("pods", pods)
-        .add("podsReady", podsReady)
-        .add("grafanaEmbedded", grafanaEmbedded)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 
 }

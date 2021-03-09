@@ -10,8 +10,8 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.Toleration;
 
 @JsonDeserialize
@@ -41,9 +41,6 @@ public class PodScheduling {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("nodeSelector", nodeSelector)
-        .add("tolerations", tolerations)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 }

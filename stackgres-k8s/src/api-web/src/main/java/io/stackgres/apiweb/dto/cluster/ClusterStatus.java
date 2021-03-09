@@ -5,6 +5,9 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -14,28 +17,28 @@ import io.stackgres.common.StackGresUtil;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class ClusterDistributedLogs {
+public class ClusterStatus {
 
-  @JsonProperty("sgDistributedLogs")
-  private String distributedLogs;
+  @JsonProperty("conditions")
+  private List<ClusterCondition> conditions = new ArrayList<>();
 
-  @JsonProperty("retention")
-  private String retention;
+  @JsonProperty("dbOps")
+  private ClusterDbOpsStatus dbOps;
 
-  public String getDistributedLogs() {
-    return distributedLogs;
+  public List<ClusterCondition> getConditions() {
+    return conditions;
   }
 
-  public void setDistributedLogs(String distributedLogs) {
-    this.distributedLogs = distributedLogs;
+  public void setConditions(List<ClusterCondition> conditions) {
+    this.conditions = conditions;
   }
 
-  public String getRetention() {
-    return retention;
+  public ClusterDbOpsStatus getDbOps() {
+    return dbOps;
   }
 
-  public void setRetention(String retention) {
-    this.retention = retention;
+  public void setDbOps(ClusterDbOpsStatus dbOps) {
+    this.dbOps = dbOps;
   }
 
   @Override
