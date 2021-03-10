@@ -7,17 +7,21 @@ SET_RESULT_SCRIPT_PATH=""
 OP_NAME=majorVersionUpgrade
 NORMALIZED_OP_NAME='major version upgrade'
 KEBAB_OP_NAME='major-version-upgrade'
-POD_0_RESTARTED=false
-POD_1_RESTARTED=false
 PATRONI_CONTAINER_NAME=patroni
 MAJOR_VERSION_UPGRADE_CONTAINER_NAME=major-version-upgrade
 
-shell_unit_test_dbops_major_version_upgrade() {
+shell_unit_test_dbops_major_version_upgrade_setup() {
   (
   echo "pod/test-0"
   echo "pod/test-1"
   ) > "$TEST_TARGET_PATH/cluster_pods"
+  echo false > "$TEST_TARGET_PATH/pod_0_restarted"
+  echo false > "$TEST_TARGET_PATH/pod_1_restarted"
+  echo "pod/test-0" > "$TEST_TARGET_PATH/primary_pod"
+}
 
+shell_unit_test_dbops_major_version_upgrade() {
+  shell_unit_test_dbops_major_version_upgrade_setup
   shell_unit_test_dbops
 }
 
@@ -47,7 +51,7 @@ kubectl_mock() {
     cat "$TEST_TARGET_PATH/cluster_pods"
     ;;
     ("get pods -n $CLUSTER_NAMESPACE -l $CLUSTER_PRIMARY_POD_LABELS -o name")
-    echo "pod/test-0"
+    cat "$TEST_TARGET_PATH/primary_pod"
     ;;
     ("get pod -n $CLUSTER_NAMESPACE test-0 -o name")
     echo "pod/test-0"
@@ -65,7 +69,7 @@ kubectl_mock() {
     echo '"pending_restart":false'
     ;;
     ("get pod -n $CLUSTER_NAMESPACE test-0 --template={{ index .metadata.labels \"controller-revision-hash\" }}")
-    if "$POD_0_RESTARTED"
+    if [ "$(cat "$TEST_TARGET_PATH/pod_0_restarted")" = "true" ]
     then
       echo hash-1
     else
@@ -73,7 +77,7 @@ kubectl_mock() {
     fi
     ;;
     ("get pod -n $CLUSTER_NAMESPACE test-1 --template={{ index .metadata.labels \"controller-revision-hash\" }}")
-    if "$POD_1_RESTARTED"
+    if [ "$(cat "$TEST_TARGET_PATH/pod_1_restarted")" = "true" ]
     then
       echo hash-1
     else
@@ -104,10 +108,10 @@ kubectl_mock() {
     ("wait pod -n $CLUSTER_NAMESPACE test-"*" --for condition=Ready --timeout 0")
     ;;
     ("delete pod -n $CLUSTER_NAMESPACE test-0")
-    POD_0_RESTARTED=true
+    echo true > "$TEST_TARGET_PATH/pod_0_restarted"
     ;;
     ("delete pod -n $CLUSTER_NAMESPACE test-1")
-    POD_1_RESTARTED=true
+    echo true > "$TEST_TARGET_PATH/pod_1_restarted"
     ;;
     ("exec -n $CLUSTER_NAMESPACE test-0 -c patroni -- psql "*)
     STDIN="$(cat)"

@@ -115,6 +115,10 @@ EOF
 
   if [ "${PRIMARY_INSTANCE##*-}" != "0" ]
   then
+    TARGET_INSTANCE="${PRIMARY_INSTANCE%-*}-0"
+    echo "Primary is not $TARGET_INSTANCE, doing switchover..."
+    echo
+
     if [ "$INITIAL_INSTANCES_COUNT" = 1 ]
     then
       echo "Upscaling cluster to 2 instances"
@@ -133,7 +137,7 @@ EOF
 
       echo "Waiting instance $INSTANCE to become ready..."
 
-      wait_for_instance "${PRIMARY_INSTANCE##*-}-0"
+      wait_for_instance "$TARGET_INSTANCE"
 
       echo "done"
       echo
@@ -142,7 +146,6 @@ EOF
       echo
     fi
     PREVIOUS_PRIMARY_INSTANCE="$PRIMARY_INSTANCE"
-    TARGET_INSTANCE="${PRIMARY_INSTANCE##*-}-0"
     if ! kubectl wait pod -n "$CLUSTER_NAMESPACE" "$TARGET_INSTANCE" --for condition=Ready --timeout 0 >/dev/null 2>&1
     then
       echo "FAILURE=$NORMALIZED_OP_NAME failed. Primary instance not found!" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
