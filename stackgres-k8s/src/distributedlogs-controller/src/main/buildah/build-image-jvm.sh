@@ -3,7 +3,7 @@
 set -e
 
 DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME:-"stackgres/distributedlogs-controller:development-jvm"}"
-CONTAINER_BASE=$(buildah from "azul/zulu-openjdk-alpine:11.0.8-jre-headless")
+CONTAINER_BASE=$(buildah from "registry.access.redhat.com/ubi8/openjdk-11")
 TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME:-docker-daemon:$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME}"
 
 # Include binaries
