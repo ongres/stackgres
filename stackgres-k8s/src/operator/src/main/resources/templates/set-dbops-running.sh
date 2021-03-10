@@ -13,7 +13,7 @@ LAST_TRANSITION_TIME="$(date_iso8601)"
 STARTED="$LAST_TRANSITION_TIME"
 
 if [ "$(kubectl get "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" \
-  --template '{{ if .status }}true{{ else }}false{{ end }}')" = "false" ]
+  --template='{{ if .status }}true{{ else }}false{{ end }}')" = "false" ]
 then
   kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=json \
     -p "$(cat << EOF

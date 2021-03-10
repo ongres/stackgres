@@ -12,16 +12,16 @@ run_op() {
     PRIMARY_INSTANCE="$(printf '%s' "$PRIMARY_POD" | cut -d / -f 2)"
     if ! kubectl get pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -o name > /dev/null
     then
-      echo FAILURE="Primary instance not found!" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+      echo "FAILURE=$NORMALIZED_OP_NAME failed. Primary instance not found!" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
       exit 1
     fi
     echo "Found primary instance $PRIMARY_INSTANCE"
     echo
     SOURCE_IMAGE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" \
-      --template "{{ range .spec.containers }}{{ if eq .name \"$PATRONI_CONTAINER_NAME\" }}{{ .image }}{{ end }}{{ end }}")"
+      --template="{{ range .spec.containers }}{{ if eq .name \"$PATRONI_CONTAINER_NAME\" }}{{ .image }}{{ end }}{{ end }}")"
     SOURCE_VERSION="$(printf '%s' "$SOURCE_IMAGE" | sed 's/^.*-pg\([0-9]\+\.[0-9]\+\)-.*$/\1/')"
     TARGET_VERSION="$(kubectl get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-      --template '{{ .spec.postgresVersion }}')"
+      --template='{{ .spec.postgresVersion }}')"
     LOCALE="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c patroni \
       -- psql -t -A -c "SHOW lc_collate")"
     ENCODING="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c patroni \
@@ -77,7 +77,7 @@ EOF
   else
     INITIAL_INSTANCES="$(kubectl get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
       --template='{{ .status.dbOps.majorVersionUpgrade.initialInstances }}')"
-    INITIAL_INSTANCES="$(printf '%s' "$INITIAL_INSTANCES" | tr -d '[]' | tr ',' '\n')"
+    INITIAL_INSTANCES="$(printf '%s' "$INITIAL_INSTANCES" | tr -d '[]' | tr ' ' '\n')"
     PRIMARY_INSTANCE="$(kubectl get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
       --template='{{ .status.dbOps.majorVersionUpgrade.primaryInstance }}')"
 
@@ -98,7 +98,7 @@ EOF
   while true
   do
     IS_STATEFULSET_UPDATED="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-      --template "{{ range .spec.template.spec.initContainers }}{{ if eq .name \"$MAJOR_VERSION_UPGRADE_CONTAINER_NAME\" }}true{{ end }}{{ end }}")"
+      --template="{{ range .spec.template.spec.initContainers }}{{ if eq .name \"$MAJOR_VERSION_UPGRADE_CONTAINER_NAME\" }}true{{ end }}{{ end }}")"
     if [ "$IS_STATEFULSET_UPDATED" = "true" ]
     then
       break
@@ -143,42 +143,46 @@ EOF
     fi
     PREVIOUS_PRIMARY_INSTANCE="$PRIMARY_INSTANCE"
     TARGET_INSTANCE="${PRIMARY_INSTANCE##*-}-0"
-    if kubectl wait pod -n "$CLUSTER_NAMESPACE" "$TARGET_INSTANCE" --for condition=Ready --timeout 0 >/dev/null 2>&1
+    if ! kubectl wait pod -n "$CLUSTER_NAMESPACE" "$TARGET_INSTANCE" --for condition=Ready --timeout 0 >/dev/null 2>&1
     then
-      echo "Performing switchover from primary $PRIMARY_INSTANCE to replica $TARGET_INSTANCE..."
+      echo "FAILURE=$NORMALIZED_OP_NAME failed. Primary instance not found!" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+      exit 1
+    fi
 
-      kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c patroni -- \
-        patronictl switchover "$CLUSTER_NAME" --master "$PRIMARY_INSTANCE" --candidate "$TARGET_INSTANCE" --force \
+    echo "Performing switchover from primary $PRIMARY_INSTANCE to replica $TARGET_INSTANCE..."
 
-      echo "done"
-      echo
+    kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c patroni -- \
+      patronictl switchover "$CLUSTER_NAME" --master "$PRIMARY_INSTANCE" --candidate "$TARGET_INSTANCE" --force \
 
-      PRIMARY_INSTANCE="$TARGET_INSTANCE"
+    echo "done"
+    echo
 
-      echo "Waiting primary instance $PRIMARY_INSTANCE to be ready..."
+    PRIMARY_INSTANCE="$TARGET_INSTANCE"
 
-      wait_for_instance "$PRIMARY_INSTANCE"
+    echo "Waiting primary instance $PRIMARY_INSTANCE to be ready..."
 
-      echo "done"
-      echo
+    wait_for_instance "$PRIMARY_INSTANCE"
 
-      RETRY=3
-      while [ "$RETRY" != 0 ]
-      do
-        CURRENT_PRIMARY_POD="$(kubectl get pods -n "$CLUSTER_NAMESPACE" -l "$CLUSTER_PRIMARY_POD_LABELS" -o name)"
-        if [ -n "$CURRENT_PRIMARY_POD" ]
-        then
-          break
-        fi
-        RETRY="$((RETRY-1))"
-        sleep 5
-      done
-      CURRENT_PRIMARY_INSTANCE="$(printf '%s' "$CURRENT_PRIMARY_POD" | cut -d / -f 2)"
-      if [ "$PRIMARY_INSTANCE" != "$CURRENT_PRIMARY_INSTANCE" ]
+    echo "done"
+    echo
+
+    RETRY=3
+    while [ "$RETRY" != 0 ]
+    do
+      CURRENT_PRIMARY_POD="$(kubectl get pods -n "$CLUSTER_NAMESPACE" -l "$CLUSTER_PRIMARY_POD_LABELS" -o name)"
+      if [ -n "$CURRENT_PRIMARY_POD" ]
       then
-        echo "FAILURE=Major version upgrade failed. Please check pod $PRIMARY_INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
-        exit 1
+        break
       fi
+      RETRY="$((RETRY-1))"
+      sleep 5
+    done
+    CURRENT_PRIMARY_INSTANCE="$(printf '%s' "$CURRENT_PRIMARY_POD" | cut -d / -f 2)"
+    if [ "$PRIMARY_INSTANCE" != "$CURRENT_PRIMARY_INSTANCE" ]
+    then
+      echo "FAILURE=$NORMALIZED_OP_NAME failed. Please check pod $PRIMARY_INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+      exit 1
+    fi
   fi
 
   if [ "$INITIAL_INSTANCES_COUNT" -gt 1 ]
@@ -217,10 +221,10 @@ EOF
   wait_for_instance "$PRIMARY_INSTANCE"
 
   CURRENT_PRIMARY_POD="$(kubectl get pods -n "$CLUSTER_NAMESPACE" -l "$CLUSTER_PRIMARY_POD_LABELS" -o name)"
-  CURRENT_PRIMARY_INSTANCE="$(printf '%s' "$PRIMARY_POD" | cut -d / -f 2)"
+  CURRENT_PRIMARY_INSTANCE="$(printf '%s' "$CURRENT_PRIMARY_POD" | cut -d / -f 2)"
   if [ "$PRIMARY_INSTANCE" != "$CURRENT_PRIMARY_INSTANCE" ]
   then
-    echo "FAILURE=Major version upgrade failed. Please check pod $PRIMARY_INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+    echo "FAILURE=$NORMALIZED_OP_NAME failed. Please check pod $PRIMARY_INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
     exit 1
   fi
 
@@ -283,7 +287,7 @@ EOF
 
 update_status() {
   STATEFULSET_UPDATE_REVISION="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    --template '{{ .status.updateRevision }}')"
+    --template='{{ .status.updateRevision }}')"
   if [ "$1" = "init" ]
   then
     PENDING_TO_RESTART_INSTANCES="$INITIAL_INSTANCES"
@@ -298,9 +302,9 @@ update_status() {
             continue
           fi
           PATRONI_STATUS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$INSTANCE" \
-            --template '{{ .metadata.annotations.status }}')"
+            --template='{{ .metadata.annotations.status }}')"
           POD_STATEFULSET_REVISION="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$INSTANCE" \
-            --template '{{ index .metadata.labels "controller-revision-hash" }}')"
+            --template='{{ index .metadata.labels "controller-revision-hash" }}')"
           if [ "$STATEFULSET_UPDATE_REVISION" != "$POD_STATEFULSET_REVISION" ] \
             || echo "$PATRONI_STATUS" | grep -q '"pending_restart":true'
           then
@@ -324,7 +328,7 @@ update_status() {
   echo
 
   OPERATION="$(kubectl get "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" \
-    --template '{{ if .status.majorVersionUpgrade }}replace{{ else }}add{{ end }}')"
+    --template='{{ if .status.majorVersionUpgrade }}replace{{ else }}add{{ end }}')"
   kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=json \
     -p "$(cat << EOF
 [
@@ -384,7 +388,7 @@ wait_for_instance() {
   done
   until kubectl wait pod -n "$CLUSTER_NAMESPACE" "$INSTANCE" --for condition=Ready --timeout 0 >/dev/null 2>&1
   do
-    PHASE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$INSTANCE" --template '{{ .status.phase }}')"
+    PHASE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$INSTANCE" --template='{{ .status.phase }}')"
     if [ "$PHASE" = "Failed" ] || [ "$PHASE" = "Unknown" ]
     then
       echo "FAILURE=$NORMALIZED_OP_NAME failed. Please check pod $INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"

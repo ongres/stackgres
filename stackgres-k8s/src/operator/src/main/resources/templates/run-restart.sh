@@ -51,7 +51,7 @@ EOF
   else
     INITIAL_INSTANCES="$(kubectl get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
       --template="{{ .status.dbOps.$OP_NAME.initialInstances }}")"
-    INITIAL_INSTANCES="$(printf '%s' "$INITIAL_INSTANCES" | tr -d '[]' | tr ',' '\n')"
+    INITIAL_INSTANCES="$(printf '%s' "$INITIAL_INSTANCES" | tr -d '[]' | tr ' ' '\n')"
     PRIMARY_INSTANCE="$(kubectl get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
       --template="{{ .status.dbOps.$OP_NAME.primaryInstance }}")"
 
@@ -273,7 +273,7 @@ EOF
 
 update_status() {
   STATEFULSET_UPDATE_REVISION="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    --template '{{ .status.updateRevision }}')"
+    --template='{{ .status.updateRevision }}')"
   PENDING_TO_RESTART_INSTANCES="$(echo "$INITIAL_INSTANCES" \
     | while read -r INSTANCE
       do
@@ -284,9 +284,9 @@ update_status() {
           continue
         fi
         PATRONI_STATUS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$INSTANCE" \
-          --template '{{ .metadata.annotations.status }}')"
+          --template='{{ .metadata.annotations.status }}')"
         POD_STATEFULSET_REVISION="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$INSTANCE" \
-          --template '{{ index .metadata.labels "controller-revision-hash" }}')"
+          --template='{{ index .metadata.labels "controller-revision-hash" }}')"
         if [ "$STATEFULSET_UPDATE_REVISION" != "$POD_STATEFULSET_REVISION" ] \
           || echo "$PATRONI_STATUS" | grep -q '"pending_restart":true'
         then
@@ -313,7 +313,7 @@ update_status() {
   echo
 
   OPERATION="$(kubectl get "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" \
-    --template "{{ if .status.$OP_NAME }}replace{{ else }}add{{ end }}")"
+    --template="{{ if .status.$OP_NAME }}replace{{ else }}add{{ end }}")"
   kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=json \
     -p "$(cat << EOF
 [
@@ -373,7 +373,7 @@ wait_for_instance() {
   done
   until kubectl wait pod -n "$CLUSTER_NAMESPACE" "$INSTANCE" --for condition=Ready --timeout 0 >/dev/null 2>&1
   do
-    PHASE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$INSTANCE" --template '{{ .status.phase }}')"
+    PHASE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$INSTANCE" --template='{{ .status.phase }}')"
     if [ "$PHASE" = "Failed" ] || [ "$PHASE" = "Unknown" ]
     then
       echo "FAILURE=$NORMALIZED_OP_NAME failed. Please check pod $INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"

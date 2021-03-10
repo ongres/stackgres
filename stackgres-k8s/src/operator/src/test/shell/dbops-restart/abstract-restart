@@ -32,12 +32,12 @@ kubectl_mock() {
     ;;
     ("annotate $CLUSTER_CRD_NAME "*)
     ;;
-    ("get $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template {{ if .status.dbOps }}{{ if .status.dbOps.$OP_NAME }}true{{ end }}{{ end }}")
+    ("get $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ if .status.dbOps }}{{ if .status.dbOps.$OP_NAME }}true{{ end }}{{ end }}")
     ;;
-    ("get $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME --template {{ if .status }}true{{ else }}false{{ end }}")
+    ("get $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME --template={{ if .status }}true{{ else }}false{{ end }}")
     printf false
     ;;
-    ("get $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME --template {{ if .status.restart }}replace{{ else }}add{{ end }}")
+    ("get $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME --template={{ if .status.restart }}replace{{ else }}add{{ end }}")
     printf add
     ;;
     ("get pods -n $CLUSTER_NAMESPACE -l $CLUSTER_POD_LABELS -o name")
@@ -56,13 +56,13 @@ kubectl_mock() {
     ("get pod -n $CLUSTER_NAMESPACE test-2 -o name")
     echo "pod/test-2"
     ;;
-    ("get pod -n $CLUSTER_NAMESPACE test-0 --template {{ .metadata.annotations.status }}")
+    ("get pod -n $CLUSTER_NAMESPACE test-0 --template={{ .metadata.annotations.status }}")
     echo '"pending_restart":false'
     ;;
-    ("get pod -n $CLUSTER_NAMESPACE test-1 --template {{ .metadata.annotations.status }}")
+    ("get pod -n $CLUSTER_NAMESPACE test-1 --template={{ .metadata.annotations.status }}")
     echo '"pending_restart":false'
     ;;
-    ("get pod -n $CLUSTER_NAMESPACE test-0 --template {{ index .metadata.labels \"controller-revision-hash\" }}")
+    ("get pod -n $CLUSTER_NAMESPACE test-0 --template={{ index .metadata.labels \"controller-revision-hash\" }}")
     if [ "$(cat "$TEST_TARGET_PATH/pod_0_restarted")" = "true" ]
     then
       echo hash-1
@@ -70,7 +70,7 @@ kubectl_mock() {
       echo hash-0
     fi
     ;;
-    ("get pod -n $CLUSTER_NAMESPACE test-1 --template {{ index .metadata.labels \"controller-revision-hash\" }}")
+    ("get pod -n $CLUSTER_NAMESPACE test-1 --template={{ index .metadata.labels \"controller-revision-hash\" }}")
     if [ "$(cat "$TEST_TARGET_PATH/pod_1_restarted")" = "true" ]
     then
       echo hash-1
@@ -78,7 +78,7 @@ kubectl_mock() {
       echo hash-0
     fi
     ;;
-    ("get sts -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template {{ .status.updateRevision }}")
+    ("get sts -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ .status.updateRevision }}")
     echo "hash-1"
     ;;
     ("patch $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --type=json -p "*)

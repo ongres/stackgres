@@ -1,0 +1,30 @@
+#!/bin/sh
+
+RESTART_PRIMARY_FIRST=fasle
+REDUCED_IMPACT=true
+
+. "$TEST_SHELL_PATH/dbops-restart/abstract-restart"
+
+shell_unit_test() {
+  shell_unit_test_dbops_restart
+}
+
+mock kubectl kubectl_mock_overwrite
+
+kubectl_mock_overwrite() {
+  mokked
+  case "$*" in
+    ("get $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ if .status.dbOps }}{{ if .status.dbOps.$OP_NAME }}true{{ end }}{{ end }}")
+    printf true
+    ;;
+    ("get $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ .status.dbOps.$OP_NAME.initialInstances }}")
+    printf '[test-0 test-1]'
+    ;;
+    ("get $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ .status.dbOps.$OP_NAME.primaryInstance }}")
+    printf 'test-0'
+    ;;
+    *)
+    not_mokked
+    ;;
+  esac
+}
