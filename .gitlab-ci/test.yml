@@ -57,7 +57,6 @@ shell unit tests:
     - set -e
     - test "$E2E_JOBS" -ge 1 && test "$E2E_JOBS" -le 6
     - test "$E2E_EXCLUSIVE_JOBS" -ge 1 && test "$E2E_EXCLUSIVE_JOBS" -le 6
-    - export E2E_OPERATOR_REGISTRY_PASSWORD=$CI_REGISTRY_PASSWORD
     - set -x
     - SUFFIX="$(echo "-$E2E_SUFFIX-$E2E_RUN_ONLY" | tr -d '\n' | tr -c 'a-z0-9' '-' | sed 's/\(-[0-9]\+\)-[0-9]\+$/\1/')"
     - SHELL_XTRACE="$([ "$E2E_DEBUG" = true ] && echo "-x" || echo "")"
@@ -79,10 +78,10 @@ shell unit tests:
       then
         export E2E_ONLY_INCLUDES="$E2E_TEST"
       fi
-    - export E2E_OPERATOR_REGISTRY_USER=$CI_REGISTRY_USER
     - export E2E_OPERATOR_REGISTRY=$CI_REGISTRY
     - export E2E_OPERATOR_REGISTRY_PATH=/$CI_PROJECT_PATH/
     - export E2E_FORCE_IMAGE_PULL=true
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - |
       if [ "$K8S_REUSE" = false ]
       then

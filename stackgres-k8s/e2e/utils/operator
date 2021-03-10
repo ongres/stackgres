@@ -205,41 +205,37 @@ setup_operator() {
 }
 
 load_operator_k8s() {
+  local IMAGE_NAME
   if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
   then
+    for IMAGE_NAME in \
+      "$OPERATOR_IMAGE_NAME" \
+      "$RESTAPI_IMAGE_NAME" \
+      "$JOBS_IMAGE_NAME" \
+      "$CLUSTER_CONTROLLER_IMAGE_NAME" \
+      "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" \
+      "$ADMINUI_IMAGE_NAME"
+    do
+      echo "$IMAGE_NAME"
+    done | xargs -n 1 -I % -P 0 \
+      docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH%"
     if [ -n "$E2E_OPERATOR_REGISTRY" ]
     then
-      docker login \
-        -u "$E2E_OPERATOR_REGISTRY_USER" \
-        -p "$E2E_OPERATOR_REGISTRY_PASSWORD" \
-        "$E2E_OPERATOR_REGISTRY"
-    fi
-    docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$OPERATOR_IMAGE_NAME"
-    docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$RESTAPI_IMAGE_NAME"
-    docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$JOBS_IMAGE_NAME"
-    docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$CLUSTER_CONTROLLER_IMAGE_NAME"
-    docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
-    docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$ADMINUI_IMAGE_NAME"
-    if [ -n "$E2E_OPERATOR_REGISTRY" ]
-    then
-      docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$OPERATOR_IMAGE_NAME" "$OPERATOR_IMAGE_NAME"
-      docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
-      docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$JOBS_IMAGE_NAME" "$JOBS_IMAGE_NAME"
-      docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$CLUSTER_CONTROLLER_IMAGE_NAME" "$CLUSTER_CONTROLLER_IMAGE_NAME"
-      docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
-      docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
+      for IMAGE_NAME in \
+        "$OPERATOR_IMAGE_NAME" \
+        "$RESTAPI_IMAGE_NAME" \
+        "$JOBS_IMAGE_NAME" \
+        "$CLUSTER_CONTROLLER_IMAGE_NAME" \
+        "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" \
+        "$ADMINUI_IMAGE_NAME"
+      do
+        echo "$IMAGE_NAME"
+      done | xargs -n 1 -I % -P 0 \
+        docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH%" "%"
     fi
   fi
   if [ -n "$E2E_COMPONENTS_REGISTRY" ]
   then
-    if [ -n "$E2E_OPERATOR_REGISTRY" ]
-    then
-      docker login \
-        -u "$E2E_OPERATOR_REGISTRY_USER" \
-        -p "$E2E_OPERATOR_REGISTRY_PASSWORD" \
-        "$E2E_OPERATOR_REGISTRY"
-    fi
-
     load_component_images_from "$E2E_COMPONENTS_REGISTRY" "$E2E_COMPONENTS_PATH"
   fi
 
@@ -272,12 +268,17 @@ load_operator_k8s() {
 }
 
 load_operator_k8s_only() {
-  load_image_k8s "$OPERATOR_IMAGE_NAME"
-  load_image_k8s "$RESTAPI_IMAGE_NAME"
-  load_image_k8s "$JOBS_IMAGE_NAME"
-  load_image_k8s "$CLUSTER_CONTROLLER_IMAGE_NAME"
-  load_image_k8s "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
-  load_image_k8s "$ADMINUI_IMAGE_NAME"
+  local IMAGE_NAME
+  for IMAGE_NAME in \
+    "$OPERATOR_IMAGE_NAME" \
+    "$RESTAPI_IMAGE_NAME" \
+    "$JOBS_IMAGE_NAME" \
+    "$CLUSTER_CONTROLLER_IMAGE_NAME" \
+    "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" \
+    "$ADMINUI_IMAGE_NAME"
+  do
+    echo "$IMAGE_NAME"
+  done | xargs -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" load_image_k8s '%'
 }
 
 operator_pull_policy() {
@@ -454,17 +455,23 @@ reinstall_operator_if_not_as_expected() {
 load_component_images_from() {
   [ -n "$1" ]
   local REPOSITORY="$1"
-  local IMAGE_PATH="${2:-ongres/}"
+  local IMAGE_PATH="${2:-/ongres/}"
   get_component_images "$STACKGRES_VERSION" \
-    | while read IMAGE
-      do
-        FROM_IMAGE="$REPOSITORY/$IMAGE_PATH/${IMAGE##*/}"
-        echo "Loading $IMAGE from $FROM_IMAGE..."
-        docker pull "$FROM_IMAGE"
-        docker tag "$FROM_IMAGE" "$IMAGE"
-        load_image_k8s "$IMAGE"
-        echo "done."
-      done
+    | xargs -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" \
+      load_image_from "$REPOSITORY" "$IMAGE_PATH" '%'
+}
+
+load_image_from() {
+  [ -n "$1" -a -n "$2" -a -n "$3" ]
+  local REPOSITORY="$1"
+  local IMAGE_PATH="$2"
+  local IMAGE="$3"
+  local FROM_IMAGE="$REPOSITORY$IMAGE_PATH${IMAGE##*/}"
+  echo "Loading $IMAGE from $FROM_IMAGE..."
+  docker pull "$FROM_IMAGE"
+  docker tag "$FROM_IMAGE" "$IMAGE"
+  load_image_k8s "$IMAGE"
+  echo "done."
 }
 
 get_component_images() {
