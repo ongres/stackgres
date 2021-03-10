@@ -32,7 +32,6 @@ import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresComponent;
@@ -110,14 +109,7 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
             .withMountPath("/etc/envoy")
             .withNewReadOnly(true)
             .build(),
-            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.ETC_PASSWD_PATH, context),
-            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.ETC_GROUP_PATH, context),
-            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.ETC_SHADOW_PATH, context),
-            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.ETC_GSHADOW_PATH, context))
+            ClusterStatefulSetVolumeConfig.USER.volumeMount(context))
         .withPorts(
             new ContainerPortBuilder().withContainerPort(EnvoyUtil.PG_ENTRY_PORT).build(),
             new ContainerPortBuilder().withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT).build())

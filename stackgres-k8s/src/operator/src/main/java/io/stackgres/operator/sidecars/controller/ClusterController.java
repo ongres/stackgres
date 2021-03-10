@@ -93,7 +93,8 @@ public class ClusterController implements StackGresClusterSidecarResourceFactory
             .withName("DEBUG_CLUSTER_CONTROLLER_SUSPEND")
             .withValue(System.getenv("DEBUG_OPERATOR_SUSPEND"))
             .build())
-        .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(context))
+        .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(context),
+            ClusterStatefulSetVolumeConfig.USER.volumeMount(context))
         .build();
   }
 

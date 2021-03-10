@@ -127,8 +127,9 @@ public class PgPooling
     container.withName(NAME)
         .withImage(StackGresComponent.PGBOUNCER.findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
-        .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
-                .volumeMount(context),
+        .withVolumeMounts(
+            ClusterStatefulSetVolumeConfig.USER.volumeMount(context),
+            ClusterStatefulSetVolumeConfig.SOCKET.volumeMount(context),
             new VolumeMountBuilder()
                 .withName(NAME)
                 .withMountPath("/etc/pgbouncer")

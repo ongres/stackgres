@@ -98,6 +98,7 @@ public class DistributedLogsController implements ContainerResourceFactory<Void,
         .withVolumeMounts(
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(context),
             ClusterStatefulSetVolumeConfig.SOCKET.volumeMount(context),
+            ClusterStatefulSetVolumeConfig.USER.volumeMount(context),
             new VolumeMountBuilder()
             .withName(FluentdUtil.CONFIG)
             .withMountPath("/etc/fluentd")

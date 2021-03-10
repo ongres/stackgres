@@ -102,8 +102,9 @@ public class Fluentd implements ContainerResourceFactory<Void,
             .withInitialDelaySeconds(5)
             .withPeriodSeconds(10)
             .build())
-        .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
-            .volumeMount(context),
+        .withVolumeMounts(
+            ClusterStatefulSetVolumeConfig.SOCKET.volumeMount(context),
+            ClusterStatefulSetVolumeConfig.USER.volumeMount(context),
             new VolumeMountBuilder()
               .withName(StackgresClusterContainers.FLUENTD)
               .withMountPath("/etc/fluentd")

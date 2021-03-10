@@ -107,8 +107,8 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
             + "done\n")
         .withEnv(clusterStatefulSetEnvironmentVariables.listResources(context))
         .withVolumeMounts(
-            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.PG_LOG_PATH, context),
+            ClusterStatefulSetVolumeConfig.USER.volumeMount(context),
+            ClusterStatefulSetVolumeConfig.LOG.volumeMount(context),
             new VolumeMountBuilder()
             .withName(NAME)
             .withMountPath("/etc/fluent-bit")

@@ -31,10 +31,8 @@ public enum ClusterStatefulSetVolumeConfig {
       "dshm", ClusterStatefulSetPath.SHARED_MEMORY_PATH)),
   SHARED(VolumeConfig.onDiskEmptyDir(
       "shared", ClusterStatefulSetPath.SHARED_PATH)),
-  LOCAL(VolumeConfig.onDiskEmptyDir(
-      "local", ImmutableList.of(
-          VolumePathConfig.of(ClusterStatefulSetPath.LOCAL_BIN_PATH),
-          VolumePathConfig.of(ClusterStatefulSetPath.PG_LOG_PATH),
+  USER(VolumeConfig.onDiskEmptyDir(
+      "user", ImmutableList.of(
           VolumePathConfig.of(ClusterStatefulSetPath.ETC_PASSWD_PATH,
               context -> true,
               volumeMountBuilder -> volumeMountBuilder.withReadOnly(true)),
@@ -47,6 +45,12 @@ public enum ClusterStatefulSetVolumeConfig {
           VolumePathConfig.of(ClusterStatefulSetPath.ETC_GSHADOW_PATH,
               context -> true,
               volumeMountBuilder -> volumeMountBuilder.withReadOnly(true))))),
+  LOCAL_BIN(VolumeConfig.onDiskEmptyDir(
+      "local-bin", ImmutableList.of(
+          VolumePathConfig.of(ClusterStatefulSetPath.LOCAL_BIN_PATH)))),
+  LOG(VolumeConfig.onDiskEmptyDir(
+      "log", ImmutableList.of(
+          VolumePathConfig.of(ClusterStatefulSetPath.PG_LOG_PATH)))),
   PATRONI_ENV(VolumeConfig.configMap(
       "patroni-env", ClusterStatefulSetPath.PATRONI_ENV_PATH,
       PatroniConfigMap::name)),

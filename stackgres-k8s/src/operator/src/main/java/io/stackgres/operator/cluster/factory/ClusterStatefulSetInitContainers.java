@@ -45,9 +45,10 @@ public class ClusterStatefulSetInitContainers
 
   @Override
   public Stream<Container> streamResources(StackGresClusterContext config) {
-    return Seq.of(Optional.of(createSetupDataPathsContainer(config)),
-        Optional.of(setupScriptsContainer(config)),
-        Optional.of(setupArbitraryUser(config)))
+    return Seq.of(
+        Optional.of(setupArbitraryUser(config)),
+        Optional.of(createSetupDataPathsContainer(config)),
+        Optional.of(setupScriptsContainer(config)))
         .filter(Optional::isPresent)
         .map(Optional::get)
         .append(setupMajorVersionUpgrade(config));
@@ -64,6 +65,7 @@ public class ClusterStatefulSetInitContainers
         .withEnv(clusterStatefulSetEnvironmentVariables.listResources(config))
         .withVolumeMounts(
             ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(config),
+            ClusterStatefulSetVolumeConfig.USER.volumeMount(config),
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(config))
         .build();
   }
@@ -79,7 +81,7 @@ public class ClusterStatefulSetInitContainers
         .withEnv(clusterStatefulSetEnvironmentVariables.listResources(config))
         .withVolumeMounts(
             ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(config),
-            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+            ClusterStatefulSetVolumeConfig.USER.volumeMount(
             config, volumeMountBuilder -> volumeMountBuilder
                 .withSubPath("etc")
                 .withMountPath("/local/etc")
@@ -98,8 +100,8 @@ public class ClusterStatefulSetInitContainers
         .withEnv(clusterStatefulSetEnvironmentVariables.listResources(config))
         .withVolumeMounts(
             ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(config),
-            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.LOCAL_BIN_PATH, config))
+            ClusterStatefulSetVolumeConfig.USER.volumeMount(config),
+            ClusterStatefulSetVolumeConfig.LOCAL_BIN.volumeMount(config))
         .build();
   }
 
@@ -161,8 +163,8 @@ public class ClusterStatefulSetInitContainers
             .build())
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(config),
             ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(config),
-            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.LOCAL_BIN_PATH, config))
+            ClusterStatefulSetVolumeConfig.USER.volumeMount(config),
+            ClusterStatefulSetVolumeConfig.LOCAL_BIN.volumeMount(config))
         .build(),
         new ContainerBuilder()
         .withName(StackgresClusterContainers.MAJOR_VERSION_UPGRADE)
@@ -217,6 +219,7 @@ public class ClusterStatefulSetInitContainers
             .build())
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(config),
             ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(config),
+            ClusterStatefulSetVolumeConfig.USER.volumeMount(config),
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(
                 config,
                 volumeMountBuilder -> volumeMountBuilder
@@ -265,8 +268,8 @@ public class ClusterStatefulSetInitContainers
             .build())
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(config),
             ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(config),
-            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.LOCAL_BIN_PATH, config))
+            ClusterStatefulSetVolumeConfig.USER.volumeMount(config),
+            ClusterStatefulSetVolumeConfig.LOCAL_BIN.volumeMount(config))
         .build());
   }
 
