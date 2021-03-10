@@ -15,6 +15,7 @@ SCHEDULED_BACKUP_KEY=scheduled-backup
 RIGHT_VALUE=true
 BACKUP_CONFIG=test
 PATRONI_CLUSTER_LABELS=app=StackGresCluster,cluster-uid=test,cluster-namespace=test,cluster-name=test
+PATRONI_CONTAINER_NAME=patroni
 PATRONI_ROLE_KEY=role
 PATRONI_PRIMARY_ROLE=master
 PATRONI_REPLICA_ROLE=replica
@@ -83,7 +84,7 @@ EOF
     ;;
     ("get pod -n $CLUSTER_NAMESPACE --template="*)
     ;;
-    ("exec -i -n $CLUSTER_NAMESPACE pod/test-0 -c patroni -- sh -e"*)
+    ("exec -i -n $CLUSTER_NAMESPACE pod/test-0 -c $PATRONI_CONTAINER_NAME -- sh -e"*)
     STDIN="$(cat)"
     case "$STDIN" in
       (*" wal-g backup-push "*)
@@ -96,7 +97,7 @@ EOF
       ;;
     esac
     ;;
-    ("exec -i -n $CLUSTER_NAMESPACE pod/test-1 -c patroni -- sh -e"*)
+    ("exec -i -n $CLUSTER_NAMESPACE pod/test-1 -c $PATRONI_CONTAINER_NAME -- sh -e"*)
     STDIN="$(cat)"
     case "$STDIN" in
       (*" for each existing backup"*)

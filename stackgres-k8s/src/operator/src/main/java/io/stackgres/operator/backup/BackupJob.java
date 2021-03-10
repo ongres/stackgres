@@ -28,6 +28,7 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
@@ -205,6 +206,10 @@ public class BackupJob implements StackGresClusterResourceStreamFactory {
                             .stream()
                             .map(e -> e.getKey() + "=" + e.getValue())
                             .collect(Collectors.joining(",")))
+                        .build(),
+                        new EnvVarBuilder()
+                        .withName("PATRONI_CONTAINER_NAME")
+                        .withValue(StackgresClusterContainers.PATRONI)
                         .build(),
                         new EnvVarBuilder().withName("POD_NAME")
                         .withValueFrom(

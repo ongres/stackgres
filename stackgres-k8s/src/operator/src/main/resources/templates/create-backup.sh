@@ -291,7 +291,7 @@ get_primary_and_replica_pods() {
 }
 
 do_backup() {
-  cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c patroni \
+  cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
     -- sh -e $SHELL_XTRACE > /tmp/backup-push 2>&1
 exec-with-env "$BACKUP_ENV" \\
   -- wal-g backup-push "$PG_DATA_PATH" -f $([ "$BACKUP_IS_PERMANENT" = true ] && echo '-p' || true)
@@ -322,7 +322,7 @@ EOF
 }
 
 extract_controldata() {
-  cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c patroni \
+  cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
       -- sh -e $SHELL_XTRACE > /tmp/pg_controldata
 pg_controldata --pgdata="$PG_DATA_PATH"
 EOF
@@ -344,7 +344,7 @@ EOF
 }
 
 retain_backups() {
-  cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c patroni \
+  cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c "$PATRONI_CONTAINER_NAME" \
   -- sh -e $SHELL_XTRACE
 # for each existing backup sorted by backup name ascending (this also mean sorted by creation date ascending)
 exec-with-env "$BACKUP_ENV" \\
@@ -455,7 +455,7 @@ EOF
 }
 
 list_backups() {
-  cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c patroni \
+  cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c "$PATRONI_CONTAINER_NAME" \
     -- sh -e $SHELL_XTRACE > /tmp/backup-list
 WALG_LOG_LEVEL= exec-with-env "$BACKUP_ENV" \\
 -- wal-g backup-list --detail --json

@@ -3,6 +3,7 @@
 . "$TEST_SHELL_PATH/abstract-dbops"
 
 RUN_SCRIPT_PATH="$PROJECT_PATH/src/main/resources/templates/run-restart.sh"
+PATRONI_CONTAINER_NAME=patroni
 SET_RESULT_SCRIPT_PATH=""
 OP_NAME=restart
 NORMALIZED_OP_NAME='restart'
@@ -93,10 +94,10 @@ kubectl_mock() {
     ("delete pod -n $CLUSTER_NAMESPACE test-1")
     echo true > "$TEST_TARGET_PATH/pod_1_restarted"
     ;;
-    ("exec -n $CLUSTER_NAMESPACE test-0 -c patroni -- patronictl switchover "*)
+    ("exec -n $CLUSTER_NAMESPACE test-0 -c $PATRONI_CONTAINER_NAME -- patronictl switchover "*)
     echo "pod/test-1" > "$TEST_TARGET_PATH/primary_pod"
     ;;
-    ("exec -n $CLUSTER_NAMESPACE test-0 -c patroni -- patronictl "*)
+    ("exec -n $CLUSTER_NAMESPACE test-0 -c $PATRONI_CONTAINER_NAME -- patronictl "*)
     ;;
     *)
     not_mokked

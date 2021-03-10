@@ -67,7 +67,7 @@ EOF
   if ! kubectl get pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -o name > /dev/null
   then
     echo FAILURE="Primary instance not found!" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
-    exit 1
+    return 1
   fi
   echo "Found primary instance $PRIMARY_INSTANCE"
   echo
@@ -88,7 +88,7 @@ EOF
   then
     echo "Restarting primary inscante first..."
 
-    kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c patroni -- \
+    kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" -- \
       patronictl restart "$CLUSTER_NAME" -r master --force \
 
     echo "Waiting primary instance $PRIMARY_INSTANCE to be ready..."
@@ -100,7 +100,7 @@ EOF
     if [ "$PRIMARY_INSTANCE" != "$CURRENT_PRIMARY_INSTANCE" ]
     then
       echo "FAILURE=$NORMALIZED_OP_NAME failed. Please check pod $PRIMARY_INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
-      exit 1
+      return 1
     fi
 
     echo "done"
@@ -171,7 +171,7 @@ EOF
     then
       echo "Performing switchover from primary $PRIMARY_INSTANCE to replica $TARGET_INSTANCE..."
 
-      kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c patroni -- \
+      kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" -- \
         patronictl switchover "$CLUSTER_NAME" --master "$PRIMARY_INSTANCE" --candidate "$TARGET_INSTANCE" --force \
 
       echo "done"
@@ -201,7 +201,7 @@ EOF
       if [ "$PRIMARY_INSTANCE" != "$CURRENT_PRIMARY_INSTANCE" ]
       then
         echo "FAILURE=$NORMALIZED_OP_NAME failed. Please check pod $PRIMARY_INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
-        exit 1
+        return 1
       fi
     fi
 
@@ -377,7 +377,7 @@ wait_for_instance() {
     if [ "$PHASE" = "Failed" ] || [ "$PHASE" = "Unknown" ]
     then
       echo "FAILURE=$NORMALIZED_OP_NAME failed. Please check pod $INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
-      exit 1
+      return 1
     fi
     sleep 1
   done

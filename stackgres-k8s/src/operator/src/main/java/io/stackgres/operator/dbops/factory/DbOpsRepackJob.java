@@ -8,6 +8,7 @@ package io.stackgres.operator.dbops.factory;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -19,6 +20,7 @@ import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.ObjectMapperProvider;
+import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsRepack;
@@ -26,8 +28,6 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsRepackConfig;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
 import io.stackgres.operator.common.StackGresDbOpsContext;
 import io.stackgres.operator.common.StackGresPodSecurityContext;
-import io.stackgres.operator.patroni.factory.PatroniSecret;
-import io.stackgres.operator.patroni.factory.PatroniServices;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
@@ -55,25 +55,27 @@ public class DbOpsRepackJob extends DbOpsJob {
   @Override
   protected List<EnvVar> getRunEnvVars(StackGresDbOpsContext context, StackGresDbOps dbOps) {
     StackGresDbOpsRepack repack = dbOps.getSpec().getRepack();
-    final String primaryServiceDns = PatroniServices.readWriteName(context);
     List<EnvVar> runEnvVars = ImmutableList.<EnvVar>builder()
         .add(
             new EnvVarBuilder()
-            .withName("PGHOST")
-            .withValue(primaryServiceDns)
+            .withName("CLUSTER_NAMESPACE")
+            .withValue(context.getCluster().getMetadata().getNamespace())
             .build(),
             new EnvVarBuilder()
-            .withName("PGUSER")
-            .withValue("postgres")
+            .withName("CLUSTER_NAME")
+            .withValue(context.getCluster().getMetadata().getName())
             .build(),
             new EnvVarBuilder()
-            .withName("PGPASSWORD")
-            .withNewValueFrom()
-            .withNewSecretKeyRef()
-            .withName(PatroniSecret.name(context))
-            .withKey(PatroniSecret.SUPERUSER_PASSWORD_KEY)
-            .endSecretKeyRef()
-            .endValueFrom()
+            .withName("CLUSTER_PRIMARY_POD_LABELS")
+            .withValue(labelFactory.patroniPrimaryLabels(context.getCluster())
+                .entrySet()
+                .stream()
+                .map(e -> e.getKey() + "=" + e.getValue())
+                .collect(Collectors.joining(",")))
+            .build(),
+            new EnvVarBuilder()
+            .withName("PATRONI_CONTAINER_NAME")
+            .withValue(StackgresClusterContainers.PATRONI)
             .build())
         .addAll(getRepackConfigEnvVar(repack))
         .add(new EnvVarBuilder()
