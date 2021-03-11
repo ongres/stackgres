@@ -541,7 +541,9 @@ get_component_versions() {
     curl -f -s "$(get_pom_url "$VERSION")"
   fi
   ) | grep -F "<stackgres.container.$COMPONENT>" \
-    | cut -d '>' -f 2 | cut -d '<' -f 1 | tr ',' '\n'
+    | cut -d '>' -f 2 | cut -d '<' -f 1 | tr ',' '\n' \
+    | while read VERSION; do echo "${VERSION%%-build-*}.${VERSION##*-build-} $VERSION"; done \
+    | sort -t ' ' -k 1V,1V | cut -d ' ' -f 2
 }
 
 get_pom_url() {

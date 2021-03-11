@@ -1,6 +1,19 @@
 #!/bin/sh
 
 e2e_test_install() {
+  curl -s -f "$(echo "$EXTENSIONS_REPOSITORY_URL" | sed 's#/\+$##')/index.json" > "$TARGET_PATH/index.json"
+
+  PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION" | grep '/patroni:' | sort | tail -n 1)"
+  PATRONI_IMAGE_TAG="${PATRONI_IMAGE##*:}"
+  PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PATRONI_IMAGE##*-pg}"
+  PATRONI_IMAGE_POSTGRES_VERSION="${PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
+  PATRONI_IMAGE_POSTGRES_MAJOR_VERSION="${PATRONI_IMAGE_POSTGRES_VERSION%%.*}"
+  PATRONI_IMAGE_BUILD_VERSION="${PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION##*-build-}"
+  PATRONI_IMAGE_BUILD_MAJOR_VERSION="${PATRONI_IMAGE_BUILD_VERSION%%.*}"
+  INTAGG_VERSION="$(get_latest_version_of_extension intagg)"
+  PAGEINSPECT_VERSION="$(get_latest_version_of_extension pageinspect)"
+  PG_REPACK_VERSION="$(get_latest_version_of_extension pg_repack)"
+
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --set-string 'cluster.postgresExtensions[0].name=timescaledb' \
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=timescaledb
@@ -8,6 +21,27 @@ e2e_test_install() {
   wait_pods_running "$CLUSTER_NAMESPACE" "2"
 }
 
+get_latest_version_of_extension() {
+  local EXTENSION_NAME="$1"
+  local VERSIONS
+  VERSIONS="$(jq -r "$(cat << EOF
+.extensions[] | select(.name == "$EXTENSION_NAME").versions[]
+  | select((.availableFor
+    | map(select(
+      (.postgresVersion == "$PATRONI_IMAGE_POSTGRES_VERSION"
+        or .postgresVersion == "$PATRONI_IMAGE_POSTGRES_MAJOR_VERSION")
+      and (if .build == null then true
+        else .build | split(".")[0] == "$PATRONI_IMAGE_BUILD_MAJOR_VERSION" end)))
+      | length) > 0).version
+EOF
+      )" "$TARGET_PATH/index.json")"
+  if [ -z "$VERSIONS" ]
+  then
+    echo "Can not find any compatible version of extension $EXTENSION_NAME for postgres $PATRONI_IMAGE_POSTGRES_VERSION build $PATRONI_IMAGE_BUILD_MAJOR_VERSION" >&2
+    return 1
+  fi
+  echo "$VERSIONS" | head -n 1
+}
 
 e2e_test() {
   run_test "Check extension is installed and available after booting" check_extension_installed_after_booting
@@ -16,11 +50,13 @@ e2e_test() {
 
   run_test "Check extension without shared library is installed and available when added" check_extension_without_shared_library_installed_when_added
 
-  run_test "Check extension without shared library is installed and available when upgraded" check_extension_without_shared_library_installed_when_upgraded
+  #TODO: require to implement a mock to add modified intagg extension from another publisher
+  #run_test "Check extension without shared library is installed and available when upgraded" check_extension_without_shared_library_installed_when_upgraded
 
   run_test "Check extension with shared library is installed and available when added" check_extension_with_shared_library_installed_when_added
 
-  run_test "Check extension with shared library is installed when added and available after restart" check_extension_with_shared_library_installed_when_upgraded
+  #TODO: require to implement a mock to add modified pageinspect extension from another publisher
+  #run_test "Check extension with shared library is installed when added and available after restart" check_extension_with_shared_library_installed_when_upgraded
 
   run_test "Check extension with executable is installed and available when added" check_extension_with_executable_installed_when_added
 }
@@ -112,6 +148,14 @@ check_extension_not_uninstalled_when_removed() {
 check_extension_without_shared_library_installed_when_added() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --reset-values \
+    --set 'cluster.postgresExtensions=null' \
+    --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
+
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" --all
+  wait_pods_running "$CLUSTER_NAMESPACE" "2"
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
+    --reset-values \
     --set-string 'cluster.postgresExtensions[0].name=intagg' \
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
 
@@ -134,17 +178,25 @@ check_extension_without_shared_library_installed_when_added() {
     echo "FAIL. Extension was not created"
     return 1
   fi
+
+  if ! kubectl wait sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --for condition=PendingRestart --timeout 0
+  then
+    echo "SUCESS. Cluster is not pending restart"
+  else
+    echo "FAIL. Cluster is pending restart"
+    return 1
+  fi
 }
 
 check_extension_without_shared_library_installed_when_upgraded() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --reset-values \
     --set-string 'cluster.postgresExtensions[0].name=intagg' \
-    --set-string 'cluster.postgresExtensions[0].version=1.2' \
+    --set-string 'cluster.postgresExtensions[0].version='"$INTAGG_NEW_VERSION" \
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
 
   try_function wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[] | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[] | select(.name == \"intagg\" and .version == \"1.2\") | length" \
+    | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[] | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[] | select(.name == \"intagg\" and .version == \"'"$INTAGG_NEW_VERSION"'\") | length" \
     | jq -s "length")" = 2 ]'
   if "$RESULT"
   then
@@ -155,7 +207,7 @@ check_extension_without_shared_library_installed_when_upgraded() {
   fi
 
   if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[] | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[] | select(.name == \"intagg\" and .version == \"1.1\") | length" \
+    | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[] | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[] | select(.name == \"intagg\" and .version == \"'"$INTAGG_VERSION"'\") | length" \
     | jq -s "length")" = 0 ]
   then
     echo "SUCESS. Previous version of extension was upgraded"
@@ -164,7 +216,7 @@ check_extension_without_shared_library_installed_when_upgraded() {
     return 1
   fi
 
-  try_function run_query -i 0 -q "ALTER EXTENSION intagg UPDATE TO '1.2';"
+  try_function run_query -i 0 -q "ALTER EXTENSION intagg UPDATE TO '$INTAGG_NEW_VERSION';"
   if "$RESULT"
   then
     echo "SUCESS. Extension was upgraded"
@@ -180,7 +232,9 @@ check_extension_without_shared_library_installed_when_upgraded() {
     echo "FAIL. Cluster is pending restart"
     return 1
   fi
+}
 
+check_extension_with_shared_library_installed_when_added() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --reset-values \
     --set 'cluster.postgresExtensions=null' \
@@ -188,16 +242,14 @@ check_extension_without_shared_library_installed_when_upgraded() {
 
   kubectl delete pod -n "$CLUSTER_NAMESPACE" --all
   wait_pods_running "$CLUSTER_NAMESPACE" "2"
-}
 
-check_extension_with_shared_library_installed_when_added() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --reset-values \
     --set-string 'cluster.postgresExtensions[0].name=pageinspect' \
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
 
   try_function wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[] | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[] | select(.name == \"pageinspect\" and .version == \"1.7\") | length" \
+    | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[] | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[] | select(.name == \"pageinspect\" and .version == \"'"$PAGEINSPECT_VERSION"'\") | length" \
     | jq -s "length")" = 2 ]'
   if "$RESULT"
   then
@@ -229,11 +281,11 @@ check_extension_with_shared_library_installed_when_upgraded() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --reset-values \
     --set-string 'cluster.postgresExtensions[0].name=pageinspect' \
-    --set-string 'cluster.postgresExtensions[0].version=1.8' \
+    --set-string 'cluster.postgresExtensions[0].version='"$PAGEINSPECT_NEW_VERSION" \
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
 
   try_function wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[] | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[] | select(.name == \"pageinspect\" and .version == \"1.8\") | length" \
+    | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[] | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[] | select(.name == \"pageinspect\" and .version == \"'"$PAGEINSPECT_NEW_VERSION"'\") | length" \
     | jq -s "length")" = 2 ]'
   if "$RESULT"
   then
@@ -244,7 +296,7 @@ check_extension_with_shared_library_installed_when_upgraded() {
   fi
 
   if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[] | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[] | select(.name == \"pageinspect\" and .version == \"1.7\") | length" \
+    | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[] | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[] | select(.name == \"pageinspect\" and .version == \"'"$PAGEINSPECT_VERSION"'\") | length" \
     | jq -s "length")" = 0 ]
   then
     echo "SUCESS. Previous version of extension was upgraded"
@@ -261,7 +313,7 @@ check_extension_with_shared_library_installed_when_upgraded() {
     return 1
   fi
 
-  try_function run_query -i 0 -q "ALTER EXTENSION pageinspect UPDATE TO '1.8';"
+  try_function run_query -i 0 -q "ALTER EXTENSION pageinspect UPDATE TO '$PAGEINSPECT_NEW_VERSION';"
   if "$RESULT"
   then
     echo "FAIL. Extension was upgraded"
@@ -273,7 +325,7 @@ check_extension_with_shared_library_installed_when_upgraded() {
   kubectl delete pod -n "$CLUSTER_NAMESPACE" --all
   wait_pods_running "$CLUSTER_NAMESPACE" "2"
 
-  try_function run_query -i 0 -q "ALTER EXTENSION pageinspect UPDATE TO '1.8';"
+  try_function run_query -i 0 -q "ALTER EXTENSION pageinspect UPDATE TO '$PAGEINSPECT_NEW_VERSION';"
   if "$RESULT"
   then
     echo "SUCESS. Extension was upgraded"
@@ -294,13 +346,19 @@ check_extension_with_shared_library_installed_when_upgraded() {
 check_extension_with_executable_installed_when_added() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --reset-values \
-    --set-string 'cluster.postgresExtensions[0].name=pageinspect' \
-    --set-string 'cluster.postgresExtensions[0].version=1.8' \
-    --set-string 'cluster.postgresExtensions[1].name=pg_repack' \
+    --set 'cluster.postgresExtensions=null' \
+    --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
+
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" --all
+  wait_pods_running "$CLUSTER_NAMESPACE" "2"
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
+    --reset-values \
+    --set-string 'cluster.postgresExtensions[0].name=pg_repack' \
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
 
   try_function wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[] | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[] | select(.name == \"pg_repack\" and .version == \"1.4.5\") | length" \
+    | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[] | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[] | select(.name == \"pg_repack\" and .version == \"'"$PG_REPACK_VERSION"'\") | length" \
     | jq -s "length")" = 2 ]'
   if "$RESULT"
   then
