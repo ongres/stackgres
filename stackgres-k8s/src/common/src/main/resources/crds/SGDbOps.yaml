@@ -16,6 +16,24 @@ spec:
     - name: v1
       served: true
       storage: true
+      additionalPrinterColumns:
+      - name: cluster
+        type: string
+        jsonPath: .spec.sgCluster
+      - name: operation
+        type: string
+        jsonPath: .spec.op
+      - name: status
+        type: string
+        jsonPath: .status.conditions[?(@.status=="True")].reason
+      - name: started-at
+        type: string
+        jsonPath: .status.opStarted
+        priority: 1
+      - name: retries
+        type: string
+        jsonPath: .status.opRetries
+        priority: 1
       schema:
         openAPIV3Schema:
           required: ["metadata", "spec"]
@@ -521,3 +539,4 @@ spec:
                       type: string
                       description: |
                         A failure message (when available)
+      

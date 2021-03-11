@@ -16,6 +16,29 @@ spec:
     - name: v1
       served: true
       storage: true
+      additionalPrinterColumns:
+      - name: cluster
+        type: string
+        jsonPath: .spec.sgCluster
+      - name: managed
+        type: string
+        jsonPath: .status.process.managedLifecycle
+      - name: status
+        type: string
+        jsonPath: .status.process.status
+      - name: pg-version
+        type: string
+        jsonPath: .status.backupInformation.postgresVersion
+        priority: 1
+      - name: compressed-size
+        type: integer
+        format: byte
+        jsonPath: .status.backupInformation.size.compressed
+        priority: 1
+      - name: timeline
+        type: string
+        jsonPath: .status.backupInformation.timeline
+        priority: 1
       schema:
         openAPIV3Schema:
           type: object
