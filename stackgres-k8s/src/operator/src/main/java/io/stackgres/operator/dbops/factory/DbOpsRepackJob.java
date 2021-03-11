@@ -20,6 +20,7 @@ import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.ObjectMapperProvider;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -132,6 +133,11 @@ public class DbOpsRepackJob extends DbOpsJob {
             .map(String::valueOf)
             .orElse("false"))
         .build());
+  }
+
+  @Override
+  protected String getRunImage(StackGresDbOpsContext context) {
+    return StackGresContext.KUBECTL_IMAGE;
   }
 
   @Override
