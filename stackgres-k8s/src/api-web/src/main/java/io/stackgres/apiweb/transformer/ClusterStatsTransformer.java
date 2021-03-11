@@ -170,6 +170,9 @@ public class ClusterStatsTransformer
     pod.setAverageLoad10m(stats(
         podStats, PatroniStatsScripts.LOAD_10M,
         ResourceUtil::toMilliload, ResourceUtil::asLoad));
+    pod.setConnections(stats(
+        podStats, PatroniStatsScripts.CONNECTIONS,
+        ResourceUtil::toBigInteger, String::valueOf));
   }
 
   private Optional<BigInteger> cpuStats(ImmutableMap<PatroniStatsScripts, String> podStats) {
@@ -291,6 +294,9 @@ public class ClusterStatsTransformer
     stats.setAverageLoad10m(averageStats(
         allPodStats, PatroniStatsScripts.LOAD_10M,
         ResourceUtil::toMilliload, ResourceUtil::asLoad));
+    stats.setConnections(sumStats(
+        allPodStats, PatroniStatsScripts.CONNECTIONS,
+        ResourceUtil::toBigInteger, String::valueOf));
   }
 
   private void setGlobalRequested(ClusterStatsDto stats,

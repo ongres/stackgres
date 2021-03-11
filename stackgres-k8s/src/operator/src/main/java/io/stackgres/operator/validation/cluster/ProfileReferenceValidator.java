@@ -31,18 +31,20 @@ public class ProfileReferenceValidator implements ClusterValidator {
 
   @Override
   public void validate(StackGresClusterReview review) throws ValidationFailed {
-
-    StackGresCluster cluster = review.getRequest().getObject();
-    String resourceProfile = cluster.getSpec().getResourceProfile();
-
     switch (review.getRequest().getOperation()) {
-      case CREATE:
+      case CREATE: {
+        StackGresCluster cluster = review.getRequest().getObject();
+        String resourceProfile = cluster.getSpec().getResourceProfile();
         checkIfProfileExists(review, "Invalid profile " + resourceProfile);
         break;
-      case UPDATE:
+      }
+      case UPDATE: {
+        StackGresCluster cluster = review.getRequest().getObject();
+        String resourceProfile = cluster.getSpec().getResourceProfile();
         checkIfProfileExists(review, "Cannot update to profile "
             + resourceProfile + " because it doesn't exists");
         break;
+      }
       default:
     }
 

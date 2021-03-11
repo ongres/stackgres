@@ -32,19 +32,21 @@ public class PoolingConfigValidator implements ClusterValidator {
 
   @Override
   public void validate(StackGresClusterReview review) throws ValidationFailed {
-
-    StackGresCluster cluster = review.getRequest().getObject();
-    String poolingConfig = cluster.getSpec().getConfiguration().getConnectionPoolingConfig();
-
     switch (review.getRequest().getOperation()) {
-      case CREATE:
+      case CREATE: {
+        StackGresCluster cluster = review.getRequest().getObject();
+        String poolingConfig = cluster.getSpec().getConfiguration().getConnectionPoolingConfig();
         checkIfPoolingConfigExists(review, "Pooling config " + poolingConfig
             + " not found");
         break;
-      case UPDATE:
+      }
+      case UPDATE: {
+        StackGresCluster cluster = review.getRequest().getObject();
+        String poolingConfig = cluster.getSpec().getConfiguration().getConnectionPoolingConfig();
         checkIfPoolingConfigExists(review, "Cannot update to pooling config "
             + poolingConfig + " because it doesn't exists");
         break;
+      }
       default:
     }
 

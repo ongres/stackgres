@@ -1,0 +1,18 @@
+ARG BASE_IMAGE
+FROM "$BASE_IMAGE"
+  USER root
+  WORKDIR '/app/'
+  COPY 'target/stackgres-restapi-runner.jar' '/app/stackgres-restapi.jar'
+  COPY 'target/lib/' '/app/lib/'
+  COPY 'src/main/docker/stackgres-restapi.sh' '/app/stackgres-restapi.sh'
+  RUN chown nobody:nobody '/app/' -R
+  RUN chmod 775 '/app'
+  RUN chmod 775 '/app/stackgres-restapi.sh'
+
+  CMD '/app/stackgres-restapi.sh'
+  EXPOSE 8080
+  EXPOSE 8443
+  USER nobody
+  ENV LANG="C.UTF-8"
+  ENV LC_ALL="C.UTF-8"
+

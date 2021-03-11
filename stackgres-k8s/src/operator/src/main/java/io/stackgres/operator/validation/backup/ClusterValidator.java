@@ -36,22 +36,24 @@ public class ClusterValidator implements BackupValidator {
 
   @Override
   public void validate(BackupReview review) throws ValidationFailed {
-
-    StackGresBackup backup = review.getRequest().getObject();
-    String cluster = backup != null ? backup.getSpec().getSgCluster() : null;
-
     switch (review.getRequest().getOperation()) {
-      case CREATE:
+      case CREATE: {
+        StackGresBackup backup = review.getRequest().getObject();
+        String cluster = backup != null ? backup.getSpec().getSgCluster() : null;
         checkIfClusterExists(review, "Cluster " + cluster
             + " not found");
         break;
-      case UPDATE:
+      }
+      case UPDATE: {
+        StackGresBackup backup = review.getRequest().getObject();
+        String cluster = backup != null ? backup.getSpec().getSgCluster() : null;
         if (!review.getRequest().getOldObject().getSpec().getSgCluster()
             .equals(cluster)) {
           final String message = "Backup cluster can not be updated.";
           fail(message);
         }
         break;
+      }
       default:
     }
 

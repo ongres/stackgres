@@ -19,6 +19,9 @@ public class DbOpsMajorVersionUpgrade {
   @JsonProperty("link")
   private Boolean link;
 
+  @JsonProperty("clone")
+  private Boolean clone;
+
   @JsonProperty("check")
   private Boolean check;
 
@@ -28,6 +31,14 @@ public class DbOpsMajorVersionUpgrade {
 
   public void setLink(Boolean link) {
     this.link = link;
+  }
+
+  public Boolean getClone() {
+    return clone;
+  }
+
+  public void setClone(Boolean clone) {
+    this.clone = clone;
   }
 
   public Boolean getCheck() {

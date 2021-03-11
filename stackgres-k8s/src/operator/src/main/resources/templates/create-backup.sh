@@ -58,7 +58,7 @@ reconcile_backups() {
     BACKUP_NAME="${CLUSTER_NAME}-$(date +%Y-%m-%d-%H-%M-%S --utc)"
   fi
 
-  BACKUP_CONFIG_RESOURCE_VERSION="$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template '{{ .metadata.resourceVersion }}')"
+  BACKUP_CONFIG_RESOURCE_VERSION="$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template='{{ .metadata.resourceVersion }}')"
   BACKUP_ALREADY_COMPLETED=false
   create_or_update_backup_cr
   if [ "$BACKUP_ALREADY_COMPLETED" = "true" ]
@@ -68,7 +68,7 @@ reconcile_backups() {
   fi
 
   CURRENT_BACKUP_CONFIG="$(kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-    --template "{{ .status.sgBackupConfig.storage }}")"
+    --template="{{ .status.sgBackupConfig.storage }}")"
 
   set +e
   echo "Retrieving primary and replica"
@@ -110,7 +110,7 @@ reconcile_backups() {
   fi
   cat /tmp/backup-list | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\n' \
     | grep '"backup_name":"'"$CURRENT_BACKUP_NAME"'"' | tr -d '{}"' | tr ',' '\n' > /tmp/current-backup
-  if [ "$BACKUP_CONFIG_RESOURCE_VERSION" != "$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template '{{ .metadata.resourceVersion }}')" ]
+  if [ "$BACKUP_CONFIG_RESOURCE_VERSION" != "$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template='{{ .metadata.resourceVersion }}')" ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_FAILED"'"},
@@ -151,7 +151,7 @@ get_backup_crs() {
   BACKUP_CR_TEMPLATE="${BACKUP_CR_TEMPLATE}:{{ if .status.process.managedLifecycle }}true{{ else }}false{{ end }}"
   BACKUP_CR_TEMPLATE="${BACKUP_CR_TEMPLATE}{{ printf "'"\n"'" }}{{ end }}"
   kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" \
-    --template "$BACKUP_CR_TEMPLATE" > /tmp/all-backups
+    --template="$BACKUP_CR_TEMPLATE" > /tmp/all-backups
   grep "^$CLUSTER_NAME:" /tmp/all-backups > /tmp/backups || true
 }
 
@@ -228,7 +228,7 @@ status:
     status: "$BACKUP_PHASE_RUNNING"
     jobPod: "$POD_NAME"
   sgBackupConfig:
-$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template "$BACKUP_CONFIG_YAML")
+$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template="$BACKUP_CONFIG_YAML")
 BACKUP_STATUS_YAML_EOF
   )
 
@@ -249,7 +249,7 @@ spec:
 $BACKUP_STATUS_YAML
 EOF
   else
-    if ! kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --template "{{ .status.process.status }}" \
+    if ! kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --template="{{ .status.process.status }}" \
       | grep -q "^$BACKUP_PHASE_COMPLETED$"
     then
       echo "Updating backup CR"
@@ -511,7 +511,7 @@ set_backup_completed() {
 
 reconcile_backup_crs() {
   kubectl get pod -n "$CLUSTER_NAMESPACE" \
-    --template "{{ range .items }}{{ .metadata.name }}{{ printf "'"\n"'" }}{{ end }}" \
+    --template="{{ range .items }}{{ .metadata.name }}{{ printf "'"\n"'" }}{{ end }}" \
     > /tmp/pods
   for BACKUP in $(cat /tmp/backups)
   do
@@ -523,7 +523,7 @@ reconcile_backup_crs() {
     BACKUP_MANAGED_LIFECYCLE="$(echo "$BACKUP" | cut -d : -f 8)"
     BACKUP_IS_PERMANENT="$([ "$BACKUP_MANAGED_LIFECYCLE" = true ] && echo false || echo true)"
     BACKUP_CONFIG="$(kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CR_NAME" \
-      --template "{{ .status.sgBackupConfig.storage }}")"
+      --template="{{ .status.sgBackupConfig.storage }}")"
     # if backup CR has backup internal name, is marked as completed, uses the same current
     # backup config but is not found in the storage, delete it
     if [ -n "$BACKUP_NAME" ] && [ "$BACKUP_PHASE" = "$BACKUP_PHASE_COMPLETED" ] \

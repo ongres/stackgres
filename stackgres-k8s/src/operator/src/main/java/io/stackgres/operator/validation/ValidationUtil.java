@@ -15,5 +15,6 @@ public interface ValidationUtil {
   String BACKUP_VALIDATION_PATH = VALIDATION_PATH + "/sgbackup";
   String PROFILE_VALIDATION_PATH = VALIDATION_PATH + "/sginstanceprofile";
   String DISTRIBUTED_LOGS_VALIDATION_PATH = VALIDATION_PATH + "/sgdistributedlogs";
+  String DBOPS_VALIDATION_PATH = VALIDATION_PATH + "/sgdbops";
 
 }

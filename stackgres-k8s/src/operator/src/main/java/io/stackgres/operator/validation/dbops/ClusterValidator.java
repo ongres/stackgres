@@ -31,11 +31,10 @@ public class ClusterValidator implements DbOpsValidator {
 
   @Override
   public void validate(StackGresDbOpsReview review) throws ValidationFailed {
-    String cluster = review.getRequest().getObject().getSpec().getSgCluster();
-    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
-
     switch (review.getRequest().getOperation()) {
       case CREATE:
+        String cluster = review.getRequest().getObject().getSpec().getSgCluster();
+        String namespace = review.getRequest().getObject().getMetadata().getNamespace();
         checkIfClusterExists(cluster, namespace,
             "Cluster " + cluster + " not found");
         break;

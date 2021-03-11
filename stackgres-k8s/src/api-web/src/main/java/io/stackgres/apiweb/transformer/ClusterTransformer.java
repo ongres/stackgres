@@ -14,7 +14,13 @@ import javax.inject.Inject;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.apiweb.config.WebApiProperty;
+import io.stackgres.apiweb.dto.cluster.ClusterCondition;
 import io.stackgres.apiweb.dto.cluster.ClusterConfiguration;
+import io.stackgres.apiweb.dto.cluster.ClusterDbOpsMajorVersionUpgradeStatus;
+import io.stackgres.apiweb.dto.cluster.ClusterDbOpsMinorVersionUpgradeStatus;
+import io.stackgres.apiweb.dto.cluster.ClusterDbOpsRestartStatus;
+import io.stackgres.apiweb.dto.cluster.ClusterDbOpsSecurityUpgradeStatus;
+import io.stackgres.apiweb.dto.cluster.ClusterDbOpsStatus;
 import io.stackgres.apiweb.dto.cluster.ClusterDistributedLogs;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterInitData;
@@ -30,11 +36,14 @@ import io.stackgres.apiweb.dto.cluster.ClusterScriptFrom;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecAnnotations;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
+import io.stackgres.apiweb.dto.cluster.ClusterStatus;
 import io.stackgres.apiweb.dto.cluster.PodScheduling;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
@@ -47,6 +56,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgcluster.StackGresPodScheduling;
 import org.jooq.lambda.Seq;
@@ -86,6 +96,7 @@ public class ClusterTransformer
     ClusterDto transformation = new ClusterDto();
     transformation.setMetadata(getDtoMetadata(source));
     transformation.setSpec(getResourceSpec(source.getSpec()));
+    transformation.setStatus(getResourceStatus(source.getStatus()));
     transformation.setGrafanaEmbedded(isGrafanaEmbeddedEnabled());
     return transformation;
   }
@@ -439,6 +450,94 @@ public class ClusterTransformer
     }
     ClusterDistributedLogs transformation = new ClusterDistributedLogs();
     transformation.setDistributedLogs(source.getDistributedLogs());
+    return transformation;
+  }
+
+  public ClusterStatus getResourceStatus(StackGresClusterStatus source) {
+    if (source == null) {
+      return null;
+    }
+    ClusterStatus transformation = new ClusterStatus();
+
+    final List<StackGresClusterCondition> sourceClusterConditions = source.getConditions();
+
+    if (sourceClusterConditions != null) {
+      transformation.setConditions(sourceClusterConditions.stream()
+          .map(this::getResourceCondition)
+          .collect(ImmutableList.toImmutableList()));
+    }
+
+    transformation.setDbOps(getDbOpsStatus(source.getDbOps()));
+
+    return transformation;
+  }
+
+  private ClusterCondition getResourceCondition(
+      StackGresClusterCondition source) {
+    ClusterCondition transformation = new ClusterCondition();
+    transformation.setType(source.getType());
+    transformation.setStatus(source.getStatus());
+    transformation.setReason(source.getReason());
+    transformation.setLastTransitionTime(source.getLastTransitionTime());
+    transformation.setMessage(source.getMessage());
+    return transformation;
+  }
+
+  private ClusterDbOpsStatus getDbOpsStatus(StackGresClusterDbOpsStatus source) {
+    if (source == null) {
+      return null;
+    }
+    ClusterDbOpsStatus transformation = new ClusterDbOpsStatus();
+    if (source.getRestart() != null) {
+      ClusterDbOpsRestartStatus transformationRestart =
+          new ClusterDbOpsRestartStatus();
+      transformationRestart.setInitialInstances(source.getRestart().getInitialInstances());
+      transformationRestart.setPrimaryInstance(source.getRestart().getPrimaryInstance());
+      transformation.setRestart(transformationRestart);
+    }
+    if (source.getMinorVersionUpgrade() != null) {
+      ClusterDbOpsMinorVersionUpgradeStatus transformationMinorVersionUpgrade =
+          new ClusterDbOpsMinorVersionUpgradeStatus();
+      transformationMinorVersionUpgrade.setInitialInstances(
+          source.getMinorVersionUpgrade().getInitialInstances());
+      transformationMinorVersionUpgrade.setPrimaryInstance(
+          source.getMinorVersionUpgrade().getPrimaryInstance());
+      transformation.setMinorVersionUpgrade(transformationMinorVersionUpgrade);
+    }
+    if (source.getSecurityUpgrade() != null) {
+      ClusterDbOpsSecurityUpgradeStatus transformationSecurityUpgrade =
+          new ClusterDbOpsSecurityUpgradeStatus();
+      transformationSecurityUpgrade.setInitialInstances(
+          source.getSecurityUpgrade().getInitialInstances());
+      transformationSecurityUpgrade.setPrimaryInstance(
+          source.getSecurityUpgrade().getPrimaryInstance());
+      transformation.setSecurityUpgrade(transformationSecurityUpgrade);
+    }
+    if (source.getMajorVersionUpgrade() != null) {
+      ClusterDbOpsMajorVersionUpgradeStatus transformationMajorVersionUpgrade =
+          new ClusterDbOpsMajorVersionUpgradeStatus();
+      transformationMajorVersionUpgrade.setInitialInstances(
+          source.getMajorVersionUpgrade().getInitialInstances());
+      transformationMajorVersionUpgrade.setPrimaryInstance(
+          source.getMajorVersionUpgrade().getPrimaryInstance());
+      transformationMajorVersionUpgrade.setSourcePostgresVersion(
+          source.getMajorVersionUpgrade().getSourcePostgresVersion());
+      transformationMajorVersionUpgrade.setTargetPostgresVersion(
+          source.getMajorVersionUpgrade().getTargetPostgresVersion());
+      transformationMajorVersionUpgrade.setCheck(
+          source.getMajorVersionUpgrade().getCheck());
+      transformationMajorVersionUpgrade.setLink(
+          source.getMajorVersionUpgrade().getLink());
+      transformationMajorVersionUpgrade.setClone(
+          source.getMajorVersionUpgrade().getClone());
+      transformationMajorVersionUpgrade.setLocale(
+          source.getMajorVersionUpgrade().getLocale());
+      transformationMajorVersionUpgrade.setEncoding(
+          source.getMajorVersionUpgrade().getEncoding());
+      transformationMajorVersionUpgrade.setDataChecksum(
+          source.getMajorVersionUpgrade().getDataChecksum());
+      transformation.setMajorVersionUpgrade(transformationMajorVersionUpgrade);
+    }
     return transformation;
   }
 

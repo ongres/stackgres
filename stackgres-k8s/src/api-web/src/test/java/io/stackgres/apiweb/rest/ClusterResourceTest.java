@@ -406,7 +406,8 @@ class ClusterResourceTest
         "diskPsiFullTotal:10000000000",
         "load1m:0.5",
         "load5m:1.0",
-        "load10m:1.5"));
+        "load10m:1.5",
+        "connections:2000"));
   }
 
   @Override

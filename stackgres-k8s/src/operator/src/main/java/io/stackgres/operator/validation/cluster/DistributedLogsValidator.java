@@ -34,22 +34,26 @@ public class DistributedLogsValidator implements ClusterValidator {
 
   @Override
   public void validate(StackGresClusterReview review) throws ValidationFailed {
-
-    StackGresCluster cluster = review.getRequest().getObject();
-    String distributedLogs = Optional.ofNullable(cluster.getSpec().getDistributedLogs())
-        .map(StackGresClusterDistributedLogs::getDistributedLogs)
-        .orElse(null);
-
     switch (review.getRequest().getOperation()) {
-      case CREATE:
+      case CREATE: {
+        StackGresCluster cluster = review.getRequest().getObject();
+        String distributedLogs = Optional.ofNullable(cluster.getSpec().getDistributedLogs())
+            .map(StackGresClusterDistributedLogs::getDistributedLogs)
+            .orElse(null);
         checkIfDistributedLogsExists(cluster, distributedLogs,
             "Distributed logs " + distributedLogs + " not found");
         break;
-      case UPDATE:
+      }
+      case UPDATE: {
+        StackGresCluster cluster = review.getRequest().getObject();
+        String distributedLogs = Optional.ofNullable(cluster.getSpec().getDistributedLogs())
+            .map(StackGresClusterDistributedLogs::getDistributedLogs)
+            .orElse(null);
         checkIfDistributedLogsExists(cluster, distributedLogs,
             "Cannot update to distributed logs " + distributedLogs
             + " because it doesn't exists");
         break;
+      }
       default:
     }
 

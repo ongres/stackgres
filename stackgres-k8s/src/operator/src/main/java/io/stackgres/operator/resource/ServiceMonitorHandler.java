@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.resource;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -37,7 +38,7 @@ public class ServiceMonitorHandler
 
   @Override
   public boolean isHandlerForResource(HasMetadata resource) {
-    return HasMetadata.getKind(ServiceMonitor.class).equals(resource.getKind());
+    return Objects.equals(HasMetadata.getKind(ServiceMonitor.class), resource.getKind());
   }
 
   @Override

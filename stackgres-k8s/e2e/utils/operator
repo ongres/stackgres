@@ -62,28 +62,28 @@ build_components() {
 build_operator_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh operator/src/main/buildah/build-image-jvm.sh
+  sh operator/src/main/docker/build-image-jvm.sh
   )
 }
 
 build_restapi_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh api-web/src/main/buildah/build-image-jvm.sh
+  sh api-web/src/main/docker/build-image-jvm.sh
   )
 }
 
 build_jobs_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh jobs/src/main/buildah/build-image-jvm.sh
+  sh jobs/src/main/docker/build-image-jvm.sh
   )
 }
 
 build_distributedlogs_controller_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh distributedlogs-controller/src/main/buildah/build-image-jvm.sh
+  sh distributedlogs-controller/src/main/docker/build-image-jvm.sh
   )
 }
 
@@ -93,7 +93,7 @@ build_adminui_image() {
   sh -x admin-ui/npmw install
   sh admin-ui/npmw run build
   sh admin-ui/build.sh
-  sh admin-ui/buildah/build.sh
+  sh admin-ui/docker/build.sh
   )
 }
 

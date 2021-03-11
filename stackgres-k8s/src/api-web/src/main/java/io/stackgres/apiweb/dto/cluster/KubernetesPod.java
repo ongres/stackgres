@@ -5,13 +5,11 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -19,11 +17,9 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 public class KubernetesPod {
 
   @JsonProperty("namespace")
-  @NotNull
   private String namespace;
 
   @JsonProperty("name")
-  @NotNull
   private String name;
 
   @JsonProperty("role")
@@ -33,7 +29,6 @@ public class KubernetesPod {
   private String ip;
 
   @JsonProperty("status")
-  @NotNull
   private String status;
 
   @JsonProperty("containers")
@@ -194,6 +189,9 @@ public class KubernetesPod {
 
   @JsonProperty("averageLoad10m")
   private String averageLoad10m;
+
+  @JsonProperty("connections")
+  private String connections;
 
   public String getNamespace() {
     return namespace;
@@ -659,68 +657,16 @@ public class KubernetesPod {
     this.averageLoad10m = averageLoad10m;
   }
 
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("namespace", namespace)
-        .add("name", name)
-        .add("role", role)
-        .add("ip", ip)
-        .add("status", status)
-        .add("containers", containers)
-        .add("cpuRequested", cpuRequested)
-        .add("cpuFound", cpuFound)
-        .add("cpuPsiAvg10", cpuPsiAvg10)
-        .add("cpuPsiAvg60", cpuPsiAvg60)
-        .add("cpuPsiAvg300", cpuPsiAvg300)
-        .add("cpuPsiTotal", cpuPsiTotal)
-        .add("cpuPsiCgroupAvg10", cpuPsiCgroupAvg10)
-        .add("cpuPsiCgroupAvg60", cpuPsiCgroupAvg60)
-        .add("cpuPsiCgroupAvg300", cpuPsiCgroupAvg300)
-        .add("cpuPsiCgroupTotal", cpuPsiCgroupTotal)
-        .add("memoryRequested", memoryRequested)
-        .add("memoryFound", memoryFound)
-        .add("memoryUsed", memoryUsed)
-        .add("memoryPsiAvg10", memoryPsiAvg10)
-        .add("memoryPsiAvg60", memoryPsiAvg60)
-        .add("memoryPsiAvg300", memoryPsiAvg300)
-        .add("memoryPsiTotal", memoryPsiTotal)
-        .add("memoryPsiCgroupAvg10", memoryPsiCgroupAvg10)
-        .add("memoryPsiCgroupAvg60", memoryPsiCgroupAvg60)
-        .add("memoryPsiCgroupAvg300", memoryPsiCgroupAvg300)
-        .add("memoryPsiCgroupTotal", memoryPsiCgroupTotal)
-        .add("memoryPsiFullAvg10", memoryPsiFullAvg10)
-        .add("memoryPsiFullAvg60", memoryPsiFullAvg60)
-        .add("memoryPsiFullAvg300", memoryPsiFullAvg300)
-        .add("memoryPsiFullTotal", memoryPsiFullTotal)
-        .add("memoryPsiFullCgroupAvg10", memoryPsiFullCgroupAvg10)
-        .add("memoryPsiFullCgroupAvg60", memoryPsiFullCgroupAvg60)
-        .add("memoryPsiFullCgroupAvg300", memoryPsiFullCgroupAvg300)
-        .add("memoryPsiFullCgroupTotal", memoryPsiFullCgroupTotal)
-        .add("diskRequested", diskRequested)
-        .add("diskFound", diskFound)
-        .add("diskUsed", diskUsed)
-        .add("diskPsiAvg10", diskPsiAvg10)
-        .add("diskPsiAvg60", diskPsiAvg60)
-        .add("diskPsiAvg300", diskPsiAvg300)
-        .add("diskPsiTotal", diskPsiTotal)
-        .add("diskPsiCgroupAvg10", diskPsiCgroupAvg10)
-        .add("diskPsiCgroupAvg60", diskPsiCgroupAvg60)
-        .add("diskPsiCgroupAvg300", diskPsiCgroupAvg300)
-        .add("diskPsiCgroupTotal", diskPsiCgroupTotal)
-        .add("diskPsiFullAvg10", diskPsiFullAvg10)
-        .add("diskPsiFullAvg60", diskPsiFullAvg60)
-        .add("diskPsiFullAvg300", diskPsiFullAvg300)
-        .add("diskPsiFullTotal", diskPsiFullTotal)
-        .add("diskPsiFullCgroupAvg10", diskPsiFullCgroupAvg10)
-        .add("diskPsiFullCgroupAvg60", diskPsiFullCgroupAvg60)
-        .add("diskPsiFullCgroupAvg300", diskPsiFullCgroupAvg300)
-        .add("diskPsiFullCgroupTotal", diskPsiFullCgroupTotal)
-        .add("averageLoad1m", averageLoad1m)
-        .add("averageLoad5m", averageLoad5m)
-        .add("averageLoad10m", averageLoad10m)
-        .toString();
+  public String getConnections() {
+    return connections;
   }
 
+  public void setConnections(String connections) {
+    this.connections = connections;
+  }
+
+  @Override
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
+  }
 }

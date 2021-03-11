@@ -10,9 +10,9 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.ResourceDto;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -111,6 +111,9 @@ public class ClusterStatsDto extends ResourceDto {
 
   @JsonProperty("averageLoad10m")
   private String averageLoad10m;
+
+  @JsonProperty("connections")
+  private String connections;
 
   @JsonProperty("pods")
   private List<KubernetesPod> pods;
@@ -366,6 +369,14 @@ public class ClusterStatsDto extends ResourceDto {
     this.averageLoad10m = averageLoad10m;
   }
 
+  public String getConnections() {
+    return connections;
+  }
+
+  public void setConnections(String connections) {
+    this.connections = connections;
+  }
+
   public List<KubernetesPod> getPods() {
     return pods;
   }
@@ -384,42 +395,6 @@ public class ClusterStatsDto extends ResourceDto {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("cpuRequested", cpuRequested)
-        .add("cpuFound", cpuFound)
-        .add("cpuPsiAvg10", cpuPsiAvg10)
-        .add("cpuPsiAvg60", cpuPsiAvg60)
-        .add("cpuPsiAvg300", cpuPsiAvg300)
-        .add("cpuPsiTotal", cpuPsiTotal)
-        .add("memoryRequested", memoryRequested)
-        .add("memoryFound", memoryFound)
-        .add("memoryUsed", memoryUsed)
-        .add("memoryPsiAvg10", memoryPsiAvg10)
-        .add("memoryPsiAvg60", memoryPsiAvg60)
-        .add("memoryPsiAvg300", memoryPsiAvg300)
-        .add("memoryPsiTotal", memoryPsiTotal)
-        .add("memoryPsiFullAvg10", memoryPsiFullAvg10)
-        .add("memoryPsiFullAvg60", memoryPsiFullAvg60)
-        .add("memoryPsiFullAvg300", memoryPsiFullAvg300)
-        .add("memoryPsiFullTotal", memoryPsiFullTotal)
-        .add("diskRequested", diskRequested)
-        .add("diskFound", diskFound)
-        .add("diskUsed", diskUsed)
-        .add("diskPsiAvg10", diskPsiAvg10)
-        .add("diskPsiAvg60", diskPsiAvg60)
-        .add("diskPsiAvg300", diskPsiAvg300)
-        .add("diskPsiTotal", diskPsiTotal)
-        .add("diskPsiFullAvg10", diskPsiFullAvg10)
-        .add("diskPsiFullAvg60", diskPsiFullAvg60)
-        .add("diskPsiFullAvg300", diskPsiFullAvg300)
-        .add("diskPsiFullTotal", diskPsiFullTotal)
-        .add("averageLoad1m", averageLoad1m)
-        .add("averageLoad5m", averageLoad5m)
-        .add("averageLoad10m", averageLoad10m)
-        .add("pods", pods)
-        .add("podsReady", podsReady)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
-
 }

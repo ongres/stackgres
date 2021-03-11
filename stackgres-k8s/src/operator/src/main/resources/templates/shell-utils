@@ -38,7 +38,7 @@ try_lock() {
   LOCK_TIMESTAMP={{ if .metadata.annotations.lockTimestamp }}{{ .metadata.annotations.lockTimestamp }}{{ else }}0{{ end }}
   RESOURCE_VERSION={{ .metadata.resourceVersion }}
   '
-  kubectl get "$LOCK_RESOURCE" -n "$CLUSTER_NAMESPACE" "$LOCK_RESOURCE_NAME" --template "$TEMPLATE" > /tmp/lock-resource
+  kubectl get "$LOCK_RESOURCE" -n "$CLUSTER_NAMESPACE" "$LOCK_RESOURCE_NAME" --template="$TEMPLATE" > /tmp/lock-resource
   . /tmp/lock-resource
   CURRENT_TIMESTAMP="$(date +%s)"
   if [ "$POD_NAME" != "$LOCK_POD" ]
@@ -65,7 +65,7 @@ try_lock() {
   if ! kubectl annotate "$LOCK_RESOURCE" -n "$CLUSTER_NAMESPACE" "$LOCK_RESOURCE_NAME" \
     --resource-version "$RESOURCE_VERSION" --overwrite "lockPod=$POD_NAME" "lockTimestamp=$CURRENT_TIMESTAMP"
   then
-    kubectl get "$LOCK_RESOURCE" -n "$CLUSTER_NAMESPACE" "$LOCK_RESOURCE_NAME" --template "$TEMPLATE" > /tmp/lock-resource
+    kubectl get "$LOCK_RESOURCE" -n "$CLUSTER_NAMESPACE" "$LOCK_RESOURCE_NAME" --template="$TEMPLATE" > /tmp/lock-resource
     . /tmp/lock-resource
     if [ "$POD_NAME" = "$LOCK_POD" ]
     then
@@ -85,6 +85,10 @@ try_lock() {
 
 to_json_string() {
   sed ':a;N;$!ba;s/\n/\\n/g' | sed 's/\(["\\\t]\)/\\\1/g' | tr '\t' 't'
+}
+
+date_iso8601() {
+  date +%Y-%m-%dT%H:%M:%SZ --utc
 }
 
 kill_with_childs() {

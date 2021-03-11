@@ -5,13 +5,11 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -41,28 +39,7 @@ public class ClusterDistributedLogs {
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(distributedLogs, retention);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof ClusterDistributedLogs)) {
-      return false;
-    }
-    ClusterDistributedLogs other = (ClusterDistributedLogs) obj;
-    return Objects.equals(distributedLogs, other.distributedLogs)
-        && Objects.equals(retention, other.retention);
-  }
-
-  @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("sgDistributedLogs", distributedLogs)
-        .add("retention", retention)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 }

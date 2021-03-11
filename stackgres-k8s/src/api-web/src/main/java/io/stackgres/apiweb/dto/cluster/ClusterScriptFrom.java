@@ -5,17 +5,10 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-import java.util.Objects;
-
-import javax.validation.Valid;
-import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.NotEmpty;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
 
@@ -24,35 +17,13 @@ import io.stackgres.common.crd.SecretKeySelector;
 @RegisterForReflection
 public class ClusterScriptFrom {
 
-  @NotEmpty
   private String secretScript;
 
-  @Valid
   private SecretKeySelector secretKeyRef;
 
-  @NotEmpty
   private String configMapScript;
 
-  @Valid
   private ConfigMapKeySelector configMapKeyRef;
-
-  @JsonIgnore
-  @AssertTrue(message = "secretKeyRef and configMapKeyRef are mutually exclusive and one of them is"
-      + " required.")
-  public boolean areSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndOneRequired() {
-    return (isSecretScriptConfigured() && !isConfigMapScriptConfigured()) // NOPMD
-        || (!isSecretScriptConfigured() && isConfigMapScriptConfigured()); //NOPMD
-  }
-
-  @JsonIgnore
-  public boolean isSecretScriptConfigured() {
-    return secretKeyRef != null || secretScript != null;
-  }
-
-  @JsonIgnore
-  public boolean isConfigMapScriptConfigured() {
-    return configMapKeyRef != null || configMapScript != null;
-  }
 
   public String getSecretScript() {
     return secretScript;
@@ -87,32 +58,7 @@ public class ClusterScriptFrom {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ClusterScriptFrom that = (ClusterScriptFrom) o;
-    return Objects.equals(secretScript, that.secretScript)
-        && Objects.equals(secretKeyRef, that.secretKeyRef)
-        && Objects.equals(configMapScript, that.configMapScript)
-        && Objects.equals(configMapKeyRef, that.configMapKeyRef);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(secretScript, secretKeyRef, configMapScript, configMapKeyRef);
-  }
-
-  @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("secretScript", secretScript)
-        .add("secretKeyRef", secretKeyRef)
-        .add("configMapScript", configMapScript)
-        .add("configMapKeyRef", configMapKeyRef)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 }
