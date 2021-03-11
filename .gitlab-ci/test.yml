@@ -24,13 +24,14 @@ shell unit tests:
   script:
     - |
       set +e
-      cp -a . /tmp/stackgres
+      TMP_PATH="/tmp/stackgres-$JOB_ID"
+      cp -a . "$TMP_PATH"
       (
-        cd /tmp/stackgres
+        cd "$TMP_PATH"
         sh stackgres-k8s/src/operator/src/test/shell/run-in-docker.sh
       )
       EXIT_CODE="$?"
-      cp -a /tmp/stackgres/stackgres-k8s/src/operator/target stackgres-k8s/src/operator/target
+      cp -a "$TMP_PATH"/stackgres-k8s/src/operator/target stackgres-k8s/src/operator/target
       exit "$EXIT_CODE"
   artifacts:
     expire_in: 1 week
