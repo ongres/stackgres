@@ -12,9 +12,7 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.common.KubernetesClientFactory;
-import io.stackgres.operatorframework.resource.ResourceHandlerSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,8 +26,7 @@ public class ClusterControllerBootstrapImpl implements ClusterControllerBootstra
 
   @Inject
   public ClusterControllerBootstrapImpl(
-      KubernetesClientFactory clientFactory,
-      ResourceHandlerSelector<StackGresClusterContext> clusterHandlerSelector) {
+      KubernetesClientFactory clientFactory) {
     this.clientFactory = clientFactory;
   }
 
