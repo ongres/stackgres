@@ -62,12 +62,12 @@
     <stackgres.crdUpgrade>false</stackgres.crdUpgrade>
     <stackgres.containerRegistry>docker.io</stackgres.containerRegistry>
     <stackgres.container.patroni>1.6.5-build-6.0-dev</stackgres.container.patroni>
-    <stackgres.container.prometheus-postgres-exporter>0.8.0-build-5.1</stackgres.container.prometheus-postgres-exporter>
     <stackgres.container.postgresql>11.8-build-6.0-dev,11.9-build-6.0-dev,11.11-build-6.0-dev,12.3-build-6.0-dev,12.4-build-6.0-dev,12.6-build-6.0-dev</stackgres.container.postgresql>
-    <stackgres.container.envoy>1.15.0-build-5.1</stackgres.container.envoy>
-    <stackgres.container.pgbouncer>1.13.0-build-5.1</stackgres.container.pgbouncer>
-    <stackgres.container.fluentbit>1.4.4-build-5.1</stackgres.container.fluentbit>
-    <stackgres.container.fluentd>1.9.3-build-5.1</stackgres.container.fluentd>
+    <stackgres.container.envoy>1.17.0-build-6.0-dev</stackgres.container.envoy>
+    <stackgres.container.pgbouncer>1.15.0-build-6.0-dev</stackgres.container.pgbouncer>
+    <stackgres.container.prometheus-postgres-exporter>0.9.0-build-6.0-dev</stackgres.container.prometheus-postgres-exporter>
+    <stackgres.container.fluentbit>1.6.10-build-6.0-dev</stackgres.container.fluentbit>
+    <stackgres.container.fluentd>1.12.0-build-6.0-dev</stackgres.container.fluentd>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- Java compilation -->
