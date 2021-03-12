@@ -5,40 +5,12 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_install() {
-  local TARGET_IMAGE_TAG
-  if [ "${STACKGRES_VERSION##*-}" != "SNAPSHOT" ]
-  then
-    TARGET_IMAGE_TAG="$STACKGRES_VERSION-jvm"
-  else 
-    DEFAULT_IMAGE_VERSION=$(grep tag "$OPERATOR_CHART_PATH/values.yaml" | head -1 | awk '{print $2}')
-    DEFAULT_IMAGE_VERSION="${DEFAULT_IMAGE_VERSION#?}"
-    DEFAULT_IMAGE_VERSION="${DEFAULT_IMAGE_VERSION%?}"
-    TARGET_IMAGE_TAG="$DEFAULT_IMAGE_VERSION"
-  fi
-
-  if [ "$IMAGE_TAG" != "$TARGET_IMAGE_TAG" ]
-  then
-    docker tag "$OPERATOR_IMAGE_NAME" stackgres/operator:"$TARGET_IMAGE_TAG"
-    docker tag "$RESTAPI_IMAGE_NAME" stackgres/restapi:"$TARGET_IMAGE_TAG"
-    docker tag "$JOBS_IMAGE_NAME" stackgres/jobs:"$TARGET_IMAGE_TAG"
-    export TARGET_ADMINUI_IMAGE_TAG="${TARGET_IMAGE_TAG%-jvm}"
-    docker tag "$ADMINUI_IMAGE_NAME" stackgres/admin-ui:"$TARGET_ADMINUI_IMAGE_TAG"
-  fi
-  
-  load_operator_k8s "$TARGET_IMAGE_TAG"
-  STACKGRES_YAML_NAMESPACE=stackgres
-  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
-  k8s_cleanup_namespace "$STACKGRES_YAML_NAMESPACE"
   k8s_async_cleanup
   kubectl create namespace "$CLUSTER_NAMESPACE"
 }
 
 e2e_test_uninstall() {
-  helm_cleanup_chart stackgres-cluster "${CLUSTER_NAMESPACE}"
-  helm_cleanup_chart stackgres-operator "${OPERATOR_NAMESPACE}"
-  k8s_cleanup_namespace "${CLUSTER_NAMESPACE}"
-  k8s_cleanup_namespace "${OPERATOR_NAMESPACE}"
-  k8s_cleanup_namespace "${STACKGRES_YAML_NAMESPACE}"
+  k8s_async_cleanup
 
   kubectl create namespace "${OPERATOR_NAMESPACE}"
   install_operator_only
@@ -50,18 +22,34 @@ e2e_test() {
   run_test "Check that generated demo packages are functional" test_packages
 }
 
-
 test_yamls() {
-  echo "Installing operator.yml"
-  kubectl create -n "${STACKGRES_YAML_NAMESPACE}" -f "${STACKGRES_YAMLS}/stackgres-operator-demo.yml"
+  OPERATOR_NAMESPACE="$(generate_operator_namespace)"
 
-  kubectl get jobs -n "$STACKGRES_YAML_NAMESPACE" -o name \
+  echo "Mocking operator.yml"
+  cat "${STACKGRES_YAMLS}/stackgres-operator-demo.yml" \
+    | sed "s|name: stackgres$|name: $OPERATOR_NAMESPACE|" \
+    | sed "s|namespace: stackgres$|namespace: $OPERATOR_NAMESPACE|" \
+    | sed "s| -n ['\"]\?stackgres['\"]\? | -n '$OPERATOR_NAMESPACE' |" \
+    | sed "s| --namespace ['\"]\?stackgres['\"]\? | --namespace '$OPERATOR_NAMESPACE' |" \
+    | sed "s|stackgres-operator\.stackgres|stackgres-operator.$OPERATOR_NAMESPACE|" \
+    | sed "s|image: \"stackgres/operator:.*\"$|image: \"$OPERATOR_IMAGE_NAME\"|" \
+    | sed "s|image: \"stackgres/restapi:.*\"$|image: \"$RESTAPI_IMAGE_NAME\"|" \
+    | sed "s|image: \"stackgres/jobs:.*\"$|image: \"$JOBS_IMAGE_NAME\"|" \
+    | sed "s|image: \"stackgres/adminui:.*\"$|image: \"$ADMINUI_IMAGE_NAME\"|" \
+    | sed "s|imagePullPolicy:.*$|imagePullPolicy: $(operator_pull_policy)|" \
+    | sed "s|value: \"https://extensions.stackgres.io/postgres/repository\"$|value: \"$EXTENSIONS_REPOSITORY_URL\"|" \
+    > "${LOG_PATH}/stackgres-operator-demo.yml"
+
+  echo "Installing operator.yml"
+  kubectl create -n "${OPERATOR_NAMESPACE}" -f "${LOG_PATH}/stackgres-operator-demo.yml"
+
+  kubectl get jobs -n "$OPERATOR_NAMESPACE" -o name \
     | while read JOB
     do
-      kubectl wait -n "$STACKGRES_YAML_NAMESPACE" "$JOB" --for condition=Complete --timeout "${E2E_TIMEOUT}s"
+      kubectl wait -n "$OPERATOR_NAMESPACE" "$JOB" --for condition=Complete --timeout "${E2E_TIMEOUT}s"
     done
 
-  if ! wait_services_available "$STACKGRES_YAML_NAMESPACE" 1 "^stackgres-operator$"
+  if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator$"
   then
     echo "FAILED. The demo StackGres operator service was not available."
     return 1
@@ -69,7 +57,7 @@ test_yamls() {
     echo "SUCCESS. The demo StackGres operator service was available."
   fi
 
-  if ! wait_services_available "$STACKGRES_YAML_NAMESPACE" 1 "^stackgres-restapi$"
+  if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-restapi$"
   then
     echo "FAILED. The demo StackGres restapi service was not available."
     return 1
@@ -140,7 +128,7 @@ test_yamls() {
   fi
 
   echo "Deleting demo operator"
-  kubectl delete --namespace "${STACKGRES_YAML_NAMESPACE}" -f "${STACKGRES_YAMLS}/stackgres-operator-demo.yml"
+  kubectl delete --namespace "${OPERATOR_NAMESPACE}" -f "${LOG_PATH}/stackgres-operator-demo.yml"
 
   if wait_until is_demo_operator_namespace_removed
   then
@@ -152,10 +140,12 @@ test_yamls() {
 }
 
 is_demo_operator_namespace_removed() {
-  ! kubectl get namespace "${STACKGRES_YAML_NAMESPACE}"
+  ! kubectl get namespace "${OPERATOR_NAMESPACE}"
 }
 
 test_packages() {
+  OPERATOR_NAMESPACE="$(generate_operator_namespace)"
+
   echo "Installing operator package"
   kubectl create namespace "${OPERATOR_NAMESPACE}"
 
