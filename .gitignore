@@ -115,6 +115,7 @@ hs_err_pid*
 ### Java-Web ###
 ## ignoring target file
 target/
+dist/
 
 # maven-release-plugin
 release.properties
