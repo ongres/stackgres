@@ -50,6 +50,7 @@ setup_images() {
     echo build_cluster_controller_image
     echo build_distributedlogs_controller_image
     echo build_adminui_image
+    echo build_helm_artifacts
     ) | xargs -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" %
   fi
 }
@@ -58,52 +59,60 @@ build_components() {
   (
   cd "$STACKGRES_PATH/src"
   ./mvnw -q clean package -DskipTests
-  sh api-web/src/main/swagger/build.sh
+  sh $SHELL_XTRACE api-web/src/main/swagger/build.sh
   )
 }
 
 build_operator_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh operator/src/main/docker/build-image-jvm.sh
+  sh $SHELL_XTRACE operator/src/main/docker/build-image-jvm.sh
   )
 }
 
 build_restapi_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh api-web/src/main/docker/build-image-jvm.sh
+  sh $SHELL_XTRACE api-web/src/main/docker/build-image-jvm.sh
   )
 }
 
 build_jobs_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh jobs/src/main/docker/build-image-jvm.sh
+  sh $SHELL_XTRACE $SHELL_XTRACE jobs/src/main/docker/build-image-jvm.sh
   )
 }
 
 build_cluster_controller_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh cluster-controller/src/main/buildah/build-image-jvm.sh
+  sh $SHELL_XTRACE cluster-controller/src/main/docker/build-image-jvm.sh
   )
 }
 
 build_distributedlogs_controller_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh distributedlogs-controller/src/main/docker/build-image-jvm.sh
+  sh $SHELL_XTRACE distributedlogs-controller/src/main/docker/build-image-jvm.sh
   )
 }
 
 build_adminui_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh -x admin-ui/npmw install
-  sh admin-ui/npmw run build
-  sh admin-ui/build.sh
-  sh admin-ui/docker/build.sh
+  sh $SHELL_XTRACE  admin-ui/npmw install
+  sh $SHELL_XTRACE admin-ui/npmw run build
+  sh $SHELL_XTRACE admin-ui/build.sh
+  sh $SHELL_XTRACE admin-ui/docker/build.sh
+  )
+}
+
+build_helm_artifacts() {
+  (
+  cd "$STACKGRES_PATH/install/helm"
+  sh $SHELL_XTRACE build-helm-packages.sh
+  sh $SHELL_XTRACE build-helm-templates.sh
   )
 }
 
@@ -164,8 +173,7 @@ setup_operator() {
         | sed 's/[[:space:]]\+/ /g' | cut -d ' ' -f 2)"
       return
     fi
-    echo "Can not skip operator setup. Helm chart stackgres-operator release was not found!"
-    return 1
+    return
   fi
 
   if ! helm list --all-namespaces | grep -q "^stackgres-operator\s" \
