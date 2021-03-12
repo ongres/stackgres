@@ -113,8 +113,9 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
         .withPorts(
             new ContainerPortBuilder().withContainerPort(EnvoyUtil.PG_ENTRY_PORT).build(),
             new ContainerPortBuilder().withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT).build())
-        .withCommand("/usr/local/bin/envoy-static --bootstrap-version 2")
-        .withArgs("-c", "/etc/envoy/default_envoy.yaml", "-l", "debug");
+        .withCommand("/usr/local/bin/envoy-static")
+        .withArgs("-c", "/etc/envoy/default_envoy.yaml", "-l", "debug",
+            "--bootstrap-version", "2");
     return container.build();
   }
 
