@@ -123,7 +123,7 @@ load_cached_images_from_local_repository() {
   fi
   cat "$E2E_PULLED_IMAGES_PATH" \
     | cut -d : -f 2-3 | sort | uniq \
-    | xargs -r -n 1 -I % -P 0 \
+    | xargs -r -n 1 -I % -P "$E2E_PARALLELISM" \
       "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" load_cached_image_from_local_repository '%'
 }
 

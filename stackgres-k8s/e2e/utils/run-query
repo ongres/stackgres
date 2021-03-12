@@ -39,7 +39,7 @@ run_query() {
   kubectl exec -n "$NAMESPACE" "${POD:-$NAME-$INSTANCE}" -c "$CONTAINER" -- env \
     PGPASSWORD="$(kubectl -n "$NAMESPACE" get secrets "$NAME" \
       -o jsonpath='{.data.superuser-password}' | base64 -d)" \
-    PGCONNECT_TIMEOUT=5 \
+    PGCONNECT_TIMEOUT="$((5 + E2E_TIMEOUT / 10))" \
     psql -t -A -U postgres -d "$DATABASE" -p "$PORT" -h "$HOST" -c "$QUERY"
 }
 

@@ -32,6 +32,8 @@ import io.stackgres.apiweb.dto.cluster.ClusterPodScheduling;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgresService;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgresServices;
 import io.stackgres.apiweb.dto.cluster.ClusterRestore;
+import io.stackgres.apiweb.dto.cluster.ClusterRestoreFromBackup;
+import io.stackgres.apiweb.dto.cluster.ClusterRestorePitr;
 import io.stackgres.apiweb.dto.cluster.ClusterScriptEntry;
 import io.stackgres.apiweb.dto.cluster.ClusterScriptFrom;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
@@ -52,6 +54,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRestorePitr;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -282,7 +286,29 @@ public class ClusterTransformer
     }
     StackGresClusterRestore transformation = new StackGresClusterRestore();
     transformation.setDownloadDiskConcurrency(source.getDownloadDiskConcurrency());
-    transformation.setBackupUid(source.getBackupUid());
+    transformation.setFromBackup(getCustomResourceRestoreFromBackup(source.getFromBackup()));
+    return transformation;
+  }
+
+  private StackGresClusterRestoreFromBackup getCustomResourceRestoreFromBackup(
+      ClusterRestoreFromBackup source) {
+    if (source == null) {
+      return null;
+    }
+    StackGresClusterRestoreFromBackup transformation = new StackGresClusterRestoreFromBackup();
+    transformation.setUid(source.getUid());
+    transformation.setPointInTimeRecovery(getCustomResourceRestorePitr(
+        source.getPointInTimeRecovery()));
+    return transformation;
+  }
+
+  private StackGresClusterRestorePitr getCustomResourceRestorePitr(
+      ClusterRestorePitr source) {
+    if (source == null) {
+      return null;
+    }
+    StackGresClusterRestorePitr transformation = new StackGresClusterRestorePitr();
+    transformation.setRestoreToTimestamp(source.getRestoreToTimestamp());
     return transformation;
   }
 
@@ -444,7 +470,28 @@ public class ClusterTransformer
     }
     ClusterRestore transformation = new ClusterRestore();
     transformation.setDownloadDiskConcurrency(source.getDownloadDiskConcurrency());
-    transformation.setBackupUid(source.getBackupUid());
+    transformation.setFromBackup(getResourceRestoreFromBackup(source.getFromBackup()));
+    return transformation;
+  }
+
+  private ClusterRestoreFromBackup getResourceRestoreFromBackup(
+      StackGresClusterRestoreFromBackup source) {
+    if (source == null) {
+      return null;
+    }
+    ClusterRestoreFromBackup transformation = new ClusterRestoreFromBackup();
+    transformation.setUid(source.getUid());
+    transformation.setPointInTimeRecovery(getResourceRestorePitr(source.getPointInTimeRecovery()));
+    return transformation;
+  }
+
+  private ClusterRestorePitr getResourceRestorePitr(
+      StackGresClusterRestorePitr source) {
+    if (source == null) {
+      return null;
+    }
+    ClusterRestorePitr transformation = new ClusterRestorePitr();
+    transformation.setRestoreToTimestamp(source.getRestoreToTimestamp());
     return transformation;
   }
 

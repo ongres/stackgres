@@ -10,7 +10,9 @@
     "sgInstanceProfile": "size-xs",
     "initialData": {
       "restore": {
-        "fromBackup": "d7e660a9-377c-11ea-b04b-0242ac110004"
+        "fromBackup": {
+          "uid": "d7e660a9-377c-11ea-b04b-0242ac110004"
+        }
       }
     },
     "configurations": {

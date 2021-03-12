@@ -29,6 +29,7 @@ e2e_test_install() {
     --set-string cluster.configurations.sgBackupConfig=backupconf
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   create_mock_data
 
@@ -114,7 +115,8 @@ spec:
   initialData:
     restore:
       downloadDiskConcurrency: 10
-      fromBackup: "$BACKUP_UID"
+      fromBackup:
+        uid: "$BACKUP_UID"
 EOF
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2

@@ -54,6 +54,9 @@ cluster:
   #restore:
   #  initialData:
   #    fromBackup:
+  #      uid:
+  #      pointInTimeRecovery:
+  #        restoreToTimestamp:
   #    downloadDiskConcurrency:
   #  scripts:
   #  - name: create-stackgres-user

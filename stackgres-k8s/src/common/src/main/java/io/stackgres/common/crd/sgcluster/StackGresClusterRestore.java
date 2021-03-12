@@ -7,6 +7,9 @@ package io.stackgres.common.crd.sgcluster;
 
 import java.util.Objects;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -25,7 +28,9 @@ public class StackGresClusterRestore implements KubernetesResource {
   private Integer downloadDiskConcurrency;
 
   @JsonProperty("fromBackup")
-  private String backupUid;
+  @Valid
+  @NotNull(message = "fromBackup configuration cannot be null")
+  private StackGresClusterRestoreFromBackup fromBackup;
 
   public Integer getDownloadDiskConcurrency() {
     return downloadDiskConcurrency;
@@ -35,19 +40,19 @@ public class StackGresClusterRestore implements KubernetesResource {
     this.downloadDiskConcurrency = downloadDiskConcurrency;
   }
 
-  public String getBackupUid() {
-    return backupUid;
+  public StackGresClusterRestoreFromBackup getFromBackup() {
+    return fromBackup;
   }
 
-  public void setBackupUid(String backupUid) {
-    this.backupUid = backupUid;
+  public void setFromBackup(StackGresClusterRestoreFromBackup fromBackup) {
+    this.fromBackup = fromBackup;
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
-        .add("backupUid", backupUid)
+        .add("fromBackup", fromBackup)
         .add("downloadDiskConcurrency", downloadDiskConcurrency)
         .toString();
   }
@@ -62,11 +67,11 @@ public class StackGresClusterRestore implements KubernetesResource {
     }
     StackGresClusterRestore that = (StackGresClusterRestore) o;
     return Objects.equals(downloadDiskConcurrency, that.downloadDiskConcurrency)
-        && Objects.equals(backupUid, that.backupUid);
+        && Objects.equals(fromBackup, that.fromBackup);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(downloadDiskConcurrency, backupUid);
+    return Objects.hash(downloadDiskConcurrency, fromBackup);
   }
 }

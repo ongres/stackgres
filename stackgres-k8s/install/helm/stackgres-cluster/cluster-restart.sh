@@ -14,9 +14,12 @@ TIMEOUT="${TIMEOUT:-300}"
 increase_instances_by_one() {
   INSTANCES="$(kubectl get sgcluster -n "$NAMESPACE" "$SGCLUSTER" --template "{{ .spec.instances }}")"
   echo "Inreasing cluster instances from $INSTANCES to $((INSTANCES+1))"
-  kubectl patch sgcluster -n "$NAMESPACE" "$SGCLUSTER" --type merge -p "spec: { instances: $((INSTANCES+1)) }"
 
-  wait_read_only_pod "$SGCLUSTER-$INSTANCES"
+  until kubectl wait --timeout="0s" --for=condition=Ready -n "$NAMESPACE" "pod/$SGCLUSTER-$INSTANCES" >/dev/null 2>&1
+  do
+    kubectl patch sgcluster -n "$NAMESPACE" "$SGCLUSTER" --type merge -p "spec: { instances: $((INSTANCES+1)) }"
+    sleep 1
+  done
 }
 
 decrease_instances_by_one() {

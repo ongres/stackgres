@@ -9,7 +9,9 @@ remove_cluster() {
     | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
   helm get hooks "$RELEASE" --namespace "$NAMESPACE" \
     | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
-  helm delete "$RELEASE" --namespace "$NAMESPACE"
+  helm uninstall "$RELEASE" --namespace "$NAMESPACE"
+  kubectl wait sts --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --all --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
+  kubectl wait pvc --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --all --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
 }
 
 remove_cluster_if_exists() {
@@ -38,6 +40,16 @@ create_or_replace_cluster() {
       --namespace "$NAMESPACE" \
       --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
   fi
+}
+
+wait_cluster() {
+  local RELEASE="$1"
+  local NAMESPACE="$2"
+
+  echo "Wait release $RELEASE" 
+  wait_until eval '[ "$(kubectl get endpoints --namespace "$NAMESPACE" "$RELEASE" \
+    --template="{{ range .subsets }}{{ range .addresses }}{{ printf \"%s\n\" .ip }}{{ end }}{{ end }}" 2>/dev/null \
+    | wc -l)" -ge 1 ]'
 }
 
 has_cluster_generated_resources() {

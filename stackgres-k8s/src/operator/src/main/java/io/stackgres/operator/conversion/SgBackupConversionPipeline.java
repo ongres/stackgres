@@ -5,12 +5,29 @@
 
 package io.stackgres.operator.conversion;
 
-import javax.enterprise.context.ApplicationScoped;
+import java.util.List;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Instance;
+import javax.inject.Inject;
+
+import com.google.common.collect.ImmutableList;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 
 @ApplicationScoped
 @Conversion(StackGresBackup.KIND)
 public class SgBackupConversionPipeline implements ConversionPipeline {
 
+  private final List<Converter> converters;
+
+  @Inject
+  public SgBackupConversionPipeline(
+      @Conversion(StackGresBackup.KIND) Instance<Converter> converters) {
+    this.converters = converters.stream().collect(ImmutableList.toImmutableList());
+  }
+
+  @Override
+  public List<Converter> getConverters() {
+    return converters;
+  }
 }
