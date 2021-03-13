@@ -19,11 +19,11 @@ import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.client.ConfigBuilder;
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.test.Mock;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.OperatorProperty;
-import io.stackgres.common.workaround.DefaultKubernetesClient;
 import io.stackgres.operator.AbstractStackGresOperatorIt;
 import io.stackgres.testutil.CrdUtils;
 import io.stackgres.testutil.KubernetesServerSupplier;

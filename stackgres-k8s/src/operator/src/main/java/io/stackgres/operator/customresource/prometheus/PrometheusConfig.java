@@ -24,14 +24,4 @@ public final class PrometheusConfig
 
   private static final long serialVersionUID = 1L;
 
-  public PrometheusConfig() {
-    super();
-  }
-
-  // TODO: remove on update to Kubernetes-Client 5.2.0
-  @Override
-  protected Void initStatus() {
-    return null;
-  }
-
 }

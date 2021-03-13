@@ -43,12 +43,6 @@ public final class StackGresProfile
     super();
   }
 
-  // TODO: remove on update to Kubernetes-Client 5.2.0
-  @Override
-  protected Void initStatus() {
-    return null;
-  }
-
   @Override
   public StackGresProfileSpec getSpec() {
     return spec;
