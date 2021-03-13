@@ -30,16 +30,38 @@ test_yamls() {
     | sed "s|name: stackgres$|name: $OPERATOR_NAMESPACE|" \
     | sed "s|namespace: stackgres$|namespace: $OPERATOR_NAMESPACE|" \
     | sed "s| -n ['\"]\?stackgres['\"]\? | -n '$OPERATOR_NAMESPACE' |" \
-    | sed "s| --namespace ['\"]\?stackgres['\"]\? | --namespace '$OPERATOR_NAMESPACE' |" \
     | sed "s|stackgres-operator\.stackgres|stackgres-operator.$OPERATOR_NAMESPACE|" \
     | sed "s|image: \"stackgres/operator:.*\"$|image: \"$OPERATOR_IMAGE_NAME\"|" \
     | sed "s|image: \"stackgres/restapi:.*\"$|image: \"$RESTAPI_IMAGE_NAME\"|" \
     | sed "s|image: \"stackgres/jobs:.*\"$|image: \"$JOBS_IMAGE_NAME\"|" \
     | sed "s|image: 'stackgres/admin-ui:.*'$|image: \"$ADMINUI_IMAGE_NAME\"|" \
-    | sed '/name: OPERATOR_IMAGE_VERSION$/{$!{N;s/name: OPERATOR_IMAGE_VERSION\n\( *\)value: .*$/name: OPERATOR_IMAGE_VERSION\n\1value: '$IMAGE_TAG'/;ty;P;D;:y}}'
+    | sed "$(printf '/name: OPERATOR_IMAGE_VERSION$/{$!{N;s/name: OPERATOR_IMAGE_VERSION\\n\( *\)value: .*$/name: OPERATOR_IMAGE_VERSION\\n\\1value: '"'$IMAGE_TAG'"'/;ty;P;D;:y}}')" \
     | sed "s|imagePullPolicy:.*$|imagePullPolicy: $(operator_pull_policy)|" \
     | sed "s|value: \"https://extensions.stackgres.io/postgres/repository\"$|value: \"$EXTENSIONS_REPOSITORY_URL\"|" \
     > "${LOG_PATH}/stackgres-operator-demo.yml"
+
+  cat "${LOG_PATH}/stackgres-operator-demo.yml" \
+    | grep -q "name: $OPERATOR_NAMESPACE"
+  cat "${LOG_PATH}/stackgres-operator-demo.yml" \
+    | grep -q "namespace: $OPERATOR_NAMESPACE"
+  cat "${LOG_PATH}/stackgres-operator-demo.yml" \
+    | grep -q " -n '$OPERATOR_NAMESPACE' "
+  cat "${LOG_PATH}/stackgres-operator-demo.yml" \
+    | grep -q "stackgres-operator.$OPERATOR_NAMESPACE"
+  cat "${LOG_PATH}/stackgres-operator-demo.yml" \
+    | grep -q "image: \"$OPERATOR_IMAGE_NAME\""
+  cat "${LOG_PATH}/stackgres-operator-demo.yml" \
+    | grep -q "image: \"$RESTAPI_IMAGE_NAME\""
+  cat "${LOG_PATH}/stackgres-operator-demo.yml" \
+    | grep -q "image: \"$JOBS_IMAGE_NAME\""
+  cat "${LOG_PATH}/stackgres-operator-demo.yml" \
+    | grep -q "image: \"$ADMINUI_IMAGE_NAME\""
+  cat "${LOG_PATH}/stackgres-operator-demo.yml" \
+    | grep -q "value: '$IMAGE_TAG'"
+  cat "${LOG_PATH}/stackgres-operator-demo.yml" \
+    | grep -q "imagePullPolicy: $(operator_pull_policy)"
+  cat "${LOG_PATH}/stackgres-operator-demo.yml" \
+    | grep -q "value: \"$EXTENSIONS_REPOSITORY_URL\""
 
   echo "Installing operator.yml"
   kubectl create -n "${OPERATOR_NAMESPACE}" -f "${LOG_PATH}/stackgres-operator-demo.yml"
@@ -152,6 +174,15 @@ test_packages() {
 
   helm install --namespace "${OPERATOR_NAMESPACE}" stackgres-operator \
     "${STACKGRES_PACKAGES}/stackgres-operator.tgz" \
+    --set-string operator.image.name="${OPERATOR_IMAGE_NAME%:*}" --set-string operator.image.tag="${OPERATOR_IMAGE_NAME#*:}" \
+    --set-string "operator.image.pullPolicy=$(operator_pull_policy)" \
+    --set-string restapi.image.name="${RESTAPI_IMAGE_NAME%:*}" --set-string restapi.image.tag="${RESTAPI_IMAGE_NAME#*:}" \
+    --set-string "restapi.image.pullPolicy=$(operator_pull_policy)" \
+    --set-string jobs.image.name="${JOBS_IMAGE_NAME%:*}" --set-string jobs.image.tag="${JOBS_IMAGE_NAME#*:}" \
+    --set-string "jobs.image.pullPolicy=$(operator_pull_policy)" \
+    --set-string adminui.image.name="${ADMINUI_IMAGE_NAME%:*}" --set-string adminui.image.tag="${ADMINUI_IMAGE_NAME#*:}" \
+    --set-string "adminui.image.pullPolicy=$(operator_pull_policy)" \
+    --set-string "extensions.repositoryUrls[0]=$EXTENSIONS_REPOSITORY_URL" \
     --set adminui.service.type=LoadBalancer
 
   if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator$"

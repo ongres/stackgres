@@ -35,6 +35,12 @@ metadata:
 ---
 EOF
 
+for CRD in ../../src/common/src/main/resources/crds/*.yaml
+do
+  cat "$CRD" >> "target/templates/stackgres-operator-demo.yml"
+  echo --- >> "target/templates/stackgres-operator-demo.yml"
+done
+
 for HELM_REPO in 'minio|https://helm.min.io/'
 do
   if ! helm repo list | grep -q "\s${HELM_REPO#*|}\s*$"
