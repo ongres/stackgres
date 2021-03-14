@@ -7,7 +7,6 @@ package io.stackgres.apiweb.dto.cluster;
 
 import java.util.List;
 
-
 import javax.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonInclude;

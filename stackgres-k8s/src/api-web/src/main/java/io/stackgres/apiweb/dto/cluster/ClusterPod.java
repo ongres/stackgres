@@ -5,7 +5,6 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
