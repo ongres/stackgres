@@ -118,7 +118,8 @@ public abstract class PairVisitor<T, R> {
       PairVisitor<T, R> visitMapTransformed(
           Function<T, O> getter, BiConsumer<T, O> setter,
           BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> leftTransformer,
-          BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> rightTransformer);
+          BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> rightTransformer,
+          Supplier<O> leftSupplier);
 
   public PairVisitor<T, R> lastResult(R result) {
     return new LastResult(left, right, result);
@@ -250,7 +251,8 @@ public abstract class PairVisitor<T, R> {
         PairVisitor<T, R> visitMapTransformed(
             Function<T, O> getter, BiConsumer<T, O> setter,
             BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> leftTransformer,
-            BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> rightTransformer) {
+            BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> rightTransformer,
+            Supplier<O> leftSupplier) {
       return this;
     }
 

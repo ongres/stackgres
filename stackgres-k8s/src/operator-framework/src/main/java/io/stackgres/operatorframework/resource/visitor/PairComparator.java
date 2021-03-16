@@ -224,7 +224,8 @@ class PairComparator<T> extends PairVisitor<T, Boolean> {
       PairVisitor<T, Boolean> visitMapTransformed(
           Function<T, O> getter, BiConsumer<T, O> setter,
           BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> leftTransformer,
-          BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> rightTransformer) {
+          BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> rightTransformer,
+          Supplier<O> leftSupplier) {
     return returnResult(equalsMap(getter,
         leftTransformer, rightTransformer, false));
   }
@@ -234,11 +235,9 @@ class PairComparator<T> extends PairVisitor<T, Boolean> {
       BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> leftTransformer,
       BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> rightTransformer,
       boolean onlyKeys) {
-    Map<K, V> leftMap = Optional.ofNullable(getter.apply(left))
-        .map(map -> (Map<K, V>) map)
+    Map<K, V> leftMap = Optional.<Map<K, V>>ofNullable(getter.apply(left))
         .orElseGet(() -> new HashMap<K, V>(0));
-    Map<K, V> rightMap = Optional.ofNullable(getter.apply(right))
-        .map(map -> (Map<K, V>) map)
+    Map<K, V> rightMap = Optional.<Map<K, V>>ofNullable(getter.apply(right))
         .orElseGet(() -> new HashMap<K, V>(0));
     return Stream.concat(leftMap.keySet().stream(), rightMap.keySet().stream())
       .collect(Collectors.groupingBy(key -> key))

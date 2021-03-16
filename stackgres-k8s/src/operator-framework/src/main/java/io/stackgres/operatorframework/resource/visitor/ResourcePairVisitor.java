@@ -5,6 +5,7 @@
 
 package io.stackgres.operatorframework.resource.visitor;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -937,7 +938,8 @@ public class ResourcePairVisitor<T, C> {
     return pairVisitor.visit().visit(ObjectMeta::getClusterName, ObjectMeta::setClusterName)
         .visit(ObjectMeta::getName).visit(ObjectMeta::getNamespace)
         .visitMapTransformed(ObjectMeta::getAnnotations, ObjectMeta::setAnnotations,
-            this::leftAnnotationTransformer, this::rightAnnotationTransformer)
+            this::leftAnnotationTransformer, this::rightAnnotationTransformer,
+            HashMap<String, String>::new)
         .visitMap(ObjectMeta::getAdditionalProperties,
             (objectMeta, map) -> map.forEach(objectMeta::setAdditionalProperty))
         .visitMap(ObjectMeta::getLabels, ObjectMeta::setLabels);
@@ -947,9 +949,9 @@ public class ResourcePairVisitor<T, C> {
       Map.Entry<String, String> leftAnnotation,
       Map.Entry<String, String> rightAnnotation) {
     if (rightAnnotation != null) {
-      return rightAnnotation;
+      return leftAnnotation;
     }
-    return leftAnnotation;
+    return null;
   }
 
   public Map.Entry<String, String> rightAnnotationTransformer(
