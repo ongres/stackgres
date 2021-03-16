@@ -864,6 +864,344 @@ p+h1 {
     background: var(--activeBg);
 }
 
+/*Swagger Redesign*/
+
+#ohpen_swagger_ui {
+    position: relative;
+}
+
+#ohpen_swagger_ui .information-container.wrapper {
+    display: inline-block;
+    width: 80%;
+}
+
+#ohpen_swagger_ui .scheme-container {
+    width: 20%;
+    display: inline-block;
+}
+
+#ohpen_swagger_ui .information-container.wrapper .title > span small {
+    position: relative;
+    top: 7px;
+    margin-left: 10px;
+}
+
+#ohpen_swagger_ui .swagger-ui .wrapper, #ohpen_swagger_ui .swagger-ui .scheme-container {
+    padding: 0;
+}
+
+#ohpen_swagger_ui pre, #ohpen_swagger_ui .swagger-ui .opblock .opblock-section-header, #ohpen_swagger_ui .swagger-ui table thead tr th, #ohpen_swagger_ui .swagger-ui .scheme-container {
+    background: none !important;
+}
+
+#ohpen_swagger_ui .swagger-ui .opblock .opblock-section-header h4 span:after, #ohpen_swagger_ui .tab li:before, #ohpen_swagger_ui .swagger-ui section .modal-ux h3:before {
+    display: none;
+}
+
+#ohpen_swagger_ui .opblock-section-request-body .opblock-section-header {
+    display: block;
+}
+
+#ohpen_swagger_ui .tab li a {
+    text-decoration: none;
+}
+
+#ohpen_swagger_ui .opblock-summary-method, #ohpen_swagger_ui button.btn.execute, #ohpen_swagger_ui .information-container.wrapper .title > span small pre {
+    color: var(--bgColor) !important;
+}
+
+#ohpen_swagger_ui table.model td, #ohpen_swagger_ui table.parameters td, #ohpen_swagger_ui .swagger-ui table thead tr td, #ohpen_swagger_ui .swagger-ui table thead tr th, #ohpen_swagger_ui .parameter__name, #ohpen_swagger_ui .parameter__type, #ohpen_swagger_ui .parameter__deprecated, #ohpen_swagger_ui .parameter__in, #ohpen_swagger_ui .parameter__description {
+    color: var(--textColor) !important;
+}
+
+#ohpen_swagger_ui .swagger-ui .dialog-ux .modal-ux {
+    background-color: var(--bgColor);
+}
+
+#ohpen_swagger_ui .swagger-ui .opblock .opblock-summary-description, #ohpen_swagger_ui h4>a.nostyle span, #ohpen_swagger_ui .swagger-ui .errors-wrapper hgroup h4, #ohpen_swagger_ui .error button, #ohpen_swagger_ui .swagger-ui .info .title, #ohpen_swagger_ui .swagger-ui .info hgroup.main a, #ohpen_swagger_ui .swagger-ui .opblock-description-wrapper p, #ohpen_swagger_ui .swagger-ui .opblock-external-docs-wrapper p, #ohpen_swagger_ui .swagger-ui .opblock-title_normal p, #ohpen_swagger_ui .swagger-ui .opblock-description-wrapper, #ohpen_swagger_ui .swagger-ui section h3, #ohpen_swagger_ui .swagger-ui .opblock .opblock-section-header h4, #ohpen_swagger_ui table, #ohpen_swagger_ui table td, #ohpen_swagger_ui .tab li, #ohpen_swagger_ui .response-controls small, #ohpen_swagger_ui .swagger-ui table thead tr td, #ohpen_swagger_ui .swagger-ui table thead tr th, #ohpen_swagger_ui .parameter__name, #ohpen_swagger_ui .parameter__type, #ohpen_swagger_ui .parameter__deprecated, #ohpen_swagger_ui .parameter__in, #ohpen_swagger_ui .parameter__description, #ohpen_swagger_ui .swagger-ui .responses-inner h4, #ohpen_swagger_ui .swagger-ui .responses-inner h5, #ohpen_swagger_ui .swagger-ui .response-col_status .response-undocumented, #ohpen_swagger_ui .wrapper .models h4 span,  #ohpen_swagger_ui .auth-container .wrapper p,  #ohpen_swagger_ui .auth-container .wrapper label {
+    color: var(--textColor);
+    font-family: 'Poppins', sans-serif;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+#ohpen_swagger_ui .swagger-ui .parameter__name.required:after {
+    font-family: 'Poppins', sans-serif;
+}
+
+#ohpen_swagger_ui .swagger-ui .opblock-description-wrapper p, #ohpen_swagger_ui .swagger-ui .opblock-external-docs-wrapper p, #ohpen_swagger_ui .swagger-ui .opblock-title_normal p,  #ohpen_swagger_ui .swagger-ui .opblock-description-wrapper, #ohpen_swagger_ui .swagger-ui .opblock .opblock-summary-description, #ohpen_swagger_ui .swagger-ui section h3, #ohpen_swagger_ui table, #ohpen_swagger_ui table td, #ohpen_swagger_ui .tab li, #ohpen_swagger_ui .response-controls small, #ohpen_swagger_ui .swagger-ui table thead tr td, #ohpen_swagger_ui .swagger-ui table thead tr th, #ohpen_swagger_ui .parameter__name, #ohpen_swagger_ui .parameter__type, #ohpen_swagger_ui .parameter__deprecated, #ohpen_swagger_ui .parameter__in, #ohpen_swagger_ui .parameter__description, #ohpen_swagger_ui .swagger-ui .parameter__name.required:after, #ohpen_swagger_ui .swagger-ui .responses-inner h4, #ohpen_swagger_ui .swagger-ui .responses-inner h5, #ohpen_swagger_ui .swagger-ui .response-col_status .response-undocumented,  #ohpen_swagger_ui .auth-container .wrapper p,  #ohpen_swagger_ui .auth-container .wrapper p {
+    font-size: .9rem;
+}
+
+#ohpen_swagger_ui .swagger-ui .responses-inner h4, #ohpen_swagger_ui .swagger-ui .responses-inner h5 {
+    font-weight: 600;
+    margin: 20px 0 10px 0;
+}
+
+#ohpen_swagger_ui .swagger-ui section h3, #ohpen_swagger_ui .swagger-ui .opblock .opblock-section-header h4 {
+    font-weight: bold;
+    font-size: 1.05rem;
+}
+
+#ohpen_swagger_ui .swagger-ui .opblock .opblock-section-header h4 {
+    margin-top: 20px;
+}
+
+#ohpen_swagger_ui h4>a.nostyle span, #ohpen_swagger_ui .swagger-ui .errors-wrapper hgroup h4, #ohpen_swagger_ui .wrapper .models h4 span {
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+#ohpen_swagger_ui .swagger-ui .info .title {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+#ohpen_swagger_ui .swagger-ui button.btn {
+    /*border: 1px solid var(--baseColor) !important;
+    border-radius: 20px !important;*/
+    padding: 10px 15px !important;
+    color: var(--baseColor);
+    font-size: .9rem !important;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+}
+
+#ohpen_swagger_ui .swagger-ui .info hgroup.main a {
+    font-size: 1rem;
+    color: var(--baseColor);
+    top: 1.7rem;
+    position: relative;
+    display: inline-block;
+}
+
+#ohpen_swagger_ui .swagger-ui .info hgroup.main a:hover {
+    transition: all .3s ease-out;
+    color: var(--baseLightColor);
+}
+
+#ohpen_swagger_ui .swagger-ui .info hgroup.main a:after, #ohpen_swagger_ui .tab li a:after {
+    display: block;
+    content: "";
+    height: 1px;
+    width: 0%;
+    -webkit-transition: width 0.5s ease;
+    -moz-transition: width 0.5s ease;
+    -ms-transition: width 0.5s ease;
+    transition: width 0.5s ease;
+    background-color: var(--MAIN-LINK-HOVER-color);
+}
+
+#ohpen_swagger_ui .swagger-ui .info hgroup.main a:hover:after, #ohpen_swagger_ui .tab li a:hover:after {
+    width: 100%;
+}
+
+#ohpen_swagger_ui button.btn.execute, #ohpen_swagger_ui .swagger-ui .btn.authorize {
+    background-image: var(--baseGradient) !important;
+    color: var(--bgColor);
+    background-size: 200% auto;
+    transition: all .2s ease-in;
+    padding: 10px 35px !important;
+    width: auto;
+    flex: 0;
+}
+
+#ohpen_swagger_ui .swagger-ui .btn.authorize svg {
+    filter: brightness(0.1);
+}
+
+#ohpen_swagger_ui button.btn-clear {
+    width: auto;
+    flex: 0;
+    margin-left: 20px;
+}
+
+#ohpen_swagger_ui button.btn.execute:hover, #ohpen_swagger_ui .swagger-ui .btn.authorize:hover {
+    background-position: right top;
+    transition: all .3s ease-out;
+    color: var(--bgColor) !important;
+}
+
+#ohpen_swagger_ui .swagger-ui .opblock .opblock-summary-operation-id, #ohpen_swagger_ui .swagger-ui .opblock .opblock-summary-path, #ohpen_swagger_ui .swagger-ui .opblock .opblock-summary-path__deprecated, #ohpen_swagger_ui .errors, #ohpen_swagger_ui .swagger-ui .errors-wrapper .errors h4, #ohpen_swagger_ui .swagger-ui .errors-wrapper .errors small, #ohpen_swagger_ui .swagger-ui .model, #ohpen_swagger_ui .model-box span, #ohpen_swagger_ui .swagger-ui textarea, #ohpen_swagger_ui .auth-container h4 {
+    color: var(--textColor);
+    font-family: 'Ubuntu Mono', monospace;
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+    text-transform: none;
+    font-weight: 500;
+}
+
+#ohpen_swagger_ui pre.example span, #ohpen_swagger_ui .swagger-ui .code, #ohpen_swagger_ui .swagger-ui code, #ohpen_swagger_ui .response-controls select, #ohpen_swagger_ui .content-type-wrapper select, #ohpen_swagger_ui .swagger-ui .opblock-body pre.microlight, #ohpen_swagger_ui .swagger-ui .parameters-col_description select {
+    font-family: 'Ubuntu Mono', monospace; 
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+#ohpen_swagger_ui .model-example ul.tab + div, c .swagger-ui textarea, #ohpen_swagger_ui .opblock-body pre.microlight, #ohpen_swagger_ui .swagger-ui textarea {
+    background: #0a0a0a !important;
+    padding: 1rem;
+    border-radius: 4px;
+}
+
+#ohpen_swagger_ui .model-example ul.tab + div {
+    border: 1px solid var(--borderColor);
+}
+
+#ohpen_swagger_ui .swagger-ui .parameters-col_description input[type=text], #ohpen_swagger_ui .swagger-ui .auth-container input[type=text] {
+    background: #0a0a0a;
+    border-color: var(--MENU-SECTION-HR-color);
+}
+
+td.col.col_header.response-col_links {
+    min-width: 120px;
+}
+
+#ohpen_swagger_ui .model-box {
+    padding: 0;
+    background: none;
+}
+
+#ohpen_swagger_ui .swagger-ui section h3 {
+    position: relative;
+}
+
+#ohpen_swagger_ui .swagger-ui section h3:before {
+    content: "";
+    background: var(--MENU-SECTION-HR-color);
+    height: 1px;
+    width: calc(100% + 40px);
+    position: absolute;
+    top: -15px;
+    left: -20px;
+}
+
+#ohpen_swagger_ui .swagger-ui .opblock.opblock-get .opblock-summary-method, #ohpen_swagger_ui .swagger-ui .opblock.opblock-get .tab-header .tab-item.active h4 span:after {
+    background: #086af9; 
+}
+
+#ohpen_swagger_ui .swagger-ui .opblock.opblock-get, #ohpen_swagger_ui .swagger-ui .opblock.opblock-get .opblock-summary {
+    border-color: #086af9;
+    background: rgba(8,106,249,.025);
+}
+
+#ohpen_swagger_ui .swagger-ui .opblock.opblock-post .opblock-summary-method, #ohpen_swagger_ui .swagger-ui .opblock.opblock-post .tab-header .tab-item.active h4 span:after {
+    background: #149100;
+}
+
+#ohpen_swagger_ui .swagger-ui .opblock.opblock-post, #ohpen_swagger_ui .swagger-ui .opblock.opblock-post .opblock-summary {
+    border-color: #149100;
+    background: rgba(20,145,0,.025);
+}
+
+#ohpen_swagger_ui .swagger-ui .opblock.opblock-delete .opblock-summary-method {
+    background: #f93e3e;
+}
+
+#ohpen_swagger_ui .swagger-ui .opblock.opblock-delete, #ohpen_swagger_ui .swagger-ui .errors-wrapper {
+    border-color: #f93e3e;
+    background: rgba(249,62,62,.025);
+}
+
+#ohpen_swagger_ui .swagger-ui .opblock.opblock-put .opblock-summary-method, #ohpen_swagger_ui .swagger-ui .opblock.opblock-put .tab-header .tab-item.active h4 span:after {
+    background: #ff9d00;
+}
+
+#ohpen_swagger_ui .swagger-ui .opblock.opblock-put {
+    border-color: #ff9d00;
+    background: rgba(255,157,0,.025);
+}
+
+#ohpen_swagger_ui .expand-methods svg, #ohpen_swagger_ui .expand-operation svg, #ohpen_swagger_ui .model-toggle:after, #ohpen_swagger_ui section.models h4 svg, #ohpen_swagger_ui select[disabled], #ohpen_swagger_ui textarea[disabled], #ohpen_swagger_ui button.close-modal svg, #ohpen_swagger_ui button.authorization__btn, #ohpen_swagger_ui .response-controls select, #ohpen_swagger_ui .content-type-wrapper select, #ohpen_swagger_ui .swagger-ui .parameters-col_description select {
+    -webkit-filter: invert(1) brightness(.75);
+    filter: invert(1) brightness(.75);
+}
+
+#ohpen_swagger_ui .response-controls select, #ohpen_swagger_ui .content-type-wrapper select, #ohpen_swagger_ui .swagger-ui .parameters-col_description select {
+    padding: 10px;
+    border-radius: 20px;
+    border: 1px solid darkgoldenrod;
+    color: black;
+    background-color: transparent;
+    margin: 10px 0;
+}
+
+#ohpen_swagger_ui .wrapper .models, #ohpen_swagger_ui .swagger-ui .dialog-ux .modal-ux-header {
+    border: none;
+}
+
+#ohpen_swagger_ui .swagger-ui .opblock .opblock-section-header {
+    border-top: 1px solid;
+}
+
+#ohpen_swagger_ui .swagger-ui table thead tr th {
+    border: 1px solid;
+}
+
+
+#ohpen_swagger_ui .swagger-ui .opblock-tag, #ohpen_swagger_ui .swagger-ui .opblock .opblock-section-header, #ohpen_swagger_ui .swagger-ui table thead tr td, #ohpen_swagger_ui .swagger-ui table thead tr th, #ohpen_swagger_ui .wrapper .models h4, #ohpen_swagger_ui .swagger-ui .dialog-ux .modal-ux {
+    border-color: var(--MENU-SECTION-HR-color);
+}
+
+#ohpen_swagger_ui .error + div div:not(:first-of-type) h4, .swagger-ui .opblock-tag-section, #ohpen_swagger_ui .swagger-ui .is-open .opblock, #ohpen_swagger_ui .model table.model, #ohpen_swagger_ui .content-type-wrapper select, #ohpen_swagger_ui .swagger-ui section.models, #ohpen_swagger_ui .swagger-ui .dialog-ux .modal-ux-header {
+    margin-top: 20px;
+}
+
+#ohpen_swagger_ui .swagger-ui .execute-wrapper {
+    text-align: left;
+    padding: 0;
+}
+
+#ohpen_swagger_ui .swagger-ui .execute-wrapper button {
+    margin: 0 20px 20px !important;
+}
+
+#ohpen_swagger_ui table, #ohpen_swagger_ui table td, #ohpen_swagger_ui table th, #ohpen_swagger_ui table.model td, #ohpen_swagger_ui .swagger-ui .dialog-ux .modal-ux-header{
+    padding: 20px !important;
+}
+
+#ohpen_swagger_ui table.model td  {
+    padding: 10px 15px !important;
+}
+
+#ohpen_swagger_ui .model table.model {
+    margin-left: 20px;
+}
+
+.swagger-ui table.model .renderedMarkdown p {
+    margin: 0 auto;
+}
+
+#ohpen_swagger_ui .swagger-ui .tab li:first-of-type {
+    padding-right: 20px;
+}
+
+#ohpen_swagger_ui .response .renderedMarkdown p, #ohpen_swagger_ui .swagger-ui section .modal-ux h3 {
+    margin: 0;
+}
+
+#ohpen_swagger_ui ul.tab {
+    margin: 20px 0 10px 0;
+}
+
+#ohpen_swagger_ui .swagger-ui input[disabled], #ohpen_swagger_ui .swagger-ui .parameters-col_description select[disabled] {
+    opacity: .5;
+}
+
+#ohpen_swagger_ui thead tr {
+    background: var(--activeBg);
+}
+
+#ohpen_swagger_ui tbody > tr:nth-child(even) .model-example ul.tab + div, #ohpen_swagger_ui tbody > tr:nth-child(even) .model-example ul.tab + div pre {
+
+}
+
+.swagger-ui section.models .model-container, .swagger-ui section.models .model-container:first-of-type {
+    margin: 15px 0 !important;
+    border: 1px solid var(--borderColor);
+    padding: 10px;
+}
+
 /*Search*/
 .autocomplete-suggestions {
     border: 1px solid var(--borderColor);
