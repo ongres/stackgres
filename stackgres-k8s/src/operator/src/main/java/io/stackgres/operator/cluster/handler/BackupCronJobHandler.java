@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.cluster.handler;
 
+import java.util.HashMap;
+
 import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -72,9 +74,13 @@ public class BackupCronJobHandler extends AbstractClusterResourceHandler {
           .visit(ObjectMeta::getName, ObjectMeta::setName)
           .visit(ObjectMeta::getNamespace, ObjectMeta::setNamespace)
           .visitList(ObjectMeta::getFinalizers, ObjectMeta::setFinalizers)
-          .visitMap(ObjectMeta::getAdditionalProperties)
+          .visitMap(ObjectMeta::getAdditionalProperties,
+              additionalPropertiesSetter(
+                  ObjectMeta::getAdditionalProperties,
+                  ObjectMeta::setAdditionalProperty))
           .visitMapTransformed(ObjectMeta::getAnnotations, ObjectMeta::setAnnotations,
-              (left, right) -> left, (left, right) -> left)
+              this::leftAnnotationTransformer, this::rightAnnotationTransformer,
+              () -> new HashMap<>())
           .visitMap(ObjectMeta::getLabels, ObjectMeta::setLabels);
     }
 

@@ -103,15 +103,6 @@ public abstract class PairVisitor<T, R> {
       Function<PairVisitor<E, S>, PairVisitor<E, S>> tester);
 
   public abstract <K, V, O extends Map<K, V>> PairVisitor<T, R> visitMap(
-      Function<T, O> getter);
-
-  public abstract <K, V, O extends Map<K, V>> PairVisitor<T, R> visitMap(
-      Function<T, O> getter, BiConsumer<T, O> setter);
-
-  public abstract <K, V, O extends Map<K, V>> PairVisitor<T, R> visitMapKeys(
-      Function<T, O> getter);
-
-  public abstract <K, V, O extends Map<K, V>> PairVisitor<T, R> visitMapKeys(
       Function<T, O> getter, BiConsumer<T, O> setter);
 
   public abstract <K, V, O extends Map<K, V>>
@@ -224,25 +215,7 @@ public abstract class PairVisitor<T, R> {
 
     @Override
     public <K, V, O extends Map<K, V>> PairVisitor<T, R> visitMap(
-        Function<T, O> getter) {
-      return this;
-    }
-
-    @Override
-    public <K, V, O extends Map<K, V>> PairVisitor<T, R> visitMap(
         Function<T, O> getter, BiConsumer<T, O> setter) {
-      return this;
-    }
-
-    @Override
-    public <K, V, O extends Map<K, V>> PairVisitor<T, R> visitMapKeys(
-        Function<T, O> getter, BiConsumer<T, O> setter) {
-      return this;
-    }
-
-    @Override
-    public <K, V, O extends Map<K, V>> PairVisitor<T, R> visitMapKeys(
-        Function<T, O> getter) {
       return this;
     }
 
