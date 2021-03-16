@@ -17,6 +17,41 @@ check_sts_annotation(){
   fi
 }
 
+check_cronjob_annotation(){
+  local EXPECTED_ANNOTATION_VALUE="$1"
+
+  local POD_ANNOTATION="${POD_ANNOTATION:-"test-annotation"}"
+
+  local ACTUAL_ANNOTATION
+  ACTUAL_ANNOTATION="$(kubectl get cronjob -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-backup" -o jsonpath="{.spec.jobTemplate.spec.template.metadata.annotations.$POD_ANNOTATION}")"
+
+  if assert_string_equal "$EXPECTED_ANNOTATION_VALUE" "$ACTUAL_ANNOTATION"
+  then 
+    echo "SUCCESS. Custom annotations were created"
+  else
+    echo "FAIL. Custom annotations did not match the expected value"
+    return 1
+  fi
+}
+
+check_job_annotation(){
+  local BACKUP_NAME="$1"
+  local EXPECTED_ANNOTATION_VALUE="$2"
+
+  local POD_ANNOTATION="${POD_ANNOTATION:-"test-annotation"}"
+
+  local ACTUAL_ANNOTATION
+  ACTUAL_ANNOTATION="$(kubectl get job -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME-backup" -o jsonpath="{.spec.template.metadata.annotations.$POD_ANNOTATION}")"
+
+  if assert_string_equal "$EXPECTED_ANNOTATION_VALUE" "$ACTUAL_ANNOTATION"
+  then 
+    echo "SUCCESS. Custom annotations were created"
+  else
+    echo "FAIL. Custom annotations did not match the expected value"
+    return 1
+  fi
+}
+
 check_service_annotation(){
   local INSTANCE="$1"
   local EXPECTED_ANNOTATION_VALUE="$2"

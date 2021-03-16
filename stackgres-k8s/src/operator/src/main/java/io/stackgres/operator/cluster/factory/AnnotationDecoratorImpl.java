@@ -19,6 +19,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.api.model.batch.CronJob;
 import io.fabric8.kubernetes.api.model.batch.CronJobSpec;
+import io.fabric8.kubernetes.api.model.batch.Job;
 import io.fabric8.kubernetes.api.model.batch.JobSpec;
 import io.fabric8.kubernetes.api.model.batch.JobTemplateSpec;
 import io.stackgres.common.PatroniUtil;
@@ -151,6 +152,29 @@ public class AnnotationDecoratorImpl implements AnnotationDecorator {
                       podTemplateMetadata.setAnnotations(cronJobPodTemplateAnnotations);
                       podTemplate.setMetadata(podTemplateMetadata);
                     });
+              });
+          resourceAnnotations.putAll(allResourcesAnnotations);
+          break;
+        case "Job":
+          Job job = (Job) resource;
+
+          Map<String, String> jobPodTemplateAnnotations = Optional
+              .ofNullable(job.getSpec())
+              .map(JobSpec::getTemplate)
+              .map(PodTemplateSpec::getMetadata)
+              .map(ObjectMeta::getAnnotations)
+              .orElse(new HashMap<>());
+
+          jobPodTemplateAnnotations.putAll(podAnnotations);
+
+          Optional.ofNullable(job.getSpec())
+              .map(JobSpec::getTemplate)
+              .ifPresent(podTemplate -> {
+                final ObjectMeta podTemplateMetadata = Optional
+                    .ofNullable(podTemplate.getMetadata())
+                    .orElse(new ObjectMeta());
+                podTemplateMetadata.setAnnotations(jobPodTemplateAnnotations);
+                podTemplate.setMetadata(podTemplateMetadata);
               });
           resourceAnnotations.putAll(allResourcesAnnotations);
           break;
