@@ -72,6 +72,9 @@ helm_custom_annotations(){
   local POD_RANDOM_VALUE=$(ramdom_string)
   local SERVICE_RANDOM_VALUE=$(ramdom_string)
 
+  kubectl create secret generic -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-minio" \
+     --from-literal=accesskey=test --from-literal=secretkey=test
+
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
     --set cluster.metadata.annotations.pods.test-annotation="$POD_RANDOM_VALUE" \
@@ -82,6 +85,22 @@ helm_custom_annotations(){
   wait_until check_service_annotation "" "$SERVICE_RANDOM_VALUE"
   wait_until check_service_annotation "primary" "$SERVICE_RANDOM_VALUE"
   wait_until check_service_annotation "replicas" "$SERVICE_RANDOM_VALUE"
+
+  wait_until check_cronjob_annotation "$POD_RANDOM_VALUE"
+
+  cat <<EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGBackup
+metadata:
+  name: $CLUSTER_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+EOF
+
+  wait_until check_job_annotation "$CLUSTER_NAME" "$POD_RANDOM_VALUE"
+
+  kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
 
   helm uninstall "$CLUSTER_NAME" --namespace "$CLUSTER_NAMESPACE"
 }
