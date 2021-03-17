@@ -119,7 +119,15 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
             .withName(NAME)
             .withMountPath("/etc/fluent-bit")
             .withReadOnly(Boolean.TRUE)
-            .build())
+            .build(),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_PASSWD_PATH, context.getClusterContext()),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_GROUP_PATH, context.getClusterContext()),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_SHADOW_PATH, context.getClusterContext()),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_GSHADOW_PATH, context.getClusterContext()))
         .build();
   }
 
