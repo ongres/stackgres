@@ -121,36 +121,25 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
               .withMountPath("/var/log/fluentd")
               .withReadOnly(Boolean.FALSE)
               .build())
-        .build();
-  }
-
-  @Override
-  public Stream<Container> getInitContainers(StackGresDistributedLogsGeneratorContext context) {
-    return Seq.of(Optional.of(createSetupConfigContainer()))
-        .filter(Optional::isPresent)
-        .map(Optional::get);
-  }
-
-  private Container createSetupConfigContainer() {
-    return new ContainerBuilder()
-        .withName("setup-fluentd-config")
-        .withImage(StackGresContext.BUSYBOX_IMAGE)
-        .withImagePullPolicy("IfNotPresent")
-        .withCommand("/bin/sh", "-ecx", Stream.of(
-            "cp /etc/fluentd/initial-fluentd.conf /fluentd/fluentd.conf")
-            .collect(Collectors.joining(" && ")))
-        .withVolumeMounts(
-            new VolumeMountBuilder()
-            .withName(FluentdUtil.CONFIG)
-            .withMountPath("/etc/fluentd")
-            .withReadOnly(Boolean.TRUE)
-            .build(),
-            new VolumeMountBuilder()
-            .withName(StackgresClusterContainers.FLUENTD)
-            .withMountPath("/fluentd")
-            .withReadOnly(Boolean.FALSE)
-            .build())
-        .build();
+          .withInitialDelaySeconds(5)
+          .withPeriodSeconds(10)
+          .build())
+      .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
+          .volumeMount(context.getClusterContext()),
+          new VolumeMountBuilder()
+          .withName(FluentdUtil.NAME)
+          .withMountPath("/etc/fluentd")
+          .withReadOnly(Boolean.TRUE)
+          .build(),
+          ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+              ClusterStatefulSetPath.ETC_PASSWD_PATH, context.getClusterContext()),
+          ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+              ClusterStatefulSetPath.ETC_GROUP_PATH, context.getClusterContext()),
+          ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+              ClusterStatefulSetPath.ETC_SHADOW_PATH, context.getClusterContext()),
+          ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+              ClusterStatefulSetPath.ETC_GSHADOW_PATH, context.getClusterContext()))
+      .build();
   }
 
   @Override
