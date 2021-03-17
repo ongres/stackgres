@@ -15,11 +15,15 @@ import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsNonProduction;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsPersistentVolume;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsPodScheduling;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsSpec;
+import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsSpecAnnotations;
+import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsSpecMetadata;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsStatus;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPersistentVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPodScheduling;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpecAnnotations;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpecMetadata;
 
 @ApplicationScoped
 public class DistributedLogsTransformer
@@ -63,6 +67,26 @@ public class DistributedLogsTransformer
           return targetScheduling;
         }).orElse(null));
 
+    Optional.ofNullable(source.getMetadata())
+        .map(DistributedLogsSpecMetadata::getAnnotations)
+        .ifPresent(sourceAnnotations -> {
+          transformation.setMetadata(new StackGresDistributedLogsSpecMetadata());
+
+          final StackGresDistributedLogsSpecAnnotations targetAnnotations
+              = new StackGresDistributedLogsSpecAnnotations();
+          transformation.getMetadata().setAnnotations(targetAnnotations);
+
+          if (sourceAnnotations.getAllResources() != null) {
+            targetAnnotations.setAllResources(sourceAnnotations.getAllResources());
+          }
+          if (sourceAnnotations.getPods() != null) {
+            targetAnnotations.setPods(sourceAnnotations.getPods());
+          }
+          if (sourceAnnotations.getServices() != null) {
+            targetAnnotations.setServices(sourceAnnotations.getServices());
+          }
+        });
+
     return transformation;
   }
 
@@ -100,6 +124,26 @@ public class DistributedLogsTransformer
           podScheduling.setTolerations(sourcePodScheduling.getTolerations());
           return podScheduling;
         }).orElse(null));
+
+    Optional.ofNullable(source.getMetadata())
+        .map(StackGresDistributedLogsSpecMetadata::getAnnotations)
+        .ifPresent(sourceAnnotations -> {
+          transformation.setMetadata(new DistributedLogsSpecMetadata());
+
+          final DistributedLogsSpecAnnotations targetAnnotations =
+              new DistributedLogsSpecAnnotations();
+          transformation.getMetadata().setAnnotations(targetAnnotations);
+
+          if (sourceAnnotations.getAllResources() != null) {
+            targetAnnotations.setAllResources(sourceAnnotations.getAllResources());
+          }
+          if (sourceAnnotations.getPods() != null) {
+            targetAnnotations.setPods(sourceAnnotations.getPods());
+          }
+          if (sourceAnnotations.getServices() != null) {
+            targetAnnotations.setServices(sourceAnnotations.getServices());
+          }
+        });
 
     return transformation;
   }

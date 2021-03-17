@@ -78,13 +78,26 @@ helm_custom_annotations(){
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
     --set cluster.metadata.annotations.pods.test-annotation="$POD_RANDOM_VALUE" \
-    --set cluster.metadata.annotations.services.service-annotation="$SERVICE_RANDOM_VALUE"
+    --set cluster.metadata.annotations.services.service-annotation="$SERVICE_RANDOM_VALUE" \
+    --set distributedLogs.enabled=true \
+    --set cluster.distributedLogs.sgDistributedLogs=distributedlogs \
+    --set distributedLogs.metadata.annotations.pods.test-annotation="$POD_RANDOM_VALUE" \
+    --set distributedLogs.metadata.annotations.services.service-annotation="$SERVICE_RANDOM_VALUE"
 
   wait_until check_sts_annotation "$POD_RANDOM_VALUE"
 
   wait_until check_service_annotation "" "$SERVICE_RANDOM_VALUE"
   wait_until check_service_annotation "primary" "$SERVICE_RANDOM_VALUE"
   wait_until check_service_annotation "replicas" "$SERVICE_RANDOM_VALUE"
+
+  (
+  CLUSTER_NAME=distributedlogs
+  wait_until check_sts_annotation "$POD_RANDOM_VALUE"
+
+  wait_until check_service_annotation "" "$SERVICE_RANDOM_VALUE"
+  wait_until check_service_annotation "primary" "$SERVICE_RANDOM_VALUE"
+  wait_until check_service_annotation "replicas" "$SERVICE_RANDOM_VALUE"
+  )
 
   wait_until check_cronjob_annotation "$POD_RANDOM_VALUE"
 

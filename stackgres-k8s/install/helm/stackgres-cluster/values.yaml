@@ -16,6 +16,14 @@ cluster:
     replicas:
       enabled: true
       type: ClusterIP
+  # metadata:
+  #   annotations:
+  #     allResources:
+  #       key: value
+  #     pods:
+  #       key: value
+  #     services:
+  #       key: value
   pods:
     persistentVolume:
       size: 5Gi
@@ -177,6 +185,14 @@ distributedLogs:
   #       value: 
   #       effect: 
   #       tolerationSeconds: 
+  # metadata:
+  #   annotations:
+  #     allResources:
+  #       key: value
+  #     pods:
+  #       key: value
+  #     services:
+  #       key: value
 
 #You should only set following options for non production environment
 nonProductionOptions:
