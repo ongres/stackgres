@@ -95,6 +95,29 @@ spec:
                               effect NoExecute, otherwise this field is ignored) tolerates the taint. By default,
                               it is not set, which means tolerate the taint forever (do not evict). Zero and
                               negative values will be treated as 0 (evict immediately) by the system.
+                metadata:
+                  type: object
+                  description: Metadata information from cluster created resources.
+                  properties:
+                    annotations:
+                      type: object
+                      description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) to be passed to resources created and managed by StackGres.
+                      properties:
+                        allResources:
+                          type: object
+                          description: Annotations to attach to any resource created or managed by StackGres.
+                          additionalProperties:
+                            type: string
+                        pods:
+                          type: object
+                          description: Annotations to attach to pods created or managed by StackGres.
+                          additionalProperties:
+                            type: string
+                        services:
+                          type: object
+                          description: Annotations to attach to services created or managed by StackGres.
+                          additionalProperties:
+                            type: string
                 nonProductionOptions:
                   type: object
                   properties:

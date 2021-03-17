@@ -37,6 +37,10 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
   @Valid
   private StackGresDistributedLogsPodScheduling scheduling;
 
+  @JsonProperty("metadata")
+  @Valid
+  private StackGresDistributedLogsSpecMetadata metadata;
+
   public StackGresDistributedLogsPersistentVolume getPersistentVolume() {
     return persistentVolume;
   }
@@ -62,9 +66,17 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
     this.scheduling = scheduling;
   }
 
+  public StackGresDistributedLogsSpecMetadata getMetadata() {
+    return metadata;
+  }
+
+  public void setMetadata(StackGresDistributedLogsSpecMetadata metadata) {
+    this.metadata = metadata;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(nonProduction, persistentVolume, scheduling);
+    return Objects.hash(metadata, nonProduction, persistentVolume, scheduling);
   }
 
   @Override
@@ -76,7 +88,8 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
       return false;
     }
     StackGresDistributedLogsSpec other = (StackGresDistributedLogsSpec) obj;
-    return Objects.equals(nonProduction, other.nonProduction)
+    return Objects.equals(metadata, other.metadata)
+        && Objects.equals(nonProduction, other.nonProduction)
         && Objects.equals(persistentVolume, other.persistentVolume)
         && Objects.equals(scheduling, other.scheduling);
   }
@@ -87,6 +100,7 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
         .omitNullValues()
         .add("persistentVolume", persistentVolume)
         .add("scheduling", scheduling)
+        .add("metadata", metadata)
         .add("nonProduction", nonProduction)
         .toString();
   }

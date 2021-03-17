@@ -35,11 +35,14 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsEventReason;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpecMetadata;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.common.resource.CustomResourceScanner;
@@ -296,6 +299,19 @@ public class DistributedLogsReconciliationCycle
         .map(StackGresDistributedLogsNonProduction::getDisableClusterPodAntiAffinity)
         .orElse(false));
     spec.setNonProduction(nonProduction);
+    final StackGresClusterSpecMetadata metadata = new StackGresClusterSpecMetadata();
+    final StackGresClusterSpecAnnotations annotations = new StackGresClusterSpecAnnotations();
+    Optional.of(distributedLogs)
+        .map(StackGresDistributedLogs::getSpec)
+        .map(StackGresDistributedLogsSpec::getMetadata)
+        .map(StackGresDistributedLogsSpecMetadata::getAnnotations)
+        .ifPresent(distributedLogsAnnotations -> {
+          annotations.setAllResources(distributedLogsAnnotations.getAllResources());
+          annotations.setPods(distributedLogsAnnotations.getPods());
+          annotations.setServices(distributedLogsAnnotations.getServices());
+        });
+    metadata.setAnnotations(annotations);
+    spec.setMetadata(metadata);
     distributedLogsCluster.setSpec(spec);
     return distributedLogsCluster;
   }

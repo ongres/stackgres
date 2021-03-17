@@ -29,6 +29,7 @@ ___
 |:------------------------------------------------|----------|-----------|:---------|:--------|:------------|
 | [persistentVolume](#persistent-volume)          | ✓        |           | string   |         | {{< crd-field-description SGDistributedLogs.spec.persistentVolume >}} |
 | [scheduling](#scheduling)                       |          | ✓         | object   |         | {{< crd-field-description SGDistributedLogs.spec.scheduling >}} |
+| [metadata](#metadata)                           |          | ✓         | object   |         | {{< crd-field-description SGDistributedLogs.spec.metadata >}} |
 | [nonProductionOptions](#non-production-options) |          | ✓         | array    |         | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions >}} |
 
 ## Persistent volume
@@ -57,6 +58,37 @@ Holds scheduling configuration for StackGres pods to have.
 | operator  |          | ✓         | string   | Equal                   | {{< crd-field-description SGDistributedLogs.spec.scheduling.tolerations >}} |
 | value     |          | ✓         | string   |                         | {{< crd-field-description SGDistributedLogs.spec.scheduling.tolerations >}} |
 | effect    |          | ✓         | string   | match all taint effects | {{< crd-field-description SGDistributedLogs.spec.scheduling.tolerations >}} |
+
+### Metadata
+
+Holds custom metadata information for StackGres generated resources to have.
+
+| Property                      | Required | Updatable | Type     | Default        | Description |
+|:------------------------------|----------|-----------|:---------|:---------------|:------------|
+| [annotations](#annotations)   |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.metadata.annotations >}} |
+
+### Annotations
+
+Holds custom annotations for StackGres generated resources to have.
+
+| Property                      | Required | Updatable | Type     | Default        | Description |
+|:------------------------------|----------|-----------|:---------|:---------------|:------------|
+| allResources                  |          | ✓         | object   |                | {{< crd-field-description SGDistributedLogs.spec.metadata.annotations.allResources >}} |
+| pods                          |          | ✓         | object   |                | {{< crd-field-description SGDistributedLogs.spec.metadata.annotations.pods >}} |
+| services                      |          | ✓         | object   |                | {{< crd-field-description SGDistributedLogs.spec.metadata.annotations.services >}} |
+
+```yaml
+apiVersion: stackgres.io/v1beta1
+kind: SGDistributedLogs
+metadata:
+  name: stackgres
+spec:
+  pods:
+    metadata:
+      annotations:
+        allResources:
+          customAnnotations: customAnnotationValue
+```
 
 ## Non Production options
 
