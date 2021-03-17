@@ -28,6 +28,7 @@ ___
 | Property                                        | Required | Updatable | Type     | Default | Description |
 |:------------------------------------------------|----------|-----------|:---------|:--------|:------------|
 | [persistentVolume](#persistent-volume)          | ✓        |           | string   |         | {{< crd-field-description SGDistributedLogs.spec.persistentVolume >}} |
+| [scheduling](#scheduling)                       |          | ✓         | object   |         | {{< crd-field-description SGDistributedLogs.spec.scheduling >}} |
 | [nonProductionOptions](#non-production-options) |          | ✓         | array    |         | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions >}} |
 
 ## Persistent volume
@@ -36,6 +37,26 @@ ___
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
 | size                                       | ✓        |           | string   |                              | {{< crd-field-description SGDistributedLogs.spec.persistentVolume.size >}} |
 | storageClass                               | ✓        |           | string   | default storage class        | {{< crd-field-description SGDistributedLogs.spec.persistentVolume.storageClass >}} |
+
+### Scheduling
+
+Holds scheduling configuration for StackGres pods to have.
+
+| Property                    | Required | Updatable | Type     | Default        | Description |
+|:----------------------------|----------|-----------|:---------|:---------------|:------------|
+| nodeSelector                |          | ✓         | object   |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeSelector >}} |
+| [tolerations](#tolerations) |          | ✓         | array    |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.tolerations >}} |
+
+#### Tolerations
+
+Holds scheduling configuration for StackGres pods to have.
+
+| Property  | Required | Updatable | Type     | Default                 | Description |
+|:----------|----------|-----------|:---------|:------------------------|:------------|
+| key       |          | ✓         | string   |                         | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeSelector >}} |
+| operator  |          | ✓         | string   | Equal                   | {{< crd-field-description SGDistributedLogs.spec.scheduling.tolerations >}} |
+| value     |          | ✓         | string   |                         | {{< crd-field-description SGDistributedLogs.spec.scheduling.tolerations >}} |
+| effect    |          | ✓         | string   | match all taint effects | {{< crd-field-description SGDistributedLogs.spec.scheduling.tolerations >}} |
 
 ## Non Production options
 

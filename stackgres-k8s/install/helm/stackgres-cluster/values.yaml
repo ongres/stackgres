@@ -16,7 +16,6 @@ cluster:
     replicas:
       enabled: true
       type: ClusterIP
-    
   pods:
     persistentVolume:
       size: 5Gi
@@ -29,6 +28,15 @@ cluster:
     disableConnectionPooling: false
     disablePostgresUtil: false
     disableMetricsExporter: false
+    # scheduling:
+    #   nodeSelector:
+    #     key: value
+    #   tolerations:
+    #     - key: 
+    #       operator: 
+    #       value: 
+    #       effect: 
+    #       tolerationSeconds: 
   configurations:
     sgPostgresConfig: postgresconf
     sgPoolingConfig: pgbouncerconf
@@ -160,6 +168,15 @@ distributedLogs:
     ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
     ##   GKE, AWS & OpenStack)
     #  storageClass: "-"
+  # scheduling:
+  #   nodeSelector:
+  #     key: value
+  #   tolerations:
+  #     - key: 
+  #       operator: 
+  #       value: 
+  #       effect: 
+  #       tolerationSeconds: 
 
 #You should only set following options for non production environment
 nonProductionOptions:

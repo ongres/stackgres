@@ -40,7 +40,7 @@ public class ClusterPod {
   private ClusterPodMetadata metadata;
 
   @Valid
-  private PodScheduling scheduling;
+  private ClusterPodScheduling scheduling;
 
   public ClusterPodPersistentVolume getPersistentVolume() {
     return persistentVolume;
@@ -82,11 +82,11 @@ public class ClusterPod {
     this.metadata = metadata;
   }
 
-  public PodScheduling getScheduling() {
+  public ClusterPodScheduling getScheduling() {
     return scheduling;
   }
 
-  public void setScheduling(PodScheduling scheduling) {
+  public void setScheduling(ClusterPodScheduling scheduling) {
     this.scheduling = scheduling;
   }
 

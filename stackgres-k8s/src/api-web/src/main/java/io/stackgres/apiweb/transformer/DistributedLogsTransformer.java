@@ -13,10 +13,12 @@ import javax.enterprise.context.ApplicationScoped;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsDto;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsNonProduction;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsPersistentVolume;
+import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsPodScheduling;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsSpec;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsStatus;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPersistentVolume;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPodScheduling;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 
 @ApplicationScoped
@@ -51,6 +53,16 @@ public class DistributedLogsTransformer
         getCustomResourcePersistentVolume(source.getPersistentVolume()));
     transformation.setNonProduction(
         getCustomResourceNonProduction(source.getNonProduction()));
+
+    transformation.setScheduling(Optional.ofNullable(source.getScheduling())
+        .map(sourceScheduling -> {
+          StackGresDistributedLogsPodScheduling targetScheduling =
+              new StackGresDistributedLogsPodScheduling();
+          targetScheduling.setNodeSelector(sourceScheduling.getNodeSelector());
+          targetScheduling.setTolerations(sourceScheduling.getTolerations());
+          return targetScheduling;
+        }).orElse(null));
+
     return transformation;
   }
 
@@ -80,6 +92,15 @@ public class DistributedLogsTransformer
         getResourcePersistentVolume(source.getPersistentVolume()));
     transformation.setNonProduction(
         getResourceNonProduction(source.getNonProduction()));
+
+    transformation.setScheduling(Optional.ofNullable(source.getScheduling())
+        .map(sourcePodScheduling -> {
+          DistributedLogsPodScheduling podScheduling = new DistributedLogsPodScheduling();
+          podScheduling.setNodeSelector(sourcePodScheduling.getNodeSelector());
+          podScheduling.setTolerations(sourcePodScheduling.getTolerations());
+          return podScheduling;
+        }).orElse(null));
+
     return transformation;
   }
 
