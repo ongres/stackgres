@@ -28,9 +28,9 @@ home = [ "HTML", "RSS", "JSON"]
 
         # Footer shortcuts menu
         [[languages.en.menu.shortcuts]]
-            name = "<i class='fas fa-question-circle'></i> &nbsp;FAQ"
+            name = "FAQ"
             identifier = "faq"
-            url = "https://stackgres.io/doc/latest/faq"
+            url = "faq"
             weight = 10
         
         [[languages.en.menu.shortcuts]]
