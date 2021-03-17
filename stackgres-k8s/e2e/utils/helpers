@@ -18,6 +18,7 @@ try_function() {
 }
 
 notrace_function() {
+  local SHELL_XTRACE=""
   local X_UNSET=true
   if echo "$-" | grep -q x
   then
