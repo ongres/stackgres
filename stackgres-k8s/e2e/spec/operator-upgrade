@@ -7,13 +7,15 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_install() {
-  PREVIOUS_CONTAINER_BUILD="$(get_container_build "$STACKGRES_PREVIOUS_VERSION")"
-  PATRONI_IMAGE="$(get_component_images "$CONTAINER_BUILD" | grep '/patroni:' | sort | tail -n 1)"
-  PREVIOUS_PATRONI_IMAGE="$(get_component_images "$PREVIOUS_CONTAINER_BUILD" | grep '/patroni:' | sort | tail -n 1)"
+  PREVIOUS_PATRONI_IMAGE="$(get_component_images "$STACKGRES_PREVIOUS_VERSION" | grep '/patroni\(-ext\)\?:' | tail -n 1)"
+  PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_PATRONI_IMAGE##*-pg}"
+  PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
+  PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION" | grep '/patroni\(-ext\)\?:' | grep "[-]pg$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION-" | tail -n 1)"
+  k8s_unnamespaced_cleanup
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
   install_operator_previous_version
-  
+
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
@@ -180,14 +182,15 @@ check_cluster_restart() {
   local RESTART_PRIMARY_FIRST="$4"
 
   local POD
-  local PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+  local PODS
+  PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
     -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true" -o name \
     | cut -d / -f 2)"
   for POD in $PODS
   do
     POD_PATRONI_IMAGE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" \
       --template '{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}' \
-       | grep '/patroni:')"
+       | grep '/patroni\(-ext\)\?:')"
     if [ "$POD_PATRONI_IMAGE" = "$PREVIOUS_PATRONI_IMAGE" ]
     then
       echo "SUCCESS. Pod $POD is using the previous patroni image"
@@ -232,11 +235,14 @@ check_cluster_restart() {
     fi
   done
 
+  PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true" -o name \
+    | cut -d / -f 2)"
   for POD in $PODS
   do
     POD_PATRONI_IMAGE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" \
       --template '{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}' \
-       | grep '/patroni:')"
+       | grep '/patroni\(-ext\)\?:')"
     if [ "$POD_PATRONI_IMAGE" = "$PATRONI_IMAGE" ]
     then
       echo "SUCCESS. Pod $POD is using the new patroni image"
@@ -273,7 +279,7 @@ create_or_replace_cluster_for_version() {
   if helm get values "$RELEASE" --namespace "$NAMESPACE" > /dev/null 2>&1
   then
     helm upgrade "$RELEASE" --namespace "$NAMESPACE" "$CLUSTER_PREVIOUS_VERSION_HELM_URL" \
-        --reuse-values --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"   
+        --reuse-values --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
   else
     create_namespace_if_not_exists "$NAMESPACE"
     helm install "$RELEASE" "$CLUSTER_PREVIOUS_VERSION_HELM_URL" \

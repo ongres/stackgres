@@ -182,7 +182,15 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
           .withName(FluentdUtil.NAME)
           .withMountPath("/etc/fluentd")
           .withReadOnly(Boolean.TRUE)
-          .build())
+          .build(),
+          ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+              ClusterStatefulSetPath.ETC_PASSWD_PATH, context.getClusterContext()),
+          ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+              ClusterStatefulSetPath.ETC_GROUP_PATH, context.getClusterContext()),
+          ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+              ClusterStatefulSetPath.ETC_SHADOW_PATH, context.getClusterContext()),
+          ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+              ClusterStatefulSetPath.ETC_GSHADOW_PATH, context.getClusterContext()))
       .build();
   }
 

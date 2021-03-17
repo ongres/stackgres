@@ -23,6 +23,13 @@ decrease_instances_by_one() {
   INSTANCES="$(kubectl get sgcluster -n "$NAMESPACE" "$SGCLUSTER" --template "{{ .spec.instances }}")"
   echo "Decreasing cluster instances from $INSTANCES to $((INSTANCES-1))"
   kubectl patch sgcluster -n "$NAMESPACE" "$SGCLUSTER" --type merge -p "spec: { instances: $((INSTANCES-1)) }"
+
+  echo "Waiting for pod being terminated"
+  until kubectl get pod -n "$NAMESPACE" \
+    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true" -o name | wc -l | grep -q -F "$((INSTANCES-1))"
+  do
+    sleep 1
+  done
 }
 
 update_read_only_pods() {
