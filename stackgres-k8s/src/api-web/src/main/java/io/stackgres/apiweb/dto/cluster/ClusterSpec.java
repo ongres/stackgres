@@ -56,8 +56,10 @@ public class ClusterSpec {
   @JsonProperty("nonProductionOptions")
   private ClusterNonProduction nonProduction;
 
+  @JsonProperty("postgresServices")
   private ClusterPostgresServices postgresServices;
 
+  @JsonProperty("metadata")
   private ClusterSpecMetadata metadata;
 
   public int getInstances() {
