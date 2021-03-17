@@ -28,7 +28,7 @@ home = [ "HTML", "RSS", "JSON"]
 
         # Footer shortcuts menu
         [[languages.en.menu.shortcuts]]
-            name = "FAQ"
+            name = "<i class='fas fa-question-circle'></i> &nbsp;FAQ"
             identifier = "faq"
             url = "faq"
             weight = 10

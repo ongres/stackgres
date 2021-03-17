@@ -30,11 +30,7 @@
         <ul>
           {{ range sort . "Weight"}}
               <li> 
-                  {{ if eq .Name "FAQ" }}
-                    {{.Pre}}<a class="padding" href="{{ $.Site.BaseURL }}{{.URL | relLangURL }}"><i class='fas fa-question-circle'></i> &nbsp;{{safeHTML .Name}}</a>{{.Post}}
-                  {{ else }}
-                    {{.Pre}}<a class="padding" href="{{.URL | absLangURL }}">{{safeHTML .Name}}</a>{{.Post}}
-                  {{ end }}
+                  {{.Pre}}<a class="padding" href="{{.URL | absLangURL }}">{{safeHTML .Name}}</a>{{.Post}}
               </li>
           {{end}}
         </ul>
