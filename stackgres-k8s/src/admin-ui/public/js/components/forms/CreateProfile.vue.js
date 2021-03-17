@@ -138,9 +138,9 @@ var CreateProfile = Vue.component("CreateProfile", {
             if(vm.$route.params.action === 'edit') {
                 store.state.profiles.forEach(function( conf ){
                     if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
-                        vm.profileCPU = conf.data.spec.cpu.match(/\d+/g);
+                        vm.profileCPU = conf.data.spec.cpu.match(/\d+/g)[0];
                         vm.profileCPUUnit = (conf.data.spec.cpu.match(/[a-zA-Z]+/g) !== null) ? conf.data.spec.cpu.match(/[a-zA-Z]+/g)[0] : 'CPU';
-                        vm.profileRAM = conf.data.spec.memory.match(/\d+/g);
+                        vm.profileRAM = conf.data.spec.memory.match(/\d+/g)[0];
                         vm.profileRAMUnit = conf.data.spec.memory.match(/[a-zA-Z]+/g)[0];
                         config = conf;
                         return false;
