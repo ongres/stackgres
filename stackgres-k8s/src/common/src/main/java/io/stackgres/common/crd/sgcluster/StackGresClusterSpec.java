@@ -63,8 +63,12 @@ public class StackGresClusterSpec implements KubernetesResource {
   @Valid
   private StackGresClusterNonProduction nonProduction;
 
+  @JsonProperty("postgresServices")
+  @Valid
   private StackGresClusterPostgresServices postgresServices;
 
+  @JsonProperty("metadata")
+  @Valid
   private StackGresClusterSpecMetadata metadata;
 
   public int getInstances() {
