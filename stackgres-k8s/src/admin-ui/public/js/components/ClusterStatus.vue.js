@@ -55,6 +55,7 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 						<th>Total CPU</th>
 						<th>Total Memory</th>
 						<th>Primary Node Disk</th>
+						<th>Total Allocated Disk</th>
 						<th>Instances</th>
 					</thead>
 					<tbody>
@@ -80,8 +81,18 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 										<circle cx="12.5" cy="12.5" r="10" stroke-width="5" fill="none" />
 									</svg>
 								</div>
-								<template v-if="cluster.status.hasOwnProperty('diskUsed')">{{ cluster.status.diskUsed }}</template><template v-else>-</template> / {{ cluster.data.spec.pods.persistentVolume.size }} <span v-if="cluster.status.hasOwnProperty('diskPsiAvg60')">(psi avg. {{ cluster.status.diskPsiAvg60 }})</span>
+								<template v-if="cluster.status.hasOwnProperty('pods')">
+									<template v-for="pod in cluster.status.pods" v-if="pod.role == 'primary'">
+										{{ pod.diskUsed }}
+									</template>
+								</template>
+								<template v-else>
+									-
+								</template>
+								/ 
+								{{ cluster.data.spec.pods.persistentVolume.size }} <span v-if="cluster.status.hasOwnProperty('diskPsiAvg60')">(psi avg. {{ cluster.status.diskPsiAvg60 }})</span>
 							</td>
+							<td>{{ cluster.status.hasOwnProperty('diskRequested') ? cluster.status.diskRequested : '-' }}</td>
 							<td>{{ cluster.data.podsReady }} / {{ cluster.data.pods.length }}</td>
 						</tr>
 					</tbody>
@@ -211,8 +222,9 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 		},
 		diskUsed () {
 			
-			if( store.state.currentCluster.hasOwnProperty('status') && store.state.currentCluster.status.hasOwnProperty('diskUsed') ) {
-				let used = getBytes(store.state.currentCluster.status.diskUsed);
+			if( store.state.currentCluster.hasOwnProperty('status') ) {
+				let primary = (store.state.currentCluster.status.hasOwnProperty('pods') ? store.state.currentCluster.status.pods.find(p => (p.role == 'primary')) : { diskUsed: 0})
+				let used = getBytes(primary.diskUsed);
 				let available = getBytes(store.state.currentCluster.data.spec.pods.persistentVolume.size);
 				let percentage = Math.round((used*63)/available);
 
