@@ -222,8 +222,8 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 		},
 		diskUsed () {
 			
-			if( store.state.currentCluster.hasOwnProperty('status') ) {
-				let primary = (store.state.currentCluster.status.hasOwnProperty('pods') ? store.state.currentCluster.status.pods.find(p => (p.role == 'primary')) : { diskUsed: 0})
+			if( store.state.currentCluster.hasOwnProperty('status') && store.state.currentCluster.status.hasOwnProperty('pods')) {
+				let primary = store.state.currentCluster.status.pods.find(p => (p.role == 'primary'))
 				let used = getBytes(primary.diskUsed);
 				let available = getBytes(store.state.currentCluster.data.spec.pods.persistentVolume.size);
 				let percentage = Math.round((used*63)/available);
