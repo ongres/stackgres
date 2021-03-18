@@ -372,49 +372,49 @@
 													<td class="param">Type <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.logType.description"></span></td>
 													<td class="value label logType pg"><span>Postgres</span></td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('podName')">
 													<td class="param">Pod Name <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.podName.description"></span></td>
 													<td class="value">{{ log.podName }}</td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('role')">
 													<td class="param">Role <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.role.description"></span></td>
 													<td class="value label role" :class="log.role">
 														<span>{{ log.role }}</span>
 													</td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('userName')">
 													<td class="param">User <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.userName.description"></span></td>
 													<td class="value">{{ log.userName }}</td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('databaseName')">
 													<td class="param">Database <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.databaseName.description"></span></td>
 													<td class="value">{{ log.databaseName }}</td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('processId')">
 													<td class="param">Process ID <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.processId.description"></span></td>
 													<td class="value">{{ log.processId }}</td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('connectionFrom')">
 													<td class="param">Connection From <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.connectionFrom.description"></span></td>
 													<td class="value">{{ log.connectionFrom }}</td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('sessionId')">
 													<td class="param">Session ID <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.sessionId.description"></span></td>
 													<td class="value">{{ log.sessionId }}</td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('sessionLineNum')">
 													<td class="param">Session Line Number <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.sessionLineNum.description"></span></td>
 													<td class="value">{{ log.sessionLineNum }}</td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('commandTag')">
 													<td class="param">Command Tag <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.commandTag.description"></span></td>
 													<td class="value">{{ log.commandTag }}</td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('sessionStartTime')">
 													<td class="param">Session Start Time <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.sessionStartTime.description"></span></td>
 													<td class="value">{{ log.sessionStartTime }}</td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('virtualTransactionId')">
 													<td class="param">Virtual Transaction ID <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.virtualTransactionId.description"></span></td>
 													<td class="value">{{ log.virtualTransactionId }}</td>
 												</tr>
@@ -423,51 +423,51 @@
 										
 										<table>
 											<tbody>
-												<tr>
+												<tr v-if="log.hasOwnProperty('transactionId')">
 													<td class="param">Transaction ID <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.transactionId.description"></span></td>
 													<td class="value">{{ log.transactionId }}</td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('errorLevel')">
 													<td class="param">Error Level <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.errorLevel.description"></span></td>
 													<td class="value label errorLevel" :class="log.errorLevel"><span>{{ log.errorLevel }}</span></td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('sqlStateCode')">
 													<td class="param">SQL State Code <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.sqlStateCode.description"></span></td>
 													<td class="value">{{ log.sqlStateCode }}</td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('detail')">
 													<td class="param">Detail <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.detail.description"></span></td>
 													<td class="value">{{ log.detail }}</td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('hint')">
 													<td class="param">Hint <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.hint.description"></span></td>
 													<td class="value">{{ log.hint }}</td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('internalQuery')">
 													<td class="param">Internal Query <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.internalQuery.description"></span></td>
 													<td class="value">{{ log.internalQuery }}</td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('internalQueryPos')">
 													<td class="param">Internal Query Pos <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.internalQueryPos.description"></span></td>
 													<td class="value">{{ log.internalQueryPos }}</td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('context')">
 													<td class="param">Context <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.context.description"></span></td>
 													<td class="value">{{ log.context }}</td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('query')">
 													<td class="param">Query <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.query.description"></span></td>
 													<td class="value">{{ log.query }}</td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('queryPos')">
 													<td class="param">Query Pos <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.queryPos.description"></span></td>
 													<td class="value">{{ log.queryPos }}</td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('location')">
 													<td class="param">Location <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.location.description"></span></td>
 													<td class="value">{{ log.location }}</td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('applicationName')">
 													<td class="param">Application Name <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.applicationName.description"></span></td>
 													<td class="value">{{ log.applicationName }}</td>
 												</tr>
@@ -489,13 +489,13 @@
 										</table>
 										<table>
 											<tbody>
-												<tr>
+												<tr v-if="log.hasOwnProperty('role')">
 													<td class="param">Role <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.role.description"></span></td>
 													<td class="value label role" :class="log.role">
 														<span>{{ log.role }}</span>
 													</td>
 												</tr>
-												<tr>
+												<tr v-if="log.hasOwnProperty('errorLevel')">
 													<td class="param">Error Level <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.errorLevel.description"></span></td>
 													<td class="value label errorLevel" :class="log.errorLevel"><span>{{ log.errorLevel }}</span></td>
 												</tr>
@@ -876,7 +876,7 @@
 							vc.fetching = false;
 							
 						}).catch(function(err) {
-							notify(
+							vc.notify(
 								{
 								title: 'Error',
 								detail: 'There was an error while trying to fetch the information from the API, please refresh the window and try again.'
@@ -893,7 +893,7 @@
 						});
 					}
 				} else {
-					notify(
+					vc.notify(
 						{
 						title: store.state.loginToken,
 						detail: 'There was an authentication error while trying to fetch the information from the API, please refresh the window and try again.'
