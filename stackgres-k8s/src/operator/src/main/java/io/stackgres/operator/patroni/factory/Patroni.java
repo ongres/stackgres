@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.patroni.factory;
 
+import static io.stackgres.operator.patroni.factory.PatroniConfigMap.PATRONI_RESTAPI_PORT_NAME;
+
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -64,14 +66,14 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
 
   @Inject
   public Patroni(PatroniConfigMap patroniConfigMap,
-      PatroniScriptsConfigMap patroniScriptsConfigMap,
-      PatroniSecret patroniSecret,
-      PatroniRole patroniRole, PatroniServices patroniServices,
-      PatroniEndpoints patroniConfigEndpoints,
-      PatroniRequirements resourceRequirementsFactory,
-      ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables,
-      PatroniEnvironmentVariables patroniEnvironmentVariables,
-      LabelFactoryDelegator factoryDelegator) {
+                 PatroniScriptsConfigMap patroniScriptsConfigMap,
+                 PatroniSecret patroniSecret,
+                 PatroniRole patroniRole, PatroniServices patroniServices,
+                 PatroniEndpoints patroniConfigEndpoints,
+                 PatroniRequirements resourceRequirementsFactory,
+                 ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables,
+                 PatroniEnvironmentVariables patroniEnvironmentVariables,
+                 LabelFactoryDelegator factoryDelegator) {
     super();
     this.patroniConfigMap = patroniConfigMap;
     this.patroniScriptsConfigMap = patroniScriptsConfigMap;
@@ -125,7 +127,11 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                     .map(entry -> Envoy.PG_REPL_ENTRY_PORT)
                     .findFirst()
                     .orElse(Envoy.PG_PORT)).build(),
-            new ContainerPortBuilder().withContainerPort(8008).build())
+            new ContainerPortBuilder()
+                .withName(PATRONI_RESTAPI_PORT_NAME)
+                .withProtocol("TCP")
+                .withContainerPort(Envoy.PATRONI_ENTRY_PORT)
+                .build())
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.volumeMounts(context.getClusterContext(),
             ClusterStatefulSetVolumeConfig.DATA,
             ClusterStatefulSetVolumeConfig.SOCKET,
@@ -147,8 +153,8 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                     .withSubPath(t.v1.getScript() != null
                         ? PatroniScriptsConfigMap.scriptName(t)
                         : t.v1.getScriptFrom().getConfigMapKeyRef() != null
-                            ? t.v1.getScriptFrom().getConfigMapKeyRef().getKey()
-                            : t.v1.getScriptFrom().getSecretKeyRef().getKey())
+                        ? t.v1.getScriptFrom().getConfigMapKeyRef().getKey()
+                        : t.v1.getScriptFrom().getSecretKeyRef().getKey())
                     .withReadOnly(true)
                     .build())
                 .toArray(VolumeMount[]::new))
@@ -163,7 +169,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
         .withLivenessProbe(new ProbeBuilder()
             .withHttpGet(new HTTPGetActionBuilder()
                 .withNewPath("/cluster")
-                .withPort(new IntOrString(8008))
+                .withPort(new IntOrString(Envoy.PATRONI_ENTRY_PORT))
                 .withScheme("HTTP")
                 .build())
             .withInitialDelaySeconds(15)
@@ -173,7 +179,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
         .withReadinessProbe(new ProbeBuilder()
             .withHttpGet(new HTTPGetActionBuilder()
                 .withPath("/read-only")
-                .withPort(new IntOrString(8008))
+                .withPort(new IntOrString(Envoy.PATRONI_ENTRY_PORT))
                 .withScheme("HTTP")
                 .build())
             .withInitialDelaySeconds(5)
