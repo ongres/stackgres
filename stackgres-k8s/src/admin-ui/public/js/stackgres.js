@@ -669,6 +669,11 @@ router.beforeEach((to, from, next) => {
     }
 
   }
+
+  if(component !== 'NotFound') {
+    store.commit('notFound',false)
+    store.commit('setCurrentNamespace', to.params.namespace)
+  }
   
   // If entering a Cluster, setup as current
   if ( to.params.cluster === "cluster" ) {
@@ -1823,8 +1828,6 @@ Vue.filter('formatTimestamp',function(t, part){
 
 function notFound() {
   store.commit('notFound',true)
-  //console.log('notfound')
-  router.push('/admin/not-found.html')
 }
 
 function checkLogin() {

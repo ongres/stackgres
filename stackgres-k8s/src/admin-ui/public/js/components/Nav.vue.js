@@ -131,6 +131,15 @@ var Nav = Vue.component("sg-nav", {
 					</a>
 				</div>-->
 			</div>
+			<div id="notFound" v-if="loggedIn && notFound">
+				<h1>Not Found</h1>
+				<p>
+					The resource you're looking for doesn't exist,<br/>
+					confirm your URL is correct and try again
+				</p>
+				<br/>
+				<router-link to="/admin/overview/default" class="btn">Go to Default Dashboard</router-link>
+			</div>
 		</aside>`,
 
 	data: function() {
@@ -178,10 +187,12 @@ var Nav = Vue.component("sg-nav", {
 
 		clone () {
 			return store.state.cloneCRD
+		},
+		
+		notFound() {
+			return store.state.notFound
 		}
-		/* confirmDeleteName() {
-			return store.state.confirmDeleteName
-		}*/
+
 	},
 
 	methods: {
