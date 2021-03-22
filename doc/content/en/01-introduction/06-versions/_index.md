@@ -23,11 +23,11 @@ url: intro/versions
 | PostgreSQL | 12.6, 12.4, 12.3, 11.11, 11.8 and 11.9 |
 | Patroni | 1.6.5 |
 | WAL-G | 0.2.19 |
-| PgBouncer | 1.15.0 |
-| Postgres Exporter | 0.9.0 |
-| Envoy | 1.17.0 |
-| Fluent-Bit | 1.6.10 |
-| Fluentd | 1.12.0 |
+| PgBouncer | 1.13.0 |
+| Postgres Exporter | 0.8.0 |
+| Envoy | 1.15.3 |
+| Fluent-Bit | 1.4.6 |
+| Fluentd | 1.9.3 |
 
 ### Additional extensions included on StackGres
 
