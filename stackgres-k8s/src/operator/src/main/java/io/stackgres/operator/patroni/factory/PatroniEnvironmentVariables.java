@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.common.StackGresDistributedLogsContext;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 import org.jooq.lambda.Seq;
 
@@ -24,14 +25,39 @@ public class PatroniEnvironmentVariables
 
   @Override
   public Stream<EnvVar> streamResources(StackGresClusterContext context) {
+
     return Seq.of(
+        new EnvVarBuilder()
+            .withName("PATRONI_RESTAPI_LISTEN")
+            .withValue(context instanceof StackGresDistributedLogsContext
+                ? "0.0.0.0:8008"
+                : "0.0.0.0:8009")
+            .build(),
+        new EnvVarBuilder()
+            .withName("PATRONI_RESTAPI_CONNECT_ADDRESS")
+            .withValue(PatroniServices.restName(context) + ":8008")
+            .build(),
+        new EnvVarBuilder()
+            .withName("PATRONI_RESTAPI_USERNAME")
+            .withValue("superuser")
+            .build(),
+        new EnvVarBuilder()
+            .withName("PATRONI_RESTAPI_PASSWORD")
+            .withValueFrom(new EnvVarSourceBuilder()
+                .withSecretKeyRef(
+                    new SecretKeySelectorBuilder()
+                        .withName(context.getCluster().getMetadata().getName())
+                        .withKey("restapi-password")
+                        .build())
+                .build())
+            .build(),
         new EnvVarBuilder().withName("PATRONI_NAME")
             .withValueFrom(new EnvVarSourceBuilder()
                 .withFieldRef(
                     new ObjectFieldSelectorBuilder()
                         .withFieldPath("metadata.name").build())
-                .build())
-            .build(),
+                .build()).build(),
+
         new EnvVarBuilder().withName("PATRONI_KUBERNETES_NAMESPACE")
             .withValueFrom(new EnvVarSourceBuilder()
                 .withFieldRef(

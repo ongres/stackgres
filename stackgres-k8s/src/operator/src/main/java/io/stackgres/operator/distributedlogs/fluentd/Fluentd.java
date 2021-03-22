@@ -9,7 +9,6 @@ import static io.stackgres.common.FluentdUtil.PATRONI_LOG_TYPE;
 import static io.stackgres.common.FluentdUtil.POSTGRES_LOG_TYPE;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -35,10 +34,10 @@ import io.fabric8.kubernetes.api.model.TCPSocketActionBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.LabelFactory;
-import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -109,21 +108,6 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
             .withInitialDelaySeconds(5)
             .withPeriodSeconds(10)
             .build())
-        .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
-            .volumeMount(context.getClusterContext()),
-            new VolumeMountBuilder()
-              .withName(StackgresClusterContainers.FLUENTD)
-              .withMountPath("/etc/fluentd")
-              .withReadOnly(Boolean.TRUE)
-              .build(),
-            new VolumeMountBuilder()
-              .withName(FluentdUtil.BUFFER)
-              .withMountPath("/var/log/fluentd")
-              .withReadOnly(Boolean.FALSE)
-              .build())
-          .withInitialDelaySeconds(5)
-          .withPeriodSeconds(10)
-          .build())
       .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
           .volumeMount(context.getClusterContext()),
           new VolumeMountBuilder()

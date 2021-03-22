@@ -74,17 +74,30 @@ build_restapi_image() {
   )
 }
 
+build_jobs_image() {
+  (
+  cd "$STACKGRES_PATH/src"
+  sh jobs/src/main/docker/build-image-jvm.sh
+  )
+}
+
+build_distributedlogs_controller_image() {
+  (
+  cd "$STACKGRES_PATH/src"
+  sh distributedlogs-controller/src/main/docker/build-image-jvm.sh
+  )
+}
+
 build_adminui_image() {
   (
   cd "$STACKGRES_PATH/src"
-  (
-    cd admin-ui
-    sh $SHELL_XTRACE ../../ci/utils/crds2description_json.sh   ../../install/helm/stackgres-operator/crds target/crds2description_json
-  )
-  sh $SHELL_XTRACE admin-ui/build.sh
-  sh $SHELL_XTRACE admin-ui/buildah/build.sh
+  sh -x admin-ui/npmw install
+  sh admin-ui/npmw run build
+  sh admin-ui/build.sh
+  sh admin-ui/docker/build.sh
   )
 }
+
 
 build_helm_artifacts() {
   (
@@ -196,7 +209,8 @@ load_operator_k8s() {
     for IMAGE_NAME in \
       "$OPERATOR_IMAGE_NAME" \
       "$RESTAPI_IMAGE_NAME" \
-      "$ADMINUI_IMAGE_NAME"
+      "$ADMINUI_IMAGE_NAME" \
+      "$JOBS_IMAGE_NAME"
     do
       echo "$IMAGE_NAME"
     done | xargs -n 1 -I % -P 0 \
@@ -206,7 +220,8 @@ load_operator_k8s() {
       for IMAGE_NAME in \
         "$OPERATOR_IMAGE_NAME" \
         "$RESTAPI_IMAGE_NAME" \
-        "$ADMINUI_IMAGE_NAME"
+        "$ADMINUI_IMAGE_NAME" \
+        "$JOBS_IMAGE_NAME"
       do
         echo "$IMAGE_NAME"
       done | xargs -n 1 -I % -P 0 \
@@ -248,7 +263,8 @@ load_operator_k8s_only() {
   for IMAGE_NAME in \
     "$OPERATOR_IMAGE_NAME" \
     "$RESTAPI_IMAGE_NAME" \
-    "$ADMINUI_IMAGE_NAME"
+    "$ADMINUI_IMAGE_NAME" \
+    "$JOBS_IMAGE_NAME"
   do
     echo "$IMAGE_NAME"
   done | xargs -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" load_image_k8s '%'

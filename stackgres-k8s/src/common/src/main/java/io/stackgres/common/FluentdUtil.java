@@ -13,6 +13,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 public class FluentdUtil {
+  public static final String NAME = "fluentd";
   public static final String POSTGRES_LOG_TYPE = "postgres";
   public static final String PATRONI_LOG_TYPE = "patroni";
   public static final int FORWARD_PORT = 12225;
