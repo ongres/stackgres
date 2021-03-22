@@ -10,7 +10,9 @@ build ui:
     - stackgres-k8s/src/admin-ui/target
 
 build documentation:
-  image: monachus/hugo
+  image:
+    name: klakegg/hugo:0.81.0-ubuntu
+    entrypoint: [ "" ]
   stage: post-build
   dependencies:
     - build
