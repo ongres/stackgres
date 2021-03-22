@@ -669,7 +669,7 @@ var CreateCluster = Vue.component("CreateCluster", {
             metricsExporter: true,
             podsMetadata: [ { label: '', value: ''} ],
             nodeSelector: [ { label: '', value: ''} ],
-            tolerations: [ { key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: 0 } ],
+            tolerations: [ { key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null } ],
             pgConfigExists: true,
             currentScriptIndex: 0,
             initScripts: [ { name: '', database: '', script: ''} ],
@@ -860,7 +860,7 @@ var CreateCluster = Vue.component("CreateCluster", {
         },
 
         pushToleration () {
-            this.tolerations.push({ key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: 0 })
+            this.tolerations.push({ key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null })
         },
         
         createCluster: function(e) {
@@ -902,10 +902,10 @@ var CreateCluster = Vue.component("CreateCluster", {
                                     "labels": this.parseProps(this.podsMetadata, 'label')
                                 }
                             }) ),
-                            ...( (!jQuery.isEmptyObject(this.parseProps(this.nodeSelector, 'label')) || this.hasTolerations(this.tolerations) ) && ({
+                            ...( (!jQuery.isEmptyObject(this.parseProps(this.nodeSelector, 'label')) || this.hasTolerations() ) && ({
                                 "scheduling": {
                                     ...(!jQuery.isEmptyObject(this.parseProps(this.nodeSelector, 'label')) && ({"nodeSelector": this.parseProps(this.nodeSelector, 'label')})),
-                                    ...(this.hasTolerations(this.tolerations) && ({"tolerations": this.tolerations}))
+                                    ...(this.hasTolerations() && ({"tolerations": this.tolerations}))
                                 }
                             }) )                  
                         },
@@ -1074,7 +1074,7 @@ var CreateCluster = Vue.component("CreateCluster", {
             let t = [...vc.tolerations]
 
             t.forEach(function(item, index) {
-                if(JSON.stringify(item) == '{"key":"","operator":"Equal","value":"","effect":null,"tolerationSeconds":0}')
+                if(JSON.stringify(item) == '{"key":"","operator":"Equal","value":null,"effect":null,"tolerationSeconds":null}')
                     vc.tolerations.splice( index, 1 )
             })
 
