@@ -1,6 +1,6 @@
 var LogsServer = Vue.component("LogsServer", {
 	template: `
-        <div id="logs-cluster" v-if="loggedIn && isReady">
+        <div id="logs-cluster" v-if="loggedIn && isReady && !notFound">
             <header>
                 <ul class="breadcrumbs">
                     <li class="namespace">

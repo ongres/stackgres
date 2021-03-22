@@ -1,6 +1,6 @@
 var SGProfiles = Vue.component("InstanceProfile", {
 	template: `
-		<div id="sg-profile" v-if="loggedIn && isReady">
+		<div id="sg-profile" v-if="loggedIn && isReady && !notFound">
 			<header>
 				<ul class="breadcrumbs">
 					<li class="namespace">
