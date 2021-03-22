@@ -65,6 +65,10 @@
 								<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.diskUsed.description.slice(0, -2) + ' / ' + tooltips.sgcluster.spec.pods.persistentVolume.size.description + (cluster.status.hasOwnProperty('diskPsiAvg60') ? ' (' + tooltips.sgcluster.pods.diskPsiAvg60.description + ')' : '')"></span>
 							</th>
 							<th>
+								Total Allocated Disk
+								<span class="helpTooltip" :data-tooltip="tooltips.sgclusterstats.diskRequested.description"></span>
+							</th>
+							<th>
 								Instances
 								<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.podsReady.description.slice(0, -2) + ' / ' + tooltips.sgcluster.spec.instances.description"></span>
 							</th>
@@ -78,16 +82,24 @@
 									{{ cluster.status.hasOwnProperty('memoryPsiAvg60') ? cluster.status.memoryPsiAvg60 : cluster.status.memoryRequested}}
 								</td>
 								<td class="flex-center">
-									<div class="donut">
-										<svg class="loader" xmlns="http://www.w3.org/2000/svg" version="1.1">
-											<circle cx="12.5" cy="12.5" r="10" stroke-width="5" fill="none" :stroke-dasharray="diskUsed+',63'" />
-										</svg>
-										<svg class="background" xmlns="http://www.w3.org/2000/svg" version="1.1">
-											<circle cx="12.5" cy="12.5" r="10" stroke-width="5" fill="none" />
-										</svg>
-									</div>
-									<template v-if="cluster.status.hasOwnProperty('diskUsed')">{{ cluster.status.diskUsed }}</template><template v-else>-</template> / {{ cluster.data.spec.pods.persistentVolume.size }} <span v-if="cluster.status.hasOwnProperty('diskPsiAvg60')">(psi avg. {{ cluster.status.diskPsiAvg60 }})</span>
+									<template v-if="cluster.status.hasOwnProperty('pods') && (typeof (cluster.status.pods.find(p => (p.role == 'primary'))) !== 'undefined')">
+										<template v-for="pod in cluster.status.pods" v-if="pod.role == 'primary'">
+												<div class="donut">
+												<svg class="loader" xmlns="http://www.w3.org/2000/svg" version="1.1">
+													<circle cx="12.5" cy="12.5" r="10" stroke-width="5" fill="none" :stroke-dasharray="diskUsed+',63'" />
+												</svg>
+												<svg class="background" xmlns="http://www.w3.org/2000/svg" version="1.1">
+													<circle cx="12.5" cy="12.5" r="10" stroke-width="5" fill="none" />
+												</svg>
+											</div>
+											{{ pod.diskUsed }} / {{ pod.diskRequested }}
+										</template>
+									</template>
+									<template v-else>
+										-
+									</template>
 								</td>
+								<td>{{ cluster.status.hasOwnProperty('diskRequested') ? cluster.status.diskRequested : '-' }}</td>
 								<td>{{ cluster.data.podsReady }} / {{ cluster.data.spec.instances }}</td>
 							</tr>
 						</tbody>
@@ -201,8 +213,9 @@
 			diskUsed () {
 				const vc = this
 				
-				if( store.state.currentCluster.hasOwnProperty('status') && store.state.currentCluster.status.hasOwnProperty('diskUsed') ) {
-					let used = vc.getBytes(store.state.currentCluster.status.diskUsed);
+				if( store.state.currentCluster.hasOwnProperty('status') && store.state.currentCluster.status.hasOwnProperty('pods')) {
+					let primary = store.state.currentCluster.status.pods.find(p => (p.role == 'primary'))
+					let used = vc.getBytes(primary.diskUsed);
 					let available = vc.getBytes(store.state.currentCluster.data.spec.pods.persistentVolume.size);
 					let percentage = Math.round((used*63)/available);
 
