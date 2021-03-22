@@ -2688,7 +2688,7 @@ fieldset.postgresServicesPrimary .header a.help, fieldset.postgresServicesReplic
 }
 
 fieldset.podsScheduling .row a.help {
-    right: -46px;
+    right: -67px;
     bottom: -15px;
 }
 
@@ -4979,4 +4979,12 @@ tr.details td:last-of-type .configurationDetails table {
     -o-filter: blur(0);
     -ms-filter: blur(0);
     filter: blur(0);
+}
+
+.nodeTolerations a.addRow.del {
+    top: 0;
+}
+
+.nodeTolerations fieldset a.help {
+    margin-top: -45px;
 }
