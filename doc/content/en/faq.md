@@ -51,13 +51,9 @@ Alpine images are even smaller than UBI. However, they have significant disadvan
 
 No. We just believe UBI are the best base images for enterprise-grade containers. This way, StackGres users can get support for the container images from the most popular Linux distribution.
 
-## Can I install any extension into StackGres PostgreSQL? Is there any whitelist?
-
-Yes, you can. There are no restrictions, and no whitelist is needed. Install extensions at your own risk.
-
 ## Can I get support for StackGres?
 
-Yes. Contact [OnGres](https://ongres.com/).
+Yes. [Contact with us](https://stackgres.io/contact/).
 
 ## Will StackGres support other databases that are not PostgreSQL?
 
