@@ -45,7 +45,11 @@ EOF
 This configuration only works if you use kind.
 
 Then you may start the operator outside of kubernetes using the following command (remember to build the
+<<<<<<< HEAD:doc/content/en/07-developer-documentation/04-running-stackgres-outside-of-k8s/_index.md
  operator first, see [building stackgres]({{% relref "07-developer-documentation/02-building-stackgres" %}}) section):
+=======
+ operator first, see [building stackgres]({{% relref "06-developer-documentation/02-building-stackgres/_index.md" %}}) section):
+>>>>>>> b6392122 (doc: fixed references):doc/content/en/06-developer-documentation/04-running-stackgres-outside-of-k8s/_index.md
 
 ```
 java -cp stackgres-k8s/src/operator/target/stackgres-operator-runner.jar \
