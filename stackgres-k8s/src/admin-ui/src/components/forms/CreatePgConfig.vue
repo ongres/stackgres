@@ -1,5 +1,5 @@
 <template>
-    <form id="create-pgconfig" class="noSubmit" v-if="loggedIn && isReady" @submit.prevent="createPGConfig()">
+    <form id="create-pgconfig" class="noSubmit" v-if="loggedIn && isReady && !notFound" @submit.prevent="createPGConfig()">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
         <header>

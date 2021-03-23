@@ -1,5 +1,5 @@
 <template>
-    <form id="create-poolConfig" v-if="loggedIn && isReady" @submit.prevent="createPoolConfig()">
+    <form id="create-poolConfig" v-if="loggedIn && isReady && !notFound" @submit.prevent="createPoolConfig()">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
         <header>

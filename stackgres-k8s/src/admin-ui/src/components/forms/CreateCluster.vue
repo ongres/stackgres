@@ -1,5 +1,5 @@
 <template>
-    <form id="create-cluster" class="noSubmit" v-if="loggedIn && isReady" @submit.prevent="createCluster()">
+    <form id="create-cluster" class="noSubmit" v-if="loggedIn && isReady && !notFound" @submit.prevent="createCluster()">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(cluster).length > 0"></template>
         <header>

@@ -1,5 +1,5 @@
 <template>
-    <form id="create-profile" v-if="loggedIn && isReady" @submit.prevent="createProfile()">
+    <form id="create-profile" v-if="loggedIn && isReady && !notFound" @submit.prevent="createProfile()">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
 

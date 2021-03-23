@@ -1,5 +1,5 @@
 <template>
-    <form id="create-backup" v-if="loggedIn && isReady" @submit.prevent="createBackup()">
+    <form id="create-backup" v-if="loggedIn && isReady && !notFound" @submit.prevent="createBackup()">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(backup).length > 0"></template>
         <header>
