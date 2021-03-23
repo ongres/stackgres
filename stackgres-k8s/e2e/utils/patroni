@@ -82,5 +82,5 @@ patroni_curl(){
       ;;
     esac
   done
-  kubectl exec -it -n "$CLUSTER_NAMESPACE" curl -- curl -s "http://$POD_IP:$PORT/$ENPOINT" -f "$@"
+  kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s "http://$POD_IP:$PORT/$ENPOINT" -f "$@"
 }
