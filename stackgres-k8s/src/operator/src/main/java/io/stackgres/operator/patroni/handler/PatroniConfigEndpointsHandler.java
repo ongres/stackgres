@@ -7,6 +7,7 @@ package io.stackgres.operator.patroni.handler;
 
 import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -102,10 +103,14 @@ public class PatroniConfigEndpointsHandler extends AbstractClusterResourceHandle
           .visit(ObjectMeta::getName, ObjectMeta::setName)
           .visit(ObjectMeta::getNamespace, ObjectMeta::setNamespace)
           .visitList(ObjectMeta::getFinalizers, ObjectMeta::setFinalizers)
-          .visitMap(ObjectMeta::getAdditionalProperties)
+          .visitMap(ObjectMeta::getAdditionalProperties,
+              additionalPropertiesSetter(
+                  ObjectMeta::getAdditionalProperties,
+                  ObjectMeta::setAdditionalProperty))
           .visitMapTransformed(ObjectMeta::getAnnotations, ObjectMeta::setAnnotations,
               this::tranformExistingEndpointsAnnotations,
-              this::tranformRequiredEndpointsAnnotations)
+              this::tranformRequiredEndpointsAnnotations,
+              HashMap<String, String>::new)
           .visitMap(ObjectMeta::getLabels, ObjectMeta::setLabels);
     }
 

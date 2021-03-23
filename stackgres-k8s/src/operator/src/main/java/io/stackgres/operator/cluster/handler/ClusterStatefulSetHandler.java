@@ -89,7 +89,10 @@ public class ClusterStatefulSetHandler extends AbstractClusterResourceHandler {
           .visit(StatefulSetSpec::getSelector, StatefulSetSpec::setSelector)
           .visit(StatefulSetSpec::getServiceName, StatefulSetSpec::setServiceName)
           .visit(StatefulSetSpec::getUpdateStrategy, StatefulSetSpec::setUpdateStrategy)
-          .visitMap(StatefulSetSpec::getAdditionalProperties)
+          .visitMap(StatefulSetSpec::getAdditionalProperties,
+              additionalPropertiesSetter(
+                  StatefulSetSpec::getAdditionalProperties,
+                  StatefulSetSpec::setAdditionalProperty))
           .visitListWith(StatefulSetSpec::getVolumeClaimTemplates,
               StatefulSetSpec::setVolumeClaimTemplates,
               this::visitPersistentVolumeClaim)

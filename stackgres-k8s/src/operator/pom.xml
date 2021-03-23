@@ -45,6 +45,10 @@
       <artifactId>quarkus-security</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.google.errorprone</groupId>
+      <artifactId>error_prone_annotations</artifactId>
+    </dependency>
+    <dependency>
       <groupId>io.stackgres</groupId>
       <artifactId>stackgres-test-util</artifactId>
       <version>${project.version}</version>

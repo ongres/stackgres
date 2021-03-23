@@ -5,12 +5,16 @@
 
 package io.stackgres.operatorframework.resource.visitor;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.Affinity;
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.ConfigMapEnvSource;
 import io.fabric8.kubernetes.api.model.ConfigMapKeySelector;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSource;
 import io.fabric8.kubernetes.api.model.Container;
@@ -29,6 +33,7 @@ import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
 import io.fabric8.kubernetes.api.model.NodeSelectorTerm;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.PersistentVolume;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimSpec;
@@ -38,14 +43,18 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodAffinity;
 import io.fabric8.kubernetes.api.model.PodAffinityTerm;
 import io.fabric8.kubernetes.api.model.PodAntiAffinity;
+import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.PreferredSchedulingTerm;
 import io.fabric8.kubernetes.api.model.Probe;
+import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceFieldSelector;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.fabric8.kubernetes.api.model.SecretEnvSource;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
@@ -132,7 +141,8 @@ public class ResourcePairVisitor<T, C> {
    * Visit using a pair visitor.
    */
   public PairVisitor<HasMetadata, T> visit(PairVisitor<HasMetadata, T> pairVisitor) {
-    return pairVisitor.visit().visit(HasMetadata::getApiVersion, HasMetadata::setApiVersion)
+    return pairVisitor.visit()
+        .visit(HasMetadata::getApiVersion, HasMetadata::setApiVersion)
         .visit(HasMetadata::getKind)
         .visitWith(HasMetadata::getMetadata, HasMetadata::setMetadata, this::visitMetadata)
         .lastVisitIfBothInstanceOf(StatefulSet.class, this::visitStatefulSet)
@@ -162,16 +172,24 @@ public class ResourcePairVisitor<T, C> {
    * Visit using a pair visitor.
    */
   public PairVisitor<StatefulSet, T> visitStatefulSet(PairVisitor<StatefulSet, T> pairVisitor) {
-    return pairVisitor.visit().visitWith(StatefulSet::getSpec, StatefulSet::setSpec,
-        this::visitStatefulSetSpec);
+    return pairVisitor.visit()
+        .visitWith(StatefulSet::getSpec, StatefulSet::setSpec, this::visitStatefulSetSpec)
+        .visitMap(StatefulSet::getAdditionalProperties,
+            additionalPropertiesSetter(
+                StatefulSet::getAdditionalProperties,
+                StatefulSet::setAdditionalProperty));
   }
 
   /**
    * Visit using a pair visitor.
    */
   public PairVisitor<CronJob, T> visitCronJob(PairVisitor<CronJob, T> pairVisitor) {
-    return pairVisitor.visit().visitWith(CronJob::getSpec, CronJob::setSpec, this::visitCronJobSpec)
-        .visitMap(CronJob::getAdditionalProperties);
+    return pairVisitor.visit()
+        .visitWith(CronJob::getSpec, CronJob::setSpec, this::visitCronJobSpec)
+        .visitMap(CronJob::getAdditionalProperties,
+            additionalPropertiesSetter(
+                CronJob::getAdditionalProperties,
+                CronJob::setAdditionalProperty));
   }
 
   /**
@@ -188,15 +206,22 @@ public class ResourcePairVisitor<T, C> {
         .visit(CronJobSpec::getSuspend, CronJobSpec::setSuspend, false)
         .visitWith(CronJobSpec::getJobTemplate, CronJobSpec::setJobTemplate,
             this::visitJobTemplateSpec)
-        .visitMap(CronJobSpec::getAdditionalProperties);
+        .visitMap(CronJobSpec::getAdditionalProperties,
+            additionalPropertiesSetter(
+                CronJobSpec::getAdditionalProperties,
+                CronJobSpec::setAdditionalProperty));
   }
 
   /**
    * Visit using a pair visitor.
    */
   public PairVisitor<Job, T> visitJob(PairVisitor<Job, T> pairVisitor) {
-    return pairVisitor.visit().visitWith(Job::getSpec, Job::setSpec, this::visitJobSpec)
-        .visitMap(Job::getAdditionalProperties);
+    return pairVisitor.visit()
+        .visitWith(Job::getSpec, Job::setSpec, this::visitJobSpec)
+        .visitMap(Job::getAdditionalProperties,
+            additionalPropertiesSetter(
+                Job::getAdditionalProperties,
+                Job::setAdditionalProperty));
   }
 
   /**
@@ -208,7 +233,10 @@ public class ResourcePairVisitor<T, C> {
         .visitWith(JobTemplateSpec::getMetadata, JobTemplateSpec::setMetadata, this::visitMetadata)
         .visitWith(JobTemplateSpec::getSpec, JobTemplateSpec::setSpec,
             this::visitJobSpecFromJobTemplateSpec)
-        .visitMap(JobTemplateSpec::getAdditionalProperties);
+        .visitMap(JobTemplateSpec::getAdditionalProperties,
+            additionalPropertiesSetter(
+                JobTemplateSpec::getAdditionalProperties,
+                JobTemplateSpec::setAdditionalProperty));
   }
 
   /**
@@ -224,7 +252,10 @@ public class ResourcePairVisitor<T, C> {
         .visit(JobSpec::getParallelism, JobSpec::setParallelism)
         .visit(JobSpec::getTtlSecondsAfterFinished, JobSpec::setTtlSecondsAfterFinished)
         .visitWith(JobSpec::getTemplate, JobSpec::setTemplate, this::visitPodTemplateSpec)
-        .visitMap(JobSpec::getAdditionalProperties);
+        .visitMap(JobSpec::getAdditionalProperties,
+            additionalPropertiesSetter(
+                JobSpec::getAdditionalProperties,
+                JobSpec::setAdditionalProperty));
   }
 
   /**
@@ -240,7 +271,10 @@ public class ResourcePairVisitor<T, C> {
         .visit(JobSpec::getTtlSecondsAfterFinished, JobSpec::setTtlSecondsAfterFinished, 300)
         .visitWith(JobSpec::getTemplate, JobSpec::setTemplate,
             this::visitPodTemplateSpecFromJobSpec)
-        .visitMap(JobSpec::getAdditionalProperties);
+        .visitMap(JobSpec::getAdditionalProperties,
+            additionalPropertiesSetter(
+                JobSpec::getAdditionalProperties,
+                JobSpec::setAdditionalProperty));
   }
 
   /**
@@ -248,8 +282,13 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<PersistentVolume, T> visitPersistentVolume(
       PairVisitor<PersistentVolume, T> pairVisitor) {
-    return pairVisitor.visit().visitWith(PersistentVolume::getSpec, PersistentVolume::setSpec,
-        this::visitPersistentVolumeSpec).visitMap(PersistentVolume::getAdditionalProperties);
+    return pairVisitor.visit()
+        .visitWith(PersistentVolume::getSpec, PersistentVolume::setSpec,
+            this::visitPersistentVolumeSpec)
+        .visitMap(PersistentVolume::getAdditionalProperties,
+            additionalPropertiesSetter(
+                PersistentVolume::getAdditionalProperties,
+                PersistentVolume::setAdditionalProperty));
   }
 
   /**
@@ -292,7 +331,10 @@ public class ResourcePairVisitor<T, C> {
         .visit(PersistentVolumeSpec::getScaleIO, PersistentVolumeSpec::setScaleIO)
         .visit(PersistentVolumeSpec::getStorageos, PersistentVolumeSpec::setStorageos)
         .visit(PersistentVolumeSpec::getVsphereVolume, PersistentVolumeSpec::setVsphereVolume)
-        .visitMap(PersistentVolumeSpec::getAdditionalProperties);
+        .visitMap(PersistentVolumeSpec::getAdditionalProperties,
+            additionalPropertiesSetter(
+                PersistentVolumeSpec::getAdditionalProperties,
+                PersistentVolumeSpec::setAdditionalProperty));
   }
 
   /**
@@ -300,9 +342,13 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<VolumeNodeAffinity, T> visitVolumeNodeAffinity(
       PairVisitor<VolumeNodeAffinity, T> pairVisitor) {
-    return pairVisitor.visit().visitWith(VolumeNodeAffinity::getRequired,
-        VolumeNodeAffinity::setRequired, this::visitNodeSelector)
-        .visitMap(VolumeNodeAffinity::getAdditionalProperties);
+    return pairVisitor.visit()
+        .visitWith(VolumeNodeAffinity::getRequired, VolumeNodeAffinity::setRequired,
+            this::visitNodeSelector)
+        .visitMap(VolumeNodeAffinity::getAdditionalProperties,
+            additionalPropertiesSetter(
+                VolumeNodeAffinity::getAdditionalProperties,
+                VolumeNodeAffinity::setAdditionalProperty));
   }
 
   /**
@@ -310,9 +356,13 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<NodeSelector, T> visitNodeSelector(PairVisitor<NodeSelector, T> pairVisitor) {
     return pairVisitor
-        .visit().visitListWith(NodeSelector::getNodeSelectorTerms,
+        .visit()
+        .visitListWith(NodeSelector::getNodeSelectorTerms,
             NodeSelector::setNodeSelectorTerms, this::visitNodeSelectorTerm)
-        .visitMap(NodeSelector::getAdditionalProperties);
+        .visitMap(NodeSelector::getAdditionalProperties,
+            additionalPropertiesSetter(
+                NodeSelector::getAdditionalProperties,
+                NodeSelector::setAdditionalProperty));
   }
 
   /**
@@ -325,7 +375,10 @@ public class ResourcePairVisitor<T, C> {
             this::visitNodeSelectorRequirement)
         .visitListWith(NodeSelectorTerm::getMatchFields, NodeSelectorTerm::setMatchFields,
             this::visitNodeSelectorRequirement)
-        .visitMap(NodeSelectorTerm::getAdditionalProperties);
+        .visitMap(NodeSelectorTerm::getAdditionalProperties,
+            additionalPropertiesSetter(
+                NodeSelectorTerm::getAdditionalProperties,
+                NodeSelectorTerm::setAdditionalProperty));
   }
 
   /**
@@ -337,22 +390,33 @@ public class ResourcePairVisitor<T, C> {
         .visit(NodeSelectorRequirement::getKey, NodeSelectorRequirement::setKey)
         .visit(NodeSelectorRequirement::getOperator, NodeSelectorRequirement::setOperator)
         .visitList(NodeSelectorRequirement::getValues, NodeSelectorRequirement::setValues)
-        .visitMap(NodeSelectorRequirement::getAdditionalProperties);
+        .visitMap(NodeSelectorRequirement::getAdditionalProperties,
+            additionalPropertiesSetter(
+                NodeSelectorRequirement::getAdditionalProperties,
+                NodeSelectorRequirement::setAdditionalProperty));
   }
 
   /**
    * Visit using a pair visitor.
    */
   public PairVisitor<Service, T> visitService(PairVisitor<Service, T> pairVisitor) {
-    return pairVisitor.visit().visitWith(Service::getSpec, Service::setSpec,
-        this::visitServiceSpec);
+    return pairVisitor.visit()
+        .visitWith(Service::getSpec, Service::setSpec, this::visitServiceSpec)
+        .visitMap(Service::getAdditionalProperties,
+            additionalPropertiesSetter(
+                Service::getAdditionalProperties,
+                Service::setAdditionalProperty));
   }
 
   /**
    * Visit using a pair visitor.
    */
   public PairVisitor<Endpoints, T> visitEndpoints(PairVisitor<Endpoints, T> pairVisitor) {
-    return pairVisitor.visit().visitMap(Endpoints::getAdditionalProperties)
+    return pairVisitor.visit()
+        .visitMap(Endpoints::getAdditionalProperties,
+            additionalPropertiesSetter(
+                Endpoints::getAdditionalProperties,
+                Endpoints::setAdditionalProperty))
         .visitListWith(Endpoints::getSubsets, Endpoints::setSubsets, this::visitEndpointSubset);
   }
 
@@ -364,24 +428,35 @@ public class ResourcePairVisitor<T, C> {
     return pairVisitor.visit()
         .visit(ServiceAccount::getAutomountServiceAccountToken,
             ServiceAccount::setAutomountServiceAccountToken)
-        .visitMap(ServiceAccount::getAdditionalProperties);
+        .visitMap(ServiceAccount::getAdditionalProperties,
+            additionalPropertiesSetter(
+                ServiceAccount::getAdditionalProperties,
+                ServiceAccount::setAdditionalProperty));
   }
 
   /**
    * Visit using a pair visitor.
    */
   public PairVisitor<Role, T> visitRole(PairVisitor<Role, T> pairVisitor) {
-    return pairVisitor.visit().visitList(Role::getRules, Role::setRules)
-        .visitMap(Role::getAdditionalProperties);
+    return pairVisitor.visit()
+        .visitList(Role::getRules, Role::setRules)
+        .visitMap(Role::getAdditionalProperties,
+            additionalPropertiesSetter(
+                Role::getAdditionalProperties,
+                Role::setAdditionalProperty));
   }
 
   /**
    * Visit using a pair visitor.
    */
   public PairVisitor<RoleBinding, T> visitRoleBinding(PairVisitor<RoleBinding, T> pairVisitor) {
-    return pairVisitor.visit().visit(RoleBinding::getRoleRef, RoleBinding::setRoleRef)
+    return pairVisitor.visit()
+        .visit(RoleBinding::getRoleRef, RoleBinding::setRoleRef)
         .visitList(RoleBinding::getSubjects, RoleBinding::setSubjects)
-        .visitMap(RoleBinding::getAdditionalProperties);
+        .visitMap(RoleBinding::getAdditionalProperties,
+            additionalPropertiesSetter(
+                RoleBinding::getAdditionalProperties,
+                RoleBinding::setAdditionalProperty));
   }
 
   /**
@@ -397,16 +472,29 @@ public class ResourcePairVisitor<T, C> {
                             e -> ResourceUtil.encodeSecret(e.getValue()))))
                     .withStringData(null).build()
                 : secret)
-        .visit(Secret::getType, Secret::setType).visitMap(Secret::getData, Secret::setData);
+        .visit(Secret::getType, Secret::setType)
+        .visitMap(Secret::getData, Secret::setData)
+        .visitMap(Secret::getAdditionalProperties,
+            additionalPropertiesSetter(
+                Secret::getAdditionalProperties,
+                Secret::setAdditionalProperty));
   }
 
   /**
    * Visit using a pair visitor.
    */
   public PairVisitor<ConfigMap, T> visitConfigMap(PairVisitor<ConfigMap, T> pairVisitor) {
-    return pairVisitor.visit().visit(ConfigMap::getAdditionalProperties)
+    return pairVisitor.visit()
+        .visit(ConfigMap::getAdditionalProperties,
+            additionalPropertiesSetter(
+                ConfigMap::getAdditionalProperties,
+                ConfigMap::setAdditionalProperty))
         .visitMap(ConfigMap::getData, ConfigMap::setData)
-        .visitMap(ConfigMap::getBinaryData, ConfigMap::setBinaryData);
+        .visitMap(ConfigMap::getBinaryData, ConfigMap::setBinaryData)
+        .visitMap(ConfigMap::getAdditionalProperties,
+            additionalPropertiesSetter(
+                ConfigMap::getAdditionalProperties,
+                ConfigMap::setAdditionalProperty));
   }
 
   /**
@@ -423,7 +511,10 @@ public class ResourcePairVisitor<T, C> {
         .visit(StatefulSetSpec::getSelector, StatefulSetSpec::setSelector)
         .visit(StatefulSetSpec::getServiceName, StatefulSetSpec::setServiceName)
         .visit(StatefulSetSpec::getUpdateStrategy, StatefulSetSpec::setUpdateStrategy)
-        .visitMap(StatefulSetSpec::getAdditionalProperties)
+        .visitMap(StatefulSetSpec::getAdditionalProperties,
+            additionalPropertiesSetter(
+                StatefulSetSpec::getAdditionalProperties,
+                StatefulSetSpec::setAdditionalProperty))
         .visitListWith(StatefulSetSpec::getVolumeClaimTemplates,
             StatefulSetSpec::setVolumeClaimTemplates, this::visitPersistentVolumeClaim)
         .visitWith(StatefulSetSpec::getTemplate, StatefulSetSpec::setTemplate,
@@ -440,7 +531,10 @@ public class ResourcePairVisitor<T, C> {
         .visit(PersistentVolumeClaim::getKind, PersistentVolumeClaim::setKind)
         .visitWith(PersistentVolumeClaim::getMetadata, PersistentVolumeClaim::setMetadata,
             this::visitMetadata)
-        .visitMap(PersistentVolumeClaim::getAdditionalProperties)
+        .visitMap(PersistentVolumeClaim::getAdditionalProperties,
+            additionalPropertiesSetter(
+                PersistentVolumeClaim::getAdditionalProperties,
+                PersistentVolumeClaim::setAdditionalProperty))
         .visitWith(PersistentVolumeClaim::getSpec, PersistentVolumeClaim::setSpec,
             this::visitPersistentVolumeClaimSpec);
   }
@@ -452,14 +546,18 @@ public class ResourcePairVisitor<T, C> {
       PairVisitor<PersistentVolumeClaimSpec, T> pairVisitor) {
     return pairVisitor.visit()
         .visit(PersistentVolumeClaimSpec::getDataSource, PersistentVolumeClaimSpec::setDataSource)
-        .visit(PersistentVolumeClaimSpec::getSelector, PersistentVolumeClaimSpec::setSelector)
+        .visitWith(PersistentVolumeClaimSpec::getSelector, PersistentVolumeClaimSpec::setSelector,
+            this::visitLabelSelector)
         .visit(PersistentVolumeClaimSpec::getStorageClassName,
             PersistentVolumeClaimSpec::setStorageClassName)
         .visit(PersistentVolumeClaimSpec::getVolumeMode, PersistentVolumeClaimSpec::setVolumeMode,
             "Filesystem")
         .visitList(PersistentVolumeClaimSpec::getAccessModes,
             PersistentVolumeClaimSpec::setAccessModes)
-        .visitMap(PersistentVolumeClaimSpec::getAdditionalProperties)
+        .visitMap(PersistentVolumeClaimSpec::getAdditionalProperties,
+            additionalPropertiesSetter(
+                PersistentVolumeClaimSpec::getAdditionalProperties,
+                PersistentVolumeClaimSpec::setAdditionalProperty))
         .visitWith(PersistentVolumeClaimSpec::getResources, PersistentVolumeClaimSpec::setResources,
             this::visitResourceRequirements);
   }
@@ -469,7 +567,11 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<ResourceRequirements, T> visitResourceRequirements(
       PairVisitor<ResourceRequirements, T> pairVisitor) {
-    return pairVisitor.visit().visitMap(ResourceRequirements::getAdditionalProperties)
+    return pairVisitor.visit()
+        .visitMap(ResourceRequirements::getAdditionalProperties,
+            additionalPropertiesSetter(
+                ResourceRequirements::getAdditionalProperties,
+                ResourceRequirements::setAdditionalProperty))
         .visitMap(ResourceRequirements::getLimits, ResourceRequirements::setLimits)
         .visitMap(ResourceRequirements::getRequests, ResourceRequirements::setRequests);
   }
@@ -481,7 +583,10 @@ public class ResourcePairVisitor<T, C> {
       PairVisitor<PodTemplateSpec, T> pairVisitor) {
     return pairVisitor.visit()
         .visitWith(PodTemplateSpec::getMetadata, PodTemplateSpec::setMetadata, this::visitMetadata)
-        .visitMap(PodTemplateSpec::getAdditionalProperties)
+        .visitMap(PodTemplateSpec::getAdditionalProperties,
+            additionalPropertiesSetter(
+                PodTemplateSpec::getAdditionalProperties,
+                PodTemplateSpec::setAdditionalProperty))
         .visitWith(PodTemplateSpec::getSpec, PodTemplateSpec::setSpec, this::visitPodSpec);
   }
 
@@ -493,7 +598,10 @@ public class ResourcePairVisitor<T, C> {
     return pairVisitor.visit()
         .visitWith(PodTemplateSpec::getMetadata, PodTemplateSpec::setMetadata,
             this::visitMetadataWithoutLabels)
-        .visitMap(PodTemplateSpec::getAdditionalProperties)
+        .visitMap(PodTemplateSpec::getAdditionalProperties,
+            additionalPropertiesSetter(
+                PodTemplateSpec::getAdditionalProperties,
+                PodTemplateSpec::setAdditionalProperty))
         .visitWith(PodTemplateSpec::getSpec, PodTemplateSpec::setSpec, this::visitPodSpec);
   }
 
@@ -504,7 +612,7 @@ public class ResourcePairVisitor<T, C> {
     return pairVisitor.visit()
         .visit(PodSpec::getActiveDeadlineSeconds, PodSpec::setActiveDeadlineSeconds)
         .visit(PodSpec::getAutomountServiceAccountToken, PodSpec::setAutomountServiceAccountToken)
-        .visit(PodSpec::getDnsConfig, PodSpec::setDnsConfig)
+        .visitWith(PodSpec::getDnsConfig, PodSpec::setDnsConfig, this::visitPodDnsConfig)
         .visit(PodSpec::getDnsPolicy, PodSpec::setDnsPolicy, "ClusterFirst")
         .visit(PodSpec::getEnableServiceLinks, PodSpec::setEnableServiceLinks)
         .visit(PodSpec::getHostIPC, PodSpec::setHostIPC)
@@ -531,7 +639,10 @@ public class ResourcePairVisitor<T, C> {
         .visitList(PodSpec::getReadinessGates, PodSpec::setReadinessGates)
         .visitList(PodSpec::getTolerations, PodSpec::setTolerations)
         .visitListWith(PodSpec::getVolumes, PodSpec::setVolumes, this::visitVolume)
-        .visitMap(PodSpec::getAdditionalProperties)
+        .visitMap(PodSpec::getAdditionalProperties,
+            additionalPropertiesSetter(
+                PodSpec::getAdditionalProperties,
+                PodSpec::setAdditionalProperty))
         .visitMap(PodSpec::getNodeSelector, PodSpec::setNodeSelector)
         .visitWith(PodSpec::getAffinity, PodSpec::setAffinity, this::visitAffinity)
         .visitListWith(PodSpec::getContainers, PodSpec::setContainers, this::visitContainer)
@@ -542,9 +653,24 @@ public class ResourcePairVisitor<T, C> {
   /**
    * Visit using a pair visitor.
    */
+  public PairVisitor<PodDNSConfig, T> visitPodDnsConfig(PairVisitor<PodDNSConfig, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visitList(PodDNSConfig::getNameservers, PodDNSConfig::setNameservers)
+        .visitList(PodDNSConfig::getSearches, PodDNSConfig::setSearches)
+        .visitList(PodDNSConfig::getOptions, PodDNSConfig::setOptions)
+        .visitMap(PodDNSConfig::getAdditionalProperties,
+            additionalPropertiesSetter(
+                PodDNSConfig::getAdditionalProperties,
+                PodDNSConfig::setAdditionalProperty));
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
   public PairVisitor<PodSecurityContext, T> visitPodSecurityContext(
       PairVisitor<PodSecurityContext, T> pairVisitor) {
-    return pairVisitor.visit().visit(PodSecurityContext::getFsGroup, PodSecurityContext::setFsGroup)
+    return pairVisitor.visit()
+        .visit(PodSecurityContext::getFsGroup, PodSecurityContext::setFsGroup)
         .visit(PodSecurityContext::getRunAsGroup, PodSecurityContext::setRunAsGroup)
         .visit(PodSecurityContext::getRunAsNonRoot, PodSecurityContext::setRunAsNonRoot)
         .visit(PodSecurityContext::getRunAsUser, PodSecurityContext::setRunAsUser)
@@ -552,14 +678,18 @@ public class ResourcePairVisitor<T, C> {
         .visitList(PodSecurityContext::getSupplementalGroups,
             PodSecurityContext::setSupplementalGroups)
         .visitList(PodSecurityContext::getSysctls, PodSecurityContext::setSysctls)
-        .visitMap(PodSecurityContext::getAdditionalProperties);
+        .visitMap(PodSecurityContext::getAdditionalProperties,
+            additionalPropertiesSetter(
+                PodSecurityContext::getAdditionalProperties,
+                PodSecurityContext::setAdditionalProperty));
   }
 
   /**
    * Visit using a pair visitor.
    */
   public PairVisitor<Volume, T> visitVolume(PairVisitor<Volume, T> pairVisitor) {
-    return pairVisitor.visit().visit(Volume::getName, Volume::setName)
+    return pairVisitor.visit()
+        .visit(Volume::getName, Volume::setName)
         .visit(Volume::getAwsElasticBlockStore, Volume::setAwsElasticBlockStore)
         .visit(Volume::getAzureDisk, Volume::setAzureDisk)
         .visit(Volume::getAzureFile, Volume::setAzureFile)
@@ -583,7 +713,10 @@ public class ResourcePairVisitor<T, C> {
         .visit(Volume::getScaleIO, Volume::setScaleIO).visit(Volume::getSecret, Volume::setSecret)
         .visit(Volume::getStorageos, Volume::setStorageos)
         .visit(Volume::getVsphereVolume, Volume::setVsphereVolume)
-        .visitMap(Volume::getAdditionalProperties);
+        .visitMap(Volume::getAdditionalProperties,
+            additionalPropertiesSetter(
+                Volume::getAdditionalProperties,
+                Volume::setAdditionalProperty));
   }
 
   /**
@@ -591,11 +724,15 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<ConfigMapVolumeSource, T> visitConfigMapVolumeSource(
       PairVisitor<ConfigMapVolumeSource, T> pairVisitor) {
-    return pairVisitor.visit().visit(ConfigMapVolumeSource::getName, ConfigMapVolumeSource::setName)
+    return pairVisitor.visit()
+        .visit(ConfigMapVolumeSource::getName, ConfigMapVolumeSource::setName)
         .visit(ConfigMapVolumeSource::getDefaultMode, ConfigMapVolumeSource::setDefaultMode, 420)
-        .visitList(ConfigMapVolumeSource::getItems, ConfigMapVolumeSource::setItems)
         .visit(ConfigMapVolumeSource::getOptional, ConfigMapVolumeSource::setOptional)
-        .visitMap(ConfigMapVolumeSource::getAdditionalProperties);
+        .visitList(ConfigMapVolumeSource::getItems, ConfigMapVolumeSource::setItems)
+        .visitMap(ConfigMapVolumeSource::getAdditionalProperties,
+            additionalPropertiesSetter(
+                ConfigMapVolumeSource::getAdditionalProperties,
+                ConfigMapVolumeSource::setAdditionalProperty));
   }
 
   /**
@@ -608,22 +745,20 @@ public class ResourcePairVisitor<T, C> {
             PersistentVolumeClaimVolumeSource::setClaimName)
         .visit(PersistentVolumeClaimVolumeSource::getReadOnly,
             PersistentVolumeClaimVolumeSource::setReadOnly, false)
-        .visitMap(PersistentVolumeClaimVolumeSource::getAdditionalProperties);
+        .visitMap(PersistentVolumeClaimVolumeSource::getAdditionalProperties,
+            additionalPropertiesSetter(
+                PersistentVolumeClaimVolumeSource::getAdditionalProperties,
+                PersistentVolumeClaimVolumeSource::setAdditionalProperty));
   }
 
   /**
    * Visit using a pair visitor.
    */
   public PairVisitor<Container, T> visitContainer(PairVisitor<Container, T> pairVisitor) {
-    return pairVisitor.visit().visit(Container::getImage, Container::setImage)
+    return pairVisitor.visit()
+        .visit(Container::getImage, Container::setImage)
         .visit(Container::getImagePullPolicy, Container::setImagePullPolicy, "Always")
-        .visit(Container::getLifecycle, Container::setLifecycle)
-        .visitWith(Container::getLivenessProbe, Container::setLivenessProbe, this::visitProbe)
         .visit(Container::getName, Container::setName)
-        .visitWith(Container::getReadinessProbe, Container::setReadinessProbe, this::visitProbe)
-        .visitWithUsingDefaultFrom(Container::getResources, Container::setResources,
-            this::visitResourceRequirements, ResourceRequirements::new)
-        .visit(Container::getSecurityContext, Container::setSecurityContext)
         .visit(Container::getStdin, Container::setStdin)
         .visit(Container::getStdinOnce, Container::setStdinOnce)
         .visit(Container::getTerminationMessagePath, Container::setTerminationMessagePath,
@@ -632,6 +767,12 @@ public class ResourcePairVisitor<T, C> {
             "File")
         .visit(Container::getTty, Container::setTty)
         .visit(Container::getWorkingDir, Container::setWorkingDir)
+        .visit(Container::getSecurityContext, Container::setSecurityContext)
+        .visit(Container::getLifecycle, Container::setLifecycle)
+        .visitWith(Container::getLivenessProbe, Container::setLivenessProbe, this::visitProbe)
+        .visitWith(Container::getReadinessProbe, Container::setReadinessProbe, this::visitProbe)
+        .visitWithUsingDefaultFrom(Container::getResources, Container::setResources,
+            this::visitResourceRequirements, ResourceRequirements::new)
         .visitList(Container::getArgs, Container::setArgs)
         .visitList(Container::getCommand, Container::setCommand)
         .visitListWith(Container::getEnv, Container::setEnv, this::visitEnvVar)
@@ -641,14 +782,18 @@ public class ResourcePairVisitor<T, C> {
             this::visitVolumeDevice)
         .visitListWith(Container::getVolumeMounts, Container::setVolumeMounts,
             this::visitVolumeMount)
-        .visitMap(Container::getAdditionalProperties);
+        .visitMap(Container::getAdditionalProperties,
+            additionalPropertiesSetter(
+                Container::getAdditionalProperties,
+                Container::setAdditionalProperty));
   }
 
   /**
    * Visit using a pair visitor.
    */
   public PairVisitor<Probe, T> visitProbe(PairVisitor<Probe, T> pairVisitor) {
-    return pairVisitor.visit().visit(Probe::getExec, Probe::setExec)
+    return pairVisitor.visit()
+        .visit(Probe::getExec, Probe::setExec)
         .visit(Probe::getFailureThreshold, Probe::setFailureThreshold, 3)
         .visit(Probe::getHttpGet, Probe::setHttpGet)
         .visit(Probe::getInitialDelaySeconds, Probe::setInitialDelaySeconds)
@@ -656,18 +801,25 @@ public class ResourcePairVisitor<T, C> {
         .visit(Probe::getSuccessThreshold, Probe::setSuccessThreshold, 1)
         .visit(Probe::getTcpSocket, Probe::setTcpSocket)
         .visit(Probe::getTimeoutSeconds, Probe::setTimeoutSeconds, 1)
-        .visitMap(Probe::getAdditionalProperties);
+        .visitMap(Probe::getAdditionalProperties,
+            additionalPropertiesSetter(
+                Probe::getAdditionalProperties,
+                Probe::setAdditionalProperty));
   }
 
   /**
    * Visit using a pair visitor.
    */
   public PairVisitor<Affinity, T> visitAffinity(PairVisitor<Affinity, T> pairVisitor) {
-    return pairVisitor.visit().visitMap(Affinity::getAdditionalProperties)
+    return pairVisitor.visit()
         .visitWith(Affinity::getNodeAffinity, Affinity::setNodeAffinity, this::visitNodeAffinity)
         .visitWith(Affinity::getPodAffinity, Affinity::setPodAffinity, this::visitPodAffinity)
         .visitWith(Affinity::getPodAntiAffinity, Affinity::setPodAntiAffinity,
-            this::visitPodAntiAffinity);
+            this::visitPodAntiAffinity)
+        .visitMap(Affinity::getAdditionalProperties,
+            additionalPropertiesSetter(
+                Affinity::getAdditionalProperties,
+                Affinity::setAdditionalProperty));
   }
 
   /**
@@ -675,11 +827,32 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<NodeAffinity, T> visitNodeAffinity(PairVisitor<NodeAffinity, T> pairVisitor) {
     return pairVisitor.visit()
-        .visit(NodeAffinity::getRequiredDuringSchedulingIgnoredDuringExecution,
-            NodeAffinity::setRequiredDuringSchedulingIgnoredDuringExecution)
-        .visitList(NodeAffinity::getPreferredDuringSchedulingIgnoredDuringExecution,
-            NodeAffinity::setPreferredDuringSchedulingIgnoredDuringExecution)
-        .visitMap(NodeAffinity::getAdditionalProperties);
+        .visitWith(NodeAffinity::getRequiredDuringSchedulingIgnoredDuringExecution,
+            NodeAffinity::setRequiredDuringSchedulingIgnoredDuringExecution,
+            this::visitNodeSelector)
+        .visitListWith(NodeAffinity::getPreferredDuringSchedulingIgnoredDuringExecution,
+            NodeAffinity::setPreferredDuringSchedulingIgnoredDuringExecution,
+            this::visitPreferredSchedulingTerm)
+        .visitMap(NodeAffinity::getAdditionalProperties,
+            additionalPropertiesSetter(
+                NodeAffinity::getAdditionalProperties,
+                NodeAffinity::setAdditionalProperty));
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<PreferredSchedulingTerm, T> visitPreferredSchedulingTerm(
+      PairVisitor<PreferredSchedulingTerm, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visit(PreferredSchedulingTerm::getWeight,
+            PreferredSchedulingTerm::setWeight)
+        .visitWith(PreferredSchedulingTerm::getPreference, PreferredSchedulingTerm::setPreference,
+            this::visitNodeSelectorTerm)
+        .visitMap(PreferredSchedulingTerm::getAdditionalProperties,
+            additionalPropertiesSetter(
+                PreferredSchedulingTerm::getAdditionalProperties,
+                PreferredSchedulingTerm::setAdditionalProperty));
   }
 
   /**
@@ -691,7 +864,10 @@ public class ResourcePairVisitor<T, C> {
             PodAffinity::setPreferredDuringSchedulingIgnoredDuringExecution)
         .visitList(PodAffinity::getRequiredDuringSchedulingIgnoredDuringExecution,
             PodAffinity::setRequiredDuringSchedulingIgnoredDuringExecution)
-        .visitMap(PodAffinity::getAdditionalProperties);
+        .visitMap(PodAffinity::getAdditionalProperties,
+            additionalPropertiesSetter(
+                PodAffinity::getAdditionalProperties,
+                PodAffinity::setAdditionalProperty));
   }
 
   /**
@@ -706,7 +882,10 @@ public class ResourcePairVisitor<T, C> {
         .visitListWith(PodAntiAffinity::getRequiredDuringSchedulingIgnoredDuringExecution,
             PodAntiAffinity::setRequiredDuringSchedulingIgnoredDuringExecution,
             this::visitPodAffinityTerm)
-        .visitMap(PodAntiAffinity::getAdditionalProperties);
+        .visitMap(PodAntiAffinity::getAdditionalProperties,
+            additionalPropertiesSetter(
+                PodAntiAffinity::getAdditionalProperties,
+                PodAntiAffinity::setAdditionalProperty));
   }
 
   /**
@@ -715,10 +894,14 @@ public class ResourcePairVisitor<T, C> {
   public PairVisitor<WeightedPodAffinityTerm, T> visitWeightedPodAffinityTerm(
       PairVisitor<WeightedPodAffinityTerm, T> pairVisitor) {
     return pairVisitor.visit()
-        .visit(WeightedPodAffinityTerm::getPodAffinityTerm,
-            WeightedPodAffinityTerm::setPodAffinityTerm)
+        .visitWith(WeightedPodAffinityTerm::getPodAffinityTerm,
+            WeightedPodAffinityTerm::setPodAffinityTerm,
+            this::visitPodAffinityTerm)
         .visit(WeightedPodAffinityTerm::getWeight, WeightedPodAffinityTerm::setWeight)
-        .visitMap(WeightedPodAffinityTerm::getAdditionalProperties);
+        .visitMap(WeightedPodAffinityTerm::getAdditionalProperties,
+            additionalPropertiesSetter(
+                WeightedPodAffinityTerm::getAdditionalProperties,
+                WeightedPodAffinityTerm::setAdditionalProperty));
   }
 
   /**
@@ -731,7 +914,10 @@ public class ResourcePairVisitor<T, C> {
             this::visitLabelSelector)
         .visit(PodAffinityTerm::getTopologyKey, PodAffinityTerm::setTopologyKey)
         .visitList(PodAffinityTerm::getNamespaces, PodAffinityTerm::setNamespaces)
-        .visitMap(PodAffinityTerm::getAdditionalProperties);
+        .visitMap(PodAffinityTerm::getAdditionalProperties,
+            additionalPropertiesSetter(
+                PodAffinityTerm::getAdditionalProperties,
+                PodAffinityTerm::setAdditionalProperty));
   }
 
   /**
@@ -742,17 +928,24 @@ public class ResourcePairVisitor<T, C> {
     return pairVisitor.visit()
         .visitList(LabelSelector::getMatchExpressions, LabelSelector::setMatchExpressions)
         .visitMap(LabelSelector::getMatchLabels, LabelSelector::setMatchLabels)
-        .visitMap(LabelSelector::getAdditionalProperties);
+        .visitMap(LabelSelector::getAdditionalProperties,
+            additionalPropertiesSetter(
+                LabelSelector::getAdditionalProperties,
+                LabelSelector::setAdditionalProperty));
   }
 
   /**
    * Visit using a pair visitor.
    */
   public PairVisitor<EnvVar, T> visitEnvVar(PairVisitor<EnvVar, T> pairVisitor) {
-    return pairVisitor.visit().visit(EnvVar::getName, EnvVar::setName)
+    return pairVisitor.visit()
+        .visit(EnvVar::getName, EnvVar::setName)
         .visit(EnvVar::getValue, EnvVar::setValue)
         .visitWith(EnvVar::getValueFrom, EnvVar::setValueFrom, this::visitEnvVarSource)
-        .visitMap(EnvVar::getAdditionalProperties);
+        .visitMap(EnvVar::getAdditionalProperties,
+            additionalPropertiesSetter(
+                EnvVar::getAdditionalProperties,
+                EnvVar::setAdditionalProperty));
   }
 
   /**
@@ -768,7 +961,10 @@ public class ResourcePairVisitor<T, C> {
             this::visitResourceFieldSelector)
         .visitWith(EnvVarSource::getSecretKeyRef, EnvVarSource::setSecretKeyRef,
             this::visitSecretKeySelector)
-        .visitMap(EnvVarSource::getAdditionalProperties);
+        .visitMap(EnvVarSource::getAdditionalProperties,
+            additionalPropertiesSetter(
+                EnvVarSource::getAdditionalProperties,
+                EnvVarSource::setAdditionalProperty));
   }
 
   /**
@@ -776,10 +972,14 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<ConfigMapKeySelector, T> visitConfigMapKeySelector(
       PairVisitor<ConfigMapKeySelector, T> pairVisitor) {
-    return pairVisitor.visit().visit(ConfigMapKeySelector::getKey, ConfigMapKeySelector::setKey)
+    return pairVisitor.visit()
+        .visit(ConfigMapKeySelector::getKey, ConfigMapKeySelector::setKey)
         .visit(ConfigMapKeySelector::getName, ConfigMapKeySelector::setName)
         .visit(ConfigMapKeySelector::getOptional, ConfigMapKeySelector::setOptional)
-        .visitMap(ConfigMapKeySelector::getAdditionalProperties);
+        .visitMap(ConfigMapKeySelector::getAdditionalProperties,
+            additionalPropertiesSetter(
+                ConfigMapKeySelector::getAdditionalProperties,
+                ConfigMapKeySelector::setAdditionalProperty));
   }
 
   /**
@@ -790,7 +990,10 @@ public class ResourcePairVisitor<T, C> {
     return pairVisitor.visit()
         .visit(ObjectFieldSelector::getApiVersion, ObjectFieldSelector::setApiVersion, "v1")
         .visit(ObjectFieldSelector::getFieldPath, ObjectFieldSelector::setFieldPath)
-        .visitMap(ObjectFieldSelector::getAdditionalProperties);
+        .visitMap(ObjectFieldSelector::getAdditionalProperties,
+            additionalPropertiesSetter(
+                ObjectFieldSelector::getAdditionalProperties,
+                ObjectFieldSelector::setAdditionalProperty));
   }
 
   /**
@@ -800,9 +1003,27 @@ public class ResourcePairVisitor<T, C> {
       PairVisitor<ResourceFieldSelector, T> pairVisitor) {
     return pairVisitor.visit()
         .visit(ResourceFieldSelector::getContainerName, ResourceFieldSelector::setContainerName)
-        .visit(ResourceFieldSelector::getDivisor, ResourceFieldSelector::setDivisor)
         .visit(ResourceFieldSelector::getResource, ResourceFieldSelector::setResource)
-        .visitMap(ResourceFieldSelector::getAdditionalProperties);
+        .visitWith(ResourceFieldSelector::getDivisor, ResourceFieldSelector::setDivisor,
+            this::visitQuantity)
+        .visitMap(ResourceFieldSelector::getAdditionalProperties,
+            additionalPropertiesSetter(
+                ResourceFieldSelector::getAdditionalProperties,
+                ResourceFieldSelector::setAdditionalProperty));
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<Quantity, T> visitQuantity(
+      PairVisitor<Quantity, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visit(Quantity::getAmount, Quantity::setAmount)
+        .visit(Quantity::getFormat, Quantity::setFormat)
+        .visitMap(Quantity::getAdditionalProperties,
+            additionalPropertiesSetter(
+                Quantity::getAdditionalProperties,
+                Quantity::setAdditionalProperty));
   }
 
   /**
@@ -810,10 +1031,14 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<SecretKeySelector, T> visitSecretKeySelector(
       PairVisitor<SecretKeySelector, T> pairVisitor) {
-    return pairVisitor.visit().visit(SecretKeySelector::getKey, SecretKeySelector::setKey)
+    return pairVisitor.visit()
+        .visit(SecretKeySelector::getKey, SecretKeySelector::setKey)
         .visit(SecretKeySelector::getName, SecretKeySelector::setName)
         .visit(SecretKeySelector::getOptional, SecretKeySelector::setOptional)
-        .visitMap(SecretKeySelector::getAdditionalProperties);
+        .visitMap(SecretKeySelector::getAdditionalProperties,
+            additionalPropertiesSetter(
+                SecretKeySelector::getAdditionalProperties,
+                SecretKeySelector::setAdditionalProperty));
   }
 
   /**
@@ -821,10 +1046,44 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<EnvFromSource, T> visitEnvFromSource(
       PairVisitor<EnvFromSource, T> pairVisitor) {
-    return pairVisitor.visit().visit(EnvFromSource::getConfigMapRef, EnvFromSource::setConfigMapRef)
+    return pairVisitor.visit()
         .visit(EnvFromSource::getPrefix, EnvFromSource::setPrefix)
-        .visit(EnvFromSource::getSecretRef, EnvFromSource::setSecretRef)
-        .visitMap(EnvFromSource::getAdditionalProperties);
+        .visitWith(EnvFromSource::getConfigMapRef, EnvFromSource::setConfigMapRef,
+            this::visitConfigMapEnvSource)
+        .visitWith(EnvFromSource::getSecretRef, EnvFromSource::setSecretRef,
+            this::visitSecretEnvSource)
+        .visitMap(EnvFromSource::getAdditionalProperties,
+            additionalPropertiesSetter(
+                EnvFromSource::getAdditionalProperties,
+                EnvFromSource::setAdditionalProperty));
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<ConfigMapEnvSource, T> visitConfigMapEnvSource(
+      PairVisitor<ConfigMapEnvSource, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visit(ConfigMapEnvSource::getName, ConfigMapEnvSource::setName)
+        .visit(ConfigMapEnvSource::getOptional, ConfigMapEnvSource::setOptional)
+        .visitMap(ConfigMapEnvSource::getAdditionalProperties,
+            additionalPropertiesSetter(
+                ConfigMapEnvSource::getAdditionalProperties,
+                ConfigMapEnvSource::setAdditionalProperty));
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<SecretEnvSource, T> visitSecretEnvSource(
+      PairVisitor<SecretEnvSource, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visit(SecretEnvSource::getName, SecretEnvSource::setName)
+        .visit(SecretEnvSource::getOptional, SecretEnvSource::setOptional)
+        .visitMap(SecretEnvSource::getAdditionalProperties,
+            additionalPropertiesSetter(
+                SecretEnvSource::getAdditionalProperties,
+                SecretEnvSource::setAdditionalProperty));
   }
 
   /**
@@ -838,29 +1097,40 @@ public class ResourcePairVisitor<T, C> {
         .visit(ContainerPort::getHostPort, ContainerPort::setHostPort)
         .visit(ContainerPort::getName, ContainerPort::setName)
         .visit(ContainerPort::getProtocol, ContainerPort::setProtocol, "TCP")
-        .visitMap(ContainerPort::getAdditionalProperties);
+        .visitMap(ContainerPort::getAdditionalProperties,
+            additionalPropertiesSetter(
+                ContainerPort::getAdditionalProperties,
+                ContainerPort::setAdditionalProperty));
   }
 
   /**
    * Visit using a pair visitor.
    */
   public PairVisitor<VolumeDevice, T> visitVolumeDevice(PairVisitor<VolumeDevice, T> pairVisitor) {
-    return pairVisitor.visit().visit(VolumeDevice::getName, VolumeDevice::setName)
+    return pairVisitor.visit()
+        .visit(VolumeDevice::getName, VolumeDevice::setName)
         .visit(VolumeDevice::getDevicePath, VolumeDevice::setDevicePath)
-        .visitMap(VolumeDevice::getAdditionalProperties);
+        .visitMap(VolumeDevice::getAdditionalProperties,
+            additionalPropertiesSetter(
+                VolumeDevice::getAdditionalProperties,
+                VolumeDevice::setAdditionalProperty));
   }
 
   /**
    * Visit using a pair visitor.
    */
   public PairVisitor<VolumeMount, T> visitVolumeMount(PairVisitor<VolumeMount, T> pairVisitor) {
-    return pairVisitor.visit().visit(VolumeMount::getName, VolumeMount::setName)
+    return pairVisitor.visit()
+        .visit(VolumeMount::getName, VolumeMount::setName)
         .visit(VolumeMount::getMountPath, VolumeMount::setMountPath)
         .visit(VolumeMount::getMountPropagation, VolumeMount::setMountPropagation)
         .visit(VolumeMount::getReadOnly, VolumeMount::setReadOnly, false)
         .visit(VolumeMount::getSubPath, VolumeMount::setSubPath)
         .visit(VolumeMount::getSubPathExpr, VolumeMount::setSubPathExpr)
-        .visitMap(VolumeMount::getAdditionalProperties);
+        .visitMap(VolumeMount::getAdditionalProperties,
+            additionalPropertiesSetter(
+                VolumeMount::getAdditionalProperties,
+                VolumeMount::setAdditionalProperty));
   }
 
   /**
@@ -869,7 +1139,8 @@ public class ResourcePairVisitor<T, C> {
   public PairVisitor<ServiceSpec, T> visitServiceSpec(PairVisitor<ServiceSpec, T> pairVisitor) {
     if (Optional.ofNullable(pairVisitor.right.getType()).filter(type -> type.equals("ExternalName"))
         .isPresent()) {
-      pairVisitor = pairVisitor.visit().visit(ServiceSpec::getClusterIP, ServiceSpec::setClusterIP);
+      pairVisitor = pairVisitor.visit()
+          .visit(ServiceSpec::getClusterIP, ServiceSpec::setClusterIP);
     }
 
     return pairVisitor.visit(ServiceSpec::getExternalName, ServiceSpec::setExternalName)
@@ -885,7 +1156,10 @@ public class ResourcePairVisitor<T, C> {
         .visitList(ServiceSpec::getLoadBalancerSourceRanges,
             ServiceSpec::setLoadBalancerSourceRanges)
         .visitListWith(ServiceSpec::getPorts, ServiceSpec::setPorts, this::visitServicePort)
-        .visitMap(ServiceSpec::getAdditionalProperties)
+        .visitMap(ServiceSpec::getAdditionalProperties,
+            additionalPropertiesSetter(
+                ServiceSpec::getAdditionalProperties,
+                ServiceSpec::setAdditionalProperty))
         .visitMap(ServiceSpec::getSelector, ServiceSpec::setSelector);
   }
 
@@ -893,21 +1167,26 @@ public class ResourcePairVisitor<T, C> {
    * Visit using a pair visitor.
    */
   public PairVisitor<ServicePort, T> visitServicePort(PairVisitor<ServicePort, T> pairVisitor) {
-    return pairVisitor.visit().visit(ServicePort::getName, ServicePort::setName)
+    return pairVisitor.visit(
+        ).visit(ServicePort::getName, ServicePort::setName)
         .visit(ServicePort::getNodePort, ServicePort::setNodePort)
         .visit(ServicePort::getPort, ServicePort::setPort)
         .visit(ServicePort::getNodePort, ServicePort::setNodePort)
         .visit(ServicePort::getProtocol, ServicePort::setProtocol, "TCP")
         .visitWithUsingDefaultFrom(ServicePort::getTargetPort, ServicePort::setTargetPort,
             this::visitIntOrString, () -> new IntOrString(pairVisitor.right.getPort()))
-        .visitMap(ServicePort::getAdditionalProperties);
+        .visitMap(ServicePort::getAdditionalProperties,
+            additionalPropertiesSetter(
+                ServicePort::getAdditionalProperties,
+                ServicePort::setAdditionalProperty));
   }
 
   /**
    * Visit using a pair visitor.
    */
   public PairVisitor<IntOrString, T> visitIntOrString(PairVisitor<IntOrString, T> pairVisitor) {
-    return pairVisitor.visit().visit(IntOrString::getIntVal, IntOrString::setIntVal)
+    return pairVisitor.visit()
+        .visit(IntOrString::getIntVal, IntOrString::setIntVal)
         .visit(IntOrString::getStrVal, IntOrString::setStrVal);
   }
 
@@ -916,45 +1195,76 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<EndpointSubset, T> visitEndpointSubset(
       PairVisitor<EndpointSubset, T> pairVisitor) {
-    return pairVisitor.visit().visitList(EndpointSubset::getAddresses, EndpointSubset::setAddresses)
+    return pairVisitor.visit()
+        .visitList(EndpointSubset::getAddresses, EndpointSubset::setAddresses)
         .visitList(EndpointSubset::getNotReadyAddresses, EndpointSubset::setNotReadyAddresses)
         .visitList(EndpointSubset::getPorts, EndpointSubset::setPorts)
-        .visitMap(EndpointSubset::getAdditionalProperties);
+        .visitMap(EndpointSubset::getAdditionalProperties,
+            additionalPropertiesSetter(
+                EndpointSubset::getAdditionalProperties,
+                EndpointSubset::setAdditionalProperty));
   }
 
   /**
    * Visit using a pair visitor.
    */
   public PairVisitor<Pod, T> visitPod(PairVisitor<Pod, T> pairVisitor) {
-    return pairVisitor.visit().visitWith(Pod::getSpec, Pod::setSpec, this::visitPodSpec)
-        .visitMap(Pod::getAdditionalProperties);
+    return pairVisitor.visit()
+        .visitWith(Pod::getSpec, Pod::setSpec, this::visitPodSpec)
+        .visitMap(Pod::getAdditionalProperties,
+            (objectMeta, map) -> map.forEach(pairVisitor.left::setAdditionalProperty));
   }
 
   /**
    * Visit using a pair visitor.
    */
   public PairVisitor<ObjectMeta, T> visitMetadata(PairVisitor<ObjectMeta, T> pairVisitor) {
-    return pairVisitor.visit().visit(ObjectMeta::getClusterName, ObjectMeta::setClusterName)
-        .visit(ObjectMeta::getName).visit(ObjectMeta::getNamespace)
+    return pairVisitor.visit()
+        .visit(ObjectMeta::getClusterName, ObjectMeta::setClusterName)
+        .visit(ObjectMeta::getName)
+        .visit(ObjectMeta::getNamespace)
+        .visitListWith(ObjectMeta::getOwnerReferences, ObjectMeta::setOwnerReferences,
+            this::visitOwnerReference)
         .visitMapTransformed(ObjectMeta::getAnnotations, ObjectMeta::setAnnotations,
-            this::leftAnnotationTransformer, this::rightAnnotationTransformer)
+            this::leftAnnotationTransformer, this::rightAnnotationTransformer,
+            HashMap<String, String>::new)
         .visitMap(ObjectMeta::getAdditionalProperties,
-            (objectMeta, map) -> map.forEach(objectMeta::setAdditionalProperty))
+            additionalPropertiesSetter(
+                ObjectMeta::getAdditionalProperties,
+                ObjectMeta::setAdditionalProperty))
         .visitMap(ObjectMeta::getLabels, ObjectMeta::setLabels);
   }
 
-  public Map.Entry<String, String> leftAnnotationTransformer(
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<OwnerReference, T> visitOwnerReference(
+      PairVisitor<OwnerReference, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visit(OwnerReference::getApiVersion, OwnerReference::setApiVersion)
+        .visit(OwnerReference::getKind, OwnerReference::setKind)
+        .visit(OwnerReference::getUid, OwnerReference::setUid)
+        .visit(OwnerReference::getName, OwnerReference::setName)
+        .visit(OwnerReference::getController, OwnerReference::setController)
+        .visit(OwnerReference::getBlockOwnerDeletion, OwnerReference::setBlockOwnerDeletion)
+        .visitMap(OwnerReference::getAdditionalProperties,
+            additionalPropertiesSetter(
+                OwnerReference::getAdditionalProperties,
+                OwnerReference::setAdditionalProperty));
+  }
+
+  protected Map.Entry<String, String> leftAnnotationTransformer(
       Map.Entry<String, String> leftAnnotation,
       Map.Entry<String, String> rightAnnotation) {
-    if (rightAnnotation != null) {
-      return rightAnnotation;
-    }
     return leftAnnotation;
   }
 
-  public Map.Entry<String, String> rightAnnotationTransformer(
+  protected Map.Entry<String, String> rightAnnotationTransformer(
       Map.Entry<String, String> leftAnnotation,
       Map.Entry<String, String> rightAnnotation) {
+    if (rightAnnotation == null) {
+      return leftAnnotation;
+    }
     return rightAnnotation;
   }
 
@@ -966,7 +1276,25 @@ public class ResourcePairVisitor<T, C> {
     return pairVisitor.visit().visit(ObjectMeta::getClusterName, ObjectMeta::setClusterName)
         .visit(ObjectMeta::getName).visit(ObjectMeta::getNamespace)
         .visitMap(ObjectMeta::getAdditionalProperties,
-            (objectMeta, map) -> map.forEach(objectMeta::setAdditionalProperty));
+            additionalPropertiesSetter(
+                ObjectMeta::getAdditionalProperties,
+                ObjectMeta::setAdditionalProperty));
   }
 
+  protected interface AdditionalPropertySetter<O> {
+    void setAdditionalProperty(O object, String key, Object value);
+  }
+
+  protected <O> BiConsumer<O, Map<String, Object>> additionalPropertiesSetter(
+      Function<O, Map<String, Object>> additionalPropertiesGetter,
+      AdditionalPropertySetter<O> additionalPropertySetter) {
+    return (O object, Map<String, Object> map) -> {
+      map.forEach((key, value) -> additionalPropertySetter
+          .setAdditionalProperty(object, key, value));
+      Map<String, Object> additionalProperties = additionalPropertiesGetter.apply(object);
+      new HashMap<>(additionalProperties).entrySet().stream()
+        .filter(additionalProperty -> !map.containsKey(additionalProperty.getKey()))
+        .forEach(additionalProperty -> additionalProperties.remove(additionalProperty.getKey()));
+    };
+  }
 }
