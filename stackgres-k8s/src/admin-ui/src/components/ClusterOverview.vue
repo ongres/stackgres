@@ -119,6 +119,7 @@
 
 <script>
 	import store from '../store'
+	import router from '../router'
 	import { mixin } from './mixins/mixin'
 
     export default {
@@ -153,7 +154,8 @@
 		},
 
 		created: function() {
-			
+			if(!this.$route.hasOwnProperty('namespace'))
+				router.push('/overview/default')
 		}
 	}
 </script>
