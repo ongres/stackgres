@@ -141,6 +141,13 @@ const router = new VueRouter({
       },
     },
     { 
+      path: '/admin/overview', 
+      component: ClusterOverview,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
       path: '/admin/overview/:namespace', 
       component: ClusterOverview,
       meta: {

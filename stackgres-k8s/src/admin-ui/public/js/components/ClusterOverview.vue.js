@@ -170,5 +170,10 @@ var ClusterOverview = Vue.component("ClusterOverview", {
 			}
 
 		}	
+	},
+	mounted: function() {
+
+		if(!this.$route.hasOwnProperty('namespace'))
+			router.push('/admin/overview/default')
 	}
 })
