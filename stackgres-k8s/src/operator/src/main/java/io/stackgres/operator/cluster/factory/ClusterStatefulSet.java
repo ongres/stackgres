@@ -189,6 +189,8 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
             .addAllToInitContainers(context.getSidecars().stream()
                 .flatMap(sidecarEntry -> sidecarEntry.getSidecar().getInitContainers(context))
                 .collect(ImmutableList.toImmutableList()))
+            .addAllToInitContainers(patroni.getInitContainers(context)
+                .collect(ImmutableList.toImmutableList()))
             .addAllToVolumes(context.getSidecars().stream()
                 .flatMap(sidecarEntry -> sidecarEntry.getSidecar().getVolumes(context).stream())
                 .collect(ImmutableList.toImmutableList()))
