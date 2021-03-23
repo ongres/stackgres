@@ -198,69 +198,75 @@ class PairComparator<T> extends PairVisitor<T, Boolean> {
 
   @Override
   public <K, V, O extends Map<K, V>> PairVisitor<T, Boolean> visitMap(
-      Function<T, O> getter) {
-    return returnResult(equalsMap(getter, (l, r) -> l, (l, r) -> r, false));
-  }
-
-  @Override
-  public <K, V, O extends Map<K, V>> PairVisitor<T, Boolean> visitMap(
       Function<T, O> getter, BiConsumer<T, O> setter) {
-    return visitMap(getter);
-  }
-
-  @Override
-  public <K, V, O extends Map<K, V>> PairVisitor<T, Boolean> visitMapKeys(
-      Function<T, O> getter) {
-    return returnResult(equalsMap(getter, (l, r) -> l, (l, r) -> r, true));
-  }
-
-  @Override
-  public <K, V, O extends Map<K, V>> PairVisitor<T, Boolean> visitMapKeys(
-      Function<T, O> getter, BiConsumer<T, O> setter) {
-    return visitMapKeys(getter);
+    return returnResult(equalsMap(getter));
   }
 
   @Override
   public <K, V, O extends Map<K, V>> PairVisitor<T, Boolean> visitMapTransformed(
       Function<T, O> getter, BiConsumer<T, O> setter,
       BinaryOperator<Entry<K, V>> leftTransformer,
-      BinaryOperator<Entry<K, V>> rightTransformer) {
+      BinaryOperator<Entry<K, V>> rightTransformer,
+      Supplier<O> leftSupplier) {
     return returnResult(equalsMap(getter,
-        leftTransformer, rightTransformer, false));
+        leftTransformer, rightTransformer));
+  }
+
+  <K, V, O extends Map<K, V>> boolean equalsMap(
+      Function<T, O> getter) {
+    Map<K, V> leftMap = Optional.<Map<K, V>>ofNullable(getter.apply(left))
+        .orElse(null);
+    Map<K, V> rightMap = Optional.<Map<K, V>>ofNullable(getter.apply(right))
+        .orElse(null);
+    if (leftMap == null || rightMap == null) {
+      return leftMap == null && rightMap == null;
+    }
+    return Stream.concat(leftMap.keySet().stream(), rightMap.keySet().stream())
+      .collect(Collectors.groupingBy(key -> key))
+      .keySet()
+      .stream()
+      .map(key -> Tuple.tuple(
+          leftMap.entrySet().stream()
+          .filter(e -> e.getKey().equals(key))
+          .findAny().orElse(null),
+          rightMap.entrySet().stream()
+          .filter(e -> e.getKey().equals(key))
+          .findAny().orElse(null)))
+      .allMatch(t -> equals(t.v1, t.v2));
   }
 
   <K, V, O extends Map<K, V>> boolean equalsMap(
       Function<T, O> getter,
       BinaryOperator<Entry<K, V>> leftTransformer,
-      BinaryOperator<Entry<K, V>> rightTransformer,
-      boolean onlyKeys) {
-    Map<K, V> leftMap = Optional.ofNullable(getter.apply(left))
-        .map(map -> (Map<K, V>) map)
+      BinaryOperator<Entry<K, V>> rightTransformer) {
+    Map<K, V> leftMap = Optional.<Map<K, V>>ofNullable(getter.apply(left))
         .orElseGet(() -> new HashMap<K, V>(0));
-    Map<K, V> rightMap = Optional.ofNullable(getter.apply(right))
-        .map(map -> (Map<K, V>) map)
+    Map<K, V> rightMap = Optional.<Map<K, V>>ofNullable(getter.apply(right))
         .orElseGet(() -> new HashMap<K, V>(0));
     return Stream.concat(leftMap.keySet().stream(), rightMap.keySet().stream())
-        .collect(Collectors.groupingBy(key -> key))
-        .keySet()
-        .stream()
-        .map(key -> Tuple.tuple(
-            leftMap.entrySet().stream()
-                .filter(e -> e.getKey().equals(key))
-                .findAny().orElse(null),
-            rightMap.entrySet().stream()
-                .filter(e -> e.getKey().equals(key))
-                .findAny().orElse(null)))
-        .map(t -> Tuple.tuple(
-            Optional.ofNullable(leftTransformer.apply(t.v1, t.v2))
-                .map(e -> onlyKeys ? e.getKey() : e.getValue()).orElse(null),
-            Optional.ofNullable(rightTransformer.apply(t.v1, t.v2))
-                .map(e -> onlyKeys ? e.getKey() : e.getValue()).orElse(null)))
-        .allMatch(t -> equals(t.v1, t.v2));
+      .collect(Collectors.groupingBy(key -> key))
+      .keySet()
+      .stream()
+      .map(key -> Tuple.tuple(
+          leftMap.entrySet().stream()
+          .filter(e -> e.getKey().equals(key))
+          .findAny().orElse(null),
+          rightMap.entrySet().stream()
+          .filter(e -> e.getKey().equals(key))
+          .findAny().orElse(null)))
+      .map(t -> Tuple.tuple(
+          Optional.ofNullable(leftTransformer.apply(t.v1, t.v2))
+          .map(e -> e.getValue()).orElse(null),
+          Optional.ofNullable(rightTransformer.apply(t.v1, t.v2))
+          .map(e -> e.getValue()).orElse(null)))
+      .allMatch(t -> equals(t.v1, t.v2));
   }
 
   private boolean equals(Object left, Object right) {
-    return Objects.equals(left, right);
+    if (!Objects.equals(left, right)) {
+      return false;
+    }
+    return true;
   }
 
   private PairVisitor<T, Boolean> returnResult(boolean equals) {

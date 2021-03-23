@@ -104,22 +104,14 @@ public abstract class PairVisitor<T, R> {
       UnaryOperator<PairVisitor<E, S>> tester);
 
   public abstract <K, V, O extends Map<K, V>> PairVisitor<T, R> visitMap(
-      Function<T, O> getter);
-
-  public abstract <K, V, O extends Map<K, V>> PairVisitor<T, R> visitMap(
-      Function<T, O> getter, BiConsumer<T, O> setter);
-
-  public abstract <K, V, O extends Map<K, V>> PairVisitor<T, R> visitMapKeys(
-      Function<T, O> getter);
-
-  public abstract <K, V, O extends Map<K, V>> PairVisitor<T, R> visitMapKeys(
       Function<T, O> getter, BiConsumer<T, O> setter);
 
   public abstract <K, V, O extends Map<K, V>>
       PairVisitor<T, R> visitMapTransformed(
           Function<T, O> getter, BiConsumer<T, O> setter,
           BinaryOperator<Entry<K, V>> leftTransformer,
-          BinaryOperator<Entry<K, V>> rightTransformer);
+          BinaryOperator<Entry<K, V>> rightTransformer,
+          Supplier<O> leftSupplier);
 
   public PairVisitor<T, R> lastResult(R result) {
     return new LastResult(left, right, result);
@@ -224,25 +216,7 @@ public abstract class PairVisitor<T, R> {
 
     @Override
     public <K, V, O extends Map<K, V>> PairVisitor<T, R> visitMap(
-        Function<T, O> getter) {
-      return this;
-    }
-
-    @Override
-    public <K, V, O extends Map<K, V>> PairVisitor<T, R> visitMap(
         Function<T, O> getter, BiConsumer<T, O> setter) {
-      return this;
-    }
-
-    @Override
-    public <K, V, O extends Map<K, V>> PairVisitor<T, R> visitMapKeys(
-        Function<T, O> getter, BiConsumer<T, O> setter) {
-      return this;
-    }
-
-    @Override
-    public <K, V, O extends Map<K, V>> PairVisitor<T, R> visitMapKeys(
-        Function<T, O> getter) {
       return this;
     }
 
@@ -251,7 +225,8 @@ public abstract class PairVisitor<T, R> {
         PairVisitor<T, R> visitMapTransformed(
             Function<T, O> getter, BiConsumer<T, O> setter,
             BinaryOperator<Entry<K, V>> leftTransformer,
-            BinaryOperator<Entry<K, V>> rightTransformer) {
+            BinaryOperator<Entry<K, V>> rightTransformer,
+            Supplier<O> leftSupplier) {
       return this;
     }
 
