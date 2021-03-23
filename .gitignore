@@ -28,6 +28,9 @@ local.properties
 .settings/
 .loadpath
 .recommenders
+.fbExcludeFilterFile
+.pmd
+.pmdruleset.xml
 
 ### Idea ###
 .idea/
