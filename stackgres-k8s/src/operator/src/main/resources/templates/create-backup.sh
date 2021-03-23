@@ -8,9 +8,9 @@ LOCK_RESOURCE_NAME="$CRONJOB_NAME"
 run() {
   set -e
 
-  acquire_lock > /tmp/try-lock
+  acquire_lock > /tmp/try-lock 2>&1
   echo "Lock acquired"
-  maintain_lock >> /tmp/try-lock &
+  maintain_lock >> /tmp/try-lock 2>&1 &
   TRY_LOCK_PID=$!
 
   reconcile_backups &
@@ -37,6 +37,8 @@ run() {
     return 1
   else
     kill_with_childs "$TRY_LOCK_PID"
+    release_lock >> /tmp/try-lock 2>&1
+    echo "Lock released"
     wait "$PID"
     EXIT_CODE="$?"
     if [ "$EXIT_CODE" != 0 ]
