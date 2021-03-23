@@ -110,7 +110,7 @@ public class PatroniConfigEndpointsHandler extends AbstractClusterResourceHandle
           .visitMapTransformed(ObjectMeta::getAnnotations, ObjectMeta::setAnnotations,
               this::tranformExistingEndpointsAnnotations,
               this::tranformRequiredEndpointsAnnotations,
-              () -> new HashMap<>())
+              HashMap<String, String>::new)
           .visitMap(ObjectMeta::getLabels, ObjectMeta::setLabels);
     }
 

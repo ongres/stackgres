@@ -70,10 +70,10 @@ public class PatroniSecretHandler extends AbstractClusterResourceHandler {
           .visit(Secret::getType, Secret::setType)
           .visitMapTransformed(Secret::getData, Secret::setData,
               this::leftSecretDataTransformer, this::rightSecretDataTransformer,
-              () -> new HashMap<>())
+              HashMap<String, String>::new)
           .visitMapTransformed(Secret::getStringData, Secret::setStringData,
               this::leftSecretDataTransformer, this::rightSecretDataTransformer,
-              () -> new HashMap<>());
+              HashMap<String, String>::new);
     }
 
     protected Map.Entry<String, String> leftSecretDataTransformer(

@@ -80,7 +80,7 @@ public class BackupCronJobHandler extends AbstractClusterResourceHandler {
                   ObjectMeta::setAdditionalProperty))
           .visitMapTransformed(ObjectMeta::getAnnotations, ObjectMeta::setAnnotations,
               this::leftAnnotationTransformer, this::rightAnnotationTransformer,
-              () -> new HashMap<>())
+              HashMap<String, String>::new)
           .visitMap(ObjectMeta::getLabels, ObjectMeta::setLabels);
     }
 
