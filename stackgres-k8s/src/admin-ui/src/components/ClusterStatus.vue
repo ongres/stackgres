@@ -47,7 +47,7 @@
 				</ul>
 			</header>
 			
-			<template v-if="cluster.status.pods.length > 0">
+			<template v-if="cluster.status.hasOwnProperty('pods') && cluster.status.pods.length">
 				<div class="content">
 					<h2>Cluster</h2>
 					<table class="clusterInfo">
