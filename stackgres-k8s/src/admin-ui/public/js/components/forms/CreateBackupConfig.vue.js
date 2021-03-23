@@ -374,6 +374,7 @@ var CreateBackupConfig = Vue.component("CreateBackupConfig", {
 
         return {
             editMode: (vm.$route.params.action === 'edit'),
+            editReady: false,
             advancedMode: false,
             advancedModeStorage: false,
             backupConfigName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
@@ -448,7 +449,7 @@ var CreateBackupConfig = Vue.component("CreateBackupConfig", {
             var vm = this;
             var conf = {};
             
-            if(vm.$route.params.action === 'edit') {
+            if( (vm.$route.params.action === 'edit') && !vm.editReady) {
                 store.state.backupConfig.forEach(function( config ){
                     if( (config.data.metadata.name === vm.$route.params.name) && (config.data.metadata.namespace === vm.$route.params.namespace) ) {
                         
@@ -534,6 +535,7 @@ var CreateBackupConfig = Vue.component("CreateBackupConfig", {
                         }
     
                         conf = config;
+                        vm.editReady = true;
                         return false;
                     }
                 });

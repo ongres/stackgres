@@ -110,6 +110,7 @@ var CreateLogsServer = Vue.component("CreateLogsServer", {
 
         return {
             editMode: (vm.$route.params.action === 'edit'),
+            editReady: false,
             help: 'Click on a question mark to get help and tips about that field.',
             advancedMode: false,
             name: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
@@ -157,7 +158,7 @@ var CreateLogsServer = Vue.component("CreateLogsServer", {
             var vm = this;
             var cluster = {};
             
-            if(vm.$route.params.action === 'edit') {
+            if( (vm.$route.params.action === 'edit') && !vm.editReady) {
                 vm.advancedMode = true;
                 store.state.logsClusters.forEach(function( c ){
                     if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
@@ -173,6 +174,7 @@ var CreateLogsServer = Vue.component("CreateLogsServer", {
                         vm.volumeSize = volumeSize;
                         vm.volumeUnit = ''+volumeUnit;
                         vm.disableClusterPodAntiAffinity = ( (typeof c.data.spec.nonProductionOptions !== 'undefined') && (typeof c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined') ) ? c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : false;
+                        vm.editReady = true
                     }
                 });
             }
