@@ -69,7 +69,7 @@ EOF
     return 1
   fi
 
-  kubectl exec -ti -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni \
+  kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni \
     -- patronictl restart "$CLUSTER_NAME" "$CLUSTER_NAME-0" --force
 
   run_query -i 1 -p 5432 -q "INSERT INTO test SELECT i, 'try to generate a new timeline ' || i FROM generate_series(1, 10000) i"
