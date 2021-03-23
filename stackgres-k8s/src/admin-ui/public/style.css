@@ -4988,3 +4988,14 @@ tr.details td:last-of-type .configurationDetails table {
 .nodeTolerations fieldset a.help {
     margin-top: -45px;
 }
+
+.no-data {
+    height: 120px;
+    text-align: center;
+    border-bottom: 1px solid var(--gray2);
+    padding-top: 40px;
+}
+
+.darkmode .no-data {
+    border-color: #333;
+}
