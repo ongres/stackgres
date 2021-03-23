@@ -1,6 +1,6 @@
 #!/bin/sh
 
-LOCK_TIMEOUT="${LOCK_TIMEOUT:-30}"
+LOCK_TIMEOUT="${LOCK_TIMEOUT:-60}"
 LOCK_SLEEP="${LOCK_SLEEP:-5}"
 
 SHELL="$(readlink /proc/$$/exe)"
@@ -75,7 +75,7 @@ try_lock() {
     echo "Locked by $LOCK_POD at $(date -d @"$LOCK_TIMESTAMP" -Iseconds --utc)"
     if "$WAIT"
     then
-      sleep 20
+      sleep "$((LOCK_SLEEP * 4))"
       try_lock true
     else
       return 1

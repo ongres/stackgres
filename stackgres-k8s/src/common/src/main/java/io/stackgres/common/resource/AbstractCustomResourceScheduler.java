@@ -5,6 +5,7 @@
 
 package io.stackgres.common.resource;
 
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -17,10 +18,14 @@ import io.fabric8.kubernetes.client.dsl.Namespaceable;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.KubernetesClientFactory;
+import io.stackgres.common.OperatorProperty;
 
 public abstract class AbstractCustomResourceScheduler
     <T extends CustomResource<?, ?>, L extends CustomResourceList<T>>
     implements CustomResourceScheduler<T> {
+
+  private static final int CONFLICT_SLEEP_SECONDS = OperatorProperty.CONFLICT_SLEEP_SECONDS
+      .get().map(Integer::valueOf).orElse(5);
 
   private final KubernetesClientFactory clientFactory;
 
@@ -80,6 +85,11 @@ public abstract class AbstractCustomResourceScheduler
             .replace(resourceOverwrite);
       } catch (KubernetesClientException ex) {
         if (ex.getCode() == 409) {
+          try {
+            TimeUnit.SECONDS.sleep(CONFLICT_SLEEP_SECONDS);
+          } catch (InterruptedException iex) {
+            throw new RuntimeException(iex);
+          }
           continue;
         }
         throw ex;

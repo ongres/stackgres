@@ -24,7 +24,9 @@ public enum ClusterStatefulSetEnvVars {
   POSTGRES_ENTRY_PORT(String.valueOf(EnvoyUtil.PG_ENTRY_PORT)),
   POSTGRES_REPL_ENTRY_PORT(String.valueOf(EnvoyUtil.PG_REPL_ENTRY_PORT)),
   POSTGRES_POOL_PORT(String.valueOf(EnvoyUtil.PG_POOL_PORT)),
-  POSTGRES_PORT(String.valueOf(EnvoyUtil.PG_PORT));
+  POSTGRES_PORT(String.valueOf(EnvoyUtil.PG_PORT)),
+  LOCK_TIMEOUT(String.valueOf(60)),
+  LOCK_SLEEP(String.valueOf(5));
 
   private final String substVar;
   private final Function<ClusterContext, EnvVar> getEnvVar;
