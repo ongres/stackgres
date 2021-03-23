@@ -4998,6 +4998,7 @@ tr.details td:last-of-type .configurationDetails table {
 .darkmode .no-data {
     border-color: #333;
 }
+
 .configurationDetails table + span.title {
     margin-top: 20px;
 }
