@@ -444,27 +444,32 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(
                 context,
                 volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH.subPath(context, sourceEnvVars,
+                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH.subPath(
+                    context, sourceEnvVars,
                     ClusterStatefulSetPath.PG_BASE_PATH))
                 .withMountPath(ClusterStatefulSetPath.PG_LIB_PATH.path(context, sourceEnvVars))),
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(
                 context,
                 volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_BIN_PATH.subPath(context, sourceEnvVars,
+                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_BIN_PATH.subPath(
+                    context, sourceEnvVars,
                     ClusterStatefulSetPath.PG_BASE_PATH))
                 .withMountPath(ClusterStatefulSetPath.PG_BIN_PATH.path(context, sourceEnvVars))),
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(
                 context,
                 volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_SHARE_PATH.subPath(context, sourceEnvVars,
+                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_SHARE_PATH.subPath(
+                    context, sourceEnvVars,
                     ClusterStatefulSetPath.PG_BASE_PATH))
                 .withMountPath(ClusterStatefulSetPath.PG_SHARE_PATH.path(context, sourceEnvVars))),
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(
                 context,
                 volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_EXTENSION_PATH.subPath(context, sourceEnvVars,
+                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_EXTENSION_PATH.subPath(
+                    context, sourceEnvVars,
                     ClusterStatefulSetPath.PG_BASE_PATH))
-                .withMountPath(ClusterStatefulSetPath.PG_EXTENSION_PATH.path(context, sourceEnvVars))))
+                .withMountPath(ClusterStatefulSetPath.PG_EXTENSION_PATH.path(
+                    context, sourceEnvVars))))
         .build(),
         new ContainerBuilder()
         .withName("reset-patroni-initialize")

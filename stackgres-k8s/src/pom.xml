@@ -107,7 +107,6 @@
     <docker-maven-plugin.version>0.34.1</docker-maven-plugin.version>
     <jandex-maven-plugin.version>1.0.8</jandex-maven-plugin.version>
     <jandex.version>2.2.3.Final</jandex.version>
-    <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
     <build-helper-maven-plugin.version>3.2.0</build-helper-maven-plugin.version>
     <swagger-maven-plugin.version>2.1.5</swagger-maven-plugin.version>
     <!-- Checkstyle, SpotBugs and PMD properties -->
@@ -387,11 +386,6 @@
     </plugins>
     <pluginManagement>
       <plugins>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>exec-maven-plugin</artifactId>
-          <version>${exec-maven-plugin.version}</version>
-        </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>build-helper-maven-plugin</artifactId>

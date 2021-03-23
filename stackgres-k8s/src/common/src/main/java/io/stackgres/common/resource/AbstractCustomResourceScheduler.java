@@ -94,7 +94,7 @@ public abstract class AbstractCustomResourceScheduler
         }
         throw ex;
       }
-      break;
+      return; // NOPMD
     }
   }
 

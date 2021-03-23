@@ -210,7 +210,8 @@ public enum ClusterStatefulSetPath implements VolumePath {
   }
 
   @Override
-  public String subPath(ClusterContext context, Map<String, String> envVars, VolumePath relativeTo) {
+  public String subPath(ClusterContext context, Map<String, String> envVars,
+      VolumePath relativeTo) {
     return relativize(subPath(envVars(context, envVars)),
         relativeTo.subPath(envVars(context, envVars)));
   }
