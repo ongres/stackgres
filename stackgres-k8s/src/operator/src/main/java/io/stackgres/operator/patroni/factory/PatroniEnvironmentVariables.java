@@ -34,10 +34,6 @@ public class PatroniEnvironmentVariables
                 : "0.0.0.0:8009")
             .build(),
         new EnvVarBuilder()
-            .withName("PATRONI_RESTAPI_CONNECT_ADDRESS")
-            .withValue(PatroniServices.restName(context) + ":8008")
-            .build(),
-        new EnvVarBuilder()
             .withName("PATRONI_RESTAPI_USERNAME")
             .withValue("superuser")
             .build(),

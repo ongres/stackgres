@@ -85,7 +85,9 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
     data.put("PATRONI_POSTGRESQL_CONNECT_ADDRESS",
         "${PATRONI_KUBERNETES_POD_IP}:" + pgRawPort);
 
-    data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:8008");
+    data.put("PATRONI_RESTAPI_CONNECT_ADDRESS",
+        "${PATRONI_KUBERNETES_POD_IP}:" + getPatroniRawPort(clusterContext));
+    data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:" + Envoy.PATRONI_PORT);
     data.put("PATRONI_POSTGRESQL_DATA_DIR", ClusterStatefulSetPath.PG_DATA_PATH.path());
     data.put("PATRONI_POSTGRESQL_BIN_DIR", "/usr/lib/postgresql/" + pgVersion + "/bin");
     data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", ClusterStatefulSetPath.PG_RUN_PATH.path());
@@ -152,6 +154,14 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
         .map(entry -> "127.0.0.1") // NOPMD
         .findFirst()
         .orElse("0.0.0.0");  // NOPMD
+  }
+
+  public static int getPatroniRawPort(final StackGresClusterContext clusterContext) {
+    return clusterContext.getSidecars().stream()
+        .filter(entry -> entry.getSidecar() instanceof Envoy)
+        .map(entry -> Envoy.PATRONI_ENTRY_PORT)
+        .findFirst()
+        .orElse(Envoy.PATRONI_PORT);
   }
 
   public static String getKubernetesPorts(final StackGresClusterContext clusterContext) {

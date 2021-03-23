@@ -130,7 +130,11 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
             new ContainerPortBuilder()
                 .withName(PATRONI_RESTAPI_PORT_NAME)
                 .withProtocol("TCP")
-                .withContainerPort(Envoy.PATRONI_ENTRY_PORT)
+                .withContainerPort(clusterContext.getSidecars().stream()
+                    .filter(entry -> entry.getSidecar() instanceof Envoy)
+                    .map(entry -> Envoy.PATRONI_ENTRY_PORT)
+                    .findFirst()
+                    .orElse(Envoy.PATRONI_PORT))
                 .build())
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.volumeMounts(context.getClusterContext(),
             ClusterStatefulSetVolumeConfig.DATA,
