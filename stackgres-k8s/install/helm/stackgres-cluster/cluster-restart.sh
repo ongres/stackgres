@@ -62,7 +62,7 @@ delete_primary_instance() {
 
 restart_primary_instance() {
   echo "Restart primary instance $1"
-  kubectl exec -t -n "$NAMESPACE" "$1" -- patronictl restart "$SGCLUSTER" "$1" --force
+  kubectl exec -n "$NAMESPACE" "$1" -- patronictl restart "$SGCLUSTER" "$1" --force
 
   wait_primary_pod "$1"
 }
@@ -76,7 +76,7 @@ wait_primary_pod() {
 perform_switchover() {
   echo "Performing switchover from primary pod $1 to read only pod $2"
   [ -n "$2" ] && [ -n "$1" ] \
-    && kubectl exec -ti -n "$NAMESPACE" "$1" -c patroni -- \
+    && kubectl exec -n "$NAMESPACE" "$1" -c patroni -- \
       patronictl switchover --master "$1" --candidate "$2" --force
 }
 
