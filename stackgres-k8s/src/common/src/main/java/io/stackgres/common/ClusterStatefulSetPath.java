@@ -9,6 +9,7 @@ import java.util.Map;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import org.jooq.lambda.Seq;
@@ -42,8 +43,6 @@ public enum ClusterStatefulSetPath implements VolumePath {
       "dbops/major-version-upgrade/run-major-version-upgrade.sh"),
   LOCAL_BIN_RUN_RESTART_SH_PATH(LOCAL_BIN_PATH,
       "dbops/restart/run-restart.sh"),
-  LOCAL_BIN_COPY_BINARIES_SH_PATH(LOCAL_BIN_PATH,
-      "dbops/major-version-upgrade/copy-binaries.sh"),
   LOCAL_BIN_MAJOR_VERSION_UPGRADE_SH_PATH(LOCAL_BIN_PATH,
       "dbops/major-version-upgrade/major-version-upgrade.sh"),
   LOCAL_BIN_RESET_PATRONI_INITIALIZE_SH_PATH(LOCAL_BIN_PATH,
@@ -123,6 +122,11 @@ public enum ClusterStatefulSetPath implements VolumePath {
   }
 
   @Override
+  public String path(ClusterContext context, Map<String, String> envVars) {
+    return path(envVars(context, envVars));
+  }
+
+  @Override
   public String path(Map<String, String> envVars) {
     StringBuilder path = new StringBuilder();
     int startIndexOf = this.path.indexOf("$(");
@@ -163,6 +167,11 @@ public enum ClusterStatefulSetPath implements VolumePath {
   }
 
   @Override
+  public String filename(ClusterContext context, Map<String, String> envVars) {
+    return filename(envVars(context, envVars));
+  }
+
+  @Override
   public String filename(Map<String, String> envVars) {
     String path = path(envVars);
     int indexOfLastSlash = path.lastIndexOf('/');
@@ -180,6 +189,11 @@ public enum ClusterStatefulSetPath implements VolumePath {
   }
 
   @Override
+  public String subPath(ClusterContext context, Map<String, String> envVars) {
+    return subPath(envVars(context, envVars));
+  }
+
+  @Override
   public String subPath(Map<String, String> envVars) {
     return path(envVars).substring(1);
   }
@@ -193,6 +207,12 @@ public enum ClusterStatefulSetPath implements VolumePath {
   public String subPath(ClusterContext context, VolumePath relativeTo) {
     return relativize(subPath(context.getEnvironmentVariables()),
         relativeTo.subPath(context.getEnvironmentVariables()));
+  }
+
+  @Override
+  public String subPath(ClusterContext context, Map<String, String> envVars, VolumePath relativeTo) {
+    return relativize(subPath(envVars(context, envVars)),
+        relativeTo.subPath(envVars(context, envVars)));
   }
 
   @Override
@@ -214,11 +234,22 @@ public enum ClusterStatefulSetPath implements VolumePath {
     return envVar(context.getEnvironmentVariables());
   }
 
+  public EnvVar envVar(ClusterContext context, Map<String, String> envVars) {
+    return envVar(envVars(context, envVars));
+  }
+
   public EnvVar envVar(Map<String, String> envVars) {
     return new EnvVarBuilder()
         .withName(name())
         .withValue(path(envVars))
         .build();
+  }
+
+  private ImmutableMap<String, String> envVars(ClusterContext context,
+      Map<String, String> envVars) {
+    Map<String, String> mergedEnvVars = Maps.newHashMap(context.getEnvironmentVariables());
+    mergedEnvVars.putAll(envVars);
+    return ImmutableMap.copyOf(mergedEnvVars);
   }
 
 }

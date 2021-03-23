@@ -12,6 +12,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.Namespaceable;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -57,25 +58,33 @@ public abstract class AbstractCustomResourceScheduler
   @Override
   public <S> void updateStatus(T resource, Function<T, S> statusGetter,
       BiConsumer<T, S> statusSetter) {
-    try (KubernetesClient client = clientFactory.create()) {
-      T resourceOverwrite = getCustomResourceEndpoints(client)
-          .inNamespace(resource.getMetadata().getNamespace())
-          .withName(resource.getMetadata().getName())
-          .get();
-      if (resourceOverwrite == null) {
-        throw new RuntimeException("Can not update status of resource "
-            + HasMetadata.getKind(customResourceClass)
-            + "." + HasMetadata.getGroup(customResourceClass)
-            + " " + resource.getMetadata().getNamespace()
-            + "." + resource.getMetadata().getName()
-            + ": resource not found");
+    while (true) {
+      try (KubernetesClient client = clientFactory.create()) {
+        T resourceOverwrite = getCustomResourceEndpoints(client)
+            .inNamespace(resource.getMetadata().getNamespace())
+            .withName(resource.getMetadata().getName())
+            .get();
+        if (resourceOverwrite == null) {
+          throw new RuntimeException("Can not update status of resource "
+              + HasMetadata.getKind(customResourceClass)
+              + "." + HasMetadata.getGroup(customResourceClass)
+              + " " + resource.getMetadata().getNamespace()
+              + "." + resource.getMetadata().getName()
+              + ": resource not found");
+        }
+        statusSetter.accept(resourceOverwrite, statusGetter.apply(resource));
+        getCustomResourceEndpoints(client)
+            .inNamespace(resource.getMetadata().getNamespace())
+            .withName(resource.getMetadata().getName())
+            .lockResourceVersion(resourceOverwrite.getMetadata().getResourceVersion())
+            .replace(resourceOverwrite);
+      } catch (KubernetesClientException ex) {
+        if (ex.getCode() == 409) {
+          continue;
+        }
+        throw ex;
       }
-      statusSetter.accept(resourceOverwrite, statusGetter.apply(resource));
-      getCustomResourceEndpoints(client)
-          .inNamespace(resource.getMetadata().getNamespace())
-          .withName(resource.getMetadata().getName())
-          .lockResourceVersion(resource.getMetadata().getResourceVersion())
-          .replace(resourceOverwrite);
+      break;
     }
   }
 

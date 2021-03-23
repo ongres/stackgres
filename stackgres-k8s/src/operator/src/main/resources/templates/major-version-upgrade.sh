@@ -10,6 +10,7 @@ if [ "$PRIMARY_INSTANCE" != "$POD_NAME" ]
 then
   echo "Removing data of non primary instance"
   rm -rf "$PG_DATA_PATH"
+  mkdir -p "$PG_UPGRADE_PATH"
   touch "$PG_UPGRADE_PATH/.upgraded-from-$SOURCE_VERSION-to-$TARGET_VERSION"
   echo "Major version upgrade not needed for non primary instance"
   exit 0
@@ -51,6 +52,7 @@ fi
 
 if [ ! -d "$PG_UPGRADE_PATH/$SOURCE_VERSION/data" ]
 then
+  mkdir -p "$PG_UPGRADE_PATH/$SOURCE_VERSION"
   mv "$PG_DATA_PATH" "$PG_UPGRADE_PATH/$SOURCE_VERSION/data"
 fi
 if [ ! -d "$PG_DATA_PATH" ]

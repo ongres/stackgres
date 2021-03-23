@@ -13,17 +13,23 @@ public interface VolumePath {
 
   String filename(ClusterContext context);
 
+  String filename(ClusterContext context, Map<String, String> envVars);
+
   String filename(Map<String, String> envVars);
 
   String path();
 
   String path(ClusterContext context);
 
+  String path(ClusterContext context, Map<String, String> envVars);
+
   String path(Map<String, String> envVars);
 
   String subPath();
 
   String subPath(ClusterContext context);
+
+  String subPath(ClusterContext context, Map<String, String> envVars);
 
   String subPath(Map<String, String> envVars);
 
@@ -32,5 +38,7 @@ public interface VolumePath {
   String subPath(ClusterContext context, VolumePath relativeTo);
 
   String subPath(Map<String, String> envVars, VolumePath relativeTo);
+
+  String subPath(ClusterContext context, Map<String, String> envVars, VolumePath relativeTo);
 
 }

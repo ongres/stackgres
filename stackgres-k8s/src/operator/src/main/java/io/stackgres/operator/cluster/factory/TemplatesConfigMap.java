@@ -67,7 +67,6 @@ public class TemplatesConfigMap
         ClusterStatefulSetPath.LOCAL_BIN_RUN_REPACK_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_RUN_MAJOR_VERSION_UPGRADE_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_RUN_RESTART_SH_PATH.filename(),
-        ClusterStatefulSetPath.LOCAL_BIN_COPY_BINARIES_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_MAJOR_VERSION_UPGRADE_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_RESET_PATRONI_INITIALIZE_SH_PATH.filename(),
     }) {
