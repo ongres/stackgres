@@ -1,5 +1,5 @@
 <template>
-	<div id="sg-backup" v-if="loggedIn && isReady">
+	<div id="sg-backup" v-if="loggedIn && isReady && !notFound">
 		<header v-if="isCluster">
 			<template v-for="cluster in clusters" v-if="(cluster.name == $route.params.name) && (cluster.data.metadata.namespace == $route.params.namespace)">
 				<ul class="breadcrumbs">

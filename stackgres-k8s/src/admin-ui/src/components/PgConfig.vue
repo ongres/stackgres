@@ -1,5 +1,5 @@
 <template>
-	<div id="pg-config" v-if="loggedIn && isReady">
+	<div id="pg-config" v-if="loggedIn && isReady && !notFound">
 		<header>
 			<ul class="breadcrumbs">
 				<li class="namespace">
