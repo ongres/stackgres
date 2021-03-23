@@ -52,7 +52,7 @@ public class DistributedLogsReconciliator
 
   @Inject
   public DistributedLogsReconciliator(Parameters parameters) {
-    super("Centralized Logging",
+    super("Distributed Logs",
         StackGresDistributedLogsContext::getDistributedLogs,
         parameters.handlerSelector,
         parameters.objectMapper);
@@ -103,7 +103,7 @@ public class DistributedLogsReconciliator
   protected void onConfigCreated(KubernetesClient client, StackGresDistributedLogsContext context) {
     StackGresDistributedLogs distributedLogs = context.getDistributedLogs();
     eventController.sendEvent(DistributedLogsEventReason.DISTRIBUTED_LOGS_CREATED,
-        "StackGres Centralized Logging " + distributedLogs.getMetadata().getNamespace() + "."
+        "StackGres Distributed Logs " + distributedLogs.getMetadata().getNamespace() + "."
         + distributedLogs.getMetadata().getName() + " created",
         distributedLogs, client);
     statusManager.updateCondition(
@@ -117,7 +117,7 @@ public class DistributedLogsReconciliator
   protected void onConfigUpdated(KubernetesClient client, StackGresDistributedLogsContext context) {
     StackGresDistributedLogs distributedLogs = context.getDistributedLogs();
     eventController.sendEvent(DistributedLogsEventReason.DISTRIBUTED_LOGS_UPDATED,
-        "StackGres Centralized Logging " + distributedLogs.getMetadata().getNamespace() + "."
+        "StackGres Distributed Logs " + distributedLogs.getMetadata().getNamespace() + "."
         + distributedLogs.getMetadata().getName() + " updated",
         distributedLogs, client);
     statusManager.updateCondition(
