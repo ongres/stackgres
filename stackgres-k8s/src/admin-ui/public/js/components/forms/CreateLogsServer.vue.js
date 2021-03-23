@@ -366,8 +366,6 @@ var CreateLogsServer = Vue.component("CreateLogsServer", {
                         vm.annotationsPods = hasProp(c, 'data.spec.metadata.annotations.pods') ? vm.unparseProps(c.data.spec.metadata.annotations.pods) : [];
                         vm.annotationsServices = hasProp(c, 'data.spec.metadata.annotations.services') ? vm.unparseProps(c.data.spec.metadata.annotations.services) : [];
                         vm.editReady = true
-                        
-
                     }
                 });
             }
