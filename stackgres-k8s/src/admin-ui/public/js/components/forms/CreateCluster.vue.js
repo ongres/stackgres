@@ -645,6 +645,7 @@ var CreateCluster = Vue.component("CreateCluster", {
 
         return {
             editMode: (vm.$route.params.action === 'edit'),
+            editReady: false,
             help: 'Click on a question mark to get help and tips about that field.',
             nullVal: null,
             advancedMode: false,
@@ -749,7 +750,7 @@ var CreateCluster = Vue.component("CreateCluster", {
             var vm = this;
             var cluster = {};
             
-            if(vm.$route.params.action === 'edit') {
+            if( (vm.$route.params.action === 'edit') && !vm.editReady) {
                 store.state.clusters.forEach(function( c ){
                     if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
                       
@@ -790,7 +791,7 @@ var CreateCluster = Vue.component("CreateCluster", {
                         vm.postgresServicesReplicas = hasProp(c, 'data.spec.postgresServices.replicas.enabled') ? c.data.spec.postgresServices.replicas.enabled : false;
                         vm.postgresServicesReplicasType = hasProp(c, 'data.spec.postgresServices.replicas.type') ? c.data.spec.postgresServices.replicas.type : 'ClusterIP';
                         vm.postgresServicesReplicasAnnotations = hasProp(c, 'data.spec.postgresServices.replicas.annotations') ?  vm.unparseProps(c.data.spec.postgresServices.replicas.annotations) : [];
-                        
+                        vm.editReady = true;
                     }
                 });
             }

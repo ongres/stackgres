@@ -73,6 +73,7 @@ var CreatePoolConfig = Vue.component("CreatePoolConfig", {
 
         return {
             editMode: (vm.$route.params.action === 'edit'),
+            editReady: false,
             poolConfigName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
             poolConfigNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
             poolConfigParams: '',
@@ -108,11 +109,12 @@ var CreatePoolConfig = Vue.component("CreatePoolConfig", {
             var vm = this;
             var config = {};
 
-            if(vm.$route.params.action === 'edit') {
+            if( (vm.$route.params.action === 'edit') && !vm.editReady) {
                 store.state.poolConfig.forEach(function( conf ){
                     if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
                         vm.poolConfigParams = conf.data.spec.pgBouncer["pgbouncer.ini"];
                         config = conf;
+                        vm.editReady = true;
                         return false;
                     }
                 });    

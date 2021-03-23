@@ -289,6 +289,7 @@ var CreateLogsServer = Vue.component("CreateLogsServer", {
 
         return {
             editMode: (vm.$route.params.action === 'edit'),
+            editReady: false,
             help: 'Click on a question mark to get help and tips about that field.',
             nullVal: null,
             advancedMode: false,
@@ -343,7 +344,7 @@ var CreateLogsServer = Vue.component("CreateLogsServer", {
             var vm = this;
             var cluster = {};
             
-            if(vm.$route.params.action === 'edit') {
+            if( (vm.$route.params.action === 'edit') && !vm.editReady) {
                 vm.advancedMode = true;
                 store.state.logsClusters.forEach(function( c ){
                     if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
@@ -364,7 +365,7 @@ var CreateLogsServer = Vue.component("CreateLogsServer", {
                         vm.annotationsAll = hasProp(c, 'data.spec.metadata.annotations.allResources') ? vm.unparseProps(c.data.spec.metadata.annotations.allResources) : [];
                         vm.annotationsPods = hasProp(c, 'data.spec.metadata.annotations.pods') ? vm.unparseProps(c.data.spec.metadata.annotations.pods) : [];
                         vm.annotationsServices = hasProp(c, 'data.spec.metadata.annotations.services') ? vm.unparseProps(c.data.spec.metadata.annotations.services) : [];
-
+                        vm.editReady = true
                     }
                 });
             }
