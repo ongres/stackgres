@@ -1241,7 +1241,6 @@ public class ResourcePairVisitor<T, C> {
   public PairVisitor<OwnerReference, T> visitOwnerReference(
       PairVisitor<OwnerReference, T> pairVisitor) {
     return pairVisitor.visit()
-        .visit(OwnerReference::getApiVersion, OwnerReference::setApiVersion)
         .visit(OwnerReference::getKind, OwnerReference::setKind)
         .visit(OwnerReference::getUid, OwnerReference::setUid)
         .visit(OwnerReference::getName, OwnerReference::setName)
