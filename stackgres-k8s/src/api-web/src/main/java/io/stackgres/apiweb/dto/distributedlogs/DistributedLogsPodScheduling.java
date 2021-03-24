@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.dto.cluster;
+package io.stackgres.apiweb.dto.distributedlogs;
 
 import java.util.List;
 import java.util.Map;
@@ -17,7 +17,7 @@ import io.stackgres.common.crd.Toleration;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class PodScheduling {
+public class DistributedLogsPodScheduling {
 
   private Map<String, String> nodeSelector;
 

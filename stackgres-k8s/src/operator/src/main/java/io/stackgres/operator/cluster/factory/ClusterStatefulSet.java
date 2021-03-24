@@ -38,8 +38,8 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.common.crd.sgcluster.StackGresPodScheduling;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
@@ -167,12 +167,12 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
             .withNodeSelector(Optional.ofNullable(cluster.getSpec())
                 .map(StackGresClusterSpec::getPod)
                 .map(StackGresClusterPod::getScheduling)
-                .map(StackGresPodScheduling::getNodeSelector)
+                .map(StackGresClusterPodScheduling::getNodeSelector)
                 .orElse(null))
             .withTolerations(Optional.ofNullable(cluster.getSpec())
                 .map(StackGresClusterSpec::getPod)
                 .map(StackGresClusterPod::getScheduling)
-                .map(StackGresPodScheduling::getTolerations)
+                .map(StackGresClusterPodScheduling::getTolerations)
                 .map(tolerations -> Seq.seq(tolerations)
                     .map(TolerationBuilder::new)
                     .map(TolerationBuilder::build)

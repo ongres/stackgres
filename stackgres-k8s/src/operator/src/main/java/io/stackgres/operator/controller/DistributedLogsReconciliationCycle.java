@@ -24,11 +24,13 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSet;
@@ -213,6 +215,15 @@ public class DistributedLogsReconciliationCycle
     persistentVolume.setStorageClass(
         distributedLogs.getSpec().getPersistentVolume().getStorageClass());
     pod.setPersistentVolume(persistentVolume);
+    StackGresClusterPodScheduling scheduling = new StackGresClusterPodScheduling();
+    Optional.of(distributedLogs)
+        .map(StackGresDistributedLogs::getSpec)
+        .map(StackGresDistributedLogsSpec::getScheduling)
+        .ifPresent(distributedLogsScheduling -> {
+          scheduling.setNodeSelector(distributedLogsScheduling.getNodeSelector());
+          scheduling.setTolerations(distributedLogsScheduling.getTolerations());
+        });
+    pod.setScheduling(scheduling);
     spec.setPod(pod);
     final StackGresClusterInitData initData = new StackGresClusterInitData();
     final StackGresClusterScriptEntry script = new StackGresClusterScriptEntry();
