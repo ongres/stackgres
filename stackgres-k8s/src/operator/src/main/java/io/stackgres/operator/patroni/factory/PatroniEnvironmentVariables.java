@@ -15,7 +15,7 @@ import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.common.StackGresDistributedLogsContext;
+import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 import org.jooq.lambda.Seq;
 
@@ -29,13 +29,11 @@ public class PatroniEnvironmentVariables
     return Seq.of(
         new EnvVarBuilder()
             .withName("PATRONI_RESTAPI_LISTEN")
-            .withValue(context instanceof StackGresDistributedLogsContext
-                ? "0.0.0.0:8008"
-                : "0.0.0.0:8009")
+            .withValue("0.0.0.0:" + getPatroniListenPort(context))
             .build(),
         new EnvVarBuilder()
             .withName("PATRONI_RESTAPI_CONNECT_ADDRESS")
-            .withValue(PatroniServices.restName(context) + ":8008")
+            .withValue("${PATRONI_KUBERNETES_POD_IP}:" + Envoy.PATRONI_ENTRY_PORT)
             .build(),
         new EnvVarBuilder()
             .withName("PATRONI_RESTAPI_USERNAME")
@@ -105,6 +103,15 @@ public class PatroniEnvironmentVariables
         new EnvVarBuilder().withName("PATRONI_authenticator_OPTIONS")
             .withValue("superuser")
             .build());
+  }
+
+  private int getPatroniListenPort(StackGresClusterContext context) {
+    return context.getSidecars().stream()
+        .filter(entry -> entry.getSidecar() instanceof Envoy)
+        .map(entry -> Envoy.PATRONI_PORT)
+        .findFirst()
+        .orElse(Envoy.PATRONI_ENTRY_PORT);
+
   }
 
 }
