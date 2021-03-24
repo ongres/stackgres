@@ -36,99 +36,121 @@ const router = new VueRouter({
   mode: 'history',
   routes: [
     { 
-      path: '/admin/crd/:action/cluster/:namespace', 
+      path: '/admin/crd/create/cluster/:namespace', 
       component: CreateCluster,
+      name: 'CreateCluster',
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/admin/crd/:action/cluster/:namespace/:name', 
+      path: '/admin/crd/edit/cluster/:namespace/:name', 
       component: CreateCluster,
+      name: 'EditCluster',
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/admin/crd/:action/profile/:namespace', 
+      path: '/admin/crd/create/profile/:namespace', 
       component: CreateProfile,
+      name: 'CreateProfile',
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/admin/crd/:action/profile/:namespace/:name', 
+      path: '/admin/crd/edit/profile/:namespace/:name', 
       component: CreateProfile,
+      name: 'EditProfile',
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/admin/crd/:action/pgconfig/:namespace', 
+      path: '/admin/crd/create/pgconfig/:namespace', 
       component: CreatePGConfig,
+      name: 'CreatePgConfig',
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/admin/crd/:action/pgconfig/:namespace/:name', 
+      path: '/admin/crd/edit/pgconfig/:namespace/:name', 
       component: CreatePGConfig,
+      name: 'EditPgConfig',
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/admin/crd/:action/connectionpooling/:namespace', 
+      path: '/admin/crd/create/connectionpooling/:namespace', 
       component: CreatePoolConfig,
+      name: 'CreatePoolConfig',
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/admin/crd/:action/connectionpooling/:namespace/:name', 
+      path: '/admin/crd/edit/connectionpooling/:namespace/:name', 
       component: CreatePoolConfig,
+      name: 'EditPoolConfig',
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/admin/crd/:action/backupconfig/:namespace', 
+      path: '/admin/crd/create/backupconfig/:namespace', 
       component: CreateBackupConfig,
+      name: 'CreateBackupConfig',
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/admin/crd/:action/backupconfig/:namespace/:name', 
+      path: '/admin/crd/edit/backupconfig/:namespace/:name', 
       component: CreateBackupConfig,
+      name: 'EditBackupConfig',
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/admin/crd/:action/backup/:namespace', 
+      path: '/admin/crd/create/backup/:namespace', 
       component: CreateBackup,
+      name: 'CreateBackups',
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/admin/crd/:action/backup/:namespace/:uid', 
+      path: '/admin/crd/create/backup/:namespace/cluster', 
       component: CreateBackup,
+      name: 'CreateClusterBackup',
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/admin/crd/:action/logs/:namespace', 
-      component: CreateLogsServer,
+      path: '/admin/crd/edit/backup/:namespace/:uid', 
+      component: CreateBackup,
+      name: 'EditBackup',
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/admin/crd/:action/logs/:namespace/:name', 
+      path: '/admin/crd/create/logs/:namespace', 
       component: CreateLogsServer,
+      name: 'CreateLogsServer',
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
+      path: '/admin/crd/edit/logs/:namespace/:name', 
+      component: CreateLogsServer,
+      name: 'EditLogsServer',
       meta: {
         conditionalRoute: false
       },
@@ -136,6 +158,7 @@ const router = new VueRouter({
     { 
       path: '/admin', 
       component: ClusterOverview,
+      name: 'BaseUrl',
       meta: {
         conditionalRoute: false
       },
@@ -143,34 +166,39 @@ const router = new VueRouter({
     { 
       path: '/admin/overview/:namespace', 
       component: ClusterOverview,
+      name: 'ClusterOverview',
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/admin/:cluster/configuration/:namespace/:name', 
+      path: '/admin/cluster/configuration/:namespace/:name', 
       component: ClusterInfo,
+      name: 'ClusterInfo',
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/admin/:cluster/status/:namespace/:name', 
+      path: '/admin/cluster/status/:namespace/:name', 
       component: ClusterStatus,
+      name: 'ClusterStatus',
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/admin/:cluster/logs/:namespace/:name', 
+      path: '/admin/cluster/logs/:namespace/:name', 
       component: Logs,
+      name: 'ClusterLogs',
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/admin/:cluster/logs/:namespace/:name/:time/:index', 
+      path: '/admin/cluster/logs/:namespace/:name/:time/:index', 
       component: Logs,
+      name: 'ClusterSingleLogs',
       meta: {
         conditionalRoute: false
       },
@@ -178,6 +206,7 @@ const router = new VueRouter({
     {  
       path: '/admin/backups/:namespace/', 
       component: Backups,
+      name: 'NamespaceBackups',
       meta: {
         conditionalRoute: false
       },
@@ -185,20 +214,23 @@ const router = new VueRouter({
     { 
       path: '/admin/backups/:namespace/:name/:uid', 
       component: Backups,
+      name: 'SingleBackups',
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/admin/:cluster/backups/:namespace/:name', 
+      path: '/admin/cluster/backups/:namespace/:name', 
       component: Backups,
+      name: 'ClusterBackups',
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/admin/:cluster/backups/:namespace/:name/:uid', 
+      path: '/admin/cluster/backups/:namespace/:name/:uid', 
       component: Backups,
+      name: 'SingleClusterBackups',
       meta: {
         conditionalRoute: false
       },
@@ -206,6 +238,7 @@ const router = new VueRouter({
     { 
       path: '/admin/configurations/postgres/:namespace', 
       component: PgConfig,
+      name: 'PgConfig',
       meta: {
         conditionalRoute: false
       },
@@ -213,6 +246,7 @@ const router = new VueRouter({
     { 
       path: '/admin/configurations/postgres/:namespace/:name', 
       component: PgConfig,
+      name: 'SinglePgConfig',
       meta: {
         conditionalRoute: false
       },
@@ -220,6 +254,7 @@ const router = new VueRouter({
     { 
       path: '/admin/configurations/connectionpooling/:namespace', 
       component: PoolConfig,
+      name: 'PoolConfig',
       meta: {
         conditionalRoute: false
       },
@@ -227,6 +262,7 @@ const router = new VueRouter({
     { 
       path: '/admin/configurations/connectionpooling/:namespace/:name', 
       component: PoolConfig,
+      name: 'SinglePoolConfig',
       meta: {
         conditionalRoute: false
       },
@@ -234,6 +270,7 @@ const router = new VueRouter({
     { 
       path: '/admin/configurations/backup/:namespace', 
       component: BackupConfig,
+      name: 'BackupConfig',
       meta: {
         conditionalRoute: false
       },
@@ -241,6 +278,7 @@ const router = new VueRouter({
     { 
       path: '/admin/configurations/backup/:namespace/:name', 
       component: BackupConfig,
+      name: 'SingleBackupConfig',
       meta: {
         conditionalRoute: false
       },
@@ -248,6 +286,7 @@ const router = new VueRouter({
     {  
       path: '/admin/profiles/:namespace/', 
       component: SGProfiles,
+      name: 'InstanceProfile',
       meta: {
         conditionalRoute: false
       },
@@ -255,6 +294,7 @@ const router = new VueRouter({
     { 
       path: '/admin/profiles/:namespace/:name', 
       component: SGProfiles,
+      name: 'SingleInstanceProfile',
       meta: {
         conditionalRoute: false
       },
@@ -262,6 +302,7 @@ const router = new VueRouter({
     { 
       path: '/admin/logs/:namespace', 
       component: LogsServer,
+      name: 'LogsServer',
       meta: {
         conditionalRoute: false
       },
@@ -269,33 +310,37 @@ const router = new VueRouter({
     { 
       path: '/admin/logs/:namespace/:name', 
       component: LogsServer,
+      name: 'SingleLogsServer',
       meta: {
         conditionalRoute: false
       },
     },
-    { 
+    /*{ 
       path: '/admin/monitor/', 
       component: Grafana,
       meta: {
         conditionalRoute: false
       },
-    },
+    },*/
     { 
-      path: '/admin/:cluster/monitor/:namespace/:name', 
+      path: '/admin/cluster/monitor/:namespace/:name', 
       component: Grafana,
+      name: 'ClusterMonitor',
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/admin/:cluster/monitor/:namespace/:name/:pod', 
+      path: '/admin/cluster/monitor/:namespace/:name/:pod', 
       component: Grafana,
+      name: 'ClusterSingleMonitor',
       meta: {
         conditionalRoute: false
       },
     },
     {
       path: '*',
+      name: 'NotFound',
       component: NotFound
     }
 
@@ -529,7 +574,7 @@ router.beforeEach((to, from, next) => {
       case 'Backups':
       case 'CreateBackup':
         /* If filtered by Cluster, first check if Cluster exists */
-        if(to.params.hasOwnProperty('cluster')) {
+        if(to.name.includes('Cluster')) {
 
           axios
           .get(apiURL+'sgcluster')
@@ -676,7 +721,7 @@ router.beforeEach((to, from, next) => {
   }
   
   // If entering a Cluster, setup as current
-  if ( to.params.cluster === "cluster" ) {
+  if ( to.path.startsWith('/admin/cluster/') || to.path.startsWith('/admin/crd/edit/cluster/')) {
 
     let cluster = store.state.clusters.find(c => ( (to.params.name == c.name) && (to.params.namespace == c.data.metadata.namespace) ) );
     

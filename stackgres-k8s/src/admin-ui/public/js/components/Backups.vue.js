@@ -599,7 +599,7 @@ var Backups = Vue.component("Backups", {
 		},
 
 		isCluster() {
-			return this.$route.params.hasOwnProperty('cluster')
+			return this.$route.name.includes('ClusterBackups')
 		}
 
 	},
@@ -844,13 +844,13 @@ var Backups = Vue.component("Backups", {
 
 			$(document).on("click", "table.backups tr.base td:not(.actions)", function() {
 				if(!$(this).parent().hasClass('open')) {
-					if(vc.$route.params.hasOwnProperty('cluster'))
+					if(vc.$route.name.includes('ClusterBackups'))
 						router.push('/admin/cluster/backups/'+store.state.currentNamespace+'/'+$(this).parent().data('cluster')+'/'+$(this).parent().data('uid'))
 					else
 						router.push('/admin/backups/'+store.state.currentNamespace+'/'+$(this).parent().data('cluster')+'/'+$(this).parent().data('uid'))
 				}
 				else {
-					if(vc.$route.params.hasOwnProperty('cluster'))
+					if(vc.$route.name.includes('ClusterBackups'))
 						router.push('/admin/cluster/backups/'+store.state.currentNamespace+'/'+$(this).parent().data('cluster'))
 					else
 						router.push('/admin/backups/'+store.state.currentNamespace)

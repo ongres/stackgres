@@ -17,7 +17,7 @@ var CreatePoolConfig = Vue.component("CreatePoolConfig", {
                         <router-link :to="'/admin/configurations/connectionpooling/'+currentNamespace+'/'+$route.params.name" title="Configuration Details">{{ $route.params.name }}</router-link>
                     </li>
                     <li class="action">
-                        {{ $route.params.action }}
+                        {{ $route.name == 'EditPoolConfig' ? 'Edit' : 'Create' }}
                     </li>
                 </ul>
 
@@ -72,7 +72,7 @@ var CreatePoolConfig = Vue.component("CreatePoolConfig", {
         const vm = this;
 
         return {
-            editMode: (vm.$route.params.action === 'edit'),
+            editMode: (vm.$route.name === 'EditPoolConfig'),
             poolConfigName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
             poolConfigNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
             poolConfigParams: '',
@@ -108,7 +108,7 @@ var CreatePoolConfig = Vue.component("CreatePoolConfig", {
             var vm = this;
             var config = {};
 
-            if(vm.$route.params.action === 'edit') {
+            if(vm.$route.name === 'EditPoolConfig') {
                 store.state.poolConfig.forEach(function( conf ){
                     if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
                         vm.poolConfigParams = conf.data.spec.pgBouncer["pgbouncer.ini"];
