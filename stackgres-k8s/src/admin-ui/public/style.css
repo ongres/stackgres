@@ -4988,3 +4988,7 @@ tr.details td:last-of-type .configurationDetails table {
 .nodeTolerations fieldset a.help {
     margin-top: -45px;
 }
+
+.configurationDetails table + span.title {
+    margin-top: 20px;
+}

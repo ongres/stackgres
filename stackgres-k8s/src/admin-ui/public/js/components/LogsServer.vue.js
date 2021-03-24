@@ -68,6 +68,14 @@ var LogsServer = Vue.component("LogsServer", {
                                                     <td class="label">Volume Size</td>
                                                     <td>{{ cluster.data.spec.persistentVolume.size }}</td>
                                                 </tr>
+                                                <tr v-if="hasProp(cluster, 'data.spec.persistentVolume.storageClass')">
+                                                    <td class="label">Storage Class</td>
+                                                    <td>{{ cluster.data.spec.persistentVolume.storageClass }}</td>
+                                                </tr>
+                                                <tr v-if="hasProp(cluster, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity')">
+                                                    <td class="label">Cluster Pod Anti Affinity</td>
+                                                    <td>OFF</td>
+                                                </tr>
                                                 <template v-if="cluster.data.status.clusters.length">
                                                     <tr>
                                                         <td class="label">Used on</td>
@@ -85,6 +93,44 @@ var LogsServer = Vue.component("LogsServer", {
                                                 </template>
                                             </tbody>
                                         </table>
+                                    </div>
+
+                                    <div class="configurationDetails">
+                                        <template v-if="hasProp(cluster, 'data.spec.scheduling.nodeSelector')">
+                                            <span class="title">Node Selector</span>	
+                                            <table>
+                                                <tbody>
+                                                    <tr v-for="(item, index) in unparseProps(cluster.data.spec.scheduling.nodeSelector)">
+                                                        <td class="label">
+                                                            {{ item.annotation }}
+                                                        </td>
+                                                        <td colspan="2">
+                                                            {{ item.value }}
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </template>
+                                        <template v-if="hasProp(cluster, 'data.spec.scheduling.nodeSelector')">
+                                            <span class="title">Tolerations</span>	
+                                            <table>
+                                                <tbody>
+                                                    <template v-for="(item, index) in cluster.data.spec.scheduling.tolerations">
+                                                        <tr v-for="(value, prop, i) in item">
+                                                            <td class="label" :rowspan="Object.keys(item).length" v-if="!i">
+                                                                Toleration #{{ index+1 }}
+                                                            </td>
+                                                            <td class="label">
+                                                                {{ prop }}
+                                                            </td>
+                                                            <td colspan="2">
+                                                                {{ value }}
+                                                            </td>
+                                                        </tr>
+                                                    </template>
+                                                </tbody>
+                                            </table>
+                                        </template>
                                     </div>
                                 </td>
                             </tr>
@@ -104,6 +150,19 @@ var LogsServer = Vue.component("LogsServer", {
     },
     methods: {
         
+        unparseProps ( props, key = 'annotation' ) {
+			var propsArray = [];
+			if(!jQuery.isEmptyObject(props)) {
+				Object.entries(props).forEach(([k, v]) => {
+					var prop = {};
+					prop[key] = k;
+					prop['value'] = v;
+					propsArray.push(prop)
+				});
+			}
+			
+            return propsArray
+		},
 
     },
     created: function() {
