@@ -544,7 +544,7 @@
                                 </div>
                             </fieldset>
 
-                            <span class="warning" v-if="editMode">Please, be aware that any changes made to the <code>Pods Scheduling</code> will require a <a href="https://stackgres.io/doc/0.9/install/restart/" target="_blank">restart opration</a> on every instance of the cluster</span>
+                            <span class="warning" v-if="editMode">Please, be aware that any changes made to the <code>Pods Scheduling</code> will require a <a href="https://stackgres.io/doc/latest/install/restart/" target="_blank">restart opration</a> on every instance of the cluster</span>
                         </fieldset>
 
 
