@@ -18,7 +18,7 @@ var CreateProfile = Vue.component("CreateProfile", {
                         <router-link :to="'/admin/profiles/'+currentNamespace+'/'+$route.params.name" title="SGInstanceProfile Details">{{ $route.params.name }}</router-link
                     </li>
                     <li class="action">
-                        {{ $route.params.action }}
+                        {{ $route.name == 'EditProfile' ? 'Edit' : 'Create' }}
                     </li>
                 </ul>
 
@@ -95,7 +95,7 @@ var CreateProfile = Vue.component("CreateProfile", {
         const vm = this;
 
         return {
-            editMode: (vm.$route.params.action === 'edit'),
+            editMode: (vm.$route.name === 'EditProfile'),
             editReady: false,
             profileName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
             profileNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
@@ -136,7 +136,7 @@ var CreateProfile = Vue.component("CreateProfile", {
             var vm = this;
             var config = {};
             
-            if( (vm.$route.params.action === 'edit') && !vm.editReady) {
+            if( (vm.$route.name === 'EditProfile') && !vm.editReady) {
                 store.state.profiles.forEach(function( conf ){
                     if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
                         vm.profileCPU = conf.data.spec.cpu.match(/\d+/g)[0];

@@ -14,10 +14,10 @@ var CreateBackup = Vue.component("CreateBackup", {
                         <router-link :to="'/admin/backups/'+currentNamespace" title="SGBackups">SGBackups</router-link>
                     </li>
                     <li v-if="editMode">
-                        <router-link :to="'/admin/backups/'+currentNamespace+'/'+$route.params.cluster+'/'+$route.params.uid" title="Backup Details">{{ $route.params.uid }}</router-link>
+                        <router-link :to="'/admin/backups/'+currentNamespace+'/'+backupCluster+'/'+$route.params.uid" title="Backup Details">{{ $route.params.uid }}</router-link>
                     </li>
                     <li class="action">
-                        {{ $route.params.action }}
+                        {{ $route.name == 'EditBackup' ? 'Edit' : 'Create' }}
                     </li>
                 </ul>
 
@@ -83,7 +83,7 @@ var CreateBackup = Vue.component("CreateBackup", {
         const vm = this;
 
         return {
-            editMode: (vm.$route.params.action === 'edit'),
+            editMode: (vm.$route.name === 'EditBackup'),
             editReady: false,
             advancedMode: false,
             backupName: '',
@@ -125,7 +125,7 @@ var CreateBackup = Vue.component("CreateBackup", {
             var vm = this;
             var backup = {};
             
-            if( (vm.$route.params.action === 'edit') && !vm.editReady) {
+            if((vm.$route.name === 'EditBackup')  && !vm.editReady) {
                 store.state.backups.forEach(function( bk ){
                     if( (bk.data.metadata.uid === vm.$route.params.uid) && (bk.data.metadata.namespace === vm.$route.params.namespace) ) {
                         vm.backupName = bk.name;
