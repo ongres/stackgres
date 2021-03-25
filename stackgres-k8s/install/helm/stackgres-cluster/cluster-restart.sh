@@ -23,6 +23,13 @@ decrease_instances_by_one() {
   INSTANCES="$(kubectl get sgcluster -n "$NAMESPACE" "$SGCLUSTER" --template "{{ .spec.instances }}")"
   echo "Decreasing cluster instances from $INSTANCES to $((INSTANCES-1))"
   kubectl patch sgcluster -n "$NAMESPACE" "$SGCLUSTER" --type merge -p "spec: { instances: $((INSTANCES-1)) }"
+
+  echo "Waiting for pod being terminated"
+  until kubectl get pod -n "$NAMESPACE" \
+    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true" -o name | wc -l | grep -q -F "$((INSTANCES-1))"
+  do
+    sleep 1
+  done
 }
 
 update_read_only_pods() {
@@ -55,7 +62,7 @@ delete_primary_instance() {
 
 restart_primary_instance() {
   echo "Restart primary instance $1"
-  kubectl exec -t -n "$NAMESPACE" "$1" -- patronictl restart "$SGCLUSTER" "$1" --force
+  kubectl exec -n "$NAMESPACE" "$1" -- patronictl restart "$SGCLUSTER" "$1" --force
 
   wait_primary_pod "$1"
 }
@@ -69,7 +76,7 @@ wait_primary_pod() {
 perform_switchover() {
   echo "Performing switchover from primary pod $1 to read only pod $2"
   [ -n "$2" ] && [ -n "$1" ] \
-    && kubectl exec -ti -n "$NAMESPACE" "$1" -c patroni -- \
+    && kubectl exec -n "$NAMESPACE" "$1" -c patroni -- \
       patronictl switchover --master "$1" --candidate "$2" --force
 }
 

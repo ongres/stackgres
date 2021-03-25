@@ -48,6 +48,7 @@ public class PatroniSecret implements StackGresClusterResourceStreamFactory {
     data.put("superuser-password", generatePassword());
     data.put("replication-password", generatePassword());
     data.put("authenticator-password", generatePassword());
+    data.put("restapi-password", generatePassword());
 
     return Seq.of(new SecretBuilder()
         .withNewMetadata()
