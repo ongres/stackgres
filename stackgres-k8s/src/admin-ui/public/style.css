@@ -4993,6 +4993,9 @@ tr.details td:last-of-type .configurationDetails table {
     margin-top: 20px;
 }
 
+.form .header:last-child {
+    border: 0;
+}
 /*Tables Overflow*/
 
 table.tolerations {
