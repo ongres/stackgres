@@ -113,7 +113,7 @@ var LogsServer = Vue.component("LogsServer", {
                                         </template>
                                         <template v-if="hasProp(cluster, 'data.spec.scheduling.nodeSelector')">
                                             <span class="title">Tolerations</span>	
-                                            <table>
+                                            <table class="tolerations">
                                                 <tbody>
                                                     <template v-for="(item, index) in cluster.data.spec.scheduling.tolerations">
                                                         <tr v-for="(value, prop, i) in item">
