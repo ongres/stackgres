@@ -93,6 +93,52 @@ var LogsServer = Vue.component("LogsServer", {
                                                 </template>
                                             </tbody>
                                         </table>
+
+                                        <template v-if="hasProp(cluster, 'data.spec.metadata.annotations')">
+                                            <span class="title">Resources Metadata</span>
+                                            <table v-if="hasProp(cluster, 'data.spec.metadata.annotations.allResources')" class="clusterConfig">
+                                                <thead>
+                                                    <th></th>
+                                                    <th></th>
+                                                    <th></th>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.allResources)">
+                                                        <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.allResources).length">
+                                                            All Resources
+                                                        </td>
+                                                        <td class="label">
+                                                            {{ item.annotation }}
+                                                        </td>
+                                                        <td colspan="2">
+                                                            {{ item.value }}
+                                                        </td>
+                                                    </tr>
+                                                    <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.pods)">
+                                                        <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.pods).length">
+                                                            Pods
+                                                        </td>
+                                                        <td class="label">
+                                                            {{ item.annotation }}
+                                                        </td>
+                                                        <td colspan="2">
+                                                            {{ item.value }}
+                                                        </td>
+                                                    </tr>
+                                                    <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.services)">
+                                                        <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.services).length">
+                                                            Services
+                                                        </td>
+                                                        <td class="label">
+                                                            {{ item.annotation }}
+                                                        </td>
+                                                        <td colspan="2">
+                                                            {{ item.value }}
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </template>	
                                     </div>
 
                                     <div class="configurationDetails">
