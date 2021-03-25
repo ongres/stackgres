@@ -88,7 +88,7 @@ EOF
   then
     echo "Restarting primary inscante first..."
 
-    kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c patroni -- \
+    kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" -- \
       patronictl restart "$CLUSTER_NAME" -r master --force \
 
     echo "Waiting primary instance $PRIMARY_INSTANCE to be ready..."
@@ -171,7 +171,7 @@ EOF
     then
       echo "Performing switchover from primary $PRIMARY_INSTANCE to replica $TARGET_INSTANCE..."
 
-      kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c patroni -- \
+      kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" -- \
         patronictl switchover "$CLUSTER_NAME" --master "$PRIMARY_INSTANCE" --candidate "$TARGET_INSTANCE" --force \
 
       echo "done"
