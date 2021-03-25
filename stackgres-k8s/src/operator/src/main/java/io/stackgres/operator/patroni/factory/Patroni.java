@@ -134,7 +134,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                     .findFirst()
                     .orElse(EnvoyUtil.PG_PORT)).build(),
             new ContainerPortBuilder().withContainerPort(8008).build())
-        .withVolumeMounts(ClusterStatefulSetVolumeConfig.volumeMounts(context,
+        .withVolumeMounts(ClusterStatefulSetVolumeConfig.allVolumeMounts(context,
             ClusterStatefulSetVolumeConfig.DATA,
             ClusterStatefulSetVolumeConfig.SOCKET,
             ClusterStatefulSetVolumeConfig.SHARED_MEMORY,
@@ -393,8 +393,8 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                 .build())
             .build())
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(context),
-            ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context),
-            ClusterStatefulSetVolumeConfig.USER.volumeMount(context))
+            ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context))
+        .addAllToVolumeMounts(ClusterStatefulSetVolumeConfig.USER.volumeMounts(context))
         .addToVolumeMounts(
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(
                 context,

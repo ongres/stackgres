@@ -108,8 +108,8 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
             .withName(NAME)
             .withMountPath("/etc/envoy")
             .withNewReadOnly(true)
-            .build(),
-            ClusterStatefulSetVolumeConfig.USER.volumeMount(context))
+            .build())
+        .addAllToVolumeMounts(ClusterStatefulSetVolumeConfig.USER.volumeMounts(context))
         .withPorts(
             new ContainerPortBuilder().withContainerPort(EnvoyUtil.PG_ENTRY_PORT).build(),
             new ContainerPortBuilder().withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT).build())

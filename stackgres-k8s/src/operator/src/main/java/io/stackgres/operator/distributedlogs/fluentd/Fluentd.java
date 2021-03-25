@@ -104,7 +104,6 @@ public class Fluentd implements ContainerResourceFactory<Void,
             .build())
         .withVolumeMounts(
             ClusterStatefulSetVolumeConfig.SOCKET.volumeMount(context),
-            ClusterStatefulSetVolumeConfig.USER.volumeMount(context),
             new VolumeMountBuilder()
               .withName(StackgresClusterContainers.FLUENTD)
               .withMountPath("/etc/fluentd")
@@ -115,6 +114,7 @@ public class Fluentd implements ContainerResourceFactory<Void,
               .withMountPath("/var/log/fluentd")
               .withReadOnly(Boolean.FALSE)
               .build())
+        .addAllToVolumeMounts(ClusterStatefulSetVolumeConfig.USER.volumeMounts(context))
         .build();
   }
 

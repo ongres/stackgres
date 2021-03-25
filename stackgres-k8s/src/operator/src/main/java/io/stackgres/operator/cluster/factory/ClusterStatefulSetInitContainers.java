@@ -36,22 +36,6 @@ public class ClusterStatefulSetInitContainers
         setupScriptsContainer(context));
   }
 
-  private Container createSetupDataPathsContainer(StackGresClusterContext context) {
-    return new ContainerBuilder()
-        .withName("setup-data-paths")
-        .withImage(StackGresContext.BUSYBOX_IMAGE)
-        .withImagePullPolicy("IfNotPresent")
-        .withCommand("/bin/sh", "-ex",
-            ClusterStatefulSetPath.TEMPLATES_PATH.path()
-            + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH.filename())
-        .withEnv(clusterStatefulSetEnvironmentVariables.listResources(context))
-        .withVolumeMounts(
-            ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context),
-            ClusterStatefulSetVolumeConfig.USER.volumeMount(context),
-            ClusterStatefulSetVolumeConfig.DATA.volumeMount(context))
-        .build();
-  }
-
   private Container setupArbitraryUser(StackGresClusterContext context) {
     return new ContainerBuilder()
         .withName("setup-arbitrary-user")
@@ -71,6 +55,22 @@ public class ClusterStatefulSetInitContainers
         .build();
   }
 
+  private Container createSetupDataPathsContainer(StackGresClusterContext context) {
+    return new ContainerBuilder()
+        .withName("setup-data-paths")
+        .withImage(StackGresContext.BUSYBOX_IMAGE)
+        .withImagePullPolicy("IfNotPresent")
+        .withCommand("/bin/sh", "-ex",
+            ClusterStatefulSetPath.TEMPLATES_PATH.path()
+            + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH.filename())
+        .withEnv(clusterStatefulSetEnvironmentVariables.listResources(context))
+        .withVolumeMounts(
+            ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context),
+            ClusterStatefulSetVolumeConfig.DATA.volumeMount(context))
+        .addAllToVolumeMounts(ClusterStatefulSetVolumeConfig.USER.volumeMounts(context))
+        .build();
+  }
+
   private Container setupScriptsContainer(StackGresClusterContext context) {
     return new ContainerBuilder()
         .withName("setup-scripts")
@@ -82,8 +82,8 @@ public class ClusterStatefulSetInitContainers
         .withEnv(clusterStatefulSetEnvironmentVariables.listResources(context))
         .withVolumeMounts(
             ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context),
-            ClusterStatefulSetVolumeConfig.USER.volumeMount(context),
             ClusterStatefulSetVolumeConfig.LOCAL_BIN.volumeMount(context))
+        .addAllToVolumeMounts(ClusterStatefulSetVolumeConfig.USER.volumeMounts(context))
         .build();
   }
 

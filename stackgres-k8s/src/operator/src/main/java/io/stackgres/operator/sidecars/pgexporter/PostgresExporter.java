@@ -134,13 +134,13 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
             .build())
         .withVolumeMounts(
             ClusterStatefulSetVolumeConfig.SOCKET.volumeMount(context),
-            ClusterStatefulSetVolumeConfig.USER.volumeMount(context),
             new VolumeMountBuilder()
                 .withName("queries")
                 .withMountPath("/var/opt/postgres-exporter/queries.yaml")
                 .withSubPath("queries.yaml")
                 .withNewReadOnly(true)
-                .build());
+                .build())
+        .addAllToVolumeMounts(ClusterStatefulSetVolumeConfig.USER.volumeMounts(context));
 
     return container.build();
   }

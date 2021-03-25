@@ -128,13 +128,13 @@ public class PgPooling
         .withImage(StackGresComponent.PGBOUNCER.findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withVolumeMounts(
-            ClusterStatefulSetVolumeConfig.USER.volumeMount(context),
             ClusterStatefulSetVolumeConfig.SOCKET.volumeMount(context),
             new VolumeMountBuilder()
                 .withName(NAME)
                 .withMountPath("/etc/pgbouncer")
                 .withReadOnly(Boolean.TRUE)
-                .build());
+                .build())
+        .addAllToVolumeMounts(ClusterStatefulSetVolumeConfig.USER.volumeMounts(context));
 
     return container.build();
   }
