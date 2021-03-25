@@ -5003,3 +5003,16 @@ tr.details td:last-of-type .configurationDetails table {
 .configurationDetails table + span.title {
     margin-top: 20px;
 }
+
+/*Tables Overflow*/
+
+table.tolerations {
+    max-height: 240px;
+    overflow: auto;
+    display: block;
+}
+
+table.tolerations tbody {
+    display: inline-table;
+    width: 100%;
+}
