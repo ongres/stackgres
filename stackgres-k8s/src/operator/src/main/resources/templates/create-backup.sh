@@ -8,9 +8,9 @@ LOCK_RESOURCE_NAME="$CRONJOB_NAME"
 run() {
   set -e
 
-  acquire_lock > /tmp/try-lock
+  acquire_lock > /tmp/try-lock 2>&1
   echo "Lock acquired"
-  maintain_lock >> /tmp/try-lock &
+  maintain_lock >> /tmp/try-lock 2>&1 &
   TRY_LOCK_PID=$!
 
   reconcile_backups &
@@ -37,6 +37,8 @@ run() {
     return 1
   else
     kill_with_childs "$TRY_LOCK_PID"
+    release_lock >> /tmp/try-lock 2>&1
+    echo "Lock released"
     wait "$PID"
     EXIT_CODE="$?"
     if [ "$EXIT_CODE" != 0 ]
@@ -58,7 +60,7 @@ reconcile_backups() {
     BACKUP_NAME="${CLUSTER_NAME}-$(date +%Y-%m-%d-%H-%M-%S --utc)"
   fi
 
-  BACKUP_CONFIG_RESOURCE_VERSION="$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template '{{ .metadata.resourceVersion }}')"
+  BACKUP_CONFIG_RESOURCE_VERSION="$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template='{{ .metadata.resourceVersion }}')"
   BACKUP_ALREADY_COMPLETED=false
   create_or_update_backup_cr
   if [ "$BACKUP_ALREADY_COMPLETED" = "true" ]
@@ -68,7 +70,7 @@ reconcile_backups() {
   fi
 
   CURRENT_BACKUP_CONFIG="$(kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-    --template "{{ .status.sgBackupConfig.storage }}")"
+    --template="{{ .status.sgBackupConfig.storage }}")"
 
   set +e
   echo "Retrieving primary and replica"
@@ -110,7 +112,7 @@ reconcile_backups() {
   fi
   cat /tmp/backup-list | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\n' \
     | grep '"backup_name":"'"$CURRENT_BACKUP_NAME"'"' | tr -d '{}"' | tr ',' '\n' > /tmp/current-backup
-  if [ "$BACKUP_CONFIG_RESOURCE_VERSION" != "$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template '{{ .metadata.resourceVersion }}')" ]
+  if [ "$BACKUP_CONFIG_RESOURCE_VERSION" != "$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template='{{ .metadata.resourceVersion }}')" ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_FAILED"'"},
@@ -151,7 +153,7 @@ get_backup_crs() {
   BACKUP_CR_TEMPLATE="${BACKUP_CR_TEMPLATE}:{{ if .status.process.managedLifecycle }}true{{ else }}false{{ end }}"
   BACKUP_CR_TEMPLATE="${BACKUP_CR_TEMPLATE}{{ printf "'"\n"'" }}{{ end }}"
   kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" \
-    --template "$BACKUP_CR_TEMPLATE" > /tmp/all-backups
+    --template="$BACKUP_CR_TEMPLATE" > /tmp/all-backups
   grep "^$CLUSTER_NAME:" /tmp/all-backups > /tmp/backups || true
 }
 
@@ -228,7 +230,7 @@ status:
     status: "$BACKUP_PHASE_RUNNING"
     jobPod: "$POD_NAME"
   sgBackupConfig:
-$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template "$BACKUP_CONFIG_YAML")
+$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template="$BACKUP_CONFIG_YAML")
 BACKUP_STATUS_YAML_EOF
   )
 
@@ -249,7 +251,7 @@ spec:
 $BACKUP_STATUS_YAML
 EOF
   else
-    if ! kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --template "{{ .status.process.status }}" \
+    if ! kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --template="{{ .status.process.status }}" \
       | grep -q "^$BACKUP_PHASE_COMPLETED$"
     then
       echo "Updating backup CR"
@@ -291,7 +293,7 @@ get_primary_and_replica_pods() {
 }
 
 do_backup() {
-  cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c patroni \
+  cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
     -- sh -e $SHELL_XTRACE > /tmp/backup-push 2>&1
 exec-with-env "$BACKUP_ENV" \\
   -- wal-g backup-push "$PG_DATA_PATH" -f $([ "$BACKUP_IS_PERMANENT" = true ] && echo '-p' || true)
@@ -322,7 +324,7 @@ EOF
 }
 
 extract_controldata() {
-  cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c patroni \
+  cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
       -- sh -e $SHELL_XTRACE > /tmp/pg_controldata
 pg_controldata --pgdata="$PG_DATA_PATH"
 EOF
@@ -344,7 +346,7 @@ EOF
 }
 
 retain_backups() {
-  cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c patroni \
+  cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c "$PATRONI_CONTAINER_NAME" \
   -- sh -e $SHELL_XTRACE
 # for each existing backup sorted by backup name ascending (this also mean sorted by creation date ascending)
 exec-with-env "$BACKUP_ENV" \\
@@ -455,7 +457,7 @@ EOF
 }
 
 list_backups() {
-  cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c patroni \
+  cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c "$PATRONI_CONTAINER_NAME" \
     -- sh -e $SHELL_XTRACE > /tmp/backup-list
 WALG_LOG_LEVEL= exec-with-env "$BACKUP_ENV" \\
 -- wal-g backup-list --detail --json
@@ -511,7 +513,7 @@ set_backup_completed() {
 
 reconcile_backup_crs() {
   kubectl get pod -n "$CLUSTER_NAMESPACE" \
-    --template "{{ range .items }}{{ .metadata.name }}{{ printf "'"\n"'" }}{{ end }}" \
+    --template="{{ range .items }}{{ .metadata.name }}{{ printf "'"\n"'" }}{{ end }}" \
     > /tmp/pods
   for BACKUP in $(cat /tmp/backups)
   do
@@ -523,7 +525,7 @@ reconcile_backup_crs() {
     BACKUP_MANAGED_LIFECYCLE="$(echo "$BACKUP" | cut -d : -f 8)"
     BACKUP_IS_PERMANENT="$([ "$BACKUP_MANAGED_LIFECYCLE" = true ] && echo false || echo true)"
     BACKUP_CONFIG="$(kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CR_NAME" \
-      --template "{{ .status.sgBackupConfig.storage }}")"
+      --template="{{ .status.sgBackupConfig.storage }}")"
     # if backup CR has backup internal name, is marked as completed, uses the same current
     # backup config but is not found in the storage, delete it
     if [ -n "$BACKUP_NAME" ] && [ "$BACKUP_PHASE" = "$BACKUP_PHASE_COMPLETED" ] \

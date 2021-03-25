@@ -15,6 +15,7 @@ SCHEDULED_BACKUP_KEY=scheduled-backup
 RIGHT_VALUE=true
 BACKUP_CONFIG=test
 PATRONI_CLUSTER_LABELS=app=StackGresCluster,cluster-uid=test,cluster-namespace=test,cluster-name=test
+PATRONI_CONTAINER_NAME=patroni
 PATRONI_ROLE_KEY=role
 PATRONI_PRIMARY_ROLE=master
 PATRONI_REPLICA_ROLE=replica
@@ -39,12 +40,12 @@ kubectl_mock() {
     ;;
     ("annotate cronjob.batch "*)
     ;;
-    ("get $BACKUP_CONFIG_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_CONFIG --template {{ .metadata.resourceVersion }}")
+    ("get $BACKUP_CONFIG_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_CONFIG --template={{ .metadata.resourceVersion }}")
     echo test
     ;;
-    ("get $BACKUP_CRD_NAME -n $CLUSTER_NAMESPACE --template $BACKUP_CR_TEMPLATE")
+    ("get $BACKUP_CRD_NAME -n $CLUSTER_NAMESPACE --template=$BACKUP_CR_TEMPLATE")
     ;;
-    ("get $BACKUP_CONFIG_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_CONFIG --template $BACKUP_CONFIG_YAML")
+    ("get $BACKUP_CONFIG_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_CONFIG --template=$BACKUP_CONFIG_YAML")
     cat << EOF
     baseBackups:
       compression: "lz4"
@@ -70,7 +71,7 @@ EOF
     ;;
     ("create -f - -o yaml")
     ;;
-    ("get $BACKUP_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_NAME --template {{ .status.sgBackupConfig.storage }}")
+    ("get $BACKUP_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_NAME --template={{ .status.sgBackupConfig.storage }}")
     echo test
     ;;
     ("get pod -n $CLUSTER_NAMESPACE -l ${PATRONI_CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_PRIMARY_ROLE} -o name")
@@ -81,9 +82,9 @@ EOF
     ;;
     ("patch $BACKUP_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_NAME --type json --patch "*)
     ;;
-    ("get pod -n $CLUSTER_NAMESPACE --template "*)
+    ("get pod -n $CLUSTER_NAMESPACE --template="*)
     ;;
-    ("exec -i -n $CLUSTER_NAMESPACE pod/test-0 -c patroni -- sh -e"*)
+    ("exec -i -n $CLUSTER_NAMESPACE pod/test-0 -c $PATRONI_CONTAINER_NAME -- sh -e"*)
     STDIN="$(cat)"
     case "$STDIN" in
       (*" wal-g backup-push "*)
@@ -96,7 +97,7 @@ EOF
       ;;
     esac
     ;;
-    ("exec -i -n $CLUSTER_NAMESPACE pod/test-1 -c patroni -- sh -e"*)
+    ("exec -i -n $CLUSTER_NAMESPACE pod/test-1 -c $PATRONI_CONTAINER_NAME -- sh -e"*)
     STDIN="$(cat)"
     case "$STDIN" in
       (*" for each existing backup"*)
