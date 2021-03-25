@@ -5008,7 +5008,6 @@ tr.details td:last-of-type .configurationDetails table {
 }
 
 /*Tables Overflow*/
-
 table.tolerations {
     max-height: 240px;
     overflow: auto;
