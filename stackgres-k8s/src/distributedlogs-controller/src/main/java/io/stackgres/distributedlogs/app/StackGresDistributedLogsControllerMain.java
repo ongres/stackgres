@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
+import io.stackgres.common.resource.KubernetesClientStatusUpdateException;
 import io.stackgres.distributedlogs.controller.DistributedLogsControllerReconciliationCycle;
 import io.stackgres.operatorframework.reconciliation.ReconciliationCycle.ReconciliationCycleResult;
 import org.jooq.lambda.Seq;
@@ -59,8 +60,9 @@ public class StackGresDistributedLogsControllerMain {
       LOGGER.info("Running StackGres DistributedLogs Controller reconciliation cycle");
       ReconciliationCycleResult<?> result = reconciliationCycle.reconciliationCycle();
       if (!result.success()) {
-        throw Seq.seq(result.getException())
+        RuntimeException ex = Seq.seq(result.getException())
             .append(result.getContextExceptions().values().stream())
+            .filter(this::filterExceptions)
             .reduce(new RuntimeException("StackGres DistributedLogs Controller"
                 + " reconciliation cycle failed"),
                 (exception, suppressedException) -> {
@@ -68,8 +70,19 @@ public class StackGresDistributedLogsControllerMain {
                   return exception;
                 },
                 (u, v) -> v);
+        if (ex.getSuppressed().length > 0) {
+          throw ex;
+        }
       }
       return 0;
+    }
+
+    private boolean filterExceptions(Exception exception) {
+      if (exception instanceof KubernetesClientStatusUpdateException) {
+        LOGGER.warn("A non critical error occured.", exception);
+        return false;
+      }
+      return true;
     }
   }
 
