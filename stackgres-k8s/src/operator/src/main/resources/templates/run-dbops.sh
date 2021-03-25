@@ -47,7 +47,11 @@ run() {
     kill_with_childs "$PID"
     if ! kill -0 "$TIMEOUT_PID" 2>/dev/null
     then
-      [ "$EXCLUSIVE_OP" != true ] || kill_with_childs "$TRY_LOCK_PID"
+      if [ "$EXCLUSIVE_OP" = true ]
+      then
+        kill_with_childs "$TRY_LOCK_PID"
+        release_lock >> /tmp/try-lock 2>&1
+      fi
       echo "LOCK_LOST=false" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
       echo "TIMED_OUT=true" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
       echo "EXIT_CODE=1" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
@@ -58,7 +62,11 @@ run() {
       echo "TIMED_OUT=false" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
       echo "EXIT_CODE=1" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
     else
-      [ "$EXCLUSIVE_OP" != true ] || kill_with_childs "$TRY_LOCK_PID"
+      if [ "$EXCLUSIVE_OP" = true ]
+      then
+        kill_with_childs "$TRY_LOCK_PID"
+        release_lock >> /tmp/try-lock 2>&1
+      fi
       kill_with_childs "$TIMEOUT_PID"
       echo "LOCK_LOST=false" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
       echo "TIMED_OUT=false" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
@@ -66,7 +74,11 @@ run() {
     fi
   else
     kill_with_childs "$TIMEOUT_PID"
-    [ "$EXCLUSIVE_OP" != true ] || kill_with_childs "$TRY_LOCK_PID"
+    if [ "$EXCLUSIVE_OP" = true ]
+    then
+      kill_with_childs "$TRY_LOCK_PID"
+      release_lock >> /tmp/try-lock 2>&1
+    fi
     wait "$PID"
     EXIT_CODE="$?"
     echo "LOCK_LOST=false" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
