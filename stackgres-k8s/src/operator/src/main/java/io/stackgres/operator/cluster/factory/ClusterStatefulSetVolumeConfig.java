@@ -84,18 +84,18 @@ public enum ClusterStatefulSetVolumeConfig {
     return volumeConfig;
   }
 
+  public Collection<VolumeMount> volumeMounts(StackGresClusterContext context) {
+    return volumeConfig.volumeMounts(context)
+        .stream()
+        .collect(Collectors.toList());
+  }
+
   public VolumeMount volumeMount(StackGresClusterContext context) {
     return volumeConfig.volumeMounts(context)
         .stream()
         .findFirst()
         .orElseThrow(() -> new IllegalStateException(
             "Volume mount " + volumeConfig.name() + " is not available for this context"));
-  }
-
-  public Collection<VolumeMount> volumeMounts(StackGresClusterContext context) {
-    return volumeConfig.volumeMounts(context)
-        .stream()
-        .collect(Collectors.toList());
   }
 
   public VolumeMount volumeMount(StackGresClusterContext context,
