@@ -210,7 +210,8 @@ load_operator_k8s() {
       "$OPERATOR_IMAGE_NAME" \
       "$RESTAPI_IMAGE_NAME" \
       "$ADMINUI_IMAGE_NAME" \
-      "$JOBS_IMAGE_NAME"
+      "$JOBS_IMAGE_NAME" \
+      "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
     do
       echo "$IMAGE_NAME"
     done | xargs -n 1 -I % -P 0 \
@@ -221,7 +222,8 @@ load_operator_k8s() {
         "$OPERATOR_IMAGE_NAME" \
         "$RESTAPI_IMAGE_NAME" \
         "$ADMINUI_IMAGE_NAME" \
-        "$JOBS_IMAGE_NAME"
+        "$JOBS_IMAGE_NAME" \
+        "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
       do
         echo "$IMAGE_NAME"
       done | xargs -n 1 -I % -P 0 \
@@ -264,7 +266,8 @@ load_operator_k8s_only() {
     "$OPERATOR_IMAGE_NAME" \
     "$RESTAPI_IMAGE_NAME" \
     "$ADMINUI_IMAGE_NAME" \
-    "$JOBS_IMAGE_NAME"
+    "$JOBS_IMAGE_NAME" \
+    "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
   do
     echo "$IMAGE_NAME"
   done | xargs -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" load_image_k8s '%'
