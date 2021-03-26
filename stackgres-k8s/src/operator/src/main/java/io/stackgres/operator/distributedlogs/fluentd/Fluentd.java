@@ -85,10 +85,11 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-exc")
         .withArgs(""
+            + "cp /etc/initial-fluentd.conf /etc/fluentd/fluentd.conf\n"
             + "echo 'Wait for postgres to be up, running and initialized!'\n"
             + "until curl -s localhost:8008/read-only --fail > /dev/null; do sleep 1; done\n"
             + "exec /usr/local/bin/fluentd \\\n"
-            + "  -c \"/etc/fluentd/fluentd.conf\"\n")
+            + "  -c /etc/fluentd/fluentd.conf\n")
         .withPorts(
             new ContainerPortBuilder()
                 .withName(FluentdUtil.FORWARD_PORT_NAME)
@@ -113,6 +114,17 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
           new VolumeMountBuilder()
           .withName(FluentdUtil.NAME)
           .withMountPath("/etc/fluentd")
+          .withReadOnly(Boolean.FALSE)
+          .build(),
+          new VolumeMountBuilder()
+          .withName(FluentdUtil.LOG)
+          .withMountPath("/var/log/fluentd")
+          .withReadOnly(Boolean.FALSE)
+          .build(),
+          new VolumeMountBuilder()
+          .withName(FluentdUtil.CONFIG)
+          .withMountPath("/etc/initial-fluentd.conf")
+          .withSubPath("initial-fluentd.conf")
           .withReadOnly(Boolean.TRUE)
           .build(),
           ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
@@ -137,11 +149,15 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
             .build())
         .build(),
         new VolumeBuilder()
-        .withName(StackgresClusterContainers.FLUENTD)
+        .withName(FluentdUtil.NAME)
         .withEmptyDir(new EmptyDirVolumeSource())
         .build(),
         new VolumeBuilder()
         .withName(FluentdUtil.BUFFER)
+        .withEmptyDir(new EmptyDirVolumeSource())
+        .build(),
+        new VolumeBuilder()
+        .withName(FluentdUtil.LOG)
         .withEmptyDir(new EmptyDirVolumeSource())
         .build());
   }
@@ -246,7 +262,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
         + "    @type forward\n"
         + "    <buffer>\n"
         + "      @type file\n"
-        + "      path /var/log/fluentd/loop\n"
+        + "      path /var/log/fluentd/loop.buffer\n"
         + "    </buffer>\n"
         + "    <server>\n"
         + "      name localhost\n"

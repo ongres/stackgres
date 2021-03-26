@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackgresClusterContainers;
@@ -102,10 +103,18 @@ public class DistributedLogsController implements ContainerResourceFactory<Stack
             .withReadOnly(Boolean.TRUE)
             .build(),
             new VolumeMountBuilder()
-            .withName(StackgresClusterContainers.FLUENTD)
+            .withName(FluentdUtil.NAME)
             .withMountPath("/fluentd")
             .withReadOnly(Boolean.FALSE)
-            .build())
+            .build(),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_PASSWD_PATH, context.getClusterContext()),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_GROUP_PATH, context.getClusterContext()),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_SHADOW_PATH, context.getClusterContext()),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_GSHADOW_PATH, context.getClusterContext()))
         .build();
   }
 
