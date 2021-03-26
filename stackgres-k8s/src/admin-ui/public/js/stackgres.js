@@ -124,14 +124,6 @@ const router = new VueRouter({
       },
     },
     { 
-      path: '/admin/crd/create/backup/:namespace/cluster', 
-      component: CreateBackup,
-      name: 'CreateClusterBackup',
-      meta: {
-        conditionalRoute: false
-      },
-    },
-    { 
       path: '/admin/crd/edit/backup/:namespace/:uid', 
       component: CreateBackup,
       name: 'EditBackup',
@@ -198,7 +190,7 @@ const router = new VueRouter({
     { 
       path: '/admin/cluster/logs/:namespace/:name/:time/:index', 
       component: Logs,
-      name: 'ClusterSingleLogs',
+      name: 'SingleClusterLogs',
       meta: {
         conditionalRoute: false
       },
@@ -333,7 +325,7 @@ const router = new VueRouter({
     { 
       path: '/admin/cluster/monitor/:namespace/:name/:pod', 
       component: Grafana,
-      name: 'ClusterSingleMonitor',
+      name: 'SingleClusterMonitor',
       meta: {
         conditionalRoute: false
       },
