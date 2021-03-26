@@ -2987,7 +2987,6 @@ tr.details {
 }
 
 tr.details table {
-    border: 1px solid #f0f0f1;
     margin-left: 0;
 }
 
@@ -4998,4 +4997,29 @@ tr.details td:last-of-type .configurationDetails table {
 
 .darkmode .no-data {
     border-color: #333;
+}
+
+.configurationDetails table + span.title {
+    margin-top: 20px;
+}
+
+.form .header:last-child {
+    border: 0;
+}
+
+/*Tables Overflow*/
+table.tolerations {
+    max-height: 240px;
+    overflow: auto;
+    display: block;
+    border-top: 1px solid #f0f0f1;
+}
+
+table.tolerations tbody {
+    display: inline-table;
+    width: 100%;
+}
+
+table.tolerations tbody, table.tolerations tbody td {
+    border-top: 0 !important;
 }
