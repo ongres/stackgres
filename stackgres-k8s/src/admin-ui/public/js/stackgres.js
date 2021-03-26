@@ -674,6 +674,7 @@ router.beforeEach((to, from, next) => {
         break;
 
       case 'LogsServer':
+      case 'CreateLogsServer':
 
         /* Check if Distributed Logs Server exists */
         axios
