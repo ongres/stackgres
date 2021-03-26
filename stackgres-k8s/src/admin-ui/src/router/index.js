@@ -751,6 +751,7 @@ router.beforeResolve((to, from, next) => {
         break;
 
       case 'LogsServer':
+      case 'CreateLogsServer': 
 
         /* Check if requested Logs Server exists */
         axios
