@@ -158,6 +158,7 @@ const router = new VueRouter({
     { 
       path: '/admin/overview', 
       component: ClusterOverview,
+      name: 'BaseClusterOverview',
       meta: {
         conditionalRoute: false
       },
