@@ -55,6 +55,7 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 						<th>Total CPU</th>
 						<th>Total Memory</th>
 						<th>Primary Node Disk</th>
+						<th>Total Allocated Disk</th>
 						<th>Instances</th>
 					</thead>
 					<tbody>
@@ -72,17 +73,25 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 								{{ cluster.status.memoryRequested }}
 							</td>
 							<td class="flex-center">
-								<div class="donut">
-									<svg class="loader" xmlns="http://www.w3.org/2000/svg" version="1.1">
-										<circle cx="12.5" cy="12.5" r="10" stroke-width="5" fill="none" :stroke-dasharray="diskUsed+',63'" />
-									</svg>
-									<svg class="background" xmlns="http://www.w3.org/2000/svg" version="1.1">
-										<circle cx="12.5" cy="12.5" r="10" stroke-width="5" fill="none" />
-									</svg>
-								</div>
-								<template v-if="cluster.status.hasOwnProperty('diskUsed')">{{ cluster.status.diskUsed }}</template><template v-else>-</template> / {{ cluster.data.spec.pods.persistentVolume.size }} <span v-if="cluster.status.hasOwnProperty('diskPsiAvg60')">(psi avg. {{ cluster.status.diskPsiAvg60 }})</span>
+								<template v-if="cluster.status.hasOwnProperty('pods') && (typeof (cluster.status.pods.find(p => (p.role == 'primary'))) !== 'undefined')">
+									<template v-for="pod in cluster.status.pods" v-if="pod.role == 'primary'">
+											<div class="donut">
+											<svg class="loader" xmlns="http://www.w3.org/2000/svg" version="1.1">
+												<circle cx="12.5" cy="12.5" r="10" stroke-width="5" fill="none" :stroke-dasharray="diskUsed+',63'" />
+											</svg>
+											<svg class="background" xmlns="http://www.w3.org/2000/svg" version="1.1">
+												<circle cx="12.5" cy="12.5" r="10" stroke-width="5" fill="none" />
+											</svg>
+										</div>
+										{{ pod.diskUsed }} / {{ pod.diskRequested }}
+									</template>
+								</template>
+								<template v-else>
+									-
+								</template>
 							</td>
-							<td>{{ cluster.data.podsReady }} / {{ cluster.data.pods.length }}</td>
+							<td>{{ cluster.status.hasOwnProperty('diskRequested') ? cluster.status.diskRequested : '-' }}</td>
+							<td>{{ cluster.data.podsReady }} / {{ cluster.data.spec.instances }}</td>
 						</tr>
 					</tbody>
 				</table>
@@ -211,8 +220,9 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 		},
 		diskUsed () {
 			
-			if( store.state.currentCluster.hasOwnProperty('status') && store.state.currentCluster.status.hasOwnProperty('diskUsed') ) {
-				let used = getBytes(store.state.currentCluster.status.diskUsed);
+			if( store.state.currentCluster.hasOwnProperty('status') && store.state.currentCluster.status.hasOwnProperty('pods')) {
+				let primary = store.state.currentCluster.status.pods.find(p => (p.role == 'primary'))
+				let used = getBytes(primary.diskUsed);
 				let available = getBytes(store.state.currentCluster.data.spec.pods.persistentVolume.size);
 				let percentage = Math.round((used*63)/available);
 
