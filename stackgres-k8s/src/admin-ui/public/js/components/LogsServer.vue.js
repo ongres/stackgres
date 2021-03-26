@@ -159,44 +159,6 @@ var LogsServer = Vue.component("LogsServer", {
                                         </template>
                                         <template v-if="hasProp(cluster, 'data.spec.scheduling.nodeSelector')">
                                             <span class="title">Tolerations</span>	
-                                            <table class="tolerations">
-                                                <tbody>
-                                                    <template v-for="(item, index) in cluster.data.spec.scheduling.tolerations">
-                                                        <tr v-for="(value, prop, i) in item">
-                                                            <td class="label" :rowspan="Object.keys(item).length" v-if="!i">
-                                                                Toleration #{{ index+1 }}
-                                                            </td>
-                                                            <td class="label">
-                                                                {{ prop }}
-                                                            </td>
-                                                            <td colspan="2">
-                                                                {{ value }}
-                                                            </td>
-                                                        </tr>
-                                                    </template>
-                                                </tbody>
-                                            </table>
-                                        </template>
-                                    </div>
-
-                                    <div class="configurationDetails">
-                                        <template v-if="hasProp(cluster, 'data.spec.scheduling.nodeSelector')">
-                                            <span class="title">Node Selector</span>	
-                                            <table>
-                                                <tbody>
-                                                    <tr v-for="(item, index) in unparseProps(cluster.data.spec.scheduling.nodeSelector)">
-                                                        <td class="label">
-                                                            {{ item.annotation }}
-                                                        </td>
-                                                        <td colspan="2">
-                                                            {{ item.value }}
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </template>
-                                        <template v-if="hasProp(cluster, 'data.spec.scheduling.nodeSelector')">
-                                            <span class="title">Tolerations</span>	
                                             <table>
                                                 <tbody>
                                                     <template v-for="(item, index) in cluster.data.spec.scheduling.tolerations">
