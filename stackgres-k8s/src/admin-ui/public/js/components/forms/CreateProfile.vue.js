@@ -96,6 +96,7 @@ var CreateProfile = Vue.component("CreateProfile", {
 
         return {
             editMode: (vm.$route.params.action === 'edit'),
+            editReady: false,
             profileName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
             profileNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
             profileCPU: '',
@@ -135,7 +136,7 @@ var CreateProfile = Vue.component("CreateProfile", {
             var vm = this;
             var config = {};
             
-            if(vm.$route.params.action === 'edit') {
+            if( (vm.$route.params.action === 'edit') && !vm.editReady) {
                 store.state.profiles.forEach(function( conf ){
                     if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
                         vm.profileCPU = conf.data.spec.cpu.match(/\d+/g)[0];
@@ -143,6 +144,7 @@ var CreateProfile = Vue.component("CreateProfile", {
                         vm.profileRAM = conf.data.spec.memory.match(/\d+/g)[0];
                         vm.profileRAMUnit = conf.data.spec.memory.match(/[a-zA-Z]+/g)[0];
                         config = conf;
+                        vm.editReady = true;
                         return false;
                     }
                 });
