@@ -20,7 +20,7 @@ kubectl_mock_overwrite() {
       '
     echo wrong-test > "$TEST_TARGET_PATH/lock_pod"
     ;;
-    ("get $BACKUP_CRD_NAME -n $CLUSTER_NAMESPACE --template $BACKUP_CR_TEMPLATE")
+    ("get $BACKUP_CRD_NAME -n $CLUSTER_NAMESPACE --template=$BACKUP_CR_TEMPLATE")
     sleep 300
     ;;
     *)
