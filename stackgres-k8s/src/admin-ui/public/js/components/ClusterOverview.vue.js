@@ -1,6 +1,6 @@
 var ClusterOverview = Vue.component("ClusterOverview", {
 	template: `
-		<div id="cluster-overview" v-if="loggedIn && isReady">
+		<div id="cluster-overview" v-if="loggedIn && isReady  && !notFound">
 		<template v-for="namespace in namespaces" v-if="(namespace == $route.params.namespace)">
 			<header>
 				<ul class="breadcrumbs">

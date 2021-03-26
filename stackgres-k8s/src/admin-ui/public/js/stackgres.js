@@ -673,6 +673,48 @@ router.beforeEach((to, from, next) => {
         
         break;
 
+      case 'LogsServer':
+      case 'CreateLogsServer':
+
+        /* Check if Distributed Logs Server exists */
+        axios
+        .get(apiURL+'sgdistributedlogs',
+          { headers: {
+              //'content-type': 'application/json'
+            }
+          }
+        )
+        .then( function(response){
+
+          var found = false
+          var logs = []
+
+          response.data.forEach( function(item, index) {
+            
+            logs.push({
+              name: item.metadata.name,
+              data: item
+            }) 
+
+            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
+              found = true;
+
+            store.commit('addLogsClusters', logs);
+
+          });
+
+          if( to.params.hasOwnProperty('name') && !found)
+            notFound()
+          else
+            next()
+
+        }).catch(function(error) {
+          checkAuthError(error)
+          notFound()
+        });
+
+        break;
+
     }
 
   }

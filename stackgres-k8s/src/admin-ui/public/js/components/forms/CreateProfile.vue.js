@@ -1,6 +1,6 @@
 var CreateProfile = Vue.component("CreateProfile", {
     template: `
-        <form id="create-profile" v-if="loggedIn && isReady">
+        <form id="create-profile" v-if="loggedIn && isReady  && !notFound">
             <!-- Vue reactivity hack -->
             <template v-if="Object.keys(config).length > 0"></template>
 

@@ -1,6 +1,6 @@
 var CreateCluster = Vue.component("CreateCluster", {
     template: `
-        <form id="create-cluster" class="noSubmit" v-if="loggedIn && isReady">
+        <form id="create-cluster" class="noSubmit" v-if="loggedIn && isReady && !notFound">
             <!-- Vue reactivity hack -->
             <template v-if="Object.keys(cluster).length > 0"></template>
             <header>
