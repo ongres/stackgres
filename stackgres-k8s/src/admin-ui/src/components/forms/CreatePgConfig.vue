@@ -16,7 +16,7 @@
                     <router-link :to="'/configurations/postgres/'+$route.params.namespace+'/'+$route.params.name" title="Configuration Details">{{ $route.params.name }}</router-link>
                 </li>
                 <li class="action">
-                    {{ $route.params.action }}
+                    {{ $route.name == 'EditPgConfig' ? 'Edit' : 'Create' }}
                 </li>
             </ul>
 
@@ -94,7 +94,7 @@
             const vm = this;
 
             return {
-                editMode: (vm.$route.params.action === 'edit'),
+                editMode: (vm.$route.name === 'EditPgConfig'),
                 pgConfigName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
                 pgConfigNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 pgConfigParams: '',
@@ -127,7 +127,7 @@
                 var vm = this;
                 var config = {};
 
-                if(vm.$route.params.action === 'edit') {
+                if(vm.$route.name === 'EditPgConfig') {
                     store.state.pgConfig.forEach(function( conf ){
                         if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
                             vm.pgConfigVersion = conf.data.spec.postgresVersion;

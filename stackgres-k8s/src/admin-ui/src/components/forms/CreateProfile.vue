@@ -17,7 +17,7 @@
                     <router-link :to="'/profiles/'+$route.params.namespace+'/'+$route.params.name" title="SGInstanceProfile Details">{{ $route.params.name }}</router-link
                 </li>
                 <li class="action">
-                    {{ $route.params.action }}
+                    {{ $route.name == 'EditProfile' ? 'Edit' : 'Create' }}
                 </li>
             </ul>
 
@@ -107,7 +107,7 @@
             const vm = this;
 
             return {
-                editMode: (vm.$route.params.action === 'edit'),
+                editMode: (vm.$route.name === 'EditProfile'),
                 profileName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
                 profileNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 profileCPU: '',
@@ -143,7 +143,7 @@
                 var vm = this;
                 var config = {};
                 
-                if(vm.$route.params.action === 'edit') {
+                if(vm.$route.name === 'EditProfile') {
                     store.state.profiles.forEach(function( conf ){
                         if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
                             vm.profileCPU = conf.data.spec.cpu.match(/\d+/g);
