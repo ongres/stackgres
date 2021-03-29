@@ -85,7 +85,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-exc")
         .withArgs(""
-            + "cp /etc/initial-fluentd.conf /etc/fluentd/fluentd.conf\n"
+            + "cp /etc/fluentd-initial/initial-fluentd.conf /etc/fluentd/fluentd.conf\n"
             + "echo 'Wait for postgres to be up, running and initialized!'\n"
             + "until curl -s localhost:8008/read-only --fail > /dev/null; do sleep 1; done\n"
             + "exec /usr/local/bin/fluentd \\\n"
@@ -123,8 +123,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
           .build(),
           new VolumeMountBuilder()
           .withName(FluentdUtil.CONFIG)
-          .withMountPath("/etc/initial-fluentd.conf")
-          .withSubPath("initial-fluentd.conf")
+          .withMountPath("/etc/fluentd-initial")
           .withReadOnly(Boolean.TRUE)
           .build(),
           ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
