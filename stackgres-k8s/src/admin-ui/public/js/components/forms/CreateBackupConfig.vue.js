@@ -18,7 +18,7 @@ var CreateBackupConfig = Vue.component("CreateBackupConfig", {
                         <router-link :to="'/admin/configurations/backup/'+currentNamespace+'/'+$route.params.name" title="Configuration Details">{{ $route.params.name }}</router-link>
                     </li>
                     <li class="action">
-                        {{ $route.params.action }}
+                        {{ $route.name == 'EditBackupConfig' ? 'Edit' : 'Create' }}
                     </li>
                 </ul>
 
@@ -373,7 +373,7 @@ var CreateBackupConfig = Vue.component("CreateBackupConfig", {
         const vm = this;
 
         return {
-            editMode: (vm.$route.params.action === 'edit'),
+            editMode: (vm.$route.name === 'EditBackupConfig'),
             editReady: false,
             advancedMode: false,
             advancedModeStorage: false,
@@ -449,7 +449,7 @@ var CreateBackupConfig = Vue.component("CreateBackupConfig", {
             var vm = this;
             var conf = {};
             
-            if( (vm.$route.params.action === 'edit') && !vm.editReady) {
+            if( (vm.$route.name === 'EditBackupConfig') && !vm.editReady) {
                 store.state.backupConfig.forEach(function( config ){
                     if( (config.data.metadata.name === vm.$route.params.name) && (config.data.metadata.namespace === vm.$route.params.namespace) ) {
                         

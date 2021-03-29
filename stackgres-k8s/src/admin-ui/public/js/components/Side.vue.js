@@ -18,7 +18,7 @@ var Side = Vue.component("sg-side", {
 				</template>
 			</ul>
 			<div id="sets" v-if="!notFound">
-				<div v-if="iCan('','sgclusters')" class="set clu" :class="$route.params.hasOwnProperty('cluster') || currentComponent == 'CreateCluster' || currentComponent == 'ClusterOverview' ? 'active' : ''" >
+				<div v-if="iCan('','sgclusters')" class="set clu" :class="$route.name.includes('Cluster') || currentComponent == 'CreateCluster' || currentComponent == 'ClusterOverview' ? 'active' : ''" >
 					<router-link :to="'/admin/overview/'+currentNamespace" title="Overview" class="view nav-item">
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 0C4.9 0 .9 2.218.9 5.05v11.49C.9 19.272 6.621 20 10 20s9.1-.728 9.1-3.46V5.05C19.1 2.218 15.1 0 10 0zm7.1 11.907c0 1.444-2.917 3.052-7.1 3.052s-7.1-1.608-7.1-3.052v-.375a12.883 12.883 0 007.1 1.823 12.891 12.891 0 007.1-1.824zm0-3.6c0 1.443-2.917 3.052-7.1 3.052s-7.1-1.61-7.1-3.053v-.068A12.806 12.806 0 0010 10.1a12.794 12.794 0 007.1-1.862zM10 8.1c-4.185 0-7.1-1.607-7.1-3.05S5.815 2 10 2s7.1 1.608 7.1 3.051S14.185 8.1 10 8.1zm-7.1 8.44v-1.407a12.89 12.89 0 007.1 1.823 12.874 12.874 0 007.106-1.827l.006 1.345C16.956 16.894 14.531 18 10 18c-4.822 0-6.99-1.191-7.1-1.46z"/></svg>
 						<h3>Stackgres Clusters</h3>
@@ -30,7 +30,7 @@ var Side = Vue.component("sg-side", {
 					<ul v-if="iCan('list', 'sgclusters', currentNamespace)">
 						<template v-for="cluster in clusters">
 							<li v-if="cluster.data.metadata.namespace == currentNamespace" :class="'sgcluster-'+cluster.data.metadata.namespace+'-'+cluster.name">
-								<router-link :to="'/admin/cluster/status/'+cluster.data.metadata.namespace+'/'+cluster.name" class="item cluster" :title="cluster.name" :class="( ($route.params.hasOwnProperty('cluster') || currentComponent == 'CreateCluster') && $route.params.name == cluster.name) ? 'router-link-exact-active' : ''">{{ cluster.name }}</router-link>
+								<router-link :to="'/admin/cluster/status/'+cluster.data.metadata.namespace+'/'+cluster.name" class="item cluster" :title="cluster.name" :class="( ($route.name.includes('Cluster') || currentComponent == 'CreateCluster') && $route.params.name == cluster.name) ? 'router-link-exact-active' : ''">{{ cluster.name }}</router-link>
 							</li>
 						</template>
 					</ul>
@@ -132,7 +132,7 @@ var Side = Vue.component("sg-side", {
 						</template>
 					</ul>
 				</div>
-				<div v-if="iCan('','sgbackups')" class="set backups" :class="( (currentComponent == 'Backups' || currentComponent == 'CreateBackups') && !$route.params.hasOwnProperty('cluster') ) ? 'active' : ''">
+				<div v-if="iCan('','sgbackups')" class="set backups" :class="( (currentComponent == 'Backups' || currentComponent == 'CreateBackups') && !$route.name.includes('Cluster') ) ? 'active' : ''">
 					<router-link :to="'/admin/backups/'+currentNamespace" title="Backups" class="nav-item">
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path class="a" d="M10.55.55A9.454 9.454 0 001.125 9.5H.479a.458.458 0 00-.214.053.51.51 0 00-.214.671l1.621 3.382a.49.49 0 00.213.223.471.471 0 00.644-.223l1.62-3.382A.51.51 0 004.2 10a.49.49 0 00-.479-.5H3.1a7.47 7.47 0 117.449 7.974 7.392 7.392 0 01-3.332-.781.988.988 0 00-.883 1.767 9.356 9.356 0 004.215.99 9.45 9.45 0 000-18.9z"/><path class="a" d="M13.554 10a3 3 0 10-3 3 3 3 0 003-3z"/></svg>
 						<h3>Cluster Backups</h3>

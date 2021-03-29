@@ -18,7 +18,7 @@ var CreateLogsServer = Vue.component("CreateLogsServer", {
 						<router-link :to="'/admin/logs/'+$route.params.namespace+'/'+$route.params.name" title="Logs Server Details">{{ $route.params.name }}</router-link>
 					</li>
                     <li class="action">
-                        {{ $route.params.action }}
+                        {{ $route.name == 'EditLogsServer' ? 'Edit' : 'Create' }}
                     </li>
                 </ul>
 
@@ -281,7 +281,7 @@ var CreateLogsServer = Vue.component("CreateLogsServer", {
         const vm = this;
 
         return {
-            editMode: (vm.$route.params.action === 'edit'),
+            editMode: (vm.$route.name === 'EditLogsServer'),
             editReady: false,
             help: 'Click on a question mark to get help and tips about that field.',
             nullVal: null,
@@ -337,7 +337,7 @@ var CreateLogsServer = Vue.component("CreateLogsServer", {
             var vm = this;
             var cluster = {};
             
-            if( (vm.$route.params.action === 'edit') && !vm.editReady) {
+            if( (vm.$route.name === 'EditLogsServer') && !vm.editReady) {
                 vm.advancedMode = true;
                 store.state.logsClusters.forEach(function( c ){
                     if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
@@ -461,7 +461,7 @@ var CreateLogsServer = Vue.component("CreateLogsServer", {
         },
 
         cancel: function() {
-            if(this.$route.params.action == 'create')
+            if(this.$route.name == 'CreateLogsServer')
                 router.push('/admin/logs/'+this.$route.params.namespace);
             else
                 router.push('/admin/logs/'+this.$route.params.namespace+'/'+this.$route.params.name);
