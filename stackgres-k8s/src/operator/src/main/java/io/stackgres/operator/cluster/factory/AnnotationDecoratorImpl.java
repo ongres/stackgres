@@ -110,7 +110,6 @@ public class AnnotationDecoratorImpl implements AnnotationDecorator {
                 template.setMetadata(metadata);
               });
 
-          decorate(cluster, statefulSet.getSpec().getVolumeClaimTemplates());
           resourceAnnotations.putAll(allResourcesAnnotations);
           break;
         case "CronJob":
