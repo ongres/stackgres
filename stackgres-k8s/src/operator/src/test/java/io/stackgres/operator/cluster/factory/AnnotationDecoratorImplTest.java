@@ -6,7 +6,10 @@
 package io.stackgres.operator.cluster.factory;
 
 import static io.stackgres.testutil.StringUtils.getRandomString;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.List;
@@ -15,8 +18,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import groovy.lang.Tuple2;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -35,7 +38,9 @@ import io.fabric8.kubernetes.api.model.batch.JobTemplateSpec;
 import io.fabric8.kubernetes.api.model.batch.JobTemplateSpecBuilder;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.testutil.JsonUtil;
+import org.jooq.lambda.tuple.Tuple2;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -64,7 +69,7 @@ class AnnotationDecoratorImplTest {
             .endMetadata()
             .build(),
         new StatefulSetBuilder()
-            .withNewMetadata().withNewName("testStatefulSet").endMetadata()
+            .withNewMetadata().withNamespace("test").withNewName("testStatefulSet").endMetadata()
             .withNewSpec()
             .withTemplate(
                 new PodTemplateSpecBuilder()
@@ -135,10 +140,13 @@ class AnnotationDecoratorImplTest {
     String randomAnnotationKey = getRandomString();
     String randomAnnotationValue = getRandomString();
 
+    defaultCluster.getSpec().setPod(null);
+    defaultCluster.getSpec().setPostgresServices(null);
+    defaultCluster.getSpec().getMetadata().setAnnotations(new StackGresClusterSpecAnnotations());
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(ImmutableMap.of(randomAnnotationKey, randomAnnotationValue));
 
-    annotationDecorator.decorate(defaultCluster, resources);
+    annotationDecorator.decorate(defaultCluster, ImmutableList.of(), resources);
 
     resources.forEach(resource -> checkResourceAnnotations(resource,
         new Tuple2<>(randomAnnotationKey, randomAnnotationValue)));
@@ -150,6 +158,9 @@ class AnnotationDecoratorImplTest {
     String allResourceAnnotationKey = getRandomString();
     String allResourceAnnotationValue = getRandomString();
 
+    defaultCluster.getSpec().setPod(null);
+    defaultCluster.getSpec().setPostgresServices(null);
+    defaultCluster.getSpec().getMetadata().setAnnotations(new StackGresClusterSpecAnnotations());
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(ImmutableMap.of(allResourceAnnotationKey, allResourceAnnotationValue));
 
@@ -159,7 +170,7 @@ class AnnotationDecoratorImplTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setServices(ImmutableMap.of(serviceAnnotationKey, serviceAnnotationValue));
 
-    annotationDecorator.decorate(defaultCluster, resources);
+    annotationDecorator.decorate(defaultCluster, ImmutableList.of(), resources);
 
     resources.stream()
         .filter(r -> r.getKind().equals("Service"))
@@ -174,6 +185,9 @@ class AnnotationDecoratorImplTest {
     String allResourceAnnotationKey = getRandomString();
     String allResourceAnnotationValue = getRandomString();
 
+    defaultCluster.getSpec().setPod(null);
+    defaultCluster.getSpec().setPostgresServices(null);
+    defaultCluster.getSpec().getMetadata().setAnnotations(new StackGresClusterSpecAnnotations());
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(ImmutableMap.of(allResourceAnnotationKey, allResourceAnnotationValue));
 
@@ -183,7 +197,7 @@ class AnnotationDecoratorImplTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setPods(ImmutableMap.of(podAnnotationKey, podAnnotationValue));
 
-    annotationDecorator.decorate(defaultCluster, resources);
+    annotationDecorator.decorate(defaultCluster, ImmutableList.of(), resources);
 
     resources.stream()
         .filter(r -> r.getKind().equals("Service"))
@@ -204,10 +218,13 @@ class AnnotationDecoratorImplTest {
     String serviceAnnotationKey = getRandomString();
     String serviceAnnotationValue = getRandomString();
 
+    defaultCluster.getSpec().setPod(null);
+    defaultCluster.getSpec().getPostgresServices().setReplicas(null);
+    defaultCluster.getSpec().getMetadata().setAnnotations(new StackGresClusterSpecAnnotations());
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setServices(ImmutableMap.of(serviceAnnotationKey, serviceAnnotationValue));
 
-    annotationDecorator.decorate(defaultCluster, resources);
+    annotationDecorator.decorate(defaultCluster, ImmutableList.of(), resources);
 
     resources.stream()
         .filter(r -> r.getKind().equals("Service"))
@@ -230,10 +247,13 @@ class AnnotationDecoratorImplTest {
     String serviceAnnotationKey = getRandomString();
     String serviceAnnotationValue = getRandomString();
 
+    defaultCluster.getSpec().setPod(null);
+    defaultCluster.getSpec().getPostgresServices().setPrimary(null);
+    defaultCluster.getSpec().getMetadata().setAnnotations(new StackGresClusterSpecAnnotations());
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setServices(ImmutableMap.of(serviceAnnotationKey, serviceAnnotationValue));
 
-    annotationDecorator.decorate(defaultCluster, resources);
+    annotationDecorator.decorate(defaultCluster, ImmutableList.of(), resources);
 
     resources.stream()
         .filter(r -> r.getKind().equals("Service"))
@@ -250,6 +270,9 @@ class AnnotationDecoratorImplTest {
     String allResourceAnnotationKey = getRandomString();
     String allResourceAnnotationValue = getRandomString();
 
+    defaultCluster.getSpec().setPod(null);
+    defaultCluster.getSpec().setPostgresServices(null);
+    defaultCluster.getSpec().getMetadata().setAnnotations(new StackGresClusterSpecAnnotations());
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(ImmutableMap.of(allResourceAnnotationKey, allResourceAnnotationValue));
 
@@ -259,7 +282,7 @@ class AnnotationDecoratorImplTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setPods(ImmutableMap.of(podAnnotationKey, podAnnotationValue));
 
-    annotationDecorator.decorate(defaultCluster, resources);
+    annotationDecorator.decorate(defaultCluster, ImmutableList.of(), resources);
 
     resources.stream()
         .filter(r -> r.getKind().equals("Pod"))
@@ -274,6 +297,9 @@ class AnnotationDecoratorImplTest {
     String allResourceAnnotationKey = getRandomString();
     String allResourceAnnotationValue = getRandomString();
 
+    defaultCluster.getSpec().setPod(null);
+    defaultCluster.getSpec().setPostgresServices(null);
+    defaultCluster.getSpec().getMetadata().setAnnotations(new StackGresClusterSpecAnnotations());
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(ImmutableMap.of(allResourceAnnotationKey, allResourceAnnotationValue));
 
@@ -283,7 +309,7 @@ class AnnotationDecoratorImplTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setServices(ImmutableMap.of(serviceAnnotationKey, serviceAnnotationValue));
 
-    annotationDecorator.decorate(defaultCluster, resources);
+    annotationDecorator.decorate(defaultCluster, ImmutableList.of(), resources);
 
     resources.stream()
         .filter(r -> r.getKind().equals("Pod"))
@@ -297,6 +323,9 @@ class AnnotationDecoratorImplTest {
     String allResourceAnnotationKey = getRandomString();
     String allResourceAnnotationValue = getRandomString();
 
+    defaultCluster.getSpec().setPod(null);
+    defaultCluster.getSpec().setPostgresServices(null);
+    defaultCluster.getSpec().getMetadata().setAnnotations(new StackGresClusterSpecAnnotations());
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(ImmutableMap.of(allResourceAnnotationKey, allResourceAnnotationValue));
 
@@ -306,7 +335,7 @@ class AnnotationDecoratorImplTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setPods(ImmutableMap.of(podAnnotationKey, podAnnotationValue));
 
-    annotationDecorator.decorate(defaultCluster, resources);
+    annotationDecorator.decorate(defaultCluster, ImmutableList.of(), resources);
 
     resources.stream()
         .filter(r -> r.getKind().equals("StatefulSet"))
@@ -325,10 +354,13 @@ class AnnotationDecoratorImplTest {
     String allResourceAnnotationKey = getRandomString();
     String allResourceAnnotationValue = getRandomString();
 
+    defaultCluster.getSpec().setPod(null);
+    defaultCluster.getSpec().setPostgresServices(null);
+    defaultCluster.getSpec().getMetadata().setAnnotations(new StackGresClusterSpecAnnotations());
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(ImmutableMap.of(allResourceAnnotationKey, allResourceAnnotationValue));
 
-    annotationDecorator.decorate(defaultCluster, resources);
+    annotationDecorator.decorate(defaultCluster, ImmutableList.of(), resources);
 
     resources.stream()
         .filter(r -> r.getKind().equals("StatefulSet"))
@@ -342,14 +374,43 @@ class AnnotationDecoratorImplTest {
   }
 
   @Test
+  void allResourcesAnnotations_shouldNotBePresentInStatefulSetPersistenVolumeClaimsIfStatefulSetAlreadyExists() {
+    String allResourceAnnotationKey = getRandomString();
+    String allResourceAnnotationValue = getRandomString();
+
+    defaultCluster.getSpec().setPod(null);
+    defaultCluster.getSpec().setPostgresServices(null);
+    defaultCluster.getSpec().getMetadata().setAnnotations(new StackGresClusterSpecAnnotations());
+    defaultCluster.getSpec().getMetadata().getAnnotations()
+        .setAllResources(ImmutableMap.of(allResourceAnnotationKey, allResourceAnnotationValue));
+
+    annotationDecorator.decorate(defaultCluster, ImmutableList.of(
+        new StatefulSetBuilder()
+        .withNewMetadata().withNamespace("test").withNewName("testStatefulSet").endMetadata()
+        .build()), resources);
+
+    resources.stream()
+        .filter(r -> r.getKind().equals("StatefulSet"))
+        .forEach(resource -> {
+          StatefulSet statefulSet = (StatefulSet) resource;
+          statefulSet.getSpec().getVolumeClaimTemplates().forEach(template -> {
+            checkResourceAnnotations(template);
+          });
+        });
+  }
+
+  @Test
   void allResourcesAnnotations_shouldBePresentInCronJobsPodTemplate() {
     String allResourceAnnotationKey = getRandomString();
     String allResourceAnnotationValue = getRandomString();
 
+    defaultCluster.getSpec().setPod(null);
+    defaultCluster.getSpec().setPostgresServices(null);
+    defaultCluster.getSpec().getMetadata().setAnnotations(new StackGresClusterSpecAnnotations());
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(ImmutableMap.of(allResourceAnnotationKey, allResourceAnnotationValue));
 
-    annotationDecorator.decorate(defaultCluster, resources);
+    annotationDecorator.decorate(defaultCluster, ImmutableList.of(), resources);
 
     resources.stream()
         .filter(r -> r.getKind().equals("CronJob"))
@@ -367,14 +428,18 @@ class AnnotationDecoratorImplTest {
   @SafeVarargs
   private final void checkResourceAnnotations(HasMetadata resource,
                                               Tuple2<String, String>... annotations) {
+    assertEquals(annotations.length, Optional.ofNullable(resource.getMetadata())
+        .map(ObjectMeta::getAnnotations)
+        .map(Map::size)
+        .orElse(0));
 
     Map<String, String> resourceAnnotation = Optional.ofNullable(resource.getMetadata())
         .map(ObjectMeta::getAnnotations)
-        .orElseGet(() -> fail("No annotations found for resource " + resource.getKind()));
+        .orElse(ImmutableMap.of());
 
     Arrays.asList(annotations).forEach(annotation -> {
-      assertTrue(resourceAnnotation.containsKey(annotation.getFirst()));
-      assertEquals(annotation.getSecond(), resourceAnnotation.get(annotation.getFirst()));
+      assertTrue(resourceAnnotation.containsKey(annotation.v1));
+      assertEquals(annotation.v2, resourceAnnotation.get(annotation.v1));
     });
 
   }
@@ -388,8 +453,8 @@ class AnnotationDecoratorImplTest {
         .orElseGet(() -> fail("No annotations found for resource " + resource.toString()));
 
     Arrays.asList(annotations).forEach(annotation -> {
-      assertTrue(resourceAnnotation.containsKey(annotation.getFirst()));
-      assertEquals(annotation.getSecond(), resourceAnnotation.get(annotation.getFirst()));
+      assertTrue(resourceAnnotation.containsKey(annotation.v1));
+      assertEquals(annotation.v2, resourceAnnotation.get(annotation.v1));
     });
 
   }
@@ -403,8 +468,8 @@ class AnnotationDecoratorImplTest {
         .orElseGet(() -> fail("No annotations found for resource " + resource.toString()));
 
     Arrays.asList(annotations).forEach(annotation -> {
-      assertTrue(resourceAnnotation.containsKey(annotation.getFirst()));
-      assertEquals(annotation.getSecond(), resourceAnnotation.get(annotation.getFirst()));
+      assertTrue(resourceAnnotation.containsKey(annotation.v1));
+      assertEquals(annotation.v2, resourceAnnotation.get(annotation.v1));
     });
 
   }

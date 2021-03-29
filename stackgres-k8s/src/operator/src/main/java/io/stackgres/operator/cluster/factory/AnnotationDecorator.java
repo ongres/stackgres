@@ -5,11 +5,14 @@
 
 package io.stackgres.operator.cluster.factory;
 
+import java.util.Collection;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 
 public interface AnnotationDecorator {
 
-  void decorate(StackGresCluster cluster, Iterable<? extends HasMetadata> resources);
+  void decorate(StackGresCluster cluster, Collection<? extends HasMetadata> existingResources,
+      Iterable<? extends HasMetadata> resources);
 
 }
