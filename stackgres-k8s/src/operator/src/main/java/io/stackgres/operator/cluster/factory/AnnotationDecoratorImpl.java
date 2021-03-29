@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.cluster.factory;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -34,7 +35,9 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 public class AnnotationDecoratorImpl implements AnnotationDecorator {
 
   @Override
-  public void decorate(StackGresCluster cluster, Iterable<? extends HasMetadata> resources) {
+  public void decorate(StackGresCluster cluster,
+      Collection<? extends HasMetadata> existingResources,
+      Iterable<? extends HasMetadata> resources) {
     Map<String, String> allResourcesAnnotations = Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getMetadata)
         .map(StackGresClusterSpecMetadata::getAnnotations)
@@ -110,6 +113,14 @@ public class AnnotationDecoratorImpl implements AnnotationDecorator {
                 template.setMetadata(metadata);
               });
 
+          if (existingResources.stream()
+              .noneMatch(existingResource -> (existingResource instanceof StatefulSet) // NOPMD
+                  && resource.getMetadata().getNamespace().equals(
+                      existingResource.getMetadata().getNamespace())
+                  && resource.getMetadata().getName().equals(
+                      existingResource.getMetadata().getName()))) {
+            decorate(cluster, existingResources, statefulSet.getSpec().getVolumeClaimTemplates());
+          }
           resourceAnnotations.putAll(allResourcesAnnotations);
           break;
         case "CronJob":
