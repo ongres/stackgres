@@ -184,7 +184,7 @@ const routes = [
     },
   },
   { 
-    path: '/:cluster/configuration/:namespace/:name', 
+    path: '/cluster/configuration/:namespace/:name', 
     component: ClusterInfo,
     name: 'ClusterInfo',
     meta: {
@@ -192,7 +192,7 @@ const routes = [
     },
   },
   { 
-    path: '/:cluster/status/:namespace/:name', 
+    path: '/cluster/status/:namespace/:name', 
     component: ClusterStatus,
     name: 'ClusterStatus',
     meta: {
@@ -200,7 +200,7 @@ const routes = [
     },
   },
   { 
-    path: '/:cluster/logs/:namespace/:name', 
+    path: '/cluster/logs/:namespace/:name', 
     component: Logs,
     name: 'ClusterLogs',
     meta: {
@@ -208,7 +208,7 @@ const routes = [
     },
   },
   { 
-    path: '/:cluster/logs/:namespace/:name/:time/:index', 
+    path: '/cluster/logs/:namespace/:name/:time/:index', 
     component: Logs,
     name: 'SingleClusterLogs',
     meta: {
@@ -232,7 +232,7 @@ const routes = [
     },
   },
   { 
-    path: '/:cluster/backups/:namespace/:name', 
+    path: '/cluster/backups/:namespace/:name', 
     component: Backups,
     name: 'ClusterBackups',
     meta: {
@@ -240,7 +240,7 @@ const routes = [
     },
   },
   { 
-    path: '/:cluster/backups/:namespace/:name/:uid', 
+    path: '/cluster/backups/:namespace/:name/:uid', 
     component: Backups,
     name: 'SingleClusterBackups',
     meta: {
@@ -328,7 +328,7 @@ const routes = [
     },
   },
   { 
-    path: '/:cluster/monitor/:namespace/:name', 
+    path: '/cluster/monitor/:namespace/:name', 
     component: Grafana,
     name: 'ClusterMonitor',
     meta: {
@@ -336,9 +336,9 @@ const routes = [
     },
   },
   { 
-    path: '/:cluster/monitor/:namespace/:name/:pod', 
+    path: '/cluster/monitor/:namespace/:name/:pod', 
     component: Grafana,
-    name: 'ClusterSingleMonitor',
+    name: 'SingleClusterMonitor',
     meta: {
       conditionalRoute: false
     },
@@ -640,7 +640,7 @@ router.beforeResolve((to, from, next) => {
       case 'Backups':
       case 'CreateBackup':
         /* If filtered by Cluster, first check if Cluster exists */
-        if(to.params.hasOwnProperty('cluster')) {
+        if(to.name.includes('Cluster')) {
 
           axios
           .get('/stackgres/sgcluster')
@@ -812,7 +812,7 @@ router.beforeResolve((to, from, next) => {
   }
 
   // If entering a Cluster, setup as current
-  if ( to.params.cluster === "cluster" ) {
+  if (to.path.startsWith('/cluster/') || to.path.startsWith('/crd/edit/cluster/')) {
 
     let cluster = store.state.clusters.find(c => ( (to.params.name == c.name) && (to.params.namespace == c.data.metadata.namespace) ) );
     
