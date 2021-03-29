@@ -155,7 +155,8 @@ check_cluster_3() {
 }
 
 check_cluster_1_restart() {
-  check_cluster_restart "$CLUSTER_NAME-1" 1 true false
+  check_cluster_restart "$CLUSTER_NAME-1" 1 true false \
+    --set-string cluster.metadata.annotations.allResources.test-annotation=test-value
   wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-1" --for condition=PendingRestart'
 }
 
@@ -180,6 +181,7 @@ check_cluster_restart() {
   local CLUSTER_SIZE="$2"
   local REDUCED_IMPACT="$3"
   local RESTART_PRIMARY_FIRST="$4"
+  shift 4
 
   local POD
   local PODS
@@ -207,7 +209,8 @@ check_cluster_restart() {
   try_function create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$CLUSTER_SIZE" \
     --set cluster.restart=true \
     --set cluster.restartReducedImpact="$REDUCED_IMPACT" \
-    --set cluster.restartPrimaryFirst="$RESTART_PRIMARY_FIRST"
+    --set cluster.restartPrimaryFirst="$RESTART_PRIMARY_FIRST" \
+    "$@"
   if "$RESULT"
   then
     echo "SUCCESS. Cluster restart completed sucesfully"
