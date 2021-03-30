@@ -14,6 +14,7 @@ export STACKGRES_VERSION="$(grep '<artifactId>stackgres-parent</artifactId>' "$S
   | grep -o '<version>\([^<]\+\)</version>' | tr '<>' '  ' | cut -d ' ' -f 3)"
 export CONTAINER_BUILD="$(grep '<properties>' "$STACKGRES_PATH/src/pom.xml" -A 2 -B 2 \
   | grep -o '<stackgres.containerBuild>\([^<]\+\)</stackgres.containerBuild>' | tr -d ' ' | tr '<>' '  ' | cut -d ' ' -f 3)"
+export STACKGRES_IMAGE_BUILDER="${STACKGRES_IMAGE_BUILDER:-docker}"
 export OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-operator/"}"
 export CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
 export UI_TESTS_RESOURCES_PATH="${UI_TESTS_RESOURCES_PATH:-"$STACKGRES_PATH/src/admin-ui"}"
@@ -63,38 +64,38 @@ build_components() {
 build_operator_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh $SHELL_XTRACE operator/src/main/buildah/build-image-jvm.sh
+  sh $SHELL_XTRACE "operator/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
   )
 }
 
 build_restapi_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh $SHELL_XTRACE api-web/src/main/buildah/build-image-jvm.sh
+  sh $SHELL_XTRACE "api-web/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
   )
 }
 
 build_jobs_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh jobs/src/main/docker/build-image-jvm.sh
+  sh $SHELL_XTRACE "jobs/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
   )
 }
 
 build_distributedlogs_controller_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh distributedlogs-controller/src/main/docker/build-image-jvm.sh
+  sh $SHELL_XTRACE "distributedlogs-controller/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
   )
 }
 
 build_adminui_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh -x admin-ui/npmw install
-  sh admin-ui/npmw run build
-  sh admin-ui/build.sh
-  sh admin-ui/docker/build.sh
+  sh $SHELL_XTRACE admin-ui/npmw install
+  sh $SHELL_XTRACE admin-ui/npmw run build
+  sh $SHELL_XTRACE admin-ui/build.sh
+  sh $SHELL_XTRACE "admin-ui/$STACKGRES_IMAGE_BUILDER/build.sh"
   )
 }
 

@@ -3,13 +3,14 @@
 set -e
 
 JOBS_IMAGE_NAME="${JOBS_IMAGE_NAME:-"stackgres/jobs:development-jvm"}"
-CONTAINER_BASE=$(buildah from "registry.access.redhat.com/ubi8/openjdk-11")
+CONTAINER_BASE=$(buildah from "registry.access.redhat.com/ubi8/openjdk-11:1.3-10")
 TARGET_JOBS_IMAGE_NAME="${TARGET_JOBS_IMAGE_NAME:-docker-daemon:$JOBS_IMAGE_NAME}"
 
 # Include binaries
+buildah config --user root:root "$CONTAINER_BASE"
 buildah config --workingdir='/app/' "$CONTAINER_BASE"
-buildah copy --chown nobody:nobody "$CONTAINER_BASE" 'jobs/target/stackgres-jobs-runner.jar' '/app/stackgres-jobs.jar'
-buildah copy --chown nobody:nobody "$CONTAINER_BASE" 'jobs/target/lib/*' '/app/lib/'
+buildah copy --chown jboss:jboss "$CONTAINER_BASE" 'jobs/target/stackgres-jobs-runner.jar' '/app/stackgres-jobs.jar'
+buildah copy --chown jboss:jboss "$CONTAINER_BASE" 'jobs/target/lib/*' '/app/lib/'
 cat << 'EOF' > jobs/target/stackgres-jobs.sh
 #!/bin/sh
 
@@ -31,14 +32,18 @@ fi
 JAVA_JAR="-jar /app/stackgres-jobs.jar"
 exec java $JAVA_OPTS $JAVA_JAR $APP_OPTS
 EOF
-buildah copy --chown nobody:nobody "$CONTAINER_BASE" 'jobs/target/stackgres-jobs.sh' '/app/'
-#buildah run "$CONTAINER_BASE" -- chmod 775 '/app'
+buildah copy --chown jboss:jboss "$CONTAINER_BASE" 'jobs/target/stackgres-jobs.sh' '/app/'
+buildah run "$CONTAINER_BASE" chmod 775 '/home/jboss' -R
+buildah run "$CONTAINER_BASE" chmod 775 '/app' -R
+buildah run "$CONTAINER_BASE" chmod 775 '/app/stackgres-jobs.sh'
 
 ## Run our server and expose the port
+buildah config --user jboss:jboss "$CONTAINER_BASE"
+buildah config --env 'HOME=/app' "$CONTAINER_BASE"
 buildah config --cmd 'sh /app/stackgres-jobs.sh' "$CONTAINER_BASE"
 buildah config --port 8080 "$CONTAINER_BASE"
 buildah config --port 8443 "$CONTAINER_BASE"
-buildah config --user nobody:nobody "$CONTAINER_BASE"
+buildah config --env LANG="C.UTF-8" --env LC_ALL="C.UTF-8" "$CONTAINER_BASE"
 
 ## Commit this container to an image name
 buildah commit "$CONTAINER_BASE" "$JOBS_IMAGE_NAME"
