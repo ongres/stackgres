@@ -62,8 +62,6 @@ import org.slf4j.LoggerFactory;
 public class Fluentd implements ContainerResourceFactory<StackGresDistributedLogs,
     StackGresDistributedLogsGeneratorContext, StackGresDistributedLogs> {
 
-  private static final Logger FLEUNTD_LOGGER = LoggerFactory.getLogger("io.stackgres.fleuntd");
-
   public static final String IMAGE_NAME = "docker.io/ongres/fluentd:v%s-build-%s";
   static final String DEFAULT_VERSION = StackGresComponents.get("fluentd");
   static final String PATRONI_TABLE_FIELDS = Stream.of(PatroniTableFields.values())
@@ -72,7 +70,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
   static final String POSTGRES_TABLE_FIELDS = Stream.of(PostgresTableFields.values())
       .map(PostgresTableFields::getFieldName)
       .collect(Collectors.joining(","));
-
+  private static final Logger FLEUNTD_LOGGER = LoggerFactory.getLogger("io.stackgres.fleuntd");
   private LabelFactoryDelegator factoryDelegator;
 
   // list of log_patroni table fields
@@ -85,7 +83,6 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-exc")
         .withArgs(""
-            + "cp /etc/fluentd-initial/initial-fluentd.conf /etc/fluentd/fluentd.conf\n"
             + "echo 'Wait for postgres to be up, running and initialized!'\n"
             + "until curl -s localhost:8008/read-only --fail > /dev/null; do sleep 1; done\n"
             + "exec /usr/local/bin/fluentd \\\n"
@@ -109,56 +106,51 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
             .withInitialDelaySeconds(5)
             .withPeriodSeconds(10)
             .build())
-      .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
-          .volumeMount(context.getClusterContext()),
-          new VolumeMountBuilder()
-          .withName(FluentdUtil.NAME)
-          .withMountPath("/etc/fluentd")
-          .withReadOnly(Boolean.FALSE)
-          .build(),
-          new VolumeMountBuilder()
-          .withName(FluentdUtil.LOG)
-          .withMountPath("/var/log/fluentd")
-          .withReadOnly(Boolean.FALSE)
-          .build(),
-          new VolumeMountBuilder()
-          .withName(FluentdUtil.CONFIG)
-          .withMountPath("/etc/fluentd-initial")
-          .withReadOnly(Boolean.TRUE)
-          .build(),
-          ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-              ClusterStatefulSetPath.ETC_PASSWD_PATH, context.getClusterContext()),
-          ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-              ClusterStatefulSetPath.ETC_GROUP_PATH, context.getClusterContext()),
-          ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-              ClusterStatefulSetPath.ETC_SHADOW_PATH, context.getClusterContext()),
-          ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-              ClusterStatefulSetPath.ETC_GSHADOW_PATH, context.getClusterContext()))
-      .build();
+        .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
+                .volumeMount(context.getClusterContext()),
+            new VolumeMountBuilder()
+                .withName(FluentdUtil.CONFIG)
+                .withMountPath("/etc/fluentd")
+                .withReadOnly(Boolean.FALSE)
+                .build(),
+            new VolumeMountBuilder()
+                .withName(FluentdUtil.LOG)
+                .withMountPath("/var/log/fluentd")
+                .withReadOnly(Boolean.FALSE)
+                .build(),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_PASSWD_PATH, context.getClusterContext()),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_GROUP_PATH, context.getClusterContext()),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_SHADOW_PATH, context.getClusterContext()),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_GSHADOW_PATH, context.getClusterContext()))
+        .build();
   }
 
   @Override
   public ImmutableList<Volume> getVolumes(StackGresDistributedLogsGeneratorContext context) {
     return ImmutableList.of(
         new VolumeBuilder()
-        .withName(FluentdUtil.CONFIG)
-        .withConfigMap(new ConfigMapVolumeSourceBuilder()
-            .withName(FluentdUtil.configName(
-                context.getDistributedLogsContext().getDistributedLogs()))
-            .build())
-        .build(),
+            .withName(FluentdUtil.CONFIG)
+            .withConfigMap(new ConfigMapVolumeSourceBuilder()
+                .withName(FluentdUtil.configName(
+                    context.getDistributedLogsContext().getDistributedLogs()))
+                .build())
+            .build(),
         new VolumeBuilder()
-        .withName(FluentdUtil.NAME)
-        .withEmptyDir(new EmptyDirVolumeSource())
-        .build(),
+            .withName(FluentdUtil.NAME)
+            .withEmptyDir(new EmptyDirVolumeSource())
+            .build(),
         new VolumeBuilder()
-        .withName(FluentdUtil.BUFFER)
-        .withEmptyDir(new EmptyDirVolumeSource())
-        .build(),
+            .withName(FluentdUtil.BUFFER)
+            .withEmptyDir(new EmptyDirVolumeSource())
+            .build(),
         new VolumeBuilder()
-        .withName(FluentdUtil.LOG)
-        .withEmptyDir(new EmptyDirVolumeSource())
-        .build());
+            .withName(FluentdUtil.LOG)
+            .withEmptyDir(new EmptyDirVolumeSource())
+            .build());
   }
 
   @Override
@@ -214,7 +206,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
   }
 
   private String getFluentdConfig(final StackGresDistributedLogsContext distributedLogsContext,
-      boolean includeClusters) {
+                                  boolean includeClusters) {
     return ""
         + "<system>\n"
         + "  workers " + getMaxWorkersBeforeRestart(distributedLogsContext) + "\n"
@@ -239,24 +231,24 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
         + "  </filter>"
         + "\n"
         + Seq.seq(distributedLogsContext.getConnectedClusters())
-            .filter(cluster -> includeClusters)
-            .zipWithIndex()
-            .map(t -> t.map2(index -> index + getCoreWorkers()))
-            .map(t -> ""
-                + "  <match " + FluentBit.tagName(t.v1, "*") + ".*.*>\n"
-                + "    @type forward\n"
-                + "    <buffer>\n"
-                + "      @type file\n"
-                + "      path /var/log/fluentd/" + FluentBit.tagName(t.v1, "buffer") + "\n"
-                + "    </buffer>\n"
-                + "    <server>\n"
-                + "      name localhost\n"
-                + "      host 127.0.0.1\n"
-                + "      port " + (FluentdUtil.FORWARD_PORT + t.v2) + "\n"
-                + "    </server>\n"
-                + "  </match>\n"
-                + "\n")
-            .collect(Collectors.joining("\n"))
+        .filter(cluster -> includeClusters)
+        .zipWithIndex()
+        .map(t -> t.map2(index -> index + getCoreWorkers()))
+        .map(t -> ""
+            + "  <match " + FluentBit.tagName(t.v1, "*") + ".*.*>\n"
+            + "    @type forward\n"
+            + "    <buffer>\n"
+            + "      @type file\n"
+            + "      path /var/log/fluentd/" + FluentBit.tagName(t.v1, "buffer") + "\n"
+            + "    </buffer>\n"
+            + "    <server>\n"
+            + "      name localhost\n"
+            + "      host 127.0.0.1\n"
+            + "      port " + (FluentdUtil.FORWARD_PORT + t.v2) + "\n"
+            + "    </server>\n"
+            + "  </match>\n"
+            + "\n")
+        .collect(Collectors.joining("\n"))
         + "  <match *.*.*.*.*>\n"
         + "    @type forward\n"
         + "    <buffer>\n"
@@ -272,59 +264,59 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
         + "</worker>\n"
         + "\n"
         + Seq.seq(distributedLogsContext.getConnectedClusters())
-            .filter(cluster -> includeClusters)
-            .zipWithIndex()
-            .map(t -> t.map2(index -> index + getCoreWorkers()))
-            .map(t -> ""
-                + "<worker " + t.v2 + ">\n"
-                + "  <source>\n"
-                + "    @type forward\n"
-                + "    bind 127.0.0.1\n"
-                + "    port " + (FluentdUtil.FORWARD_PORT + t.v2) + "\n"
-                + "  </source>\n"
-                + "\n"
-                + "  <match " + FluentBit.tagName(t.v1, POSTGRES_LOG_TYPE) + ".*.*>\n"
-                + "    @type copy\n"
-                + "    <store>\n"
-                + "      @type sql\n"
-                + "      host /var/run/postgresql\n"
-                + "      port " + EnvoyUtil.PG_PORT + "\n"
-                + "      database " + FluentdUtil.databaseName(t.v1) + "\n"
-                + "      adapter postgresql\n"
-                + "      username postgres\n"
-                + "      <table>\n"
-                + "        table log_postgres\n"
-                + "        column_mapping '" + POSTGRES_TABLE_FIELDS + "'\n"
-                + "      </table>\n"
-                + "    </store>\n"
-                + "    <store>\n"
-                + "      @type stdout\n"
-                + "      @log_level " + (FLEUNTD_LOGGER.isTraceEnabled() ? "info" : "debug") + "\n"
-                + "    </store>\n"
-                + "  </match>\n"
-                + "\n"
-                + "  <match " + FluentBit.tagName(t.v1, PATRONI_LOG_TYPE) + ".*.*>\n"
-                + "    @type copy\n"
-                + "    <store>\n"
-                + "      @type sql\n"
-                + "      host /var/run/postgresql\n"
-                + "      port " + EnvoyUtil.PG_PORT + "\n"
-                + "      database " + FluentdUtil.databaseName(t.v1) + "\n"
-                + "      adapter postgresql\n"
-                + "      username postgres\n"
-                + "      <table>\n"
-                + "        table log_patroni\n"
-                + "        column_mapping '" + PATRONI_TABLE_FIELDS + "'\n"
-                + "      </table>\n"
-                + "    </store>\n"
-                + "    <store>\n"
-                + "      @type stdout\n"
-                + "      @log_level " + (FLEUNTD_LOGGER.isTraceEnabled() ? "info" : "debug") + "\n"
-                + "    </store>\n"
-                + "  </match>\n"
-                + "</worker>\n"
-                + "\n")
-            .collect(Collectors.joining("\n"));
+        .filter(cluster -> includeClusters)
+        .zipWithIndex()
+        .map(t -> t.map2(index -> index + getCoreWorkers()))
+        .map(t -> ""
+            + "<worker " + t.v2 + ">\n"
+            + "  <source>\n"
+            + "    @type forward\n"
+            + "    bind 127.0.0.1\n"
+            + "    port " + (FluentdUtil.FORWARD_PORT + t.v2) + "\n"
+            + "  </source>\n"
+            + "\n"
+            + "  <match " + FluentBit.tagName(t.v1, POSTGRES_LOG_TYPE) + ".*.*>\n"
+            + "    @type copy\n"
+            + "    <store>\n"
+            + "      @type sql\n"
+            + "      host /var/run/postgresql\n"
+            + "      port " + EnvoyUtil.PG_PORT + "\n"
+            + "      database " + FluentdUtil.databaseName(t.v1) + "\n"
+            + "      adapter postgresql\n"
+            + "      username postgres\n"
+            + "      <table>\n"
+            + "        table log_postgres\n"
+            + "        column_mapping '" + POSTGRES_TABLE_FIELDS + "'\n"
+            + "      </table>\n"
+            + "    </store>\n"
+            + "    <store>\n"
+            + "      @type stdout\n"
+            + "      @log_level " + (FLEUNTD_LOGGER.isTraceEnabled() ? "info" : "debug") + "\n"
+            + "    </store>\n"
+            + "  </match>\n"
+            + "\n"
+            + "  <match " + FluentBit.tagName(t.v1, PATRONI_LOG_TYPE) + ".*.*>\n"
+            + "    @type copy\n"
+            + "    <store>\n"
+            + "      @type sql\n"
+            + "      host /var/run/postgresql\n"
+            + "      port " + EnvoyUtil.PG_PORT + "\n"
+            + "      database " + FluentdUtil.databaseName(t.v1) + "\n"
+            + "      adapter postgresql\n"
+            + "      username postgres\n"
+            + "      <table>\n"
+            + "        table log_patroni\n"
+            + "        column_mapping '" + PATRONI_TABLE_FIELDS + "'\n"
+            + "      </table>\n"
+            + "    </store>\n"
+            + "    <store>\n"
+            + "      @type stdout\n"
+            + "      @log_level " + (FLEUNTD_LOGGER.isTraceEnabled() ? "info" : "debug") + "\n"
+            + "    </store>\n"
+            + "  </match>\n"
+            + "</worker>\n"
+            + "\n")
+        .collect(Collectors.joining("\n"));
   }
 
   /**
@@ -334,7 +326,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
       final StackGresDistributedLogsContext distributedLogsContext) {
     return getWorkersBatchSize()
         * ((getCoreWorkers() + distributedLogsContext.getConnectedClusters().size()
-            + getWorkersBatchSize() - 1) / getWorkersBatchSize());
+        + getWorkersBatchSize() - 1) / getWorkersBatchSize());
   }
 
   private int getCoreWorkers() {
@@ -347,6 +339,11 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
 
   public StackGresClusterSidecarResourceFactory<Void> toStackGresClusterSidecarResourceFactory() {
     return new FluentdStackGresClusterSidecarResourceFactory();
+  }
+
+  @Inject
+  public void setFactoryDelegator(LabelFactoryDelegator factoryDelegator) {
+    this.factoryDelegator = factoryDelegator;
   }
 
   private class FluentdStackGresClusterSidecarResourceFactory
@@ -391,10 +388,5 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
             "context is not a StackGresDistributedLogsGeneratorContext");
       }
     }
-  }
-
-  @Inject
-  public void setFactoryDelegator(LabelFactoryDelegator factoryDelegator) {
-    this.factoryDelegator = factoryDelegator;
   }
 }

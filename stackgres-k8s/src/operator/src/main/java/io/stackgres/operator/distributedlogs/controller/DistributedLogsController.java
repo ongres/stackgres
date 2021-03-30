@@ -102,11 +102,6 @@ public class DistributedLogsController implements ContainerResourceFactory<Stack
             .withMountPath("/etc/fluentd")
             .withReadOnly(Boolean.TRUE)
             .build(),
-            new VolumeMountBuilder()
-            .withName(FluentdUtil.NAME)
-            .withMountPath("/fluentd")
-            .withReadOnly(Boolean.FALSE)
-            .build(),
             ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
                 ClusterStatefulSetPath.ETC_PASSWD_PATH, context.getClusterContext()),
             ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
