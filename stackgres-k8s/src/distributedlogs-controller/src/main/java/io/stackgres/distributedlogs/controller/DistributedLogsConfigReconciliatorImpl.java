@@ -7,6 +7,7 @@ package io.stackgres.distributedlogs.controller;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
@@ -19,31 +20,33 @@ import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 
 @ApplicationScoped
+@SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME",
+    justification = "This is not a bug if working with containers")
 public class DistributedLogsConfigReconciliatorImpl implements DistributedLogsConfigReconciliator {
 
-  private static final String FLUENTD_CONF_FROM_CONFIGMAP_PATH = "/etc/fluentd/fluentd.conf";
-  private static final String FLUENTD_CONF_PATH = "/fluentd/fluentd.conf";
+  private static final Path FLUENTD_CONF_FROM_CONFIGMAP_PATH =
+      Paths.get("/etc/fluentd/fluentd.conf");
+  private static final Path FLUENTD_CONF_PATH = Paths.get("/fluentd/fluentd.conf");
 
   @Override
   public String getFluentdConfigHash() {
-    return StackGresUtil.getMd5Sum(Paths.get(FLUENTD_CONF_FROM_CONFIGMAP_PATH));
+    return StackGresUtil.getMd5Sum(FLUENTD_CONF_FROM_CONFIGMAP_PATH);
   }
 
   @Override
-  @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME",
-      justification = "This is not a bug if working with containers")
   public void reloadFluentdConfiguration() throws IOException {
-    boolean needsRestart = Seq.seq(Files.readAllLines(Paths.get(FLUENTD_CONF_FROM_CONFIGMAP_PATH)))
+    boolean needsRestart = Files.exists(FLUENTD_CONF_PATH)
+        && !Seq.seq(Files.readAllLines(FLUENTD_CONF_FROM_CONFIGMAP_PATH))
         .filter(configMapLine -> configMapLine.matches("^\\s*workers\\s+[0-9]+$"))
         .zipWithIndex()
         .allMatch(Unchecked.predicate(
-            configMapLine -> Seq.seq(Files.readAllLines(Paths.get(FLUENTD_CONF_PATH)))
+            configMapLine -> Seq.seq(Files.readAllLines(FLUENTD_CONF_PATH))
             .filter(line -> line.matches("^\\s*workers\\s+[0-9]+$"))
             .zipWithIndex()
             .anyMatch(line -> line.equals(configMapLine))));
     Files.copy(
-        Paths.get(FLUENTD_CONF_FROM_CONFIGMAP_PATH),
-        Paths.get(FLUENTD_CONF_PATH),
+        FLUENTD_CONF_FROM_CONFIGMAP_PATH,
+        FLUENTD_CONF_PATH,
         StandardCopyOption.REPLACE_EXISTING);
     String fluentdPid = ProcessHandle.allProcesses()
         .filter(process -> process.info().commandLine()

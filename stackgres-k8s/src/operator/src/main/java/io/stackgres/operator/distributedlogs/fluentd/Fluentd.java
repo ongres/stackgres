@@ -141,6 +141,10 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
                 .build())
             .build(),
         new VolumeBuilder()
+            .withName(FluentdUtil.NAME)
+            .withEmptyDir(new EmptyDirVolumeSource())
+            .build(),
+        new VolumeBuilder()
             .withName(FluentdUtil.BUFFER)
             .withEmptyDir(new EmptyDirVolumeSource())
             .build(),
