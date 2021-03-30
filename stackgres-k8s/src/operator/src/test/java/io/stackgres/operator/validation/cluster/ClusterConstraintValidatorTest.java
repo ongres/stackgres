@@ -70,17 +70,17 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   @Test
   void nullVolumeSize_shouldFail() {
     StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getPod().getPersistentVolume().setVolumeSize(null);
+    review.getRequest().getObject().getSpec().getPod().getPersistentVolume().setSize(null);
 
-    checkNotNullErrorCause(StackGresPodPersistentVolume.class, "spec.pod.persistentVolume.volumeSize", review);
+    checkNotNullErrorCause(StackGresPodPersistentVolume.class, "spec.pod.persistentVolume.size", review);
   }
 
   @Test
   void invalidVolumeSize_shouldFail() {
     StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getPod().getPersistentVolume().setVolumeSize("512");
+    review.getRequest().getObject().getSpec().getPod().getPersistentVolume().setSize("512");
 
-    checkErrorCause(StackGresPodPersistentVolume.class, "spec.pod.persistentVolume.volumeSize",
+    checkErrorCause(StackGresPodPersistentVolume.class, "spec.pod.persistentVolume.size",
         review, Pattern.class);
   }
 

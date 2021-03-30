@@ -17,7 +17,7 @@ import io.stackgres.common.StackGresUtil;
 public class ClusterPodPersistentVolume {
 
   @JsonProperty("size")
-  private String volumeSize;
+  private String size;
 
   @JsonProperty("storageClass")
   private String storageClass;
@@ -30,12 +30,12 @@ public class ClusterPodPersistentVolume {
     return storageClass;
   }
 
-  public void setVolumeSize(String volumeSize) {
-    this.volumeSize = volumeSize;
+  public void setSize(String size) {
+    this.size = size;
   }
 
-  public String getVolumeSize() {
-    return volumeSize;
+  public String getSize() {
+    return size;
   }
 
   @Override

@@ -70,7 +70,7 @@ public class DistributedLogsTransformer
       DistributedLogsPersistentVolume source) {
     StackGresDistributedLogsPersistentVolume transformation =
         new StackGresDistributedLogsPersistentVolume();
-    transformation.setVolumeSize(source.getVolumeSize());
+    transformation.setSize(source.getSize());
     transformation.setStorageClass(source.getStorageClass());
     return transformation;
   }
@@ -113,7 +113,7 @@ public class DistributedLogsTransformer
   private DistributedLogsPersistentVolume getResourcePersistentVolume(
       StackGresDistributedLogsPersistentVolume source) {
     DistributedLogsPersistentVolume transformation = new DistributedLogsPersistentVolume();
-    transformation.setVolumeSize(source.getVolumeSize());
+    transformation.setSize(source.getSize());
     transformation.setStorageClass(source.getStorageClass());
     return transformation;
   }

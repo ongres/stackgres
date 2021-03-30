@@ -99,7 +99,7 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
     final String namespace = cluster.getMetadata().getNamespace();
 
     StorageConfig dataStorageConfig = ImmutableStorageConfig.builder()
-        .size(cluster.getSpec().getPod().getPersistentVolume().getVolumeSize())
+        .size(cluster.getSpec().getPod().getPersistentVolume().getSize())
         .storageClass(Optional.ofNullable(
             cluster.getSpec().getPod().getPersistentVolume().getStorageClass())
             .orElse(null))

@@ -25,17 +25,17 @@ public class StackGresDistributedLogsPersistentVolume {
   @NotNull(message = "Volume size must be specified")
   @Pattern(regexp = "^[0-9]+(\\.[0-9]+)?(Mi|Gi|Ti)$",
       message = "Volume size must be specified in Mi, Gi or Ti")
-  private String volumeSize;
+  private String size;
 
   @JsonProperty("storageClass")
   private String storageClass;
 
-  public String getVolumeSize() {
-    return volumeSize;
+  public String getSize() {
+    return size;
   }
 
-  public void setVolumeSize(String volumeSize) {
-    this.volumeSize = volumeSize;
+  public void setSize(String size) {
+    this.size = size;
   }
 
   public String getStorageClass() {
@@ -48,7 +48,7 @@ public class StackGresDistributedLogsPersistentVolume {
 
   @Override
   public int hashCode() {
-    return Objects.hash(storageClass, volumeSize);
+    return Objects.hash(storageClass, size);
   }
 
   @Override
@@ -61,13 +61,13 @@ public class StackGresDistributedLogsPersistentVolume {
     }
     StackGresDistributedLogsPersistentVolume other = (StackGresDistributedLogsPersistentVolume) obj;
     return Objects.equals(storageClass, other.storageClass)
-        && Objects.equals(volumeSize, other.volumeSize);
+        && Objects.equals(size, other.size);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("volumeSize", volumeSize)
+        .add("volumeSize", size)
         .add("storageClass", storageClass)
         .toString();
   }

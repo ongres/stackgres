@@ -524,7 +524,7 @@ class ClusterResourceTest
         final StackGresPodPersistentVolume dtoPV = resourcePod.getPersistentVolume();
         if (dtoPV != null) {
           assertNotNull(resourcePV);
-          assertEquals(dtoPV.getVolumeSize(), resourcePV.getVolumeSize());
+          assertEquals(dtoPV.getSize(), resourcePV.getSize());
           assertEquals(dtoPV.getStorageClass(), resourcePV.getStorageClass());
         } else {
           assertNull(resourcePV);
@@ -691,7 +691,7 @@ class ClusterResourceTest
         final StackGresPodPersistentVolume resourcePV = resourceSpecPod.getPersistentVolume();
         if (dtoPV != null) {
           assertNotNull(resourcePV);
-          assertEquals(dtoPV.getVolumeSize(), resourcePV.getVolumeSize());
+          assertEquals(dtoPV.getSize(), resourcePV.getSize());
           assertEquals(dtoPV.getStorageClass(), resourcePV.getStorageClass());
         } else {
           assertNull(resourcePV);

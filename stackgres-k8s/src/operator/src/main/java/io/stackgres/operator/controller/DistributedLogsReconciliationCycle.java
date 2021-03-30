@@ -265,8 +265,8 @@ public class DistributedLogsReconciliationCycle
     spec.setInstances(1);
     final StackGresClusterPod pod = new StackGresClusterPod();
     final StackGresPodPersistentVolume persistentVolume = new StackGresPodPersistentVolume();
-    persistentVolume.setVolumeSize(
-        distributedLogs.getSpec().getPersistentVolume().getVolumeSize());
+    persistentVolume.setSize(
+        distributedLogs.getSpec().getPersistentVolume().getSize());
     persistentVolume.setStorageClass(
         distributedLogs.getSpec().getPersistentVolume().getStorageClass());
     pod.setPersistentVolume(persistentVolume);

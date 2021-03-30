@@ -213,8 +213,8 @@ public class ClusterTransformer
     targetPod.setPersistentVolume(new StackGresPodPersistentVolume());
     targetPod.getPersistentVolume().setStorageClass(
         source.getPods().getPersistentVolume().getStorageClass());
-    targetPod.getPersistentVolume().setVolumeSize(
-        source.getPods().getPersistentVolume().getVolumeSize());
+    targetPod.getPersistentVolume().setSize(
+        source.getPods().getPersistentVolume().getSize());
 
     targetPod
         .setDisableConnectionPooling(source.getPods().getDisableConnectionPooling());
@@ -346,8 +346,8 @@ public class ClusterTransformer
     targetPod.setPersistentVolume(new ClusterPodPersistentVolume());
     targetPod.getPersistentVolume().setStorageClass(
         sourcePod.getPersistentVolume().getStorageClass());
-    targetPod.getPersistentVolume().setVolumeSize(
-        sourcePod.getPersistentVolume().getVolumeSize());
+    targetPod.getPersistentVolume().setSize(
+        sourcePod.getPersistentVolume().getSize());
     targetPod
         .setDisableConnectionPooling(sourcePod.getDisableConnectionPooling());
     targetPod
