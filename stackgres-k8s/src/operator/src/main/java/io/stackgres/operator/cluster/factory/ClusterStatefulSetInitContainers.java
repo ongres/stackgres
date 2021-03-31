@@ -248,7 +248,15 @@ public class ClusterStatefulSetInitContainers
                 volumeMountBuilder -> volumeMountBuilder
                 .withSubPath(ClusterStatefulSetPath.PG_UPGRADE_PATH.filename()
                     + "/" + sourceVersion + "/share")
-                .withMountPath("/usr/share/postgresql/" + sourceVersion)))
+                .withMountPath("/usr/share/postgresql/" + sourceVersion)),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_PASSWD_PATH, config),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_GROUP_PATH, config),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_SHADOW_PATH, config),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_GSHADOW_PATH, config))
         .build(),
         new ContainerBuilder()
         .withName("reset-patroni-initialize")
