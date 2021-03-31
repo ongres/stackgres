@@ -45,10 +45,10 @@ cd "$(dirname "$0")/../../.."
 
 VERSION="$1"
 DEVELOPMENT_IMAGE_TAG="${2:-development}"
-IMAGE_TAG="${VERSION}-jvm"
+IMAGE_TAG="${VERSION}"
 if [ "${VERSION##*-}" = "SNAPSHOT" ]
 then
-  IMAGE_TAG="${DEVELOPMENT_IMAGE_TAG}-jvm"
+  IMAGE_TAG="${DEVELOPMENT_IMAGE_TAG}"
 fi
 ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
 

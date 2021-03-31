@@ -8,7 +8,7 @@ url: intro/versions
 
 | Component | Versions |
 | ------ | ----------- |
-| PostgreSQL | 12.6, 12.4, 12.3, 11.11, 11.8 and 11.9 |
+| PostgreSQL | 12.6, 12.4, 12.3, 11.11, 11.9 and 11.8 |
 | Patroni | 1.6.5 |
 | WAL-G | 0.2.19 |
 | PgBouncer | 1.13.0 |
