@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.JobTemplateSpec;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
@@ -71,6 +72,12 @@ public class AnnotationDecoratorImpl implements Decorator<StackGresCluster> {
         .putAll(allResourcesAnnotations)
         .putAll(podSpecificAnnotations)
         .put(StackGresContext.VERSION_KEY, clusterAnnotations.get(StackGresContext.VERSION_KEY))
+        .build();
+
+    Map<String, String> jodAnnotations = ImmutableMap.<String, String>builder()
+        .putAll(allResourcesAnnotations)
+        .putAll(podSpecificAnnotations)
+        .put(StackGresContext.VERSION_KEY, StackGresProperty.OPERATOR_VERSION.getString())
         .build();
 
     resources.forEach(resource -> {
@@ -182,7 +189,7 @@ public class AnnotationDecoratorImpl implements Decorator<StackGresCluster> {
               .map(ObjectMeta::getAnnotations)
               .orElse(new HashMap<>());
 
-          jobPodTemplateAnnotations.putAll(podAnnotations);
+          jobPodTemplateAnnotations.putAll(jodAnnotations);
 
           Optional.ofNullable(job.getSpec())
               .map(JobSpec::getTemplate)

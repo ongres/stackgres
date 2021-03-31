@@ -18,7 +18,7 @@ import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.Abstr
 
 @Sidecar("connection-pooling")
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V094)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V095)
 @RunningContainer(order = 2)
 public class PgPooling extends AbstractPgPooling {
 

@@ -72,7 +72,8 @@ public class PatroniSecret implements
         .getOrDefault(REPLICATION_PASSWORD_KEY, generatePassword()));
     data.put(AUTHENTICATOR_PASSWORD_KEY, generatedPasswords
         .getOrDefault(AUTHENTICATOR_PASSWORD_KEY, generatePassword()));
-    data.put(RESTAPI_PASSWORD_KEY, generatePassword());
+    data.put(RESTAPI_PASSWORD_KEY, generatedPasswords
+        .getOrDefault(RESTAPI_PASSWORD_KEY, generatePassword()));
 
     return Stream.of(new SecretBuilder()
         .withNewMetadata()

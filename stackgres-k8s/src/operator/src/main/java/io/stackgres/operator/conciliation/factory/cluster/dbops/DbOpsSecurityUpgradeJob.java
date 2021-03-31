@@ -5,140 +5,121 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.dbops;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import static io.stackgres.operator.conciliation.factory.cluster.dbops.DbOpsUtil.jobName;
+
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.google.common.collect.ImmutableList;
-import io.fabric8.kubernetes.api.model.EnvVar;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
-import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
-import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.common.CdiUtil;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.fabric8.kubernetes.api.model.batch.Job;
+import io.fabric8.kubernetes.api.model.batch.JobBuilder;
 import io.stackgres.common.LabelFactory;
-import io.stackgres.common.ObjectMapperProvider;
-import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackgresClusterContainers;
+import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.StackGresProperty;
+import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsSecurityUpgrade;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
 @OpJob("securityUpgrade")
-public class DbOpsSecurityUpgradeJob extends DbOpsJob {
+public class DbOpsSecurityUpgradeJob implements JobFactory {
+
+  public static final String IMAGE_NAME = "docker.io/stackgres/jobs:%s";
+
+  private final LabelFactory<StackGresCluster> labelFactory;
+  private final ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory;
 
   @Inject
   public DbOpsSecurityUpgradeJob(
-      ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory,
-      ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables,
       LabelFactory<StackGresCluster> labelFactory,
-      JsonMapper jsonMapper) {
-    super(podSecurityFactory, clusterStatefulSetEnvironmentVariables, labelFactory, jsonMapper);
-  }
-
-  public DbOpsSecurityUpgradeJob() {
-    super(null, null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
+      ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory) {
+    this.labelFactory = labelFactory;
+    this.podSecurityFactory = podSecurityFactory;
   }
 
   @Override
-  protected String getOperation(StackGresDbOps dbOps) {
-    return "security-upgrade";
-  }
-
-  @Override
-  protected boolean isExclusiveOp() {
-    return true;
-  }
-
-  @Override
-  protected List<EnvVar> getRunEnvVars(StackGresClusterContext context, StackGresDbOps dbOps) {
-    StackGresDbOpsSecurityUpgrade securityUpgrade =
-        dbOps.getSpec().getSecurityUpgrade();
-    List<EnvVar> runEnvVars = ImmutableList.<EnvVar>builder()
-        .add(
-            new EnvVarBuilder()
-            .withName("REDUCED_IMPACT")
-            .withValue(Optional.ofNullable(securityUpgrade)
-                .map(StackGresDbOpsSecurityUpgrade::isMethodReducedImpact)
-                .map(String::valueOf)
-                .orElse("true"))
-            .build(),
-            new EnvVarBuilder()
-            .withName("RESTART_PRIMARY_FIRST")
-            .withValue("true")
-            .build(),
-            new EnvVarBuilder()
-            .withName("CLUSTER_CRD_NAME")
-            .withValue(CustomResource.getCRDName(StackGresCluster.class))
-            .build(),
-            new EnvVarBuilder()
-            .withName("CLUSTER_NAMESPACE")
-            .withValue(context.getSource().getMetadata().getNamespace())
-            .build(),
-            new EnvVarBuilder()
-            .withName("CLUSTER_NAME")
-            .withValue(context.getSource().getMetadata().getName())
-            .build(),
-            new EnvVarBuilder()
-            .withName("POD_NAME")
-            .withValueFrom(new EnvVarSourceBuilder()
-                .withFieldRef(new ObjectFieldSelector("v1", "metadata.name"))
-                .build())
-            .build(),
-            new EnvVarBuilder()
-            .withName("DB_OPS_CRD_NAME")
-            .withValue(CustomResource.getCRDName(StackGresDbOps.class))
-            .build(),
-            new EnvVarBuilder()
-            .withName("DB_OPS_NAME")
-            .withValue(dbOps.getMetadata().getName())
-            .build(),
-            new EnvVarBuilder()
-            .withName("CLUSTER_POD_LABELS")
-            .withValue(labelFactory.patroniClusterLabels(context.getSource())
-                .entrySet()
-                .stream()
-                .map(e -> e.getKey() + "=" + e.getValue())
-                .collect(Collectors.joining(",")))
-            .build(),
-            new EnvVarBuilder()
-            .withName("CLUSTER_PRIMARY_POD_LABELS")
-            .withValue(labelFactory.patroniPrimaryLabels(context.getSource())
-                .entrySet()
-                .stream()
-                .map(e -> e.getKey() + "=" + e.getValue())
-                .collect(Collectors.joining(",")))
-            .build(),
-            new EnvVarBuilder()
-            .withName("PATRONI_CONTAINER_NAME")
-            .withValue(StackgresClusterContainers.PATRONI)
+  public Job createJob(StackGresClusterContext context, StackGresDbOps dbOps) {
+    String namespace = dbOps.getMetadata().getNamespace();
+    final Map<String, String> labels = labelFactory.dbOpsPodLabels(context.getSource());
+    return new JobBuilder()
+        .withNewMetadata()
+        .withNamespace(namespace)
+        .withName(jobName(dbOps, "security-upgrade"))
+        .withLabels(labels)
+        .endMetadata()
+        .withNewSpec()
+        .withBackoffLimit(0)
+        .withCompletions(1)
+        .withParallelism(1)
+        .withNewTemplate()
+        .withNewMetadata()
+        .withNamespace(namespace)
+        .withName(jobName(dbOps))
+        .withLabels(labels)
+        .endMetadata()
+        .withNewSpec()
+        .withSecurityContext(podSecurityFactory.createResource(context))
+        .withRestartPolicy("Never")
+        .withServiceAccountName(DbOpsRole.roleName(context))
+        .withContainers(new ContainerBuilder()
+            .withName("security-upgrade")
+            .withImagePullPolicy("IfNotPresent")
+            .withImage(String.format(IMAGE_NAME,
+                StackGresProperty.OPERATOR_IMAGE_VERSION.getString()))
+            .addToEnv(new EnvVarBuilder()
+                    .withName(OperatorProperty.OPERATOR_NAME.getEnvironmentVariableName())
+                    .withValue(OperatorProperty.OPERATOR_NAME.getString())
+                    .build(),
+                new EnvVarBuilder()
+                    .withName(OperatorProperty.OPERATOR_NAMESPACE.getEnvironmentVariableName())
+                    .withValue(OperatorProperty.OPERATOR_NAMESPACE.getString())
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("JOB_NAMESPACE")
+                    .withValue(namespace)
+                    .build(),
+                new EnvVarBuilder()
+                    .withName(StackGresProperty.OPERATOR_VERSION.getEnvironmentVariableName())
+                    .withValue(StackGresProperty.OPERATOR_VERSION.getString())
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("CRD_UPGRADE")
+                    .withValue(Boolean.FALSE.toString())
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("CONVERSION_WEBHOOKS")
+                    .withValue(Boolean.FALSE.toString())
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("DATABASE_OPERATION_JOB")
+                    .withValue(Boolean.TRUE.toString())
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("DATABASE_OPERATION_CR_NAME")
+                    .withValue(dbOps.getMetadata().getName())
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("POD_NAME")
+                    .withNewValueFrom()
+                    .withNewFieldRef()
+                    .withFieldPath("metadata.name")
+                    .endFieldRef()
+                    .endValueFrom()
+                    .build())
             .build())
+        .endSpec()
+        .endTemplate()
+        .endSpec()
         .build();
-    return runEnvVars;
   }
-
-  @Override
-  protected String getRunImage(StackGresClusterContext context) {
-    return StackGresComponent.KUBECTL.findLatestImageName();
-  }
-
-  @Override
-  protected ClusterStatefulSetPath getRunScript() {
-    return ClusterStatefulSetPath.LOCAL_BIN_RUN_RESTART_SH_PATH;
-  }
-
 }

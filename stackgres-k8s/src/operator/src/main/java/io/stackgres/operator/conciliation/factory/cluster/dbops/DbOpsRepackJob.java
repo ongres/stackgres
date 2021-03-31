@@ -36,7 +36,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniService
 import org.jooq.lambda.Seq;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V095, stopAt = StackGresVersion.V10)
 @OpJob("repack")
 public class DbOpsRepackJob extends DbOpsJob {
 

@@ -27,7 +27,7 @@ import io.stackgres.operator.conciliation.factory.InitContainer;
 
 @InitContainer(order = 4)
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V095)
 public class SetupConfig implements ContainerFactory<DistributedLogsContext> {
 
   @Override

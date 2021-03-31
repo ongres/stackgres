@@ -17,6 +17,7 @@ import javax.inject.Singleton;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
@@ -55,6 +56,10 @@ public class ClusterPatroniEnvVarFactory
     List<EnvVar> patroniEnvVars = createPatroniEnvVars(cluster);
 
     return ImmutableList.<EnvVar>builder()
+        .add(new EnvVarBuilder()
+            .withName("PATRONI_RESTAPI_LISTEN")
+            .withValue("0.0.0.0:" + EnvoyUtil.PATRONI_PORT)
+            .build())
         .addAll(patroniEnvVars)
         .addAll(additionalEnvVars)
         .build();

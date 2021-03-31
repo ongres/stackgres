@@ -36,6 +36,10 @@ public class ClusterJobComparator extends StackGresAbstractComparator {
           "add",
           "{}"),
       new PatchPattern(Pattern
+          .compile("/spec/template/spec/containers/\\d+/imagePullPolicy"),
+          "add",
+          "IfNotPresent"),
+      new PatchPattern(Pattern
           .compile("/spec/template/spec/containers/\\d+/terminationMessagePath"),
           "add",
           "/dev/termination-log"),
@@ -77,6 +81,10 @@ public class ClusterJobComparator extends StackGresAbstractComparator {
           "add"),
       new SimpleIgnorePatch("/status",
           "add"),
+      new PatchPattern(Pattern
+          .compile("/metadata/ownerReferences/\\d+/apiVersion"),
+          "replace"
+      ),
   };
 
   @Override
@@ -92,12 +100,12 @@ public class ClusterJobComparator extends StackGresAbstractComparator {
     int ignore = countPatchesToIgnore(diff);
 
     final int actualDifferences = diff.size() - ignore;
-    if (LOGGER.isTraceEnabled() && actualDifferences != 0) {
+    if (LOGGER.isDebugEnabled() && actualDifferences != 0) {
       for (JsonNode jsonPatch : diff) {
         JsonPatch patch = new JsonPatch(jsonPatch);
         if (Arrays.stream(getPatchPattersToIgnore())
             .noneMatch(patchPattern -> patchPattern.matches(patch))) {
-          LOGGER.trace("Job diff {}", jsonPatch.toPrettyString());
+          LOGGER.debug("Job diff {}", jsonPatch.toPrettyString());
         }
       }
     }

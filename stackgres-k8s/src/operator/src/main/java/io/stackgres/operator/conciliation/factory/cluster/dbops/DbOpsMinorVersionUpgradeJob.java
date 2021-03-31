@@ -35,7 +35,7 @@ import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
 @OpJob("minorVersionUpgrade")
 public class DbOpsMinorVersionUpgradeJob extends DbOpsJob {
 

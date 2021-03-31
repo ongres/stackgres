@@ -5,19 +5,16 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.dbops;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
@@ -34,14 +31,12 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.Patroni;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple;
@@ -75,33 +70,8 @@ public abstract class DbOpsJob implements JobFactory {
         .orElse(ImmutableMap.of());
   }
 
-  public static boolean isMaxRetriesReached(StackGresDbOps dbOps) {
-    return Optional.of(dbOps)
-        .map(StackGresDbOps::getStatus)
-        .map(StackGresDbOpsStatus::getOpRetries)
-        .orElse(0) >= Optional.of(dbOps)
-        .map(StackGresDbOps::getSpec)
-        .map(StackGresDbOpsSpec::getMaxRetries)
-        .orElse(0);
-  }
-
-  public static boolean isFailed(StackGresDbOps dbOps) {
-    return Optional.of(dbOps)
-        .map(StackGresDbOps::getStatus)
-        .map(StackGresDbOpsStatus::getConditions)
-        .stream()
-        .flatMap(List::stream)
-        .anyMatch(Predicates.and(
-            DbOpsStatusCondition.Type.FAILED::isCondition,
-            DbOpsStatusCondition.Status.TRUE::isCondition));
-  }
-
   public String jobName(StackGresDbOps dbOps) {
-    String name = dbOps.getMetadata().getName();
-    UUID uid = UUID.fromString(dbOps.getMetadata().getUid());
-    return ResourceUtil.resourceName(name + "-" + getOperation(dbOps) + "-"
-        + Long.toHexString(uid.getMostSignificantBits())
-        + "-" + getCurrentRetry(dbOps));
+    return DbOpsUtil.jobName(dbOps, getOperation(dbOps));
   }
 
   protected String getOperation(StackGresDbOps dbOps) {
@@ -112,7 +82,7 @@ public abstract class DbOpsJob implements JobFactory {
     return Optional.of(dbOps)
         .map(StackGresDbOps::getStatus)
         .map(StackGresDbOpsStatus::getOpRetries)
-        .map(r -> r + (isFailed(dbOps) && !isMaxRetriesReached(dbOps) ? 1 : 0))
+        .map(r -> r + (DbOpsUtil.isFailed(dbOps) && !DbOpsUtil.isMaxRetriesReached(dbOps) ? 1 : 0))
         .orElse(0);
   }
 
@@ -155,13 +125,7 @@ public abstract class DbOpsJob implements JobFactory {
     final String namespace = dbOps.getMetadata().getNamespace();
     final String name = dbOps.getMetadata().getName();
     final Map<String, String> labels = labelFactory.dbOpsPodLabels(context.getSource());
-    final String timeout = Optional.of(dbOps)
-        .map(StackGresDbOps::getSpec)
-        .map(StackGresDbOpsSpec::getTimeout)
-        .map(Duration::parse)
-        .map(Duration::getSeconds)
-        .map(Object::toString)
-        .orElseGet(() -> String.valueOf(Integer.MAX_VALUE));
+    final String timeout = DbOpsUtil.getTimeout(dbOps);
     return new JobBuilder()
         .withNewMetadata()
         .withNamespace(namespace)

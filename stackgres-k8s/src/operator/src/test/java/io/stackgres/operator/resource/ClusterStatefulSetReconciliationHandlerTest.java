@@ -17,6 +17,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 
 import com.google.common.collect.ImmutableList;
@@ -109,6 +110,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
   @Test
   void scalingUpStatefulSetWithoutNonDisputablePods_shouldResultInTheSameNumberOfDesiredReplicas() {
+
     final int desiredReplicas = setUpUpscale(0, 0, MasterPosition.FIRST);
 
     StatefulSet sts = (StatefulSet) handler.patch(requiredStatefulSet);
@@ -137,6 +139,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
   @Test
   void scalingUpStatefulSetWithNonDisputablePodsWithIndexBiggerThanReplicasCount_shouldResultInTheSameNumberOfDesiredReplicasMinusTheDisruptablePods() {
+
     final int desiredReplicas = setUpUpscale(1, 1, MasterPosition.FIRST);
 
     StatefulSet sts = (StatefulSet) handler.patch(requiredStatefulSet);
@@ -150,6 +153,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
   @Test
   void scalingUpStatefulSetWithNonDisputablePodsWithIndexLowerThanReplicasCount_shouldResultInTheSameNumberOfDesiredReplicasAndFixDisruptableLabel() {
+
     final int desiredReplicas = setUpUpscale(1, -1, MasterPosition.FIRST_NONDISRUPTABLE);
 
     ArgumentCaptor<Pod> podArgumentCaptor = ArgumentCaptor.forClass(Pod.class);
@@ -176,6 +180,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
   @Test
   void scalingDownStatefulSetWithoutNonDisputablePodsAndMasterNodeAboutToBeDisrupt_shouldResultInTheNumberOfDesiredReplicasMinusOneAndMakeTheMasterNodeNonDisruptable() {
+
     final int desiredReplicas = setUpDownscale(0, 0, MasterPosition.LAST_DISRUPTABLE);
 
     ArgumentCaptor<Pod> podArgumentCaptor = ArgumentCaptor.forClass(Pod.class);

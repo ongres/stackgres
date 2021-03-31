@@ -5,7 +5,12 @@
 
 package io.stackgres.common.crd.sgdbops;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.TimeZone;
 
 public enum DbOpsStatusCondition {
 
@@ -30,6 +35,16 @@ public enum DbOpsStatusCondition {
 
   public StackGresDbOpsCondition getCondition() {
     return new StackGresDbOpsCondition(type, status, reason);
+  }
+
+  public StackGresDbOpsCondition buildCondition(){
+    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
+    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    String currentDateTime = dateFormat.format(new Date());
+    final StackGresDbOpsCondition stackGresDbOpsCondition =
+        new StackGresDbOpsCondition(type, status, reason);
+    stackGresDbOpsCondition.setLastTransitionTime(currentDateTime);
+    return stackGresDbOpsCondition;
   }
 
   public boolean isCondition(StackGresDbOpsCondition condition) {

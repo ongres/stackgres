@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.dbops;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -34,7 +35,7 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
 public class DbOpsRole implements ResourceGenerator<StackGresClusterContext> {
 
   public static final String SUFFIX = "-dbops";
@@ -57,10 +58,15 @@ public class DbOpsRole implements ResourceGenerator<StackGresClusterContext> {
 
   @Override
   public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
-    return Seq.of(
-        createServiceAccount(context),
-        createRole(context),
-        createRoleBinding(context));
+    final List<StackGresDbOps> dbOps = context.getDbOps();
+    if (!dbOps.isEmpty()) {
+      return Seq.of(
+          createServiceAccount(context),
+          createRole(context),
+          createRoleBinding(context));
+    } else {
+      return Seq.of();
+    }
   }
 
   /**
@@ -116,15 +122,21 @@ public class DbOpsRole implements ResourceGenerator<StackGresClusterContext> {
             .withVerbs("create")
             .build())
         .addToRules(new PolicyRuleBuilder()
+            .withApiGroups("")
+            .withResources("services", "secrets")
+            .withVerbs("get", "list")
+            .build())
+        .addToRules(new PolicyRuleBuilder()
             .withApiGroups("apps")
             .withResources("statefulsets")
-            .withVerbs("get")
+            .withVerbs("get", "delete")
             .build())
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups("")
             .withResources("events")
             .withVerbs("get", "list", "create", "patch", "update")
             .build())
+
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups(CommonDefinition.GROUP)
             .withResources(HasMetadata.getPlural(StackGresDbOps.class))

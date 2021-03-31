@@ -18,7 +18,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnviron
 import org.jooq.lambda.Seq;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V094)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V095)
 public class ClusterStatefulSetEnvironmentVariables
     implements ClusterEnvironmentVariablesFactory<StackGresClusterContext> {
 

@@ -25,7 +25,7 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLog
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
-@InitContainer(order = 0)
+@InitContainer(order = 1)
 public class DataPathsInitializer implements ContainerFactory<DistributedLogsContext> {
 
   @Override

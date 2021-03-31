@@ -39,17 +39,17 @@ public abstract class AbstractCustomResourceScheduler
     this.customResourceListClass = customResourceListClass;
   }
 
-  public void create(T resource) {
+  public T create(T resource) {
     try (KubernetesClient client = clientFactory.create()) {
-      getCustomResourceEndpoints(client)
+      return getCustomResourceEndpoints(client)
           .inNamespace(resource.getMetadata().getNamespace())
           .create(resource);
     }
   }
 
-  public void update(T resource) {
+  public T update(T resource) {
     try (KubernetesClient client = clientFactory.create()) {
-      getCustomResourceEndpoints(client)
+      return getCustomResourceEndpoints(client)
           .inNamespace(resource.getMetadata().getNamespace())
           .withName(resource.getMetadata().getName())
           .patch(resource);
@@ -94,9 +94,9 @@ public abstract class AbstractCustomResourceScheduler
   }
 
   @Override
-  public void updateStatus(T resource) {
+  public T updateStatus(T resource) {
     try (KubernetesClient client = clientFactory.create()) {
-      getCustomResourceEndpoints(client)
+      return getCustomResourceEndpoints(client)
           .inNamespace(resource.getMetadata().getNamespace())
           .withName(resource.getMetadata().getName())
           .updateStatus(resource);

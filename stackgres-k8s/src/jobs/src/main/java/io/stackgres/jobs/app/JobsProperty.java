@@ -3,27 +3,34 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.jobs.crdupgrade;
+package io.stackgres.jobs.app;
 
 import java.util.Properties;
 
 import io.stackgres.common.StackGresPropertyReader;
 import org.jooq.lambda.Unchecked;
 
-public enum CrdUpgradeProperty implements StackGresPropertyReader {
+public enum JobsProperty implements StackGresPropertyReader {
 
   OPERATOR_NAME("stackgres.operatorName"),
   OPERATOR_NAMESPACE("stackgres.operatorNamespace"),
+  JOB_NAMESPACE("stackgres.jobNamespace"),
+  OPERATOR_VERSION("stackgres.operatorVersion"),
   CRD_UPGRADE("stackgres.crdUpgrade"),
-  CONVERSION_WEBHOOKS("stackgres.conversionWebhooks");
+  CONVERSION_WEBHOOKS("stackgres.conversionWebhooks"),
+  DATABASE_OPERATION_JOB("stackgres.databaseOperationJob"),
+  DATABASE_OPERATION_CR_NAME("stackgres.databaseOperationCrName"),
+  POD_NAME("stackgres.dbops.podName"),
+  DBOPS_POLL_INTERVAL("stackgres.dbops.pollInterval"),
+  DBOPS_LOCK_TIMEOUT("stackgres.dbops.lockTimeout");
 
   private static final Properties APPLICATION_PROPERTIES =
       Unchecked.supplier(() -> StackGresPropertyReader
-          .readApplicationProperties(CrdUpgradeProperty.class)).get();
+          .readApplicationProperties(JobsProperty.class)).get();
 
   private final String propertyName;
 
-  CrdUpgradeProperty(String propertyName) {
+  JobsProperty(String propertyName) {
     this.propertyName = propertyName;
   }
 

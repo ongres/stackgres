@@ -22,10 +22,6 @@ public abstract class PatroniEnvironmentVariablesFactory<T>
   protected List<EnvVar> createPatroniEnvVars(HasMetadata cluster) {
     return Seq.of(
         new EnvVarBuilder()
-            .withName("PATRONI_RESTAPI_LISTEN")
-            .withValue("0.0.0.0:" + EnvoyUtil.PATRONI_ENTRY_PORT)
-            .build(),
-        new EnvVarBuilder()
             .withName("PATRONI_RESTAPI_CONNECT_ADDRESS")
             .withValue("${PATRONI_KUBERNETES_POD_IP}:" + EnvoyUtil.PATRONI_ENTRY_PORT)
             .build(),

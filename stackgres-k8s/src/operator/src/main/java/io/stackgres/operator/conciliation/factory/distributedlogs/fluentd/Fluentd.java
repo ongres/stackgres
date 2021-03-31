@@ -34,6 +34,7 @@ import io.fabric8.kubernetes.api.model.TCPSocketActionBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.LabelFactory;
@@ -108,6 +109,10 @@ public class Fluentd implements ContainerFactory<DistributedLogsContext>,
             .withPeriodSeconds(10)
             .build())
         .withVolumeMounts(
+            new VolumeMountBuilder()
+                .withMountPath(ClusterStatefulSetPath.PG_RUN_PATH.path())
+                .withName("socket")
+                .build(),
             new VolumeMountBuilder()
                 .withName(FluentdUtil.CONFIG)
                 .withMountPath("/etc/fluentd")

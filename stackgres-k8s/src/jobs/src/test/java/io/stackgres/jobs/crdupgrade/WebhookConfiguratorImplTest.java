@@ -8,7 +8,6 @@ package io.stackgres.jobs.crdupgrade;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
@@ -22,6 +21,7 @@ import io.fabric8.kubernetes.api.model.apiextensions.v1.WebhookClientConfig;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.common.resource.SecretFinder;
+import io.stackgres.jobs.app.JobsProperty;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,9 +32,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class WebhookConfiguratorImplTest {
 
-  private static final String OPERATOR_NAME = CrdUpgradeProperty.OPERATOR_NAME.getString();
+  private static final String OPERATOR_NAME = JobsProperty.OPERATOR_NAME.getString();
 
-  private static final String OPERATOR_NAMESPACE = CrdUpgradeProperty.OPERATOR_NAMESPACE.getString();
+  private static final String OPERATOR_NAMESPACE = JobsProperty.OPERATOR_NAMESPACE.getString();
 
   private static final String OPERATOR_SECRET_NAME = OPERATOR_NAME + "-certs";
 

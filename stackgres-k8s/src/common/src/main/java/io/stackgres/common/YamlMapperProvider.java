@@ -10,8 +10,10 @@ import javax.enterprise.context.ApplicationScoped;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+import io.quarkus.arc.Unremovable;
 
 @ApplicationScoped
+@Unremovable
 public class YamlMapperProvider {
 
   private static final YAMLMapper YAML_MAPPER = createYamlMapper();

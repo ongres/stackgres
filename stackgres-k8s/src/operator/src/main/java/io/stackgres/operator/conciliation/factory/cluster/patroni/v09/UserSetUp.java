@@ -27,7 +27,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnviron
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V094)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V095)
 @InitContainer(order = 2)
 public class UserSetUp implements ContainerFactory<StackGresClusterContext> {
 

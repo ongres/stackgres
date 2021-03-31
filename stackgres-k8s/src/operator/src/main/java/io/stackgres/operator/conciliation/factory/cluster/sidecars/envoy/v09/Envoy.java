@@ -19,7 +19,7 @@ import io.stackgres.operator.conciliation.factory.cluster.sidecars.envoy.Abstrac
 
 @Singleton
 @Sidecar(AbstractEnvoy.NAME)
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V094)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V095)
 @RunningContainer(order = 1)
 public class Envoy extends AbstractEnvoy {
   @Inject

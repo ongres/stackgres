@@ -1,0 +1,154 @@
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+package io.stackgres.jobs.dbops.securityupgrade;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.inject.Inject;
+
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.junit.mockito.InjectSpy;
+import io.smallrye.mutiny.Uni;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.resource.StatefulSetWriter;
+import io.stackgres.jobs.MockKubernetesClientFactory;
+import io.stackgres.jobs.app.JobsProperty;
+import io.stackgres.jobs.dbops.DatabaseOperation;
+import io.stackgres.jobs.dbops.JobsStatefulSetWriter;
+import io.stackgres.jobs.dbops.lock.LockAcquirerImpl;
+import io.stackgres.jobs.dbops.lock.LockRequest;
+import io.stackgres.jobs.dbops.lock.MockKubeDb;
+import io.stackgres.testutil.JsonUtil;
+import io.stackgres.testutil.StringUtils;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.stubbing.Answer;
+
+@QuarkusTest
+class SecurityUpgradeJobTest {
+
+  private static final String PREVIOUS_OPERATOR_VERSION = "0.9.4";
+  private final AtomicInteger clusterNr = new AtomicInteger(0);
+  @Inject
+  @DatabaseOperation("securityUpgrade")
+  SecurityUpgradeJob securityUpgradeJob;
+  @Inject
+  MockKubeDb kubeDb;
+  @InjectMock
+  ClusterRestartStateHandlerImpl clusterRestart;
+  @InjectMock
+  StatefulSetWriter statefulSetReader;
+  @InjectMock
+  JobsStatefulSetWriter statefulSetWriter;
+
+  private StackGresCluster cluster;
+  private StackGresDbOps dbOps;
+  private String clusterName;
+  private String clusterNamespace;
+  private StatefulSet oldStatefulSet;
+
+  @BeforeEach
+  void setUp() {
+    cluster = JsonUtil
+        .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    oldStatefulSet = JsonUtil
+        .readFromJson("statefulsets/0.9.5.json", StatefulSet.class);
+    cluster.getMetadata().setName("test-" + clusterNr.incrementAndGet());
+    clusterName = StringUtils.getRandomClusterName();
+    clusterNamespace = StringUtils.getRandomNamespace();
+    cluster.getMetadata().setName(clusterName);
+    cluster.getMetadata().setNamespace(clusterNamespace);
+    oldStatefulSet.getMetadata().setName(clusterName);
+    oldStatefulSet.getMetadata().setNamespace(clusterNamespace);
+    when(statefulSetReader.findByNameAndNamespace(clusterName, clusterNamespace))
+        .thenReturn(Optional.of(oldStatefulSet));
+
+    dbOps = JsonUtil.readFromJson("stackgres_dbops/dbops_securityupgrade.json", StackGresDbOps.class);
+    dbOps.getMetadata().setNamespace(clusterNamespace);
+    dbOps.getMetadata().setName(clusterName);
+    dbOps.getSpec().setSgCluster(clusterName);
+  }
+
+  @AfterEach
+  void tearDown() {
+    kubeDb.delete(cluster);
+    kubeDb.delete(dbOps);
+  }
+
+  @Test
+  void upgradeJob_shouldUpdateTheOperatorVersionOfTheTargetCluster() {
+
+    final String expectedOperatorVersion = JobsProperty.OPERATOR_VERSION.getString();
+    cluster.getMetadata().getAnnotations().put(
+        StackGresContext.VERSION_KEY, PREVIOUS_OPERATOR_VERSION);
+    cluster = kubeDb.addOrReplaceCluster(cluster);
+    securityUpgradeJob.runJob(dbOps, cluster).await().indefinitely();
+    var storedClusterVersion = kubeDb.getCluster(clusterName, clusterNamespace)
+        .getMetadata().getAnnotations()
+        .get(StackGresContext.VERSION_KEY);
+    assertEquals(expectedOperatorVersion, storedClusterVersion);
+
+  }
+
+  @Test
+  void upgradeJob_shouldDeleteTheExistentStatefulSet() {
+
+    cluster = kubeDb.addOrReplaceCluster(cluster);
+    securityUpgradeJob.runJob(dbOps, cluster).await().indefinitely();
+
+    verify(statefulSetReader).findByNameAndNamespace(clusterName, clusterNamespace);
+    verify(statefulSetWriter).delete(oldStatefulSet);
+  }
+
+  @Test
+  void upgradeJob_shouldRestartTheCluster() {
+
+    doReturn(Uni.createFrom().voidItem()).when(clusterRestart).restartCluster(any());
+
+    cluster.getMetadata().getAnnotations().put(
+        StackGresContext.VERSION_KEY, PREVIOUS_OPERATOR_VERSION);
+    cluster = kubeDb.addOrReplaceCluster(cluster);
+
+    securityUpgradeJob.runJob(dbOps, cluster).await().indefinitely();
+
+    verify(clusterRestart).restartCluster(any());
+
+  }
+
+  @Test
+  void givenAFailureToRestartTheCluster_itShouldReportTheFailure() {
+
+    final String errorMessage = "restart failure";
+    doThrow(new RuntimeException(errorMessage)).when(clusterRestart).restartCluster(any());
+
+    cluster.getMetadata().getAnnotations().put(
+        StackGresContext.VERSION_KEY, PREVIOUS_OPERATOR_VERSION);
+    cluster = kubeDb.addOrReplaceCluster(cluster);
+    dbOps = kubeDb.addOrReplaceDbOps(dbOps);
+
+    assertThrows(RuntimeException.class,
+        () -> securityUpgradeJob.runJob(dbOps, cluster).await().indefinitely());
+
+    final String expectedOperatorVersion = JobsProperty.OPERATOR_VERSION.getString();
+
+    assertEquals(expectedOperatorVersion, kubeDb.getCluster(clusterName, clusterNamespace)
+        .getMetadata().getAnnotations().get(StackGresContext.VERSION_KEY));
+
+    assertEquals(errorMessage, kubeDb.getDbOps(clusterName, clusterNamespace)
+        .getStatus().getSecurityUpgrade().getFailure());
+
+  }
+}

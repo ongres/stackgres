@@ -29,7 +29,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefu
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V094)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V095)
 @InitContainer(order = 0)
 public class DataPathsInitializer implements ContainerFactory<StackGresClusterContext> {
 

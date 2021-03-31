@@ -26,7 +26,7 @@ import io.stackgres.operator.conciliation.factory.InitContainer;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
-@InitContainer(order = 1)
+@InitContainer(order = 2)
 public class ScriptsSetUp implements ContainerFactory<StackGresClusterContext> {
 
   private final ClusterEnvironmentVariablesFactoryDiscoverer<StackGresClusterContext>

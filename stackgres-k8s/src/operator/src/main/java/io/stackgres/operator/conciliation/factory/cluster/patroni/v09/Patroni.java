@@ -51,7 +51,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigM
 import io.stackgres.operator.patroni.factory.PatroniScriptsConfigMap;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V094)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V095)
 @RunningContainer(order = 0)
 public class Patroni implements ContainerFactory<StackGresClusterContext> {
 

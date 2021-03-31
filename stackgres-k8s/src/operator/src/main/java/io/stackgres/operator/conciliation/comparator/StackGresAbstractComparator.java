@@ -30,12 +30,12 @@ public abstract class StackGresAbstractComparator
     int ignore = countPatchesToIgnore(diff);
 
     final int actualDifferences = diff.size() - ignore;
-    if (LOGGER.isTraceEnabled() && actualDifferences != 0) {
+    if (LOGGER.isDebugEnabled() && actualDifferences != 0) {
       for (JsonNode jsonPatch : diff) {
         JsonPatch patch = new JsonPatch(jsonPatch);
         if (Arrays.stream(getPatchPattersToIgnore())
             .noneMatch(patchPattern -> patchPattern.matches(patch))) {
-          LOGGER.trace("{} diff {}", r1.getKind(), jsonPatch.toPrettyString());
+          LOGGER.debug("{} diff {}", r1.getKind(), jsonPatch.toPrettyString());
         }
       }
     }

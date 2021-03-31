@@ -148,7 +148,7 @@ e2e_test_uninstall() {
 }
 
 e2e_test() {
-  run_test "Check that operator can be upgraded to newver version" check_operator_upgrade
+  run_test "Check that operator can be upgraded to newer version" check_operator_upgrade
   run_test "Check that cluster with 1 node after upgrade" check_cluster_1
   run_test "Check that cluster with 2 node after upgrade" check_cluster_2
   run_test "Check that cluster with 3 node after upgrade" check_cluster_3
@@ -231,17 +231,17 @@ check_operator_upgrade() {
 
 
 check_cluster_1() {
-  check_sts_is_not_altered "$CLUSTER_NAME-1"
+  #check_sts_is_not_altered "$CLUSTER_NAME-1"
   check_mock_data_samehost "$CLUSTER_NAME-1"
 }
 
 check_cluster_2() {
-  check_sts_is_not_altered "$CLUSTER_NAME-1"
+  #check_sts_is_not_altered "$CLUSTER_NAME-1"
   check_mock_data_samehost "$CLUSTER_NAME-2"
 }
 
 check_cluster_3() {
-  check_sts_is_not_altered "$CLUSTER_NAME-1"
+  #check_sts_is_not_altered "$CLUSTER_NAME-1"
   check_mock_data_samehost "$CLUSTER_NAME-3"
 }
 
@@ -258,18 +258,7 @@ check_distributedlogs_restart() {
 }
 
 check_cluster_1_restart() {
-  check_cluster_restart "$CLUSTER_NAME-1" 1 true false \
-    --set configurations.create=false --set instanceProfiles=false \
-    --set-string cluster.postgresVersion=latest \
-    --set prometheusAutobind=true \
-    --set backupconfig.create=true \
-    --set backupconfig.retention=2 \
-    --set-string cluster.configurations.sgBackupConfig=backupconf \
-    --set-string cluster.initialData.restore.fromBackup.uid="$BACKUP_UID" \
-    --set distributedLogs.enabled=true \
-    --set distributedLogs.create=false \
-    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME" \
-    --set-string cluster.metadata.annotations.allResources.test-annotation=test-value
+  check_cluster_restart "$CLUSTER_NAME-1" 1 "ReducedImpact" false
   wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-1" --for condition=PendingRestart'
 }
 
@@ -280,39 +269,19 @@ check_cluster_2_restart() {
     --set cluster.configurations.sgPostgresConfig=postgresconf-for-restart-primary-first \
     --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-restart-primary-first \
     --set-string configurations.postgresconfig.postgresql\.conf.max_connections=50
-  check_cluster_restart "$CLUSTER_NAME-2" 2 false true \
-    --set configurations.create=false --set instanceProfiles=false \
-    --set-string cluster.postgresVersion=latest \
-    --set prometheusAutobind=true \
-    --set backupconfig.create=true \
-    --set backupconfig.retention=2 \
-    --set-string cluster.configurations.sgBackupConfig=backupconf \
-    --set distributedLogs.enabled=true \
-    --set distributedLogs.create=false \
-    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+  check_cluster_restart "$CLUSTER_NAME-2" 2 "InPlace" true
   wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-2" --for condition=PendingRestart'
 }
 
 check_cluster_3_restart() {
-  check_cluster_restart "$CLUSTER_NAME-3" 3 false false \
-    --set configurations.create=false --set instanceProfiles=false \
-    --set-string cluster.postgresVersion=latest \
-    --set cluster.configurations.sgPostgresConfig=postgresconf-for-restart-primary-first \
-    --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-restart-primary-first \
-    --set prometheusAutobind=true \
-    --set backupconfig.create=true \
-    --set backupconfig.retention=2 \
-    --set-string cluster.configurations.sgBackupConfig=backupconf \
-    --set distributedLogs.enabled=true \
-    --set distributedLogs.create=false \
-    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+  check_cluster_restart "$CLUSTER_NAME-3" 3 "InPlace" false
   wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-3" --for condition=PendingRestart'
 }
 
 check_cluster_restart() {
   local CLUSTER_NAME="$1"
   local CLUSTER_SIZE="$2"
-  local REDUCED_IMPACT="$3"
+  local METHOD="$3"
   local RESTART_PRIMARY_FIRST="$4"
   shift 4
 
@@ -374,7 +343,28 @@ check_cluster_before_restart() {
   done
 }
 
-check_cluster_after_restart() {
+    cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $CLUSTER_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: restart
+  restart:
+    method: $METHOD
+EOF
+
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$CLUSTER_NAME" \
+    --for condition=Completed
+  then
+    echo "SUCCESS. security upgrade completed."
+  else
+    echo "FAILED. security upgrade failed."
+    return 1
+  fi
+
   local STS_UPDATE_REVISION="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .status.updateRevision }}')"
   local POD_CONTROLLER_REVISION_HASH
   local POD_CONTROLLER_REVISION_HASHES="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
@@ -422,10 +412,10 @@ check_cluster_after_restart() {
     --template '{{ .spec.type }}')"
   if [ "$PRIMARY_SERVICE_TYPE" = "ExternalName" ]
   then
-    echo "SUCCESS. Primary service is of type ExternalName"
-  else
-    echo "FAILURE. Primary service is not of type ExternalName"
+    echo "FAILURE. Primary service was migrated"
     return 1
+  else
+    echo "SUCCESS. Primary service was not migrated"
   fi
   unset POD
 }

@@ -134,7 +134,7 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupScanner).getResources();
-    verify(serviceAccountFinder, times(2)).findByNameAndNamespace(any(), eq(clusterNamespace));
+    verify(serviceAccountFinder).findByNameAndNamespace(any(), eq(clusterNamespace));
     verify(secretFinder).findByNameAndNamespace(clusterName, clusterNamespace);
 
   }
@@ -177,7 +177,7 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupScanner).getResources();
-    verify(serviceAccountFinder, times(2))
+    verify(serviceAccountFinder)
         .findByNameAndNamespace(any(), eq(clusterNamespace));
     verify(secretFinder).findByNameAndNamespace(clusterName, clusterNamespace);
 
@@ -212,7 +212,7 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupScanner).getResources();
-    verify(serviceAccountFinder, times(2))
+    verify(serviceAccountFinder)
         .findByNameAndNamespace(any(), eq(clusterNamespace));
     verify(secretFinder).findByNameAndNamespace(clusterName, clusterNamespace);
 
@@ -248,7 +248,7 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(poolingConfigFinder, never()).findByNameAndNamespace(any(), any());
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupScanner).getResources();
-    verify(serviceAccountFinder, times(2))
+    verify(serviceAccountFinder)
         .findByNameAndNamespace(any(), eq(clusterNamespace));
     verify(secretFinder).findByNameAndNamespace(clusterName, clusterNamespace);
 
@@ -285,7 +285,7 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupScanner, never()).getResources();
-    verify(serviceAccountFinder, times(2))
+    verify(serviceAccountFinder)
         .findByNameAndNamespace(any(), eq(clusterNamespace));
     verify(secretFinder).findByNameAndNamespace(clusterName, clusterNamespace);
 
@@ -422,7 +422,7 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupScanner).getResources();
-    verify(serviceAccountFinder, times(2))
+    verify(serviceAccountFinder)
         .findByNameAndNamespace(any(), eq(clusterNamespace));
     verify(secretFinder).findByNameAndNamespace(clusterName, clusterNamespace);
 
@@ -459,7 +459,7 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupScanner).getResources();
-    verify(serviceAccountFinder, times(2))
+    verify(serviceAccountFinder)
         .findByNameAndNamespace(any(), eq(clusterNamespace));
     verify(secretFinder).findByNameAndNamespace(clusterName, clusterNamespace);
 

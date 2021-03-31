@@ -23,7 +23,7 @@ import io.stackgres.operator.conciliation.factory.InitContainer;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
-@InitContainer(order = 1)
+@InitContainer(order = 2)
 public class ScriptsSetUp implements ContainerFactory<DistributedLogsContext> {
 
   @Override
