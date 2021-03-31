@@ -56,7 +56,6 @@ Grafana's hostname also can be queried as:
 kubectl get --namespace monitoring deployments prometheus-grafana -o json | jq -r '.metadata.name'
 ```
 
-
 ### Re-routing services to different ports 
 
 In a production setup, is very likely that you will be installing all the resources in a remote location, so you'll need to route the services through specific interfaces and ports.
@@ -206,4 +205,26 @@ prometheus-operator-pushgateway-888f886ff-bxxtw           1/1     Running   0   
 prometheus-operator-server-7686fc69bd-mlvsx               2/2     Running   0          79m
 prometheus-prometheus-kube-prometheus-prometheus-0        3/3     Running   1          20m
 prometheus-prometheus-node-exporter-jbsm2                 0/1     Pending   0          20m
+```
+
+## Enable Prometheus Auto Binding in Cluster
+
+To allow the operator discover available [Prometheus](https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#prometheus)
+ and create required [ServiceMonitors](https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#servicemonitor)
+ to store StackGres stats in existing instances of prometheus (only for those that are created through the
+ [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator)) you have to set to `true` field `.spec.prometheusAutobind` in
+ your [SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}}):
+
+```yaml
+apiVersion: stackgres.io/v1
+kind: SGCluster
+metadata:
+  name: simple
+spec:
+  instances: 2
+  postgresVersion: 'latest'
+  pods:
+    persistentVolume:
+      size: '5Gi'
+  prometheusAutobind: true
 ```

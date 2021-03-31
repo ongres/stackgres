@@ -31,7 +31,8 @@ public class ClusterPod {
   @JsonProperty("metadata")
   private ClusterPodMetadata metadata;
 
-  private PodScheduling scheduling;
+  @Valid
+  private ClusterPodScheduling scheduling;
 
   public ClusterPodPersistentVolume getPersistentVolume() {
     return persistentVolume;
@@ -73,11 +74,11 @@ public class ClusterPod {
     this.metadata = metadata;
   }
 
-  public PodScheduling getScheduling() {
+  public ClusterPodScheduling getScheduling() {
     return scheduling;
   }
 
-  public void setScheduling(PodScheduling scheduling) {
+  public void setScheduling(ClusterPodScheduling scheduling) {
     this.scheduling = scheduling;
   }
 

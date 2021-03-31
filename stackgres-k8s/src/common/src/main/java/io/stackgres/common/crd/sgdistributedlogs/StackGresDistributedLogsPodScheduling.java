@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.common.crd.sgcluster;
+package io.stackgres.common.crd.sgdistributedlogs;
 
 import java.util.List;
 import java.util.Map;
@@ -25,7 +25,7 @@ import io.stackgres.common.validation.FieldReference.ReferencedField;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackGresPodScheduling {
+public class StackGresDistributedLogsPodScheduling {
 
   @JsonProperty("nodeSelector")
   private Map<String, String> nodeSelector;
@@ -68,10 +68,10 @@ public class StackGresPodScheduling {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresPodScheduling)) {
+    if (!(obj instanceof StackGresDistributedLogsPodScheduling)) {
       return false;
     }
-    StackGresPodScheduling other = (StackGresPodScheduling) obj;
+    StackGresDistributedLogsPodScheduling other = (StackGresDistributedLogsPodScheduling) obj;
     return Objects.equals(nodeSelector, other.nodeSelector)
         && Objects.equals(tolerations, other.tolerations);
   }

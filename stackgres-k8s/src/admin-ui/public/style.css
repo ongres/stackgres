@@ -221,11 +221,11 @@ svg.background circle {
 
 #signup form {
     width: auto;
-} 
+}
 
 #signup .header {
     width: 300px;
-} 
+}
 
 #signup p {
     margin-bottom: 25px;
@@ -461,7 +461,7 @@ form#login .warning {
 }*/
 
 .darkmode .form input, .darkmode .form select, .darkmode .form textarea {
-    background-color: #1b1b1b;    
+    background-color: #1b1b1b;
 }
 
 .darkmode .set.active, .darkmode .set.active a:hover, .darkmode .set:hover a:hover, .darkmode .set:not(.active) > ul li, .darkmode #keyword, .darkmode ul.select, .darkmode ul.select.active, .darkmode ul.select.active ul, .darkmode .options li.textFilter .search {
@@ -576,7 +576,7 @@ form#login .warning {
     background: #1b1b1b;
     border: 1px solid #333333;
     color: var(--gray3);
-} 
+}
 
 .darkmode .grafana iframe {
     border: none;
@@ -880,7 +880,7 @@ ul.zg-ul-select.active li.active:hover {
 
 #ns-select li a:hover {
     background: transparent;
-} 
+}
 
 #current-namespace h2 span {
     position: relative;
@@ -954,8 +954,8 @@ ul.zg-ul-select.active li.active:hover {
     overflow: auto;
 }
 
-/* .set.active:not(.conf):not(.backups):not(.logs) { 
-    min-height: 100px; 
+/* .set.active:not(.conf):not(.backups):not(.logs) {
+    min-height: 100px;
 } */
 
 .set.clu.active {
@@ -1087,7 +1087,7 @@ ul.zg-ul-select.active li.active:hover {
     margin-bottom: 10px;
 }
 
-#sets h3 { 
+#sets h3 {
     -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari */
      -khtml-user-select: none; /* Konqueror HTML */
@@ -1095,7 +1095,7 @@ ul.zg-ul-select.active li.active:hover {
         -ms-user-select: none; /* Internet Explorer/Edge */
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome, Opera and Firefox */
-} 
+}
 
 /*#sets h3:before {
     content: "▾";
@@ -1383,7 +1383,7 @@ footer {
 #delete .tooltip p {
     line-height: 1.2;
     margin-bottom: 10px;
-} 
+}
 
 #delete .tooltip form input {
     background:#fff;
@@ -1683,7 +1683,7 @@ header .actions {
     text-transform: uppercase;
     display: block;
     width: 100%;
-    padding: 12px 0 15px;    
+    padding: 12px 0 15px;
     border-bottom: 1px solid var(--gray1);
 
 }
@@ -1857,7 +1857,7 @@ ul.tabs {
 .table .col.text {
     /* text-transform: uppercase; */
     text-align: left;
-}   
+}
 
 .table .col.status {
     text-align: left;
@@ -2490,7 +2490,7 @@ button.cancelBtn:hover {
 
 .form .hide, .form .hidden, .hide {
     display: none !important;
-} 
+}
 
 .form .show, .form .changed {
     display: inline-block !important;
@@ -2511,7 +2511,7 @@ fieldset {
     display: inline;
 }
 
-.config .form {    
+.config .form {
     margin-bottom: 25px;
     margin-top: -10px;
 }
@@ -2527,7 +2527,7 @@ fieldset {
     cursor: not-allowed;
 }
 
-/* 
+/*
 .form .advanced {
     margin-bottom: 20px;
     font-size: 1rem;
@@ -3066,7 +3066,6 @@ tr.details {
 }
 
 tr.details table {
-    border: 1px solid #f0f0f1;
     margin-left: 0;
 }
 
@@ -3837,9 +3836,9 @@ th.sysId, th.operation {
 }
 
 /*td.logMessage span {
-    overflow: hidden; 
+    overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap; 
+    white-space: nowrap;
     width: 100%;
     display: inline-block;
 }*/
@@ -3950,7 +3949,7 @@ table.logs tr.base {
 }
 
 table.logs tr.base td {
-    height: 39px !important; 
+    height: 39px !important;
 }
 
 .logs td.actions svg {
@@ -4174,7 +4173,7 @@ td.today.available {
     border-top: 1px solid var(--gray1);
     padding-top: 20px;
     margin-top: 10px !important;
-    
+
 }
 
 /* Tooltip Styling Luis */
@@ -4491,7 +4490,7 @@ span.closeLog:hover {
 }
 
 @media screen and (max-width: 1500px) {
-    table.logs th.logMessage, table.logs td.logMessage { 
+    table.logs th.logMessage, table.logs td.logMessage {
         min-width: 240px;
     }
 }
@@ -4699,7 +4698,7 @@ tr.details.pgConfig.open div, table.backupConfig .configurationDetails, table.ba
     display: block;
     margin-bottom: 10px;
     margin-top: -10px;
-} 
+}
 
 table.pgConfig tr.base.open td.parameters, table.pgConfig tr.base.open td.pgVersion, table.poolConfig tr.base.open td.parameters, table tr.open .fontZero {
     font-size: 0;
@@ -5074,7 +5073,7 @@ fieldset.accordion > .header {
     cursor: pointer;
     /* transition: all .3s ease-in; */
 }
-/* 
+/*
 fieldset.accordion > .header.open {
     transition: all .3s ease-in;
 } */

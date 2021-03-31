@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.common.crd.sgcluster;
+package io.stackgres.common.crd.sgdistributedlogs;
 
 import java.util.Objects;
 
@@ -18,17 +18,17 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackGresClusterSpecMetadata {
+public class StackGresDistributedLogsSpecMetadata {
 
   @JsonProperty("annotations")
   @Valid
-  private StackGresClusterSpecAnnotations annotations;
+  private StackGresDistributedLogsSpecAnnotations annotations;
 
-  public StackGresClusterSpecAnnotations getAnnotations() {
+  public StackGresDistributedLogsSpecAnnotations getAnnotations() {
     return annotations;
   }
 
-  public void setAnnotations(StackGresClusterSpecAnnotations annotations) {
+  public void setAnnotations(StackGresDistributedLogsSpecAnnotations annotations) {
     this.annotations = annotations;
   }
 
@@ -40,7 +40,7 @@ public class StackGresClusterSpecMetadata {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    StackGresClusterSpecMetadata that = (StackGresClusterSpecMetadata) o;
+    StackGresDistributedLogsSpecMetadata that = (StackGresDistributedLogsSpecMetadata) o;
     return Objects.equals(annotations, that.annotations);
   }
 

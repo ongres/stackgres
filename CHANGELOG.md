@@ -1,8 +1,68 @@
+# Release 0.9.5 (2021-03-31)
+
+## NOTES
+
+Here it comes StackGres 0.9.5!! :tada: :bottle_with_popping_cork:
+
+We want you to be safe and a bit more powerful so we bring to you some bugfixes and small changes!
+
+## UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/0.9/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 0.9 version or above) helm chart issue following commands (replace namespace and release name if you used something different):
+
+```
+NAMESPACE=stackgres
+RELEASE=stackgres-operator
+helm upgrade -n "$NAMESPACE" "$RELEASE" https://stackgres.io/downloads/stackgres-k8s/stackgres/0.9.5/helm/stackgres-operator.tgz
+```
+
+## CHANGES
+
+* Postgres 11.11 and 12.6
+* PgBouncer 1.13.0
+* Envoy 1.15.3
+* Prometheus Postgres Exporter 0.8.0
+* FluentBit 1.4.6
+* Fluentd 1.9.3
+* Support for annotations in sgdistributedlogs
+* Support for node selector in sgdistributedlogs
+* Support for node tolerations in sgdistributedlogs
+
+## FIXES
+
+* Primary service is not updated after upgrade to 0.9.4
+* Service account annotation is not updated
+* Job's pods not created with specified annotations
+* Bug when editing CRDs from the web console and new information is read from the API
+* Connections to the database timed out through the Envoy port
+* Patroni endpoint is open to everyone
+* Backup size information is inverted
+* Upgrading a cluster with new annotations for all resources break the reconciliation
+* NullPointerException on PairUpdater visitMapTransformed
+* Operator version is not shown in the UI
+* Wrong used disk size of primary shown in cluster summary in the UI
+* Adjust logs loader function on-screen resize in the UI
+* Bug on Instance Profiles edition in the UI
+* Not found page loads only on the light mode in the UI
+* Full schedule not shown on backup config details row in the UI
+* Enable editing of annotations on clusters and distributed log servers in the UI
+* Hide content when the requested CRD name is not found in the UI
+
+## KNOWN ISSUES
+
+* Kubernetes 1.18+ is not supported yet, see #439
+* Kubernetes 1.11 requires PodShareProcessNamespace feature gate to be enabled (not tested in any kubernetes environment except for MiniShift 3.11)
+
+## [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/0.9.5)
+
 # Release 1.0.0-alpha1
 
 ## NOTES
 
-We are proud to present StackGres 1.0.0-alpha1!! :fireworks: :bottle_with_popping_cork: 
+We are proud to present StackGres 1.0.0-alpha1!! :fireworks: :bottle_with_popping_cork:
 
 This is our first 1.0 series release and it comes with some very useful features to automate your StackGres daily tasks. This is an alpha version so new features !
 
@@ -44,7 +104,7 @@ helm upgrade -n "$NAMESPACE" "$RELEASE" https://stackgres.io/downloads/stackgres
 
 ## NOTES
 
-Here it comes StackGres 0.9.4!! :tada: :bottle_with_popping_cork: 
+Here it comes StackGres 0.9.4!! :tada: :bottle_with_popping_cork:
 
 We want you to be safe and a bit more powerful so we bring to you some bugfixes and small changes!
 
@@ -86,7 +146,7 @@ helm upgrade -n "$NAMESPACE" "$RELEASE" https://stackgres.io/downloads/stackgres
 
 ## NOTES
 
-Here it comes StackGres 0.9.3!! :tada: :bottle_with_popping_cork: 
+Here it comes StackGres 0.9.3!! :tada: :bottle_with_popping_cork:
 
 We want you to be safe and a bit more powerful so we bring to you some bugfixes and small changes!
 
@@ -113,7 +173,7 @@ helm upgrade -n "$NAMESPACE" "$RELEASE" https://stackgres.io/downloads/stackgres
 * Fixed default pooling configuration to not limit downstream connections to postgres (they are now limited to [`max_connections`](https://postgresqlco.nf/en/doc/param/max_connections/)). This only affect installation that uses default pooling configuration.
 * Fixed slow queries in prometheus postgres exporter sidecar for table and index bloats
 * Fixed some grafana dashboard panels units
-* Added workaround for JIT memory leak in postgres. See https://www.postgresql.org/message-id/flat/20201111121420.GA666413%40roeckx.be#81aedc67713fbc01b4443ee586580fb5 
+* Added workaround for JIT memory leak in postgres. See https://www.postgresql.org/message-id/flat/20201111121420.GA666413%40roeckx.be#81aedc67713fbc01b4443ee586580fb5
 * Fixed some UI bugs
 
 # KNOWN ISSUES
@@ -125,7 +185,7 @@ helm upgrade -n "$NAMESPACE" "$RELEASE" https://stackgres.io/downloads/stackgres
 
 ## NOTES
 
-Here it comes StackGres 0.9.2!! :tada: :bottle_with_popping_cork: 
+Here it comes StackGres 0.9.2!! :tada: :bottle_with_popping_cork:
 
 We want you to be safe so we bring to you some buigfixes!
 
@@ -160,7 +220,7 @@ helm upgrade -n "$NAMESPACE" "$RELEASE" https://stackgres.io/downloads/stackgres
 
 ## NOTES
 
-Here it comes StackGres 0.9.1!! :tada: :bottle_with_popping_cork: 
+Here it comes StackGres 0.9.1!! :tada: :bottle_with_popping_cork:
 
 We want you to be safe and cool so we bring to you some component version upgrades and buigfixes!
 
@@ -197,7 +257,7 @@ This release comes with new images that fix a bug with the [JIT library not pres
 * Cluster status do not show the message when one node is failing in the operator admin UI
 * Various fixes and small improvements in the operator admin UI
 * Helm chart init jobs uses the same service account used by the operator
-* Helm chart grafana integration fail if grafana.secret* are specified 
+* Helm chart grafana integration fail if grafana.secret* are specified
 
 # KNOWN ISSUES
 
@@ -208,7 +268,7 @@ This release comes with new images that fix a bug with the [JIT library not pres
 
 ## NOTES
 
-Here it comes StackGres 0.9!! :tada: :bottle_with_popping_cork: 
+Here it comes StackGres 0.9!! :tada: :bottle_with_popping_cork:
 
 The most prominent new feature in this release is easy access to postgres logs with an easy to use interface (through the we UI). It is backed by a dedicated postgres instance, with his own special CR called `SGDistributedLogs`. But even if that is the main feature of this release there are many other new features, changes and fixes that we are proud to bring to you.
 

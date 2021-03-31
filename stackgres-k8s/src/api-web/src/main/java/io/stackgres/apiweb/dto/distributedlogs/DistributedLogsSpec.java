@@ -5,15 +5,12 @@
 
 package io.stackgres.apiweb.dto.distributedlogs;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -23,13 +20,16 @@ public class DistributedLogsSpec implements KubernetesResource {
   private static final long serialVersionUID = 1L;
 
   @JsonProperty("persistentVolume")
-  @NotNull(message = "Persistent volume must be specified")
-  @Valid
   private DistributedLogsPersistentVolume persistentVolume;
 
   @JsonProperty("nonProductionOptions")
-  @Valid
   private DistributedLogsNonProduction nonProduction;
+
+  @JsonProperty("scheduling")
+  private DistributedLogsPodScheduling scheduling;
+
+  @JsonProperty("metadata")
+  private DistributedLogsSpecMetadata metadata;
 
   public DistributedLogsPersistentVolume getPersistentVolume() {
     return persistentVolume;
@@ -48,11 +48,24 @@ public class DistributedLogsSpec implements KubernetesResource {
     this.nonProduction = nonProduction;
   }
 
+  public DistributedLogsPodScheduling getScheduling() {
+    return scheduling;
+  }
+
+  public void setScheduling(DistributedLogsPodScheduling scheduling) {
+    this.scheduling = scheduling;
+  }
+
+  public DistributedLogsSpecMetadata getMetadata() {
+    return metadata;
+  }
+
+  public void setMetadata(DistributedLogsSpecMetadata metadata) {
+    this.metadata = metadata;
+  }
+
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("persistentVolume", persistentVolume)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 }

@@ -13,7 +13,7 @@ keyworkds:
 home: https://stackgres.io
 sources:
   - https://gitlab.com/ongresinc/stackgres
-maintainers: 
+maintainers:
   - name: OnGres Inc.
     email: info@ongres.com
     url: https://ongres.com

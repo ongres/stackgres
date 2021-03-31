@@ -135,11 +135,19 @@ public class PgPooling
         .withImagePullPolicy("IfNotPresent")
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
                 .volumeMount(context.getClusterContext()),
-            new VolumeMountBuilder()
+                new VolumeMountBuilder()
                 .withName(NAME)
                 .withMountPath("/etc/pgbouncer")
                 .withReadOnly(Boolean.TRUE)
-                .build());
+                .build(),
+                ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                    ClusterStatefulSetPath.ETC_PASSWD_PATH, context.getClusterContext()),
+                ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                    ClusterStatefulSetPath.ETC_GROUP_PATH, context.getClusterContext()),
+                ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                    ClusterStatefulSetPath.ETC_SHADOW_PATH, context.getClusterContext()),
+                ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                    ClusterStatefulSetPath.ETC_GSHADOW_PATH, context.getClusterContext()));
 
     return container.build();
   }

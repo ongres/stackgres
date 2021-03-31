@@ -25,7 +25,7 @@
 						<a v-if="iCan('create','sgclusters',$route.params.namespace)" class="cloneCRD" @click="cloneCRD('SGCluster', $route.params.namespace, $route.params.name)">Clone Cluster Configuration</a>
 						<router-link v-if="iCan('create','sgclusters',$route.params.namespace)" :to="'/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link>
 						<a v-if="iCan('delete','sgclusters',$route.params.namespace)" v-on:click="deleteCRD('sgcluster', $route.params.namespace, $route.params.name, '/overview/'+$route.params.namespace)" :class="'/overview/'+$route.params.namespace">Delete Cluster</a>
-					</div>		
+					</div>
 				</div>
 
 				<ul class="tabs">
@@ -146,7 +146,7 @@
 								<router-link :to="'/configurations/postgres/'+$route.params.namespace+'/'+cluster.data.spec.configurations.sgPostgresConfig">
 									{{ cluster.data.spec.configurations.sgPostgresConfig }}
 									<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
-								</router-link>								
+								</router-link>
 							</td>
 						</tr>
 						<tr v-if="(typeof cluster.data.spec.configurations.sgPoolingConfig !== 'undefined')">
@@ -158,7 +158,7 @@
 								<router-link :to="'/configurations/connectionpooling/'+$route.params.namespace+'/'+cluster.data.spec.configurations.sgPoolingConfig">
 									{{ cluster.data.spec.configurations.sgPoolingConfig }}
 									<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
-								</router-link>	
+								</router-link>
 							</td>
 						</tr>
 						<tr v-if="(typeof cluster.data.spec.configurations.sgBackupConfig !== 'undefined')">
@@ -229,7 +229,7 @@
 											Backup UID
 										</td>
 										<td>
-											<router-link :to="'/cluster/backups/'+$route.params.namespace+'/'+backup.data.spec.sgCluster+'/'+backup.data.metadata.uid"> 
+											<router-link :to="'/cluster/backups/'+$route.params.namespace+'/'+backup.data.spec.sgCluster+'/'+backup.data.metadata.uid">
 												{{ cluster.data.spec.initialData.restore.fromBackup }}
 												<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
 											</router-link>
@@ -288,7 +288,7 @@
 									</tr>
 								</template>
 							</template>
-						</template>	
+						</template>
 					</tbody>
 				</table>
 
@@ -363,7 +363,7 @@
 								<template v-if="hasProp(item, 'database')">
 									<tr>
 										<td class="label" rowspan="2">
-											Script #{{ index+1 }} <template v-if="hasProp(item, 'name')">– {{ item.name }} </template> 
+											Script #{{ index+1 }} <template v-if="hasProp(item, 'name')">– {{ item.name }} </template>
 										</td>
 										<td class="label">
 											Database
@@ -374,10 +374,10 @@
 									</tr>
 									<tr>
 										<td class="label">
-											Script Details 
+											Script Details
 										</td>
 										<td colspan="2">
-											<a @click="setContentTooltip('#script-'+index)"> 
+											<a @click="setContentTooltip('#script-'+index)">
 												View Script
 												<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
 											</a>
@@ -393,17 +393,17 @@
 											</div>
 										</td>
 									</tr>
-								</template>		
+								</template>
 								<template v-else>
 									<tr>
 										<td class="label">
-											Script #{{ index+1 }} <template v-if="hasProp(item, 'name')">– {{ item.name }} </template> 
+											Script #{{ index+1 }} <template v-if="hasProp(item, 'name')">– {{ item.name }} </template>
 										</td>
 										<td class="label">
 											Script Details
 										</td>
 										<td colspan="2">
-											<a @click="setContentTooltip('#script-'+index)"> 
+											<a @click="setContentTooltip('#script-'+index)">
 												View Script
 												<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
 											</a>
@@ -494,7 +494,7 @@
 							</tr>
 						</tbody>
 					</table>
-				</div>	
+				</div>
 
 				<div class="postgresServices" v-if="tooltips.hasOwnProperty('sgcluster') && hasProp(cluster, 'data.spec.postgresServices') && ((hasProp(cluster, 'data.spec.postgresServices.primary') && cluster.data.spec.postgresServices.primary.enabled) || (hasProp(cluster, 'data.spec.postgresServices.replicas') && cluster.data.spec.postgresServices.replicas.enabled))">
 					<h2>Postgres Services <span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresServices.description"></span></h2>
@@ -577,7 +577,7 @@
 							</tr>
 						</tbody>
 					</table>
-				</div>		
+				</div>
 			</div>
 		</template>
 	</div>
@@ -608,13 +608,13 @@
 						propsArray.push(prop)
 					});
 				}
-				
+
 				return propsArray
 			},
 
 		},
 		created: function() {
-			
+
 		},
 		mounted: function() {
 			$(document).on('click','.toggleSecret', function() {
@@ -633,7 +633,7 @@
 			},
 
 			profiles () {
-				
+
 				//let profile = store.state.profiles.find(p => ( (this.$route.params.namespace == p.data.metadata.namespace) && (store.state.currentCluster.data.spec.sgInstanceProfile == p.name) ) );
 				return store.state.profiles
 			},
@@ -645,6 +645,6 @@
 		beforeDestroy () {
 			//clearInterval(this.polling);
 			//console.log('Interval cleared');
-		} 
+		}
 	}
 </script>

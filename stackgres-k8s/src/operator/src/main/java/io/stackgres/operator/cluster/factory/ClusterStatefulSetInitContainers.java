@@ -45,27 +45,13 @@ public class ClusterStatefulSetInitContainers
 
   @Override
   public Stream<Container> streamResources(StackGresClusterContext config) {
-    return Seq.of(Optional.of(createSetupDataPathsContainer(config)),
-        Optional.of(setupScriptsContainer(config)),
-        Optional.of(createSetupArbitraryUser(config)))
+    return Seq.of(
+        Optional.of(createSetupArbitraryUser(config)),
+        Optional.of(createSetupDataPathsContainer(config)),
+        Optional.of(setupScriptsContainer(config)))
         .filter(Optional::isPresent)
         .map(Optional::get)
         .append(setupMajorVersionUpgrade(config));
-  }
-
-  private Container createSetupDataPathsContainer(StackGresClusterContext config) {
-    return new ContainerBuilder()
-        .withName("setup-data-paths")
-        .withImage(StackGresContext.BUSYBOX_IMAGE)
-        .withImagePullPolicy("IfNotPresent")
-        .withCommand("/bin/sh", "-ex",
-            ClusterStatefulSetPath.TEMPLATES_PATH.path()
-            + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH.filename())
-        .withEnv(clusterStatefulSetEnvironmentVariables.listResources(config))
-        .withVolumeMounts(
-            ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(config),
-            ClusterStatefulSetVolumeConfig.DATA.volumeMount(config))
-        .build();
   }
 
   private Container createSetupArbitraryUser(StackGresClusterContext config) {
@@ -80,10 +66,33 @@ public class ClusterStatefulSetInitContainers
         .withVolumeMounts(
             ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(config),
             ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-            config, volumeMountBuilder -> volumeMountBuilder
+                config, volumeMountBuilder -> volumeMountBuilder
                 .withSubPath("etc")
                 .withMountPath("/local/etc")
                 .withReadOnly(false)))
+        .build();
+  }
+
+  private Container createSetupDataPathsContainer(StackGresClusterContext config) {
+    return new ContainerBuilder()
+        .withName("setup-data-paths")
+        .withImage(StackGresContext.BUSYBOX_IMAGE)
+        .withImagePullPolicy("IfNotPresent")
+        .withCommand("/bin/sh", "-ex",
+            ClusterStatefulSetPath.TEMPLATES_PATH.path()
+            + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH.filename())
+        .withEnv(clusterStatefulSetEnvironmentVariables.listResources(config))
+        .withVolumeMounts(
+            ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(config),
+            ClusterStatefulSetVolumeConfig.DATA.volumeMount(config),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_PASSWD_PATH, config),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_GROUP_PATH, config),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_SHADOW_PATH, config),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_GSHADOW_PATH, config))
         .build();
   }
 
@@ -98,7 +107,15 @@ public class ClusterStatefulSetInitContainers
         .withEnv(clusterStatefulSetEnvironmentVariables.listResources(config))
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(config),
             ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.LOCAL_BIN_PATH, config))
+                ClusterStatefulSetPath.LOCAL_BIN_PATH, config),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_PASSWD_PATH, config),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_GROUP_PATH, config),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_SHADOW_PATH, config),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_GSHADOW_PATH, config))
         .build();
   }
 

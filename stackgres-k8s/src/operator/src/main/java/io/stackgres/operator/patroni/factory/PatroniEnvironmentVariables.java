@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 import org.jooq.lambda.Seq;
 
@@ -24,14 +25,37 @@ public class PatroniEnvironmentVariables
 
   @Override
   public Stream<EnvVar> streamResources(StackGresClusterContext context) {
+
     return Seq.of(
+        new EnvVarBuilder()
+            .withName("PATRONI_RESTAPI_LISTEN")
+            .withValue("0.0.0.0:" + getPatroniListenPort(context))
+            .build(),
+        new EnvVarBuilder()
+            .withName("PATRONI_RESTAPI_CONNECT_ADDRESS")
+            .withValue("${PATRONI_KUBERNETES_POD_IP}:" + Envoy.PATRONI_ENTRY_PORT)
+            .build(),
+        new EnvVarBuilder()
+            .withName("PATRONI_RESTAPI_USERNAME")
+            .withValue("superuser")
+            .build(),
+        new EnvVarBuilder()
+            .withName("PATRONI_RESTAPI_PASSWORD")
+            .withValueFrom(new EnvVarSourceBuilder()
+                .withSecretKeyRef(
+                    new SecretKeySelectorBuilder()
+                        .withName(context.getCluster().getMetadata().getName())
+                        .withKey("restapi-password")
+                        .build())
+                .build())
+            .build(),
         new EnvVarBuilder().withName("PATRONI_NAME")
             .withValueFrom(new EnvVarSourceBuilder()
                 .withFieldRef(
                     new ObjectFieldSelectorBuilder()
                         .withFieldPath("metadata.name").build())
-                .build())
-            .build(),
+                .build()).build(),
+
         new EnvVarBuilder().withName("PATRONI_KUBERNETES_NAMESPACE")
             .withValueFrom(new EnvVarSourceBuilder()
                 .withFieldRef(
@@ -79,6 +103,15 @@ public class PatroniEnvironmentVariables
         new EnvVarBuilder().withName("PATRONI_authenticator_OPTIONS")
             .withValue("superuser")
             .build());
+  }
+
+  private int getPatroniListenPort(StackGresClusterContext context) {
+    return context.getSidecars().stream()
+        .filter(entry -> entry.getSidecar() instanceof Envoy)
+        .map(entry -> Envoy.PATRONI_PORT)
+        .findFirst()
+        .orElse(Envoy.PATRONI_ENTRY_PORT);
+
   }
 
 }
