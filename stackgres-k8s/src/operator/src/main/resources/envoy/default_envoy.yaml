@@ -74,6 +74,11 @@ static_resources:
     type: STATIC
     connect_timeout: 1s
     per_connection_buffer_limit_bytes: 1048576 # 1 MiB
+    circuit_breakers:
+      thresholds:
+        - max_connections: 65536
+          max_requests: 65536
+          track_remaining: true
     load_assignment:
       cluster_name: postgres_cluster
       endpoints:
@@ -88,6 +93,11 @@ static_resources:
     type: STATIC
     connect_timeout: 1s
     per_connection_buffer_limit_bytes: 1048576 # 1 MiB
+    circuit_breakers:
+      thresholds:
+        - max_connections: 65536
+          max_requests: 65536
+          track_remaining: true
     load_assignment:
       cluster_name: postgres_raw_cluster
       endpoints:
