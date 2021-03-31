@@ -153,7 +153,6 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
 
   @Override
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
-
     final StackGresClusterContext clusterContext = context.getClusterContext();
     final StackGresCluster stackGresCluster = clusterContext.getCluster();
     boolean disablePgBouncer = Optional
