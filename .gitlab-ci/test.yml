@@ -17,7 +17,7 @@ unit tests:
         - stackgres-k8s/src/*/target/surefire-reports/TEST-*.xml
 
 shell unit tests:
-  image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:11.0
+  image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:12.0
   stage: test
   tags:
     - stackgres-runner
@@ -45,7 +45,7 @@ shell unit tests:
 
 .e2e tests:
   stage: test
-  image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:11.0
+  image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:12.0
   tags:
     - stackgres-runner
   dependencies:
