@@ -40,6 +40,30 @@ spec:
       {{- end }}
     {{- end }}
   {{- end }} 
+  {{- if .Values.distributedLogs.metadata }}
+  metadata:
+    {{- if .Values.distributedLogs.metadata.annotations }}
+    annotations:
+      {{- if .Values.distributedLogs.metadata.annotations.allResources }}
+      allResources: 
+        {{- range $annot, $value := .Values.distributedLogs.metadata.annotations.allResources }}
+        {{ $annot }}: {{ $value }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.distributedLogs.metadata.annotations.pods }}
+      pods:
+        {{- range $annot, $value := .Values.distributedLogs.metadata.annotations.pods }}
+        {{ $annot }}: {{ $value }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.distributedLogs.metadata.annotations.services }}
+      services:
+        {{- range $annot, $value := .Values.distributedLogs.metadata.annotations.services }}
+        {{ $annot }}: {{ $value }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
   {{- if .Values.nonProductionOptions }}
   nonProductionOptions:
   {{- if not .Values.nonProductionOptions.disableClusterPodAntiAffinity }}

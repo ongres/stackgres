@@ -28,6 +28,9 @@ public class DistributedLogsSpec implements KubernetesResource {
   @JsonProperty("scheduling")
   private DistributedLogsPodScheduling scheduling;
 
+  @JsonProperty("metadata")
+  private DistributedLogsSpecMetadata metadata;
+
   public DistributedLogsPersistentVolume getPersistentVolume() {
     return persistentVolume;
   }
@@ -51,6 +54,14 @@ public class DistributedLogsSpec implements KubernetesResource {
 
   public void setScheduling(DistributedLogsPodScheduling scheduling) {
     this.scheduling = scheduling;
+  }
+
+  public DistributedLogsSpecMetadata getMetadata() {
+    return metadata;
+  }
+
+  public void setMetadata(DistributedLogsSpecMetadata metadata) {
+    this.metadata = metadata;
   }
 
   @Override
