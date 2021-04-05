@@ -21,6 +21,25 @@ spec:
     storageClass: {{ .Values.distributedLogs.persistentVolume.storageClass }}
     {{- end }}
     {{- end }}
+  {{- if .Values.distributedLogs.scheduling }}
+  scheduling:
+    {{- if .Values.distributedLogs.scheduling.nodeSelector }}
+    nodeSelector:
+      {{- range $label, $value := .Values.distributedLogs.scheduling.nodeSelector }}
+      {{ $label }}: {{ $value }}
+      {{- end }}
+    {{- end }}
+    {{- if .Values.distributedLogs.scheduling.tolerations }}
+    tolerations:
+      {{- range .Values.distributedLogs.scheduling.tolerations }}
+      - effect: {{ .effect }}
+        key: {{ .key }}
+        operator: {{ .operator }}
+        value: {{ .value }}
+        tolerationSeconds: {{ .tolerationSeconds }}
+      {{- end }}
+    {{- end }}
+  {{- end }} 
   {{- if .Values.nonProductionOptions }}
   nonProductionOptions:
   {{- if not .Values.nonProductionOptions.disableClusterPodAntiAffinity }}

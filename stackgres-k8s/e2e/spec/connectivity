@@ -8,6 +8,12 @@ e2e_test() {
   run_test "Checking that all 4 ports (5432, 6432, 7432, 7433) in the patroni pods are openned and listening for queries" ports_check
 
   run_test "Checking that is possible to connect using services is working" service_check
+
+  run_test "Check that patroni healthcheck endpoints are accesible" patroni_ports_check
+
+  run_test "Check that patroni management endpoints are not accesible" patroni_management_check
+
+  run_test "Check that patroni is not accisible directly" patroni_direct_check
 }
 
 ports_check() {

@@ -9,6 +9,7 @@ import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
@@ -39,8 +40,16 @@ public class PostgresUtil implements StackGresClusterSidecarResourceFactory<Void
         .withTty(Boolean.TRUE)
         .withCommand("/bin/sh")
         .withArgs("-c", "while true; do sleep 10; done")
-        .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
-            .volumeMount(context.getClusterContext()))
+        .withVolumeMounts(
+            ClusterStatefulSetVolumeConfig.SOCKET.volumeMount(context.getClusterContext()),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_PASSWD_PATH, context.getClusterContext()),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_GROUP_PATH, context.getClusterContext()),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_SHADOW_PATH, context.getClusterContext()),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_GSHADOW_PATH, context.getClusterContext()))
         .build();
   }
 

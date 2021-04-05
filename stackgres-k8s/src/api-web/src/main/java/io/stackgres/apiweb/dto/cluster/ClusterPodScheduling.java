@@ -5,37 +5,38 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
+import java.util.List;
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.Toleration;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class ClusterPodPersistentVolume {
+public class ClusterPodScheduling {
 
-  @JsonProperty("size")
-  private String size;
+  private Map<String, String> nodeSelector;
 
-  @JsonProperty("storageClass")
-  private String storageClass;
+  private List<Toleration> tolerations;
 
-  public void setStorageClass(String storageClass) {
-    this.storageClass = storageClass;
+  public Map<String, String> getNodeSelector() {
+    return nodeSelector;
   }
 
-  public String getStorageClass() {
-    return storageClass;
+  public void setNodeSelector(Map<String, String> nodeSelector) {
+    this.nodeSelector = nodeSelector;
   }
 
-  public void setSize(String size) {
-    this.size = size;
+  public List<Toleration> getTolerations() {
+    return tolerations;
   }
 
-  public String getSize() {
-    return size;
+  public void setTolerations(List<Toleration> tolerations) {
+    this.tolerations = tolerations;
   }
 
   @Override

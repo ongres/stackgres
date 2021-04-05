@@ -41,7 +41,7 @@ import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariab
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.StackGresDbOpsContext;
 import io.stackgres.operator.common.StackGresPodSecurityContext;
-import io.stackgres.operator.sidecars.pgutils.PostgresUtil;
+import io.stackgres.operator.patroni.factory.Patroni;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 import org.jooq.lambda.Seq;
@@ -369,7 +369,8 @@ public abstract class DbOpsJob
   }
 
   protected String getRunImage(StackGresDbOpsContext context) {
-    return String.format(PostgresUtil.IMAGE_NAME,
+    return String.format(Patroni.IMAGE_NAME,
+        Patroni.DEFAULT_VERSION,
         context.getCluster().getSpec().getPostgresVersion(),
         StackGresProperty.CONTAINER_BUILD.getString());
   }

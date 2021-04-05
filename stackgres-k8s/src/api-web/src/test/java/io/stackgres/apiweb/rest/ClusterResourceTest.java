@@ -61,7 +61,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterScriptEntry;
 import io.stackgres.apiweb.dto.cluster.ClusterScriptFrom;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
-import io.stackgres.apiweb.dto.cluster.PodScheduling;
+import io.stackgres.apiweb.dto.cluster.ClusterPodScheduling;
 import io.stackgres.apiweb.resource.ClusterDtoFinder;
 import io.stackgres.apiweb.resource.ClusterDtoScanner;
 import io.stackgres.apiweb.resource.ClusterStatsDtoFinder;
@@ -85,7 +85,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
-import io.stackgres.common.crd.sgcluster.StackGresPodScheduling;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
@@ -524,7 +524,7 @@ class ClusterResourceTest
         final StackGresPodPersistentVolume dtoPV = resourcePod.getPersistentVolume();
         if (dtoPV != null) {
           assertNotNull(resourcePV);
-          assertEquals(dtoPV.getVolumeSize(), resourcePV.getVolumeSize());
+          assertEquals(dtoPV.getSize(), resourcePV.getSize());
           assertEquals(dtoPV.getStorageClass(), resourcePV.getStorageClass());
         } else {
           assertNull(resourcePV);
@@ -691,7 +691,7 @@ class ClusterResourceTest
         final StackGresPodPersistentVolume resourcePV = resourceSpecPod.getPersistentVolume();
         if (dtoPV != null) {
           assertNotNull(resourcePV);
-          assertEquals(dtoPV.getVolumeSize(), resourcePV.getVolumeSize());
+          assertEquals(dtoPV.getSize(), resourcePV.getSize());
           assertEquals(dtoPV.getStorageClass(), resourcePV.getStorageClass());
         } else {
           assertNull(resourcePV);
@@ -707,8 +707,8 @@ class ClusterResourceTest
           assertNull(resourcePodMetadata);
         }
 
-        final PodScheduling podScheduling = dtoSpecPods.getScheduling();
-        final StackGresPodScheduling resourceScheduling = resourceSpecPod.getScheduling();
+        final ClusterPodScheduling podScheduling = dtoSpecPods.getScheduling();
+        final StackGresClusterPodScheduling resourceScheduling = resourceSpecPod.getScheduling();
         if (podScheduling != null) {
           assertNotNull(resourceScheduling);
           assertEquals(podScheduling.getNodeSelector(), resourceScheduling.getNodeSelector());

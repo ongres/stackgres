@@ -71,11 +71,13 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
   private static final ImmutableMap<String, Integer> LISTEN_SOCKET_ADDRESS_PORT_MAPPING =
       ImmutableMap.of(
           "postgres_entry_port", EnvoyUtil.PG_ENTRY_PORT,
-          "postgres_repl_entry_port", EnvoyUtil.PG_REPL_ENTRY_PORT);
+          "postgres_repl_entry_port", EnvoyUtil.PG_REPL_ENTRY_PORT,
+          "patroni_entry_port", EnvoyUtil.PATRONI_ENTRY_PORT);
   private static final ImmutableMap<String, Integer> CLUSTER_SOCKET_ADDRESS_PORT_MAPPING =
       ImmutableMap.of(
           "postgres_pool_port", EnvoyUtil.PG_POOL_PORT,
-          "postgres_port", EnvoyUtil.PG_PORT);
+          "postgres_port", EnvoyUtil.PG_PORT,
+          "patroni_port", EnvoyUtil.PATRONI_PORT);
 
   private final YamlMapperProvider yamlMapperProvider;
 
@@ -126,7 +128,7 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
         .withPorts(
             new ContainerPortBuilder().withContainerPort(EnvoyUtil.PG_ENTRY_PORT).build(),
             new ContainerPortBuilder().withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT).build())
-        .withCommand("/usr/local/bin/envoy-static")
+        .withCommand("/usr/local/bin/envoy")
         .withArgs("-c", "/etc/envoy/default_envoy.yaml", "-l", "debug");
     return container.build();
   }

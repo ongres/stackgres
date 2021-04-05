@@ -25,17 +25,17 @@ public class StackGresPodPersistentVolume {
   @NotNull(message = "Volume size must be specified")
   @Pattern(regexp = "^[0-9]+(\\.[0-9]+)?(Mi|Gi|Ti)$",
       message = "Volume size must be specified in Mi, Gi or Ti")
-  private String volumeSize;
+  private String size;
 
   @JsonProperty("storageClass")
   private String storageClass;
 
-  public String getVolumeSize() {
-    return volumeSize;
+  public String getSize() {
+    return size;
   }
 
-  public void setVolumeSize(String volumeSize) {
-    this.volumeSize = volumeSize;
+  public void setSize(String size) {
+    this.size = size;
   }
 
   public String getStorageClass() {
@@ -49,7 +49,7 @@ public class StackGresPodPersistentVolume {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("volumeSize", volumeSize)
+        .add("size", size)
         .add("storageClass", storageClass)
         .toString();
   }
@@ -63,12 +63,12 @@ public class StackGresPodPersistentVolume {
       return false;
     }
     StackGresPodPersistentVolume that = (StackGresPodPersistentVolume) o;
-    return Objects.equals(volumeSize, that.volumeSize)
+    return Objects.equals(size, that.size)
         && Objects.equals(storageClass, that.storageClass);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(volumeSize, storageClass);
+    return Objects.hash(size, storageClass);
   }
 }

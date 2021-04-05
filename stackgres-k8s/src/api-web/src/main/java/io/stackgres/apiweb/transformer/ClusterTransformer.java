@@ -28,6 +28,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterNonProduction;
 import io.stackgres.apiweb.dto.cluster.ClusterPod;
 import io.stackgres.apiweb.dto.cluster.ClusterPodMetadata;
 import io.stackgres.apiweb.dto.cluster.ClusterPodPersistentVolume;
+import io.stackgres.apiweb.dto.cluster.ClusterPodScheduling;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgresService;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgresServices;
 import io.stackgres.apiweb.dto.cluster.ClusterRestore;
@@ -37,7 +38,6 @@ import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecAnnotations;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
 import io.stackgres.apiweb.dto.cluster.ClusterStatus;
-import io.stackgres.apiweb.dto.cluster.PodScheduling;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -48,6 +48,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodMetadata;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
@@ -58,7 +59,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
-import io.stackgres.common.crd.sgcluster.StackGresPodScheduling;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
@@ -213,8 +213,8 @@ public class ClusterTransformer
     targetPod.setPersistentVolume(new StackGresPodPersistentVolume());
     targetPod.getPersistentVolume().setStorageClass(
         source.getPods().getPersistentVolume().getStorageClass());
-    targetPod.getPersistentVolume().setVolumeSize(
-        source.getPods().getPersistentVolume().getVolumeSize());
+    targetPod.getPersistentVolume().setSize(
+        source.getPods().getPersistentVolume().getSize());
 
     targetPod
         .setDisableConnectionPooling(source.getPods().getDisableConnectionPooling());
@@ -232,7 +232,7 @@ public class ClusterTransformer
 
     targetPod.setScheduling(Optional.ofNullable(source.getPods().getScheduling())
         .map(sourceScheduling -> {
-          StackGresPodScheduling targetScheduling = new StackGresPodScheduling();
+          StackGresClusterPodScheduling targetScheduling = new StackGresClusterPodScheduling();
           targetScheduling.setNodeSelector(sourceScheduling.getNodeSelector());
           targetScheduling.setTolerations(sourceScheduling.getTolerations());
           return targetScheduling;
@@ -346,8 +346,8 @@ public class ClusterTransformer
     targetPod.setPersistentVolume(new ClusterPodPersistentVolume());
     targetPod.getPersistentVolume().setStorageClass(
         sourcePod.getPersistentVolume().getStorageClass());
-    targetPod.getPersistentVolume().setVolumeSize(
-        sourcePod.getPersistentVolume().getVolumeSize());
+    targetPod.getPersistentVolume().setSize(
+        sourcePod.getPersistentVolume().getSize());
     targetPod
         .setDisableConnectionPooling(sourcePod.getDisableConnectionPooling());
     targetPod
@@ -410,7 +410,7 @@ public class ClusterTransformer
 
     targetPod.setScheduling(Optional.ofNullable(sourcePod.getScheduling())
         .map(sourcePodScheduling -> {
-          PodScheduling podScheduling = new PodScheduling();
+          ClusterPodScheduling podScheduling = new ClusterPodScheduling();
           podScheduling.setNodeSelector(sourcePodScheduling.getNodeSelector());
           podScheduling.setTolerations(sourcePodScheduling.getTolerations());
           return podScheduling;

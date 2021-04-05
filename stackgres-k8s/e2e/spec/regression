@@ -33,7 +33,7 @@ check_shared_memory() {
 }
 
 get_shared_memory() {
-  kubectl exec -ti -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni  -- df -h > "$LOG_PATH/devices.log"
+  kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni  -- df -h > "$LOG_PATH/devices.log"
   grep shm "$LOG_PATH/devices.log" | awk '{print $2}'
 }
 

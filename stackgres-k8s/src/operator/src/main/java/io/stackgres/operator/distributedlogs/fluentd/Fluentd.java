@@ -9,7 +9,6 @@ import static io.stackgres.common.FluentdUtil.PATRONI_LOG_TYPE;
 import static io.stackgres.common.FluentdUtil.POSTGRES_LOG_TYPE;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -35,10 +34,10 @@ import io.fabric8.kubernetes.api.model.TCPSocketActionBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.LabelFactory;
-import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -86,10 +85,9 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-exc")
         .withArgs(""
-            + "echo 'Wait for postgres to be up, running and initialized!'\n"
+            + "echo 'Wait for postgres to be up, running and initialized'\n"
             + "until curl -s localhost:8008/read-only --fail > /dev/null; do sleep 1; done\n"
-            + "exec /usr/local/bin/fluentd \\\n"
-            + "  -c \"/etc/fluentd/fluentd.conf\"\n")
+            + "exec /usr/local/bin/fluentd -c /etc/fluentd/fluentd.conf\n")
         .withPorts(
             new ContainerPortBuilder()
                 .withName(FluentdUtil.FORWARD_PORT_NAME)
@@ -112,44 +110,23 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
             .volumeMount(context.getClusterContext()),
             new VolumeMountBuilder()
-              .withName(StackgresClusterContainers.FLUENTD)
-              .withMountPath("/etc/fluentd")
-              .withReadOnly(Boolean.TRUE)
-              .build(),
-            new VolumeMountBuilder()
-              .withName(FluentdUtil.BUFFER)
-              .withMountPath("/var/log/fluentd")
-              .withReadOnly(Boolean.FALSE)
-              .build())
-        .build();
-  }
-
-  @Override
-  public Stream<Container> getInitContainers(StackGresDistributedLogsGeneratorContext context) {
-    return Seq.of(Optional.of(createSetupConfigContainer()))
-        .filter(Optional::isPresent)
-        .map(Optional::get);
-  }
-
-  private Container createSetupConfigContainer() {
-    return new ContainerBuilder()
-        .withName("setup-fluentd-config")
-        .withImage(StackGresContext.BUSYBOX_IMAGE)
-        .withImagePullPolicy("IfNotPresent")
-        .withCommand("/bin/sh", "-ecx", Stream.of(
-            "cp /etc/fluentd/initial-fluentd.conf /fluentd/fluentd.conf")
-            .collect(Collectors.joining(" && ")))
-        .withVolumeMounts(
-            new VolumeMountBuilder()
             .withName(FluentdUtil.CONFIG)
             .withMountPath("/etc/fluentd")
-            .withReadOnly(Boolean.TRUE)
+            .withReadOnly(Boolean.FALSE)
             .build(),
             new VolumeMountBuilder()
-            .withName(StackgresClusterContainers.FLUENTD)
-            .withMountPath("/fluentd")
+            .withName(FluentdUtil.LOG)
+            .withMountPath("/var/log/fluentd")
             .withReadOnly(Boolean.FALSE)
-            .build())
+            .build(),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_PASSWD_PATH, context.getClusterContext()),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_GROUP_PATH, context.getClusterContext()),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_SHADOW_PATH, context.getClusterContext()),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_GSHADOW_PATH, context.getClusterContext()))
         .build();
   }
 
@@ -157,20 +134,24 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
   public ImmutableList<Volume> getVolumes(StackGresDistributedLogsGeneratorContext context) {
     return ImmutableList.of(
         new VolumeBuilder()
-        .withName(FluentdUtil.CONFIG)
-        .withConfigMap(new ConfigMapVolumeSourceBuilder()
-            .withName(FluentdUtil.configName(
-                context.getDistributedLogsContext().getDistributedLogs()))
-            .build())
-        .build(),
+            .withName(FluentdUtil.CONFIG)
+            .withConfigMap(new ConfigMapVolumeSourceBuilder()
+                .withName(FluentdUtil.configName(
+                    context.getDistributedLogsContext().getDistributedLogs()))
+                .build())
+            .build(),
         new VolumeBuilder()
-        .withName(StackgresClusterContainers.FLUENTD)
-        .withEmptyDir(new EmptyDirVolumeSource())
-        .build(),
+            .withName(FluentdUtil.NAME)
+            .withEmptyDir(new EmptyDirVolumeSource())
+            .build(),
         new VolumeBuilder()
-        .withName(FluentdUtil.BUFFER)
-        .withEmptyDir(new EmptyDirVolumeSource())
-        .build());
+            .withName(FluentdUtil.BUFFER)
+            .withEmptyDir(new EmptyDirVolumeSource())
+            .build(),
+        new VolumeBuilder()
+            .withName(FluentdUtil.LOG)
+            .withEmptyDir(new EmptyDirVolumeSource())
+            .build());
   }
 
   @Override
@@ -182,8 +163,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
     final String namespace = distributedLogs.getMetadata().getNamespace();
 
     final Map<String, String> data = ImmutableMap.of(
-        "fluentd.conf", getFluentdConfig(distributedLogsContext, true),
-        "initial-fluentd.conf", getFluentdConfig(distributedLogsContext, false));
+        "fluentd.conf", getFluentdConfig(distributedLogsContext));
 
     final StackGresClusterContext clusterContext = context.getClusterContext();
     final StackGresCluster cluster = clusterContext.getCluster();
@@ -225,8 +205,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
     return Seq.of(configMap, service);
   }
 
-  private String getFluentdConfig(final StackGresDistributedLogsContext distributedLogsContext,
-      boolean includeClusters) {
+  private String getFluentdConfig(final StackGresDistributedLogsContext distributedLogsContext) {
     return ""
         + "<system>\n"
         + "  workers " + getMaxWorkersBeforeRestart(distributedLogsContext) + "\n"
@@ -251,7 +230,6 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
         + "  </filter>"
         + "\n"
         + Seq.seq(distributedLogsContext.getConnectedClusters())
-            .filter(cluster -> includeClusters)
             .zipWithIndex()
             .map(t -> t.map2(index -> index + getCoreWorkers()))
             .map(t -> ""
@@ -273,7 +251,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
         + "    @type forward\n"
         + "    <buffer>\n"
         + "      @type file\n"
-        + "      path /var/log/fluentd/loop\n"
+        + "      path /var/log/fluentd/loop.buffer\n"
         + "    </buffer>\n"
         + "    <server>\n"
         + "      name localhost\n"
@@ -284,7 +262,6 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
         + "</worker>\n"
         + "\n"
         + Seq.seq(distributedLogsContext.getConnectedClusters())
-            .filter(cluster -> includeClusters)
             .zipWithIndex()
             .map(t -> t.map2(index -> index + getCoreWorkers()))
             .map(t -> ""
@@ -346,7 +323,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
       final StackGresDistributedLogsContext distributedLogsContext) {
     return getWorkersBatchSize()
         * ((getCoreWorkers() + distributedLogsContext.getConnectedClusters().size()
-            + getWorkersBatchSize() - 1) / getWorkersBatchSize());
+        + getWorkersBatchSize() - 1) / getWorkersBatchSize());
   }
 
   private int getCoreWorkers() {
@@ -359,6 +336,11 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
 
   public StackGresClusterSidecarResourceFactory<Void> toStackGresClusterSidecarResourceFactory() {
     return new FluentdStackGresClusterSidecarResourceFactory();
+  }
+
+  @Inject
+  public void setFactoryDelegator(LabelFactoryDelegator factoryDelegator) {
+    this.factoryDelegator = factoryDelegator;
   }
 
   private class FluentdStackGresClusterSidecarResourceFactory
@@ -403,10 +385,5 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
             "context is not a StackGresDistributedLogsGeneratorContext");
       }
     }
-  }
-
-  @Inject
-  public void setFactoryDelegator(LabelFactoryDelegator factoryDelegator) {
-    this.factoryDelegator = factoryDelegator;
   }
 }
