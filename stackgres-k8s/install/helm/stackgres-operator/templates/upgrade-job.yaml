@@ -47,9 +47,9 @@ spec:
                   if echo "$OPERATOR_VERSION" | grep -q '^0\.9\(\.[012]\)\?\(-.*\)\?$'
                   then
                     kubectl get sgcluster -n "${CLUSTER%:*}" "${CLUSTER#*:}" -o json \
-                      | sed 's/"postgresVersion": "latest"/"postgresVersion": "12.4"/' \
-                      | sed 's/"postgresVersion": "12"/"postgresVersion": "12.4"/' \
-                      | sed 's/"postgresVersion": "11"/"postgresVersion": "11.9"/' \
+                      | sed 's/"postgresVersion": "latest"/"postgresVersion": "12.6"/' \
+                      | sed 's/"postgresVersion": "12"/"postgresVersion": "12.6"/' \
+                      | sed 's/"postgresVersion": "11"/"postgresVersion": "11.11"/' \
                       | kubectl patch sgcluster -n "${CLUSTER%:*}" "${CLUSTER#*:}" --type merge -p "$(cat)"
                   fi
                   if echo "$OPERATOR_VERSION" | grep -q '^0\.9\(\.[0123]\)\?\(-.*\)\?$'

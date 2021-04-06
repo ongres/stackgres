@@ -20,6 +20,7 @@ import io.smallrye.jwt.build.Jwt;
 import io.smallrye.jwt.build.JwtClaimsBuilder;
 import org.eclipse.microprofile.jwt.Claims;
 
+@SuppressWarnings("deprecation")
 public class TokenUtils {
 
   private static final String ISSUER = "https://api.stackgres.io/auth";

@@ -33,6 +33,10 @@ spec:
       - name: {{ .Release.Name }}
         image: "{{ .Values.operator.image.name }}:{{ .Values.operator.image.tag }}"
         imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 185
+          runAsGroup: 185
         env:
           - name: OPERATOR_NAME
             value: "{{ .Release.Name }}"

@@ -77,9 +77,8 @@ spec:
   pods:
     metadata:
       annotations:
-        customAnnotations: customAnnotationValue
-      labels:
-        customLabel: customLabelValue
+        allResources:
+          customAnnotations: customAnnotationValue
 ```
 
 ## Postgres Services

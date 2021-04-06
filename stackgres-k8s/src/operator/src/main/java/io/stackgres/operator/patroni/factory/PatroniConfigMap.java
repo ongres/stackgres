@@ -42,6 +42,7 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
   public static final int PATRONI_LOG_FILE_SIZE = 256 * 1024 * 1024;
   public static final String POSTGRES_PORT_NAME = "pgport";
   public static final String POSTGRES_REPLICATION_PORT_NAME = "pgreplication";
+  public static final String PATRONI_RESTAPI_PORT_NAME = "patroniport";
 
   private static final Logger PATRONI_LOGGER = LoggerFactory.getLogger("io.stackgres.patroni");
 

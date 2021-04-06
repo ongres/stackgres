@@ -25,7 +25,7 @@ e2e_test() {
 test_yamls() {
   OPERATOR_NAMESPACE="$(generate_operator_namespace)"
 
-  echo "Mocking operator.yml"
+  echo "Mocking stackgres-operator-demo.yml"
   cat "${STACKGRES_YAMLS}/stackgres-operator-demo.yml" \
     | sed "s|name: stackgres$|name: $OPERATOR_NAMESPACE|" \
     | sed "s|namespace: stackgres$|namespace: $OPERATOR_NAMESPACE|" \

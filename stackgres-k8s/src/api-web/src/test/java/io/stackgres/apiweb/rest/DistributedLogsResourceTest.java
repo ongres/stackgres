@@ -74,7 +74,7 @@ class DistributedLogsResourceTest
     assertNotNull(resource.getSpec());
     assertNull(resource.getSpec().getNonProduction());
     assertNotNull(resource.getSpec().getPersistentVolume());
-    assertEquals("128Mi", resource.getSpec().getPersistentVolume().getVolumeSize());
+    assertEquals("128Mi", resource.getSpec().getPersistentVolume().getSize());
     assertNull(resource.getSpec().getPersistentVolume().getStorageClass());
     assertNotNull(resource.getStatus());
     assertNotNull(resource.getStatus().getClusters());
@@ -91,7 +91,7 @@ class DistributedLogsResourceTest
     assertNotNull(resource.getSpec());
     assertNull(resource.getSpec().getNonProduction());
     assertNotNull(resource.getSpec().getPersistentVolume());
-    assertEquals("128Mi", resource.getSpec().getPersistentVolume().getVolumeSize());
+    assertEquals("128Mi", resource.getSpec().getPersistentVolume().getSize());
     assertNull(resource.getSpec().getPersistentVolume().getStorageClass());
   }
 

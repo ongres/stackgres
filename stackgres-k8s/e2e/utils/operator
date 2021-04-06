@@ -2,12 +2,12 @@
 
 export IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
 export ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
-export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
-export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"
-export JOBS_IMAGE_NAME="stackgres/jobs:$IMAGE_TAG"
-export CLUSTER_CONTROLLER_IMAGE_NAME="stackgres/cluster-controller:$IMAGE_TAG"
-export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="stackgres/distributedlogs-controller:$IMAGE_TAG"
-export ADMINUI_IMAGE_NAME="stackgres/admin-ui:$ADMINUI_IMAGE_TAG"
+export OPERATOR_IMAGE_NAME="docker.io/stackgres/operator:$IMAGE_TAG"
+export RESTAPI_IMAGE_NAME="docker.io/stackgres/restapi:$IMAGE_TAG"
+export JOBS_IMAGE_NAME="docker.io/stackgres/jobs:$IMAGE_TAG"
+export CLUSTER_CONTROLLER_IMAGE_NAME="docker.io/stackgres/cluster-controller:$IMAGE_TAG"
+export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="docker.io/stackgres/distributedlogs-controller:$IMAGE_TAG"
+export ADMINUI_IMAGE_NAME="docker.io/stackgres/admin-ui:$ADMINUI_IMAGE_TAG"
 export EXTENSIONS_REPOSITORY_URL="${EXTENSIONS_REPOSITORY_URL:-https://extensions.stackgres.io/postgres/repository}"
 
 export STACKGRES_PATH="${STACKGRES_PATH:-$E2E_PATH/..}"
@@ -16,6 +16,7 @@ export STACKGRES_VERSION="$(grep '<artifactId>stackgres-parent</artifactId>' "$S
   | grep -o '<version>\([^<]\+\)</version>' | tr '<>' '  ' | cut -d ' ' -f 3)"
 export CONTAINER_BUILD="$(grep '<properties>' "$STACKGRES_PATH/src/pom.xml" -A 2 -B 2 \
   | grep -o '<stackgres.containerBuild>\([^<]\+\)</stackgres.containerBuild>' | tr -d ' ' | tr '<>' '  ' | cut -d ' ' -f 3)"
+export STACKGRES_IMAGE_BUILDER="${STACKGRES_IMAGE_BUILDER:-docker}"
 export OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-operator/"}"
 export CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
 export UI_TESTS_RESOURCES_PATH="${UI_TESTS_RESOURCES_PATH:-"$STACKGRES_PATH/src/admin-ui"}"
@@ -66,45 +67,45 @@ build_components() {
 build_operator_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh $SHELL_XTRACE operator/src/main/docker/build-image-jvm.sh
+  sh $SHELL_XTRACE "operator/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
   )
 }
 
 build_restapi_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh $SHELL_XTRACE api-web/src/main/docker/build-image-jvm.sh
+  sh $SHELL_XTRACE "api-web/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
   )
 }
 
 build_jobs_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh $SHELL_XTRACE $SHELL_XTRACE jobs/src/main/docker/build-image-jvm.sh
+  sh $SHELL_XTRACE $SHELL_XTRACE "jobs/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
   )
 }
 
 build_cluster_controller_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh $SHELL_XTRACE cluster-controller/src/main/docker/build-image-jvm.sh
+  sh $SHELL_XTRACE "cluster-controller/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
   )
 }
 
 build_distributedlogs_controller_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh $SHELL_XTRACE distributedlogs-controller/src/main/docker/build-image-jvm.sh
+  sh $SHELL_XTRACE "distributedlogs-controller/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
   )
 }
 
 build_adminui_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh $SHELL_XTRACE  admin-ui/npmw install
+  sh $SHELL_XTRACE admin-ui/npmw install
   sh $SHELL_XTRACE admin-ui/npmw run build
   sh $SHELL_XTRACE admin-ui/build.sh
-  sh $SHELL_XTRACE admin-ui/docker/build.sh
+  sh $SHELL_XTRACE "admin-ui/$STACKGRES_IMAGE_BUILDER/build.sh"
   )
 }
 
@@ -171,7 +172,6 @@ setup_operator() {
     then
       OPERATOR_NAMESPACE="$(helm list -A | grep '^stackgres-operator[[:space:]]' \
         | sed 's/[[:space:]]\+/ /g' | cut -d ' ' -f 2)"
-      return
     fi
     return
   fi
@@ -216,17 +216,6 @@ load_operator_k8s() {
   local IMAGE_NAME
   if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
   then
-    for IMAGE_NAME in \
-      "$OPERATOR_IMAGE_NAME" \
-      "$RESTAPI_IMAGE_NAME" \
-      "$JOBS_IMAGE_NAME" \
-      "$CLUSTER_CONTROLLER_IMAGE_NAME" \
-      "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" \
-      "$ADMINUI_IMAGE_NAME"
-    do
-      echo "$IMAGE_NAME"
-    done | xargs -n 1 -I % -P 0 \
-      docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH%"
     if [ -n "$E2E_OPERATOR_REGISTRY" ]
     then
       for IMAGE_NAME in \
@@ -238,8 +227,20 @@ load_operator_k8s() {
         "$ADMINUI_IMAGE_NAME"
       do
         echo "$IMAGE_NAME"
-      done | xargs -n 1 -I % -P 0 \
-        docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH%" "%"
+      done | xargs -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" \
+        pull_image_from "$E2E_OPERATOR_REGISTRY" "$E2E_OPERATOR_REGISTRY_PATH" "%"
+    else
+      for IMAGE_NAME in \
+        "$OPERATOR_IMAGE_NAME" \
+        "$RESTAPI_IMAGE_NAME" \
+        "$JOBS_IMAGE_NAME" \
+        "$CLUSTER_CONTROLLER_IMAGE_NAME" \
+        "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" \
+        "$ADMINUI_IMAGE_NAME"
+      do
+        echo "$IMAGE_NAME"
+      done | xargs -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" \
+        docker_pull "%"
     fi
   fi
   if [ -n "$E2E_COMPONENTS_REGISTRY" ]
@@ -263,12 +264,12 @@ load_operator_k8s() {
     local CLUSTER_CONTROLLER_IMAGE_NAME="stackgres/cluster-controller:$IMAGE_TAG"
     local DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="stackgres/distributedlogs-controller:$IMAGE_TAG"
     local ADMINUI_IMAGE_NAME="stackgres/admin-ui:$ADMINUI_IMAGE_TAG"
-    docker tag "$ORIGINAL_OPERATOR_IMAGE_NAME" "$OPERATOR_IMAGE_NAME"
-    docker tag "$ORIGINAL_RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
-    docker tag "$ORIGINAL_JOBS_IMAGE_NAME" "$JOBS_IMAGE_NAME"
-    docker tag "$ORIGINAL_CLUSTER_CONTROLLER_IMAGE_NAME" "$CLUSTER_CONTROLLER_IMAGE_NAME"
-    docker tag "$ORIGINAL_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
-    docker tag "$ORIGINAL_ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
+    docker_tag "$ORIGINAL_OPERATOR_IMAGE_NAME" "$OPERATOR_IMAGE_NAME"
+    docker_tag "$ORIGINAL_RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
+    docker_tag "$ORIGINAL_JOBS_IMAGE_NAME" "$JOBS_IMAGE_NAME"
+    docker_tag "$ORIGINAL_CLUSTER_CONTROLLER_IMAGE_NAME" "$CLUSTER_CONTROLLER_IMAGE_NAME"
+    docker_tag "$ORIGINAL_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
+    docker_tag "$ORIGINAL_ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
     load_operator_k8s_only
   else
     load_operator_k8s_only
@@ -287,6 +288,18 @@ load_operator_k8s_only() {
   do
     echo "$IMAGE_NAME"
   done | xargs -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" load_image_k8s '%'
+}
+
+pull_image_from() {
+  [ -n "$1" -a -n "$2" -a -n "$3" ]
+  local REPOSITORY="$1"
+  local IMAGE_PATH="$2"
+  local IMAGE="$3"
+  local FROM_IMAGE="$REPOSITORY$IMAGE_PATH${IMAGE#*/}"
+  echo "Pulling $IMAGE from $FROM_IMAGE..."
+  docker_pull "$FROM_IMAGE"
+  docker_tag "$FROM_IMAGE" "$IMAGE"
+  echo "done."
 }
 
 operator_pull_policy() {
@@ -466,20 +479,20 @@ load_component_images_from() {
   local IMAGE_PATH="${2:-/ongres/}"
   get_component_images "$STACKGRES_VERSION" \
     | xargs -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" \
-      load_image_from "$REPOSITORY" "$IMAGE_PATH" '%'
+      load_component_image_from "$REPOSITORY" "$IMAGE_PATH" '%'
 }
 
-load_image_from() {
+load_component_image_from() {
   [ -n "$1" -a -n "$2" -a -n "$3" ]
   local REPOSITORY="$1"
   local IMAGE_PATH="$2"
   local IMAGE="$3"
   local FROM_IMAGE="$REPOSITORY$IMAGE_PATH${IMAGE##*/}"
-  echo "Loading $IMAGE from $FROM_IMAGE..."
-  docker pull "$FROM_IMAGE"
-  docker tag "$FROM_IMAGE" "$IMAGE"
-  load_image_k8s "$IMAGE"
+  echo "Pulling $IMAGE from $FROM_IMAGE..."
+  docker_pull "$FROM_IMAGE"
+  docker_tag "$FROM_IMAGE" "$IMAGE"
   echo "done."
+  load_image_k8s "$IMAGE"
 }
 
 get_component_images() {
@@ -487,9 +500,7 @@ get_component_images() {
   local VERSION="$1"
   if [ "$(get_version_as_number "$VERSION")" -le "$(get_version_as_number 1.0.0-alpha1)" ]
   then
-    local BUILD
-    BUILD="$(get_container_build_pre_1_0_0_alpha2 "$VERSION")"
-    get_component_images_pre_1_0_0_alpha2 "$BUILD"
+    get_component_images_pre_1_0_0_alpha2 "$VERSION"
     return
   fi
   local COMPONENT_POSTGRESQL_VERSIONS="$(get_component_versions "$VERSION" postgresql)"
@@ -537,6 +548,11 @@ get_component_images() {
   done
 }
 
+get_pom_url() {
+  [ -n "$1" ]
+  echo "https://gitlab.com/ongresinc/stackgres/-/raw/$1/stackgres-k8s/src/pom.xml"
+}
+
 get_component_versions() {
   [ -n "$1" -a -n "$2" ]
   local VERSION="$1"
@@ -544,19 +560,71 @@ get_component_versions() {
   (
   if [ "$STACKGRES_VERSION" = "$VERSION" ]
   then
-    cat "$STACKGRES_PATH/src/pom.xml"
+    cat "$STACKGRES_PATH/src/common/src/main/resources/versions.properties"
   else
-    curl -f -s "$(get_pom_url "$VERSION")"
+    curl -f -s "$(get_versions_url "$VERSION")"
   fi
-  ) | grep -F "<stackgres.container.$COMPONENT>" \
-    | cut -d '>' -f 2 | cut -d '<' -f 1 | tr ',' '\n' \
-    | while read VERSION; do echo "${VERSION%%-build-*}.${VERSION##*-build-} $VERSION"; done \
-    | sort -t ' ' -k 1V,1V | cut -d ' ' -f 2
+  ) | grep -F "$COMPONENT=" \
+    | cut -d '=' -f 2 | tr ',' '\n' \
+    | sort -t ' ' -k 1V,1V
 }
 
-get_pom_url() {
+get_versions_url() {
   [ -n "$1" ]
-  echo "https://gitlab.com/ongresinc/stackgres/-/raw/$1/stackgres-k8s/src/pom.xml"
+  echo "https://gitlab.com/ongresinc/stackgres/-/raw/$1/stackgres-k8s/src/common/src/main/resources/versions.properties"
+}
+
+get_component_images_pre_1_0_0_alpha2() {
+  [ -n "$1" ]
+  local VERSION="$1"
+  local BUILD
+  BUILD="$(get_container_build_pre_1_0_0_alpha2 "$VERSION")"
+  if [ "$(get_version_as_number "$VERSION")" -le "$(get_version_as_number 0.9.4)" ] \
+    || [ "$(get_version_as_number "$VERSION")" -ge "$(get_version_as_number 1.0.0-alpha1)" ]
+  then
+    get_component_images_pre_0_9_5 "$BUILD"
+    return
+  fi
+  local COMPONENT_POSTGRESQL_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 "$VERSION" postgresql)"
+  local COMPONENT_PATRONI_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 "$VERSION" patroni)"
+  local COMPONENT_PGBOUNCER_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 "$VERSION" pgbouncer)"
+  local COMPONENT_POSTGRES_EXPORTER_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 "$VERSION" prometheus-postgres-exporter)"
+  local COMPONENT_ENVOY_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 "$VERSION" envoy)"
+  local COMPONENT_FLUENTBIT_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 "$VERSION" fluentbit)"
+  local COMPONENT_FLUENTD_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 "$VERSION" fluentd)"
+  local VERSION
+  local SUBVERSION
+  for VERSION in $COMPONENT_PATRONI_VERSIONS
+  do
+    for SUBVERSION in $COMPONENT_POSTGRESQL_VERSIONS
+    do
+      echo "docker.io/ongres/patroni-ext:v$VERSION-pg$SUBVERSION-build-$BUILD"
+    done
+  done
+  for VERSION in $COMPONENT_POSTGRESQL_VERSIONS
+  do
+    echo "docker.io/ongres/postgres-util:v$VERSION-build-$BUILD"
+  done
+  for VERSION in $COMPONENT_PGBOUNCER_VERSIONS
+  do
+    echo "docker.io/ongres/pgbouncer:v$VERSION-build-$BUILD"
+  done
+  for VERSION in $COMPONENT_POSTGRES_EXPORTER_VERSIONS
+  do
+    echo "docker.io/ongres/prometheus-postgres-exporter:v$VERSION-build-$BUILD"
+  done
+  for VERSION in $COMPONENT_ENVOY_VERSIONS
+  do
+    echo "docker.io/ongres/envoy:v$VERSION-build-$BUILD"
+  done
+  for VERSION in $COMPONENT_FLUENTBIT_VERSIONS
+  do
+    echo "docker.io/ongres/fluentbit:v$VERSION-build-$BUILD"
+  done
+  for VERSION in $COMPONENT_FLUENTD_VERSIONS
+  do
+    echo "docker.io/ongres/fluentd:v$VERSION-build-$BUILD"
+  done
 }
 
 get_container_build_pre_1_0_0_alpha2() {
@@ -573,16 +641,37 @@ get_container_build_pre_1_0_0_alpha2() {
     | cut -d '>' -f 2 | cut -d '<' -f 1
 }
 
-get_component_images_pre_1_0_0_alpha2() {
+get_component_versions_pre_1_0_0_alpha2() {
+  [ -n "$1" -a -n "$2" ]
+  local VERSION="$1"
+  local COMPONENT="$2"
+  (
+  if [ "$STACKGRES_VERSION" = "$VERSION" ]
+  then
+    cat "$STACKGRES_PATH/src/operator/src/main/resources/versions.properties"
+  else
+    curl -f -s "$(get_versions_url_pre_1_0_0_alpha2 "$VERSION")"
+  fi
+  ) | grep -F "$COMPONENT=" \
+    | cut -d '=' -f 2 | tr ',' '\n' \
+    | sort -t ' ' -k 1V,1V
+}
+
+get_versions_url_pre_1_0_0_alpha2() {
   [ -n "$1" ]
-  local COMPONENTS_VERSIONS_YAML="$(curl -f -s "$(get_components_versions_url_pre_1_0_0_alpha2 "$1")")"
-  local COMPONENT_POSTGRESQL_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 postgresql)"
-  local COMPONENT_PATRONI_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 patroni)"
-  local COMPONENT_PGBOUNCER_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 pgbouncer)"
-  local COMPONENT_POSTGRES_EXPORTER_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 postgres_exporter)"
-  local COMPONENT_ENVOY_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 envoy)"
-  local COMPONENT_FLUENTBIT_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 fluentbit)"
-  local COMPONENT_FLUENTD_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 fluentd)"
+  echo "https://gitlab.com/ongresinc/stackgres/-/raw/$1/stackgres-k8s/src/operator/src/main/resources/versions.properties"
+}
+
+get_component_images_pre_0_9_5() {
+  [ -n "$1" ]
+  local COMPONENTS_VERSIONS_YAML="$(curl -f -s "$(get_components_versions_url_pre_0_9_5 "$1")")"
+  local COMPONENT_POSTGRESQL_VERSIONS="$(get_component_versions_pre_0_9_5 postgresql)"
+  local COMPONENT_PATRONI_VERSIONS="$(get_component_versions_pre_0_9_5 patroni)"
+  local COMPONENT_PGBOUNCER_VERSIONS="$(get_component_versions_pre_0_9_5 pgbouncer)"
+  local COMPONENT_POSTGRES_EXPORTER_VERSIONS="$(get_component_versions_pre_0_9_5 postgres_exporter)"
+  local COMPONENT_ENVOY_VERSIONS="$(get_component_versions_pre_0_9_5 envoy)"
+  local COMPONENT_FLUENTBIT_VERSIONS="$(get_component_versions_pre_0_9_5 fluentbit)"
+  local COMPONENT_FLUENTD_VERSIONS="$(get_component_versions_pre_0_9_5 fluentd)"
   local VERSION
   local SUBVERSION
   for VERSION in $COMPONENT_PATRONI_VERSIONS
@@ -650,12 +739,12 @@ get_component_images_pre_1_0_0_alpha2() {
       done
 }
 
-get_components_versions_url_pre_1_0_0_alpha2() {
+get_components_versions_url_pre_0_9_5() {
   [ -n "$1" ]
   echo "https://stackgres.io/downloads/stackgres-k8s/stackgres/components/$1/versions.yaml"
 }
 
-get_component_versions_pre_1_0_0_alpha2() {
+get_component_versions_pre_0_9_5() {
   local X_UNSET=true
   if echo "$-" | grep -q x
   then
@@ -692,11 +781,21 @@ get_version_as_number() {
   if [ "$CARDINALITY" -eq 3 ]
   then
     PATCH="$(echo "$VERSION" | cut -d . -f 3)"
-    SUFFIX="${PATCH#*-}"
-    PATCH="${PATCH%%-*}"
+    if [ "${PATCH#*-}" = "$PATCH" ]
+    then
+      SUFFIX=""
+    else
+      SUFFIX="${PATCH#*-}"
+      PATCH="${PATCH%%-*}"
+    fi
   else
-    SUFFIX="${MINOR#*-}"
-    MINOR="${MINOR%%-*}"
+    if [ "${MINOR#*-}" = "$MINOR" ]
+    then
+      SUFFIX=""
+    else
+      SUFFIX="${MINOR#*-}"
+      MINOR="${MINOR%%-*}"
+    fi
   fi
 
   if [ "${SUFFIX%-SNAPSHOT}" != "$SUFFIX" ]
@@ -704,13 +803,19 @@ get_version_as_number() {
     SUFFIX="${SUFFIX%-SNAPSHOT}"
   fi
 
-  if [ "${SUFFIX%%[0-9]*}" = "$SUFFIX" ]
+  if [ -z "$SUFFIX" -o "$SUFFIX" = "SNAPSHOT" ]
   then
-    echo "Unexpeted version format for $VERSION"
-    return 1
+    SUFFIX=""
+    SUFFIX_VERSION=0
+  else
+    if [ "${SUFFIX%%[0-9]*}" = "$SUFFIX" ]
+    then
+      echo "Unexpeted version format for $VERSION"
+      return 1
+    fi
+    SUFFIX_VERSION="${SUFFIX#${SUFFIX%%[0-9]*}}"
+    SUFFIX="${SUFFIX%$SUFFIX_VERSION}"
   fi
-  SUFFIX_VERSION="${SUFFIX#${SUFFIX%%[0-9]*}}"
-  SUFFIX="${SUFFIX%$SUFFIX_VERSION}"
 
   local SUFFIX_MAJOR_VERSION
   if [ "$SUFFIX" = "alpha" ]

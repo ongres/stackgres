@@ -40,7 +40,7 @@ public class StackGresClusterPod {
   private StackGresClusterPodMetadata metadata;
 
   @Valid
-  private StackGresPodScheduling scheduling;
+  private StackGresClusterPodScheduling scheduling;
 
   public StackGresPodPersistentVolume getPersistentVolume() {
     return persistentVolume;
@@ -82,11 +82,11 @@ public class StackGresClusterPod {
     this.metadata = metadata;
   }
 
-  public StackGresPodScheduling getScheduling() {
+  public StackGresClusterPodScheduling getScheduling() {
     return scheduling;
   }
 
-  public void setScheduling(StackGresPodScheduling scheduling) {
+  public void setScheduling(StackGresClusterPodScheduling scheduling) {
     this.scheduling = scheduling;
   }
 

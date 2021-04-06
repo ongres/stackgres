@@ -113,7 +113,7 @@ kubectl_mock() {
     ("delete pod -n $CLUSTER_NAMESPACE test-1")
     echo true > "$TEST_TARGET_PATH/pod_1_restarted"
     ;;
-    ("exec -n $CLUSTER_NAMESPACE test-0 -c patroni -- psql "*)
+    ("exec -n $CLUSTER_NAMESPACE test-0 -c $PATRONI_CONTAINER_NAME -- psql "*)
     STDIN="$(cat)"
     case "$STDIN" in
       (*"SHOW lc_collate"*)

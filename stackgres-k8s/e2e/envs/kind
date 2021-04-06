@@ -143,8 +143,8 @@ EOF
   
     kind get nodes --name "$KIND_NAME" \
       | xargs -r -n 1 -I % -P 0 sh -ec "
-      docker exec -t '%' sh -c 'DEBIAN_FRONTEND=noninteractive apt-get update -y -qq < /dev/null > /dev/null'
-      docker exec -t '%' sh -c 'DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nfs-common < /dev/null > /dev/null'
+      docker exec '%' sh -c 'DEBIAN_FRONTEND=noninteractive apt-get update -y -qq < /dev/null > /dev/null'
+      docker exec '%' sh -c 'DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nfs-common < /dev/null > /dev/null'
       "
   fi
 
@@ -177,7 +177,45 @@ load_image_k8s() {
   check_kind_version
   echo "Loading image $1 in kind environemnt $KIND_NAME..."
 
+  local IMAGE_ID
+  IMAGE_ID="$( (docker inspect --format '{{ .ID }}' "$1" 2>/dev/null || printf unknown) | grep -v '^$')"
+  local KIND_IMAGE_ID
+  KIND_IMAGE_ID="$( (docker exec "${KIND_NAME}-control-plane" crictl inspecti -o go-template --template '{{ .status.id }}' "$1" 2>/dev/null || printf unknown) | grep -v '^$')"
+  if [ "$IMAGE_ID" = unknown ] && [ "$KIND_IMAGE_ID" != unknown ]
+  then
+    echo "...already loaded"
+    return
+  fi
+  if [ "$KIND_IMAGE_ID" = "$IMAGE_ID" ]
+  then
+    echo "...already loaded"
+    return
+  fi
   kind load docker-image --name "$KIND_NAME" "$1"
+
+  echo "...done"
+}
+
+pull_image_k8s() {
+  echo "Pulling image $1 in kind environemnt $KIND_NAME..."
+
+  local AUTH
+  AUTH="$(jq -r '.auths|to_entries|.[]|.key + "|" + .value.auth' "${HOME}/.docker/config.json" \
+    | grep -F "${1%%/*}" | head -n 1 | cut -d '|' -f 2)"
+  if [ -n "$AUTH" ]
+  then
+    docker exec "${KIND_NAME}-control-plane" crictl pull --auth "$AUTH" "$1"
+  else
+    docker exec "${KIND_NAME}-control-plane" crictl pull "$1"
+  fi
+
+  echo "...done"
+}
+
+tag_image_k8s() {
+  echo "Tagging image $1 as $2 in kind environemnt $KIND_NAME..."
+
+  docker exec "${KIND_NAME}-control-plane" ctr -n k8s.io images tag --force "$1" "$2"
 
   echo "...done"
 }
@@ -190,7 +228,7 @@ load_certificate_k8s() {
   kind get nodes --name "$KIND_NAME" \
     | xargs -r -n 1 -I % -P 0 sh -ec "
     docker cp '$1' '%':/usr/local/share/ca-certificates/validator.crt
-    docker exec -t '%' sh -c "update-ca-certificates"
+    docker exec '%' sh -c "update-ca-certificates"
     "
 
   echo "...done"

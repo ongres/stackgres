@@ -5,9 +5,6 @@
 
 package io.stackgres.apiweb.dto.distributedlogs;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -23,13 +20,16 @@ public class DistributedLogsSpec implements KubernetesResource {
   private static final long serialVersionUID = 1L;
 
   @JsonProperty("persistentVolume")
-  @NotNull(message = "Persistent volume must be specified")
-  @Valid
   private DistributedLogsPersistentVolume persistentVolume;
 
   @JsonProperty("nonProductionOptions")
-  @Valid
   private DistributedLogsNonProduction nonProduction;
+
+  @JsonProperty("scheduling")
+  private DistributedLogsPodScheduling scheduling;
+
+  @JsonProperty("metadata")
+  private DistributedLogsSpecMetadata metadata;
 
   public DistributedLogsPersistentVolume getPersistentVolume() {
     return persistentVolume;
@@ -46,6 +46,22 @@ public class DistributedLogsSpec implements KubernetesResource {
 
   public void setNonProduction(DistributedLogsNonProduction nonProduction) {
     this.nonProduction = nonProduction;
+  }
+
+  public DistributedLogsPodScheduling getScheduling() {
+    return scheduling;
+  }
+
+  public void setScheduling(DistributedLogsPodScheduling scheduling) {
+    this.scheduling = scheduling;
+  }
+
+  public DistributedLogsSpecMetadata getMetadata() {
+    return metadata;
+  }
+
+  public void setMetadata(DistributedLogsSpecMetadata metadata) {
+    this.metadata = metadata;
   }
 
   @Override

@@ -5,9 +5,6 @@
 
 package io.stackgres.apiweb.dto.distributedlogs;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -20,20 +17,17 @@ import io.stackgres.common.StackGresUtil;
 public class DistributedLogsPersistentVolume {
 
   @JsonProperty("size")
-  @NotNull(message = "Volume size must be specified")
-  @Pattern(regexp = "^[0-9]+(\\.[0-9]+)?(Mi|Gi|Ti)$",
-      message = "Volume size must be specified in Mi, Gi or Ti")
-  private String volumeSize;
+  private String size;
 
   @JsonProperty("storageClass")
   private String storageClass;
 
-  public String getVolumeSize() {
-    return volumeSize;
+  public String getSize() {
+    return size;
   }
 
-  public void setVolumeSize(String volumeSize) {
-    this.volumeSize = volumeSize;
+  public void setSize(String size) {
+    this.size = size;
   }
 
   public String getStorageClass() {

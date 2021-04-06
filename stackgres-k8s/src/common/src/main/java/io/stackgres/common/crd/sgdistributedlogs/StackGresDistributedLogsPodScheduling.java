@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.common.crd.sgcluster;
+package io.stackgres.common.crd.sgdistributedlogs;
 
 import java.util.List;
 import java.util.Map;
@@ -16,8 +16,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.Toleration;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
@@ -25,7 +25,7 @@ import io.stackgres.common.validation.FieldReference.ReferencedField;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackGresPodScheduling {
+public class StackGresDistributedLogsPodScheduling {
 
   @JsonProperty("nodeSelector")
   private Map<String, String> nodeSelector;
@@ -68,10 +68,10 @@ public class StackGresPodScheduling {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresPodScheduling)) {
+    if (!(obj instanceof StackGresDistributedLogsPodScheduling)) {
       return false;
     }
-    StackGresPodScheduling other = (StackGresPodScheduling) obj;
+    StackGresDistributedLogsPodScheduling other = (StackGresDistributedLogsPodScheduling) obj;
     return Objects.equals(nodeSelector, other.nodeSelector)
         && Objects.equals(tolerations, other.tolerations);
   }
@@ -83,6 +83,9 @@ public class StackGresPodScheduling {
 
   @Override
   public String toString() {
-    return StackGresUtil.toPrettyYaml(this);
+    return MoreObjects.toStringHelper(this)
+        .add("nodeSelector", nodeSelector)
+        .add("tolerations", tolerations)
+        .toString();
   }
 }

@@ -10,6 +10,7 @@ NORMALIZED_OP_NAME='restart'
 KEBAB_OP_NAME='restart'
 POD_0_RESTARTED=false
 POD_1_RESTARTED=false
+PATRONI_CONTAINER_NAME=patroni
 
 shell_unit_test_dbops_restart() {
   echo false > "$TEST_TARGET_PATH/pod_0_restarted"

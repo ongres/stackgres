@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.cluster.factory;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -19,6 +20,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.api.model.batch.CronJob;
 import io.fabric8.kubernetes.api.model.batch.CronJobSpec;
+import io.fabric8.kubernetes.api.model.batch.Job;
 import io.fabric8.kubernetes.api.model.batch.JobSpec;
 import io.fabric8.kubernetes.api.model.batch.JobTemplateSpec;
 import io.stackgres.common.PatroniUtil;
@@ -33,7 +35,9 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 public class AnnotationDecoratorImpl implements AnnotationDecorator {
 
   @Override
-  public void decorate(StackGresCluster cluster, Iterable<? extends HasMetadata> resources) {
+  public void decorate(StackGresCluster cluster,
+      Collection<? extends HasMetadata> existingResources,
+      Iterable<? extends HasMetadata> resources) {
     Map<String, String> allResourcesAnnotations = Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getMetadata)
         .map(StackGresClusterSpecMetadata::getAnnotations)
@@ -109,7 +113,14 @@ public class AnnotationDecoratorImpl implements AnnotationDecorator {
                 template.setMetadata(metadata);
               });
 
-          decorate(cluster, statefulSet.getSpec().getVolumeClaimTemplates());
+          if (existingResources.stream()
+              .noneMatch(existingResource -> (existingResource instanceof StatefulSet) // NOPMD
+                  && resource.getMetadata().getNamespace().equals(
+                      existingResource.getMetadata().getNamespace())
+                  && resource.getMetadata().getName().equals(
+                      existingResource.getMetadata().getName()))) {
+            decorate(cluster, existingResources, statefulSet.getSpec().getVolumeClaimTemplates());
+          }
           resourceAnnotations.putAll(allResourcesAnnotations);
           break;
         case "CronJob":
@@ -151,6 +162,29 @@ public class AnnotationDecoratorImpl implements AnnotationDecorator {
                       podTemplateMetadata.setAnnotations(cronJobPodTemplateAnnotations);
                       podTemplate.setMetadata(podTemplateMetadata);
                     });
+              });
+          resourceAnnotations.putAll(allResourcesAnnotations);
+          break;
+        case "Job":
+          Job job = (Job) resource;
+
+          Map<String, String> jobPodTemplateAnnotations = Optional
+              .ofNullable(job.getSpec())
+              .map(JobSpec::getTemplate)
+              .map(PodTemplateSpec::getMetadata)
+              .map(ObjectMeta::getAnnotations)
+              .orElse(new HashMap<>());
+
+          jobPodTemplateAnnotations.putAll(podAnnotations);
+
+          Optional.ofNullable(job.getSpec())
+              .map(JobSpec::getTemplate)
+              .ifPresent(podTemplate -> {
+                final ObjectMeta podTemplateMetadata = Optional
+                    .ofNullable(podTemplate.getMetadata())
+                    .orElse(new ObjectMeta());
+                podTemplateMetadata.setAnnotations(jobPodTemplateAnnotations);
+                podTemplate.setMetadata(podTemplateMetadata);
               });
           resourceAnnotations.putAll(allResourcesAnnotations);
           break;

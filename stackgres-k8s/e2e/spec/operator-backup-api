@@ -1,13 +1,29 @@
 #!/bin/sh
 
 e2e_test_install() {
-  install_minio
+  NODE_LABEL_KEY=$(ramdom_string)
+  NODE_LABEL_VALUE=$(ramdom_string)
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
+  BACKUPCONF="backupconf"
+
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+  kubectl create secret generic -n "$CLUSTER_NAMESPACE" "test" \
+     --from-literal=accesskey=test --from-literal=secretkey=test
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set cluster.configurations.sgBackupConfig="$BACKUPCONF" \
+    --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
+    --set configurations.backupconfig.create=true \
+    --set-string configurations.backupconfig.storage.s3Compatible.bucket=test \
+    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.name=test \
+    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.key=accesskey \
+    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.name=test \
+    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.key=secretkey \
+    --set-string configurations.backupconfig.baseBackups.cronSchedule='0 5 31 2 *'
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_pods_running "$CLUSTER_NAMESPACE" 1
 
   BACKUP_NAME="${CLUSTER_NAME}-0-$(shuf -i 0-65535 -n 1)"
 
@@ -21,9 +37,6 @@ e2e_test_install() {
     sgCluster: "$CLUSTER_NAME"
     managedLifecycle: false
 EOF
-
-  wait_until eval 'kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-    --template "{{ with .status.process.status }}{{ . }}{{ end }}" | grep -q Completed'
 
   OPERATOR_BACKUP_CR=$(kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o json \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation)
@@ -169,9 +182,6 @@ update_backup_parameter_with_api() {
   UPDATED_STACKGRES_BACKUP=$(cat "$LOG_PATH/stackgres-backup.json" | jq ".spec[\"$1\"] = $2" )
   
   echo_raw "$UPDATED_STACKGRES_BACKUP" > "$LOG_PATH/updated-stackgres-backup.json"
-
-  wait_until eval 'kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-    --template "{{ with .status.process.status }}{{ . }}{{ end }}" | grep -q Completed'
 
   HTTP_STATUS="$(run_curl -r "stackgres/sgbackup" \
     -d "$LOG_PATH/updated-stackgres-backup.json" -e '-X PUT -w %{http_code} -o /dev/null')"

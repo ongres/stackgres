@@ -7,10 +7,10 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_install() {
-  PREVIOUS_PATRONI_IMAGE="$(get_component_images "$STACKGRES_PREVIOUS_VERSION" | grep '/patroni:' | tail -n 1)"
+  PREVIOUS_PATRONI_IMAGE="$(get_component_images "$STACKGRES_PREVIOUS_VERSION" | grep '/patroni\(-ext\)\?:' | tail -n 1)"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_PATRONI_IMAGE##*-pg}"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
-  PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION" | grep '/patroni:' | grep "[-]pg$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION-" | tail -n 1)"
+  PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION" | grep '/patroni\(-ext\)\?:' | grep "[-]pg$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION-" | tail -n 1)"
   k8s_unnamespaced_cleanup
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
@@ -156,7 +156,8 @@ check_cluster_3() {
 }
 
 check_cluster_1_restart() {
-  check_cluster_restart "$CLUSTER_NAME-1" 1 true false
+  check_cluster_restart "$CLUSTER_NAME-1" 1 true false \
+    --set-string cluster.metadata.annotations.allResources.test-annotation=test-value
   wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-1" --for condition=PendingRestart'
 }
 
@@ -181,16 +182,18 @@ check_cluster_restart() {
   local CLUSTER_SIZE="$2"
   local REDUCED_IMPACT="$3"
   local RESTART_PRIMARY_FIRST="$4"
+  shift 4
 
   local POD
-  local PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+  local PODS
+  PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
     -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true" -o name \
     | cut -d / -f 2)"
   for POD in $PODS
   do
     POD_PATRONI_IMAGE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" \
       --template '{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}' \
-       | grep '/patroni:')"
+       | grep '/patroni\(-ext\)\?:')"
     if [ "$POD_PATRONI_IMAGE" = "$PREVIOUS_PATRONI_IMAGE" ]
     then
       echo "SUCCESS. Pod $POD is using the previous patroni image"
@@ -207,7 +210,8 @@ check_cluster_restart() {
   try_function create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$CLUSTER_SIZE" \
     --set cluster.restart=true \
     --set cluster.restartReducedImpact="$REDUCED_IMPACT" \
-    --set cluster.restartPrimaryFirst="$RESTART_PRIMARY_FIRST"
+    --set cluster.restartPrimaryFirst="$RESTART_PRIMARY_FIRST" \
+    "$@"
   if "$RESULT"
   then
     echo "SUCCESS. Cluster restart completed sucesfully"
@@ -235,11 +239,14 @@ check_cluster_restart() {
     fi
   done
 
+  PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true" -o name \
+    | cut -d / -f 2)"
   for POD in $PODS
   do
     POD_PATRONI_IMAGE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" \
       --template '{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}' \
-       | grep '/patroni:')"
+       | grep '/patroni\(-ext\)\?:')"
     if [ "$POD_PATRONI_IMAGE" = "$PATRONI_IMAGE" ]
     then
       echo "SUCCESS. Pod $POD is using the new patroni image"

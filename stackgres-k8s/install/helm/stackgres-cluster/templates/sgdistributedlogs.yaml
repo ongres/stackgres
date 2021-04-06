@@ -21,6 +21,49 @@ spec:
     storageClass: {{ .Values.distributedLogs.persistentVolume.storageClass }}
     {{- end }}
     {{- end }}
+  {{- if .Values.distributedLogs.scheduling }}
+  scheduling:
+    {{- if .Values.distributedLogs.scheduling.nodeSelector }}
+    nodeSelector:
+      {{- range $label, $value := .Values.distributedLogs.scheduling.nodeSelector }}
+      {{ $label }}: {{ $value }}
+      {{- end }}
+    {{- end }}
+    {{- if .Values.distributedLogs.scheduling.tolerations }}
+    tolerations:
+      {{- range .Values.distributedLogs.scheduling.tolerations }}
+      - effect: {{ .effect }}
+        key: {{ .key }}
+        operator: {{ .operator }}
+        value: {{ .value }}
+        tolerationSeconds: {{ .tolerationSeconds }}
+      {{- end }}
+    {{- end }}
+  {{- end }} 
+  {{- if .Values.distributedLogs.metadata }}
+  metadata:
+    {{- if .Values.distributedLogs.metadata.annotations }}
+    annotations:
+      {{- if .Values.distributedLogs.metadata.annotations.allResources }}
+      allResources: 
+        {{- range $annot, $value := .Values.distributedLogs.metadata.annotations.allResources }}
+        {{ $annot }}: {{ $value }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.distributedLogs.metadata.annotations.pods }}
+      pods:
+        {{- range $annot, $value := .Values.distributedLogs.metadata.annotations.pods }}
+        {{ $annot }}: {{ $value }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.distributedLogs.metadata.annotations.services }}
+      services:
+        {{- range $annot, $value := .Values.distributedLogs.metadata.annotations.services }}
+        {{ $annot }}: {{ $value }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
   {{- if .Values.nonProductionOptions }}
   nonProductionOptions:
   {{- if not .Values.nonProductionOptions.disableClusterPodAntiAffinity }}

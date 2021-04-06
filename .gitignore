@@ -28,6 +28,11 @@ local.properties
 .settings/
 .loadpath
 .recommenders
+.fbExcludeFilterFile
+.pmd
+.pmdruleset.xml
+*-cs-cleanup.xml
+*-cs-formatter.xml
 
 ### Idea ###
 .idea/

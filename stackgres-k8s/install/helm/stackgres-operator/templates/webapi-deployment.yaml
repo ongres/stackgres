@@ -27,15 +27,14 @@ spec:
       serviceAccountName: {{ .Values.restapi.name }}
       securityContext:
         runAsNonRoot: true
-        {{- if not (.Capabilities.APIVersions.Has "project.openshift.io/v1") }}
-        runAsUser: 101
-        runAsGroup: 101
-        fsGroup: 101
-        {{- end }}
       containers:
       - name: {{ .Values.restapi.name }}
         image: "{{ .Values.restapi.image.name }}:{{ .Values.restapi.image.tag }}"
         imagePullPolicy: {{ .Values.restapi.image.pullPolicy }}
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 185
+          runAsGroup: 185
         env:
           - name: RESTAPI_NAMESPACE
             valueFrom:
@@ -104,6 +103,10 @@ spec:
       - name: {{ .Values.adminui.name }}
         image: '{{ .Values.adminui.image.name }}:{{ .Values.adminui.image.tag }}'
         imagePullPolicy: {{ .Values.adminui.pullPolicy }}
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 998
+          runAsGroup: 998
         env:
           {{- if and .Values.grafana.url .Values.grafana.token .Values.grafana.webHost }}
           - name: GRAFANA_EMBEDDED

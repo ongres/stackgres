@@ -27,7 +27,7 @@ public class DistributedLogsValidationPipelineTest
   public StackGresDistributedLogsReview getConstraintViolatingReview() {
     StackGresDistributedLogsReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getPersistentVolume().setVolumeSize(null);
+    review.getRequest().getObject().getSpec().getPersistentVolume().setSize(null);
 
     return review;
   }

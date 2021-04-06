@@ -33,6 +33,7 @@ public class Main implements QuarkusApplication {
   KubernetesClientFactory kubernetesClientFactory;
 
   @Override
+  @SuppressWarnings("deprecation")
   public int run(String... args) throws Exception {
     /*
      * This is a hack to prevent empty arrays being added to json serializer in native image. For

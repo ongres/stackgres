@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.patroni.factory;
 
+import static io.stackgres.operator.patroni.factory.PatroniConfigMap.PATRONI_RESTAPI_PORT_NAME;
+
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -133,7 +135,11 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                     .map(entry -> EnvoyUtil.PG_REPL_ENTRY_PORT)
                     .findFirst()
                     .orElse(EnvoyUtil.PG_PORT)).build(),
-            new ContainerPortBuilder().withContainerPort(8008).build())
+            new ContainerPortBuilder()
+                .withName(PATRONI_RESTAPI_PORT_NAME)
+                .withProtocol("TCP")
+                .withContainerPort(EnvoyUtil.PATRONI_ENTRY_PORT)
+                .build())
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.allVolumeMounts(context,
             ClusterStatefulSetVolumeConfig.DATA,
             ClusterStatefulSetVolumeConfig.SOCKET,
@@ -237,7 +243,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
         .withLivenessProbe(new ProbeBuilder()
             .withHttpGet(new HTTPGetActionBuilder()
                 .withNewPath("/cluster")
-                .withPort(new IntOrString(8008))
+                .withPort(new IntOrString(EnvoyUtil.PATRONI_ENTRY_PORT))
                 .withScheme("HTTP")
                 .build())
             .withInitialDelaySeconds(15)
@@ -247,7 +253,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
         .withReadinessProbe(new ProbeBuilder()
             .withHttpGet(new HTTPGetActionBuilder()
                 .withPath("/read-only")
-                .withPort(new IntOrString(8008))
+                .withPort(new IntOrString(EnvoyUtil.PATRONI_ENTRY_PORT))
                 .withScheme("HTTP")
                 .build())
             .withInitialDelaySeconds(5)

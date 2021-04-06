@@ -45,7 +45,7 @@ data:
       listen       9443 ssl;
       ssl_certificate         /etc/operator/certs/server.crt;
       ssl_certificate_key     /etc/operator/certs/root.key;
-      root   /usr/share/nginx/html;
+      root   /opt/app-root/src;
       index index.html;
 
       location /admin/ {

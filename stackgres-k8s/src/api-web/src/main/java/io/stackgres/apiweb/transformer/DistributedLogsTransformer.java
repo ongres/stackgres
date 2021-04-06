@@ -13,11 +13,17 @@ import javax.enterprise.context.ApplicationScoped;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsDto;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsNonProduction;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsPersistentVolume;
+import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsPodScheduling;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsSpec;
+import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsSpecAnnotations;
+import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsSpecMetadata;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsStatus;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPersistentVolume;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPodScheduling;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpecAnnotations;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpecMetadata;
 
 @ApplicationScoped
 public class DistributedLogsTransformer
@@ -51,6 +57,36 @@ public class DistributedLogsTransformer
         getCustomResourcePersistentVolume(source.getPersistentVolume()));
     transformation.setNonProduction(
         getCustomResourceNonProduction(source.getNonProduction()));
+
+    transformation.setScheduling(Optional.ofNullable(source.getScheduling())
+        .map(sourceScheduling -> {
+          StackGresDistributedLogsPodScheduling targetScheduling =
+              new StackGresDistributedLogsPodScheduling();
+          targetScheduling.setNodeSelector(sourceScheduling.getNodeSelector());
+          targetScheduling.setTolerations(sourceScheduling.getTolerations());
+          return targetScheduling;
+        }).orElse(null));
+
+    Optional.ofNullable(source.getMetadata())
+        .map(DistributedLogsSpecMetadata::getAnnotations)
+        .ifPresent(sourceAnnotations -> {
+          transformation.setMetadata(new StackGresDistributedLogsSpecMetadata());
+
+          final StackGresDistributedLogsSpecAnnotations targetAnnotations
+              = new StackGresDistributedLogsSpecAnnotations();
+          transformation.getMetadata().setAnnotations(targetAnnotations);
+
+          if (sourceAnnotations.getAllResources() != null) {
+            targetAnnotations.setAllResources(sourceAnnotations.getAllResources());
+          }
+          if (sourceAnnotations.getPods() != null) {
+            targetAnnotations.setPods(sourceAnnotations.getPods());
+          }
+          if (sourceAnnotations.getServices() != null) {
+            targetAnnotations.setServices(sourceAnnotations.getServices());
+          }
+        });
+
     return transformation;
   }
 
@@ -58,7 +94,7 @@ public class DistributedLogsTransformer
       DistributedLogsPersistentVolume source) {
     StackGresDistributedLogsPersistentVolume transformation =
         new StackGresDistributedLogsPersistentVolume();
-    transformation.setVolumeSize(source.getVolumeSize());
+    transformation.setSize(source.getSize());
     transformation.setStorageClass(source.getStorageClass());
     return transformation;
   }
@@ -80,6 +116,35 @@ public class DistributedLogsTransformer
         getResourcePersistentVolume(source.getPersistentVolume()));
     transformation.setNonProduction(
         getResourceNonProduction(source.getNonProduction()));
+
+    transformation.setScheduling(Optional.ofNullable(source.getScheduling())
+        .map(sourcePodScheduling -> {
+          DistributedLogsPodScheduling podScheduling = new DistributedLogsPodScheduling();
+          podScheduling.setNodeSelector(sourcePodScheduling.getNodeSelector());
+          podScheduling.setTolerations(sourcePodScheduling.getTolerations());
+          return podScheduling;
+        }).orElse(null));
+
+    Optional.ofNullable(source.getMetadata())
+        .map(StackGresDistributedLogsSpecMetadata::getAnnotations)
+        .ifPresent(sourceAnnotations -> {
+          transformation.setMetadata(new DistributedLogsSpecMetadata());
+
+          final DistributedLogsSpecAnnotations targetAnnotations =
+              new DistributedLogsSpecAnnotations();
+          transformation.getMetadata().setAnnotations(targetAnnotations);
+
+          if (sourceAnnotations.getAllResources() != null) {
+            targetAnnotations.setAllResources(sourceAnnotations.getAllResources());
+          }
+          if (sourceAnnotations.getPods() != null) {
+            targetAnnotations.setPods(sourceAnnotations.getPods());
+          }
+          if (sourceAnnotations.getServices() != null) {
+            targetAnnotations.setServices(sourceAnnotations.getServices());
+          }
+        });
+
     return transformation;
   }
 
@@ -92,7 +157,7 @@ public class DistributedLogsTransformer
   private DistributedLogsPersistentVolume getResourcePersistentVolume(
       StackGresDistributedLogsPersistentVolume source) {
     DistributedLogsPersistentVolume transformation = new DistributedLogsPersistentVolume();
-    transformation.setVolumeSize(source.getVolumeSize());
+    transformation.setSize(source.getSize());
     transformation.setStorageClass(source.getStorageClass());
     return transformation;
   }

@@ -5,6 +5,9 @@
 
 package io.stackgres.operator.patroni.handler;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -65,8 +68,27 @@ public class PatroniSecretHandler extends AbstractClusterResourceHandler {
         PairVisitor<Secret, T> pairVisitor) {
       return pairVisitor.visit()
           .visit(Secret::getType, Secret::setType)
-          .visitMapKeys(Secret::getData, Secret::setData)
-          .visitMapKeys(Secret::getStringData, Secret::setStringData);
+          .visitMapTransformed(Secret::getData, Secret::setData,
+              this::leftSecretDataTransformer, this::rightSecretDataTransformer,
+              HashMap<String, String>::new)
+          .visitMapTransformed(Secret::getStringData, Secret::setStringData,
+              this::leftSecretDataTransformer, this::rightSecretDataTransformer,
+              HashMap<String, String>::new);
+    }
+
+    protected Map.Entry<String, String> leftSecretDataTransformer(
+        Map.Entry<String, String> leftAnnotation,
+        Map.Entry<String, String> rightAnnotation) {
+      return leftAnnotation;
+    }
+
+    protected Map.Entry<String, String> rightSecretDataTransformer(
+        Map.Entry<String, String> leftAnnotation,
+        Map.Entry<String, String> rightAnnotation) {
+      if (leftAnnotation != null) {
+        return leftAnnotation;
+      }
+      return rightAnnotation;
     }
 
   }

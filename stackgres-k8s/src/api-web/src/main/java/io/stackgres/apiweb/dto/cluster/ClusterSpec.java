@@ -7,11 +7,6 @@ package io.stackgres.apiweb.dto.cluster;
 
 import java.util.List;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -24,16 +19,12 @@ import io.stackgres.common.StackGresUtil;
 public class ClusterSpec {
 
   @JsonProperty("instances")
-  @Min(value = 1, message = "You need at least 1 instance in the cluster")
   private int instances;
 
   @JsonProperty("postgresVersion")
-  @NotBlank(message = "PostgreSQL version is required")
   private String postgresVersion;
 
   @JsonProperty("configurations")
-  @NotNull(message = "cluster configuration cannot be null")
-  @Valid
   private ClusterConfiguration configurations;
 
   @JsonProperty("sgInstanceProfile")
@@ -46,7 +37,6 @@ public class ClusterSpec {
   private ClusterDistributedLogs distributedLogs;
 
   @JsonProperty("postgresExtensions")
-  @Valid
   private List<ClusterExtension> postgresExtensions;
 
   @JsonProperty("pods")
@@ -62,7 +52,6 @@ public class ClusterSpec {
   private ClusterPostgresServices postgresServices;
 
   @JsonProperty("metadata")
-  @Valid
   private ClusterSpecMetadata metadata;
 
   public int getInstances() {

@@ -104,7 +104,7 @@ public class DistributedLogsController implements ContainerResourceFactory<Void,
             .withReadOnly(Boolean.TRUE)
             .build(),
             new VolumeMountBuilder()
-            .withName(StackgresClusterContainers.FLUENTD)
+            .withName(FluentdUtil.NAME)
             .withMountPath("/fluentd")
             .withReadOnly(Boolean.FALSE)
             .build())
@@ -135,6 +135,7 @@ public class DistributedLogsController implements ContainerResourceFactory<Void,
         .withVolumeMounts(
             ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context),
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(context))
+        .addAllToVolumeMounts(ClusterStatefulSetVolumeConfig.USER.volumeMounts(context))
         .build();
   }
 
@@ -204,10 +205,11 @@ public class DistributedLogsController implements ContainerResourceFactory<Void,
             .withReadOnly(Boolean.TRUE)
             .build(),
             new VolumeMountBuilder()
-            .withName(StackgresClusterContainers.FLUENTD)
+            .withName(FluentdUtil.NAME)
             .withMountPath("/fluentd")
             .withReadOnly(Boolean.FALSE)
             .build())
+        .addAllToVolumeMounts(ClusterStatefulSetVolumeConfig.USER.volumeMounts(context))
         .build();
   }
 

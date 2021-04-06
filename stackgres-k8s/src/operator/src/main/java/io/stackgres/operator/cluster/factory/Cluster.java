@@ -19,6 +19,7 @@ import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.dbops.factory.DbOps;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
+import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
 public class Cluster
@@ -75,7 +76,9 @@ public class Cluster
         .append(dbOps)
         .stream()
         .collect(ImmutableList.toImmutableList());
-    annotationDecorator.decorate(context.getCluster(), resources);
+    annotationDecorator.decorate(context.getCluster(),
+        context.getExistingResources().stream()
+        .map(Tuple2::v1).collect(ImmutableList.toImmutableList()), resources);
     return resources.stream();
   }
 

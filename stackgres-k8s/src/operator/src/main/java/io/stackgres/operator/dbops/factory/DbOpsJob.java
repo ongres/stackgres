@@ -368,8 +368,10 @@ public abstract class DbOpsJob
   }
 
   protected String getRunImage(StackGresDbOpsContext context) {
-    return StackGresComponent.POSTGRES_UTIL.findImageName(
-        context.getCluster().getSpec().getPostgresVersion());
+    return StackGresComponent.PATRONI.findImageName(
+        StackGresComponent.LATEST,
+        ImmutableMap.of(StackGresComponent.POSTGRESQL,
+            context.getCluster().getSpec().getPostgresVersion()));
   }
 
   protected abstract ClusterStatefulSetPath getRunScript();

@@ -14,11 +14,16 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpecMetadata;
 import org.jooq.lambda.Unchecked;
 
 public interface StackGresDistributedLogsUtil {
@@ -38,11 +43,20 @@ public interface StackGresDistributedLogsUtil {
     spec.setInstances(1);
     final StackGresClusterPod pod = new StackGresClusterPod();
     final StackGresPodPersistentVolume persistentVolume = new StackGresPodPersistentVolume();
-    persistentVolume.setVolumeSize(
-        distributedLogs.getSpec().getPersistentVolume().getVolumeSize());
+    persistentVolume.setSize(
+        distributedLogs.getSpec().getPersistentVolume().getSize());
     persistentVolume.setStorageClass(
         distributedLogs.getSpec().getPersistentVolume().getStorageClass());
     pod.setPersistentVolume(persistentVolume);
+    StackGresClusterPodScheduling scheduling = new StackGresClusterPodScheduling();
+    Optional.of(distributedLogs)
+        .map(StackGresDistributedLogs::getSpec)
+        .map(StackGresDistributedLogsSpec::getScheduling)
+        .ifPresent(distributedLogsScheduling -> {
+          scheduling.setNodeSelector(distributedLogsScheduling.getNodeSelector());
+          scheduling.setTolerations(distributedLogsScheduling.getTolerations());
+        });
+    pod.setScheduling(scheduling);
     spec.setPod(pod);
     final StackGresClusterInitData initData = new StackGresClusterInitData();
     final StackGresClusterScriptEntry script = new StackGresClusterScriptEntry();
@@ -61,6 +75,19 @@ public interface StackGresDistributedLogsUtil {
         .map(StackGresDistributedLogsNonProduction::getDisableClusterPodAntiAffinity)
         .orElse(false));
     spec.setNonProduction(nonProduction);
+    final StackGresClusterSpecMetadata metadata = new StackGresClusterSpecMetadata();
+    final StackGresClusterSpecAnnotations annotations = new StackGresClusterSpecAnnotations();
+    Optional.of(distributedLogs)
+        .map(StackGresDistributedLogs::getSpec)
+        .map(StackGresDistributedLogsSpec::getMetadata)
+        .map(StackGresDistributedLogsSpecMetadata::getAnnotations)
+        .ifPresent(distributedLogsAnnotations -> {
+          annotations.setAllResources(distributedLogsAnnotations.getAllResources());
+          annotations.setPods(distributedLogsAnnotations.getPods());
+          annotations.setServices(distributedLogsAnnotations.getServices());
+        });
+    metadata.setAnnotations(annotations);
+    spec.setMetadata(metadata);
     distributedLogsCluster.setSpec(spec);
     return distributedLogsCluster;
   }

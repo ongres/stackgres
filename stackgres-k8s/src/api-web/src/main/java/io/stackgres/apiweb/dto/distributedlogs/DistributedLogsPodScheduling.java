@@ -3,21 +3,21 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.dto.cluster;
+package io.stackgres.apiweb.dto.distributedlogs;
 
 import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.Toleration;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class PodScheduling {
+public class DistributedLogsPodScheduling {
 
   private Map<String, String> nodeSelector;
 
@@ -41,7 +41,9 @@ public class PodScheduling {
 
   @Override
   public String toString() {
-    return StackGresUtil.toPrettyYaml(this);
+    return MoreObjects.toStringHelper(this)
+        .add("nodeSelector", nodeSelector)
+        .add("tolerations", tolerations)
+        .toString();
   }
-
 }
