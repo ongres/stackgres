@@ -6,6 +6,10 @@ e2e_test_install() {
 
   BACKUPCONF="backupconf"
 
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+  kubectl create secret generic -n "$CLUSTER_NAMESPACE" "test" \
+     --from-literal=accesskey=test --from-literal=secretkey=test
+
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \
     --set cluster.configurations.sgBackupConfig="$BACKUPCONF" \
@@ -13,9 +17,9 @@ e2e_test_install() {
     --set configurations.backupconfig.create=true \
     --set-string configurations.backupconfig.storage.s3Compatible.bucket=test \
     --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.name=test \
-    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.key=test \
+    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.key=accesskey \
     --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.name=test \
-    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.key=test \
+    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.key=secretkey \
     --set-string configurations.backupconfig.baseBackups.cronSchedule='0 5 31 2 *'
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
@@ -29,7 +33,8 @@ e2e_test_install() {
   
   DEFAULT_BACKUPCONFIG=$(cat "$LOG_PATH/default-backupconfig-cr.json" \
     | jq 'del(.apiVersion) | del(.kind)' \
-    | jq '.spec.storage.s3Compatible.awsCredentials.accessKeyId = "secret"
+    | jq 'del(.spec.storage.s3Compatible.awsCredentials.secretKeySelectors)
+      | .spec.storage.s3Compatible.awsCredentials.accessKeyId = "secret"
       | .spec.storage.s3Compatible.awsCredentials.secretAccessKey = "secret"')
   echo "$DEFAULT_BACKUPCONFIG" > "$LOG_PATH/default-backupconfig.json"
 
