@@ -11,8 +11,6 @@ e2e_test_install() {
 e2e_test() {
   run_test "Checking that pgbench is working" check_pgbench_is_working
 
-  run_test "Checking that pgbench is working using API" check_pgbench_is_working_using_api
-
   run_test "Checking that pgbench is working with 10 clients and threads" check_pgbench_many_is_working
 
   run_test "Checking that pgbench is working with prepared statements" check_pgbench_prepared_is_working
@@ -39,50 +37,9 @@ spec:
       duration: PT10S
 EOF
 
-  DBOPS_CR="$(kubectl get sgdbops.stackgres.io -n "$CLUSTER_NAMESPACE" "benchmark" -o json \
-    | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation)
-      | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)')"
-  
-  echo_raw "$DBOPS_CR" > "$LOG_PATH/dbops-cr.json"
-
-  DBOPS=$(cat "$LOG_PATH/dbops-cr.json" \
-    | jq 'del(.apiVersion) | del(.kind) | del(.status) | del(.metadata.annotations)' )
-
-  echo_raw "$DBOPS" > "$LOG_PATH/dbops.json"
-
   check_pgbench
 
   kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" benchmark
-}
-
-check_pgbench_is_working_using_api() {
-  HTTP_STATUS="$(run_curl -r "stackgres/sgdbops" \
-    -d "$LOG_PATH/dbops.json" -e '-X POST -w %{http_code} -o /dev/null')"
-
-  if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
-  then
-    echo "Request acknowledged by the operator"
-  else
-    ERROR_RESPONSE="$(run_curl -r "stackgres/sgdbops" \
-      -d "$LOG_PATH/dbops.json" -e '-X POST')"
-    echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
-    return 1
-  fi
-
-  check_pgbench
-
-  HTTP_STATUS="$(run_curl -r "stackgres/sgdbops" \
-    -d "$LOG_PATH/dbops.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
-
-  if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
-  then
-    echo "Request acknowledged by the operator"
-  else
-    ERROR_RESPONSE="$(run_curl -r "stackgres/sgdbops" \
-      -d "$LOG_PATH/dbops.json" -e '-X DELETE')"
-    echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
-    return 1
-  fi
 }
 
 check_pgbench_many_is_working() {
