@@ -5,6 +5,8 @@ export E2E_TARGET_POSTGRES_VERSION="${E2E_TARGET_POSTGRES_VERSION:-12.3}"
 export E2E_STORAGE_CLASS_REFLINK_ENABLED="${E2E_STORAGE_CLASS_REFLINK_ENABLED:-false}"
 
 e2e_test_install() {
+  CLUSTER_NAME=dbops-major-version-upgrade
+
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
