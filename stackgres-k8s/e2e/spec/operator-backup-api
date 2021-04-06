@@ -7,7 +7,7 @@ e2e_test_install() {
   BACKUPCONF="backupconf"
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
-  kubectl create secret generic -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-minio" \
+  kubectl create secret generic -n "$CLUSTER_NAMESPACE" "test" \
      --from-literal=accesskey=test --from-literal=secretkey=test
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
@@ -16,9 +16,9 @@ e2e_test_install() {
     --set configurations.backupconfig.create=true \
     --set-string configurations.backupconfig.storage.s3Compatible.bucket=test \
     --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.name=test \
-    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.key=test \
+    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.key=accesskey \
     --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.name=test \
-    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.key=test \
+    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.key=secretkey \
     --set-string configurations.backupconfig.baseBackups.cronSchedule='0 5 31 2 *'
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
