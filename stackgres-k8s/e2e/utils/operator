@@ -2,11 +2,11 @@
 
 export IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
 export ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
-export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
-export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"
-export JOBS_IMAGE_NAME="stackgres/jobs:$IMAGE_TAG"
-export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="stackgres/distributedlogs-controller:$IMAGE_TAG"
-export ADMINUI_IMAGE_NAME="stackgres/admin-ui:$ADMINUI_IMAGE_TAG"
+export OPERATOR_IMAGE_NAME="docker.io/stackgres/operator:$IMAGE_TAG"
+export RESTAPI_IMAGE_NAME="docker.io/stackgres/restapi:$IMAGE_TAG"
+export JOBS_IMAGE_NAME="docker.io/stackgres/jobs:$IMAGE_TAG"
+export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="docker.io/stackgres/distributedlogs-controller:$IMAGE_TAG"
+export ADMINUI_IMAGE_NAME="docker.io/stackgres/admin-ui:$ADMINUI_IMAGE_TAG"
 
 export STACKGRES_PATH="${STACKGRES_PATH:-$E2E_PATH/..}"
 export PROJECT_PATH="${PROJECT_PATH:-$STACKGRES_PATH/..}"
@@ -207,16 +207,6 @@ load_operator_k8s() {
   local IMAGE_NAME
   if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
   then
-    for IMAGE_NAME in \
-      "$OPERATOR_IMAGE_NAME" \
-      "$RESTAPI_IMAGE_NAME" \
-      "$ADMINUI_IMAGE_NAME" \
-      "$JOBS_IMAGE_NAME" \
-      "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
-    do
-      echo "$IMAGE_NAME"
-    done | xargs -n 1 -I % -P 0 \
-      docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH%"
     if [ -n "$E2E_OPERATOR_REGISTRY" ]
     then
       for IMAGE_NAME in \
@@ -227,8 +217,19 @@ load_operator_k8s() {
         "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
       do
         echo "$IMAGE_NAME"
-      done | xargs -n 1 -I % -P 0 \
-        docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH%" "%"
+      done | xargs -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" \
+        pull_image_from "$E2E_OPERATOR_REGISTRY" "$E2E_OPERATOR_REGISTRY_PATH" "%"
+    else
+      for IMAGE_NAME in \
+        "$OPERATOR_IMAGE_NAME" \
+        "$RESTAPI_IMAGE_NAME" \
+        "$ADMINUI_IMAGE_NAME" \
+        "$JOBS_IMAGE_NAME" \
+        "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
+      do
+        echo "$IMAGE_NAME"
+      done | xargs -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" \
+        docker_pull "%"
     fi
   fi
   if [ -n "$E2E_COMPONENTS_REGISTRY" ]
@@ -250,11 +251,11 @@ load_operator_k8s() {
     local JOBS_IMAGE_NAME="stackgres/jobs:$IMAGE_TAG"
     local DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="stackgres/distributedlogs-controller:$IMAGE_TAG"
     local ADMINUI_IMAGE_NAME="stackgres/admin-ui:$ADMINUI_IMAGE_TAG"
-    docker tag "$ORIGINAL_OPERATOR_IMAGE_NAME" "$OPERATOR_IMAGE_NAME"
-    docker tag "$ORIGINAL_RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
-    docker tag "$ORIGINAL_JOBS_IMAGE_NAME" "$JOBS_IMAGE_NAME"
-    docker tag "$ORIGINAL_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
-    docker tag "$ORIGINAL_ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
+    docker_tag "$ORIGINAL_OPERATOR_IMAGE_NAME" "$OPERATOR_IMAGE_NAME"
+    docker_tag "$ORIGINAL_RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
+    docker_tag "$ORIGINAL_JOBS_IMAGE_NAME" "$JOBS_IMAGE_NAME"
+    docker_tag "$ORIGINAL_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
+    docker_tag "$ORIGINAL_ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
     load_operator_k8s_only
   else
     load_operator_k8s_only
@@ -272,6 +273,18 @@ load_operator_k8s_only() {
   do
     echo "$IMAGE_NAME"
   done | xargs -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" load_image_k8s '%'
+}
+
+pull_image_from() {
+  [ -n "$1" -a -n "$2" -a -n "$3" ]
+  local REPOSITORY="$1"
+  local IMAGE_PATH="$2"
+  local IMAGE="$3"
+  local FROM_IMAGE="$REPOSITORY$IMAGE_PATH${IMAGE#*/}"
+  echo "Pulling $IMAGE from $FROM_IMAGE..."
+  docker_pull "$FROM_IMAGE"
+  docker_tag "$FROM_IMAGE" "$IMAGE"
+  echo "done."
 }
 
 operator_pull_policy() {
@@ -449,20 +462,20 @@ load_component_images_from() {
   local IMAGE_PATH="${2:-/ongres/}"
   get_component_images "$STACKGRES_VERSION" \
     | xargs -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" \
-      load_image_from "$REPOSITORY" "$IMAGE_PATH" '%'
+      load_component_image_from "$REPOSITORY" "$IMAGE_PATH" '%'
 }
 
-load_image_from() {
+load_component_image_from() {
   [ -n "$1" -a -n "$2" -a -n "$3" ]
   local REPOSITORY="$1"
   local IMAGE_PATH="$2"
   local IMAGE="$3"
   local FROM_IMAGE="$REPOSITORY$IMAGE_PATH${IMAGE##*/}"
-  echo "Loading $IMAGE from $FROM_IMAGE..."
-  docker pull "$FROM_IMAGE"
-  docker tag "$FROM_IMAGE" "$IMAGE"
-  load_image_k8s "$IMAGE"
+  echo "Pulling $IMAGE from $FROM_IMAGE..."
+  docker_pull "$FROM_IMAGE"
+  docker_tag "$FROM_IMAGE" "$IMAGE"
   echo "done."
+  load_image_k8s "$IMAGE"
 }
 
 get_component_images() {
