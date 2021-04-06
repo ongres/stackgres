@@ -32,7 +32,7 @@ Vue.use(VueRouter);
 
 const routes = [
   { 
-    /**/path: '/crd/create/cluster/:namespace', 
+    path: '/crd/create/cluster/:namespace', 
     component: CreateCluster,
     name: 'CreateCluster',
     meta: {
@@ -40,7 +40,7 @@ const routes = [
     },
   },
   { 
-    /**/path: '/crd/edit/cluster/:namespace/:name', 
+    path: '/crd/edit/cluster/:namespace/:name', 
     component: CreateCluster,
     name: 'EditCluster',
     meta: {
@@ -48,7 +48,7 @@ const routes = [
     },
   },
   { 
-    /**/path: '/crd/create/profile/:namespace', 
+    path: '/crd/create/profile/:namespace', 
     component: CreateProfile,
     name: 'CreateProfile',
     meta: {
@@ -56,7 +56,7 @@ const routes = [
     },
   },
   { 
-    /**/path: '/crd/edit/profile/:namespace/:name', 
+    path: '/crd/edit/profile/:namespace/:name', 
     component: CreateProfile,
     name: 'EditProfile',
     meta: {
@@ -64,7 +64,7 @@ const routes = [
     },
   },
   { 
-    /**/path: '/crd/create/pgconfig/:namespace', 
+    path: '/crd/create/pgconfig/:namespace', 
     component: CreatePgConfig,
     name: 'CreatePgConfig',
     meta: {
@@ -72,7 +72,7 @@ const routes = [
     },
   },
   { 
-    /**/path: '/crd/edit/pgconfig/:namespace/:name', 
+    path: '/crd/edit/pgconfig/:namespace/:name', 
     component: CreatePgConfig,
     name: 'EditPgConfig',
     meta: {
@@ -80,7 +80,7 @@ const routes = [
     },
   },
   { 
-    /**/path: '/crd/create/connectionpooling/:namespace', 
+    path: '/crd/create/connectionpooling/:namespace', 
     component: CreatePoolConfig,
     name: 'CreatePoolConfig',
     meta: {
@@ -88,7 +88,7 @@ const routes = [
     },
   },
   { 
-    /**/path: '/crd/edit/connectionpooling/:namespace/:name', 
+    path: '/crd/edit/connectionpooling/:namespace/:name', 
     component: CreatePoolConfig,
     name: 'EditPoolConfig',
     meta: {
@@ -96,7 +96,7 @@ const routes = [
     },
   },
   { 
-    /**/path: '/crd/create/backupconfig/:namespace', 
+    path: '/crd/create/backupconfig/:namespace', 
     component: CreateBackupConfig,
     name: 'CreateBackupConfig',
     meta: {
@@ -104,7 +104,7 @@ const routes = [
     },
   },
   { 
-    /**/path: '/crd/edit/backupconfig/:namespace/:name', 
+    path: '/crd/edit/backupconfig/:namespace/:name', 
     component: CreateBackupConfig,
     name: 'EditBackupConfig',
     meta: {
@@ -112,7 +112,7 @@ const routes = [
     },
   },
   { 
-    /**/path: '/crd/create/backup/:namespace', 
+    path: '/crd/create/backup/:namespace', 
     component: CreateBackup,
     name: 'CreateBackups',
     meta: {
@@ -120,7 +120,7 @@ const routes = [
     },
   },
   { 
-    /**/path: '/crd/create/backup/:namespace/:cluster', 
+    path: '/crd/create/backup/:namespace/:cluster', 
     component: CreateBackup,
     name: 'CreateClusterBackup',
     meta: {
@@ -128,7 +128,7 @@ const routes = [
     },
   },
   { 
-    /**/path: '/crd/edit/backup/:namespace/:uid', 
+    path: '/crd/edit/backup/:namespace/:uid', 
     component: CreateBackup,
     name: 'EditBackup',
     meta: {
@@ -136,7 +136,7 @@ const routes = [
     },
   },
   { 
-    /**/path: '/crd/create/logs/:namespace', 
+    path: '/crd/create/logs/:namespace', 
     component: CreateLogsServer,
     name: 'CreateLogsServer',
     meta: {
@@ -144,7 +144,7 @@ const routes = [
     },
   },
   { 
-    /**/path: '/crd/edit/logs/:namespace/:name', 
+    path: '/crd/edit/logs/:namespace/:name', 
     component: CreateLogsServer,
     name: 'EditLogsServer',
     meta: {
