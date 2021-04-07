@@ -859,7 +859,7 @@
 			isBetweenDates(bk) {
 				const vc = this
 
-				if(bk.data.status.process.status == 'Completed') {
+				if(vc.hasProp(bk, 'data.status.process.status') &&  (bk.data.status.process.status == 'Completed') ) {
 					let timestamp = moment(bk.data.status.process.timing.stored, 'YYYY-MM-DD HH:mm:ss');
 					let start = moment(vc.dateStart, 'YYYY-MM-DD HH:mm:ss');
 					let end = moment(vc.dateEnd, 'YYYY-MM-DD HH:mm:ss');
