@@ -403,7 +403,8 @@ upgrade_operator_from_private_repository() {
 
 update_ui_clear_password() {
   local PASSWORD
-  PASSWORD="$(helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator -o json | jq -r .authentication.password | tr -d '\n')"
+  PASSWORD="$(helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator -o json \
+    | jq -r '.authentication.password | select(. != null)' | tr -d '\n')"
   if [ -n "$PASSWORD" ]
   then
     kubectl patch secret -n "$OPERATOR_NAMESPACE" stackgres-restapi -p '{"data":{"clearPassword":"'"$(printf '%s' "$PASSWORD" | base64)"'"}}'
