@@ -196,7 +196,7 @@
 									( !filter.date || ( filter.date && ( datePicker.length ? isBetweenDates(back) : true )) ) &&
 									( !filter.others || ( filter.others &&
 										// Filter by managedLifecycle	
-										( managedLifecycle.length ? ( hasProp(back, 'data.spec.managedLifecycle') && (back.data.spec.managedLifecycle.toString() === managedLifecycle[0])) : true ) &&
+										( managedLifecycle.length ? ( (!hasProp(back, 'data.spec.managedLifecycle') && (managedLifecycle[0] == 'false')) || (hasProp(back, 'data.spec.managedLifecycle') && (back.data.spec.managedLifecycle.toString() === managedLifecycle[0]) )) : true ) &&
 
 										//Filter by Status
 										( status.length ? (hasProp(back, 'data.status.process.status') && status.includes(back.data.status.process.status)) : true ) &&
@@ -225,7 +225,7 @@
 													Z
 												</template>
 											</td>
-											<td class="managedLifecycle center icon" :class="[ hasProp(back,'data.spec.managedLifecycle') ? ((back.data.spec.managedLifecycle) ? 'true' : 'false') : '']" :data-val="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle : ''"></td>
+											<td class="managedLifecycle center icon" :class="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle.toString() : 'false'" :data-val="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle : 'false'"></td>
 											<td class="phase center" :class="back.data.status.process.status">
 												<span>{{ back.data.status.process.status }}</span>
 											</td>
@@ -407,7 +407,7 @@
 																Managed Lifecycle (request)
 																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.spec.managedLifecycle.description"></span>
 															</td>
-															<td class="managedLifecycle" :class="[ hasProp(back,'data.spec.managedLifecycle') ? ((back.data.spec.managedLifecycle) ? 'true' : 'false') : '']" :data-val="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle : ''"></td>
+															<td class="managedLifecycle" :class="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle.toString() : 'false'" :data-val="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle : 'false'"></td>
 														</tr>
 														<tr>
 															<td class="label">
@@ -763,7 +763,7 @@
 								<template v-else>
 									<tr>
 										<td class="timestamp"></td>
-										<td class="managedLifecycle center icon" :class="[ hasProp(back,'data.spec.managedLifecycle') ? ((back.data.spec.managedLifecycle) ? 'true' : 'false') : '']" :data-val="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle : ''"></td>
+										<td class="managedLifecycle center icon" :class="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle.toString() : 'false'" :data-val="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle : 'false'"></td>
 										<td class="phase center Pending">
 											<span>Pending</span>
 										</td>
