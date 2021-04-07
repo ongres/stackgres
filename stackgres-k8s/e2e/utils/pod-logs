@@ -47,10 +47,6 @@ pod_logs() {
         ;;
     esac
   done
-  if "$LOG_IN_FILES"
-  then
-    mkdir -p "$LOG_IN_PATH"
-  fi
   [ -f "$PODS_FILE" ] || rm -f "$PODS_FILE"
   trap_exec kubectl get pod $(if [ -z "$NAMESPACE" ]; then echo '--all-namespaces'; else echo '-n '"$NAMESPACE"; fi) -o json --watch \
     | jq --unbuffered -r '.metadata.namespace + "/" + .metadata.name + "/" + .metadata.uid + "," + (.metadata.ownerReferences | select(. != null) | map(.kind) | .[] | tostring)' \
@@ -79,6 +75,10 @@ pod_logs() {
               fi
               echo_raw "${POD%%/*}/$(echo "$POD" | cut -d / -f 2)/$CONTAINER" >> "$PODS_FILE"
               echo_raw "[$(echo "$POD" | cut -d / -f 2)-${CONTAINER%%/*}] Start logging container ${CONTAINER%%/*} in pod $(echo "$POD" | cut -d / -f 2)"
+              if "$LOG_IN_FILES"
+              then
+                mkdir -p "$LOG_IN_PATH/${POD%%/*}/$(echo "$POD" | cut -d / -f 2)"
+              fi
               pod_logs_pod_container_in_trap $(if "$LOG_IN_FILES"; then printf '%s %s %s' '-F' '-P' "$LOG_IN_PATH"; fi) -n "${POD%%/*}" "$(echo "$POD" | cut -d / -f 2)" -c "${CONTAINER%%/*}"
             done
       done
@@ -125,7 +125,7 @@ pod_logs_pod_container_in_trap() {
       do
         if "$LOG_IN_FILES"
         then
-          echo_raw "$LINE" >> "${LOG_IN_PATH}/${NAMESPACE}-${POD}-${CONTAINER}.log"
+          echo_raw "$LINE" >> "${LOG_IN_PATH}/${NAMESPACE}/${POD}/${CONTAINER}.log"
         else
           echo_raw "[${NAMESPACE}:${POD}:${CONTAINER}] ${LINE}"
         fi
