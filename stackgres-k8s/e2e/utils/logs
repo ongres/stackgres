@@ -10,7 +10,7 @@ traceable_setup_logs() {
     return
   fi
   echo "Recording pods logs"
-  pod_logs --log-in-files &
+  pod_logs --log-in-files > "$TARGET_PATH/all_pods.log" 2>/dev/null &
   trap_kill "$!"
   echo "Recording events"
   event_watch -o wide > "$TARGET_PATH/all_events.log" 2>/dev/null &
