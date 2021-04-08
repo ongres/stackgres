@@ -13,10 +13,10 @@
                     <router-link :to="'/backups/'+$route.params.namespace" title="SGBackups">SGBackups</router-link>
                 </li>
                 <li v-if="editMode">
-                    <router-link :to="'/backups/'+$route.params.namespace+'/'+$route.params.cluster+'/'+$route.params.uid" title="Backup Details">{{ $route.params.uid }}</router-link>
+                    <router-link :to="'/backups/'+$route.params.namespace+'/'+backupCluster+'/'+$route.params.uid" title="Backup Details">{{ $route.params.uid }}</router-link>
                 </li>
                 <li class="action">
-                    {{ $route.params.action }}
+                    {{ $route.name == 'EditBackup' ? 'Edit' : 'Create' }}
                 </li>
             </ul>
 
@@ -95,7 +95,7 @@
             const vm = this;
 
             return {
-                editMode: (vm.$route.params.action === 'edit'),
+                editMode: (vm.$route.name === 'EditBackup'),
                 advancedMode: false,
                 backupName: '',
                 backupNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
@@ -133,7 +133,7 @@
                 var vm = this;
                 var backup = {};
                 
-                if(vm.$route.params.action === 'edit') {
+                if(vm.$route.name === 'EditBackup') {
                     store.state.backups.forEach(function( bk ){
                         if( (bk.data.metadata.uid === vm.$route.params.uid) && (bk.data.metadata.namespace === vm.$route.params.namespace) ) {
                             vm.backupName = bk.name;

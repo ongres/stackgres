@@ -828,7 +828,7 @@
 			},
 
 			isCluster() {
-				return this.$route.params.hasOwnProperty('cluster')
+				return this.$route.name.includes('ClusterBackups')
 			},
 
 			tooltips() {
