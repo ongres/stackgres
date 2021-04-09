@@ -333,12 +333,7 @@ install_operator_previous_version() {
   kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null 2>&1 \
     || kubectl create namespace "$OPERATOR_NAMESPACE"
 
-  local TAG
-  TAG="$(get_operator_image_tag "$STACKGRES_PREVIOUS_VERSION")"
   install_operator_vanilla_from "$OPERATOR_PREVIOUS_VERSION_HELM_URL" \
-    --set-string operator.image.tag="$TAG" \
-    --set-string restapi.image.tag="$TAG" \
-    --set-string adminui.image.tag="${TAG%-jvm}" \
     $E2E_OPERATOR_OPTS "$@"
 }
 
@@ -350,6 +345,7 @@ install_operator_vanilla() {
 install_operator_vanilla_from() {
   helm install stackgres-operator --namespace "$OPERATOR_NAMESPACE" \
     "$@"
+  update_ui_clear_password
 }
 
 upgrade_operator() {
@@ -377,6 +373,7 @@ upgrade_operator() {
 
 upgrade_operator_vanilla() {
   helm upgrade stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$OPERATOR_CHART_PATH" "$@"
+  update_ui_clear_password
 }
 
 upgrade_operator_from_private_repository() {
@@ -397,6 +394,16 @@ upgrade_operator_from_private_repository() {
       --set-string serviceAccount.create="true" \
       --set-string serviceAccount.repoCredentials="regcred" \
       "$@"
+}
+
+update_ui_clear_password() {
+  local PASSWORD
+  PASSWORD="$(helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator -o json \
+    | jq -r '.authentication.password | select(. != null)' | tr -d '\n')"
+  if [ -n "$PASSWORD" ]
+  then
+    kubectl patch secret -n "$OPERATOR_NAMESPACE" stackgres-restapi -p '{"data":{"clearPassword":"'"$(printf '%s' "$PASSWORD" | base64)"'"}}'
+  fi
 }
 
 delete_operator() {
