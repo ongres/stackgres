@@ -1,5 +1,5 @@
 <template>
-	<div id="grafana" v-if="loggedIn && isReady">
+	<div id="grafana" v-if="loggedIn && isReady && !notFound">
 		<template v-for="cluster in clusters" v-if="(cluster.name == $route.params.name) && (cluster.data.metadata.namespace == $route.params.namespace)">
 			<header>
 				<ul class="breadcrumbs">
