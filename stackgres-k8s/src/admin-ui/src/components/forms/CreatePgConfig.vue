@@ -85,7 +85,7 @@
     import axios from 'axios'
 
     export default {
-        name: 'CreatePGConfig',
+        name: 'CreatePgConfig',
 
         mixins: [mixin],
         
