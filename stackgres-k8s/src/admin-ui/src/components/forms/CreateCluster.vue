@@ -1,5 +1,5 @@
 <template>
-    <form id="create-cluster" class="noSubmit" v-if="loggedIn && isReady" @submit.prevent="createCluster()">
+    <form id="create-cluster" class="noSubmit" v-if="loggedIn && isReady && !notFound" @submit.prevent="createCluster()">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(cluster).length > 0"></template>
         <header>
@@ -16,7 +16,7 @@
                     <router-link :to="'/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Cluster Details">{{ $route.params.name }}</router-link>
                 </li>
                 <li class="action">
-                    {{ $route.params.action }}
+                    {{ $route.name == 'EditCluster' ? 'Edit' : 'Create' }}
                 </li>
             </ul>
 
@@ -609,7 +609,7 @@
             const vm = this;
 
             return {
-                editMode: (vm.$route.params.action === 'edit'),
+                editMode: (vm.$route.name === 'EditCluster'),
                 help: 'Click on a question mark to get help and tips about that field.',
                 advancedMode: false,
                 name: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
@@ -709,7 +709,7 @@
                 var vm = this;
                 var cluster = {};
                 
-                if(vm.$route.params.action === 'edit') {
+                if(vm.$route.name === 'EditCluster') {
                     store.state.clusters.forEach(function( c ){
                         if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
                         
@@ -963,7 +963,7 @@
             },
 
             cancel: function() {
-                if(this.$route.params.action == 'create')
+                if(this.$route.name == 'CreateCluster')
                     router.push('/overview/'+this.$route.params.namespace);
                 else
                     router.push('/cluster/status/'+this.$route.params.namespace+'/'+this.$route.params.name);

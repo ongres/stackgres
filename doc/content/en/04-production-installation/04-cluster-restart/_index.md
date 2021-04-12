@@ -76,7 +76,7 @@ while kubectl get pod -n "$NAMESPACE" \
   | grep -F "pod/$READ_ONLY_POD" | wc -l | grep -q 0; do sleep 1; done
 ```
 
-## 5. \[In-place Restart\] - Restart primary first
+## 2. \[In-place Restart\] - Restart primary first
 
 **\[Optional, if `max_connections`, `max_prepared_transactions`, `max_wal_senders`,
  `max_wal_senders` or `max_locks_per_transaction` are changed to a lower value than they were set\]**
@@ -93,7 +93,7 @@ echo "Waiting for primary pod $PRIMARY_POD"
 kubectl wait --for=condition=Ready -n "$NAMESPACE" "pod/$PRIMARY_POD"
 ```
 
-## 2. \[In-place Restart\] - Check read-only pods to restart
+## 3. \[In-place Restart\] - Check read-only pods to restart
 
 Check which read-only pods requires to be restarted.
 
@@ -110,7 +110,7 @@ READ_ONLY_POD="$(echo "$READ_ONLY_PODS" | head -n 1)"
   || echo "$READ_ONLY_POD will be restarted"
 ```
 
-## 3. \[In-place Restart\] - Delete a read-only pod
+## 4. \[In-place Restart\] - Delete a read-only pod
 
 Delete one of the read-only pods.
 
@@ -127,13 +127,13 @@ echo "Waiting for pod $READ_ONLY_POD"
 kubectl wait --for=condition=Ready -n "$NAMESPACE" "pod/$READ_ONLY_POD"
 ```
 
-## 4. \[In-place Restart\] - Repeat two previous steps
+## 5. \[In-place Restart\] - Repeat two previous steps
 
 Repeat the previous two steps until no more read-only pods requires restart. In this moment,
  you have a cluster with N+1 instances (pods), all upgraded with the new components except for
  the primary instance.
 
-## 5. \[In-place Restart\] - Perform switchover
+## 6. \[In-place Restart\] - Perform switchover
 
 If you have at least a read-only pod perform a switchover of the primary pod.
 
@@ -155,7 +155,7 @@ else
 fi
 ```
 
-## 6. \[In-place Restart\] - Delete primary pod
+## 7. \[In-place Restart\] - Delete primary pod
 
 Delete the primary pod.
 
@@ -177,7 +177,7 @@ echo "Waiting for pod $PRIMARY_POD"
 kubectl wait --for=condition=Ready -n "$NAMESPACE" pod "$PRIMARY_POD"
 ```
 
-## 7. \[Reduced-impact Restart\] - Scale back the cluster size, editing the
+## 8. \[Reduced-impact Restart\] - Scale back the cluster size, editing the
 
 **\[Optional, only for the small impact procedure\]**
 

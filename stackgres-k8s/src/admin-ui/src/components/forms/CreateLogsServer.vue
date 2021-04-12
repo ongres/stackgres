@@ -1,5 +1,5 @@
 <template>
-    <form id="create-logs-server" class="noSubmit" v-if="loggedIn && isReady" @submit.prevent="createCluster()">
+    <form id="create-logs-server" class="noSubmit" v-if="loggedIn && isReady && !notFound" @submit.prevent="createCluster()">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(cluster).length > 0"></template>
 
@@ -11,13 +11,13 @@
                 </li>
                 <li>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path class="a" d="M19,15H5c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,14.6,19.6,15,19,15z"/><path class="a" d="M1,15L1,15c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,14.6,1.6,15,1,15z"/><path class="a" d="M19,11H5c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,10.6,19.6,11,19,11z"/><path class="a" d="M1,11L1,11c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,10.6,1.6,11,1,11z"/><path class="a" d="M19,7H5C4.4,7,4,6.6,4,6v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,6.6,19.6,7,19,7z"/><path d="M1,7L1,7C0.4,7,0,6.6,0,6v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,6.6,1.6,7,1,7z"/></svg>
-                    <router-link :to="'/overview/'+$route.params.namespace" title="Namespace Overview">SGDistributedLogs</router-link>
+                    <router-link :to="'/logs/'+$route.params.namespace" title="SGDistributedLogs">SGDistributedLogs</router-link>
                 </li>
                 <li v-if="editMode">
                     <router-link :to="'/logs/'+$route.params.namespace+'/'+$route.params.name" title="Logs Server Details">{{ $route.params.name }}</router-link>
                 </li>
                 <li class="action">
-                    {{ $route.params.action }}
+                    {{ $route.name == 'EditLogsServer' ? 'Edit' : 'Create' }}
                 </li>
             </ul>
 
@@ -121,7 +121,7 @@
             const vm = this;
 
             return {
-                editMode: (vm.$route.params.action === 'edit'),
+                editMode: (vm.$route.name === 'EditLogsServer'),
                 help: 'Click on a question mark to get help and tips about that field.',
                 advancedMode: false,
                 name: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
@@ -166,7 +166,7 @@
                 var vm = this;
                 var cluster = {};
                 
-                if(vm.$route.params.action === 'edit') {
+                if(vm.$route.name === 'EditLogsServer') {
                     vm.advancedMode = true;
                     store.state.logsClusters.forEach(function( c ){
                         if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
@@ -268,7 +268,7 @@
             },
 
             cancel: function() {
-                if(this.$route.params.action == 'create')
+                if(this.$route.name == 'CreateLogsServer')
                     router.push('/logs/'+this.$route.params.namespace);
                 else
                     router.push('/logs/'+this.$route.params.namespace+'/'+this.$route.params.name);

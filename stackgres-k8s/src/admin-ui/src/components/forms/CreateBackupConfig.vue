@@ -1,5 +1,5 @@
 <template>
-    <form id="create-backup-config" v-if="loggedIn && isReady" @submit.prevent="createBackupConfig()">
+    <form id="create-backup-config" v-if="loggedIn && isReady&& !notFound" @submit.prevent="createBackupConfig()">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
 
@@ -17,7 +17,7 @@
                     <router-link :to="'/configurations/backup/'+$route.params.namespace+'/'+$route.params.name" title="Configuration Details">{{ $route.params.name }}</router-link>
                 </li>
                 <li class="action">
-                    {{ $route.params.action }}
+                    {{ $route.name == 'EditBackupConfig' ? 'Edit' : 'Create' }}
                 </li>
             </ul>
 
@@ -385,7 +385,7 @@
             const vm = this;
 
             return {
-                editMode: (vm.$route.params.action === 'edit'),
+                editMode: (vm.$route.name === 'EditBackupConfig'),
                 advancedMode: false,
                 advancedModeStorage: false,
                 backupConfigName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
@@ -456,7 +456,7 @@
                 var vm = this;
                 var conf = {};
                 
-                if(vm.$route.params.action === 'edit') {
+                if(vm.$route.name === 'EditBackupConfig') {
                     store.state.backupConfig.forEach(function( config ){
                         if( (config.data.metadata.name === vm.$route.params.name) && (config.data.metadata.namespace === vm.$route.params.namespace) ) {
                             

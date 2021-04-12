@@ -1,5 +1,5 @@
 <template>
-	<div id="bk-config" v-if="loggedIn && isReady">
+	<div id="bk-config" v-if="loggedIn && isReady && !notFound">
 		<header>
 			<ul class="breadcrumbs">
 				<li class="namespace">
@@ -124,10 +124,10 @@
 													{{ conf.data.spec.baseBackups.retention }}
 												</td>
 											</tr>
-											<tr v-if="hasProp(conf, 'data.spec.baseBackups.fullSchedule')">
+											<tr v-if="hasProp(conf, 'data.spec.baseBackups.cronSchedule')">
 												<td class="label">
 													Full Schedule
-													<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.fullSchedule.description"></span>
+													<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.cronSchedule.description"></span>
 												</td>
 												<td>
 													{{ conf.data.spec.baseBackups.cronSchedule | prettyCRON }}
@@ -145,7 +145,7 @@
 											<tr v-if="hasProp(conf, 'data.spec.baseBackups.performance.maxNetworkBandwitdh')">
 												<td class="label">
 													Max Network Bandwitdh
-													<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.fullSchedule.description"></span>
+													<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.maxNetworkBandwitdh.description"></span>
 												</td>
 												<td>
 													{{ conf.data.spec.baseBackups.performance.maxNetworkBandwitdh }}

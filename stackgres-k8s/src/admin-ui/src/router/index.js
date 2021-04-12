@@ -32,7 +32,7 @@ Vue.use(VueRouter);
 
 const routes = [
   { 
-    path: '/crd/:action/cluster/:namespace', 
+    path: '/crd/create/cluster/:namespace', 
     component: CreateCluster,
     name: 'CreateCluster',
     meta: {
@@ -40,7 +40,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/:action/cluster/:namespace/:name', 
+    path: '/crd/edit/cluster/:namespace/:name', 
     component: CreateCluster,
     name: 'EditCluster',
     meta: {
@@ -48,7 +48,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/:action/profile/:namespace', 
+    path: '/crd/create/profile/:namespace', 
     component: CreateProfile,
     name: 'CreateProfile',
     meta: {
@@ -56,7 +56,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/:action/profile/:namespace/:name', 
+    path: '/crd/edit/profile/:namespace/:name', 
     component: CreateProfile,
     name: 'EditProfile',
     meta: {
@@ -64,7 +64,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/:action/pgconfig/:namespace', 
+    path: '/crd/create/pgconfig/:namespace', 
     component: CreatePgConfig,
     name: 'CreatePgConfig',
     meta: {
@@ -72,7 +72,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/:action/pgconfig/:namespace/:name', 
+    path: '/crd/edit/pgconfig/:namespace/:name', 
     component: CreatePgConfig,
     name: 'EditPgConfig',
     meta: {
@@ -80,7 +80,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/:action/connectionpooling/:namespace', 
+    path: '/crd/create/connectionpooling/:namespace', 
     component: CreatePoolConfig,
     name: 'CreatePoolConfig',
     meta: {
@@ -88,7 +88,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/:action/connectionpooling/:namespace/:name', 
+    path: '/crd/edit/connectionpooling/:namespace/:name', 
     component: CreatePoolConfig,
     name: 'EditPoolConfig',
     meta: {
@@ -96,7 +96,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/:action/backupconfig/:namespace', 
+    path: '/crd/create/backupconfig/:namespace', 
     component: CreateBackupConfig,
     name: 'CreateBackupConfig',
     meta: {
@@ -104,7 +104,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/:action/backupconfig/:namespace/:name', 
+    path: '/crd/edit/backupconfig/:namespace/:name', 
     component: CreateBackupConfig,
     name: 'EditBackupConfig',
     meta: {
@@ -112,7 +112,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/:action/backup/:namespace', 
+    path: '/crd/create/backup/:namespace', 
     component: CreateBackup,
     name: 'CreateBackups',
     meta: {
@@ -128,7 +128,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/:action/backup/:namespace/:uid', 
+    path: '/crd/edit/backup/:namespace/:uid', 
     component: CreateBackup,
     name: 'EditBackup',
     meta: {
@@ -136,7 +136,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/:action/logs/:namespace', 
+    path: '/crd/create/logs/:namespace', 
     component: CreateLogsServer,
     name: 'CreateLogsServer',
     meta: {
@@ -144,7 +144,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/:action/logs/:namespace/:name', 
+    path: '/crd/edit/logs/:namespace/:name', 
     component: CreateLogsServer,
     name: 'EditLogsServer',
     meta: {
@@ -184,7 +184,7 @@ const routes = [
     },
   },
   { 
-    path: '/:cluster/configuration/:namespace/:name', 
+    path: '/cluster/configuration/:namespace/:name', 
     component: ClusterInfo,
     name: 'ClusterInfo',
     meta: {
@@ -192,7 +192,7 @@ const routes = [
     },
   },
   { 
-    path: '/:cluster/status/:namespace/:name', 
+    path: '/cluster/status/:namespace/:name', 
     component: ClusterStatus,
     name: 'ClusterStatus',
     meta: {
@@ -200,17 +200,17 @@ const routes = [
     },
   },
   { 
-    path: '/:cluster/logs/:namespace/:name', 
+    path: '/cluster/logs/:namespace/:name', 
     component: Logs,
-    name: 'Logs',
+    name: 'ClusterLogs',
     meta: {
       conditionalRoute: false
     },
   },
   { 
-    path: '/:cluster/logs/:namespace/:name/:time/:index', 
+    path: '/cluster/logs/:namespace/:name/:time/:index', 
     component: Logs,
-    name: 'SingleLogs',
+    name: 'SingleClusterLogs',
     meta: {
       conditionalRoute: false
     },
@@ -232,7 +232,7 @@ const routes = [
     },
   },
   { 
-    path: '/:cluster/backups/:namespace/:name', 
+    path: '/cluster/backups/:namespace/:name', 
     component: Backups,
     name: 'ClusterBackups',
     meta: {
@@ -240,7 +240,7 @@ const routes = [
     },
   },
   { 
-    path: '/:cluster/backups/:namespace/:name/:uid', 
+    path: '/cluster/backups/:namespace/:name/:uid', 
     component: Backups,
     name: 'SingleClusterBackups',
     meta: {
@@ -328,7 +328,7 @@ const routes = [
     },
   },
   { 
-    path: '/:cluster/monitor/:namespace/:name', 
+    path: '/cluster/monitor/:namespace/:name', 
     component: Grafana,
     name: 'ClusterMonitor',
     meta: {
@@ -336,9 +336,9 @@ const routes = [
     },
   },
   { 
-    path: '/:cluster/monitor/:namespace/:name/:pod', 
+    path: '/cluster/monitor/:namespace/:name/:pod', 
     component: Grafana,
-    name: 'ClusterSingleMonitor',
+    name: 'SingleClusterMonitor',
     meta: {
       conditionalRoute: false
     },
@@ -640,7 +640,7 @@ router.beforeResolve((to, from, next) => {
       case 'Backups':
       case 'CreateBackup':
         /* If filtered by Cluster, first check if Cluster exists */
-        if(to.params.hasOwnProperty('cluster')) {
+        if(to.name.includes('Cluster')) {
 
           axios
           .get('/stackgres/sgcluster')
@@ -751,6 +751,7 @@ router.beforeResolve((to, from, next) => {
         break;
 
       case 'LogsServer':
+      case 'CreateLogsServer': 
 
         /* Check if requested Logs Server exists */
         axios
@@ -812,7 +813,7 @@ router.beforeResolve((to, from, next) => {
   }
 
   // If entering a Cluster, setup as current
-  if ( to.params.cluster === "cluster" ) {
+  if (to.path.startsWith('/cluster/') || to.path.startsWith('/crd/edit/cluster/')) {
 
     let cluster = store.state.clusters.find(c => ( (to.params.name == c.name) && (to.params.namespace == c.data.metadata.namespace) ) );
     

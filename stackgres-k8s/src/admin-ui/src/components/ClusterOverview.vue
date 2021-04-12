@@ -1,5 +1,5 @@
 <template>
-	<div id="cluster-overview" v-if="loggedIn && isReady">
+	<div id="cluster-overview" v-if="loggedIn && isReady && !notFound">
 		<template v-for="namespace in namespaces" v-if="(namespace == $route.params.namespace)">
 			<header>
 				<ul class="breadcrumbs">
@@ -119,6 +119,7 @@
 
 <script>
 	import store from '../store'
+	import router from '../router'
 	import { mixin } from './mixins/mixin'
 
     export default {
@@ -153,7 +154,8 @@
 		},
 
 		created: function() {
-			
+			if(!this.$route.hasOwnProperty('namespace'))
+				router.push('/overview/default')
 		}
 	}
 </script>
