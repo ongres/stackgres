@@ -81,7 +81,7 @@ build_restapi_image() {
 build_jobs_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh $SHELL_XTRACE $SHELL_XTRACE "jobs/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
+  sh $SHELL_XTRACE "jobs/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
   )
 }
 
