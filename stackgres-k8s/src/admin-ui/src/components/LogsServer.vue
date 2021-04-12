@@ -104,6 +104,97 @@
                                             </template>
                                         </tbody>
                                     </table>
+
+                                    <template v-if="hasProp(cluster, 'data.spec.metadata.annotations')">
+                                        <table v-if="hasProp(cluster, 'data.spec.metadata.annotations.allResources')">
+                                            <thead>
+                                                <th colspan="3" class="label">
+                                                    Resources Metadata
+                                                </th>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.allResources)">
+                                                    <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.allResources).length">
+                                                        All Resources
+                                                    </td>
+                                                    <td class="label">
+                                                        {{ item.annotation }}
+                                                    </td>
+                                                    <td colspan="2">
+                                                        {{ item.value }}
+                                                    </td>
+                                                </tr>
+                                                <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.pods)">
+                                                    <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.pods).length">
+                                                        Pods
+                                                    </td>
+                                                    <td class="label">
+                                                        {{ item.annotation }}
+                                                    </td>
+                                                    <td colspan="2">
+                                                        {{ item.value }}
+                                                    </td>
+                                                </tr>
+                                                <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.services)">
+                                                    <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.services).length">
+                                                        Services
+                                                    </td>
+                                                    <td class="label">
+                                                        {{ item.annotation }}
+                                                    </td>
+                                                    <td colspan="2">
+                                                        {{ item.value }}
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </template>	
+                                </div>
+
+                                <div class="configurationDetails">
+                                    <template v-if="hasProp(cluster, 'data.spec.scheduling.nodeSelector')">
+                                        <table>
+                                            <thead>
+                                                <th colspan="2" class="label">
+                                                    Node Selector
+                                                </th>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="(item, index) in unparseProps(cluster.data.spec.scheduling.nodeSelector)">
+                                                    <td class="label">
+                                                        {{ item.annotation }}
+                                                    </td>
+                                                    <td colspan="2">
+                                                        {{ item.value }}
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </template>
+                                    <template v-if="hasProp(cluster, 'data.spec.scheduling.nodeSelector')">
+                                       <table>
+                                            <thead>
+                                                <th colspan="3" class="label">
+                                                    Tolerations
+                                                </th>
+                                            </thead>
+                                            <tbody>
+                                                <template v-for="(item, index) in cluster.data.spec.scheduling.tolerations">
+                                                    <tr v-for="(value, prop, i) in item">
+                                                        <td class="label" :rowspan="Object.keys(item).length" v-if="!i">
+                                                            Toleration #{{ index+1 }}
+                                                        </td>
+                                                        <td class="label">
+                                                            {{ prop }}
+                                                        </td>
+                                                        <td colspan="2">
+                                                            {{ value }}
+                                                        </td>
+                                                    </tr>
+                                                </template>
+                                            </tbody>
+                                        </table>
+                                    </template>
                                 </div>
                             </td>
                         </tr>
@@ -134,6 +225,19 @@
         },
         methods: {
             
+            unparseProps ( props, key = 'annotation' ) {
+                var propsArray = [];
+                if(!jQuery.isEmptyObject(props)) {
+                    Object.entries(props).forEach(([k, v]) => {
+                        var prop = {};
+                        prop[key] = k;
+                        prop['value'] = v;
+                        propsArray.push(prop)
+                    });
+                }
+                
+                return propsArray
+            },
 
         },
         created: function() {
