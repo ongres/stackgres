@@ -292,9 +292,9 @@
 					</tbody>
 				</table>
 
-				<div class="podsMetadata" v-if="hasProp(cluster, 'data.spec.pods.metadata') || hasProp(cluster, 'data.spec.pods.scheduling')">
-					<h2>Pods Details</h2>
-					<table v-if="hasProp(cluster, 'data.spec.pods.metadata.labels') && tooltips.hasOwnProperty('sgcluster')" class="clusterConfig">
+				<div class="podsMetadata" v-if="hasProp(cluster, 'data.spec.pods.metadata')">
+					<h2>Pods Metadata</h2>
+					<table v-if="hasProp(cluster, 'data.spec.pods.metadata.labels')" class="clusterConfig">
 						<thead>
 							<th></th>
 							<th></th>
@@ -305,11 +305,9 @@
 							<tr v-for="(item, index) in unparseProps(cluster.data.spec.pods.metadata.labels)">
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.metadata.labels).length">
 									Pods Metadata
-									<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.pods.metadata.description"></span>
 								</td>
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.metadata.labels).length">
 									Labels
-									<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.pods.metadata.labels.description"></span>
 								</td>
 								<td class="label">
 									{{ item.annotation }}
@@ -320,8 +318,11 @@
 							</tr>
 						</tbody>
 					</table>
+				</div>
 
-					<table v-if="hasProp(cluster, 'data.spec.pods.scheduling.nodeSelector') && tooltips.hasOwnProperty('sgcluster')" class="clusterConfig">
+				<div class="podsScheduling" v-if="hasProp(cluster, 'data.spec.pods.scheduling')">
+					<h2>Pods Scheduling</h2>
+					<table class="clusterConfig">
 						<thead>
 							<th></th>
 							<th></th>
@@ -331,20 +332,31 @@
 						<tbody>
 							<tr v-for="(item, index) in unparseProps(cluster.data.spec.pods.scheduling.nodeSelector)">
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.scheduling.nodeSelector).length">
-									Pods Scheduling
-									<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.pods.scheduling.description"></span>
-								</td>
-								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.scheduling.nodeSelector).length">
-									Node Selectors
-									<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.pods.scheduling.nodeSelector.description"></span>
+									Node selectors
 								</td>
 								<td class="label">
 									{{ item.annotation }}
 								</td>
-								<td>
+								<td colspan="2">
 									{{ item.value }}
 								</td>
 							</tr>
+							<template v-for="(item, index) in cluster.data.spec.pods.scheduling.tolerations">
+								<tr v-for="(value, prop, i) in item">
+									<td v-if="!index && !i" class="label" :rowspan="countObjectArrayKeys(cluster.data.spec.pods.scheduling.tolerations)">
+										Tolerations
+									</td>
+									<td class="label" :rowspan="Object.keys(item).length" v-if="!i">
+										Toleration #{{ index+1 }}
+									</td>
+									<td class="label">
+										{{ prop }}
+									</td>
+									<td colspan="2">
+										{{ value }}
+									</td>
+								</tr>
+							</template>
 						</tbody>
 					</table>
 				</div>
@@ -611,6 +623,16 @@
 				
 				return propsArray
 			},
+
+			countObjectArrayKeys(objectArray) {
+				let count = 0;
+
+				objectArray.forEach(function(obj, index) {
+					count += Object.keys(obj).length
+				})
+
+				return count
+			}
 
 		},
 		created: function() {
