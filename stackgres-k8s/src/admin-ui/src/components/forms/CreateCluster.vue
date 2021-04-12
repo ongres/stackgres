@@ -1,5 +1,5 @@
 <template>
-    <form id="create-cluster" class="noSubmit" v-if="loggedIn && isReady && !notFound" @submit.prevent="createCluster()">
+    <form id="create-cluster" class="noSubmit" v-if="loggedIn && isReady" @submit.prevent="createCluster()">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(cluster).length > 0"></template>
         <header>
@@ -16,7 +16,7 @@
                     <router-link :to="'/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Cluster Details">{{ $route.params.name }}</router-link>
                 </li>
                 <li class="action">
-                    {{ $route.name == 'EditCluster' ? 'Edit' : 'Create' }}
+                    {{ $route.params.action }}
                 </li>
             </ul>
 
@@ -33,8 +33,8 @@
                 </label>
             </div>
 
-            <fieldset class="accordion">
-                <div class="header open">
+            <fieldset class="accordion" id="basicSettings">
+                <div class="header open" @click="toggleAccordion('#basicSettings')">
                     <h3>Basic Cluster Settings</h3>
                     <button type="button" class="toggleFields textBtn">Collapse</button>
                 </div>
@@ -149,8 +149,8 @@
 
             <template v-if="advancedMode">
 
-                <fieldset class="accordion">
-                    <div class="header">
+                <fieldset class="accordion" id="customConfig">
+                    <div class="header" @click="toggleAccordion('#customConfig')">
                         <h3>Customized Configurations</h3>
                         <button type="button" class="toggleFields textBtn">Expand</button>
                     </div>
@@ -230,8 +230,8 @@
                     </div>
                 </fieldset>
 
-                <fieldset class="accordion" v-if="!editMode">
-                    <div class="header">
+                <fieldset class="accordion" v-if="!editMode" id="clusterInit">
+                    <div class="header" @click="toggleAccordion('#clusterInit')">
                         <h3>Cluster Initialization</h3>
                         <button type="button" class="toggleFields textBtn">Expand</button>
                     </div>
@@ -310,8 +310,8 @@
                     </div>
                 </fieldset>
 
-                <fieldset class="accordion" v-if="!editMode || (editMode && (postgresServicesPrimary || postgresServicesReplicas))">
-                    <div class="header">
+                <fieldset class="accordion" v-if="!editMode || (editMode && (postgresServicesPrimary || postgresServicesReplicas))" id="k8sService">
+                    <div class="header" @click="toggleAccordion('#k8sService')">
                         <h3>Customize generated Kubernetes service</h3>
                         <button type="button" class="toggleFields textBtn">Expand</button>
                     </div>
@@ -421,8 +421,8 @@
                     </div>
                 </fieldset>
 
-                <fieldset class="accordion podsMetadata" v-if="!editMode || (editMode && (podsMetadata.length || nodeSelector.length || tolerations.length) )">
-                    <div class="header">
+                <fieldset class="accordion podsMetadata" v-if="!editMode || (editMode && (podsMetadata.length || nodeSelector.length || tolerations.length) )" id="podsMetadata">
+                    <div class="header" @click="toggleAccordion('#podsMetadata')">
                         <h3>Metadata</h3>
                         <button type="button" class="toggleFields textBtn">Expand</button>
                     </div>
@@ -544,7 +544,7 @@
                                 </div>
                             </fieldset>
 
-                            <span class="warning" v-if="editMode">Please, be aware that any changes made to the <code>Pods Scheduling</code> will require a <a href="https://stackgres.io/doc/latest/install/restart/" target="_blank">restart opration</a> on every instance of the cluster</span>
+                            <span class="warning" v-if="editMode">Please, be aware that any changes made to the <code>Pods Scheduling</code> will require a <a href="https://stackgres.io/doc/latest/install/restart/" target="_blank">restart operation</a> on every instance of the cluster</span>
                         </fieldset>
 
 
@@ -676,7 +676,7 @@
             const vm = this;
 
             return {
-                editMode: (vm.$route.name === 'EditCluster'),
+                editMode: (vm.$route.params.action === 'edit'),
                 help: 'Click on a question mark to get help and tips about that field.',
                 nullVal: null,
                 advancedMode: false,
@@ -778,7 +778,7 @@
                 var vm = this;
                 var cluster = {};
                 
-                if(vm.$route.name === 'EditCluster') {
+                if(vm.$route.params.action === 'edit') {
                     store.state.clusters.forEach(function( c ){
                         if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
                         
@@ -1038,7 +1038,7 @@
             },
 
             cancel: function() {
-                if(this.$route.name == 'CreateCluster')
+                if(this.$route.params.action == 'create')
                     router.push('/overview/'+this.$route.params.namespace);
                 else
                     router.push('/cluster/status/'+this.$route.params.namespace+'/'+this.$route.params.name);
@@ -1113,21 +1113,21 @@
                 })
 
                 return t.length
-            }
+            },
+
+            toggleAccordion(id) {
+                $(id + '> .fields').slideToggle()
+                $(id + '> .header').toggleClass('open')
+
+                if($(id + '> .header .toggleFields').text() == 'Expand')
+                    $(id + '> .header .toggleFields').text('Collapse')
+                else
+                    $(id + '> .header .toggleFields').text('Expand')
+            },
 
         },
 
         created: function() {
-            
-            $(document).on('click', '.accordion > .header', function(){
-                $(this).next().slideToggle()
-                $(this).toggleClass('open')
-
-                if($(this).find('.toggleFields').text() == 'Expand')
-                    $(this).find('.toggleFields').text('Collapse')
-                else
-                    $(this).find('.toggleFields').text('Expand')
-            })
 
         },
 
