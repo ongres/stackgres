@@ -35,11 +35,6 @@ public abstract class ExtensionMetadataManager {
 
   private static final Object EXTENSIONS = new Object();
 
-  public static final String SHA256_SUFFIX = ".sha256";
-  public static final String TGZ_SUFFIX = ".tgz";
-  public static final String INSTALLED_SUFFIX = ".installed";
-  public static final String PENDING_SUFFIX = ".pending";
-
   private final Cache<Object, ExtensionMetadataCache>
       extensionsMetadataCache = CacheBuilder.newBuilder()
           .expireAfterWrite(Duration.of(1, ChronoUnit.HOURS))
