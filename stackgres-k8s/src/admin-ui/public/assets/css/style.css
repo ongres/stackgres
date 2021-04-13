@@ -2737,7 +2737,7 @@ label.script {
     display: inline;
 }
 
-fieldset.postgresServicesPrimary .header a.help, fieldset.postgresServicesReplicas .header a.help, fieldset.postgresServicesPrimary fieldset a.help, fieldset.postgresServicesReplicas fieldset a.help, fieldset.podsMetadata a.help, fieldset.podsScheduling a.help {
+fieldset.postgresServicesPrimary .header a.help, fieldset.postgresServicesReplicas .header a.help, fieldset.postgresServicesPrimary fieldset a.help, fieldset.postgresServicesReplicas fieldset a.help, fieldset.nodeSelectors a.help {
     margin-top: 0;
 }
 
@@ -4842,10 +4842,6 @@ table.backupConfig tr.details.open td:first-of-type {
     padding-top: 10px !important;
 }
 
-tr.details td:last-of-type .configurationDetails table {
-    margin: 0 !important;
-}
-
 .configurationDetails span.title {
     font-weight: bold;
     display: inline-block;
@@ -5080,12 +5076,33 @@ fieldset.accordion > .header {
     cursor: pointer;
     /* transition: all .3s ease-in; */
 }
-/* 
-fieldset.accordion > .header.open {
-    transition: all .3s ease-in;
-} */
 
 fieldset.accordion .fields {
     margin-top: 15px;
     padding: 0 20px;
+}
+
+.configurationDetails table + table {
+    margin-top: 20px;
+}
+
+.form .header:last-child {
+    border: 0;
+}
+
+/*Tables Overflow*/
+table.tolerations {
+    max-height: 240px;
+    overflow: auto;
+    display: block;
+    border-top: 1px solid #f0f0f1;
+}
+
+table.tolerations tbody {
+    display: inline-table;
+    width: 100%;
+}
+
+table.tolerations tbody, table.tolerations tbody td {
+    border-top: 0 !important;
 }
