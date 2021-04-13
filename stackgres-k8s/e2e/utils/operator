@@ -391,8 +391,8 @@ upgrade_operator_from_private_repository() {
       --set-string "jobs.image.pullPolicy=$(operator_pull_policy)" \
       --set-string adminui.image.name="$PRIVATE_ADMINUI_IMAGE_NAME" --set-string adminui.image.tag="$ADMINUI_IMAGE_TAG" \
       --set-string "adminui.image.pullPolicy=$(operator_pull_policy)" \
-      --set-string serviceAccount.create="true" \
-      --set-string serviceAccount.repoCredentials="regcred" \
+      --set serviceAccount.create=true \
+      --set-string serviceAccount.repoCredentials=regcred \
       "$@"
 }
 

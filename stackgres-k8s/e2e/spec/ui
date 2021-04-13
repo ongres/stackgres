@@ -31,6 +31,7 @@ e2e_test_install() {
 
   kubectl create namespace "$OPERATOR_NAMESPACE"
   install_operator_only \
+    --set adminui.service.exposeHTTP=true \
     --set grafana.autoEmbed=true \
     --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"
 
@@ -70,7 +71,7 @@ e2e_test_install() {
     terminationGracePeriodSeconds: 0
 EOF
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 4
+  wait_pods_running "$CLUSTER_NAMESPACE" 5
 
   kubectl cp "$UI_TESTS_RESOURCES_PATH/cypress" "$CLUSTER_NAMESPACE/$CYPRESS_POD":/
   kubectl cp "$UI_TESTS_RESOURCES_PATH/cypress.json" "$CLUSTER_NAMESPACE/$CYPRESS_POD":/
@@ -101,6 +102,8 @@ e2e_test() {
   run_test "Cypress firefox tests should pass" cypress_firefox_tests
 
   run_test "Nginx must return the index page when a resource is not found" check_index_on_not_found_resource
+
+  run_test "Nginx must work correctly on HTTP port when HTTP is exposed" check_http_port
 }
 
 cypress_chrome_tests(){
@@ -113,17 +116,30 @@ cypress_firefox_tests(){
 
 check_index_on_not_found_resource(){
   random_resource=$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)
-  HTTP_STATUS=$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -k "https://$SERVICE.$OPERATOR_NAMESPACE/admin/$random_resource" -X GET -LI -o /dev/null -w '%{http_code}')
+  HTTP_STATUS=$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s -k "https://$SERVICE.$OPERATOR_NAMESPACE/admin/$random_resource" -X GET -LI -o /dev/null -w '%{http_code}' 2>/dev/null)
 
   assert_string_equal "200" "$HTTP_STATUS"
 
-  HTTP_RESPONSE=$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -k "https://$SERVICE.$OPERATOR_NAMESPACE/admin/$random_resource -X GET -LI")
+  HTTP_RESPONSE=$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s -k "https://$SERVICE.$OPERATOR_NAMESPACE/admin/$random_resource" -X GET -L 2>/dev/null)
 
   if echo "$HTTP_RESPONSE" | grep -E "<meta.+index" > /dev/null
   then
     echo "SUCCESS. Returned index page on not found resource"
   else
     echo "FAIL. Index page not returned on not found resource"
+    return 1
+  fi
+}
+
+check_http_port(){
+  random_resource=$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)
+  HTTP_STATUS=$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s "http://$SERVICE.$OPERATOR_NAMESPACE/admin" -X GET -LI -o /dev/null -w '%{http_code}' 2>/dev/null)
+
+  if [ "$HTTP_STATUS" = "200" ]
+  then
+    echo "SUCCESS. HTTP port is working when exposed"
+  else
+    echo "FAIL. HTTP port is not working when exposed"
     return 1
   fi
 }
