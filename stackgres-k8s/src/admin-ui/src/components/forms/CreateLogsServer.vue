@@ -122,6 +122,7 @@
 
             return {
                 editMode: (vm.$route.name === 'EditLogsServer'),
+                editReady: false,
                 help: 'Click on a question mark to get help and tips about that field.',
                 advancedMode: false,
                 name: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
@@ -166,7 +167,7 @@
                 var vm = this;
                 var cluster = {};
                 
-                if(vm.$route.name === 'EditLogsServer') {
+                if( vm.editMode && !vm.editReady ) {
                     vm.advancedMode = true;
                     store.state.logsClusters.forEach(function( c ){
                         if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
@@ -182,6 +183,9 @@
                             vm.volumeSize = volumeSize;
                             vm.volumeUnit = ''+volumeUnit;
                             vm.disableClusterPodAntiAffinity = ( (typeof c.data.spec.nonProductionOptions !== 'undefined') && (typeof c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined') ) ? c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : false;
+
+                            vm.editReady = true
+                            return false
                         }
                     });
                 }

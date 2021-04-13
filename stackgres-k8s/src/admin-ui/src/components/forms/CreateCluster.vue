@@ -676,7 +676,8 @@
             const vm = this;
 
             return {
-                editMode: (vm.$route.params.action === 'edit'),
+                editMode: (vm.$route.name === 'EditCluster'),
+                editReady: false,
                 help: 'Click on a question mark to get help and tips about that field.',
                 nullVal: null,
                 advancedMode: false,
@@ -778,7 +779,7 @@
                 var vm = this;
                 var cluster = {};
                 
-                if(vm.$route.params.action === 'edit') {
+                if( vm.editMode && !vm.editReady ) {
                     store.state.clusters.forEach(function( c ){
                         if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
                         
@@ -820,6 +821,8 @@
                             vm.postgresServicesReplicasType = vm.hasProp(c, 'data.spec.postgresServices.replicas.type') ? c.data.spec.postgresServices.replicas.type : 'ClusterIP';
                             vm.postgresServicesReplicasAnnotations = vm.hasProp(c, 'data.spec.postgresServices.replicas.annotations') ?  vm.unparseProps(c.data.spec.postgresServices.replicas.annotations) : [];
                             
+                            vm.editReady = true
+                            return false
                         }
                     });
                 }
@@ -1038,7 +1041,7 @@
             },
 
             cancel: function() {
-                if(this.$route.params.action == 'create')
+                if(this.$route.name == 'CreateCluster')
                     router.push('/overview/'+this.$route.params.namespace);
                 else
                     router.push('/cluster/status/'+this.$route.params.namespace+'/'+this.$route.params.name);

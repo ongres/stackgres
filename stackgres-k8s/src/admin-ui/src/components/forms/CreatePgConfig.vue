@@ -95,6 +95,7 @@
 
             return {
                 editMode: (vm.$route.name === 'EditPgConfig'),
+                editReady: false,
                 pgConfigName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
                 pgConfigNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 pgConfigParams: '',
@@ -127,12 +128,14 @@
                 var vm = this;
                 var config = {};
 
-                if(vm.$route.name === 'EditPgConfig') {
+                if( vm.editMode && !vm.editReady ) {
                     store.state.pgConfig.forEach(function( conf ){
                         if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
                             vm.pgConfigVersion = conf.data.spec.postgresVersion;
                             vm.pgConfigParams = conf.data.spec["postgresql.conf"];
                             config = conf;
+                            
+                            vm.editReady = true
                             return false;
                         }
                     });    
@@ -212,6 +215,7 @@
             },
 
             cancel: function() {
+                const vc = this
                 router.push('/configurations/postgres/'+vc.$route.params.namespace);
             },
 
