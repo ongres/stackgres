@@ -84,6 +84,13 @@
                                                 </td>
                                                 <td>{{ cluster.data.spec.persistentVolume.size }}</td>
                                             </tr>
+                                            <tr v-if="cluster.data.spec.persistentVolume.hasOwnProperty('storageClass')">
+                                                <td class="label">
+                                                    Storage Class
+                                                    <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.spec.persistentVolume.storageClass.description"></span>
+                                                </td>
+                                                <td>{{ cluster.data.spec.persistentVolume.storageClass }}</td>
+                                            </tr>
                                             <template v-if="cluster.data.status.clusters.length">
                                                 <tr>
                                                     <td class="label">
@@ -106,16 +113,18 @@
                                     </table>
 
                                     <template v-if="hasProp(cluster, 'data.spec.metadata.annotations')">
-                                        <table v-if="hasProp(cluster, 'data.spec.metadata.annotations.allResources')">
+                                        <table>
                                             <thead>
                                                 <th colspan="3" class="label">
                                                     Resources Metadata
+                                                    <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.spec.metadata.annotations.description"></span>
                                                 </th>
                                             </thead>
                                             <tbody>
-                                                <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.allResources)">
+                                                <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.allResources)" v-if="hasProp(cluster, 'data.spec.metadata.annotations.allResources')">
                                                     <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.allResources).length">
                                                         All Resources
+                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.spec.metadata.annotations.allResources.description"></span>
                                                     </td>
                                                     <td class="label">
                                                         {{ item.annotation }}
@@ -124,9 +133,10 @@
                                                         {{ item.value }}
                                                     </td>
                                                 </tr>
-                                                <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.pods)">
+                                                <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.pods)" v-if="hasProp(cluster, 'data.spec.metadata.annotations.pods')">
                                                     <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.pods).length">
                                                         Pods
+                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.spec.metadata.annotations.pods.description"></span>
                                                     </td>
                                                     <td class="label">
                                                         {{ item.annotation }}
@@ -135,9 +145,10 @@
                                                         {{ item.value }}
                                                     </td>
                                                 </tr>
-                                                <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.services)">
+                                                <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.services)" v-if="hasProp(cluster, 'data.spec.metadata.annotations.services')">
                                                     <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.services).length">
                                                         Services
+                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.spec.metadata.annotations.services.description"></span>
                                                     </td>
                                                     <td class="label">
                                                         {{ item.annotation }}
@@ -152,49 +163,50 @@
                                 </div>
 
                                 <div class="configurationDetails">
-                                    <template v-if="hasProp(cluster, 'data.spec.scheduling.nodeSelector')">
-                                        <table>
-                                            <thead>
-                                                <th colspan="2" class="label">
-                                                    Node Selector
-                                                </th>
-                                            </thead>
-                                            <tbody>
-                                                <tr v-for="(item, index) in unparseProps(cluster.data.spec.scheduling.nodeSelector)">
+                                    <table v-if="hasProp(cluster, 'data.spec.scheduling.nodeSelector')">
+                                        <thead>
+                                            <th colspan="2" class="label">
+                                                Node Selector
+                                                <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.spec.scheduling.nodeSelector.description"></span>
+                                            </th>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="(item, index) in unparseProps(cluster.data.spec.scheduling.nodeSelector)">
+                                                <td class="label">
+                                                    {{ item.annotation }}
+                                                </td>
+                                                <td colspan="2">
+                                                    {{ item.value }}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                
+                                    <table v-if="hasProp(cluster, 'data.spec.scheduling.tolerations')">
+                                        <thead>
+                                            <th colspan="3" class="label">
+                                                Tolerations
+                                                <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.spec.scheduling.tolerations.description"></span>
+                                            </th>
+                                        </thead>
+                                        <tbody>
+                                            <template v-for="(item, index) in cluster.data.spec.scheduling.tolerations">
+                                                <tr v-for="(value, prop, i) in item">
+                                                    <td class="label" :rowspan="Object.keys(item).length" v-if="!i">
+                                                        Toleration #{{ index+1 }}
+                                                    </td>
                                                     <td class="label">
-                                                        {{ item.annotation }}
+                                                        {{ prop }}
+                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.spec.scheduling.tolerations[prop].description"></span>
                                                     </td>
                                                     <td colspan="2">
-                                                        {{ item.value }}
+                                                        {{ value }}
                                                     </td>
                                                 </tr>
-                                            </tbody>
-                                        </table>
-                                    </template>
-                                    <template v-if="hasProp(cluster, 'data.spec.scheduling.nodeSelector')">
-                                       <table>
-                                            <thead>
-                                                <th colspan="3" class="label">
-                                                    Tolerations
-                                                </th>
-                                            </thead>
-                                            <tbody>
-                                                <template v-for="(item, index) in cluster.data.spec.scheduling.tolerations">
-                                                    <tr v-for="(value, prop, i) in item">
-                                                        <td class="label" :rowspan="Object.keys(item).length" v-if="!i">
-                                                            Toleration #{{ index+1 }}
-                                                        </td>
-                                                        <td class="label">
-                                                            {{ prop }}
-                                                        </td>
-                                                        <td colspan="2">
-                                                            {{ value }}
-                                                        </td>
-                                                    </tr>
-                                                </template>
-                                            </tbody>
-                                        </table>
-                                    </template>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                
                                 </div>
                             </td>
                         </tr>

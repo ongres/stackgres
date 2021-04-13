@@ -2737,7 +2737,7 @@ label.script {
     display: inline;
 }
 
-fieldset.postgresServicesPrimary .header a.help, fieldset.postgresServicesReplicas .header a.help, fieldset.postgresServicesPrimary fieldset a.help, fieldset.postgresServicesReplicas fieldset a.help, fieldset.podsMetadata a.help, fieldset.podsScheduling a.help {
+fieldset.postgresServicesPrimary .header a.help, fieldset.postgresServicesReplicas .header a.help, fieldset.postgresServicesPrimary fieldset a.help, fieldset.postgresServicesReplicas fieldset a.help, fieldset.nodeSelectors a.help {
     margin-top: 0;
 }
 
