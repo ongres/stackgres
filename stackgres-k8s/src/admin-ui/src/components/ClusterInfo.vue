@@ -496,6 +496,7 @@
 							<tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.services)">
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.services).length">
 									Services
+									<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.metadata.annotations.services.description"></span>
 								</td>
 								<td class="label">
 									{{ item.annotation }}
