@@ -10,7 +10,7 @@ url: install/integrations/nutanix-karbon/cluster-deploy
 The StackGres Operator and RestApi have been installed with success and the web access is ready, now you can proceed with the StackGres Cluster deployment.
 
 The cluster could be created with default parameters, but to get the most of this, several resources will be created to show the versatility of StackGres. 
-You can open and inspect the YAML files to understand the parameters of the resources following the [StackGres Documentation]({{% relref "install/prerequisites/backups" %}}).
+You can open and inspect the YAML files to understand the parameters of the resources following the [StackGres Documentation]({{% relref "install/pre-requisites/backups" %}}).
 
 Lets create the cluster starting with a custom profile for instances.
 
