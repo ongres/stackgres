@@ -55,7 +55,6 @@ spec:
                   properties:
                     status:
                       type: string
-                      enum: [Running, Completed, Failed]
                       description: |
                         Status of the backup.
                     failure:

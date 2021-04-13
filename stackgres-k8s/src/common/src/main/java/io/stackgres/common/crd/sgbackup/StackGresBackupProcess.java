@@ -8,11 +8,16 @@ package io.stackgres.common.crd.sgbackup;
 import java.util.Objects;
 
 import javax.validation.Valid;
+import javax.validation.constraints.AssertTrue;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.validation.FieldReference;
+import io.stackgres.common.validation.FieldReference.ReferencedField;
+import org.jooq.lambda.Seq;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -26,6 +31,18 @@ public class StackGresBackupProcess {
 
   @Valid
   private StackgresBackupTiming timing;
+
+  @ReferencedField("status")
+  interface Status extends FieldReference { }
+
+  @JsonIgnore
+  @AssertTrue(message = "status must be one of Pending, Running, Completed or Failed",
+      payload = { Status.class })
+  public boolean isValidStatus() {
+    return status != null && Seq.of(BackupPhase.values())
+        .map(BackupPhase::label)
+        .anyMatch(status::equals);
+  }
 
   public String getStatus() {
     return status;
