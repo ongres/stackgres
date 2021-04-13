@@ -108,6 +108,7 @@
 
             return {
                 editMode: (vm.$route.name === 'EditProfile'),
+                editReady: false,
                 profileName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
                 profileNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 profileCPU: '',
@@ -143,7 +144,7 @@
                 var vm = this;
                 var config = {};
                 
-                if(vm.$route.name === 'EditProfile') {
+                if( vm.editMode && !vm.editReady ) {
                     store.state.profiles.forEach(function( conf ){
                         if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
                             vm.profileCPU = conf.data.spec.cpu.match(/\d+/g);
@@ -151,7 +152,9 @@
                             vm.profileRAM = conf.data.spec.memory.match(/\d+/g);
                             vm.profileRAMUnit = conf.data.spec.memory.match(/[a-zA-Z]+/g)[0];
                             config = conf;
-                            return false;
+
+                            vm.editReady = true
+                            return false
                         }
                     });
                 }

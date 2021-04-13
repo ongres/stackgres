@@ -386,6 +386,7 @@
 
             return {
                 editMode: (vm.$route.name === 'EditBackupConfig'),
+                editReady: false,
                 advancedMode: false,
                 advancedModeStorage: false,
                 backupConfigName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
@@ -456,7 +457,7 @@
                 var vm = this;
                 var conf = {};
                 
-                if(vm.$route.name === 'EditBackupConfig') {
+                if( vm.editMode && !vm.editReady ) {
                     store.state.backupConfig.forEach(function( config ){
                         if( (config.data.metadata.name === vm.$route.params.name) && (config.data.metadata.namespace === vm.$route.params.namespace) ) {
                             
@@ -542,6 +543,7 @@
                             }
         
                             conf = config;
+                            vm.editReady = true
                             return false;
                         }
                     });

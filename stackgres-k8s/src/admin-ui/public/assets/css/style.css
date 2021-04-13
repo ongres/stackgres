@@ -5053,7 +5053,7 @@ td.label .helpTooltip {
     display: none;
 }
 
-.form > fieldset > .header:not(.open) {
+.form .accordion > .header:not(.open), .form fieldset:not(.accordion) .header:last-child {
     border: 0;
 }
 

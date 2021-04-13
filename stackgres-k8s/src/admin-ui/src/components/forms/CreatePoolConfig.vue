@@ -85,6 +85,7 @@
 
             return {
                 editMode: (vm.$route.name === 'EditPoolConfig'),
+                editReady: false,
                 poolConfigName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
                 poolConfigNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 poolConfigParams: '',
@@ -116,11 +117,13 @@
                 var vm = this;
                 var config = {};
 
-                if(vm.$route.name === 'EditPoolConfig') {
+                if( vm.editMode && !vm.editReady ) {
                     store.state.poolConfig.forEach(function( conf ){
                         if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
                             vm.poolConfigParams = conf.data.spec.pgBouncer["pgbouncer.ini"];
                             config = conf;
+
+                            vm.editReady = true
                             return false;
                         }
                     });    
