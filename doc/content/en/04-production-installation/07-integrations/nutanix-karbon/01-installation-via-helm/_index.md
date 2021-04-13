@@ -1,15 +1,8 @@
 ---
-title: Integrations - Nutanix Karbon
+title: StackGres Operator Install
 weight: 1
-pre: "<b>1. </b>"
 url: install/integrations/nutanix-karbon/sgoperator-install
 ---
-
-### Chapter 4
-
-# Integrations - Nutanix Karbon
-
-This document give the guide for StackGres installation Nutanix Karbon Cluster production environment.
 
 # StackGres Operator Install
 

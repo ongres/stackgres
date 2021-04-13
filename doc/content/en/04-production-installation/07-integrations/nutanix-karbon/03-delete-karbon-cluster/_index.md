@@ -1,7 +1,6 @@
 ---
-title: Integrations - Nutanix Karbon
+title: StackGres Cluster Delete
 weight: 3
-pre: "<b>3. </b>"
 url: install/integrations/nutanix-karbon/cluster-delete
 ---
 
