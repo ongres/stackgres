@@ -11,3 +11,5 @@ url: administration
 # Postgres Administration
 
 Administration of postgres clusters created with StackGres.
+
+{{% children style="li" depth="2" %}}

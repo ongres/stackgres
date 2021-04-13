@@ -1,6 +1,6 @@
 ---
 title: Cluster Restart
-weight: 4
+weight: 20
 url: install/restart
 ---
 
