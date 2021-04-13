@@ -57,6 +57,8 @@ cert:
   # crt:
   # jwtRsaKey:
   # jwtRsaPub:
+  # webKey:
+  # webCrt:
 
 # Custom credentials for the operator's admin user
 authentication:
