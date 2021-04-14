@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import org.jetbrains.annotations.Nullable;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -73,6 +74,7 @@ public class ClusterSpec {
     this.configurations = configurations;
   }
 
+  @Nullable
   public String getSgInstanceProfile() {
     return sgInstanceProfile;
   }
@@ -81,6 +83,7 @@ public class ClusterSpec {
     this.sgInstanceProfile = sgInstanceProfile;
   }
 
+  @Nullable
   public Boolean getPrometheusAutobind() {
     return prometheusAutobind;
   }
@@ -89,6 +92,7 @@ public class ClusterSpec {
     this.prometheusAutobind = prometheusAutobind;
   }
 
+  @Nullable
   public ClusterNonProduction getNonProduction() {
     return nonProduction;
   }
@@ -105,6 +109,7 @@ public class ClusterSpec {
     this.pods = pods;
   }
 
+  @Nullable
   public ClusterInitData getInitData() {
     return initData;
   }
@@ -113,6 +118,7 @@ public class ClusterSpec {
     this.initData = initData;
   }
 
+  @Nullable
   public ClusterDistributedLogs getDistributedLogs() {
     return distributedLogs;
   }
@@ -129,6 +135,7 @@ public class ClusterSpec {
     this.postgresServices = postgresServices;
   }
 
+  @Nullable
   public ClusterSpecMetadata getMetadata() {
     return metadata;
   }

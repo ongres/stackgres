@@ -16,7 +16,7 @@ public interface ResourceFinder<T> {
    * @param name the name of the resource
    * @retun the result of the search
    */
-  @NotNull Optional<T> findByName(String name);
+  @NotNull Optional<T> findByName(@NotNull String name);
 
   /**
    * Will look for a resource by it's name and namespace.
@@ -24,6 +24,6 @@ public interface ResourceFinder<T> {
    * @param namespace the namespace of the resource
    * @retun the result of the search
    */
-  @NotNull Optional<T> findByNameAndNamespace(String name, String namespace);
+  @NotNull Optional<T> findByNameAndNamespace(@NotNull String name, @NotNull String namespace);
 
 }

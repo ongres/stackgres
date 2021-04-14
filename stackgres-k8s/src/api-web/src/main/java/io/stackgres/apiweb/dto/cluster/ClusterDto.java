@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.ResourceDto;
 import io.stackgres.common.StackGresUtil;
+import org.jetbrains.annotations.Nullable;
 
 @RegisterForReflection
 public class ClusterDto extends ResourceDto {
@@ -38,6 +39,7 @@ public class ClusterDto extends ResourceDto {
     this.spec = spec;
   }
 
+  @Nullable
   public ClusterStatus getStatus() {
     return status;
   }

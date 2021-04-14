@@ -59,6 +59,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
@@ -83,7 +85,8 @@ public class ClusterTransformer
   }
 
   @Override
-  public StackGresCluster toCustomResource(ClusterDto source, StackGresCluster original) {
+  public StackGresCluster toCustomResource(@NotNull ClusterDto source,
+      @Nullable StackGresCluster original) {
     StackGresCluster transformation = Optional.ofNullable(original)
         .orElseGet(StackGresCluster::new);
     transformation.setMetadata(getCustomResourceMetadata(source, original));
@@ -101,7 +104,7 @@ public class ClusterTransformer
     return transformation;
   }
 
-  public ClusterDto toResourceWithPods(StackGresCluster source, List<Pod> pods) {
+  public ClusterDto toResourceWithPods(@NotNull StackGresCluster source, @Nullable List<Pod> pods) {
     ClusterDto clusterDto = toDto(source);
 
     clusterDto.setPods(Seq.seq(pods)
@@ -120,7 +123,8 @@ public class ClusterTransformer
     return context.getBoolean(WebApiProperty.GRAFANA_EMBEDDED);
   }
 
-  public StackGresClusterSpec getCustomResourceSpec(ClusterSpec source) {
+  @Nullable
+  public StackGresClusterSpec getCustomResourceSpec(@Nullable ClusterSpec source) {
     if (source == null) {
       return null;
     }
@@ -261,7 +265,7 @@ public class ClusterTransformer
   }
 
   private io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction
-      getCustomResourceNonProduction(ClusterNonProduction source) {
+      getCustomResourceNonProduction(@Nullable ClusterNonProduction source) {
     if (source == null) {
       return null;
     }
@@ -272,7 +276,7 @@ public class ClusterTransformer
   }
 
   private StackGresClusterRestore getCustomResourceRestore(
-      ClusterRestore source) {
+      @Nullable ClusterRestore source) {
     if (source == null) {
       return null;
     }
@@ -293,7 +297,8 @@ public class ClusterTransformer
     return transformation;
   }
 
-  public ClusterSpec getResourceSpec(StackGresClusterSpec source) {
+  @Nullable
+  public ClusterSpec getResourceSpec(@Nullable StackGresClusterSpec source) {
     if (source == null) {
       return null;
     }
@@ -453,7 +458,8 @@ public class ClusterTransformer
     return transformation;
   }
 
-  public ClusterStatus getResourceStatus(StackGresClusterStatus source) {
+  @Nullable
+  public ClusterStatus getResourceStatus(@Nullable StackGresClusterStatus source) {
     if (source == null) {
       return null;
     }

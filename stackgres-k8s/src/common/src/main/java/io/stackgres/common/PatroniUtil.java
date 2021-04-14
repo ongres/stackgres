@@ -6,8 +6,14 @@
 package io.stackgres.common;
 
 import io.stackgres.common.resource.ResourceUtil;
+import org.jetbrains.annotations.NotNull;
 
-public class PatroniUtil {
+public final class PatroniUtil {
+
+  private PatroniUtil() {
+    throw new AssertionError("Utility class");
+  }
+
   public static final String READ_WRITE_SERVICE = "-primary";
   public static final String READ_ONLY_SERVICE = "-replicas";
   public static final String FAILOVER_SERVICE = "-failover";
@@ -15,15 +21,16 @@ public class PatroniUtil {
   public static final int POSTGRES_SERVICE_PORT = 5432;
   public static final int REPLICATION_SERVICE_PORT = 5433;
 
-  public static String name(String clusterName) {
+  public static String name(@NotNull String clusterName) {
     return ResourceUtil.resourceName(clusterName);
   }
 
-  public static String readWriteName(String clusterName) {
+  public static String readWriteName(@NotNull String clusterName) {
     return ResourceUtil.resourceName(clusterName + READ_WRITE_SERVICE);
   }
 
-  public static String readOnlyName(String clusterName) {
+  public static String readOnlyName(@NotNull String clusterName) {
     return ResourceUtil.resourceName(clusterName + READ_ONLY_SERVICE);
   }
+
 }
