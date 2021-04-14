@@ -71,6 +71,9 @@
 									<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+cluster.name" title="Cluster Status" data-active=".set.clu" class="no-color">
 										{{ cluster.name }}
 									</router-link>
+									<template v-for="condition in cluster.data.status.conditions" v-if="( (condition.type == 'PendingRestart') && (condition.status == 'True') )">
+										<span class="helpTooltip alert" data-tooltip="A restart operation is pending for this cluster"></span>
+									</template>
 								</td>
 								<td class="instances">
 									<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+cluster.name" title="Cluster Status" data-active=".set.clu" class="no-color">
@@ -81,13 +84,13 @@
 								<template v-for="profile in profiles">
 									<template v-if="(profile.data.metadata.namespace == $route.params.namespace) && (cluster.data.spec.sgInstanceProfile == profile.name)">
 										<td class="cpu">
-											<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+cluster.name" title="Cluster Status" data-active=".set.clu" class="no-color">
-												{{ profile.data.spec.cpu }}
+											<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+cluster.name" title="Cluster Status" data-active=".set.clu" class="no-color" v-if="cluster.hasOwnProperty('podStats')">
+												{{ cluster.podStats.cpuRequested }}
 											</router-link>
 										</td>
 										<td class="ram">
-											<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+cluster.name" title="Cluster Status" data-active=".set.clu" class="no-color">
-												{{ profile.data.spec.memory }}
+											<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+cluster.name" title="Cluster Status" data-active=".set.clu" class="no-color" v-if="cluster.hasOwnProperty('podStats')">
+												{{ cluster.podStats.memoryRequested.replace('.00','') }}
 											</router-link>
 										</td>
 									</template>
@@ -159,3 +162,15 @@
 		}
 	}
 </script>
+
+<style scoped>
+	table.clusterOverview .clusterName a.no-color {
+		display: inline-block;
+	}
+
+	.clusterName .helpTooltip.alert {
+		top: 13px;
+		position: absolute;
+		transform: translateX(5px);
+	}
+</style>
