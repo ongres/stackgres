@@ -1,0 +1,39 @@
+#!/bin/sh
+
+e2e_test_install() {
+  NODE_LABEL_KEY=$(ramdom_string)
+  NODE_LABEL_VALUE=$(ramdom_string)
+
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
+    --set distributedLogs.enabled="false"
+
+  deploy_curl_pod "$CLUSTER_NAMESPACE"
+}
+
+e2e_test_uninstall() {
+  helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
+}
+
+e2e_test() {
+  run_test "Getting a cluster info with http api" get_api_cluster_info
+}
+
+get_api_cluster_info() {
+  local CLUSTER_INFO_PRIMARYDNS=$(run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | jq '.info.primaryDns' -r)
+  local CLUSTER_INFO_REPLICADNS=$(run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | jq '.info.replicasDns' -r)
+  local CLUSTER_INFO_USERNAME=$(run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | jq '.info.superuserUsername' -r)
+  local CLUSTER_INFO_SECRETNAME=$(run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | jq '.info.superuserSecretName' -r)
+  local CLUSTER_INFO_PWKEY=$(run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | jq '.info.superuserPasswordKey' -r)
+
+  assert_string_equal "$CLUSTER_NAME-primary.$CLUSTER_NAMESPACE.svc.cluster.local" "$CLUSTER_INFO_PRIMARYDNS"
+  assert_string_equal "$CLUSTER_NAME-replicas.$CLUSTER_NAMESPACE.svc.cluster.local" "$CLUSTER_INFO_REPLICADNS"
+  assert_string_equal "postgres" "$CLUSTER_INFO_USERNAME"
+  assert_string_equal "$CLUSTER_NAME" "$CLUSTER_INFO_SECRETNAME"
+  assert_string_equal "superuser-password" "$CLUSTER_INFO_PWKEY"
+}
+

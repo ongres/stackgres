@@ -5,7 +5,6 @@
 
 package io.stackgres.apiweb.rest;
 
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
@@ -13,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -43,6 +43,8 @@ import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.config.WebApiProperty;
 import io.stackgres.apiweb.distributedlogs.DistributedLogsFetcher;
@@ -56,12 +58,12 @@ import io.stackgres.apiweb.dto.cluster.ClusterLogEntryDto;
 import io.stackgres.apiweb.dto.cluster.ClusterPod;
 import io.stackgres.apiweb.dto.cluster.ClusterPodMetadata;
 import io.stackgres.apiweb.dto.cluster.ClusterPodPersistentVolume;
+import io.stackgres.apiweb.dto.cluster.ClusterPodScheduling;
 import io.stackgres.apiweb.dto.cluster.ClusterRestore;
 import io.stackgres.apiweb.dto.cluster.ClusterScriptEntry;
 import io.stackgres.apiweb.dto.cluster.ClusterScriptFrom;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
-import io.stackgres.apiweb.dto.cluster.ClusterPodScheduling;
 import io.stackgres.apiweb.resource.ClusterDtoFinder;
 import io.stackgres.apiweb.resource.ClusterDtoScanner;
 import io.stackgres.apiweb.resource.ClusterStatsDtoFinder;
@@ -72,22 +74,23 @@ import io.stackgres.apiweb.transformer.ClusterStatsTransformer;
 import io.stackgres.apiweb.transformer.ClusterTransformer;
 import io.stackgres.common.ClusterLabelFactory;
 import io.stackgres.common.ClusterLabelMapper;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodMetadata;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -97,7 +100,6 @@ import io.stackgres.common.resource.PodFinder;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.testutil.JsonUtil;
-import io.stackgres.testutil.StringUtils;
 import org.eclipse.microprofile.context.ManagedExecutor;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
@@ -143,17 +145,41 @@ class ClusterResourceTest
   @Mock
   private ResourceFinder<Secret> secretFinder;
 
+  @Mock
+  private ResourceFinder<Service> serviceFinder;
+
   private ExecutorService executorService;
 
+  private Service servicePrimary;
+  private Service serviceReplicas;
   private Secret secret;
   private ConfigMap configMap;
   private PodList podList;
   private List<ClusterLogEntryDto> logList;
   private StackGresCluster clusterWithoutDistributedLogs;
 
+  @Override
   @BeforeEach
   void setUp() {
     super.setUp();
+    servicePrimary = new ServiceBuilder()
+        .withNewMetadata()
+        .withNamespace(getResourceNamespace())
+        .withName(PatroniUtil.readWriteName(getResourceName()))
+        .endMetadata()
+        .withNewSpec()
+        .withType("ClusterIP")
+        .endSpec()
+        .build();
+    serviceReplicas = new ServiceBuilder(servicePrimary)
+        .editMetadata()
+        .withName(PatroniUtil.readOnlyName(getResourceName()))
+        .endMetadata()
+        .withNewSpec().withType("LoadBalancer").endSpec()
+        .withNewStatus().withNewLoadBalancer().addNewIngress()
+        .withHostname("f4611c56942064ed5a468d8ce0a894ec.us-east-1.elb.amazonaws.com")
+        .endIngress().endLoadBalancer().endStatus()
+        .build();
     secret = new SecretBuilder()
         .withNewMetadata()
         .withNamespace(getResourceNamespace())
@@ -315,7 +341,8 @@ class ClusterResourceTest
     final ConfigMapKeySelector configMapKeyRef = scriptFrom.getConfigMapKeyRef();
     assertEquals(configMapKeyRef.getName(), createdSecret.getMetadata().getName());
     assertTrue(createdSecret.getData().containsKey(configMapKeyRef.getKey()));
-    assertEquals(scriptFrom.getConfigMapScript(), createdSecret.getData().get(configMapKeyRef.getKey()));
+    assertEquals(scriptFrom.getConfigMapScript(),
+        createdSecret.getData().get(configMapKeyRef.getKey()));
 
   }
 
@@ -330,8 +357,8 @@ class ClusterResourceTest
     final SecretKeySelector secretKeyRef = new SecretKeySelector();
     scriptFrom.setSecretKeyRef(secretKeyRef);
 
-    final String randomKey = StringUtils.getRandomString();
-    final String randomSecretName = StringUtils.getRandomString();
+    final String randomKey = StringUtil.generateRandom(30);
+    final String randomSecretName = StringUtil.generateRandom(30);
 
     secretKeyRef.setKey(randomKey);
     secretKeyRef.setName(randomSecretName);
@@ -350,13 +377,8 @@ class ClusterResourceTest
     final ConfigMapKeySelector configMapKeyRef = new ConfigMapKeySelector();
     scriptFrom.setConfigMapKeyRef(configMapKeyRef);
 
-<<<<<<< HEAD
-    final String randomKey = StringUtils.getRandomString();
-    final String randomSecretName = StringUtils.getRandomString();
-=======
     final String randomKey = StringUtil.generateRandom(30);
     final String randomSecretName = StringUtil.generateRandom(30);
->>>>>>> eefb73e8... chore: Make use of a single random string generator
 
     configMapKeyRef.setKey(randomKey);
     configMapKeyRef.setName(randomSecretName);
@@ -366,8 +388,16 @@ class ClusterResourceTest
   private void clusterMocks() {
     when(configContext.get(WebApiProperty.GRAFANA_EMBEDDED))
         .thenReturn(Optional.of("true"));
-    when(secretFinder.findByNameAndNamespace(anyString(), anyString())).thenReturn(Optional.of(secret));
-    when(configMapFinder.findByNameAndNamespace(anyString(), anyString())).thenReturn(Optional.of(configMap));
+    when(serviceFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(getResourceName())),
+        anyString()))
+            .thenReturn(Optional.of(servicePrimary));
+    when(serviceFinder.findByNameAndNamespace(eq(PatroniUtil.readOnlyName(getResourceName())),
+        anyString()))
+            .thenReturn(Optional.of(serviceReplicas));
+    when(secretFinder.findByNameAndNamespace(anyString(), anyString()))
+        .thenReturn(Optional.of(secret));
+    when(configMapFinder.findByNameAndNamespace(anyString(), anyString()))
+        .thenReturn(Optional.of(configMap));
     when(podFinder.findResourcesWithLabels(any())).thenReturn(podList.getItems());
     when(podFinder.findResourcesInNamespaceWithLabels(anyString(), any()))
         .thenReturn(podList.getItems());
@@ -474,7 +504,7 @@ class ClusterResourceTest
         dtoFinder,
         statsDtoFinder,
         distributedLogsFetcher, secretTransactionHandler, configMapTransactionHandler,
-        secretFinder, configMapFinder);
+        secretFinder, configMapFinder, serviceFinder);
   }
 
   @Override
@@ -508,12 +538,16 @@ class ClusterResourceTest
       assertEquals(resourceSpec.getResourceProfile(), dtoSpec.getSgInstanceProfile());
 
       final ClusterConfiguration dtoClusterConfigurations = dtoSpec.getConfigurations();
-      final StackGresClusterConfiguration resourceClusterConfiguration = resourceSpec.getConfiguration();
+      final StackGresClusterConfiguration resourceClusterConfiguration =
+          resourceSpec.getConfiguration();
       if (resourceClusterConfiguration != null) {
         assertNotNull(dtoClusterConfigurations);
-        assertEquals(resourceClusterConfiguration.getBackupConfig(), dtoClusterConfigurations.getSgBackupConfig());
-        assertEquals(resourceClusterConfiguration.getConnectionPoolingConfig(), dtoClusterConfigurations.getSgPoolingConfig());
-        assertEquals(resourceClusterConfiguration.getPostgresConfig(), dtoClusterConfigurations.getSgPostgresConfig());
+        assertEquals(resourceClusterConfiguration.getBackupConfig(),
+            dtoClusterConfigurations.getSgBackupConfig());
+        assertEquals(resourceClusterConfiguration.getConnectionPoolingConfig(),
+            dtoClusterConfigurations.getSgPoolingConfig());
+        assertEquals(resourceClusterConfiguration.getPostgresConfig(),
+            dtoClusterConfigurations.getSgPostgresConfig());
       } else {
         assertNull(dtoClusterConfigurations);
       }
@@ -522,8 +556,10 @@ class ClusterResourceTest
       final StackGresClusterPod resourcePod = resourceSpec.getPod();
       if (resourcePod != null) {
         assertNotNull(dtoSpecPods);
-        assertEquals(resourcePod.getDisableConnectionPooling(), dtoSpecPods.getDisableConnectionPooling());
-        assertEquals(resourcePod.getDisableMetricsExporter(), dtoSpecPods.getDisableMetricsExporter());
+        assertEquals(resourcePod.getDisableConnectionPooling(),
+            dtoSpecPods.getDisableConnectionPooling());
+        assertEquals(resourcePod.getDisableMetricsExporter(),
+            dtoSpecPods.getDisableMetricsExporter());
         assertEquals(resourcePod.getDisablePostgresUtil(), dtoSpecPods.getDisablePostgresUtil());
 
         final ClusterPodPersistentVolume resourcePV = dtoSpecPods.getPersistentVolume();
@@ -538,7 +574,8 @@ class ClusterResourceTest
 
         if (resourcePod.getMetadata() != null) {
           assertNotNull(dtoSpecPods.getMetadata());
-          assertEquals(resourcePod.getMetadata().getLabels(), dtoSpecPods.getMetadata().getLabels());
+          assertEquals(resourcePod.getMetadata().getLabels(),
+              dtoSpecPods.getMetadata().getLabels());
         } else {
           assertNull(dtoSpecPods.getMetadata());
         }
@@ -556,7 +593,8 @@ class ClusterResourceTest
 
       if (resourceSpec.getDistributedLogs() != null) {
         assertNotNull(dtoSpec.getDistributedLogs());
-        assertEquals(resourceSpec.getDistributedLogs().getDistributedLogs(), dtoSpec.getDistributedLogs().getDistributedLogs());
+        assertEquals(resourceSpec.getDistributedLogs().getDistributedLogs(),
+            dtoSpec.getDistributedLogs().getDistributedLogs());
       } else {
         assertNull(dtoSpec.getDistributedLogs());
       }
@@ -584,9 +622,9 @@ class ClusterResourceTest
                 assertEquals(tuple.v2.getScript(), tuple.v2.getScript());
                 final StackGresClusterScriptFrom resourceScriptFrom = tuple.v1.getScriptFrom();
                 final ClusterScriptFrom dtoScriptFrom = tuple.v2.getScriptFrom();
-                if (resourceScriptFrom != null){
+                if (resourceScriptFrom != null) {
                   assertNotNull(dtoScriptFrom);
-                  if (resourceScriptFrom.getSecretKeyRef() != null){
+                  if (resourceScriptFrom.getSecretKeyRef() != null) {
                     assertNotNull(dtoScriptFrom.getSecretKeyRef());
                     assertEquals(resourceScriptFrom.getSecretKeyRef().getKey(),
                         dtoScriptFrom.getSecretKeyRef().getKey());
@@ -598,7 +636,7 @@ class ClusterResourceTest
                   } else {
                     assertNull(dtoScriptFrom.getSecretKeyRef());
                   }
-                  if (resourceScriptFrom.getConfigMapKeyRef() != null){
+                  if (resourceScriptFrom.getConfigMapKeyRef() != null) {
                     assertNotNull(dtoScriptFrom.getConfigMapKeyRef());
                     assertEquals(resourceScriptFrom.getConfigMapKeyRef().getKey(),
                         dtoScriptFrom.getConfigMapKeyRef().getKey());
@@ -640,12 +678,24 @@ class ClusterResourceTest
       assertEquals("Pending", dto.getPods().get(1).getStatus());
     }
 
+    if (dto.getInfo() != null) {
+      String appendDns = "." + resource.getMetadata().getNamespace() + ".svc.cluster.local";
+      String expectedPrimaryDns =
+          PatroniUtil.readWriteName(resource.getMetadata().getName()) + appendDns;
+      String expectedReplicasDns = "f4611c56942064ed5a468d8ce0a894ec.us-east-1.elb.amazonaws.com";
+      assertEquals(expectedPrimaryDns, dto.getInfo().getPrimaryDns());
+      assertEquals(expectedReplicasDns, dto.getInfo().getReplicasDns());
+      assertEquals("postgres", dto.getInfo().getSuperuserUsername());
+      assertEquals("superuser-password", dto.getInfo().getSuperuserPasswordKey());
+      assertEquals(resource.getMetadata().getName(), dto.getInfo().getSuperuserSecretName());
+    }
+
   }
 
   @Override
   protected void checkCustomResource(StackGresCluster resource,
-                                     ClusterDto resourceDto,
-                                     Operation operation) {
+      ClusterDto resourceDto,
+      Operation operation) {
 
     final Metadata dtoMetadata = resourceDto.getMetadata();
     final ObjectMeta resourceMetadata = resource.getMetadata();
@@ -689,9 +739,12 @@ class ClusterResourceTest
       if (dtoSpecPods != null) {
         final StackGresClusterPod resourceSpecPod = resourceSpec.getPod();
         assertNotNull(resourceSpecPod);
-        assertEquals(dtoSpecPods.getDisableConnectionPooling(), resourceSpecPod.getDisableConnectionPooling());
-        assertEquals(dtoSpecPods.getDisableMetricsExporter(), resourceSpecPod.getDisableMetricsExporter());
-        assertEquals(dtoSpecPods.getDisableMetricsExporter(), resourceSpecPod.getDisableMetricsExporter());
+        assertEquals(dtoSpecPods.getDisableConnectionPooling(),
+            resourceSpecPod.getDisableConnectionPooling());
+        assertEquals(dtoSpecPods.getDisableMetricsExporter(),
+            resourceSpecPod.getDisableMetricsExporter());
+        assertEquals(dtoSpecPods.getDisableMetricsExporter(),
+            resourceSpecPod.getDisableMetricsExporter());
 
         final ClusterPodPersistentVolume dtoPV = dtoSpecPods.getPersistentVolume();
         final StackGresPodPersistentVolume resourcePV = resourceSpecPod.getPersistentVolume();
@@ -755,7 +808,8 @@ class ClusterResourceTest
                 if (dtoScriptFrom != null) {
                   assertNotNull(resourceScriptFrom);
                   final SecretKeySelector dtoSecretKeyRef = dtoScriptFrom.getSecretKeyRef();
-                  final SecretKeySelector resourceSecretKeyRef = resourceScriptFrom.getSecretKeyRef();
+                  final SecretKeySelector resourceSecretKeyRef =
+                      resourceScriptFrom.getSecretKeyRef();
                   if (dtoSecretKeyRef != null) {
                     assertNotNull(resourceSecretKeyRef);
                     assertEquals(dtoSecretKeyRef.getName(), resourceSecretKeyRef.getName());
@@ -763,8 +817,10 @@ class ClusterResourceTest
                   } else {
                     assertNull(resourceSecretKeyRef);
                   }
-                  final ConfigMapKeySelector resourceConfigMapKeyRef = resourceScriptFrom.getConfigMapKeyRef();
-                  final ConfigMapKeySelector dtoConfigMapKeyRef = dtoScriptFrom.getConfigMapKeyRef();
+                  final ConfigMapKeySelector resourceConfigMapKeyRef =
+                      resourceScriptFrom.getConfigMapKeyRef();
+                  final ConfigMapKeySelector dtoConfigMapKeyRef =
+                      dtoScriptFrom.getConfigMapKeyRef();
                   if (dtoConfigMapKeyRef != null) {
                     assertNotNull(resourceConfigMapKeyRef);
                     assertEquals(dtoConfigMapKeyRef.getName(), resourceConfigMapKeyRef.getName());
@@ -783,7 +839,8 @@ class ClusterResourceTest
 
       if (dtoSpec.getDistributedLogs() != null) {
         assertNotNull(resourceSpec.getDistributedLogs());
-        assertEquals(dtoSpec.getDistributedLogs().getDistributedLogs(), resourceSpec.getDistributedLogs().getDistributedLogs());
+        assertEquals(dtoSpec.getDistributedLogs().getDistributedLogs(),
+            resourceSpec.getDistributedLogs().getDistributedLogs());
       } else {
         assertNull(resourceSpec.getDistributedLogs());
       }

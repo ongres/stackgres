@@ -29,9 +29,9 @@ public class KubernetesClientProvider implements KubernetesClientFactory {
 
   @Override
   public KubernetesClient create() {
-    LOGGER.debug("Impersonate user {}", impersonate);
     Config config;
     if (null != impersonate) {
+      LOGGER.debug("Impersonate user {}", impersonate);
       config = new ConfigBuilder()
           .withImpersonateUsername(impersonate)
           .withImpersonateGroup("system:authenticated")

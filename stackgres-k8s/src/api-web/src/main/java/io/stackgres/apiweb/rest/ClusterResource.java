@@ -32,12 +32,15 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.fabric8.kubernetes.api.model.Service;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.distributedlogs.DistributedLogsFetcher;
+import io.stackgres.apiweb.distributedlogs.DistributedLogsQueryParameters;
 import io.stackgres.apiweb.distributedlogs.FullTextSearchQuery;
 import io.stackgres.apiweb.distributedlogs.ImmutableDistributedLogsQueryParameters;
 import io.stackgres.apiweb.dto.cluster.ClusterDistributedLogs;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
+import io.stackgres.apiweb.dto.cluster.ClusterInfoDto;
 import io.stackgres.apiweb.dto.cluster.ClusterInitData;
 import io.stackgres.apiweb.dto.cluster.ClusterLogEntryDto;
 import io.stackgres.apiweb.dto.cluster.ClusterScriptEntry;
@@ -47,6 +50,8 @@ import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
 import io.stackgres.apiweb.resource.ResourceTransactionHandler;
 import io.stackgres.apiweb.transformer.ResourceTransformer;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -60,6 +65,7 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import org.jetbrains.annotations.Nullable;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
@@ -82,6 +88,7 @@ public class ClusterResource
   private final ResourceTransactionHandler<ConfigMap> configMapTransactionHandler;
   private final ResourceFinder<Secret> secretFinder;
   private final ResourceFinder<ConfigMap> configMapFinder;
+  private final ResourceFinder<Service> serviceFinder;
 
   @Inject
   public ClusterResource(
@@ -95,7 +102,8 @@ public class ClusterResource
       ResourceTransactionHandler<Secret> secretTransactionHandler,
       ResourceTransactionHandler<ConfigMap> configMapTransactionHandler,
       ResourceFinder<Secret> secretFinder,
-      ResourceFinder<ConfigMap> configMapFinder) {
+      ResourceFinder<ConfigMap> configMapFinder,
+      ResourceFinder<Service> serviceFinder) {
     super(null, finder, scheduler, transformer);
     this.clusterScanner = clusterScanner;
     this.clusterFinder = clusterFinder;
@@ -105,6 +113,7 @@ public class ClusterResource
     this.configMapTransactionHandler = configMapTransactionHandler;
     this.secretFinder = secretFinder;
     this.configMapFinder = configMapFinder;
+    this.serviceFinder = serviceFinder;
   }
 
   public ClusterResource() {
@@ -118,14 +127,15 @@ public class ClusterResource
     this.configMapTransactionHandler = null;
     this.secretFinder = null;
     this.configMapFinder = null;
+    this.serviceFinder = null;
   }
 
   @Operation(
       responses = {
           @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
+              content = {@Content(
                   mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(implementation = ClusterDto.class))) })
+                  array = @ArraySchema(schema = @Schema(implementation = ClusterDto.class)))})
       })
   @CommonApiResponses
   @Authenticated
@@ -134,15 +144,16 @@ public class ClusterResource
     return Seq.seq(clusterScanner.getResources())
         .map(this::setSecrets)
         .map(this::setConfigMaps)
+        .map(this::setInfo)
         .toList();
   }
 
   @Operation(
       responses = {
           @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
+              content = {@Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = ClusterDto.class)) })
+                  schema = @Schema(implementation = ClusterDto.class))})
       })
   @CommonApiResponses
   @Authenticated
@@ -151,6 +162,7 @@ public class ClusterResource
     return clusterFinder.findByNameAndNamespace(name, namespace)
         .map(this::setSecrets)
         .map(this::setConfigMaps)
+        .map(this::setInfo)
         .orElseThrow(NotFoundException::new);
   }
 
@@ -190,6 +202,28 @@ public class ClusterResource
   @Override
   public void delete(ClusterDto resource) {
     super.delete(resource);
+  }
+
+  @Nullable
+  private ClusterDto setInfo(ClusterDto resource) {
+    if (resource.getMetadata() == null) {
+      return resource;
+    }
+    final String namespace = resource.getMetadata().getNamespace();
+    final String clusterName = resource.getMetadata().getName();
+    final ClusterInfoDto info = new ClusterInfoDto();
+
+    serviceFinder.findByNameAndNamespace(PatroniUtil.readWriteName(clusterName), namespace)
+        .ifPresent(service -> info.setPrimaryDns(StackGresUtil.getServiceDnsName(service)));
+    serviceFinder.findByNameAndNamespace(PatroniUtil.readOnlyName(clusterName), namespace)
+        .ifPresent(service -> info.setReplicasDns(StackGresUtil.getServiceDnsName(service)));
+
+    info.setSuperuserUsername("postgres");
+    info.setSuperuserSecretName(clusterName);
+    info.setSuperuserPasswordKey("superuser-password");
+
+    resource.setInfo(info);
+    return resource;
   }
 
   private ClusterDto setSecrets(ClusterDto resource) {
@@ -300,8 +334,8 @@ public class ClusterResource
                         configMapScript))
                     .build();
               }
-            }).collect(Collectors.toCollection(ArrayDeque::new))
-        ).orElse(new ArrayDeque<>());
+            }).collect(Collectors.toCollection(ArrayDeque::new)))
+        .orElse(new ArrayDeque<>());
   }
 
   private Deque<Secret> getSecretsToCreate(ClusterDto resource) {
@@ -343,7 +377,8 @@ public class ClusterResource
                         secretScript))
                     .build();
               }
-            }).collect(Collectors.toCollection(ArrayDeque::new))).orElse(new ArrayDeque<>());
+            }).collect(Collectors.toCollection(ArrayDeque::new)))
+        .orElse(new ArrayDeque<>());
   }
 
   private Tuple2<String, Tuple4<String, Consumer<String>, SecretKeySelector,
@@ -375,8 +410,9 @@ public class ClusterResource
   }
 
   private String scriptResourceName(ClusterDto resource, Tuple2<ClusterScriptEntry, Long> tuple) {
-    return tuple.v1.getName() != null ? tuple.v1.getName() :
-        resource.getMetadata().getName() + "-init-script-" + tuple.v2;
+    return tuple.v1.getName() != null
+        ? tuple.v1.getName()
+        : resource.getMetadata().getName() + "-init-script-" + tuple.v2;
   }
 
   /**
@@ -385,16 +421,16 @@ public class ClusterResource
   @Operation(
       responses = {
           @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
+              content = {@Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = ClusterStatsDto.class)) })
+                  schema = @Schema(implementation = ClusterStatsDto.class))})
       })
   @CommonApiResponses
   @GET
   @Path("/stats/{namespace}/{name}")
   @Authenticated
   public ClusterStatsDto stats(@PathParam("namespace") String namespace,
-                               @PathParam("name") String name) {
+      @PathParam("name") String name) {
     return clusterResourceStatsFinder.findByNameAndNamespace(name, namespace)
         .orElseThrow(NotFoundException::new);
   }
@@ -405,10 +441,10 @@ public class ClusterResource
   @Operation(
       responses = {
           @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
+              content = {@Content(
                   mediaType = "application/json",
                   array = @ArraySchema(
-                      schema = @Schema(implementation = ClusterLogEntryDto.class))) })
+                      schema = @Schema(implementation = ClusterLogEntryDto.class)))})
       })
   @CommonApiResponses
   @GET
@@ -432,7 +468,7 @@ public class ClusterResource
     final ClusterDto cluster = clusterFinder.findByNameAndNamespace(name, namespace)
         .orElseThrow(NotFoundException::new);
 
-    final int calculatedRecords = Optional.ofNullable(records).orElse(50);
+    final int calculatedRecords = records != null ? records : 50;
 
     if (calculatedRecords <= 0) {
       throw new BadRequestException("records should be a positive number");
@@ -504,7 +540,7 @@ public class ClusterResource
       throw new BadRequestException("sort only accept asc or desc values");
     }
 
-    ImmutableDistributedLogsQueryParameters logs = ImmutableDistributedLogsQueryParameters.builder()
+    DistributedLogsQueryParameters logs = ImmutableDistributedLogsQueryParameters.builder()
         .cluster(cluster)
         .records(calculatedRecords)
         .fromTimeAndIndex(fromTuple)
@@ -513,7 +549,7 @@ public class ClusterResource
         .isSortAsc(Objects.equals("asc", sort))
         .fullTextSearchQuery(Optional.ofNullable(text)
             .map(FullTextSearchQuery::new))
-        .isFromInclusive(Optional.ofNullable(fromInclusive).orElse(Boolean.FALSE))
+        .isFromInclusive(fromInclusive != null && fromInclusive)
         .build();
 
     return distributedLogsFetcher.logs(logs);

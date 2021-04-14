@@ -11,7 +11,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.ResourceDto;
 import io.stackgres.common.StackGresUtil;
-import org.jetbrains.annotations.Nullable;
 
 @RegisterForReflection
 public class ClusterDto extends ResourceDto {
@@ -31,6 +30,9 @@ public class ClusterDto extends ResourceDto {
   @JsonProperty("grafanaEmbedded")
   private boolean grafanaEmbedded;
 
+  @JsonProperty("info")
+  private ClusterInfoDto info;
+
   public ClusterSpec getSpec() {
     return spec;
   }
@@ -39,7 +41,6 @@ public class ClusterDto extends ResourceDto {
     this.spec = spec;
   }
 
-  @Nullable
   public ClusterStatus getStatus() {
     return status;
   }
@@ -70,6 +71,14 @@ public class ClusterDto extends ResourceDto {
 
   public void setGrafanaEmbedded(boolean grafanaEmbedded) {
     this.grafanaEmbedded = grafanaEmbedded;
+  }
+
+  public ClusterInfoDto getInfo() {
+    return info;
+  }
+
+  public void setInfo(ClusterInfoDto info) {
+    this.info = info;
   }
 
   @Override

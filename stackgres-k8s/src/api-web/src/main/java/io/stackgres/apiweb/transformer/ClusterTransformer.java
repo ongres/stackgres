@@ -265,7 +265,7 @@ public class ClusterTransformer
   }
 
   private io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction
-      getCustomResourceNonProduction(@Nullable ClusterNonProduction source) {
+      getCustomResourceNonProduction(ClusterNonProduction source) {
     if (source == null) {
       return null;
     }
@@ -276,7 +276,7 @@ public class ClusterTransformer
   }
 
   private StackGresClusterRestore getCustomResourceRestore(
-      @Nullable ClusterRestore source) {
+      ClusterRestore source) {
     if (source == null) {
       return null;
     }

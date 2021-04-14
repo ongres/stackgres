@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -29,9 +30,13 @@ import javax.xml.bind.DatatypeConverter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
+import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 
@@ -39,6 +44,8 @@ public class StackGresUtil {
 
   public static final String DATA_SUFFIX = "-data";
   public static final String BACKUP_SUFFIX = "-backup";
+
+  private static final String DNS_SERVICE = "svc.cluster.local";
 
   public static String statefulSetDataPersistentVolumeName(StackGresCluster cluster) {
     return ResourceUtil.resourceName(cluster.getMetadata().getName() + DATA_SUFFIX);
@@ -51,10 +58,10 @@ public class StackGresUtil {
   /**
    * This function return the namespace of the relativeId if present or the namespace.
    *
-   * <p>A relative id points to a resource relative to another resource. If the resource is
-   * in the same namespace of the other resource then the relativeId is the resource name.
-   * If the resource is in another namespace then the relativeId will contain a '.' character
-   * that separate namespace and name (`&lt;namespace&gt;.&lt;name&gt;`).
+   * <p>A relative id points to a resource relative to another resource. If the resource is in the
+   * same namespace of the other resource then the relativeId is the resource name. If the resource
+   * is in another namespace then the relativeId will contain a '.' character that separate
+   * namespace and name (`&lt;namespace&gt;.&lt;name&gt;`).
    */
   public static String getNamespaceFromRelativeId(String relativeId, String namespace) {
     final int slashIndex = relativeId.indexOf('.');
@@ -66,10 +73,10 @@ public class StackGresUtil {
   /**
    * This function return the name of the relativeId.
    *
-   * <p>A relative id points to a resource relative to another resource. If the resource is
-   * in the same namespace of the other resource then the relativeId is the resource name.
-   * If the resource is in another namespace then the relativeId will contain a '.' character
-   * that separate namespace and name (`&lt;namespace&gt;.&lt;name&gt;`).
+   * <p>A relative id points to a resource relative to another resource. If the resource is in the
+   * same namespace of the other resource then the relativeId is the resource name. If the resource
+   * is in another namespace then the relativeId will contain a '.' character that separate
+   * namespace and name (`&lt;namespace&gt;.&lt;name&gt;`).
    */
   public static String getNameFromRelativeId(String relativeId) {
     final int slashIndex = relativeId.indexOf('.');
@@ -79,13 +86,13 @@ public class StackGresUtil {
   }
 
   /**
-   * This function return the relative id of a name and a nanemspace
-   *  relative to the relativeNamespace.
+   * This function return the relative id of a name and a nanemspace relative to the
+   * relativeNamespace.
    *
-   * <p>A relative id points to a resource relative to another resource. If the resource is
-   * in the same namespace of the other resource then the relativeId is the resource name.
-   * If the resource is in another namespace then the relativeId will contain a '.' character
-   * that separate namespace and name (`&lt;namespace&gt;.&lt;name&gt;`).
+   * <p>A relative id points to a resource relative to another resource. If the resource is in the
+   * same namespace of the other resource then the relativeId is the resource name. If the resource
+   * is in another namespace then the relativeId will contain a '.' character that separate
+   * namespace and name (`&lt;namespace&gt;.&lt;name&gt;`).
    */
   public static String getRelativeId(
       String name, String namespace, String relativeNamespace) {
@@ -108,7 +115,7 @@ public class StackGresUtil {
   public static boolean isNonDisruptiblePrimary(Map<String, String> labels) {
     return isPrimary(labels)
         && Objects.equals(labels.get(StackGresContext.DISRUPTIBLE_KEY),
-        StackGresContext.WRONG_VALUE);
+            StackGresContext.WRONG_VALUE);
   }
 
   /**
@@ -146,7 +153,7 @@ public class StackGresUtil {
   /**
    * Calculate MD5 hash of all files ordered by path.
    */
-  public static String getMd5Sum(Path...paths) {
+  public static String getMd5Sum(Path... paths) {
     MessageDigest messageDigest = Unchecked
         .supplier(() -> MessageDigest.getInstance("MD5")).get();
     Seq.of(paths)
@@ -190,15 +197,19 @@ public class StackGresUtil {
    * @return the loaded file
    * @throws IOException if cannot load the properties file
    */
-  public static Properties loadProperties(String path) throws IOException {
-    try (InputStream is = ClassLoader
-        .getSystemResourceAsStream(path)) {
-      Properties props = new Properties();
-      props.load(is);
-      return props;
+  public static Properties loadProperties(@NotNull String path) throws IOException {
+    try (InputStream is = ClassLoader.getSystemResourceAsStream(path)) {
+      if (is != null) {
+        Properties props = new Properties();
+        props.load(is);
+        return props;
+      } else {
+        throw new IOException("cannot load the properties file");
+      }
     }
   }
 
+  @NotNull
   public static String toPrettyYaml(Object pojoObject) {
     try {
       try {
@@ -212,6 +223,38 @@ public class StackGresUtil {
       throw new RuntimeException("Failed deserializing instance of "
           + pojoObject.getClass().getName(), ex);
     }
+  }
+
+  /**
+   * Extract the hostname from a LoadBalancer service or get the Internal FQDN of the service.
+   *
+   * @param service name.
+   * @return String fqdn of the provided service.
+   * @throws IllegalStateException if the service is invalid.
+   */
+  @NotNull
+  public static String getServiceDnsName(@NotNull Service service) {
+    String serviceDns = null;
+    ServiceStatus status = service.getStatus();
+    if (status != null && "LoadBalancer".equals(service.getSpec().getType())) {
+      List<LoadBalancerIngress> ingress = status.getLoadBalancer().getIngress();
+      if (ingress != null && !ingress.isEmpty()) {
+        LoadBalancerIngress loadBalancerIngress = ingress.get(0);
+        serviceDns = loadBalancerIngress.getHostname() != null
+            ? loadBalancerIngress.getHostname()
+            : loadBalancerIngress.getIp();
+      }
+    }
+    if (serviceDns == null) {
+      ObjectMeta metadata = service.getMetadata();
+      if (metadata.getName() == null || metadata.getNamespace() == null) {
+        throw new IllegalStateException(
+            "Invalid service definition, name and namespace are required.");
+      }
+      serviceDns = metadata.getName() + '.' + metadata.getNamespace()
+          + '.' + DNS_SERVICE;
+    }
+    return serviceDns;
   }
 
 }
