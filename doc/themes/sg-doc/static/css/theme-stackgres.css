@@ -1274,6 +1274,34 @@ code.language-bash {
     padding: 50px;
 }
 
+/*Version Selector*/
+.versionSelector form {
+    padding: 0 1rem;
+}
+
+.versionSelector label, .versionSelector select {
+    display: inline-block;
+    margin: 0;
+    vertical-align: middle;
+}
+
+.versionSelector select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    float: right;
+    border: 1px solid var(--baseColor);
+    border-radius: 5px;
+    padding: 3px 26px 3px 7px;
+    background: none;
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiA3Ij4KPHBvbHlsaW5lIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzNDQThGOCIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBwb2ludHM9IjAuNSwwLjUgNiw2IDExLjUsMC41ICIvPgo8L3N2Zz4=);
+    background-repeat: no-repeat;
+    background-size: 12px;
+    background-position: calc(100% - 7px) center;
+    color: var(--baseColor);
+    margin-top: -2px;
+}
+
+
 /* Container Override */
 @media screen and (min-width: 0px) {
     .container {
