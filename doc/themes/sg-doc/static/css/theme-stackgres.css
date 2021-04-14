@@ -327,7 +327,7 @@ button {
     cursor: pointer;
 }
 
-img {
+img:not(.featherlight-image) {
     max-width: 75%;
 }
 
@@ -1242,10 +1242,6 @@ mark.highlight {
     top: 15px;
 }
 
-#sidebar ul ul li.active:before {
-    width: 20px;
-}
-
 #sidebar ul ul li:last-of-type:after {
     content: "";
     display: inline;
@@ -1258,13 +1254,24 @@ mark.highlight {
 }
 
 #sidebar ul ul li.active > a {
-    padding-left: 1.3rem;  
-    margin-left: -10px;
+    padding-left: 1rem;
+    font-weight: 900;
+    color: var(--baseColor);
 }
 
+/* Bash Fix */
 code.language-bash {
     color: #93d1ff;
     font-weight: bold;
+}
+
+
+/* Lightbox Container */
+.featherlight .featherlight-content {
+    background-color: var(--bgColor);
+    border: 1px solid var(--borderColor);
+    border-radius: 5px;
+    padding: 50px;
 }
 
 /* Container Override */
