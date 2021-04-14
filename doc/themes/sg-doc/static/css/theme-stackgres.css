@@ -1242,10 +1242,6 @@ mark.highlight {
     top: 15px;
 }
 
-#sidebar ul ul li.active:before {
-    width: 20px;
-}
-
 #sidebar ul ul li:last-of-type:after {
     content: "";
     display: inline;
@@ -1258,14 +1254,53 @@ mark.highlight {
 }
 
 #sidebar ul ul li.active > a {
-    padding-left: 1.3rem;  
-    margin-left: -10px;
+    padding-left: 1rem;
+    font-weight: 900;
+    color: var(--baseColor);
 }
 
+/* Bash Fix */
 code.language-bash {
     color: #93d1ff;
     font-weight: bold;
 }
+
+
+/* Lightbox Container */
+.featherlight .featherlight-content {
+    background-color: var(--bgColor);
+    border: 1px solid var(--borderColor);
+    border-radius: 5px;
+    padding: 50px;
+}
+
+/*Version Selector*/
+.versionSelector form {
+    padding: 0 1rem;
+}
+
+.versionSelector label, .versionSelector select {
+    display: inline-block;
+    margin: 0;
+    vertical-align: middle;
+}
+
+.versionSelector select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    float: right;
+    border: 1px solid var(--baseColor);
+    border-radius: 5px;
+    padding: 3px 26px 3px 7px;
+    background: none;
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiA3Ij4KPHBvbHlsaW5lIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzNDQThGOCIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBwb2ludHM9IjAuNSwwLjUgNiw2IDExLjUsMC41ICIvPgo8L3N2Zz4=);
+    background-repeat: no-repeat;
+    background-size: 12px;
+    background-position: calc(100% - 7px) center;
+    color: var(--baseColor);
+    margin-top: -2px;
+}
+
 
 /* Container Override */
 @media screen and (min-width: 0px) {
