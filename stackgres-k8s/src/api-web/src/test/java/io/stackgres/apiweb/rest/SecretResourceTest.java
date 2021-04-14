@@ -15,7 +15,7 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.KubernetesClientFactory;
-import io.stackgres.testutil.StringUtils;
+import io.stackgres.common.StringUtil;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,7 +47,7 @@ class SecretResourceTest implements AuthenticatedResourceTest {
   @Test
   void ifSecretsAreCreated_itShouldReturnThenInAnArray() {
 
-    final String randomPlainValue = StringUtils.getRandomString();
+    final String randomPlainValue = StringUtil.generateRandom();
 
     try (KubernetesClient client = factory.create()) {
       client.secrets().inNamespace("test")

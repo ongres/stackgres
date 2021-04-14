@@ -73,6 +73,7 @@ import io.stackgres.apiweb.transformer.ClusterTransformer;
 import io.stackgres.common.ClusterLabelFactory;
 import io.stackgres.common.ClusterLabelMapper;
 import io.stackgres.common.StackGresPropertyContext;
+import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -349,8 +350,13 @@ class ClusterResourceTest
     final ConfigMapKeySelector configMapKeyRef = new ConfigMapKeySelector();
     scriptFrom.setConfigMapKeyRef(configMapKeyRef);
 
+<<<<<<< HEAD
     final String randomKey = StringUtils.getRandomString();
     final String randomSecretName = StringUtils.getRandomString();
+=======
+    final String randomKey = StringUtil.generateRandom(30);
+    final String randomSecretName = StringUtil.generateRandom(30);
+>>>>>>> eefb73e8... chore: Make use of a single random string generator
 
     configMapKeyRef.setKey(randomKey);
     configMapKeyRef.setName(randomSecretName);

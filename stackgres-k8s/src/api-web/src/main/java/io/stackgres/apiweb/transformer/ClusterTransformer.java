@@ -391,10 +391,10 @@ public class ClusterTransformer
     Optional.ofNullable(source.getMetadata())
         .map(StackGresClusterSpecMetadata::getAnnotations)
         .ifPresent(sourceAnnotations -> {
-          transformation.setMetadata(new ClusterSpecMetadata());
-
+          final ClusterSpecMetadata clusterSpecMetadata = new ClusterSpecMetadata();
           final ClusterSpecAnnotations targetAnnotations = new ClusterSpecAnnotations();
-          transformation.getMetadata().setAnnotations(targetAnnotations);
+          clusterSpecMetadata.setAnnotations(targetAnnotations);
+          transformation.setMetadata(clusterSpecMetadata);
 
           if (sourceAnnotations.getAllResources() != null) {
             targetAnnotations.setAllResources(sourceAnnotations.getAllResources());
