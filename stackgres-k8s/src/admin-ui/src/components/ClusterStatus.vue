@@ -81,7 +81,10 @@
 						<tbody>
 							<tr>
 								<td>
-									{{ cluster.status.cpuRequested }} (avg. load {{ cluster.status.hasOwnProperty('cpuPsiAvg60') ? cluster.status.cpuPsiAvg60 : cluster.status.averageLoad1m }})
+									{{ cluster.status.cpuRequested }} 
+									<template v-if="cluster.status.podsReady">
+										(avg. load {{ cluster.status.hasOwnProperty('cpuPsiAvg60') ? cluster.status.cpuPsiAvg60 : cluster.status.averageLoad1m }})
+									</template>
 								</td>
 								<td>
 									{{ cluster.status.hasOwnProperty('memoryPsiAvg60') ? cluster.status.memoryPsiAvg60 : cluster.status.memoryRequested}}
@@ -148,7 +151,10 @@
 								<td class="label" :class="pod.role"><span>{{ pod.role }}</span></td>
 								<td class="label" :class="pod.status"><span>{{ pod.status }}</span></td>
 								<td>
-									{{ pod.cpuRequested }} (avg. load {{ pod.hasOwnProperty('cpuPsiAvg60') ? pod.cpuPsiAvg60 : pod.averageLoad1m }})
+									{{ pod.cpuRequested }} 
+									<template v-if="pod.status !== 'Pending'">
+										(avg. load {{ pod.hasOwnProperty('cpuPsiAvg60') ? pod.cpuPsiAvg60 : pod.averageLoad1m }})
+									</template>
 									
 									<template v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
 										<template v-if="( pod.cpuRequested != ( (pod.cpuRequested.includes('m') && !profile.data.spec.cpu.includes('m')) ? ( (profile.data.spec.cpu * 1000) + 'm') : profile.data.spec.cpu ) )">
