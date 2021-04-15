@@ -1,4 +1,4 @@
-{{ if and (or (not .Values.cert.key) (not .Values.cert.crt)) ( or .Values.deploy.operator .Values.deploy.restapi ) }}
+{{ if and (or (not .Values.cert.key) (not .Values.cert.crt) (not .Values.cert.webKey) (not .Values.cert.webCrt)) ( or .Values.deploy.operator .Values.deploy.restapi ) }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -29,6 +29,7 @@ spec:
           - "/bin/bash"
           - "-ecx"
           - |
+            {{- if or (not .Values.cert.key) (not .Values.cert.crt) }}
             kubectl delete csr --ignore-not-found '{{ .Release.Name }}'
             cat << EOF > /tmp/csr.conf
             [req]
@@ -101,8 +102,6 @@ spec:
             
             {{- $_ := set .Values.cert "crt" "${CRT}" }}
             {{- $_ := set .Values.cert "key" "${KEY}" }}
-            {{- $_ := set .Values.cert "jwtRsaKey" "${KEY}" }}
-            {{- $_ := set .Values.cert "jwtRsaPub" "${PUB}" }}
             cat << EOF > /tmp/validating-webhook-configuration.yaml
             {{- include (print $.Template.BasePath "/validating-webhook-configuration.yaml") . | indent 12 }}
             EOF
@@ -114,11 +113,52 @@ spec:
             EOF
             {{- $_ := set .Values.cert "crt" nil }}
             {{- $_ := set .Values.cert "key" nil }}
-            {{- $_ := set .Values.cert "jwtRsaKey" nil }}
-            {{- $_ := set .Values.cert "jwtRsaPub" nil }}
             
             kubectl apply -f /tmp/validating-webhook-configuration.yaml
             kubectl apply -f /tmp/mutating-webhook-configuration.yaml
             kubectl apply -f /tmp/certificate-secret.yaml
+            {{- end }}
+            {{- if or (not .Values.cert.webKey) (not .Values.cert.webCrt) }}
+            cat << EOF > /tmp/csr-web.conf
+            [req]
+            req_extensions = v3_req
+            distinguished_name = req_distinguished_name
+            [req_distinguished_name]
+            [ v3_req ]
+            basicConstraints = CA:FALSE
+            keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+            extendedKeyUsage = serverAuth
+            subjectAltName = @alt_names
+            [alt_names]
+            DNS.1 = {{ .Values.restapi.name  }}
+            DNS.2 = {{ .Values.restapi.name  }}.{{ .Release.Namespace }}
+            DNS.3 = {{ .Values.restapi.name  }}.{{ .Release.Namespace }}.svc
+            DNS.4 = {{ .Values.restapi.name  }}.{{ .Release.Namespace }}.svc.cluster.local
+            EOF
+            
+            openssl req -new -nodes -text -keyout /tmp/web.key \
+                -subj "/CN={{ .Values.restapi.name  }}.{{ .Release.Namespace }}.svc" \
+                -out /tmp/server-web.csr \
+                -config /tmp/csr-web.conf
+            openssl rsa -in /tmp/web.key -pubout -out /tmp/web.pem
+            openssl x509 -signkey /tmp/web.key -in /tmp/server-web.csr \
+              -req -days 365 -out /tmp/server-web.crt
+            WEB_KEY="$(cat /tmp/web.key | base64 | tr -d '\n')"
+            WEB_PUB="$(cat /tmp/web.pem | base64 | tr -d '\n')"
+            WEB_CRT="$(cat /tmp/server-web.crt | base64 | tr -d '\n')"
+            {{- $_ := set .Values.cert "webCrt" "${WEB_CRT}" }}
+            {{- $_ := set .Values.cert "webKey" "${WEB_KEY}" }}
+            {{- $_ := set .Values.cert "jwtRsaKey" "${WEB_KEY}" }}
+            {{- $_ := set .Values.cert "jwtRsaPub" "${WEB_PUB}" }}
+            cat << EOF > /tmp/web-certificate-secret.yaml
+            {{- include (print $.Template.BasePath "/web-certificate-secret.yaml") . | indent 12 }}
+            EOF
+            {{- $_ := set .Values.cert "webCrt" nil }}
+            {{- $_ := set .Values.cert "webKey" nil }}
+            {{- $_ := set .Values.cert "jwtRsaKey" nil }}
+            {{- $_ := set .Values.cert "jwtRsaPub" nil }}
+            
+            kubectl apply -f /tmp/web-certificate-secret.yaml
+            {{- end }}
       restartPolicy: OnFailure
 {{ end }}
