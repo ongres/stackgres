@@ -57,7 +57,7 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext,
 
   public abstract Optional<Prometheus> getPrometheus();
 
-  public abstract List<StackGresClusterScriptEntry> getInternalScripts();
+  public abstract ImmutableList<StackGresClusterScriptEntry> getInternalScripts();
 
   @Override
   public abstract ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> getExistingResources();
