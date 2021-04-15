@@ -151,7 +151,7 @@
 									{{ pod.cpuRequested }} (avg. load {{ pod.hasOwnProperty('cpuPsiAvg60') ? pod.cpuPsiAvg60 : pod.averageLoad1m }})
 									
 									<template v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
-										<template v-if="( pod.cpuRequested != (pod.cpuRequested.includes('m') ? ( (profile.data.spec.cpu * 1000) + 'm' ) : profile.data.spec.cpu ) )">
+										<template v-if="( pod.cpuRequested != ( (pod.cpuRequested.includes('m') && !profile.data.spec.cpu.includes('m')) ? ( (profile.data.spec.cpu * 1000) + 'm') : profile.data.spec.cpu ) )">
 											<span class="helpTooltip alert" data-tooltip="A CPU change request is pending to be applied"></span>
 										</template>
 									</template>
