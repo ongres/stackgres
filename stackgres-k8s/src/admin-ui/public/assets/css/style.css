@@ -5106,3 +5106,21 @@ table.tolerations tbody {
 table.tolerations tbody, table.tolerations tbody td {
     border-top: 0 !important;
 }
+
+a.disabled {
+    pointer-events: none;
+    cursor: not-allowed !important;
+    filter: grayscale(1);
+    opacity: .5;
+}
+
+.helpTooltip.alert, .darkmode .helpTooltip.alert {
+    background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDIwIDE4Ij48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwIC0xODMpIj48cGF0aCBkPSJNMTguOTk0LDIwMUgxLjAwNmExLDEsMCwwLDEtLjg3MS0uNTE2LDEuMDUyLDEuMDUyLDAsMCwxLDAtMS4wMzFsOC45OTMtMTUuOTc0YTEuMDMzLDEuMDMzLDAsMCwxLDEuNzQ0LDBsOC45OTMsMTUuOTc0YTEuMDUyLDEuMDUyLDAsMCwxLDAsMS4wMzFBMSwxLDAsMCwxLDE4Ljk5NCwyMDFaTTIuNzUsMTk4LjkzN2gxNC41TDEwLDE4Ni4wNTlaIiBmaWxsPSIjMDBhZGI1Ii8+PHJlY3Qgd2lkdGg9IjIiIGhlaWdodD0iNS4zNzgiIHJ4PSIwLjk0NyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoOSAxODkuMDU5KSIgZmlsbD0iIzAwYWRiNSIvPjxyZWN0IHdpZHRoPSIyIiBoZWlnaHQ9IjIiIHJ4PSIxIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg5IDE5NS40MzcpIiBmaWxsPSIjMDBhZGI1Ii8+PC9nPjwvc3ZnPg==") no-repeat !important;
+    width: 14px;
+    height: 14px;
+    background-size: contain !important;
+}
+
+.helpTooltip.alert svg {
+    width: 13px;
+}
