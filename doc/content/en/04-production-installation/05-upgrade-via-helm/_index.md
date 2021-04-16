@@ -14,6 +14,10 @@ helm upgrade --namespace stackgres stackgres-operator \
   {{< download-url >}}/helm/stackgres-operator.tgz
 ```
 
+>**Important note:** Do not use the `--reuse-values` option from Helm, this prevent the new operator resources and the new values needed to be set. Pass your installation params using the values file or setting the values directly in the command using `--set-string` option.
+
+The main recommendation is to pass the same installation values in the upgrade command or using a values.yaml.
+
 Upgrade of an operator can serve two purpose:
 
 * Configuration change
