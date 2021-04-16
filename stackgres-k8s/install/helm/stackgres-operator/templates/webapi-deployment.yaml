@@ -162,6 +162,9 @@ spec:
         - containerPort: 9443
           name: "https"
           protocol: "TCP"
+        - containerPort: 9080
+          name: "http"
+          protocol: "TCP"
         volumeMounts:
           - name: web-certs
             mountPath: /etc/operator/certs
