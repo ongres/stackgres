@@ -47,144 +47,143 @@
 				</ul>
 			</header>
 			
-			<template v-if="cluster.status.hasOwnProperty('pods') && cluster.status.pods.length">
-				<div class="content">
-					<h2>
-						Cluster
-						<template v-for="condition in cluster.data.status.conditions" v-if="( (condition.type == 'PendingRestart') && (condition.status == 'True') )">
-							<span class="helpTooltip alert" data-tooltip="A restart operation is pending for this cluster"></span>
-						</template>
-					</h2>
-					<table class="clusterInfo">
-						<thead v-if="tooltips.hasOwnProperty('sgcluster')">
-							<th>
-								Total CPU 
-								<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.cpuRequested.description.slice(0, -2) + ' (' + (cluster.status.hasOwnProperty('cpuPsiAvg60') ? tooltips.sgcluster.pods.cpuPsiAvg60.description : tooltips.sgcluster.pods.averageLoad1m.description) + ')'"></span>
-							</th>
-							<th>
-								Total Memory
-								<span class="helpTooltip" :data-tooltip="cluster.status.hasOwnProperty('memoryPsiAvg60') ? tooltips.sgcluster.pods.memoryPsiAvg60.description : tooltips.sgcluster.pods.memoryRequested.description"></span>
-							</th>
-							<th>
-								Primary Node Disk
-								<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.diskUsed.description.slice(0, -2) + ' / ' + tooltips.sgcluster.spec.pods.persistentVolume.size.description + (cluster.status.hasOwnProperty('diskPsiAvg60') ? ' (' + tooltips.sgcluster.pods.diskPsiAvg60.description + ')' : '')"></span>
-							</th>
-							<th>
-								Total Allocated Disk
-								<span class="helpTooltip" :data-tooltip="tooltips.sgclusterstats.diskRequested.description"></span>
-							</th>
-							<th>
-								Instances
-								<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.podsReady.description.slice(0, -2) + ' / ' + tooltips.sgcluster.spec.instances.description"></span>
-							</th>
-						</thead>
-						<tbody>
-							<tr>
-								<td>
-									{{ cluster.status.cpuRequested }} 
-									<template v-if="cluster.status.podsReady">
-										(avg. load {{ cluster.status.hasOwnProperty('cpuPsiAvg60') ? cluster.status.cpuPsiAvg60 : cluster.status.averageLoad1m }})
+			<div class="content" v-if="hasProp(cluster, 'status.pods') && cluster.status.pods.length">
+				<h2>
+					Cluster
+					<template v-for="condition in cluster.data.status.conditions" v-if="( (condition.type == 'PendingRestart') && (condition.status == 'True') )">
+						<span class="helpTooltip alert" data-tooltip="A restart operation is pending for this cluster"></span>
+					</template>
+				</h2>
+				<table class="clusterInfo">
+					<thead v-if="tooltips.hasOwnProperty('sgcluster')">
+						<th>
+							Total CPU 
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.cpuRequested.description.slice(0, -2) + ' (' + (cluster.status.hasOwnProperty('cpuPsiAvg60') ? tooltips.sgcluster.pods.cpuPsiAvg60.description : tooltips.sgcluster.pods.averageLoad1m.description) + ')'"></span>
+						</th>
+						<th>
+							Total Memory
+							<span class="helpTooltip" :data-tooltip="cluster.status.hasOwnProperty('memoryPsiAvg60') ? tooltips.sgcluster.pods.memoryPsiAvg60.description : tooltips.sgcluster.pods.memoryRequested.description"></span>
+						</th>
+						<th>
+							Primary Node Disk
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.diskUsed.description.slice(0, -2) + ' / ' + tooltips.sgcluster.spec.pods.persistentVolume.size.description + (cluster.status.hasOwnProperty('diskPsiAvg60') ? ' (' + tooltips.sgcluster.pods.diskPsiAvg60.description + ')' : '')"></span>
+						</th>
+						<th>
+							Total Allocated Disk
+							<span class="helpTooltip" :data-tooltip="tooltips.sgclusterstats.diskRequested.description"></span>
+						</th>
+						<th>
+							Instances
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.podsReady.description.slice(0, -2) + ' / ' + tooltips.sgcluster.spec.instances.description"></span>
+						</th>
+					</thead>
+					<tbody>
+						<tr>
+							<td>
+								{{ cluster.status.cpuRequested }} 
+								<template v-if="cluster.status.podsReady">
+									(avg. load {{ cluster.status.hasOwnProperty('cpuPsiAvg60') ? cluster.status.cpuPsiAvg60 : cluster.status.averageLoad1m }})
+								</template>
+							</td>
+							<td>
+								{{ cluster.status.hasOwnProperty('memoryPsiAvg60') ? cluster.status.memoryPsiAvg60 : cluster.status.memoryRequested}}
+							</td>
+							<td class="flex-center">
+								<template v-if="cluster.status.hasOwnProperty('pods') && (typeof (cluster.status.pods.find(p => (p.role == 'primary'))) !== 'undefined')">
+									<template v-for="pod in cluster.status.pods" v-if="pod.role == 'primary'">
+											<div class="donut">
+											<svg class="loader" xmlns="http://www.w3.org/2000/svg" version="1.1">
+												<circle cx="12.5" cy="12.5" r="10" stroke-width="5" fill="none" :stroke-dasharray="diskUsed+',63'" />
+											</svg>
+											<svg class="background" xmlns="http://www.w3.org/2000/svg" version="1.1">
+												<circle cx="12.5" cy="12.5" r="10" stroke-width="5" fill="none" />
+											</svg>
+										</div>
+										{{ pod.diskUsed }} / {{ pod.diskRequested }}
 									</template>
-								</td>
-								<td>
-									{{ cluster.status.hasOwnProperty('memoryPsiAvg60') ? cluster.status.memoryPsiAvg60 : cluster.status.memoryRequested}}
-								</td>
-								<td class="flex-center">
-									<template v-if="cluster.status.hasOwnProperty('pods') && (typeof (cluster.status.pods.find(p => (p.role == 'primary'))) !== 'undefined')">
-										<template v-for="pod in cluster.status.pods" v-if="pod.role == 'primary'">
-												<div class="donut">
-												<svg class="loader" xmlns="http://www.w3.org/2000/svg" version="1.1">
-													<circle cx="12.5" cy="12.5" r="10" stroke-width="5" fill="none" :stroke-dasharray="diskUsed+',63'" />
-												</svg>
-												<svg class="background" xmlns="http://www.w3.org/2000/svg" version="1.1">
-													<circle cx="12.5" cy="12.5" r="10" stroke-width="5" fill="none" />
-												</svg>
-											</div>
-											{{ pod.diskUsed }} / {{ pod.diskRequested }}
-										</template>
-									</template>
-									<template v-else>
-										-
-									</template>
-								</td>
-								<td>{{ cluster.status.hasOwnProperty('diskRequested') ? cluster.status.diskRequested : '-' }}</td>
-								<td>{{ cluster.data.podsReady }} / {{ cluster.data.spec.instances }}</td>
-							</tr>
-						</tbody>
-					</table>
+								</template>
+								<template v-else>
+									-
+								</template>
+							</td>
+							<td>{{ cluster.status.hasOwnProperty('diskRequested') ? cluster.status.diskRequested : '-' }}</td>
+							<td>{{ cluster.data.podsReady }} / {{ cluster.data.spec.instances }}</td>
+						</tr>
+					</tbody>
+				</table>
 
-					<h2>Pods</h2>
-					<table class="podStatus">
-						<thead v-if="tooltips.hasOwnProperty('sgcluster')">
-							<th>
-								Pod Name
-								<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.name.description"></span>
-							</th>
-							<th>
-								Role
-								<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.role.description"></span>
-							</th>
-							<th>
-								Status
-								<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.status.description"></span>
-							</th>
-							<th>
-								CPU
-								<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.cpuRequested.description.slice(0, -2) + ' (' + (cluster.status.hasOwnProperty('cpuPsiAvg60') ? tooltips.sgcluster.pods.cpuPsiAvg60.description : tooltips.sgcluster.pods.averageLoad1m.description) + ')'"></span>
-							</th>
-							<th>
-								Memory
-								<span class="helpTooltip" :data-tooltip="cluster.status.hasOwnProperty('memoryPsiAvg60') ? tooltips.sgcluster.pods.memoryPsiAvg60.description : tooltips.sgcluster.pods.memoryRequested.description"></span>
-							</th>
-							<th>
-								Disk
-								<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.diskUsed.description.slice(0, -2) + ' / ' + tooltips.sgcluster.pods.diskRequested.description + (cluster.status.hasOwnProperty('diskPsiAvg60') ? ' (' + tooltips.sgcluster.pods.diskPsiAvg60.description + ')' : '')"></span>
-							</th>
-							<th>
-								Containers
-								<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.containersReady.description.slice(0, -2) + ' / ' + tooltips.sgcluster.pods.containers.description"></span>
-							</th>
-						</thead>
-						<tbody>
-							<tr v-for="pod in cluster.status.pods">
-								<td>{{ pod.name }}</td>
-								<td class="label" :class="pod.role"><span>{{ pod.role }}</span></td>
-								<td class="label" :class="pod.status"><span>{{ pod.status }}</span></td>
-								<td>
-									{{ pod.cpuRequested }} 
-									<template v-if="pod.status !== 'Pending'">
-										(avg. load {{ pod.hasOwnProperty('cpuPsiAvg60') ? pod.cpuPsiAvg60 : pod.averageLoad1m }})
+				<h2>Pods</h2>
+				<table class="podStatus">
+					<thead v-if="tooltips.hasOwnProperty('sgcluster')">
+						<th>
+							Pod Name
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.name.description"></span>
+						</th>
+						<th>
+							Role
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.role.description"></span>
+						</th>
+						<th>
+							Status
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.status.description"></span>
+						</th>
+						<th>
+							CPU
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.cpuRequested.description.slice(0, -2) + ' (' + (cluster.status.hasOwnProperty('cpuPsiAvg60') ? tooltips.sgcluster.pods.cpuPsiAvg60.description : tooltips.sgcluster.pods.averageLoad1m.description) + ')'"></span>
+						</th>
+						<th>
+							Memory
+							<span class="helpTooltip" :data-tooltip="cluster.status.hasOwnProperty('memoryPsiAvg60') ? tooltips.sgcluster.pods.memoryPsiAvg60.description : tooltips.sgcluster.pods.memoryRequested.description"></span>
+						</th>
+						<th>
+							Disk
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.diskUsed.description.slice(0, -2) + ' / ' + tooltips.sgcluster.pods.diskRequested.description + (cluster.status.hasOwnProperty('diskPsiAvg60') ? ' (' + tooltips.sgcluster.pods.diskPsiAvg60.description + ')' : '')"></span>
+						</th>
+						<th>
+							Containers
+							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.containersReady.description.slice(0, -2) + ' / ' + tooltips.sgcluster.pods.containers.description"></span>
+						</th>
+					</thead>
+					<tbody>
+						<tr v-for="pod in cluster.status.pods">
+							<td>{{ pod.name }}</td>
+							<td class="label" :class="pod.role"><span>{{ pod.role }}</span></td>
+							<td class="label" :class="pod.status"><span>{{ pod.status }}</span></td>
+							<td>
+								{{ pod.cpuRequested }} 
+								<template v-if="pod.status !== 'Pending'">
+									(avg. load {{ pod.hasOwnProperty('cpuPsiAvg60') ? pod.cpuPsiAvg60 : pod.averageLoad1m }})
+								</template>
+								
+								<template v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
+									<template v-if="( pod.cpuRequested != ( (pod.cpuRequested.includes('m') && !profile.data.spec.cpu.includes('m')) ? ( (profile.data.spec.cpu * 1000) + 'm') : profile.data.spec.cpu ) )">
+										<span class="helpTooltip alert" data-tooltip="A CPU change request is pending to be applied"></span>
 									</template>
-									
-									<template v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
-										<template v-if="( pod.cpuRequested != ( (pod.cpuRequested.includes('m') && !profile.data.spec.cpu.includes('m')) ? ( (profile.data.spec.cpu * 1000) + 'm') : profile.data.spec.cpu ) )">
-											<span class="helpTooltip alert" data-tooltip="A CPU change request is pending to be applied"></span>
-										</template>
+								</template>
+							</td>
+							<td>
+								{{ pod.hasOwnProperty('memoryPsiAvg60') ? pod.memoryPsiAvg60 : pod.memoryRequested }}
+								
+								<template v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
+									<template v-if="( (pod.hasOwnProperty('memoryPsiAvg60') ? pod.memoryPsiAvg60 : pod.memoryRequested).replace('.00','') != profile.data.spec.memory) ">
+										<span class="helpTooltip alert" data-tooltip="A memory change request is pending to be applied"></span>
 									</template>
-								</td>
-								<td>
-									{{ pod.hasOwnProperty('memoryPsiAvg60') ? pod.memoryPsiAvg60 : pod.memoryRequested }}
-									
-									<template v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
-										<template v-if="( (pod.hasOwnProperty('memoryPsiAvg60') ? pod.memoryPsiAvg60 : pod.memoryRequested).replace('.00','') != profile.data.spec.memory) ">
-											<span class="helpTooltip alert" data-tooltip="A memory change request is pending to be applied"></span>
-										</template>
-									</template>
-								</td>
-								<td>
-								<template v-if="pod.hasOwnProperty('diskUsed')">{{ pod.diskUsed }}</template><template v-else>-</template> / {{ pod.diskRequested }} <span v-if="pod.hasOwnProperty('diskPsiAvg60')">(psi avg. {{ pod.diskPsiAvg60 }})</span>
-								</td>
-								<td>{{ pod.containersReady }} / {{ pod.containers }}</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-			</template>
-			<template v-else>
-				<div class="no-data">
-					No pods yet available
-				</div>
-			</template>
+								</template>
+							</td>
+							<td>
+							<template v-if="pod.hasOwnProperty('diskUsed')">{{ pod.diskUsed }}</template><template v-else>-</template> / {{ pod.diskRequested }} <span v-if="pod.hasOwnProperty('diskPsiAvg60')">(psi avg. {{ pod.diskPsiAvg60 }})</span>
+							</td>
+							<td>{{ pod.containersReady }} / {{ pod.containers }}</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="no-data" v-else-if="hasProp(cluster, 'status.pods') && !cluster.status.pods.length">
+				No pods yet available
+			</div>
+			<div class="no-data" v-else>
+				Loading cluster status...
+			</div>
 		</template>
 	</div>
 </template>

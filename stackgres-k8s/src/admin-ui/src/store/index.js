@@ -124,6 +124,15 @@ export default new Vuex.Store({
 
     },
 
+    updateClusterStats (state, clusterStats) {
+
+      let cluster = state.clusters.find(c => (clusterStats.name == c.name) && (clusterStats.namespace == c.data.metadata.namespace) ); 
+
+      if ( typeof cluster !== "undefined" )
+        cluster.status = clusterStats.stats
+      
+    },
+
     updateBackups ( state, backup ) {
 
         let index = state.backups.find(p => (backup.data.metadata.name == p.name) && (backup.data.metadata.namespace == p.data.metadata.namespace) ); 
