@@ -1,9 +1,5 @@
 #!/bin/sh
 patroni_ports_check() {
-  deploy_curl_pod "$CLUSTER_NAMESPACE"
-
-  wait_pods_running "$CLUSTER_NAMESPACE" 3
-
   if patroni_liveness_check
   then
     echo "Success. Patroni liveness endpoint is accesible"
@@ -19,11 +15,9 @@ patroni_ports_check() {
     echo "Fail. Patroni readiness endpoint is not accesible"
     return 1
   fi
-
 }
 
 patroni_management_check(){
-
   if patroni_switchover
   then
     echo "Fail. Patroni switchover was not blocked"
@@ -34,7 +28,6 @@ patroni_management_check(){
 }
 
 patroni_direct_check(){
-
   if patroni_direct_switchover_check
   then
     echo "Fail. Patroni direct access was not blocked"
@@ -49,7 +42,6 @@ patroni_switchover(){
 }
 
 patroni_direct_switchover_check(){ 
-
  patroni_curl -e "switchover" -p 8009 -XPOST -d '{"leader":"'"$CLUSTER_NAME-0"'"}' > /dev/null
 }
 

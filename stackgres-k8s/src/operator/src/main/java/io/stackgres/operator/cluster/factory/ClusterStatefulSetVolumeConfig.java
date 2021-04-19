@@ -31,6 +31,8 @@ public enum ClusterStatefulSetVolumeConfig {
       "dshm", ClusterStatefulSetPath.SHARED_MEMORY_PATH)),
   SHARED(VolumeConfig.onDiskEmptyDir(
       "shared", ClusterStatefulSetPath.SHARED_PATH)),
+  EMPTY_BASE(VolumeConfig.onDiskEmptyDir(
+      "empty-base", ClusterStatefulSetPath.PG_BASE_PATH)),
   LOCAL(VolumeConfig.onDiskEmptyDir(
       "local", ImmutableList.of(
           VolumePathConfig.of(ClusterStatefulSetPath.LOCAL_BIN_PATH),
