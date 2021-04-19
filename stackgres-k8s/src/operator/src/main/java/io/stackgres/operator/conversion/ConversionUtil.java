@@ -37,40 +37,34 @@ public interface ConversionUtil {
   /**
    * Extract the StackGres API version and convert it to a number that allow
    * to obtain an absolute ordering among all versions.
-   * 
+   * <p>
    * The conversion algorithm uses following format:
-   * 
    * <pre>
-   *                       000 000 000
-   *   major version      ---|   |   |
-   *   suffix version     -------|   |
-   *   sub suffix version -----------|
+   *                       0000000000 00 0000000000
+   *   major version      ----------|  |          |
+   *   suffix version     -------------|          |
+   *   sub suffix version ------------------------|
    * </pre>
-   * 
    * For example `stackgres.io/v1beta1` will be converted to
-   * 
    * <pre>
-   *                       001 001 001
-   *   major version      ---|   |   |
-   *   suffix version     -------|   |
-   *   sub suffix version -----------|
+   *                       0000000001 01 0000000001
+   *   major version      ----------|  |          |
+   *   suffix version     -------------|          |
+   *   sub suffix version ------------------------|
    * </pre>
-   * 
    * and `stackgres.io/v1` will be converted to
-   * 
    * <pre>
-   *                       001 002 000
-   *   major version      ---|   |   |
-   *   suffix version     -------|   |
-   *   sub suffix version -----------|
+   *                       0000000001 02 0000000000
+   *   major version      ----------|  |          |
+   *   suffix version     -------------|          |
+   *   sub suffix version ------------------------|
    * </pre>
-   * 
    * so that, for example, following statements will result to `true`:
-   * 
    * <pre>
    *   apiVersionAsNumber("stackgres.io/v1") > apiVersionAsNumber("stackgres.io/v1beta1");
    *   apiVersionAsNumber("stackgres.io/v1beta1") < apiVersionAsNumber("stackgres.io/v1");
    * </pre>
+   * </p>
    */
   static long apiVersionAsNumber(String apiVersion) {
     if (!apiVersion.startsWith(API_VERSION_PREFIX)) {
@@ -103,14 +97,14 @@ public interface ConversionUtil {
       throw new IllegalArgumentException(
           "Version " + version + " is not parseable. Invalid suffix " + suffix);
     }
-    if (majorVersion > 999
-        || subSuffixVersion > 999) {
+    if (majorVersion > 0x3FF
+        || subSuffixVersion > 0x3FF) {
       throw new IllegalArgumentException(
           "Version " + version + " is not parseable. Too large numbers");
     }
-    return majorVersion * 1000_000L
-        + suffixVersion * 1000L
-        + subSuffixVersion;
+    return majorVersion << 12
+        | suffixVersion << 10
+        | subSuffixVersion;
   }
 
 }
