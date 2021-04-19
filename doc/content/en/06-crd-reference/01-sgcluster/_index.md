@@ -251,10 +251,23 @@ By default, stackgres it's creates as an empty database. To create a cluster wit
  from an existent backup, we have the restore options. It works, by simply indicating the 
  backup CR UUI that we want to restore. 
 
-| Property                | Required | Updatable | Type     | Default | Description |
-|:------------------------|----------|-----------|:---------|:--------|:------------|
-| fromBackup              | ✓        |           | string   |         | {{< crd-field-description SGCluster.spec.initialData.restore.fromBackup >}} |
-| downloadDiskConcurrency |          |           | integer  | 1       | {{< crd-field-description SGCluster.spec.initialData.restore.downloadDiskConcurrency >}} |
+| Property                                 | Required | Updatable | Type     | Default | Description |
+|:-----------------------------------------|----------|-----------|:---------|:--------|:------------|
+| [fromBackup](#from-backup-configuration) | ✓        |           | object   |         | {{< crd-field-description SGCluster.spec.initialData.restore.fromBackup >}} |
+| downloadDiskConcurrency                  |          |           | integer  | 1       | {{< crd-field-description SGCluster.spec.initialData.restore.downloadDiskConcurrency >}} |
+
+### From backup configuration
+
+| Property                                   | Required | Updatable | Type     | Default | Description |
+|:-------------------------------------------|----------|-----------|:---------|:--------|:------------|
+| uid                                        | ✓        |           | string   |         | {{< crd-field-description SGCluster.spec.initialData.restore.fromBackup.uid >}} |
+| [pointInTimeRecovery](#pitr-configuration) |          |           | object   |         | {{< crd-field-description SGCluster.spec.initialData.restore.fromBackup.pointInTimeRecovery >}} |
+
+### PITR configuration
+
+| Property           | Required | Updatable | Type     | Default | Description |
+|:-------------------|----------|-----------|:---------|:--------|:------------|
+| restoreToTimestamp |          |           | string   |         | {{< crd-field-description SGCluster.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp >}} |
 
 Example:
 
@@ -266,7 +279,8 @@ metadata:
 spec:
   initialData: 
     restore:
-      fromBackup: d7e660a9-377c-11ea-b04b-0242ac110004
+      fromBackup:
+        uid: d7e660a9-377c-11ea-b04b-0242ac110004
       downloadDiskConcurrency: 1
 ```
 

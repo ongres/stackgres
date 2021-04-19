@@ -12,6 +12,7 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.CharStreams;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -36,6 +37,21 @@ public class JsonUtil {
       }
       try (Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
         return jsonMapper.readValue(CharStreams.toString(reader), clazz);
+      }
+    } catch (IOException e) {
+      throw new IllegalArgumentException("could not open resource " + resource, e);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <T extends JsonNode> T readFromJsonAsJson(String resource) {
+    Objects.requireNonNull(resource, "resource");
+    try (InputStream is = ClassLoader.getSystemResourceAsStream(resource)) {
+      if (is == null) {
+        throw new IllegalArgumentException("resource " + resource + " not found");
+      }
+      try (Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
+        return (T) jsonMapper.readTree(CharStreams.toString(reader));
       }
     } catch (IOException e) {
       throw new IllegalArgumentException("could not open resource " + resource, e);

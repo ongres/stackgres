@@ -5,6 +5,11 @@
 
 package io.stackgres.operator.patroni.factory;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -15,6 +20,11 @@ import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.stackgres.common.EnvoyUtil;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRestorePitr;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
@@ -103,7 +113,24 @@ public class PatroniEnvironmentVariables
             .build(),
         new EnvVarBuilder().withName("PATRONI_authenticator_OPTIONS")
             .withValue("superuser")
-            .build());
+            .build())
+        .append(Seq.of(Optional.ofNullable(context.getCluster().getSpec())
+            .map(StackGresClusterSpec::getInitData)
+            .map(StackGresClusterInitData::getRestore)
+            .map(StackGresClusterRestore::getFromBackup)
+            .map(StackGresClusterRestoreFromBackup::getPointInTimeRecovery)
+            .map(StackGresClusterRestorePitr::getRestoreToTimestamp)
+            .map(Instant::parse)
+            .map(restoreToTimestamp -> new EnvVarBuilder().withName("RECOVERY_TARGET_TIME")
+                .withValue(DateTimeFormatter.ISO_LOCAL_DATE
+                    .withZone(ZoneId.from(ZoneOffset.UTC))
+                    .format(restoreToTimestamp)
+                    + " " + DateTimeFormatter.ISO_LOCAL_TIME
+                    .withZone(ZoneId.from(ZoneOffset.UTC))
+                    .format(restoreToTimestamp))
+                .build()))
+            .filter(Optional::isPresent)
+            .map(Optional::get));
   }
 
   private int getPatroniListenPort(StackGresClusterContext context) {

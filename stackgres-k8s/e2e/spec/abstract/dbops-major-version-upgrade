@@ -23,6 +23,7 @@ reset_cluster() {
     --set-string cluster.postgresVersion="$E2E_SOURCE_POSTGRES_VERSION"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   create_or_replace_cluster "$CLUSTER_NAME-for-major-version-upgrade" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \

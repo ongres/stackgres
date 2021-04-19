@@ -22,6 +22,7 @@ reset_cluster() {
     --set-string cluster.postgresVersion="$E2E_MINOR_SOURCE_POSTGRES_VERSION"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   generate_mock_data "$CLUSTER_NAME"
   check_mock_data_samehost "$CLUSTER_NAME"

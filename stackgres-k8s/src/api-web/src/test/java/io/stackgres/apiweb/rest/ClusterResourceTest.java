@@ -605,8 +605,8 @@ class ClusterResourceTest
         assertNotNull(dtoInitData);
         if (resourceInitData.getRestore() != null) {
           assertNotNull(dtoInitData.getRestore());
-          assertEquals(resourceInitData.getRestore().getBackupUid(),
-              dtoInitData.getRestore().getBackupUid());
+          assertEquals(resourceInitData.getRestore().getFromBackup().getUid(),
+              dtoInitData.getRestore().getFromBackup().getUid());
           assertEquals(resourceInitData.getRestore().getDownloadDiskConcurrency(),
               dtoInitData.getRestore().getDownloadDiskConcurrency());
         } else {
@@ -785,8 +785,8 @@ class ClusterResourceTest
         final StackGresClusterRestore resourceRestore = resourceInitData.getRestore();
         if (dtoRestore != null) {
           assertNotNull(resourceRestore);
-          assertEquals(dtoRestore.getBackupUid(),
-              resourceRestore.getBackupUid());
+          assertEquals(dtoRestore.getFromBackup().getUid(),
+              resourceRestore.getFromBackup().getUid());
         } else {
           assertNull(resourceRestore);
         }

@@ -8,7 +8,6 @@ e2e_list_utils | while read UTIL_PATH
     echo " - $UTIL_PATH"
   done
 
-E2E_PARALLELISM="${E2E_PARALLELISM:-8}"
 E2E_RETRY="${E2E_RETRY:-2}"
 E2E_ONLY_INCLUDES="${E2E_ONLY_INCLUDES}"
 E2E_EXCLUDES="${E2E_EXCLUDES}"
@@ -261,7 +260,7 @@ do
     fi
     SPECS_FAILED=""
     echo "$SPECS_TO_RUN" | tr ' ' '\n' \
-      | xargs -r -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE -c "'$SHELL' $SHELL_XTRACE '$E2E_PATH/e2e' spec '%'" || true
+      | xargs -r -n 1 -I % -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE -c "'$SHELL' $SHELL_XTRACE '$E2E_PATH/e2e' spec '%'" || true
     BATCH_FAILED=false
     for FAILED in $(find "$TARGET_PATH" -maxdepth 1 -type f -name '*.failed')
     do

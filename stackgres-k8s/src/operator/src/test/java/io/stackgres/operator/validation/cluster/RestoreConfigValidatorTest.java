@@ -67,7 +67,7 @@ class RestoreConfigValidatorTest {
 
     StackGresCluster cluster = review.getRequest().getObject();
     StackGresClusterRestore restoreConfig = cluster.getSpec().getInitData().getRestore();
-    String stackgresBackup = restoreConfig.getBackupUid();
+    String stackgresBackup = restoreConfig.getFromBackup().getUid();
 
     when(scanner.findResources()).thenReturn(Optional.empty());
 
@@ -83,7 +83,7 @@ class RestoreConfigValidatorTest {
 
     final StackGresClusterReview review = getCreationReview();
     String stackgresBackup = review.getRequest()
-        .getObject().getSpec().getInitData().getRestore().getBackupUid();
+        .getObject().getSpec().getInitData().getRestore().getFromBackup().getUid();
 
     StackGresBackup backup = backupList.getItems().stream()
         .filter(b -> b.getMetadata().getUid().equals(stackgresBackup))

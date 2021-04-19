@@ -23,7 +23,7 @@ import org.mockito.Mock;
 
 public abstract class ConversionResourceTest<T extends CustomResource<?, ?>> {
 
-  private static final JsonMapper mapper = new JsonMapper();
+  protected static final JsonMapper MAPPER = new JsonMapper();
 
   protected ConversionResource conversionResource;
 
@@ -78,13 +78,12 @@ public abstract class ConversionResourceTest<T extends CustomResource<?, ?>> {
     verify(pipeline).convert("stackgres.io/v1", objects);
   }
 
-
   public static <T> ConversionReview buildConversionReview(T object) {
     ConversionReview conversionReview = new ConversionReview();
     conversionReview.setRequest(new ConversionRequest());
     conversionReview.getRequest().setUid(UUID.randomUUID());
     conversionReview.getRequest().setDesiredApiVersion("stackgres.io/v1");
-    conversionReview.getRequest().setObjects(Collections.singletonList(mapper.valueToTree(object)));
+    conversionReview.getRequest().setObjects(Collections.singletonList(MAPPER.valueToTree(object)));
     return conversionReview;
   }
 }

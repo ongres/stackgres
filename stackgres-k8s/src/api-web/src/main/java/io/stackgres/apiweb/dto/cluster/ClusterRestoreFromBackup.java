@@ -14,28 +14,28 @@ import io.stackgres.common.StackGresUtil;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class ClusterRestore {
+public class ClusterRestoreFromBackup {
 
-  @JsonProperty("downloadDiskConcurrency")
-  private Integer downloadDiskConcurrency;
+  @JsonProperty("uid")
+  private String uid;
 
-  @JsonProperty("fromBackup")
-  private ClusterRestoreFromBackup fromBackup;
+  @JsonProperty("pointInTimeRecovery")
+  private ClusterRestorePitr pointInTimeRecovery;
 
-  public Integer getDownloadDiskConcurrency() {
-    return downloadDiskConcurrency;
+  public String getUid() {
+    return uid;
   }
 
-  public void setDownloadDiskConcurrency(Integer downloadDiskConcurrency) {
-    this.downloadDiskConcurrency = downloadDiskConcurrency;
+  public void setUid(String uid) {
+    this.uid = uid;
   }
 
-  public ClusterRestoreFromBackup getFromBackup() {
-    return fromBackup;
+  public ClusterRestorePitr getPointInTimeRecovery() {
+    return pointInTimeRecovery;
   }
 
-  public void setFromBackup(ClusterRestoreFromBackup fromBackup) {
-    this.fromBackup = fromBackup;
+  public void setPointInTimeRecovery(ClusterRestorePitr pointInTimeRecovery) {
+    this.pointInTimeRecovery = pointInTimeRecovery;
   }
 
   @Override

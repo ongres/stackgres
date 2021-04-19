@@ -11,19 +11,39 @@ e2e_test_install() {
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_PATRONI_IMAGE##*-pg}"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
   PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION" | grep '/patroni\(-ext\)\?:' | grep "[-]pg$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION-" | tail -n 1)"
+
   k8s_unnamespaced_cleanup
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
-  install_operator_previous_version
+  load_component_images_from \
+    "${E2E_COMPONENTS_REGISTRY:-docker.io}" \
+    "${E2E_COMPONENTS_PATH:-/ongres/}" \
+    "$STACKGRES_PREVIOUS_VERSION"
+
+  install_prometheus_operator
+  install_operator_previous_version \
+    --set grafana.autoEmbed=true \
+    --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
+  install_minio
+
+  DISTRIBUTED_LOGS_NAME=distributedlogs
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \
     --set instanceProfiles[0].name=size-xs \
     --set instanceProfiles[0].cpu=250m \
     --set instanceProfiles[0].memory=512Mi \
-    --set-string configurations.postgresconfig.postgresql\.conf.max_connections=100
+    --set-string configurations.backupconfig.baseBackups.cronSchedule='0 5 31 2 *' \
+    --set-string cluster.configurations.sgBackupConfig=backupconf \
+    --set configurations.backupconfig.create=true \
+    --set-string configurations.postgresconfig.postgresql\.conf.max_connections=100 \
+    --set distributedLogs.enabled=true \
+    --set distributedLogs.create=true \
+    --set-string cluster.distributedLogs.sgDistributedLogs="$DISTRIBUTED_LOGS_NAME" \
+    --set-string distributedLogs.persistentVolume.size=128Mi
+
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
     "$CLUSTER_NAME-for-restart-primary-first" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \
@@ -34,21 +54,79 @@ e2e_test_install() {
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
     "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
-    --set-string cluster.postgresVersion=latest
+    --set-string cluster.postgresVersion=latest \
+    --set prometheusAutobind=true \
+    --set backupconfig.create=true \
+    --set backupconfig.retention=2 \
+    --set-string cluster.configurations.sgBackupConfig=backupconf \
+    --set distributedLogs.enabled=true \
+    --set distributedLogs.create=false \
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
     "$CLUSTER_NAME-2" "$CLUSTER_NAMESPACE" 2 \
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.postgresVersion=latest \
     --set cluster.configurations.sgPostgresConfig=postgresconf-for-restart-primary-first \
-    --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-restart-primary-first
+    --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-restart-primary-first \
+    --set prometheusAutobind=true \
+    --set backupconfig.create=true \
+    --set backupconfig.retention=2 \
+    --set-string cluster.configurations.sgBackupConfig=backupconf \
+    --set distributedLogs.enabled=true \
+    --set distributedLogs.create=false \
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
     "$CLUSTER_NAME-3" "$CLUSTER_NAMESPACE" 3 \
     --set configurations.create=false --set instanceProfiles=false \
-    --set-string cluster.postgresVersion=latest
+    --set-string cluster.postgresVersion=latest \
+    --set prometheusAutobind=true \
+    --set backupconfig.create=true \
+    --set backupconfig.retention=2 \
+    --set-string cluster.configurations.sgBackupConfig=backupconf \
+    --set distributedLogs.enabled=true \
+    --set distributedLogs.create=false \
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 7
+  wait_pods_running "$CLUSTER_NAMESPACE" 1 "$CLUSTER_NAME-1-[0-9]\+"
+
+  BACKUP_NAME="$CLUSTER_NAME-backup-1"
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/$(kubectl get crd sgbackups.stackgres.io --template '{{ (index .spec.versions 0).name }}')
+kind: SGBackup
+metadata:
+  namespace: "$CLUSTER_NAMESPACE"
+  name: "$BACKUP_NAME"
+spec:
+  sgCluster: "$CLUSTER_NAME-1"
+  managedLifecycle: false
+EOF
+  
+  wait_until is_backup_phase "Completed"
+
+  BACKUP_UID="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --template='{{ .metadata.uid }}')"
+
+  remove_cluster "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE"
+  create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
+    "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1 \
+    --set configurations.create=false --set instanceProfiles=false \
+    --set-string cluster.postgresVersion=latest \
+    --set prometheusAutobind=true \
+    --set backupconfig.create=true \
+    --set backupconfig.retention=2 \
+    --set-string cluster.configurations.sgBackupConfig=backupconf \
+    --set-string cluster.initialData.restore.fromBackup.uid="$BACKUP_UID" \
+    --set distributedLogs.enabled=true \
+    --set distributedLogs.create=false \
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 9
+
+  wait_cluster "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE"
+  wait_cluster "$CLUSTER_NAME-2" "$CLUSTER_NAMESPACE"
+  wait_cluster "$CLUSTER_NAME-3" "$CLUSTER_NAMESPACE"
 
   generate_mock_data "$CLUSTER_NAME-1"
   check_mock_data_samehost "$CLUSTER_NAME-1"
@@ -58,7 +136,12 @@ e2e_test_install() {
   check_mock_data "$CLUSTER_NAME-3"
 }
 
+is_backup_phase() {
+  [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.status.process.status}')" = "$1" ]
+}
+
 e2e_test_uninstall() {
+  uninstall_prometheus_operator
   delete_operator_only
   install_operator_only
   wait_pods_running "$OPERATOR_NAMESPACE" 2
@@ -69,6 +152,7 @@ e2e_test() {
   run_test "Check that cluster with 1 node after upgrade" check_cluster_1
   run_test "Check that cluster with 2 node after upgrade" check_cluster_2
   run_test "Check that cluster with 3 node after upgrade" check_cluster_3
+  run_test "Check that distributedlogs node can be restarted after upgrade" check_distributedlogs_restart
   run_test "Check that cluster with 1 node can be restarted after upgrade with reduced impact" check_cluster_1_restart
   run_test "Check that cluster with 2 node can be restarted after upgrade with restart primary first" check_cluster_2_restart
   run_test "Check that cluster with 3 node can be restarted after upgrade with in-place restart" check_cluster_3_restart
@@ -110,7 +194,10 @@ check_operator_upgrade() {
     return 1
   fi
 
-  upgrade_operator --reset-values
+  upgrade_operator --reset-values \
+    --set grafana.autoEmbed=true \
+    --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"
+
 
   POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
@@ -155,8 +242,30 @@ check_cluster_3() {
   check_mock_data_samehost "$CLUSTER_NAME-3"
 }
 
+check_distributedlogs_restart() {
+  local CLUSTER_NAME="$DISTRIBUTED_LOGS_NAME"
+
+  check_cluster_before_restart
+
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME-0" --wait=false
+
+  check_cluster_after_restart
+
+  wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgdistributedlogs/check_cluster_after_restart" --for condition=PendingRestart'
+}
+
 check_cluster_1_restart() {
   check_cluster_restart "$CLUSTER_NAME-1" 1 true false \
+    --set configurations.create=false --set instanceProfiles=false \
+    --set-string cluster.postgresVersion=latest \
+    --set prometheusAutobind=true \
+    --set backupconfig.create=true \
+    --set backupconfig.retention=2 \
+    --set-string cluster.configurations.sgBackupConfig=backupconf \
+    --set-string cluster.initialData.restore.fromBackup.uid="$BACKUP_UID" \
+    --set distributedLogs.enabled=true \
+    --set distributedLogs.create=false \
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME" \
     --set-string cluster.metadata.annotations.allResources.test-annotation=test-value
   wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-1" --for condition=PendingRestart'
 }
@@ -168,12 +277,32 @@ check_cluster_2_restart() {
     --set cluster.configurations.sgPostgresConfig=postgresconf-for-restart-primary-first \
     --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-restart-primary-first \
     --set-string configurations.postgresconfig.postgresql\.conf.max_connections=50
-  check_cluster_restart "$CLUSTER_NAME-2" 2 false true
+  check_cluster_restart "$CLUSTER_NAME-2" 2 false true \
+    --set configurations.create=false --set instanceProfiles=false \
+    --set-string cluster.postgresVersion=latest \
+    --set prometheusAutobind=true \
+    --set backupconfig.create=true \
+    --set backupconfig.retention=2 \
+    --set-string cluster.configurations.sgBackupConfig=backupconf \
+    --set distributedLogs.enabled=true \
+    --set distributedLogs.create=false \
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
   wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-2" --for condition=PendingRestart'
 }
 
 check_cluster_3_restart() {
-  check_cluster_restart "$CLUSTER_NAME-3" 3 false false
+  check_cluster_restart "$CLUSTER_NAME-3" 3 false false \
+    --set configurations.create=false --set instanceProfiles=false \
+    --set-string cluster.postgresVersion=latest \
+    --set cluster.configurations.sgPostgresConfig=postgresconf-for-restart-primary-first \
+    --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-restart-primary-first \
+    --set prometheusAutobind=true \
+    --set backupconfig.create=true \
+    --set backupconfig.retention=2 \
+    --set-string cluster.configurations.sgBackupConfig=backupconf \
+    --set distributedLogs.enabled=true \
+    --set distributedLogs.create=false \
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
   wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-3" --for condition=PendingRestart'
 }
 
@@ -184,6 +313,40 @@ check_cluster_restart() {
   local RESTART_PRIMARY_FIRST="$4"
   shift 4
 
+  check_cluster_before_restart
+
+  try_function create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$CLUSTER_SIZE" \
+    --set cluster.restart=true \
+    --set cluster.restartReducedImpact="$REDUCED_IMPACT" \
+    --set cluster.restartPrimaryFirst="$RESTART_PRIMARY_FIRST" \
+    "$@"
+  if "$RESULT"
+  then
+    echo "SUCCESS. Cluster restart completed sucesfully"
+  else
+    echo "FAILURE. Cluster restart did not completed sucesfully"
+    echo
+    echo "Cluster restart output:"
+    kubectl logs -n "$CLUSTER_NAMESPACE" -l app=stackgres-restart-cluster
+    return 1
+  fi
+
+  check_cluster_after_restart
+
+  check_mock_data_samehost "$CLUSTER_NAME"
+
+  local PRIMARY_SERVICE_TYPE="$(kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-primary" \
+    --template '{{ .spec.type }}')"
+  if [ "$PRIMARY_SERVICE_TYPE" = "ExternalName" ]
+  then
+    echo "SUCCESS. Primary service is of type ExternalName"
+  else
+    echo "FAILURE. Primary service is not of type ExternalName"
+    return 1
+  fi
+}
+
+check_cluster_before_restart() {
   local POD
   local PODS
   PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
@@ -206,23 +369,9 @@ check_cluster_restart() {
       return 1
     fi
   done
+}
 
-  try_function create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$CLUSTER_SIZE" \
-    --set cluster.restart=true \
-    --set cluster.restartReducedImpact="$REDUCED_IMPACT" \
-    --set cluster.restartPrimaryFirst="$RESTART_PRIMARY_FIRST" \
-    "$@"
-  if "$RESULT"
-  then
-    echo "SUCCESS. Cluster restart completed sucesfully"
-  else
-    echo "FAILURE. Cluster restart did not completed sucesfully"
-    echo
-    echo "Cluster restart output:"
-    kubectl logs -n "$CLUSTER_NAMESPACE" -l app=stackgres-restart-cluster
-    return 1
-  fi
-
+check_cluster_after_restart() {
   local STS_UPDATE_REVISION="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .status.updateRevision }}')"
   local POD_CONTROLLER_REVISION_HASH
   local POD_CONTROLLER_REVISION_HASHES="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
@@ -259,18 +408,6 @@ check_cluster_restart() {
       return 1
     fi
   done
-
-  check_mock_data_samehost "$CLUSTER_NAME"
-
-  local PRIMARY_SERVICE_TYPE="$(kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-primary" \
-    --template '{{ .spec.type }}')"
-  if [ "$PRIMARY_SERVICE_TYPE" = "ExternalName" ]
-  then
-    echo "SUCCESS. Primary service is of type ExternalName"
-  else
-    echo "FAILURE. Primary service is not of type ExternalName"
-    return 1
-  fi
 }
 
 check_conversion_webhook_configured(){
@@ -288,14 +425,36 @@ create_or_replace_cluster_for_version() {
   local INSTANCES="$4"
   shift 4
 
+  local CLUSTER_HELM_URL
+  CLUSTER_HELM_URL="$(get_cluster_helm_url "$VERSION")"
+
+  local TRANSFORMER="dont_transform"
+  if [ "$(get_version_as_number "$VERSION")" -lt "$(get_version_as_number 1.0.0-alpha2)" ]
+  then
+    TRANSFORMER="transform_pre_1_0_0_alpha2"
+  fi
+
   if helm get values "$RELEASE" --namespace "$NAMESPACE" > /dev/null 2>&1
   then
-    helm upgrade "$RELEASE" --namespace "$NAMESPACE" "$CLUSTER_PREVIOUS_VERSION_HELM_URL" \
-        --reuse-values --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
+    eval "$(transform_params "$TRANSFORMER" helm upgrade "$RELEASE" --namespace "$NAMESPACE" "$CLUSTER_HELM_URL" \
+        --reuse-values --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@")"
   else
     create_namespace_if_not_exists "$NAMESPACE"
-    helm install "$RELEASE" "$CLUSTER_PREVIOUS_VERSION_HELM_URL" \
+    eval "$(transform_params "$TRANSFORMER" helm install "$RELEASE" "$CLUSTER_HELM_URL" \
       --namespace "$NAMESPACE" \
-      --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
+      --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@")"
+  fi
+}
+
+dont_transform() {
+  printf "%s" "$1"
+}
+
+transform_pre_1_0_0_alpha2() {
+  if [ "${1%=*}" = "cluster.initialData.restore.fromBackup.uid" ]
+  then
+    printf "%s=%s" "cluster.initialData.restore.fromBackup" "${1#*=}"
+  else
+    printf "%s" "$1"
   fi
 }
