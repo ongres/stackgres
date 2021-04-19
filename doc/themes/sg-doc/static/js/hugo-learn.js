@@ -92,4 +92,13 @@ jQuery(document).ready(function() {
   //Scroll to active sidebar section on load
   if($('ul.topics > li.parent').length)
     $('.highlightable').scrollTop($('.highlightable').scrollTop() + $('ul.topics > li.parent').position().top);
+
+  //SG Version Selector
+  $('#sgVersion').on('change', function(){
+    var url = $(this).val(); // get selected value
+    if (url) { // require a URL
+        window.location = url; // redirect
+    }
+    return false;
+  })
 });

@@ -70,6 +70,11 @@
                                 
 
             <template v-if="editMode">
+                <template v-if="profileClusters.length">
+                    <br/><br/>
+                    <span class="warning">Please, be aware that any changes made to this instance profile will require a <a href="https://stackgres.io/doc/latest/install/restart/" target="_blank">restart operation</a> on every instance on the following {{ (profileClusters.length > 1) ? 'clusters' : 'cluster' }}: <strong>{{ profileClusters.join(", ") }}</strong> </span>
+                </template>
+
                 <a class="btn" @click="createProfile">Update Profile</a>
             </template>
             <template v-else>
@@ -108,12 +113,14 @@
 
             return {
                 editMode: (vm.$route.name === 'EditProfile'),
+                editReady: false,
                 profileName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
                 profileNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 profileCPU: '',
                 profileCPUUnit: 'CPU',
                 profileRAM: '',
                 profileRAMUnit: 'Gi',
+                profileClusters: []
             }
                 
             
@@ -143,15 +150,18 @@
                 var vm = this;
                 var config = {};
                 
-                if(vm.$route.name === 'EditProfile') {
+                if( vm.editMode && !vm.editReady ) {
                     store.state.profiles.forEach(function( conf ){
                         if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
-                            vm.profileCPU = conf.data.spec.cpu.match(/\d+/g);
+                            vm.profileCPU = conf.data.spec.cpu.match(/\d+/g)[0];
                             vm.profileCPUUnit = (conf.data.spec.cpu.match(/[a-zA-Z]+/g) !== null) ? conf.data.spec.cpu.match(/[a-zA-Z]+/g)[0] : 'CPU';
-                            vm.profileRAM = conf.data.spec.memory.match(/\d+/g);
+                            vm.profileRAM = conf.data.spec.memory.match(/\d+/g)[0];
                             vm.profileRAMUnit = conf.data.spec.memory.match(/[a-zA-Z]+/g)[0];
+                            vm.profileClusters = [...conf.data.status.clusters]
                             config = conf;
-                            return false;
+
+                            vm.editReady = true
+                            return false
                         }
                     });
                 }

@@ -31,4 +31,13 @@ spec:
       {{- with .Values.adminui.service.nodePort }}
       nodePort: {{ . }}
       {{- end }}
+  {{- if .Values.adminui.service.exposeHTTP }}
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: http
+      {{- with .Values.adminui.service.nodePortHTTP }}
+      nodePort: {{ . }}
+      {{- end }}
+  {{- end }}
 {{- end }}

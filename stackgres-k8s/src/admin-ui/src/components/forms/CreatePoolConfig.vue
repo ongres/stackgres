@@ -47,6 +47,11 @@
             </a>
 
             <template v-if="editMode">
+                <template v-if="configClusters.length">
+                    <br/><br/>
+                    <span class="warning">Please, be aware that some changes made to this configuration might require a <a href="https://stackgres.io/doc/latest/install/restart/" target="_blank">restart operation</a> on every instance on the following {{ (configClusters.length > 1) ? 'clusters' : 'cluster' }}: <strong>{{ configClusters.join(", ") }}</strong> </span>
+                </template>
+
                 <a class="btn" @click="createPoolConfig">Update Configuration</a>
             </template>
             <template v-else>
@@ -85,9 +90,11 @@
 
             return {
                 editMode: (vm.$route.name === 'EditPoolConfig'),
+                editReady: false,
                 poolConfigName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
                 poolConfigNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 poolConfigParams: '',
+                configClusters: []
             }
 
         },
@@ -116,11 +123,14 @@
                 var vm = this;
                 var config = {};
 
-                if(vm.$route.name === 'EditPoolConfig') {
+                if( vm.editMode && !vm.editReady ) {
                     store.state.poolConfig.forEach(function( conf ){
                         if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
                             vm.poolConfigParams = conf.data.spec.pgBouncer["pgbouncer.ini"];
+                            vm.configClusters = [...conf.data.status.clusters]
                             config = conf;
+
+                            vm.editReady = true
                             return false;
                         }
                     });    

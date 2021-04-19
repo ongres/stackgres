@@ -477,7 +477,7 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
     padding: 0;
     color: #b3b3b3;
     font-size: 13px;
-    min-height: 150px;
+    min-height: 200px;
 }
 
 #footer p {

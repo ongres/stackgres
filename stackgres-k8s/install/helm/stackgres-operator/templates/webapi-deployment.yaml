@@ -97,7 +97,7 @@ spec:
           periodSeconds: 30
           timeoutSeconds: 2
         volumeMounts:
-          - name: operator-certs
+          - name: web-certs
             mountPath: /etc/operator/certs
             readOnly: true
       - name: {{ .Values.adminui.name }}
@@ -164,8 +164,11 @@ spec:
         - containerPort: 9443
           name: "https"
           protocol: "TCP"
+        - containerPort: 9080
+          name: "http"
+          protocol: "TCP"
         volumeMounts:
-          - name: operator-certs
+          - name: web-certs
             mountPath: /etc/operator/certs
             readOnly: true
           - name: operator-nginx
@@ -188,9 +191,9 @@ spec:
             mountPath: /var/run
             readOnly: false
       volumes:
-        - name: operator-certs
+        - name: web-certs
           secret:
-            secretName: {{ .Release.Name }}-certs
+            secretName: {{ .Release.Name }}-web-certs
             optional: false
             items:
               - key: root.key

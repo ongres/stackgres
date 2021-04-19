@@ -49,7 +49,12 @@
 			
 			<template v-if="cluster.status.hasOwnProperty('pods') && cluster.status.pods.length">
 				<div class="content">
-					<h2>Cluster</h2>
+					<h2>
+						Cluster
+						<template v-for="condition in cluster.data.status.conditions" v-if="( (condition.type == 'PendingRestart') && (condition.status == 'True') )">
+							<span class="helpTooltip alert" data-tooltip="A restart operation is pending for this cluster"></span>
+						</template>
+					</h2>
 					<table class="clusterInfo">
 						<thead v-if="tooltips.hasOwnProperty('sgcluster')">
 							<th>
@@ -76,7 +81,10 @@
 						<tbody>
 							<tr>
 								<td>
-									{{ cluster.status.cpuRequested }} (avg. load {{ cluster.status.hasOwnProperty('cpuPsiAvg60') ? cluster.status.cpuPsiAvg60 : cluster.status.averageLoad1m }})
+									{{ cluster.status.cpuRequested }} 
+									<template v-if="cluster.status.podsReady">
+										(avg. load {{ cluster.status.hasOwnProperty('cpuPsiAvg60') ? cluster.status.cpuPsiAvg60 : cluster.status.averageLoad1m }})
+									</template>
 								</td>
 								<td>
 									{{ cluster.status.hasOwnProperty('memoryPsiAvg60') ? cluster.status.memoryPsiAvg60 : cluster.status.memoryRequested}}
@@ -143,10 +151,25 @@
 								<td class="label" :class="pod.role"><span>{{ pod.role }}</span></td>
 								<td class="label" :class="pod.status"><span>{{ pod.status }}</span></td>
 								<td>
-									{{ pod.cpuRequested }} (avg. load {{ pod.hasOwnProperty('cpuPsiAvg60') ? pod.cpuPsiAvg60 : pod.averageLoad1m }})
+									{{ pod.cpuRequested }} 
+									<template v-if="pod.status !== 'Pending'">
+										(avg. load {{ pod.hasOwnProperty('cpuPsiAvg60') ? pod.cpuPsiAvg60 : pod.averageLoad1m }})
+									</template>
+									
+									<template v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
+										<template v-if="( pod.cpuRequested != ( (pod.cpuRequested.includes('m') && !profile.data.spec.cpu.includes('m')) ? ( (profile.data.spec.cpu * 1000) + 'm') : profile.data.spec.cpu ) )">
+											<span class="helpTooltip alert" data-tooltip="A CPU change request is pending to be applied"></span>
+										</template>
+									</template>
 								</td>
 								<td>
 									{{ pod.hasOwnProperty('memoryPsiAvg60') ? pod.memoryPsiAvg60 : pod.memoryRequested }}
+									
+									<template v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
+										<template v-if="( (pod.hasOwnProperty('memoryPsiAvg60') ? pod.memoryPsiAvg60 : pod.memoryRequested).replace('.00','') != profile.data.spec.memory) ">
+											<span class="helpTooltip alert" data-tooltip="A memory change request is pending to be applied"></span>
+										</template>
+									</template>
 								</td>
 								<td>
 								<template v-if="pod.hasOwnProperty('diskUsed')">{{ pod.diskUsed }}</template><template v-else>-</template> / {{ pod.diskRequested }} <span v-if="pod.hasOwnProperty('diskPsiAvg60')">(psi avg. {{ pod.diskPsiAvg60 }})</span>
@@ -230,7 +253,12 @@
 
 			tooltips () {
 				return store.state.tooltips
+			},
+
+			profiles () {
+				return store.state.profiles
 			}
+
 		},
 		beforeDestroy () {
 			clearInterval(this.polling);
@@ -245,5 +273,19 @@
 		text-align: center;
 		border-bottom: 1px solid var(--borderColor);
 		padding-top: 40px;
-	}	
+	}
+
+	table.podStatus td {
+		position: relative;
+	}
+
+	.podStatus .helpTooltip.alert {
+		position: absolute;
+		top: 13px;
+		transform: translateX(5px);
+	}
+
+	h2 .helpTooltip.alert {
+		top: 2px;
+	}
 </style>	

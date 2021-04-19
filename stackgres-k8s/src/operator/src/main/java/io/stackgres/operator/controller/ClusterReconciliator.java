@@ -20,6 +20,12 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ObjectMapperProvider;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.crd.sgbackup.BackupEventReason;
+import io.stackgres.common.crd.sgbackup.BackupPhase;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
+import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.ClusterEventReason;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -27,6 +33,7 @@ import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.resource.ClusterResourceHandlerSelector;
 import io.stackgres.operatorframework.reconciliation.ResourceGeneratorReconciliator;
+import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
@@ -37,6 +44,7 @@ public class ClusterReconciliator
   private final ClusterStatusManager statusManager;
   private final EventController eventController;
   private final CustomResourceScheduler<StackGresCluster> clusterScheduler;
+  private final CustomResourceScheduler<StackGresBackup> backupScheduler;
 
   @Dependent
   public static class Parameters {
@@ -45,6 +53,7 @@ public class ClusterReconciliator
     @Inject ClusterStatusManager statusManager;
     @Inject EventController eventController;
     @Inject CustomResourceScheduler<StackGresCluster> clusterScheduler;
+    @Inject CustomResourceScheduler<StackGresBackup> backupScheduler;
   }
 
   @Inject
@@ -54,6 +63,7 @@ public class ClusterReconciliator
     this.statusManager = parameters.statusManager;
     this.eventController = parameters.eventController;
     this.clusterScheduler = parameters.clusterScheduler;
+    this.backupScheduler = parameters.backupScheduler;
   }
 
   public ClusterReconciliator() {
@@ -62,6 +72,7 @@ public class ClusterReconciliator
     this.statusManager = null;
     this.eventController = null;
     this.clusterScheduler = null;
+    this.backupScheduler = null;
   }
 
   public static ClusterReconciliator create(Consumer<Parameters> consumer) {
@@ -89,6 +100,39 @@ public class ClusterReconciliator
                 StackGresContext.RECONCILIATION_PAUSE_UNTIL_RESTART_KEY,
                 String.valueOf(Boolean.FALSE));
             resource.getMetadata().setAnnotations(annotations);
+          }
+        });
+    Seq.seq(context.getBackups())
+        .filter(backup -> Optional.ofNullable(backup.getStatus())
+            .map(StackGresBackupStatus::getProcess)
+            .map(StackGresBackupProcess::getStatus)
+            .map(status -> false)
+            .orElse(true))
+        .forEach(backup -> {
+          try {
+            backup.setStatus(new StackGresBackupStatus());
+            backup.getStatus().setProcess(new StackGresBackupProcess());
+            backup.getStatus().getProcess().setStatus(BackupPhase.PENDING.label());
+            backupScheduler.update(backup);
+          } catch (Exception ex) {
+            logger.error("Error while setting backup status to " + BackupPhase.PENDING.label(), ex);
+          }
+        });
+
+    final StackGresCluster cluster = context.getCluster();
+    Seq.seq(context.getBackups())
+        .forEach(backup -> {
+          if (Optional.ofNullable(backup.getStatus())
+              .map(StackGresBackupStatus::getProcess)
+              .map(StackGresBackupProcess::getStatus)
+              .map(BackupPhase.PENDING.label()::equals)
+              .orElse(false)) {
+            if (!context.getBackupContext().isPresent()) {
+              eventController.sendEvent(BackupEventReason.BACKUP_CONFIG_ERROR,
+                  "Missing " + StackGresBackupConfig.KIND + " for cluster "
+                  + cluster.getMetadata().getNamespace() + "."
+                  + cluster.getMetadata().getName() + " ", backup, client);
+            }
           }
         });
   }

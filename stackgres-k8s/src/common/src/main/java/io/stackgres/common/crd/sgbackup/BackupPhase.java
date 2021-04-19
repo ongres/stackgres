@@ -9,6 +9,7 @@ import java.util.Locale;
 
 public enum BackupPhase {
 
+  PENDING,
   RUNNING,
   COMPLETED,
   FAILED;

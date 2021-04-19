@@ -23,6 +23,7 @@ adminui:
     tag: "development"
     pullPolicy: "IfNotPresent"
   service:
+    exposeHTTP: false
     # Set to LoadBalancer to expose admin UI with a load balancer
     # Set to NodePort to expose admin UI from kubernetes nodes
     type: ClusterIP
@@ -39,6 +40,7 @@ adminui:
     # loadBalancerSourceRanges:
     # The port used to expose the service on kubernetes nodes
     # nodePort:
+    # nodePortHTTP:
 
 serviceAccount:
   create: true
@@ -58,6 +60,8 @@ cert:
   # crt:
   # jwtRsaKey:
   # jwtRsaPub:
+  # webKey:
+  # webCrt:
 
 # Custom credentials for the operator's admin user
 authentication:
