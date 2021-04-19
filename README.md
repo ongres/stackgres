@@ -28,7 +28,7 @@ We recommend that you check our [documentation](https://stackgres.io/doc/latest/
 
 Also, on our web https://stackgres.io/install/, you can get the one-line command to install StackGres.
 
-## Features 
+## Features
 
 - [Automated failover and High Availability with Patroni](https://stackgres.io/features/#automated-failover)
 - [You are in full control. You are the postgres user](https://stackgres.io/features/#full-control)
@@ -40,11 +40,11 @@ Also, on our web https://stackgres.io/install/, you can get the one-line command
 - [Integrated server-side connection pooling](https://stackgres.io/features/#connection-pooling)
 - [Enhanced observability via Envoy Proxy’s Postgres filter](https://stackgres.io/features/#envoy-proxy)
 - [Expertly tuned by default](https://stackgres.io/features/#expertly-tuned)
-- [Lightweight, secure container images based on RedHat’s UBI 8t](https://stackgres.io/features/#redhat-based)
+- [Lightweight, secure container images based on RedHat’s UBI 8](https://stackgres.io/features/#redhat-based)
 
 ## Community
 
-Everybody is welcome in this open Community for StackGres, check out the different ways to collaborate: 
+Everybody is welcome in this open Community for StackGres, check out the different ways to collaborate:
 
 - [Developer Documentation](https://stackgres.io/doc/latest/developer/): If you are a Kubernetes Administrator or a Java Developer, you might want to contribute back to StackGres, either by testing it, developing Kubernetes code (Helm, architecture) or Java’s core operator.
 - [Public dashboards](https://gitlab.com/ongresinc/stackgres/-/issues): If you want to see what’s coming down the road, check our issues. They are open so you can create issues yourself or comment on open issues. We welcome feedback, ideas and collaborations!
