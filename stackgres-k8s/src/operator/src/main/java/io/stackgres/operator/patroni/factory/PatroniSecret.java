@@ -7,7 +7,6 @@ package io.stackgres.operator.patroni.factory;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -15,6 +14,7 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
@@ -66,7 +66,7 @@ public class PatroniSecret implements StackGresClusterResourceStreamFactory {
   }
 
   private static String generatePassword() {
-    return ResourceUtil.encodeSecret(UUID.randomUUID().toString().substring(4, 22));
+    return ResourceUtil.encodeSecret(StringUtil.generateRandom(32));
   }
 
   @Inject

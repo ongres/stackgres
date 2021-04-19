@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.cluster.factory;
 
-import static io.stackgres.testutil.StringUtils.getRandomString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -37,6 +36,7 @@ import io.fabric8.kubernetes.api.model.batch.JobBuilder;
 import io.fabric8.kubernetes.api.model.batch.JobTemplateSpec;
 import io.fabric8.kubernetes.api.model.batch.JobTemplateSpecBuilder;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.testutil.JsonUtil;
@@ -56,15 +56,14 @@ class AnnotationDecoratorImplTest {
   void setUp() {
     defaultCluster = JsonUtil
         .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
-
     resources = Stream.of(
         new SecretBuilder()
-            .withData(ImmutableMap.of(getRandomString(), getRandomString()))
+            .withData(ImmutableMap.of(StringUtil.generateRandom(), StringUtil.generateRandom()))
             .withNewMetadata()
             .withName("testSecret")
             .endMetadata().build(),
         new ConfigMapBuilder()
-            .withData(ImmutableMap.of(getRandomString(), getRandomString()))
+            .withData(ImmutableMap.of(StringUtil.generateRandom(), StringUtil.generateRandom()))
             .withNewMetadata().withName("testConfigMap")
             .endMetadata()
             .build(),
@@ -137,8 +136,8 @@ class AnnotationDecoratorImplTest {
   @Test
   void allResources_shouldBeAppliedToAllResources() {
 
-    String randomAnnotationKey = getRandomString();
-    String randomAnnotationValue = getRandomString();
+    String randomAnnotationKey = StringUtil.generateRandom();
+    String randomAnnotationValue = StringUtil.generateRandom();
 
     defaultCluster.getSpec().setPod(null);
     defaultCluster.getSpec().setPostgresServices(null);
@@ -155,8 +154,8 @@ class AnnotationDecoratorImplTest {
 
   @Test
   void services_shouldHaveServicesAnnotationsAndAllResourcesAnnotations() {
-    String allResourceAnnotationKey = getRandomString();
-    String allResourceAnnotationValue = getRandomString();
+    String allResourceAnnotationKey = StringUtil.generateRandom();
+    String allResourceAnnotationValue = StringUtil.generateRandom();
 
     defaultCluster.getSpec().setPod(null);
     defaultCluster.getSpec().setPostgresServices(null);
@@ -164,8 +163,8 @@ class AnnotationDecoratorImplTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(ImmutableMap.of(allResourceAnnotationKey, allResourceAnnotationValue));
 
-    String serviceAnnotationKey = getRandomString();
-    String serviceAnnotationValue = getRandomString();
+    String serviceAnnotationKey = StringUtil.generateRandom();
+    String serviceAnnotationValue = StringUtil.generateRandom();
 
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setServices(ImmutableMap.of(serviceAnnotationKey, serviceAnnotationValue));
@@ -182,8 +181,8 @@ class AnnotationDecoratorImplTest {
 
   @Test
   void services_shouldNotHavePodAnnotations() {
-    String allResourceAnnotationKey = getRandomString();
-    String allResourceAnnotationValue = getRandomString();
+    String allResourceAnnotationKey = StringUtil.generateRandom();
+    String allResourceAnnotationValue = StringUtil.generateRandom();
 
     defaultCluster.getSpec().setPod(null);
     defaultCluster.getSpec().setPostgresServices(null);
@@ -191,8 +190,8 @@ class AnnotationDecoratorImplTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(ImmutableMap.of(allResourceAnnotationKey, allResourceAnnotationValue));
 
-    String podAnnotationKey = getRandomString();
-    String podAnnotationValue = getRandomString();
+    String podAnnotationKey = StringUtil.generateRandom();
+    String podAnnotationValue = StringUtil.generateRandom();
 
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setPods(ImmutableMap.of(podAnnotationKey, podAnnotationValue));
@@ -209,14 +208,14 @@ class AnnotationDecoratorImplTest {
 
   @Test
   void primaryServices_shouldHavePrimaryServiceAnnotations() {
-    String primaryAnnotationKey = getRandomString();
-    String primaryAnnotationValue = getRandomString();
+    String primaryAnnotationKey = StringUtil.generateRandom();
+    String primaryAnnotationValue = StringUtil.generateRandom();
 
     defaultCluster.getSpec().getPostgresServices().getPrimary()
         .setAnnotations(ImmutableMap.of(primaryAnnotationKey, primaryAnnotationValue));
 
-    String serviceAnnotationKey = getRandomString();
-    String serviceAnnotationValue = getRandomString();
+    String serviceAnnotationKey = StringUtil.generateRandom();
+    String serviceAnnotationValue = StringUtil.generateRandom();
 
     defaultCluster.getSpec().setPod(null);
     defaultCluster.getSpec().getPostgresServices().setReplicas(null);
@@ -238,14 +237,14 @@ class AnnotationDecoratorImplTest {
 
   @Test
   void replicaServices_shouldHaveReplicaServiceAnnotations() {
-    String replicaAnnotationKey = getRandomString();
-    String replicaAnnotationValue = getRandomString();
+    String replicaAnnotationKey = StringUtil.generateRandom();
+    String replicaAnnotationValue = StringUtil.generateRandom();
 
     defaultCluster.getSpec().getPostgresServices().getReplicas()
         .setAnnotations(ImmutableMap.of(replicaAnnotationKey, replicaAnnotationValue));
 
-    String serviceAnnotationKey = getRandomString();
-    String serviceAnnotationValue = getRandomString();
+    String serviceAnnotationKey = StringUtil.generateRandom();
+    String serviceAnnotationValue = StringUtil.generateRandom();
 
     defaultCluster.getSpec().setPod(null);
     defaultCluster.getSpec().getPostgresServices().setPrimary(null);
@@ -267,8 +266,8 @@ class AnnotationDecoratorImplTest {
 
   @Test
   void pods_shouldHavePodAnnotationsAndAllResourcesAnnotations() {
-    String allResourceAnnotationKey = getRandomString();
-    String allResourceAnnotationValue = getRandomString();
+    String allResourceAnnotationKey = StringUtil.generateRandom();
+    String allResourceAnnotationValue = StringUtil.generateRandom();
 
     defaultCluster.getSpec().setPod(null);
     defaultCluster.getSpec().setPostgresServices(null);
@@ -276,8 +275,8 @@ class AnnotationDecoratorImplTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(ImmutableMap.of(allResourceAnnotationKey, allResourceAnnotationValue));
 
-    String podAnnotationKey = getRandomString();
-    String podAnnotationValue = getRandomString();
+    String podAnnotationKey = StringUtil.generateRandom();
+    String podAnnotationValue = StringUtil.generateRandom();
 
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setPods(ImmutableMap.of(podAnnotationKey, podAnnotationValue));
@@ -294,8 +293,8 @@ class AnnotationDecoratorImplTest {
 
   @Test
   void pods_shouldNotHaveServiceAnnotations() {
-    String allResourceAnnotationKey = getRandomString();
-    String allResourceAnnotationValue = getRandomString();
+    String allResourceAnnotationKey = StringUtil.generateRandom();
+    String allResourceAnnotationValue = StringUtil.generateRandom();
 
     defaultCluster.getSpec().setPod(null);
     defaultCluster.getSpec().setPostgresServices(null);
@@ -303,8 +302,8 @@ class AnnotationDecoratorImplTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(ImmutableMap.of(allResourceAnnotationKey, allResourceAnnotationValue));
 
-    String serviceAnnotationKey = getRandomString();
-    String serviceAnnotationValue = getRandomString();
+    String serviceAnnotationKey = StringUtil.generateRandom();
+    String serviceAnnotationValue = StringUtil.generateRandom();
 
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setServices(ImmutableMap.of(serviceAnnotationKey, serviceAnnotationValue));
@@ -320,8 +319,8 @@ class AnnotationDecoratorImplTest {
 
   @Test
   void podsAnnotations_shouldBePresentInStatefulSetPodTemplates() {
-    String allResourceAnnotationKey = getRandomString();
-    String allResourceAnnotationValue = getRandomString();
+    String allResourceAnnotationKey = StringUtil.generateRandom();
+    String allResourceAnnotationValue = StringUtil.generateRandom();
 
     defaultCluster.getSpec().setPod(null);
     defaultCluster.getSpec().setPostgresServices(null);
@@ -329,8 +328,8 @@ class AnnotationDecoratorImplTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(ImmutableMap.of(allResourceAnnotationKey, allResourceAnnotationValue));
 
-    String podAnnotationKey = getRandomString();
-    String podAnnotationValue = getRandomString();
+    String podAnnotationKey = StringUtil.generateRandom();
+    String podAnnotationValue = StringUtil.generateRandom();
 
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setPods(ImmutableMap.of(podAnnotationKey, podAnnotationValue));
@@ -351,8 +350,8 @@ class AnnotationDecoratorImplTest {
 
   @Test
   void allResourcesAnnotations_shouldBePresentInStatefulSetPersistenVolumeClaims() {
-    String allResourceAnnotationKey = getRandomString();
-    String allResourceAnnotationValue = getRandomString();
+    String allResourceAnnotationKey = StringUtil.generateRandom();
+    String allResourceAnnotationValue = StringUtil.generateRandom();
 
     defaultCluster.getSpec().setPod(null);
     defaultCluster.getSpec().setPostgresServices(null);
@@ -375,8 +374,8 @@ class AnnotationDecoratorImplTest {
 
   @Test
   void allResourcesAnnotations_shouldNotBePresentInStatefulSetPersistenVolumeClaimsIfStatefulSetAlreadyExists() {
-    String allResourceAnnotationKey = getRandomString();
-    String allResourceAnnotationValue = getRandomString();
+    String allResourceAnnotationKey = StringUtil.generateRandom();
+    String allResourceAnnotationValue = StringUtil.generateRandom();
 
     defaultCluster.getSpec().setPod(null);
     defaultCluster.getSpec().setPostgresServices(null);
@@ -401,8 +400,8 @@ class AnnotationDecoratorImplTest {
 
   @Test
   void allResourcesAnnotations_shouldBePresentInCronJobsPodTemplate() {
-    String allResourceAnnotationKey = getRandomString();
-    String allResourceAnnotationValue = getRandomString();
+    String allResourceAnnotationKey = StringUtil.generateRandom();
+    String allResourceAnnotationValue = StringUtil.generateRandom();
 
     defaultCluster.getSpec().setPod(null);
     defaultCluster.getSpec().setPostgresServices(null);

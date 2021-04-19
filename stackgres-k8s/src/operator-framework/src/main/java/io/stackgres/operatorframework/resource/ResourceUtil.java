@@ -6,11 +6,9 @@
 package io.stackgres.operatorframework.resource;
 
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -159,19 +157,6 @@ public class ResourceUtil {
   public static String dencodeSecret(String string) {
     return new String(Base64.getDecoder().decode(string.getBytes(StandardCharsets.UTF_8)),
         StandardCharsets.UTF_8);
-  }
-
-  public static String generateRandom(int length) {
-    int leftLimit = 48; // numeral '0'
-    int rightLimit = 122; // letter 'z'
-    Random random = new SecureRandom();
-
-    return random.ints(leftLimit, rightLimit + 1)
-        .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))
-        .limit(length)
-        .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
-        .toString();
-
   }
 
 }

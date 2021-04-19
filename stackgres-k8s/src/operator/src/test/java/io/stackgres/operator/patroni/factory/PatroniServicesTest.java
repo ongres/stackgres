@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.patroni.factory;
 
-import static io.stackgres.testutil.StringUtils.getRandomString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -21,6 +20,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServiceType;
@@ -171,8 +171,8 @@ class PatroniServicesTest {
   @Test
   void ifPrimaryServiceHasCustomAnnotations_ifShouldBeReflectedOnTheService() {
 
-    String key = getRandomString();
-    String annotation = getRandomString();
+    String key = StringUtil.generateRandom();
+    String annotation = StringUtil.generateRandom();
     enablePrimaryService(ImmutableMap.of(key, annotation));
 
     Stream<HasMetadata> services = patroniServices.streamResources(generatorContext);
@@ -247,8 +247,8 @@ class PatroniServicesTest {
   @Test
   void ifReplicaServiceHasCustomAnnotations_ifShouldBeReflectedOnTheService() {
 
-    String key = getRandomString();
-    String annotation = getRandomString();
+    String key = StringUtil.generateRandom();
+    String annotation = StringUtil.generateRandom();
     enableReplicaService(ImmutableMap.of(key, annotation));
 
     Stream<HasMetadata> services = patroniServices.streamResources(generatorContext);

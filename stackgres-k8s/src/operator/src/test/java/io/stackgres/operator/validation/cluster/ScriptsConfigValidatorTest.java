@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.common.ErrorType;
+import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -28,7 +29,6 @@ import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.testutil.JsonUtil;
-import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -76,8 +76,8 @@ class ScriptsConfigValidatorTest {
   void givenACreationUsingScriptFromSecret_shouldValidateSecretKeyReference() throws ValidationFailed {
     final StackGresClusterReview review = getCreationReview();
 
-    String randomSecretKey = StringUtils.getRandomString();
-    String randomSecretName = StringUtils.getRandomString();
+    String randomSecretKey = StringUtil.generateRandom();
+    String randomSecretName = StringUtil.generateRandom();
 
     final StackGresCluster cluster = review.getRequest().getObject();
     prepareForSecret(review, randomSecretName, randomSecretKey);
@@ -104,8 +104,8 @@ class ScriptsConfigValidatorTest {
   void givenACreationUsingScriptFromNonexistentSecret_shouldFail() {
     final StackGresClusterReview review = getCreationReview();
 
-    String randomSecretKey = StringUtils.getRandomString();
-    String randomSecretName = StringUtils.getRandomString();
+    String randomSecretKey = StringUtil.generateRandom();
+    String randomSecretName = StringUtil.generateRandom();
 
     final StackGresCluster cluster = review.getRequest().getObject();
     prepareForSecret(review, randomSecretName, randomSecretKey);
@@ -126,8 +126,8 @@ class ScriptsConfigValidatorTest {
   void givenACreationUsingScriptFromNonexistentSecretKey_shouldFail() {
     final StackGresClusterReview review = getCreationReview();
 
-    String randomSecretKey = StringUtils.getRandomString();
-    String randomSecretName = StringUtils.getRandomString();
+    String randomSecretKey = StringUtil.generateRandom();
+    String randomSecretName = StringUtil.generateRandom();
 
     final StackGresCluster cluster = review.getRequest().getObject();
     prepareForSecret(review, randomSecretName, randomSecretKey);
@@ -156,8 +156,8 @@ class ScriptsConfigValidatorTest {
 
     final StackGresClusterReview review = getCreationReview();
 
-    String randomConfigMapName = StringUtils.getRandomString();
-    String randomConfigMapKey = StringUtils.getRandomString();
+    String randomConfigMapName = StringUtil.generateRandom();
+    String randomConfigMapKey = StringUtil.generateRandom();
 
     prepareForConfigMap(review, randomConfigMapName, randomConfigMapKey);
 
@@ -185,8 +185,8 @@ class ScriptsConfigValidatorTest {
 
     final StackGresClusterReview review = getCreationReview();
 
-    String randomConfigMapName = StringUtils.getRandomString();
-    String randomConfigMapKey = StringUtils.getRandomString();
+    String randomConfigMapName = StringUtil.generateRandom();
+    String randomConfigMapKey = StringUtil.generateRandom();
 
     prepareForConfigMap(review, randomConfigMapName, randomConfigMapKey);
 
@@ -214,8 +214,8 @@ class ScriptsConfigValidatorTest {
 
     final StackGresClusterReview review = getCreationReview();
 
-    String randomConfigMapName = StringUtils.getRandomString();
-    String randomConfigMapKey = StringUtils.getRandomString();
+    String randomConfigMapName = StringUtil.generateRandom();
+    String randomConfigMapKey = StringUtil.generateRandom();
 
     prepareForConfigMap(review, randomConfigMapName, randomConfigMapKey);
 
@@ -238,8 +238,8 @@ class ScriptsConfigValidatorTest {
 
     final StackGresClusterReview review = getCreationReview();
 
-    String randomConfigMapName = StringUtils.getRandomString();
-    String randomConfigMapKey = StringUtils.getRandomString();
+    String randomConfigMapName = StringUtil.generateRandom();
+    String randomConfigMapKey = StringUtil.generateRandom();
 
     prepareForConfigMap(review, randomConfigMapName, randomConfigMapKey);
 
