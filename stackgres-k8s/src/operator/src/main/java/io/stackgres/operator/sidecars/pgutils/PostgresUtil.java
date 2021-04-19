@@ -42,6 +42,7 @@ public class PostgresUtil implements StackGresClusterSidecarResourceFactory<Void
         .withArgs("-c", "while true; do sleep 10; done")
         .withVolumeMounts(
             ClusterStatefulSetVolumeConfig.SOCKET.volumeMount(context.getClusterContext()),
+            ClusterStatefulSetVolumeConfig.EMPTY_BASE.volumeMount(context.getClusterContext()),
             ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
                 ClusterStatefulSetPath.ETC_PASSWD_PATH, context.getClusterContext()),
             ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
