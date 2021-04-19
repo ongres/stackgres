@@ -119,7 +119,7 @@ class ClusterTest {
   @Test
   void givenSimpleConfiguration_itShouldNotFail() {
     when(clusterScanner.getResources()).thenReturn(clusterList.getItems());
-    reconciliationCycle.getExistingContexts();
+    reconciliationCycle.getExistingContextResources().stream().forEach(reconciliationCycle::getContextFromResource);
   }
 
 }

@@ -77,7 +77,7 @@ class DistributedLogsTest {
   @Test
   void givenSimpleConfigurationWithoutConnectedClusters_itShouldNotFail() {
     when(distributedLogsScanner.getResources()).thenReturn(distributedLogsList.getItems());
-    reconciliationCycle.getExistingContexts();
+    reconciliationCycle.getExistingContextResources().stream().forEach(reconciliationCycle::getContextFromResource);
   }
 
 }

@@ -6,7 +6,6 @@
 package io.stackgres.operator.controller;
 
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import com.google.common.collect.ImmutableList;
@@ -28,25 +27,21 @@ public abstract class StackGresReconciliationCycle<T extends ResourceHandlerCont
   protected StackGresReconciliationCycle(String name,
       Supplier<KubernetesClient> clientSupplier,
       ResourceGeneratorReconciliator<T, H, S> reconciliator,
-      Function<T, H> resourceGetter,
       S handlerSelector,
       CustomResourceScanner<H> customResourceScanner) {
-    super(name, clientSupplier, reconciliator, resourceGetter, handlerSelector);
+    super(name, clientSupplier, reconciliator, handlerSelector);
     this.customResourceScanner = customResourceScanner;
   }
 
   @Override
-  protected ImmutableList<T> getExistingContexts() {
+  protected ImmutableList<H> getExistingContextResources() {
     return customResourceScanner.getResources()
         .stream().filter(r -> Optional.ofNullable(r.getMetadata().getAnnotations())
             .map(annotations -> annotations.get(StackGresContext.RECONCILIATION_PAUSE_KEY))
             .map(Boolean::parseBoolean)
             .map(b -> !b)
             .orElse(true))
-        .map(this::mapResourceToContext)
         .collect(ImmutableList.toImmutableList());
   }
-
-  protected abstract T mapResourceToContext(H resource);
 
 }

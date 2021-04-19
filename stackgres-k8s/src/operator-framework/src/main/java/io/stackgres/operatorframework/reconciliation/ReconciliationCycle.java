@@ -15,7 +15,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import com.google.common.collect.ImmutableList;
@@ -26,6 +25,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.ResourceHandlerSelector;
+import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
@@ -39,7 +39,6 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
   protected final String name;
   protected final Supplier<KubernetesClient> clientSupplier;
   protected final Reconciliator<T> reconciliator;
-  protected final Function<T, H> resourceGetter;
   protected final S handlerSelector;
   private final ExecutorService executorService;
   private final ArrayBlockingQueue<Boolean> arrayBlockingQueue = new ArrayBlockingQueue<>(1);
@@ -50,12 +49,11 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
   private AtomicInteger reconciliationCount = new AtomicInteger(0);
 
   protected ReconciliationCycle(String name, Supplier<KubernetesClient> clientSupplier,
-      Reconciliator<T> reconciliator, Function<T, H> resourceGetter, S handlerSelector) {
+      Reconciliator<T> reconciliator, S handlerSelector) {
     super();
     this.name = name;
     this.clientSupplier = clientSupplier;
     this.reconciliator = reconciliator;
-    this.resourceGetter = resourceGetter;
     this.handlerSelector = handlerSelector;
     this.executorService = Executors.newSingleThreadExecutor(
         r -> new Thread(r, name + "-ReconciliationCycle"));
@@ -96,17 +94,17 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
     stopped.complete(null);
   }
 
-  public synchronized ReconciliationCycleResult<T> reconciliationCycle() {
-    final ImmutableMap.Builder<T, Exception> contextExceptions = ImmutableMap.builder();
+  public synchronized ReconciliationCycleResult<H> reconciliationCycle() {
+    final ImmutableMap.Builder<H, Exception> contextExceptions = ImmutableMap.builder();
     final int cycleId = reconciliationCount.incrementAndGet();
     final String cycleName = cycleId + "| " + name + " reconciliation cycle";
 
     logger.trace("{} starting", cycleName);
     logger.trace("{} getting existing {} list", cycleName, name.toLowerCase(Locale.US));
-    final ImmutableList<T> existingContexts;
+    final ImmutableList<H> existingContextResources;
 
     try {
-      existingContexts = getExistingContexts();
+      existingContextResources = getExistingContextResources();
     } catch (RuntimeException ex) {
       logger.error(cycleName + " failed", ex);
       try {
@@ -119,8 +117,8 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
     }
 
     try {
-      for (T context : existingContexts) {
-        HasMetadata contextResource = resourceGetter.apply(context);
+      for (H contextResource : existingContextResources) {
+        T context = getContextFromResource(contextResource);
 
         String contextId = contextResource.getMetadata().getNamespace() + "."
             + contextResource.getMetadata().getName();
@@ -159,10 +157,10 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
           ReconciliationResult<?> reconciliationResult =
               reconciliator.reconcile(client, contextWithExistingAndRequiredResources);
           if (!reconciliationResult.success()) {
-            contextExceptions.put(context, reconciliationResult.getException());
+            contextExceptions.put(contextResource, reconciliationResult.getException());
           }
         } catch (Exception ex) {
-          contextExceptions.put(context, ex);
+          contextExceptions.put(contextResource, ex);
           logger.error(cycleName + " failed reconciling " + contextId, ex);
           try {
             onConfigError(context, contextResource, ex);
@@ -172,7 +170,7 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
         }
       }
       logger.trace(cycleName + " ended successfully");
-      return new ReconciliationCycleResult<>(existingContexts, contextExceptions.build());
+      return new ReconciliationCycleResult<>(existingContextResources, contextExceptions.build());
     } catch (RuntimeException ex) {
       logger.error(cycleName + " failed", ex);
       try {
@@ -184,26 +182,26 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
     }
   }
 
-  public static class ReconciliationCycleResult<T extends ResourceHandlerContext> {
-    private final List<T> contexts;
-    private final ImmutableMap<T, Exception> contextExceptions;
+  public static class ReconciliationCycleResult<T extends CustomResource<?, ?>> {
+    private final List<T> contextResources;
+    private final ImmutableMap<T, Exception> contextResourceExceptions;
     private final Exception exception;
 
-    public ReconciliationCycleResult(ImmutableList<T> contexts,
+    public ReconciliationCycleResult(ImmutableList<T> contextResources,
         ImmutableMap<T, Exception> contextExceptions) {
-      this.contexts = contexts;
-      this.contextExceptions = contextExceptions;
+      this.contextResources = contextResources;
+      this.contextResourceExceptions = contextExceptions;
       this.exception = null;
     }
 
     public ReconciliationCycleResult(Exception exception) {
-      this.contexts = ImmutableList.of();
-      this.contextExceptions = ImmutableMap.of();
+      this.contextResources = ImmutableList.of();
+      this.contextResourceExceptions = ImmutableMap.of();
       this.exception = exception;
     }
 
-    public List<T> getContexts() {
-      return contexts;
+    public List<T> getContextResources() {
+      return contextResources;
     }
 
     public Optional<Exception> getException() {
@@ -211,11 +209,25 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
     }
 
     public Map<T, Exception> getContextExceptions() {
-      return contextExceptions;
+      return contextResourceExceptions;
     }
 
     public boolean success() {
-      return exception == null && contextExceptions.isEmpty();
+      return exception == null && contextResourceExceptions.isEmpty();
+    }
+
+    public void throwIfFailed() throws Exception {
+      Optional<Exception> exception = Seq.seq(getException())
+          .append(getContextExceptions().values())
+          .reduce(Optional.<Exception>empty(),
+              (optional, anException) -> {
+                optional.ifPresent(firstException -> firstException.addSuppressed(anException));
+                return optional.or(() -> Optional.of(anException));
+              },
+              (u, v) -> v);
+      if (exception.isPresent()) {
+        throw exception.get();
+      }
     }
   }
 
@@ -247,7 +259,9 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
         .findAny();
   }
 
-  protected abstract ImmutableList<T> getExistingContexts();
+  protected abstract ImmutableList<H> getExistingContextResources();
+
+  protected abstract T getContextFromResource(H contextResource);
 
   private ImmutableList<HasMetadata> getExistingResources(KubernetesClient client, T context) {
     return ImmutableList.<HasMetadata>builder()
