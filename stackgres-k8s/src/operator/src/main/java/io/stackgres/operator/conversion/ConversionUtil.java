@@ -71,21 +71,4 @@ public interface ConversionUtil {
         + subSuffixVersion;
   }
 
-  static String extractSuffix(String version, String[] finalParts) {
-    if (finalParts.length > 3) {
-      throw new IllegalArgumentException(
-          "Version " + version + " is not parseable. Too many '-' characters");
-    }
-    if (finalParts.length == 1) {
-      return null;
-    }
-    if (finalParts.length == 2) {
-      return finalParts[1];
-    }
-    if (!finalParts[2].equals("SNAPSHOT")) {
-      throw new IllegalArgumentException(
-          "Version " + version + " is not parseable. Too many '-' characters");
-    }
-    return finalParts[1] + "-SNAPSHOT";
-  }
 }
