@@ -84,13 +84,13 @@
 								<template v-for="profile in profiles">
 									<template v-if="(profile.data.metadata.namespace == $route.params.namespace) && (cluster.data.spec.sgInstanceProfile == profile.name)">
 										<td class="cpu">
-											<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+cluster.name" title="Cluster Status" data-active=".set.clu" class="no-color" v-if="cluster.hasOwnProperty('podStats')">
-												{{ cluster.podStats.cpuRequested }}
+											<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+cluster.name" title="Cluster Status" data-active=".set.clu" class="no-color" v-if="hasProp(cluster,'status.cpuRequested')">
+												{{ cluster.status.cpuRequested }}
 											</router-link>
 										</td>
 										<td class="ram">
-											<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+cluster.name" title="Cluster Status" data-active=".set.clu" class="no-color" v-if="cluster.hasOwnProperty('podStats')">
-												{{ cluster.podStats.memoryRequested.replace('.00','') }}
+											<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+cluster.name" title="Cluster Status" data-active=".set.clu" class="no-color" v-if="hasProp(cluster,'status.memoryRequested')">
+												{{ cluster.status.memoryRequested.replace('.00','') }}
 											</router-link>
 										</td>
 									</template>

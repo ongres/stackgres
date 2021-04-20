@@ -105,37 +105,40 @@ export const mixin = {
           .then( function(response){
   
             response.data.forEach( function(item, index) {
+
+              /* if(!index)
+                store.commit('flushClusters') */
   
               var cluster = {
                 name: item.metadata.name,
                 data: item,
                 hasBackups: false,
-                status: {},
+                status: {}
               };
               
               
               if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
                 store.commit('updateNamespaces', item.metadata.namespace);
 
-              axios
-                .get('/stackgres/sgcluster/stats/'+item.metadata.namespace+'/'+item.metadata.name,
-                    { headers: {
-                        'content-type': 'application/json'
-                    }
-                    }
-                )
-                .then( function(resp){
-                  //console.log(response.data);
-                  cluster.status = resp.data;
-                }).catch(function(err) {
-                  console.log(err);
-                  vc.checkAuthError(err);
-                });
-              
-              if(!index)
-                store.commit('flushClusters')
-              
               store.commit('updateClusters', cluster);
+
+              axios
+              .get('/stackgres/sgcluster/stats/'+cluster.data.metadata.namespace+'/'+cluster.data.metadata.name,
+                { 
+                  headers: {
+                    'content-type': 'application/json'
+                  }
+                }
+              )
+              .then( function(resp) {
+                store.commit('updateClusterStats', {
+                  name: cluster.data.metadata.name,
+                  namespace: cluster.data.metadata.namespace,
+                  stats: resp.data
+                })
+              }).catch(function(err) {
+                console.log(err);
+              });
 
               // Set as current cluster if no other cluster has already been set
               if(!store.state.currentCluster)              
