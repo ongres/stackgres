@@ -30,16 +30,23 @@ build documentation:
     STACKGRES_DOC_VERSION="$(printf "%s" "$STACKGRES_VERSION" | cut -d . -f 1-2)$(printf "%s" "$STACKGRES_VERSION" \
       | grep -q ".-SNAPSHOT$" && printf "%s" "-dev" || true)"
   - |
+    DOCUMENTATION_EXTRA_PATH=""
     if [[ ! -z "$CI_COMMIT_TAG" && ! "$CI_COMMIT_TAG" =~ ^latest-.*$ ]]
     then
       DOCUMENTATION_BASE_URL="https://stackgres.io/doc"
     else
       DOCUMENTATION_BASE_URL="https://ongresinc.gitlab.io/stackgres"
+      if [ "${CI_COMMIT_REF_NAME%%-*}" != "development" ] && [ "${CI_COMMIT_REF_NAME%%-*}" != "master" ]
+      then
+        DOCUMENTATION_EXTRA_PATH="$CI_COMMIT_REF_NAME/"
+      fi
     fi
-  - mkdir -p "doc/public/$STACKGRES_VERSION"
-  - hugo -v --source doc --destination "$(pwd)/doc/public/$STACKGRES_DOC_VERSION" --baseURL="$DOCUMENTATION_BASE_URL/$STACKGRES_DOC_VERSION"
+  - mkdir -p "doc/public/$DOCUMENTATION_EXTRA_PATH$STACKGRES_VERSION"
+  - hugo -v --source doc --destination "$(pwd)/doc/public/$DOCUMENTATION_EXTRA_PATH$STACKGRES_DOC_VERSION" --baseURL="$DOCUMENTATION_BASE_URL/$DOCUMENTATION_EXTRA_PATH$STACKGRES_DOC_VERSION"
   - |
-    if [ "$LATEST" = true ]
+    if ( [[ ! -z "$CI_COMMIT_TAG" && ! "$CI_COMMIT_TAG" =~ ^latest-.*$ ]] \
+        || [ "${CI_COMMIT_REF_NAME%%-*}" = "development" ] || [ "${CI_COMMIT_REF_NAME%%-*}" = "master" ] ) \
+      && [ "$LATEST" = true ]
     then
       hugo -v --source doc --destination "$(pwd)/doc/public/latest" --baseURL="$DOCUMENTATION_BASE_URL/latest"
     fi
