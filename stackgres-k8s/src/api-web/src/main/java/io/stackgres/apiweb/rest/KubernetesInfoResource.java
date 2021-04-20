@@ -26,7 +26,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 @RequestScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class ClusterInfoResource {
+public class KubernetesInfoResource {
 
   @Inject
   KubernetesClientFactory clientFactory;

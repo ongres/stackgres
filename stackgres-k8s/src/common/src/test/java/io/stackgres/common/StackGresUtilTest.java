@@ -6,11 +6,16 @@
 package io.stackgres.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class StackGresUtilTest {
 
@@ -53,5 +58,65 @@ class StackGresUtilTest {
     int port = StackGresUtil.getPortFromUrl(url);
     assertEquals(9000, port);
 
+  }
+
+  @Test
+  void getServiceDnsName_shouldReturnLoadBalancerHostname() {
+    final String expected = "f4611c56942064ed5a468d8ce0a894ec.us-east-1.elb.amazonaws.com";
+    Service svc = new ServiceBuilder()
+        .withNewMetadata().withName("demo").withNamespace("testing").endMetadata()
+        .withNewSpec().withType("LoadBalancer").endSpec()
+        .withNewStatus().withNewLoadBalancer().addNewIngress()
+        .withHostname(expected)
+        .endIngress().endLoadBalancer().endStatus()
+        .build();
+    String actual = StackGresUtil.getServiceDnsName(svc);
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void getServiceDnsName_shouldReturnLoadBalancerIp() {
+    final String expected = "192.168.1.100";
+    Service svc = new ServiceBuilder()
+        .withNewMetadata().withName("demo").withNamespace("testing").endMetadata()
+        .withNewSpec().withType("LoadBalancer").endSpec()
+        .withNewStatus().withNewLoadBalancer().addNewIngress()
+        .withIp(expected)
+        .endIngress().endLoadBalancer().endStatus()
+        .build();
+    String actual = StackGresUtil.getServiceDnsName(svc);
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void getServiceDnsName_shouldReturnLocalDns_LoadBalancerWithoutStatus() {
+    final String expected = "demo.testing.svc.cluster.local";
+    Service svc = new ServiceBuilder()
+        .withNewMetadata().withName("demo").withNamespace("testing").endMetadata()
+        .withNewSpec().withType("LoadBalancer").endSpec()
+        .build();
+    String actual = StackGresUtil.getServiceDnsName(svc);
+    assertEquals(expected, actual);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"LoadBalancer", "ClusterIP", "NodePort"})
+  void getServiceDnsName_shouldReturnLocalDns(String type) {
+    final String expected = "demo.testing.svc.cluster.local";
+    Service svc = new ServiceBuilder()
+        .withNewMetadata().withName("demo").withNamespace("testing").endMetadata()
+        .withNewSpec().withType(type).endSpec()
+        .build();
+    String actual = StackGresUtil.getServiceDnsName(svc);
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void getServiceDnsName_shouldThrowsOnInvalidService() {
+    Service svc = new ServiceBuilder()
+        .withNewMetadata().withNamespace("testing").endMetadata()
+        .withNewSpec().withType("ClusterIP").endSpec()
+        .build();
+    assertThrows(IllegalStateException.class, () -> StackGresUtil.getServiceDnsName(svc));
   }
 }

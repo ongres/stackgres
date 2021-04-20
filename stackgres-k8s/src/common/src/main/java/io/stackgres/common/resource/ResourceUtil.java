@@ -8,14 +8,12 @@ package io.stackgres.common.resource;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.Random;
 import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -40,8 +38,7 @@ public class ResourceUtil {
   public static final BigDecimal LOAD_MULTIPLIER = new BigDecimal(1000);
   public static final BigDecimal KILOBYTE = new BigDecimal(1024);
 
-  private ResourceUtil() {
-  }
+  private ResourceUtil() {}
 
   /**
    * Filter metadata of resources to find if the name match in the provided list.
@@ -141,19 +138,6 @@ public class ResourceUtil {
         StandardCharsets.UTF_8);
   }
 
-  public static String generateRandom(int length) {
-    int leftLimit = 48; // numeral '0'
-    int rightLimit = 122; // letter 'z'
-    Random random = new SecureRandom();
-
-    return random.ints(leftLimit, rightLimit + 1)
-        .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))
-        .limit(length)
-        .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
-        .toString();
-
-  }
-
   public static Optional<BigInteger> toBigInteger(String value) {
     try {
       return Optional.of(new BigInteger(value));
@@ -204,7 +188,7 @@ public class ResourceUtil {
     return units.stream().reduce(
         Tuple.tuple(new BigDecimal(bytes), ""),
         (t, unit) -> t.v1.compareTo(KILOBYTE) >= 0
-        ? Tuple.tuple(t.v1.divide(KILOBYTE), unit)
+            ? Tuple.tuple(t.v1.divide(KILOBYTE), unit)
             : t,
         (u, v) -> v)
         .map((value, unit) -> getDecimalFormat().format(value) + unit);

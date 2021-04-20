@@ -1,7 +1,13 @@
 #!/bin/sh
 
-e2e_test_install_pods() {
-  echo 2
+. "$SPEC_PATH/abstract/patroni"
+
+e2e_test_install() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2"
+
+  deploy_curl_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 3
 }
 
 e2e_test() {

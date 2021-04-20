@@ -19,7 +19,12 @@ spec:
   {{- end }}
   {{- if .Values.cluster.initialData.restore }}
     restore:
-      fromBackup: {{ .Values.cluster.initialData.restore.fromBackup }}
+      fromBackup:
+        uid: {{ .Values.cluster.initialData.restore.fromBackup.uid }}
+        {{- if .Values.cluster.initialData.restore.fromBackup.pointInTimeRecovery }}
+        pointInTimeRecovery:
+          restoreToTimestamp: {{ .Values.cluster.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp }}
+        {{- end }}
       {{- if .Values.cluster.initialData.restore.downloadDiskConcurrency }}
       downloadDiskConcurrency: {{ .Values.cluster.initialData.restore.downloadDiskConcurrency }}
     {{- end }}

@@ -20,7 +20,7 @@ public class ClusterRestore {
   private Integer downloadDiskConcurrency;
 
   @JsonProperty("fromBackup")
-  private String backupUid;
+  private ClusterRestoreFromBackup fromBackup;
 
   public Integer getDownloadDiskConcurrency() {
     return downloadDiskConcurrency;
@@ -30,12 +30,12 @@ public class ClusterRestore {
     this.downloadDiskConcurrency = downloadDiskConcurrency;
   }
 
-  public String getBackupUid() {
-    return backupUid;
+  public ClusterRestoreFromBackup getFromBackup() {
+    return fromBackup;
   }
 
-  public void setBackupUid(String backupUid) {
-    this.backupUid = backupUid;
+  public void setFromBackup(ClusterRestoreFromBackup fromBackup) {
+    this.fromBackup = fromBackup;
   }
 
   @Override

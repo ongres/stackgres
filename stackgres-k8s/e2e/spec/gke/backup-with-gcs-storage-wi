@@ -39,8 +39,8 @@ e2e_test_install() {
     --set-string cluster.configurations.shBackupConfig=backupconf \
     --set-string cluster.metadata.annotations.allResources.iam\\.gke\\.io/gcp-service-account="$K8S_GKE_SERVICEACCOUNT@$K8S_GKE_PROJECT.iam.gserviceaccount.com"
 
-
   wait_pods_running "$CLUSTER_NAMESPACE" 1
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   wait_until check_connectivity -i 0
   create_mock_data
@@ -119,7 +119,8 @@ spec:
   initialData:
     restore:
       downloadDiskConcurrency: 10
-      fromBackup: "$BACKUP_UID"
+      fromBackup:
+        uid: "$BACKUP_UID"
 EOF
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2

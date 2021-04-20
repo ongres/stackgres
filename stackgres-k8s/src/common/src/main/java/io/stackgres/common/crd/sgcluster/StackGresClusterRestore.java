@@ -7,6 +7,9 @@ package io.stackgres.common.crd.sgcluster;
 
 import java.util.Objects;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -25,7 +28,9 @@ public class StackGresClusterRestore implements KubernetesResource {
   private Integer downloadDiskConcurrency;
 
   @JsonProperty("fromBackup")
-  private String backupUid;
+  @Valid
+  @NotNull(message = "fromBackup configuration cannot be null")
+  private StackGresClusterRestoreFromBackup fromBackup;
 
   public Integer getDownloadDiskConcurrency() {
     return downloadDiskConcurrency;
@@ -35,17 +40,17 @@ public class StackGresClusterRestore implements KubernetesResource {
     this.downloadDiskConcurrency = downloadDiskConcurrency;
   }
 
-  public String getBackupUid() {
-    return backupUid;
+  public StackGresClusterRestoreFromBackup getFromBackup() {
+    return fromBackup;
   }
 
-  public void setBackupUid(String backupUid) {
-    this.backupUid = backupUid;
+  public void setFromBackup(StackGresClusterRestoreFromBackup fromBackup) {
+    this.fromBackup = fromBackup;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(backupUid, downloadDiskConcurrency);
+    return Objects.hash(fromBackup, downloadDiskConcurrency);
   }
 
   @Override
@@ -57,7 +62,7 @@ public class StackGresClusterRestore implements KubernetesResource {
       return false;
     }
     StackGresClusterRestore other = (StackGresClusterRestore) obj;
-    return Objects.equals(backupUid, other.backupUid)
+    return Objects.equals(fromBackup, other.fromBackup)
         && Objects.equals(downloadDiskConcurrency, other.downloadDiskConcurrency);
   }
 

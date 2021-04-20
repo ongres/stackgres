@@ -8,7 +8,7 @@ package io.stackgres.apiweb.resource;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
-import io.stackgres.testutil.StringUtils;
+import io.stackgres.common.StringUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -28,7 +28,7 @@ class SecretTransactionHandlerTest extends TransactionHandlerTest<Secret> {
         .withNewMetadata()
         .withName("testSecret")
         .endMetadata()
-        .withData(ImmutableMap.of("testKey", StringUtils.getRandomString()))
+        .withData(ImmutableMap.of("testKey", StringUtil.generateRandom()))
         .build();
   }
 

@@ -8,7 +8,7 @@ package io.stackgres.apiweb.resource;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.stackgres.testutil.StringUtils;
+import io.stackgres.common.StringUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -29,7 +29,7 @@ class ConfigMapTransactionHandlerTest extends TransactionHandlerTest<ConfigMap> 
         .withNewMetadata()
         .withName("testConfigMap")
         .endMetadata()
-        .withData(ImmutableMap.of("testKey", StringUtils.getRandomString()))
+        .withData(ImmutableMap.of("testKey", StringUtil.generateRandom()))
         .build();
   }
 

@@ -5,19 +5,11 @@
 
 package io.stackgres.apiweb.security;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
-import java.security.GeneralSecurityException;
-import java.security.PrivateKey;
 import java.util.UUID;
 
 import com.google.common.hash.Hashing;
-import com.google.common.io.Files;
-import io.quarkus.security.AuthenticationFailedException;
-import io.smallrye.jwt.KeyUtils;
 import io.smallrye.jwt.build.Jwt;
-import io.smallrye.jwt.build.JwtClaimsBuilder;
 import org.eclipse.microprofile.jwt.Claims;
 
 public class TokenUtils {
@@ -37,29 +29,20 @@ public class TokenUtils {
    */
   public static String generateTokenString(String k8sUsername,
       String preferredUsername, long duration, String privateKeyPath) {
-    PrivateKey privateKey;
-    try {
-      privateKey = KeyUtils.decodePrivateKey(Files.asCharSource(
-          Paths.get(privateKeyPath).toFile(), StandardCharsets.UTF_8)
-          .read());
-    } catch (IOException | GeneralSecurityException e) {
-      throw new AuthenticationFailedException();
-    }
-
     long currentTimeInSecs = currentTimeInSecs();
     long exp = currentTimeInSecs + duration;
 
-    JwtClaimsBuilder claims = Jwt.claims();
-    claims.issuer(ISSUER)
+    return Jwt.claims()
+        .issuer(ISSUER)
         .audience(AUDIENCE)
         .claim(Claims.jti.name(), UUID.randomUUID())
         .subject(k8sUsername)
         .preferredUserName(preferredUsername)
         .issuedAt(currentTimeInSecs)
         .claim(Claims.auth_time.name(), currentTimeInSecs)
-        .expiresAt(exp);
-
-    return claims.jws().sign(privateKey);
+        .expiresAt(exp)
+        .jws()
+        .sign(privateKeyPath);
   }
 
   /**

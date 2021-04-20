@@ -142,7 +142,7 @@ EOF
     local pids
   
     kind get nodes --name "$KIND_NAME" \
-      | xargs -r -n 1 -I % -P 0 sh -ec "
+      | xargs -r -n 1 -I % -P "$E2E_PARALLELISM" sh -ec "
       docker exec '%' sh -c 'DEBIAN_FRONTEND=noninteractive apt-get update -y -qq < /dev/null > /dev/null'
       docker exec '%' sh -c 'DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nfs-common < /dev/null > /dev/null'
       "
@@ -226,7 +226,7 @@ load_certificate_k8s() {
   echo "Loading certificate $1 in kind environemnt $KIND_NAME..."
 
   kind get nodes --name "$KIND_NAME" \
-    | xargs -r -n 1 -I % -P 0 sh -ec "
+    | xargs -r -n 1 -I % -P "$E2E_PARALLELISM" sh -ec "
     docker cp '$1' '%':/usr/local/share/ca-certificates/validator.crt
     docker exec '%' sh -c "update-ca-certificates"
     "

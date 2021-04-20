@@ -20,7 +20,7 @@ public interface CustomResourceScanner<T> {
    *
    * @return {@code List<T>} if the resource was found or throws an exception.
    */
-  @NotNull List<T> getResources();
+  @NotNull List<@NotNull T> getResources();
 
   /**
    * scans the cluster for resources T in the given namespaces.
@@ -28,14 +28,14 @@ public interface CustomResourceScanner<T> {
    * @param namespace the namespace to look into
    * @return {@code List<T>} if the resource was found or throws an exception.
    */
-  @NotNull List<T> getResources(String namespace);
+  @NotNull List<@NotNull T> getResources(String namespace);
 
   /**
    * scans the cluster for resource <code>T</code> in all namespaces.
    *
    * @return {@code List<T>} if the resource was found or empty otherwise
    */
-  @NotNull Optional<List<T>> findResources();
+  @NotNull Optional<List<@NotNull T>> findResources();
 
   /**
    * scans the cluster for resources T in the given namespaces.
@@ -43,6 +43,6 @@ public interface CustomResourceScanner<T> {
    * @param namespace the namespace to look into
    * @return {@code List<T>} if the resource was found or empty otherwise
    */
-  @NotNull Optional<List<T>> findResources(String namespace);
+  @NotNull Optional<List<@NotNull T>> findResources(String namespace);
 
 }

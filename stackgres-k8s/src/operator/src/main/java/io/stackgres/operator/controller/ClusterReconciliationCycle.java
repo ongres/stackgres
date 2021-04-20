@@ -414,7 +414,8 @@ public class ClusterReconciliationCycle
         .map(StackGresClusterInitData::getRestore)
         .flatMap(restore -> backupScanner.getResources()
             .stream()
-            .filter(backup -> backup.getMetadata().getUid().equals(restore.getBackupUid()))
+            .filter(backup -> backup.getMetadata().getUid()
+                .equals(restore.getFromBackup().getUid()))
             .findAny()
             .map(backup -> {
               Preconditions.checkNotNull(backup.getStatus(),

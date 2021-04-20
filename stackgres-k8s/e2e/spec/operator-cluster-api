@@ -18,6 +18,7 @@ e2e_test_install() {
   echo_raw "$OPERATOR_CLUSTER" > "$LOG_PATH/stackgres-cluster.json"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 4
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 e2e_test() {
@@ -383,6 +384,7 @@ check_create_cluster_with_inline_script() {
   create_cluster_with_api
   
   wait_pods_running "$CLUSTER_NAMESPACE" 4
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   insert_mock_data
 
@@ -441,6 +443,7 @@ check_create_cluster_with_secret_and_configmap_script() {
   create_cluster_with_api
 
   wait_pods_running "$CLUSTER_NAMESPACE" 4
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   insert_mock_data
 

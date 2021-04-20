@@ -28,6 +28,14 @@ bootstrap:
     keep_existing_recovery_conf: False
     recovery_conf:
       restore_command: 'exec-with-env "${RESTORE_ENV}" -- wal-g wal-fetch %f %p'
+$(
+  if [ -n "$RECOVERY_TARGET_TIME" ]
+  then
+    cat << SUB_EOF
+      recovery_target_time: '$RECOVERY_TARGET_TIME'
+SUB_EOF
+  fi
+)
       recovery_target_timeline: 'latest'
       recovery_target_action: 'promote'
   initdb:

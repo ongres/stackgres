@@ -63,7 +63,7 @@ public class RestoreConfigValidator implements ClusterValidator {
 
   private void checkBackup(StackGresClusterReview review,
                            StackGresClusterRestore restoreConfig) throws ValidationFailed {
-    String backupUid = restoreConfig.getBackupUid();
+    String backupUid = restoreConfig.getFromBackup().getUid();
 
     switch (review.getRequest().getOperation()) {
       case CREATE:
@@ -100,7 +100,7 @@ public class RestoreConfigValidator implements ClusterValidator {
       case UPDATE:
         StackGresClusterRestore oldRestoreConfig = review.getRequest()
             .getOldObject().getSpec().getInitData().getRestore();
-        String oldBackupUid = oldRestoreConfig.getBackupUid();
+        String oldBackupUid = oldRestoreConfig.getFromBackup().getUid();
 
         final String message = "Cannot update cluster's restore configuration";
         if (backupUid == null && oldBackupUid != null

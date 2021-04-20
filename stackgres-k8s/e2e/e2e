@@ -10,6 +10,7 @@ fi
 SHELL_XTRACE="$(! echo $- | grep -q x || echo "-x")"
 
 export E2E_PATH="$(realpath "$(dirname "$0")")"
+export E2E_PARALLELISM="${E2E_PARALLELISM:-$(getconf _NPROCESSORS_ONLN)}"
 export TARGET_PATH="$(realpath "${TARGET_PATH:-$E2E_PATH/target}")"
 export LOG_PATH="$TARGET_PATH"
 

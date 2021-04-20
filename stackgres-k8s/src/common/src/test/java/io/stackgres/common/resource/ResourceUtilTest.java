@@ -5,18 +5,23 @@
 
 package io.stackgres.common.resource;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.math.BigInteger;
 import java.util.Optional;
 
 import com.google.common.collect.ImmutableList;
+import io.stackgres.common.StringUtil;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
-public class ResourceUtilTest {
+class ResourceUtilTest {
 
   @Test
-  public void testMillicpus() {
+  void testMillicpus() {
     Assertions.assertIterableEquals(
         ImmutableList.of("0m", "1000m", "3000m"),
         Seq.of("0", "error", "1", "3")
@@ -28,7 +33,7 @@ public class ResourceUtilTest {
   }
 
   @Test
-  public void testMilliload() {
+  void testMilliload() {
     Assertions.assertIterableEquals(
         ImmutableList.of("0.12", "30.20"),
         Seq.of("0.12", "30.20", "error")
@@ -40,7 +45,7 @@ public class ResourceUtilTest {
   }
 
   @Test
-  public void testBytesWithUnit() {
+  void testBytesWithUnit() {
     Assertions.assertIterableEquals(
         ImmutableList.of("1023.00", "1.00Ki", "30.29Mi", "1.29Gi", "2.01Ti"),
         Seq.<Long>of(
@@ -54,4 +59,15 @@ public class ResourceUtilTest {
             .toList());
   }
 
+  @RepeatedTest(10)
+  void testGenerateRandomIsLetterOrDigit() {
+    assertTrue(StringUtil.generateRandom(500).codePoints()
+        .allMatch(Character::isLetterOrDigit));
+  }
+
+  @RepeatedTest(10)
+  void testGenerateRandomIsNotLessThan8() {
+    String rand = StringUtil.generateRandom();
+    assertFalse(rand.length() < 8, rand + " is < 8 (length " + rand.length() + ")");
+  }
 }

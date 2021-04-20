@@ -13,7 +13,7 @@ import javax.enterprise.inject.Instance;
 
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ErrorType;
-import io.stackgres.testutil.StringUtils;
+import io.stackgres.common.StringUtil;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
@@ -77,7 +77,7 @@ public abstract class DefaultKeeperTest<R extends CustomResource<?, ?>,
     R defaultResource = getDefault();
 
     defaultResource.getMetadata().setNamespace(sample.getRequest().getObject().getMetadata().getNamespace());
-    defaultResource.getMetadata().setName(StringUtils.getRandomString());
+    defaultResource.getMetadata().setName(StringUtil.generateRandom());
 
     when(factory.buildResource()).thenReturn(defaultResource);
 
@@ -92,7 +92,7 @@ public abstract class DefaultKeeperTest<R extends CustomResource<?, ?>,
     T sample = getUpdateSample();
     R defaultResource = getDefault();
 
-    defaultResource.getMetadata().setNamespace(StringUtils.getRandomString());
+    defaultResource.getMetadata().setNamespace(StringUtil.generateRandom());
     defaultResource.getMetadata().setName(sample.getRequest().getObject().getMetadata().getName());
 
     when(factory.buildResource()).thenReturn(defaultResource);
@@ -125,7 +125,7 @@ public abstract class DefaultKeeperTest<R extends CustomResource<?, ?>,
     R defaultResource = getDefault();
 
     defaultResource.getMetadata().setNamespace(sample.getRequest().getNamespace());
-    defaultResource.getMetadata().setName(StringUtils.getRandomString());
+    defaultResource.getMetadata().setName(StringUtil.generateRandom());
 
     when(factory.buildResource()).thenReturn(defaultResource);
     validator.init();
@@ -139,7 +139,7 @@ public abstract class DefaultKeeperTest<R extends CustomResource<?, ?>,
     T sample = getDeleteSample();
     R defaultResource = getDefault();
 
-    defaultResource.getMetadata().setNamespace(StringUtils.getRandomString());
+    defaultResource.getMetadata().setNamespace(StringUtil.generateRandom());
     defaultResource.getMetadata().setName(sample.getRequest().getName());
 
     when(factory.buildResource()).thenReturn(defaultResource);

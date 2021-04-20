@@ -21,12 +21,11 @@ import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import com.github.fge.jsonpatch.JsonPatchOperation;
-
-import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
-
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -87,7 +86,8 @@ class DefaultRestoreMutatorTest {
 
     StackGresClusterRestore restore = new StackGresClusterRestore();
     restore.setDownloadDiskConcurrency(null);
-    restore.setBackupUid(UUID.randomUUID().toString());
+    restore.setFromBackup(new StackGresClusterRestoreFromBackup());
+    restore.getFromBackup().setUid(UUID.randomUUID().toString());
 
     review.getRequest().getObject().getSpec().getInitData().setRestore(restore);
 
