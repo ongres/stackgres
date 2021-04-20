@@ -13,8 +13,8 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -112,8 +112,8 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
 
   @Override
   public int hashCode() {
-    return Objects.hash(awsCredentials, endpoint, enablePathStyleAddressing, bucket,
-        region, storageClass);
+    return Objects.hash(awsCredentials, bucket, enablePathStyleAddressing, endpoint, path, region,
+        storageClass);
   }
 
   @Override
@@ -121,34 +121,20 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
     if (this == obj) {
       return true;
     }
-    if (obj == null) {
-      return false;
-    }
     if (!(obj instanceof AwsS3CompatibleStorage)) {
       return false;
     }
     AwsS3CompatibleStorage other = (AwsS3CompatibleStorage) obj;
     return Objects.equals(awsCredentials, other.awsCredentials)
-        && Objects.equals(endpoint, other.endpoint)
-        && Objects.equals(enablePathStyleAddressing, other.enablePathStyleAddressing)
         && Objects.equals(bucket, other.bucket)
-        && Objects.equals(path, other.path)
-        && Objects.equals(region, other.region)
-        && Objects.equals(storageClass, other.storageClass);
+        && Objects.equals(enablePathStyleAddressing, other.enablePathStyleAddressing)
+        && Objects.equals(endpoint, other.endpoint) && Objects.equals(path, other.path)
+        && Objects.equals(region, other.region) && Objects.equals(storageClass, other.storageClass);
   }
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("bucket", bucket)
-        .add("path", path)
-        .add("awsCredentials", awsCredentials)
-        .add("region", region)
-        .add("endpoint", endpoint)
-        .add("enablePathStyleAddressing", enablePathStyleAddressing)
-        .add("storageClass", storageClass)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 
 }

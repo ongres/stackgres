@@ -13,8 +13,8 @@ import javax.validation.constraints.AssertTrue;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 import org.jooq.lambda.Seq;
 
 @JsonDeserialize
@@ -61,6 +61,11 @@ public class StackGresClusterPostgresService {
   }
 
   @Override
+  public int hashCode() {
+    return Objects.hash(enabled, type, annotations);
+  }
+
+  @Override
   public boolean equals(Object obj) {
     if (this == obj) {
       return true;
@@ -74,16 +79,7 @@ public class StackGresClusterPostgresService {
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(annotations, enabled, type);
-  }
-
-  @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("enabled", enabled)
-        .add("type", type)
-        .add("annotations", annotations)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 }

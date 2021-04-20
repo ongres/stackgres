@@ -9,9 +9,9 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.ResourceDto;
+import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 public class DistributedLogsDto extends ResourceDto {
@@ -43,12 +43,7 @@ public class DistributedLogsDto extends ResourceDto {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("metadata", getMetadata())
-        .add("spec", spec)
-        .add("status", status)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 
 }

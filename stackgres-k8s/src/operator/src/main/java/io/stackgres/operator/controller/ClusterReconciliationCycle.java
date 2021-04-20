@@ -57,6 +57,7 @@ import io.stackgres.common.crd.storages.AzureBlobStorageCredentials;
 import io.stackgres.common.crd.storages.GoogleCloudCredentials;
 import io.stackgres.common.crd.storages.GoogleCloudSecretKeySelector;
 import io.stackgres.common.crd.storages.GoogleCloudStorage;
+import io.stackgres.common.resource.ClusterScheduler;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.ResourceFinder;
@@ -64,14 +65,12 @@ import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.cluster.factory.Cluster;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSet;
 import io.stackgres.operator.common.ImmutableStackGresUserClusterContext;
-import io.stackgres.operator.common.ImmutableStackGresUserGeneratorContext;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.SidecarEntry;
 import io.stackgres.operator.common.StackGresBackupContext;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
-import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.common.StackGresRestoreContext;
 import io.stackgres.operator.common.StackGresUserClusterContext;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
@@ -107,6 +106,7 @@ public class ClusterReconciliationCycle
   private final CustomResourceScanner<StackGresDbOps> dbOpsScanner;
   private final ResourceFinder<Secret> secretFinder;
   private final CustomResourceScanner<PrometheusConfig> prometheusScanner;
+  private final ClusterScheduler clusterScheduler;
 
   private final LabelFactory<StackGresCluster> labelFactory;
 
@@ -129,6 +129,7 @@ public class ClusterReconciliationCycle
     @Inject CustomResourceScanner<StackGresDbOps> dbOpsScanner;
     @Inject ResourceFinder<Secret> secretFinder;
     @Inject CustomResourceScanner<PrometheusConfig> prometheusScanner;
+    @Inject ClusterScheduler clusterScheduler;
   }
 
   @Inject
@@ -149,6 +150,7 @@ public class ClusterReconciliationCycle
     this.dbOpsScanner = parameters.dbOpsScanner;
     this.secretFinder = parameters.secretFinder;
     this.prometheusScanner = parameters.prometheusScanner;
+    this.clusterScheduler = parameters.clusterScheduler;
   }
 
   public ClusterReconciliationCycle() {
@@ -167,6 +169,7 @@ public class ClusterReconciliationCycle
     this.dbOpsScanner = null;
     this.secretFinder = null;
     this.prometheusScanner = null;
+    this.clusterScheduler = null;
   }
 
   public static ClusterReconciliationCycle create(Consumer<Parameters> consumer) {
@@ -205,9 +208,12 @@ public class ClusterReconciliationCycle
             configResource.getMetadata().getName(),
         }).getMessage();
     logger.error(message, ex);
+    statusManager.updateCondition(
+        ClusterStatusCondition.CLUSTER_CONFIG_ERROR.getCondition(), context);
+    clusterScheduler.updateStatus(context.getCluster(),
+        StackGresCluster::getStatus,
+        StackGresCluster::setStatus);
     try (KubernetesClient client = clientSupplier.get()) {
-      statusManager.updateCondition(
-          ClusterStatusCondition.CLUSTER_CONFIG_ERROR.getCondition(), context, client);
       eventController.sendEvent(ClusterEventReason.CLUSTER_CONFIG_ERROR,
           message + ": " + ex.getMessage(), configResource, client);
     }
@@ -215,10 +221,7 @@ public class ClusterReconciliationCycle
 
   @Override
   protected ImmutableList<HasMetadata> getRequiredResources(StackGresClusterContext context) {
-    return ResourceGenerator.<StackGresGeneratorContext>with(
-        ImmutableStackGresUserGeneratorContext.builder()
-            .clusterContext(context)
-            .build())
+    return ResourceGenerator.<StackGresClusterContext>with(context)
         .of(HasMetadata.class)
         .append(cluster)
         .stream()
@@ -249,16 +252,12 @@ public class ClusterReconciliationCycle
   }
 
   private StackGresClusterContext getClusterConfig(StackGresCluster cluster) {
-    return ImmutableStackGresUserClusterContext.builder()
+    return Optional.of(ImmutableStackGresUserClusterContext.builder()
         .operatorContext(operatorContext)
         .cluster(cluster)
         .profile(getProfile(cluster))
         .postgresConfig(getPostgresConfig(cluster))
         .backupContext(getBackupContext(cluster))
-        .sidecars(getClusterSidecars(cluster).stream()
-            .map(sidecarFinder::getSidecarTransformer)
-            .map(Unchecked.function(sidecar -> getSidecarEntry(cluster, sidecar)))
-            .collect(ImmutableList.toImmutableList()))
         .backups(getBackups(cluster))
         .dbOps(getDbOps(cluster))
         .labels(labelFactory.clusterLabels(cluster))
@@ -272,7 +271,12 @@ public class ClusterReconciliationCycle
         .restoreContext(getRestoreContext(cluster))
         .prometheus(getPrometheus(cluster))
         .internalScripts(ImmutableList.of(getPostgresExporterInitScript()))
-        .build();
+        .build())
+        .map(context -> context.withSidecars(getClusterSidecars(cluster).stream()
+            .map(sidecarFinder::getSidecarTransformer)
+            .map(Unchecked.function(sidecar -> getSidecarEntry(context, sidecar)))
+            .collect(ImmutableList.toImmutableList())))
+        .get();
   }
 
   private StackGresClusterScriptEntry getPostgresExporterInitScript() {
@@ -333,9 +337,9 @@ public class ClusterReconciliationCycle
   }
 
   private <T> SidecarEntry<T> getSidecarEntry(
-      StackGresCluster cluster,
+      StackGresClusterContext context,
       StackGresClusterSidecarResourceFactory<T> sidecar) throws Exception {
-    Optional<T> sidecarConfig = sidecar.getConfig(cluster);
+    Optional<T> sidecarConfig = sidecar.getConfig(context);
     return new SidecarEntry<>(sidecar, sidecarConfig);
   }
 

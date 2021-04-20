@@ -43,6 +43,7 @@ public class ClusterReconciliator
 
   private final ClusterStatusManager statusManager;
   private final EventController eventController;
+  private final CustomResourceScheduler<StackGresCluster> clusterScheduler;
   private final CustomResourceScheduler<StackGresBackup> backupScheduler;
 
   @Dependent
@@ -51,6 +52,7 @@ public class ClusterReconciliator
     @Inject ObjectMapperProvider objectMapperProvider;
     @Inject ClusterStatusManager statusManager;
     @Inject EventController eventController;
+    @Inject CustomResourceScheduler<StackGresCluster> clusterScheduler;
     @Inject CustomResourceScheduler<StackGresBackup> backupScheduler;
   }
 
@@ -60,6 +62,7 @@ public class ClusterReconciliator
         parameters.handlerSelector, parameters.objectMapperProvider.objectMapper());
     this.statusManager = parameters.statusManager;
     this.eventController = parameters.eventController;
+    this.clusterScheduler = parameters.clusterScheduler;
     this.backupScheduler = parameters.backupScheduler;
   }
 
@@ -68,6 +71,7 @@ public class ClusterReconciliator
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.statusManager = null;
     this.eventController = null;
+    this.clusterScheduler = null;
     this.backupScheduler = null;
   }
 
@@ -78,7 +82,7 @@ public class ClusterReconciliator
 
   @Override
   protected void onPreConfigReconcilied(KubernetesClient client, StackGresClusterContext context) {
-    statusManager.updatePendingRestart(context, client);
+    statusManager.updatePendingRestart(context);
     boolean isRestartPending = statusManager.isPendingRestart(context);
     context.getRequiredResources().stream()
         .map(Tuple2::v1)
@@ -140,7 +144,10 @@ public class ClusterReconciliator
         "StackGres Cluster " + cluster.getMetadata().getNamespace() + "."
         + cluster.getMetadata().getName() + " created", cluster, client);
     statusManager.updateCondition(
-        ClusterStatusCondition.FALSE_FAILED.getCondition(), context, client);
+        ClusterStatusCondition.FALSE_FAILED.getCondition(), context);
+    clusterScheduler.updateStatus(context.getCluster(),
+        StackGresCluster::getStatus,
+        StackGresCluster::setStatus);
   }
 
   @Override
@@ -150,12 +157,18 @@ public class ClusterReconciliator
         "StackGres Cluster " + cluster.getMetadata().getNamespace() + "."
         + cluster.getMetadata().getName() + " updated", cluster, client);
     statusManager.updateCondition(
-        ClusterStatusCondition.FALSE_FAILED.getCondition(), context, client);
+        ClusterStatusCondition.FALSE_FAILED.getCondition(), context);
+    clusterScheduler.updateStatus(context.getCluster(),
+        StackGresCluster::getStatus,
+        StackGresCluster::setStatus);
   }
 
   @Override
   protected void onPostConfigReconcilied(KubernetesClient client, StackGresClusterContext context) {
-    statusManager.updatePendingRestart(context, client);
+    statusManager.updatePendingRestart(context);
+    clusterScheduler.updateStatus(context.getCluster(),
+        StackGresCluster::getStatus,
+        StackGresCluster::setStatus);
   }
 
 }

@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 import javax.enterprise.inject.spi.CDI;
 import javax.xml.bind.DatatypeConverter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -215,11 +214,11 @@ public class StackGresUtil {
       try {
         return CDI.current().select(YamlMapperProvider.class).get()
             .yamlMapper().writeValueAsString(pojoObject);
-      } catch (IllegalStateException ex) {
+      } catch (Exception ex) {
         return new YamlMapperProvider()
             .yamlMapper().writeValueAsString(pojoObject);
       }
-    } catch (JsonProcessingException ex) {
+    } catch (Exception ex) {
       throw new RuntimeException("Failed deserializing instance of "
           + pojoObject.getClass().getName(), ex);
     }

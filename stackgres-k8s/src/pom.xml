@@ -33,6 +33,7 @@
     <module>operator-framework</module>
     <module>operator</module>
     <module>api-web</module>
+    <module>cluster-controller</module>
     <module>distributedlogs-controller</module>
     <module>test-util</module>
     <module>jobs</module>
@@ -46,7 +47,6 @@
   </scm>
 
   <properties>
-    <stackgres.containerBuild>6.0</stackgres.containerBuild>
     <stackgres.group>stackgres.io</stackgres.group>
     <stackgres.crd.version>v1</stackgres.crd.version>
     <stackgres.operatorName>stackgres-operator</stackgres.operatorName>
@@ -60,6 +60,7 @@
     <quarkus.http.ssl.certificate.key-file>/etc/operator/certs/root.key</quarkus.http.ssl.certificate.key-file>
     <stackgres.conversionWebhooks>false</stackgres.conversionWebhooks>
     <stackgres.crdUpgrade>false</stackgres.crdUpgrade>
+    <stackgres.containerRegistry>docker.io</stackgres.containerRegistry>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- Java compilation -->
@@ -99,7 +100,6 @@
     <docker-maven-plugin.version>0.34.1</docker-maven-plugin.version>
     <jandex-maven-plugin.version>1.0.8</jandex-maven-plugin.version>
     <jandex.version>2.2.3.Final</jandex.version>
-    <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
     <build-helper-maven-plugin.version>3.2.0</build-helper-maven-plugin.version>
     <swagger-maven-plugin.version>2.1.5</swagger-maven-plugin.version>
     <!-- Checkstyle, SpotBugs and PMD properties -->
@@ -203,12 +203,6 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.jooq</groupId>
@@ -368,11 +362,6 @@
     </plugins>
     <pluginManagement>
       <plugins>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>exec-maven-plugin</artifactId>
-          <version>${exec-maven-plugin.version}</version>
-        </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>build-helper-maven-plugin</artifactId>

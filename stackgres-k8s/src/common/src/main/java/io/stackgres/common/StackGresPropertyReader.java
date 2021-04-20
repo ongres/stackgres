@@ -58,6 +58,19 @@ public interface StackGresPropertyReader {
 
   /**
    * Return first existing value of associated system property, environment variable or application
+   * property (in this exact sequence) as an array by splitting string using comma character ",".
+   * If the value is empty it returns the an empty array. Otherwise throw a
+   * {@code RuntimeException}.
+   */
+  default String[] getStringArray() {
+    if (getString().isEmpty()) {
+      return new String[0];
+    }
+    return getString().split(",");
+  }
+
+  /**
+   * Return first existing value of associated system property, environment variable or application
    * property (in this exact sequence).
    */
   default Optional<String> get() {

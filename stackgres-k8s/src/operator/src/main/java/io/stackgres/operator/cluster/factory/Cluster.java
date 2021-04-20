@@ -15,7 +15,7 @@ import javax.inject.Inject;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.operator.backup.BackupJob;
-import io.stackgres.operator.common.StackGresGeneratorContext;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.dbops.factory.DbOps;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
@@ -23,8 +23,7 @@ import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
 public class Cluster
-    implements SubResourceStreamFactory<HasMetadata,
-    StackGresGeneratorContext> {
+    implements SubResourceStreamFactory<HasMetadata, StackGresClusterContext> {
 
   private final ClusterStatefulSet clusterStatefulSet;
   private final BackupCronJob backupCronJob;
@@ -63,7 +62,7 @@ public class Cluster
   }
 
   @Override
-  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
+  public Stream<HasMetadata> streamResources(StackGresClusterContext context) {
     final List<HasMetadata> resources = ResourceGenerator
         .with(context)
         .of(HasMetadata.class)
@@ -77,8 +76,8 @@ public class Cluster
         .append(dbOps)
         .stream()
         .collect(ImmutableList.toImmutableList());
-    annotationDecorator.decorate(context.getClusterContext().getCluster(),
-        context.getClusterContext().getExistingResources().stream()
+    annotationDecorator.decorate(context.getCluster(),
+        context.getExistingResources().stream()
         .map(Tuple2::v1).collect(ImmutableList.toImmutableList()), resources);
     return resources.stream();
   }

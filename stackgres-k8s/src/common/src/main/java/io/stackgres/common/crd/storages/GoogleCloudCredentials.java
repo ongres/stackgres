@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -67,5 +68,10 @@ public class GoogleCloudCredentials {
     GoogleCloudCredentials other = (GoogleCloudCredentials) obj;
     return fetchCredentialsFromMetadataService == other.fetchCredentialsFromMetadataService
         && Objects.equals(secretKeySelectors, other.secretKeySelectors);
+  }
+
+  @Override
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
 }

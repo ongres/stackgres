@@ -42,4 +42,5 @@ public class ClusterDistributedLogs {
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
   }
+
 }

@@ -7,6 +7,8 @@ package io.stackgres.apiweb.dto.cluster;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -17,8 +19,10 @@ import io.stackgres.common.StackGresUtil;
 @RegisterForReflection
 public class ClusterInitData {
 
+  @Valid
   private ClusterRestore restore;
 
+  @Valid
   private List<ClusterScriptEntry> scripts;
 
   public ClusterRestore getRestore() {

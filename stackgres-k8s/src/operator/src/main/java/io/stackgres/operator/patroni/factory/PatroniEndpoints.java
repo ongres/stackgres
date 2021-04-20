@@ -27,11 +27,10 @@ import io.stackgres.common.ObjectMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
-import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.configuration.PatroniConfig;
 import io.stackgres.operator.patroni.factory.parameters.Blocklist;
 import io.stackgres.operator.patroni.factory.parameters.DefaultValues;
 import org.jooq.lambda.Seq;
@@ -60,23 +59,22 @@ public class PatroniEndpoints implements StackGresClusterResourceStreamFactory {
    * Create the EndPoint associated with the cluster.
    */
   @Override
-  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
+  public Stream<HasMetadata> streamResources(StackGresClusterContext context) {
     return Seq.of(
         Optional.of(createConfigEndpoints(context)))
         .filter(Optional::isPresent)
         .map(Optional::get);
   }
 
-  private Endpoints createConfigEndpoints(StackGresGeneratorContext context) {
-    final StackGresClusterContext clusterContext = context.getClusterContext();
-    final StackGresCluster cluster = clusterContext.getCluster();
+  private Endpoints createConfigEndpoints(StackGresClusterContext context) {
+    final StackGresCluster cluster = context.getCluster();
     final String namespace = cluster.getMetadata().getNamespace();
-    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
+    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(context);
     final Map<String, String> labels = labelFactory
         .patroniClusterLabels(cluster);
     Map<String, String> params = new HashMap<>(DefaultValues.getDefaultValues());
 
-    Optional<StackGresPostgresConfig> pgconfig = clusterContext.getPostgresConfig();
+    Optional<StackGresPostgresConfig> pgconfig = context.getPostgresConfig();
     if (pgconfig.isPresent()) {
       Map<String, String> userParams = pgconfig.get().getSpec().getPostgresqlConf();
       // Blacklist removal
@@ -90,13 +88,16 @@ public class PatroniEndpoints implements StackGresClusterResourceStreamFactory {
 
     params.put("port", String.valueOf(EnvoyUtil.PG_PORT));
 
-    if (clusterContext.getBackupContext().isPresent()) {
+    if (context.getBackupContext().isPresent()) {
       params.put("archive_command",
-          "exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value() + "'"
+          "exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value(context) + "'"
               + " -- wal-g wal-push %p");
     } else {
       params.put("archive_command", "/bin/true");
     }
+
+    params.put("dynamic_library_path",
+        "$libdir:/opt/stackgres/lib");
 
     if (Optional.ofNullable(cluster.getSpec().getDistributedLogs())
         .map(StackGresClusterDistributedLogs::getDistributedLogs)
@@ -132,10 +133,10 @@ public class PatroniEndpoints implements StackGresClusterResourceStreamFactory {
     return new EndpointsBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
-        .withName(patroniServices.configName(clusterContext))
+        .withName(patroniServices.configName(context))
         .withLabels(labels)
         .withAnnotations(ImmutableMap.of(PATRONI_CONFIG_KEY, patroniConfigJson))
-        .withOwnerReferences(clusterContext.getOwnerReferences())
+        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .build();
   }

@@ -19,7 +19,7 @@ fi
 ENV_PATH="$TARGET_PATH/envs.$$"
 export E2E_BUILD_IMAGES=false
 export K8S_FROM_DIND=true
-env | grep '^\(E2E_\|K8S_\|KIND_\|JAVA_\)' > "$ENV_PATH"
+env | grep '^\(IMAGE_TAG\|E2E_\|K8S_\|KIND_\|JAVA_\|EXTENSIONS_\)' > "$ENV_PATH"
 if docker ps -a | grep -q "\s$E2E_CONTAINER_NAME$"
 then
   docker rm -fv "$E2E_CONTAINER_NAME"

@@ -25,7 +25,7 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.LabelFactory;
-import io.stackgres.common.StackGresProperty;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -35,8 +35,6 @@ import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
-import io.stackgres.operator.common.StackGresComponents;
-import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 
@@ -45,8 +43,6 @@ import org.jooq.lambda.Seq;
 public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
 
   public static final String NAME = StackgresClusterContainers.FLUENT_BIT;
-  public static final String IMAGE_NAME = "docker.io/ongres/fluentbit:v%s-build-%s";
-  private static final String DEFAULT_VERSION = StackGresComponents.get("fluentbit");
 
   private static final String CONFIG_SUFFIX = "-fluent-bit";
 
@@ -62,11 +58,10 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
   }
 
   @Override
-  public Container getContainer(StackGresGeneratorContext context) {
+  public Container getContainer(StackGresClusterContext context) {
     return new ContainerBuilder()
         .withName(NAME)
-        .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION,
-            StackGresProperty.CONTAINER_BUILD.getString()))
+        .withImage(StackGresComponent.FLUENT_BIT.findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withStdin(Boolean.TRUE)
         .withTty(Boolean.TRUE)
@@ -110,23 +105,15 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
             + "  fi\n"
             + "  sleep 5\n"
             + "done\n")
-        .withEnv(clusterStatefulSetEnvironmentVariables.listResources(context.getClusterContext()))
+        .withEnv(clusterStatefulSetEnvironmentVariables.listResources(context))
         .withVolumeMounts(
-            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.PG_LOG_PATH, context.getClusterContext()),
+            ClusterStatefulSetVolumeConfig.LOG.volumeMount(context),
             new VolumeMountBuilder()
             .withName(NAME)
             .withMountPath("/etc/fluent-bit")
             .withReadOnly(Boolean.TRUE)
-            .build(),
-            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.ETC_PASSWD_PATH, context.getClusterContext()),
-            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.ETC_GROUP_PATH, context.getClusterContext()),
-            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.ETC_SHADOW_PATH, context.getClusterContext()),
-            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.ETC_GSHADOW_PATH, context.getClusterContext()))
+            .build())
+        .addAllToVolumeMounts(ClusterStatefulSetVolumeConfig.USER.volumeMounts(context))
         .build();
   }
 
@@ -142,9 +129,8 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
   }
 
   @Override
-  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
-    final StackGresClusterContext clusterContext = context.getClusterContext();
-    final StackGresCluster cluster = clusterContext.getCluster();
+  public Stream<HasMetadata> streamResources(StackGresClusterContext context) {
+    final StackGresCluster cluster = context.getCluster();
     final String namespace = cluster.getMetadata().getNamespace();
     final String fluentdRelativeId = cluster.getSpec()
         .getDistributedLogs().getDistributedLogs();
@@ -188,7 +174,7 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
         + "    Regex       ^[^.]+\\.[^.]+\\.[^.]+\\."
           + "(?<namespace_name>[^.]+)\\.(?<pod_name>[^.]+)$\n"
         + "\n";
-    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
+    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(context);
     final String clusterNamespace = labelFactory.clusterNamespace(cluster);
     String fluentBitConfigFile = ""
         + "[SERVICE]\n"
@@ -258,9 +244,9 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
     ConfigMap configMap = new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
-        .withName(configName(clusterContext))
+        .withName(configName(context))
         .withLabels(labelFactory.clusterLabels(cluster))
-        .withOwnerReferences(clusterContext.getOwnerReferences())
+        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .withData(data)
         .build();
@@ -269,12 +255,11 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
   }
 
   @Override
-  public ImmutableList<Volume> getVolumes(
-      StackGresGeneratorContext context) {
+  public ImmutableList<Volume> getVolumes(StackGresClusterContext context) {
     return ImmutableList.of(new VolumeBuilder()
         .withName(NAME)
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
-            .withName(configName(context.getClusterContext()))
+            .withName(configName(context))
             .build())
         .build());
   }

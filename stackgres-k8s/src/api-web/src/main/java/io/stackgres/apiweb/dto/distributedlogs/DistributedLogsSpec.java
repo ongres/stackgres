@@ -68,4 +68,5 @@ public class DistributedLogsSpec implements KubernetesResource {
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
   }
+
 }

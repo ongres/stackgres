@@ -332,6 +332,33 @@ spec:
                          the retention window previously specified. If no retention window was previously specified it is considered
                          to be of 7 days. This means that if previous retention window is of `7 days` new retention configuration will
                          apply after UTC timestamp calculated with: `SELECT date_trunc('days', now() at time zone 'UTC') - INTERVAL '7 days'`.
+                postgresExtensions:
+                  type: array
+                  description: |
+                    StackGres support deploy of extensions at runtime by simply adding an entry to this array. A deployed extension still
+                    requires the creation in a database using the [`CREATE EXTENSION`](https://www.postgresql.org/docs/current/sql-createextension.html)
+                    statement. After an extension is deployed correctly it will be present until removed and the cluster restarted.
+                    
+                    A cluster restart is required for:
+                    * Extensions that requires to add an entry to [`shared_preload_libraries`](https://postgresqlco.nf/en/doc/param/shared_preload_libraries/) configuration parameter.
+                    * Upgrading extensions that overwrite any file that is not the extension''s control file or extension''s script file.
+                    * Removing extensions. Until the cluster is not restarted a removed extension will still be available.
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: The name of the extension to deploy.
+                      publisher:
+                        type: string
+                        description: The id of the publisher of the extension to deploy. If not specified `com.ongres` will be used by default.
+                      version:
+                        type: string
+                        description: The version of the extension to deploy. If not specified version of `stable` channel will be used by default.
+                      repository:
+                        type: string
+                        description: The repository base URL from where to obtain the extension to deploy. If not specified https://stackgres.io/downloads/postgres/extensions will be used by default (or the value specified during operator deployment).
+                    required: ["name"]
               required: ["instances", "postgresVersion", "pods"]
             status:
               type: object
@@ -356,6 +383,44 @@ spec:
                       type:
                         description: Type of deployment condition.
                         type: string
+                podStatuses:
+                  type: array
+                  description: The list of pod statuses.
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: The name of the pod.
+                      pendingRestart:
+                        type: boolean
+                        description: Indicate if the pod requires restart
+                      installedPostgresExtensions:
+                        type: array
+                        description: The list of extensions currently installed.
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: The name of the installed extension.
+                            publisher:
+                              type: string
+                              description: The id of the publisher of the installed extension.
+                            version:
+                              type: string
+                              description: The version of the installed extension.
+                            repository:
+                              type: string
+                              description: The repository base URL from where the extension was installed.
+                            postgresVersion:
+                              type: string
+                              description: The postgres major version of the installed extension.
+                            build:
+                              type: string
+                              description: The build version of the installed extension.
+                          required: ["name", "publisher", "version", "repository", "postgresVersion"]
+                    required: ["name"]
                 dbOps:
                   type: object
                   description: |

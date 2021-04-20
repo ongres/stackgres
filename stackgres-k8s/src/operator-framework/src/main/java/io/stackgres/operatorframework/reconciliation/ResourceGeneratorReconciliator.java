@@ -47,7 +47,7 @@ public abstract class ResourceGeneratorReconciliator<
   }
 
   @Override
-  public void reconcile(KubernetesClient client, T context) {
+  public ReconciliationResult<?> reconcile(KubernetesClient client, T context) {
     onPreConfigReconcilied(client, context);
 
     H contextResource = resourceGetter.apply(context);
@@ -73,6 +73,8 @@ public abstract class ResourceGeneratorReconciliator<
     logger.debug("{} synced: '{}.{}'", name,
         contextResource.getMetadata().getNamespace(),
         contextResource.getMetadata().getName());
+
+    return new ReconciliationResult<>();
   }
 
   private void deleteUnwantedResources(KubernetesClient client, T context) {

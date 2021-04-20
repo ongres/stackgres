@@ -14,9 +14,9 @@ import javax.validation.Valid;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -30,6 +30,10 @@ public class StackGresClusterStatus implements KubernetesResource {
   @Valid
   private List<StackGresClusterCondition> conditions = new ArrayList<>();
 
+  @JsonProperty("podStatuses")
+  @Valid
+  private List<StackGresClusterPodStatus> podStatuses;
+
   @JsonProperty("dbOps")
   @Valid
   private StackGresClusterDbOpsStatus dbOps;
@@ -42,6 +46,14 @@ public class StackGresClusterStatus implements KubernetesResource {
     this.conditions = conditions;
   }
 
+  public List<StackGresClusterPodStatus> getPodStatuses() {
+    return podStatuses;
+  }
+
+  public void setPodStatuses(List<StackGresClusterPodStatus> podStatuses) {
+    this.podStatuses = podStatuses;
+  }
+
   public StackGresClusterDbOpsStatus getDbOps() {
     return dbOps;
   }
@@ -51,11 +63,8 @@ public class StackGresClusterStatus implements KubernetesResource {
   }
 
   @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("conditions", conditions)
-        .toString();
+  public int hashCode() {
+    return Objects.hash(conditions, podStatuses, dbOps);
   }
 
   @Override
@@ -68,11 +77,13 @@ public class StackGresClusterStatus implements KubernetesResource {
     }
     StackGresClusterStatus other = (StackGresClusterStatus) obj;
     return Objects.equals(conditions, other.conditions)
+        && Objects.equals(podStatuses, other.podStatuses)
         && Objects.equals(dbOps, other.dbOps);
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(conditions, dbOps);
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
+
 }

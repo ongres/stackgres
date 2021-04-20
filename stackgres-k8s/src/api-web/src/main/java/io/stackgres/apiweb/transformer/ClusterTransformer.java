@@ -23,6 +23,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterDbOpsSecurityUpgradeStatus;
 import io.stackgres.apiweb.dto.cluster.ClusterDbOpsStatus;
 import io.stackgres.apiweb.dto.cluster.ClusterDistributedLogs;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
+import io.stackgres.apiweb.dto.cluster.ClusterExtension;
 import io.stackgres.apiweb.dto.cluster.ClusterInitData;
 import io.stackgres.apiweb.dto.cluster.ClusterNonProduction;
 import io.stackgres.apiweb.dto.cluster.ClusterPod;
@@ -47,6 +48,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
+import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodMetadata;
@@ -247,7 +249,21 @@ public class ClusterTransformer
         }).orElse(null));
     transformation.setDistributedLogs(
         getCustomResourceDistributedLogs(source.getDistributedLogs()));
+    transformation.setPostgresExtensions(Optional.ofNullable(source.getPostgresExtensions())
+        .stream()
+        .flatMap(List::stream)
+        .map(this::getCustomResourceExtension)
+        .collect(ImmutableList.toImmutableList()));
 
+    return transformation;
+  }
+
+  private StackGresClusterExtension getCustomResourceExtension(ClusterExtension source) {
+    StackGresClusterExtension transformation = new StackGresClusterExtension();
+    transformation.setName(source.getName());
+    transformation.setPublisher(source.getPublisher());
+    transformation.setVersion(source.getVersion());
+    transformation.setRepository(source.getRepository());
     return transformation;
   }
 
@@ -449,7 +465,21 @@ public class ClusterTransformer
 
     transformation.setDistributedLogs(
         getResourceDistributedLogs(source.getDistributedLogs()));
+    transformation.setPostgresExtensions(Optional.ofNullable(source.getPostgresExtensions())
+        .stream()
+        .flatMap(List::stream)
+        .map(this::getResourceExtension)
+        .collect(ImmutableList.toImmutableList()));
 
+    return transformation;
+  }
+
+  private ClusterExtension getResourceExtension(StackGresClusterExtension source) {
+    ClusterExtension transformation = new ClusterExtension();
+    transformation.setName(source.getName());
+    transformation.setPublisher(source.getPublisher());
+    transformation.setVersion(source.getVersion());
+    transformation.setRepository(source.getRepository());
     return transformation;
   }
 

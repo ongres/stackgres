@@ -11,11 +11,21 @@ import org.jooq.lambda.Unchecked;
 
 public enum StackGresProperty implements StackGresPropertyReader {
 
-  CONTAINER_BUILD("stackgres.containerBuild"),
   OPERATOR_VERSION("stackgres.operatorVersion"),
   OPERATOR_IMAGE_VERSION("stackgres.operatorImageVersion"),
   DOCUMENTATION_URI("stackgres.documentation.uri"),
-  DOCUMENTATION_ERRORS_PATH("stackgres.documentation.errorsPath");
+  DOCUMENTATION_ERRORS_PATH("stackgres.documentation.errorsPath"),
+  SG_CONTAINER_REGISTRY("stackgres.containerRegistry"),
+  SG_IMAGE_POSTGRESQL("stackgres.imagePostgresql"),
+  SG_IMAGE_PATRONI("stackgres.imagePatroni"),
+  SG_IMAGE_POSTGRES_UTIL("stackgres.imagePostgresUtil"),
+  SG_IMAGE_PGBOUNCER("stackgres.imagePgbouncer"),
+  SG_IMAGE_PROMETHEUS_POSTGRES_EXPORTER("stackgres.imagePrometheusPostgresExporter"),
+  SG_IMAGE_ENVOY("stackgres.imageEnvoy"),
+  SG_IMAGE_FLUENT_BIT("stackgres.imageFluentBit"),
+  SG_IMAGE_FLUENTD("stackgres.imageFluentd"),
+  SG_IMAGE_CLUSTER_CONTROLLER("stackgres.imageClusterController"),
+  SG_IMAGE_DISTRIBUTEDLOGS_CONTROLLER("stackgres.imageDistributedlogsController");
 
   private static final Properties APPLICATION_PROPERTIES =
       Unchecked.supplier(() -> StackGresPropertyReader

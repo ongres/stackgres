@@ -13,8 +13,8 @@ import javax.validation.constraints.Positive;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -68,32 +68,28 @@ public class StackGresBaseBackupConfig {
   }
 
   @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("retention", retention)
-        .add("cronSchedule", cronSchedule)
-        .add("compression", compression)
-        .add("performance", performance)
-        .toString();
+  public int hashCode() {
+    return Objects.hash(compression, cronSchedule, performance, retention);
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof StackGresBaseBackupConfig)) {
       return false;
     }
-    StackGresBaseBackupConfig that = (StackGresBaseBackupConfig) o;
-    return Objects.equals(retention, that.retention)
-           && Objects.equals(cronSchedule, that.cronSchedule)
-           && Objects.equals(compression, that.compression)
-           && Objects.equals(performance, that.performance);
+    StackGresBaseBackupConfig other = (StackGresBaseBackupConfig) obj;
+    return Objects.equals(compression, other.compression)
+        && Objects.equals(cronSchedule, other.cronSchedule)
+        && Objects.equals(performance, other.performance)
+        && Objects.equals(retention, other.retention);
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(retention, cronSchedule, compression, performance);
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
+
 }

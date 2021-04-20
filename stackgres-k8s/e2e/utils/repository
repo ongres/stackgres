@@ -189,19 +189,17 @@ load_failed_images_pull_from_local_repository() {
 }
 
 docker_pull() {
+  docker pull -q "$1"
   if [ "$K8S_USE_INTERNAL_REPOSITORY" = true ]
   then
     pull_image_k8s "$1"
-  else
-    docker pull "$1"
   fi
 }
 
 docker_tag() {
+  docker tag "$1" "$2"
   if [ "$K8S_USE_INTERNAL_REPOSITORY" = true ]
   then
     tag_image_k8s "$1" "$2"
-  else
-    docker tag "$1" "$2"
   fi
 }

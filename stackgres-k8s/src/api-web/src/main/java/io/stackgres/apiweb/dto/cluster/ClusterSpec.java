@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -33,6 +35,9 @@ public class ClusterSpec {
 
   @JsonProperty("distributedLogs")
   private ClusterDistributedLogs distributedLogs;
+
+  @JsonProperty("postgresExtensions")
+  private List<ClusterExtension> postgresExtensions;
 
   @JsonProperty("pods")
   private ClusterPod pods;
@@ -119,6 +124,14 @@ public class ClusterSpec {
 
   public void setDistributedLogs(ClusterDistributedLogs distributedLogs) {
     this.distributedLogs = distributedLogs;
+  }
+
+  public List<ClusterExtension> getPostgresExtensions() {
+    return postgresExtensions;
+  }
+
+  public void setPostgresExtensions(List<ClusterExtension> postgresExtensions) {
+    this.postgresExtensions = postgresExtensions;
   }
 
   public ClusterPostgresServices getPostgresServices() {

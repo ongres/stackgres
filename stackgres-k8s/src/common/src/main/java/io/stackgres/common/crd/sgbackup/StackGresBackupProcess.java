@@ -13,8 +13,8 @@ import javax.validation.constraints.AssertTrue;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
 import org.jooq.lambda.Seq;
@@ -85,34 +85,27 @@ public class StackGresBackupProcess {
   }
 
   @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("status", status)
-        .add("jobPod", jobPod)
-        .add("failure", failure)
-        .add("managedLifecycle", managedLifecycle)
-        .add("timing", timing)
-        .toString();
+  public int hashCode() {
+    return Objects.hash(failure, jobPod, managedLifecycle, status, timing);
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof StackGresBackupProcess)) {
       return false;
     }
-    StackGresBackupProcess that = (StackGresBackupProcess) o;
-    return Objects.equals(status, that.status)
-        && Objects.equals(jobPod, that.jobPod)
-        && Objects.equals(failure, that.failure)
-        && Objects.equals(managedLifecycle, that.managedLifecycle)
-        && Objects.equals(timing, that.timing);
+    StackGresBackupProcess other = (StackGresBackupProcess) obj;
+    return Objects.equals(failure, other.failure) && Objects.equals(jobPod, other.jobPod)
+        && Objects.equals(managedLifecycle, other.managedLifecycle)
+        && Objects.equals(status, other.status) && Objects.equals(timing, other.timing);
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(status, jobPod, failure, managedLifecycle, timing);
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
+
 }

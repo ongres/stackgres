@@ -9,7 +9,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 
 public interface StackGresDistributedLogsResourceStreamFactory
-    extends SubResourceStreamFactory<HasMetadata,
-      StackGresDistributedLogsGeneratorContext> {
+    extends SubResourceStreamFactory<HasMetadata, StackGresDistributedLogsContext> {
 
 }

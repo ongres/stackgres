@@ -11,10 +11,7 @@ import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsCondition;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.distributedlogs.common.StackGresDistributedLogsContext;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
@@ -39,16 +36,4 @@ public class DistributedLogsStatusManager
     }
     context.getDistributedLogs().getStatus().setConditions(conditions);
   }
-
-  @Override
-  protected void patch(StackGresDistributedLogsContext context,
-      KubernetesClient client) {
-    StackGresDistributedLogs distributedLogs = context.getDistributedLogs();
-    client.customResources(StackGresDistributedLogs.class,
-        StackGresDistributedLogsList.class)
-        .inNamespace(distributedLogs.getMetadata().getNamespace())
-        .withName(distributedLogs.getMetadata().getName())
-        .patch(distributedLogs);
-  }
-
 }

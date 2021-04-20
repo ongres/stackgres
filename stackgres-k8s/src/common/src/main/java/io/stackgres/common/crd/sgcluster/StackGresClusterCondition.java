@@ -12,9 +12,9 @@ import javax.validation.constraints.NotBlank;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.operatorframework.resource.Condition;
 
 @JsonDeserialize
@@ -109,33 +109,27 @@ public class StackGresClusterCondition implements Condition, KubernetesResource 
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    final StackGresClusterCondition other = (StackGresClusterCondition) obj;
-    return Objects.equals(this.type, other.type)
-        && Objects.equals(this.status, other.status)
-        && Objects.equals(this.reason, other.reason);
+  public int hashCode() {
+    return Objects.hash(lastTransitionTime, message, reason, status, type);
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(this.type, this.status, this.reason);
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof StackGresClusterCondition)) {
+      return false;
+    }
+    StackGresClusterCondition other = (StackGresClusterCondition) obj;
+    return Objects.equals(lastTransitionTime, other.lastTransitionTime)
+        && Objects.equals(message, other.message) && Objects.equals(reason, other.reason)
+        && Objects.equals(status, other.status) && Objects.equals(type, other.type);
   }
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("type", getType())
-        .add("status", getStatus())
-        .add("reason", getReason())
-        .add("lastTransitionTime", getLastTransitionTime())
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 
 }

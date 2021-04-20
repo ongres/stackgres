@@ -31,10 +31,12 @@ import io.fabric8.kubernetes.api.model.TolerationBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
+import io.stackgres.common.ImmutableStorageConfig;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StorageConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
@@ -43,10 +45,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
-import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.common.StackGresPodSecurityContext;
-import io.stackgres.operator.configuration.ImmutableStorageConfig;
-import io.stackgres.operator.configuration.StorageConfig;
 import io.stackgres.operator.patroni.factory.Patroni;
 import io.stackgres.operator.patroni.factory.PatroniRole;
 import org.jooq.lambda.Seq;
@@ -91,10 +90,8 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
    * Create a new StatefulSet based on the StackGresCluster definition.
    */
   @Override
-  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
-    StackGresClusterContext clusterContext = context.getClusterContext();
-
-    final StackGresCluster cluster = clusterContext.getCluster();
+  public Stream<HasMetadata> streamResources(StackGresClusterContext context) {
+    final StackGresCluster cluster = context.getCluster();
     final String name = cluster.getMetadata().getName();
     final String namespace = cluster.getMetadata().getNamespace();
 
@@ -110,16 +107,16 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
         .withResources(dataStorageConfig.getResourceRequirements())
         .withStorageClassName(dataStorageConfig.getStorageClass());
 
-    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
+    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(context);
     final Map<String, String> labels = labelFactory.clusterLabels(cluster);
     final Map<String, String> podLabels = labelFactory.statefulSetPodLabels(cluster);
-    final Map<String, String> customPodLabels = clusterContext.posCustomLabels();
+    final Map<String, String> customPodLabels = context.posCustomLabels();
     StatefulSet clusterStatefulSet = new StatefulSetBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(name)
         .withLabels(labels)
-        .withOwnerReferences(context.getClusterContext().getOwnerReferences())
+        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .withNewSpec()
         .withReplicas(cluster.getSpec().getInstances())
@@ -179,20 +176,22 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
                     .toList())
                 .orElse(null))
             .withShareProcessNamespace(Boolean.TRUE)
-            .withServiceAccountName(PatroniRole.roleName(clusterContext))
-            .withSecurityContext(clusterPodSecurityContext.createResource(clusterContext))
-            .withVolumes(volumesFactory.listResources(clusterContext))
+            .withServiceAccountName(PatroniRole.roleName(context))
+            .withSecurityContext(clusterPodSecurityContext.createResource(context))
+            .withVolumes(volumesFactory.listResources(context))
             .withTerminationGracePeriodSeconds(60L)
             .addToContainers(patroni.getContainer(context))
             .addAllToVolumes(patroni.getVolumes(context))
-            .withInitContainers(initContainerFactory.listResources(clusterContext))
-            .addAllToContainers(clusterContext.getSidecars().stream()
+            .withInitContainers(initContainerFactory.listResources(context))
+            .addAllToContainers(context.getSidecars().stream()
                 .map(sidecarEntry -> sidecarEntry.getSidecar().getContainer(context))
                 .collect(ImmutableList.toImmutableList()))
-            .addAllToInitContainers(clusterContext.getSidecars().stream()
+            .addAllToInitContainers(context.getSidecars().stream()
                 .flatMap(sidecarEntry -> sidecarEntry.getSidecar().getInitContainers(context))
                 .collect(ImmutableList.toImmutableList()))
-            .addAllToVolumes(clusterContext.getSidecars().stream()
+            .addAllToInitContainers(patroni.getInitContainers(context)
+                .collect(ImmutableList.toImmutableList()))
+            .addAllToVolumes(context.getSidecars().stream()
                 .flatMap(sidecarEntry -> sidecarEntry.getSidecar().getVolumes(context).stream())
                 .collect(ImmutableList.toImmutableList()))
             .endSpec()
@@ -201,9 +200,9 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
             Stream.of(new PersistentVolumeClaimBuilder()
                 .withNewMetadata()
                 .withNamespace(namespace)
-                .withName(dataName(clusterContext))
+                .withName(dataName(context))
                 .withLabels(labels)
-                .withOwnerReferences(context.getClusterContext().getOwnerReferences())
+                .withOwnerReferences(context.getOwnerReferences())
                 .endMetadata()
                 .withSpec(volumeClaimSpec.build())
                 .build()))
@@ -215,9 +214,9 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
     return Seq.<HasMetadata>empty()
         .append(templatesConfigMap.streamResources(context))
         .append(patroni.streamResources(context))
-        .append(clusterContext.getSidecars().stream()
+        .append(context.getSidecars().stream()
             .flatMap(sidecarEntry -> sidecarEntry.getSidecar().streamResources(context)))
-        .append(Seq.seq(context.getClusterContext().getExistingResources())
+        .append(Seq.seq(context.getExistingResources())
             .map(Tuple2::v1)
             .filter(Pod.class::isInstance)
             .map(HasMetadata::getMetadata)

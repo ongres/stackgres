@@ -20,7 +20,6 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
-import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 
@@ -38,28 +37,27 @@ public class BackupConfigMap extends AbstractBackupConfigMap
   }
 
   @Override
-  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
+  public Stream<HasMetadata> streamResources(StackGresClusterContext context) {
     final Map<String, String> data = new HashMap<>();
 
-    final StackGresClusterContext clusterContext = context.getClusterContext();
-    final StackGresCluster cluster = clusterContext.getCluster();
-    clusterContext.getBackupContext()
+    final StackGresCluster cluster = context.getCluster();
+    context.getBackupContext()
         .ifPresent(backupContext -> {
           data.put("BACKUP_CONFIG_RESOURCE_VERSION",
               backupContext.getBackupConfig().getMetadata().getResourceVersion());
-          data.putAll(getBackupEnvVars(
+          data.putAll(getBackupEnvVars(context,
               cluster.getMetadata().getNamespace(),
               cluster.getMetadata().getName(),
               backupContext.getBackupConfig().getSpec()));
         });
 
-    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
+    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(context);
     return Seq.of(new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
-        .withName(name(clusterContext))
+        .withName(name(context))
         .withLabels(labelFactory.patroniClusterLabels(cluster))
-        .withOwnerReferences(clusterContext.getOwnerReferences())
+        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(data))
         .build());

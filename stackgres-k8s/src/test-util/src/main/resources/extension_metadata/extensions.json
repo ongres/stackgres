@@ -1,0 +1,11 @@
+[{
+  "name": "pgsodium",
+  "version": "1.1.0"
+}, {
+  "name": "mysqlcompat"
+}, {
+  "name": "mysqlcompat",
+  "version": "0.0.6"
+}, {
+  "name": "plpgsql"
+}]

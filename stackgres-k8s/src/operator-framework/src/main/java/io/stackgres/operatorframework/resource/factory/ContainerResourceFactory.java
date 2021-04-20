@@ -14,7 +14,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import org.jooq.lambda.Seq;
 
-public interface ContainerResourceFactory<T, C, E>
+public interface ContainerResourceFactory<T, C>
     extends SubResourceStreamFactory<HasMetadata, C> {
 
   Container getContainer(C context);
@@ -31,7 +31,7 @@ public interface ContainerResourceFactory<T, C, E>
     return Seq.empty();
   }
 
-  default Optional<T> getConfig(E config) throws Exception {
+  default Optional<T> getConfig(C context) throws Exception {
     return Optional.empty();
   }
 

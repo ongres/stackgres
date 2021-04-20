@@ -52,7 +52,7 @@ public class DistributedLogsReconciliator
 
   @Inject
   public DistributedLogsReconciliator(Parameters parameters) {
-    super("Centralized Logging",
+    super("Distributed Logs",
         StackGresDistributedLogsContext::getDistributedLogs,
         parameters.handlerSelector,
         parameters.objectMapper);
@@ -77,7 +77,7 @@ public class DistributedLogsReconciliator
   @Override
   protected void onPreConfigReconcilied(KubernetesClient client,
       StackGresDistributedLogsContext context) {
-    statusManager.updatePendingRestart(context, client);
+    statusManager.updatePendingRestart(context);
     boolean isRestartPending = statusManager.isPendingRestart(context);
     context.getRequiredResources().stream()
         .map(Tuple2::v1)
@@ -103,28 +103,34 @@ public class DistributedLogsReconciliator
   protected void onConfigCreated(KubernetesClient client, StackGresDistributedLogsContext context) {
     StackGresDistributedLogs distributedLogs = context.getDistributedLogs();
     eventController.sendEvent(DistributedLogsEventReason.DISTRIBUTED_LOGS_CREATED,
-        "StackGres Centralized Logging " + distributedLogs.getMetadata().getNamespace() + "."
+        "StackGres Distributed Logs " + distributedLogs.getMetadata().getNamespace() + "."
         + distributedLogs.getMetadata().getName() + " created",
         distributedLogs, client);
     statusManager.updateCondition(
-        DistributedLogsStatusCondition.FALSE_FAILED.getCondition(), context, client);
+        DistributedLogsStatusCondition.FALSE_FAILED.getCondition(), context);
+    distributedLogsScheduler.updateStatus(context.getDistributedLogs(),
+        StackGresDistributedLogs::getStatus,
+        StackGresDistributedLogs::setStatus);
   }
 
   @Override
   protected void onConfigUpdated(KubernetesClient client, StackGresDistributedLogsContext context) {
     StackGresDistributedLogs distributedLogs = context.getDistributedLogs();
     eventController.sendEvent(DistributedLogsEventReason.DISTRIBUTED_LOGS_UPDATED,
-        "StackGres Centralized Logging " + distributedLogs.getMetadata().getNamespace() + "."
+        "StackGres Distributed Logs " + distributedLogs.getMetadata().getNamespace() + "."
         + distributedLogs.getMetadata().getName() + " updated",
         distributedLogs, client);
     statusManager.updateCondition(
-        DistributedLogsStatusCondition.FALSE_FAILED.getCondition(), context, client);
+        DistributedLogsStatusCondition.FALSE_FAILED.getCondition(), context);
+    distributedLogsScheduler.updateStatus(context.getDistributedLogs(),
+        StackGresDistributedLogs::getStatus,
+        StackGresDistributedLogs::setStatus);
   }
 
   @Override
   protected void onPostConfigReconcilied(KubernetesClient client,
       StackGresDistributedLogsContext context) {
-    statusManager.updatePendingRestart(context, client);
+    statusManager.updatePendingRestart(context);
     context.getDistributedLogs().setStatus(
         Optional.ofNullable(context.getDistributedLogs().getStatus())
         .orElseGet(() -> new StackGresDistributedLogsStatus()));

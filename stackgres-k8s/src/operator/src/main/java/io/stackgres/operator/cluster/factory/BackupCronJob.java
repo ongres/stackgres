@@ -28,6 +28,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
@@ -37,7 +38,6 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.StackGresBackupContext;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
-import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.common.StackGresPodSecurityContext;
 import io.stackgres.operator.patroni.factory.PatroniRole;
 import org.jooq.lambda.Seq;
@@ -70,27 +70,26 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
    * Create a new CronJob based on the StackGresCluster definition.
    */
   @Override
-  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
-    return Seq.of(context.getClusterContext().getBackupContext())
+  public Stream<HasMetadata> streamResources(StackGresClusterContext context) {
+    return Seq.of(context.getBackupContext())
         .filter(Optional::isPresent)
         .map(Optional::get)
         .map(StackGresBackupContext::getBackupConfig)
         .map(backupConfig -> createCronJob(context, backupConfig));
   }
 
-  private CronJob createCronJob(StackGresGeneratorContext context,
+  private CronJob createCronJob(StackGresClusterContext context,
       StackGresBackupConfig backupConfig) {
-    StackGresClusterContext clusterContext = context.getClusterContext();
-    String namespace = clusterContext.getCluster().getMetadata().getNamespace();
-    String name = clusterContext.getCluster().getMetadata().getName();
-    final StackGresCluster cluster = clusterContext.getCluster();
+    String namespace = context.getCluster().getMetadata().getNamespace();
+    String name = context.getCluster().getMetadata().getName();
+    final StackGresCluster cluster = context.getCluster();
     Map<String, String> labels = labelFactory.scheduledBackupPodLabels(cluster);
     return new CronJobBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
-        .withName(ClusterStatefulSet.backupName(clusterContext))
+        .withName(ClusterStatefulSet.backupName(context))
         .withLabels(labels)
-        .withOwnerReferences(context.getClusterContext().getOwnerReferences())
+        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .withNewSpec()
         .withConcurrencyPolicy("Allow")
@@ -104,7 +103,7 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
         .withJobTemplate(new JobTemplateSpecBuilder()
             .withNewMetadata()
             .withNamespace(namespace)
-            .withName(ClusterStatefulSet.backupName(clusterContext))
+            .withName(ClusterStatefulSet.backupName(context))
             .withLabels(labels)
             .endMetadata()
             .withNewSpec()
@@ -114,20 +113,20 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
             .withNewTemplate()
             .withNewMetadata()
             .withNamespace(namespace)
-            .withName(ClusterStatefulSet.backupName(clusterContext))
+            .withName(ClusterStatefulSet.backupName(context))
             .withLabels(labels)
             .endMetadata()
             .withNewSpec()
-            .withSecurityContext(clusterPodSecurityContext.createResource(clusterContext))
+            .withSecurityContext(clusterPodSecurityContext.createResource(context))
             .withRestartPolicy("OnFailure")
-            .withServiceAccountName(PatroniRole.roleName(clusterContext))
+            .withServiceAccountName(PatroniRole.roleName(context))
             .withContainers(new ContainerBuilder()
                 .withName("create-backup")
                 .withImage(StackGresContext.KUBECTL_IMAGE)
                 .withImagePullPolicy("IfNotPresent")
                 .withEnv(ImmutableList.<EnvVar>builder()
                     .addAll(clusterStatefulSetEnvironmentVariables.listResources(
-                        clusterContext))
+                        context))
                     .add(new EnvVarBuilder()
                             .withName("CLUSTER_NAMESPACE")
                             .withValue(namespace)
@@ -138,7 +137,7 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                             .build(),
                         new EnvVarBuilder()
                             .withName("CRONJOB_NAME")
-                            .withValue(ClusterStatefulSet.backupName(clusterContext))
+                            .withValue(ClusterStatefulSet.backupName(context))
                             .build(),
                         new EnvVarBuilder()
                             .withName("BACKUP_CONFIG_CRD_NAME")
@@ -200,6 +199,10 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                                 .map(e -> e.getKey() + "=" + e.getValue())
                                 .collect(Collectors.joining(",")))
                             .build(),
+                        new EnvVarBuilder()
+                            .withName("PATRONI_CONTAINER_NAME")
+                            .withValue(StackgresClusterContainers.PATRONI)
+                            .build(),
                         new EnvVarBuilder().withName("POD_NAME")
                             .withValueFrom(
                                 new EnvVarSourceBuilder()
@@ -226,7 +229,7 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                 .withCommand("/bin/bash", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
                     ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
                 .withVolumeMounts(ClusterStatefulSetVolumeConfig.TEMPLATES
-                    .volumeMount(clusterContext,
+                    .volumeMount(context,
                         volumeMountBuilder -> volumeMountBuilder
                         .withSubPath(
                             ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.filename())
@@ -234,7 +237,7 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                             ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
                         .withReadOnly(true)),
                     ClusterStatefulSetVolumeConfig.TEMPLATES
-                    .volumeMount(clusterContext,
+                    .volumeMount(context,
                         volumeMountBuilder -> volumeMountBuilder
                         .withSubPath(
                             ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.filename())
@@ -243,7 +246,7 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                         .withReadOnly(true)))
                 .build())
             .withVolumes(new VolumeBuilder(ClusterStatefulSetVolumeConfig.TEMPLATES
-                .volume(clusterContext))
+                .volume(context))
                 .editConfigMap()
                 .withDefaultMode(0555) // NOPMD
                 .endConfigMap()

@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
@@ -28,7 +29,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
-import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operator.sidecars.pooling.PgPooling;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -50,18 +50,18 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
 
   private LabelFactoryDelegator factoryDelegator;
 
-  public static String name(StackGresClusterContext clusterContext) {
-    return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName());
+  public static String name(StackGresClusterContext context) {
+    return ResourceUtil.resourceName(context.getCluster().getMetadata().getName());
   }
 
   @Override
-  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
-    final StackGresClusterContext clusterContext = context.getClusterContext();
-    final StackGresCluster cluster = clusterContext.getCluster();
-    final String pgVersion = cluster.getSpec().getPostgresVersion();
+  public Stream<HasMetadata> streamResources(StackGresClusterContext context) {
+    final StackGresCluster cluster = context.getCluster();
+    final String pgVersion = StackGresComponent.POSTGRESQL.findVersion(
+        cluster.getSpec().getPostgresVersion());
 
     final String patroniLabels;
-    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
+    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(context);
     final Map<String, String> value = labelFactory
         .patroniClusterLabels(cluster);
     try {
@@ -71,9 +71,9 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
       throw new RuntimeException(ex);
     }
 
-    final String pgHost = getPgHost(clusterContext);
-    final int pgPort = getPgPort(clusterContext);
-    final int pgRawPort = getPgRawPort(clusterContext);
+    final String pgHost = getPgHost(context);
+    final int pgPort = getPgPort(context);
+    final int pgRawPort = getPgRawPort(context);
     Map<String, String> data = new HashMap<>();
     data.put("PATRONI_SCOPE", labelFactory.clusterScope(cluster));
     data.put("PATRONI_KUBERNETES_SCOPE_LABEL", labelFactory.getLabelMapper().clusterScopeKey());
@@ -115,29 +115,29 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
     return Seq.of(new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
-        .withName(name(clusterContext))
+        .withName(name(context))
         .withLabels(value)
-        .withOwnerReferences(clusterContext.getOwnerReferences())
+        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(data))
         .build());
   }
 
-  public static int getPgRawPort(final StackGresClusterContext clusterContext) {
-    return clusterContext.getSidecars().stream()
+  public static int getPgRawPort(final StackGresClusterContext context) {
+    return context.getSidecars().stream()
         .filter(entry -> entry.getSidecar() instanceof Envoy)
         .map(entry -> EnvoyUtil.PG_REPL_ENTRY_PORT)
         .findFirst()
         .orElse(EnvoyUtil.PG_PORT);
   }
 
-  public static int getPgPort(final StackGresClusterContext clusterContext) {
+  public static int getPgPort(final StackGresClusterContext context) {
     return Seq.of(
-        clusterContext.getSidecars().stream()
+        context.getSidecars().stream()
         .filter(entry -> entry.getSidecar() instanceof Envoy)
         .map(entry -> EnvoyUtil.PG_ENTRY_PORT)
         .findFirst(),
-        clusterContext.getSidecars().stream()
+        context.getSidecars().stream()
         .filter(entry -> entry.getSidecar() instanceof PgPooling)
         .map(entry -> EnvoyUtil.PG_POOL_PORT)
         .findFirst())
@@ -147,16 +147,16 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
         .orElse(EnvoyUtil.PG_PORT);
   }
 
-  public static String getPgHost(final StackGresClusterContext clusterContext) {
-    return clusterContext.getSidecars().stream()
+  public static String getPgHost(final StackGresClusterContext context) {
+    return context.getSidecars().stream()
         .filter(entry -> entry.getSidecar() instanceof Envoy)
         .map(entry -> "127.0.0.1") // NOPMD
         .findFirst()
         .orElse("0.0.0.0");  // NOPMD
   }
 
-  public static String getKubernetesPorts(final StackGresClusterContext clusterContext) {
-    return getKubernetesPorts(getPgPort(clusterContext), getPgRawPort(clusterContext));
+  public static String getKubernetesPorts(final StackGresClusterContext context) {
+    return getKubernetesPorts(getPgPort(context), getPgRawPort(context));
   }
 
   public static String getKubernetesPorts(final int pgPort, final int pgRawPort) {

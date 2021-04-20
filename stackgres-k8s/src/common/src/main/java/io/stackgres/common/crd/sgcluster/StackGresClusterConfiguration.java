@@ -12,8 +12,8 @@ import javax.validation.constraints.NotBlank;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -55,30 +55,27 @@ public class StackGresClusterConfiguration {
   }
 
   @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("postgresConfig", postgresConfig)
-        .add("connectionPoolingConfig", connectionPoolingConfig)
-        .add("backupConfig", backupConfig)
-        .toString();
+  public int hashCode() {
+    return Objects.hash(backupConfig, connectionPoolingConfig, postgresConfig);
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof StackGresClusterConfiguration)) {
       return false;
     }
-    StackGresClusterConfiguration that = (StackGresClusterConfiguration) o;
-    return Objects.equals(postgresConfig, that.postgresConfig)
-        && Objects.equals(connectionPoolingConfig, that.connectionPoolingConfig)
-        && Objects.equals(backupConfig, that.backupConfig);
+    StackGresClusterConfiguration other = (StackGresClusterConfiguration) obj;
+    return Objects.equals(backupConfig, other.backupConfig)
+        && Objects.equals(connectionPoolingConfig, other.connectionPoolingConfig)
+        && Objects.equals(postgresConfig, other.postgresConfig);
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(postgresConfig, connectionPoolingConfig, backupConfig);
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
+
 }

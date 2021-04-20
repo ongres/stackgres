@@ -9,6 +9,7 @@ import java.util.Map;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.ResourceDto;
+import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 public class ConfigMapDto extends ResourceDto {
@@ -22,4 +23,10 @@ public class ConfigMapDto extends ResourceDto {
   public void setData(Map<String, String> data) {
     this.data = data;
   }
+
+  @Override
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
+  }
+
 }

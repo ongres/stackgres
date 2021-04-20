@@ -30,7 +30,7 @@ then
   JAVA_OPTS="$JAVA_OPTS -Dquarkus.log.console.format=%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c{4.}] (%t) %s%e%n"
 fi
 JAVA_JAR="-jar /app/stackgres-restapi.jar"
-exec java $JAVA_OPTS $JAVA_JAR $APP_OPTS
+exec java $JAVA_OPTS $APP_OPTS $JAVA_JAR "$@"
 EOF
 buildah copy --chown jboss:jboss "$CONTAINER_BASE" 'api-web/target/stackgres-restapi.sh' '/app/'
 buildah run "$CONTAINER_BASE" chmod 775 '/home/jboss' -R

@@ -12,9 +12,9 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -47,29 +47,26 @@ public class StackGresBackupSpec implements KubernetesResource {
   }
 
   @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("cluster", sgCluster)
-        .add("managedLifecycle", managedLifecycle)
-        .toString();
+  public int hashCode() {
+    return Objects.hash(managedLifecycle, sgCluster);
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof StackGresBackupSpec)) {
       return false;
     }
-    StackGresBackupSpec that = (StackGresBackupSpec) o;
-    return Objects.equals(sgCluster, that.sgCluster)
-        && Objects.equals(managedLifecycle, that.managedLifecycle);
+    StackGresBackupSpec other = (StackGresBackupSpec) obj;
+    return Objects.equals(managedLifecycle, other.managedLifecycle)
+        && Objects.equals(sgCluster, other.sgCluster);
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(sgCluster, managedLifecycle);
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
+
 }

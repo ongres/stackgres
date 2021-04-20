@@ -21,10 +21,10 @@ public class ClusterStatefulSetEnvironmentVariables
     implements SubResourceStreamFactory<EnvVar, StackGresClusterContext> {
 
   public Stream<EnvVar> streamResources(StackGresClusterContext context) {
-    return Seq.of(ClusterStatefulSetPath.values())
-        .map(ClusterStatefulSetPath::envVar)
-        .append(Seq.of(ClusterStatefulSetEnvVars.values())
-        .map(ClusterStatefulSetEnvVars::envVar));
+    return Seq.of(ClusterStatefulSetEnvVars.values())
+        .map(clusterStatefulSetPath -> clusterStatefulSetPath.envVar(context))
+        .append(Seq.of(ClusterStatefulSetPath.values())
+            .map(clusterStatefulSetPath -> clusterStatefulSetPath.envVar(context)));
   }
 
 }

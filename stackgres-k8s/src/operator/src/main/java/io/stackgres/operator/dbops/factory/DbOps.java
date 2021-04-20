@@ -24,14 +24,13 @@ import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.common.ImmutableStackGresDbOpsContext;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresDbOpsContext;
-import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
 public class DbOps
-    implements SubResourceStreamFactory<HasMetadata, StackGresGeneratorContext> {
+    implements SubResourceStreamFactory<HasMetadata, StackGresClusterContext> {
 
   private final DbOpsBenchmark benchmark;
   private final DbOpsVacuumJob vacuumJob;
@@ -59,19 +58,19 @@ public class DbOps
   }
 
   @Override
-  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
+  public Stream<HasMetadata> streamResources(StackGresClusterContext context) {
     final Instant now = Instant.now();
-    return Seq.of(context.getClusterContext())
+    return Seq.of(context)
         .map(StackGresClusterContext::getDbOps)
         .flatMap(List::stream)
         .flatMap(dbOps -> streamResources(context, dbOps, now))
         .append(role.streamResources(context));
   }
 
-  private Stream<HasMetadata> streamResources(StackGresGeneratorContext context,
+  private Stream<HasMetadata> streamResources(StackGresClusterContext context,
       StackGresDbOps dbOps, Instant now) {
     StackGresDbOpsContext dbOpsContext = ImmutableStackGresDbOpsContext.builder()
-        .from(context.getClusterContext())
+        .from(context)
         .ownerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(dbOps)))
         .currentDbOps(dbOps)
         .build();

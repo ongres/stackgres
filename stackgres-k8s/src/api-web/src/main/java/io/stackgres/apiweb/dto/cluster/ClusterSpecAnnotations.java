@@ -51,4 +51,5 @@ public class ClusterSpecAnnotations {
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
   }
+
 }

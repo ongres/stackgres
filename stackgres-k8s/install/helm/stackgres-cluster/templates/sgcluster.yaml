@@ -161,6 +161,27 @@ spec:
     {{- end }}
   {{- end }}
   prometheusAutobind: {{ .Values.cluster.prometheusAutobind }}
+  {{- if not .Values.cluster.postgresExtensions }}
+  postgresExtensions: []
+  {{- else }}
+  {{- if eq (len .Values.cluster.postgresExtensions) 0 }}
+  postgresExtensions: []
+  {{- else }}
+  postgresExtensions:
+  {{- range .Values.cluster.postgresExtensions }}
+    - name: "{{ .name }}"
+      {{- if .publisher }}
+      publisher: "{{ .publisher }}"
+      {{- end }}
+      {{- if .version }}
+      version: "{{ .version }}"
+      {{- end }}
+      {{- if .repository }}
+      repository: "{{ .repository }}"
+      {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
   {{- if .Values.nonProductionOptions }}
   nonProductionOptions:
   {{- if not .Values.nonProductionOptions.disableClusterPodAntiAffinity }}

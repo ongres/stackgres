@@ -12,13 +12,12 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.LabelFactory;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsCondition;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
 
@@ -55,16 +54,6 @@ public class DistributedLogsStatusManager extends
   }
 
   @Override
-  protected void patch(StackGresDistributedLogsContext context,
-      KubernetesClient client) {
-    StackGresDistributedLogs distributedLogs = context.getDistributedLogs();
-    client.customResources(StackGresDistributedLogs.class, StackGresDistributedLogsList.class)
-        .inNamespace(distributedLogs.getMetadata().getNamespace())
-        .withName(distributedLogs.getMetadata().getName())
-        .patch(distributedLogs);
-  }
-
-  @Override
   protected StackGresDistributedLogsCondition getFalsePendingRestart() {
     return DistributedLogsStatusCondition.FALSE_PENDING_RESTART.getCondition();
   }
@@ -72,6 +61,14 @@ public class DistributedLogsStatusManager extends
   @Override
   protected StackGresDistributedLogsCondition getPodRequiresRestart() {
     return DistributedLogsStatusCondition.POD_REQUIRES_RESTART.getCondition();
+  }
+
+  @Override
+  protected Optional<List<StackGresClusterPodStatus>> getPodStatuses(
+      StackGresDistributedLogsContext context) {
+    return Optional.of(context.getDistributedLogs())
+        .map(StackGresDistributedLogs::getStatus)
+        .map(StackGresDistributedLogsStatus::getPodStatuses);
   }
 
 }

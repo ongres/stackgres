@@ -1,3 +1,4 @@
+containerRegistry: docker.io
 operator:
   image:
     name: "stackgres/operator"
@@ -107,4 +108,8 @@ developer: {}
   # externalOperatorPort: 8080
   # externalRestApiIp: 172.17.0.1
   # externalRestApiPort: 8081
+
+extensions:
+  repositoryUrls:
+  - https://extensions.stackgres.io/postgres/repository
 

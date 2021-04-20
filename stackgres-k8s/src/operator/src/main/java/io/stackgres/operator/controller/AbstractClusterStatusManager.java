@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.controller;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -14,11 +15,11 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetStatus;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operatorframework.resource.Condition;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
@@ -36,11 +37,11 @@ public abstract class AbstractClusterStatusManager<T extends StackGresClusterCon
   /**
    * Update pending restart status condition.
    */
-  public void updatePendingRestart(T context, KubernetesClient client) {
+  public void updatePendingRestart(T context) {
     if (isPendingRestart(context)) {
-      updateCondition(getPodRequiresRestart(), context, client);
+      updateCondition(getPodRequiresRestart(), context);
     } else {
-      updateCondition(getFalsePendingRestart(), context, client);
+      updateCondition(getFalsePendingRestart(), context);
     }
   }
 
@@ -54,7 +55,8 @@ public abstract class AbstractClusterStatusManager<T extends StackGresClusterCon
   public boolean isPendingRestart(T context) {
     return isClusterPendingUpgrade(context)
         || isStatefulSetPendingRestart(context)
-        || isPatroniPendingRestart(context);
+        || isPatroniPendingRestart(context)
+        || isAnyPodPendingRestart(context);
   }
 
   private boolean isClusterPendingUpgrade(T context) {
@@ -137,5 +139,19 @@ public abstract class AbstractClusterStatusManager<T extends StackGresClusterCon
             .map(Map.Entry::getValue).filter(Objects::nonNull)
             .anyMatch(r -> r.contains("\"pending_restart\":true")));
   }
+
+  private boolean isAnyPodPendingRestart(T context) {
+    return getPodStatuses(context)
+        .stream()
+        .flatMap(List::stream)
+        .map(StackGresClusterPodStatus::getPendingRestart)
+        .map(Optional::ofNullable)
+        .map(pensingRestart -> pensingRestart.orElse(false))
+        .filter(pensingRestart -> pensingRestart)
+        .findAny()
+        .orElse(false);
+  }
+
+  protected abstract Optional<List<StackGresClusterPodStatus>> getPodStatuses(T context);
 
 }

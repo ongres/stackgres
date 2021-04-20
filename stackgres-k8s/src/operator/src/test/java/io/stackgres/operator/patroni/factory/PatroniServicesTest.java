@@ -10,11 +10,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
+
+import java.util.Map;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Service;
 import io.stackgres.common.LabelFactory;
@@ -29,13 +30,8 @@ import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.common.ImmutableStackGresUserClusterContext;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.testutil.JsonUtil;
-
-import java.util.Map;
-import java.util.stream.Stream;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,8 +48,7 @@ class PatroniServicesTest {
   @Mock
   private LabelFactory<StackGresCluster> labelFactory;
 
-  @Mock
-  private StackGresGeneratorContext generatorContext;
+  private StackGresClusterContext context;
 
   private final PatroniServices patroniServices = new PatroniServices();
 
@@ -74,9 +69,7 @@ class PatroniServicesTest {
     lenient().when(labelFactory.patroniReplicaLabels(any(StackGresCluster.class)))
         .thenReturn(ImmutableMap.of());
 
-    when(generatorContext.getClusterContext())
-        .thenReturn(buildStackgresContext(defaultCluster));
-
+    context = buildStackgresContext(defaultCluster);
   }
 
   @Test
@@ -84,7 +77,7 @@ class PatroniServicesTest {
 
     defaultCluster.getSpec().setPostgresServices(null);
 
-    Stream<HasMetadata> services = patroniServices.streamResources(generatorContext);
+    Stream<HasMetadata> services = patroniServices.streamResources(context);
 
     long primaryServicesCount = services
         .filter(s -> s.getKind().equals("Service"))
@@ -99,7 +92,7 @@ class PatroniServicesTest {
 
     defaultCluster.getSpec().setPostgresServices(null);
 
-    Stream<HasMetadata> services = patroniServices.streamResources(generatorContext);
+    Stream<HasMetadata> services = patroniServices.streamResources(context);
 
     long primaryServicesCount = services
         .filter(s -> s.getKind().equals("Service"))
@@ -114,7 +107,7 @@ class PatroniServicesTest {
 
     enablePrimaryService(true);
 
-    Stream<HasMetadata> services = patroniServices.streamResources(generatorContext);
+    Stream<HasMetadata> services = patroniServices.streamResources(context);
 
     long primaryServicesCount = services
         .filter(s -> s.getKind().equals("Service"))
@@ -129,7 +122,7 @@ class PatroniServicesTest {
 
     enablePrimaryService(false);
 
-    Stream<HasMetadata> services = patroniServices.streamResources(generatorContext);
+    Stream<HasMetadata> services = patroniServices.streamResources(context);
 
     long primaryServicesCount = services
         .filter(s -> s.getKind().equals("Service"))
@@ -145,7 +138,7 @@ class PatroniServicesTest {
     enablePrimaryService(true);
     defaultCluster.getSpec().getPostgresServices().getPrimary().setType(null);
 
-    Stream<HasMetadata> services = patroniServices.streamResources(generatorContext);
+    Stream<HasMetadata> services = patroniServices.streamResources(context);
 
     Service primaryService = getPrimaryService(services);
 
@@ -159,7 +152,7 @@ class PatroniServicesTest {
 
     enablePrimaryService(StackGresClusterPostgresServiceType.LOAD_BALANCER);
 
-    Stream<HasMetadata> services = patroniServices.streamResources(generatorContext);
+    Stream<HasMetadata> services = patroniServices.streamResources(context);
 
     Service primaryService = getPrimaryService(services);
 
@@ -175,7 +168,7 @@ class PatroniServicesTest {
     String annotation = StringUtil.generateRandom();
     enablePrimaryService(ImmutableMap.of(key, annotation));
 
-    Stream<HasMetadata> services = patroniServices.streamResources(generatorContext);
+    Stream<HasMetadata> services = patroniServices.streamResources(context);
 
     Service primaryService = getPrimaryService(services);
 
@@ -190,7 +183,7 @@ class PatroniServicesTest {
 
     enableReplicaService(true);
 
-    Stream<HasMetadata> services = patroniServices.streamResources(generatorContext);
+    Stream<HasMetadata> services = patroniServices.streamResources(context);
 
     long replicaServicesCount = services
         .filter(s -> s.getKind().equals("Service"))
@@ -205,7 +198,7 @@ class PatroniServicesTest {
 
     enableReplicaService(false);
 
-    Stream<HasMetadata> services = patroniServices.streamResources(generatorContext);
+    Stream<HasMetadata> services = patroniServices.streamResources(context);
 
     long ReplicaServicesCount = services
         .filter(s -> s.getKind().equals("Service"))
@@ -221,7 +214,7 @@ class PatroniServicesTest {
     enableReplicaService(true);
     defaultCluster.getSpec().getPostgresServices().getReplicas().setType(null);
 
-    Stream<HasMetadata> services = patroniServices.streamResources(generatorContext);
+    Stream<HasMetadata> services = patroniServices.streamResources(context);
 
     Service ReplicaService = getReplicaService(services);
 
@@ -235,7 +228,7 @@ class PatroniServicesTest {
 
     enableReplicaService(StackGresClusterPostgresServiceType.LOAD_BALANCER);
 
-    Stream<HasMetadata> services = patroniServices.streamResources(generatorContext);
+    Stream<HasMetadata> services = patroniServices.streamResources(context);
 
     Service ReplicaService = getReplicaService(services);
 
@@ -251,7 +244,7 @@ class PatroniServicesTest {
     String annotation = StringUtil.generateRandom();
     enableReplicaService(ImmutableMap.of(key, annotation));
 
-    Stream<HasMetadata> services = patroniServices.streamResources(generatorContext);
+    Stream<HasMetadata> services = patroniServices.streamResources(context);
 
     Service ReplicaService = getReplicaService(services);
 

@@ -13,9 +13,9 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -96,12 +96,6 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("persistentVolume", persistentVolume)
-        .add("scheduling", scheduling)
-        .add("metadata", metadata)
-        .add("nonProduction", nonProduction)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 }

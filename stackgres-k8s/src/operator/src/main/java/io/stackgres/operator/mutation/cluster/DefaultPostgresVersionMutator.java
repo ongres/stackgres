@@ -15,9 +15,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 @ApplicationScoped
@@ -44,7 +44,7 @@ public class DefaultPostgresVersionMutator implements ClusterMutator {
     if (review.getRequest().getOperation() == Operation.CREATE
         || review.getRequest().getOperation() == Operation.UPDATE) {
       if (postgresVersion != null) {
-        final String calculatedPostgresVersion = StackGresComponents.calculatePostgresVersion(
+        final String calculatedPostgresVersion = StackGresComponent.POSTGRESQL.findVersion(
             postgresVersion);
 
         if (!calculatedPostgresVersion.equals(postgresVersion)) {
@@ -56,8 +56,8 @@ public class DefaultPostgresVersionMutator implements ClusterMutator {
           return operations.build();
         }
       } else {
-        JsonNode target = mapper.valueToTree(StackGresComponents.calculatePostgresVersion(
-            StackGresComponents.LATEST));
+        JsonNode target = mapper.valueToTree(StackGresComponent.POSTGRESQL.findVersion(
+            StackGresComponent.LATEST));
         ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
         operations.add(applyAddValue(postgresVersionPointer, target));
 

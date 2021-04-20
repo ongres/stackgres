@@ -3,6 +3,7 @@
 . "$TEST_SHELL_PATH/abstract-dbops"
 
 RUN_SCRIPT_PATH="$PROJECT_PATH/src/main/resources/templates/run-restart.sh"
+PATRONI_CONTAINER_NAME=patroni
 SET_RESULT_SCRIPT_PATH=""
 OP_NAME=restart
 NORMALIZED_OP_NAME='restart'

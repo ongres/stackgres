@@ -10,8 +10,8 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -30,27 +30,25 @@ public class StackGresClusterNonProduction {
   }
 
   @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("disableClusterPodAntiAffinity", getDisableClusterPodAntiAffinity())
-        .toString();
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    StackGresClusterNonProduction that = (StackGresClusterNonProduction) o;
-    return Objects.equals(disableClusterPodAntiAffinity, that.disableClusterPodAntiAffinity);
-  }
-
-  @Override
   public int hashCode() {
     return Objects.hash(disableClusterPodAntiAffinity);
   }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof StackGresClusterNonProduction)) {
+      return false;
+    }
+    StackGresClusterNonProduction other = (StackGresClusterNonProduction) obj;
+    return Objects.equals(disableClusterPodAntiAffinity, other.disableClusterPodAntiAffinity);
+  }
+
+  @Override
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
+  }
+
 }

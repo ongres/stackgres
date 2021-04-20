@@ -20,7 +20,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
-import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.tuple.Tuple4;
 
@@ -78,19 +77,18 @@ public class PatroniScriptsConfigMap implements StackGresClusterResourceStreamFa
   }
 
   @Override
-  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
-    final StackGresClusterContext clusterContext = context.getClusterContext();
-    final StackGresCluster cluster = clusterContext.getCluster();
-    return clusterContext.getIndexedScripts()
+  public Stream<HasMetadata> streamResources(StackGresClusterContext context) {
+    final StackGresCluster cluster = context.getCluster();
+    return context.getIndexedScripts()
         .filter(t -> t.v1.getScript() != null)
         .map(t -> {
-          final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
+          final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(context);
           return new ConfigMapBuilder()
               .withNewMetadata()
               .withNamespace(cluster.getMetadata().getNamespace())
-              .withName(name(clusterContext, t))
+              .withName(name(context, t))
               .withLabels(labelFactory.patroniClusterLabels(cluster))
-              .withOwnerReferences(clusterContext.getOwnerReferences())
+              .withOwnerReferences(context.getOwnerReferences())
               .endMetadata()
               .withData(ImmutableMap.of(scriptName(t), t.v1.getScript()))
               .build();

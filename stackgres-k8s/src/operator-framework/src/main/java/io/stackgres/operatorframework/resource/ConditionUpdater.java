@@ -10,11 +10,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
-
 public abstract class ConditionUpdater<T, C extends Condition> {
 
-  public void updateCondition(C condition, T context, KubernetesClient client) {
+  public void updateCondition(C condition, T context) {
     Instant now = Instant.now();
 
     condition.setLastTransitionTime(now.toString());
@@ -36,14 +34,10 @@ public abstract class ConditionUpdater<T, C extends Condition> {
     copyList.add(condition);
 
     setConditions(context, copyList);
-
-    patch(context, client);
   }
 
   protected abstract List<C> getConditions(T context);
 
   protected abstract void setConditions(T context, List<C> conditions);
-
-  protected abstract void patch(T context, KubernetesClient client);
 
 }

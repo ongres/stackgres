@@ -13,8 +13,8 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -90,8 +90,7 @@ public class AwsS3Storage implements PrefixedStorage {
 
   @Override
   public int hashCode() {
-    return Objects.hash(awsCredentials, bucket,
-        region, storageClass);
+    return Objects.hash(awsCredentials, bucket, path, region, storageClass);
   }
 
   @Override
@@ -99,29 +98,18 @@ public class AwsS3Storage implements PrefixedStorage {
     if (this == obj) {
       return true;
     }
-    if (obj == null) {
-      return false;
-    }
     if (!(obj instanceof AwsS3Storage)) {
       return false;
     }
     AwsS3Storage other = (AwsS3Storage) obj;
     return Objects.equals(awsCredentials, other.awsCredentials)
         && Objects.equals(bucket, other.bucket) && Objects.equals(path, other.path)
-        && Objects.equals(region, other.region)
-        && Objects.equals(storageClass, other.storageClass);
+        && Objects.equals(region, other.region) && Objects.equals(storageClass, other.storageClass);
   }
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("bucket", bucket)
-        .add("path", path)
-        .add("credentials", awsCredentials)
-        .add("region", region)
-        .add("storageClass", storageClass)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 
 }

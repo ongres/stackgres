@@ -19,7 +19,7 @@ public class ClusterStatefulSetVolumes
 
   @Override
   public Stream<Volume> streamResources(StackGresClusterContext config) {
-    return ClusterStatefulSetVolumeConfig.volumes(config);
+    return ClusterStatefulSetVolumeConfig.allVolumes(config);
   }
 
 }

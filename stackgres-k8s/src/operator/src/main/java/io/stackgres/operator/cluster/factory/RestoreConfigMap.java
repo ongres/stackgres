@@ -15,6 +15,7 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresUtil;
@@ -22,7 +23,6 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterOptionalResourceStreamFactory;
-import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 
@@ -40,9 +40,8 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
   }
 
   @Override
-  public Stream<Optional<HasMetadata>> streamOptionalResources(StackGresGeneratorContext context) {
-    final StackGresClusterContext clusterContext = context.getClusterContext();
-    return Seq.of(clusterContext.getRestoreContext()
+  public Stream<Optional<HasMetadata>> streamOptionalResources(StackGresClusterContext context) {
+    return Seq.of(context.getRestoreContext()
         .map(restoreContext -> {
           final Map<String, String> data = new HashMap<>();
 
@@ -51,7 +50,7 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
           data.put("RESTORE_BACKUP_ID",
               restoreContext.getBackup().getStatus().getInternalName());
 
-          data.putAll(getBackupEnvVars(
+          data.putAll(getBackupEnvVars(context,
               restoreContext.getBackup().getMetadata().getNamespace(),
               restoreContext.getBackup().getSpec().getSgCluster(),
               restoreContext.getBackup().getStatus().getBackupConfig()));
@@ -60,14 +59,14 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
               .ifPresent(downloadDiskConcurrency -> data.put(
                   "WALG_DOWNLOAD_CONCURRENCY", convertEnvValue(downloadDiskConcurrency)));
 
-          final StackGresCluster cluster = clusterContext.getCluster();
-          final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
+          final StackGresCluster cluster = context.getCluster();
+          final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(context);
           return new ConfigMapBuilder()
               .withNewMetadata()
               .withNamespace(cluster.getMetadata().getNamespace())
-              .withName(name(clusterContext))
+              .withName(name(context))
               .withLabels(labelFactory.patroniClusterLabels(cluster))
-              .withOwnerReferences(clusterContext.getOwnerReferences())
+              .withOwnerReferences(context.getOwnerReferences())
               .endMetadata()
               .withData(StackGresUtil.addMd5Sum(data))
               .build();
@@ -75,8 +74,8 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
   }
 
   @Override
-  protected String getGcsCredentialsFilePath() {
-    return ClusterStatefulSetPath.RESTORE_SECRET_PATH.path()
+  protected String getGcsCredentialsFilePath(ClusterContext context) {
+    return ClusterStatefulSetPath.RESTORE_SECRET_PATH.path(context)
         + "/" + ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME;
   }
 

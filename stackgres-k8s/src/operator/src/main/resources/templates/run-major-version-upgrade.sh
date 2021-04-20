@@ -13,7 +13,7 @@ run_op() {
     if ! kubectl get pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -o name > /dev/null
     then
       echo "FAILURE=$NORMALIZED_OP_NAME failed. Primary instance not found!" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
-      exit 1
+      return 1
     fi
     echo "Found primary instance $PRIMARY_INSTANCE"
     echo
@@ -228,7 +228,7 @@ EOF
   if [ "$PRIMARY_INSTANCE" != "$CURRENT_PRIMARY_INSTANCE" ]
   then
     echo "FAILURE=$NORMALIZED_OP_NAME failed. Please check pod $PRIMARY_INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
-    exit 1
+    return 1
   fi
 
   echo "done"
@@ -395,7 +395,7 @@ wait_for_instance() {
     if [ "$PHASE" = "Failed" ] || [ "$PHASE" = "Unknown" ]
     then
       echo "FAILURE=$NORMALIZED_OP_NAME failed. Please check pod $INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
-      exit 1
+      return 1
     fi
     sleep 1
   done

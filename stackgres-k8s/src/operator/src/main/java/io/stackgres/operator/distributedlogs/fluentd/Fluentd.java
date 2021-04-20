@@ -34,11 +34,10 @@ import io.fabric8.kubernetes.api.model.TCPSocketActionBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.LabelFactory;
-import io.stackgres.common.StackGresProperty;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -47,11 +46,7 @@ import io.stackgres.common.distributedlogs.PostgresTableFields;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
-import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
-import io.stackgres.operator.common.StackGresDistributedLogsGeneratorContext;
-import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.sidecars.fluentbit.FluentBit;
 import io.stackgres.operatorframework.resource.factory.ContainerResourceFactory;
 import org.jooq.lambda.Seq;
@@ -59,13 +54,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-public class Fluentd implements ContainerResourceFactory<StackGresDistributedLogs,
-    StackGresDistributedLogsGeneratorContext, StackGresDistributedLogs> {
+public class Fluentd implements ContainerResourceFactory<Void,
+    StackGresDistributedLogsContext> {
 
   private static final Logger FLEUNTD_LOGGER = LoggerFactory.getLogger("io.stackgres.fleuntd");
 
-  public static final String IMAGE_NAME = "docker.io/ongres/fluentd:v%s-build-%s";
-  static final String DEFAULT_VERSION = StackGresComponents.get("fluentd");
   static final String PATRONI_TABLE_FIELDS = Stream.of(PatroniTableFields.values())
       .map(PatroniTableFields::getFieldName)
       .collect(Collectors.joining(","));
@@ -77,11 +70,10 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
 
   // list of log_patroni table fields
   @Override
-  public Container getContainer(StackGresDistributedLogsGeneratorContext context) {
+  public Container getContainer(StackGresDistributedLogsContext context) {
     return new ContainerBuilder()
         .withName(StackgresClusterContainers.FLUENTD)
-        .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION,
-            StackGresProperty.CONTAINER_BUILD.getString()))
+        .withImage(StackGresComponent.FLUENTD.findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-exc")
         .withArgs(""
@@ -107,37 +99,30 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
             .withInitialDelaySeconds(5)
             .withPeriodSeconds(10)
             .build())
-        .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
-            .volumeMount(context.getClusterContext()),
+        .withVolumeMounts(
+            ClusterStatefulSetVolumeConfig.SOCKET.volumeMount(context),
             new VolumeMountBuilder()
             .withName(FluentdUtil.CONFIG)
             .withMountPath("/etc/fluentd")
             .withReadOnly(Boolean.FALSE)
             .build(),
             new VolumeMountBuilder()
-            .withName(FluentdUtil.LOG)
+            .withName(FluentdUtil.BUFFER)
             .withMountPath("/var/log/fluentd")
             .withReadOnly(Boolean.FALSE)
-            .build(),
-            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.ETC_PASSWD_PATH, context.getClusterContext()),
-            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.ETC_GROUP_PATH, context.getClusterContext()),
-            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.ETC_SHADOW_PATH, context.getClusterContext()),
-            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.ETC_GSHADOW_PATH, context.getClusterContext()))
+            .build())
+        .addAllToVolumeMounts(ClusterStatefulSetVolumeConfig.USER.volumeMounts(context))
         .build();
   }
 
   @Override
-  public ImmutableList<Volume> getVolumes(StackGresDistributedLogsGeneratorContext context) {
+  public ImmutableList<Volume> getVolumes(StackGresDistributedLogsContext context) {
     return ImmutableList.of(
         new VolumeBuilder()
             .withName(FluentdUtil.CONFIG)
             .withConfigMap(new ConfigMapVolumeSourceBuilder()
                 .withName(FluentdUtil.configName(
-                    context.getDistributedLogsContext().getDistributedLogs()))
+                    context.getDistributedLogs()))
                 .build())
             .build(),
         new VolumeBuilder()
@@ -155,17 +140,14 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
   }
 
   @Override
-  public Stream<HasMetadata> streamResources(StackGresDistributedLogsGeneratorContext context) {
-    final StackGresDistributedLogsContext distributedLogsContext = context
-        .getDistributedLogsContext();
-    final StackGresDistributedLogs distributedLogs =
-        distributedLogsContext.getDistributedLogs();
+  public Stream<HasMetadata> streamResources(StackGresDistributedLogsContext context) {
+    final StackGresDistributedLogs distributedLogs = context.getDistributedLogs();
     final String namespace = distributedLogs.getMetadata().getNamespace();
 
     final Map<String, String> data = ImmutableMap.of(
-        "fluentd.conf", getFluentdConfig(distributedLogsContext));
+        "fluentd.conf", getFluentdConfig(context));
 
-    final StackGresClusterContext clusterContext = context.getClusterContext();
+    final StackGresClusterContext clusterContext = context;
     final StackGresCluster cluster = clusterContext.getCluster();
     final LabelFactory<?> labelFactory = factoryDelegator
         .pickFactory(clusterContext);
@@ -174,7 +156,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
     final ConfigMap configMap = new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
-        .withName(FluentdUtil.configName(distributedLogsContext.getDistributedLogs()))
+        .withName(FluentdUtil.configName(context.getDistributedLogs()))
         .withLabels(clusterLabels)
         .withOwnerReferences(clusterContext.getOwnerReferences())
         .endMetadata()
@@ -186,7 +168,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
     final Service service = new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
-        .withName(FluentdUtil.serviceName(distributedLogsContext.getDistributedLogs()))
+        .withName(FluentdUtil.serviceName(context.getDistributedLogs()))
         .withLabels(patroniPrimaryLabels)
         .withOwnerReferences(clusterContext.getOwnerReferences())
         .endMetadata()
@@ -334,56 +316,8 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
     return 16;
   }
 
-  public StackGresClusterSidecarResourceFactory<Void> toStackGresClusterSidecarResourceFactory() {
-    return new FluentdStackGresClusterSidecarResourceFactory();
-  }
-
   @Inject
   public void setFactoryDelegator(LabelFactoryDelegator factoryDelegator) {
     this.factoryDelegator = factoryDelegator;
-  }
-
-  private class FluentdStackGresClusterSidecarResourceFactory
-      implements StackGresClusterSidecarResourceFactory<Void> {
-
-    @Override
-    public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
-      if (context instanceof StackGresDistributedLogsGeneratorContext) {
-        return Fluentd.this.streamResources((StackGresDistributedLogsGeneratorContext) context);
-      } else {
-        throw new IllegalArgumentException(
-            "context is not a StackGresDistributedLogsGeneratorContext");
-      }
-    }
-
-    @Override
-    public ImmutableList<Volume> getVolumes(StackGresGeneratorContext context) {
-      if (context instanceof StackGresDistributedLogsGeneratorContext) {
-        return Fluentd.this.getVolumes((StackGresDistributedLogsGeneratorContext) context);
-      } else {
-        throw new IllegalArgumentException(
-            "context is not a StackGresDistributedLogsGeneratorContext");
-      }
-    }
-
-    @Override
-    public Container getContainer(StackGresGeneratorContext context) {
-      if (context instanceof StackGresDistributedLogsGeneratorContext) {
-        return Fluentd.this.getContainer((StackGresDistributedLogsGeneratorContext) context);
-      } else {
-        throw new IllegalArgumentException(
-            "context is not a StackGresDistributedLogsGeneratorContext");
-      }
-    }
-
-    @Override
-    public Stream<Container> getInitContainers(StackGresGeneratorContext context) {
-      if (context instanceof StackGresDistributedLogsGeneratorContext) {
-        return Fluentd.this.getInitContainers((StackGresDistributedLogsGeneratorContext) context);
-      } else {
-        throw new IllegalArgumentException(
-            "context is not a StackGresDistributedLogsGeneratorContext");
-      }
-    }
   }
 }

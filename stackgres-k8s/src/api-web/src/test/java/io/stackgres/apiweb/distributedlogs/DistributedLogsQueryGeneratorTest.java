@@ -253,7 +253,7 @@ public class DistributedLogsQueryGeneratorTest {
   }
 
   @Test
-  public void textQueryTest() {
+  public void fullTextQueryTest() {
     assertEquals(EXPECTED.get("fullTextQueryTest"),
         generateQuery(ImmutableDistributedLogsQueryParameters.builder()
             .cluster(new ClusterDto())

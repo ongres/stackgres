@@ -15,6 +15,7 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.stackgres.common.ClusterContext;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -34,7 +35,7 @@ import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
 import org.jooq.lambda.tuple.Tuple4;
 
-public abstract class StackGresClusterContext implements ResourceHandlerContext {
+public abstract class StackGresClusterContext implements ResourceHandlerContext, ClusterContext {
 
   public abstract OperatorPropertyContext getOperatorContext();
 
@@ -145,5 +146,4 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
         .zipWithIndex()
         .map(t -> t.v1.concat(t.v2));
   }
-
 }

@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-import javax.validation.Valid;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -33,7 +31,7 @@ public class ClusterPod {
   @JsonProperty("metadata")
   private ClusterPodMetadata metadata;
 
-  @Valid
+  @JsonProperty("scheduling")
   private ClusterPodScheduling scheduling;
 
   public ClusterPodPersistentVolume getPersistentVolume() {

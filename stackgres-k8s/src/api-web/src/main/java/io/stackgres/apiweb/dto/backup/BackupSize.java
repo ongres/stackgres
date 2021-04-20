@@ -7,8 +7,8 @@ package io.stackgres.apiweb.dto.backup;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -36,9 +36,7 @@ public class BackupSize {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("uncompressedSize", uncompressed)
-        .add("compressedSize", compressed)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
+
 }

@@ -15,13 +15,13 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.github.fge.jsonpatch.JsonPatchOperation;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.initialization.PostgresConfigurationFactory;
 import io.stackgres.operator.initialization.PostgresDefaultFactoriesProvider;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
@@ -52,8 +52,7 @@ public class DefaultPostgresDelegator implements ClusterMutator {
         .map(AdmissionRequest::getObject)
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPostgresVersion)
-        .map(StackGresComponents::calculatePostgresVersion)
-        .map(StackGresComponents::getPostgresMajorVersion)
+        .map(StackGresComponent.POSTGRESQL::findMajorVersion)
         .map(factoryMap::get)
         .map(factory -> {
           try {
