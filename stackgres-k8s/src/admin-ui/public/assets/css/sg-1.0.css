@@ -164,6 +164,11 @@ body, #sets h4, #sets h3, #side a.router-link-exact-active, th, .tabs a, #keywor
     background-color: var(--blue) !important;
 }
 
+.daterangepicker td.active.deactivate:not(:hover) {
+    background-color: transparent !important;
+    color: var(--textColor);
+}
+
 .btn {
     font-weight: 600;
 }
@@ -181,7 +186,7 @@ body, #sets h4, #sets h3, #side a.router-link-exact-active, th, .tabs a, #keywor
     background: var(--bgColor);
 }
 
-.btn, .toolbar .filter.open .toggle, .toolbar .filter.open .toggle:after, .btn:hover, .form .btn:not(.border), .options input[type="checkbox"].active + span, form#login button {
+.btn, .toolbar .filter.open .toggle, .toolbar .filter.open .toggle:after, .btn:hover, .form .btn:not(.border), .options input[type="checkbox"]:checked + span, form#login button {
     color: var(--bgColor);
 }
 

@@ -427,7 +427,7 @@ form#login .warning {
     color: #171717;
 }
 
-.darkmode .daterangepicker td.active:not(:hover) {
+.darkmode .daterangepicker td.active:not(:hover):not(.deactivate) {
     color: #171717;
 }
 
@@ -3434,7 +3434,7 @@ table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + t
 .options input[type="checkbox"] {
     position: absolute;
     top: -3px;
-    left: -2px;
+    left: -4px;
     width: 100%;
     height: 100%;
     border: 0;
@@ -3443,7 +3443,7 @@ table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + t
     border-radius: 10px;
     cursor: pointer;
 }
-.filter .options .active {
+.filter .options .active, .options input[type="checkbox"]:checked {
     background-color: var(--blue);
     color: #fff;
 }
