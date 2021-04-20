@@ -81,7 +81,7 @@
 
 					<router-link v-if="isCluster && iCan('create','sgbackups',$route.params.namespace)" :to="'/crd/create/backup/'+$route.params.namespace+'/'+$route.params.name" title="Add New Backup" class="btn addClusterBackup">Add Backup</router-link>
 
-					<div class="filter" :class="filters.datePicker.length ? 'filtered' : ''">
+					<div class="filter" :class="(filters.dateStart.length && filters.dateEnd.length) ? 'filtered' : ''">
 						<span class="toggle date">DATE RANGE <input v-model="filters.datePicker" id="datePicker" autocomplete="off"></span>
 					</div>
 
@@ -836,7 +836,7 @@
 					if(vc.activeFilters.clusterName.length && show)
 						show = (vc.activeFilters.clusterName == bk.data.spec.sgCluster)
 					
-					if(vc.activeFilters.datePicker.length && vc.hasProp(bk, 'data.status.process.status') && (bk.data.status.process.status == 'Completed') && show ) {
+					if(vc.filters.dateStart.length && vc.filters.dateEnd.length && vc.hasProp(bk, 'data.status.process.status') && (bk.data.status.process.status == 'Completed') && show ) {
 						let timestamp = moment(bk.data.status.process.timing.stored, 'YYYY-MM-DD HH:mm:ss')
 						let start = moment(vc.filters.dateStart, 'YYYY-MM-DD HH:mm:ss')
 						let end = moment(vc.filters.dateEnd, 'YYYY-MM-DD HH:mm:ss')
@@ -874,9 +874,7 @@
 			}
 
 		},
-		mounted: function() {
-			
-		},
+		
 		methods: {
 
 			clearFilters(section) {
@@ -902,6 +900,8 @@
 					vc.activeFilters.keyword = '';
 				}
 
+				router.push(vc.$route.path + vc.getActiveFilters())
+
 			},
 
 			filterBackups(section) {
@@ -925,6 +925,8 @@
 						break;
 
 				}
+
+				router.push(vc.$route.path + vc.getActiveFilters())
 				
 			},
 
@@ -932,18 +934,58 @@
 				let begin = moment(start);
 				let finish = moment(stored);
 				return(new Date(moment.duration(finish.diff(begin))).toISOString());
+			},
+
+			getActiveFilters() {
+				const vc = this
+				let queryString = ''
+				
+				Object.keys(vc.activeFilters).forEach(function(filter) {
+					if(vc.activeFilters[filter].length) {
+						if(!queryString.length)
+							queryString = '?'
+						else
+							queryString += '&'
+						
+						queryString += filter + '=' + vc.activeFilters[filter]
+					}
+				})
+
+				return queryString
 			}
 		},
 
 		mounted: function() {
 
 			const vc = this;
+
+			// Detect if URL contains filters
+			if(location.search.length) {
+				var urlFilters = JSON.parse('{"' + decodeURI(location.search.substring(1)).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g,'":"').replaceAll('%3A',':').replaceAll('%2F','/') + '"}')
+				
+				Object.keys(urlFilters).forEach(function(filter) {
+
+					if(['managedLifecycle','status','postgresVersion'].includes(filter)) { // Array filters
+						vc.filters[filter] = urlFilters[filter].split(',')
+						vc.activeFilters[filter] = urlFilters[filter].split(',')
+					} else if (filter != 'datePicker') {
+						vc.filters[filter] = urlFilters[filter]
+						vc.activeFilters[filter] = urlFilters[filter]
+					}
+
+					if (filter == 'datePicker') {
+						vc.filters.dateStart = urlFilters[filter].split('/')[0]
+						vc.filters.dateEnd = urlFilters[filter].split('/')[1]
+					}
+					
+				})
+			}
 			
 			$(document).ready(function(){
 
 				$(document).on('focus', '#datePicker', function() {
 
-                    if(!$(this).val()) {
+                    if(!vc.filters.datePicker.length) {
 						$('.daterangepicker').remove()
 
 						$('#datePicker').daterangepicker({
@@ -964,24 +1006,38 @@
 					
 				
 						$('#datePicker').on('show.daterangepicker', function(ev, picker) {
-							//console.log('show.daterangepicker');
+							
+							if(!vc.filters.datePicker.length) {
+								$('.daterangepicker td.active').addClass('deactivate')
+								$('.daterangepicker td.in-range').removeClass('in-range')
+							}
+
 							$('#datePicker').parent().addClass('open');
 						});
 
 						$('#datePicker').on('hide.daterangepicker', function(ev, picker) {
-							//console.log('hide.daterangepicker');
 							$('#datePicker').parent().removeClass('open');
+
+							if(vc.filters.datePicker.length)
+								$('.daterangepicker td.deactivate').removeClass('deactivate')
 						});
 
 						$('#datePicker').on('cancel.daterangepicker', function(ev, picker) {
 							vc.filters.datePicker = '';
+							vc.filters.dateStart = '';
+							vc.filters.dateEnd = '';
 							vc.activeFilters.datePicker = '';
+							router.push(vc.$route.path + vc.getActiveFilters())
 
+							$('.daterangepicker td.deactivate').removeClass('deactivate')
+							$('#datePicker').focus()
+							$('.daterangepicker td.active').removeClass('active')
+							$('.daterangepicker td.in-range').removeClass('in-range')
 							$('#datePicker').parent().removeClass('open');
 						});
 
 						$('#datePicker').on('apply.daterangepicker', function(ev, picker) {
-							//console.log('apply.daterangepicker');
+							$('#datePicker').focus()
 							$('#datePicker').parent().removeClass('open');
 						});
 					}
@@ -1028,15 +1084,15 @@
 				$(document).on("click", "table.backups tr.base td:not(.actions)", function() {
 					if(!$(this).parent().hasClass('open')) {
 						if(vc.$route.name.includes('Cluster'))
-							router.push('/cluster/backups/'+vc.$route.params.namespace+'/'+$(this).parent().data('cluster')+'/'+$(this).parent().data('uid'))
+							router.push('/cluster/backups/'+vc.$route.params.namespace+'/'+$(this).parent().data('cluster')+'/'+$(this).parent().data('uid') + vc.getActiveFilters())
 						else
-							router.push('/backups/'+vc.$route.params.namespace+'/'+$(this).parent().data('cluster')+'/'+$(this).parent().data('uid'))
+							router.push('/backups/'+vc.$route.params.namespace+'/'+$(this).parent().data('cluster')+'/'+$(this).parent().data('uid') + vc.getActiveFilters())
 					}
 					else {
 						if(vc.$route.name.includes('Cluster'))
-							router.push('/cluster/backups/'+vc.$route.params.namespace+'/'+$(this).parent().data('cluster'))
+							router.push('/cluster/backups/'+vc.$route.params.namespace+'/'+$(this).parent().data('cluster') + vc.getActiveFilters())
 						else
-							router.push('/backups/'+vc.$route.params.namespace)
+							router.push('/backups/'+vc.$route.params.namespace + vc.getActiveFilters())
 					}
 				});
 
