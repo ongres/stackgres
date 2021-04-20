@@ -334,7 +334,7 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(1)).copyOrReplace(any(),
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH.path(context(cluster)))
             .resolve("test.so.1.0")));
-    verify(fileSystemHandler, times(17)).setPosixFilePermissions(any(), any());
+    verify(fileSystemHandler, times(15)).setPosixFilePermissions(any(), any());
     verify(fileSystemHandler, times(1)).setPosixFilePermissions(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr")),
@@ -436,20 +436,6 @@ public class ExtensionManagerTest {
             PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
             PosixFilePermission.GROUP_READ,
             PosixFilePermission.OTHERS_READ)));
-    verify(fileSystemHandler, times(1)).setPosixFilePermissions(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH.path(context(cluster)))
-            .resolve("test.so.1")),
-        eq(ImmutableSet.of(
-            PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_EXECUTE,
-            PosixFilePermission.GROUP_READ, PosixFilePermission.GROUP_WRITE, PosixFilePermission.GROUP_EXECUTE,
-            PosixFilePermission.OTHERS_READ, PosixFilePermission.OTHERS_WRITE, PosixFilePermission.OTHERS_EXECUTE)));
-    verify(fileSystemHandler, times(1)).setPosixFilePermissions(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH.path(context(cluster)))
-            .resolve("test.so.2")),
-        eq(ImmutableSet.of(
-            PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_EXECUTE,
-            PosixFilePermission.GROUP_READ, PosixFilePermission.GROUP_WRITE, PosixFilePermission.GROUP_EXECUTE,
-            PosixFilePermission.OTHERS_READ, PosixFilePermission.OTHERS_WRITE, PosixFilePermission.OTHERS_EXECUTE)));
     verify(fileSystemHandler, times(1)).deleteIfExists(any());
     verify(fileSystemHandler, times(1)).deleteIfExists(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
