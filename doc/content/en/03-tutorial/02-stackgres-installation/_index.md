@@ -104,10 +104,10 @@ kubectl -n stackgres get svc --field-selector metadata.name=stackgres-restapi
 
 Note: StackGres deploys the Web Console with the service of the Rest API, hence the query above.
 
-```plain
+<pre>
 NAME                TYPE           CLUSTER-IP       EXTERNAL-IP                                                               PORT(S)         AGE
-stackgres-restapi   LoadBalancer   10.100.194.154   aa82c8ec1082142cba68d9f19980478d-2039466138.us-east-2.elb.amazonaws.com   443:30010/TCP   20m
-```
+stackgres-restapi   LoadBalancer   10.100.194.154   <b class="colorHighlight">aa82c8ec1082142cba68d9f19980478d-2039466138.us-east-2.elb.amazonaws.com</b>   443:30010/TCP   20m
+</pre>
 
 Note the external IP (probably a DNS name, like above) and use it prepended by `https://` to access the Web Console.
 By default StackGres would have used a self-signed SSL certificate, so it is expected that you will be presented with a

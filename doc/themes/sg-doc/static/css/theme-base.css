@@ -477,7 +477,7 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
     padding: 0;
     color: #b3b3b3;
     font-size: 13px;
-    min-height: 200px;
+    min-height: 150px;
 }
 
 #footer p {
@@ -838,42 +838,36 @@ td {
 .tooltipped {
     position: relative;
 }
-.tooltipped:after {
+.copy-to-clipboard.tooltipped:after {
+    display: block;
+    width: 75px;
+    height: 25px;
     position: absolute;
-    z-index: 1000000;
-    display: none;
-    padding: 5px 8px;
-    font: normal normal 11px/1.5 "Work Sans", "Helvetica", "Tahoma", "Geneva", "Arial", sans-serif;
-    color: #fff;
+    left: -59px !important;
+    top: 3px !important;
+    content: "Copied!";
     text-align: center;
-    text-decoration: none;
-    text-shadow: none;
-    text-transform: none;
-    letter-spacing: normal;
-    word-wrap: break-word;
-    white-space: pre;
-    pointer-events: none;
-    content: attr(aria-label);
-    background: rgba(0, 0, 0, 0.8);
-    border-radius: 3px;
-    -webkit-font-smoothing: subpixel-antialiased;
+    font-size: 14px;
+    color: var(--blue);
+    border-color: var(--blue) !important;
+    border-radius: 5px;
+    background-color: var(--darkBlue) !important;
+    padding-top: 2px;
 }
-.tooltipped:before {
-    position: absolute;
-    z-index: 1000001;
-    display: none;
-    width: 0;
-    height: 0;
-    color: rgba(0, 0, 0, 0.8);
-    pointer-events: none;
-    content: "";
-    border: 5px solid transparent;
+p .copy-to-clipboard.tooltipped:after {
+    left: -22px !important;
+    top: -3px !important;
+    font-family: 'Ubuntu Mono', monospace;
+    padding-top: 0;
+}
+.copy-to-clipboard.tooltipped:before {
+    display: none !important;
 }
 .tooltipped:hover:before, .tooltipped:hover:after, .tooltipped:active:before, .tooltipped:active:after, .tooltipped:focus:before, .tooltipped:focus:after {
     display: inline-block;
     text-decoration: none;
 }
-.tooltipped-s:after, .tooltipped-se:after, .tooltipped-sw:after {
+.tooltipped-se:after, .tooltipped-sw:after {
     top: 100%;
     right: 50%;
     margin-top: 5px;
@@ -913,21 +907,8 @@ td {
 .tooltipped-nw:after {
     margin-right: -15px;
 }
-.tooltipped-s:after, .tooltipped-n:after {
+.tooltipped-n:after {
     transform: translateX(50%);
-}
-.tooltipped-w:after {
-    right: 100%;
-    bottom: 50%;
-    margin-right: 5px;
-    transform: translateY(50%);
-}
-.tooltipped-w:before {
-    top: 50%;
-    bottom: 50%;
-    left: -5px;
-    margin-top: -5px;
-    border-left-color: rgba(0, 0, 0, 0.8);
 }
 .tooltipped-e:after {
     bottom: 50%;
