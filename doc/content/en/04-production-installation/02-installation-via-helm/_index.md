@@ -315,7 +315,7 @@ In the given example, we are creating an user to perform some queries using the 
 
 ```bash
 kubectl -n my-cluster create secret generic pgbench-user-password-secret \
-  --from-literal=pgbench-create-user-sql="create user admin password 'admin123'"
+  --from-literal=pgbench-create-user-sql="create user pgbench password 'admin123'"
 ```
 
 As you can see, has been created a secret key and its value which will be used in the StackGres cluster creation.
