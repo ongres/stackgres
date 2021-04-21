@@ -6,6 +6,7 @@ KIND_LOCK_PATH="${KIND_LOCK_PATH:-$TARGET_PATH/kind-lock}"
 
 export KIND_NAME
 export KIND_NODES
+export KIND_CONTAINERD_CACHE_PATH
 
 check_kind_version() {
   if ! kind version | grep -q -F 'kind v0.9.0 '
@@ -98,13 +99,28 @@ reset_k8s() {
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 $(
-  if docker system info 2> /dev/null | grep -q "Backing Filesystem: zfs"
+  if [ -n "$KIND_CONTAINERD_CACHE_PATH" ] || \
+    docker system info 2> /dev/null | grep -q "Backing Filesystem: zfs"
   then
     cat << INNER_EOF
 containerdConfigPatches:
 - |-
+$(
+  if [ -n "$KIND_CONTAINERD_CACHE_PATH" ]
+  then
+    cat << INNER_INNER_EOF
+ 
+ root = "/containerd-cache"
+INNER_INNER_EOF
+  fi
+  if docker system info 2> /dev/null | grep -q "Backing Filesystem: zfs"
+  then
+    cat << INNER_INNER_EOF
  [plugins."io.containerd.grpc.v1.cri".containerd]
  snapshotter = "native"
+INNER_INNER_EOF
+  fi
+)
 INNER_EOF
   fi
 )
@@ -122,6 +138,15 @@ $(
     hostPort: $(echo "$K8S_EXTRA_PORT" | cut -d : -f 2)
     listenAddress: "$(echo "$K8S_EXTRA_PORT" | cut -d : -f 3)"
     protocol: "$(echo "$K8S_EXTRA_PORT" | cut -d : -f 4)"
+INNER_EOF
+  fi
+  if [ -n "$KIND_CONTAINERD_CACHE_PATH" ]
+  then
+    mkdir -p "$KIND_CONTAINERD_CACHE_PATH"
+    cat << INNER_EOF
+  extraMounts:
+  - hostPath: $KIND_CONTAINERD_CACHE_PATH
+    containerPath: /containerd-cache
 INNER_EOF
   fi
   for KIND_NODE in $(seq 2 "$KIND_NODES")
