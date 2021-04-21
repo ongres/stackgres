@@ -37,7 +37,7 @@ we can proceed to the StackGres Operator itself!
 ```bash
 helm install --namespace stackgres stackgres-operator \
         --set grafana.autoEmbed=true \
-        --set-string grafana.webHost=prometheus-operator-grafana.monitoring \
+        --set-string grafana.webHost=prometheus-grafana.monitoring \
         --set-string grafana.user=admin \
         --set-string grafana.password=prom-operator \
         --set-string adminui.service.type=LoadBalancer \
