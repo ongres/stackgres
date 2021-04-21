@@ -12,6 +12,7 @@ import CreatePoolConfig from '../components/forms/CreatePoolConfig.vue'
 import CreateBackupConfig from '../components/forms/CreateBackupConfig.vue'
 import CreateBackup from '../components/forms/CreateBackup.vue'
 import CreateLogsServer from '../components/forms/CreateLogsServer.vue'
+import CreateDbOps from '../components/forms/CreateDbOps.vue'
 
 // Main Components
 import ClusterOverview from '../components/ClusterOverview.vue'
@@ -24,6 +25,7 @@ import PoolConfig from '../components/PoolConfig.vue'
 import BackupConfig from '../components/BackupConfig.vue'
 import InstanceProfile from '../components/InstanceProfile.vue'
 import LogsServer from '../components/LogsServer.vue'
+import DbOps from '../components/DbOps.vue'
 import Grafana from '../components/Grafana.vue'
 import NotFound from '../components/NotFound.vue'
 
@@ -147,6 +149,14 @@ const routes = [
     path: '/crd/edit/logs/:namespace/:name', 
     component: CreateLogsServer,
     name: 'EditLogsServer',
+    meta: {
+      conditionalRoute: false
+    },
+  },
+  { 
+    path: '/crd/:action/dbops/:namespace', 
+    component: CreateDbOps,
+    name: 'CreateDbOps',
     meta: {
       conditionalRoute: false
     },
@@ -328,7 +338,23 @@ const routes = [
     },
   },
   { 
-    path: '/cluster/monitor/:namespace/:name', 
+    path: '/dbops/:namespace', 
+    component: DbOps,
+    name: 'DbOps',
+    meta: {
+      conditionalRoute: false
+    },
+  },
+  { 
+    path: '/dbops/:namespace/:name', 
+    component: DbOps,
+    name: 'SingleDbOps',
+    meta: {
+      conditionalRoute: false
+    },
+  },
+  { 
+    path: '/:cluster/monitor/:namespace/:name', 
     component: Grafana,
     name: 'ClusterMonitor',
     meta: {
@@ -777,6 +803,44 @@ router.beforeResolve((to, from, next) => {
             notFound()
           else {
             store.commit('addLogsClusters', logs);
+            next()
+          }
+
+        }).catch(function(error) {
+          checkAuthError(error)
+          notFound()
+        });
+
+        break;
+      
+      case 'DbOps':
+
+        /* Check if requested Database Operation exists */
+        axios
+        .get('/stackgres/sgdbops')
+        .then( function(response){
+
+          var found = false
+          var dbOps = [];
+
+          response.data.forEach( function(item, index) {
+              
+            response.data.forEach(function(item, index){
+              dbOps.push({
+                name: item.metadata.name,
+                data: item
+              })
+            })
+
+            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
+              found = true;
+
+          });
+
+          if( to.params.hasOwnProperty('name') && !found)
+            notFound()
+          else {
+            store.commit('addDbOps', dbOps);
             next()
           }
 

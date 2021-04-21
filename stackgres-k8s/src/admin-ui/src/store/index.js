@@ -30,6 +30,7 @@ export default new Vuex.Store({
     storageClasses: [],
     logs: [],
     logsClusters: [],
+    dbOps: [],
     cloneCRD: {},
     permissions: {
       allowed: {
@@ -98,6 +99,10 @@ export default new Vuex.Store({
       state.logsClusters = [...logsClusters];
     },
 
+    addDbOps (state, dbOps) {
+      state.dbOps = [...dbOps];
+    },
+
     addStorageClasses (state, storageClassesList) {
       state.storageClasses = [...storageClassesList];
     },
@@ -148,6 +153,12 @@ export default new Vuex.Store({
     showBackup ( state, show ) {
 
       state.backups[show.pos].show = show.isVisible;
+
+    },
+
+    showDbOp ( state, show ) {
+
+      state.dbOps[show.pos]['show'] = show.isVisible;
 
     },
 

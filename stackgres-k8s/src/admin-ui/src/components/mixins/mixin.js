@@ -1,5 +1,6 @@
 import store from '../../store'
 import axios from 'axios'
+import router from '../../router'
 
 export const mixin = {
 
@@ -392,6 +393,34 @@ export const mixin = {
             vc.checkAuthError(err);
           });
         }
+
+        if (!store.state.permissions.forbidden.includes('sgdbops') && ( !kind.length || (kind == 'sgdbops') ) ){
+          /* DbOps Data */
+          axios
+          .get('/stackgres/sgdbops',
+            { headers: {
+                //'content-type': 'application/json'
+              }
+            }
+          )
+          .then( function(response){
+  
+            var dbOps = [];
+  
+            response.data.forEach(function(item, index){
+              dbOps.push({
+                name: item.metadata.name,
+                data: item
+              })
+            })
+
+            store.commit('addDbOps', dbOps);
+  
+          }).catch(function(err) {
+            console.log(err);
+            vc.checkAuthError(err);
+          });
+        }
   
   
         if (!store.state.permissions.forbidden.includes('sgbackups') && ( (kind === 'backup') || (kind === 'cluster') ) ) {
@@ -564,6 +593,9 @@ export const mixin = {
           case 'sgdistributedlogs':
             icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path class="a" d="M19,15H5c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,14.6,19.6,15,19,15z"/><path class="a" d="M1,15L1,15c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,14.6,1.6,15,1,15z"/><path class="a" d="M19,11H5c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,10.6,19.6,11,19,11z"/><path class="a" d="M1,11L1,11c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,10.6,1.6,11,1,11z"/><path class="a" d="M19,7H5C4.4,7,4,6.6,4,6v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,6.6,19.6,7,19,7z"/><path d="M1,7L1,7C0.4,7,0,6.6,0,6v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,6.6,1.6,7,1,7z"/></svg>';
             break;
+          case 'sgdbops':
+            icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><g fill="#36A8FF"><path d="M17.1 20c-.6 0-1-.5-1-1 0-1.6-1.3-2.8-2.8-2.8H6.6c-1.6 0-2.8 1.3-2.8 2.8 0 .6-.5 1-1 1s-1-.5-1-1c0-2.7 2.2-4.8 4.8-4.8h6.7c2.7 0 4.8 2.2 4.8 4.8.1.5-.4 1-1 1zM9.9 9.4c-1.4 0-2.5-1.1-2.5-2.5s1.1-2.5 2.5-2.5 2.5 1.1 2.5 2.5c.1 1.4-1.1 2.5-2.5 2.5zm0-3.3c-.4 0-.8.3-.8.8 0 .4.3.8.8.8.5-.1.8-.4.8-.8 0-.5-.3-.8-.8-.8z"/><path d="M10 13.7h-.2c-1-.1-1.8-.8-1.8-1.8v-.1h-.1l-.1.1c-.8.7-2.1.6-2.8-.2s-.7-1.9 0-2.6l.1-.1H5c-1.1 0-2-.8-2.1-1.9 0-1.2.8-2.1 1.8-2.2H5v-.1c-.7-.8-.7-2 .1-2.8.8-.7 1.9-.7 2.7 0 .1 0 .1 0 .2-.1 0-.6.3-1.1.7-1.4.8-.7 2.1-.6 2.8.2.2.3.4.7.4 1.1v.1h.1c.8-.7 2.1-.6 2.8.2.6.7.6 1.9 0 2.6l-.1.1v.1h.1c.5 0 1 .1 1.4.5.8.7.9 2 .2 2.8-.3.4-.8.6-1.4.7h-.3c.4.4.6 1 .6 1.5-.1 1.1-1 1.9-2.1 1.9-.4 0-.9-.2-1.2-.5l-.1-.1v.1c0 1.1-.9 1.9-1.9 1.9zM7.9 10c1 0 1.8.8 1.8 1.7 0 .1.1.2.2.2s.2-.1.2-.2c0-1 .8-1.8 1.8-1.8.5 0 .9.2 1.3.5.1.1.2.1.3 0s.1-.2 0-.3c-.7-.7-.7-1.8 0-2.5.3-.3.8-.5 1.3-.5h.1c.1 0 .2 0 .2-.1 0 0 .1-.1.1-.2s0-.1-.1-.2c0 0-.1-.1-.2-.1h-.2c-.7 0-1.4-.4-1.6-1.1 0-.1 0-.1-.1-.2-.2-.6-.1-1.3.4-1.8.1-.1.1-.2 0-.3s-.2-.1-.3 0c-.3.3-.8.5-1.2.5-1 0-1.8-.8-1.8-1.8 0-.1-.1-.2-.2-.2s-.1 0-.2.1c.1.1 0 .2 0 .3 0 .7-.4 1.4-1.1 1.7-.1 0-.1 0-.2.1-.6.2-1.3 0-1.8-.4-.1-.1-.2-.1-.3 0-.1.1-.1.2 0 .3.3.3.5.7.5 1.2.1 1-.7 1.9-1.7 1.9h-.2c-.1 0-.1 0-.2.1 0-.1 0 0 0 0 0 .1.1.2.2.2h.2c1 0 1.8.8 1.8 1.8 0 .5-.2.9-.5 1.2-.1.1-.1.2 0 .3s.2.1.3 0c.3-.2.7-.4 1.1-.4h.1z"/></g></svg>';
+            break;
         }
       
         if(kind === 'error') {
@@ -579,8 +611,6 @@ export const mixin = {
                 `+kind+`
               </span>`;
       
-          console.log(message.status)
-      
           if( (message.status !== 500) && (message.status !== 401) ) {
             details += `
             <h4 class="title">`+message.title+`</h4>
@@ -590,11 +620,10 @@ export const mixin = {
       
           details += `</div>`;
           
-          if(!!message.fields) {
+          if(message.hasOwnProperty('fields')) {
             message.fields.forEach( function(item, index) {
-              $(".form [data-field='"+item+"']").addClass("alert");
+              $("[data-field='"+item+"']").addClass("notValid");
             });
-            //$(".form [data-field='"+message.fields[0]+"']").addClass("alert");
           }
         } else {
           details = `
@@ -759,18 +788,27 @@ export const mixin = {
                 return -1
               }
             }
-            
-          }  
+          } 
 
-          if(vc.hasParams( a, param.split(".")))
-            a = eval("a."+param);
-          else
-            a = '';
+          if (param == 'data.status.conditions') { // If dbOps sorted by Status
+            a = a.data.status.conditions.find(c => (c.status === 'True') )
+            a = a.type
 
-          if(vc.hasParams( b, param.split(".")))
-            b = eval("b."+param);
-          else
-            b = '';
+            b = b.data.status.conditions.find(c => (c.status === 'True') )
+            b = b.type
+          } else { // Every other param
+
+            if(vc.hasParams( a, param.split(".")))
+              a = eval("a."+param);
+            else
+              a = '';
+
+            if(vc.hasParams( b, param.split(".")))
+              b = eval("b."+param);
+            else
+              b = '';
+
+          }
           
           if( a < b )
             return -1 * modifier;
@@ -812,6 +850,19 @@ export const mixin = {
       
         return true;
       },
+
+      goTo(path) {
+        var $target = $(event.target);
+
+        if( !$target.closest('td.actions').length) {
+        
+          if(window.location.href.includes(path)) // Already in resource, go to parent page
+            router.push(path.substring(0, path.lastIndexOf("/") + 1))
+          else
+            router.push(path)
+
+        }
+      }
       
     },
   
