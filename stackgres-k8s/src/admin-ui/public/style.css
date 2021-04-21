@@ -3354,7 +3354,7 @@ table.backupConfig tr.base.open {
 .options input[type="checkbox"] {
     position: absolute;
     top: -3px;
-    left: -2px;
+    left: -5px;
     width: 100%;
     height: 100%;
     border: 0;
@@ -3368,12 +3368,12 @@ table.backupConfig tr.base.open {
     border-color: #333333;
 }
 
-.filter .options .active {
+.filter .options .active, .options input[type="checkbox"]:checked {
     background-color: var(--blue);
     color: #fff;
 }
 
-.options input[type="checkbox"].active + span, .options select.active:hover {
+.options input[type="checkbox"].active + span, .options input[type="checkbox"]:checked + span, .options select.active:hover {
     color: #fff;
 }
 
