@@ -16,6 +16,31 @@ spec:
     - name: v1
       served: true
       storage: true
+      additionalPrinterColumns:
+      - name: version
+        type: string
+        jsonPath: .spec.postgresVersion
+      - name: instances
+        type: integer
+        jsonPath: .spec.instances 
+      - name: Profile
+        type: string
+        jsonPath: .spec.sgInstanceProfile
+      - name: Disk
+        type: string
+        jsonPath: .spec.pods.persistentVolume.size
+      - name: prometheus-Autobind
+        type: string
+        jsonPath: .spec.prometheusAutobind
+        priority: 1
+      - name: pool-config
+        type: string
+        jsonPath: .spec.configurations.sgPoolingConfig
+        priority: 1
+      - name: postgres-config
+        type: string
+        jsonPath: .spec.configurations.sgPostgresConfig
+        priority: 1
       schema:
         openAPIV3Schema:
           type: object

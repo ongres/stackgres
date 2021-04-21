@@ -16,6 +16,19 @@ spec:
     - name: v1
       served: true
       storage: true
+      additionalPrinterColumns:
+      - name: type
+        type: string
+        jsonPath: .spec.storage.type
+      - name: compression
+        type: string
+        jsonPath: .spec.baseBackups.compression
+      - name: retention
+        type: string
+        jsonPath: .spec.baseBackups.retention
+      - name: schedule
+        type: string
+        jsonPath: .spec.baseBackups.cronSchedule
       schema:
         openAPIV3Schema:
           type: object

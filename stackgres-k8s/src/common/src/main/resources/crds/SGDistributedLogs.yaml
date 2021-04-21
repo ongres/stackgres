@@ -18,6 +18,10 @@ spec:
     - name: v1
       served: true
       storage: true
+      additionalPrinterColumns:
+      - name: volume-size
+        type: string
+        jsonPath: .spec.persistentVolume.size
       schema:
         openAPIV3Schema:
           type: object
