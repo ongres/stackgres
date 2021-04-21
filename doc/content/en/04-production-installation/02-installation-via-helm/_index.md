@@ -180,8 +180,8 @@ spec:
       bucket: 'backup.my-cluster.stackgres.io'
       awsCredentials:
         secretKeySelectors:
-          accessKeyId: {name: 's3-backup-bucket-secret', key: 'accessKeyId'}
-          secretAccessKey: {name: 's3-backup-bucket-secret', key: 'secretAccessKey'}
+          accessKeyId: {name: 'aws-creds-secret', key: 'accessKeyId'}
+          secretAccessKey: {name: 'aws-creds-secret', key: 'secretAccessKey'}
 EOF
 ```
 
