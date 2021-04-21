@@ -353,8 +353,6 @@ spec:
       script: |
         create database pgbench owner pgbench;
   prometheusAutobind: true
-  nonProductionOptions:
-    disableClusterPodAntiAffinity: true
 EOF
 ```
 
