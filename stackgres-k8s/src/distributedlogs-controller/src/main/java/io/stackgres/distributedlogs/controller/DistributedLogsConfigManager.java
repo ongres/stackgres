@@ -48,12 +48,12 @@ public class DistributedLogsConfigManager {
         StandardCopyOption.REPLACE_EXISTING);
     String fluentdPid = ProcessHandle.allProcesses()
         .filter(process -> process.info().commandLine()
-            .map(command -> command.startsWith("/usr/bin/ruby /usr/local/bin/fluentd "))
+            .map(command -> command.startsWith("/usr/local/bin/ruby /usr/local/bin/fluentd "))
             .orElse(false))
         .map(ProcessHandle::pid)
         .map(String::valueOf)
         .findAny()
-        .orElseThrow(() -> new IllegalStateException("Fluentd configmap not found"));
+        .orElseThrow(() -> new IllegalStateException("Fluentd process not found"));
     if (needsRestart) {
       FluentProcess.start("sh", "-c", "kill -s INT " + fluentdPid).join();
     } else {

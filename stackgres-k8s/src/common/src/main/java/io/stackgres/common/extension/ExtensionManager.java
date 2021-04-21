@@ -397,6 +397,9 @@ public abstract class ExtensionManager {
       }
       if (tarEntry.isFile() && !tarEntry.isSymbolicLink()) {
         fileSystemHandler.copyOrReplace(tarEntryInputStream, targetPath);
+        int fileMode = tarEntry.getMode();
+        Set<PosixFilePermission> permissions = parseMode(fileMode);
+        fileSystemHandler.setPosixFilePermissions(targetPath, permissions);
       } else if (tarEntry.isSymbolicLink()) {
         Path linkTarget = Paths.get(tarEntry.getLinkName());
         if (linkTarget.isAbsolute()) {
@@ -413,13 +416,13 @@ public abstract class ExtensionManager {
         }
       } else if (tarEntry.isDirectory()) {
         fileSystemHandler.createDirectories(targetPath);
+        int fileMode = tarEntry.getMode();
+        Set<PosixFilePermission> permissions = parseMode(fileMode);
+        fileSystemHandler.setPosixFilePermissions(targetPath, permissions);
       } else {
         LOGGER.warn("Can not extract file {}", targetPath);
         return null;
       }
-      int fileMode = tarEntry.getMode();
-      Set<PosixFilePermission> permissions = parseMode(fileMode);
-      fileSystemHandler.setPosixFilePermissions(targetPath, permissions);
     } catch (IOException ex) {
       throw new UncheckedIOException("Error while extracting " + targetPath, ex);
     }
