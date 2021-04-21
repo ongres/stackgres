@@ -18,7 +18,7 @@ eksctl --region $AWS_REGION create cluster \
 	--name $K8S_CLUSTER_NAME \
 	--node-type m5a.2xlarge --node-volume-size 100 --nodes 3 \
 	--zones ${AWS_REGION}a,${AWS_REGION}b,${AWS_REGION}c \
-	--version 1.17
+	--version 1.18
 ```
 
 This process takes around 20 minutes. The output should be similar to:
