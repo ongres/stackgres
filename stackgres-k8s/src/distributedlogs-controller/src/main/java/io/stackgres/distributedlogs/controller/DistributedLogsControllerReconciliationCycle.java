@@ -69,7 +69,6 @@ public class DistributedLogsControllerReconciliationCycle
   public DistributedLogsControllerReconciliationCycle(Parameters parameters) {
     super("DistributeLogs", parameters.clientFactory::create,
         parameters.reconciliator,
-        StackGresDistributedLogsContext::getDistributedLogs,
         parameters.handlerSelector);
     this.propertyContext = parameters.propertyContext;
     this.eventController = parameters.eventController;
@@ -80,7 +79,7 @@ public class DistributedLogsControllerReconciliationCycle
   }
 
   public DistributedLogsControllerReconciliationCycle() {
-    super(null, null, null, c -> null, null);
+    super(null, null, null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.propertyContext = null;
     this.eventController = null;
@@ -161,16 +160,16 @@ public class DistributedLogsControllerReconciliationCycle
   }
 
   @Override
-  protected ImmutableList<StackGresDistributedLogsContext> getExistingContexts() {
+  protected ImmutableList<StackGresDistributedLogs> getExistingContextResources() {
     return distributedLogsFinder.findByNameAndNamespace(
         propertyContext.getString(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAME),
         propertyContext.getString(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAMESPACE))
         .stream()
-        .map(distributedLogs -> getDistributedLogsContext(distributedLogs))
         .collect(ImmutableList.toImmutableList());
   }
 
-  private StackGresDistributedLogsContext getDistributedLogsContext(
+  @Override
+  public StackGresDistributedLogsContext getContextFromResource(
       StackGresDistributedLogs distributedLogs) {
     final StackGresCluster cluster = StackGresDistributedLogsUtil
         .getStackGresClusterForDistributedLogs(distributedLogs);

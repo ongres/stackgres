@@ -134,8 +134,7 @@ public class ClusterReconciliationCycle
 
   @Inject
   public ClusterReconciliationCycle(Parameters parameters) {
-    super("Cluster", parameters.clientFactory::create,
-        parameters.reconciliator, StackGresClusterContext::getCluster,
+    super("Cluster", parameters.clientFactory::create, parameters.reconciliator,
         parameters.handlerSelector, parameters.clusterScanner);
     this.sidecarFinder = parameters.sidecarFinder;
     this.cluster = parameters.cluster;
@@ -154,7 +153,7 @@ public class ClusterReconciliationCycle
   }
 
   public ClusterReconciliationCycle() {
-    super(null, null, null, c -> null, null, null);
+    super(null, null, null, null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.sidecarFinder = null;
     this.cluster = null;
@@ -247,11 +246,7 @@ public class ClusterReconciliationCycle
   }
 
   @Override
-  protected StackGresClusterContext mapResourceToContext(StackGresCluster resource) {
-    return getClusterConfig(resource);
-  }
-
-  private StackGresClusterContext getClusterConfig(StackGresCluster cluster) {
+  protected StackGresClusterContext getContextFromResource(StackGresCluster cluster) {
     return Optional.of(ImmutableStackGresUserClusterContext.builder()
         .operatorContext(operatorContext)
         .cluster(cluster)

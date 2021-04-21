@@ -69,7 +69,6 @@ public class ClusterControllerReconciliationCycle
   public ClusterControllerReconciliationCycle(Parameters parameters) {
     super("Cluster", parameters.clientFactory::create,
         parameters.reconciliator,
-        StackGresClusterContext::getCluster,
         parameters.handlerSelector);
     this.propertyContext = parameters.propertyContext;
     this.eventController = parameters.eventController;
@@ -79,7 +78,7 @@ public class ClusterControllerReconciliationCycle
   }
 
   public ClusterControllerReconciliationCycle() {
-    super(null, null, null, c -> null, null);
+    super(null, null, null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.propertyContext = null;
     this.eventController = null;
@@ -158,16 +157,16 @@ public class ClusterControllerReconciliationCycle
   }
 
   @Override
-  protected ImmutableList<StackGresClusterContext> getExistingContexts() {
+  protected ImmutableList<StackGresCluster> getExistingContextResources() {
     return clusterFinder.findByNameAndNamespace(
         propertyContext.getString(ClusterControllerProperty.CLUSTER_NAME),
         propertyContext.getString(ClusterControllerProperty.CLUSTER_NAMESPACE))
         .stream()
-        .map(this::getClusterContext)
         .collect(ImmutableList.toImmutableList());
   }
 
-  private StackGresClusterContext getClusterContext(
+  @Override
+  protected StackGresClusterContext getContextFromResource(
       StackGresCluster cluster) {
     Optional<List<StackGresClusterExtension>> extensions =
         Optional.ofNullable(cluster.getSpec().getPostgresExtensions());

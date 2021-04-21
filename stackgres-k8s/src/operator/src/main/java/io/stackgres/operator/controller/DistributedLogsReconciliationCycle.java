@@ -86,7 +86,6 @@ public class DistributedLogsReconciliationCycle
   public DistributedLogsReconciliationCycle(Parameters parameters) {
     super("DistributeLogs", parameters.clientFactory::create,
         parameters.reconciliator,
-        StackGresDistributedLogsContext::getDistributedLogs,
         parameters.handlerSelector, parameters.distributedLogsScanner);
     this.distributeLogs = parameters.distributeLogs;
     this.distributedLogsController = parameters.distributedLogsController;
@@ -98,7 +97,7 @@ public class DistributedLogsReconciliationCycle
   }
 
   public DistributedLogsReconciliationCycle() {
-    super(null, null, null, c -> null, null, null);
+    super(null, null, null, null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.distributeLogs = null;
     this.distributedLogsController = null;
@@ -180,12 +179,7 @@ public class DistributedLogsReconciliationCycle
   }
 
   @Override
-  protected StackGresDistributedLogsContext mapResourceToContext(
-      StackGresDistributedLogs resource) {
-    return this.getDistributedLogsContext(resource);
-  }
-
-  private StackGresDistributedLogsContext getDistributedLogsContext(
+  protected StackGresDistributedLogsContext getContextFromResource(
       StackGresDistributedLogs distributedLogs) {
     final StackGresCluster cluster = StackGresDistributedLogsUtil
         .getStackGresClusterForDistributedLogs(distributedLogs);
