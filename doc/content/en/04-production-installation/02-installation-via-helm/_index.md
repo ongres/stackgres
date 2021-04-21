@@ -395,5 +395,5 @@ psql -h <the ip of the cluster> -p 7777 -U postgres
 It is also possible to open a direct port-forward towards the main Postgres pod as follows:
 
 ```
-kubectl port-forward test-0 --address 0.0.0.0 7777:5432
+kubectl port-forward cluster-0 --address 0.0.0.0 7777:5432
 ```
