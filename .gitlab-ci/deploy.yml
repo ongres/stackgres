@@ -131,11 +131,13 @@ pages:
   dependencies:
     - build documentation
   script:
-  - cp -a doc/public public
+  - tar cC doc public | tar x
   - find public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
   artifacts:
     paths:
     - public
   only:
     variables:
+      - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
+      - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_PAGES
