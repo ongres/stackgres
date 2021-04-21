@@ -63,8 +63,7 @@ public class DbOps
     return Seq.of(context)
         .map(StackGresClusterContext::getDbOps)
         .flatMap(List::stream)
-        .flatMap(dbOps -> streamResources(context, dbOps, now))
-        .append(role.streamResources(context));
+        .flatMap(dbOps -> streamResources(context, dbOps, now));
   }
 
   private Stream<HasMetadata> streamResources(StackGresClusterContext context,
@@ -86,6 +85,7 @@ public class DbOps
           .with(dbOpsContext)
           .of(HasMetadata.class)
           .append(benchmark)
+          .append(role)
           .stream();
     }
 
@@ -97,6 +97,7 @@ public class DbOps
           .with(dbOpsContext)
           .of(HasMetadata.class)
           .append(vacuumJob)
+          .append(role)
           .stream();
     }
 
@@ -108,6 +109,7 @@ public class DbOps
           .with(dbOpsContext)
           .of(HasMetadata.class)
           .append(repackJob)
+          .append(role)
           .stream();
     }
 
@@ -119,6 +121,7 @@ public class DbOps
           .with(dbOpsContext)
           .of(HasMetadata.class)
           .append(majorVersionUpgradeJob)
+          .append(role)
           .stream();
     }
 
@@ -130,6 +133,7 @@ public class DbOps
           .with(dbOpsContext)
           .of(HasMetadata.class)
           .append(restartJob)
+          .append(role)
           .stream();
     }
 
@@ -141,6 +145,7 @@ public class DbOps
           .with(dbOpsContext)
           .of(HasMetadata.class)
           .append(minorVersionUpgradeJob)
+          .append(role)
           .stream();
     }
 
@@ -152,6 +157,7 @@ public class DbOps
           .with(dbOpsContext)
           .of(HasMetadata.class)
           .append(securityUpgradeJob)
+          .append(role)
           .stream();
     }
 
@@ -164,7 +170,7 @@ public class DbOps
         .map(StackGresDbOps::getSpec)
         .map(StackGresDbOpsSpec::getRunAt)
         .map(Instant::parse)
-        .map(runAt -> runAt.isBefore(now))
+        .map(runAt -> !runAt.isBefore(now))
         .orElse(false);
   }
 
