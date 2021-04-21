@@ -53,20 +53,20 @@ helm uninstall --namespace stackgres stackgres-operator
 Use the command below to be sure when the operation is ready to use:
 
 ```bash
-while [ $(kubectl get pods -n stackgres | grep -E 'stackgres\-(operator|restapi)' | grep -E '0/1|1/1|2/2' | grep -E 'Running|Completed' | wc -l) -ne 3 ] ; do
+while [ $(kubectl get pods -n stackgres | grep -E 'stackgres\-(operator|restapi)' | grep -E '1/1|2/2' | grep -E 'Running' | wc -l) -ne 3 ] ; do
   echo not ready...
   sleep 3
 done
 ```
 
-Once it's ready you will see that the two pods are `Running` and the create certificate job is `Complete`:
+Once it's ready you will see that the two pods are `Running`:
 
 ```bash
 ➜ kubectl get pods -n stackgres   
-NAME                                          READY   STATUS      RESTARTS   AGE
-stackgres-operator-7bfcb56dc7-c2hfs           1/1     Running     0          18m
-stackgres-operator-create-certificate-2fltp   0/1     Completed   0          18m
-stackgres-restapi-66db44f45f-l5gz4            2/2     Running     0          18m
+NAME                                  READY   STATUS    RESTARTS   AGE
+stackgres-operator-78d57d4f55-pm8r2   1/1     Running   0          3m34s
+stackgres-restapi-6ffd694fd5-hcpgp    2/2     Running   0          3m30s
+
 ```
 
 ## Connect to the UI
