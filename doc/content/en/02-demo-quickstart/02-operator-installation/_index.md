@@ -86,6 +86,23 @@ The UI will ask for a username and a password. By default those are `admin` and 
 kubectl get secret -n stackgres stackgres-restapi --template 'username = {{ printf "%s\n" (.data.k8sUsername | base64decode) }}password = {{ printf "%s\n" ( .data.clearPassword | base64decode) }}'
 ```
 
+### Connecting to the UI through the LoadBalancer
+
+Since in the previous installation we set set option `--set-string adminui.service.type=LoadBalancer`, 
+ is possible to connect to the UI whitout having to do a port-forward.
+
+To find the hostname you just need to execute and look for the External IP value. 
+``` bash
+kubectl get services -n stackgres stackgres-restapi
+```
+
+For instance, in this output from a EKS cluster the hostname is `aecdec3efe3a542b2b0b40d0072ab338-1132619204.us-west-2.elb.amazonaws.com`
+``` bash
+NAME                TYPE           CLUSTER-IP       EXTERNAL-IP                                                               PORT(S)         AGE
+stackgres-restapi   LoadBalancer   10.100.233.210   aecdec3efe3a542b2b0b40d0072ab338-1132619204.us-west-2.elb.amazonaws.com   443:32674/TCP   10m
+```
+
+Therefore to connect the UI, the address would be `https://aecdec3efe3a542b2b0b40d0072ab338-1132619204.us-west-2.elb.amazonaws.com/admin`
 ## Changing the UI password
 
 You can use the command below to change the password:
