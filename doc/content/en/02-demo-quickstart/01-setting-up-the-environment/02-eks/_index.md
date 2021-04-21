@@ -21,7 +21,7 @@ eksctl create cluster --name stackgres \
   --node-type m5.large \
   --node-volume-size 20 \
   --nodes 3 \
-  --version 1.13
+  --version 1.18
 ```
 
 ```bash
