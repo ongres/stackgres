@@ -382,7 +382,7 @@ kubectl port-forward -n my-cluster --address 0.0.0.0 statefulset/cluster 7777:74
 In the namespace of the cluster, you should be able to see a set of secrets, we'll get the main superuser password:
 
 ```
-kubectl get secrets -n my-cluster test -o jsonpath='{.data.superuser-password}' | base64 -d
+kubectl get secrets -n my-cluster cluster -o jsonpath='{.data.superuser-password}' | base64 -d
 ```
 
 
