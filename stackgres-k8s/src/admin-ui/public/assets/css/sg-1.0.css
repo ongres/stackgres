@@ -214,7 +214,7 @@ body, #sets h4, #sets h3, #side a.router-link-exact-active, th, .tabs a, #keywor
     background-color: var(--borderColor);
 }
 
-.btn.border:hover, .btn.border, .darkmode .btn.border, .darkmode a.btn.border:not(.clear) {
+.btn.border:hover, .btn.border, .darkmode .btn.border, .darkmode a.btn.border:not(.clear), fieldset .header button, .darkmode .form button, button {
     color: var(--blue);
 }
 
