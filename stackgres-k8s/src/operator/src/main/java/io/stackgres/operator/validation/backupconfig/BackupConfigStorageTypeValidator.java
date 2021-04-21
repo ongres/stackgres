@@ -18,7 +18,7 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 @ValidationType(ErrorType.CONSTRAINT_VIOLATION)
 public class BackupConfigStorageTypeValidator implements BackupConfigValidator {
 
-  private static final String errorTypeUri = ErrorType
+  private final String errorTypeUri = ErrorType
       .getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION);
 
   @Override

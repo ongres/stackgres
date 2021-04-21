@@ -24,7 +24,7 @@ public class ClusterValidator implements BackupValidator {
 
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
 
-  private static final String errorTypeUri = ErrorType
+  private final String errorTypeUri = ErrorType
       .getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
 
   @Inject

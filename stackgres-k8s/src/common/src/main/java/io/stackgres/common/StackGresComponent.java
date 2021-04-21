@@ -49,15 +49,11 @@ public enum StackGresComponent {
 
   private static final String ARRAY_SPLIT_REGEXP = ",";
 
-  private static final String CONTAINER_REGISTRY =
-      StackGresProperty.SG_CONTAINER_REGISTRY.getString();
-
   final String name;
-  final String imageTemplate;
-  final List<ImageVersion> versions;
+  final StackGresProperty imageTemplateProperty;
+  final String defaultImageTemplate;
+  final StackGresProperty componentVersionProperty;
   final List<StackGresComponent> subComponents;
-  final Map<StackGresComponent, List<ImageVersion>> subComponentVersions;
-  final List<ComposedVersion> composedVersions;
 
   StackGresComponent(String name, StackGresProperty imageTemplateProperty,
       String defaultImageTemplate, StackGresComponent...subComponents) {
@@ -68,38 +64,42 @@ public enum StackGresComponent {
       StackGresProperty componentVersionProperty,
       String defaultImageTemplate, StackGresComponent...subComponents) {
     this.name = name;
-    this.imageTemplate = imageTemplateProperty.get()
+    this.imageTemplateProperty = imageTemplateProperty;
+    this.defaultImageTemplate = defaultImageTemplate;
+    this.componentVersionProperty = componentVersionProperty;
+    this.subComponents = ImmutableList.copyOf(subComponents);
+  }
+
+  private String imageTemplate() {
+    return imageTemplateProperty.get()
         .map(template -> template.replace("${containerRegistry}", "%1$s"))
         .map(template -> template.replace(
             "${" + name.replaceAll("[^a-z]", "") + "Version}", "%2$s"))
         .map(template -> template.replace("${buildVersion}", "%3$s"))
-        .map(template -> Seq.of(subComponents)
+        .map(template -> Seq.seq(subComponents)
             .zipWithIndex()
             .reduce(template, (templateResult, t) -> templateResult
                 .replace("${" + t.v1.name.replaceAll("[^a-z]", "") + "Version}",
                     "%" + (t.v2 + 4) + "$s"),
                 (u, v) -> v))
         .orElse(defaultImageTemplate);
-    this.versions = Optional.ofNullable(componentVersionProperty)
+  }
+
+  private ImmutableList<ImageVersion> versions() {
+    return Optional.ofNullable(componentVersionProperty)
         .flatMap(StackGresProperty::get)
         .map(ImageVersion::new)
         .map(ImmutableList::of)
         .orElseGet(() -> Seq.of(VersionReader.INSTANCE.getAsArray(this))
             .map(ImageVersion::new)
             .collect(ImmutableList.toImmutableList()));
-    this.subComponents = ImmutableList.copyOf(subComponents);
-    this.subComponentVersions = Seq.range(0, subComponents.length)
-                .map(subComponent -> Tuple.tuple(subComponent,
-                    Seq.of(VersionReader.INSTANCE.getAsArray(this, subComponent))
-                    .map(ImageVersion::new)
-                    .collect(ImmutableList.toImmutableList())))
-                .collect(ImmutableMap.toImmutableMap(
-                    t -> subComponents[t.v1],
-                    t -> t.v2));
-    this.composedVersions = Seq.seq(this.subComponents)
-        .map(this.subComponentVersions::get)
+  }
+
+  private List<ComposedVersion> composedVersions() {
+    return Seq.seq(this.subComponents)
+        .map(subComponentVersions()::get)
         .<List<ComposedVersion>>reduce(
-            Seq.seq(this.versions).map(ComposedVersion::new).toList(),
+            Seq.seq(versions()).map(ComposedVersion::new).toList(),
             (composedVersions, subVersions) -> Seq.seq(composedVersions)
                 .map(ComposedVersion::getVersions)
                 .innerJoin(Seq.seq(subVersions),
@@ -108,6 +108,17 @@ public enum StackGresComponent {
                 .map(ComposedVersion::new)
                 .toList(),
             (u, v) -> v);
+  }
+
+  private ImmutableMap<StackGresComponent, List<ImageVersion>> subComponentVersions() {
+    return Seq.range(0, subComponents.size())
+                .map(subComponent -> Tuple.tuple(subComponent,
+                    Seq.of(VersionReader.INSTANCE.getAsArray(this, subComponent))
+                    .map(ImageVersion::new)
+                    .collect(ImmutableList.toImmutableList())))
+                .collect(ImmutableMap.toImmutableMap(
+                    t -> subComponents.get(t.v1),
+                    t -> t.v2));
   }
 
   class ComposedVersion implements Comparable<ComposedVersion> {
@@ -184,8 +195,8 @@ public enum StackGresComponent {
     }
 
     public String getImageName() {
-      return String.format(StackGresComponent.this.imageTemplate,
-          Seq.of(CONTAINER_REGISTRY)
+      return String.format(StackGresComponent.this.imageTemplate(),
+          Seq.of(StackGresProperty.SG_CONTAINER_REGISTRY.getString())
           .append(Seq.of(getVersion().getVersion(), getVersion().getBuild())
             .append(Seq.seq(versions).skip(1).map(ImageVersion::getVersion)))
           .toArray(Object[]::new));
@@ -495,7 +506,7 @@ public enum StackGresComponent {
   }
 
   private Seq<ComposedVersion> orderedComposedVersions() {
-    return Seq.seq(this.composedVersions)
+    return Seq.seq(this.composedVersions())
         .sorted(Comparator.reverseOrder());
   }
 

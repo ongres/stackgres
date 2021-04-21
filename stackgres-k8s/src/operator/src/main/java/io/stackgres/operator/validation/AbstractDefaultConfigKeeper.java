@@ -26,7 +26,7 @@ public abstract class AbstractDefaultConfigKeeper
     <R extends CustomResource<?, ?>, T extends AdmissionReview<R>>
     implements Validator<T> {
 
-  private static final String ERROR_TYPE_URI =
+  private final String errorTypeUri =
       ErrorType.getErrorTypeUri(ErrorType.DEFAULT_CONFIGURATION);
 
   private Map<String, Set<String>> installedResources;
@@ -57,7 +57,7 @@ public abstract class AbstractDefaultConfigKeeper
         if (installedResources.containsKey(updateNamespace)
             && installedResources.get(updateNamespace).contains(updateName)) {
           final String message = "Cannot update CR " + updateName + " because is a default CR";
-          fail(request.getKind().getKind(), ERROR_TYPE_URI, message);
+          fail(request.getKind().getKind(), errorTypeUri, message);
         }
         break;
       case DELETE:
@@ -66,7 +66,7 @@ public abstract class AbstractDefaultConfigKeeper
         if (installedResources.containsKey(deleteNamespace)
             && installedResources.get(deleteNamespace).contains(deleteName)) {
           final String message = "Cannot delete CR " + deleteName + " because is a default CR";
-          fail(request.getKind().getKind(), ERROR_TYPE_URI, message);
+          fail(request.getKind().getKind(), errorTypeUri, message);
         }
         break;
       default:
