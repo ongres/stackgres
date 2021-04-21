@@ -1265,6 +1265,9 @@ code.language-bash {
     font-weight: bold;
 }
 
+.colorHighlight {
+    color: var(--lOrange);
+}
 
 /* Lightbox Container */
 .featherlight .featherlight-content {
@@ -1277,12 +1280,15 @@ code.language-bash {
 /*Version Selector*/
 .versionSelector form {
     padding: 0 1rem;
+    text-align: left;
 }
 
 .versionSelector label, .versionSelector select {
     display: inline-block;
     margin: 0;
     vertical-align: middle;
+    color: #f5f5f5;
+    font-size: 14px;
 }
 
 .versionSelector select {
