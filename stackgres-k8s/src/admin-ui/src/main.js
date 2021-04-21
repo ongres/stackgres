@@ -578,4 +578,9 @@ $(document).ready(function(){
     $('.helpTooltip.show').removeClass('show')
   })
 
+  // Remove notValid class from changed fields
+  $(document).on('change','[data-field].notValid', function(){
+    $(this).removeClass('notValid')
+  })
+
 });
