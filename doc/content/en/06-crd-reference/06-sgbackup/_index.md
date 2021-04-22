@@ -41,7 +41,7 @@ spec:
   sgCluster: stackgres
   managedLifecycle: true
 status:
-  internalName: base_00000002000000000000000E 
+  internalName: base_00000002000000000000000E
   sgBackupConfig:
     compression: lz4
     storage:
@@ -73,7 +73,7 @@ status:
     postgresVersion: "110006"
     pgData: /var/lib/postgresql/data
     size:
-      compressed: 6691164     
+      compressed: 6691164
       uncompressed: 24037844
     lsn:
       start: "234881064"
@@ -185,8 +185,8 @@ status:
 
 | Property                                                                                                          | Required | Updatable | Type   | Default | Description |
 |:------------------------------------------------------------------------------------------------------------------|----------|-----------|:-------|:--------|:------------|
-| [accessKeyId](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#secretkeyselector-v1-core)     | ✓        | ✓         | object |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId >}} |
-| [secretAccessKey](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#secretkeyselector-v1-core) | ✓        | ✓         | object |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey >}} |
+| [accessKeyId](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)     | ✓        | ✓         | object |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId >}} |
+| [secretAccessKey](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) | ✓        | ✓         | object |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey >}} |
 
 ## GSC - Google Cloud Storage configuration
 
@@ -206,7 +206,7 @@ status:
 
 | Property                                                                                                             | Required | Updatable | Type   | Default | Description |
 |:---------------------------------------------------------------------------------------------------------------------|----------|:----------|:-------|:--------|:------------|
-| [serviceAccountJSON](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#secretkeyselector-v1-core) | ✓        | ✓         | object |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON >}} |
+| [serviceAccountJSON](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) | ✓        | ✓         | object |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON >}} |
 
 
 ## AZURE - Azure Blob Storage configuration
@@ -227,5 +227,5 @@ status:
 
 | Property                                                                                                           | Required | Updatable | Type   | Default | Description |
 |:-------------------------------------------------------------------------------------------------------------------|----------|-----------|:-------|:--------|:-------------|
-| [storageAccount](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#secretkeyselector-v1-core)   | ✓        | ✓         | object |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount >}} |
-| [accessKey](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#secretkeyselector-v1-core)        | ✓        | ✓         | object |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey >}} |
+| [storageAccount](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)   | ✓        | ✓         | object |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount >}} |
+| [accessKey](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)        | ✓        | ✓         | object |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey >}} |
