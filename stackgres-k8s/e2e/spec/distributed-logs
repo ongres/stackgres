@@ -75,9 +75,9 @@ check_distributed_logs_attach_to_clusters() {
 
     if [ "$RESPONSE" = "$TEXT" ]
     then
-      echo "SUCCESS: Log entry created"
+      echo "SUCCESS: Log entry '$TEXT' created for $CLUSTER_NAME"
     else
-      echo "FAIL: Cannot create log entry"
+      echo "FAIL: Cannot create log entry '$TEXT' for $CLUSTER_NAME"
       return 1
     fi
   done
@@ -91,9 +91,9 @@ check_distributed_logs_attach_to_clusters() {
 
     if [ "$RESPONSE" = "$TEXT" ]
     then
-      echo "SUCCESS: Log entry created"
+      echo "SUCCESS: Log entry '$TEXT' created for $CLUSTER_NAME-copy"
     else
-      echo "FAIL: Cannot create log entry"
+      echo "FAIL: Cannot create log entry '$TEXT' for $CLUSTER_NAME-copy"
       return 1
     fi
   done
@@ -104,9 +104,9 @@ check_distributed_logs_attach_to_clusters() {
   do
     if wait_until eval 'get_logs_count_with_text "$TEXT" | grep -q "^1$"'
     then
-      echo "SUCCESS: Cluster log entry included in json response for cluster $CLUSTER_NAME"
+      echo "SUCCESS: Cluster log entry '$TEXT' included in json response for cluster $CLUSTER_NAME"
     else
-      echo "FAIL: Cluster log entry not included in json response for cluster $CLUSTER_NAME"
+      echo "FAIL: Cluster log entry '$TEXT' not included in json response for cluster $CLUSTER_NAME"
       return 1
     fi
   done
@@ -115,9 +115,9 @@ check_distributed_logs_attach_to_clusters() {
   do
     if wait_until eval 'get_logs_count_with_text "$TEXT" -copy | grep -q "^1$"'
     then
-      echo "SUCCESS: Cluster log entry included in json response for cluster $CLUSTER_NAME-copy"
+      echo "SUCCESS: Cluster log entry '$TEXT' included in json response for cluster $CLUSTER_NAME-copy"
     else
-      echo "FAIL: Cluster log entry not included in json response for cluster $CLUSTER_NAME-copy"
+      echo "FAIL: Cluster log entry '$TEXT' not included in json response for cluster $CLUSTER_NAME-copy"
       return 1
     fi
   done
@@ -126,9 +126,9 @@ check_distributed_logs_attach_to_clusters() {
   do
     if get_logs_count_with_text "$TEXT" | grep -q "^0$"
     then
-      echo "SUCCESS: Cluster log entry of cluster $CLUSTER_NAME-copy not included in json response for cluster $CLUSTER_NAME"
+      echo "SUCCESS: Cluster log entry '$TEXT' for cluster $CLUSTER_NAME-copy not included in json response for cluster $CLUSTER_NAME"
     else
-      echo "FAIL: Cluster log entry of cluster $CLUSTER_NAME-copy included in json response for cluster $CLUSTER_NAME"
+      echo "FAIL: Cluster log entry '$TEXT' for cluster $CLUSTER_NAME-copy included in json response for cluster $CLUSTER_NAME"
       return 1
     fi
   done
@@ -137,9 +137,9 @@ check_distributed_logs_attach_to_clusters() {
   do
     if get_logs_count_with_text "$TEXT" -copy | grep -q "^0$"
     then
-      echo "SUCCESS: Cluster log entry of cluster $CLUSTER_NAME not included in json response for cluster $CLUSTER_NAME-copy"
+      echo "SUCCESS: Cluster log entry '$TEXT' for cluster $CLUSTER_NAME not included in json response for cluster $CLUSTER_NAME-copy"
     else
-      echo "FAIL: Cluster log entry of cluster $CLUSTER_NAME included in json response for cluster $CLUSTER_NAME-copy"
+      echo "FAIL: Cluster log entry '$TEXT' for cluster $CLUSTER_NAME included in json response for cluster $CLUSTER_NAME-copy"
       return 1
     fi
   done
@@ -354,9 +354,9 @@ check_retention() {
 
     if [ "$RESPONSE" = "$TEXT" ]
     then
-      echo "SUCCESS: Log entry created"
+      echo "SUCCESS: Log entry '$TEXT' created"
     else
-      echo "FAIL: Cannot create log entry"
+      echo "FAIL: Cannot create log entry '$TEXT'"
       return 1
     fi
   done
@@ -365,9 +365,9 @@ check_retention() {
   do
     if wait_until eval 'get_logs_count_with_text "$TEXT" | grep -q "^0$"'
     then
-      echo "SUCCESS: Cluster log entry was removed for cluster $CLUSTER_NAME"
+      echo "SUCCESS: Cluster log entry '$TEXT' was removed for cluster $CLUSTER_NAME"
     else
-      echo "FAIL: Cluster log entry was not removed for cluster $CLUSTER_NAME"
+      echo "FAIL: Cluster log entry '$TEXT' was not removed for cluster $CLUSTER_NAME"
       return 1
     fi
   done
