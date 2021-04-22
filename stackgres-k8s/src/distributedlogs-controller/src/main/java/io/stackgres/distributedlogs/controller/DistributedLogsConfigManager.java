@@ -35,7 +35,8 @@ public class DistributedLogsConfigManager {
   }
 
   public void reloadFluentdConfiguration() throws IOException {
-    if (Files.readString(FLUENTD_CONF_MD5_PATH).equals(getFluentdConfigHash())) {
+    if (Files.exists(FLUENTD_CONF_MD5_PATH)
+        && Files.readString(FLUENTD_CONF_MD5_PATH).equals(getFluentdConfigHash())) {
       return;
     }
     boolean needsRestart = Files.exists(FLUENTD_CONF_PATH)
