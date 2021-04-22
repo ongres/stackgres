@@ -539,4 +539,3 @@ spec:
                       type: string
                       description: |
                         A failure message (when available)
-      
