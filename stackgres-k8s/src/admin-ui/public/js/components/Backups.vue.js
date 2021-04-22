@@ -75,17 +75,17 @@ var Backups = Vue.component("Backups", {
 				<div id="backups">
 					<div class="toolbar">
 						<div class="searchBar">
-							<input id="keyword" v-model="keyword" class="search" placeholder="Search Backup..." autocomplete="off" @keyup="toggleClear('keyword')">
+							<input id="keyword" v-model="keyword" class="search" placeholder="Search Backup..." autocomplete="off">
 							<a @click="filterBackups" class="btn">APPLY</a>
-							<a @click="clearFilters('keyword')" class="btn clear border keyword" style="display:none">CLEAR</a>
+							<a @click="clearFilters('keyword')" class="btn clear border keyword" v-if="keyword.length">CLEAR</a>
 						</div>
 
 						<div class="filter">
-							<span class="toggle date">DATE RANGE <input v-model="datePicker" id="datePicker" autocomplete="off"></span>
+							<span class="toggle date" :class="activeFilters.datePicker.length ? 'active' : ''">DATE RANGE <input v-model="datePicker" id="datePicker" autocomplete="off"></span>
 						</div>
 
 						<div class="filter filters">
-							<span class="toggle">FILTER</span>
+							<span class="toggle" :class="isFiltered ? 'active' : ''">FILTER</span>
 
 							<ul class="options">
 								<li>
@@ -127,22 +127,10 @@ var Backups = Vue.component("Backups", {
 										<span>12</span>
 									</label>
 								</li>
-								
-								<!--<li>
-									<span>Tested</span>
-									<label for="isTested">
-										<input v-model="tested" type="checkbox" class="xCheckbox" id="isTested" name="tested" value="true"/>
-										<span>YES</span>
-									</label>
-									<label for="notTested">
-										<input v-model="tested" type="checkbox" class="xCheckbox" id="notTested" name="tested" value="false"/>
-										<span>NO</span>
-									</label>
-								</li>-->
 
 								<li v-if="!isCluster">
 									<span>Cluster</span>
-									<select v-model="clusterName" @change="toggleClear('filters')">
+									<select v-model="clusterName" :class="clusterName.length ? 'active' : ''">
 										<option value="">All Clusters</option>
 										<template v-for="cluster in clusters">
 											<option v-if="cluster.data.metadata.namespace == currentNamespace">{{ cluster.data.metadata.name }}</option>
@@ -152,7 +140,7 @@ var Backups = Vue.component("Backups", {
 
 								<li>
 									<hr>
-									<a class="btn" @click="filterBackups">APPLY</a> <a class="btn clear border" @click="clearFilters('filters')" style="display:none">CLEAR</a>
+									<a class="btn" @click="filterBackups">APPLY</a> <a class="btn clear border" @click="clearFilters('filters')" v-if="isFiltered">CLEAR</a>
 								</li>
 							</ul>
 						</div>
@@ -580,14 +568,72 @@ var Backups = Vue.component("Backups", {
 			tested: [],
 			datePicker: '',
 			dateStart: '',
-			dateEnd: ''
+			dateEnd: '',
+			activeFilters: {
+				clusterName: '',
+				keyword: '',
+				managedLifecycle: [],
+				status: [],
+				postgresVersion: [],
+				datePicker: ''
+			}
+
 		}
 	},
 	computed: {
 
 		backups () {
+			const vc = this
+
+			store.state.backups.forEach( function(bk, index) {
+
+				let show = true;
+
+				// Filter by Keyword
+				if(vc.activeFilters.keyword.length && show) {
+					let text = JSON.stringify(bk)
+					show = !(text.indexOf(vc.activeFilters.keyword) === -1);
+				}
+				
+				//Filter by managedLifecycle
+				if(vc.activeFilters.managedLifecycle.length && show){
+					show = ( ( hasProp(bk, 'data.spec.managedLifecycle') && (bk.data.spec.managedLifecycle.toString() === vc.activeFilters.managedLifecycle[0]) ) || (!hasProp(bk, 'data.spec.managedLifecycle') && (vc.activeFilters.managedLifecycle[0] == 'false')) );
+				}
+
+				// Filter by Date
+				if( vc.dateStart.length && vc.dateEnd.length && hasProp(bk, 'data.status.process.status') && (bk.data.status.process.status == 'Completed') && show ){
+					let timestamp = moment(bk.data.status.process.timing.stored, 'YYYY-MM-DD HH:mm:ss');
+					let start = moment(vc.dateStart, 'YYYY-MM-DD HH:mm:ss');
+					let end = moment(vc.dateEnd, 'YYYY-MM-DD HH:mm:ss');
+
+					show = timestamp.isBetween( start, end, null, '[]' );
+				} else if (vc.activeFilters.datePicker.length && (bk.data.status.process.status === 'Failed'))
+					show = false;
+
+				//Filter by Status
+				if(vc.activeFilters.status.length && show)
+					show = (vc.activeFilters.status.includes(bk.data.status.process.status));
+
+				//Filter by postgresVersion
+				if(vc.activeFilters.postgresVersion.length && show && (bk.data.status.process.status === 'Completed') )
+					show = (bk.data.status.backupInformation.postgresVersion.substr(0,2)=== vc.activeFilters.postgresVersion[0]);
+				else if(vc.activeFilters.postgresVersion.length && (bk.data.status.process.status !== 'Completed') )
+					show = false;
+				
+				//Filter by clusterName
+				if(vc.activeFilters.clusterName.length && show)
+					show = (vc.activeFilters.clusterName == bk.data.spec.sgCluster);
+
+				if(bk.show != show) {
+					store.commit('showBackup',{
+						pos: index,
+						isVisible: show
+					});
+				}
+
+			});
+
 			return sortTable( store.state.backups, this.currentSort, this.currentSortDir)
-			//return store.state.backups
 		},
 
 		currentNamespace () {
@@ -600,154 +646,115 @@ var Backups = Vue.component("Backups", {
 
 		isCluster() {
 			return this.$route.name.includes('ClusterBackups')
+		},
+
+		isFiltered() {
+			return (this.managedLifecycle.length || this.status.length || this.postgresVersion.length || this.clusterName.length)
 		}
 
 	},
-	mounted: function() {
-		
-	},
+	
 	methods: {
 
-		toggleClear( filter ){
-
-			switch(filter) {
-				case 'keyword':
-					if($('#keyword').val().length)
-						$('.searchBar .clear').fadeIn()
-					else
-						$('.searchBar .clear').fadeOut()
-					
-						break;
-				case 'filters':
-					if($('.filters .options .active').length)
-						$('.filters .clear').fadeIn()
-					else
-						$('.filters .clear').fadeOut()
-			}
-
-		},
-
 		clearFilters: function(section) {
-			if(section == 'filters') {
-				this.clusterName = '';
-				this.managedLifecycle = [];
-				this.status = [];
-				this.postgresVersion = [];
-				this.tested = [];
-				$('.filter.open .active').removeClass('active');
+			const vc = this;
 
+			if(section == 'filters') {
+				vc.clusterName = '';
+				vc.activeFilters.clusterName = '';
+
+				vc.managedLifecycle = [];
+				vc.activeFilters.managedLifecycle = [];
+				
+				vc.status = [];
+				vc.activeFilters.status = [];
+
+				vc.postgresVersion = [];
+				vc.activeFilters.postgresVersion = [];
+				
+				
+				$('.filter.open .active').removeClass('active');
 				$('.filters .clear').fadeOut()
 
 			} else if (section == 'keyword') {
-				this.keyword = '';
-				$('#keyword').removeClass('active')
+				vc.keyword = '';
+				vc.activeFilters.keyword = ''
 
+				$('#keyword').removeClass('active')
 				$('.searchBar .clear').fadeOut()
 			}
 
-			this.filterBackups();
+			vc.filterBackups();
+			router.push(vc.$route.path + vc.getActiveFilters())
 		},
 
 		filterBackups: function() {
 
-			//console.log("filterBackups");
-
 			let vc = this;
-			var count = 0;
 
-			//if( vc.keyword.length || vc.managedLifecycle || vc.datePicker.length || vc.status.length || vc.postgresVersion.length || vc.clusterName.length ) {
-				
-				store.state.backups.forEach( function(bk, index) {
-					
-					let show = true;
+			//Set active filters
+			Object.keys(vc.activeFilters).forEach(function(filter){
+				if(vc[filter].length)
+					vc.activeFilters[filter] = vc[filter]
+			})
+	
+			router.push(vc.$route.path + vc.getActiveFilters())
 
-					// Filter by Keyword
-					if(vc.keyword.length && show) {
-						
-						let text = JSON.stringify(bk)
-						
-						// console.log("KEYWORD");
-						// console.log(text)
-						// console.log(vc.keyword)
-						// console.log("EXISTS: "+text.indexOf(vc.keyword));
-
-						show = !(text.indexOf(vc.keyword) === -1);
-					}
-					
-					//Filter by managedLifecycle
-					if(vc.managedLifecycle.length && show){
-						let isPerm = bk.data.spec.managedLifecycle;
-						show = (isPerm.toString() === vc.managedLifecycle[0]);
-					}
-	
-					// Filter by Date
-					if( vc.datePicker.length && show && (bk.data.status.process.status !== 'Failed') ){
-						let timestamp = moment(bk.data.status.process.timing.stored, 'YYYY-MM-DD HH:mm:ss');
-						let start = moment(vc.dateStart, 'YYYY-MM-DD HH:mm:ss');
-						let end = moment(vc.dateEnd, 'YYYY-MM-DD HH:mm:ss');
-						
-						// console.log(timestamp);
-						// console.log(start);
-						// console.log(end);
-						// console.log(timestamp.isBetween( start, end, null, '[]' ));
-	
-						show = timestamp.isBetween( start, end, null, '[]' );
-					} else if (vc.datePicker.length && (bk.data.status.process.status === 'Failed'))
-						show = false;
-	
-					//Filter by Status
-					if(vc.status.length && show)
-						show = (vc.status.includes(bk.data.status.process.status));
-	
-					//Filter by postgresVersion
-					if(vc.postgresVersion.length && show && (bk.data.status.process.status === 'Completed') )
-						show = (bk.data.status.backupInformation.postgresVersion.substr(0,2)=== vc.postgresVersion[0]);
-					else if(vc.postgresVersion.length && (bk.data.status.process.status !== 'Completed') )
-						show = false;
-					
-					//Filter by clusterName
-					if(vc.clusterName.length && show)
-						show = (vc.clusterName == bk.data.spec.sgCluster);
-	
-					if(bk.show != show) {
-						store.commit('showBackup',{
-							pos: index,
-							isVisible: show
-						});
-					}
-	
-				});
-	
-				//console.log(store.state.backups);
-		
-			/* } else {
-				console.log("SHOW ALL");
-
-				store.state.backups.forEach( function(item, index) {
-					store.commit('showBackup',{
-						pos: index,
-						isVisible: true
-					});
-				});
-			}*/
-
-			//console.log("#"+count);
-			return store.state.backups;
-			
 		},
 
 		getBackupDuration( start, stored ) {
 			let begin = moment(start);
 			let finish = moment(stored);
 			return(new Date(moment.duration(finish.diff(begin))).toISOString());
+		},
+
+		getActiveFilters() {
+			const vc = this
+			let queryString = ''
+			
+			Object.keys(vc.activeFilters).forEach(function(filter) {
+				if(vc.activeFilters[filter].length) {
+					if(!queryString.length)
+						queryString = '?'
+					else
+						queryString += '&'
+					
+					queryString += filter + '=' + vc.activeFilters[filter]
+				}
+			})
+
+			return queryString
 		}
+
 	},
 
 	mounted: function() {
 
 		const vc = this;
 		
-		//vc.filterBackups();
+		// Detect if URL contains filters
+		if(location.search.length) {
+			var urlFilters = JSON.parse('{"' + decodeURI(location.search.substring(1)).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g,'":"').replaceAll('%3A',':').replaceAll('%2F','/') + '"}')
+			
+			Object.keys(urlFilters).forEach(function(filter) {
+
+				if(['managedLifecycle','status','postgresVersion'].includes(filter)) { // Array filters
+					vc[filter] = urlFilters[filter].split(',')
+					vc.activeFilters[filter] = urlFilters[filter].split(',')
+				} else {
+					vc[filter] = urlFilters[filter]
+					vc.activeFilters[filter] = urlFilters[filter]
+				}
+
+				if (filter == 'datePicker') {
+					vc.dateStart = urlFilters[filter].split('/')[0]
+					vc.dateEnd = urlFilters[filter].split('/')[1]
+				}
+				
+			})
+
+			vc.filterBackups()
+		}
 
 		$(document).ready(function(){
 			$('#datePicker').daterangepicker({
@@ -755,8 +762,6 @@ var Backups = Vue.component("Backups", {
 				"timePicker": true,
 				"timePicker24Hour": true,
 				"timePickerSeconds": true,
-				//"startDate": "04/02/2020",
-				//"endDate": "04/08/2020",
 				"opens": "left",
 				locale: {
 					cancelLabel: "Clear"
@@ -768,36 +773,42 @@ var Backups = Vue.component("Backups", {
 				vc.filterBackups();
 			});
 			
-			$(document).on('click', '.toggle.date.open', function(){
-				//$('#datePicker').trigger('hide.daterangepicker');
-				//console.log('.toggle.date.open');
-				/*
-				if(vc.datePicker.length)
-					$('.applyBtn').click();
-				else
-					$('.cancelBtn').click();
-				*/
-			});
-
 			$('#datePicker').on('show.daterangepicker', function(ev, picker) {
-				//console.log('show.daterangepicker');
+				
+				if(!vc.datePicker.length) {
+					$('.daterangepicker td.active').addClass('deactivate')
+					$('.daterangepicker td.in-range').removeClass('in-range')
+				}
+
 				$('#datePicker').parent().addClass('open');
 			});
 
 			$('#datePicker').on('hide.daterangepicker', function(ev, picker) {
-				//console.log('hide.daterangepicker');
+				
 				$('#datePicker').parent().removeClass('open');
+
+				if(vc.datePicker.length)
+					$('.daterangepicker td.deactivate').removeClass('deactivate')
 			});
 
 			$('#datePicker').on('cancel.daterangepicker', function(ev, picker) {
-				//console.log('cancel.daterangepicker');
+				
 				vc.datePicker = '';
+				vc.dateStart = '';
+				vc.dateEnd = '';
+				vc.activeFilters.datePicker = '';
+				router.push(vc.$route.path + vc.getActiveFilters())
+
+				$('.daterangepicker td.deactivate').removeClass('deactivate')
+				$('#datePicker').focus()
+				$('.daterangepicker td.active').removeClass('active')
+				$('.daterangepicker td.in-range').removeClass('in-range')
 				$('#datePicker').parent().removeClass('open');
-				vc.filterBackups();
+
 			});
 
 			$('#datePicker').on('apply.daterangepicker', function(ev, picker) {
-				//console.log('apply.daterangepicker');
+				$('#datePicker').focus()
 				$('#datePicker').parent().removeClass('open');
 			});
 
@@ -827,8 +838,6 @@ var Backups = Vue.component("Backups", {
 					if($(this).hasClass("xCheckbox"))
 						vc[$(this).data('filter')] = [];
 				}
-
-				vc.toggleClear('filters');
 				
 			});		
 
@@ -845,15 +854,15 @@ var Backups = Vue.component("Backups", {
 			$(document).on("click", "table.backups tr.base td:not(.actions)", function() {
 				if(!$(this).parent().hasClass('open')) {
 					if(vc.$route.name.includes('ClusterBackups'))
-						router.push('/admin/cluster/backups/'+store.state.currentNamespace+'/'+$(this).parent().data('cluster')+'/'+$(this).parent().data('uid'))
+						router.push('/admin/cluster/backups/'+store.state.currentNamespace+'/'+$(this).parent().data('cluster')+'/'+$(this).parent().data('uid') + vc.getActiveFilters())
 					else
-						router.push('/admin/backups/'+store.state.currentNamespace+'/'+$(this).parent().data('cluster')+'/'+$(this).parent().data('uid'))
+						router.push('/admin/backups/'+store.state.currentNamespace+'/'+$(this).parent().data('cluster')+'/'+$(this).parent().data('uid') + vc.getActiveFilters())
 				}
 				else {
 					if(vc.$route.name.includes('ClusterBackups'))
-						router.push('/admin/cluster/backups/'+store.state.currentNamespace+'/'+$(this).parent().data('cluster'))
+						router.push('/admin/cluster/backups/'+store.state.currentNamespace+'/'+$(this).parent().data('cluster') + vc.getActiveFilters())
 					else
-						router.push('/admin/backups/'+store.state.currentNamespace)
+						router.push('/admin/backups/'+store.state.currentNamespace + vc.getActiveFilters())
 				}
 			});
 
