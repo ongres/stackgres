@@ -53,20 +53,20 @@ helm uninstall --namespace stackgres stackgres-operator
 Use the command below to be sure when the operation is ready to use:
 
 ```bash
-while [ $(kubectl get pods -n stackgres | grep -E 'stackgres\-(operator|restapi)' | grep -E '0/1|1/1|2/2' | grep -E 'Running|Completed' | wc -l) -ne 3 ] ; do
+while [ $(kubectl get pods -n stackgres | grep -E 'stackgres\-(operator|restapi)' | grep -E '1/1|2/2' | grep -E 'Running' | wc -l) -ne 3 ] ; do
   echo not ready...
   sleep 3
 done
 ```
 
-Once it's ready you will see that the two pods are `Running` and the create certificate job is `Complete`:
+Once it's ready you will see that the two pods are `Running`:
 
 ```bash
 ➜ kubectl get pods -n stackgres   
-NAME                                          READY   STATUS      RESTARTS   AGE
-stackgres-operator-7bfcb56dc7-c2hfs           1/1     Running     0          18m
-stackgres-operator-create-certificate-2fltp   0/1     Completed   0          18m
-stackgres-restapi-66db44f45f-l5gz4            2/2     Running     0          18m
+NAME                                  READY   STATUS    RESTARTS   AGE
+stackgres-operator-78d57d4f55-pm8r2   1/1     Running   0          3m34s
+stackgres-restapi-6ffd694fd5-hcpgp    2/2     Running   0          3m30s
+
 ```
 
 ## Connect to the UI
@@ -86,6 +86,23 @@ The UI will ask for a username and a password. By default those are `admin` and 
 kubectl get secret -n stackgres stackgres-restapi --template 'username = {{ printf "%s\n" (.data.k8sUsername | base64decode) }}password = {{ printf "%s\n" ( .data.clearPassword | base64decode) }}'
 ```
 
+### Connecting to the UI through the LoadBalancer
+
+Since in the previous installation we set set option `--set-string adminui.service.type=LoadBalancer`, 
+ is possible to connect to the UI whitout having to do a port-forward.
+
+To find the hostname you just need to execute and look for the External IP value. 
+``` bash
+kubectl get services -n stackgres stackgres-restapi
+```
+
+For instance, in this output from a EKS cluster the hostname is `aecdec3efe3a542b2b0b40d0072ab338-1132619204.us-west-2.elb.amazonaws.com`
+``` bash
+NAME                TYPE           CLUSTER-IP       EXTERNAL-IP                                                               PORT(S)         AGE
+stackgres-restapi   LoadBalancer   10.100.233.210   aecdec3efe3a542b2b0b40d0072ab338-1132619204.us-west-2.elb.amazonaws.com   443:32674/TCP   10m
+```
+
+Therefore to connect the UI, the address would be `https://aecdec3efe3a542b2b0b40d0072ab338-1132619204.us-west-2.elb.amazonaws.com/admin`
 ## Changing the UI password
 
 You can use the command below to change the password:

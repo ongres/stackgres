@@ -37,7 +37,7 @@ we can proceed to the StackGres Operator itself!
 ```bash
 helm install --namespace stackgres stackgres-operator \
         --set grafana.autoEmbed=true \
-        --set-string grafana.webHost=prometheus-operator-grafana.monitoring \
+        --set-string grafana.webHost=prometheus-grafana.monitoring \
         --set-string grafana.user=admin \
         --set-string grafana.password=prom-operator \
         --set-string adminui.service.type=LoadBalancer \
@@ -180,8 +180,8 @@ spec:
       bucket: 'backup.my-cluster.stackgres.io'
       awsCredentials:
         secretKeySelectors:
-          accessKeyId: {name: 's3-backup-bucket-secret', key: 'accessKeyId'}
-          secretAccessKey: {name: 's3-backup-bucket-secret', key: 'secretAccessKey'}
+          accessKeyId: {name: 'aws-creds-secret', key: 'accessKeyId'}
+          secretAccessKey: {name: 'aws-creds-secret', key: 'secretAccessKey'}
 EOF
 ```
 
@@ -315,7 +315,7 @@ In the given example, we are creating an user to perform some queries using the 
 
 ```bash
 kubectl -n my-cluster create secret generic pgbench-user-password-secret \
-  --from-literal=pgbench-create-user-sql="create user admin password 'admin123'"
+  --from-literal=pgbench-create-user-sql="create user pgbench password 'admin123'"
 ```
 
 As you can see, has been created a secret key and its value which will be used in the StackGres cluster creation.
@@ -353,8 +353,6 @@ spec:
       script: |
         create database pgbench owner pgbench;
   prometheusAutobind: true
-  nonProductionOptions:
-    disableClusterPodAntiAffinity: true
 EOF
 ```
 
@@ -382,7 +380,7 @@ kubectl port-forward -n my-cluster --address 0.0.0.0 statefulset/cluster 7777:74
 In the namespace of the cluster, you should be able to see a set of secrets, we'll get the main superuser password:
 
 ```
-kubectl get secrets -n my-cluster test -o jsonpath='{.data.superuser-password}' | base64 -d
+kubectl get secrets -n my-cluster cluster -o jsonpath='{.data.superuser-password}' | base64 -d
 ```
 
 
@@ -395,5 +393,5 @@ psql -h <the ip of the cluster> -p 7777 -U postgres
 It is also possible to open a direct port-forward towards the main Postgres pod as follows:
 
 ```
-kubectl port-forward test-0 --address 0.0.0.0 7777:5432
+kubectl port-forward cluster-0 --address 0.0.0.0 7777:5432
 ```

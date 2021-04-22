@@ -31,6 +31,8 @@ spec:
   distributedLogs:
     sgDistributedLogs: 'distributedlogs'
   prometheusAutobind: true
+  nonProductionOptions:
+    disableClusterPodAntiAffinity: true
 ```
 
 and deploy to Kubernetes:
