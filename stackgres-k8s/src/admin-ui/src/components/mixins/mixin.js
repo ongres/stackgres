@@ -731,24 +731,23 @@ export const mixin = {
         const vc = this;
 
         Object.keys(obj).forEach(function(key){
-          if((obj[key].type != 'array') && obj[key].hasOwnProperty('properties')){
-            var desc = ''
-            
-            if(obj[key].hasOwnProperty('description'))
-              desc = obj[key].description
-      
-            obj[key] = obj[key].properties
-            obj[key].description = desc
-            vc.cleanupTooltips(obj[key])
-            
-          } else if ( (obj[key].type == 'array') && obj[key].items.hasOwnProperty('properties')){
-            //obj[key] = obj[key].items.properties
-            //obj[key].properties["description"] = obj[key].items.hasOwnProperty('description') ? obj[key].items.description : ''
-            
-            Object.keys(obj[key].items.properties).forEach(function(k){
-              obj[key][k] = obj[key].items.properties[k]
-            })      
-          } 
+          if(obj[key].hasOwnProperty('type')) {
+            if((obj[key].type != 'array') && obj[key].hasOwnProperty('properties')){
+              var desc = ''
+              
+              if(obj[key].hasOwnProperty('description'))
+                desc = obj[key].description
+        
+              obj[key] = obj[key].properties
+              obj[key].description = desc
+              vc.cleanupTooltips(obj[key])
+              
+            } else if ( (obj[key].type == 'array') && obj[key].items.hasOwnProperty('properties')){
+              Object.keys(obj[key].items.properties).forEach(function(k){
+                obj[key][k] = obj[key].items.properties[k]
+              })      
+            } 
+          }
         })
       },
 
