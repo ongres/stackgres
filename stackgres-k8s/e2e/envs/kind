@@ -212,31 +212,27 @@ delete_k8s() {
 load_image_k8s() {
   check_kind_version
 
-  echo "Loading image $1 in kind environemnt $KIND_NAME..."
-
   local IMAGE_ID
   IMAGE_ID="$( (docker inspect --format '{{ .ID }}' "$1" 2>/dev/null || printf unknown) | grep -v '^$')"
   local KIND_IMAGE_ID
   KIND_IMAGE_ID="$( (docker exec "${KIND_NAME}-control-plane" crictl inspecti -o go-template --template '{{ .status.id }}' "$1" 2>/dev/null || printf unknown) | grep -v '^$')"
   if [ "$IMAGE_ID" = unknown ] && [ "$KIND_IMAGE_ID" != unknown ]
   then
-    echo "...already loaded"
+    echo "Image $1 already loaded in kind environemnt $KIND_NAME"
     return
   fi
   if [ "$KIND_IMAGE_ID" = "$IMAGE_ID" ]
   then
-    echo "...already loaded"
+    echo "Image $1 already loaded in kind environemnt $KIND_NAME"
     return
   fi
   kind load docker-image --name "$KIND_NAME" "$1"
 
-  echo "...done"
+  echo "Loaded image $1 in kind environemnt $KIND_NAME"
 }
 
 pull_image_k8s() {
   check_kind_version
-
-  echo "Pulling image $1 in kind environemnt $KIND_NAME..."
 
   local AUTH
   AUTH="$(jq -r '.auths|to_entries|.[]|.key + "|" + .value.auth' "${HOME}/.docker/config.json" \
@@ -248,17 +244,15 @@ pull_image_k8s() {
     docker exec "${KIND_NAME}-control-plane" crictl pull "$1"
   fi
 
-  echo "...done"
+  echo "Pulled image $1 in kind environemnt $KIND_NAME"
 }
 
 tag_image_k8s() {
   check_kind_version
 
-  echo "Tagging image $1 as $2 in kind environemnt $KIND_NAME..."
-
   docker exec "${KIND_NAME}-control-plane" ctr -n k8s.io images tag --force "$1" "$2"
 
-  echo "...done"
+  echo "Tagged image $1 as $2 in kind environemnt $KIND_NAME"
 }
 
 load_certificate_k8s() {
