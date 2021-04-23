@@ -306,10 +306,9 @@ pull_image_from() {
   local IMAGE_PATH="$2"
   local IMAGE="$3"
   local FROM_IMAGE="$REPOSITORY$IMAGE_PATH${IMAGE#*/}"
-  echo "Pulling $IMAGE from $FROM_IMAGE..."
   docker_pull "$FROM_IMAGE"
   docker_tag "$FROM_IMAGE" "$IMAGE"
-  echo "done."
+  echo "Pulled $IMAGE from $FROM_IMAGE"
 }
 
 operator_pull_policy() {
