@@ -51,9 +51,9 @@ public interface StackGresPropertyReader {
   default String getString() {
     return get()
         .orElseThrow(() -> new RuntimeException(
-            "System property " + getPropertyName()
-                + " and environment variable " + getEnvironmentVariableName()
-                + " can not be found"));
+            "Neither system property '" + getPropertyName()
+                + "', nor environment variable '" + getEnvironmentVariableName()
+                + "' are set"));
   }
 
   /**

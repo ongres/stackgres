@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 
 import javax.enterprise.context.ApplicationScoped;
 
@@ -27,12 +28,17 @@ public class DistributedLogsConfigManager {
   private static final Path FLUENTD_CONF_FROM_CONFIGMAP_PATH =
       Paths.get("/etc/fluentd/fluentd.conf");
   private static final Path FLUENTD_CONF_PATH = Paths.get("/fluentd/fluentd.conf");
+  private static final Path FLUENTD_CONF_MD5_PATH = Paths.get("/fluentd/fluentd.conf.md5");
 
   public String getFluentdConfigHash() {
     return StackGresUtil.getMd5Sum(FLUENTD_CONF_FROM_CONFIGMAP_PATH);
   }
 
   public void reloadFluentdConfiguration() throws IOException {
+    if (Files.exists(FLUENTD_CONF_MD5_PATH)
+        && Files.readString(FLUENTD_CONF_MD5_PATH).equals(getFluentdConfigHash())) {
+      return;
+    }
     boolean needsRestart = Files.exists(FLUENTD_CONF_PATH)
         && !Seq.seq(Files.readAllLines(FLUENTD_CONF_FROM_CONFIGMAP_PATH))
         .filter(configMapLine -> configMapLine.matches("^\\s*workers\\s+[0-9]+$"))
@@ -59,6 +65,10 @@ public class DistributedLogsConfigManager {
     } else {
       FluentProcess.start("sh", "-c", "kill -s USR2 " + fluentdPid).join();
     }
+    Files.writeString(FLUENTD_CONF_MD5_PATH, getFluentdConfigHash(),
+        StandardOpenOption.CREATE,
+        StandardOpenOption.WRITE,
+        StandardOpenOption.TRUNCATE_EXISTING);
   }
 
 }

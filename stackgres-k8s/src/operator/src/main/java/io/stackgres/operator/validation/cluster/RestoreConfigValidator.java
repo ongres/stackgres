@@ -29,9 +29,9 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 @ValidationType(ErrorType.INVALID_CR_REFERENCE)
 public class RestoreConfigValidator implements ClusterValidator {
 
-  private static final String errorCrReferencerUri = ErrorType
+  private final String errorCrReferencerUri = ErrorType
       .getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
-  private static final String errorPostgresMismatch = ErrorType
+  private final String errorPostgresMismatch = ErrorType
       .getErrorTypeUri(ErrorType.PG_VERSION_MISMATCH);
 
   private final CustomResourceScanner<StackGresBackup> backupScanner;

@@ -494,8 +494,8 @@ load_component_images_from() {
   [ -n "$1" ]
   local REPOSITORY="$1"
   local IMAGE_PATH="${2:-/ongres/}"
-  local STACKGRES_VERSION="${3:-$STACKGRES_VERSION}"
-  get_component_images "$STACKGRES_VERSION" \
+  local VERSION="${3:-$STACKGRES_VERSION}"
+  get_component_images "$VERSION" \
     | xargs -n 1 -I % -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" \
       load_component_image_from "$REPOSITORY" "$IMAGE_PATH" '%'
 }

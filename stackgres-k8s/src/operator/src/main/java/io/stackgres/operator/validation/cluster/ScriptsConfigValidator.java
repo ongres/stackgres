@@ -37,10 +37,10 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 @ValidationType(ErrorType.FORBIDDEN_CR_UPDATE)
 public class ScriptsConfigValidator implements ClusterValidator {
 
-  private static final String FORBIDDEN_CR_UPDATE_URI = ErrorType
+  private final String forbiddenCrUpdateUri = ErrorType
       .getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE);
 
-  private static final String INVALID_REFERENCE = ErrorType
+  private final String invalidReference = ErrorType
       .getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
 
   private final ResourceFinder<Secret> secretFinder;
@@ -78,7 +78,7 @@ public class ScriptsConfigValidator implements ClusterValidator {
           .orElse(ImmutableList.of());
 
       if (!Objects.equals(scripts, oldScripts)) {
-        fail(FORBIDDEN_CR_UPDATE_URI, "Cannot update cluster's scripts configuration");
+        fail(forbiddenCrUpdateUri, "Cannot update cluster's scripts configuration");
       }
     } else if (review.getRequest().getOperation() == Operation.CREATE) {
       checkSecretKeySelectors(review, scripts);
@@ -103,7 +103,7 @@ public class ScriptsConfigValidator implements ClusterValidator {
           .findByNameAndNamespace(configMapRef.getName(), clusterNamespace);
 
       if (!scriptConfigMap.isPresent()) {
-        fail(INVALID_REFERENCE,
+        fail(invalidReference,
             "Referenced ConfigMap " + configMapRef.getName()
                 + " does not exists in namespace " + clusterNamespace);
       } else {
@@ -117,7 +117,7 @@ public class ScriptsConfigValidator implements ClusterValidator {
             .build();
 
         if (!configMapKeys.contains(configMapRef.getKey())) {
-          fail(INVALID_REFERENCE, "Key " + configMapRef.getKey()
+          fail(invalidReference, "Key " + configMapRef.getKey()
               + " does not exists in ConfigMap " + configMapRef.getName());
         }
       }
@@ -143,11 +143,11 @@ public class ScriptsConfigValidator implements ClusterValidator {
           .findByNameAndNamespace(secretRef.getName(), clusterNamespace);
 
       if (!scriptSecret.isPresent()) {
-        fail(INVALID_REFERENCE,
+        fail(invalidReference,
             "Referenced Secret " + secretRef.getName()
                 + " does not exists in namespace " + clusterNamespace);
       } else if (!scriptSecret.get().getData().containsKey(secretRef.getKey())) {
-        fail(INVALID_REFERENCE,
+        fail(invalidReference,
             "Key " + secretRef.getKey()
                 + " does not exists in Secret " + secretRef.getName());
       }

@@ -24,7 +24,7 @@ import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
 public abstract class DependenciesValidator<T extends AdmissionReview<?>> implements Validator<T> {
 
-  private static final String ERROR_TYPE_URI = ErrorType
+  private final String errorTypeUri = ErrorType
       .getErrorTypeUri(ErrorType.FORBIDDEN_CR_DELETION);
 
   private CustomResourceScanner<StackGresCluster> clusterScanner;
@@ -58,7 +58,7 @@ public abstract class DependenciesValidator<T extends AdmissionReview<?>> implem
     Status status = new StatusBuilder()
         .withCode(409)
         .withKind(request.getKind().getKind())
-        .withReason(ERROR_TYPE_URI)
+        .withReason(errorTypeUri)
         .withMessage(message)
         .build();
     throw new ValidationFailed(status);

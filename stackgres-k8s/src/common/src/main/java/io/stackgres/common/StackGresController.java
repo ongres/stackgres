@@ -5,6 +5,7 @@
 
 package io.stackgres.common;
 
+import com.google.common.collect.ImmutableList;
 import org.jooq.lambda.Seq;
 
 public enum StackGresController {
@@ -18,40 +19,49 @@ public enum StackGresController {
       StackGresProperty.OPERATOR_IMAGE_VERSION,
       "%1$s/stackgres/distributedlogs-controller:%2$s");
 
-  private static final String CONTAINER_REGISTRY =
-      StackGresProperty.SG_CONTAINER_REGISTRY.getString();
-
   final String name;
-  final String imageTemplate;
-  final String version;
+  final StackGresProperty imageTemplateProperty;
+  final String defaultImageTemplate;
+  final StackGresProperty componentVersionProperty;
+  final ImmutableList<StackGresController> subComponents;
 
   StackGresController(String name, StackGresProperty imageTemplateProperty,
       StackGresProperty componentVersionProperty,
       String defaultImageTemplate, StackGresController...subComponents) {
     this.name = name;
-    this.imageTemplate = imageTemplateProperty.get()
+    this.imageTemplateProperty = imageTemplateProperty;
+    this.defaultImageTemplate = defaultImageTemplate;
+    this.componentVersionProperty = componentVersionProperty;
+    this.subComponents = ImmutableList.copyOf(subComponents);
+  }
+
+  private String imageTemplate() {
+    return imageTemplateProperty.get()
         .map(template -> template.replace("${containerRegistry}", "%1$s"))
         .map(template -> template.replace(
             "${" + name.replaceAll("[^a-z]", "") + "Version}", "%2$s"))
         .map(template -> template.replace("${buildVersion}", "%3$s"))
-        .map(template -> Seq.of(subComponents)
+        .map(template -> Seq.seq(subComponents)
             .zipWithIndex()
             .reduce(template, (templateResult, t) -> templateResult
                 .replace("${" + t.v1.name.replaceAll("[^a-z]", "") + "Version}",
                     "%" + (t.v2 + 4) + "$s"),
                 (u, v) -> v))
         .orElse(defaultImageTemplate);
-    this.version = componentVersionProperty.get()
+  }
+
+  private String version() {
+    return componentVersionProperty.get()
         .orElseThrow(() -> new RuntimeException("No version defined for controller " + name));
   }
 
   public String getVersion() {
-    return version;
+    return version();
   }
 
   public String getImageName() {
-    return String.format(imageTemplate,
-        Seq.of(CONTAINER_REGISTRY, version)
+    return String.format(imageTemplate(),
+        Seq.of(StackGresProperty.SG_CONTAINER_REGISTRY.getString(), version())
         .toArray(Object[]::new));
   }
 }
