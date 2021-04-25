@@ -1,8 +1,8 @@
 ---
 title: Backups
-weight: 1
+weight: 3
 url: install/prerequisites/backups
-description: Details about how to setup and configure the backups 
+description: Details about how to setup and configure the backups
 ---
 
 All the configuration for this matter can be found at [Backup Configuration documentation]({{% relref "06-crd-reference/06-sgbackup/#configuration" %}}). By default, backups are scheduled daily (`config.backup.fullSchedule`) at `05:00 UTC` and with a retention policy (`config.backup.retention`) of 5 full-backups removed on rotation. You will have to find out the correct time window and retention policy that fit your needs.
