@@ -1,7 +1,7 @@
 <template>
     <form id="create-cluster" class="noSubmit" v-if="loggedIn && isReady" @submit.prevent="createCluster()">
         <!-- Vue reactivity hack -->
-        <template v-if="Object.keys(clusters).length > 0"></template>
+        <template v-if="Object.keys(cluster).length > 0"></template>
         <header>
             <ul class="breadcrumbs">
                 <li class="namespace">
@@ -42,7 +42,7 @@
                 <div class="fields" style="display: block">
 
                     <label for="metadata.name">Cluster Name <span class="req">*</span></label>
-                    <input v-model="name" :disabled="(editMode)" required data-field="metadata.name">
+                    <input v-model="name" :disabled="editMode" required data-field="metadata.name">
                     <a class="help" @click="showTooltip( 'sgcluster', 'metadata.name')">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
                     </a>
@@ -52,7 +52,7 @@
                     </span>
 
                     <label for="spec.postgresVersion">Postgres Version <span class="req">*</span></label>
-                    <ul :class="(editMode) ? 'disabled select' : 'select'" id="postgresVersion" data-field="spec.postgresVersion">
+                    <ul class="select" id="postgresVersion" data-field="spec.postgresVersion">
                         <li class="selected">
                             {{ (postgresVersion == 'latest') ? 'Latest' : 'Postgres '+postgresVersion }}
                         </li>
@@ -91,7 +91,7 @@
                         <p>Please notice that <strong>there are no Postgres Configurations available</strong> for this Postgres Version in this Namespace. A <strong>default Postgres Configuration will be created and applied to the cluster</strong> if you continue.</p>
                     </div>
 
-                    <input v-model="postgresVersion" :disabled="(editMode)" @change="checkPgConfigVersion" required class="hide">
+                    <input v-model="postgresVersion" @change="checkPgConfigVersion" required class="hide">
 
                     <label for="spec.instances">Number of Instances <span class="req">*</span></label>
                     <select v-model="instances" required data-field="spec.instances">    
@@ -112,7 +112,7 @@
                     </a>
                 
                     <label for="spec.sgInstanceProfile">Instance Profile</label>  
-                    <select v-model="resourceProfile" class="resourceProfile" :disabled="(editMode)" data-field="spec.sgInstanceProfile">
+                    <select v-model="resourceProfile" class="resourceProfile" data-field="spec.sgInstanceProfile">
                         <option selected value="">Default (Cores: 1, RAM: 2GiB)</option>
                         <option v-for="prof in profiles" v-if="prof.data.metadata.namespace == namespace" :value="prof.name">{{ prof.name }} (Cores: {{ prof.data.spec.cpu }}, RAM: {{ prof.data.spec.memory }}B)</option>
                     </select>
@@ -122,8 +122,8 @@
 
                     <div class="unit-select">
                         <label for="spec.pods.persistentVolume.size">Volume Size <span class="req">*</span></label>  
-                        <input v-model="volumeSize" class="size" required  :disabled="(editMode)" data-field="spec.pods.persistentVolume.size" type="number">
-                        <select v-model="volumeUnit" class="unit" required :disabled="(editMode)" data-field="spec.pods.persistentVolume.size" >
+                        <input v-model="volumeSize" class="size" required data-field="spec.pods.persistentVolume.size" type="number">
+                        <select v-model="volumeUnit" class="unit" required data-field="spec.pods.persistentVolume.size" >
                             <option disabled value="">Select Unit</option>
                             <option value="Mi">MiB</option>
                             <option value="Gi">GiB</option>
@@ -134,16 +134,14 @@
                         </a>
                     </div>
 
-                    <template v-if="hasStorageClass">
-                        <label for="spec.pods.persistentVolume.storageClass">Storage Class</label>
-                        <select v-model="storageClass" :disabled="(editMode)" data-field="spec.pods.persistentVolume.storageClass">
-                            <option value="">Select Storage Class</option>
-                            <option v-for="sClass in storageClasses">{{ sClass }}</option>
-                        </select>
-                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.persistentVolume.storageClass')">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
-                        </a>
-                    </template>
+                    <label for="spec.pods.persistentVolume.storageClass">Storage Class</label>
+                    <select v-model="storageClass" data-field="spec.pods.persistentVolume.storageClass">
+                        <option value="">Select Storage Class</option>
+                        <option v-for="sClass in storageClasses">{{ sClass }}</option>
+                    </select>
+                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.persistentVolume.storageClass')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                    </a>
                 </div>
             </fieldset>
 
@@ -157,7 +155,7 @@
 
                     <div class="fields">
                         <label for="spec.configurations.sgPostgresConfig">Postgres Configuration</label>
-                        <select v-model="pgConfig" class="pgConfig" :disabled="(editMode)" data-field="spec.configurations.sgPostgresConfig">
+                        <select v-model="pgConfig" class="pgConfig" data-field="spec.configurations.sgPostgresConfig">
                             <option value="" selected>Default</option>
                             <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.postgresVersion == shortpostgresVersion) )">{{ conf.name }}</option>
                         </select>
@@ -167,13 +165,13 @@
 
                         <fieldset data-field="spec.configurations.sgPoolingConfig">
                             <label for="spec.configurations.sgPoolingConfig">Connection Pooling</label>  
-                            <label for="connPooling" class="switch yes-no" :disabled="(editMode)">Enable <input type="checkbox" id="connPooling" v-model="connPooling" data-switch="NO" :disabled="(editMode)" ></label>
+                            <label for="connPooling" class="switch yes-no">Enable <input type="checkbox" id="connPooling" v-model="connPooling" data-switch="NO"></label>
                             <a class="help" @click="showTooltip( 'sgcluster', 'spec.configurations.sgPoolingConfig')">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
                             </a>
                             
                             <label for="connectionPoolingConfig">Connection Pooling Configuration</label>
-                            <select v-model="connectionPoolingConfig" class="connectionPoolingConfig" :disabled="(editMode || !connPooling)" >
+                            <select v-model="connectionPoolingConfig" class="connectionPoolingConfig" :disabled="!connPooling" >
                                 <option value="" selected>Default</option>
                                 <option v-for="conf in connPoolConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
                             </select>
@@ -194,7 +192,7 @@
                         <label for="spec.distributedLogs.sgDistributedLogs">Distributed Logs</label>
                         <select v-model="distributedLogs" class="distributedLogs" data-field="spec.distributedLogs.sgDistributedLogs">
                             <option disabled value="">Select Logs Cluster</option>
-                            <option v-for="cluster in logsClusters" :value="cluster.data.metadata.name">{{ cluster.data.metadata.name }}</option>
+                            <option v-for="cluster in logsClusters" :value="( (cluster.data.metadata.namespace !== $route.params.namespace) ? cluster.data.metadata.namespace + '.' : '') + cluster.data.metadata.name">{{ cluster.data.metadata.name }}</option>
                         </select>
                         <a class="help" @click="showTooltip( 'sgcluster', 'spec.distributedLogs.sgDistributedLogs')">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
@@ -230,69 +228,67 @@
                     </div>
                 </fieldset>
 
-                <fieldset class="accordion" v-if="!editMode" id="clusterInit">
+                <fieldset class="accordion" v-if="!editMode || (editMode && initScripts.length)" id="clusterInit">
                     <div class="header" @click="toggleAccordion('#clusterInit')">
                         <h3>Cluster Initialization</h3>
                         <button type="button" class="toggleFields textBtn">Expand</button>
                     </div>
 
                     <div class="fields">
-                        <label for="spec.initialData.restore.fromBackup">Backup Selection</label>
-                        <select v-model="restoreBackup" data-field="spec.initialData.restore.fromBackup">
-                            <option value="">Select a Backup</option>
-                            <template v-for="backup in backups" v-if="( (backup.data.metadata.namespace == namespace) && backup.data.status !== null )">
-                                <option v-if="backup.data.status.process.status === 'Completed'" :value="backup.data.metadata.uid">
-                                    {{ backup.name }} ({{ backup.data.status.process.timing.stored | formatTimestamp('date') }} {{ backup.data.status.process.timing.stored | formatTimestamp('time') }}) [{{ backup.data.metadata.uid.substring(0,4) }}...{{ backup.data.metadata.uid.slice(-4) }}]
-                                </option>
-                            </template>
-                        </select>
-                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.restore.fromBackup')">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
-                        </a>
-
-                        <template v-if="restoreBackup.length">
-                            <label for="spec.initialData.restore.downloadDiskConcurrency">Download Disk Concurrency</label>
-                            <input v-model="downloadDiskConcurrency" data-field="spec.initialData.restore.downloadDiskConcurrency">
-                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.restore.downloadDiskConcurrency')">
+                        <template v-if="!editMode">
+                            <label for="spec.initialData.restore.fromBackup">Backup Selection</label>
+                            <select v-model="restoreBackup" data-field="spec.initialData.restore.fromBackup">
+                                <option value="">Select a Backup</option>
+                                <template v-for="backup in backups" v-if="( (backup.data.metadata.namespace == namespace) && backup.data.status !== null )">
+                                    <option v-if="backup.data.status.process.status === 'Completed'" :value="backup.data.metadata.uid">
+                                        {{ backup.name }} ({{ backup.data.status.process.timing.stored | formatTimestamp('date') }} {{ backup.data.status.process.timing.stored | formatTimestamp('time') }}) [{{ backup.data.metadata.uid.substring(0,4) }}...{{ backup.data.metadata.uid.slice(-4) }}]
+                                    </option>
+                                </template>
+                            </select>
+                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.restore.fromBackup')">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
                             </a>
+
+                            <template v-if="restoreBackup.length">
+                                <label for="spec.initialData.restore.downloadDiskConcurrency">Download Disk Concurrency</label>
+                                <input v-model="downloadDiskConcurrency" data-field="spec.initialData.restore.downloadDiskConcurrency">
+                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.restore.downloadDiskConcurrency')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                </a>
+                            </template>
                         </template>
 
-                        <div class="scriptFieldset section" v-if="!editMode || (editMode && initScripts.length)">
+                        <div class="scriptFieldset section">
                             <div class="header">
                                 <h3 for="spec.initialData.scripts">Scripts</h3>
-                                <a v-if="!editMode" class="addRow" @click="pushScript('initScripts')">Add Script</a>
+                                <a class="addRow" @click="pushScript('initScripts')" v-if="!editMode">Add Script</a>
                                 <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.scripts')">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
                                 </a>   
                             </div>
 
                             <template v-if="initScripts.length">
-
                                 <div class="script repeater">
                                     <fieldset v-for="(script, index) in initScripts">
                                         <div class="header">
                                             <h3>Script #{{ index+1 }} <template v-if="script.hasOwnProperty('name')">–</template> <span class="scriptTitle">{{ script.name }}</span></h3>
-                                            <a v-if="!editMode" class="addRow" @click="spliceArray('initScripts', index)">Delete</a>
+                                            <a class="addRow" @click="spliceArray('initScripts', index)" v-if="!editMode">Delete</a>
                                         </div>    
                                         <div class="row">
-                                            <template v-if="!editMode || (editMode && script.hasOwnProperty('name'))">
-                                                <label for="spec.initialData.scripts.name">Name</label>
-                                                <input v-model="script.name" placeholder="Type a name..." :disabled="editMode">
-                                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.scripts.name')">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
-                                                </a>    
-                                            </template>
+                                            <label for="spec.initialData.scripts.name">Name</label>
+                                            <input v-model="script.name" placeholder="Type a name..." :disabled="editMode">
+                                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.scripts.name')">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                            </a>    
 
-                                            <template v-if="!editMode || (editMode && script.hasOwnProperty('database'))">
-                                                <label for="spec.initialData.scripts.database">Database</label>
-                                                <input v-model="script.database" placeholder="Type a database name..." :disabled="editMode">
-                                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.scripts.database')">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
-                                                </a>
-                                            </template>
                                             
-                                            <label v-if="!editMode" for="spec.initialData.scripts.script" class="script">Script <span class="req">*</span></label> <span v-if="!editMode" class="uploadScript">or <a @click="getScriptFile(index)" class="uploadLink">upload a file</a></span> 
+                                            <label for="spec.initialData.scripts.database">Database</label>
+                                            <input v-model="script.database" placeholder="Type a database name..." :disabled="editMode">
+                                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.scripts.database')">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                            </a>
+                                            
+                                            <label for="spec.initialData.scripts.script" class="script">Script <span class="req">*</span></label> <span class="uploadScript" v-if="!editMode">or <a @click="getScriptFile(index)" class="uploadLink">upload a file</a></span> 
                                             <input :id="'scriptFile'+index" type="file" @change="uploadScript" class="hide">
                                             
                                             <textarea v-if="!editMode || (editMode && script.hasOwnProperty('script'))" v-model="script.script" placeholder="Type a script..." :disabled="editMode" required></textarea>
@@ -310,7 +306,7 @@
                     </div>
                 </fieldset>
 
-                <fieldset class="accordion" v-if="!editMode || (editMode && (postgresServicesPrimary || postgresServicesReplicas))" id="k8sService">
+                <fieldset class="accordion" id="k8sService">
                     <div class="header" @click="toggleAccordion('#k8sService')">
                         <h3>Customize generated Kubernetes service</h3>
                         <button type="button" class="toggleFields textBtn">Expand</button>
@@ -326,13 +322,13 @@
                             </div>
 
                             <label for="spec.postgresServices.primary.enabled">Primary</label>  
-                            <label :disabled="editMode" for="postgresServicesPrimary" class="switch yes-no" data-field="spec.postgresServices.primary.enabled">Enable Primary <input  :disabled="editMode" type="checkbox" id="postgresServicesPrimary" v-model="postgresServicesPrimary" data-switch="YES"></label>
+                            <label for="postgresServicesPrimary" class="switch yes-no" data-field="spec.postgresServices.primary.enabled">Enable Primary <input type="checkbox" id="postgresServicesPrimary" v-model="postgresServicesPrimary" data-switch="YES"></label>
                             <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgresServices.primary.enabled')">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
                             </a>
 
                             <label for="spec.postgresServices.primary.type">Type</label>
-                            <select :disabled="editMode" v-model="postgresServicesPrimaryType" required data-field="spec.postgresServices.primary.type">    
+                            <select v-model="postgresServicesPrimaryType" required data-field="spec.postgresServices.primary.type">    
                                 <option selected>ClusterIP</option>
                                 <option>LoadBalancer</option>
                                 <option>NodePort</option>
@@ -341,31 +337,29 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
                             </a>
 
-                            <template v-if="postgresServicesPrimaryAnnotations.length">
-                                <fieldset>
-                                    <div class="header">
-                                        <h3 for="spec.postgresServices.primary.annotations">Annotations</h3>
-                                        <a v-if="!editMode" class="addRow" @click="pushAnnotation('postgresServicesPrimaryAnnotations')">Add Annotation</a>
-                                        
-                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgresServices.primary.annotations')">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
-                                        </a>
+                            <fieldset>
+                                <div class="header">
+                                    <h3 for="spec.postgresServices.primary.annotations">Annotations</h3>
+                                    <a class="addRow" @click="pushAnnotation('postgresServicesPrimaryAnnotations')">Add Annotation</a>
+                                    
+                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgresServices.primary.annotations')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                    </a>
+                                </div>
+                                <div class="annotation repeater" v-if="postgresServicesPrimaryAnnotations.length">
+                                    <div class="row" v-for="(field, index) in postgresServicesPrimaryAnnotations">
+                                        <label>Annotation</label>
+                                        <input class="annotation" v-model="field.annotation">
+
+                                        <span class="eqSign"></span>
+
+                                        <label>Value</label>
+                                        <input class="annotationValue" v-model="field.value">
+
+                                        <a class="addRow" @click="spliceArray('postgresServicesPrimaryAnnotations', index)">Delete</a>
                                     </div>
-                                    <div class="annotation repeater">
-                                        <div class="row" v-for="(field, index) in postgresServicesPrimaryAnnotations">
-                                            <label>Annotation</label>
-                                            <input class="annotation" v-model="field.annotation" :disabled="editMode">
-
-                                            <span class="eqSign"></span>
-
-                                            <label>Value</label>
-                                            <input class="annotationValue" v-model="field.value" :disabled="editMode">
-
-                                            <a v-if="!editMode" class="addRow" @click="spliceArray('postgresServicesPrimaryAnnotations', index)">Delete</a>
-                                        </div>
-                                    </div>
-                                </fieldset>
-                            </template>
+                                </div>
+                            </fieldset>
                         </fieldset>
 
                         <fieldset class="postgresServicesReplicas">
@@ -377,13 +371,13 @@
                             </div>
 
                             <label for="spec.postgresServices.replicas.enabled">Replicas</label>  
-                            <label :disabled="editMode" for="postgresServicesReplicas" class="switch yes-no" data-field="spec.postgresServices.replicas.enabled">Enable Replicas <input  :disabled="editMode" type="checkbox" id="postgresServicesReplicas" v-model="postgresServicesReplicas" data-switch="YES"></label>
+                            <label for="postgresServicesReplicas" class="switch yes-no" data-field="spec.postgresServices.replicas.enabled">Enable Replicas <input type="checkbox" id="postgresServicesReplicas" v-model="postgresServicesReplicas" data-switch="YES"></label>
                             <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgresServices.replicas.enabled')">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
                             </a>
 
                             <label for="spec.postgresServices.replicas.type">Type</label>
-                            <select :disabled="editMode" v-model="postgresServicesReplicasType" required data-field="spec.postgresServices.replicas.type">    
+                            <select v-model="postgresServicesReplicasType" required data-field="spec.postgresServices.replicas.type">    
                                 <option selected>ClusterIP</option>
                                 <option>LoadBalancer</option>
                                 <option>NodePort</option>
@@ -392,36 +386,34 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
                             </a>
 
-                            <template v-if="postgresServicesReplicasAnnotations.length">
-                                <fieldset>
-                                    <div class="header">
-                                        <h3 for="spec.postgresServices.replicas.annotations">Annotations</h3>
-                                        <a v-if="!editMode" class="addRow" @click="pushAnnotation('postgresServicesReplicasAnnotations')">Add Annotation</a>
-                                        
-                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgresServices.replicas.annotations')">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
-                                        </a>
+                            <fieldset>
+                                <div class="header">
+                                    <h3 for="spec.postgresServices.replicas.annotations">Annotations</h3>
+                                    <a class="addRow" @click="pushAnnotation('postgresServicesReplicasAnnotations')">Add Annotation</a>
+                                    
+                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgresServices.replicas.annotations')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                    </a>
+                                </div>
+                                <div class="annotation repeater" v-if="postgresServicesReplicasAnnotations.length">
+                                    <div class="row" v-for="(field, index) in postgresServicesReplicasAnnotations">
+                                        <label>Annotation</label>
+                                        <input class="annotation" v-model="field.annotation">
+
+                                        <span class="eqSign"></span>
+
+                                        <label>Value</label>
+                                        <input class="annotationValue" v-model="field.value">
+
+                                        <a class="addRow" @click="spliceArray('postgresServicesReplicasAnnotations', index)">Delete</a>
                                     </div>
-                                    <div class="annotation repeater">
-                                        <div class="row" v-for="(field, index) in postgresServicesReplicasAnnotations">
-                                            <label>Annotation</label>
-                                            <input class="annotation" v-model="field.annotation" :disabled="editMode">
-
-                                            <span class="eqSign"></span>
-
-                                            <label>Value</label>
-                                            <input class="annotationValue" v-model="field.value" :disabled="editMode">
-
-                                            <a v-if="!editMode" class="addRow" @click="spliceArray('postgresServicesReplicasAnnotations', index)">Delete</a>
-                                        </div>
-                                    </div>
-                                </fieldset>
-                            </template>
+                                </div>
+                            </fieldset>
                         </fieldset>
                     </div>
                 </fieldset>
 
-                <fieldset class="accordion podsMetadata" v-if="!editMode || (editMode && podsMetadata.length)" id="podsMetadata">
+                <fieldset class="accordion podsMetadata" id="podsMetadata">
                     <div class="header" @click="toggleAccordion('#podsMetadata')">
                         <h3>Metadata</h3>
                         <button type="button" class="toggleFields textBtn">Expand</button>
@@ -431,58 +423,122 @@
                         <fieldset>
                             <div class="header">
                                 <h3 for="spec.pods.metadata">Pods Metadata</h3>
-                                <a v-if="!editMode" class="addRow" @click="pushLabel('podsMetadata')">Add Label</a>
+                                <a class="addRow" @click="pushLabel('podsMetadata')">Add Label</a>
                                 <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.metadata')">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
                                 </a> 
                             </div>
                     
-                            <div class="metadata repeater">
+                            <div class="metadata repeater" v-if="podsMetadata.length">
                                 <div class="row" v-for="(field, index) in podsMetadata">
                                     <label>Label</label>
-                                    <input class="label" v-model="field.label" :disabled="editMode">
+                                    <input class="label" v-model="field.label">
 
                                     <span class="eqSign"></span>
 
                                     <label>Value</label>
-                                    <input class="labelValue" v-model="field.value" :disabled="editMode">
+                                    <input class="labelValue" v-model="field.value">
 
-                                    <a v-if="!editMode" class="addRow" @click="spliceArray('podsMetadata', index)">Delete</a>
+                                    <a class="addRow" @click="spliceArray('podsMetadata', index)">Delete</a>
                                 </div>
                             </div>
                         </fieldset>
 
-                        <fieldset class="podsScheduling" v-if="!editMode || (editMode && podsScheduling.length)">
+                        <fieldset class="podsScheduling">
                             <div class="header">
                                 <h3 for="spec.pods.scheduling">Pods Scheduling</h3>
-                                <a v-if="!editMode" class="addRow" @click="pushLabel('podsScheduling')">Add Node Selector</a>
                                 <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling')">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
                                 </a> 
                             </div>
                     
-                            <div class="scheduling repeater">
-                                <div class="row" v-for="(field, index) in podsScheduling">
-                                    <h4 for="spec.pods.scheduling.nodeSelector" style="display:none;">Node Selector</h4>
-                                    <label>Key</label>
-                                    <input class="label" v-model="field.label" :disabled="editMode">
-
-                                    <span class="eqSign"></span>
-
-                                    <label>Value</label>
-                                    <input class="labelValue" v-model="field.value" :disabled="editMode">
-                                    
-                                    <a v-if="!editMode" class="addRow" @click="spliceArray('podsScheduling', index)">Delete</a>
-                                    
+                            <fieldset class="nodeSelectors">
+                                <div class="header">
+                                    <h3 for="spec.pods.scheduling.nodeSelector">Node Selectors</h3>
+                                    <a class="addRow" @click="pushLabel('nodeSelector')">Add Node Selector</a>
                                     <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeSelector')">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
-                                    </a>
+                                    </a> 
                                 </div>
-                            </div>
+                        
+                                <div class="scheduling repeater" v-if="nodeSelector.length">
+                                    <div class="row" v-for="(field, index) in nodeSelector">
+                                        <label>Key</label>
+                                        <input class="label" v-model="field.label">
+
+                                        <span class="eqSign"></span>
+
+                                        <label>Value</label>
+                                        <input class="labelValue" v-model="field.value">
+                                        
+                                        <a class="addRow" @click="spliceArray('nodeSelector', index)">Delete</a>
+                                    </a>
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            <fieldset class="nodeTolerations">
+                                <div class="header">
+                                    <h3 for="spec.pods.scheduling.tolerations">Node Tolerations</h3>
+                                    <a class="addRow" @click="pushToleration()">Add Toleration</a>
+                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                    </a> 
+                                </div>
+                        
+                                <div class="scheduling repeater" v-if="tolerations.length">
+                                    <fieldset v-for="(field, index) in tolerations">
+                                        <div class="header">
+                                            <h3 for="spec.pods.scheduling.tolerations">Toleration #{{ index+1 }}</h3>
+                                            <a class="addRow del" @click="spliceArray('tolerations', index)">Delete</a>
+                                        </div>
+                                        <label for="spec.pods.scheduling.tolerations.key">Key</label>
+                                        <input v-model="field.key">
+                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations.key')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                        </a>
+
+                                        <label for="spec.pods.scheduling.tolerations.operator">Operator</label>
+                                        <select v-model="field.operator" @change="(field.operator == 'Exists') ? (field.value = null) : null">
+                                            <option>Equal</option>
+                                            <option>Exists</option>
+                                        </select>
+                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations.operator')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                        </a>
+
+                                        <label for="spec.pods.scheduling.tolerations.value">Value</label>
+                                        <input v-model="field.value" :disabled="(field.operator == 'Exists')" :title="(field.operator == 'Exists') ? 'When the selected operator is Exists, this value must be empty' : ''">
+                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations.value')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                        </a>
+
+                                        <label for="spec.pods.scheduling.tolerations.effect">Effect</label>
+                                        <select v-model="field.effect">
+                                            <option :value="nullVal">MatchAll</option>
+                                            <option>NoSchedule</option>
+                                            <option>PreferNoSchedule</option>
+                                            <option>NoExecute</option>
+                                        </select>
+                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations.effect')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                        </a>
+
+                                        <label for="spec.pods.scheduling.tolerations.tolerationSeconds">Toleration Seconds</label>
+                                        <input type="number" min="0" v-model="field.tolerationSeconds">
+                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations.tolerationSeconds')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                        </a>
+                                    </fieldset>
+                                </div>
+                            </fieldset>
+
+                            <span class="warning" v-if="editMode">Please, be aware that any changes made to the <code>Pods Scheduling</code> will require a <a href="https://stackgres.io/doc/latest/install/restart/" target="_blank">restart operation</a> on every instance of the cluster</span>
                         </fieldset>
 
 
-                        <fieldset class="resourcesMetadata" v-if="!editMode || (editMode && (annotationsAll.length || annotationsPods.length || annotationsServices.length))">
+
+                        <fieldset class="resourcesMetadata">
                             <div class="header">
                                 <h3 for="spec.metadata.annotations">Resources Metadata</h3>
                                 <a class="help" @click="showTooltip( 'sgcluster', 'spec.metadata.annotations')">
@@ -490,80 +546,76 @@
                                 </a> 
                             </div>
 
-                            <template v-if="annotationsAll.length">
-                                <fieldset>
-                                    <div class="header">
-                                        <h3 for="spec.metadata.annotations.allResources">All Resources</h3>
-                                        <a v-if="!editMode" class="addRow" @click="pushAnnotation('annotationsAll')">Add Annotation</a>
-                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.metadata.annotations.allResources')">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
-                                        </a>    
+                            <fieldset>
+                                <div class="header">
+                                    <h3 for="spec.metadata.annotations.allResources">All Resources</h3>
+                                    <a class="addRow" @click="pushAnnotation('annotationsAll')">Add Annotation</a>
+                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.metadata.annotations.allResources')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                    </a>    
+                                </div>
+                                <div class="annotation repeater" v-if="annotationsAll.length">
+                                    <div class="row" v-for="(field, index) in annotationsAll">
+                                        <label>Annotation</label>
+                                        <input class="annotation" v-model="field.annotation">
+
+                                        <span class="eqSign"></span>
+
+                                        <label>Value</label>
+                                        <input class="annotationValue" v-model="field.value">
+
+                                        <a class="addRow" @click="spliceArray('annotationsAll', index)">Delete</a>
                                     </div>
-                                    <div class="annotation repeater">
-                                        <div class="row" v-for="(field, index) in annotationsAll">
-                                            <label>Annotation</label>
-                                            <input class="annotation" v-model="field.annotation" :disabled="editMode">
+                                </div>
+                            </fieldset>
 
-                                            <span class="eqSign"></span>
+                            
+                            <fieldset>
+                                <div class="header">
+                                    <h3 for="spec.metadata.annotations.pods">Pods</h3>
+                                    <a class="addRow" @click="pushAnnotation('annotationsPods')">Add Annotation</a>
+                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.metadata.annotations.pods')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                    </a>    
+                                </div>
+                                <div class="annotation repeater" v-if="annotationsPods.length">
+                                    <div class="row" v-for="(field, index) in annotationsPods">
+                                        <label>Annotation</label>
+                                        <input class="annotation" v-model="field.annotation">
 
-                                            <label>Value</label>
-                                            <input class="annotationValue" v-model="field.value" :disabled="editMode">
+                                        <span class="eqSign"></span>
 
-                                            <a v-if="!editMode" class="addRow" @click="spliceArray('annotationsAll', index)">Delete</a>
-                                        </div>
+                                        <label>Value</label>
+                                        <input class="annotationValue" v-model="field.value">
+
+                                        <a class="addRow" @click="spliceArray('annotationsPods', index)">Delete</a>
                                     </div>
-                                </fieldset>
-                            </template>
+                                </div>
+                            </fieldset>
 
-                            <template v-if="annotationsPods.length">
-                                <fieldset>
-                                    <div class="header">
-                                        <h3 for="spec.metadata.annotations.pods">Pods</h3>
-                                        <a v-if="!editMode" class="addRow" @click="pushAnnotation('annotationsPods')">Add Annotation</a>
-                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.metadata.annotations.pods')">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
-                                        </a>    
+                        
+                            <fieldset>
+                                <div class="header">
+                                    <h3 for="spec.metadata.annotations.services">Services</h3>
+                                    <a class="addRow" @click="pushAnnotation('annotationsServices')">Add Annotation</a>
+                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.metadata.annotations.services')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                    </a>  
+                                </div>
+                                <div class="annotation repeater" v-if="annotationsServices.length">
+                                    <div class="row" v-for="(field, index) in annotationsServices">
+                                        <label>Annotation</label>
+                                        <input class="annotation" v-model="field.annotation">
+
+                                        <span class="eqSign"></span>
+
+                                        <label>Value</label>
+                                        <input class="annotationValue" v-model="field.value">
+
+                                        <a class="addRow" @click="spliceArray('annotationsServices', index)">Delete</a>
                                     </div>
-                                    <div class="annotation repeater">
-                                        <div class="row" v-for="(field, index) in annotationsPods">
-                                            <label>Annotation</label>
-                                            <input class="annotation" v-model="field.annotation" :disabled="editMode">
-
-                                            <span class="eqSign"></span>
-
-                                            <label>Value</label>
-                                            <input class="annotationValue" v-model="field.value" :disabled="editMode">
-
-                                            <a v-if="!editMode" class="addRow" @click="spliceArray('annotationsPods', index)">Delete</a>
-                                        </div>
-                                    </div>
-                                </fieldset>
-                            </template>
-
-                            <template v-if="annotationsServices.length">
-                                <fieldset>
-                                    <div class="header">
-                                        <h3 for="spec.metadata.annotations.services">Services</h3>
-                                        <a v-if="!editMode" class="addRow" @click="pushAnnotation('annotationsServices')">Add Annotation</a>
-                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.metadata.annotations.services')">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
-                                        </a>  
-                                    </div>
-                                    <div class="annotation repeater">
-                                        <div class="row" v-for="(field, index) in annotationsServices">
-                                            <label>Annotation</label>
-                                            <input class="annotation" v-model="field.annotation" :disabled="editMode">
-
-                                            <span class="eqSign"></span>
-
-                                            <label>Value</label>
-                                            <input class="annotationValue" v-model="field.value" :disabled="editMode">
-
-                                            <a v-if="!editMode" class="addRow" @click="spliceArray('annotationsServices', index)">Delete</a>
-                                        </div>
-                                    </div>
-                                </fieldset>
-                            </template>
+                                </div>
+                            </fieldset>
                         </fieldset>
                     </div>
                 </fieldset>
@@ -578,7 +630,7 @@
                         <div class="toolbar">
                             <div class="searchBar">
                                 <input id="keyword" v-model="searchExtension" class="search" placeholder="Search Extension..." autocomplete="off">
-                                <a @click="clearFilters()" class="btn clear border keyword" v-if="searchExtension.length">CLEAR</a>
+                                <a @click="clearExtFilters()" class="btn clear border keyword" v-if="searchExtension.length">CLEAR</a>
                             </div>
                         </div>
                         
@@ -595,11 +647,11 @@
                                 </label>
                                 <button class="textBtn anchor toggleExt" @click.stop.prevent="viewExt(index)">-</button>
 
-                                <div v-if="( (viewExtension == index) && !searchExtension.length)" class="extDetails">
+                                <div v-if="(viewExtension == index)" class="extDetails">
                                     <div class="header">
                                         <h4>Description</h4>
                                     </div>
-                                    <p>{{ ext.description }}</p>
+                                    <p class="extDesc">{{ ext.description }}</p>
     
                                     <div class="header">
                                         <h4>Tags</h4>
@@ -610,47 +662,19 @@
                                         </span>
                                     </div>
 
-                                    <!-- <template v-if="!extAvailableFor(index)">
-                                        <div class="header">
-                                            <h4>Notes</h4>
-                                        </div>
-                                        <p class="notCompatible">
-                                            <strong class="colorRed">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16.001"><path class="a" d="M657.435,374.5l6.7,13.363h-13.4l6.7-13.363Zm0-1.45a1.157,1.157,0,0,0-.951.7l-6.83,13.608c-.523.93-.078,1.691.989,1.691h13.583c1.067,0,1.512-.761.989-1.691h0l-6.829-13.61a1.156,1.156,0,0,0-.951-.7Zm1,13a1,1,0,1,1-1-1,1,1,0,0,1,1,1Zm-1-2a1,1,0,0,1-1-1v-3a1,1,0,0,1,2,0v3a1,1,0,0,1-1,1Z" transform="translate(-649.435 -373.043)"/></svg>
-                                                Not Compatible
-                                            </strong><br/>
-                                            This extention is not compatible with the selected Postgres version
-                                        </p>
-                                    </template>-->
-
                                     <div class="header">
                                         <h4>Version</h4>
                                     </div>
                                     <select v-model="extVersion" @change="setExtVersion(extVersion)">
                                         <option v-for="v in ext.versions" :selected="extVersion == v">{{ v }}</option>
                                     </select>
-                                    <!-- <ul class="select">
-                                        <li class="selected">
-                                            {{ ext.channels[Object.keys(ext.channels)[0]] + ' | ' + Object.keys(ext.channels)[0] }}
-                                        </li>
-                                        <li v-for="(v, i) in ext.versions" :for="ext.name + '-' + v.version">
-                                            <strong>{{ v.version }}</strong>
-                                            <ul>
-                                                <li v-for="(version, channel) in ext.channels" v-if="version == v.version">
-                                                    <a @click="setExtVersion(index, channel, version)" :data-val="channel">
-                                                        {{ channel }}
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </li>
-                                    </ul>-->
                                 </div>
                             </li>
                         </ul>
                     </div>
                 </fieldset>
 
-            </template>            
+            </template>
 
             <template v-if="editMode">
                 <a class="btn" @click="createCluster">Update Cluster</a>
@@ -691,8 +715,10 @@
             const vm = this;
 
             return {
-                editMode: (vm.$route.params.action === 'edit'),
+                editMode: (vm.$route.name === 'EditCluster'),
+                editReady: false,
                 help: 'Click on a question mark to get help and tips about that field.',
+                nullVal: null,
                 advancedMode: false,
                 name: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
                 namespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
@@ -714,7 +740,8 @@
                 postgresUtil: true,
                 metricsExporter: true,
                 podsMetadata: [ { label: '', value: ''} ],
-                podsScheduling: [ { label: '', value: ''} ],
+                nodeSelector: [ { label: '', value: ''} ],
+                tolerations: [ { key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null } ],
                 pgConfigExists: true,
                 currentScriptIndex: 0,
                 initScripts: [ { name: '', database: '', script: ''} ],
@@ -728,13 +755,11 @@
                 postgresServicesReplicas: true,
                 postgresServicesReplicasType: 'ClusterIP',
                 postgresServicesReplicasAnnotations: [ { annotation: '', value: '' } ],
-                hasStorageClass: true,
                 searchExtension: '',
                 extensionsList: [],
                 selectedExtensions: [],
                 viewExtension: -1,
                 extVersion: '',
-                initData: false,
             }
 
         },
@@ -792,12 +817,12 @@
             isReady() {
                 return store.state.ready
             },
-            
-            clusters () {
-                const vm = this
+            cluster () {
 
-                // If in edit mode, load cluster information
-                if( (vm.$route.params.action === 'edit') && !vm.initData) {
+                var vm = this;
+                var cluster = {};
+                
+                if( vm.editMode && !vm.editReady ) {
                     store.state.clusters.forEach(function( c ){
                         if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
                         
@@ -808,12 +833,7 @@
                             vm.instances = c.data.spec.instances;
                             vm.resourceProfile = c.data.spec.sgInstanceProfile;
                             vm.pgConfig = c.data.spec.configurations.sgPostgresConfig;
-                            vm.storageClass = c.data.spec.pods.persistentVolume.storageClass;
-                            vm.storageClass = c.data.spec.pods.persistentVolume.hasOwnProperty('storageClass') ? c.data.spec.pods.persistentVolume.storageClass : '';
-
-                            if(!vm.storageClass.length)
-                                vm.hasStorageClass = false
-                            
+                            vm.storageClass = c.data.spec.pods.persistentVolume.hasOwnProperty('storageClass') ? c.data.spec.pods.persistentVolume.storageClass : '';                            
                             vm.volumeSize = volumeSize;
                             vm.volumeUnit = ''+volumeUnit;
                             vm.connPooling = !c.data.spec.pods.disableConnectionPooling,
@@ -825,7 +845,8 @@
                             vm.metricsExporter = vm.hasProp(c, 'data.spec.pods.disableMetricsExporter') ? !c.data.spec.pods.disableMetricsExporter : true ;
                             vm.postgresUtil = vm.hasProp(c, 'data.spec.pods.disablePostgresUtil') ? !c.data.spec.pods.disablePostgresUtil : true ;
                             vm.podsMetadata = vm.hasProp(c, 'data.spec.pods.metadata.labels') ? vm.unparseProps(c.data.spec.pods.metadata.labels, 'label') : [];
-                            vm.podsScheduling = vm.hasProp(c, 'data.spec.pods.scheduling.nodeSelector') ? vm.unparseProps(c.data.spec.pods.scheduling.nodeSelector, 'label') : [];
+                            vm.nodeSelector = vm.hasProp(c, 'data.spec.pods.scheduling.nodeSelector') ? vm.unparseProps(c.data.spec.pods.scheduling.nodeSelector, 'label') : [];
+                            vm.tolerations = vm.hasProp(c, 'data.spec.pods.scheduling.tolerations') ? c.data.spec.pods.scheduling.tolerations : [];
                             vm.pgConfigExists = true;
                             vm.initScripts = vm.hasProp(c, 'data.spec.initialData.scripts') ? c.data.spec.initialData.scripts : [];
                             vm.annotationsAll = vm.hasProp(c, 'data.spec.metadata.annotations.allResources') ? vm.unparseProps(c.data.spec.metadata.annotations.allResources) : [];
@@ -838,13 +859,14 @@
                             vm.postgresServicesReplicasType = vm.hasProp(c, 'data.spec.postgresServices.replicas.type') ? c.data.spec.postgresServices.replicas.type : 'ClusterIP';
                             vm.postgresServicesReplicasAnnotations = vm.hasProp(c, 'data.spec.postgresServices.replicas.annotations') ?  vm.unparseProps(c.data.spec.postgresServices.replicas.annotations) : [];
                             vm.selectedExtensions = vm.hasProp(c, 'data.spec.postgresExtensions') ? c.data.spec.postgresExtensions : [];
-
-                            vm.initData = true
+                            
+                            vm.editReady = true
+                            return false
                         }
                     });
                 }
-                
-                return store.state.clusters
+
+                return cluster
             }
 
         },
@@ -908,6 +930,10 @@
                 this[prop].push( { annotation: '', value: '' } )
             },
 
+            pushToleration () {
+                this.tolerations.push({ key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null })
+            },
+
             createCluster: function(e) {
                 const vc = this;
 
@@ -947,11 +973,12 @@
                                         "labels": this.parseProps(this.podsMetadata, 'label')
                                     }
                                 }) ),
-                                ...(!jQuery.isEmptyObject(this.parseProps(this.podsScheduling, 'label')) && ({
+                                ...( (!jQuery.isEmptyObject(this.parseProps(this.nodeSelector, 'label')) || this.hasTolerations() ) && ({
                                     "scheduling": {
-                                        "nodeSelector": this.parseProps(this.podsScheduling, 'label')
+                                        ...(!jQuery.isEmptyObject(this.parseProps(this.nodeSelector, 'label')) && ({"nodeSelector": this.parseProps(this.nodeSelector, 'label')})),
+                                        ...(this.hasTolerations() && ({"tolerations": this.tolerations}))
                                     }
-                                }) )                  
+                                }) )                    
                             },
                             "configurations": {
                                 ...(this.pgConfig.length && ( {"sgPostgresConfig": this.pgConfig }) ),
@@ -962,9 +989,6 @@
                                 "distributedLogs": {
                                     "sgDistributedLogs": this.distributedLogs
                                 }
-                            })),
-                            ...(this.selectedExtensions.length && ({
-                                "postgresExtensions": this.selectedExtensions
                             })),
                             ...( (this.restoreBackup.length || this.initScripts.length) && ({
                                     "initialData": {
@@ -1005,6 +1029,10 @@
                                     "annotations": this.parseProps(this.postgresServicesReplicasAnnotations)
                                 }
                             },
+                            ...(this.selectedExtensions.length && ({
+                                "postgresExtensions": this.selectedExtensions
+                            })),
+
                         }
                     }  
 
@@ -1056,7 +1084,7 @@
             },
 
             cancel: function() {
-                if(this.$route.params.action == 'create')
+                if(this.$route.name == 'CreateCluster')
                     router.push('/overview/'+this.$route.params.namespace);
                 else
                     router.push('/cluster/status/'+this.$route.params.namespace+'/'+this.$route.params.name);
@@ -1084,39 +1112,22 @@
 
             setVersion: function( version = 'latest') {
                 const vc = this
+
+                if( vc.postgresVersion !== version.substring(0,2) ) {
+                    axios
+                    .get('/stackgres/extensions/' + ( (version == 'latest') ? 'latest' : version.substring(0,2) ))
+                    .then(function (response) {
+                        vc.extensionsList = vc.sortExtensions(response.data.extensions)
+                    })
+                    .catch(function (error) {
+                        console.log(error.response);
+                        vc.notify(error.response.data,'error','sgcluster');
+                    });
+                }
                 
                 vc.postgresVersion = version;
                 $('#postgresVersion .active, #postgresVersion').removeClass('active');
                 $('#postgresVersion [data-val="'+version+'"]').addClass('active');
-
-                axios
-                .get('/stackgres/extensions/' + version)
-                .then(function (response) {
-                    vc.extensionsList = vc.sortExtensions(response.data.extensions)
-                   
-                    if(vc.selectedExtensions.length) {
-                        let nonValidExt = []
-                        
-                        vc.selectedExtensions.forEach(function(ext, index){
-                            let foundExt = vc.extensionsList.find(e => (ext.name == e.name))
-
-                            if(typeof foundExt == 'undefined') {
-                                nonValidExt.push(ext.name)
-                                vc.extensionsList.splice(index, 1);
-                            }
-                        })
-
-                        if(nonValidExt.length)
-                            vc.notify(( (nonValidExt.length > 1) ? 'Some' : 'One') + ' of the extensions you selected ' + ( (nonValidExt.length > 1) ? 'are' : 'is') + ' not available for the choosen Postgres version: <code>' + nonValidExt.join(", ") + '</code>','message','sgcluster');
-                    }
-                })
-                .catch(function (error) {
-                    if(error.hasOwnProperty('response')) {
-                        console.log(error.response);
-                        vc.notify(error.response.data,'error','sgcluster');
-                    } else
-                        console.log(error)
-                });
             },
 
             sanitizeString( string ) {
@@ -1150,6 +1161,28 @@
                     propsArray.push(prop)
                 });
                 return propsArray
+            },
+
+            hasTolerations () {
+                const vc = this
+                let t = [...vc.tolerations]
+
+                t.forEach(function(item, index) {
+                    if(JSON.stringify(item) == '{"key":"","operator":"Equal","value":null,"effect":null,"tolerationSeconds":null}')
+                        vc.tolerations.splice( index, 1 )
+                })
+
+                return t.length
+            },
+
+            toggleAccordion(id) {
+                $(id + '> .fields').slideToggle()
+                $(id + '> .header').toggleClass('open')
+
+                if($(id + '> .header .toggleFields').text() == 'Expand')
+                    $(id + '> .header .toggleFields').text('Collapse')
+                else
+                    $(id + '> .header .toggleFields').text('Expand')
             },
 
             viewExt(index) {
@@ -1229,7 +1262,7 @@
                 //$('li.extension.show li.selected').text(version + ' | ' + channel)
             },
 
-            clearFilters() {
+            clearExtFilters() {
                 this.searchExtension = ''
                 this.viewExtension = -1
             },
@@ -1251,8 +1284,7 @@
         },
 
         created: function() {
-            
-            let vc = this;
+            const vc = this;
 
             axios
             .get('/stackgres/extensions/latest')
@@ -1276,6 +1308,12 @@
 </script>
 
 <style scoped>
+    .scriptFieldset:first-child {
+        border-top: 0;
+        margin-top: 0;
+        padding-top: 0;
+    }
+
     input[type="checkbox"].plain:checked {
         border-color: var(--blue);
         background: var(--blue);
@@ -1353,6 +1391,7 @@
         max-height: 500px;
         overflow-y: auto;
         margin-bottom: 20px;
+        padding-right: 10px;
     }
 
     .extension > label {
@@ -1442,8 +1481,8 @@
     }
 
     li.extension:nth-child(even).show > label:after  {
-    background: var(--textColor);
-    opacity: .2;
+        background: var(--textColor);
+        opacity: .2;
     }
 
     li.extension.show {
@@ -1486,6 +1525,10 @@
 
     .extDetails .notCompatible strong {
         display: block;
+    }
+
+    p.extDesc:first-letter {
+        text-transform: uppercase;
     }
 
     .darkmode .extension > label input {

@@ -580,7 +580,7 @@
 				</div>
 
 				<div class="postgresExtensions" v-if="hasProp(cluster, 'data.spec.postgresExtensions') && cluster.data.spec.postgresExtensions.length">
-					<h2>Postgres Extensions <span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresServices.description"></span></h2>
+					<h2>Postgres Extensions <span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresExtensions.description"></span></h2>
 
 					<table class="clusterConfig">
 						<thead style="display: table-header-group">
