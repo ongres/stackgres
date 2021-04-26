@@ -92,3 +92,23 @@ paths:
         * storageclasss list
       security:
       - JWT: []
+  /stackgres/extensions/{postgresVersion}:
+    get:
+      tags:
+      - misc
+      summary: List PostgreSQL extensions
+      description: |
+        List PostgreSQL extensions.
+
+        ### RBAC permissions required
+
+        None
+      parameters:
+      - name: postgresVersion
+        description: The PostgreSQL version for which extensions are compatible.
+        in: path
+        required: true
+        schema:
+          type: string
+      security:
+      - JWT: []

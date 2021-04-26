@@ -110,7 +110,7 @@
     <spotbugs.excludeFilterFile>${checks.location}/spotbugs-exclude.xml</spotbugs.excludeFilterFile>
     <pmd.ruleset.file>${checks.location}/pmd-ruleset.xml</pmd.ruleset.file>
 
-    <it.image>stackgres/it:12.0</it.image>
+    <it.image>stackgres/it:13.0</it.image>
     <buildah.image>quay.io/buildah/stable:v1.15.0</buildah.image>
   </properties>
 
