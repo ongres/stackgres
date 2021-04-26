@@ -1046,8 +1046,10 @@ ul.zg-ul-select.active li.active:hover {
 .set:not(.active) > ul.show {
     display: block;
     position: fixed;
-    left: 339px;
+    left: 350px;
     z-index: 2;
+    overflow: hidden;
+    padding-left: 0;
 }
 
 .set:not(.active) ul.show:before {
@@ -1055,14 +1057,12 @@ ul.zg-ul-select.active li.active:hover {
     content: " ";
     position: absolute;
     top: 0;
-    left: 10px;
+    left: 0;
     bottom: 0;
     right: 0;
     z-index: 0;
-    border: 1px solid;
+    border: 0;
 }
-
-
 
 .set:not(.active) > ul li {
     background: #fff;
@@ -1070,12 +1070,16 @@ ul.zg-ul-select.active li.active:hover {
 
 .set:hover li > a {
     padding-left: 40px;
+    border-right: 1px solid var(--borderColor);
 }
 
-/* #sets a:not(.addnew) {
-    display: inline-block;
-    width: 90%;
-} */
+.set:hover li:first-child > a {
+    border-top: 1px solid var(--borderColor);
+}
+
+.set:hover li:last-child > a {
+    border-bottom: 1px solid var(--borderColor);
+}
 
 #sets h3, #sets h4 {
     display: inline-block;
