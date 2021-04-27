@@ -42,6 +42,12 @@
     },
     {
       "type": "panel",
+      "id": "stat",
+      "name": "Stat",
+      "version": ""
+    },
+    {
+      "type": "panel",
       "id": "table-old",
       "name": "Table (old)",
       "version": ""
@@ -65,7 +71,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1618225747135,
+  "iteration": 1619542646340,
   "links": [],
   "panels": [
     {
@@ -705,7 +711,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "pg_locks_count{datname=~\"$datname\", instance=~\"${instance}:9187\", mode=~\"$mode\"} != 0",
+              "expr": "pg_locks_count{datname=~\"$datname\", instance=~\"${instance}:9187\"} != 0",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -1788,7 +1794,9 @@
       "id": 211,
       "panels": [
         {
-          "aliasColors": {},
+          "aliasColors": {
+            "Database: mminventory, User: mminventory_pro": "light-blue"
+          },
           "bars": false,
           "dashLength": 10,
           "dashes": false,
@@ -1827,7 +1835,7 @@
             "values": true
           },
           "lines": true,
-          "linewidth": 1,
+          "linewidth": 2,
           "nullPointMode": "null",
           "options": {
             "alertThreshold": true
@@ -1849,7 +1857,28 @@
               "refId": "A"
             }
           ],
-          "thresholds": [],
+          "thresholds": [
+            {
+              "$$hashKey": "object:1636",
+              "colorMode": "warning",
+              "fill": true,
+              "fillColor": "rgba(51, 162, 229, 0.2)",
+              "line": true,
+              "lineColor": "rgba(31, 96, 196, 0.6)",
+              "op": "gt",
+              "value": 185,
+              "yaxis": "left"
+            },
+            {
+              "$$hashKey": "object:3084",
+              "colorMode": "critical",
+              "fill": true,
+              "line": true,
+              "op": "gt",
+              "value": 250,
+              "yaxis": "left"
+            }
+          ],
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
@@ -2272,19 +2301,19 @@
             {
               "expr": "pgbouncer_show_stats_avg_xact_time{instance=~\"${instance}:9187\",database!~\"pgbouncer\"}",
               "interval": "",
-              "legendFormat": "Database: {{database}}, User: {{user}} - XACT",
+              "legendFormat": "Database: {{database}}  - XACT",
               "refId": "A"
             },
             {
               "expr": "pgbouncer_show_stats_avg_query_time{instance=~\"${instance}:9187\",database!~\"pgbouncer\"}",
               "interval": "",
-              "legendFormat": "Database: {{database}}, User: {{user}} - QUERY",
+              "legendFormat": "Database: {{database}} - QUERY",
               "refId": "B"
             },
             {
               "expr": "pgbouncer_show_stats_avg_wait_time{instance=~\"${instance}:9187\",database!~\"pgbouncer\"}",
               "interval": "",
-              "legendFormat": "Database: {{database}}, User: {{user}} - WAIT",
+              "legendFormat": "Database: {{database}} - WAIT",
               "refId": "C"
             }
           ],
@@ -2388,13 +2417,13 @@
             {
               "expr": "pgbouncer_show_stats_avg_recv{instance=~\"${instance}:9187\",database!~\"pgbouncer\"}",
               "interval": "",
-              "legendFormat": "Database: {{database}}, User: {{user}} - RECV",
+              "legendFormat": "Database: {{database}} - RECV",
               "refId": "A"
             },
             {
               "expr": "pgbouncer_show_stats_avg_query_time{instance=~\"${instance}:9187\",database!~\"pgbouncer\"}",
               "interval": "",
-              "legendFormat": "Database: {{database}}, User: {{user}} - SENT",
+              "legendFormat": "Database: {{database}}  - SENT",
               "refId": "B"
             }
           ],
@@ -6597,6 +6626,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
           "fieldConfig": {
             "defaults": {
               "custom": {},
@@ -6670,6 +6700,8 @@
           },
           "yaxes": [
             {
+              "$$hashKey": "object:1214",
+              "decimals": 2,
               "format": "bytes",
               "label": null,
               "logBase": 1,
@@ -6678,6 +6710,8 @@
               "show": true
             },
             {
+              "$$hashKey": "object:1215",
+              "decimals": 2,
               "format": "bytes",
               "label": null,
               "logBase": 1,
@@ -6697,6 +6731,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
           "fieldConfig": {
             "defaults": {
               "custom": {},
@@ -6769,6 +6804,8 @@
           },
           "yaxes": [
             {
+              "$$hashKey": "object:1289",
+              "decimals": 2,
               "format": "bytes",
               "label": null,
               "logBase": 1,
@@ -6777,6 +6814,8 @@
               "show": true
             },
             {
+              "$$hashKey": "object:1290",
+              "decimals": 2,
               "format": "bytes",
               "label": null,
               "logBase": 1,
@@ -7475,6 +7514,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": "${DS_PROMETHEUS}",
+          "decimals": 0,
           "fieldConfig": {
             "defaults": {
               "custom": {},
@@ -7486,20 +7526,23 @@
           "fillGradient": 0,
           "gridPos": {
             "h": 8,
-            "w": 24,
+            "w": 11,
             "x": 0,
             "y": 13
           },
           "hiddenSeries": false,
           "id": 82,
           "legend": {
-            "avg": false,
-            "current": false,
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
+            "hideEmpty": true,
+            "hideZero": true,
             "max": false,
             "min": false,
             "show": true,
             "total": false,
-            "values": false
+            "values": true
           },
           "lines": true,
           "linewidth": 1,
@@ -7518,9 +7561,9 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "pg_archiver_pending_wal_count{instance=~\"${instance}:9187\"}",
+              "expr": "rate(pg_stat_archiver_archived_count{instance=~\"${instance}:9187\"}[5m])*300",
               "interval": "",
-              "legendFormat": "# of WALs to be archived",
+              "legendFormat": "# of WALs archived",
               "refId": "A"
             }
           ],
@@ -7528,7 +7571,7 @@
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "No. of pending WALs files to be archived",
+          "title": "No. WALs files archived",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -7544,6 +7587,8 @@
           },
           "yaxes": [
             {
+              "$$hashKey": "object:86",
+              "decimals": 0,
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -7552,6 +7597,8 @@
               "show": true
             },
             {
+              "$$hashKey": "object:87",
+              "decimals": 0,
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -7564,6 +7611,168 @@
             "align": false,
             "alignLevel": null
           }
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 0,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 10,
+            "x": 11,
+            "y": 13
+          },
+          "hiddenSeries": false,
+          "id": 242,
+          "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "7.3.5",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "rate(pg_stat_archiver_failed_count{instance=~\"${instance}:9187\"}[5m])*300",
+              "interval": "",
+              "legendFormat": "# Archive attemps",
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "Number of failed attempts for archiving WAL files",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "$$hashKey": "object:86",
+              "decimals": 0,
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "$$hashKey": "object:87",
+              "decimals": 0,
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        },
+        {
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 3,
+            "x": 21,
+            "y": 13
+          },
+          "id": 241,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "mean"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "value"
+          },
+          "pluginVersion": "7.3.5",
+          "targets": [
+            {
+              "expr": "pg_stat_archiver_last_archive_age{instance=~\"${instance}:9187\"}",
+              "instant": false,
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Last archive age (Seconds)",
+          "type": "stat"
         }
       ],
       "title": "Archiving",
@@ -8295,7 +8504,7 @@
       "type": "row"
     }
   ],
-  "refresh": "10s",
+  "refresh": false,
   "schemaVersion": 26,
   "style": "dark",
   "tags": [
@@ -8305,67 +8514,6 @@
   ],
   "templating": {
     "list": [
-      {
-        "auto": true,
-        "auto_count": 200,
-        "auto_min": "1s",
-        "current": {
-          "selected": false,
-          "text": "auto",
-          "value": "$__auto_interval_interval"
-        },
-        "error": null,
-        "hide": 0,
-        "label": "Interval",
-        "name": "interval",
-        "options": [
-          {
-            "selected": true,
-            "text": "auto",
-            "value": "$__auto_interval_interval"
-          },
-          {
-            "selected": false,
-            "text": "1s",
-            "value": "1s"
-          },
-          {
-            "selected": false,
-            "text": "5s",
-            "value": "5s"
-          },
-          {
-            "selected": false,
-            "text": "1m",
-            "value": "1m"
-          },
-          {
-            "selected": false,
-            "text": "5m",
-            "value": "5m"
-          },
-          {
-            "selected": false,
-            "text": "1h",
-            "value": "1h"
-          },
-          {
-            "selected": false,
-            "text": "6h",
-            "value": "6h"
-          },
-          {
-            "selected": false,
-            "text": "1d",
-            "value": "1d"
-          }
-        ],
-        "query": "1s,5s,1m,5m,1h,6h,1d",
-        "queryValue": "",
-        "refresh": 2,
-        "skipUrlSync": false,
-        "type": "interval"
-      },
       {
         "allValue": null,
         "current": {},
@@ -8494,7 +8642,7 @@
     ]
   },
   "time": {
-    "from": "now-3h",
+    "from": "now-12h",
     "to": "now"
   },
   "timepicker": {
@@ -8522,8 +8670,8 @@
       "30d"
     ]
   },
-  "timezone": "",
+  "timezone": "utc",
   "title": "StackGres Dashboard",
   "uid": "000000041",
-  "version": 95
+  "version": 114
 }
