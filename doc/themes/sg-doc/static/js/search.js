@@ -15,7 +15,7 @@ function initLunr() {
         url: baseurl +"index.json",
         dataType: 'text'
     }).done(function(index) {
-        pagesIndex = JSON.parse(index.replace(/[\n\r\t]/g,""))
+        pagesIndex = JSON.parse(index)
         // Set up lunrjs by declaring the fields we use
         // Also provide their boost level for the ranking
         lunrIndex = lunr(function() {
