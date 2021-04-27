@@ -1367,7 +1367,7 @@
         top: 0;
         right: 10px;
         border: 0;
-        padding: 7px 0;
+        padding: 11px 0;
         z-index: 1;
     }
 
@@ -1413,6 +1413,16 @@
     }
 
     button.toggleExt {
+        top: 0;
+        position: absolute;
+        right: 0;
+        width: 35px;
+        height: 35px;
+        color: transparent;
+    }
+
+    button.toggleExt:before {
+        content: " ";
         top: 10px;
         position: absolute;
         right: 12px;
@@ -1421,13 +1431,12 @@
         border: 2px solid var(--textColor);
         border-radius: 0;
         transform: rotate(45deg);
-        color: transparent;
         border-top: 0;
         border-left: 0;
         opacity: .4;
     }
 
-    .extension.show button.toggleExt {
+    .extension.show button.toggleExt:before {
         transform: rotate(-135deg);
         top: 14px;
     }

@@ -5079,7 +5079,7 @@ fieldset.accordion {
 }
 
 fieldset.accordion > .header {
-    padding: 20px 20px 15px;
+    padding: 15px 20px 15px;
     margin-bottom: 0;
     cursor: pointer;
     /* transition: all .3s ease-in; */
