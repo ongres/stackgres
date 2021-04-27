@@ -598,7 +598,49 @@
 							</tr>
 						</tbody>
 					</table>
-				</div>		
+				</div>
+				
+				<div class="postgresExtensions" v-if="hasProp(cluster, 'data.spec.postgresExtensions') && cluster.data.spec.postgresExtensions.length">
+					<h2>Postgres Extensions <span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresExtensions.description"></span></h2>
+
+					<table class="clusterConfig">
+						<thead style="display: table-header-group">
+							<th>
+								Name
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresExtensions.name.description"></span>
+							</th>
+							<th>
+								Publisher
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresExtensions.publisher.description"></span>
+							</th>
+							<th>
+								Version
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresExtensions.version.description"></span>
+							</th>
+							<th>
+								Repository
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresExtensions.repository.description"></span>
+							</th>
+						</thead>
+						<tbody>
+							<tr v-for="ext in sortExtensions(cluster.data.spec.postgresExtensions)">
+								<td class="label">
+									{{ ext.name }}
+								</td>
+								<td>
+									{{ ext.publisher }}
+								</td>
+								<td>
+									{{ ext.version }}
+								</td>
+								<td>
+									<span class="trimText" :title="ext.repository">{{ ext.repository }}</span>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
 			</div>
 		</template>
 	</div>
@@ -641,6 +683,10 @@
 				})
 
 				return count
+			},
+
+			sortExtensions(ext) {
+				return [...ext].sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
 			}
 
 		},
@@ -659,13 +705,10 @@
 			},
 
 			clusters () {
-				//console.log(store.state.currentCluster);
 				return store.state.clusters
 			},
 
 			profiles () {
-				
-				//let profile = store.state.profiles.find(p => ( (this.$route.params.namespace == p.data.metadata.namespace) && (store.state.currentCluster.data.spec.sgInstanceProfile == p.name) ) );
 				return store.state.profiles
 			},
 
@@ -673,10 +716,7 @@
 				return store.state.backups
 			}
 		},
-		beforeDestroy () {
-			//clearInterval(this.polling);
-			//console.log('Interval cleared');
-		} 
+
 	}
 </script>
 
@@ -689,5 +729,17 @@
 		position: absolute;
 		right: 30px;
 		top: 11px;
+	}
+
+	.postgresExtensions th {
+		padding-left: 10px;
+	}
+
+	.trimText {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		display: block;
+		width: 250px;
 	}
 </style>
