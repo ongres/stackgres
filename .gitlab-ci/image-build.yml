@@ -1,6 +1,6 @@
 
 build operator jvm image:
-  image: quay.io/buildah/stable:v1.15.0
+  image: quay.io/buildah/stable:v1.20.1
   stage: image build
   tags:
     - stackgres-runner
@@ -18,7 +18,7 @@ build operator jvm image:
         sh -xe operator/src/main/buildah/build-image-jvm.sh
 
 build restapi jvm image:
-  image: quay.io/buildah/stable:v1.15.0
+  image: quay.io/buildah/stable:v1.20.1
   stage: image build
   tags:
     - stackgres-runner
@@ -36,7 +36,7 @@ build restapi jvm image:
         sh -xe api-web/src/main/buildah/build-image-jvm.sh
 
 build jobs jvm image:
-  image: quay.io/buildah/stable:v1.15.0
+  image: quay.io/buildah/stable:v1.20.1
   stage: image build
   tags:
     - stackgres-runner
@@ -54,7 +54,7 @@ build jobs jvm image:
         sh -xe jobs/src/main/buildah/build-image-jvm.sh
 
 build cluster-controller jvm image:
-  image: quay.io/buildah/stable:v1.15.0
+  image: quay.io/buildah/stable:v1.20.1
   stage: image build
   tags:
     - stackgres-runner
@@ -72,7 +72,7 @@ build cluster-controller jvm image:
         sh -xe cluster-controller/src/main/buildah/build-image-jvm.sh
 
 build distributedlogs-controller jvm image:
-  image: quay.io/buildah/stable:v1.15.0
+  image: quay.io/buildah/stable:v1.20.1
   stage: image build
   tags:
     - stackgres-runner
@@ -90,7 +90,7 @@ build distributedlogs-controller jvm image:
         sh -xe distributedlogs-controller/src/main/buildah/build-image-jvm.sh
 
 build operator native image:
-  image: quay.io/buildah/stable:v1.15.0
+  image: quay.io/buildah/stable:v1.20.1
   stage: image build
   tags:
     - stackgres-runner
@@ -115,7 +115,7 @@ build operator native image:
       - $DO_NATIVE
 
 build restapi native image:
-  image: quay.io/buildah/stable:v1.15.0
+  image: quay.io/buildah/stable:v1.20.1
   stage: image build
   tags:
     - stackgres-runner
@@ -140,7 +140,7 @@ build restapi native image:
       - $DO_NATIVE
 
 build jobs native image:
-  image: quay.io/buildah/stable:v1.15.0
+  image: quay.io/buildah/stable:v1.20.1
   stage: image build
   tags:
     - stackgres-runner
@@ -165,7 +165,7 @@ build jobs native image:
       - $DO_NATIVE
 
 build cluster-controller native image:
-  image: quay.io/buildah/stable:v1.15.0
+  image: quay.io/buildah/stable:v1.20.1
   stage: image build
   tags:
     - stackgres-runner
@@ -190,7 +190,7 @@ build cluster-controller native image:
       - $DO_NATIVE
 
 build distributedlogs-controller native image:
-  image: quay.io/buildah/stable:v1.15.0
+  image: quay.io/buildah/stable:v1.20.1
   stage: image build
   tags:
     - stackgres-runner
@@ -215,7 +215,7 @@ build distributedlogs-controller native image:
       - $DO_NATIVE
 
 build admin-ui image:
-  image: quay.io/buildah/stable:v1.15.0
+  image: quay.io/buildah/stable:v1.20.1
   stage: image build
   tags:
     - stackgres-runner
@@ -233,7 +233,7 @@ build admin-ui image:
         sh -xe admin-ui/buildah/build.sh
 
 build test image:
-  image: quay.io/buildah/stable:v1.15.0
+  image: quay.io/buildah/stable:v1.20.1
   stage: image build
   tags:
     - stackgres-runner
