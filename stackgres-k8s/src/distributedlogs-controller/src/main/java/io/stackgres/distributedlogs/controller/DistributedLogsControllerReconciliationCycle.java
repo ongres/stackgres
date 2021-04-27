@@ -187,7 +187,7 @@ public class DistributedLogsControllerReconciliationCycle
         getExtension(cluster, "pg_stat_statements"),
         getExtension(cluster, "dblink"),
         getExtension(cluster, "plpython3u"),
-        getExtension(cluster, "timescaledb"));
+        getExtension(cluster, "timescaledb", "1.7.4"));
   }
 
   private StackGresClusterExtension getExtension(StackGresCluster cluster, String extensionName) {
@@ -195,6 +195,17 @@ public class DistributedLogsControllerReconciliationCycle
     extension.setName(extensionName);
     extension.setVersion(Unchecked.supplier(
         () -> distributedLogsExtensionMetadataManager.getExtensionCandidateAnyVersion(
+            cluster, extension)).get().getVersion().getVersion());
+    return extension;
+  }
+
+  private StackGresClusterExtension getExtension(StackGresCluster cluster, String extensionName,
+      String extensionVersion) {
+    StackGresClusterExtension extension = new StackGresClusterExtension();
+    extension.setName(extensionName);
+    extension.setVersion(extensionVersion);
+    extension.setVersion(Unchecked.supplier(
+        () -> distributedLogsExtensionMetadataManager.getExtensionCandidateSameMajorBuild(
             cluster, extension)).get().getVersion().getVersion());
     return extension;
   }
