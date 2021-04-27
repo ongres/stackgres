@@ -254,6 +254,3 @@ build test image:
       echo ...done
       EOF
     - flock /tmp/stackgres-build-it-image sh -xe build-test-image.sh
-  only:
-    variables:
-      - $SKIP_E2E != "true"

@@ -1,0 +1,64 @@
+type: ExtensionsDto
+schema:
+  ExtensionsDto:
+    description: |
+      Object that represent a PostgreSQL extension.
+    properties:
+      publishers:
+        description: |
+          The list of available publishers
+        items:
+          properties:
+            name:
+              description: |
+                The name of the publisher
+            id:
+              description: |
+                The identifier of the publisher
+            url:
+              description: |
+                The URL of the publisher
+            publicKey:
+              description: |
+                The RSA public key of the publisher
+            email:
+              description: |
+                The email of the publisher
+      extensions:
+        description: |
+          The list of available extensions for specified PostgreSQL version
+        items:
+          properties:
+            name:
+              description: |
+                The extension name
+            repository:
+              description: |
+                The extension repository
+            publisher:
+              description: |
+                The extension publisher's identifier
+            license:
+              description: |
+                The extension license
+            abstract:
+              description: |
+                The extension abstract description
+            description:
+              description: |
+                The extension description
+            tags:
+              description: |
+                The extension tags
+            versions:
+              description: |
+                The extension available versions
+            channels:
+              description: |
+                The extension available channels
+            url:
+              description: |
+                The extension URL
+            source:
+              description: |
+                The extension source code URL
