@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 
+import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -78,6 +79,18 @@ public class JsonUtil {
       }
     } catch (IOException e) {
       throw new IllegalArgumentException("could not open resource " + resource, e);
+    }
+  }
+
+  public static JsonNode toJson(Object object) {
+    return JSON_MAPPER.valueToTree(object);
+  }
+
+  public static <T> T fromJson(TreeNode json, Class<T> clazz) {
+    try {
+      return JSON_MAPPER.treeToValue(json, clazz);
+    } catch (IOException e) {
+      throw new IllegalArgumentException("could not convert JSON to " + clazz + "\n\n" + json, e);
     }
   }
 
