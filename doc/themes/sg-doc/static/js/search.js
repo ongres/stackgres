@@ -46,7 +46,7 @@ function initLunr() {
                         var latest = baseurl.includes('stackgres.io') ? 'latest' : '1.0';
                         var vIndex = ( baseurl.includes('0.9') ? baseurl.replace('0.9',latest) : baseurl.replace(latest,'0.9') ) + 'index.json';
                     } else if(baseurl.includes('ongresinc.gitlab.io')) { // If on Gitlab pages (0.9 branch must have the form $branchName-0.9)
-                        var vIndex = ( baseurl.includes('0.9-dev') ? baseurl.replace('0.9-dev','1.0-dev') : baseurl.replace('/1.0-dev','0.9/0.9-dev') ) + 'index.json';
+                        var vIndex = ( baseurl.includes('0.9-dev') ? baseurl.replace('0.9-dev','1.0-dev') : baseurl.replace('/1.0-dev','-0.9/0.9-dev') ) + 'index.json';
                     } 
 
                     $.ajax({
