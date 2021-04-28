@@ -13,6 +13,7 @@ e2e_test_install() {
   INTAGG_VERSION="$(get_latest_version_of_extension intagg)"
   PAGEINSPECT_VERSION="$(get_latest_version_of_extension pageinspect)"
   PG_REPACK_VERSION="$(get_latest_version_of_extension pg_repack)"
+  POSTGIS_VERSION="$(get_latest_version_of_extension postgis)"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --set-string 'cluster.postgresExtensions[0].name=timescaledb' \
@@ -59,6 +60,8 @@ e2e_test() {
   #run_test "Check extension with shared library is installed when added and available after restart" check_extension_with_shared_library_installed_when_upgraded
 
   run_test "Check extension with executable is installed and available when added" check_extension_with_executable_installed_when_added
+
+  run_test "Check extension with extra mount is installed and available when added but requires restart" check_extension_with_extra_mount_installed_when_added
 }
 
 check_extension_installed_after_booting() {
@@ -384,6 +387,68 @@ check_extension_with_executable_installed_when_added() {
     echo "FAIL. Extension was not installed"
     return 1
   fi
+
+  if ! kubectl wait sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --for condition=PendingRestart --timeout 0
+  then
+    echo "SUCESS. Cluster is not pending restart"
+  else
+    echo "FAIL. Cluster is pending restart"
+    return 1
+  fi
+}
+
+check_extension_with_extra_mount_installed_when_added() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
+    --reset-values \
+    --set 'cluster.postgresExtensions=null' \
+    --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
+
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" --all
+  wait_pods_running "$CLUSTER_NAMESPACE" "2"
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
+    --reset-values \
+    --set-string 'cluster.postgresExtensions[0].name=postgis' \
+    --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
+
+  try_function wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+    | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[] | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[] | select(.name == \"postgis\" and .version == \"'"$POSTGIS_VERSION"'\") | length" \
+    | jq -s "length")" = 2 ]'
+  if "$RESULT"
+  then
+    echo "SUCESS. Extension was installed"
+  else
+    echo "FAIL. Extension was not installed"
+    return 1
+  fi
+
+  try_function run_query -i 0 -q 'CREATE EXTENSION postgis;'
+  if "$RESULT"
+  then
+    echo "SUCESS. Extension was created"
+  else
+    echo "FAIL. Extension was not created"
+    return 1
+  fi
+
+  if kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- sh -c 'pg_repack --help > /dev/null'
+  then
+    echo "SUCESS. Extension executable was installed"
+  else
+    echo "FAIL. Extension was not installed"
+    return 1
+  fi
+
+  if wait_until eval '! kubectl wait sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --for condition=PendingRestart --timeout 0'
+  then
+    echo "FAIL. Cluster is not pending restart"
+    return 1
+  else
+    echo "SUCESS. Cluster is pending restart"
+  fi
+
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" --all
+  wait_pods_running "$CLUSTER_NAMESPACE" "2"
 
   if ! kubectl wait sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --for condition=PendingRestart --timeout 0
   then

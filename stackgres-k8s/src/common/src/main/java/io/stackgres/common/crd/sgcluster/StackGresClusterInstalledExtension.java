@@ -5,6 +5,7 @@
 
 package io.stackgres.common.crd.sgcluster;
 
+import java.util.List;
 import java.util.Objects;
 
 import javax.validation.constraints.NotNull;
@@ -42,6 +43,9 @@ public class StackGresClusterInstalledExtension {
 
   @JsonProperty("build")
   private String build;
+
+  @JsonProperty("extraMounts")
+  private List<String> extraMounts;
 
   public String getName() {
     return name;
@@ -91,10 +95,17 @@ public class StackGresClusterInstalledExtension {
     this.build = build;
   }
 
+  public List<String> getExtraMounts() {
+    return extraMounts;
+  }
+
+  public void setExtraMounts(List<String> extraMounts) {
+    this.extraMounts = extraMounts;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(build, name, postgresVersion, publisher, repository,
-        version);
+    return Objects.hash(build, extraMounts, name, postgresVersion, publisher, repository, version);
   }
 
   @Override
@@ -106,7 +117,8 @@ public class StackGresClusterInstalledExtension {
       return false;
     }
     StackGresClusterInstalledExtension other = (StackGresClusterInstalledExtension) obj;
-    return Objects.equals(build, other.build) && Objects.equals(name, other.name)
+    return Objects.equals(build, other.build) && Objects.equals(extraMounts, other.extraMounts)
+        && Objects.equals(name, other.name)
         && Objects.equals(postgresVersion, other.postgresVersion)
         && Objects.equals(publisher, other.publisher)
         && Objects.equals(repository, other.repository) && Objects.equals(version, other.version);
