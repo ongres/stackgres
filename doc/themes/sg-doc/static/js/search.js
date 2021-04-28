@@ -13,9 +13,8 @@ function initLunr() {
     // First retrieve the index file
     $.ajax({
         url: baseurl +"index.json",
-        dataType: 'text'
-    }).done(function(index) {
-        pagesIndex = JSON.parse(index)
+    }).done(function(pagesIndex) {
+        
         // Set up lunrjs by declaring the fields we use
         // Also provide their boost level for the ranking
         lunrIndex = lunr(function() {
@@ -35,7 +34,34 @@ function initLunr() {
             
             // Feed lunr with each file and let lunr actually index them
             pagesIndex.forEach(function(page) {
-        this.add(page);
+                this.add(page);
+
+                // Set version selector URL
+                if(page.uri == window.location.href) {
+
+                    var latest = baseurl.includes('stackgres.io') ? 'latest' : '1.0'
+                    
+                    if(baseurl.includes('localhost')) { // If testing locally
+                        var vIndex = baseurl.includes('0.9') ? baseurl+'index.json' : baseurl+'index-0.9.json'
+                    } else { // If on Live site or Gitlab pages
+                        var vIndex = baseurl.includes('0.9') ? (baseurl.replace('0.9',latest) + '/index.json') : (baseurl.replace(latest,'0.9') + '/index.json')
+                    } 
+
+                    $.ajax({
+                        url: vIndex,
+                        //dataType: 'text'
+                    }).done(function(vIndex){
+                        //vIndex = JSON.parse(vIndex.replace(/[\n\r\t]/g,""))
+                        let vPage = vIndex.find(p => (p.title == page.title))
+                        
+                        if(vPage !== undefined)
+                            $('#sgVersion option:not(:checked)').val(vPage.uri)
+                        else
+                            $('#sgVersion option:not(:checked)').val(baseurl + '?not-found=1')
+                            
+                    })
+                }
+                    
             }, this);
         })
     }).fail(function(jqxhr, textStatus, error) {
