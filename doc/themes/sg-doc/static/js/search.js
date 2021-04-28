@@ -13,7 +13,8 @@ function initLunr() {
     // First retrieve the index file
     $.ajax({
         url: baseurl +"index.json",
-    }).done(function(pagesIndex) {
+    }).done(function(index) {
+        pagesIndex = index;
         
         // Set up lunrjs by declaring the fields we use
         // Also provide their boost level for the ranking
@@ -39,12 +40,13 @@ function initLunr() {
                 // Set version selector URL
                 if(page.uri == window.location.href) {
 
-                    var latest = baseurl.includes('stackgres.io') ? 'latest' : '1.0'
-                    
                     if(baseurl.includes('localhost')) { // If testing locally
-                        var vIndex = baseurl.includes('0.9') ? baseurl+'index.json' : baseurl+'index-0.9.json'
-                    } else { // If on Live site or Gitlab pages
-                        var vIndex = baseurl.includes('0.9') ? (baseurl.replace('0.9',latest) + '/index.json') : (baseurl.replace(latest,'0.9') + '/index.json')
+                        var vIndex = baseurl.includes('0.9') ? baseurl+'index.json' : baseurl+'index-0.9.json';
+                    } else if(baseurl.includes('stackgres.io')) { // If on Live site 
+                        var latest = baseurl.includes('stackgres.io') ? 'latest' : '1.0';
+                        var vIndex = ( baseurl.includes('0.9') ? baseurl.replace('0.9',latest) : baseurl.replace(latest,'0.9') ) + 'index.json';
+                    } else if(baseurl.includes('ongresinc.gitlab.io')) { // If on Gitlab pages (0.9 branch must have the form $branchName-0.9)
+                        var vIndex = ( baseurl.includes('0.9-dev') ? baseurl.replace('0.9-dev','1.0-dev') : baseurl.replace('/1.0-dev','0.9/0.9-dev') ) + 'index.json';
                     } 
 
                     $.ajax({
@@ -54,10 +56,11 @@ function initLunr() {
                         //vIndex = JSON.parse(vIndex.replace(/[\n\r\t]/g,""))
                         let vPage = vIndex.find(p => (p.title == page.title))
                         
-                        if(vPage !== undefined)
+                        if(vPage !== undefined) {
                             $('#sgVersion option:not(:checked)').val(vPage.uri)
-                        else
-                            $('#sgVersion option:not(:checked)').val(baseurl + '?not-found=1')
+                        } else {
+                            $('#sgVersion option:not(:checked)').val(baseurl + '?not-found=1');
+                        }
                             
                     })
                 }
