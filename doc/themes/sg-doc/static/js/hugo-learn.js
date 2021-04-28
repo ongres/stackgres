@@ -57,13 +57,11 @@ images.each(function(index){
   }
 });
 
-// Stick the top to the top of the screen when  scrolling
-$(document).ready(function(){
-  $("#top-bar").sticky({topSpacing:0, zIndex: 1000});
-});
-
-
 jQuery(document).ready(function() {
+
+  // Stick the top to the top of the screen when  scrolling
+  $("#top-bar").sticky({topSpacing:0, zIndex: 1000});
+
   // Add link button for every
   var text, clip = new ClipboardJS('.anchor');
   $("h1~h2,h1~h3,h1~h4,h1~h5,h1~h6").append(function(index, html){
@@ -96,9 +94,32 @@ jQuery(document).ready(function() {
   //SG Version Selector
   $('#sgVersion').on('change', function(){
     var url = $(this).val(); // get selected value
-    if (url) { // require a URL
-        window.location = url; // redirect
+    // Check if content had no translation
+    if(url.includes('not-found')) {
+      $('body').append(`
+        <div id="lightbox" class="show">
+          <div class="overlay close"></div>
+          <div class="message">
+            <strong>Content not found!</strong>
+            <p>The requested content does not exist on the selected version of the docs.</p>
+            <p>Would you like to <a href="` + url + `" title="Go to selected version homepage">visit the Homepage</a>?</p>
+            <a href="javascript:void(0)" class="button white close">Close</a>
+          </div>
+        </div>
+      `)
+
+      $('#sgVersion').val($('#sgVersion option:not(:checked)').val())
     }
+    else {
+      window.location = url; // redirect
+    }
+      
     return false;
   })
+
+  $(document).on("click", "#lightbox .close", function(){
+    $("#lightbox img, #lightbox .message, #lightbox iframe").detach();
+    $("#lightbox").removeClass("show");
+  });
+
 });
