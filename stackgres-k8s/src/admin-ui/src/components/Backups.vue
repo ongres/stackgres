@@ -111,6 +111,10 @@
 									<input v-model="filters.status" data-filter="status" type="checkbox" id="notCompleted" name="notCompleted" value="Running"/>
 									<span>Running</span>
 								</label>
+								<label for="backupPending">
+									<input v-model="filters.status" data-filter="status" type="checkbox" id="backupPending" name="backupPending" value="Pending"/>
+									<span>Pending</span>
+								</label>
 								<label for="backupFailed">
 									<input v-model="filters.status" data-filter="status" type="checkbox" id="backupFailed" name="backupFailed" value="Failed"/>
 									<span>Failed</span>
@@ -1110,5 +1114,9 @@
 <style scoped>
 	.toolbar .btn.border {
 		font-size: .8rem;
+	}
+
+	#backups .options {
+		width: 370px;
 	}
 </style>
