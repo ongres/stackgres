@@ -207,6 +207,14 @@ svg.background circle {
     border-color: red !important;
 }
 
+.padLeft {
+    padding-left: 20px;
+}
+
+.firstLetter:first-letter {
+    text-transform: uppercase;
+}
+
 /* Log in */
 
 #nav .right > div#signup {
@@ -3256,6 +3264,10 @@ table.clusterConfig td:not([colspan]) {
 table.clusterConfig a {
     display: block;
     cursor: pointer;
+}
+
+table.clusterConfig a:hover {
+    color: var(--blue);
 }
 
 table.clusterConfig a:hover svg, td.usedOn a:hover svg path{
