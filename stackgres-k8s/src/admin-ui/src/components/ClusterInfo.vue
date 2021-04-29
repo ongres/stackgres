@@ -607,35 +607,37 @@
 						<thead style="display: table-header-group">
 							<th>
 								Name
-								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresExtensions.name.description"></span>
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgextensions.extensions.name.description"></span>
 							</th>
 							<th>
-								Publisher
-								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresExtensions.publisher.description"></span>
+								Description
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgextensions.extensions.description.description"></span>
 							</th>
 							<th>
 								Version
-								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresExtensions.version.description"></span>
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgextensions.extensions.versions.description"></span>
 							</th>
 							<th>
-								Repository
-								<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.postgresExtensions.repository.description"></span>
+								Link
+								<span class="helpTooltip"  :data-tooltip="tooltips.sgextensions.extensions.url.description"></span>
 							</th>
 						</thead>
 						<tbody>
-							<tr v-for="ext in sortExtensions(cluster.data.spec.postgresExtensions)">
-								<td class="label">
-									{{ ext.name }}
-								</td>
-								<td>
-									{{ ext.publisher }}
-								</td>
-								<td>
-									{{ ext.version }}
-								</td>
-								<td>
-									<span class="trimText" :title="ext.repository">{{ ext.repository }}</span>
-								</td>
+							<tr v-for="ext in sortExtensions(cluster.data.spec.postgresExtensions, cluster.data.spec.postgresVersion)">
+								<template v-for="extInfo in extensionsList" v-if="ext.name == extInfo.name">
+									<td class="label">
+										{{ ext.name }}
+									</td>
+									<td class="firstLetter">
+										{{ extInfo.abstract }}
+									</td>
+									<td>
+										{{ ext.version }}
+									</td>
+									<td>
+										<a v-if="extInfo.hasOwnProperty('url') && extInfo.url" :href="extInfo.url" target="_blank" class="trimText" :title="extInfo.url">{{ extInfo.url }}</a>
+									</td>
+								</template>
 							</tr>
 						</tbody>
 					</table>
@@ -649,6 +651,7 @@
 <script>
 	import store from '../store'
 	import { mixin } from './mixins/mixin'
+	import axios from 'axios'
 
     export default {
         name: 'ClusterInfo',
@@ -657,6 +660,7 @@
 
 		data: function() {
 			return {
+				extensionsList: [],
 			}
 		},
 		methods: {
@@ -685,19 +689,36 @@
 				return count
 			},
 
-			sortExtensions(ext) {
+			sortExtensions(ext, pgVersion = 'latest') {
+
+				const vc = this;
+
+				if(!vc.extensionsList.length) {
+
+					axios
+					.get('/stackgres/extensions/' + pgVersion)
+					.then(function (response) {
+						vc.extensionsList = response.data.extensions
+					})
+					.catch(function (error) {
+						console.log(error.response);
+						vc.notify(error.response.data,'error','sgcluster');
+					});
+
+				}
+
 				return [...ext].sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
-			}
+			},
 
 		},
-		created: function() {
-			
-		},
+		
+		
 		mounted: function() {
 			$(document).on('click','.toggleSecret', function() {
 				$('pre.blur, .toggleSecret').toggleClass('show')
 			})
 		},
+
 		computed: {
 
 			tooltips () {
@@ -740,6 +761,7 @@
 		text-overflow: ellipsis;
 		white-space: nowrap;
 		display: block;
-		width: 250px;
+		max-width: 250px;
+		width: 100%;
 	}
 </style>

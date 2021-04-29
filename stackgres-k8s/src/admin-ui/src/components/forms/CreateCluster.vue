@@ -134,14 +134,99 @@
                         </a>
                     </div>
 
-                    <label for="spec.pods.persistentVolume.storageClass">Storage Class</label>
-                    <select v-model="storageClass" data-field="spec.pods.persistentVolume.storageClass">
-                        <option value="">Select Storage Class</option>
-                        <option v-for="sClass in storageClasses">{{ sClass }}</option>
-                    </select>
-                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.persistentVolume.storageClass')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
-                    </a>
+                    <template v-if="storageClasses.length">
+                        <label for="spec.pods.persistentVolume.storageClass">Storage Class</label>
+                        <select v-model="storageClass" data-field="spec.pods.persistentVolume.storageClass">
+                            <option value="">Select Storage Class</option>
+                            <option v-for="sClass in storageClasses">{{ sClass }}</option>
+                        </select>
+                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.persistentVolume.storageClass')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                        </a>
+                    </template>
+                </div>
+            </fieldset>
+
+            <fieldset class="accordion" id="postgresExtensions">
+                <div class="header" @click="toggleAccordion('#postgresExtensions')">
+                    <h3>Postgres Extensions</h3>
+                    <button type="button" class="toggleFields textBtn">Expand</button>
+                </div>
+                
+                <div class="fields">
+                    <div class="toolbar">
+                        <div class="searchBar">
+                            <input id="keyword" v-model="searchExtension" class="search" placeholder="Search Extension..." autocomplete="off">
+                            <a @click="clearExtFilters()" class="btn clear border keyword" v-if="searchExtension.length">CLEAR</a>
+                        </div>
+                    </div>
+                    
+                    <div class="extHead">
+                        <span class="install">Install</span>
+                        <span class="name">Extension</span>
+                    </div>
+                    <ul class="extensionsList">
+                        <li class="extension notFound">No extensions match your search terms...</li>
+                        <li v-for="(ext, index) in extensionsList" v-if="!searchExtension.length || (ext.name+ext.description+ext.tags.toString()).includes(searchExtension)" class="extension" :class="( (viewExtension == index) && !searchExtension.length) ? 'show' : ''">
+                            <label class="hoverTooltip">
+                                <input type="checkbox" class="plain" @change="setExtension(index)" :checked="(extIsSet(ext.name) !== -1)" :disabled="!ext.versions.length"/>
+                                {{ ext.name }} <span v-if="!ext.versions.length" class="notCompatible" title="This extention is not compatible with the selected Postgres version"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16.001"><path class="a" d="M657.435,374.5l6.7,13.363h-13.4l6.7-13.363Zm0-1.45a1.157,1.157,0,0,0-.951.7l-6.83,13.608c-.523.93-.078,1.691.989,1.691h13.583c1.067,0,1.512-.761.989-1.691h0l-6.829-13.61a1.156,1.156,0,0,0-.951-.7Zm1,13a1,1,0,1,1-1-1,1,1,0,0,1,1,1Zm-1-2a1,1,0,0,1-1-1v-3a1,1,0,0,1,2,0v3a1,1,0,0,1-1,1Z" transform="translate(-649.435 -373.043)"/></svg> </span>
+                            </label>
+                            <button class="textBtn anchor toggleExt" @click.stop.prevent="viewExt(index)">-</button>
+
+                            <div v-if="(viewExtension == index)" class="extDetails">
+                                <div class="header">
+                                    <h4>Description</h4>
+                                </div>
+                                <p class="extDesc firstLetter">{{ ext.description }}</p>
+
+                                <div class="header">
+                                    <h4>Tags</h4>
+                                </div>
+                                <div class="tags" v-if="ext.tags.length">
+                                    <span v-for="tag in ext.tags" class="extTag">
+                                        {{ tag }}
+                                    </span>
+                                </div>
+
+                                <template v-if="ext.versions.length">
+                                    <div class="header">
+                                        <h4>Choose Version</h4>
+                                    </div>
+                                    <select v-model="extVersion" @change="setExtVersion(extVersion)" class="extVersion">
+                                        <option v-if="!ext.versions.length" selected>Not available for this postgres version</option>
+                                        <option v-for="v in ext.versions" :selected="extVersion == v">{{ v }}</option>
+                                    </select>
+                                </template>
+                                <template v-else>
+                                        <div class="header">
+                                        <h4>Notes</h4>
+                                    </div>
+                                    <p class="notCompatible">
+                                        <strong class="colorRed">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16.001"><path class="a" d="M657.435,374.5l6.7,13.363h-13.4l6.7-13.363Zm0-1.45a1.157,1.157,0,0,0-.951.7l-6.83,13.608c-.523.93-.078,1.691.989,1.691h13.583c1.067,0,1.512-.761.989-1.691h0l-6.829-13.61a1.156,1.156,0,0,0-.951-.7Zm1,13a1,1,0,1,1-1-1,1,1,0,0,1,1,1Zm-1-2a1,1,0,0,1-1-1v-3a1,1,0,0,1,2,0v3a1,1,0,0,1-1,1Z" transform="translate(-649.435 -373.043)"/></svg>
+                                            Not Compatible
+                                        </strong><br/>
+                                        This extention is not compatible with the selected Postgres version
+                                    </p>
+                                </template>
+
+                                <div class="header">
+                                    <h4>Additional Links</h4>
+                                </div>
+                                <ul class="padLeft extLinks">
+                                    <li v-if="ext.hasOwnProperty('url') && ext.url">
+                                        <strong>More info:</strong><br/>
+                                        <a :href="ext.url" target="_blank">{{ ext.url }}</a>
+                                    </li>
+                                    <li>
+                                        <strong>Source:</strong><br/>
+                                        <a :href="ext.source" target="_blank">{{ ext.source }}</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                    </ul>
                 </div>
             </fieldset>
 
@@ -619,61 +704,6 @@
                         </fieldset>
                     </div>
                 </fieldset>
-
-                <fieldset class="accordion" id="postgresExtensions">
-                    <div class="header" @click="toggleAccordion('#postgresExtensions')">
-                        <h3>Extensions</h3>
-                        <button type="button" class="toggleFields textBtn">Expand</button>
-                    </div>
-
-                    <div class="fields">
-                        <div class="toolbar">
-                            <div class="searchBar">
-                                <input id="keyword" v-model="searchExtension" class="search" placeholder="Search Extension..." autocomplete="off">
-                                <a @click="clearExtFilters()" class="btn clear border keyword" v-if="searchExtension.length">CLEAR</a>
-                            </div>
-                        </div>
-                        
-                        <div class="extHead">
-                            <span class="install">Install</span>
-                            <span class="name">Extension</span>
-                        </div>
-                        <ul class="extensionsList">
-                            <li class="extension notFound">No extensions match your search terms...</li>
-                            <li v-for="(ext, index) in extensionsList" v-if="!searchExtension.length || (ext.name+ext.description+ext.tags.toString()).includes(searchExtension)" class="extension" :class="( (viewExtension == index) && !searchExtension.length) ? 'show' : ''">
-                                <label class="hoverTooltip">
-                                    <input type="checkbox" class="plain" @change="setExtension(index)" :checked="(extIsSet(ext.name) !== -1)"/>
-                                    {{ ext.name }} <!--<span v-if="!extAvailableFor(index)" class="notCompatible" :title="!extAvailableFor(index) ? 'This extention is not compatible with the selected Postgres version' : ''"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16.001"><path class="a" d="M657.435,374.5l6.7,13.363h-13.4l6.7-13.363Zm0-1.45a1.157,1.157,0,0,0-.951.7l-6.83,13.608c-.523.93-.078,1.691.989,1.691h13.583c1.067,0,1.512-.761.989-1.691h0l-6.829-13.61a1.156,1.156,0,0,0-.951-.7Zm1,13a1,1,0,1,1-1-1,1,1,0,0,1,1,1Zm-1-2a1,1,0,0,1-1-1v-3a1,1,0,0,1,2,0v3a1,1,0,0,1-1,1Z" transform="translate(-649.435 -373.043)"/></svg> </span>-->
-                                </label>
-                                <button class="textBtn anchor toggleExt" @click.stop.prevent="viewExt(index)">-</button>
-
-                                <div v-if="(viewExtension == index)" class="extDetails">
-                                    <div class="header">
-                                        <h4>Description</h4>
-                                    </div>
-                                    <p class="extDesc">{{ ext.description }}</p>
-    
-                                    <div class="header">
-                                        <h4>Tags</h4>
-                                    </div>
-                                    <div class="tags" v-if="ext.tags.length">
-                                        <span v-for="tag in ext.tags" class="extTag">
-                                            {{ tag }}
-                                        </span>
-                                    </div>
-
-                                    <div class="header">
-                                        <h4>Version</h4>
-                                    </div>
-                                    <select v-model="extVersion" @change="setExtVersion(extVersion)">
-                                        <option v-for="v in ext.versions" :selected="extVersion == v">{{ v }}</option>
-                                    </select>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </fieldset>
-
             </template>
 
             <template v-if="editMode">
@@ -1189,7 +1219,7 @@
                 this.viewExtension = (this.viewExtension == index) ? -1 : index
 
                 // Always set current extension version to its first option
-                this.extVersion = this.extensionsList[index].versions[0]
+                this.extVersion = this.extensionsList[index].versions.length ? this.extensionsList[index].versions[0] : ''
             },
 
             setExtension(index) {
@@ -1388,7 +1418,7 @@
 
     ul.extensionsList {
         list-style: none;
-        max-height: 500px;
+        max-height: 300px;
         overflow-y: auto;
         margin-bottom: 20px;
         padding-right: 10px;
@@ -1536,11 +1566,15 @@
         display: block;
     }
 
-    p.extDesc:first-letter {
-        text-transform: uppercase;
-    }
-
     .darkmode .extension > label input {
         background: #fbfbfb;
+    }
+
+    .extLinks li {
+        margin-bottom: 10px;
+    }
+
+    select.extVersion {
+        margin-bottom: 0;
     }
 </style>
