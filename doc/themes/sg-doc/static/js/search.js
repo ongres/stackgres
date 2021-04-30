@@ -13,9 +13,9 @@ function initLunr() {
     // First retrieve the index file
     $.ajax({
         url: baseurl +"index.json",
-        dataType: 'text'
     }).done(function(index) {
-        pagesIndex = JSON.parse(index.replace(/[\n\r\t]/g,""))
+        pagesIndex = index;
+        
         // Set up lunrjs by declaring the fields we use
         // Also provide their boost level for the ranking
         lunrIndex = lunr(function() {
@@ -35,14 +35,37 @@ function initLunr() {
             
             // Feed lunr with each file and let lunr actually index them
             pagesIndex.forEach(function(page) {
-        this.add(page);
+                this.add(page);
+
+                // Set version selector URL
+                if(page.uri == window.location.href) {
+
+                    if(baseurl.includes('localhost')) { // If testing locally
+                        var vIndex = baseurl.includes('0.9') ? baseurl+'index.json' : baseurl+'index-1.0.json';
+                    } else if(baseurl.includes('stackgres.io')) { // If on Live site 
+                        var vIndex = ( baseurl.includes('/doc/0.9') ? baseurl.replace('/doc/0.9','/doc/latest') : baseurl.replace('/doc/latest','/doc/0.9') ) + 'index.json';
+                    } 
+
+                    $.ajax({
+                        url: vIndex,
+                    }).done(function(vIndex){
+                        let vPage = vIndex.find(p => (p.title == page.title))
+                        
+                        if(vPage !== undefined) {
+                            $('#sgVersion option:not(:checked)').val(vPage.uri)
+                        } else {
+                            $('#sgVersion option:not(:checked)').val( (baseurl.includes('/doc/0.9') ? baseurl.replace('/doc/0.9','/doc/latest') : baseurl.replace('/doc/latest','/doc/0.9') ) + '?not-found=1');
+                        }
+                            
+                    })
+                }
+                    
             }, this);
         })
     }).fail(function(jqxhr, textStatus, error) {
         var err = textStatus + ", " + error;
         console.error("Error getting Hugo index file:", err);
     });
-    
 }
 
 /**
