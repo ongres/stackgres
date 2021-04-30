@@ -351,13 +351,6 @@
 						}
 					})
 					.then(function (response) {
-						vc.notify('<span class="capitalize">'+item.kind+'</span> <strong>'+item.name+'</strong> deleted successfully', 'message', item.kind);
-			
-						$('.'+item.kind+'-'+item.namespace+'-'+item.name).addClass("hide");
-						vc.fetchAPI(item.kind);
-
-						if( (typeof item.redirect !== 'undefined') && item.redirect.length)
-							router.push(item.redirect);
 						
 						store.commit("setDeleteItem", {
 							kind: '',
@@ -365,8 +358,12 @@
 							name: '',
 							redirect: ''
 						});
-
-						//$("#delete").removeClass("active");
+						
+						vc.notify('<span class="capitalize">'+item.kind+'</span> <strong>'+item.name+'</strong> deleted successfully', 'message', item.kind);
+						
+						if( (typeof item.redirect !== 'undefined') && item.redirect.length)
+							router.push(item.redirect);
+						
 						$("#delete").removeClass("active");
 						vc.confirmDeleteName = '';
 					})

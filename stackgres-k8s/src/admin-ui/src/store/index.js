@@ -248,6 +248,50 @@ export default new Vuex.Store({
     },
 
     setDeleteItem (state, item) {
+      
+      if(!item.kind.length) { // Item has been deleted succesfuly, remove from store
+
+        let kind = '';
+
+        switch(state.deleteItem.kind) {
+          
+          case 'sgcluster':
+            kind = 'clusters'
+            break;
+          
+          case 'sgbackup':
+            kind = 'backups'
+            break;
+
+          case 'sgpgconfig':
+            kind = 'pgConfig'
+            break;
+
+          case 'sgpoolconfig':
+            kind = 'poolConfig'
+            break;
+
+          case 'sgbackupconfig':
+            kind = 'backupConfig'
+            break;
+          
+          case 'sginstanceprofile':
+            kind = 'profiles'
+            break;
+          
+          case 'sgdistributedlogs':
+            kind = 'logsClusters'
+            break;
+          
+          case 'sgdbops':
+            kind = 'dbOps'
+            break;
+        }
+
+        state[kind].splice(state[kind].findIndex( el => (el.name == state.deleteItem.name) && (el.data.metadata.namespace == state.deleteItem.namespace) ), 1)
+
+      }
+
       state.deleteItem = item;
     },
 
