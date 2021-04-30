@@ -126,7 +126,7 @@
 						</td>
 					</tr>
 
-                    <template v-for="op in dbOps" v-if="op.show">                       
+                    <template v-for="op in dbOps" v-if="( op.show && ( op.data.metadata.namespace == $route.params.namespace ) )">                       
                         <tr class="base" @click="goTo('/dbops/' + $route.params.namespace + '/' + op.data.metadata.name)" :class="($route.params.name == op.data.metadata.name) ? 'open': ''">
                             <td class="timestamp">
                                 <template v-if="op.data.spec.hasOwnProperty('runAt')">
