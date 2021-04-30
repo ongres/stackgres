@@ -119,7 +119,6 @@ jQuery(document).ready(function() {
   })
 
   $(document).on("click", "#lightbox .close", function(){
-    $("#lightbox img, #lightbox .message, #lightbox iframe").detach();
-    $("#lightbox").removeClass("show");
+    $("#lightbox").detach();
   });
 });
