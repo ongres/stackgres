@@ -94,32 +94,31 @@ jQuery(document).ready(function() {
   //SG Version Selector
   $('#sgVersion').on('change', function(){
     var url = $(this).val(); // get selected value
-    // Check if content had no translation
-    if(url.includes('not-found')) {
-      $('body').append(`
-        <div id="lightbox" class="show">
-          <div class="overlay close"></div>
-          <div class="message">
-            <strong>Content not found!</strong>
-            <p>The requested content does not exist on the selected version of the docs.</p>
-            <p>Would you like to <a href="` + url + `" title="Go to selected version homepage">visit the Homepage</a>?</p>
-            <a href="javascript:void(0)" class="button white close">Close</a>
-          </div>
-        </div>
-      `)
-
-      $('#sgVersion').val($('#sgVersion option:not(:checked)').val())
-    }
-    else {
-      window.location = url; // redirect
-    }
+    if (url) { // require a URL
       
+      // Check if content had no translation
+      if(url.includes('not-found')) {
+        $('body').append(`
+          <div id="lightbox" class="show">
+            <div class="overlay close"></div>
+            <div class="message">
+              <strong>Content not found!</strong>
+              <p>The requested content does not exist on the selected version of the docs.</p>
+              <p>Would you like to <a href="` + url + `" title="Go to selected version homepage">visit the Homepage</a>?</p>
+              <a href="javascript:void(0)" class="button white close">Close</a>
+            </div>
+          </div>
+        `)
+
+        $('#sgVersion').val($('#sgVersion option:not(:checked)').val())
+      }
+      else
+        window.location = url; // redirect
+    }
     return false;
   })
 
   $(document).on("click", "#lightbox .close", function(){
-    $("#lightbox img, #lightbox .message, #lightbox iframe").detach();
-    $("#lightbox").removeClass("show");
+    $("#lightbox").detach();
   });
-
 });
