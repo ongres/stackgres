@@ -3,9 +3,15 @@
 e2e_test_install() {
   DISTRIBUTED_LOGS_NAME=distributedlogs
 
+  TIMESCALE_VERSION="$(get_latest_version_of_extension timescaledb)"
+
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
     --set distributedLogs.enabled=false \
-    --set distributedLogs.create=false
+    --set distributedLogs.create=false \
+    --set-string 'cluster.postgresExtensions[0].name=timescaledb' \
+    --set-string 'cluster.postgresExtensions[0].version='"$TIMESCALE_VERSION" \
+    --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=timescaledb \
+    --set-string 'cluster.initialData.scripts[0].script=CREATE EXTENSION timescaledb;'
 
   wait_pods_running "$CLUSTER_NAMESPACE" "1"
 
@@ -60,7 +66,11 @@ check_distributed_logs_attach_to_clusters() {
     --set distributedLogs.create=false \
     --set instanceProfiles=null \
     --set configurations.create=false \
-    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME" \
+    --set-string 'cluster.postgresExtensions[0].name=timescaledb' \
+    --set-string 'cluster.postgresExtensions[0].version='"$TIMESCALE_VERSION" \
+    --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=timescaledb \
+    --set-string 'cluster.initialData.scripts[0].script=CREATE EXTENSION timescaledb;'
 
   wait_pods_running "$CLUSTER_NAMESPACE" "5"
   wait_services_available "$CLUSTER_NAMESPACE" "1" "$CLUSTER_NAME$"

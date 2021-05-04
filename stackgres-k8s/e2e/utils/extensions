@@ -1,0 +1,36 @@
+#!/bin/sh
+
+get_latest_version_of_extension() {
+  local EXTENSION_NAME="$1"
+  local VERSIONS
+
+  if [ ! -f "$TARGET_PATH/index.json" ]
+  then
+    curl -s -f "$(echo "$EXTENSIONS_REPOSITORY_URL" | sed 's#/\+$##')/index.json" > "$TARGET_PATH/index.json"
+  fi
+
+  PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION" | grep '/patroni:' | sort | tail -n 1)"
+  PATRONI_IMAGE_TAG="${PATRONI_IMAGE##*:}"
+  PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PATRONI_IMAGE##*-pg}"
+  PATRONI_IMAGE_POSTGRES_VERSION="${PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
+  PATRONI_IMAGE_POSTGRES_MAJOR_VERSION="${PATRONI_IMAGE_POSTGRES_VERSION%%.*}"
+  PATRONI_IMAGE_BUILD_VERSION="${PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION##*-build-}"
+  PATRONI_IMAGE_BUILD_MAJOR_VERSION="${PATRONI_IMAGE_BUILD_VERSION%%.*}"
+  VERSIONS="$(jq -r "$(cat << EOF
+.extensions[] | select(.name == "$EXTENSION_NAME").versions[]
+  | select((.availableFor
+    | map(select(
+      (.postgresVersion == "$PATRONI_IMAGE_POSTGRES_VERSION"
+        or .postgresVersion == "$PATRONI_IMAGE_POSTGRES_MAJOR_VERSION")
+      and (if .build == null then true
+        else .build | split(".")[0] == "$PATRONI_IMAGE_BUILD_MAJOR_VERSION" end)))
+      | length) > 0).version
+EOF
+      )" "$TARGET_PATH/index.json")"
+  if [ -z "$VERSIONS" ]
+  then
+    echo "Can not find any compatible version of extension $EXTENSION_NAME for postgres $PATRONI_IMAGE_POSTGRES_VERSION build $PATRONI_IMAGE_BUILD_MAJOR_VERSION" >&2
+    return 1
+  fi
+  echo "$VERSIONS" | head -n 1
+}
