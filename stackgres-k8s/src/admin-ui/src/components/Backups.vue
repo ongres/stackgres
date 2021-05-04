@@ -111,6 +111,10 @@
 									<input v-model="filters.status" data-filter="status" type="checkbox" id="notCompleted" name="notCompleted" value="Running"/>
 									<span>Running</span>
 								</label>
+								<label for="backupPending">
+									<input v-model="filters.status" data-filter="status" type="checkbox" id="backupPending" name="backupPending" value="Pending"/>
+									<span>Pending</span>
+								</label>
 								<label for="backupFailed">
 									<input v-model="filters.status" data-filter="status" type="checkbox" id="backupFailed" name="backupFailed" value="Failed"/>
 									<span>Failed</span>
@@ -1081,7 +1085,7 @@
 					$(this).parent().parent().toggleClass("open");
 				});
 
-				$(document).on("click", "table.backups tr.base td:not(.actions)", function() {
+				$(document).on("click", "table.backups tr.base:not(.Pending) td:not(.actions)", function() {
 					if(!$(this).parent().hasClass('open')) {
 						if(vc.$route.name.includes('Cluster'))
 							router.push('/cluster/backups/'+vc.$route.params.namespace+'/'+$(this).parent().data('cluster')+'/'+$(this).parent().data('uid') + vc.getActiveFilters())
@@ -1110,5 +1114,9 @@
 <style scoped>
 	.toolbar .btn.border {
 		font-size: .8rem;
+	}
+
+	#backups .options {
+		width: 370px;
 	}
 </style>

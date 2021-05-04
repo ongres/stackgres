@@ -3491,10 +3491,6 @@ tr.no-results {
     height: 120px;
 }
 
-tr.no-results:first-child:last-child {
-    display: table-row;
-}
-
 .options select {
     position: relative;
     top: -3px;
@@ -4287,14 +4283,6 @@ table.logs tbody, table.backups > tbody {
     min-width: 100%;
 }
 
-table.logs tr.no-results td {
-    display: block;
-}
-
-table.logs tr.no-results:first-child:last-child {
-    display: block;
-}
-
 table.logs thead, table.backups > thead {
     display: inline-block;
     position: sticky;
@@ -4346,13 +4334,18 @@ table.logs tr.base td {
 }
 
 tr.no-results:first-child:last-child {
-    width: 100%;
-	display: table-row;
+    display: table-row;
 }
 
-tr.no-results td {
-    display: table-cell;
+table.backups tr.no-results:first-child:last-child, table.logs tr.no-results:first-child:last-child {
+    width: 100%;
+	display: block;
+}
+
+table.backups tr.no-results td, table.logs tr.no-results td {
+    display: block;
     padding: 50px 0;
+    text-align: center;
 }
 
 
