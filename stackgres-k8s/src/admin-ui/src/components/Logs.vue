@@ -204,51 +204,51 @@
 					</div>-->
 				</div>
 
-				<table class="logs" v-if="tooltips.hasOwnProperty('sgclusterlogentry')" v-on:scroll.passive="handleScroll">
+				<table class="logs" v-on:scroll.passive="handleScroll">
 					<thead class="sort">
 						<th class="logTime sorted desc timestamp">
 							<span @click="sort()">Log Time</span>
-							<span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.logTime.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.logTime')"></span>
 						</th>
 						<th class="logType center label" v-if="showColumns.logType">
 							Type
-							<span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.logType.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.logType')"></span>
 						</th>
 						<th class="errorLevel center" v-if="showColumns.errorLevel">
 							Error Level
-							<span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.errorLevel.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.errorLevel')"></span>
 						</th>
 						<th class="podName" v-if="showColumns.podName">
 							Pod Name
-							<span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.podName.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.podName')"></span>
 						</th>
 						<th class="role center label" v-if="showColumns.role">
 							Role
-							<span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.role.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.role')"></span>
 						</th>
 						<th class="logMessage" v-if="showColumns.logMessage">
 							Message
-							<span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.message.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.message')"></span>
 						</th>
 						<th class="userName" v-if="showColumns.userName">
 							User
-							<span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.userName.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.userName')"></span>
 						</th>
 						<th class="databaseName" v-if="showColumns.databaseName">
 							Database
-							<span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.databaseName.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.databaseName')"></span>
 						</th>
 						<th class="processId" v-if="showColumns.processId">
 							Process ID
-							<span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.processId.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.processId')"></span>
 						</th>
 						<th class="connectionFrom" v-if="showColumns.connectionFrom">
 							Connection From
-							<span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.connectionFrom.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.connectionFrom')"></span>
 						</th>
 						<th class="applicationName" v-if="showColumns.applicationName">
 							Application
-							<span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.applicationName.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.applicationName')"></span>
 						</th>
 					</thead>
 					<tbody>
@@ -360,7 +360,7 @@
 									<table class="logMessage">
 										<tbody>
 											<tr>
-												<td class="param">Message <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.message.description"></span></td>
+												<td class="param">Message <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.message')"></span></td>
 												<td class="value">{{ log.message }}</td>
 											</tr>
 										</tbody>
@@ -369,53 +369,53 @@
 										<table>
 											<tbody>
 												<tr>
-													<td class="param">Type <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.logType.description"></span></td>
+													<td class="param">Type <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.logType')"></span></td>
 													<td class="value label logType pg"><span>Postgres</span></td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('podName')">
-													<td class="param">Pod Name <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.podName.description"></span></td>
+													<td class="param">Pod Name <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.podName')"></span></td>
 													<td class="value">{{ log.podName }}</td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('role')">
-													<td class="param">Role <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.role.description"></span></td>
+													<td class="param">Role <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.role')"></span></td>
 													<td class="value label role" :class="log.role">
 														<span>{{ log.role }}</span>
 													</td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('userName')">
-													<td class="param">User <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.userName.description"></span></td>
+													<td class="param">User <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.userName')"></span></td>
 													<td class="value">{{ log.userName }}</td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('databaseName')">
-													<td class="param">Database <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.databaseName.description"></span></td>
+													<td class="param">Database <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.databaseName')"></span></td>
 													<td class="value">{{ log.databaseName }}</td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('processId')">
-													<td class="param">Process ID <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.processId.description"></span></td>
+													<td class="param">Process ID <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.processId')"></span></td>
 													<td class="value">{{ log.processId }}</td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('connectionFrom')">
-													<td class="param">Connection From <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.connectionFrom.description"></span></td>
+													<td class="param">Connection From <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.connectionFrom')"></span></td>
 													<td class="value">{{ log.connectionFrom }}</td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('sessionId')">
-													<td class="param">Session ID <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.sessionId.description"></span></td>
+													<td class="param">Session ID <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.sessionId')"></span></td>
 													<td class="value">{{ log.sessionId }}</td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('sessionLineNum')">
-													<td class="param">Session Line Number <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.sessionLineNum.description"></span></td>
+													<td class="param">Session Line Number <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.sessionLineNum')"></span></td>
 													<td class="value">{{ log.sessionLineNum }}</td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('commandTag')">
-													<td class="param">Command Tag <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.commandTag.description"></span></td>
+													<td class="param">Command Tag <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.commandTag')"></span></td>
 													<td class="value">{{ log.commandTag }}</td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('sessionStartTime')">
-													<td class="param">Session Start Time <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.sessionStartTime.description"></span></td>
+													<td class="param">Session Start Time <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.sessionStartTime')"></span></td>
 													<td class="value">{{ log.sessionStartTime }}</td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('virtualTransactionId')">
-													<td class="param">Virtual Transaction ID <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.virtualTransactionId.description"></span></td>
+													<td class="param">Virtual Transaction ID <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.virtualTransactionId')"></span></td>
 													<td class="value">{{ log.virtualTransactionId }}</td>
 												</tr>
 											</tbody>
@@ -424,51 +424,51 @@
 										<table>
 											<tbody>
 												<tr v-if="log.hasOwnProperty('transactionId')">
-													<td class="param">Transaction ID <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.transactionId.description"></span></td>
+													<td class="param">Transaction ID <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.transactionId')"></span></td>
 													<td class="value">{{ log.transactionId }}</td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('errorLevel')">
-													<td class="param">Error Level <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.errorLevel.description"></span></td>
+													<td class="param">Error Level <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.errorLevel')"></span></td>
 													<td class="value label errorLevel" :class="log.errorLevel"><span>{{ log.errorLevel }}</span></td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('sqlStateCode')">
-													<td class="param">SQL State Code <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.sqlStateCode.description"></span></td>
+													<td class="param">SQL State Code <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.sqlStateCode')"></span></td>
 													<td class="value">{{ log.sqlStateCode }}</td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('detail')">
-													<td class="param">Detail <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.detail.description"></span></td>
+													<td class="param">Detail <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.detail')"></span></td>
 													<td class="value">{{ log.detail }}</td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('hint')">
-													<td class="param">Hint <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.hint.description"></span></td>
+													<td class="param">Hint <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.hint')"></span></td>
 													<td class="value">{{ log.hint }}</td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('internalQuery')">
-													<td class="param">Internal Query <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.internalQuery.description"></span></td>
+													<td class="param">Internal Query <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.internalQuery')"></span></td>
 													<td class="value">{{ log.internalQuery }}</td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('internalQueryPos')">
-													<td class="param">Internal Query Pos <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.internalQueryPos.description"></span></td>
+													<td class="param">Internal Query Pos <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.internalQueryPos')"></span></td>
 													<td class="value">{{ log.internalQueryPos }}</td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('context')">
-													<td class="param">Context <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.context.description"></span></td>
+													<td class="param">Context <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.context')"></span></td>
 													<td class="value">{{ log.context }}</td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('query')">
-													<td class="param">Query <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.query.description"></span></td>
+													<td class="param">Query <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.query')"></span></td>
 													<td class="value">{{ log.query }}</td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('queryPos')">
-													<td class="param">Query Pos <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.queryPos.description"></span></td>
+													<td class="param">Query Pos <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.queryPos')"></span></td>
 													<td class="value">{{ log.queryPos }}</td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('location')">
-													<td class="param">Location <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.location.description"></span></td>
+													<td class="param">Location <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.location')"></span></td>
 													<td class="value">{{ log.location }}</td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('applicationName')">
-													<td class="param">Application Name <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.applicationName.description"></span></td>
+													<td class="param">Application Name <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.applicationName')"></span></td>
 													<td class="value">{{ log.applicationName }}</td>
 												</tr>
 											</tbody>
@@ -478,11 +478,11 @@
 										<table>
 											<tbody>
 												<tr>
-													<td class="param">Type <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.logType.description"></span></td>
+													<td class="param">Type <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.logType')"></span></td>
 													<td class="value label logType pa"><span>Patroni</span></td>
 												</tr>
 												<tr>
-													<td class="param">Pod Name <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.podName.description"></span></td>
+													<td class="param">Pod Name <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.podName')"></span></td>
 													<td class="value">{{ log.podName }}</td>
 												</tr>
 											</tbody>
@@ -490,13 +490,13 @@
 										<table>
 											<tbody>
 												<tr v-if="log.hasOwnProperty('role')">
-													<td class="param">Role <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.role.description"></span></td>
+													<td class="param">Role <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.role')"></span></td>
 													<td class="value label role" :class="log.role">
 														<span>{{ log.role }}</span>
 													</td>
 												</tr>
 												<tr v-if="log.hasOwnProperty('errorLevel')">
-													<td class="param">Error Level <span class="helpTooltip" :data-tooltip="tooltips.sgclusterlogentry.errorLevel.description"></span></td>
+													<td class="param">Error Level <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.errorLevel')"></span></td>
 													<td class="value label errorLevel" :class="log.errorLevel"><span>{{ log.errorLevel }}</span></td>
 												</tr>
 											</tbody>

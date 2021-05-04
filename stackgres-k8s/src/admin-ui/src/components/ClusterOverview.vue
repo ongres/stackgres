@@ -26,32 +26,32 @@
 					<thead>
 						<th>
 							<span>StackGres Cluster</span>
-							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.metadata.name.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.metadata.name')"></span>
 						</th>
 
 						<th>
 							<span>Instances</span>
-							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.spec.instances.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.instances')"></span>
 						</th>
 
 						<th>
 							<span>CPU</span>
-							<span class="helpTooltip"  :data-tooltip="tooltips.sgprofile.spec.cpu.description"></span>
+							<span class="helpTooltip"  :data-tooltip="getTooltip('sgprofile.spec.cpu')"></span>
 						</th>
 
 						<th>
 							<span>Memory</span>
-							<span class="helpTooltip" :data-tooltip="tooltips.sgprofile.spec.memory.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.memory')"></span>
 						</th>
 
 						<th>
 							<span>Disk</span>
-							<span class="helpTooltip"  :data-tooltip="tooltips.sgcluster.spec.pods.persistentVolume.size.description"></span>
+							<span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.pods.persistentVolume.size')"></span>
 						</th>
 
 						<th>
 							<span>Health</span>
-							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.podsReady.description.slice(0, -2) + ' / ' + tooltips.sgcluster.spec.instances.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.podsReady').slice(0, -2) + ' / ' + getTooltip('sgcluster.spec.instances')"></span>
 						</th>
 						
 						<th class="actions"></th>

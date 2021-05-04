@@ -55,26 +55,26 @@
 					</template>
 				</h2>
 				<table class="clusterInfo">
-					<thead v-if="tooltips.hasOwnProperty('sgcluster')">
+					<thead>
 						<th>
 							Total CPU 
-							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.cpuRequested.description.slice(0, -2) + ' (' + (cluster.status.hasOwnProperty('cpuPsiAvg60') ? tooltips.sgcluster.pods.cpuPsiAvg60.description : tooltips.sgcluster.pods.averageLoad1m.description) + ')'"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.pods.cpuRequested').slice(0, -2) + ' (' + (cluster.status.hasOwnProperty('cpuPsiAvg60') ? getTooltip('sgcluster.pods.cpuPsiAvg60') : getTooltip('sgcluster.pods.averageLoad1m')) + ')'"></span>
 						</th>
 						<th>
 							Total Memory
-							<span class="helpTooltip" :data-tooltip="cluster.status.hasOwnProperty('memoryPsiAvg60') ? tooltips.sgcluster.pods.memoryPsiAvg60.description : tooltips.sgcluster.pods.memoryRequested.description"></span>
+							<span class="helpTooltip" :data-tooltip="cluster.status.hasOwnProperty('memoryPsiAvg60') ? getTooltip('sgcluster.pods.memoryPsiAvg60') : getTooltip('sgcluster.pods.memoryRequested')"></span>
 						</th>
 						<th>
 							Primary Node Disk
-							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.diskUsed.description.slice(0, -2) + ' / ' + tooltips.sgcluster.spec.pods.persistentVolume.size.description + (cluster.status.hasOwnProperty('diskPsiAvg60') ? ' (' + tooltips.sgcluster.pods.diskPsiAvg60.description + ')' : '')"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.pods.diskUsed').slice(0, -2) + ' / ' + getTooltip('sgcluster.spec.pods.persistentVolume.size') + (cluster.status.hasOwnProperty('diskPsiAvg60') ? ' (' + getTooltip('sgcluster.pods.diskPsiAvg60') + ')' : '')"></span>
 						</th>
 						<th>
 							Total Allocated Disk
-							<span class="helpTooltip" :data-tooltip="tooltips.sgclusterstats.diskRequested.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterstats.diskRequested')"></span>
 						</th>
 						<th>
 							Instances
-							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.podsReady.description.slice(0, -2) + ' / ' + tooltips.sgcluster.spec.instances.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.podsReady').slice(0, -2) + ' / ' + getTooltip('sgcluster.spec.instances')"></span>
 						</th>
 					</thead>
 					<tbody>
@@ -114,34 +114,34 @@
 
 				<h2>Pods</h2>
 				<table class="podStatus">
-					<thead v-if="tooltips.hasOwnProperty('sgcluster')">
+					<thead>
 						<th>
 							Pod Name
-							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.name.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.pods.name')"></span>
 						</th>
 						<th>
 							Role
-							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.role.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.pods.role')"></span>
 						</th>
 						<th>
 							Status
-							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.status.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.pods.status')"></span>
 						</th>
 						<th>
 							CPU
-							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.cpuRequested.description.slice(0, -2) + ' (' + (cluster.status.hasOwnProperty('cpuPsiAvg60') ? tooltips.sgcluster.pods.cpuPsiAvg60.description : tooltips.sgcluster.pods.averageLoad1m.description) + ')'"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.pods.cpuRequested').slice(0, -2) + ' (' + (cluster.status.hasOwnProperty('cpuPsiAvg60') ? getTooltip('sgcluster.pods.cpuPsiAvg60') : getTooltip('sgcluster.pods.averageLoad1m')) + ')'"></span>
 						</th>
 						<th>
 							Memory
-							<span class="helpTooltip" :data-tooltip="cluster.status.hasOwnProperty('memoryPsiAvg60') ? tooltips.sgcluster.pods.memoryPsiAvg60.description : tooltips.sgcluster.pods.memoryRequested.description"></span>
+							<span class="helpTooltip" :data-tooltip="cluster.status.hasOwnProperty('memoryPsiAvg60') ? getTooltip('sgcluster.pods.memoryPsiAvg60') : getTooltip('sgcluster.pods.memoryRequested')"></span>
 						</th>
 						<th>
 							Disk
-							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.diskUsed.description.slice(0, -2) + ' / ' + tooltips.sgcluster.pods.diskRequested.description + (cluster.status.hasOwnProperty('diskPsiAvg60') ? ' (' + tooltips.sgcluster.pods.diskPsiAvg60.description + ')' : '')"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.pods.diskUsed').slice(0, -2) + ' / ' + getTooltip('sgcluster.pods.diskRequested') + (cluster.status.hasOwnProperty('diskPsiAvg60') ? ' (' + getTooltip('sgcluster.pods.diskPsiAvg60') + ')' : '')"></span>
 						</th>
 						<th>
 							Containers
-							<span class="helpTooltip" :data-tooltip="tooltips.sgcluster.pods.containersReady.description.slice(0, -2) + ' / ' + tooltips.sgcluster.pods.containers.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.pods.containersReady').slice(0, -2) + ' / ' + getTooltip('sgcluster.pods.containers')"></span>
 						</th>
 					</thead>
 					<tbody>
