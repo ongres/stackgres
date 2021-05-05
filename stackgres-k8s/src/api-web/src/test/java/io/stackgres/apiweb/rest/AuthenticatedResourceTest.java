@@ -11,9 +11,5 @@ import io.stackgres.apiweb.security.TokenUtils;
 public interface AuthenticatedResourceTest {
 
   Header AUTHENTICATION_HEADER = new Header("Authorization", "Bearer "
-      + TokenUtils.generateTokenString(
-      "admin",
-      "stackgres",
-      10000,
-      "src/test/resources/jwt/rsa_private.key"));
+      + TokenUtils.generateTokenString("admin", "stackgres"));
 }

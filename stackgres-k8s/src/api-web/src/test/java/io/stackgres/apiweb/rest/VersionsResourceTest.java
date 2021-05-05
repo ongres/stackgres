@@ -23,7 +23,6 @@ class VersionsResourceTest {
     when()
         .get("/postgresql")
         .then()
-        .log().all()
         .statusCode(200)
         .body("postgresql", Matchers.hasItems(pgvers));
   }

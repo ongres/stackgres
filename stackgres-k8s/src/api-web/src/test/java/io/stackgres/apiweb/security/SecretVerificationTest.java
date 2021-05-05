@@ -10,7 +10,6 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.quarkus.security.AuthenticationFailedException;
-import io.stackgres.apiweb.config.WebApiPropertyContext;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.common.resource.ResourceUtil;
@@ -45,24 +44,24 @@ public class SecretVerificationTest {
         .build();
     secretVerification = new SecretVerification();
     secretVerification.setSecretScanner(secretScanner);
-    secretVerification.init(new WebApiPropertyContext());
+    secretVerification.init();
   }
 
   @Test
-  public void login_shouldSucceedTest() throws Exception {
+  void login_shouldSucceedTest() throws Exception {
     when(secretScanner.findResourcesInNamespace("stackgres")).thenReturn(ImmutableList.of(secret));
     assertEquals("test", secretVerification.verifyCredentials("test", "test"));
   }
 
   @Test
-  public void wrongPasswordLogin_shouldFailTest() throws Exception {
+  void wrongPasswordLogin_shouldFailTest() throws Exception {
     when(secretScanner.findResourcesInNamespace("stackgres")).thenReturn(ImmutableList.of(secret));
     assertThrows(AuthenticationFailedException.class,
         () -> secretVerification.verifyCredentials("test", "wrong"));
   }
 
   @Test
-  public void secretWithoutLabelsLogin_shouldFailTest() throws Exception {
+  void secretWithoutLabelsLogin_shouldFailTest() throws Exception {
     when(secretScanner.findResourcesInNamespace("stackgres"))
         .thenReturn(ImmutableList.of(new SecretBuilder(secret)
             .editMetadata()
@@ -74,7 +73,7 @@ public class SecretVerificationTest {
   }
 
   @Test
-  public void secretWithWrongLabelLogin_shouldFailTest() throws Exception {
+  void secretWithWrongLabelLogin_shouldFailTest() throws Exception {
     when(secretScanner.findResourcesInNamespace("stackgres"))
         .thenReturn(ImmutableList.of(new SecretBuilder(secret)
             .editMetadata()
@@ -86,7 +85,7 @@ public class SecretVerificationTest {
   }
 
   @Test
-  public void secretWithoutPasswordLogin_shouldFailTest() throws Exception {
+  void secretWithoutPasswordLogin_shouldFailTest() throws Exception {
     when(secretScanner.findResourcesInNamespace("stackgres"))
         .thenReturn(ImmutableList.of(new SecretBuilder(secret)
             .withData(ImmutableMap.of(
@@ -97,7 +96,7 @@ public class SecretVerificationTest {
   }
 
   @Test
-  public void secretWithoutK8sUsernameLogin_shouldFailTest() throws Exception {
+  void secretWithoutK8sUsernameLogin_shouldFailTest() throws Exception {
     when(secretScanner.findResourcesInNamespace("stackgres"))
         .thenReturn(ImmutableList.of(new SecretBuilder(secret)
             .withData(ImmutableMap.of(
@@ -109,7 +108,7 @@ public class SecretVerificationTest {
   }
 
   @Test
-  public void secretWithEmptyPasswordHashLogin_shouldFailTest() throws Exception {
+  void secretWithEmptyPasswordHashLogin_shouldFailTest() throws Exception {
     when(secretScanner.findResourcesInNamespace("stackgres"))
         .thenReturn(ImmutableList.of(new SecretBuilder(secret)
             .withData(ImmutableMap.of(
@@ -121,7 +120,7 @@ public class SecretVerificationTest {
   }
 
   @Test
-  public void secretWithEmptyK8sUsernameLogin_shouldFailTest() throws Exception {
+  void secretWithEmptyK8sUsernameLogin_shouldFailTest() throws Exception {
     when(secretScanner.findResourcesInNamespace("stackgres"))
         .thenReturn(ImmutableList.of(new SecretBuilder(secret)
             .withData(ImmutableMap.of(
@@ -134,7 +133,7 @@ public class SecretVerificationTest {
   }
 
   @Test
-  public void secretWithApiUsernameLogin_shouldSucceedTest() throws Exception {
+  void secretWithApiUsernameLogin_shouldSucceedTest() throws Exception {
     when(secretScanner.findResourcesInNamespace("stackgres"))
         .thenReturn(ImmutableList.of(new SecretBuilder(secret)
             .withData(ImmutableMap.of(
@@ -147,7 +146,7 @@ public class SecretVerificationTest {
   }
 
   @Test
-  public void sha256Encoding_shouldSucceedTest() throws Exception {
+  void sha256Encoding_shouldSucceedTest() throws Exception {
     String sha256enc = TokenUtils.sha256("testtest");
     assertEquals("37268335dd6931045bdcdf92623ff819a64244b53d0e746d438797349d4da578", sha256enc);
     sha256enc = TokenUtils.sha256("test123");
