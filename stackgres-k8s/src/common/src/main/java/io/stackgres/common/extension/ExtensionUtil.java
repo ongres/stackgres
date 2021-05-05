@@ -168,6 +168,7 @@ public interface ExtensionUtil {
     installedExtension.setName(extensionMetadata.getExtension().getName());
     installedExtension.setPublisher(extensionMetadata.getExtension().getPublisherOrDefault());
     installedExtension.setVersion(extensionMetadata.getVersion().getVersion());
+    installedExtension.setExtraMounts(extensionMetadata.getVersion().getExtraMounts());
     installedExtension.setRepository(getExtensionRepositoryUri(extension, extensionMetadata)
         .orElseThrow(() -> new RuntimeException("URI not found for extension "
             + ExtensionUtil.getDescription(extensionMetadata)))

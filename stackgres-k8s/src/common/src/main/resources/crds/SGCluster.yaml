@@ -444,6 +444,12 @@ spec:
                             build:
                               type: string
                               description: The build version of the installed extension.
+                            extraMounts:
+                              type: array
+                              description: The extra mounts of the installed extension.
+                              items:
+                                type: string
+                                description: The extra mount of the installed extension.
                           required: ["name", "publisher", "version", "repository", "postgresVersion"]
                     required: ["name"]
                 dbOps:

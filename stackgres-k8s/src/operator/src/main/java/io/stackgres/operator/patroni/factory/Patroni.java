@@ -7,7 +7,9 @@ package io.stackgres.operator.patroni.factory;
 
 import static io.stackgres.operator.patroni.factory.PatroniConfigMap.PATRONI_RESTAPI_PORT_NAME;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -45,6 +47,8 @@ import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
@@ -54,6 +58,7 @@ import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple2;
 
 @Singleton
 public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
@@ -111,7 +116,6 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
 
     ResourceRequirements podResources = resourceRequirementsFactory
         .createResource(context);
-
     final String startScript = context.getRestoreContext().isPresent()
         ? "/start-patroni-with-restore.sh" : "/start-patroni.sh";
     return new ContainerBuilder()
@@ -199,6 +203,28 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                     ClusterStatefulSetPath.PG_BASE_PATH))
                 .withMountPath(
                     ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_LIB64_PATH.path(context))))
+        .addAllToVolumeMounts(Seq.seq(Optional.ofNullable(cluster.getStatus())
+            .map(StackGresClusterStatus::getPodStatuses))
+            .flatMap(List::stream)
+            .map(Optional::of)
+            .map(podStatus -> podStatus
+                .map(StackGresClusterPodStatus::getInstalledPostgresExtensions))
+            .flatMap(Seq::seq)
+            .flatMap(List::stream)
+            .map(Optional::of)
+            .map(installedExtension -> installedExtension
+                .map(StackGresClusterInstalledExtension::getExtraMounts))
+            .flatMap(Seq::seq)
+            .flatMap(List::stream)
+            .grouped(Function.identity())
+            .map(Tuple2::v1)
+            .map(extraMount -> ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                context,
+                volumeMountBuilder -> volumeMountBuilder
+                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_EXTENSION_PATH.subPath(context,
+                    ClusterStatefulSetPath.PG_BASE_PATH) + extraMount)
+                .withMountPath(extraMount)))
+            .toList())
         .addToVolumeMounts(
             context.getIndexedScripts()
                 .map(t -> new VolumeMountBuilder()

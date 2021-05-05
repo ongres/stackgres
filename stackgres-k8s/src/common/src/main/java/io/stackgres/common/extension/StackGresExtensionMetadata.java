@@ -55,6 +55,7 @@ public class StackGresExtensionMetadata {
     this.extension.setRepository(installedExtension.getRepository());
     this.version = new StackGresExtensionVersion();
     this.version.setVersion(installedExtension.getVersion());
+    this.version.setExtraMounts(installedExtension.getExtraMounts());
     this.target = new StackGresExtensionVersionTarget();
     this.target.setPostgresVersion(installedExtension.getPostgresVersion());
     this.target.setBuild(installedExtension.getBuild());
