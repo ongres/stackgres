@@ -252,7 +252,6 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
 #sidebar ul.topics > li > a b {
     color: var(--textColor);
     font-weight: inherit;
-    transition: all .2s ease-in;
 }
 #sidebar ul.topics > li > a .fa {
     margin-top: 9px;
@@ -469,10 +468,7 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
     bottom: 0;
     left: 0;
 }
-#chapter p {
-    /* text-align: center; */
-    font-size: 1.2rem;
-}
+
 #footer {
     padding: 0;
     color: #b3b3b3;
@@ -632,20 +628,14 @@ section.attachments.grey .attachments-files {
 }
 
 /* Children shortcode */
-
-/* Children shortcode */
 .children p {
     font-size: small;
     margin-top: 0px;
     padding-top: 0px;
-    margin-bottom:  0px;
+    margin-bottom:  10px;
     padding-bottom: 0px;
 }
-.children-li p {
-    font-size: small;
-    font-style: italic;
 
-}
 .children-h2 p, .children-h3 p {
     font-size: small;
     margin-top: 0px;
@@ -656,6 +646,26 @@ section.attachments.grey .attachments-files {
 .children h3,.children h2 {
     margin-bottom: 0px;
     margin-top: 5px;
+}
+
+/* #body .children li a:before {
+    content: counters(list-item, '.') '. ';
+} */
+
+#body .children li:before {
+    display: none;
+}
+
+ul.children, ul.children ul {
+    padding-left: 20px;
+}
+
+#body-inner h1 {
+    opacity: 0;
+}
+
+#body-inner h1.show {
+    opacity: 1;
 }
 
 code, kbd, pre, samp {

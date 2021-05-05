@@ -2,7 +2,6 @@
 title: Runbooks
 url: runbooks
 weight: 9
-pre: "<b>9. </b>"
 chapter: true
 ---
 

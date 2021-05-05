@@ -260,6 +260,10 @@ a:hover {
     border-color: var(--MENU-SECTION-HR-color);
 }
 
+ul.topics li a:before {
+    content: counters(list-item,'.') '.'
+}
+
 /* SG 1.0 Styling */
 hr {
     width: 100%;

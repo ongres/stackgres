@@ -1,7 +1,6 @@
 ---
 title: Administration Guide
 weight: 5
-pre: "<b>5. </b>"
 chapter: true
 url: administration
 ---
