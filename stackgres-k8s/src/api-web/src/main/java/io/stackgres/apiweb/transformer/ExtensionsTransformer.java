@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.transformer;
 
 import java.util.Collection;
+import java.util.function.Function;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -40,7 +41,7 @@ public class ExtensionsTransformer {
     transformation.setExtensions(Seq.seq(extensionMetadataList)
         .grouped(extensionMetadata -> extensionMetadata.getExtension())
         .map(Tuple2::v1)
-        .map(extensionMetadata -> getExtension(extensionMetadata, cluster)).toList());
+        .map(extension -> getExtension(extension, cluster)).toList());
     transformation.setPublishers(Seq.seq(extensionMetadataList)
         .grouped(extensionMetadata -> extensionMetadata.getPublisher())
         .map(Tuple2::v1)
@@ -67,6 +68,8 @@ public class ExtensionsTransformer {
         Seq.seq(Unchecked.supplier(() -> clusterExtensionMetadataManager
             .getExtensionsAnyVersion(cluster, extension)).get())
         .map(extensionMetadata -> extensionMetadata.getVersion().getVersion())
+        .grouped(Function.identity())
+        .map(Tuple2::v1)
         .toList());
     return transformation;
   }
