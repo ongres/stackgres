@@ -24,17 +24,17 @@
 		</header>
 
 		<div class="content">
-			<table id="connectionpooling" class="configurations poolConfig" v-if="tooltips.hasOwnProperty('sgpoolingconfig')">
+			<table id="connectionpooling" class="configurations poolConfig">
 				<thead class="sort">
 					<th class="sorted desc name">
 						<span @click="sort('data.metadata.name')">
 							Name
 						</span>
-						<span class="helpTooltip" :data-tooltip="tooltips.sgpoolingconfig.metadata.name.description"></span>
+						<span class="helpTooltip" :data-tooltip="getTooltip('sgpoolingconfig.metadata.name')"></span>
 					</th>
 					<th class="config">
 						Parameters
-						<span class="helpTooltip" :data-tooltip="tooltips.sgpoolingconfig.spec.pgBouncer['pgbouncer.ini'].description"></span>
+						<span class="helpTooltip" :data-tooltip="getTooltip('sgpoolingconfig.spec.pgBouncer.pgbouncer.ini')"></span>
 					</th>
 					<th class="actions"></th>
 				</thead>
@@ -76,7 +76,7 @@
 										</thead>
 										<tbody>
 											<tr>
-												<td class="label">Used on  <span class="helpTooltip" :data-tooltip="tooltips.sgpoolingconfig.status.clusters.description"></span></td>
+												<td class="label">Used on  <span class="helpTooltip" :data-tooltip="getTooltip('sgpoolingconfig.status.clusters')"></span></td>
 												<td class="usedOn">
 													<ul>
 														<li v-for="c in conf.data.status.clusters">
@@ -97,7 +97,7 @@
 											<thead>
 												<th colspan="2" class="label">
 													Parameters
-													<span class="helpTooltip" :data-tooltip="tooltips.sgpoolingconfig.spec.pgBouncer['pgbouncer.ini'].description"></span>
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgpoolingconfig.spec.pgBouncer.pgbouncer.ini')"></span>
 												</th>
 											</thead>
 											<tbody>
@@ -119,7 +119,7 @@
 											<thead>
 												<th colspan="2" class="label">
 													Default Parameters
-													<span class="helpTooltip" :data-tooltip="tooltips.sgpoolingconfig.status.pgBouncer.defaultParameters.description"></span>
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgpoolingconfig.status.pgBouncer.defaultParameters')"></span>
 												</th>
 											</thead>
 											<tbody>

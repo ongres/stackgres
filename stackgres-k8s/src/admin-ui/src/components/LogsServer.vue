@@ -24,19 +24,19 @@
         </header>
 
         <div class="content">
-            <table id="logs" class="logsCluster pgConfig" v-if="tooltips.hasOwnProperty('sgclusterlogentry')">
+            <table id="logs" class="logsCluster pgConfig">
                 <thead class="sort">
                     <th class="sorted desc name">
                         <span @click="sort('data.metadata.name')" >
                             Name
                         </span>
-                        <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.metadata.name.description"></span>
+                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.metadata.name')"></span>
                     </th>
                     <th class="desc volumeSize">
                         <span @click="sort('data.spec.persistentVolume.size')">
                             Volume Size
                         </span>
-                        <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.spec.persistentVolume.size.description"></span>
+                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.persistentVolume.size')"></span>
                     </th>
                     <th class="actions"></th>
                 </thead>
@@ -80,14 +80,14 @@
                                             <tr>
                                                 <td class="label">
                                                     Volume Size
-                                                    <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.spec.persistentVolume.size.description"></span>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.persistentVolume.size')"></span>
                                                 </td>
                                                 <td>{{ cluster.data.spec.persistentVolume.size }}</td>
                                             </tr>
                                             <tr v-if="cluster.data.spec.persistentVolume.hasOwnProperty('storageClass')">
                                                 <td class="label">
                                                     Storage Class
-                                                    <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.spec.persistentVolume.storageClass.description"></span>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.persistentVolume.storageClass')"></span>
                                                 </td>
                                                 <td>{{ cluster.data.spec.persistentVolume.storageClass }}</td>
                                             </tr>
@@ -95,7 +95,7 @@
                                                 <tr>
                                                     <td class="label">
                                                         Used on
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.status.clusters.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.status.clusters')"></span>
                                                     </td>
                                                     <td class="usedOn">
                                                         <ul>
@@ -117,14 +117,14 @@
                                             <thead>
                                                 <th colspan="3" class="label">
                                                     Resources Metadata
-                                                    <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.spec.metadata.annotations.description"></span>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.metadata.annotations')"></span>
                                                 </th>
                                             </thead>
                                             <tbody>
                                                 <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.allResources)" v-if="hasProp(cluster, 'data.spec.metadata.annotations.allResources')">
                                                     <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.allResources).length">
                                                         All Resources
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.spec.metadata.annotations.allResources.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.metadata.annotations.allResources')"></span>
                                                     </td>
                                                     <td class="label">
                                                         {{ item.annotation }}
@@ -136,7 +136,7 @@
                                                 <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.pods)" v-if="hasProp(cluster, 'data.spec.metadata.annotations.pods')">
                                                     <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.pods).length">
                                                         Pods
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.spec.metadata.annotations.pods.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.metadata.annotations.pods')"></span>
                                                     </td>
                                                     <td class="label">
                                                         {{ item.annotation }}
@@ -148,7 +148,7 @@
                                                 <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.services)" v-if="hasProp(cluster, 'data.spec.metadata.annotations.services')">
                                                     <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.services).length">
                                                         Services
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.spec.metadata.annotations.services.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.metadata.annotations.services')"></span>
                                                     </td>
                                                     <td class="label">
                                                         {{ item.annotation }}
@@ -167,7 +167,7 @@
                                         <thead>
                                             <th colspan="2" class="label">
                                                 Node Selector
-                                                <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.spec.scheduling.nodeSelector.description"></span>
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.scheduling.nodeSelector')"></span>
                                             </th>
                                         </thead>
                                         <tbody>
@@ -186,7 +186,7 @@
                                         <thead>
                                             <th colspan="3" class="label">
                                                 Tolerations
-                                                <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.spec.scheduling.tolerations.description"></span>
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.scheduling.tolerations')"></span>
                                             </th>
                                         </thead>
                                         <tbody>
@@ -197,7 +197,7 @@
                                                     </td>
                                                     <td class="label">
                                                         {{ prop }}
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdistributedlogs.spec.scheduling.tolerations[prop].description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.scheduling.tolerations[prop]')"></span>
                                                     </td>
                                                     <td colspan="2">
                                                         {{ value }}

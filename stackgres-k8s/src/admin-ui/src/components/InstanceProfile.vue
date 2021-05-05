@@ -24,25 +24,25 @@
 		</header>
 
 		<div class="content">
-			<table id="profiles" class="profiles pgConfig" v-if="tooltips.hasOwnProperty('sgprofile')">
+			<table id="profiles" class="profiles pgConfig">
 				<thead class="sort">
 					<th class="sorted desc name">
 						<span @click="sort('data.metadata.name')">
 							Name
 						</span>
-						<span class="helpTooltip" :data-tooltip="tooltips.sgprofile.metadata.name.description"></span>
+						<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.metadata.name')"></span>
 					</th>
 					<th class="desc memory">
 						<span @click="sort('data.spec.memory')" >
 							RAM
 						</span>
-						<span class="helpTooltip" :data-tooltip="tooltips.sgprofile.spec.memory.description"></span>
+						<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.memory')"></span>
 					</th>
 					<th class="desc cpu">
 						<span @click="sort('data.spec.cpu')">
 							CPU
 						</span>
-						<span class="helpTooltip" :data-tooltip="tooltips.sgprofile.spec.cpu.description"></span>
+						<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.cpu')"></span>
 					</th>
 					<th class="actions"></th>
 				</thead>
@@ -81,16 +81,16 @@
 										</thead>
 										<tbody>
 											<tr>
-												<td class="label">RAM <span class="helpTooltip" :data-tooltip="tooltips.sgprofile.spec.memory.description"></span></td>
+												<td class="label">RAM <span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.memory')"></span></td>
 												<td>{{ conf.data.spec.memory }}</td>
 											</tr>
 											<tr>
-												<td class="label">CPU <span class="helpTooltip" :data-tooltip="tooltips.sgprofile.spec.cpu.description"></span></td>
+												<td class="label">CPU <span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.cpu')"></span></td>
 												<td>{{ conf.data.spec.cpu }}</td>
 											</tr>
 											<template v-if="conf.data.status.clusters.length">
 												<tr>
-													<td class="label">Used on <span class="helpTooltip" :data-tooltip="tooltips.sgprofile.status.clusters.description"></span></td>
+													<td class="label">Used on <span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.status.clusters')"></span></td>
 													<td class="usedOn">
 														<ul>
 															<li v-for="c in conf.data.status.clusters">

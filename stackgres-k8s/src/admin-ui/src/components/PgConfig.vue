@@ -24,25 +24,25 @@
 		</header>
 
 		<div class="content">
-			<table id="postgres" class="configurations pgConfig" v-if="tooltips.hasOwnProperty('sgpostgresconfig')">
+			<table id="postgres" class="configurations pgConfig">
 				<thead class="sort">
 					<th class="sorted desc name">
 						<span @click="sort('data.metadata.name')">
 							Name
 						</span>
-						<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.metadata.name.description"></span>
+						<span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.metadata.name')"></span>
 					</th>
 					<th class="desc postgresVersion">
 						<span @click="sort('data.spec.postgresVersion')">
 							PG
 						</span>
-						<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.spec.postgresVersion.description"></span>
+						<span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.spec.postgresVersion')"></span>
 					</th>
 					<th class="config">
 						<span>
 							Parameters
 						</span>
-						<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.spec['postgresql.conf'].description"></span>
+						<span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.spec.postgresql.conf')"></span>
 					</th>
 					<th class="actions"></th>
 				</thead>
@@ -93,12 +93,12 @@
 										</thead>
 										<tbody>
 											<tr>
-												<td class="label">Postgres Version <span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.spec.postgresVersion.description"></span></td>
+												<td class="label">Postgres Version <span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.spec.postgresVersion')"></span></td>
 												<td>{{ conf.data.spec.postgresVersion }}</td>
 											</tr>
 											<template v-if="conf.data.status.clusters.length">
 												<tr>
-													<td class="label">Used on <span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.status.clusters.description"></span></td>
+													<td class="label">Used on <span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.status.clusters')"></span></td>
 													<td class="usedOn">
 														<ul>
 															<li v-for="c in conf.data.status.clusters">
@@ -120,7 +120,7 @@
 											<thead>
 												<th colspan="2" class="label">
 													Parameters
-													<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.spec['postgresql.conf'].description"></span>
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.spec.postgresql.conf')"></span>
 												</th>
 											</thead>
 											<tbody>
@@ -147,7 +147,7 @@
 											<thead>
 												<th colspan="2" class="label">
 													Default Parameters
-													<span class="helpTooltip" :data-tooltip="tooltips.sgpostgresconfig.status.defaultParameters.description"></span>
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.status.defaultParameters')"></span>
 												</th>
 											</thead>
 											<tbody>

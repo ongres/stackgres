@@ -431,18 +431,31 @@ export const mixin = {
             store.state.currentCluster.hasBackups = true; // Enable/Disable Backups button
         }
 
-        if(!Object.keys(store.state.tooltips).length) {
+        if(!Object.keys(store.state.tooltips).length && !store.state.tooltips.hasOwnProperty('error')) {
           fetch('/admin/info/sg-tooltips.json')
           .then(response => response.json())
           .then(data => {
             var tooltips = data.components.schemas;
             vc.cleanupTooltips(tooltips)
             store.commit('setTooltips', tooltips)
+          })
+          .catch((error) => {
+            console.log(error);
+            
+            $('body').addClass('noTooltips')
+            
+            vc.notify({
+              title: 'INFO', 
+              detail: 'Information tooltips could not be loaded properly, help texts won\'t be available. <br/><br/>This does not affect the usability of the web console. You can always refer to the <a href="https://stackgres.io/doc" target="_blank">official StackGres Documentation</a> for more information.',
+              type: 'https://stackgres.io/doc'
+            }, 'error')
 
-            if(!store.state.ready)
-              store.commit('setReady',true)
+            store.commit('setTooltips', {error: 'Information tooltips could not be loaded'})
           });
         }
+
+        if(!store.state.ready)
+          store.commit('setReady',true)
   
         setTimeout(function(){
           //$("#loader").fadeOut(500);
@@ -614,8 +627,10 @@ export const mixin = {
           if( (message.status !== 500) && (message.status !== 401) ) {
             details += `
             <h4 class="title">`+message.title+`</h4>
-            <p class="detail">`+message.detail+`</p>
-            <a href="`+message.type+`" title="More Info" target="_blank" class="doclink">More Info <svg xmlns="http://www.w3.org/2000/svg" width="15.001" height="12.751" viewBox="0 0 15.001 12.751"><g transform="translate(167.001 -31.5) rotate(90)"><path d="M37.875,168.688a.752.752,0,0,1-.53-.219l-5.625-5.626a.75.75,0,0,1,0-1.061l2.813-2.813a.75.75,0,0,1,1.06,1.061l-2.283,2.282,4.566,4.566,4.566-4.566-2.283-2.282a.75.75,0,0,1,1.06-1.061l2.813,2.813a.75.75,0,0,1,0,1.061l-5.625,5.626A.752.752,0,0,1,37.875,168.688Z" transform="translate(0 -1.687)" fill="#00adb5"/><path d="M42.156,155.033l-2.813-2.813a.752.752,0,0,0-1.061,0l-2.813,2.813a.75.75,0,1,0,1.06,1.061l1.533-1.534v5.3a.75.75,0,1,0,1.5,0v-5.3l1.533,1.534a.75.75,0,1,0,1.06-1.061Z" transform="translate(-0.937 0)" fill="#00adb5"/></g></svg></a>`;
+            <p class="detail">`+message.detail+`</p>`;
+            
+            if(message.type.length)
+              details += `<a href="`+message.type+`" title="More Info" target="_blank" class="doclink">More Info <svg xmlns="http://www.w3.org/2000/svg" width="15.001" height="12.751" viewBox="0 0 15.001 12.751"><g transform="translate(167.001 -31.5) rotate(90)"><path d="M37.875,168.688a.752.752,0,0,1-.53-.219l-5.625-5.626a.75.75,0,0,1,0-1.061l2.813-2.813a.75.75,0,0,1,1.06,1.061l-2.283,2.282,4.566,4.566,4.566-4.566-2.283-2.282a.75.75,0,0,1,1.06-1.061l2.813,2.813a.75.75,0,0,1,0,1.061l-5.625,5.626A.752.752,0,0,1,37.875,168.688Z" transform="translate(0 -1.687)" fill="#00adb5"/><path d="M42.156,155.033l-2.813-2.813a.752.752,0,0,0-1.061,0l-2.813,2.813a.75.75,0,1,0,1.06,1.061l1.533-1.534v5.3a.75.75,0,1,0,1.5,0v-5.3l1.533,1.534a.75.75,0,1,0,1.06-1.061Z" transform="translate(-0.937 0)" fill="#00adb5"/></g></svg></a>`;
           }
       
           details += `</div>`;
@@ -861,6 +876,30 @@ export const mixin = {
             router.push(path)
 
         }
+      },
+
+      getTooltip(field) {
+        const vc = this;
+        let tooltips = store.state.tooltips        
+
+        if(Object.keys(store.state.tooltips).length) {
+          if(field == 'sgpostgresconfig.spec.postgresql.conf') {
+            return tooltips.sgpostgresconfig.spec['postgresql.conf'].description
+          } else if (field == 'sgpoolingconfig.spec.pgBouncer.pgbouncer.ini') {
+            return tooltips.sgpoolingconfig.spec.pgBouncer['pgbouncer.ini'].description
+          } else if (vc.hasProp(tooltips, field)) {
+            let params = field.split('.');
+            params.forEach(function(item, index){
+              tooltips = tooltips[item]
+            })
+            return tooltips.description
+          } else {
+            return 'Information not available'
+          }
+        } else {
+          return 'Information not available'
+        }
+        
       }
       
     },

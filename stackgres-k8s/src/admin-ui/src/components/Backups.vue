@@ -149,19 +149,19 @@
 						</ul>
 					</div>
 				</div>
-				<table class="backups" v-if="tooltips.hasOwnProperty('sgbackup')">
+				<table class="backups">
 					<thead class="sort">
 						<th class="sorted desc timestamp">
 							<span @click="sort('data.status.process.timing.stored')">Timestamp</span>
-							<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.timing.stored.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.timing.stored')"></span>
 						</th>
 						<th class="desc managedLifecycle">
 							<span @click="sort('data.spec.managedLifecycle')" >Managed Lifecycle (request)</span>
-							<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.spec.managedLifecycle.description"></span>
+							<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.spec.managedLifecycle')"></span>
 						</th>
 						<th class="desc phase center">
 							<span @click="sort('data.status.process.status')" >Status</span>
-							<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.status.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.status')"></span>
 						</th>
 						<th class="desc size">
 							<span @click="sort('data.status.backupInformation.size.uncompressed')">Size uncompressed (compressed)</span>
@@ -169,15 +169,15 @@
 						</th>
 						<th class="desc postgresVersion" v-if="!isCluster">
 							<span@click="sort('data.status.backupInformation.postgresVersion')" >PG</span>
-							<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.postgresVersion.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.postgresVersion')"></span>
 						</th>
 						<th class="desc name">
 							<span @click="sort('data.metadata.name')">Name</span>
-							<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.metadata.name.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.metadata.name')"></span>
 						</th>
 						<th class="desc clusterName" v-if="!isCluster">
 							<span @click="sort('data.spec.sgCluster')" >Source Cluster</span>
-							<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.spec.sgCluster.description"></span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.spec.sgCluster')"></span>
 						</th>
 						<th class="actions"></th>
 						<!--<th class="details"></th>-->
@@ -248,7 +248,7 @@
 													<tr>
 														<td class="label">
 															Status
-															<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.status.description"></span>
+															<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.status')"></span>
 														</td>
 														<td class="phase" :class="back.data.status.process.status">
 															<span>{{ back.data.status.process.status }}</span>
@@ -257,7 +257,7 @@
 													<tr>
 														<td class="label">
 															Size uncompressed
-															<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.size.uncompressed.description"></span>
+															<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.size.uncompressed')"></span>
 														</td>
 														<td>
 															{{ back.data.status.backupInformation.size.uncompressed | formatBytes }}
@@ -266,7 +266,7 @@
 													<tr>
 														<td class="label">
 															Size compressed
-															<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.size.compressed.description"></span>
+															<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.size.compressed')"></span>
 														</td>
 														<td>
 															{{ back.data.status.backupInformation.size.compressed | formatBytes }}
@@ -275,7 +275,7 @@
 													<tr>
 														<td class="label">
 															PG
-															<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.postgresVersion.description"></span>
+															<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.postgresVersion')"></span>
 														</td>
 														<td>
 															{{ back.data.status.backupInformation.postgresVersion | prefix }}
@@ -284,7 +284,7 @@
 													<tr>
 														<td class="label">
 															Name
-															<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.metadata.name.description"></span>
+															<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.metadata.name')"></span>
 														</td>
 														<td>
 															{{ back.data.metadata.name }}
@@ -293,7 +293,7 @@
 													<tr>
 														<td class="label">
 															Source Cluster
-															<span class="helpTooltip" :data-tooltip="tooltips.sgbackup.spec.sgCluster.description"></span>
+															<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.spec.sgCluster')"></span>
 														</td>
 														<td>
 															{{ back.data.spec.sgCluster }}
@@ -302,7 +302,7 @@
 													<tr>
 														<td class="label">
 															Start Time
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.timing.start.description"></span>
+															<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.timing.start')"></span>
 														</td>
 														<td class="timestamp">
 															<span class='date'>
@@ -333,7 +333,7 @@
 													<tr>
 														<td class="label">
 															LSN (start ⇢ end)
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.lsn.start.description + ' ⇢ ' + tooltips.sgbackup.status.backupInformation.lsn.end.description"></span>
+															<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.lsn.start') + ' ⇢ ' + getTooltip('sgbackup.status.backupInformation.lsn.end')"></span>
 														</td>
 														<td>
 															{{ back.data.status.backupInformation.lsn.start }} ⇢ {{ back.data.status.backupInformation.lsn.end }}
@@ -342,7 +342,7 @@
 													<tr>
 														<td class="label">
 															UID
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.metadata.uid.description"></span>
+															<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.metadata.uid')"></span>
 														</td>
 														<td colspan="2">
 															{{ back.data.metadata.uid }}
@@ -351,7 +351,7 @@
 													<tr>
 														<td class="label">
 															Source Pod
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.hostname.description"></span>
+															<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.hostname')"></span>
 														</td>
 														<td>
 															{{ back.data.status.backupInformation.hostname }}
@@ -360,7 +360,7 @@
 													<tr>
 														<td class="label">
 															Timeline
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.startWalFile.description"></span>
+															<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.startWalFile')"></span>
 														</td>
 														<td>
 															{{ parseInt(back.data.status.backupInformation.startWalFile.substr(8)) }}
@@ -369,7 +369,7 @@
 													<tr>
 														<td class="label">
 															System Identifier
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.systemIdentifier.description"></span>
+															<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.systemIdentifier')"></span>
 														</td>
 														<td>
 															{{ back.data.status.backupInformation.systemIdentifier }}
@@ -378,7 +378,7 @@
 													<tr>
 														<td class="label">
 															Job Pod
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.jobPod.description"></span>
+															<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.jobPod')"></span>
 														</td>
 														<td>
 															{{ back.data.status.process.jobPod }}
@@ -387,14 +387,14 @@
 													<tr>
 														<td class="label">
 															Managed Lifecycle (request)
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.spec.managedLifecycle.description"></span>
+															<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.spec.managedLifecycle')"></span>
 														</td>
 														<td class="managedLifecycle" :class="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle.toString() : 'false'" :data-val="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle : 'false'"></td>
 													</tr>
 													<tr>
 														<td class="label">
 															Managed Lifecycle (status)
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.managedLifecycle.description"></span>
+															<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.managedLifecycle')"></span>
 														</td>
 														<td>
 															{{ back.data.status.process.managedLifecycle ? 'Enabled' : 'Disabled' }}
@@ -403,7 +403,7 @@
 													<tr>
 														<td class="label">
 															End Time
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.timing.end.description"></span>
+															<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.timing.end')"></span>
 														</td>
 														<td class="timestamp">
 															<span class='date'>
@@ -420,7 +420,7 @@
 													<tr>
 														<td class="label">
 															Stored Time
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.process.timing.stored.description"></span>
+															<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.timing.stored')"></span>
 														</td>
 														<td class="timestamp">
 															<span class='date'>
@@ -437,7 +437,7 @@
 													<tr>
 														<td class="label">
 															Hostname
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.hostname.description"></span>
+															<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.hostname')"></span>
 														</td>
 														<td>
 															{{ back.data.status.backupInformation.hostname }}
@@ -446,7 +446,7 @@
 													<tr>
 														<td class="label">
 															PG Data
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.pgData.description"></span>
+															<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.pgData')"></span>
 														</td>
 														<td>
 															{{ back.data.status.backupInformation.pgData }}
@@ -455,7 +455,7 @@
 													<tr>
 														<td class="label">
 															Start Wal File
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.backupInformation.startWalFile.description"></span>
+															<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.startWalFile')"></span>
 														</td>
 														<td>
 															{{ back.data.status.backupInformation.startWalFile }}
@@ -464,6 +464,7 @@
 													<tr v-if="(typeof back.data.status.backupInformation.controlData !== 'undefined')" class="controlData">
 														<td class="label">
 															Control Data
+															<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.controlData')"></span>
 														</td>
 														<td>
 															<a @click="setContentTooltip('#controlData-'+index)"> 
@@ -491,14 +492,14 @@
 												<thead>
 													<th colspan="2" class="label">
 														Storage Details
-														<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.description"></span>
+														<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage')"></span>
 													</th>
 												</thead>
 												<tbody>
 													<tr>
 														<td class="label">
 															Storage Type
-															<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.type.description"></span>
+															<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.type')"></span>
 														</td>
 														<td>
 															{{ back.data.status.sgBackupConfig.storage.type }}
@@ -508,7 +509,7 @@
 														<tr>
 															<td class="label">
 																Bucket
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.bucket.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.s3.bucket')"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.s3.bucket }}
@@ -517,7 +518,7 @@
 														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3.path')">
 															<td class="label">
 																Path
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.path.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.s3.path')"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.s3.path }}
@@ -526,7 +527,7 @@
 														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3.region')">
 															<td class="label">
 																Region
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.region.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.s3.region')"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.s3.region }}
@@ -535,7 +536,7 @@
 														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3.storageClass')">
 															<td class="label">
 																Bucket
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.storageClass.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.s3.storageClass')"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.s3.path }}
@@ -544,13 +545,13 @@
 														<tr>
 															<td colspan="2" class="label">
 																AWS Credentials
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.awsCredentials.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.s3.awsCredentials')"></span>
 															</td>
 														</tr>
 														<tr>
 															<td class="label">
 																Access Key ID
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.awsCredentials.secretKeySelectors.accessKeyId.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.s3.awsCredentials.secretKeySelectors.accessKeyId')"></span>
 															</td>
 															<td>
 																********
@@ -559,7 +560,7 @@
 														<tr>
 															<td class="label">
 																Secret Access Key
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey')"></span>
 															</td>
 															<td>
 																********
@@ -570,7 +571,7 @@
 														<tr>
 															<td class="label">
 																Bucket
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.bucket.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.s3Compatible.bucket')"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.s3Compatible.bucket }}
@@ -579,7 +580,7 @@
 														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3Compatible.path')">
 															<td class="label">
 																Path
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.path.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.s3Compatible.path')"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.s3Compatible.path }}
@@ -588,7 +589,7 @@
 														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3Compatible.enablePathStyleAddressing')">
 															<td class="label">
 																Path Style Addressing
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.enablePathStyleAddressing.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.s3Compatible.enablePathStyleAddressing')"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.s3Compatible.enablePathStyleAddressing ? 'Enabled' : 'Disabled'}}
@@ -597,7 +598,7 @@
 														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3Compatible.endpoint')">
 															<td class="label">
 																Endpoint
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.endpoint.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.s3Compatible.endpoint')"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.s3Compatible.endpoint }}
@@ -606,7 +607,7 @@
 														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3Compatible.region')">
 															<td class="label">
 																Region
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.region.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.s3Compatible.region')"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.s3Compatible.region }}
@@ -615,7 +616,7 @@
 														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3Compatible.storageClass')">
 															<td class="label">
 																Bucket
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.storageClass.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.s3Compatible.storageClass')"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.s3Compatible.path }}
@@ -624,13 +625,13 @@
 														<tr>
 															<td colspan="2" class="label">
 																AWS Credentials
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.awsCredentials.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.s3Compatible.awsCredentials')"></span>
 															</td>
 														</tr>
 														<tr>
 															<td class="label">
 																Access Key ID
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId')"></span>
 															</td>
 															<td>
 																********
@@ -639,7 +640,7 @@
 														<tr>
 															<td class="label">
 																Secret Access Key
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey')"></span>
 															</td>
 															<td>
 																********
@@ -650,7 +651,7 @@
 														<tr>
 															<td class="label">
 																Bucket
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.gcs.bucket.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.gcs.bucket')"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.gcs.bucket }}
@@ -659,7 +660,7 @@
 														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.gcs.path')">
 															<td class="label">
 																Path
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.gcs.path.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.gcs.path')"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.gcs.path }}
@@ -668,13 +669,13 @@
 														<tr>
 															<td colspan="2" class="label">
 																GCS Credentials
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.gcs.gcpCredentials.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.gcs.gcpCredentials')"></span>
 															</td>
 														</tr>
 														<tr>
 															<td class="label">
 																Service Account JSON
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON')"></span>
 															</td>
 															<td>
 																********
@@ -685,7 +686,7 @@
 														<tr>
 															<td class="label">
 																Bucket
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.azureBlob.bucket.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.azureBlob.bucket')"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.azureBlob.bucket }}
@@ -694,7 +695,7 @@
 														<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.azureBlob.path')">
 															<td class="label">
 																Path
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.azureBlob.path.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.azureBlob.path')"></span>
 															</td>
 															<td>
 																{{ back.data.status.sgBackupConfig.storage.azureBlob.path }}
@@ -703,13 +704,13 @@
 														<tr>
 															<td colspan="2" class="label">
 																Azure Credentials
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.azureBlob.azureCredentials.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.azureBlob.azureCredentials')"></span>
 															</td>
 														</tr>
 														<tr>
 															<td class="label">
 																Storage Account
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount')"></span>
 															</td>
 															<td>
 																********
@@ -718,7 +719,7 @@
 														<tr>
 															<td class="label">
 																Access Key
-																<span  class="helpTooltip" :data-tooltip="tooltips.sgbackup.status.sgBackupConfig.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey.description"></span>
+																<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey')"></span>
 															</td>
 															<td>
 																********

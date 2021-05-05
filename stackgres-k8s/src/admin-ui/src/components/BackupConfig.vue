@@ -25,36 +25,36 @@
 
 
 		<div class="content">
-			<table id="backup" class="configurations backupConfig" v-if="tooltips.hasOwnProperty('sgbackupconfig')">
+			<table id="backup" class="configurations backupConfig">
 				<thead class="sort">
 					<th class="sorted desc name">
 						<span @click="sort('data.metadata.name')">
 							Name
 						</span>
-						<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.metadata.name.description"></span>
+						<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.metadata.name')"></span>
 					</th>
 					<th class="desc retention">
 						<span @click="sort('data.spec.baseBackups.retention')">Retention</span>
-						<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.retention.description"></span>
+						<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.retention')"></span>
 					</th>
 					<th class="desc cronSchedule">
 						<span @click="sort('data.spec.baseBackups.cronSchedule')">Full Schedule</span>
-						<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.cronSchedule.description"></span>
+						<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.cronSchedule')"></span>
 					</th>
 					<th class="desc compression">
 						<span @click="sort('data.spec.baseBackups.compression')">Compression Method</span>
-						<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.compression.description"></span>
+						<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.compression')"></span>
 					</th>
 					<th class="desc uploadDiskConcurrency">
 						<span @click="sort('data.spec.baseBackups.performance.uploadDiskConcurrency')">Upload Disk Concurrency</span>
-						<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.performance.uploadDiskConcurrency.description"></span>
+						<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.performance.uploadDiskConcurrency')"></span>
 					</th>
 					<!--<th @click="sort('data.spec.tarSizeThreshold')" class="desc tarSizeThreshold">
 						<span>Tar Size Threshold</span>
 					</th>-->
 					<th class="desc storageType">
 						<span @click="sort('data.spec.storage.type')">Storage Type</span>
-						<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.type.description"></span>
+						<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.type')"></span>
 					</th>
 					<th class="actions"></th>
 				</thead>
@@ -118,7 +118,7 @@
 											<tr v-if="(typeof conf.data.spec.baseBackups.retention !== 'undefined')">
 												<td class="label">
 													Retention
-													<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.retention.description"></span>
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.retention')"></span>
 												</td>
 												<td>
 													{{ conf.data.spec.baseBackups.retention }}
@@ -127,7 +127,7 @@
 											<tr v-if="hasProp(conf, 'data.spec.baseBackups.cronSchedule')">
 												<td class="label">
 													Full Schedule
-													<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.cronSchedule.description"></span>
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.cronSchedule')"></span>
 												</td>
 												<td>
 													{{ conf.data.spec.baseBackups.cronSchedule | prettyCRON }}
@@ -136,7 +136,7 @@
 											<tr v-if="hasProp(conf, 'data.spec.baseBackups.compression')">
 												<td class="label">
 													Compression Method
-													<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.compression.description"></span>
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.compression')"></span>
 												</td>
 												<td>
 													{{ conf.data.spec.baseBackups.compression }}
@@ -145,7 +145,7 @@
 											<tr v-if="hasProp(conf, 'data.spec.baseBackups.performance.maxNetworkBandwitdh')">
 												<td class="label">
 													Max Network Bandwitdh
-													<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.maxNetworkBandwitdh.description"></span>
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.maxNetworkBandwitdh')"></span>
 												</td>
 												<td>
 													{{ conf.data.spec.baseBackups.performance.maxNetworkBandwitdh }}
@@ -154,7 +154,7 @@
 											<tr v-if="hasProp(conf, 'data.spec.baseBackups.performance.maxDiskBandwitdh')">
 												<td class="label">
 													Max Disk Bandwitdh
-													<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.performance.maxDiskBandwitdh.description"></span>
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.performance.maxDiskBandwitdh')"></span>
 												</td>
 												<td>
 													{{ conf.data.spec.baseBackups.performance.maxDiskBandwitdh }}
@@ -163,7 +163,7 @@
 											<tr v-if="hasProp(conf, 'data.spec.baseBackups.performance.uploadDiskConcurrency')">
 												<td class="label">
 													Upload Disk Concurrency
-													<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.baseBackups.performance.uploadDiskConcurrency.description"></span>
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.performance.uploadDiskConcurrency')"></span>
 												</td>
 												<td>
 													{{ conf.data.spec.baseBackups.performance.uploadDiskConcurrency }}
@@ -172,7 +172,7 @@
 											<tr v-if="conf.data.status.clusters.length">
 												<td class="label">
 													Used on
-													<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.status.clusters.description"></span>
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.status.clusters')"></span>
 												</td>
 												<td class="usedOn">
 													<ul>
@@ -193,14 +193,14 @@
 										<thead>
 											<th colspan="2" class="label">
 												Storage Details
-												<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.description"></span>
+												<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage')"></span>
 											</th>
 										</thead>
 										<tbody>
 											<tr>
 												<td class="label">
 													Storage Type
-													<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.type.description"></span>
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.type')"></span>
 												</td>
 												<td>
 													{{ conf.data.spec.storage.type }}
@@ -210,7 +210,7 @@
 												<tr>
 													<td class="label">
 														Bucket
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3.bucket.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.s3.bucket')"></span>
 													</td>
 													<td>
 														{{ conf.data.spec.storage.s3.bucket }}
@@ -219,7 +219,7 @@
 												<tr v-if="hasProp(conf, 'data.spec.storage.s3.path')">
 													<td class="label">
 														Path
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3.path.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.s3.path')"></span>
 													</td>
 													<td>
 														{{ conf.data.spec.storage.s3.path }}
@@ -228,7 +228,7 @@
 												<tr v-if="hasProp(conf, 'data.spec.storage.s3.region')">
 													<td class="label">
 														Region
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3.region.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.s3.region')"></span>
 													</td>
 													<td>
 														{{ conf.data.spec.storage.s3.region }}
@@ -237,7 +237,7 @@
 												<tr v-if="hasProp(conf, 'data.spec.storage.s3.storageClass')">
 													<td class="label">
 														Bucket
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3.storageClass.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.s3.storageClass')"></span>
 													</td>
 													<td>
 														{{ conf.data.spec.storage.s3.path }}
@@ -246,13 +246,13 @@
 												<tr>
 													<td colspan="2" class="label">
 														AWS Credentials
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3.awsCredentials.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.s3.awsCredentials')"></span>
 													</td>
 												</tr>
 												<tr>
 													<td class="label">
 														Access Key ID
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId')"></span>
 													</td>
 													<td>
 														********
@@ -261,7 +261,7 @@
 												<tr>
 													<td class="label">
 														Secret Access Key
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey')"></span>
 													</td>
 													<td>
 														********
@@ -272,7 +272,7 @@
 												<tr>
 													<td class="label">
 														Bucket
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3Compatible.bucket.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.s3Compatible.bucket')"></span>
 													</td>
 													<td>
 														{{ conf.data.spec.storage.s3Compatible.bucket }}
@@ -281,7 +281,7 @@
 												<tr v-if="hasProp(conf, 'data.spec.storage.s3Compatible.path')">
 													<td class="label">
 														Path
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3Compatible.path.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.s3Compatible.path')"></span>
 													</td>
 													<td>
 														{{ conf.data.spec.storage.s3Compatible.path }}
@@ -290,7 +290,7 @@
 												<tr v-if="hasProp(conf, 'data.spec.storage.s3Compatible.enablePathStyleAddressing')">
 													<td class="label">
 														Path Style Addressing
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3Compatible.enablePathStyleAddressing.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.s3Compatible.enablePathStyleAddressing')"></span>
 													</td>
 													<td>
 														{{ conf.data.spec.storage.s3Compatible.enablePathStyleAddressing ? 'Enabled' : 'Disabled'}}
@@ -299,7 +299,7 @@
 												<tr v-if="hasProp(conf, 'data.spec.storage.s3Compatible.endpoint')">
 													<td class="label">
 														Endpoint
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3Compatible.endpoint.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.s3Compatible.endpoint')"></span>
 													</td>
 													<td>
 														{{ conf.data.spec.storage.s3Compatible.endpoint }}
@@ -308,7 +308,7 @@
 												<tr v-if="hasProp(conf, 'data.spec.storage.s3Compatible.region')">
 													<td class="label">
 														Region
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3Compatible.region.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.s3Compatible.region')"></span>
 													</td>
 													<td>
 														{{ conf.data.spec.storage.s3Compatible.region }}
@@ -317,7 +317,7 @@
 												<tr v-if="hasProp(conf, 'data.spec.storage.s3Compatible.storageClass')">
 													<td class="label">
 														Bucket
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3Compatible.storageClass.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.s3Compatible.storageClass')"></span>
 													</td>
 													<td>
 														{{ conf.data.spec.storage.s3Compatible.path }}
@@ -326,13 +326,13 @@
 												<tr>
 													<td colspan="2" class="label">
 														AWS Credentials
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3Compatible.awsCredentials.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.s3Compatible.awsCredentials')"></span>
 													</td>
 												</tr>
 												<tr>
 													<td class="label">
 														Access Key ID
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId')"></span>
 													</td>
 													<td>
 														********
@@ -341,7 +341,7 @@
 												<tr>
 													<td class="label">
 														Secret Access Key
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey')"></span>
 													</td>
 													<td>
 														********
@@ -352,7 +352,7 @@
 												<tr>
 													<td class="label">
 														Bucket
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.gcs.bucket.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.gcs.bucket')"></span>
 													</td>
 													<td>
 														{{ conf.data.spec.storage.gcs.bucket }}
@@ -361,7 +361,7 @@
 												<tr v-if="hasProp(conf, 'data.spec.storage.gcs.path')">
 													<td class="label">
 														Path
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.gcs.path.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.gcs.path')"></span>
 													</td>
 													<td>
 														{{ conf.data.spec.storage.gcs.path }}
@@ -370,13 +370,13 @@
 												<tr>
 													<td colspan="2" class="label">
 														GCS Credentials
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.gcs.gcpCredentials.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.gcs.gcpCredentials')"></span>
 													</td>
 												</tr>
 												<tr>
 													<td class="label">
 														Service Account JSON
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON')"></span>
 													</td>
 													<td>
 														********
@@ -387,7 +387,7 @@
 												<tr>
 													<td class="label">
 														Bucket
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.azureBlob.bucket.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.azureBlob.bucket')"></span>
 													</td>
 													<td>
 														{{ conf.data.spec.storage.azureBlob.bucket }}
@@ -396,7 +396,7 @@
 												<tr v-if="hasProp(conf, 'data.spec.storage.azureBlob.path')">
 													<td class="label">
 														Path
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.azureBlob.path.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.azureBlob.path')"></span>
 													</td>
 													<td>
 														{{ conf.data.spec.storage.azureBlob.path }}
@@ -405,13 +405,13 @@
 												<tr>
 													<td colspan="2" class="label">
 														Azure Credentials
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.azureBlob.azureCredentials.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.azureBlob.azureCredentials')"></span>
 													</td>
 												</tr>
 												<tr>
 													<td class="label">
 														Storage Account
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount')"></span>
 													</td>
 													<td>
 														********
@@ -420,7 +420,7 @@
 												<tr>
 													<td class="label">
 														Access Key
-														<span class="helpTooltip" :data-tooltip="tooltips.sgbackupconfig.spec.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey.description"></span>
+														<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey')"></span>
 													</td>
 													<td>
 														********

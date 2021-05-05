@@ -85,23 +85,23 @@
                 <thead class="sort">
                     <th class="desc start">
                         <span @click="sort('data.spec.runAt')">Start</span>
-                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.runAt.description"></span>
+                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.runAt')"></span>
                     </th>
                     <th class="desc operationType">
                         <span @click="sort('data.spec.op')">Operation</span>
-                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.op.description"></span>
+                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.op')"></span>
                     </th>
                     <th class="desc opName">
                         <span @click="sort('data.metadata.name')">Name</span>
-                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.metadata.name.description"></span>
+                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.metadata.name')"></span>
                     </th>
                     <th class="desc phase">
                         <span @click="sort('data.status.conditions')">Status</span>
-                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status.conditions.description"></span>
+                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.conditions')"></span>
                     </th>
                     <th class="desc targetCluster">
                         <span @click="sort('data.spec.sgCluster')">Target Cluster</span>
-                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.sgCluster.description"></span>
+                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.sgCluster')"></span>
                     </th>
                     <th class="desc elapsed">
                         <span @click="sort('data.status.elapsed')">Elapsed</span>
@@ -109,7 +109,7 @@
                     </th>
                     <th class="desc retries">
                         <span @click="sort('data.status.opRetries')">Current / Max Retries</span>
-                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status.opRetries.description+' / '+tooltips.sgdbops.spec.maxRetries.description"></span> 
+                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.opRetries') + ' / '+ getTooltip('sgdbops.spec.maxRetries')"></span> 
                     </th>
                     <th class="desc timedOut">
                         <span @click="sort('data.spec.timeout')">Timed Out</span>
@@ -208,7 +208,7 @@
                                             <tr>
                                                 <td class="label">
                                                     Name
-                                                    <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.metadata.name.description"></span>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.metadata.name')"></span>
                                                 </td>
                                                 <td colspan="2">
                                                     {{ op.data.metadata.name }}
@@ -217,7 +217,7 @@
                                             <tr>
                                                 <td class="label">
                                                     UID
-                                                    <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.metadata.uid.description"></span>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.metadata.uid')"></span>
                                                 </td>
                                                 <td colspan="2">
                                                     {{ op.data.metadata.uid }}
@@ -226,7 +226,7 @@
                                             <tr>
                                                 <td class="label">
                                                     Target Cluster
-                                                    <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.sgCluster.description"></span>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.sgCluster')"></span>
                                                 </td>
                                                 <td colspan="2">
                                                     {{ op.data.spec.sgCluster }}
@@ -235,7 +235,7 @@
                                             <tr>
                                                 <td class="label">
                                                     Max Retries
-                                                    <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.maxRetries.description"></span>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.maxRetries')"></span>
                                                 </td>
                                                 <td colspan="2">
                                                     {{ op.data.spec.hasOwnProperty('maxRetries') ? op.data.spec.maxRetries : '1' }}
@@ -244,7 +244,7 @@
                                             <tr v-if="op.data.spec.hasOwnProperty('timeout')">
                                                 <td class="label">
                                                     Timeout
-                                                    <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.timeout.description"></span>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.timeout')"></span>
                                                 </td>
                                                 <td colspan="2">
                                                         {{ getIsoDuration(op.data.spec.timeout) }}
@@ -275,7 +275,7 @@
                                                 <tr>
                                                     <td class="label">
                                                         Type
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.benchmark.type.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.benchmark.type')"></span>
                                                     </td>
                                                     <td colspan="2">
                                                         {{ op.data.spec.benchmark.type }}
@@ -284,14 +284,14 @@
                                                 <tr>
                                                     <td class="label" :rowspan="Object.keys(op.data.spec.benchmark.pgbench).length + 1">
                                                         PgBench
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.benchmark.pgbench.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.benchmark.pgbench')"></span>
                                                     </td>
                                                     <td class="hidden"></td><td class="hidden"></td>
                                                 </tr>
                                                 <tr>
                                                     <td class="label">
                                                         Database Size
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.benchmark.pgbench.databaseSize.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.benchmark.pgbench.databaseSize')"></span>
                                                     </td>
                                                     <td>
                                                         {{ op.data.spec.benchmark.pgbench.databaseSize }}
@@ -300,7 +300,7 @@
                                                 <tr>
                                                     <td class="label">
                                                         Duration
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.benchmark.pgbench.duration.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.benchmark.pgbench.duration')"></span>
                                                     </td>
                                                     <td>
                                                         {{ getIsoDuration(op.data.spec.benchmark.pgbench.duration) }}
@@ -309,7 +309,7 @@
                                                 <tr>
                                                     <td class="label">
                                                         Use Prepared Statements
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.benchmark.pgbench.usePreparedStatements.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.benchmark.pgbench.usePreparedStatements')"></span>
                                                     </td>
                                                     <td>
                                                         {{ op.data.spec.benchmark.pgbench.hasOwnProperty('usePreparedStatements') ? op.data.spec.benchmark.pgbench.usePreparedStatements : 'False' }}
@@ -318,7 +318,7 @@
                                                 <tr>
                                                     <td class="label">
                                                         Concurrent Clients
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.benchmark.pgbench.concurrentClients.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.benchmark.pgbench.concurrentClients')"></span>
                                                     </td>
                                                     <td>
                                                         {{ op.data.spec.benchmark.pgbench.hasOwnProperty('concurrentClients') ? op.data.spec.benchmark.pgbench.concurrentClients : '1' }}
@@ -327,7 +327,7 @@
                                                 <tr>
                                                     <td class="label">
                                                         Threads
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.benchmark.pgbench.threads.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.benchmark.pgbench.threads')"></span>
                                                     </td>
                                                     <td colspan="2">
                                                         {{ op.data.spec.benchmark.pgbench.hasOwnProperty('threads') ? op.data.spec.benchmark.pgbench.threads : '1' }}
@@ -336,7 +336,7 @@
                                                 <tr v-if="op.data.spec.benchmark.hasOwnProperty('connectionType')">
                                                     <td class="label">
                                                         Connection Type
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.benchmark.connectionType.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.benchmark.connectionType')"></span>
                                                     </td>
                                                     <td colspan="2">
                                                         {{ op.data.spec.benchmark.connectionType }}
@@ -350,7 +350,7 @@
                                                 <tr>
                                                     <td class="label">
                                                         Link
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.majorVersionUpgrade.link.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.majorVersionUpgrade.link')"></span>
                                                     </td>
                                                     <td>
                                                         {{ op.data.spec.majorVersionUpgrade.hasOwnProperty('link') ? op.data.spec.majorVersionUpgrade.link : 'False' }}
@@ -359,7 +359,7 @@
                                                 <tr>
                                                     <td class="label">
                                                         Clone
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.majorVersionUpgrade.clone.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.majorVersionUpgrade.clone')"></span>
                                                     </td>
                                                     <td>
                                                         {{ op.data.spec.majorVersionUpgrade.hasOwnProperty('clone') ? op.data.spec.majorVersionUpgrade.clone : 'False' }}
@@ -368,7 +368,7 @@
                                                 <tr>
                                                     <td class="label">
                                                         Check
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.majorVersionUpgrade.check.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.majorVersionUpgrade.check')"></span>
                                                     </td>
                                                     <td>
                                                         {{ op.data.spec.majorVersionUpgrade.hasOwnProperty('check') ? op.data.spec.majorVersionUpgrade.check : 'False' }}
@@ -382,7 +382,7 @@
                                                 <tr v-if="op.data.spec.minorVersionUpgrade.hasOwnProperty('method')">
                                                     <td class="label">
                                                         Method
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.minorVersionUpgrade.method.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.minorVersionUpgrade.method')"></span>
                                                     </td>
                                                     <td>
                                                         {{ op.data.spec.minorVersionUpgrade.method }}
@@ -396,7 +396,7 @@
                                                     <tr>
                                                         <td class="label">
                                                             No Order
-                                                            <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.repack.noOrder.description"></span>
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noOrder')"></span>
                                                         </td>
                                                         <td>
                                                             {{ op.data.spec.repack.hasOwnProperty('noOrder') ? op.data.spec.repack.noOrder : 'False' }}
@@ -405,7 +405,7 @@
                                                     <tr v-if="op.data.spec.repack.hasOwnProperty('waitTimeout')">
                                                         <td class="label">
                                                             Wait Timeout
-                                                            <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.repack.waitTimeout.description"></span>
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.waitTimeout')"></span>
                                                         </td>
                                                         <td>
                                                             {{ op.data.spec.repack.waitTimeout }}
@@ -414,7 +414,7 @@
                                                     <tr>
                                                         <td class="label">
                                                             No Kill Backend
-                                                            <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.repack.noKillBackend.description"></span> 
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noKillBackend')"></span> 
                                                         </td>
                                                         <td>
                                                             {{ op.data.spec.repack.hasOwnProperty('noKillBackend') ? op.data.spec.repack.noKillBackend : 'False' }}
@@ -423,7 +423,7 @@
                                                     <tr>
                                                         <td class="label">
                                                             No Analyze
-                                                            <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.repack.noAnalyze.description"></span> 
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noAnalyze')"></span> 
                                                         </td>
                                                         <td>
                                                             {{ op.data.spec.repack.hasOwnProperty('noAnalyze') ? op.data.spec.repack.noAnalyze : 'False' }}
@@ -432,7 +432,7 @@
                                                     <tr>
                                                         <td class="label">
                                                             Exclude Extension
-                                                            <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.repack.excludeExtension.description"></span> 
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.excludeExtension')"></span> 
                                                         </td>
                                                         <td>
                                                             {{ op.data.spec.repack.hasOwnProperty('excludeExtension') ? op.data.spec.repack.excludeExtension : 'False' }}
@@ -446,7 +446,7 @@
                                                 <tr v-if="op.data.spec.restart.hasOwnProperty('method')">
                                                     <td class="label">
                                                         Method
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.restart.method.description"></span> 
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.restart.method')"></span> 
                                                     </td>
                                                     <td>
                                                         {{ op.data.spec.restart.method }}
@@ -460,7 +460,7 @@
                                                 <tr v-if="op.data.spec.securityUpgrade.hasOwnProperty('method')">
                                                     <td class="label">
                                                         Method
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.securityUpgrade.method.description"></span> 
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.securityUpgrade.method')"></span> 
                                                     </td>
                                                     <td>
                                                         {{ op.data.spec.securityUpgrade.method }}
@@ -474,7 +474,7 @@
                                                     <tr>
                                                         <td class="label">
                                                             Full
-                                                            <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.vacuum.full.description"></span> 
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.full')"></span> 
                                                         </td>
                                                         <td>
                                                             {{ op.data.spec.vacuum.hasOwnProperty('full') ? op.data.spec.vacuum.full : 'False' }}
@@ -483,7 +483,7 @@
                                                     <tr>
                                                         <td class="label">
                                                             Freeze
-                                                            <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.vacuum.freeze.description"></span> 
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.freeze')"></span> 
                                                         </td>
                                                         <td>
                                                             {{ op.data.spec.vacuum.hasOwnProperty('freeze') ? op.data.spec.vacuum.freeze : 'False' }}
@@ -492,7 +492,7 @@
                                                     <tr>
                                                         <td class="label">
                                                             Analyze
-                                                            <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.vacuum.analyze.description"></span> 
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.analyze')"></span> 
                                                         </td>
                                                         <td>
                                                             {{ op.data.spec.vacuum.hasOwnProperty('analyze') ? op.data.spec.vacuum.analyze : 'True' }}
@@ -501,7 +501,7 @@
                                                     <tr>
                                                         <td class="label">
                                                             Disable PageSkipping
-                                                            <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.vacuum.disablePageSkipping.description"></span> 
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.disablePageSkipping')"></span> 
                                                         </td>
                                                         <td>
                                                             {{ op.data.spec.vacuum.hasOwnProperty('disablePageSkipping') ? op.data.spec.vacuum.disablePageSkipping : 'False' }}
@@ -529,7 +529,7 @@
                                                     <tr>
                                                         <td class="label">
                                                             No Order
-                                                            <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.repack.noOrder.description"></span>
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noOrder')"></span>
                                                         </td>
                                                         <td>
                                                             {{ db.hasOwnProperty('noOrder') ? db.noOrder : 'False' }}
@@ -538,7 +538,7 @@
                                                     <tr v-if="db.hasOwnProperty('waitTimeout')">
                                                         <td class="label">
                                                             Wait Timeout
-                                                            <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.repack.waitTimeout.description"></span>
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.waitTimeout')"></span>
                                                         </td>
                                                         <td>
                                                             {{ db.waitTimeout }}
@@ -547,7 +547,7 @@
                                                     <tr>
                                                         <td class="label">
                                                             No Kill Backend
-                                                            <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.repack.noKillBackend.description"></span>
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noKillBackend')"></span>
                                                         </td>
                                                         <td>
                                                             {{ db.hasOwnProperty('noKillBackend') ? db.noKillBackend : 'False' }}
@@ -556,7 +556,7 @@
                                                     <tr>
                                                         <td class="label">
                                                             No Analyze
-                                                            <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.repack.noAnalyze.description"></span>
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noAnalyze')"></span>
                                                         </td>
                                                         <td>
                                                             {{ db.hasOwnProperty('noAnalyze') ? db.noAnalyze : 'False' }}
@@ -565,7 +565,7 @@
                                                     <tr>
                                                         <td class="label">
                                                             Exclude Extension
-                                                            <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.repack.excludeExtension.description"></span>
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.excludeExtension')"></span>
                                                         </td>
                                                         <td>
                                                             {{ db.hasOwnProperty('excludeExtension') ? db.excludeExtension : 'False' }}
@@ -594,7 +594,7 @@
                                                     <tr>
                                                         <td class="label">
                                                             Full
-                                                            <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.vacuum.full.description"></span> 
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.full')"></span> 
                                                         </td>
                                                         <td>
                                                             {{ db.hasOwnProperty('full') ? db.full : 'False' }}
@@ -603,7 +603,7 @@
                                                     <tr>
                                                         <td class="label">
                                                             Freeze
-                                                            <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.vacuum.freeze.description"></span> 
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.freeze')"></span> 
                                                         </td>
                                                         <td>
                                                             {{ db.hasOwnProperty('freeze') ? db.freeze : 'False' }}
@@ -612,7 +612,7 @@
                                                     <tr>
                                                         <td class="label">
                                                             Analyze
-                                                            <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.vacuum.analyze.description"></span> 
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.analyze')"></span> 
                                                         </td>
                                                         <td>
                                                             {{ db.hasOwnProperty('analyze') ? db.analyze : 'True' }}
@@ -621,7 +621,7 @@
                                                     <tr v-if="db.hasOwnProperty('disablePageSkipping')">
                                                         <td class="label">
                                                             Disable PageSkipping
-                                                            <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.spec.vacuum.disablePageSkipping.description"></span> 
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.disablePageSkipping')"></span> 
                                                         </td>
                                                         <td>
                                                             {{ db.hasOwnProperty('disablePageSkipping') ? db.disablePageSkipping : 'False' }}
@@ -639,7 +639,7 @@
                                         <thead>
                                             <th colspan="3" class="label">
                                                 {{ op.data.spec.op }} Conditions
-                                                <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status.conditions.description"></span> 
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.conditions')"></span> 
                                             </th>
                                         </thead>
                                         <tbody>
@@ -647,14 +647,14 @@
                                                 <tr>
                                                     <td class="label" :rowspan="Object.keys(condition).length">
                                                         {{ condition.type }}
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status.conditions.type.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.conditions.type')"></span>
                                                     </td>
                                                     <td class="hidden"></td><td class="hidden"></td>
                                                 </tr>
                                                 <tr v-if="condition.hasOwnProperty('lastTransitionTime')">
                                                     <td class="label">
                                                         Last Transition Time
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status.conditions.lastTransitionTime.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.conditions.lastTransitionTime')"></span>
                                                     </td>
                                                     <td class="timestamp">
                                                         <span class='date'>
@@ -672,7 +672,7 @@
                                                 <tr v-if="condition.hasOwnProperty('reason')">
                                                     <td class="label">
                                                         Reason
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status.conditions.reason.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.conditions.reason')"></span>
                                                     </td>
                                                     <td>
                                                         {{ condition.reason }}
@@ -681,7 +681,7 @@
                                                 <tr v-if="condition.hasOwnProperty('status')">
                                                     <td class="label">
                                                         Status
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status.conditions.status.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.conditions.status')"></span>
                                                     </td>
                                                     <td>
                                                         {{ condition.status }}
@@ -690,7 +690,7 @@
                                                 <tr v-if="condition.hasOwnProperty('message')">
                                                     <td class="label">
                                                         Message
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status.conditions.message.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.conditions.message')"></span>
                                                     </td>
                                                     <td>
                                                         {{ condition.message }}
@@ -710,7 +710,7 @@
                                             <tr v-if="op.data.status.hasOwnProperty('opStarted')">
                                                 <td class="label">
                                                     Operation Started
-                                                    <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status.opStarted.description"></span>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.opStarted')"></span>
                                                 </td>
                                                 <td class="timestamp" colspan="2">
                                                     <span class='date'>
@@ -728,7 +728,7 @@
                                             <tr v-if="op.data.status.hasOwnProperty('opRetries')">
                                                 <td class="label">
                                                     Operation Retries
-                                                    <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status.opRetries.description"></span>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.opRetries')"></span>
                                                 </td>
                                                 <td colspan="2">
                                                     {{ op.data.status.opRetries }}
@@ -739,14 +739,14 @@
                                                 <tr v-if="op.data.status.benchmark.hasOwnProperty('pgbench')">
                                                     <td class="label" :rowspan="Object.keys(op.data.status.benchmark.pgbench).length + 1">
                                                         PgBench
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status.benchmark.pgbench.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench')"></span>
                                                     </td>
                                                     <td class="hidden"></td><td class="hidden"></td>
                                                 </tr>
                                                 <tr v-if="op.data.status.benchmark.pgbench.hasOwnProperty('scaleFactor')">
                                                     <td class="label">
                                                         Scale Factor
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status.benchmark.pgbench.scaleFactor.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.scaleFactor')"></span>
                                                     </td>
                                                     <td>
                                                         {{ op.data.status.benchmark.pgbench.scaleFactor }}
@@ -755,7 +755,7 @@
                                                 <tr v-if="op.data.status.benchmark.pgbench.hasOwnProperty('transactionsProcessed')">
                                                     <td class="label">
                                                         Transactions Processed
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status.benchmark.pgbench.transactionsProcessed.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.transactionsProcessed')"></span>
                                                     </td>
                                                     <td>
                                                         {{ op.data.status.benchmark.pgbench.transactionsProcessed }}
@@ -764,7 +764,7 @@
                                                 <tr v-if="op.data.status.benchmark.pgbench.hasOwnProperty('latencyAverage')">
                                                     <td class="label">
                                                         Latency Average
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status.benchmark.pgbench.latencyAverage.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.latencyAverage')"></span>
                                                     </td>
                                                     <td>
                                                         {{ op.data.status.benchmark.pgbench.latencyAverage }}
@@ -773,7 +773,7 @@
                                                 <tr v-if="op.data.status.benchmark.pgbench.hasOwnProperty('latencyStddev')">
                                                     <td class="label">
                                                         Latency Stddev
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status.benchmark.pgbench.latencyStddev.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.latencyStddev')"></span>
                                                     </td>
                                                     <td>
                                                         {{ op.data.status.benchmark.pgbench.latencyStddev }}
@@ -782,7 +782,7 @@
                                                 <tr v-if="op.data.status.benchmark.pgbench.hasOwnProperty('tpsIncludingConnectionsEstablishing')">
                                                     <td class="label">
                                                         Tps Including Connections Establishing
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status.benchmark.pgbench.tpsIncludingConnectionsEstablishing.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.tpsIncludingConnectionsEstablishing')"></span>
                                                     </td>
                                                     <td>
                                                         {{ op.data.status.benchmark.pgbench.tpsIncludingConnectionsEstablishing }}
@@ -791,7 +791,7 @@
                                                 <tr v-if="op.data.status.benchmark.pgbench.hasOwnProperty('tpsExcludingConnectionsEstablishing')">
                                                     <td class="label">
                                                         Tps Excluding Connections Establishing
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status.benchmark.pgbench.tpsExcludingConnectionsEstablishing.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.tpsExcludingConnectionsEstablishing')"></span>
                                                     </td>
                                                     <td>
                                                         {{ op.data.status.benchmark.pgbench.tpsExcludingConnectionsEstablishing }}
@@ -803,7 +803,7 @@
                                                 <tr v-if="op.data.status[op.data.spec.op].hasOwnProperty('primaryInstance')">
                                                     <td class="label">
                                                         Primary Instance
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status[op.data.spec.op].primaryInstance.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.' + op.data.spec.op + '.primaryInstance')"></span>
                                                     </td>
                                                     <td>
                                                         {{ op.data.status[op.data.spec.op].primaryInstance }}
@@ -812,7 +812,7 @@
                                                 <tr v-if="op.data.status[op.data.spec.op].hasOwnProperty('initialInstances') && op.data.status[op.data.spec.op].initialInstances.length">
                                                     <td class="label" :rowspan="Object.keys(op.data.status[op.data.spec.op].initialInstances).length + 1">
                                                         Initial Instances
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status[op.data.spec.op].initialInstances.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.' + op.data.spec.op + '.initialInstances')"></span>
                                                     </td>
                                                     <td class="hidden"></td>
                                                 </tr>
@@ -826,7 +826,7 @@
                                                 <tr v-if="op.data.status[op.data.spec.op].hasOwnProperty('pendingToRestartInstances') && op.data.status[op.data.spec.op].pendingToRestartInstances.length">
                                                     <td class="label" :rowspan="Object.keys(op.data.status[op.data.spec.op].pendingToRestartInstances).length + 1">
                                                         Pending To Restart Instances
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status[op.data.spec.op].pendingToRestartInstances.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.' + op.data.spec.op + '.pendingToRestartInstances')"></span>
                                                     </td>
                                                     <td class="hidden"></td>
                                                 </tr>
@@ -840,7 +840,7 @@
                                                 <tr v-if="op.data.status[op.data.spec.op].hasOwnProperty('restartedInstances') && op.data.status[op.data.spec.op].restartedInstances.length">
                                                     <td class="label" :rowspan="Object.keys(op.data.status[op.data.spec.op].restartedInstances).length + 1">
                                                         Restarted Instances
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status[op.data.spec.op].restartedInstances.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.' + op.data.spec.op + '.restartedInstances')"></span>
                                                     </td>
                                                     <td class="hidden"></td>
                                                 </tr>
@@ -854,7 +854,7 @@
                                                 <tr v-if="op.data.status[op.data.spec.op].hasOwnProperty('switchoverInitiated')">
                                                     <td class="label">
                                                         Switchover Initiated
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status[op.data.spec.op].switchoverInitiated.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.' + op.data.spec.op + '.switchoverInitiated')"></span>
                                                     </td>
                                                     <td>
                                                         {{ op.data.status[op.data.spec.op].switchoverInitiated }}
@@ -864,7 +864,7 @@
                                                 <tr v-if="op.data.status[op.data.spec.op].hasOwnProperty('failure')">
                                                     <td class="label">
                                                         Failure
-                                                        <span class="helpTooltip" :data-tooltip="tooltips.sgdbops.status[op.data.spec.op].failure.description"></span>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.' + op.data.spec.op + '.failure')"></span>
                                                     </td>
                                                     <td>
                                                         {{ op.data.status[op.data.spec.op].failure }}
