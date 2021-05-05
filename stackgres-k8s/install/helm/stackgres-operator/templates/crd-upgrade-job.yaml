@@ -36,5 +36,8 @@ spec:
             value: "true"
           - name: CONVERSION_WEBHOOKS
             value: "false"
-        
+          {{- if .Values.developer.extraOpts }}
+          - name: APP_OPTS
+            value: '{{ range .Values.developer.extraOpts }}{{ . }} {{ end }}'
+          {{- end }}
       restartPolicy: OnFailure

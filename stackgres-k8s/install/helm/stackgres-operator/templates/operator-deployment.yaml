@@ -57,6 +57,10 @@ spec:
           - name: OPERATOR_SHOW_STACK_TRACES
             value: "{{ .Values.developer.showStackTraces }}"
           {{- end }}
+          {{- if .Values.developer.extraOpts }}
+          - name: APP_OPTS
+            value: '{{ range .Values.developer.extraOpts }}{{ . }} {{ end }}'
+          {{- end }}
           {{- if .Values.developer.enableJvmDebug }}
           - name: DEBUG_OPERATOR
             value: "{{ .Values.developer.enableJvmDebug }}"

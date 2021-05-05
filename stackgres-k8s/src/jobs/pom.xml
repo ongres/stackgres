@@ -158,7 +158,7 @@
                       <name>ongres-jvm-builder</name>
                       <build>
                         <cleanup>remove</cleanup>
-                        <from>${buildah.image}</from>
+                        <from>${docker.image}</from>
                         <assembly>
                           <targetDir>/jobs</targetDir>
                           <inline>
@@ -180,7 +180,7 @@
                         <entrypoint>
                           <arg>/bin/sh</arg>
                           <arg>-ex</arg>
-                          <arg>/jobs/src/main/buildah/build-image-jvm.sh</arg>
+                          <arg>/jobs/src/main/docker/build-image-jvm.sh</arg>
                         </entrypoint>
                         <wait>
                           <time>600000</time>
@@ -239,7 +239,7 @@
                       <name>jobs-native-builder</name>
                       <build>
                         <cleanup>remove</cleanup>
-                        <from>${buildah.image}</from>
+                        <from>${docker.image}</from>
                         <assembly>
                           <targetDir>/jobs</targetDir>
                           <inline>
@@ -261,7 +261,7 @@
                         <entrypoint>
                           <arg>/bin/sh</arg>
                           <arg>-ex</arg>
-                          <arg>/jobs/src/main/buildah/build-image-native.sh</arg>
+                          <arg>/jobs/src/main/docker/build-image-native.sh</arg>
                         </entrypoint>
                         <wait>
                           <time>600000</time>

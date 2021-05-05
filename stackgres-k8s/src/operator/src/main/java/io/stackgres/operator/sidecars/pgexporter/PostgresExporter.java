@@ -50,6 +50,8 @@ import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 @Sidecar(PostgresExporter.NAME)
@@ -59,6 +61,9 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
   public static final String SERVICE = "-prometheus-postgres-exporter";
   public static final String CONFIG_MAP = "-prometheus-postgres-exporter-config";
   public static final String NAME = StackgresClusterContainers.POSTGRES_EXPORTER;
+
+  private static final Logger POSTGRES_EXPORTER_LOGGER = LoggerFactory.getLogger(
+      "io.stackgres.prometheus-postgres-exporter");
 
   private LabelFactory<StackGresCluster> labelFactory;
 
@@ -89,7 +94,8 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
             + "run_postgres_exporter() {\n"
             + "  set -x\n"
             + "  exec /usr/local/bin/postgres_exporter \\\n"
-            + "    --log.level=info\n"
+            + "    --log.level="
+              + (POSTGRES_EXPORTER_LOGGER.isTraceEnabled() ? "debug" : "info") + "\n"
             + "}\n"
             + "\n"
             + "set +x\n"

@@ -88,6 +88,10 @@ public class DistributedLogsController implements ContainerResourceFactory<Void,
             .withValue(System.getenv("OPERATOR_SHOW_STACK_TRACES"))
             .build(),
             new EnvVarBuilder()
+            .withName("APP_OPTS")
+            .withValue(System.getenv("APP_OPTS"))
+            .build(),
+            new EnvVarBuilder()
             .withName("DEBUG_DISTRIBUTEDLOGS_CONTROLLER")
             .withValue(System.getenv("DEBUG_OPERATOR"))
             .build(),
@@ -187,6 +191,10 @@ public class DistributedLogsController implements ContainerResourceFactory<Void,
             new EnvVarBuilder()
             .withName("DISTRIBUTEDLOGS_CONTROLLER_SHOW_STACK_TRACES")
             .withValue(System.getenv("OPERATOR_SHOW_STACK_TRACES"))
+            .build(),
+            new EnvVarBuilder()
+            .withName("APP_OPTS")
+            .withValue(System.getenv("APP_OPTS"))
             .build(),
             new EnvVarBuilder()
             .withName("DEBUG_DISTRIBUTEDLOGS_CONTROLLER")

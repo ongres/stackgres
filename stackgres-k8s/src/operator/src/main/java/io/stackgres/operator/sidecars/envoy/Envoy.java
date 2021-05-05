@@ -6,6 +6,7 @@
 package io.stackgres.operator.sidecars.envoy;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -52,6 +53,8 @@ import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 @Sidecar(Envoy.NAME)
@@ -62,6 +65,7 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
 
   public static final String NAME = StackgresClusterContainers.ENVOY;
 
+  private static final Logger ENVOY_LOGGER = LoggerFactory.getLogger("io.stackgres.envoy");
   private static final String CONFIG_SUFFIX = "-envoy-config";
   private static final ImmutableMap<String, Integer> LISTEN_SOCKET_ADDRESS_PORT_MAPPING =
       ImmutableMap.of(
@@ -116,8 +120,13 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
             new ContainerPortBuilder().withContainerPort(EnvoyUtil.PG_ENTRY_PORT).build(),
             new ContainerPortBuilder().withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT).build())
         .withCommand("/usr/local/bin/envoy")
-        .withArgs("-c", "/etc/envoy/default_envoy.yaml", "-l", "debug",
-            "--bootstrap-version", "2");
+        .withArgs(Seq.of("-c", "/etc/envoy/default_envoy.yaml",
+            "--bootstrap-version", "2")
+            .append(Seq.of(ENVOY_LOGGER.isTraceEnabled())
+                .filter(traceEnabled -> traceEnabled)
+                .map(traceEnabled -> ImmutableList.of("-l", "debug"))
+                .flatMap(List::stream))
+            .toArray(String[]::new));
     return container.build();
   }
 

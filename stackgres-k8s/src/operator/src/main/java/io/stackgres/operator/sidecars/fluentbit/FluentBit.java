@@ -37,6 +37,8 @@ import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Sidecar(FluentBit.NAME)
 @Singleton
@@ -44,6 +46,8 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
 
   public static final String NAME = StackgresClusterContainers.FLUENT_BIT;
 
+  private static final Logger FLUENT_BIT_LOGGER = LoggerFactory.getLogger(
+      "io.stackgres.fluent-bit");
   private static final String CONFIG_SUFFIX = "-fluent-bit";
 
   private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;
@@ -179,6 +183,9 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
     String fluentBitConfigFile = ""
         + "[SERVICE]\n"
         + "    Parsers_File      /etc/fluent-bit/parsers.conf\n"
+        + "    Log_Level         " + (FLUENT_BIT_LOGGER.isTraceEnabled()
+            ? "trace" : FLUENT_BIT_LOGGER.isDebugEnabled()
+                ? "debug" : "info") + "\n"
         + "\n"
         + "[INPUT]\n"
         + "    Name              tail\n"

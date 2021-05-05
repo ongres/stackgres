@@ -57,7 +57,7 @@ import org.slf4j.LoggerFactory;
 public class Fluentd implements ContainerResourceFactory<Void,
     StackGresDistributedLogsContext> {
 
-  private static final Logger FLEUNTD_LOGGER = LoggerFactory.getLogger("io.stackgres.fleuntd");
+  private static final Logger FLUENTD_LOGGER = LoggerFactory.getLogger("io.stackgres.fleuntd");
 
   static final String PATRONI_TABLE_FIELDS = Stream.of(PatroniTableFields.values())
       .map(PatroniTableFields::getFieldName)
@@ -191,6 +191,9 @@ public class Fluentd implements ContainerResourceFactory<Void,
     return ""
         + "<system>\n"
         + "  workers " + getMaxWorkersBeforeRestart(distributedLogsContext) + "\n"
+        + "  log_level " + (FLUENTD_LOGGER.isTraceEnabled()
+            ? "trace" : FLUENTD_LOGGER.isDebugEnabled()
+                ? "debug" : "info") + "\n"
         + "</system>\n"
         + "\n"
         + "<worker 0>\n"
@@ -270,7 +273,6 @@ public class Fluentd implements ContainerResourceFactory<Void,
                 + "    </store>\n"
                 + "    <store>\n"
                 + "      @type stdout\n"
-                + "      @log_level " + (FLEUNTD_LOGGER.isTraceEnabled() ? "info" : "debug") + "\n"
                 + "    </store>\n"
                 + "  </match>\n"
                 + "\n"
@@ -290,7 +292,6 @@ public class Fluentd implements ContainerResourceFactory<Void,
                 + "    </store>\n"
                 + "    <store>\n"
                 + "      @type stdout\n"
-                + "      @log_level " + (FLEUNTD_LOGGER.isTraceEnabled() ? "info" : "debug") + "\n"
                 + "    </store>\n"
                 + "  </match>\n"
                 + "</worker>\n"

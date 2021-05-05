@@ -181,7 +181,7 @@
                       <name>ongres-jvm-builder</name>
                       <build>
                         <cleanup>remove</cleanup>
-                        <from>${buildah.image}</from>
+                        <from>${docker.image}</from>
                         <assembly>
                           <targetDir>/distributedlogs-controller</targetDir>
                           <inline>
@@ -203,7 +203,7 @@
                         <entrypoint>
                           <arg>/bin/sh</arg>
                           <arg>-ex</arg>
-                          <arg>/distributedlogs-controller/src/main/buildah/build-image-jvm.sh</arg>
+                          <arg>/distributedlogs-controller/src/main/docker/build-image-jvm.sh</arg>
                         </entrypoint>
                         <wait>
                           <time>300000</time>
@@ -262,7 +262,7 @@
                       <name>distributedlogs-controller-native-builder</name>
                       <build>
                         <cleanup>remove</cleanup>
-                        <from>${buildah.image}</from>
+                        <from>${docker.image}</from>
                         <assembly>
                           <targetDir>/distributedlogs-controller</targetDir>
                           <inline>
@@ -284,7 +284,7 @@
                         <entrypoint>
                           <arg>/bin/sh</arg>
                           <arg>-ex</arg>
-                          <arg>/distributedlogs-controller/src/main/buildah/build-image-native.sh</arg>
+                          <arg>/distributedlogs-controller/src/main/docker/build-image-native.sh</arg>
                         </entrypoint>
                         <wait>
                           <time>600000</time>

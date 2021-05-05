@@ -86,6 +86,10 @@ public class ClusterController implements StackGresClusterSidecarResourceFactory
             .withValue(System.getenv("OPERATOR_SHOW_STACK_TRACES"))
             .build(),
             new EnvVarBuilder()
+            .withName("APP_OPTS")
+            .withValue(System.getenv("APP_OPTS"))
+            .build(),
+            new EnvVarBuilder()
             .withName("DEBUG_CLUSTER_CONTROLLER")
             .withValue(System.getenv("DEBUG_OPERATOR"))
             .build(),
@@ -169,6 +173,10 @@ public class ClusterController implements StackGresClusterSidecarResourceFactory
             new EnvVarBuilder()
             .withName("CLUSTER_CONTROLLER_SHOW_STACK_TRACES")
             .withValue(System.getenv("OPERATOR_SHOW_STACK_TRACES"))
+            .build(),
+            new EnvVarBuilder()
+            .withName("APP_OPTS")
+            .withValue(System.getenv("APP_OPTS"))
             .build(),
             new EnvVarBuilder()
             .withName("DEBUG_CLUSTER_CONTROLLER")

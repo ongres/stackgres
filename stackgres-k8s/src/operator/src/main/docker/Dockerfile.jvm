@@ -4,7 +4,7 @@ FROM "$BASE_IMAGE"
   WORKDIR '/app/'
   COPY 'target/stackgres-operator-runner.jar' '/app/stackgres-operator.jar'
   COPY 'target/lib/' '/app/lib/'
-  COPY 'src/main/docker/stackgres-operator.sh' '/app/stackgres-operator.sh'
+  COPY 'src/main/docker/stackgres-operator.jvm.sh' '/app/stackgres-operator.sh'
   RUN chown jboss:jboss '/app/' -R
   RUN chmod 775 '/home/jboss' -R
   RUN chmod 775 '/app' -R

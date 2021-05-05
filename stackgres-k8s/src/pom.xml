@@ -111,7 +111,7 @@
     <pmd.ruleset.file>${checks.location}/pmd-ruleset.xml</pmd.ruleset.file>
 
     <it.image>stackgres/it:13.0</it.image>
-    <buildah.image>quay.io/buildah/stable:v1.15.0</buildah.image>
+    <docker.image>docker:20.10.6</docker.image>
   </properties>
 
   <dependencyManagement>
