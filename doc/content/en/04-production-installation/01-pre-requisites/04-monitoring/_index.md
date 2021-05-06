@@ -1,8 +1,8 @@
 ---
 title: Monitoring
-weight: 1
+weight: 4
 url: install/prerequisites/monitoring
-description: Details about how to setup and configure prometheus 
+description: Details about how to setup and configure prometheus
 ---
 
 As early indicated in [Component of the Stack]({{% relref "01-introduction/04-components-of-the-stack/#monitoring" %}}) StackGres, at the moment, only supports Prometheus integration.
@@ -31,7 +31,7 @@ helm repo update
 Create the `monitoring` namespace:
 
 ```bash
-kubectl create namespace monitoring 
+kubectl create namespace monitoring
 ```
 
 Install the [Prometheus Server Operator](https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus):
@@ -56,7 +56,7 @@ Grafana's hostname also can be queried as:
 kubectl get --namespace monitoring deployments prometheus-grafana -o json | jq -r '.metadata.name'
 ```
 
-### Re-routing services to different ports 
+### Re-routing services to different ports
 
 In a production setup, is very likely that you will be installing all the resources in a remote location, so you'll need to route the services through specific interfaces and ports.
 
@@ -191,7 +191,7 @@ The resulting URL will be the dashboard whether your PostgreSQL metrics will be 
 At this point, you should have ended with the following pods:
 
 ```
-# kubectl get pods -n monitoring 
+# kubectl get pods -n monitoring
 NAME                                                      READY   STATUS    RESTARTS   AGE
 alertmanager-prometheus-kube-prometheus-alertmanager-0    2/2     Running   0          20m
 grafana-7575c4b7b5-2cbvw                                  1/1     Running   0          14m

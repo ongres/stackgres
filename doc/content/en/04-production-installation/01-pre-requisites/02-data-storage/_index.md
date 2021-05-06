@@ -1,6 +1,6 @@
 ---
 title: Data Storage
-weight: 1
+weight: 2
 url: install/prerequisites/storage
 description: "Details about how to setup and configure the storage classes. Storage classes are used by the database clusters and will impact performance and availability of the cluster."
 ---

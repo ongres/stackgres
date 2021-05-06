@@ -1,6 +1,6 @@
 ---
 title: Non production options
-weight: 1
+weight: 5
 url: install/prerequisites/nonproduction
 description: Important notes for Non production options in the productiom environment
 ---
