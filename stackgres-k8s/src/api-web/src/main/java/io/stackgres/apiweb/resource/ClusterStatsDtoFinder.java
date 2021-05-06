@@ -60,7 +60,7 @@ public class ClusterStatsDtoFinder
   private ClusterStatsDto getClusterStats(StackGresCluster cluster) {
     List<Pod> pods = podFinder.findResourcesInNamespaceWithLabels(
         cluster.getMetadata().getNamespace(),
-        clusterLabelFactory.statefulSetPodLabels(cluster));
+        clusterLabelFactory.patroniClusterLabels(cluster));
 
     ImmutableList<PodStats> allPodStats = pods
         .stream()
