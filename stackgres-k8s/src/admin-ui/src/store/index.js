@@ -31,6 +31,7 @@ export default new Vuex.Store({
     logs: [],
     logsClusters: [],
     dbOps: [],
+    postgresVersions: [],
     cloneCRD: {},
     permissions: {
       allowed: {
@@ -331,6 +332,10 @@ export default new Vuex.Store({
 
     setCloneNamespace (state, namespace) {
       state.cloneCRD.data.metadata.namespace = namespace;
+    },
+
+    setPostgresVersions (state, versions) {
+      state.postgresVersions = versions;
     },
     
   }
