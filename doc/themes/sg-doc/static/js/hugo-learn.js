@@ -130,7 +130,7 @@ jQuery(document).ready(function() {
   })
   tocIndex += (activeLi.index()+1) + '.'
 
-  if($('ul.children').length) {
+  if($('ul.children[data-numbers="true"]').length) {
     
     $('ul.children li').each(function(index, el){
       let childIndex = ($(el).index()+1) + '.'
