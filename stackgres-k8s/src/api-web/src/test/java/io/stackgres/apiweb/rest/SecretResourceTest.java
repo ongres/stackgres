@@ -26,7 +26,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 class SecretResourceTest implements AuthenticatedResourceTest {
 
   @Inject
-  private KubernetesClientFactory factory;
+  KubernetesClientFactory factory;
 
   @BeforeEach
   void setUp() {

@@ -16,7 +16,6 @@ import com.google.common.base.Strings;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.quarkus.security.AuthenticationFailedException;
 import io.stackgres.apiweb.config.WebApiProperty;
-import io.stackgres.apiweb.config.WebApiPropertyContext;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.common.resource.ResourceUtil;
@@ -28,8 +27,8 @@ public class SecretVerification {
   private String namespace;
 
   @PostConstruct
-  public void init(WebApiPropertyContext webApiContext) {
-    this.namespace = webApiContext.getString(WebApiProperty.RESTAPI_NAMESPACE);
+  public void init() {
+    this.namespace = WebApiProperty.RESTAPI_NAMESPACE.getString();
   }
 
   /**
@@ -42,9 +41,8 @@ public class SecretVerification {
     return secretScanner.findResourcesInNamespace(namespace)
         .stream()
         .filter(s -> s.getMetadata().getLabels() != null)
-        .filter(s -> Objects.equals(
-            s.getMetadata().getLabels().get(StackGresContext.AUTH_KEY),
-            StackGresContext.AUTH_USER_VALUE))
+        .filter(s -> Objects.equals(s.getMetadata().getLabels()
+            .get(StackGresContext.AUTH_KEY), StackGresContext.AUTH_USER_VALUE))
         .filter(s -> !Strings.isNullOrEmpty(s.getData().get(StackGresContext.REST_K8SUSER_KEY)))
         .filter(s -> !Strings.isNullOrEmpty(s.getData().get(StackGresContext.REST_PASSWORD_KEY)))
         .filter(s -> Optional.ofNullable(s.getData().get(StackGresContext.REST_APIUSER_KEY))

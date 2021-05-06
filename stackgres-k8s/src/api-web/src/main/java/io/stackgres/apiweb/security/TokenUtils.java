@@ -14,9 +14,6 @@ import org.eclipse.microprofile.jwt.Claims;
 
 public class TokenUtils {
 
-  private static final String ISSUER = "https://api.stackgres.io/auth";
-  private static final String AUDIENCE = "api-websecurity";
-
   private TokenUtils() {
     // utility class
   }
@@ -27,22 +24,13 @@ public class TokenUtils {
    *
    * @return the JWT string
    */
-  public static String generateTokenString(String k8sUsername,
-      String preferredUsername, long duration, String privateKeyPath) {
-    long currentTimeInSecs = currentTimeInSecs();
-    long exp = currentTimeInSecs + duration;
-
+  public static String generateTokenString(String k8sUsername, String preferredUsername) {
     return Jwt.claims()
-        .issuer(ISSUER)
-        .audience(AUDIENCE)
         .claim(Claims.jti.name(), UUID.randomUUID())
         .subject(k8sUsername)
         .preferredUserName(preferredUsername)
-        .issuedAt(currentTimeInSecs)
-        .claim(Claims.auth_time.name(), currentTimeInSecs)
-        .expiresAt(exp)
         .jws()
-        .sign(privateKeyPath);
+        .sign();
   }
 
   /**
@@ -55,16 +43,6 @@ public class TokenUtils {
     return Hashing.sha256()
         .hashString(password, StandardCharsets.UTF_8)
         .toString();
-  }
-
-  /**
-   * Get the current time in seconds.
-   *
-   * @return the current time in seconds since epoch
-   */
-  public static int currentTimeInSecs() {
-    long currentTimeMS = System.currentTimeMillis();
-    return (int) (currentTimeMS / 1000);
   }
 
 }

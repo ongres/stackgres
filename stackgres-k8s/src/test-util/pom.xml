@@ -47,14 +47,8 @@
       <version>${jersey.version}</version>
     </dependency>
     <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>kubernetes-server-mock</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>io.sundr</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-test-kubernetes-client</artifactId>
     </dependency>
   </dependencies>
 

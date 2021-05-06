@@ -26,6 +26,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,14 +41,15 @@ public class LocalLoginResource {
   @Inject
   SecretVerification verify;
 
-  private static final long DURATION = 28800; // 8h
+  @ConfigProperty(name = "smallrye.jwt.new-token.lifespan", defaultValue = "28800")
+  long duration;
 
   @Operation(
       responses = {
           @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
+              content = {@Content(
                   mediaType = "application/json",
-                  schema = @Schema(type = "string")) })
+                  schema = @Schema(type = "string"))})
       })
   @CommonApiResponses
   @POST
@@ -57,14 +59,12 @@ public class LocalLoginResource {
       String k8sUsername =
           verify.verifyCredentials(credentials.getUserName(), credentials.getPassword());
       LOGGER.info("Kubernetes user: {}", k8sUsername);
-      String accessToken =
-          TokenUtils.generateTokenString(k8sUsername, credentials.getUserName(), DURATION,
-              "/etc/operator/certs/jwt-rsa.key");
+      String accessToken = TokenUtils.generateTokenString(k8sUsername, credentials.getUserName());
 
       TokenResponse tokenResponse = new TokenResponse();
       tokenResponse.setAccessToken(accessToken);
-      tokenResponse.setExpiresIn(DURATION);
       tokenResponse.setTokenType("Bearer");
+      tokenResponse.setExpiresIn(duration);
 
       return Response.ok(tokenResponse)
           .cacheControl(noCache())
