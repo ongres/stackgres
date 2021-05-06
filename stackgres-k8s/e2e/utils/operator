@@ -351,6 +351,16 @@ install_operator_only() {
     --set-string adminui.image.name="${ADMINUI_IMAGE_NAME%:*}" --set-string adminui.image.tag="${ADMINUI_IMAGE_NAME#*:}" \
     --set-string "adminui.image.pullPolicy=$(operator_pull_policy)" \
     --set-string "extensions.repositoryUrls[0]=$EXTENSIONS_REPOSITORY_URL" \
+    --set-string developer.extraOpts[0]='-Dquarkus.log.category."io.stackgres".level=DEBUG' \
+    --set-string developer.extraOpts[1]='-Dquarkus.log.category."io.quarkus".level=INFO' \
+    --set-string developer.extraOpts[2]='-Dquarkus.log.category."io.stackgres.dbops".level=TRACE' \
+    --set-string developer.extraOpts[3]='-Dquarkus.log.category."io.stackgres.backup".level=TRACE' \
+    --set-string developer.extraOpts[4]='-Dquarkus.log.category."io.stackgres.wal-g".level=TRACE' \
+    --set-string developer.extraOpts[5]='-Dquarkus.log.category."io.stackgres.patroni".level=TRACE' \
+    --set-string developer.extraOpts[6]='-Dquarkus.log.category."io.stackgres.fluent-bit".level=TRACE' \
+    --set-string developer.extraOpts[7]='-Dquarkus.log.category."io.stackgres.fluentd".level=TRACE' \
+    --set-string developer.extraOpts[8]='-Dquarkus.log.category."io.stackgres.prometheus-postgres-exporter".level=TRACE' \
+    --set-string developer.extraOpts[9]='-Dquarkus.log.category."okhttp3.logging.HttpLoggingInterceptor".level=TRACE' \
     $E2E_OPERATOR_OPTS "$@"
   fi
 }
@@ -394,6 +404,16 @@ upgrade_operator() {
     --set-string adminui.image.name="${ADMINUI_IMAGE_NAME%:*}" --set-string adminui.image.tag="${ADMINUI_IMAGE_NAME#*:}" \
     --set-string "adminui.image.pullPolicy=$(operator_pull_policy)" \
     --set-string "extensions.repositoryUrls[0]=$EXTENSIONS_REPOSITORY_URL" \
+    --set-string developer.extraOpts[0]='-Dquarkus.log.category."io.stackgres".level=DEBUG' \
+    --set-string developer.extraOpts[1]='-Dquarkus.log.category."io.quarkus".level=INFO' \
+    --set-string developer.extraOpts[2]='-Dquarkus.log.category."io.stackgres.dbops".level=TRACE' \
+    --set-string developer.extraOpts[3]='-Dquarkus.log.category."io.stackgres.backup".level=TRACE' \
+    --set-string developer.extraOpts[4]='-Dquarkus.log.category."io.stackgres.wal-g".level=TRACE' \
+    --set-string developer.extraOpts[5]='-Dquarkus.log.category."io.stackgres.patroni".level=TRACE' \
+    --set-string developer.extraOpts[6]='-Dquarkus.log.category."io.stackgres.fluent-bit".level=TRACE' \
+    --set-string developer.extraOpts[7]='-Dquarkus.log.category."io.stackgres.fluentd".level=TRACE' \
+    --set-string developer.extraOpts[8]='-Dquarkus.log.category."io.stackgres.prometheus-postgres-exporter".level=TRACE' \
+    --set-string developer.extraOpts[9]='-Dquarkus.log.category."okhttp3.logging.HttpLoggingInterceptor".level=TRACE' \
     --reuse-values \
     $E2E_OPERATOR_OPTS "$@"
 }
@@ -420,6 +440,16 @@ upgrade_operator_from_private_repository() {
       --set-string "adminui.image.pullPolicy=$(operator_pull_policy)" \
       --set serviceAccount.create=true \
       --set-string serviceAccount.repoCredentials=regcred \
+      --set-string developer.extraOpts[0]='-Dquarkus.log.category."io.stackgres".level=DEBUG' \
+      --set-string developer.extraOpts[1]='-Dquarkus.log.category."io.quarkus".level=INFO' \
+      --set-string developer.extraOpts[2]='-Dquarkus.log.category."io.stackgres.dbops".level=TRACE' \
+      --set-string developer.extraOpts[3]='-Dquarkus.log.category."io.stackgres.backup".level=TRACE' \
+      --set-string developer.extraOpts[4]='-Dquarkus.log.category."io.stackgres.wal-g".level=TRACE' \
+      --set-string developer.extraOpts[5]='-Dquarkus.log.category."io.stackgres.patroni".level=TRACE' \
+      --set-string developer.extraOpts[6]='-Dquarkus.log.category."io.stackgres.fluent-bit".level=TRACE' \
+      --set-string developer.extraOpts[7]='-Dquarkus.log.category."io.stackgres.fluentd".level=TRACE' \
+      --set-string developer.extraOpts[8]='-Dquarkus.log.category."io.stackgres.prometheus-postgres-exporter".level=TRACE' \
+      --set-string developer.extraOpts[9]='-Dquarkus.log.category."okhttp3.logging.HttpLoggingInterceptor".level=TRACE' \
       "$@"
 }
 

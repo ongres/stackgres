@@ -1,6 +1,6 @@
 
 build operator jvm image:
-  image: quay.io/buildah/stable:v1.20.1
+  image: docker:20.10.6
   stage: image build
   tags:
     - stackgres-runner
@@ -11,14 +11,15 @@ build operator jvm image:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}-jvm"'
     - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - 'export TARGET_OPERATOR_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$OPERATOR_IMAGE_NAME"'
-    - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - cd stackgres-k8s/src
     - |
       flock /tmp/stackgres-operator-build-jvm-image \
-        sh -xe operator/src/main/buildah/build-image-jvm.sh
+        sh -xe operator/src/main/docker/build-image-jvm.sh
+    - docker push "$TARGET_OPERATOR_IMAGE_NAME"
 
 build restapi jvm image:
-  image: quay.io/buildah/stable:v1.20.1
+  image: docker:20.10.6
   stage: image build
   tags:
     - stackgres-runner
@@ -29,14 +30,15 @@ build restapi jvm image:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}-jvm"'
     - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
     - 'export TARGET_RESTAPI_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$RESTAPI_IMAGE_NAME"'
-    - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - cd stackgres-k8s/src
     - |
       flock /tmp/stackgres-restapi-build-jvm-image \
-        sh -xe api-web/src/main/buildah/build-image-jvm.sh
+        sh -xe api-web/src/main/docker/build-image-jvm.sh
+    - docker push "$TARGET_RESTAPI_IMAGE_NAME"
 
 build jobs jvm image:
-  image: quay.io/buildah/stable:v1.20.1
+  image: docker:20.10.6
   stage: image build
   tags:
     - stackgres-runner
@@ -47,14 +49,15 @@ build jobs jvm image:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}-jvm"'
     - 'export JOBS_IMAGE_NAME="stackgres/jobs:$IMAGE_TAG"'
     - 'export TARGET_JOBS_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$JOBS_IMAGE_NAME"'
-    - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - cd stackgres-k8s/src
     - |
       flock /tmp/stackgres-jobs-build-jvm-image \
-        sh -xe jobs/src/main/buildah/build-image-jvm.sh
+        sh -xe jobs/src/main/docker/build-image-jvm.sh
+    - docker push "$TARGET_JOBS_IMAGE_NAME"
 
 build cluster-controller jvm image:
-  image: quay.io/buildah/stable:v1.20.1
+  image: docker:20.10.6
   stage: image build
   tags:
     - stackgres-runner
@@ -65,14 +68,15 @@ build cluster-controller jvm image:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}-jvm"'
     - 'export CLUSTER_CONTROLLER_IMAGE_NAME="stackgres/cluster-controller:$IMAGE_TAG"'
     - 'export TARGET_CLUSTER_CONTROLLER_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$CLUSTER_CONTROLLER_IMAGE_NAME"'
-    - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - cd stackgres-k8s/src
     - |
       flock /tmp/stackgres-cluster-controller-build-jvm-image \
-        sh -xe cluster-controller/src/main/buildah/build-image-jvm.sh
+        sh -xe cluster-controller/src/main/docker/build-image-jvm.sh
+    - docker push "$TARGET_CLUSTER_CONTROLLER_IMAGE_NAME"
 
 build distributedlogs-controller jvm image:
-  image: quay.io/buildah/stable:v1.20.1
+  image: docker:20.10.6
   stage: image build
   tags:
     - stackgres-runner
@@ -83,14 +87,15 @@ build distributedlogs-controller jvm image:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}-jvm"'
     - 'export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="stackgres/distributedlogs-controller:$IMAGE_TAG"'
     - 'export TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"'
-    - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - cd stackgres-k8s/src
     - |
       flock /tmp/stackgres-distributedlogs-controller-build-jvm-image \
-        sh -xe distributedlogs-controller/src/main/buildah/build-image-jvm.sh
+        sh -xe distributedlogs-controller/src/main/docker/build-image-jvm.sh
+    - docker push "$TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
 
 build operator native image:
-  image: quay.io/buildah/stable:v1.20.1
+  image: docker:20.10.6
   stage: image build
   tags:
     - stackgres-runner
@@ -101,11 +106,12 @@ build operator native image:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - 'export TARGET_OPERATOR_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$OPERATOR_IMAGE_NAME"'
-    - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - cd stackgres-k8s/src
     - |
       flock /tmp/stackgres-operator-build-native-image \
-        sh -xe operator/src/main/buildah/build-image-native.sh
+        sh -xe operator/src/main/docker/build-image-native.sh
+    - docker push "$TARGET_OPERATOR_IMAGE_NAME"
   only:
     variables:
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
@@ -115,7 +121,7 @@ build operator native image:
       - $DO_NATIVE
 
 build restapi native image:
-  image: quay.io/buildah/stable:v1.20.1
+  image: docker:20.10.6
   stage: image build
   tags:
     - stackgres-runner
@@ -126,11 +132,12 @@ build restapi native image:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
     - 'export TARGET_RESTAPI_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$RESTAPI_IMAGE_NAME"'
-    - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - cd stackgres-k8s/src
     - |
       flock /tmp/stackgres-restapi-build-native-image \
-        sh -xe api-web/src/main/buildah/build-image-native.sh
+        sh -xe api-web/src/main/docker/build-image-native.sh
+    - docker push "$TARGET_RESTAPI_IMAGE_NAME"
   only:
     variables:
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
@@ -140,7 +147,7 @@ build restapi native image:
       - $DO_NATIVE
 
 build jobs native image:
-  image: quay.io/buildah/stable:v1.20.1
+  image: docker:20.10.6
   stage: image build
   tags:
     - stackgres-runner
@@ -151,11 +158,12 @@ build jobs native image:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export JOBS_IMAGE_NAME="stackgres/jobs:$IMAGE_TAG"'
     - 'export TARGET_JOBS_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$JOBS_IMAGE_NAME"'
-    - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - cd stackgres-k8s/src
     - |
       flock /tmp/stackgres-jobs-build-native-image \
-        sh -xe jobs/src/main/buildah/build-image-native.sh
+        sh -xe jobs/src/main/docker/build-image-native.sh
+    - docker push "$TARGET_JOBS_IMAGE_NAME"
   only:
     variables:
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
@@ -165,7 +173,7 @@ build jobs native image:
       - $DO_NATIVE
 
 build cluster-controller native image:
-  image: quay.io/buildah/stable:v1.20.1
+  image: docker:20.10.6
   stage: image build
   tags:
     - stackgres-runner
@@ -176,11 +184,12 @@ build cluster-controller native image:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export CLUSTER_CONTROLLER_IMAGE_NAME="stackgres/cluster-controller:$IMAGE_TAG"'
     - 'export TARGET_CLUSTER_CONTROLLER_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$CLUSTER_CONTROLLER_IMAGE_NAME"'
-    - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - cd stackgres-k8s/src
     - |
       flock /tmp/stackgres-cluster-controller-build-native-image \
-        sh -xe cluster-controller/src/main/buildah/build-image-native.sh
+        sh -xe cluster-controller/src/main/docker/build-image-native.sh
+    - docker push "$TARGET_CLUSTER_CONTROLLER_IMAGE_NAME"
   only:
     variables:
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
@@ -190,7 +199,7 @@ build cluster-controller native image:
       - $DO_NATIVE
 
 build distributedlogs-controller native image:
-  image: quay.io/buildah/stable:v1.20.1
+  image: docker:20.10.6
   stage: image build
   tags:
     - stackgres-runner
@@ -201,11 +210,12 @@ build distributedlogs-controller native image:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="stackgres/distributedlogs-controller:$IMAGE_TAG"'
     - 'export TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"'
-    - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - cd stackgres-k8s/src
     - |
       flock /tmp/stackgres-distributedlogs-controller-build-native-image \
-        sh -xe distributedlogs-controller/src/main/buildah/build-image-native.sh
+        sh -xe distributedlogs-controller/src/main/docker/build-image-native.sh
+    - docker push "$TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
   only:
     variables:
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
@@ -215,7 +225,7 @@ build distributedlogs-controller native image:
       - $DO_NATIVE
 
 build admin-ui image:
-  image: quay.io/buildah/stable:v1.20.1
+  image: docker:20.10.6
   stage: image build
   tags:
     - stackgres-runner
@@ -226,14 +236,15 @@ build admin-ui image:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export ADMINUI_IMAGE_NAME="stackgres/admin-ui:$IMAGE_TAG"'
     - 'export TARGET_ADMINUI_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$ADMINUI_IMAGE_NAME"'
-    - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - cd stackgres-k8s/src
     - |
       flock /tmp/stackgres-adminui-build-image \
-        sh -xe admin-ui/buildah/build.sh
+        sh -xe admin-ui/docker/build.sh
+    - docker push "$TARGET_ADMINUI_IMAGE_NAME"
 
 build test image:
-  image: quay.io/buildah/stable:v1.20.1
+  image: docker:20.10.6
   stage: image build
   tags:
     - stackgres-runner
@@ -243,14 +254,19 @@ build test image:
       IT_IMAGE_NAME="$(grep -o '<it\.image>\([^<]\+\)</it\.image>' stackgres-k8s/src/pom.xml \
         | tr '<>' '  ' | cut -d ' ' -f 3)"
     - TARGET_IT_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IT_IMAGE_NAME"
-    - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - |
       cat << EOF > build-test-image.sh
+      if docker manifest inspect "$TARGET_IT_IMAGE_NAME" 2>/dev/null
+      then
+        echo "$TARGET_IT_IMAGE_NAME" already exists
+        exit
+      fi
       echo Building...
-      buildah bud -f stackgres-k8s/src/operator/src/test/docker/Dockerfile.it -t "$IT_IMAGE_NAME" .
+      docker build -f stackgres-k8s/src/operator/src/test/docker/Dockerfile.it -t "$TARGET_IT_IMAGE_NAME" .
       echo ...done
       echo Pushing...
-      buildah push -f "docker" "$IT_IMAGE_NAME" "$TARGET_IT_IMAGE_NAME"
+      docker push "$TARGET_IT_IMAGE_NAME"
       echo ...done
       EOF
     - flock /tmp/stackgres-build-it-image sh -xe build-test-image.sh

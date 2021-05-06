@@ -4,7 +4,7 @@ FROM "$BASE_IMAGE"
   WORKDIR '/app/'
   COPY 'target/stackgres-cluster-controller-runner.jar' '/app/stackgres-cluster-controller.jar'
   COPY 'target/lib/' '/app/lib/'
-  COPY 'src/main/docker/stackgres-cluster-controller.sh' '/app/stackgres-cluster-controller.sh'
+  COPY 'src/main/docker/stackgres-cluster-controller.jvm.sh' '/app/stackgres-cluster-controller.sh'
   RUN chown nobody:nobody '/app/' -R
   RUN chmod 775 '/app'
   RUN chmod 775 '/app/stackgres-cluster-controller.sh'

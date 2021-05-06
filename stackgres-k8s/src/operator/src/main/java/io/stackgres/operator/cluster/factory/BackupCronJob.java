@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
 @ApplicationScoped
 public class BackupCronJob implements StackGresClusterResourceStreamFactory {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(BackupCronJob.class);
+  private static final Logger BACKUP_LOGGER = LoggerFactory.getLogger("io.stackgres.backup");
 
   private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;
 
@@ -226,7 +226,7 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                             .withValue("3600")
                             .build())
                     .build())
-                .withCommand("/bin/bash", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
+                .withCommand("/bin/bash", "-e" + (BACKUP_LOGGER.isTraceEnabled() ? "x" : ""),
                     ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
                 .withVolumeMounts(ClusterStatefulSetVolumeConfig.TEMPLATES
                     .volumeMount(context,

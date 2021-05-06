@@ -55,7 +55,7 @@ public abstract class DbOpsJob
 
   private static final Pattern UPPERCASE_PATTERN = Pattern.compile("(\\p{javaUpperCase})");
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DbOpsJob.class);
+  private static final Logger DBOPS_LOGGER = LoggerFactory.getLogger("io.stackgres.dbops");
 
   private final StackGresPodSecurityContext clusterPodSecurityContext;
   private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;
@@ -184,7 +184,7 @@ public abstract class DbOpsJob
                         .build())
                     .toList())
                 .build())
-            .withCommand("/bin/sh", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
+            .withCommand("/bin/sh", "-e" + (DBOPS_LOGGER.isTraceEnabled() ? "x" : ""),
                 ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RUNNING_SH_PATH.path())
             .withVolumeMounts(
                 ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
@@ -240,7 +240,7 @@ public abstract class DbOpsJob
                     .build())
                 .addAll(runEnvVars)
                 .build())
-            .withCommand("/bin/sh", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
+            .withCommand("/bin/sh", "-e" + (DBOPS_LOGGER.isTraceEnabled() ? "x" : ""),
                 ClusterStatefulSetPath.LOCAL_BIN_RUN_DBOPS_SH_PATH.path())
             .withVolumeMounts(
                 ClusterStatefulSetVolumeConfig.SHARED.volumeMount(context),
@@ -315,7 +315,7 @@ public abstract class DbOpsJob
                     .toList())
                 .addAll(setResultEnvVars)
                 .build())
-            .withCommand("/bin/sh", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
+            .withCommand("/bin/sh", "-e" + (DBOPS_LOGGER.isTraceEnabled() ? "x" : ""),
                 ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RESULT_SH_PATH.path())
             .withVolumeMounts(
                 ClusterStatefulSetVolumeConfig.SHARED.volumeMount(context),

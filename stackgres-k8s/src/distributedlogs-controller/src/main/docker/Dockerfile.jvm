@@ -4,7 +4,7 @@ FROM "$BASE_IMAGE"
   WORKDIR '/app/'
   COPY 'target/stackgres-distributedlogs-controller-runner.jar' '/app/stackgres-distributedlogs-controller.jar'
   COPY 'target/lib/' '/app/lib/'
-  COPY 'src/main/docker/stackgres-distributedlogs-controller.sh' '/app/stackgres-distributedlogs-controller.sh'
+  COPY 'src/main/docker/stackgres-distributedlogs-controller.jvm.sh' '/app/stackgres-distributedlogs-controller.sh'
   RUN chown jboss:jboss '/app/' -R
   RUN chmod 775 '/home/jboss' -R
   RUN chmod 775 '/app' -R
