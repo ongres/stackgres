@@ -6,7 +6,7 @@ cd "$(dirname "$0")"
 
 STACKGRES_VERSION=$(grep '<artifactId>stackgres-parent</artifactId>' "../../src/pom.xml" -A 2 -B 2 \
  | grep -o '<version>\([^<]\+\)</version>' | tr '<>' '  ' | cut -d ' ' -f 3)
-IMAGE_TAG="${STACKGRES_VERSION}-jvm"
+IMAGE_TAG="${STACKGRES_VERSION}"
 if [ "${STACKGRES_VERSION##*-}" = "SNAPSHOT" ]
 then
   IMAGE_TAG='development\(-[^-]\+\)\?-jvm'

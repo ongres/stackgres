@@ -28,12 +28,12 @@ public class CheckOperatorValuesTest {
     if (StackGresProperty.OPERATOR_VERSION.getString().endsWith("-SNAPSHOT")) {
       imageTag = "development(-[^-]+)?-jvm";
     } else {
-      imageTag = StackGresProperty.OPERATOR_VERSION.getString() + "-jvm";
+      imageTag = StackGresProperty.OPERATOR_VERSION.getString();
     }
     Assert.assertTrue(operatorConfig.get("operator").get("image").get("tag").asText()
         + " should match " + imageTag,
         operatorConfig.get("operator").get("image").get("tag").asText()
-            .matches(imageTag));
+            .equals(imageTag));
     Assert.assertEquals(OperatorProperty.PROMETHEUS_AUTOBIND.getString(),
         operatorConfig.get("prometheus").get("allowAutobind").asText());
   }
