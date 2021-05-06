@@ -7,7 +7,7 @@ description: Rancher Kubernetes Engine (RKE) is a CNCF-certified Kubernetes dist
 
 Rancher Kubernetes Engine (RKE) is a CNCF-certified Kubernetes distribution that runs entirely within Docker containers. It solves the common frustration of installation complexity with Kubernetes by removing most host dependencies and presenting a stable path for deployment, upgrades, and rollbacks.
 
-> StackGres is not actively tested with RKE, if you find an problem, please [open an issue](https://gitlab.com/ongresinc/stackgres/-/issues/new).
+> StackGres is not actively tested with RKE, if you find any problem, please [open an issue](https://gitlab.com/ongresinc/stackgres/-/issues/new).
 
 By default, RKE looks for a file called `cluster.yml`, which contains information about the remote servers and services that will run on servers.
 
