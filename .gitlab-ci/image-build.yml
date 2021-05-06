@@ -257,8 +257,13 @@ build test image:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - |
       cat << EOF > build-test-image.sh
+      if docker manifest inspect "$TARGET_IT_IMAGE_NAME" 2>/dev/null
+      then
+        echo "$TARGET_IT_IMAGE_NAME" already exists
+        exit
+      fi
       echo Building...
-      docker build -f stackgres-k8s/src/operator/src/test/docker/Dockerfile.it -t "$IT_IMAGE_NAME" .
+      docker build -f stackgres-k8s/src/operator/src/test/docker/Dockerfile.it -t "$TARGET_IT_IMAGE_NAME" .
       echo ...done
       echo Pushing...
       docker push "$TARGET_IT_IMAGE_NAME"
