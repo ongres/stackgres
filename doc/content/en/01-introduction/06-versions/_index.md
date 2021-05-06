@@ -4,6 +4,33 @@ weight: 6
 url: intro/versions
 ---
 
+## StackGres 1.0.0-alpha2
+
+| Component | Versions |
+| ------ | ----------- |
+| PostgreSQL | 12.6, 12.5, 12.4, 12.3, 12.2, 12.1, 11.11, 11.10, 11.9, 11.8, 11.7 and 11.6 |
+| Patroni | 1.6.5 |
+| WAL-G | 0.2.19 |
+| PgBouncer | 1.15.0 |
+| Postgres Exporter | 0.9.0 |
+| Envoy | 1.17.1 |
+| Fluent-Bit | 1.6.10 |
+| Fluentd | 1.12.1 |
+
+### Additional extensions included on StackGres
+
+All extensions below are available for both PostgreSQL 11 and 12:
+
+| Extension | Version |
+| ------ | ----------- |
+| postgis | [3.0.1](https://github.com/postgis/postgis/releases/tag/3.0.1) |
+| timescaledb | [1.7.4](https://github.com/timescale/timescaledb/releases/tag/1.7.4) and [2.2.0](https://github.com/timescale/timescaledb/releases/tag/2.2.0) |
+| pgbouncer_fdw | [0.2](https://github.com/CrunchyData/pgbouncer_fdw/releases/tag/v0.2) |
+| pg_sphere | [1.0](https://github.com/akorotkov/pgsphere/tree/e0b303d0bff6a5f6596d3f48b4d9fb2e0f7bf160) |
+| pg_repack | [1.4.6](https://github.com/reorg/pg_repack/releases/tag/ver_1.4.6) |
+| pg_healpix | [1.0](https://gitlab.com/ongresinc/pg_healpix/-/tree/1-add-extension-compatibility) |
+| q3c | [2.0.0](https://github.com/segasai/q3c/releases/tag/v2.0.0) |
+
 ## StackGres 1.0.0-alpha1
 
 | Component | Versions |
@@ -16,6 +43,7 @@ url: intro/versions
 | Envoy | 1.15.0 |
 | Fluent-Bit | 1.4.4 |
 | Fluentd | 1.9.3 |
+
 ## StackGres 0.9.5
 
 | Component | Versions |

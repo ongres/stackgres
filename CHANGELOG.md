@@ -1,3 +1,51 @@
+# Release 1.0.0-alpha2 (2021-05-06)
+
+## NOTES
+
+Here it comes StackGres 1.0.0-alpha2!! :tada: :bottle_with_popping_cork:
+
+This is time to "extend" your experience with our new PostgreSQL extension system that bring the ability to install extensions on the fly. This release also brings a ton of improvements and bugfixes!
+
+## UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 0.9 version or above) helm chart issue following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `1.0.0-alpha1` version. Upgrading from that version will require to uninstall completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+## CHANGES
+
+* PostgreSQL Extensions System
+* Support for recovery with PITR
+* PostgreSQL 11.6, 11.7, 11.10, 11.11, 12.1, 12.2, 12.5 and 12.6 (with WAL-G 0.2.19)
+* Envoy 1.17.1, Pgbouncer 1.15.0, Prometheus Postgres Exporter 0.9.0, Fluentd 1.12.1 and Fluent-bit 1.6.4
+* SGDbOps are now in the Web UI
+* Added extra column that are show for resources in group `stackgres.io` using `kubectl`
+* Documentation style improved
+* Alert when missing sgbackupconfig when creating a sgbackup
+* Allow to expose Admin UI and REST API with HTTP
+* Allow to specify separate certificate and RSA key pair for admin UI and REST API
+* Add sgcluster status property to object returned by REST API
+* Extend cluster status REST API with opened connections
+
+## FIXES
+
+* When retrieving all context fail whole reconciliation cycle breaks
+* Confirm every updatable spec on every CRD is updatable from the Web UI
+* SGDbOps runAt field is not honored
+* Property "clone" not defined in the REST API for sgdbops major version upgrade
+* DbOps CR are not validated
+* Debug logging is enabled by default in StackGres components causing performance issues
+* Endpoint /stackgres/sgcluster/stats/ doesn't return the correct pod list
+* Backups not working in GKE in the Web UI
+* Various fixes in the Web UI
+
+## [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.0.0-alpha2)
+
 # Release 0.9.5 (2021-03-31)
 
 ## NOTES
