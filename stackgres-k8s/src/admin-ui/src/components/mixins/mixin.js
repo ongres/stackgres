@@ -454,6 +454,22 @@ export const mixin = {
           });
         }
 
+        if(!store.state.postgresVersions.length) {
+
+          /* Postgres versions */
+          axios
+          .get('/stackgres/version/postgresql')
+          .then( function(response){
+  
+            store.commit('setPostgresVersions', response.data.postgresql);
+  
+          }).catch(function(err) {
+            console.log(err);
+            vc.checkAuthError(err);
+          });
+
+        }
+
         if(!store.state.ready)
           store.commit('setReady',true)
   
