@@ -6,6 +6,7 @@
 package io.stackgres.operator;
 
 import java.nio.file.Paths;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,14 +27,14 @@ public class CheckOperatorValuesTest {
         Paths.get("../../install/helm/stackgres-operator/values.yaml").toFile());
     final String imageTag;
     if (StackGresProperty.OPERATOR_VERSION.getString().endsWith("-SNAPSHOT")) {
-      imageTag = "development(-[^-]+)?-jvm";
+      imageTag = "^development(-[^-]+)?-jvm$";
     } else {
-      imageTag = StackGresProperty.OPERATOR_VERSION.getString();
+      imageTag = "^" + Pattern.quote(StackGresProperty.OPERATOR_VERSION.getString()) + "$";
     }
     Assert.assertTrue(operatorConfig.get("operator").get("image").get("tag").asText()
         + " should match " + imageTag,
         operatorConfig.get("operator").get("image").get("tag").asText()
-            .equals(imageTag));
+            .matches(imageTag));
     Assert.assertEquals(OperatorProperty.PROMETHEUS_AUTOBIND.getString(),
         operatorConfig.get("prometheus").get("allowAutobind").asText());
   }
