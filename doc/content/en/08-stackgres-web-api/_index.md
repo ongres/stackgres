@@ -11,3 +11,4 @@ url: api
 
 Operator Rest API to manipulate stackgres
 
+{{% children style="li" depth="2" description="true" %}}
