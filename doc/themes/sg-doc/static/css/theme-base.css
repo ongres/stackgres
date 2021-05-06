@@ -648,11 +648,7 @@ section.attachments.grey .attachments-files {
     margin-top: 5px;
 }
 
-/* #body .children li a:before {
-    content: counters(list-item, '.') '. ';
-} */
-
-#body .children li:before {
+#body .children[data-numbers="true"] li:before {
     display: none;
 }
 

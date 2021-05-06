@@ -808,7 +808,7 @@ input[type="text"]:focus, input[type="text"]:active, input[type="email"]:focus, 
     border-radius: 100%;
     position: absolute;
     top: 10px;
-    left: -20px;
+    left: -12px;
 }
 
 h1 {
