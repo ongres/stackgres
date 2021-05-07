@@ -2,6 +2,7 @@
 title: Post-installation
 weight: 3
 url: install/post/install
+description: Details about how to expose and connect to the UI.
 ---
 
 ## Exposing the UI
