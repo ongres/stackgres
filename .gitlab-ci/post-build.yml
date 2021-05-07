@@ -1,28 +1,20 @@
 build ui:
-  image: node:13.7.0
-  stage: post-build
-  dependencies:
-    - build
+  image: registry.gitlab.com/$CI_PROJECT_PATH/$CI_IMAGE_NAME
+  stage: post build
+  tags:
+    - stackgres-runner
   script:
-  - cd stackgres-k8s/src/admin-ui
-  - npm install
-  - |
-    ! test -f node_modules/prettycron/node_modules/later/index.js \
-      || sed -i 's/later-cov/later/' node_modules/prettycron/node_modules/later/index.js
-  - npm run build
-  - sh -x build.sh
+    - sh stackgres-k8s/ci/build/build-gitlab.sh admin-ui
   retry: 2
-  artifacts:
-    expire_in: 1 week
-    when: always
+  cache:
     paths:
-    - stackgres-k8s/src/admin-ui/target
+      - stackgres-k8s/src/admin-ui/node_modules
 
 build documentation:
   image:
     name: klakegg/hugo:0.81.0-ubuntu
     entrypoint: [ "" ]
-  stage: post-build
+  stage: post build
   dependencies:
     - build
   script:
@@ -30,9 +22,10 @@ build documentation:
   - |
     STACKGRES_VERSION="$(
       grep '<artifactId>stackgres-parent</artifactId>' "stackgres-k8s/src/pom.xml" -A 2 -B 2 \
-      | grep -oP '(?<=<version>).*?(?=</version>)')"
-    STACKGRES_DOC_VERSION="$(printf "%s" "$STACKGRES_VERSION" | cut -d . -f 1-2)$(printf "%s" "$STACKGRES_VERSION" \
-      | grep -q ".-SNAPSHOT$" && printf "%s" "-dev" || true)"
+        | sed -n 's/^.*<version>\([^<]\+\)<\/version>.*$/\1/p')"
+    STACKGRES_DOC_VERSION="$(
+      printf "%s" "$STACKGRES_VERSION" | cut -d . -f 1-2)$(printf "%s" "$STACKGRES_VERSION" \
+        | grep -q ".-SNAPSHOT$" && printf "%s" "-dev" || true)"
   - |
     DOCUMENTATION_EXTRA_PATH=""
     if [[ ! -z "$CI_COMMIT_TAG" && ! "$CI_COMMIT_TAG" =~ ^latest-.*$ ]]
@@ -63,7 +56,7 @@ build documentation:
 
 build helm packages:
   image: dtzar/helm-kubectl:3.3.1
-  stage: post-build
+  stage: post build
   script:
   - sh -x stackgres-k8s/install/helm/build-helm-packages.sh
   - |
@@ -81,7 +74,7 @@ build helm packages:
 
 build helm templates:
   image: dtzar/helm-kubectl:3.3.1
-  stage: post-build
+  stage: post build
   script:
   - sh -x stackgres-k8s/install/helm/build-helm-templates.sh
   - |

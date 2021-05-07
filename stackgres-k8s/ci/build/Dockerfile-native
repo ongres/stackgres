@@ -1,0 +1,39 @@
+ARG SOURCE_IMAGE_NAME
+
+FROM "$SOURCE_IMAGE_NAME" as source
+  USER root
+  RUN mkdir -p /project/stackgres-k8s/src/
+  ARG UID
+  RUN chown "$UID" /project /project/stackgres-k8s /project/stackgres-k8s/src
+  USER $UID
+
+FROM docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11 as build
+  USER root
+  RUN mkdir -p /project/stackgres-k8s/src/
+  ARG UID
+  RUN chown "$UID" /project /project/stackgres-k8s /project/stackgres-k8s/src
+  USER $UID
+  COPY --chown="$UID" . /project/stackgres-k8s/src/.
+  WORKDIR /project
+  COPY --from=source /project /project-copy
+  RUN cp -r /project-copy/. /project
+  ARG MODULE_PATH
+  ARG MAVEN_OPTS
+  ARG MAVEN_CLI_OPTS
+  ARG PRE_BUILD_COMMANDS
+  USER root
+  RUN sh -ec "$PRE_BUILD_COMMANDS"
+  USER $UID
+  RUN mvn $MAVEN_CLI_OPTS package -DskipTests -P native -pl "$MODULE_PATH"
+  ARG POST_BUILD_COMMANDS
+  USER root
+  RUN sh -ec "$POST_BUILD_COMMANDS"
+  USER $UID
+  ARG IMAGE_NAME
+  LABEL build-of=$IMAGE_NAME
+
+FROM "$SOURCE_IMAGE_NAME" as package
+  ARG MODULE_PATH
+  ARG MODULE_NAME
+  COPY --from=build /project/stackgres-k8s/src/$MODULE_PATH/target/stackgres-$MODULE_NAME-runner /project/stackgres-k8s/src/$MODULE_PATH/target/.
+  WORKDIR /project

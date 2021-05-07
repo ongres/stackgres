@@ -1,0 +1,56 @@
+build ci image:
+  image: docker:20.10.6
+  stage: pre build
+  tags:
+    - stackgres-runner
+  timeout: 1 hour
+  script:
+    - TARGET_CI_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$CI_IMAGE_NAME"
+    - |
+      mkdir -p "$HOME/.docker"; echo '{"experimental": "enabled"}' > "$HOME/.docker/config.json"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - |
+      cat << EOF > build-ci-image.sh
+      if docker manifest inspect "$TARGET_CI_IMAGE_NAME" 2>/dev/null
+      then
+        echo "$TARGET_CI_IMAGE_NAME" already exists
+        exit
+      fi
+      echo Building...
+      docker build -f stackgres-k8s/ci/build/Dockerfile-ci -t "$TARGET_CI_IMAGE_NAME" .
+      echo ...done
+      echo Pushing...
+      docker push "$TARGET_CI_IMAGE_NAME"
+      echo ...done
+      EOF
+    - flock /tmp/stackgres-build-ci-image sh -xe build-ci-image.sh
+
+build test image:
+  image: docker:20.10.6
+  stage: pre build
+  tags:
+    - stackgres-runner
+  timeout: 1 hour
+  script:
+    - |
+      IT_IMAGE_NAME="$(grep -o '<it\.image>\([^<]\+\)</it\.image>' stackgres-k8s/src/pom.xml \
+        | tr '<>' '  ' | cut -d ' ' -f 3)"
+    - TARGET_IT_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IT_IMAGE_NAME"
+    - |
+      mkdir -p "$HOME/.docker"; echo '{"experimental": "enabled"}' > "$HOME/.docker/config.json"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - |
+      cat << EOF > build-test-image.sh
+      if docker manifest inspect "$TARGET_IT_IMAGE_NAME" 2>/dev/null
+      then
+        echo "$TARGET_IT_IMAGE_NAME" already exists
+        exit
+      fi
+      echo Building...
+      docker build -f stackgres-k8s/src/operator/src/test/docker/Dockerfile.it -t "$TARGET_IT_IMAGE_NAME" .
+      echo ...done
+      echo Pushing...
+      docker push "$TARGET_IT_IMAGE_NAME"
+      echo ...done
+      EOF
+    - flock /tmp/stackgres-build-test-image sh -xe build-test-image.sh

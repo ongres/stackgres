@@ -1,28 +1,37 @@
 build:
-  image: docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11
+  image: registry.gitlab.com/$CI_PROJECT_PATH/$CI_IMAGE_NAME
   stage: build
   tags:
     - stackgres-runner
     - stackgres-maven-runner
   script:
-    - 'microdnf install python3-pip jq'
-    - 'pip3 install yamllint yq'
-    - 'mvn $MAVEN_CLI_OPTS clean verify -P safer'
-    - 'sh -x stackgres-k8s/src/api-web/src/main/swagger/build.sh'
+    - |
+      sh stackgres-k8s/ci/build/build-gitlab.sh \
+        stackgres-parent \
+        operator-framework \
+        test-util \
+        common \
+        operator \
+        restapi \
+        jobs \
+        cluster-controller \
+        distributedlogs-controller
   retry:
     max: 2
     when: [ unknown_failure, api_failure, stuck_or_timeout_failure, runner_system_failure, runner_unsupported,
      stale_schedule, job_execution_timeout, archived_failure, unmet_prerequisites, scheduler_failure, data_integrity_failure ] 
   cache:
     paths:
-      - $CI_PROJECT_DIR/.m2/repository
+      - stackgres-k8s/src/.m2/repository
+      - stackgres-k8s/src/.mvn
   artifacts:
     expire_in: 1 week
     when: always
     paths:
-      - stackgres-k8s/src/target
-      - stackgres-k8s/src/*/target
+      - stackgres-k8s/src/api-web/target/swagger*
+      - stackgres-k8s/ci/build/target
     reports:
       junit:
+        - stackgres-k8s/ci/build/target/junit-build.hashes.xml
         - stackgres-k8s/src/*/target/surefire-reports/TEST-*.xml
 
