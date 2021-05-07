@@ -2,6 +2,7 @@
 title: Contributing guide
 weight: 6
 url: developer/stackgres/contrib
+description: Details about how to contribute.
 ---
 
 StackGres is open source, and as such we welcome any external contribution, in the form of feedback, testing, resources,

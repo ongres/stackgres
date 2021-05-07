@@ -2,6 +2,7 @@
 title: Pre-requisites
 weight: 1
 url: developer/prerequisites
+description: Details about the necessary tools to build and use StackGres.
 ---
 
 * [Java OpenJDK](https://openjdk.java.net/install/) 1.8 or higher
