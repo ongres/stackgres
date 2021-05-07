@@ -31,7 +31,6 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -262,7 +261,7 @@ public abstract class DbOpsJob
             .build(),
             new ContainerBuilder()
             .withName("set-dbops-result")
-            .withImage(StackGresContext.KUBECTL_IMAGE)
+            .withImage(StackGresComponent.KUBECTL.findLatestImageName())
             .withImagePullPolicy("IfNotPresent")
             .withEnv(ImmutableList.<EnvVar>builder()
                 .addAll(clusterStatefulSetEnvironmentVariables.listResources(context))
@@ -377,7 +376,7 @@ public abstract class DbOpsJob
   protected abstract ClusterStatefulSetPath getRunScript();
 
   protected String getSetResultImage() {
-    return StackGresContext.KUBECTL_IMAGE;
+    return StackGresComponent.KUBECTL.findLatestImageName();
   }
 
   protected ClusterStatefulSetPath getSetResultScript() {

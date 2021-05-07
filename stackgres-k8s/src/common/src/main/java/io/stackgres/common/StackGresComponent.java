@@ -43,7 +43,9 @@ public enum StackGresComponent {
   FLUENT_BIT("fluentbit", StackGresProperty.SG_IMAGE_FLUENT_BIT,
       "%1$s/ongres/fluentbit:v%2$s-build-%3$s"),
   FLUENTD("fluentd", StackGresProperty.SG_IMAGE_FLUENTD,
-      "%1$s/ongres/fluentd:v%2$s-build-%3$s");
+      "%1$s/ongres/fluentd:v%2$s-build-%3$s"),
+  KUBECTL("kubectl", StackGresProperty.SG_IMAGE_KUBECTL,
+      "%1$s/ongres/kubectl:v%2$s-build-%3$s");
 
   public static final String LATEST = "latest";
 

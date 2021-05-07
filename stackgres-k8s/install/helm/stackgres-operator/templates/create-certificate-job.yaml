@@ -23,7 +23,7 @@ spec:
       serviceAccountName: {{ .Release.Name }}-init
       containers:
       - name: "{{ .Release.Name }}-create-certificate"
-        image: "bitnami/kubectl:1.19.2"
+        image: "ongres/kubectl:v1.19.7-build-6.2"
         imagePullPolicy: "IfNotPresent"
         command:
           - "/bin/bash"
@@ -47,13 +47,13 @@ spec:
             DNS.3 = {{ .Release.Name }}.{{ .Release.Namespace }}.svc
             DNS.4 = {{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local
             EOF
-            
+
             openssl req -new -nodes -text -keyout /tmp/root.key \
                 -subj "/CN={{ .Release.Name }}.{{ .Release.Namespace }}.svc" \
                 -out /tmp/server.csr \
                 -config /tmp/csr.conf
             openssl rsa -in /tmp/root.key -pubout -out /tmp/root.pem
-            
+
             cat << EOF | kubectl create -f -
             apiVersion: certificates.k8s.io/v1beta1
             kind: CertificateSigningRequest
@@ -66,7 +66,7 @@ spec:
               - key encipherment
               - server auth
             EOF
-            
+
             if ! kubectl get csr '{{ .Release.Name }}' -o yaml|grep -q '^    type: Approved$'
             then
               {{- if .Values.cert.autoapprove }}
@@ -93,13 +93,13 @@ spec:
             KEY="$(cat /tmp/root.key | base64 | tr -d '\n')"
             PUB="$(cat /tmp/root.pem | base64 | tr -d '\n')"
             CRT="$(kubectl get csr '{{ .Release.Name }}' --template '{{ "{{ .status.certificate }}" }}')"
-            
+
             if [ -z "$CRT" ]
             then
               echo "Certificate not found in CSR!"
               exit 1
             fi
-            
+
             {{- $_ := set .Values.cert "crt" "${CRT}" }}
             {{- $_ := set .Values.cert "key" "${KEY}" }}
             cat << EOF > /tmp/validating-webhook-configuration.yaml
@@ -113,7 +113,7 @@ spec:
             EOF
             {{- $_ := set .Values.cert "crt" nil }}
             {{- $_ := set .Values.cert "key" nil }}
-            
+
             kubectl apply -f /tmp/validating-webhook-configuration.yaml
             kubectl apply -f /tmp/mutating-webhook-configuration.yaml
             kubectl apply -f /tmp/certificate-secret.yaml
@@ -135,7 +135,7 @@ spec:
             DNS.3 = {{ .Values.restapi.name  }}.{{ .Release.Namespace }}.svc
             DNS.4 = {{ .Values.restapi.name  }}.{{ .Release.Namespace }}.svc.cluster.local
             EOF
-            
+
             openssl req -new -nodes -text -keyout /tmp/web.key \
                 -subj "/CN={{ .Values.restapi.name  }}.{{ .Release.Namespace }}.svc" \
                 -out /tmp/server-web.csr \
@@ -157,7 +157,7 @@ spec:
             {{- $_ := set .Values.cert "webKey" nil }}
             {{- $_ := set .Values.cert "jwtRsaKey" nil }}
             {{- $_ := set .Values.cert "jwtRsaPub" nil }}
-            
+
             kubectl apply -f /tmp/web-certificate-secret.yaml
             {{- end }}
       restartPolicy: OnFailure

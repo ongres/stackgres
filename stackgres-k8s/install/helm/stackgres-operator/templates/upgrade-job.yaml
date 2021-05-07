@@ -22,7 +22,7 @@ spec:
       serviceAccountName: {{ .Release.Name }}-init
       containers:
       - name: "{{ .Release.Name }}-upgrade"
-        image: "bitnami/kubectl:1.18.3"
+        image: "ongres/kubectl:v1.19.7-build-6.2"
         imagePullPolicy: "IfNotPresent"
         command:
           - "/bin/bash"
@@ -34,7 +34,7 @@ spec:
             EOF
             kubectl apply -f /tmp/crd.yaml
             {{- end }}
-            
+
             {{- if .Release.IsUpgrade }}
             cat << 'EOF' > /tmp/prometheus-postgres-exporter-init.sql
 {{ $.Files.Get "prometheus-postgres-exporter-init.sql" | indent 12 }}
