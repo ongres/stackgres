@@ -35,6 +35,34 @@ do
     rm -rf "$E2E_PULLED_IMAGES_PATH"
   fi
 
+  if "$IS_WEB"
+  then
+    E2E_TEST=ui
+  fi
+  if [ -n "$E2E_TEST" ]
+  then
+    export E2E_ONLY_INCLUDES="$E2E_TEST"
+  fi
+  export IS_WEB
+  export IS_NATIVE
+  E2E_EXCLUDES_BY_HASH="$(flock /tmp/e2e-retrieve-pipeline-info.lock \
+    timeout -s KILL 300 \
+    sh stackgres-k8s/ci/test/e2e-already-passed-gitlab.sh)"
+  if echo "$E2E_EXCLUDES_BY_HASH" | grep -q '[^ ]'
+  then
+    echo "Excluding following tests since already passed:"
+    echo
+    printf '%s' "$E2E_EXCLUDES_BY_HASH" | tr ' ' '\n' | grep -v '^$' \
+      | while read E2E_EXCLUDED_TEST
+        do
+          printf ' - %s\n' "$E2E_EXCLUDED_TEST"
+        done
+    echo
+  fi
+  E2E_EXCLUDES="$(echo "$("$IS_WEB" || echo "ui ")$E2E_EXCLUDES $E2E_EXCLUDES_BY_HASH" | tr ' ' '\n' | sort | uniq | tr '\n' ' ')"
+  export E2E_EXCLUDES
+  flock /tmp/e2e-retrieve-pipeline-info.lock timeout -s KILL 300 sh stackgres-k8s/ci/test/e2e-variables.sh
+
   docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
 
   if [ "$K8S_REUSE" = false ]

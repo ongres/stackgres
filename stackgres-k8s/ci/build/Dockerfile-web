@@ -1,0 +1,40 @@
+ARG SOURCE_IMAGE_NAME
+
+FROM "$SOURCE_IMAGE_NAME" as source
+  USER root
+  RUN mkdir -p /project/stackgres-k8s/src/
+  ARG UID
+  RUN chown "$UID" /project /project/stackgres-k8s /project/stackgres-k8s/src
+  USER $UID
+
+FROM node:13.7.0 as build
+  USER root
+  RUN mkdir -p /project/stackgres-k8s/src/
+  ARG UID
+  RUN chown "$UID" /project /project/stackgres-k8s /project/stackgres-k8s/src
+  USER $UID
+  COPY --chown="$UID" . /project/stackgres-k8s/src/.
+  WORKDIR /project
+  COPY --from=source /project/stackgres-k8s/src/ stackgres-k8s/src/.
+  ARG PRE_BUILD_COMMANDS
+  USER root
+  RUN sh -ec "$PRE_BUILD_COMMANDS"
+  USER $UID
+  ARG MODULE_PATH
+  WORKDIR "stackgres-k8s/src/$MODULE_PATH"
+  ENV HOME=/project
+  RUN npm install
+  RUN npm run build
+  RUN sh -x build.sh
+  WORKDIR "/project"
+  ARG POST_BUILD_COMMANDS
+  USER root
+  RUN sh -ec "$POST_BUILD_COMMANDS"
+  USER $UID
+  ARG IMAGE_NAME
+  LABEL build-of=$IMAGE_NAME
+
+FROM "$SOURCE_IMAGE_NAME" as package
+  ARG MODULE_PATH
+  COPY --from=build /project/stackgres-k8s/src/$MODULE_PATH/target /project/stackgres-k8s/src/$MODULE_PATH/target
+  WORKDIR /project

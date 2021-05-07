@@ -11,6 +11,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.StackGresComponent;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 @QuarkusTest
 class VersionsResourceTest {

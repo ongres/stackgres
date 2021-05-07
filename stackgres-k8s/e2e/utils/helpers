@@ -1,0 +1,73 @@
+#!/bin/sh
+
+try_function() {
+  local E_UNSET=true
+  if echo "$-" | grep -q e
+  then
+    E_UNSET=false
+  fi
+  "$E_UNSET" || set +e
+  (set -e; "$@")
+  EXIT_CODE="$?"
+  "$E_UNSET" || set -e
+  RESULT=false
+  if [ "$EXIT_CODE" = 0 ]
+  then
+    RESULT=true
+  fi
+}
+
+notrace_function() {
+  local SHELL_XTRACE=""
+  local X_UNSET=true
+  if echo "$-" | grep -q x
+  then
+    X_UNSET=false
+  fi
+  "$X_UNSET" || set +x
+  local RESULT
+  local EXIT_CODE
+  try_function "$@"
+  "$X_UNSET" || set -x
+  return "$EXIT_CODE"
+}
+
+if [ "$E2E_TRACE_ALL" = true ]
+then
+  [ "${SHELL_XTRACE#-}" != 'x' ] || echo "Everything will be traced!"
+  notrace_function() {
+    "$@"
+  }
+fi
+
+transform_params() {
+  [ "$#" -ge 2 ]
+  local TRANSFORMER="$1"
+  local CMD="$2"
+  shift 2
+  notrace_function do_transform_params "$#" "$TRANSFORMER" "$@" "$CMD"
+}
+
+do_transform_params() {
+  local SIZE="$1"
+  local TRANSFORMER="$2"
+  local PARAMETER
+  shift 2
+  if [ "$SIZE" != 0 ]
+  then
+    PARAMETER="$1"
+    shift 1
+    do_transform_params "$((SIZE - 1))" "$TRANSFORMER" "$@" "$("$TRANSFORMER" "$PARAMETER")"
+  else
+    printf "'%s'" "$(escape_quote "$1")"
+    shift 1
+    for PARAMETER
+    do
+      printf " '%s'" "$(escape_quote "$PARAMETER")"
+    done
+  fi
+}
+
+escape_quote() {
+  printf '%s' "$1" | sed s/\'/\'\\\\\'\'/g
+}

@@ -114,20 +114,16 @@ else
 fi
 
 SPECS_NO_STATS="$(
-  SPEC_COUNT="$(echo "$SPECS" | tr ' ' '\n' | wc -l)"
-  BATCH_COUNT="$(( (SPEC_COUNT + E2E_PARALLELISM - 1) / E2E_PARALLELISM ))"
-  for BATCH_INDEX in $(seq 1 $BATCH_COUNT)
-  do
-    echo "$SPECS"  \
-      | while IFS="$(printf '\n')" read LINE
-        do
-          if ! [ -f "$E2E_PATH/test.stats" ] \
-            || ! cat "$E2E_PATH/test.stats" | cut -d : -f 1 | grep -qxF "${LINE##*spec/}"
-          then
-            echo "${LINE##*spec/}"
-          fi
-        done
-  done)"
+  echo "$SPECS" \
+    | while IFS="$(printf '\n')" read LINE
+      do
+        if ! [ -f "$E2E_PATH/test.stats" ] \
+          || ! cat "$E2E_PATH/test.stats" | cut -d : -f 1 | grep -qxF "${LINE##*spec/}"
+        then
+          echo "${LINE##*spec/}"
+        fi
+      done
+  )"
 
 if [ -n "$SPECS_NO_STATS" ]
 then
@@ -303,7 +299,7 @@ done
 cat << EOF > "$TARGET_PATH/e2e-tests-junit-report.xml"
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites time="$(($(date +%s) - START))">
-  <testsuite name="e2e tests" tests="$(echo "$SPECS" | tr ' ' '\n' | wc -l)" time="$(($(date +%s) - START))">
+  <testsuite name="e2e tests" tests="$(echo "$SPECS" | tr '\n' ' ' | wc -w)" time="$(($(date +%s) - START))">
 $(cat "$TARGET_PATH/e2e-tests-junit-report.results.xml")
   </testsuite>
 </testsuites>

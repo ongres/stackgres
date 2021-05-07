@@ -1,0 +1,12 @@
+ARG SOURCE_IMAGE_NAME
+ARG BASE_IMAGE
+
+FROM "$SOURCE_IMAGE_NAME" as source
+  USER root
+  RUN mkdir -p /project/stackgres-k8s/src/
+  ARG UID
+  RUN chown "$UID" /project /project/stackgres-k8s /project/stackgres-k8s/src
+  USER $UID
+  ARG MODULE_PATH
+  COPY --chown="$UID" "./$MODULE_PATH/src/main/docker/" "/project/stackgres-k8s/src/$MODULE_PATH/src/main/docker/"
+

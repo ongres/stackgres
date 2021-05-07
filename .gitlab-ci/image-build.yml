@@ -1,121 +1,109 @@
 
 build operator jvm image:
-  image: docker:20.10.6
+  image: registry.gitlab.com/$CI_PROJECT_PATH/$CI_IMAGE_NAME
   stage: image build
   tags:
     - stackgres-runner
-  dependencies:
-    - build
   timeout: 1 hour
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}-jvm"'
     - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - 'export TARGET_OPERATOR_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$OPERATOR_IMAGE_NAME"'
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - cd stackgres-k8s/src
     - |
       flock /tmp/stackgres-operator-build-jvm-image \
-        sh -xe operator/src/main/docker/build-image-jvm.sh
+        sh stackgres-k8s/ci/build/build-gitlab.sh operator-jvm-image
+    - HASH_OPERATOR_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.operator-jvm-image)"
+    - docker tag "$HASH_OPERATOR_IMAGE_NAME" "$TARGET_OPERATOR_IMAGE_NAME"
     - docker push "$TARGET_OPERATOR_IMAGE_NAME"
   retry: 2
 
 build restapi jvm image:
-  image: docker:20.10.6
+  image: registry.gitlab.com/$CI_PROJECT_PATH/$CI_IMAGE_NAME
   stage: image build
   tags:
     - stackgres-runner
-  dependencies:
-    - build
   timeout: 1 hour
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}-jvm"'
     - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
     - 'export TARGET_RESTAPI_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$RESTAPI_IMAGE_NAME"'
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - cd stackgres-k8s/src
     - |
       flock /tmp/stackgres-restapi-build-jvm-image \
-        sh -xe api-web/src/main/docker/build-image-jvm.sh
+        sh stackgres-k8s/ci/build/build-gitlab.sh restapi-jvm-image
+    - HASH_RESTAPI_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.restapi-jvm-image)"
+    - docker tag "$HASH_RESTAPI_IMAGE_NAME" "$TARGET_RESTAPI_IMAGE_NAME"
     - docker push "$TARGET_RESTAPI_IMAGE_NAME"
   retry: 2
 
 build jobs jvm image:
-  image: docker:20.10.6
+  image: registry.gitlab.com/$CI_PROJECT_PATH/$CI_IMAGE_NAME
   stage: image build
   tags:
     - stackgres-runner
-  dependencies:
-    - build
   timeout: 1 hour
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}-jvm"'
     - 'export JOBS_IMAGE_NAME="stackgres/jobs:$IMAGE_TAG"'
     - 'export TARGET_JOBS_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$JOBS_IMAGE_NAME"'
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - cd stackgres-k8s/src
     - |
       flock /tmp/stackgres-jobs-build-jvm-image \
-        sh -xe jobs/src/main/docker/build-image-jvm.sh
+        sh stackgres-k8s/ci/build/build-gitlab.sh jobs-jvm-image
+    - HASH_JOBS_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.jobs-jvm-image)"
+    - docker tag "$HASH_JOBS_IMAGE_NAME" "$TARGET_JOBS_IMAGE_NAME"
     - docker push "$TARGET_JOBS_IMAGE_NAME"
   retry: 2
 
 build cluster-controller jvm image:
-  image: docker:20.10.6
+  image: registry.gitlab.com/$CI_PROJECT_PATH/$CI_IMAGE_NAME
   stage: image build
   tags:
     - stackgres-runner
-  dependencies:
-    - build
   timeout: 1 hour
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}-jvm"'
     - 'export CLUSTER_CONTROLLER_IMAGE_NAME="stackgres/cluster-controller:$IMAGE_TAG"'
     - 'export TARGET_CLUSTER_CONTROLLER_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$CLUSTER_CONTROLLER_IMAGE_NAME"'
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - cd stackgres-k8s/src
     - |
       flock /tmp/stackgres-cluster-controller-build-jvm-image \
-        sh -xe cluster-controller/src/main/docker/build-image-jvm.sh
+        sh stackgres-k8s/ci/build/build-gitlab.sh cluster-controller-jvm-image
+    - HASH_CLUSTER_CONTROLLER_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.cluster-controller-jvm-image)"
+    - docker tag "$HASH_CLUSTER_CONTROLLER_IMAGE_NAME" "$TARGET_CLUSTER_CONTROLLER_IMAGE_NAME"
     - docker push "$TARGET_CLUSTER_CONTROLLER_IMAGE_NAME"
   retry: 2
 
 build distributedlogs-controller jvm image:
-  image: docker:20.10.6
+  image: registry.gitlab.com/$CI_PROJECT_PATH/$CI_IMAGE_NAME
   stage: image build
   tags:
     - stackgres-runner
-  dependencies:
-    - build
   timeout: 1 hour
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}-jvm"'
     - 'export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="stackgres/distributedlogs-controller:$IMAGE_TAG"'
     - 'export TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"'
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - cd stackgres-k8s/src
     - |
       flock /tmp/stackgres-distributedlogs-controller-build-jvm-image \
-        sh -xe distributedlogs-controller/src/main/docker/build-image-jvm.sh
+        sh stackgres-k8s/ci/build/build-gitlab.sh distributedlogs-controller-jvm-image
+    - HASH_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.distributedlogs-controller-jvm-image)"
+    - docker tag "$HASH_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
     - docker push "$TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
   retry: 2
 
 build operator native image:
-  image: docker:20.10.6
+  image: registry.gitlab.com/$CI_PROJECT_PATH/$CI_IMAGE_NAME
   stage: image build
   tags:
     - stackgres-runner
-  dependencies:
-    - build operator native executable
   timeout: 1 hour
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - 'export TARGET_OPERATOR_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$OPERATOR_IMAGE_NAME"'
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - cd stackgres-k8s/src
     - |
       flock /tmp/stackgres-operator-build-native-image \
-        sh -xe operator/src/main/docker/build-image-native.sh
+        sh stackgres-k8s/ci/build/build-gitlab.sh operator-native-image
+    - HASH_OPERATOR_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.operator-native-image)"
+    - docker tag "$HASH_OPERATOR_IMAGE_NAME" "$TARGET_OPERATOR_IMAGE_NAME"
     - docker push "$TARGET_OPERATOR_IMAGE_NAME"
   retry: 2
   only:
@@ -127,22 +115,20 @@ build operator native image:
       - $DO_NATIVE
 
 build restapi native image:
-  image: docker:20.10.6
+  image: registry.gitlab.com/$CI_PROJECT_PATH/$CI_IMAGE_NAME
   stage: image build
   tags:
     - stackgres-runner
-  dependencies:
-    - build restapi native executable
   timeout: 1 hour
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
     - 'export TARGET_RESTAPI_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$RESTAPI_IMAGE_NAME"'
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - cd stackgres-k8s/src
     - |
       flock /tmp/stackgres-restapi-build-native-image \
-        sh -xe api-web/src/main/docker/build-image-native.sh
+        sh stackgres-k8s/ci/build/build-gitlab.sh restapi-native-image
+    - HASH_RESTAPI_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.restapi-native-image)"
+    - docker tag "$HASH_RESTAPI_IMAGE_NAME" "$TARGET_RESTAPI_IMAGE_NAME"
     - docker push "$TARGET_RESTAPI_IMAGE_NAME"
   retry: 2
   only:
@@ -154,22 +140,20 @@ build restapi native image:
       - $DO_NATIVE
 
 build jobs native image:
-  image: docker:20.10.6
+  image: registry.gitlab.com/$CI_PROJECT_PATH/$CI_IMAGE_NAME
   stage: image build
   tags:
     - stackgres-runner
-  dependencies:
-    - build jobs native executable
   timeout: 1 hour
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export JOBS_IMAGE_NAME="stackgres/jobs:$IMAGE_TAG"'
     - 'export TARGET_JOBS_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$JOBS_IMAGE_NAME"'
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - cd stackgres-k8s/src
     - |
       flock /tmp/stackgres-jobs-build-native-image \
-        sh -xe jobs/src/main/docker/build-image-native.sh
+        sh stackgres-k8s/ci/build/build-gitlab.sh jobs-native-image
+    - HASH_JOBS_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.jobs-native-image)"
+    - docker tag "$HASH_JOBS_IMAGE_NAME" "$TARGET_JOBS_IMAGE_NAME"
     - docker push "$TARGET_JOBS_IMAGE_NAME"
   retry: 2
   only:
@@ -181,22 +165,20 @@ build jobs native image:
       - $DO_NATIVE
 
 build cluster-controller native image:
-  image: docker:20.10.6
+  image: registry.gitlab.com/$CI_PROJECT_PATH/$CI_IMAGE_NAME
   stage: image build
   tags:
     - stackgres-runner
-  dependencies:
-    - build cluster-controller native executable
   timeout: 1 hour
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export CLUSTER_CONTROLLER_IMAGE_NAME="stackgres/cluster-controller:$IMAGE_TAG"'
     - 'export TARGET_CLUSTER_CONTROLLER_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$CLUSTER_CONTROLLER_IMAGE_NAME"'
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - cd stackgres-k8s/src
     - |
       flock /tmp/stackgres-cluster-controller-build-native-image \
-        sh -xe cluster-controller/src/main/docker/build-image-native.sh
+        sh stackgres-k8s/ci/build/build-gitlab.sh cluster-controller-native-image
+    - HASH_CLUSTER_CONTROLLER_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.cluster-controller-native-image)"
+    - docker tag "$HASH_CLUSTER_CONTROLLER_IMAGE_NAME" "$TARGET_CLUSTER_CONTROLLER_IMAGE_NAME"
     - docker push "$TARGET_CLUSTER_CONTROLLER_IMAGE_NAME"
   retry: 2
   only:
@@ -208,22 +190,20 @@ build cluster-controller native image:
       - $DO_NATIVE
 
 build distributedlogs-controller native image:
-  image: docker:20.10.6
+  image: registry.gitlab.com/$CI_PROJECT_PATH/$CI_IMAGE_NAME
   stage: image build
   tags:
     - stackgres-runner
-  dependencies:
-    - build distributedlogs-controller native executable
   timeout: 1 hour
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="stackgres/distributedlogs-controller:$IMAGE_TAG"'
     - 'export TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"'
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - cd stackgres-k8s/src
     - |
       flock /tmp/stackgres-distributedlogs-controller-build-native-image \
-        sh -xe distributedlogs-controller/src/main/docker/build-image-native.sh
+        sh stackgres-k8s/ci/build/build-gitlab.sh distributedlogs-controller-native-image
+    - HASH_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.distributedlogs-controller-native-image)"
+    - docker tag "$HASH_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
     - docker push "$TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
   retry: 2
   only:
@@ -235,50 +215,19 @@ build distributedlogs-controller native image:
       - $DO_NATIVE
 
 build admin-ui image:
-  image: docker:20.10.6
+  image: registry.gitlab.com/$CI_PROJECT_PATH/$CI_IMAGE_NAME
   stage: image build
   tags:
     - stackgres-runner
-  dependencies:
-    - build ui
   timeout: 1 hour
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export ADMINUI_IMAGE_NAME="stackgres/admin-ui:$IMAGE_TAG"'
     - 'export TARGET_ADMINUI_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$ADMINUI_IMAGE_NAME"'
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - cd stackgres-k8s/src
     - |
       flock /tmp/stackgres-adminui-build-image \
-        sh -xe admin-ui/docker/build.sh
+        sh stackgres-k8s/ci/build/build-gitlab.sh admin-ui-image
+    - HASH_ADMINUI_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.admin-ui-image)"
+    - docker tag "$HASH_ADMINUI_IMAGE_NAME" "$TARGET_ADMINUI_IMAGE_NAME"
     - docker push "$TARGET_ADMINUI_IMAGE_NAME"
-  retry: 2
-
-build test image:
-  image: docker:20.10.6
-  stage: image build
-  tags:
-    - stackgres-runner
-  timeout: 1 hour
-  script:
-    - |
-      IT_IMAGE_NAME="$(grep -o '<it\.image>\([^<]\+\)</it\.image>' stackgres-k8s/src/pom.xml \
-        | tr '<>' '  ' | cut -d ' ' -f 3)"
-    - TARGET_IT_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IT_IMAGE_NAME"
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - |
-      cat << EOF > build-test-image.sh
-      if docker manifest inspect "$TARGET_IT_IMAGE_NAME" 2>/dev/null
-      then
-        echo "$TARGET_IT_IMAGE_NAME" already exists
-        exit
-      fi
-      echo Building...
-      docker build -f stackgres-k8s/src/operator/src/test/docker/Dockerfile.it -t "$TARGET_IT_IMAGE_NAME" .
-      echo ...done
-      echo Pushing...
-      docker push "$TARGET_IT_IMAGE_NAME"
-      echo ...done
-      EOF
-    - flock /tmp/stackgres-build-it-image sh -xe build-test-image.sh
   retry: 2

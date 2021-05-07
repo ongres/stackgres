@@ -1,28 +1,7 @@
 image: null
 
 variables:
-  # This will suppress any download for dependencies and plugins or upload messages which would clutter the console log.
-  # `showDateTime` will show the passed time in milliseconds. You need to specify `--batch-mode` to make this work.
-  MAVEN_OPTS: |
-    -Dhttps.protocols=TLSv1.2
-    -Dorg.slf4j.simpleLogger.showDateTime=true
-    -Djava.awt.headless=true
-    -XX:+UseParallelGC
-  # As of Maven 3.3.0 instead of this you may define these options in `.mvn/maven.config` so the same config is used
-  # when running from the command line.
-  # `installAtEnd` and `deployAtEnd` are only effective with recent version of the corresponding plugins.
-  MAVEN_CLI_OPTS: |
-    -f stackgres-k8s/src/pom.xml
-    --batch-mode
-    --errors
-    --fail-at-end
-    --show-version
-    -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository
-    -DinstallAtEnd=true
-    -DdeployAtEnd=true
-    -Dsurefire.useFile=false
-    -Dsurefire.useFile=false
-    -DtrimStackTrace=false
+  CI_IMAGE_NAME: "ci:1.1"
   SKIP_NATIVE: "false"
   SKIP_E2E: "false"
   SKIP_DEPLOY: "false"
@@ -49,15 +28,17 @@ cache:
     - .m2/repository
 
 stages:
+  - pre build
   - build
-  - post-build
-  - check-release
+  - post build
+  - check release
   - native build
   - image build
   - test
   - deploy
 
 include:
+  - local: .gitlab-ci/pre-build.yml
   - local: .gitlab-ci/build.yml
   - local: .gitlab-ci/post-build.yml
   - local: .gitlab-ci/native-build.yml

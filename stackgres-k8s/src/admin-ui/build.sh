@@ -21,5 +21,5 @@ cp ../api-web/target/swagger-merged.json target/public/info/sg-tooltips.json
 mkdir -p target/public/info
 # Export SG version to show on the UI
 grep '<artifactId>stackgres-parent</artifactId>' "../pom.xml" -A 2 -B 2 \
- | grep -oP '(?<=<version>).*?(?=</version>)' \
- | xargs -I % echo '{"version":"%"}' > target/public/info/sg-info.json
+  | sed -n 's/^.*<version>\([^<]\+\)<\/version>.*$/\1/p' \
+  | xargs -I % echo '{"version":"%"}' > target/public/info/sg-info.json
