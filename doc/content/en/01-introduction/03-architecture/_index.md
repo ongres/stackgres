@@ -2,6 +2,7 @@
 title: "Architecture"
 weight: 3
 url: intro/architecture
+description: Details about StackGres archtecture.
 ---
 
 ## The Operator

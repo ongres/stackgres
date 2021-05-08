@@ -2,6 +2,7 @@
 title: "Versions"
 weight: 6
 url: intro/versions
+description: Details about StackGres versions.
 ---
 
 ## StackGres 1.0.0-alpha4

@@ -2,6 +2,7 @@
 title: "Licensing"
 weight: 5
 url: intro/license
+description: Details about StackGres license.
 ---
 
 StackGres source code is licensed under the OSI-approved open source license [GNU Affero General
