@@ -2,6 +2,7 @@
 title: AWS S3
 weight: 1
 url: tutorial/prerequisites/object-storage/aws-s3
+description: Details about the object storage set up using AWS S3.
 ---
 
 First let's create the IAM policy that would allow the appropriate level of access to the S3 bucket:

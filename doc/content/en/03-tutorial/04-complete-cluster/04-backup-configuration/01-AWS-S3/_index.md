@@ -2,6 +2,7 @@
 title: AWS S3
 weight: 1
 url: tutorial/complete-cluster/backup-configuration/aws-s3
+description: Details about how to create custom backup configuration using the AWS S3 service.
 ---
 
 To proceed, a Kubernetes `Secret` with the folling shape needs to be created:

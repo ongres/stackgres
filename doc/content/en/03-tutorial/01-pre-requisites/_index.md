@@ -2,6 +2,7 @@
 title: Prerequisites
 weight: 1
 url: tutorial/prerequisites
+description: Details about the requirements to run the tutorial.
 ---
 
 StackGres runs on Kubernetes, and as such requires an operational K8s cluster to run. This section of the tutorial will
@@ -20,3 +21,7 @@ You may additionally need:
 * **An object storage bucket for backups**. StackGres uses object storage (S3, S3-compatible, GCS or Azure Blob) for
   storing the backups. You will need to have one for the tutorial if you want to have backups. Basic guidance will be
   provided here on how to create a bucket, but you may use any compatible object storage bucket.
+
+Details are described in the pages below:
+
+{{% children style="li" depth="1" description="true" %}}

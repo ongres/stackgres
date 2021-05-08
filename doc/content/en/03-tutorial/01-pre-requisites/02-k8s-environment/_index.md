@@ -2,6 +2,7 @@
 title: Kubernetes environment
 weight: 2
 url: tutorial/prerequisites/kubernetes-environment
+description: Details about the kubernetes set up to run the tutorial.
 ---
 
 To install and run StackGres you need a functional Kubernetes environment. In principle, any K8s compliant environment
@@ -10,4 +11,4 @@ clouds to make it easier and reproducible to follow this tutorial.
 
 Specific environment instructions:
 
-* [AWS EKS]({{% relref "03-tutorial/01-pre-requisites/02-k8s-environment/01-eks" %}})
+{{% children style="li" depth="2" description="true" %}}

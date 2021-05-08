@@ -12,4 +12,4 @@ url: developer
 Try the latest functionalities or enhance StackGres yourself.
 
 
-{{% children style="li" depth="2" description="true" %}}
+{{% children style="li" depth="1" description="true" %}}

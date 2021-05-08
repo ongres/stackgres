@@ -2,6 +2,7 @@
 title: Create a simple cluster
 weight: 3
 url: tutorial/simple-cluster
+description: Details about how to create a simple StackGres cluster.
 ---
 
 StackGres is operated via CRDs (here is the full [CRD Referece]({{% relref "06-crd-reference" %}})). As such, you don't

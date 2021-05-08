@@ -9,4 +9,7 @@ url: tutorial
 
 # Tutorial
 
-Self-paced tutorial. Discover and practice the most significant StackGres features with guided examples.
+Self-paced tutorial. Discover and practice the most significant StackGres features with guided examples:
+
+
+{{% children style="li" depth="1" description="true" %}}

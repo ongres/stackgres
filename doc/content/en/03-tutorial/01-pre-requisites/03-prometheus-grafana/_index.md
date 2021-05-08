@@ -2,6 +2,7 @@
 title: Prometheus and Grafana
 weight: 3
 url: tutorial/prerequisites/prometheus-grafana
+description: Details about the prometheus and grafana set up to run the tutorial.
 ---
 
 Prometheus (or Prometheus-compatible software) and Grafana are optional components, but it is recommended that you will

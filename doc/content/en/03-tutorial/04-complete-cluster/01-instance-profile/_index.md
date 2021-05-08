@@ -2,6 +2,7 @@
 title: Instance Profile
 weight: 1
 url: tutorial/complete-cluster/instance-profile
+description: Details about how to create the instances profiles.
 ---
 
 An Instance Profile is an abstraction over the resource characteristics of an instance (basically, as of today, CPU

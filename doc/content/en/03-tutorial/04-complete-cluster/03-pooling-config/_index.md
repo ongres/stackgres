@@ -2,6 +2,7 @@
 title: Custom Connection Pooling Configuration
 weight: 3
 url: tutorial/complete-cluster/pooling-config
+description: Details about how to create custom pool configurations.
 ---
 
 StackGres will deploy Postgres clusters, by default, with a sidecar with a connection pooler (set the
