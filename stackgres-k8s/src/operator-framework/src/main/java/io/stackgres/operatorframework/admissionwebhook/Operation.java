@@ -13,7 +13,7 @@ public enum Operation {
 
   @Override
   public String toString() {
-    return name().toLowerCase(Locale.US);
+    return name().toLowerCase(Locale.ROOT);
   }
 
 }

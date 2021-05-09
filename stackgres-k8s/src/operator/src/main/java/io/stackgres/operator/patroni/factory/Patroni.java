@@ -116,7 +116,8 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
     ResourceRequirements podResources = resourceRequirementsFactory
         .createResource(context);
     final String startScript = context.getRestoreContext().isPresent()
-        ? "/start-patroni-with-restore.sh" : "/start-patroni.sh";
+        ? "/start-patroni-with-restore.sh"
+        : "/start-patroni.sh";
     return new ContainerBuilder()
         .withName(StackgresClusterContainers.PATRONI)
         .withImage(patroniImageName)
@@ -130,14 +131,16 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                     .filter(entry -> entry.getSidecar() instanceof Envoy)
                     .map(entry -> EnvoyUtil.PG_ENTRY_PORT)
                     .findFirst()
-                    .orElse(EnvoyUtil.PG_PORT)).build(),
+                    .orElse(EnvoyUtil.PG_PORT))
+                .build(),
             new ContainerPortBuilder()
                 .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
                 .withContainerPort(context.getSidecars().stream()
                     .filter(entry -> entry.getSidecar() instanceof Envoy)
                     .map(entry -> EnvoyUtil.PG_REPL_ENTRY_PORT)
                     .findFirst()
-                    .orElse(EnvoyUtil.PG_PORT)).build(),
+                    .orElse(EnvoyUtil.PG_PORT))
+                .build(),
             new ContainerPortBuilder()
                 .withName(PATRONI_RESTAPI_PORT_NAME)
                 .withProtocol("TCP")
@@ -161,47 +164,48 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(
                 context,
                 volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_LIB64_PATH.subPath(context,
-                    ClusterStatefulSetPath.PG_BASE_PATH))
-                .withMountPath(ClusterStatefulSetPath.PG_LIB64_PATH.path(context))),
+                    .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_LIB64_PATH.subPath(context,
+                        ClusterStatefulSetPath.PG_BASE_PATH))
+                    .withMountPath(ClusterStatefulSetPath.PG_LIB64_PATH.path(context))),
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(
                 context,
                 volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH.subPath(context,
-                    ClusterStatefulSetPath.PG_BASE_PATH))
-                .withMountPath(ClusterStatefulSetPath.PG_LIB_PATH.path(context))),
+                    .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH.subPath(context,
+                        ClusterStatefulSetPath.PG_BASE_PATH))
+                    .withMountPath(ClusterStatefulSetPath.PG_LIB_PATH.path(context))),
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(
                 context,
                 volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_BIN_PATH.subPath(context,
-                    ClusterStatefulSetPath.PG_BASE_PATH))
-                .withMountPath(ClusterStatefulSetPath.PG_BIN_PATH.path(context))),
+                    .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_BIN_PATH.subPath(context,
+                        ClusterStatefulSetPath.PG_BASE_PATH))
+                    .withMountPath(ClusterStatefulSetPath.PG_BIN_PATH.path(context))),
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(
                 context,
                 volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_SHARE_PATH.subPath(context,
-                    ClusterStatefulSetPath.PG_BASE_PATH))
-                .withMountPath(ClusterStatefulSetPath.PG_SHARE_PATH.path(context))),
+                    .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_SHARE_PATH.subPath(context,
+                        ClusterStatefulSetPath.PG_BASE_PATH))
+                    .withMountPath(ClusterStatefulSetPath.PG_SHARE_PATH.path(context))),
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(
                 context,
                 volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_EXTENSION_PATH.subPath(context,
-                    ClusterStatefulSetPath.PG_BASE_PATH))
-                .withMountPath(ClusterStatefulSetPath.PG_EXTENSION_PATH.path(context))),
+                    .withSubPath(
+                        ClusterStatefulSetPath.PG_EXTENSIONS_EXTENSION_PATH.subPath(context,
+                            ClusterStatefulSetPath.PG_BASE_PATH))
+                    .withMountPath(ClusterStatefulSetPath.PG_EXTENSION_PATH.path(context))),
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(
                 context,
                 volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_BIN_PATH.subPath(context,
-                    ClusterStatefulSetPath.PG_BASE_PATH))
-                .withMountPath(
-                    ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_BIN_PATH.path(context))),
+                    .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_BIN_PATH.subPath(context,
+                        ClusterStatefulSetPath.PG_BASE_PATH))
+                    .withMountPath(
+                        ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_BIN_PATH.path(context))),
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(
                 context,
                 volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH.subPath(context,
-                    ClusterStatefulSetPath.PG_BASE_PATH))
-                .withMountPath(
-                    ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_LIB64_PATH.path(context))))
+                    .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH.subPath(context,
+                        ClusterStatefulSetPath.PG_BASE_PATH))
+                    .withMountPath(
+                        ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_LIB64_PATH.path(context))))
         .addAllToVolumeMounts(Seq.seq(Optional.ofNullable(cluster.getStatus())
             .map(StackGresClusterStatus::getPodStatuses))
             .flatMap(List::stream)
@@ -220,9 +224,10 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
             .map(extraMount -> ClusterStatefulSetVolumeConfig.DATA.volumeMount(
                 context,
                 volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_EXTENSION_PATH.subPath(context,
-                    ClusterStatefulSetPath.PG_BASE_PATH) + extraMount)
-                .withMountPath(extraMount)))
+                    .withSubPath(
+                        ClusterStatefulSetPath.PG_EXTENSIONS_EXTENSION_PATH.subPath(context,
+                            ClusterStatefulSetPath.PG_BASE_PATH) + extraMount)
+                    .withMountPath(extraMount)))
             .toList())
         .addToVolumeMounts(
             context.getIndexedScripts()
@@ -350,10 +355,10 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
     }
     StackGresClusterDbOpsMajorVersionUpgradeStatus majorVersionUpgradeStatus =
         Optional.of(context.getCluster())
-        .map(StackGresCluster::getStatus)
-        .map(StackGresClusterStatus::getDbOps)
-        .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
-        .get();
+            .map(StackGresCluster::getStatus)
+            .map(StackGresClusterStatus::getDbOps)
+            .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
+            .get();
     String primaryInstance = majorVersionUpgradeStatus.getPrimaryInstance();
     String targetVersion = majorVersionUpgradeStatus.getTargetPostgresVersion();
     String sourceVersion = majorVersionUpgradeStatus.getSourcePostgresVersion();
@@ -373,167 +378,181 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
             targetVersion));
     return Stream.of(
         new ContainerBuilder()
-        .withName(StackgresClusterContainers.MAJOR_VERSION_UPGRADE)
-        .withImage(targetPatroniImageName)
-        .withImagePullPolicy("IfNotPresent")
-        .withCommand("/bin/sh", "-ex",
-            ClusterStatefulSetPath.TEMPLATES_PATH.path()
-            + "/" + ClusterStatefulSetPath.LOCAL_BIN_MAJOR_VERSION_UPGRADE_SH_PATH.filename())
-        .withEnv(clusterStatefulSetEnvironmentVariables.listResources(context))
-        .addToEnv(
-            new EnvVarBuilder()
-            .withName("PRIMARY_INSTANCE")
-            .withValue(primaryInstance)
+            .withName(StackgresClusterContainers.MAJOR_VERSION_UPGRADE)
+            .withImage(targetPatroniImageName)
+            .withImagePullPolicy("IfNotPresent")
+            .withCommand("/bin/sh", "-ex",
+                ClusterStatefulSetPath.TEMPLATES_PATH.path()
+                    + "/"
+                    + ClusterStatefulSetPath.LOCAL_BIN_MAJOR_VERSION_UPGRADE_SH_PATH.filename())
+            .withEnv(clusterStatefulSetEnvironmentVariables.listResources(context))
+            .addToEnv(
+                new EnvVarBuilder()
+                    .withName("PRIMARY_INSTANCE")
+                    .withValue(primaryInstance)
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("TARGET_VERSION")
+                    .withValue(targetVersion)
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("SOURCE_VERSION")
+                    .withValue(sourceVersion)
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("LOCALE")
+                    .withValue(locale)
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("ENCODING")
+                    .withValue(encoding)
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("DATA_CHECKSUM")
+                    .withValue(dataChecksum)
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("LINK")
+                    .withValue(link)
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("CLONE")
+                    .withValue(clone)
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("CHECK")
+                    .withValue(check)
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("POD_NAME")
+                    .withValueFrom(new EnvVarSourceBuilder()
+                        .withFieldRef(new ObjectFieldSelector("v1", "metadata.name"))
+                        .build())
+                    .build())
+            .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(context),
+                ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context))
+            .addAllToVolumeMounts(ClusterStatefulSetVolumeConfig.USER.volumeMounts(context))
+            .addToVolumeMounts(
+                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                    context,
+                    volumeMountBuilder -> volumeMountBuilder
+                        .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_LIB64_PATH.subPath(context,
+                            ClusterStatefulSetPath.PG_BASE_PATH))
+                        .withMountPath(ClusterStatefulSetPath.PG_LIB64_PATH.path(context))),
+                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                    context,
+                    volumeMountBuilder -> volumeMountBuilder
+                        .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH.subPath(context,
+                            ClusterStatefulSetPath.PG_BASE_PATH))
+                        .withMountPath(ClusterStatefulSetPath.PG_LIB_PATH.path(context))),
+                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                    context,
+                    volumeMountBuilder -> volumeMountBuilder
+                        .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_BIN_PATH.subPath(context,
+                            ClusterStatefulSetPath.PG_BASE_PATH))
+                        .withMountPath(ClusterStatefulSetPath.PG_BIN_PATH.path(context))),
+                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                    context,
+                    volumeMountBuilder -> volumeMountBuilder
+                        .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_SHARE_PATH.subPath(context,
+                            ClusterStatefulSetPath.PG_BASE_PATH))
+                        .withMountPath(ClusterStatefulSetPath.PG_SHARE_PATH.path(context))),
+                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                    context,
+                    volumeMountBuilder -> volumeMountBuilder
+                        .withSubPath(
+                            ClusterStatefulSetPath.PG_EXTENSIONS_EXTENSION_PATH.subPath(context,
+                                ClusterStatefulSetPath.PG_BASE_PATH))
+                        .withMountPath(ClusterStatefulSetPath.PG_EXTENSION_PATH.path(context))),
+                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                    context,
+                    volumeMountBuilder -> volumeMountBuilder
+                        .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_BIN_PATH.subPath(context,
+                            ClusterStatefulSetPath.PG_BASE_PATH))
+                        .withMountPath(
+                            ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_BIN_PATH.path(context))),
+                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                    context,
+                    volumeMountBuilder -> volumeMountBuilder
+                        .withSubPath(
+                            ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH.subPath(context,
+                                ClusterStatefulSetPath.PG_BASE_PATH))
+                        .withMountPath(
+                            ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_LIB64_PATH.path(context))))
+            .addToVolumeMounts(
+                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                    context,
+                    volumeMountBuilder -> volumeMountBuilder
+                        .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH.subPath(
+                            context, sourceEnvVars,
+                            ClusterStatefulSetPath.PG_BASE_PATH))
+                        .withMountPath(
+                            ClusterStatefulSetPath.PG_LIB_PATH.path(context, sourceEnvVars))),
+                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                    context,
+                    volumeMountBuilder -> volumeMountBuilder
+                        .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_BIN_PATH.subPath(
+                            context, sourceEnvVars,
+                            ClusterStatefulSetPath.PG_BASE_PATH))
+                        .withMountPath(
+                            ClusterStatefulSetPath.PG_BIN_PATH.path(context, sourceEnvVars))),
+                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                    context,
+                    volumeMountBuilder -> volumeMountBuilder
+                        .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_SHARE_PATH.subPath(
+                            context, sourceEnvVars,
+                            ClusterStatefulSetPath.PG_BASE_PATH))
+                        .withMountPath(
+                            ClusterStatefulSetPath.PG_SHARE_PATH.path(context, sourceEnvVars))),
+                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                    context,
+                    volumeMountBuilder -> volumeMountBuilder
+                        .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_EXTENSION_PATH.subPath(
+                            context, sourceEnvVars,
+                            ClusterStatefulSetPath.PG_BASE_PATH))
+                        .withMountPath(ClusterStatefulSetPath.PG_EXTENSION_PATH.path(
+                            context, sourceEnvVars))))
             .build(),
-            new EnvVarBuilder()
-            .withName("TARGET_VERSION")
-            .withValue(targetVersion)
-            .build(),
-            new EnvVarBuilder()
-            .withName("SOURCE_VERSION")
-            .withValue(sourceVersion)
-            .build(),
-            new EnvVarBuilder()
-            .withName("LOCALE")
-            .withValue(locale)
-            .build(),
-            new EnvVarBuilder()
-            .withName("ENCODING")
-            .withValue(encoding)
-            .build(),
-            new EnvVarBuilder()
-            .withName("DATA_CHECKSUM")
-            .withValue(dataChecksum)
-            .build(),
-            new EnvVarBuilder()
-            .withName("LINK")
-            .withValue(link)
-            .build(),
-            new EnvVarBuilder()
-            .withName("CLONE")
-            .withValue(clone)
-            .build(),
-            new EnvVarBuilder()
-            .withName("CHECK")
-            .withValue(check)
-            .build(),
-            new EnvVarBuilder()
-            .withName("POD_NAME")
-            .withValueFrom(new EnvVarSourceBuilder()
-                .withFieldRef(new ObjectFieldSelector("v1", "metadata.name"))
-                .build())
-            .build())
-        .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(context),
-            ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context))
-        .addAllToVolumeMounts(ClusterStatefulSetVolumeConfig.USER.volumeMounts(context))
-        .addToVolumeMounts(
-            ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                context,
-                volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_LIB64_PATH.subPath(context,
-                    ClusterStatefulSetPath.PG_BASE_PATH))
-                .withMountPath(ClusterStatefulSetPath.PG_LIB64_PATH.path(context))),
-            ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                context,
-                volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH.subPath(context,
-                    ClusterStatefulSetPath.PG_BASE_PATH))
-                .withMountPath(ClusterStatefulSetPath.PG_LIB_PATH.path(context))),
-            ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                context,
-                volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_BIN_PATH.subPath(context,
-                    ClusterStatefulSetPath.PG_BASE_PATH))
-                .withMountPath(ClusterStatefulSetPath.PG_BIN_PATH.path(context))),
-            ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                context,
-                volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_SHARE_PATH.subPath(context,
-                    ClusterStatefulSetPath.PG_BASE_PATH))
-                .withMountPath(ClusterStatefulSetPath.PG_SHARE_PATH.path(context))),
-            ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                context,
-                volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_EXTENSION_PATH.subPath(context,
-                    ClusterStatefulSetPath.PG_BASE_PATH))
-                .withMountPath(ClusterStatefulSetPath.PG_EXTENSION_PATH.path(context))),
-            ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                context,
-                volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_BIN_PATH.subPath(context,
-                    ClusterStatefulSetPath.PG_BASE_PATH))
-                .withMountPath(
-                    ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_BIN_PATH.path(context))),
-            ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                context,
-                volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH.subPath(context,
-                    ClusterStatefulSetPath.PG_BASE_PATH))
-                .withMountPath(
-                    ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_LIB64_PATH.path(context))))
-        .addToVolumeMounts(
-            ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                context,
-                volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH.subPath(
-                    context, sourceEnvVars,
-                    ClusterStatefulSetPath.PG_BASE_PATH))
-                .withMountPath(ClusterStatefulSetPath.PG_LIB_PATH.path(context, sourceEnvVars))),
-            ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                context,
-                volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_BIN_PATH.subPath(
-                    context, sourceEnvVars,
-                    ClusterStatefulSetPath.PG_BASE_PATH))
-                .withMountPath(ClusterStatefulSetPath.PG_BIN_PATH.path(context, sourceEnvVars))),
-            ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                context,
-                volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_SHARE_PATH.subPath(
-                    context, sourceEnvVars,
-                    ClusterStatefulSetPath.PG_BASE_PATH))
-                .withMountPath(ClusterStatefulSetPath.PG_SHARE_PATH.path(context, sourceEnvVars))),
-            ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                context,
-                volumeMountBuilder -> volumeMountBuilder
-                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_EXTENSION_PATH.subPath(
-                    context, sourceEnvVars,
-                    ClusterStatefulSetPath.PG_BASE_PATH))
-                .withMountPath(ClusterStatefulSetPath.PG_EXTENSION_PATH.path(
-                    context, sourceEnvVars))))
-        .build(),
         new ContainerBuilder()
-        .withName("reset-patroni-initialize")
-        .withImage(StackGresComponent.KUBECTL.findLatestImageName())
-        .withImagePullPolicy("IfNotPresent")
-        .withCommand("/bin/sh", "-ex",
-            ClusterStatefulSetPath.TEMPLATES_PATH.path()
-            + "/" + ClusterStatefulSetPath.LOCAL_BIN_RESET_PATRONI_INITIALIZE_SH_PATH.filename())
-        .withEnv(clusterStatefulSetEnvironmentVariables.listResources(context))
-        .addToEnv(
-            new EnvVarBuilder()
-            .withName("PRIMARY_INSTANCE")
-            .withValue(primaryInstance)
-            .build(),
-            new EnvVarBuilder()
-            .withName("POD_NAME")
-            .withValueFrom(new EnvVarSourceBuilder()
-                .withFieldRef(new ObjectFieldSelector("v1", "metadata.name"))
-                .build())
-            .build(),
-            new EnvVarBuilder()
-            .withName("CLUSTER_NAMESPACE")
-            .withValue(context.getCluster().getMetadata().getNamespace())
-            .build(),
-            new EnvVarBuilder()
-            .withName("PATRONI_ENDPOINT_NAME")
-            .withValue(patroniServices.configName(context))
-            .build())
-        .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(context),
-            ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context),
-            ClusterStatefulSetVolumeConfig.USER.volumeMount(context),
-            ClusterStatefulSetVolumeConfig.LOCAL_BIN.volumeMount(context))
-        .build());
+            .withName("reset-patroni-initialize")
+            .withImage(StackGresComponent.KUBECTL.findLatestImageName())
+            .withImagePullPolicy("IfNotPresent")
+            .withCommand("/bin/sh", "-ex",
+                ClusterStatefulSetPath.TEMPLATES_PATH.path()
+                    + "/"
+                    + ClusterStatefulSetPath.LOCAL_BIN_RESET_PATRONI_INITIALIZE_SH_PATH.filename())
+            .withEnv(clusterStatefulSetEnvironmentVariables.listResources(context))
+            .addToEnv(
+                new EnvVarBuilder()
+                    .withName("PRIMARY_INSTANCE")
+                    .withValue(primaryInstance)
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("POD_NAME")
+                    .withValueFrom(new EnvVarSourceBuilder()
+                        .withFieldRef(new ObjectFieldSelector("v1", "metadata.name"))
+                        .build())
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("CLUSTER_NAMESPACE")
+                    .withValue(context.getCluster().getMetadata().getNamespace())
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("PATRONI_ENDPOINT_NAME")
+                    .withValue(patroniServices.configName(context))
+                    .build())
+            .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(context),
+                ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
+                    volumeMountBuilder -> volumeMountBuilder
+                        .withSubPath(
+                            ClusterStatefulSetPath.LOCAL_BIN_RESET_PATRONI_INITIALIZE_SH_PATH
+                                .filename())
+                        .withMountPath(
+                            ClusterStatefulSetPath.LOCAL_BIN_RESET_PATRONI_INITIALIZE_SH_PATH
+                                .path())
+                        .withReadOnly(true)),
+                ClusterStatefulSetVolumeConfig.USER.volumeMount(context))
+            .build());
   }
 
 }

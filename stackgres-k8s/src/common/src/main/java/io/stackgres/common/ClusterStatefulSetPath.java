@@ -5,11 +5,10 @@
 
 package io.stackgres.common;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import org.jooq.lambda.Seq;
@@ -113,7 +112,7 @@ public enum ClusterStatefulSetPath implements VolumePath {
 
   @Override
   public String path() {
-    return path(ImmutableMap.of());
+    return path(Map.of());
   }
 
   @Override
@@ -158,7 +157,7 @@ public enum ClusterStatefulSetPath implements VolumePath {
 
   @Override
   public String filename() {
-    return filename(ImmutableMap.of());
+    return filename(Map.of());
   }
 
   @Override
@@ -180,7 +179,7 @@ public enum ClusterStatefulSetPath implements VolumePath {
 
   @Override
   public String subPath() {
-    return subPath(ImmutableMap.of());
+    return subPath(Map.of());
   }
 
   @Override
@@ -200,7 +199,7 @@ public enum ClusterStatefulSetPath implements VolumePath {
 
   @Override
   public String subPath(VolumePath relativeTo) {
-    return relativize(subPath(ImmutableMap.of()), relativeTo.subPath(ImmutableMap.of()));
+    return relativize(subPath(Map.of()), relativeTo.subPath(Map.of()));
   }
 
   @Override
@@ -228,7 +227,7 @@ public enum ClusterStatefulSetPath implements VolumePath {
   }
 
   public EnvVar envVar() {
-    return envVar(ImmutableMap.of());
+    return envVar(Map.of());
   }
 
   public EnvVar envVar(ClusterContext context) {
@@ -246,11 +245,10 @@ public enum ClusterStatefulSetPath implements VolumePath {
         .build();
   }
 
-  private ImmutableMap<String, String> envVars(ClusterContext context,
-      Map<String, String> envVars) {
-    Map<String, String> mergedEnvVars = Maps.newHashMap(context.getEnvironmentVariables());
+  private Map<String, String> envVars(ClusterContext context, Map<String, String> envVars) {
+    Map<String, String> mergedEnvVars = new HashMap<>(context.getEnvironmentVariables());
     mergedEnvVars.putAll(envVars);
-    return ImmutableMap.copyOf(mergedEnvVars);
+    return Map.copyOf(mergedEnvVars);
   }
 
 }

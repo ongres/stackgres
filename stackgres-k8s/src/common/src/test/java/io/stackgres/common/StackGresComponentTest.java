@@ -5,46 +5,46 @@
 
 package io.stackgres.common;
 
-import java.net.URISyntaxException;
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 class StackGresComponentTest {
 
-  @Test
-  void getAllVersions_shouldNotFail() throws URISyntaxException {
-    for (StackGresComponent component : StackGresComponent.values()) {
-      Assertions.assertTrue(component.getOrderedVersions().isNotEmpty());
-    }
+  @ParameterizedTest
+  @EnumSource(StackGresComponent.class)
+  void getAllVersions_shouldNotFail(StackGresComponent component) {
+    assertThat(component.getOrderedVersions().stream()).isNotEmpty();
+    assertThat(component.getOrderedVersions().stream()).containsNoDuplicates();
   }
 
-  @Test
-  void getAllMajorVersions_shouldNotFail() throws URISyntaxException {
-    for (StackGresComponent component : StackGresComponent.values()) {
-      Assertions.assertTrue(component.getOrderedMajorVersions().isNotEmpty());
-    }
+  @ParameterizedTest
+  @EnumSource(StackGresComponent.class)
+  void getAllMajorVersions_shouldNotFail(StackGresComponent component) {
+    assertThat(component.getOrderedMajorVersions().stream()).isNotEmpty();
+    assertThat(component.getOrderedMajorVersions().stream()).containsNoDuplicates();
   }
 
-  @Test
-  void getAllBuildVersions_shouldNotFail() throws URISyntaxException {
-    for (StackGresComponent component : StackGresComponent.values()) {
-      Assertions.assertNotNull(component.getOrderedBuildVersions());
-    }
+  @ParameterizedTest
+  @EnumSource(StackGresComponent.class)
+  void getAllBuildVersions_shouldNotFail(StackGresComponent component) {
+    assertThat(component.getOrderedBuildVersions().stream()).isNotEmpty();
+    assertThat(component.getOrderedBuildVersions().stream()).hasSize(1);
   }
 
-  @Test
-  void getAllImageTags_shouldNotFail() throws URISyntaxException {
-    for (StackGresComponent component : StackGresComponent.values()) {
-      Assertions.assertTrue(component.getOrderedImageNames().isNotEmpty());
-    }
+  @ParameterizedTest
+  @EnumSource(StackGresComponent.class)
+  void getAllImageTags_shouldNotFail(StackGresComponent component) {
+    assertThat(component.getOrderedImageNames().stream()).isNotEmpty();
+    assertThat(component.getOrderedImageNames().stream()).containsNoDuplicates();
   }
 
-  @Test
-  void getLatestImageTags_shouldNotFail() throws URISyntaxException {
-    for (StackGresComponent component : StackGresComponent.values()) {
-      Assertions.assertFalse(component.findLatestImageName().isEmpty());
-    }
+  @ParameterizedTest
+  @EnumSource(StackGresComponent.class)
+  void getLatestImageTags_shouldNotFail(StackGresComponent component) {
+    assertThat(component.findLatestImageName()).isNotEmpty();
   }
 
 }

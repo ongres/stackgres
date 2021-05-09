@@ -45,6 +45,4 @@ public interface StackGresContext {
   String AUTH_KEY = "api.stackgres.io/auth";
   String AUTH_USER_VALUE = "user";
 
-  String BUSYBOX_IMAGE = "busybox:1.31.1";
-
 }
