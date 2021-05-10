@@ -1102,6 +1102,231 @@
 
             timezone () {
                 return store.state.timezone
+            },
+
+            upgradeCluster() {
+
+                return {
+                    "data": {
+                        "metadata": {
+                            "namespace": "default",
+                            "name": "stackgres",
+                            "uid": "899c6a06-56ef-4723-8da4-0ace06f43509"
+                        },
+                        "spec": {
+                            "instances": 4,
+                            "postgresVersion": "12.6",
+                            "configurations": {
+                            "sgPostgresConfig": "postgresconf",
+                            "sgPoolingConfig": "pgbouncerconf",
+                            "sgBackupConfig": "backupconf"
+                            },
+                            "sgInstanceProfile": "size-xs",
+                            "postgresExtensions": [
+                            {
+                                "name": "citext",
+                                "publisher": "com.ongres",
+                                "version": "1.6",
+                                "repository": "https://extensions.stackgres.io/postgres/repository"
+                            }
+                            ],
+                            "pods": {
+                            "persistentVolume": {
+                                "size": "5Gi"
+                            },
+                            "disableConnectionPooling": false,
+                            "disableMetricsExporter": false,
+                            "disablePostgresUtil": false
+                            },
+                            "prometheusAutobind": true,
+                            "nonProductionOptions": {
+                            "disableClusterPodAntiAffinity": true
+                            },
+                            "postgresServices": {
+                            "primary": {
+                                "enabled": true,
+                                "type": "ClusterIP",
+                                "annotations": {}
+                            },
+                            "replicas": {
+                                "enabled": true,
+                                "type": "ClusterIP",
+                                "annotations": {}
+                            }
+                            }
+                        },
+                        "status": {
+                            "conditions": [
+                            {
+                                "lastTransitionTime": "2021-05-06T13:51:52.712665Z",
+                                "reason": "FalseFailed",
+                                "status": "False",
+                                "type": "Failed"
+                            },
+                            {
+                                "lastTransitionTime": "2021-05-06T14:07:38.175244Z",
+                                "reason": "FalsePendingRestart",
+                                "status": "False",
+                                "type": "PendingRestart"
+                            }
+                            ]
+                        },
+                        "pods": [
+                            {
+                            "namespace": "default",
+                            "name": "minor-upgrade-0",
+                            "role": "primary",
+                            "ip": "10.244.0.57",
+                            "status": "Active",
+                            "containers": 6,
+                            "containersReady": 6
+                            },
+                            {
+                            "namespace": "default",
+                            "name": "minor-upgrade-1",
+                            "role": "replica",
+                            "ip": "10.244.0.64",
+                            "status": "Active",
+                            "containers": 6,
+                            "containersReady": 6
+                            },
+                            {
+                            "namespace": "default",
+                            "name": "minor-upgrade-2",
+                            "role": "replica",
+                            "ip": "10.244.0.66",
+                            "status": "Active",
+                            "containers": 6,
+                            "containersReady": 6
+                            },
+                            {
+                            "namespace": "default",
+                            "name": "minor-upgrade-3",
+                            "role": "replica",
+                            "ip": "10.244.0.68",
+                            "status": "Active",
+                            "containers": 6,
+                            "containersReady": 6
+                            }
+                        ],
+                        "podsReady": 4,
+                        "grafanaEmbedded": true,
+                        "info": {
+                            "primaryDns": "minor-upgrade-primary.default.svc.cluster.local",
+                            "replicasDns": "minor-upgrade-replicas.default.svc.cluster.local",
+                            "superuserUsername": "postgres",
+                            "superuserSecretName": "stackgres",
+                            "superuserPasswordKey": "superuser-password"
+                        }
+                    },
+                    "name": "minor-upgrade",
+                    "status": {
+                        "metadata": {
+                            "namespace": "default",
+                            "name": "stackgres",
+                            "uid": "899c6a06-56ef-4723-8da4-0ace06f43509"
+                        },
+                        "cpuRequested": "2000m",
+                        "cpuFound": "2000m",
+                        "memoryRequested": "2.00Gi",
+                        "memoryFound": "2.00Gi",
+                        "memoryUsed": "355.86Mi",
+                        "diskRequested": "20.00Gi",
+                        "diskFound": "3.64Ti",
+                        "diskUsed": "2.81Ti",
+                        "averageLoad1m": "2.71",
+                        "averageLoad5m": "2.30",
+                        "averageLoad10m": "2.38",
+                        "connections": "54",
+                        "pods": [
+                            {
+                                "namespace": "default",
+                                "name": "minor-upgrade-0",
+                                "role": "primary",
+                                "ip": "10.244.0.57",
+                                "status": "Active",
+                                "containers": 6,
+                                "containersReady": 6,
+                                "cpuRequested": "500m",
+                                "cpuFound": "500m",
+                                "memoryRequested": "512.00Mi",
+                                "memoryFound": "512.12Mi",
+                                "memoryUsed": "87.79Mi",
+                                "diskRequested": "5.00Gi",
+                                "diskFound": "931.42Gi",
+                                "diskUsed": "718.99Gi",
+                                "averageLoad1m": "2.71",
+                                "averageLoad5m": "2.30",
+                                "averageLoad10m": "2.38",
+                                "connections": "54"
+                            },
+                            {
+                                "namespace": "default",
+                                "name": "minor-upgrade-1",
+                                "role": "replica",
+                                "ip": "10.244.0.64",
+                                "status": "Active",
+                                "containers": 6,
+                                "containersReady": 6,
+                                "cpuRequested": "500m",
+                                "cpuFound": "500m",
+                                "memoryRequested": "512.00Mi",
+                                "memoryFound": "512.00Mi",
+                                "memoryUsed": "87.89Mi",
+                                "diskRequested": "5.00Gi",
+                                "diskFound": "931.42Gi",
+                                "diskUsed": "718.99Gi",
+                                "averageLoad1m": "2.71",
+                                "averageLoad5m": "2.30",
+                                "averageLoad10m": "2.38",
+                                "connections": "0"
+                            },
+                            {
+                                "namespace": "default",
+                                "name": "minor-upgrade-2",
+                                "role": "replica",
+                                "ip": "10.244.0.66",
+                                "status": "Active",
+                                "containers": 6,
+                                "containersReady": 6,
+                                "cpuRequested": "500m",
+                                "cpuFound": "500m",
+                                "memoryRequested": "512.00Mi",
+                                "memoryFound": "512.00Mi",
+                                "memoryUsed": "89.52Mi",
+                                "diskRequested": "5.00Gi",
+                                "diskFound": "931.42Gi",
+                                "diskUsed": "718.99Gi",
+                                "averageLoad1m": "2.71",
+                                "averageLoad5m": "2.30",
+                                "averageLoad10m": "2.38",
+                                "connections": "0"
+                            },
+                            {
+                                "namespace": "default",
+                                "name": "minor-upgrade-3",
+                                "role": "replica",
+                                "ip": "10.244.0.68",
+                                "status": "Active",
+                                "containers": 6,
+                                "containersReady": 6,
+                                "cpuRequested": "500m",
+                                "cpuFound": "500m",
+                                "memoryRequested": "512.00Mi",
+                                "memoryFound": "512.00Mi",
+                                "memoryUsed": "90.66Mi",
+                                "diskRequested": "5.00Gi",
+                                "diskFound": "931.42Gi",
+                                "diskUsed": "718.99Gi",
+                                "averageLoad1m": "2.71",
+                                "averageLoad5m": "2.30",
+                                "averageLoad10m": "2.38",
+                                "connections": "0"
+                            }
+                        ],
+                        "podsReady": 4
+                    }
+                }
             }
         }
     }
@@ -1155,6 +1380,85 @@
 
     #sgdbops tr:nth-child(odd), #sgdbops tr.details:nth-child(even) {
         background-color: var(--rowBg);
+    }
+
+    .clusterStatus {
+        border: 1px solid var(--borderColor);
+        margin: 12px 0 12px 12px;
+        padding: 10px 15px;
+    }
+
+    .flex {
+        display: flex;
+    }
+
+    .flex.flex-50 > * {
+        flex: 50%;
+    }
+
+    .flex.flex-33 > * {
+        flex: 33.33%;
+    }
+
+    .darkmode .clusterStatus {
+        border-color: #444;
+    }
+
+    .repStats .nodeIcon path.in {
+        opacity: .25;
+    }
+
+    .repStats .nodeIcon .full path.in, .primary .repStats .nodeIcon path.in {
+        opacity: 1;
+    }
+
+    .repStats .nodeIcon path {
+        fill: var(--blue);
+    }
+
+    .clusterStatus .pod {
+        width: 50%;
+        display: block;
+        float: left;
+        margin-bottom: 40px;
+        padding: 0 10px;
+    }
+
+    .pod > .podStatus {
+        border: 1px solid #444;
+        border-radius: 5px;
+        overflow: hidden;
+        width: 100%;
+    }
+
+    .podInfo .podStatus {
+        position: relative;
+        top: -2px;
+    }
+
+    .pgVersion .label span {
+        width: auto;
+    }
+
+    .podFooter, .connGraph {
+        background: var(--inputBg);
+    }
+
+    .podFooter .label.status {
+        position: relative;
+        top: -3px;
+    }
+    .clusterStatus .pod.primary {
+        float: none;
+    }
+
+    h3.header {
+        border-bottom: 1px solid var(--borderColor);
+        margin: 10px;
+    }
+
+    .darkmode h3.header {
+        border-color: #444;
     }
 
 </style>

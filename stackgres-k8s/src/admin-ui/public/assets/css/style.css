@@ -248,6 +248,10 @@ a.no-color{
     text-align: center;
 }
 
+.alignRight {
+    text-align: right;
+}
+
 .flex-center {
     display: flex;
     align-items: center;
