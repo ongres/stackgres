@@ -1,5 +1,7 @@
-<div class="progress">
-    <div class="wrapper">
-{{ .TableOfContents }}
-    </div>
-</div>
+<!-- TOCs need to be declared explicitly in the front matter of content/*.md -->
+<aside>
+    <header>
+        <h2>What's on this Page</h2>
+    </header>
+    {{ .TableOfContents }}
+</aside>
