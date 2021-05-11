@@ -30,7 +30,7 @@ spec:
           - |
             kubectl wait job -n '{{ .Release.Namespace }}' -l app=stackgres-operator,scope=init --for condition=Complete
             kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
-            kubectl rollout restart -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
+            kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
             kubectl rollout status -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
             kubectl rollout status -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
       restartPolicy: OnFailure
