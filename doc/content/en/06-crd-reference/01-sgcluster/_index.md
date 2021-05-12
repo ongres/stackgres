@@ -201,12 +201,13 @@ Holds scheduling configuration for StackGres pods to have.
 
 Holds scheduling configuration for StackGres pods to have.
 
-| Property  | Required | Updatable | Type     | Default                 | Description |
-|:----------|----------|-----------|:---------|:------------------------|:------------|
-| key       |          | ✓         | string   |                         | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeSelector >}} |
-| operator  |          | ✓         | string   | Equal                   | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations >}} |
-| value     |          | ✓         | string   |                         | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations >}} |
-| effect    |          | ✓         | string   | match all taint effects | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations >}} |
+| Property          | Required | Updatable | Type     | Default                 | Description |
+|:------------------|----------|-----------|:---------|:------------------------|:------------|
+| key               |          | ✓         | string   |                         | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations.items.key >}} |
+| operator          |          | ✓         | string   | Equal                   | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations.items.operator >}} |
+| value             |          | ✓         | string   |                         | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations.items.value >}} |
+| effect            |          | ✓         | string   | match all taint effects | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations.items.effect >}} |
+| tolerationSeconds |          | ✓         | string   | 0                       | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations.items.tolerationSeconds >}} |
 
 ## Configurations
 
