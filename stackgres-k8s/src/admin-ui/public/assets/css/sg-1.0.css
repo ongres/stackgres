@@ -238,6 +238,77 @@ svg.background circle {
     border-color: #444444;
 }
 
+.connInfo code, #contentTooltip .connInfo pre {
+    font-weight: 600;
+    font-family: monospace;
+}
+
+#contentTooltip .connInfo pre {
+    display: inline-block;
+    margin-top: 10px;
+    margin-bottom: 0px;
+    background-color: rgba(54, 168, 255, .1);
+    border: 1px solid #36A8FF;
+    color: #36A8FF;
+    border-radius: 5px;
+    padding: 0 5px;
+    max-width: calc(100% - 30px);
+    position: relative;
+}
+
+.connInfo li {
+    margin-left: 30px;
+    padding: 5px 0;
+}
+
+.connInfo p {
+    line-height: 1.5;
+    padding-top: 10px;
+}
+
+.copyClipboard {
+    position: absolute;
+    right: -22px;
+    width: 15px;
+    height: 15px;
+    top: calc(50% - 10px);
+}
+
+.copyClipboard:before, .copyClipboard:after {
+    width: 9px;
+    height: 9px;
+    border: 1px solid var(--baseColor);
+    border-radius: 2px;
+    content: "";
+    display: block;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+}
+
+.copyClipboard:after {
+    background: var(--baseColor);
+    top: 7px;
+    left: 7px;
+}
+
+.copyClipboard:hover:before, .copyClipboard:hover:after {
+    border: 1px solid var(--baseLightColor);
+    cursor: pointer;
+}
+
+.copyClipboard:hover:after {
+    background: var(--baseLightColor);
+}
+
+#copyText {
+    position: fixed;
+    z-index: -1;
+    left: 200%;
+    top: 200%;
+    opacity: 0;
+}
+
 
 /*Images*/
 

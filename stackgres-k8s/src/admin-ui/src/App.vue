@@ -10,6 +10,7 @@
 				<div class="content"></div>
 			</div>
 		</div>
+    <input type="text" value="" id="copyText">
 	</div>
 </template>
 

@@ -583,4 +583,17 @@ $(document).ready(function(){
     $(this).removeClass('notValid')
   })
 
+  $(document).on('click','.copyClipboard', function(){
+    let el = $(this)
+    let copyText = document.getElementById('copyText');
+    copyText.value = el.parent().text();
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); // For mobile devices
+    document.execCommand("copy");
+    setTimeout(function(){
+      store.commit('setTooltipsText','Click on a question mark to get help and tips about that field.')
+      $('#helpTooltip').removeClass('show').hide()
+    },3000)
+  })
+
 });
