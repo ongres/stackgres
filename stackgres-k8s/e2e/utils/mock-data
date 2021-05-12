@@ -3,14 +3,15 @@
 create_mock_table(){
   NAME="${1:-$CLUSTER_NAME}"
   run_query -c "$NAME" -p 5432 -i 0 -q "CREATE DATABASE test;"
-  run_query -c "$NAME" -p 5432 -i 0 -q "CREATE TABLE fibonacci(num integer);" -d "test"
+  run_query -c "$NAME" -p 5432 -i 0 -d "test" -q "CREATE TABLE fibonacci(num integer);"
 }
 
 insert_mock_data(){
   NAME="${1:-$CLUSTER_NAME}"
-  run_query -c "$NAME" -p 5432 -i 0 -q "INSERT INTO fibonacci(num) VALUES (1);" -d test
-  run_query -c "$NAME" -p 5432 -i 0 -q "INSERT INTO fibonacci(num) VALUES (2);" -d test
-  run_query -c "$NAME" -p 5432 -i 0 -q "INSERT INTO fibonacci(num) VALUES (3);" -d test
+  run_query -c "$NAME" -p 5432 -i 0 -d "test" -q 'TRUNCATE TABLE fibonacci;'
+  run_query -c "$NAME" -p 5432 -i 0 -d "test" -q 'INSERT INTO fibonacci(num) VALUES (0),(1),(1);'
+  run_query -c "$NAME" -p 5432 -i 0 -d "test" -q 'INSERT INTO fibonacci(num) VALUES (2),(3),(5);'
+  run_query -c "$NAME" -p 5432 -i 0 -d "test" -q 'INSERT INTO fibonacci(num) VALUES (8),(13),(21);'
 }
 
 generate_mock_data(){
@@ -22,7 +23,11 @@ generate_mock_data(){
 read_mock_table(){
   SERVER="${SERVER:-primary}"
   INSTANCE="${INSTANCE:-1}"
-  
+
+  local opt
+  local OPTARG
+  local OPTIND
+
   while getopts ":s:i:" opt; do
     case $opt in
       s) SERVER="$OPTARG"
@@ -35,13 +40,13 @@ read_mock_table(){
     esac
   done
 
-  run_query -c "$CLUSTER_NAME" -p 5432 -h "$CLUSTER_NAME-$SERVER" -i "$INSTANCE" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test"
+  run_query -c "$CLUSTER_NAME" -p 5432 -h "$CLUSTER_NAME-$SERVER" -i "$INSTANCE" -d "test" -q "SELECT SUM(num) FROM fibonacci;"
 }
 
 check_mock_data_samehost(){
   local CLUSTER_NAME="${1:-$CLUSTER_NAME}"
   RESPONSE=$(read_mock_table -i 0)
-  if [ "$(echo "$RESPONSE" | tr -d '\n')" = "123" ]
+  if [ "$RESPONSE" = "54" ]
   then
     echo "Mock data is present"
   else
@@ -52,7 +57,7 @@ check_mock_data_samehost(){
 check_mock_data(){
   local CLUSTER_NAME="${1:-$CLUSTER_NAME}"
   RESPONSE=$(read_mock_table)
-  if [ "$(echo "$RESPONSE" | tr -d '\n')" = "123" ]
+  if [ "$RESPONSE" = "54" ]
   then
     echo "Mock data is present"
   else
@@ -64,13 +69,13 @@ check_mock_data_replication(){
   local CLUSTER_NAME="${1:-$CLUSTER_NAME}"
   SERVER="primary"
   RESPONSE_PRIMARY=$(read_mock_table -i 1)
-  
+
   SERVER="replicas"
   RESPONSE_REPlICA=$(read_mock_table -i 0)
   if [ "$RESPONSE_PRIMARY" = "$RESPONSE_REPlICA" ]
   then
     return 0
-  else 
+  else
     echo "FAIL. data not replication"
     return 1
   fi

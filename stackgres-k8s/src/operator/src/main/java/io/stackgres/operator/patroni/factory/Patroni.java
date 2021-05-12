@@ -542,7 +542,9 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                     .withValue(patroniServices.configName(context))
                     .build())
             .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(context),
-                ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
+                ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context),
+                ClusterStatefulSetVolumeConfig.USER.volumeMount(context),
+                ClusterStatefulSetVolumeConfig.LOCAL_BIN.volumeMount(context,
                     volumeMountBuilder -> volumeMountBuilder
                         .withSubPath(
                             ClusterStatefulSetPath.LOCAL_BIN_RESET_PATRONI_INITIALIZE_SH_PATH
@@ -550,8 +552,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                         .withMountPath(
                             ClusterStatefulSetPath.LOCAL_BIN_RESET_PATRONI_INITIALIZE_SH_PATH
                                 .path())
-                        .withReadOnly(true)),
-                ClusterStatefulSetVolumeConfig.USER.volumeMount(context))
+                        .withReadOnly(true)))
             .build());
   }
 

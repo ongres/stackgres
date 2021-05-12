@@ -477,6 +477,11 @@ set_backup_completed() {
     IS_BACKUP_SUBJECT_TO_RETENTION_POLICY="true"
   fi
 
+  TIMELINE="$(grep "^wal_file_name:" /tmp/current-backup)" # Read file name from current-backup
+  TIMELINE="$(printf "$TIMELINE" | cut -d ':' -f 2 | tr -d '[:blank:]')" # Extract only the wal name value
+  TIMELINE="$(expr substr "$TIMELINE" 1 8)" # Get the first 8 digits
+  TIMELINE="$(printf "%d" "0x$TIMELINE")" # Convert hex to decimal
+
   BACKUP_PATCH='[
     {"op":"replace","path":"/status/internalName","value":"'"$CURRENT_BACKUP_NAME"'"},
     {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_COMPLETED"'"},
@@ -490,7 +495,7 @@ set_backup_completed() {
     },
     {"op":"replace","path":"/status/backupInformation","value":{
         "startWalFile":"'"$(grep "^wal_file_name:" /tmp/current-backup | cut -d : -f 2-)"'",
-        "timeline":"'"$(grep "^wal_file_name:" /tmp/current-backup | cut -d : -f 2- | awk '{startWal=substr($0, 0, 9); timeline=startWal+0; print timeline}')"'",
+        "timeline":"'"$TIMELINE"'",
         "hostname":"'"$(grep "^hostname:" /tmp/current-backup | cut -d : -f 2-)"'",
         "sourcePod":"'"$(grep "^hostname:" /tmp/current-backup | cut -d : -f 2-)"'",
         "pgData":"'"$(grep "^data_dir:" /tmp/current-backup | cut -d : -f 2-)"'",

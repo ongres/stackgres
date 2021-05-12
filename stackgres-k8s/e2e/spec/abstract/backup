@@ -78,7 +78,8 @@ check_timelines(){
     -o custom-columns="$CUSTOM_COLUMNS" \
     | tail -n +2 | sed 's/\s\+/ /g' | grep "Completed")
 
-  EXPECTED_TIMELINE=$(printf "%d" "0x$(echo "$BACKUP_LINE" | cut -d ' ' -f 3 | grep -o '^.\{8\}')")
+  EXPECTED_TIMELINE=$(echo "$BACKUP_LINE" | cut -d ' ' -f 3)
+  EXPECTED_TIMELINE=$(printf "%d" 0x$(expr substr $EXPECTED_TIMELINE 1 8))
   ACTUAL_TIMELINE=$(echo "$BACKUP_LINE" | cut -d ' ' -f 4)
 
   if [ "$EXPECTED_TIMELINE" != "$ACTUAL_TIMELINE" ]
@@ -92,7 +93,7 @@ check_timelines(){
 
 check_control_data(){
   local CUSTOM_COLUMNS=NAME:.metadata.name,PHASE:.status.process.status
-  
+
   local EXPECTED_CONTROL_DATA_LENGTH=$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni \
     -- bash -c 'pg_controldata --pgdata=$PG_DATA_PATH' | wc -l)
   kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o custom-columns="$CUSTOM_COLUMNS" \
@@ -134,7 +135,7 @@ is_automatic_backup_cr_completed() {
   BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
     -o custom-columns="$CUSTOM_COLUMNS" \
     | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
-  
+
   [ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
       exec-with-env backup -- wal-g backup-list | grep "^$BACKUP_NAME " | wc -l)" -gt 0 ]
 }
