@@ -692,27 +692,34 @@ export const mixin = {
         }
       },
   
-      showTooltip: function( kind, field ) {
+      showTooltip: function( kind, field, customTooltip = '' ) {
   
         const label = $("[for='"+field+"']").first().text();
-        const crd = store.state.tooltips[kind];
-  
         $("#help .title").html(label);
+
+        // If it's a custom tooltip
+        if(customTooltip.length) {
+          
+          store.commit("setTooltipsText", customTooltip);
+
+        } else { // Get tooltips from CRDs
   
-        let param = crd;
-  
-        if(field == 'spec.postgresql.conf') {
-          param =  crd.spec['postgresql.conf']
-        } else if (field == 'spec.pgBouncer.pgbouncer.ini') {
-          param =  crd.spec.pgBouncer['pgbouncer.ini']
-        } else {
-          let params = field.split('.');
-          params.forEach(function(item, index){
-            param = param[item]
-          })
+          const crd = store.state.tooltips[kind];
+          let param = crd;
+    
+          if(field == 'spec.postgresql.conf') {
+            param =  crd.spec['postgresql.conf']
+          } else if (field == 'spec.pgBouncer.pgbouncer.ini') {
+            param =  crd.spec.pgBouncer['pgbouncer.ini']
+          } else {
+            let params = field.split('.');
+            params.forEach(function(item, index){
+              param = param[item]
+            })
+          }
+    
+          store.commit("setTooltipsText", param.description);
         }
-  
-        store.commit("setTooltipsText", param.description);
   
       },
   
