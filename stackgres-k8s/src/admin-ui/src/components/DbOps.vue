@@ -136,7 +136,6 @@
                                     <span class='time'>
                                         {{ op.data.spec.runAt | formatTimestamp('time') }}
                                     </span>
-                                    Z
                                 </template>
                                 <span v-else class="asap">
                                     ASAP
@@ -653,7 +652,6 @@
                                                         <span class='time'>
                                                             {{ condition.lastTransitionTime | formatTimestamp('time') }}
                                                         </span>
-                                                        Z
                                                     </td>
                                                 </tr>
                                                 <tr v-if="condition.hasOwnProperty('reason')">
@@ -706,7 +704,6 @@
                                                     <span class='time'>
                                                         {{ op.data.status.opStarted | formatTimestamp('time') }}
                                                     </span>
-                                                    Z
                                                 </td>
                                             </tr>
                                             <tr v-if="op.data.status.hasOwnProperty('opRetries')">
