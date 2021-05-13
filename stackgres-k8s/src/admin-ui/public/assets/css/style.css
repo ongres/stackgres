@@ -5040,6 +5040,10 @@ td.label .helpTooltip {
     margin-bottom: 3px;
 }
 
+#helpTooltip * + p {
+    margin-top: 10px;
+}
+
 /* Secret Toggle */
 .toggleSecret {
     position: absolute;
