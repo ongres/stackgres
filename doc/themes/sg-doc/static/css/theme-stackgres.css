@@ -239,7 +239,7 @@ a:hover {
 }
 
 #sidebar ul .active ul li:last-of-type:after {
-    background: #161636;
+    background: var(--activeBg);
 }
 
 #sidebar a {
@@ -522,7 +522,9 @@ img.border {
 /* Lightmode Fixes */
 pre code {
     color: var(--textColor);
+    
 }
+
 
 /* Header */
 #header  nav a, nav a:visited {
@@ -1287,7 +1289,7 @@ code.language-bash {
     display: inline-block;
     margin: 0;
     vertical-align: middle;
-    color: #f5f5f5;
+    color: var(--borderColor);
     font-size: 14px;
 }
 
@@ -1360,6 +1362,12 @@ code.language-bash {
     position: relative;
     z-index: 2;
 }
+
+/*Light and Darkmode Adjustments*/
+.darkmode .versionSelector label, .darkmode .versionSelector select {
+    color: #f5f5f5;
+}
+
 
 /* Container Override */
 @media screen and (min-width: 0px) {
