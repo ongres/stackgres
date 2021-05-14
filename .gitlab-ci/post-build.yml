@@ -1,5 +1,5 @@
 build ui:
-  image: registry.gitlab.com/$CI_PROJECT_PATH/$CI_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$CI_IMAGE_NAME
   stage: post build
   tags:
     - stackgres-runner
