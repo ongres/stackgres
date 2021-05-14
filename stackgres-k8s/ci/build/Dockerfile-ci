@@ -6,7 +6,7 @@
 # docker build -f stackgres-k8s/ci/build/Dockerfile-ci -t registry.gitlab.com/ongresinc/stackgres/ci:1.0 .
 #
 ###
-FROM docker.io/docker:19.03
+FROM docker.io/docker:20.10
 
 RUN apk add coreutils gnupg openssl jq curl bash zsh sed grep libc6-compat py3-pip openjdk11
 RUN pip3 install yamllint yq
