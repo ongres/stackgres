@@ -1,5 +1,5 @@
 build:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$CI_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
   stage: build
   tags:
     - stackgres-runner
