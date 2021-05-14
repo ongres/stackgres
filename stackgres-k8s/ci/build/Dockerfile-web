@@ -7,7 +7,7 @@ FROM "$SOURCE_IMAGE_NAME" as source
   RUN chown "$UID" /project /project/stackgres-k8s /project/stackgres-k8s/src
   USER $UID
 
-FROM node:13.7.0 as build
+FROM node:14.17 as build
   USER root
   RUN mkdir -p /project/stackgres-k8s/src/
   ARG UID
