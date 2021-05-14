@@ -3,7 +3,7 @@ patroni_ports_check() {
   if patroni_liveness_check
   then
     echo "Success. Patroni liveness endpoint is accesible"
-  else 
+  else
     echo "Fail. Patroni liveness endpoint is not accesible"
     return 1
   fi
@@ -11,7 +11,7 @@ patroni_ports_check() {
   if patroni_readiness_check
   then
     echo "Success. Patroni readiness endpoint is accesible"
-  else 
+  else
     echo "Fail. Patroni readiness endpoint is not accesible"
     return 1
   fi
@@ -41,7 +41,7 @@ patroni_switchover(){
   patroni_curl -e "switchover" -XPOST -d '{"leader":"'"$CLUSTER_NAME-0"'"}' > /dev/null
 }
 
-patroni_direct_switchover_check(){ 
+patroni_direct_switchover_check(){
  patroni_curl -e "switchover" -p 8009 -XPOST -d '{"leader":"'"$CLUSTER_NAME-0"'"}' > /dev/null
 }
 
@@ -49,8 +49,8 @@ patroni_liveness_check() {
   patroni_curl -e "cluster" > /dev/null
 }
 
-patroni_readiness_check() {  
-  patroni_curl -e "read-only" > /dev/null 
+patroni_readiness_check() {
+  patroni_curl -e "read-only" > /dev/null
 }
 
 get_pod_ip(){
@@ -61,6 +61,11 @@ patroni_curl(){
   PORT=8008
   POD_IP=$(get_pod_ip)
   ENPOINT="cluster"
+
+  local opt
+  local OPTARG
+  local OPTIND
+
   while getopts ":e:i:p:" opt; do
     case $opt in
       p) PORT="$OPTARG"

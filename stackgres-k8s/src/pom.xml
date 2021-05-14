@@ -85,6 +85,7 @@
     <mockito.version>3.0.0</mockito.version>
     <swagger-annotations.version>2.1.7</swagger-annotations.version>
     <reflections.version>0.9.12</reflections.version>
+    <truth.version>1.1.2</truth.version>
     <!-- Plugins versions -->
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <jar-plugin.version>3.2.0</jar-plugin.version>
@@ -194,6 +195,18 @@
         <groupId>org.reflections</groupId>
         <artifactId>reflections</artifactId>
         <version>${reflections.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.google.truth</groupId>
+        <artifactId>truth</artifactId>
+        <version>${truth.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.google.truth.extensions</groupId>
+        <artifactId>truth-java8-extension</artifactId>
+        <version>${truth.version}</version>
         <scope>test</scope>
       </dependency>
     </dependencies>

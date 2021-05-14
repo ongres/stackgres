@@ -70,6 +70,7 @@ public abstract class AbstractDefaultConfigKeeper
         }
         break;
       default:
+        break;
     }
   }
 

@@ -3,12 +3,16 @@
 run_query() {
   local NAME="${CLUSTER_NAME}"
   local NAMESPACE="${CLUSTER_NAMESPACE}"
-  local QUERY='SELECT 1'
+  local QUERY="SELECT 1"
   local PORT=5432
   local HOST=127.0.0.1
   local DATABASE=postgres
   local INSTANCE=0
   local CONTAINER="postgres-util"
+
+  local opt
+  local OPTARG
+  local OPTIND
 
   while getopts ":c:n:i:q:p:h:d:x:k:" opt; do
     case $opt in
@@ -48,6 +52,10 @@ exec_postgresutil() {
   local INSTANCE=0
   local NAMESPACE="${CLUSTER_NAMESPACE:-stackgres}"
 
+  local opt
+  local OPTARG
+  local OPTIND
+
   while getopts ":c:n:i:q:p:h:d:" opt; do
     case $opt in
       c) NAME="$OPTARG"
@@ -65,7 +73,5 @@ exec_postgresutil() {
     esac
   done
 
-  
   kubectl exec -n "$NAMESPACE" "$NAME-$INSTANCE" -c postgres-util -- sh -c "$@"
-
 }

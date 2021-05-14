@@ -26,6 +26,7 @@ import io.fabric8.kubernetes.api.model.batch.JobBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactory;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackgresClusterContainers;
@@ -127,7 +128,7 @@ public class BackupJob implements StackGresClusterResourceStreamFactory {
             .withServiceAccountName(PatroniRole.roleName(context))
             .withContainers(new ContainerBuilder()
                 .withName("create-backup")
-                .withImage(StackGresContext.KUBECTL_IMAGE)
+                .withImage(StackGresComponent.KUBECTL.findLatestImageName())
                 .withImagePullPolicy("IfNotPresent")
                 .withEnv(ImmutableList.<EnvVar>builder()
                     .addAll(clusterStatefulSetEnvironmentVariables.listResources(context))

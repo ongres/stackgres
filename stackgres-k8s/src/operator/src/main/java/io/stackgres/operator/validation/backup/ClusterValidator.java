@@ -55,6 +55,7 @@ public class ClusterValidator implements BackupValidator {
         break;
       }
       default:
+        break;
     }
 
   }

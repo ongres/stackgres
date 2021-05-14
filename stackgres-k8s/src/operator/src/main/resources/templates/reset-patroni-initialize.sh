@@ -2,8 +2,9 @@
 
 if [ "$PRIMARY_INSTANCE" = "$POD_NAME" ]
 then
-  if [ "$(kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$PATRONI_ENDPOINT_NAME" \
-    --template='{{ if .metadata.annotations.initialize }}true{{ end }}')" = "true" ]
+  PATRONI_INIT="$(kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$PATRONI_ENDPOINT_NAME" \
+    --template='{{ if .metadata.annotations.initialize }}true{{ end }}')"
+  if [ "$PATRONI_INIT" = "true" ]
   then
     echo "Resetting patroni initialize"
     kubectl patch endpoints -n "$CLUSTER_NAMESPACE" "$PATRONI_ENDPOINT_NAME" \

@@ -26,6 +26,11 @@ run_curl() {
   local PASSWORD="$(kubectl get secrets --namespace "$SERVICE_NAMESPACE" "$SERVICE" -o jsonpath="{.data.clearPassword}" | base64 -d)"
   local AUTHORIZATION="{ \"username\": \"admin\", \"password\": \"$PASSWORD\" }"
   local JWT=""
+
+  local opt
+  local OPTARG
+  local OPTIND
+
   while getopts ":p:n:s:N:r:c:e:d:a:j:" opt; do
     case $opt in
       p) POD="$OPTARG"

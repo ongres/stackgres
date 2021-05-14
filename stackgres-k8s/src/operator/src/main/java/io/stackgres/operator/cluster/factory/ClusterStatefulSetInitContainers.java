@@ -12,7 +12,7 @@ import javax.enterprise.context.ApplicationScoped;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 import org.jooq.lambda.Seq;
@@ -39,7 +39,7 @@ public class ClusterStatefulSetInitContainers
   private Container setupArbitraryUser(StackGresClusterContext context) {
     return new ContainerBuilder()
         .withName("setup-arbitrary-user")
-        .withImage(StackGresContext.BUSYBOX_IMAGE)
+        .withImage(StackGresComponent.KUBECTL.findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.TEMPLATES_PATH.path()
@@ -58,7 +58,7 @@ public class ClusterStatefulSetInitContainers
   private Container createSetupDataPathsContainer(StackGresClusterContext context) {
     return new ContainerBuilder()
         .withName("setup-data-paths")
-        .withImage(StackGresContext.BUSYBOX_IMAGE)
+        .withImage(StackGresComponent.KUBECTL.findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.TEMPLATES_PATH.path()
@@ -74,7 +74,7 @@ public class ClusterStatefulSetInitContainers
   private Container setupScriptsContainer(StackGresClusterContext context) {
     return new ContainerBuilder()
         .withName("setup-scripts")
-        .withImage(StackGresContext.BUSYBOX_IMAGE)
+        .withImage(StackGresComponent.KUBECTL.findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.TEMPLATES_PATH.path()
