@@ -39,6 +39,8 @@ e2e_test_install() {
 }
 
 e2e_test() {
+  run_test "Checking that latest timescaledb version has been installed" check_latest_timescaledb_version_is_installed
+
   run_test "Checking that default annotations where created" default_annotations
 
   run_test "Checking that distributed logs attach to clusters" check_distributed_logs_attach_to_clusters
@@ -46,6 +48,18 @@ e2e_test() {
   run_test "Checking that distributed logs query endpoint works correctly"  check_distributed_logs_query_endpoint
 
   run_test "Checking that retention works correctly"  check_retention
+}
+
+check_latest_timescaledb_version_is_installed() {
+  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+    | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[] | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[] | select(.name == \"timescaledb\" and .version == \"'"$TIMESCALE_VERSION"'\") | length" \
+    | jq -s "length")" = 1 ]
+  then
+    echo "SUCESS. Latest version of timescaledb was installed"
+  else
+    echo "FAIL. Latest version of timescaledb was not installed"
+    return 1
+  fi
 }
 
 default_annotations(){
