@@ -58,7 +58,7 @@ public class ExtensionsChannelMutator implements ClusterMutator {
                       CLUSTER_CONFIG_POINTER.append("postgresExtensions")
                       .append(extension.v2.intValue()).append("version");
                   final StackGresExtensionMetadata extensionMetadata =
-                      extensionMetadataManager.getExtensionCandidateAnyVersion(
+                      extensionMetadataManager.getExtensionCandidateSameMajorBuild(
                           cluster, extension.v1);
                   final StackGresClusterInstalledExtension installedExtension =
                       ExtensionUtil.getInstalledExtension(extension.v1, extensionMetadata);
