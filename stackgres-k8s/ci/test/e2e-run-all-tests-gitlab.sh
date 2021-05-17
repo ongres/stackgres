@@ -47,7 +47,7 @@ do
   export IS_NATIVE
   E2E_EXCLUDES_BY_HASH="$(flock /tmp/e2e-retrieve-pipeline-info.lock \
     timeout -s KILL 300 \
-    sh stackgres-k8s/ci/test/e2e-already-passed-gitlab.sh)"
+    sh stackgres-k8s/ci/test/e2e-already-passed-gitlab.sh || true)"
   if echo "$E2E_EXCLUDES_BY_HASH" | grep -q '[^ ]'
   then
     echo "Excluding following tests since already passed:"
@@ -61,7 +61,7 @@ do
   fi
   E2E_EXCLUDES="$(echo "$("$IS_WEB" || echo "ui ")$E2E_EXCLUDES $E2E_EXCLUDES_BY_HASH" | tr ' ' '\n' | sort | uniq | tr '\n' ' ')"
   export E2E_EXCLUDES
-  flock /tmp/e2e-retrieve-pipeline-info.lock timeout -s KILL 300 sh stackgres-k8s/ci/test/e2e-variables.sh
+  flock /tmp/e2e-retrieve-pipeline-info.lock timeout -s KILL 300 sh stackgres-k8s/ci/test/e2e-variables.sh || true
 
   docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
 
