@@ -1,0 +1,55 @@
+setup kind cache only jvm:
+  stage: pre test
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/stackgres/it:13.0
+  tags:
+    - stackgres-runner
+  script:
+    - set -e
+    - |
+      [ "$DEBUG" != true ] || set -x
+    - SHELL_XTRACE="$([ "$E2E_DEBUG" = true ] && echo "-x" || echo "")"
+    - export IMAGE_TAGS="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}-jvm"
+    - export K8S_FROM_DIND=true
+    - export E2E_BUILD_IMAGES=false
+    - export E2E_WAIT_OPERATOR=false
+    - export E2E_OPERATOR_REGISTRY=$CI_REGISTRY
+    - export E2E_OPERATOR_REGISTRY_PATH=/$CI_PROJECT_PATH/
+    - export E2E_FORCE_IMAGE_PULL=true
+    - export K8S_USE_INTERNAL_REPOSITORY=true
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - sh stackgres-k8s/ci/test/e2e-create-kind-cache-base.sh
+  except:
+    variables:
+      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
+      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
+      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_DEPLOY
+      - $DO_NATIVE
+
+setup kind cache jvm and native:
+  stage: pre test
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/stackgres/it:13.0
+  tags:
+    - stackgres-runner
+  script:
+    - set -e
+    - |
+      [ "$DEBUG" != true ] || set -x
+    - SHELL_XTRACE="$([ "$E2E_DEBUG" = true ] && echo "-x" || echo "")"
+    - export IMAGE_TAGS="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}-jvm ${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"
+    - export K8S_FROM_DIND=true
+    - export E2E_BUILD_IMAGES=false
+    - export E2E_WAIT_OPERATOR=false
+    - export E2E_OPERATOR_REGISTRY=$CI_REGISTRY
+    - export E2E_OPERATOR_REGISTRY_PATH=/$CI_PROJECT_PATH/
+    - export E2E_FORCE_IMAGE_PULL=true
+    - export K8S_USE_INTERNAL_REPOSITORY=true
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - sh stackgres-k8s/ci/test/e2e-create-kind-cache-base.sh
+  only:
+    variables:
+      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
+      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
+      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_DEPLOY
+      - $DO_NATIVE

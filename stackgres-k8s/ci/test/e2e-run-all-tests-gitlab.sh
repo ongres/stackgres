@@ -35,6 +35,7 @@ do
     rm -rf "$E2E_PULLED_IMAGES_PATH"
   fi
 
+  echo "Retrieving jobs cache..."
   if "$IS_WEB"
   then
     E2E_TEST=ui
@@ -65,11 +66,11 @@ do
 
   docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
 
+  echo "Preparing kind shared cache cache..."
   export KIND_LOCK_PATH="/tmp/kind-lock$SUFFIX"
   export KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache/$KIND_NAME"
-  flock /tmp/e2e-create-kind-cache-base \
-    timeout -s KILL 300 \
-    sh stackgres-k8s/ci/test/e2e-create-kind-cache-base.sh
+  rm -rf "/tmp/kind-cache/$KIND_NAME"
+  cp --reflink -r /tmp/kind-cache/kind-base "/tmp/kind-cache/$KIND_NAME"
 
   if [ "$K8S_REUSE" = false ]
   then

@@ -34,6 +34,7 @@ stages:
   - check release
   - native build
   - image build
+  - pre test
   - test
   - deploy
 
@@ -43,6 +44,7 @@ include:
   - local: .gitlab-ci/post-build.yml
   - local: .gitlab-ci/native-build.yml
   - local: .gitlab-ci/image-build.yml
+  - local: .gitlab-ci/pre-test.yml
   - local: .gitlab-ci/test.yml
   - local: .gitlab-ci/check-release.yml
   - local: .gitlab-ci/deploy.yml
