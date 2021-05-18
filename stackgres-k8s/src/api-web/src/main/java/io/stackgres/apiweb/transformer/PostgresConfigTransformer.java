@@ -21,6 +21,8 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 import org.jooq.lambda.tuple.Tuple3;
 
 @ApplicationScoped
@@ -64,13 +66,15 @@ public class PostgresConfigTransformer
     if (postgresqlConf != null) {
       transformation.setPostgresqlConf(Seq.of(postgresqlConf.split("\n"))
           .filter(line -> !EMPTY_LINE_PATTERN.matcher(line).matches())
-          .map(PARAMETER_PATTERN::matcher)
-          .peek(matcher -> {
-            if (!matcher.matches()) {
+          .map(Tuple::tuple)
+          .map(t -> t.concat(PARAMETER_PATTERN.matcher(t.v1)))
+          .peek(t -> {
+            if (!t.v2.matches()) {
               throw new IllegalArgumentException(
-                  "Line " + matcher.group() + " does not match PostgreSQL's configuration format.");
+                  "Line " + t.v1 + " does not match PostgreSQL's configuration format.");
             }
           })
+          .map(Tuple2::v2)
           .filter(Matcher::matches)
           .collect(ImmutableMap.toImmutableMap(
               matcher -> matcher.group("parameter"),

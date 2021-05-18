@@ -237,6 +237,15 @@ class PostgresConfigTransformerTest {
     Assertions.assertEquals("conf.d", transformed.getSpec().getPostgresqlConf().get("include_dir"));
   }
 
+  @Test
+  void wrongConfigDto_shouldFail() {
+    StackGresPostgresConfig original = createOriginal();
+    PostgresConfigDto source = createEmptyConfigDto();
+    source.getSpec().setPostgresqlConf("test");
+    Assertions.assertThrows(IllegalArgumentException.class,
+        () -> transformer.toCustomResource(source, original));
+  }
+
   StackGresPostgresConfig createEmptyConfig() {
     StackGresPostgresConfig source = new StackGresPostgresConfig();
     source.setMetadata(new ObjectMeta());
