@@ -30,7 +30,9 @@ public class PostgresConfigTransformer
   private static final Pattern EMPTY_LINE_PATTERN = Pattern.compile(
       "^\\s*(:?#.*)?$");
   private static final Pattern PARAMETER_PATTERN = Pattern.compile(
-      "^\\s*(?<parameter>[^\\s=]+)\\s*[=\\s]\\s*(?:'(?<quoted>.*)'|(?<unquoted>(?:|[^'\\s#][^\\s#]*)))(?:\\s*#.*)?\\s*$");
+      "^\\s*(?<parameter>[^\\s=]+)"
+          + "\\s*[=\\s]\\s*"
+          + "(?:'(?<quoted>.*)'|(?<unquoted>(?:|[^'\\s#][^\\s#]*)))(?:\\s*#.*)?\\s*$");
   private static final String POSTGRESQLCO_NF_URL = "https://postgresqlco.nf/en/doc/param/%s/%s/";
 
   @Override

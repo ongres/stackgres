@@ -26,7 +26,7 @@ build_default_config() {
     
     DEFAULT_PGCONFIG=$(cat "$LOG_PATH/default-pgconfig-cr.json" \
       | jq 'del(.apiVersion) | del(.kind)'  \
-      | jq '.spec."postgresql.conf" = (.spec."postgresql.conf"|to_entries|map(.key + "=" + .value)|join("\n"))')
+      | jq '.spec."postgresql.conf" = (.spec."postgresql.conf"|to_entries|map(.key + "='"'"'" + .value + "'"'"'")|join("\n"))')
 
     echo_raw "$DEFAULT_PGCONFIG" > "$LOG_PATH/default-pgconfig.json"
     
