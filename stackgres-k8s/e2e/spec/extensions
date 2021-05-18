@@ -38,26 +38,26 @@ check_extension_installed_after_booting() {
     | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[] | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[] | select(.name == \"timescaledb\" and .requiresRestart != true) | length" \
     | jq -s "length")" = 2 ]
   then
-    echo "SUCCESS. Extension was installed"
+    echo "SUCCESS. timescaledb was installed"
   else
-    echo "FAIL. Extension was not installed"
+    echo "FAIL. timescaledb was not installed"
     return 1
   fi
 
   try_function run_query -i 0 -q 'CREATE EXTENSION timescaledb;'
   if "$RESULT"
   then
-    echo "SUCESS. Extension was created"
+    echo "SUCESS. timescaledb was created"
   else
-    echo "FAIL. Extension was not created"
+    echo "FAIL. timescaledb was not created"
     return 1
   fi
   try_function run_query -i 0 -q 'DROP EXTENSION timescaledb;'
   if "$RESULT"
   then
-    echo "SUCESS. Extension was dropped"
+    echo "SUCESS. timescaledb was dropped"
   else
-    echo "FAIL. Extension was not dropped"
+    echo "FAIL. timescaledb was not dropped"
     return 1
   fi
 }
@@ -80,27 +80,27 @@ check_extension_not_uninstalled_when_removed() {
     | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[] | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[] | select(.name == \"timescaledb\" and .requiresRestart != true) | length" \
     | jq -s "length")" = 2 ]
   then
-    echo "SUCESS. Extension was not uninstalled"
+    echo "SUCESS. timescaledb was not uninstalled"
   else
-    echo "FAIL. Extension was uninstalled"
+    echo "FAIL. timescaledb was uninstalled"
     return 1
   fi
 
   try_function run_query -i 0 -q 'CREATE EXTENSION timescaledb;' > /dev/null 2>&1
   if "$RESULT"
   then
-    echo "SUCESS. Extension was created after being uninstalled"
+    echo "SUCESS. timescaledb was created after being uninstalled"
   else
-    echo "FAIL. Extension was not created after being uninstalled"
+    echo "FAIL. timescaledb was not created after being uninstalled"
     return 1
   fi
 
   try_function run_query -i 0 -q 'DROP EXTENSION timescaledb;' > /dev/null 2>&1
   if "$RESULT"
   then
-    echo "SUCESS. Extension was dropped after being uninstalled"
+    echo "SUCESS. timescaledb was dropped after being uninstalled"
   else
-    echo "FAIL. Extension was not dropped after being uninstalled"
+    echo "FAIL. timescaledb was not dropped after being uninstalled"
     return 1
   fi
 
@@ -110,10 +110,10 @@ check_extension_not_uninstalled_when_removed() {
   try_function run_query -i 0 -q 'CREATE EXTENSION timescaledb;' > /dev/null 2>&1
   if "$RESULT"
   then
-    echo "FAIL. Extension was created after being uninstalled and after restart"
+    echo "FAIL. timescaledb was created after being uninstalled and after restart"
     return 1
   else
-    echo "SUCESS. Extension was not created after being uninstalled and after restart"
+    echo "SUCESS. timescaledb was not created after being uninstalled and after restart"
   fi
 }
 
@@ -136,26 +136,26 @@ check_extension_without_shared_library_installed_when_added() {
     | jq -s "length")" = 2 ]'
   if "$RESULT"
   then
-    echo "SUCESS. Extension was installed"
+    echo "SUCESS. intagg was installed"
   else
-    echo "FAIL. Extension was not installed"
+    echo "FAIL. intagg was not installed"
     return 1
   fi
 
   try_function run_query -i 0 -q 'CREATE EXTENSION intagg;'
   if "$RESULT"
   then
-    echo "SUCESS. Extension was created"
+    echo "SUCESS. intagg was created"
   else
-    echo "FAIL. Extension was not created"
+    echo "FAIL. intagg was not created"
     return 1
   fi
 
   if ! kubectl wait sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --for condition=PendingRestart --timeout 0
   then
-    echo "SUCESS. Cluster is not pending restart"
+    echo "SUCESS. Cluster is not pending restart after installing intagg"
   else
-    echo "FAIL. Cluster is pending restart"
+    echo "FAIL. Cluster is pending restart after installing intagg"
     return 1
   fi
 }
@@ -172,9 +172,9 @@ check_extension_without_shared_library_installed_when_upgraded() {
     | jq -s "length")" = 2 ]'
   if "$RESULT"
   then
-    echo "SUCESS. New version of extension was installed"
+    echo "SUCESS. New version of intagg ($INTAGG_NEW_VERSION) was installed"
   else
-    echo "FAIL. New version of extension was not installed"
+    echo "FAIL. New version of intagg ($INTAGG_NEW_VERSION) was not installed"
     return 1
   fi
 
@@ -182,26 +182,26 @@ check_extension_without_shared_library_installed_when_upgraded() {
     | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[] | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[] | select(.name == \"intagg\" and .version == \"'"$INTAGG_VERSION"'\") | length" \
     | jq -s "length")" = 0 ]
   then
-    echo "SUCESS. Previous version of extension was upgraded"
+    echo "SUCESS. Previous version of intagg ($INTAGG_VERSION) was upgraded"
   else
-    echo "FAIL. Previous version of extension was not upgraded"
+    echo "FAIL. Previous version of intagg ($INTAGG_VERSION) was not upgraded"
     return 1
   fi
 
   try_function run_query -i 0 -q "ALTER EXTENSION intagg UPDATE TO '$INTAGG_NEW_VERSION';"
   if "$RESULT"
   then
-    echo "SUCESS. Extension was upgraded"
+    echo "SUCESS. intagg ($INTAGG_VERSION) was upgraded"
   else
-    echo "FAIL. Extension was not upgraded"
+    echo "FAIL. intagg ($INTAGG_VERSION) was not upgraded"
     return 1
   fi
 
   if ! kubectl wait sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --for condition=PendingRestart --timeout 0
   then
-    echo "SUCESS. Cluster is not pending restart"
+    echo "SUCESS. Cluster is not pending restart after installing intagg ($INTAGG_NEW_VERSION)"
   else
-    echo "FAIL. Cluster is pending restart"
+    echo "FAIL. Cluster is pending restart after installing intagg ($INTAGG_NEW_VERSION)"
     return 1
   fi
 }
@@ -225,26 +225,26 @@ check_extension_with_shared_library_installed_when_added() {
     | jq -s "length")" = 2 ]'
   if "$RESULT"
   then
-    echo "SUCESS. Extension was installed"
+    echo "SUCESS. pageinspect ($PAGEINSPECT_VERSION)) was installed"
   else
-    echo "FAIL. Extension was not installed"
+    echo "FAIL. pageinspect ($PAGEINSPECT_VERSION) was not installed"
     return 1
   fi
 
   try_function run_query -i 0 -q 'CREATE EXTENSION pageinspect;'
   if "$RESULT"
   then
-    echo "SUCESS. Extension was created"
+    echo "SUCESS. pageinspect ($PAGEINSPECT_VERSION) was created"
   else
-    echo "FAIL. Extension was not created"
+    echo "FAIL. pageinspect ($PAGEINSPECT_VERSION) was not created"
     return 1
   fi
 
   if ! kubectl wait sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --for condition=PendingRestart --timeout 0
   then
-    echo "SUCESS. Cluster is not pending restart"
+    echo "SUCESS. Cluster is not pending restart after installing pageinspect ($PAGEINSPECT_VERSION)"
   else
-    echo "FAIL. Cluster is pending restart"
+    echo "FAIL. Cluster is pending restart after installing pageinspect ($PAGEINSPECT_VERSION)"
     return 1
   fi
 }
@@ -261,9 +261,9 @@ check_extension_with_shared_library_installed_when_upgraded() {
     | jq -s "length")" = 2 ]'
   if "$RESULT"
   then
-    echo "SUCESS. New version of extension was installed"
+    echo "SUCESS. New version of pageinspect ($PAGEINSPECT_NEW_VERSION) was installed"
   else
-    echo "FAIL. New version of extension was not installed"
+    echo "FAIL. New version of pageinspect ($PAGEINSPECT_NEW_VERSION) was not installed"
     return 1
   fi
 
@@ -271,27 +271,27 @@ check_extension_with_shared_library_installed_when_upgraded() {
     | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[] | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[] | select(.name == \"pageinspect\" and .version == \"'"$PAGEINSPECT_VERSION"'\") | length" \
     | jq -s "length")" = 0 ]
   then
-    echo "SUCESS. Previous version of extension was upgraded"
+    echo "SUCESS. Previous version of pageinspect ($PAGEINSPECT_VERSION) was upgraded"
   else
-    echo "FAIL. Previous version of extension was not upgraded"
+    echo "FAIL. Previous version of pageinspect ($PAGEINSPECT_VERSION) was not upgraded"
     return 1
   fi
 
   if wait_until eval 'kubectl wait sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --for condition=PendingRestart --timeout 0'
   then
-    echo "SUCESS. Cluster is pending restart"
+    echo "SUCESS. Cluster is pending restart after installing pageinspect ($PAGEINSPECT_NEW_VERSION)"
   else
-    echo "FAIL. Cluster is not pending restart"
+    echo "FAIL. Cluster is not pending restart after installing pageinspect ($PAGEINSPECT_NEW_VERSION)"
     return 1
   fi
 
   try_function run_query -i 0 -q "ALTER EXTENSION pageinspect UPDATE TO '$PAGEINSPECT_NEW_VERSION';"
   if "$RESULT"
   then
-    echo "FAIL. Extension was upgraded"
+    echo "FAIL. pageinspect ($PAGEINSPECT_NEW_VERSION) was upgraded"
     return 1
   else
-    echo "SUCESS. Extension was not upgraded"
+    echo "SUCESS. pageinspect ($PAGEINSPECT_NEW_VERSION) was not upgraded"
   fi
 
   kubectl delete pod -n "$CLUSTER_NAMESPACE" --all
@@ -300,17 +300,17 @@ check_extension_with_shared_library_installed_when_upgraded() {
   try_function run_query -i 0 -q "ALTER EXTENSION pageinspect UPDATE TO '$PAGEINSPECT_NEW_VERSION';"
   if "$RESULT"
   then
-    echo "SUCESS. Extension was upgraded"
+    echo "SUCESS. pageinspect ($PAGEINSPECT_NEW_VERSION) was upgraded after restart"
   else
-    echo "FAIL. Extension was not upgraded"
+    echo "FAIL. pageinspect ($PAGEINSPECT_NEW_VERSION) was not upgraded after restart"
     return 1
   fi
 
   if ! kubectl wait sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --for condition=PendingRestart --timeout 0
   then
-    echo "SUCESS. Cluster is not pending restart"
+    echo "SUCESS. Cluster is not pending restart after installing pageinspect ($PAGEINSPECT_NEW_VERSION) and restarting"
   else
-    echo "FAIL. Cluster is pending restart"
+    echo "FAIL. Cluster is pending restart after installing pageinspect ($PAGEINSPECT_NEW_VERSION) and restarting"
     return 1
   fi
 }
@@ -334,34 +334,34 @@ check_extension_with_executable_installed_when_added() {
     | jq -s "length")" = 2 ]'
   if "$RESULT"
   then
-    echo "SUCESS. Extension was installed"
+    echo "SUCESS. pg_repack ($PG_REPACK_VERSION) was installed"
   else
-    echo "FAIL. Extension was not installed"
+    echo "FAIL. pg_repack ($PG_REPACK_VERSION) was not installed"
     return 1
   fi
 
   try_function run_query -i 0 -q 'CREATE EXTENSION pg_repack;'
   if "$RESULT"
   then
-    echo "SUCESS. Extension was created"
+    echo "SUCESS. pg_repack ($PG_REPACK_VERSION) was created"
   else
-    echo "FAIL. Extension was not created"
+    echo "FAIL. pg_repack ($PG_REPACK_VERSION) was not created"
     return 1
   fi
 
   if kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- sh -c 'pg_repack --help > /dev/null'
   then
-    echo "SUCESS. Extension executable was installed"
+    echo "SUCESS. pg_repack ($PG_REPACK_VERSION) executable was installed"
   else
-    echo "FAIL. Extension was not installed"
+    echo "FAIL. pg_repack ($PG_REPACK_VERSION) executable was not installed"
     return 1
   fi
 
   if ! kubectl wait sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --for condition=PendingRestart --timeout 0
   then
-    echo "SUCESS. Cluster is not pending restart"
+    echo "SUCESS. Cluster is not pending restart after installing pg_repack ($PG_REPACK_VERSION)"
   else
-    echo "FAIL. Cluster is pending restart"
+    echo "FAIL. Cluster is pending restart after installing pg_repack ($PG_REPACK_VERSION)"
     return 1
   fi
 }
@@ -385,35 +385,27 @@ check_extension_with_extra_mount_installed_when_added() {
     | jq -s "length")" = 2 ]'
   if "$RESULT"
   then
-    echo "SUCESS. Extension was installed"
+    echo "SUCESS. postgis ($POSTGIS_VERSION) was installed"
   else
-    echo "FAIL. Extension was not installed"
+    echo "FAIL. postgis ($POSTGIS_VERSION) was not installed"
     return 1
   fi
 
   try_function run_query -i 0 -q 'CREATE EXTENSION postgis;'
   if "$RESULT"
   then
-    echo "SUCESS. Extension was created"
+    echo "SUCESS. postgis ($POSTGIS_VERSION) was created"
   else
-    echo "FAIL. Extension was not created"
-    return 1
-  fi
-
-  if kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- sh -c 'pg_repack --help > /dev/null'
-  then
-    echo "SUCESS. Extension executable was installed"
-  else
-    echo "FAIL. Extension was not installed"
+    echo "FAIL. postgis ($POSTGIS_VERSION) was not created"
     return 1
   fi
 
   if wait_until eval '! kubectl wait sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --for condition=PendingRestart --timeout 0'
   then
-    echo "FAIL. Cluster is not pending restart"
+    echo "FAIL. Cluster is not pending restart after installing postgis ($POSTGIS_VERSION)"
     return 1
   else
-    echo "SUCESS. Cluster is pending restart"
+    echo "SUCESS. Cluster is pending restart after installing postgis ($POSTGIS_VERSION)"
   fi
 
   kubectl delete pod -n "$CLUSTER_NAMESPACE" --all
@@ -421,9 +413,9 @@ check_extension_with_extra_mount_installed_when_added() {
 
   if ! kubectl wait sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --for condition=PendingRestart --timeout 0
   then
-    echo "SUCESS. Cluster is not pending restart"
+    echo "SUCESS. Cluster is not pending restart after installing postgis ($POSTGIS_VERSION) and restarting"
   else
-    echo "FAIL. Cluster is pending restart"
+    echo "FAIL. Cluster is pending restart after installing postgis ($POSTGIS_VERSION) and restarting"
     return 1
   fi
 }

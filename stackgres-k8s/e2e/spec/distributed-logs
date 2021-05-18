@@ -51,13 +51,15 @@ e2e_test() {
 }
 
 check_latest_timescaledb_version_is_installed() {
-  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[] | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[] | select(.name == \"timescaledb\" and .version == \"'"$TIMESCALE_VERSION"'\") | length" \
-    | jq -s "length")" = 1 ]
+  if wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+    | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[]
+      | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[]
+      | select(.name == \"timescaledb\" and .version == \"$TIMESCALE_VERSION\") | length" \
+    | jq -s "length")" = 1 ]'
   then
-    echo "SUCESS. Latest version of timescaledb was installed"
+    echo "SUCESS. Latest version of timescaledb ($TIMESCALE_VERSION) was installed"
   else
-    echo "FAIL. Latest version of timescaledb was not installed"
+    echo "FAIL. Latest version of timescaledb ($TIMESCALE_VERSION) was not installed"
     return 1
   fi
 }
