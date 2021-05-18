@@ -44,15 +44,12 @@
             
             <label for="spec.runAt">Run At</label>
             <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" :value="runAtTimezone">
-            <a class="help" @click="showTooltip( 'sgdbops', 'spec.runAt', getTooltip('sgdbops.spec.runAt').replace('UTC ','') )">
+            <a class="help" @click="(timezone == 'local') ? showTooltip( 'sgdbops', 'spec.runAt', getTooltip('sgdbops.spec.runAt').replace('UTC ','') ) : showTooltip( 'sgdbops', 'spec.runAt')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
             </a>
-            <!-- TO-DO: Enable when timezone check toggle is done -->
-            <!--
-                <div class="warning" v-if="tzOffset">
-                    Bear in mind <strong>"Run At"</strong> times are expressed in UTC (Coordinated Universal Time). That's {{ tzOffset }} your current timezone.
-                </div>
-            -->
+            <div class="warning" v-if="( tzOffset && ( timezone == 'utc' ) )">
+                Bear in mind <strong>"Run At"</strong> times are expressed in UTC (Coordinated Universal Time). That's {{ tzOffset }} your current timezone.
+            </div>
         
             <label for="spec.timeout">Timeout</label>
             <div class="timeSelect">
@@ -646,6 +643,10 @@
 
             runAtTimezone() {
                 return this.runAt.length ? moment.utc(this.runAt).local().format('YYYY-MM-DD HH:mm:ss') : ''
+            },
+
+            timezone () {
+                return store.state.timezone
             }
 
         },
@@ -841,7 +842,7 @@
                                 format: 'YYYY-MM-DD HH:mm:ss'
                             }
                         }, function(start, end, label) {
-                            vc.runAt = start.utc().format()
+                            vc.runAt = (store.state.timezone == 'local') ? start.utc().format() : ( start.format('YYYY-MM-DDTHH:mm:ss') + 'Z' )
                         });
                     }
                 });

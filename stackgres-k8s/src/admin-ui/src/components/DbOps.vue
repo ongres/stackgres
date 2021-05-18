@@ -85,7 +85,7 @@
                 <thead class="sort">
                     <th class="desc start">
                         <span @click="sort('data.spec.runAt')">Start</span>
-                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.runAt').replace('UTC ','')"></span>
+                        <span class="helpTooltip" :data-tooltip="(timezone == 'local') ? getTooltip('sgdbops.spec.runAt').replace('UTC ','') : getTooltip('sgdbops.spec.runAt')"></span>
                     </th>
                     <th class="desc operationType">
                         <span @click="sort('data.spec.op')">Operation</span>
@@ -1042,6 +1042,10 @@
 
             isFiltered() {
                 return ( this.filters.clusterName.length || this.filters.op.length || this.filters.status.length)
+            },
+
+            timezone () {
+                return store.state.timezone
             }
         }
     }
