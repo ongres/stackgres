@@ -113,7 +113,7 @@ kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 $(
   if [ -n "$KIND_CONTAINERD_CACHE_PATH" ] || \
-    docker system info 2> /dev/null | grep -q "Backing Filesystem: zfs"
+    docker system info 2> /dev/null | grep -q "Backing Filesystem: \(zfs\|btrfs\)"
   then
     cat << INNER_EOF
 containerdConfigPatches:
@@ -126,11 +126,22 @@ $(
  root = "/containerd-cache"
 INNER_INNER_EOF
   fi
-  if docker system info 2> /dev/null | grep -q "Backing Filesystem: zfs"
+  if docker system info 2> /dev/null | grep -q "Backing Filesystem: zfs" \
+    || ([ -n "$KIND_CONTAINERD_CACHE_PATH" ] \
+      && df -T "$KIND_CONTAINERD_CACHE_PATH" | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2 | grep -q '^zfs$')
   then
     cat << INNER_INNER_EOF
  [plugins."io.containerd.grpc.v1.cri".containerd]
- snapshotter = "native"
+ snapshotter = "zfs"
+INNER_INNER_EOF
+  fi
+  if docker system info 2> /dev/null | grep -q "Backing Filesystem: btrfs" \
+    || ([ -n "$KIND_CONTAINERD_CACHE_PATH" ] \
+      && df -T "$KIND_CONTAINERD_CACHE_PATH" | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2 | grep -q '^btrfs$')
+  then
+    cat << INNER_INNER_EOF
+ [plugins."io.containerd.grpc.v1.cri".containerd]
+ snapshotter = "btrfs"
 INNER_INNER_EOF
   fi
 )

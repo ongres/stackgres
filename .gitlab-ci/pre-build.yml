@@ -32,9 +32,6 @@ build test image:
     - stackgres-runner
   timeout: 1 hour
   script:
-    - |
-      IT_IMAGE_NAME="$(grep -o '<it\.image>\([^<]\+\)</it\.image>' stackgres-k8s/src/pom.xml \
-        | tr '<>' '  ' | cut -d ' ' -f 3)"
     - TARGET_IT_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IT_IMAGE_NAME"
     - |
       mkdir -p "$HOME/.docker"; echo '{"experimental": "enabled"}' > "$HOME/.docker/config.json"

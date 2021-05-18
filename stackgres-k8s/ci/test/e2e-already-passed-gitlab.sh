@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. "$(dirname "$0")/functions.sh"
+. "$(dirname "$0")/e2e-gitlab-functions.sh"
 
 curl -f -s --header "PRIVATE-TOKEN: $READ_API_TOKEN" \
   "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/pipelines" > stackgres-k8s/ci/test/target/pipelines.json
