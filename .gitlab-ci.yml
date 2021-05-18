@@ -2,6 +2,7 @@ image: null
 
 variables:
   BUILD_IMAGE_NAME: "ci:1.2"
+  IT_IMAGE_NAME: "stackgres/it:14.0"
   SKIP_NATIVE: "false"
   SKIP_E2E: "false"
   SKIP_DEPLOY: "false"
@@ -34,7 +35,6 @@ stages:
   - check release
   - native build
   - image build
-  - pre test
   - test
   - deploy
 
@@ -44,7 +44,6 @@ include:
   - local: .gitlab-ci/post-build.yml
   - local: .gitlab-ci/native-build.yml
   - local: .gitlab-ci/image-build.yml
-  - local: .gitlab-ci/pre-test.yml
   - local: .gitlab-ci/test.yml
   - local: .gitlab-ci/check-release.yml
   - local: .gitlab-ci/deploy.yml

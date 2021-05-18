@@ -1,5 +1,5 @@
 shell unit tests:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/stackgres/it:14.0
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$IT_IMAGE_NAME
   stage: test
   tags:
     - stackgres-runner
@@ -30,7 +30,7 @@ shell unit tests:
         - stackgres-k8s/src/operator/target/shell/shell-unit-tests-junit-report-*.xml
 
 swagger validations:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/stackgres/it:14.0
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$IT_IMAGE_NAME
   stage: test
   tags:
     - stackgres-runner
@@ -49,7 +49,7 @@ swagger validations:
 
 .e2e tests:
   stage: test
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/stackgres/it:14.0
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$IT_IMAGE_NAME
   tags:
     - stackgres-runner
   dependencies:

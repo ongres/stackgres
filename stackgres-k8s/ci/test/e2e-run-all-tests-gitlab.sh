@@ -35,6 +35,30 @@ do
     rm -rf "$E2E_PULLED_IMAGES_PATH"
   fi
 
+  docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+
+  echo "Preparing kind shared cache cache..."
+  export KIND_LOCK_PATH="/tmp/kind-lock$SUFFIX"
+  export KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache/$KIND_NAME"
+  if [ "$E2E_CLEAN_IMAGE_CACHE" = "true" ]
+  then
+    rm -rf "$E2E_PULLED_IMAGES_PATH"
+  fi
+  if docker manifest inspect \
+    "$CI_REGISTRY/$CI_PROJECT_PATH/stackgres/operator:$IMAGE_TAG_BASE" >/dev/null 2>&1
+  then
+    IMAGE_TAGS="$IMAGE_TAG_BASE-jvm $IMAGE_TAG_BASE"
+  else
+    IMAGE_TAGS="$IMAGE_TAG_BASE-jvm"
+  fi
+  if sh stackgres-k8s/ci/test/e2e-shared-cache-requires-reset.sh
+  then
+    flock /tmp/e2e-create-kind-cache-base \
+      sh stackgres-k8s/ci/test/e2e-create-kind-cache-base.sh
+  else
+    sh stackgres-k8s/ci/test/e2e-create-kind-cache-base.sh
+  fi
+
   echo "Retrieving jobs cache..."
   if "$IS_WEB"
   then
@@ -63,20 +87,6 @@ do
   E2E_EXCLUDES="$(echo "$("$IS_WEB" || echo "ui ")$E2E_EXCLUDES $E2E_EXCLUDES_BY_HASH" | tr ' ' '\n' | sort | uniq | tr '\n' ' ')"
   export E2E_EXCLUDES
   flock /tmp/e2e-retrieve-pipeline-info.lock timeout -s KILL 300 sh stackgres-k8s/ci/test/e2e-variables.sh || true
-
-  docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-
-  echo "Preparing kind shared cache cache..."
-  export KIND_LOCK_PATH="/tmp/kind-lock$SUFFIX"
-  export KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache/$KIND_NAME"
-  rm -rf "/tmp/kind-cache/$KIND_NAME"
-  cp --reflink -r /tmp/kind-cache/kind-base "/tmp/kind-cache/$KIND_NAME"
-
-  if [ "$K8S_REUSE" = false ]
-  then
-    export K8S_DELETE=true
-    export E2E_SPEC_TRY_UNINSTALL_ON_FAILURE=true
-  fi
 
   unset DEBUG
 
