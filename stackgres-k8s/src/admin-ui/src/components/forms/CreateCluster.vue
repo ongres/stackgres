@@ -1032,7 +1032,9 @@
                                     "initialData": {
                                         ...( this.restoreBackup.length && ({
                                             "restore": { 
-                                                "fromBackup": this.restoreBackup, 
+                                                "fromBackup": {
+                                                    "uid": this.restoreBackup, 
+                                                },
                                                 ...(this.downloadDiskConcurrency.length  && ({
                                                     "downloadDiskConcurrency": this.downloadDiskConcurrency 
                                                 }) )
