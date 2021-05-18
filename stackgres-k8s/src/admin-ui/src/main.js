@@ -46,9 +46,13 @@ if( urlParams.has('darkmode') || (getCookie('sgTheme') === 'dark') ) {
   $('#darkmode').addClass('active');
 }
 
+// Check timezone preferences
+if( getCookie('sgTimezone') === 'utc') {
+  console.log('Switching to UTC timezone');
+  store.commit('toggleTimezone');
+}
+
 Vue.filter('prettyCRON', function (value) {
-  
-  //console.log(value);
   return prettyCron.toString(value)
   
 });
@@ -68,7 +72,7 @@ Vue.filter('prefix',function(s, l = 2){
 Vue.filter('formatTimestamp',function(t, part, tzCheck = true){
 
   // Adjust timestamp according to user timezone
-  if(!!moment().utcOffset() && tzCheck) {
+  if(!!moment().utcOffset() && tzCheck && (store.state.timezone == 'local') ) {
     t = moment.utc(t).local().format('YYYY-MM-DDTHH:mm:ss.SSS')
   }
 
