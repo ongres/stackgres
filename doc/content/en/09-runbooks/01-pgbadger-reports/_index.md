@@ -41,15 +41,15 @@ spec:
   postgresql.conf:
 
     # Logging configuration for pgbadger
-    log_checkpoints: on
-    log_connections: on
-    log_disconnections: on
-    log_lock_waits: on
-    log_temp_files: 0
+    log_checkpoints: 'on'
+    log_connections: 'on'
+    log_disconnections: 'on'
+    log_lock_waits: 'on'
+    log_temp_files: '0'
 
     # Adjust the minimum time to collect data
     log_min_duration_statement: '5s'
-    log_autovacuum_min_duration: 0
+    log_autovacuum_min_duration: '0'
 ```
 
 Check [pgbadger documentation](http://pgbadger.darold.net/documentation.html#POSTGRESQL-CONFIGURATION) for more tails about the necessary parameters to setup Postgres.

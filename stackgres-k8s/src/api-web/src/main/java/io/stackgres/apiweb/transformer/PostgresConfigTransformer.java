@@ -27,8 +27,10 @@ import org.jooq.lambda.tuple.Tuple3;
 public class PostgresConfigTransformer
     extends AbstractDependencyResourceTransformer<PostgresConfigDto, StackGresPostgresConfig> {
 
+  private static final Pattern EMPTY_LINE_PATTERN = Pattern.compile(
+      "^\\s*(:?#.*)?$");
   private static final Pattern PARAMETER_PATTERN = Pattern.compile(
-      "^\\s*([^\\s=]+)\\s*=\\s*(:?'([^']+)'|([^ ]+))\\s*$");
+      "^\\s*(?<parameter>[^\\s=]+)\\s*[=\\s]\\s*(?:'(?<quoted>.*)'|(?<unquoted>(?:|[^'\\s#][^\\s#]*)))(?:\\s*#.*)?\\s*$");
   private static final String POSTGRESQLCO_NF_URL = "https://postgresqlco.nf/en/doc/param/%s/%s/";
 
   @Override
@@ -59,12 +61,20 @@ public class PostgresConfigTransformer
     final String postgresqlConf = source.getPostgresqlConf();
     if (postgresqlConf != null) {
       transformation.setPostgresqlConf(Seq.of(postgresqlConf.split("\n"))
-          .map(line -> line.replaceAll("#.*$", ""))
-          .map(line -> PARAMETER_PATTERN.matcher(line))
+          .filter(line -> !EMPTY_LINE_PATTERN.matcher(line).matches())
+          .map(PARAMETER_PATTERN::matcher)
+          .peek(matcher -> {
+            if (!matcher.matches()) {
+              throw new IllegalArgumentException(
+                  "Line " + matcher.group() + " does not match PostgreSQL's configuration format.");
+            }
+          })
           .filter(Matcher::matches)
           .collect(ImmutableMap.toImmutableMap(
-              matcher -> matcher.group(1),
-              matcher -> matcher.group(2) != null ? matcher.group(2) : matcher.group(3))));
+              matcher -> matcher.group("parameter"),
+              matcher -> Optional.ofNullable(matcher.group("quoted"))
+                .map(quoted -> quoted.replaceAll("[\\']'", "'"))
+                .orElseGet(() -> matcher.group("unquoted")))));
     }
     return transformation;
   }
@@ -77,7 +87,7 @@ public class PostgresConfigTransformer
     transformation.setPostgresVersion(source.getPostgresVersion());
     transformation.setPostgresqlConf(
         Seq.seq(source.getPostgresqlConf().entrySet())
-            .map(e -> e.getKey() + "=" + e.getValue())
+            .map(e -> e.getKey() + "='" + e.getValue().replaceAll("'", "''") + "'")
             .toString("\n"));
     return transformation;
   }

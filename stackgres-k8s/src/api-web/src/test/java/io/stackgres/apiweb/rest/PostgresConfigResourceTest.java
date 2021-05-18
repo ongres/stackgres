@@ -75,10 +75,10 @@ class PostgresConfigResourceTest
     assertEquals("12", resource.getSpec().getPostgresVersion());
     assertEquals(Seq.of(
         "password_encryption='scram-sha-256'",
-        "random_page_cost=1.5",
-        "shared_buffers=256MB",
-        "max_wal_senders=10",
-        "pg_stat_statements.max=10000")
+        "random_page_cost='1.5'",
+        "shared_buffers='256MB'",
+        "max_wal_senders='10'",
+        "pg_stat_statements.max='10000'")
         .toString("\n"),
         resource.getSpec().getPostgresqlConf());
     assertNotNull(resource.getStatus());
@@ -88,7 +88,7 @@ class PostgresConfigResourceTest
     assertNotNull(resource.getStatus().getPostgresqlConf());
     assertEquals(5, resource.getStatus().getPostgresqlConf().size());
     assertEquals("password_encryption", resource.getStatus().getPostgresqlConf().get(0).getParameter());
-    assertEquals("'scram-sha-256'", resource.getStatus().getPostgresqlConf().get(0).getValue());
+    assertEquals("scram-sha-256", resource.getStatus().getPostgresqlConf().get(0).getValue());
     assertEquals("https://postgresqlco.nf/en/doc/param/password_encryption/12/",
         resource.getStatus().getPostgresqlConf().get(0).getDocumentationLink());
     assertEquals("random_page_cost", resource.getStatus().getPostgresqlConf().get(1).getParameter());
@@ -117,7 +117,7 @@ class PostgresConfigResourceTest
     assertNotNull(resource.getSpec());
     assertEquals("12", resource.getSpec().getPostgresVersion());
     assertEquals(ImmutableMap.of(
-        "password_encryption", "'scram-sha-256'",
+        "password_encryption", "scram-sha-256",
         "random_page_cost", "1.5",
         "shared_buffers", "256MB",
         "max_wal_senders", "10",
