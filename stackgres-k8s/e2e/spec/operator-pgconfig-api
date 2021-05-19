@@ -201,7 +201,7 @@ update_pg_config_paramter_with_api() {
   UPDATED_PGCONFIG=$(cat "$LOG_PATH/default-pgconfig-cr.json" \
     | jq 'del(.apiVersion) | del(.kind)' \
     | jq ".spec[\"postgresql.conf\"][\"$1\"] = $2" \
-    | jq '.spec."postgresql.conf" = (.spec."postgresql.conf"|to_entries|map(.key + "=" + .value)|join("\n"))' )
+    | jq '.spec."postgresql.conf" = (.spec."postgresql.conf"|to_entries|map(.key + "='"'"'" + .value + "'"'"'")|join("\n"))' )
     
   echo_raw "$UPDATED_PGCONFIG" > "$LOG_PATH/updated-pgconfig.json"
 
@@ -212,7 +212,7 @@ update_pg_config_paramter_with_api() {
     echo "Request acknowledged by the operator"
   else
     local ERROR_RESPONSE
-    ERROR_RESPONSE="$(run_curl -r "stackgres/sgpgconfig" -n "$CLUSTER_NAMESPACE" -d updated-pgconfig.json -e '-X PUT')"
+    ERROR_RESPONSE="$(run_curl -r "stackgres/sgpgconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/updated-pgconfig.json" -e '-X PUT')"
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
   fi
@@ -241,7 +241,7 @@ test_api_updated_pgconfig_is_visible() {
   update_pg_config_paramter_with_api 'shared_buffers' '"512MB"'
 
   if get_pgconfig_from_api | jq '.spec["postgresql.conf"]' -r \
-    | grep -q 'shared_buffers=512MB'
+    | grep -q "shared_buffers='512MB'"
   then
     echo "Postgres config updates are being reflected in the api"
   else

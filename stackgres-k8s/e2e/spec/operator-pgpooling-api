@@ -196,7 +196,7 @@ update_pgpooling_parameter_with_api() {
     echo "Request acknowledged by the operator"
   else
     local ERROR_RESPONSE
-    ERROR_RESPONSE="$(run_curl -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d updated-pgpooling.json -e '-X PUT')"
+    ERROR_RESPONSE="$(run_curl -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/updated-pgpooling.json" -e '-X PUT')"
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
   fi

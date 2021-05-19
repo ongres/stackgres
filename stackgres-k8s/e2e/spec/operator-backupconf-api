@@ -228,7 +228,6 @@ update_backupconfig_parameter_with_api() {
   else
     local ERROR_RESPONSE
     ERROR_RESPONSE="$(run_curl -r "stackgres/sgbackupconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/updated-backupconfig.json" -e '-X PUT')"
-
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
   fi

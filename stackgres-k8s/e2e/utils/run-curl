@@ -69,15 +69,16 @@ run_curl() {
 
   if [ -n "${DATA_FILENAME}" ]
   then
+    [ -f "$DATA_FILENAME" ]
     tar cf - "$DATA_FILENAME" | kubectl exec -i -n "$NAMESPACE" "$POD" -- tar xf - -C /tmp
-    kubectl exec -i -n "$NAMESPACE" "$POD" -- \
+    kubectl exec -n "$NAMESPACE" "$POD" -- \
       curl -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
       -H "Authorization: Bearer $JWT" \
       -H "Content-Type: $CONTENT_TYPE" \
       -H "Accept: $ACCEPT"  \
       --data @"/tmp/$DATA_FILENAME" -s $EXTRA_PARAMETERS
   else
-    kubectl exec -i -n "$NAMESPACE" "$POD" -- \
+    kubectl exec -n "$NAMESPACE" "$POD" -- \
       curl -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
       -H "Authorization: Bearer $JWT" \
       -H "Content-Type: $CONTENT_TYPE" \
