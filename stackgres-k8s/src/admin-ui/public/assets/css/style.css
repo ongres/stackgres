@@ -215,6 +215,10 @@ svg.background circle {
     text-transform: uppercase;
 }
 
+.textCenter {
+    text-align: center;
+}
+
 /* Log in */
 
 #nav .right > div#signup {
@@ -3243,7 +3247,6 @@ td.label span:not(.helpTooltip) {
 }
 
 table.clusterConfig {
-    max-width: 1000px;
     margin-bottom: 30px;
     margin-top: 15px;
 }
@@ -4966,6 +4969,27 @@ table.backupConfig tr.details.open td:first-of-type {
     white-space: -o-pre-wrap;
     word-wrap: break-word;
     padding-right: 15px;
+}
+
+#contentTooltip .warning svg {
+    position: initial;
+    margin: 0 0 10px;
+    fill: var(--orange);
+    width: 25px;
+}
+
+#contentTooltip .warning {
+    margin-bottom: 0;
+    border-color: var(--orange) !important;
+    background: rgb(255 87 34 / 10%);
+}
+
+#contentTooltip .warning p {
+    padding-left: 0;
+}
+
+#contentTooltip .info.warning span.close {
+    color: var(--orange);
 }
 
 /*Help Tooltips*/
