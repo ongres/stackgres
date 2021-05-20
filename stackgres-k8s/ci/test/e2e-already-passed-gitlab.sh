@@ -47,9 +47,12 @@ VARIABLES="$(jq -c -s "$(cat << EOF
     | sort_by(.variable_type + "." + .key)
 EOF
       )" "$TEMP_DIR/variables.$CI_PIPELINE_ID")"
+TEST_HASHES="$(sh stackgres-k8s/e2e/e2e calculate_spec_hashes | sed 's#^.*/\([^/]\+\)$#\1#' \
+  | jq -R . | jq -s 'map(.|split(":")|{ key: .[0], value: .[1] })|from_entries')"
 [ -n "$JAVA_MODULE_HASH" -a -n "$WEB_MODULE_HASH" -a -n "$NATIVE_MODULE_HASH" ]
 jq -r -s "$(cat << EOF
-  .[] | select(.[0].test_suites != null)
+  . as $in | $TEST_HASHES as $test_hashes
+    | $in[] | select(.[0].test_suites != null)
     | select(.[0].test_suites[] | select(.name == "build").test_cases
       | map(.classname == "module type jvm-image" and .name == "$JAVA_MODULE_HASH") | any)
     | select(.[0].test_suites[] | select(.name == "build").test_cases
@@ -64,7 +67,7 @@ jq -r -s "$(cat << EOF
         (($IS_NATIVE | not) and ((.name | startswith("e2e tests jvm ")) or (.name | startswith("e2e ex tests jvm "))))
         or (($IS_NATIVE) and ((.name | startswith("e2e tests native ")) or (.name | startswith("e2e ex tests native "))))
       ).test_cases[]
-    | select(.status == "success").name
+    | select($test_hashes[.classname] == .name and .status == "success").name
 EOF
   )" "$TEMP_DIR"/test_report_with_variables.* \
     | sort | uniq | tr '\n' ' '

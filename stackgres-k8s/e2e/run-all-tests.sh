@@ -191,6 +191,9 @@ setup_logs
 echo "Setup operator"
 setup_operator
 
+echo "Calculating spec hashes"
+SPEC_HASHES="$(calculate_spec_hashes)"
+
 rm -f "$TARGET_PATH/e2e-tests-junit-report.results.xml"
 
 echo "Functional tests results" > "$TARGET_PATH/logs/results.log"
@@ -275,10 +278,11 @@ do
       RUNNED_COUNT="$((RUNNED_COUNT+1))"
       SPEC="$(echo "$SPECS_TO_RUN" | tr ' ' '\n' | tail -n+"$RUNNED_COUNT" | head -n 1)"
       SPEC_NAME="$(basename "$SPEC")"
+      SPEC_HASH="$(echo "$SPEC_HASHES" | grep "^$SPEC:" | cut -d : -f 2=)"
       if echo " $SPECS_FAILED " | grep -q -F " $SPEC_NAME "
       then
         cat << EOF >> "$TARGET_PATH/e2e-tests-junit-report.results.xml"
-    <testcase classname="$SPEC_NAME" name="$SPEC_NAME" time="$(cat "$TARGET_PATH/$SPEC_NAME.duration")">
+    <testcase classname="$SPEC_NAME" name="$SPEC_HASH" time="$(cat "$TARGET_PATH/$SPEC_NAME.duration")">
       <failure message="$SPEC_NAME failed" type="ERROR">
       <![CDATA[
       $(show_logs "$SPEC_NAME")
@@ -288,7 +292,7 @@ do
 EOF
       else
         cat << EOF >> "$TARGET_PATH/e2e-tests-junit-report.results.xml"
-    <testcase classname="$SPEC_NAME" name="$SPEC_NAME" time="$(cat "$TARGET_PATH/$SPEC_NAME.duration")" />
+    <testcase classname="$SPEC_NAME" name="$SPEC_HASH" time="$(cat "$TARGET_PATH/$SPEC_NAME.duration")" />
 EOF
       fi
     done
