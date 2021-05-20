@@ -278,7 +278,7 @@ do
       RUNNED_COUNT="$((RUNNED_COUNT+1))"
       SPEC="$(echo "$SPECS_TO_RUN" | tr ' ' '\n' | tail -n+"$RUNNED_COUNT" | head -n 1)"
       SPEC_NAME="$(basename "$SPEC")"
-      SPEC_HASH="$(echo "$SPEC_HASHES" | grep "^$SPEC:" | cut -d : -f 2=)"
+      SPEC_HASH="$(echo "$SPEC_HASHES" | grep "^$SPEC:" | cut -d : -f 2)"
       if echo " $SPECS_FAILED " | grep -q -F " $SPEC_NAME "
       then
         cat << EOF >> "$TARGET_PATH/e2e-tests-junit-report.results.xml"
