@@ -131,7 +131,7 @@
 			</div>-->
 		</div>
 		
-		<div id="helpTooltip" class="hideOnClick"><vue-markdown :source=tooltipsText></vue-markdown></div>
+		<div id="helpTooltip" class="hideOnClick"><vue-markdown :source=tooltipsText :breaks=false></vue-markdown></div>
 		<div id="notFound" v-if="loggedIn && notFound">
             <h1>Not Found</h1>
             <p>
