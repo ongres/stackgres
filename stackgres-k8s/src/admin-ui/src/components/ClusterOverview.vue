@@ -71,8 +71,10 @@
 									<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+cluster.name" title="Cluster Status" data-active=".set.clu" class="no-color">
 										{{ cluster.name }}
 									</router-link>
-									<template v-for="condition in cluster.data.status.conditions" v-if="( (condition.type == 'PendingRestart') && (condition.status == 'True') )">
-										<span class="helpTooltip alert" data-tooltip="A restart operation is pending for this cluster"></span>
+									<template v-if="hasProp(cluster, 'data.status.conditions')">
+										<template v-for="condition in cluster.data.status.conditions" v-if="( (condition.type == 'PendingRestart') && (condition.status == 'True') )">
+											<span class="helpTooltip alert" data-tooltip="A restart operation is pending for this cluster"></span>
+										</template>
 									</template>
 								</td>
 								<td class="instances">
@@ -80,22 +82,16 @@
 										{{ cluster.data.spec.instances }}
 									</router-link>
 								</td>
-								
-								<template v-for="profile in profiles">
-									<template v-if="(profile.data.metadata.namespace == $route.params.namespace) && (cluster.data.spec.sgInstanceProfile == profile.name)">
-										<td class="cpu">
-											<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+cluster.name" title="Cluster Status" data-active=".set.clu" class="no-color" v-if="hasProp(cluster,'status.cpuRequested')">
-												{{ cluster.status.cpuRequested }}
-											</router-link>
-										</td>
-										<td class="ram">
-											<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+cluster.name" title="Cluster Status" data-active=".set.clu" class="no-color" v-if="hasProp(cluster,'status.memoryRequested')">
-												{{ cluster.status.memoryRequested.replace('.00','') }}
-											</router-link>
-										</td>
-									</template>
-								</template>
-
+								<td class="cpu">
+									<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+cluster.name" title="Cluster Status" data-active=".set.clu" class="no-color" v-if="hasProp(cluster,'status.cpuRequested')">
+										{{ cluster.status.cpuRequested }}
+									</router-link>
+								</td>
+								<td class="ram">
+									<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+cluster.name" title="Cluster Status" data-active=".set.clu" class="no-color" v-if="hasProp(cluster,'status.memoryRequested')">
+										{{ cluster.status.memoryRequested.replace('.00','') }}
+									</router-link>
+								</td>
 								<td class="volumeSize">
 									<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+cluster.name" title="Cluster Status" data-active=".set.clu" class="no-color">
 										{{ cluster.data.spec.pods.persistentVolume.size }}

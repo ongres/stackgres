@@ -1022,9 +1022,9 @@
                                         "labels": this.parseProps(this.podsMetadata, 'label')
                                     }
                                 }) ),
-                                ...( (!jQuery.isEmptyObject(this.parseProps(this.nodeSelector, 'label')) || this.hasTolerations() ) && ({
+                                ...( ( this.hasNodeSelectors() || this.hasTolerations() ) && ({
                                     "scheduling": {
-                                        ...(!jQuery.isEmptyObject(this.parseProps(this.nodeSelector, 'label')) && ({"nodeSelector": this.parseProps(this.nodeSelector, 'label')})),
+                                        ...(this.hasNodeSelectors() && ({"nodeSelector": this.parseProps(this.nodeSelector, 'label')})),
                                         ...(this.hasTolerations() && ({"tolerations": this.tolerations}))
                                     }
                                 }) )                    
@@ -1224,7 +1224,19 @@
                         vc.tolerations.splice( index, 1 )
                 })
 
-                return t.length
+                return vc.tolerations.length
+            },
+
+            hasNodeSelectors () {
+                const vc = this
+                let nS = [...vc.nodeSelector]
+
+                nS.forEach(function(item, index) {
+                    if(JSON.stringify(item) == '{"label":"","value":""}')
+                        vc.nodeSelector.splice( index, 1 )
+                })
+
+                return vc.nodeSelector.length
             },
 
             toggleAccordion(id) {
