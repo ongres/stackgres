@@ -206,7 +206,7 @@
                         .then(function (response) {
                             vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> updated successfully', 'message','profile');
 
-                            vc.fetchAPI();
+                            vc.fetchAPI('sginstanceprofile');
                             router.push('/profiles/'+profile.metadata.namespace+'/'+profile.metadata.name);
 
                         })
@@ -224,7 +224,7 @@
                         .then(function (response) {
 
                             vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> created successfully', 'message','profile');
-                            vc.fetchAPI();
+                            vc.fetchAPI('sginstanceprofile');
                             router.push('/profiles/'+profile.metadata.namespace+'/'+profile.metadata.name);
             
                         })
