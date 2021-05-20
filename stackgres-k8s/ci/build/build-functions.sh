@@ -351,10 +351,10 @@ set_module_functions() {
   [ -n "$1" ]
   local MODULE="$1"
   MODULE_TYPE="$(jq -r ".modules[\"$MODULE\"].type" stackgres-k8s/ci/build/target/config.json)"
-  MODULE_TYPE="$(printf '%s' "$MODULE_TYPE" | tr '-' '_')"
-  MODULE_IMAGE_NAME_FUNCTION="${MODULE_TYPE}_module_image_name"
-  MODULE_BUILD_FUNCTION="build_${MODULE_TYPE}_image"
-  MODULE_COPY_CACHE_FUNCTION="copy_${MODULE_TYPE}_cache"
+  MODULE_TYPE_PREFIX="$(printf '%s' "$MODULE_TYPE" | tr '-' '_')"
+  MODULE_IMAGE_NAME_FUNCTION="${MODULE_TYPE_PREFIX}_module_image_name"
+  MODULE_BUILD_FUNCTION="build_${MODULE_TYPE_PREFIX}_image"
+  MODULE_COPY_CACHE_FUNCTION="copy_${MODULE_TYPE_PREFIX}_cache"
 }
 
 source_image_name() {
