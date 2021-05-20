@@ -39,11 +39,6 @@ do
 
   echo "Preparing kind shared cache cache..."
   export KIND_LOCK_PATH="/tmp/kind-lock$SUFFIX"
-  export KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache/$KIND_NAME"
-  if [ "$E2E_CLEAN_IMAGE_CACHE" = "true" ]
-  then
-    rm -rf "$E2E_PULLED_IMAGES_PATH"
-  fi
   if docker manifest inspect \
     "$CI_REGISTRY/$CI_PROJECT_PATH/stackgres/operator:$IMAGE_TAG_BASE" >/dev/null 2>&1
   then
@@ -56,8 +51,18 @@ do
     flock /tmp/e2e-create-kind-cache-base \
       sh stackgres-k8s/ci/test/e2e-create-kind-cache-base.sh
   else
-    sh stackgres-k8s/ci/test/e2e-create-kind-cache-base.sh
+    flock "$KIND_LOCK_PATH" \
+      sh stackgres-k8s/ci/test/e2e-create-kind-cache-base.sh
   fi
+  if [ "${KIND_CONTAINERD_CACHE_SHARED_TYPE:-disabled}" = disabled ]
+  then
+    KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache/kind-$(cat /tmp/kind-cache-index)"
+    KIND_CONTAINERD_CACHE_LOCK_PATH="/tmp/kind-cache/kind-lock-$(cat /tmp/kind-cache-index)"
+  else
+    KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache/$KIND_NAME"
+    KIND_CONTAINERD_CACHE_LOCK_PATH="/tmp/kind-cache-lock$SUFFIX"
+  fi
+  export KIND_CONTAINERD_CACHE_PATH
 
   echo "Retrieving jobs cache..."
   if "$IS_WEB"
