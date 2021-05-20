@@ -58,7 +58,7 @@ jq -r -s "$(cat << EOF
     | select(.[0].test_suites[] | select(.name == "build").test_cases
       | map(($IS_WEB | not) or (.classname == "module admin-ui-image" and .name == "$WEB_MODULE_HASH")) | any)
     | select(.[0].test_suites[] | select(.name == "build").test_cases
-      | map(($IS_NATIVE | not) or (.classname == "module native-image" and .name == "$NATIVE_MODULE_HASH")) | any)
+      | map(($IS_NATIVE | not) or (.classname == "module type native-image" and .name == "$NATIVE_MODULE_HASH")) | any)
     | select((.[1]
       | map(select(.key as \$key | $VARIABLE_PREFIXES | map(\$key | startswith(.)) | any))
       | sort_by(.variable_type + "." + .key)) == $VARIABLES)
