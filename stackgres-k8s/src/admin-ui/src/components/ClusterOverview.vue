@@ -14,7 +14,7 @@
 				</ul>
 
 				<div class="actions">
-				<a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/01-postgres-clusters/" target="_blank" title="SGCluster Documentation">SGCluster Documentation</a>
+				<a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sgcluster/" target="_blank" title="SGCluster Documentation">SGCluster Documentation</a>
 					<div>
 						<router-link :to="'/crd/create/cluster/'+$route.params.namespace" class="add" v-if="iCan('create','sgclusters',$route.params.namespace)">Add New</router-link>
 					</div>	
