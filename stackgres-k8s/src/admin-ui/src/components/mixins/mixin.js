@@ -482,7 +482,14 @@ export const mixin = {
 
       },
   
-      setContentTooltip( el ) {
+      setContentTooltip( el, warning = false ) {
+
+        if(warning) {
+          $('#contentTooltip .info').addClass('warning')
+        } else {
+          $('#contentTooltip .info').removeClass('warning');
+        }
+
         $('#contentTooltip .info .content').html($(el).html());
         $('#contentTooltip').addClass('show');
       },

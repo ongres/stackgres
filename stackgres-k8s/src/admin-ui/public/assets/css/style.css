@@ -215,6 +215,10 @@ svg.background circle {
     text-transform: uppercase;
 }
 
+.textCenter {
+    text-align: center;
+}
+
 /* Log in */
 
 #nav .right > div#signup {
@@ -653,7 +657,7 @@ aside {
     border-bottom: 1px solid var(--gray1);
     background: #f8f8f8;
     overflow: visible;
-    z-index: 10;
+    z-index: 11;
 }
 
 #main {
@@ -1925,6 +1929,25 @@ li.status {
     margin-bottom: 10px;
 }
 
+.connectionInfo h2 {
+    border-bottom: none;
+    display: inline-block;
+    margin-bottom: -10px;
+    padding-bottom: 0;
+    line-height: 1.1;
+}
+
+.connectionInfo {
+    float: right;
+    position: relative;
+    top: -38px;
+    right: 5px;
+}
+
+.connectionInfo a:hover h2 {
+    color: var(--baseLightColor);
+    cursor: pointer;
+}
 
 .content table {
     margin-bottom: 10px;
@@ -3224,7 +3247,6 @@ td.label span:not(.helpTooltip) {
 }
 
 table.clusterConfig {
-    max-width: 1000px;
     margin-bottom: 30px;
     margin-top: 15px;
 }
@@ -3274,7 +3296,7 @@ table.clusterConfig a:hover svg, td.usedOn a:hover svg path{
     fill: var(--lblue) !important;
 }
 
-table.clusterConfig svg, td.usedOn svg, tr.controlData svg {
+table.clusterConfig svg, td.usedOn svg, tr.controlData svg, .connectionInfo svg {
     fill: var(--blue);
     width: 15px;
     display: inline-block;
@@ -4949,6 +4971,27 @@ table.backupConfig tr.details.open td:first-of-type {
     padding-right: 15px;
 }
 
+#contentTooltip .warning svg {
+    position: initial;
+    margin: 0 0 10px;
+    fill: var(--orange);
+    width: 25px;
+}
+
+#contentTooltip .warning {
+    margin-bottom: 0;
+    border-color: var(--orange) !important;
+    background: rgb(255 87 34 / 10%);
+}
+
+#contentTooltip .warning p {
+    padding-left: 0;
+}
+
+#contentTooltip .info.warning span.close {
+    color: var(--orange);
+}
+
 /*Help Tooltips*/
 .helpTooltip {
     display: inline-block;
@@ -5022,8 +5065,9 @@ td.label .helpTooltip {
     fill: var(--gray2);
 }
 
-.toggleSecret.show svg path {
-    fill: var(--blue)
+.connectionInfo a:hover svg path{
+    fill: var(--baseLightColor);
+    cursor: pointer;
 }
 
 .blur {
