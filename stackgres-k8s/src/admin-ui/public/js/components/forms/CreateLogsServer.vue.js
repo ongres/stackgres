@@ -23,7 +23,7 @@ var CreateLogsServer = Vue.component("CreateLogsServer", {
                 </ul>
 
                 <div class="actions">
-                    <a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/06-distributed-logs/" target="_blank" title="SGDistributedLogs Documentation">SGDistributedLogs Documentation</a>
+                    <a class="documentation" href="https://stackgres.io/doc/0.9/reference/crd/sgdistributedlogs/" target="_blank" title="SGDistributedLogs Documentation">SGDistributedLogs Documentation</a>
                 </div>
             </header>
             <div class="form">

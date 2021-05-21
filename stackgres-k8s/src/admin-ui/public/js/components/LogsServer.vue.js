@@ -17,7 +17,7 @@ var LogsServer = Vue.component("LogsServer", {
                 </ul>
 
                 <div class="actions">
-                    <a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/06-distributed-logs/" target="_blank" title="SGDistributedLogs Documentation">SGDistributedLogs Documentation</a>
+                    <a class="documentation" href="https://stackgres.io/doc/0.9/reference/crd/sgdistributedlogs/" target="_blank" title="SGDistributedLogs Documentation">SGDistributedLogs Documentation</a>
                     <div>
                         <router-link v-if="iCan('create','sgdistributedlogs',$route.params.namespace)" :to="'/admin/crd/create/logs/'+$route.params.namespace" class="add">Add New</router-link>
                     </div>	

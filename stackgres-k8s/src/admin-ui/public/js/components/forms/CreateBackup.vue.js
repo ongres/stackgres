@@ -22,7 +22,7 @@ var CreateBackup = Vue.component("CreateBackup", {
                 </ul>
 
                 <div class="actions">
-                    <a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/04-backups/" target="_blank" title="SGBackup Documentation">SGBackup Documentation</a>
+                    <a class="documentation" href="https://stackgres.io/doc/0.9/reference/crd/sgbackup/" target="_blank" title="SGBackup Documentation">SGBackup Documentation</a>
                 </div>
             </header>
                     

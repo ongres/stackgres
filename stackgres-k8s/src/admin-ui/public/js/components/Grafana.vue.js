@@ -21,7 +21,7 @@ var Grafana = Vue.component("Grafana", {
 				</ul>
 
 				<div class="actions">
-				<a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/01-postgres-clusters/" target="_blank" title="SGCluster Documentation">SGCluster Documentation</a>
+				<a class="documentation" href="https://stackgres.io/doc/0.9/reference/crd/sgcluster/" target="_blank" title="SGCluster Documentation">SGCluster Documentation</a>
 					<div>
 						<a v-if="iCan('create','sgclusters',$route.params.namespace)" class="cloneCRD" @click="cloneCRD('SGCluster', currentNamespace, $route.params.name)">Clone Cluster Configuration</a>
 						<router-link v-if="iCan('patch','sgclusters',$route.params.namespace)" :to="'/admin/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link>
@@ -85,7 +85,7 @@ var Grafana = Vue.component("Grafana", {
 						notify({
 								title: errorThrown,
 								detail: 'There was a problem when trying to access Grafana\'s dashboard. Please confirm you have setup the operator\'s credentials to view Grafana properly',
-								type: 'https://stackgres.io/doc/latest/install/prerequisites/monitoring/#installing-grafana-and-create-basic-dashboards',
+								type: 'https://stackgres.io/doc/0.9/install/prerequisites/monitoring/#installing-grafana-and-create-basic-dashboards',
 								status: 403
 						},'error')
 						$('#grafana').remove();
