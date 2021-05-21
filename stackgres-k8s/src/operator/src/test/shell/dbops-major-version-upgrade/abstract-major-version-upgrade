@@ -30,10 +30,14 @@ mock kubectl kubectl_mock
 kubectl_mock() {
   mokked
   case "$*" in
-    ("get $CLUSTER_CRD_NAME "*)
+    ("get $CLUSTER_CRD_NAME "*" --template="'
+  LOCK_POD={{ if .metadata.annotations.lockPod }}{{ .metadata.annotations.lockPod }}{{ else }}{{ end }}
+  LOCK_TIMESTAMP={{ if .metadata.annotations.lockTimestamp }}{{ .metadata.annotations.lockTimestamp }}{{ else }}0{{ end }}
+  RESOURCE_VERSION={{ .metadata.resourceVersion }}
+  ')
     echo '
       LOCK_POD=test
-      LOCK_TIMESTAMP="$(date +%s)"
+      LOCK_TIMESTAMP=$(date +%s)
       RESOURCE_VERSION=test
       '
     ;;
@@ -41,11 +45,14 @@ kubectl_mock() {
     ;;
     ("get $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ if .status.dbOps }}{{ if .status.dbOps.$OP_NAME }}true{{ end }}{{ end }}")
     ;;
+    ("get $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ .spec.postgresVersion }}")
+    printf '%s' "12.4"
+    ;;
     ("get $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME --template={{ if .status }}true{{ else }}false{{ end }}")
-    printf false
+    printf '%s' false
     ;;
     ("get $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME --template={{ if .status.$OP_NAME }}replace{{ else }}add{{ end }}")
-    printf add
+    printf '%s' add
     ;;
     ("get pods -n $CLUSTER_NAMESPACE -l $CLUSTER_POD_LABELS -o name")
     cat "$TEST_TARGET_PATH/cluster_pods"
