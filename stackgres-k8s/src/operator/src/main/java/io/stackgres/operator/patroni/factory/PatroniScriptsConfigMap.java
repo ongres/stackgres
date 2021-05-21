@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.patroni.factory;
 
-import java.util.Locale;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -47,18 +46,17 @@ public class PatroniScriptsConfigMap implements StackGresClusterResourceStreamFa
     return normalizedKeyName(indexedScript) + ".sql";
   }
 
-  private static String normalizedResourceName(
+  public static String normalizedResourceName(
       Tuple4<StackGresClusterScriptEntry, Long, String, Long> indexedScript) {
-    return (INTERNAL_SCRIPT.equals(indexedScript.v3)
-        ? "internal-" + baseName(indexedScript.v1, indexedScript.v2)
-        : baseName(indexedScript.v1, indexedScript.v4))
-        .toLowerCase(Locale.US).replaceAll("[^a-z0-9-]", "-");
+    return ResourceUtil.resourceName(
+        ResourceUtil.sanitizedResourceName(INTERNAL_SCRIPT.equals(indexedScript.v3)
+            ? "internal-" + baseName(indexedScript.v1, indexedScript.v2)
+            : baseName(indexedScript.v1, indexedScript.v4)));
   }
 
-  private static String normalizedKeyName(
+  public static String normalizedKeyName(
       Tuple4<StackGresClusterScriptEntry, Long, String, Long> indexedScript) {
-    return baseName(indexedScript.v1, indexedScript.v4)
-        .toLowerCase(Locale.US).replaceAll("[^a-zA-Z0-9-_.]", "-");
+    return ResourceUtil.sanitizedResourceName(baseName(indexedScript.v1, indexedScript.v4));
   }
 
   private static String baseName(StackGresClusterScriptEntry script, Long index) {
