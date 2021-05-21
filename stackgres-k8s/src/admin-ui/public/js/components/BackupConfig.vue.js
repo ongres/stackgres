@@ -17,7 +17,7 @@ var BackupConfig = Vue.component("BackupConfig", {
 				</ul>
 
 				<div class="actions">
-					<a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/04-backups/#configuration" target="_blank" title="SGBackupConfig Documentation">SGBackupConfig Documentation</a>
+					<a class="documentation" href="https://stackgres.io/doc/0.9/reference/crd/sgbackupconfig/" target="_blank" title="SGBackupConfig Documentation">SGBackupConfig Documentation</a>
 					<div>
 						<router-link v-if="iCan('create','sgbackupconfigs',$route.params.namespace)"  :to="'/admin/crd/create/backupconfig/'+$route.params.namespace" class="add">Add New</router-link>
 					</div>	
