@@ -961,7 +961,7 @@ ul.zg-ul-select.active li.active:hover {
 #ns-select, .set.active:not(.conf) {
     border-bottom: 1px solid #f1f1f1;
     border-top: 1px solid #f1f1f1;
-    max-height: calc(100vh - 475px);
+    max-height: calc(100vh - 525px);
     overflow: auto;
 }
 

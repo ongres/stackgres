@@ -22,7 +22,7 @@
             </ul>
 
             <div class="actions">
-                <a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/03-instance-profiles/" target="_blank" title="SGInstanceProfile Documentation">SGInstanceProfile Documentation</a>
+                <a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sginstanceprofile/" target="_blank" title="SGInstanceProfile Documentation">SGInstanceProfile Documentation</a>
             </div>
         </header>
 

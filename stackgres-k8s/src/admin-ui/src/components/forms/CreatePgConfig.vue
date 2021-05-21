@@ -21,7 +21,7 @@
             </ul>
 
             <div class="actions">
-                <a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/02-configuration-tuning/02-postgres-configuration/" target="_blank" title="SGPostgresConfig Documentation">SGPostgresConfig Documentation</a>
+                <a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sgpgconfig/" target="_blank" title="SGPostgresConfig Documentation">SGPostgresConfig Documentation</a>
             </div>
         </header>
 
