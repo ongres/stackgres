@@ -24,7 +24,6 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.CommonDefinition;
-import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.testutil.CrdUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

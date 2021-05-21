@@ -7,13 +7,8 @@ package io.stackgres.jobs.crdupgrade;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,7 +16,6 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionNames;
-import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.testutil.CrdUtils;
 import org.junit.jupiter.api.Test;
 
