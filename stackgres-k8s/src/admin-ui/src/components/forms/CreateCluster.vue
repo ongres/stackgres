@@ -726,7 +726,7 @@
             
             <div class="info">
                 <h3 class="title"></h3>
-                <vue-markdown :source=tooltipsText></vue-markdown>
+                <vue-markdown :source=tooltipsText :breaks=false></vue-markdown>
             </div>
         </div>
     </form>
