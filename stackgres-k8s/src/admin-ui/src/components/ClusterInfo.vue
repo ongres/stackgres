@@ -66,7 +66,7 @@
 								</p>
 							</div>
 							<template v-else>
-								<p>To access StackGres cluster <code>{{ $route.params.namespace !== 'default' ? $route.params.namespace+'.'+cluster.name : cluster.name }}</code> you can address one or both of the following DNS entries:
+								<p>To access StackGres cluster <code>{{ $route.params.namespace + '.' + cluster.name }}</code> you can address one or both of the following DNS entries:
 									<ul>
 										<li>Read Write DNS: <code>{{ cluster.data.info.primaryDns }}</code> </li>
 										<li>Read Only DNS: <code>{{ cluster.data.info.replicasDns }}</code> </li>
@@ -78,18 +78,18 @@
 										<li>
 											Local <code>psql</code> (runs within the same pod as Postgres):<br/>
 											<template v-for="pod in cluster.data.pods">
-												<pre v-if="pod.role == 'primary'">kubectl {{ $route.params.namespace !== 'default' ? '-n '+$route.params.namespace : '' }} exec -ti {{ pod.name }} -c postgres-util -- psql{{ cluster.data.info.superuserUsername !== 'postgres' ? ' -U '+cluster.data.info.superuserUsername : '' }}<span class="copyClipboard" data-tooltip="Copied!" title="Copy to clipboard"></span></pre>
+												<pre v-if="pod.role == 'primary'">kubectl -n {{ $route.params.namespace }} exec -ti {{ pod.name }} -c postgres-util -- psql{{ cluster.data.info.superuserUsername !== 'postgres' ? ' -U '+cluster.data.info.superuserUsername : '' }}<span class="copyClipboard" data-tooltip="Copied!" title="Copy to clipboard"></span></pre>
 											</template>
 										</li>
 										<li>
 											Externally to StackGres pods, from a container image that contains <code>psql</code> (this option is the only one available if you have disabled the <code>postgres-util</code> sidecar):<br/>
-											<pre>kubectl {{ $route.params.namespace !== 'default' ? '-n '+$route.params.namespace : '' }} run psql --rm -it --image ongres/postgres-util:v13.2-build-6.2 --restart=Never -- psql -h {{ cluster.name }}-primary {{ cluster.data.info.superuserUsername }} {{ cluster.data.info.superuserUsername }}  <span class="copyClipboard" data-tooltip="Copied!" title="Copy to clipboard"></span></pre>
+											<pre>kubectl -n {{ $route.params.namespace }} run psql --rm -it --image ongres/postgres-util:v13.2-build-6.2 --restart=Never -- psql -h {{ cluster.name }}-primary {{ cluster.data.info.superuserUsername }} {{ cluster.data.info.superuserUsername }}  <span class="copyClipboard" data-tooltip="Copied!" title="Copy to clipboard"></span></pre>
 										</li>
 									</ul>
 								</p>
 
 								<p>The command will ask for the admin user password (prompt may not be shown, just type or paste the password). Use the following command to retrieve it:<br/>
-									<pre>kubectl {{ $route.params.namespace !== 'default' ? '-n '+$route.params.namespace : '' }}get secret {{ cluster.data.info.superuserSecretName }} --template <template v-pre>'{{</template> printf "%s" (index .data "{{ cluster.data.info.superuserPasswordKey }}" | base64decode) }}'<span class="copyClipboard" data-tooltip="Copied!" title="Copy to clipboard"></span></pre>
+									<pre>kubectl -n {{ $route.params.namespace }} get secret {{ cluster.data.info.superuserSecretName }} --template <template v-pre>'{{</template> printf "%s" (index .data "{{ cluster.data.info.superuserPasswordKey }}" | base64decode) }}'<span class="copyClipboard" data-tooltip="Copied!" title="Copy to clipboard"></span></pre>
 								</p>
 							</template>
 						</div>
