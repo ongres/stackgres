@@ -835,7 +835,7 @@ var CreateCluster = Vue.component("CreateCluster", {
                     if(!script.name.length)
                         delete script.name
 
-                    if(script.database && !script.database.length)
+                    if(!script.database.length)
                         delete script.database
                 })
             }
