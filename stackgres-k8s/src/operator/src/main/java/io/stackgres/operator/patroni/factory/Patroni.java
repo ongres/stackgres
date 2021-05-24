@@ -225,7 +225,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                 context,
                 volumeMountBuilder -> volumeMountBuilder
                     .withSubPath(
-                        ClusterStatefulSetPath.PG_EXTENSIONS_EXTENSION_PATH.subPath(context,
+                        ClusterStatefulSetPath.PG_EXTENSIONS_PATH.subPath(context,
                             ClusterStatefulSetPath.PG_BASE_PATH) + extraMount)
                     .withMountPath(extraMount)))
             .toList())

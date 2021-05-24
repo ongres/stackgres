@@ -436,4 +436,14 @@ check_extension_with_extra_mount_installed_when_added() {
     echo "FAIL. Cluster is pending restart after installing postgis ($POSTGIS_VERSION) and restarting"
     return 1
   fi
+
+
+  try_function run_query -i 0 -q "SELECT 'mpoint_7', ST_AsEWKT(ST_GeomFromGML('<gml:MultiPoint srsName=\"EPSG:27582\"><gml:pointMember><gml:Point><gml:coordinates>1,2</gml:coordinates></gml:Point></gml:pointMember><gml:pointMember><gml:Point srsName=\"EPSG:27562\"><gml:coordinates>400000,5000000</gml:coordinates></gml:Point></gml:pointMember></gml:MultiPoint>'));"
+  if "$RESULT"
+  then
+    echo "SUCESS. postgis ($POSTGIS_VERSION) has extra mount installed correctly"
+  else
+    echo "FAIL. postgis ($POSTGIS_VERSION) has extra mount not installed correctly"
+    return 1
+  fi
 }
