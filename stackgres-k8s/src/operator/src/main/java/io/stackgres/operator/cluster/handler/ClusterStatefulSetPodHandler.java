@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.cluster.handler;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -84,6 +85,9 @@ public class ClusterStatefulSetPodHandler extends AbstractClusterResourceHandler
       return pairVisitor.visit()
           .visit(ObjectMeta::getName, ObjectMeta::setName)
           .visit(ObjectMeta::getNamespace, ObjectMeta::setNamespace)
+          .visitMapTransformed(ObjectMeta::getAnnotations, ObjectMeta::setAnnotations,
+              this::leftAnnotationTransformer, this::rightAnnotationTransformer,
+              HashMap<String, String>::new)
           .visitTransformed(ObjectMeta::getLabels, ObjectMeta::setLabels,
               this::tranformExistingPodLabels,
               (leftLabels, rightlabels) -> tranformRequiredPodLabels(
