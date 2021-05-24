@@ -17,7 +17,8 @@ get_latest_version_of_extension() {
   PATRONI_IMAGE_BUILD_VERSION="${PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION##*-build-}"
   PATRONI_IMAGE_BUILD_MAJOR_VERSION="${PATRONI_IMAGE_BUILD_VERSION%%.*}"
   VERSIONS="$(jq -r "$(cat << EOF
-.extensions[] | select(.name == "$EXTENSION_NAME").versions[]
+.extensions[] | select(.name == "$EXTENSION_NAME").versions
+  | sort_by(.version|split(".")) | reverse[]
   | select((.availableFor
     | map(select(
       (.postgresVersion == "$PATRONI_IMAGE_POSTGRES_VERSION"
