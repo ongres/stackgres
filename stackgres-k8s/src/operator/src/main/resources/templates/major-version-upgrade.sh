@@ -36,6 +36,8 @@ then
       -B "/usr/lib/postgresql/$TARGET_VERSION/bin" \
       -d "$PG_DATA_PATH" \
       -D "$PG_UPGRADE_PATH/$TARGET_VERSION/data" \
+      -o "dynamic_library_path=\$libdir:$SOURCE_PG_EXTENSIONS_MOUNTED_LIB64_PATH" \
+      -O "dynamic_library_path=\$libdir:$TARGET_PG_EXTENSIONS_MOUNTED_LIB64_PATH" \
       $("$LINK" && echo "-k" || true) \
       $("$CLONE" && echo "--clone" || true)
     then
@@ -49,6 +51,8 @@ then
     -B "/usr/lib/postgresql/$TARGET_VERSION/bin" \
     -d "$PG_DATA_PATH" \
     -D "$PG_UPGRADE_PATH/$TARGET_VERSION/data" \
+    -o "dynamic_library_path=\$libdir:$SOURCE_PG_EXTENSIONS_MOUNTED_LIB64_PATH" \
+    -O "dynamic_library_path=\$libdir:$TARGET_PG_EXTENSIONS_MOUNTED_LIB64_PATH" \
     $("$LINK" && echo "-k" || true) \
     $("$CLONE" && echo "--clone" || true)
   then

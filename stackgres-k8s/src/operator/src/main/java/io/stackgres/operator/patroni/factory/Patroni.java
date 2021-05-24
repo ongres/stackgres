@@ -363,9 +363,14 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
     String targetVersion = majorVersionUpgradeStatus.getTargetPostgresVersion();
     String sourceVersion = majorVersionUpgradeStatus.getSourcePostgresVersion();
     String sourceMajorVersion = StackGresComponent.POSTGRESQL.findMajorVersion(sourceVersion);
+    String sourceBuildVersion = StackGresComponent.POSTGRESQL.findBuildVersion(sourceVersion);
+    String sourceBuildMajorVersion = StackGresComponent.POSTGRESQL
+        .findBuildMajorVersion(sourceVersion);
     ImmutableMap<String, String> sourceEnvVars = ImmutableMap.of(
         ClusterStatefulSetEnvVars.POSTGRES_VERSION.name(), sourceVersion,
-        ClusterStatefulSetEnvVars.POSTGRES_MAJOR_VERSION.name(), sourceMajorVersion);
+        ClusterStatefulSetEnvVars.POSTGRES_MAJOR_VERSION.name(), sourceMajorVersion,
+        ClusterStatefulSetEnvVars.BUILD_VERSION.name(), sourceBuildVersion,
+        ClusterStatefulSetEnvVars.BUILD_MAJOR_VERSION.name(), sourceBuildMajorVersion);
     String locale = majorVersionUpgradeStatus.getLocale();
     String encoding = majorVersionUpgradeStatus.getEncoding();
     String dataChecksum = majorVersionUpgradeStatus.getDataChecksum().toString();
@@ -428,6 +433,16 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                     .withValueFrom(new EnvVarSourceBuilder()
                         .withFieldRef(new ObjectFieldSelector("v1", "metadata.name"))
                         .build())
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("TARGET_PG_EXTENSIONS_MOUNTED_LIB64_PATH")
+                    .withValue(ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_LIB64_PATH.path(
+                        context))
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("SOURCE_PG_EXTENSIONS_MOUNTED_LIB64_PATH")
+                    .withValue(ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_LIB64_PATH.path(
+                        context, sourceEnvVars))
                     .build())
             .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(context),
                 ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context))
@@ -511,7 +526,16 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                             context, sourceEnvVars,
                             ClusterStatefulSetPath.PG_BASE_PATH))
                         .withMountPath(ClusterStatefulSetPath.PG_EXTENSION_PATH.path(
-                            context, sourceEnvVars))))
+                            context, sourceEnvVars))),
+                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
+                    context,
+                    volumeMountBuilder -> volumeMountBuilder
+                        .withSubPath(
+                            ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH.subPath(context,
+                                sourceEnvVars, ClusterStatefulSetPath.PG_BASE_PATH))
+                        .withMountPath(
+                            ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_LIB64_PATH.path(context,
+                                sourceEnvVars))))
             .build(),
         new ContainerBuilder()
             .withName("reset-patroni-initialize")
