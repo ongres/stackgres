@@ -22,10 +22,11 @@ then
     FILE="$(realpath "$INIT_SCRIPT_PATH/$FILE")"
     if [ "${FILE: -4}" == ".sql" -a -f "$FILE" ]
     then
-      DATABASE="$([ "$(basename "$FILE" | tr '.' '\n' | wc -l)" -gt 2 ] \
-        && echo "$(basename "$FILE" | tr '.' '\n' | tail -n 2 | head -n -1 | tr '\n' '.')" \
-        || echo postgres)"
-      DATABASE="${DATABASE%.}"
+      DATABASE="$([ "$(basename "$FILE" | tr -d '\n' | tr '.' ' ' | wc -w)" -ge 2 ] \
+        && printf '%s' "$(basename "$FILE" | tr -d '\n' | tr '.' '\n' \
+          | tail -n +2 | tr '\n' '.' \
+          | sed 's#\\\\#\\#g' | sed 's#\\h#/#g')" \
+        || printf postgres)"
       echo "Executing SQL script $FILE for DATABASE $DATABASE with user postgres on port ${POSTGRES_PORT}"
       cat "$FILE" | python3 -c "$(cat << EOF
 import psycopg2,sys

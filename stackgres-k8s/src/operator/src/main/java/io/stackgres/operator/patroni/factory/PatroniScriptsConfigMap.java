@@ -56,7 +56,7 @@ public class PatroniScriptsConfigMap implements StackGresClusterResourceStreamFa
 
   public static String normalizedKeyName(
       Tuple4<StackGresClusterScriptEntry, Long, String, Long> indexedScript) {
-    return ResourceUtil.sanitizedResourceName(baseName(indexedScript.v1, indexedScript.v4));
+    return baseName(indexedScript.v1, indexedScript.v4);
   }
 
   private static String baseName(StackGresClusterScriptEntry script, Long index) {
@@ -65,13 +65,17 @@ public class PatroniScriptsConfigMap implements StackGresClusterResourceStreamFa
         return String.format(SCRIPT_BASIC_NAME, index);
       }
       return String.format(SCRIPT_BASIC_NAME_FOR_DATABASE,
-          index, script.getDatabase());
+          index, encodeDatabase(script.getDatabase()));
     }
     if (script.getDatabase() == null) {
       return String.format(SCRIPT_NAME, index, script.getName());
     }
     return String.format(SCRIPT_NAME_FOR_DATABASE,
-        index, script.getName(), script.getDatabase());
+        index, script.getName(), encodeDatabase(script.getDatabase()));
+  }
+
+  public static String encodeDatabase(String database) {
+    return database.replaceAll("\\\\", "\\\\\\\\").replaceAll("/", "\\\\h");
   }
 
   @Override
