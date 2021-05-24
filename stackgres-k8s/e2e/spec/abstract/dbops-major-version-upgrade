@@ -20,10 +20,22 @@ reset_cluster() {
   wait_until eval '[ "$(kubectl get pvc -n "$CLUSTER_NAMESPACE" --template "{{ .items | len }}")" = 0 ]'
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
-    --set-string cluster.postgresVersion="$E2E_SOURCE_POSTGRES_VERSION"
+    --set-string cluster.postgresVersion="$E2E_SOURCE_POSTGRES_VERSION" \
+    --set-string cluster.postgresExtensions[0].name=postgis
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
+
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 3
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c postgres-util -- psql -c "$(cat << 'EOF'
+CREATE EXTENSION postgis;
+CREATE MATERIALIZED VIEW test AS
+ SELECT 'mpoint_7', ST_AsEWKT(ST_GeomFromGML('<gml:MultiPoint srsName="EPSG:27582"><gml:pointMember><gml:Point><gml:coordinates>1,2</gml:coordinates></gml:Point></gml:pointMember><gml:pointMember><gml:Point srsName="EPSG:27562"><gml:coordinates>400000,5000000</gml:coordinates></gml:Point></gml:pointMember></gml:MultiPoint>'));
+EOF
+    )"
 
   create_or_replace_cluster "$CLUSTER_NAME-for-major-version-upgrade" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \
