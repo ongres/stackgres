@@ -29,6 +29,7 @@ ___
 | [postgresServices](#postgres-services)                                                     |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.postgresServices >}}      |
 | [pods](#pods)                                                                              | ✓        | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.pods >}}                  |
 | [configurations](#configurations)                                                          |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.configurations >}}        |
+| [postgresExtensions](#postgres-extensions)                                                 |          | ✓         | array    |                                     | {{< crd-field-description SGCluster.spec.postgresExtensions >}}    |
 | prometheusAutobind                                                                         |          | ✓         | boolean  | false                               | {{< crd-field-description SGCluster.spec.prometheusAutobind >}}    |
 | [initialData](#initial-data-configuration)                                                 |          |           | object   |                                     | {{< crd-field-description SGCluster.spec.initialData >}}           |
 | [distributedLogs](#distributed-logs)                                                       |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.distributedLogs >}}       |
@@ -233,6 +234,30 @@ spec:
     sgPoolingConfig: 'pgbouncerconf'
     sgBackupConfig: 'backupconf'
 
+```
+
+## Postgres extensions
+
+Extensions to be installed in the cluster.
+
+| Property         | Required | Updatable | Type     | Default           | Description |
+|:-----------------|----------|-----------|:---------|:------------------|:------------|
+| name             | ✓        | ✓         | string   |                   | {{< crd-field-description SGCluster.spec.postgresExtensions.items.name >}} |
+| version          |          | ✓         | string   | stable            | {{< crd-field-description SGCluster.spec.postgresExtensions.items.version >}} |
+| publisher        |          | ✓         | string   | com.ongres        | {{< crd-field-description SGCluster.spec.postgresExtensions.items.publisher >}} |
+| repository       |          | ✓         | string   |                   | {{< crd-field-description SGCluster.spec.postgresExtensions.items.repository >}} |
+
+Example: 
+ 
+``` yaml
+
+apiVersion: stackgres.io/v1
+kind: SGCluster
+metadata:
+  name: stackgres
+spec:
+  postgresExtensions:
+  - name: 'timescaledb'
 ```
 
 ## Initial Data Configuration
