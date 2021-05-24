@@ -31,22 +31,30 @@ then
   if [ "$CHECK" ]
   then
     echo "Checking major version upgrade"
-    pg_upgrade -c \
+    if ! pg_upgrade -c \
       -b "/usr/lib/postgresql/$SOURCE_VERSION/bin" \
       -B "/usr/lib/postgresql/$TARGET_VERSION/bin" \
       -d "$PG_DATA_PATH" \
       -D "$PG_UPGRADE_PATH/$TARGET_VERSION/data" \
       $("$LINK" && echo "-k" || true) \
       $("$CLONE" && echo "--clone" || true)
+    then
+      grep '^.*' *.txt *.log 2>/dev/null | cat >&2
+      exit 1
+    fi
   fi
   echo "Performing major version upgrade"
-  pg_upgrade \
+  if ! pg_upgrade \
     -b "/usr/lib/postgresql/$SOURCE_VERSION/bin" \
     -B "/usr/lib/postgresql/$TARGET_VERSION/bin" \
     -d "$PG_DATA_PATH" \
     -D "$PG_UPGRADE_PATH/$TARGET_VERSION/data" \
     $("$LINK" && echo "-k" || true) \
     $("$CLONE" && echo "--clone" || true)
+  then
+    grep '^.*' *.txt *.log 2>/dev/null | cat >&2
+    exit 1
+  fi
   )
 fi
 
