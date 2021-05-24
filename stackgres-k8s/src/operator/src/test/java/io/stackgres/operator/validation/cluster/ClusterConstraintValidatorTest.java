@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.validation.cluster;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -27,6 +29,8 @@ import io.stackgres.operator.validation.ConstraintValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresClusterReview> {
 
@@ -72,7 +76,8 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPod().getPersistentVolume().setSize(null);
 
-    checkNotNullErrorCause(StackGresPodPersistentVolume.class, "spec.pod.persistentVolume.size", review);
+    checkNotNullErrorCause(StackGresPodPersistentVolume.class, "spec.pod.persistentVolume.size",
+        review);
   }
 
   @Test
@@ -89,8 +94,10 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
     review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().add(new StackGresClusterScriptEntry());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).setScript("SELECT 1");
+    review.getRequest().getObject().getSpec().getInitData().getScripts()
+        .add(new StackGresClusterScriptEntry());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
+        .setScript("SELECT 1");
 
     validator.validate(review);
   }
@@ -100,11 +107,12 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
     review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().add(new StackGresClusterScriptEntry());
+    review.getRequest().getObject().getSpec().getInitData().getScripts()
+        .add(new StackGresClusterScriptEntry());
 
     checkErrorCause(StackGresClusterScriptEntry.class,
-        new String[] { "spec.initData.scripts[0].script",
-            "spec.initData.scripts[0].scriptFrom" },
+        new String[] {"spec.initData.scripts[0].script",
+            "spec.initData.scripts[0].scriptFrom"},
         "spec.pod.scripts[0].isScriptMutuallyExclusiveAndRequired", review, AssertTrue.class);
   }
 
@@ -113,16 +121,22 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
     review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().add(new StackGresClusterScriptEntry());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).setScriptFrom(new StackGresClusterScriptFrom());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).setScript("SELECT 1");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().setConfigMapKeyRef(new ConfigMapKeySelector());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().getConfigMapKeyRef().setName("test");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().getConfigMapKeyRef().setKey("test");
+    review.getRequest().getObject().getSpec().getInitData().getScripts()
+        .add(new StackGresClusterScriptEntry());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
+        .setScriptFrom(new StackGresClusterScriptFrom());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
+        .setScript("SELECT 1");
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .setConfigMapKeyRef(new ConfigMapKeySelector());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .getConfigMapKeyRef().setName("test");
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .getConfigMapKeyRef().setKey("test");
 
     checkErrorCause(StackGresClusterScriptEntry.class,
-        new String[] { "spec.initData.scripts[0].script",
-            "spec.initData.scripts[0].scriptFrom" },
+        new String[] {"spec.initData.scripts[0].script",
+            "spec.initData.scripts[0].scriptFrom"},
         "spec.pod.scripts[0].isScriptMutuallyExclusiveAndRequired", review, AssertTrue.class);
   }
 
@@ -131,11 +145,16 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
     review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().add(new StackGresClusterScriptEntry());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).setScriptFrom(new StackGresClusterScriptFrom());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().setConfigMapKeyRef(new ConfigMapKeySelector());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().getConfigMapKeyRef().setName("test");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().getConfigMapKeyRef().setKey("test");
+    review.getRequest().getObject().getSpec().getInitData().getScripts()
+        .add(new StackGresClusterScriptEntry());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
+        .setScriptFrom(new StackGresClusterScriptFrom());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .setConfigMapKeyRef(new ConfigMapKeySelector());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .getConfigMapKeyRef().setName("test");
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .getConfigMapKeyRef().setKey("test");
 
     validator.validate(review);
   }
@@ -145,11 +164,16 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
     review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().add(new StackGresClusterScriptEntry());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).setScriptFrom(new StackGresClusterScriptFrom());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().setSecretKeyRef(new SecretKeySelector());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().getSecretKeyRef().setName("test");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().getSecretKeyRef().setKey("test");
+    review.getRequest().getObject().getSpec().getInitData().getScripts()
+        .add(new StackGresClusterScriptEntry());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
+        .setScriptFrom(new StackGresClusterScriptFrom());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .setSecretKeyRef(new SecretKeySelector());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .getSecretKeyRef().setName("test");
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .getSecretKeyRef().setKey("test");
 
     validator.validate(review);
   }
@@ -159,12 +183,14 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
     review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().add(new StackGresClusterScriptEntry());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).setScriptFrom(new StackGresClusterScriptFrom());
+    review.getRequest().getObject().getSpec().getInitData().getScripts()
+        .add(new StackGresClusterScriptEntry());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
+        .setScriptFrom(new StackGresClusterScriptFrom());
 
     checkErrorCause(StackGresClusterScriptFrom.class,
-        new String[] { "spec.initData.scripts[0].scriptFrom.secretKeyRef",
-            "spec.initData.scripts[0].scriptFrom.configMapKeyRef" },
+        new String[] {"spec.initData.scripts[0].scriptFrom.secretKeyRef",
+            "spec.initData.scripts[0].scriptFrom.configMapKeyRef"},
         "spec.pod.scripts[0].scriptFrom.isSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndRequired",
         review, AssertTrue.class);
   }
@@ -174,18 +200,26 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
     review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().add(new StackGresClusterScriptEntry());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).setScriptFrom(new StackGresClusterScriptFrom());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().setConfigMapKeyRef(new ConfigMapKeySelector());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().getConfigMapKeyRef().setName("test");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().getConfigMapKeyRef().setKey("test");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().setSecretKeyRef(new SecretKeySelector());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().getSecretKeyRef().setName("test");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().getSecretKeyRef().setKey("test");
+    review.getRequest().getObject().getSpec().getInitData().getScripts()
+        .add(new StackGresClusterScriptEntry());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
+        .setScriptFrom(new StackGresClusterScriptFrom());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .setConfigMapKeyRef(new ConfigMapKeySelector());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .getConfigMapKeyRef().setName("test");
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .getConfigMapKeyRef().setKey("test");
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .setSecretKeyRef(new SecretKeySelector());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .getSecretKeyRef().setName("test");
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .getSecretKeyRef().setKey("test");
 
     checkErrorCause(StackGresClusterScriptFrom.class,
-        new String[] { "spec.initData.scripts[0].scriptFrom.secretKeyRef",
-            "spec.initData.scripts[0].scriptFrom.configMapKeyRef" },
+        new String[] {"spec.initData.scripts[0].scriptFrom.secretKeyRef",
+            "spec.initData.scripts[0].scriptFrom.configMapKeyRef"},
         "spec.pod.scripts[0].scriptFrom.isSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndRequired",
         review, AssertTrue.class);
   }
@@ -195,13 +229,19 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
     review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().add(new StackGresClusterScriptEntry());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).setScriptFrom(new StackGresClusterScriptFrom());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().setConfigMapKeyRef(new ConfigMapKeySelector());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().getConfigMapKeyRef().setName("test");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().getConfigMapKeyRef().setKey("");
+    review.getRequest().getObject().getSpec().getInitData().getScripts()
+        .add(new StackGresClusterScriptEntry());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
+        .setScriptFrom(new StackGresClusterScriptFrom());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .setConfigMapKeyRef(new ConfigMapKeySelector());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .getConfigMapKeyRef().setName("test");
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .getConfigMapKeyRef().setKey("");
 
-    checkErrorCause(SecretKeySelector.class, "spec.initData.scripts[0].scriptFrom.configMapKeyRef.key",
+    checkErrorCause(SecretKeySelector.class,
+        "spec.initData.scripts[0].scriptFrom.configMapKeyRef.key",
         "spec.pod.scripts[0].scriptFrom.configMapKeyRef.isKeyNotEmpty", review, AssertTrue.class);
   }
 
@@ -210,13 +250,19 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
     review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().add(new StackGresClusterScriptEntry());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).setScriptFrom(new StackGresClusterScriptFrom());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().setConfigMapKeyRef(new ConfigMapKeySelector());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().getConfigMapKeyRef().setName("");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().getConfigMapKeyRef().setKey("test");
+    review.getRequest().getObject().getSpec().getInitData().getScripts()
+        .add(new StackGresClusterScriptEntry());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
+        .setScriptFrom(new StackGresClusterScriptFrom());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .setConfigMapKeyRef(new ConfigMapKeySelector());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .getConfigMapKeyRef().setName("");
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .getConfigMapKeyRef().setKey("test");
 
-    checkErrorCause(SecretKeySelector.class, "spec.initData.scripts[0].scriptFrom.configMapKeyRef.name",
+    checkErrorCause(SecretKeySelector.class,
+        "spec.initData.scripts[0].scriptFrom.configMapKeyRef.name",
         "spec.pod.scripts[0].scriptFrom.configMapKeyRef.isNameNotEmpty", review, AssertTrue.class);
   }
 
@@ -225,11 +271,16 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
     review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().add(new StackGresClusterScriptEntry());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).setScriptFrom(new StackGresClusterScriptFrom());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().setSecretKeyRef(new SecretKeySelector());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().getSecretKeyRef().setName("test");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().getSecretKeyRef().setKey("");
+    review.getRequest().getObject().getSpec().getInitData().getScripts()
+        .add(new StackGresClusterScriptEntry());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
+        .setScriptFrom(new StackGresClusterScriptFrom());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .setSecretKeyRef(new SecretKeySelector());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .getSecretKeyRef().setName("test");
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .getSecretKeyRef().setKey("");
 
     checkErrorCause(SecretKeySelector.class, "spec.initData.scripts[0].scriptFrom.secretKeyRef.key",
         "spec.pod.scripts[0].scriptFrom.secretKeyRef.isKeyNotEmpty", review, AssertTrue.class);
@@ -240,22 +291,31 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
     review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().add(new StackGresClusterScriptEntry());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).setScriptFrom(new StackGresClusterScriptFrom());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().setSecretKeyRef(new SecretKeySelector());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().getSecretKeyRef().setName("");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom().getSecretKeyRef().setKey("test");
+    review.getRequest().getObject().getSpec().getInitData().getScripts()
+        .add(new StackGresClusterScriptEntry());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
+        .setScriptFrom(new StackGresClusterScriptFrom());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .setSecretKeyRef(new SecretKeySelector());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .getSecretKeyRef().setName("");
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
+        .getSecretKeyRef().setKey("test");
 
-    checkErrorCause(SecretKeySelector.class, "spec.initData.scripts[0].scriptFrom.secretKeyRef.name",
+    checkErrorCause(SecretKeySelector.class,
+        "spec.initData.scripts[0].scriptFrom.secretKeyRef.name",
         "spec.pod.scripts[0].scriptFrom.secretKeyRef.isNameNotEmpty", review, AssertTrue.class);
   }
 
   @Test
   void validNodeSelector_shouldPass() throws ValidationFailed {
     StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getPod().setScheduling(new StackGresClusterPodScheduling());
-    review.getRequest().getObject().getSpec().getPod().getScheduling().setNodeSelector(new HashMap<>());
-    review.getRequest().getObject().getSpec().getPod().getScheduling().getNodeSelector().put("test", "true");
+    review.getRequest().getObject().getSpec().getPod()
+        .setScheduling(new StackGresClusterPodScheduling());
+    review.getRequest().getObject().getSpec().getPod().getScheduling()
+        .setNodeSelector(new HashMap<>());
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getNodeSelector().put("test",
+        "true");
 
     validator.validate(review);
   }
@@ -263,8 +323,10 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   @Test
   void invalidNodeSelector_shouldFail() {
     StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getPod().setScheduling(new StackGresClusterPodScheduling());
-    review.getRequest().getObject().getSpec().getPod().getScheduling().setNodeSelector(new HashMap<>());
+    review.getRequest().getObject().getSpec().getPod()
+        .setScheduling(new StackGresClusterPodScheduling());
+    review.getRequest().getObject().getSpec().getPod().getScheduling()
+        .setNodeSelector(new HashMap<>());
 
     checkErrorCause(StackGresClusterPodScheduling.class, "spec.pod.scheduling.nodeSelector",
         "spec.pod.scheduling.isNodeSelectorNotEmpty", review, AssertTrue.class);
@@ -273,10 +335,14 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   @Test
   void validToleration_shouldPass() throws ValidationFailed {
     StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getPod().setScheduling(new StackGresClusterPodScheduling());
-    review.getRequest().getObject().getSpec().getPod().getScheduling().setTolerations(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().add(new Toleration());
-    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0).setKey("test");
+    review.getRequest().getObject().getSpec().getPod()
+        .setScheduling(new StackGresClusterPodScheduling());
+    review.getRequest().getObject().getSpec().getPod().getScheduling()
+        .setTolerations(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations()
+        .add(new Toleration());
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0)
+        .setKey("test");
 
     validator.validate(review);
   }
@@ -284,11 +350,16 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   @Test
   void validTolerationKeyEmpty_shouldPass() throws ValidationFailed {
     StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getPod().setScheduling(new StackGresClusterPodScheduling());
-    review.getRequest().getObject().getSpec().getPod().getScheduling().setTolerations(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().add(new Toleration());
-    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0).setKey("");
-    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0).setOperator("Exists");
+    review.getRequest().getObject().getSpec().getPod()
+        .setScheduling(new StackGresClusterPodScheduling());
+    review.getRequest().getObject().getSpec().getPod().getScheduling()
+        .setTolerations(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations()
+        .add(new Toleration());
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0)
+        .setKey("");
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0)
+        .setOperator("Exists");
 
     validator.validate(review);
   }
@@ -296,24 +367,35 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   @Test
   void invalidTolerationKeyEmpty_shouldFail() {
     StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getPod().setScheduling(new StackGresClusterPodScheduling());
-    review.getRequest().getObject().getSpec().getPod().getScheduling().setTolerations(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().add(new Toleration());
-    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0).setKey("");
+    review.getRequest().getObject().getSpec().getPod()
+        .setScheduling(new StackGresClusterPodScheduling());
+    review.getRequest().getObject().getSpec().getPod().getScheduling()
+        .setTolerations(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations()
+        .add(new Toleration());
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0)
+        .setKey("");
 
     checkErrorCause(Toleration.class,
-        new String[] { "spec.pod.scheduling.tolerations[0].key", "spec.pod.scheduling.tolerations[0].operator" },
-        "spec.pod.scheduling.tolerations[0].isOperatorExistsWhenKeyIsEmpty", review, AssertTrue.class);
+        new String[] {"spec.pod.scheduling.tolerations[0].key",
+            "spec.pod.scheduling.tolerations[0].operator"},
+        "spec.pod.scheduling.tolerations[0].isOperatorExistsWhenKeyIsEmpty", review,
+        AssertTrue.class);
   }
 
   @Test
   void invalidTolerationOperator_shouldFail() {
     StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getPod().setScheduling(new StackGresClusterPodScheduling());
-    review.getRequest().getObject().getSpec().getPod().getScheduling().setTolerations(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().add(new Toleration());
-    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0).setKey("test");
-    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0).setOperator("NotExists");
+    review.getRequest().getObject().getSpec().getPod()
+        .setScheduling(new StackGresClusterPodScheduling());
+    review.getRequest().getObject().getSpec().getPod().getScheduling()
+        .setTolerations(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations()
+        .add(new Toleration());
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0)
+        .setKey("test");
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0)
+        .setOperator("NotExists");
 
     checkErrorCause(Toleration.class, "spec.pod.scheduling.tolerations[0].operator",
         "spec.pod.scheduling.isOperatorValid", review, AssertTrue.class);
@@ -322,14 +404,31 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   @Test
   void invalidTolerationEffect_shouldFail() {
     StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getPod().setScheduling(new StackGresClusterPodScheduling());
-    review.getRequest().getObject().getSpec().getPod().getScheduling().setTolerations(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().add(new Toleration());
-    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0).setKey("test");
-    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0).setEffect("NeverSchedule");
+    review.getRequest().getObject().getSpec().getPod()
+        .setScheduling(new StackGresClusterPodScheduling());
+    review.getRequest().getObject().getSpec().getPod().getScheduling()
+        .setTolerations(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations()
+        .add(new Toleration());
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0)
+        .setKey("test");
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0)
+        .setEffect("NeverSchedule");
 
     checkErrorCause(Toleration.class, "spec.pod.scheduling.tolerations[0].effect",
         "spec.pod.scheduling.isEffectValid", review, AssertTrue.class);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"hardcover-lady-somebody-arrives-specialty-risk-stocking-nodes-"
+      + "fisheries-introduces-5", "stackgres.io/", "*9stackgres",
+      "suzuki-stroke-rail-remix-suite-flux-diploma-slip-airfare-extremely-1",
+      "mozilla-rose-types-border-biome-upright-weak-promote-monday-1234"})
+  void invalidNames_shouldFail(String name) {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getMetadata().setName(name);
+
+    assertThrows(ValidationFailed.class, () -> validator.validate(review));
   }
 
 }

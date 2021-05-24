@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.net.InternetDomainName;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectReference;
@@ -26,6 +27,7 @@ import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
 import io.fabric8.kubernetes.client.internal.SerializationUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +39,11 @@ public class ResourceUtil {
   public static final BigDecimal MILLICPU_MULTIPLIER = new BigDecimal(1000);
   public static final BigDecimal LOAD_MULTIPLIER = new BigDecimal(1000);
   public static final BigDecimal KILOBYTE = new BigDecimal(1024);
+
+  private static final Pattern VALID_VALUE =
+      Pattern.compile("(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?");
+  private static final Pattern PREFIX_PART =
+      Pattern.compile("[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*");
 
   private ResourceUtil() {}
 
@@ -64,13 +71,46 @@ public class ResourceUtil {
     return name;
   }
 
-  public static String labelKey(String name) {
-    Preconditions.checkArgument(name.length() <= 63);
+  public static @NotNull String labelKey(@NotNull String name) {
+    String label = name;
+    if (name.indexOf('/') != -1) {
+      Preconditions.checkArgument(
+          !name.startsWith("kubernetes.io/") && !name.startsWith("k8s.io/"),
+          "The kubernetes.io/ and k8s.io/ prefixes are reserved for Kubernetes core components");
+
+      final String[] split = name.split("/");
+      Preconditions.checkArgument(split.length == 2, "name part must be non-empty");
+
+      String prefix = split[0];
+
+      Preconditions.checkArgument(PREFIX_PART.matcher(prefix).matches(),
+          "prefix part a lowercase RFC 1123 subdomain must consist of lower case "
+              + "alphanumeric characters, '-' or '.', and must start and end "
+              + "with an alphanumeric character");
+
+      InternetDomainName.from(prefix);
+
+      label = split[1];
+    }
+
+    if (!label.isBlank()) {
+      Preconditions.checkArgument(VALID_VALUE.matcher(label).matches(),
+          "Not a valid label value");
+    }
+
+    Preconditions.checkArgument(label.length() <= 63,
+        "Valid label must be 63 characters or less");
+
     return name;
   }
 
-  public static String labelValue(String name) {
-    Preconditions.checkArgument(name.length() <= 63);
+  public static @NotNull String labelValue(@NotNull String name) {
+    if (!name.isBlank()) {
+      Preconditions.checkArgument(VALID_VALUE.matcher(name).matches(),
+          "Not a valid label value");
+    }
+    Preconditions.checkArgument(name.length() <= 63,
+        "Valid name must be 63 characters or less");
     return name;
   }
 
