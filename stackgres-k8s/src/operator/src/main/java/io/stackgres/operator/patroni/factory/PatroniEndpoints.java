@@ -97,7 +97,7 @@ public class PatroniEndpoints implements StackGresClusterResourceStreamFactory {
     }
 
     params.put("dynamic_library_path",
-        "$libdir:/opt/stackgres/lib");
+        "$libdir:" + ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_LIB64_PATH.path(context));
 
     if (Optional.ofNullable(cluster.getSpec().getDistributedLogs())
         .map(StackGresClusterDistributedLogs::getDistributedLogs)
