@@ -81,12 +81,17 @@ Vue.filter('formatTimestamp',function(t, part, tzCheck = true){
   else if (part == 'time')
     return t.substring( 11, 19);
   else if (part == 'ms') {
-    var ms = '.' + t.split('.')[1];
 
-    for(var i = ms.length; i <= 3; i++) {
-      ms += '0'
+    if(t.includes('.')) {
+      var ms = '.' + t.split('.')[1];
+
+      for(var i = ms.length; i <= 3; i++) {
+        ms += '0'
+      }
+      return (store.state.timezone == 'local') ? ms.substring(0,4) : (ms.substring(0,4) + ' Z');
+    } else {
+      return (store.state.timezone == 'local') ? '.000' : '.000 Z';
     }
-    return ms.substring(0,4);
   }
       
 });

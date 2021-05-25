@@ -323,9 +323,9 @@
                     </div>
 
                     <div class="fields">
-                        <template v-if="!editMode">
+                        <template v-if="!editMode && backups.length">
                             <label for="spec.initialData.restore.fromBackup">Backup Selection</label>
-                            <select v-model="restoreBackup" data-field="spec.initialData.restore.fromBackup">
+                            <select v-model="restoreBackup" data-field="spec.initialData.restore.fromBackup" @change="initDatepicker()">
                                 <option value="">Select a Backup</option>
                                 <template v-for="backup in backups" v-if="( (backup.data.metadata.namespace == namespace) && backup.data.status !== null )">
                                     <option v-if="backup.data.status.process.status === 'Completed'" :value="backup.data.metadata.uid">
@@ -337,13 +337,19 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
                             </a>
 
-                            <template v-if="restoreBackup.length">
+                            <div :style="!restoreBackup.length ? 'display: none;' : ''">
+                                <label for="spec.initialData.restore.fromBackup.pointInTimeRecovery">Point-in-Time Recovery (PITR)</label>
+                                <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" :value="pitrTimezone">
+                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.restore.fromBackup.pointInTimeRecovery')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                </a>
+
                                 <label for="spec.initialData.restore.downloadDiskConcurrency">Download Disk Concurrency</label>
                                 <input v-model="downloadDiskConcurrency" data-field="spec.initialData.restore.downloadDiskConcurrency">
                                 <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.restore.downloadDiskConcurrency')">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
                                 </a>
-                            </template>
+                            </div>
                         </template>
 
                         <div class="scriptFieldset section">
@@ -765,6 +771,7 @@
                 connPooling: true,
                 connectionPoolingConfig: '',
                 restoreBackup: '',
+                pitr: '',
                 downloadDiskConcurrency: '',
                 backupConfig: '',
                 distributedLogs: '',
@@ -905,6 +912,10 @@
                 }
 
                 return cluster
+            },
+
+            pitrTimezone () {
+                return this.pitr.length ? ( (store.state.timezone == 'local') ? moment.utc(this.pitr).local().format('YYYY-MM-DD HH:mm:ss') : moment.utc(this.pitr).format('YYYY-MM-DD HH:mm:ss') ) : '';
             }
 
         },
@@ -1011,9 +1022,9 @@
                                         "labels": this.parseProps(this.podsMetadata, 'label')
                                     }
                                 }) ),
-                                ...( (!jQuery.isEmptyObject(this.parseProps(this.nodeSelector, 'label')) || this.hasTolerations() ) && ({
+                                ...( ( this.hasNodeSelectors() || this.hasTolerations() ) && ({
                                     "scheduling": {
-                                        ...(!jQuery.isEmptyObject(this.parseProps(this.nodeSelector, 'label')) && ({"nodeSelector": this.parseProps(this.nodeSelector, 'label')})),
+                                        ...(this.hasNodeSelectors() && ({"nodeSelector": this.parseProps(this.nodeSelector, 'label')})),
                                         ...(this.hasTolerations() && ({"tolerations": this.tolerations}))
                                     }
                                 }) )                    
@@ -1034,6 +1045,12 @@
                                             "restore": { 
                                                 "fromBackup": {
                                                     "uid": this.restoreBackup, 
+                                                    ...(this.pitr.length  && ({
+                                                        "pointInTimeRecovery": {
+                                                            "restoreToTimestamp": this.pitr
+                                                        }
+                                                        })  
+                                                    )
                                                 },
                                                 ...(this.downloadDiskConcurrency.length  && ({
                                                     "downloadDiskConcurrency": this.downloadDiskConcurrency 
@@ -1106,11 +1123,6 @@
 
                             vc.fetchAPI('sgcluster');
                             router.push('/overview/'+cluster.metadata.namespace);
-                            
-                            /* store.commit('updateClusters', { 
-                                name: cluster.metadata.name,
-                                data: item
-                            });*/
                             
                         })
                         .catch(function (error) {
@@ -1212,7 +1224,19 @@
                         vc.tolerations.splice( index, 1 )
                 })
 
-                return t.length
+                return vc.tolerations.length
+            },
+
+            hasNodeSelectors () {
+                const vc = this
+                let nS = [...vc.nodeSelector]
+
+                nS.forEach(function(item, index) {
+                    if(JSON.stringify(item) == '{"label":"","value":""}')
+                        vc.nodeSelector.splice( index, 1 )
+                })
+
+                return vc.nodeSelector.length
             },
 
             toggleAccordion(id) {
@@ -1319,7 +1343,53 @@
 
             sortExtensions(ext) {
 				return [...ext].sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
-			}
+			},
+
+            initDatepicker() {
+                const vc = this;
+                let minDate = null;
+                let maxDate = null;
+
+                store.state.backups.forEach(function(fromBackup, index) {
+                    
+                    if( fromBackup.data.metadata.uid == vc.restoreBackup ) {
+                        minDate = new Date(new Date(fromBackup.data.status.process.timing.stored).getTime());
+
+                        for(var i = index + 1; i < store.state.backups.length; i++) {
+                            let nextBackup = store.state.backups[i];
+                            
+                            if( (nextBackup.data.metadata.namespace == fromBackup.data.metadata.namespace) && (nextBackup.data.status.process.status == 'Completed') ) {
+                                maxDate = new Date(new Date(nextBackup.data.status.process.timing.stored).getTime());
+                                return false;
+                            }
+                        }
+
+                        return false;
+                    }
+
+                })
+                
+                if(!maxDate)
+                    maxDate = new Date(new Date().getTime());
+
+                $('.daterangepicker').remove()
+                $(document).find('.datePicker').daterangepicker({
+                    "autoApply": true,
+                    "singleDatePicker": true,
+                    "timePicker": true,
+                    "opens": "right",
+                    "minDate": minDate,
+                    "maxDate": maxDate,
+                    "timePicker24Hour": true,
+                    "timePickerSeconds": true,
+                    locale: {
+                        cancelLabel: "Clear",
+                        format: 'YYYY-MM-DD HH:mm:ss'
+                    }
+                }, function(start, end, label) {
+                    vc.pitr = (store.state.timezone == 'local') ? start.utc().format() : ( start.format('YYYY-MM-DDTHH:mm:ss') + 'Z' )
+                });
+            }
 
         },
 
@@ -1338,12 +1408,23 @@
         },
 
         mounted: function() {
+            const vc = this
             
+            $(document).ready(function(){
+
+                $(document).on('change, keyup','.notValid', function() {
+                    if( ($(this).val() != '') && ($(this).val() != null) )
+                        $(this).removeClass('notValid')
+                })
+                
+            })
         },
 
         beforeDestroy: function() {
             store.commit('setTooltipsText','Click on a question mark to get help and tips about that field.');
+            $('.daterangepicker').remove()
         }
+
     }
 </script>
 
