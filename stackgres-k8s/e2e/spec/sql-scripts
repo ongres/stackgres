@@ -3,10 +3,10 @@
 e2e_test_install() {
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
-  kubectl create -n "$CLUSTER_NAMESPACE" secret generic sqls-scripts-sakila \
+  kubectl create -n "$CLUSTER_NAMESPACE" secret generic sql-scripts-sakila-user \
     --from-literal=create-sakila-user.sql="CREATE USER sakila WITH PASSWORD 'sakila'"
 
-  kubectl create -n "$CLUSTER_NAMESPACE" configmap sqls-scripts-sakila \
+  kubectl create -n "$CLUSTER_NAMESPACE" configmap sql-scripts-sakila-schema \
     --from-file=create-sakila-schema.sql="$SPEC_PATH/$SPEC_NAME.sakila.sql"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2"

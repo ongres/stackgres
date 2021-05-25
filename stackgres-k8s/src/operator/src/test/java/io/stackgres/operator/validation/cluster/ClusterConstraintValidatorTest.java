@@ -18,11 +18,11 @@ import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.Toleration;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
@@ -138,6 +138,20 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         new String[] {"spec.initData.scripts[0].script",
             "spec.initData.scripts[0].scriptFrom"},
         "spec.pod.scripts[0].isScriptMutuallyExclusiveAndRequired", review, AssertTrue.class);
+  }
+
+  @Test
+  void scriptWithEmptyDatabaseName_shouldFail() throws ValidationFailed {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
+    review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().add(new StackGresClusterScriptEntry());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).setDatabase("");
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).setScript("SELECT 1");
+
+    checkErrorCause(StackGresClusterScriptEntry.class,
+        new String[] { "spec.initData.scripts[0].database" },
+        "spec.pod.scripts[0].isDatabaseNameNonEmpty", review, AssertTrue.class);
   }
 
   @Test

@@ -37,6 +37,9 @@ public class StackGresClusterScriptEntry {
   @Valid
   private StackGresClusterScriptFrom scriptFrom;
 
+  @ReferencedField("database")
+  interface Database extends FieldReference { }
+
   @ReferencedField("script")
   interface Script extends FieldReference { }
 
@@ -49,6 +52,13 @@ public class StackGresClusterScriptEntry {
   public boolean isScriptMutuallyExclusiveAndRequired() {
     return (script != null && scriptFrom == null) // NOPMD
         || (script == null && scriptFrom != null); // NOPMD
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "database name must not be empty.",
+      payload = Database.class)
+  public boolean isDatabaseNameNonEmpty() {
+    return database == null || !database.isEmpty();
   }
 
   public String getName() {

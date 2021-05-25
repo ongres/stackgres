@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.patroni.factory;
 
-import java.util.Locale;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -47,18 +46,17 @@ public class PatroniScriptsConfigMap implements StackGresClusterResourceStreamFa
     return normalizedKeyName(indexedScript) + ".sql";
   }
 
-  private static String normalizedResourceName(
+  public static String normalizedResourceName(
       Tuple4<StackGresClusterScriptEntry, Long, String, Long> indexedScript) {
-    return (INTERNAL_SCRIPT.equals(indexedScript.v3)
-        ? "internal-" + baseName(indexedScript.v1, indexedScript.v2)
-        : baseName(indexedScript.v1, indexedScript.v4))
-        .toLowerCase(Locale.US).replaceAll("[^a-z0-9-]", "-");
+    return ResourceUtil.resourceName(
+        ResourceUtil.sanitizedResourceName(INTERNAL_SCRIPT.equals(indexedScript.v3)
+            ? "internal-" + baseName(indexedScript.v1, indexedScript.v2)
+            : baseName(indexedScript.v1, indexedScript.v4)));
   }
 
-  private static String normalizedKeyName(
+  public static String normalizedKeyName(
       Tuple4<StackGresClusterScriptEntry, Long, String, Long> indexedScript) {
-    return baseName(indexedScript.v1, indexedScript.v4)
-        .toLowerCase(Locale.US).replaceAll("[^a-zA-Z0-9-_.]", "-");
+    return baseName(indexedScript.v1, indexedScript.v4);
   }
 
   private static String baseName(StackGresClusterScriptEntry script, Long index) {
@@ -67,13 +65,20 @@ public class PatroniScriptsConfigMap implements StackGresClusterResourceStreamFa
         return String.format(SCRIPT_BASIC_NAME, index);
       }
       return String.format(SCRIPT_BASIC_NAME_FOR_DATABASE,
-          index, script.getDatabase());
+          index, encodeDatabase(script.getDatabase()));
     }
     if (script.getDatabase() == null) {
-      return String.format(SCRIPT_NAME, index, script.getName());
+      return String.format(SCRIPT_NAME, index,
+          ResourceUtil.sanitizedResourceName(script.getName()));
     }
     return String.format(SCRIPT_NAME_FOR_DATABASE,
-        index, script.getName(), script.getDatabase());
+        index,
+        ResourceUtil.sanitizedResourceName(script.getName()),
+        encodeDatabase(script.getDatabase()));
+  }
+
+  public static String encodeDatabase(String database) {
+    return database.replaceAll("\\\\", "\\\\\\\\").replaceAll("/", "\\\\h");
   }
 
   @Override
