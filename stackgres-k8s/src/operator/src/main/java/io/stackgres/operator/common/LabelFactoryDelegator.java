@@ -21,10 +21,6 @@ public class LabelFactoryDelegator {
 
   private LabelFactory<StackGresDistributedLogs> distributedLogsLabelFactory;
 
-  public void init(){
-    // For some reason quarkus needs this method to be created, otherwise it doesn't build
-  }
-
   public Map<String, String> patroniClusterLabels(StackGresClusterContext context) {
     return pickFactory(context).patroniClusterLabels(context.getCluster());
   }

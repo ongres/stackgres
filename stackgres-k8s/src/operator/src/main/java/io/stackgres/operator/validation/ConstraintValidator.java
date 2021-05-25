@@ -19,6 +19,8 @@ import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.fabric8.kubernetes.api.model.StatusDetailsBuilder;
 import io.stackgres.common.ErrorType;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -40,7 +42,17 @@ public abstract class ConstraintValidator<T extends AdmissionReview<?>> implemen
   @Override
   public void validate(T review) throws ValidationFailed {
     final HasMetadata target = review.getRequest().getObject();
+
     if (target != null) {
+      if (StackGresCluster.KIND.equals(target.getKind())) {
+        try {
+          // Names must not be longer than valid labels.
+          ResourceUtil.labelValue(target.getMetadata().getName());
+        } catch (IllegalArgumentException e) {
+          throw new ValidationFailed(e.getMessage());
+        }
+      }
+
       Set<ConstraintViolation<Object>> violations = constraintValidator.validate(target);
       if (!violations.isEmpty()) {
         StatusDetailsBuilder detailsBuilder = new StatusDetailsBuilder();
