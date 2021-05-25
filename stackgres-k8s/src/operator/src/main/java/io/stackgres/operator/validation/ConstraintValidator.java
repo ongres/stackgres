@@ -17,6 +17,7 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
+import io.fabric8.kubernetes.api.model.StatusDetails;
 import io.fabric8.kubernetes.api.model.StatusDetailsBuilder;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -71,12 +72,14 @@ public abstract class ConstraintValidator<T extends AdmissionReview<?>> implemen
           violations.forEach(violation -> detailsBuilder
               .withName(getOffendingFields(violation).get(0)));
         }
+        StatusDetails details = detailsBuilder.build();
         Status status = new StatusBuilder()
             .withCode(422)
-            .withMessage(target.getKind() + " has invalid properties")
+            .withMessage(target.getKind() + " has invalid properties. "
+                + details.getCauses().get(0).getMessage())
             .withKind(target.getKind())
             .withReason(constraintViolationDocumentationUri)
-            .withDetails(detailsBuilder.build())
+            .withDetails(details)
             .build();
         throw new ValidationFailed(status);
       }
