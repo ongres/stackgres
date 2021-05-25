@@ -55,9 +55,12 @@
 			</header>
 
 			<div class="content grafana">
-				<template v-if="grafanaUrl.length && cluster.data.pods.length">
-					<iframe :src="($route.params.hasOwnProperty('pod') && $route.params.pod.length) ? grafanaUrl+$route.params.pod : grafanaUrl+cluster.data.pods[0].ip" id="grafana"></iframe>
+				<template v-if="cluster.data.pods.length">
+					<iframe v-if="grafanaUrl.length" :src="($route.params.hasOwnProperty('pod') && $route.params.pod.length) ? grafanaUrl+$route.params.pod : grafanaUrl+cluster.data.pods[0].ip" id="grafana"></iframe>
 				</template>
+				<div v-else class="no-data">
+					No pods yet available
+				</div>
 			</div>
 		</template>
 	</div>
