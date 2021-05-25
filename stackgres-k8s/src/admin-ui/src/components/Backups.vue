@@ -205,7 +205,6 @@
 												<span class='ms'>
 													{{ back.data.status.process.timing.stored | formatTimestamp('ms') }}
 												</span>
-												Z
 											</template>
 										</td>
 										<td class="managedLifecycle center icon" :class="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle.toString() : 'false'" :data-val="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle : 'false'"></td>
@@ -312,7 +311,7 @@
 																{{ back.data.status.process.timing.start | formatTimestamp('time') }}
 															</span>
 															<span class='ms'>
-																{{ back.data.status.process.timing.start | formatTimestamp('ms') }} Z
+																{{ back.data.status.process.timing.start | formatTimestamp('ms') }}
 															</span>
 														</td>
 													</tr>
@@ -323,10 +322,10 @@
 														</td>
 														<td class="timestamp">
 															<span class='time'>
-																{{ back.duration | formatTimestamp('time') }}
+																{{ back.duration | formatTimestamp('time', false) }}
 															</span>
 															<span class='ms'>
-																{{ back.duration | formatTimestamp('ms') }}
+																{{ back.duration | formatTimestamp('ms', false) }}
 															</span>
 														</td>
 													</tr>
@@ -413,7 +412,7 @@
 																{{ back.data.status.process.timing.end | formatTimestamp('time') }}
 															</span>
 															<span class='ms'>
-																{{ back.data.status.process.timing.end | formatTimestamp('ms') }} Z
+																{{ back.data.status.process.timing.end | formatTimestamp('ms') }}
 															</span>
 														</td>
 													</tr>
@@ -430,7 +429,7 @@
 																{{ back.data.status.process.timing.stored | formatTimestamp('time') }}
 															</span>
 															<span class='ms'>
-																{{ back.data.status.process.timing.stored | formatTimestamp('ms') }} Z
+																{{ back.data.status.process.timing.stored | formatTimestamp('ms') }}
 															</span>
 														</td>
 													</tr>
@@ -842,9 +841,9 @@
 						show = (vc.activeFilters.clusterName == bk.data.spec.sgCluster)
 					
 					if(vc.filters.dateStart.length && vc.filters.dateEnd.length && vc.hasProp(bk, 'data.status.process.status') && (bk.data.status.process.status == 'Completed') && show ) {
-						let timestamp = moment(bk.data.status.process.timing.stored, 'YYYY-MM-DD HH:mm:ss')
-						let start = moment(vc.filters.dateStart, 'YYYY-MM-DD HH:mm:ss')
-						let end = moment(vc.filters.dateEnd, 'YYYY-MM-DD HH:mm:ss')
+						let timestamp = moment(new Date(bk.data.status.process.timing.stored))
+						let start = moment(new Date(vc.filters.dateStart))
+						let end = moment(new Date(vc.filters.dateEnd))
 
 						show = timestamp.isBetween( start, end, null, '[]' )
 					} else if (vc.activeFilters.datePicker.length)

@@ -33,6 +33,7 @@ export default new Vuex.Store({
     dbOps: [],
     postgresVersions: [],
     cloneCRD: {},
+    timezone: 'local',
     permissions: {
       allowed: {
         namespaced: [],
@@ -336,6 +337,11 @@ export default new Vuex.Store({
 
     setPostgresVersions (state, versions) {
       state.postgresVersions = versions;
+    },
+
+    toggleTimezone (state) {
+      state.timezone = (state.timezone == 'local') ? 'utc' : 'local';
+      document.cookie = "sgTimezone=" + state.timezone + "; Path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT";
     },
     
   }

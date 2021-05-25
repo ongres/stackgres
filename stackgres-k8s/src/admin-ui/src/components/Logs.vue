@@ -270,7 +270,6 @@
 										<span class='ms'>
 											{{ log.logTime | formatTimestamp('ms') }}
 										</span>
-										Z
 									</td>
 									<td class="logType label postgres center" v-if="showColumns.logType">
 										<span>Postgres</span>
@@ -316,7 +315,6 @@
 										<span class='ms'>
 											{{ log.logTime | formatTimestamp('ms') }}
 										</span>
-										Z
 									</td>
 									<td class="logType label patroni center" v-if="showColumns.logType">
 										<span>Patroni</span>
@@ -353,7 +351,6 @@
 											<span class='ms'>
 												{{ log.logTime | formatTimestamp('ms') }}
 											</span>
-											Z
 										</span>
 										<span class="closeLog">✕</span>
 									</div>
@@ -626,11 +623,11 @@
 						}, function(start, end, label) {
 
 							if(vc.currentSortDir === 'asc') {
-								vc.dateStart = start.format('YYYY-MM-DDTHH:mm:ss')+'Z';
-								vc.dateEnd = end.format('YYYY-MM-DDTHH:mm:ss')+'Z';
+								vc.dateStart = start.format('YYYY-MM-DDTHH:mm:ss');
+								vc.dateEnd = end.format('YYYY-MM-DDTHH:mm:ss');
 							} else {
-								vc.dateEnd = start.format('YYYY-MM-DDTHH:mm:ss')+'Z';
-								vc.dateStart = end.format('YYYY-MM-DDTHH:mm:ss')+'Z';
+								vc.dateEnd = start.format('YYYY-MM-DDTHH:mm:ss');
+								vc.dateStart = end.format('YYYY-MM-DDTHH:mm:ss');
 							}
 
 							vc.datePicker = vc.dateStart+' / '+vc.dateEnd;
@@ -932,13 +929,13 @@
 							vc.dateStart = store.state.logs[0].logTime+','+store.state.logs[0].logTimeIndex;
 
 							date.setHours(23,59,59,59);
-							vc.dateEnd = date.format('YYYY-MM-DDTHH:mm:ss')+'Z';
+							vc.dateEnd = date.format('YYYY-MM-DDTHH:mm:ss');
 						} else {
 							date.setHours(23,59,59,59);
-							vc.dateStart = date.format('YYYY-MM-DDTHH:mm:ss')+'Z';
+							vc.dateStart = date.format('YYYY-MM-DDTHH:mm:ss');
 
 							date.setHours(0,0,0,0);
-							vc.dateEnd = date.format('YYYY-MM-DDTHH:mm:ss')+'Z';
+							vc.dateEnd = date.format('YYYY-MM-DDTHH:mm:ss');
 						}
 						
 						$('#datePicker').data('daterangepicker').setStartDate(vc.dateStart);

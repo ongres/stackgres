@@ -299,7 +299,6 @@
 												<span class='ms'>
 													{{ backup.data.status.process.timing.stored | formatTimestamp('ms') }}
 												</span>
-												Z
 											</template>
 										</td>
 									</tr>

@@ -46,9 +46,13 @@ if( urlParams.has('darkmode') || (getCookie('sgTheme') === 'dark') ) {
   $('#darkmode').addClass('active');
 }
 
+// Check timezone preferences
+if( getCookie('sgTimezone') === 'utc') {
+  console.log('Switching to UTC timezone');
+  store.commit('toggleTimezone');
+}
+
 Vue.filter('prettyCRON', function (value) {
-  
-  //console.log(value);
   return prettyCron.toString(value)
   
 });
@@ -65,24 +69,25 @@ Vue.filter('prefix',function(s, l = 2){
 });
 
 
-Vue.filter('formatTimestamp',function(t, part){
+Vue.filter('formatTimestamp',function(t, part, tzCheck = true){
 
-    if(part == 'date')
-      return t.substr(0, 10);
-    else if (part == 'time')
-      return t.substring( 11, 19);
-    else if (part == 'ms') {
-      var ms = '.'+t.substring( 20, t.length - 1);
-      
-      if (ms == '.Z')
-        ms = '.000';
-      else if (ms.length == 2)
-        ms += '00';
-      else if (ms.length == 4)
-        ms += '0';
-      
-      return ms.substring(0,4);
+  // Adjust timestamp according to user timezone
+  if(!!moment().utcOffset() && tzCheck && (store.state.timezone == 'local') ) {
+    t = moment.utc(t).local().format('YYYY-MM-DDTHH:mm:ss.SSS')
+  }
+
+  if(part == 'date')
+    return t.substr(0, 10);
+  else if (part == 'time')
+    return t.substring( 11, 19);
+  else if (part == 'ms') {
+    var ms = '.' + t.split('.')[1];
+
+    for(var i = ms.length; i <= 3; i++) {
+      ms += '0'
     }
+    return ms.substring(0,4);
+  }
       
 });
 
@@ -119,29 +124,6 @@ function arraysMatch (arr1, arr2) {
 function checkData (newData, currentData) {
   return (JSON.stringify(newData) != JSON.stringify(currentData))
 }
-
-/*function checkAPI( response, current ){
-  if ( !response.length || !current.length ) 
-        return false;
-
-    // compare lengths - can save a lot of time 
-    if (reponse.length != current.length)
-        return false;
-
-    for (var i = 0, l=response.length; i < l; i++) {
-        // Check if we have nested arrays
-        if (response[i] instanceof Array && current[i] instanceof Array) {
-            // recurse into the nested arrays
-            if (! checkAPI(response[i], current[i] ) )
-                return false;       
-        }           
-        else if (response[i] != current[i]) { 
-            // Warning - two different object instances will never be equal: {x:20} != {x:20}
-            return false;   
-        }           
-    }       
-    return true;
-}*/
 
 function trimString(string) {
   return string.trim();

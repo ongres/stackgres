@@ -594,10 +594,14 @@ export const mixin = {
   
       },
 
-      notify (message, kind = 'message', crd = 'general') {
-        //$("#notifications").addClass("active");
+      notify (message, kind = 'message', crd = 'general', singleTooltip = true) {
       
         $("#delete").removeClass("active");
+
+        if(singleTooltip) {
+          $("#notifications.hasTooltip.active").removeClass("active");
+          $("#notifications.hasTooltip .message.show").removeClass("show");
+        }
       
         let details = '';
         let icon = '';
@@ -692,27 +696,34 @@ export const mixin = {
         }
       },
   
-      showTooltip: function( kind, field ) {
+      showTooltip: function( kind, field, customTooltip = '' ) {
   
         const label = $("[for='"+field+"']").first().text();
-        const crd = store.state.tooltips[kind];
-  
         $("#help .title").html(label);
+
+        // If it's a custom tooltip
+        if(customTooltip.length) {
+          
+          store.commit("setTooltipsText", customTooltip);
+
+        } else { // Get tooltips from CRDs
   
-        let param = crd;
-  
-        if(field == 'spec.postgresql.conf') {
-          param =  crd.spec['postgresql.conf']
-        } else if (field == 'spec.pgBouncer.pgbouncer.ini') {
-          param =  crd.spec.pgBouncer['pgbouncer.ini']
-        } else {
-          let params = field.split('.');
-          params.forEach(function(item, index){
-            param = param[item]
-          })
+          const crd = store.state.tooltips[kind];
+          let param = crd;
+    
+          if(field == 'spec.postgresql.conf') {
+            param =  crd.spec['postgresql.conf']
+          } else if (field == 'spec.pgBouncer.pgbouncer.ini') {
+            param =  crd.spec.pgBouncer['pgbouncer.ini']
+          } else {
+            let params = field.split('.');
+            params.forEach(function(item, index){
+              param = param[item]
+            })
+          }
+    
+          store.commit("setTooltipsText", param.description);
         }
-  
-        store.commit("setTooltipsText", param.description);
   
       },
   
@@ -923,6 +934,110 @@ export const mixin = {
           return 'Information not available'
         }
         
+      },
+
+      tzCrontab( baseCrontab, toLocal = true ) {
+
+        if( !!moment().utcOffset() && (store.state.timezone == 'local') ) {    
+
+          let crontab = baseCrontab.split(' ');
+    
+          if(crontab[1] != '*') {
+            
+            let tzOffset = (moment().utcOffset() / 60);      
+            let dom = crontab[2];
+            let dow = crontab[4];
+            let modifier = 0;
+
+            //console.log(tzOffset)
+            
+            crontab[1] = parseInt( crontab[1] ) + ( tzOffset * ( toLocal ? 1 : -1 ) ); // Set opposite offset if converting to UTC
+
+            if(!crontab[1].isInteger) {
+              
+              // Fix minutes offset if in timezone with 30/45min offsets
+              if (crontab[0] != '*') {
+                let minOffset = crontab[1] % 1;
+
+                if(crontab[0].includes('-')) {
+                  crontab[0] = (parseInt(crontab[0].split('-')[0]) + (minOffset * 60)) + '-' + (parseInt(crontab[0].split('-')[1]) + (minOffset * 60) );
+                } else if(crontab[0].includes('/')) {
+                  crontab[0] = (parseInt(crontab[0].split('/')[0]) + (minOffset * 60)) + '/' + (parseInt(crontab[0].split('/')[1]) + (minOffset * 60) );
+                } else  {
+                  crontab[0] = (parseInt(crontab[0] + (minOffset * 60)) );
+                }
+              }
+
+              crontab[1] = parseInt( crontab[1] )
+            }
+
+            // Fix hour offset on 24h edges
+            if(crontab[1] < 0) {
+              modifier = -1
+              crontab[1] = crontab[1] + 24
+            } else if(crontab[1] >= 24) {
+              modifier = 1
+              crontab[1] = crontab[1] - 24
+            }
+            
+            if(dom.includes('-')) {
+              crontab[2] = (parseInt(dom.split('-')[0]) + modifier) + '-' + (parseInt(dom.split('-')[1]) + modifier )
+            } else if (dom.includes('/')) {
+              crontab[2] = (parseInt(dom.split('/')[0]) + modifier) + '/' + (parseInt(dom.split('/')[1]) + modifier )
+            } else if (dom !== '*') {
+              crontab[2] = (parseInt(dom) + modifier)
+      
+              // Fix DOM offset on month edges
+              if(crontab[2] < 1) {
+
+                // Offset month 
+                if(parseInt(crontab[3]) > 1) { 
+                  crontab[3] = (parseInt(crontab[3]) - 1)
+                } else { // Jan > Dec
+                  crontab[3] = 12
+                }
+      
+                // Offset day of month
+                if( [1,3,5,7,8,10,12].includes(crontab[3]) ) { // Jan, Mar, May, Jul, Aug, Oct, Dec
+                  crontab[2] = 31
+                } else if ([4,6,9,11].includes(crontab[3])) { // Apr, Jun, Sept, Nov
+                  crontab[2] = 30
+                } else if (crontab[3] == 2) { // Feb
+                  crontab[2] = 28
+                }
+      
+              } else if (
+                (crontab[2] > 31) || 
+                ((crontab[2] > 30) && (['4','6','9','11'].includes(crontab[3]))) ||
+                ((crontab[2] > 28) && (crontab[3] == '2')) ) {
+                
+                  // Offset month 
+                  if(parseInt(crontab[3]) < 12) { 
+                    crontab[3] = (parseInt(crontab[3]) + 1);
+                  } else { // Dec > Jan
+                    crontab[3] = 1
+                  }
+                  
+                  crontab[2] = 1;
+      
+              }
+      
+            }
+      
+            if(dow.includes('-')) {
+              crontab[4] = (parseInt(dow.split('-')[0]) + modifier) + '-' + (parseInt(dow.split('-')[1]) + modifier )
+            } else if (dow.includes('/')) {
+              crontab[4] = (parseInt(dow.split('/')[0]) + modifier) + '/' + (parseInt(dow.split('/')[1]) + modifier )
+            } else if (dow !== '*') {
+              crontab[4] = (parseInt(dow) + modifier)
+            }
+              
+            baseCrontab = crontab.join(' ')
+          }
+      
+        } 
+
+        return baseCrontab
       }
       
     },

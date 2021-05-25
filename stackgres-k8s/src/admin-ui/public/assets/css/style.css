@@ -219,6 +219,10 @@ svg.background circle {
     text-align: center;
 }
 
+.cursor:hover {
+    cursor: pointer;
+}
+
 /* Log in */
 
 #nav .right > div#signup {
@@ -2348,6 +2352,7 @@ ul.select a.active {
     border-radius: 6px;
     margin-bottom: 20px;
     display: inline-block;
+    width: 100%;
 }
 
 .warning svg {
@@ -5038,6 +5043,10 @@ td.label .helpTooltip {
 
 #helpTooltip li {
     margin-bottom: 3px;
+}
+
+#helpTooltip * + p {
+    margin-top: 10px;
 }
 
 /* Secret Toggle */

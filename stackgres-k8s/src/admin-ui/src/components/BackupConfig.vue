@@ -78,12 +78,12 @@
 								</template>
 							</td>
 							<td class="fontZero hasTooltip">
-								<template v-if="(typeof conf.data.spec.baseBackups.retention !== 'undefined')">
-									<span>{{ conf.data.spec.baseBackups.cronSchedule | prettyCRON }}</span>
+								<template v-if="(typeof conf.data.spec.baseBackups.cronSchedule !== 'undefined')">
+									<span>{{ tzCrontab(conf.data.spec.baseBackups.cronSchedule) | prettyCRON }}</span>
 								</template>
 							</td>
 							<td class="fontZero">
-								<template v-if="(typeof conf.data.spec.baseBackups.retention !== 'undefined')">
+								<template v-if="(typeof conf.data.spec.baseBackups.compression !== 'undefined')">
 									{{ conf.data.spec.baseBackups.compression }}
 								</template>
 							</td>
@@ -130,7 +130,7 @@
 													<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.cronSchedule')"></span>
 												</td>
 												<td>
-													{{ conf.data.spec.baseBackups.cronSchedule | prettyCRON }}
+													{{ tzCrontab(conf.data.spec.baseBackups.cronSchedule) | prettyCRON }}
 												</td>
 											</tr>
 											<tr v-if="hasProp(conf, 'data.spec.baseBackups.compression')">

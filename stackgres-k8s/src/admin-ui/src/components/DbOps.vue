@@ -85,7 +85,7 @@
                 <thead class="sort">
                     <th class="desc start">
                         <span @click="sort('data.spec.runAt')">Start</span>
-                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.runAt')"></span>
+                        <span class="helpTooltip" :data-tooltip="(timezone == 'local') ? getTooltip('sgdbops.spec.runAt').replace('UTC ','') : getTooltip('sgdbops.spec.runAt')"></span>
                     </th>
                     <th class="desc operationType">
                         <span @click="sort('data.spec.op')">Operation</span>
@@ -136,10 +136,6 @@
                                     <span class='time'>
                                         {{ op.data.spec.runAt | formatTimestamp('time') }}
                                     </span>
-                                    <span class='ms'>
-                                        {{ op.data.spec.runAt | formatTimestamp('ms') }}
-                                    </span>
-                                    Z
                                 </template>
                                 <span v-else class="asap">
                                     ASAP
@@ -166,14 +162,7 @@
                                 </span>
                             </td>
                             <td class="timestamp baseHide elapsed">
-                                <template v-if="op.data.hasOwnProperty('status')">
-                                    <span class='time'>
-                                        {{ getElapsedTime(op) | formatTimestamp('time') }}
-                                    </span>
-                                    <span class='ms'>
-                                        {{ getElapsedTime(op) | formatTimestamp('ms') }}
-                                    </span>
-                                </template>
+                                <span class="time" v-if="op.data.hasOwnProperty('status')" v-html="getElapsedTime(op)"></span>
                             </td>
                             <td class="baseHide retries">
                                 <span>
@@ -663,10 +652,6 @@
                                                         <span class='time'>
                                                             {{ condition.lastTransitionTime | formatTimestamp('time') }}
                                                         </span>
-                                                        <span class='ms'>
-                                                            {{ condition.lastTransitionTime | formatTimestamp('ms') }}
-                                                        </span>
-                                                        Z
                                                     </td>
                                                 </tr>
                                                 <tr v-if="condition.hasOwnProperty('reason')">
@@ -719,10 +704,6 @@
                                                     <span class='time'>
                                                         {{ op.data.status.opStarted | formatTimestamp('time') }}
                                                     </span>
-                                                    <span class='ms'>
-                                                        {{ op.data.status.opStarted | formatTimestamp('ms') }}
-                                                    </span>
-                                                    Z
                                                 </td>
                                             </tr>
                                             <tr v-if="op.data.status.hasOwnProperty('opRetries')">
@@ -952,8 +933,9 @@
                 if( op.data.hasOwnProperty('status') ) {
                     let lastStatus = op.data.status.conditions.find(c => (c.status === 'True') )
                     let begin = moment(op.data.status.opStarted)
-                    let finish = moment(lastStatus.lastTransitionTime);
-                    return new Date(moment.duration(finish.diff(begin))).toISOString();
+                    let finish = (lastStatus.type == 'Running') ? moment() : moment(lastStatus.lastTransitionTime);
+                    let elapsed = moment.duration(finish.diff(begin));
+                    return elapsed.toString().substring(2).replace('H','h ').replace('M','m ').replace(/\..*S/,'s')
                 } else {
                     return '-'
                 }   
@@ -1060,6 +1042,10 @@
 
             isFiltered() {
                 return ( this.filters.clusterName.length || this.filters.op.length || this.filters.status.length)
+            },
+
+            timezone () {
+                return store.state.timezone
             }
         }
     }
@@ -1134,7 +1120,7 @@
     }
 
     .elapsed {
-        min-width: 100px;  
+        min-width: 130px;  
     }
 
     .timedOut {
