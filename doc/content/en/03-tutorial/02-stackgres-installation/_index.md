@@ -16,15 +16,13 @@ StackGres with Helm3, allow Grafana integration with StackGres Web Console, and 
 balancer:
 
 ```bash
-export SG_VERSION=1.0.0-alpha1
-
 helm install --namespace stackgres stackgres-operator \
 	--set grafana.autoEmbed=true \
         --set-string grafana.webHost=prometheus-grafana.monitoring \
         --set-string grafana.user=admin \
         --set-string grafana.password=prom-operator \
         --set-string adminui.service.type=LoadBalancer \
-        https://stackgres.io/downloads/stackgres-k8s/stackgres/$SG_VERSION/helm/stackgres-operator.tgz
+        {{< download-url >}}/helm/stackgres-operator.tgz
 ```
 
 Please refer to [Helm chart parameters]({{% relref "04-production-installation/06-cluster-parameters" %}}) for further
