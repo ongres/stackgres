@@ -942,7 +942,8 @@ p .copy-to-clipboard.tooltipped:after {
     vertical-align: middle;
 }
 .featherlight img {
-    margin: 0 !important;
+    margin: 0 auto !important;
+    height: auto !important;
 }
 .lifecycle #body-inner ul {
     list-style: none;
