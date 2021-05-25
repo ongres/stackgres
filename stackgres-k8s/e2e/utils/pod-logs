@@ -49,38 +49,41 @@ pod_logs() {
   done
   [ -f "$PODS_FILE" ] || rm -f "$PODS_FILE"
   trap_exec kubectl get pod $(if [ -z "$NAMESPACE" ]; then echo '--all-namespaces'; else echo '-n '"$NAMESPACE"; fi) -o json --watch \
-    | jq --unbuffered -r '.metadata.namespace + "/" + .metadata.name + "/" + .metadata.uid + "," + (.metadata.ownerReferences | select(. != null) | map(.kind) | .[] | tostring)' \
-    | while read POD; do
-        if [ -n "$FILTERED_POD" ] \
-          && ! echo_raw "$POD" | grep -q '^[^/]\+/'"$FILTERED_POD"'/[^,]\+'
+    | jq --unbuffered -r '.metadata as $metadata
+        | [.status.containerStatuses,.status.initContainerStatuses][]
+        | select(. != null) | map(
+            $metadata.namespace + "/" + $metadata.name + "/" + .name + "/" + $metadata.uid + "/" + (.restartCount | tostring)
+              + "," + ($metadata.ownerReferences | select(. != null) | map(.kind) | .[] | tostring)
+          )[]' \
+    | while read CONTAINER_DESC
+      do
+        CONTAINER_ID="${CONTAINER_DESC%,*}"
+        if ( [ -n "$FILTERED_POD" ] \
+            && ! echo_raw "$CONTAINER_ID" | grep -q '^[^/]\+/'"$FILTERED_POD"'/[^,]\+/[^,]\+/[^,]\+$' ) \
+          || ( [ -n "$FILTERED_CONTAINER" ] \
+            && ! echo_raw "$CONTAINER_ID" | grep -q '^[^/]\+/[^,]\+/'"$FILTERED_CONTAINER"'/[^,]\+/[^,]\+$' ) \
+          || ( [ -n "$OWNER_KIND" ] \
+            && ! echo_raw "$CONTAINER_DESC" | grep -q '^[^,]\+/[^,]\+/[^,]\+/[^,]\+/[^,]\+,'"$OWNER_KIND"'$' ) \
+          || ( [ -f "$PODS_FILE" ] && grep -q -F "$CONTAINER_ID" "$PODS_FILE" )
         then
           continue
         fi
-        if [ -n "$OWNER_KIND" ] \
-          && ! echo_raw "$POD" | grep -q ','"$OWNER_KIND"'$'
+        NAMESPACE="${CONTAINER_ID%%/*}"
+        POD="${CONTAINER_ID#*/}"
+        CONTAINER="${POD#*/}"
+        POD="${POD%%/*}"
+        CONTAINER="${CONTAINER%%/*}"
+        if ! kubectl logs -n "$NAMESPACE" "$POD" -c "$CONTAINER" --limit-bytes=1 >/dev/null 2>&1
         then
           continue
         fi
-        kubectl get pod -n "${POD%%/*}" "$(echo "$POD" | cut -d / -f 2)" -o json \
-          | jq -r '.metadata.uid as $uid|[.status.containerStatuses,.status.initContainerStatuses][]|select(. != null)|map(.name + "/" + $uid + "/" + (.restartCount | tostring))|.[]' \
-          | if [ -z "$FILTERED_CONTAINER" ]; then cat; else grep '^'"$FILTERED_CONTAINER"'/'; fi \
-          | while read CONTAINER; do
-              if [ -f "$PODS_FILE" ] && grep -q -F "${POD%%/*}/$(echo "$POD" | cut -d / -f 2)/$CONTAINER" "$PODS_FILE"
-              then
-                continue
-              fi
-              if ! kubectl logs -n "${POD%%/*}" "$(echo "$POD" | cut -d / -f 2)" -c "${CONTAINER%%/*}" --limit-bytes=1 >/dev/null 2>&1
-              then
-                continue
-              fi
-              echo_raw "${POD%%/*}/$(echo "$POD" | cut -d / -f 2)/$CONTAINER" >> "$PODS_FILE"
-              echo_raw "[$(echo "$POD" | cut -d / -f 2)-${CONTAINER%%/*}] Start logging container ${CONTAINER%%/*} in pod $(echo "$POD" | cut -d / -f 2)"
-              if "$LOG_IN_FILES"
-              then
-                mkdir -p "$LOG_IN_PATH/${POD%%/*}/$(echo "$POD" | cut -d / -f 2)"
-              fi
-              pod_logs_pod_container_in_trap $(if "$LOG_IN_FILES"; then printf '%s %s %s' '-F' '-P' "$LOG_IN_PATH"; fi) -n "${POD%%/*}" "$(echo "$POD" | cut -d / -f 2)" -c "${CONTAINER%%/*}"
-            done
+        echo_raw "$CONTAINER_ID" >> "$PODS_FILE"
+        echo_raw "[$NAMESPACE/$POD/$CONTAINER] Start logging container $NAMESPACE/$POD/$CONTAINER"
+        if "$LOG_IN_FILES"
+        then
+          mkdir -p "$LOG_IN_PATH/$NAMESPACE/$POD"
+        fi
+        pod_logs_pod_container_in_trap $(if "$LOG_IN_FILES"; then printf '%s %s %s' '-F' '-P' "$LOG_IN_PATH"; fi) -n "$NAMESPACE" "$POD" -c "$CONTAINER"
       done
 }
 
@@ -125,9 +128,9 @@ pod_logs_pod_container_in_trap() {
       do
         if "$LOG_IN_FILES"
         then
-          echo_raw "$LINE" >> "${LOG_IN_PATH}/${NAMESPACE}/${POD}/${CONTAINER}.log"
+          printf '%s\n' "$LINE" >> "$LOG_IN_PATH/$NAMESPACE/$POD/$CONTAINER.log"
         else
-          echo_raw "[${NAMESPACE}:${POD}:${CONTAINER}] ${LINE}"
+          printf '%s\n' "[$NAMESPACE/$POD/$CONTAINER] $LINE"
         fi
       done
       ) &
