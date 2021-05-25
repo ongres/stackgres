@@ -31,10 +31,14 @@ mock kubectl kubectl_mock
 kubectl_mock() {
   mokked
   case "$*" in
-    ("get cronjob.batch "*)
+    ("get cronjob.batch "*" --template="'
+  LOCK_POD={{ if .metadata.annotations.lockPod }}{{ .metadata.annotations.lockPod }}{{ else }}{{ end }}
+  LOCK_TIMESTAMP={{ if .metadata.annotations.lockTimestamp }}{{ .metadata.annotations.lockTimestamp }}{{ else }}0{{ end }}
+  RESOURCE_VERSION={{ .metadata.resourceVersion }}
+  ')
     echo '
       LOCK_POD=test
-      LOCK_TIMESTAMP="$(date +%s)"
+      LOCK_TIMESTAMP=$(date +%s)
       RESOURCE_VERSION=test
       '
     ;;
