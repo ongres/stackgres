@@ -72,7 +72,7 @@ Spec:
     log_checkpoints:                   on
     log_connections:                   on
     log_disconnections:                on
-    log_line_prefix:                   '%t [%p]: db=%d,user=%u,app=%a,client=%h '
+    log_line_prefix:                   %t [%p]: db=%d,user=%u,app=%a,client=%h 
     log_lock_waits:                    on
     log_min_duration_statement:        1000
     log_statement:                     ddl

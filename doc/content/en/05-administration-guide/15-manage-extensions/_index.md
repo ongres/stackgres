@@ -117,7 +117,7 @@ metadata:
 spec:
   postgresVersion: "12"
   postgresql.conf:
-    shared_preload_libraries: pg_stat_statements,timescaledb
+    shared_preload_libraries: 'pg_stat_statements, timescaledb'
 
 ---
 apiVersion: stackgres.io/v1

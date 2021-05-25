@@ -5,7 +5,7 @@ APP_OPTS="${APP_OPTS:-"-Dquarkus.http.host=0.0.0.0 -Dquarkus.http.port=8080 -Dqu
 if [ "$DEBUG_DISTRIBUTEDLOGS_CONTROLLER" = true ]
 then
   set -x
-  APP_OPTS="$APP_OPTS -agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=$([ "$DEBUG_DISTRIBUTEDLOGS_CONTROLLER_SUSPEND" = true ] && echo y || echo n)"
+  JAVA_OPTS="$JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=$([ "$DEBUG_DISTRIBUTEDLOGS_CONTROLLER_SUSPEND" = true ] && echo y || echo n)"
 fi
 if [ -n "$DISTRIBUTEDLOGS_CONTROLLER_LOG_LEVEL" ]
 then
