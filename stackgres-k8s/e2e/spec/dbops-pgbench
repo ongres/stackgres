@@ -186,6 +186,15 @@ check_pgbench() {
     echo "FAILED. pgbench did not returned the tps excluding connections establishing."
     return 1
   fi
+
+  RESULT="$(run_query -i 0 -p 5432 -q "SELECT EXISTS(SELECT * FROM pg_database WHERE datname = 'pgbench')")"
+  if [ "$RESULT" = "f" ]
+  then
+    echo "SUCCESS. pgbench database was dropped."
+  else
+    echo "FAILED. pgbench database was not dropped."
+    return 1
+  fi
 }
 
 check_pgbench_timed_out() {
