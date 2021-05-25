@@ -267,13 +267,6 @@
 </script>
 
 <style scoped>
-	.no-data {
-		height: 120px;
-		text-align: center;
-		border-bottom: 1px solid var(--borderColor);
-		padding-top: 40px;
-	}
-
 	table.podStatus td {
 		position: relative;
 	}
