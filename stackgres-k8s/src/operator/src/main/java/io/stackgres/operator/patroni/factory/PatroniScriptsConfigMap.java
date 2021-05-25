@@ -68,10 +68,13 @@ public class PatroniScriptsConfigMap implements StackGresClusterResourceStreamFa
           index, encodeDatabase(script.getDatabase()));
     }
     if (script.getDatabase() == null) {
-      return String.format(SCRIPT_NAME, index, script.getName());
+      return String.format(SCRIPT_NAME, index,
+          ResourceUtil.sanitizedResourceName(script.getName()));
     }
     return String.format(SCRIPT_NAME_FOR_DATABASE,
-        index, script.getName(), encodeDatabase(script.getDatabase()));
+        index,
+        ResourceUtil.sanitizedResourceName(script.getName()),
+        encodeDatabase(script.getDatabase()));
   }
 
   public static String encodeDatabase(String database) {
