@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 if [ -f "$PG_UPGRADE_PATH/.upgraded-from-$SOURCE_VERSION-to-$TARGET_VERSION" ]
 then
   echo "Major version upgrade already performed"
@@ -31,22 +33,34 @@ then
   if [ "$CHECK" ]
   then
     echo "Checking major version upgrade"
-    pg_upgrade -c \
+    if ! pg_upgrade -c \
       -b "/usr/lib/postgresql/$SOURCE_VERSION/bin" \
       -B "/usr/lib/postgresql/$TARGET_VERSION/bin" \
       -d "$PG_DATA_PATH" \
       -D "$PG_UPGRADE_PATH/$TARGET_VERSION/data" \
+      -o "-c 'dynamic_library_path=$SOURCE_PG_LIB_PATH:$SOURCE_PG_EXTRA_LIB_PATH'" \
+      -O "-c 'dynamic_library_path=$TARGET_PG_LIB_PATH:$TARGET_PG_EXTRA_LIB_PATH'" \
       $("$LINK" && echo "-k" || true) \
       $("$CLONE" && echo "--clone" || true)
+    then
+      grep . *.txt *.log 2>/dev/null | cat >&2
+      exit 1
+    fi
   fi
   echo "Performing major version upgrade"
-  pg_upgrade \
+  if ! pg_upgrade \
     -b "/usr/lib/postgresql/$SOURCE_VERSION/bin" \
     -B "/usr/lib/postgresql/$TARGET_VERSION/bin" \
     -d "$PG_DATA_PATH" \
     -D "$PG_UPGRADE_PATH/$TARGET_VERSION/data" \
+    -o "-c 'dynamic_library_path=$SOURCE_PG_LIB_PATH:$SOURCE_PG_EXTRA_LIB_PATH'" \
+    -O "-c 'dynamic_library_path=$TARGET_PG_LIB_PATH:$TARGET_PG_EXTRA_LIB_PATH'" \
     $("$LINK" && echo "-k" || true) \
     $("$CLONE" && echo "--clone" || true)
+  then
+    grep . *.txt *.log 2>/dev/null | cat >&2
+    exit 1
+  fi
   )
 fi
 

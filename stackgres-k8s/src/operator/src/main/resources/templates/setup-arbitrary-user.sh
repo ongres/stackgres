@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 USER_NAME=postgres
 USER_ID="$(id -u)"
 GROUP_ID="$(id -g)"
