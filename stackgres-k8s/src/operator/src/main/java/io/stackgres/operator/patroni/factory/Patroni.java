@@ -198,14 +198,14 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                     .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_BIN_PATH.subPath(context,
                         ClusterStatefulSetPath.PG_BASE_PATH))
                     .withMountPath(
-                        ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_BIN_PATH.path(context))),
+                        ClusterStatefulSetPath.PG_EXTRA_BIN_PATH.path(context))),
             ClusterStatefulSetVolumeConfig.DATA.volumeMount(
                 context,
                 volumeMountBuilder -> volumeMountBuilder
                     .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH.subPath(context,
                         ClusterStatefulSetPath.PG_BASE_PATH))
                     .withMountPath(
-                        ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_LIB64_PATH.path(context))))
+                        ClusterStatefulSetPath.PG_EXTRA_LIB_PATH.path(context))))
         .addAllToVolumeMounts(Seq.seq(Optional.ofNullable(cluster.getStatus())
             .map(StackGresClusterStatus::getPodStatuses))
             .flatMap(List::stream)
@@ -243,15 +243,15 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                     .withReadOnly(true)
                     .build())
                 .toArray(VolumeMount[]::new))
-        .withEnvFrom(new EnvFromSourceBuilder()
+        .addToEnvFrom(new EnvFromSourceBuilder()
             .withConfigMapRef(new ConfigMapEnvSourceBuilder()
                 .withName(PatroniConfigMap.name(context)).build())
             .build())
-        .withEnv(ImmutableList.<EnvVar>builder()
+        .addAllToEnv(ImmutableList.<EnvVar>builder()
             .add(new EnvVarBuilder()
                 .withName("PATH")
                 .withValue(Seq.of(
-                    ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_BIN_PATH.path(context),
+                    ClusterStatefulSetPath.PG_EXTRA_BIN_PATH.path(context),
                     ClusterStatefulSetPath.PG_BIN_PATH.path(context),
                     "/usr/local/sbin",
                     "/usr/local/bin",
@@ -264,7 +264,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
             .add(new EnvVarBuilder()
                 .withName("LD_LIBRARY_PATH")
                 .withValue(Seq.of(
-                    ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_LIB64_PATH.path(context))
+                    ClusterStatefulSetPath.PG_EXTRA_LIB_PATH.path(context))
                     .toString(":"))
                 .build())
             .addAll(clusterStatefulSetEnvironmentVariables.listResources(context))
@@ -435,15 +435,46 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                         .build())
                     .build(),
                 new EnvVarBuilder()
-                    .withName("TARGET_PG_EXTENSIONS_MOUNTED_LIB64_PATH")
-                    .withValue(ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_LIB64_PATH.path(
+                    .withName("TARGET_PG_LIB_PATH")
+                    .withValue(ClusterStatefulSetPath.PG_LIB_PATH.path(
                         context))
                     .build(),
                 new EnvVarBuilder()
-                    .withName("SOURCE_PG_EXTENSIONS_MOUNTED_LIB64_PATH")
-                    .withValue(ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_LIB64_PATH.path(
+                    .withName("TARGET_PG_EXTRA_LIB_PATH")
+                    .withValue(ClusterStatefulSetPath.PG_EXTRA_LIB_PATH.path(
+                        context))
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("SOURCE_PG_LIB_PATH")
+                    .withValue(ClusterStatefulSetPath.PG_LIB_PATH.path(
+                        context, sourceEnvVars))
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("SOURCE_PG_EXTRA_LIB_PATH")
+                    .withValue(ClusterStatefulSetPath.PG_EXTRA_LIB_PATH.path(
                         context, sourceEnvVars))
                     .build())
+            .addAllToEnv(ImmutableList.<EnvVar>builder()
+                .add(new EnvVarBuilder()
+                    .withName("PATH")
+                    .withValue(Seq.of(
+                        ClusterStatefulSetPath.PG_EXTRA_BIN_PATH.path(context),
+                        ClusterStatefulSetPath.PG_BIN_PATH.path(context),
+                        "/usr/local/sbin",
+                        "/usr/local/bin",
+                        "/usr/sbin",
+                        "/usr/bin",
+                        "/sbin",
+                        "/bin")
+                        .toString(":"))
+                    .build())
+                .add(new EnvVarBuilder()
+                    .withName("LD_LIBRARY_PATH")
+                    .withValue(Seq.of(
+                        ClusterStatefulSetPath.PG_EXTRA_LIB_PATH.path(context))
+                        .toString(":"))
+                    .build())
+                .build())
             .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(context),
                 ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context))
             .addAllToVolumeMounts(ClusterStatefulSetVolumeConfig.USER.volumeMounts(context))
@@ -485,7 +516,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                         .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_BIN_PATH.subPath(context,
                             ClusterStatefulSetPath.PG_BASE_PATH))
                         .withMountPath(
-                            ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_BIN_PATH.path(context))),
+                            ClusterStatefulSetPath.PG_EXTRA_BIN_PATH.path(context))),
                 ClusterStatefulSetVolumeConfig.DATA.volumeMount(
                     context,
                     volumeMountBuilder -> volumeMountBuilder
@@ -493,7 +524,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                             ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH.subPath(context,
                                 ClusterStatefulSetPath.PG_BASE_PATH))
                         .withMountPath(
-                            ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_LIB64_PATH.path(context))))
+                            ClusterStatefulSetPath.PG_EXTRA_LIB_PATH.path(context))))
             .addToVolumeMounts(
                 ClusterStatefulSetVolumeConfig.DATA.volumeMount(
                     context,
@@ -534,7 +565,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                             ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH.subPath(context,
                                 sourceEnvVars, ClusterStatefulSetPath.PG_BASE_PATH))
                         .withMountPath(
-                            ClusterStatefulSetPath.PG_EXTENSIONS_MOUNTED_LIB64_PATH.path(context,
+                            ClusterStatefulSetPath.PG_EXTRA_LIB_PATH.path(context,
                                 sourceEnvVars))))
             .build(),
         new ContainerBuilder()

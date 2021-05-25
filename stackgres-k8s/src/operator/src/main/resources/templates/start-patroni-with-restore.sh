@@ -63,6 +63,7 @@ postgresql:
       password: '${PATRONI_REPLICATION_PASSWORD}'
   parameters:
     unix_socket_directories: '${PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY}'
+    dynamic_library_path: '${PG_LIB_PATH}:${PG_EXTRA_LIB_PATH}'
   basebackup:
     checkpoint: 'fast'
 watchdog:

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 mkdir -p "$PG_EXTENSIONS_PATH"
 
 chmod 700 "$PG_EXTENSIONS_PATH"

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 if [ "$PRIMARY_INSTANCE" = "$POD_NAME" ]
 then
   PATRONI_INIT="$(kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$PATRONI_ENDPOINT_NAME" \

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 cp "$TEMPLATES_PATH/start-patroni.sh" "$LOCAL_BIN_PATH"
 cp "$TEMPLATES_PATH/start-patroni-with-restore.sh" "$LOCAL_BIN_PATH"
 cp "$TEMPLATES_PATH/post-init.sh" "$LOCAL_BIN_PATH"
