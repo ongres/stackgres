@@ -223,6 +223,13 @@ svg.background circle {
     cursor: pointer;
 }
 
+.no-data {
+    height: 120px;
+    text-align: center;
+    border-bottom: 1px solid var(--borderColor);
+    padding-top: 40px;
+}
+
 /* Log in */
 
 #nav .right > div#signup {
