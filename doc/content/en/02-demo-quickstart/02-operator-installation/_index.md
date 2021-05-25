@@ -53,16 +53,13 @@ helm uninstall --namespace stackgres stackgres-operator
 Use the command below to be sure when the operation is ready to use:
 
 ```bash
-while [ $(kubectl get pods -n stackgres | grep -E 'stackgres\-(operator|restapi)' | grep -E '1/1|2/2' | grep -E 'Running' | wc -l) -ne 3 ] ; do
-  echo not ready...
-  sleep 3
-done
+kubectl wait -n stackgres deployment -l group=stackgres.io --for=condition=Available
 ```
 
-Once it's ready you will see that the two pods are `Running`:
+Once it's ready you will see that the pods are `Running`:
 
 ```bash
-➜ kubectl get pods -n stackgres   
+➜ kubectl get pods -n stackgres -l group=stackgres.io
 NAME                                  READY   STATUS    RESTARTS   AGE
 stackgres-operator-78d57d4f55-pm8r2   1/1     Running   0          3m34s
 stackgres-restapi-6ffd694fd5-hcpgp    2/2     Running   0          3m30s
