@@ -915,7 +915,7 @@
             },
 
             pitrTimezone () {
-                return this.pitr.length ?  moment.utc(this.pitr).local().format('YYYY-MM-DD HH:mm:ss') : ''
+                return this.pitr.length ? ( (store.state.timezone == 'local') ? moment.utc(this.pitr).local().format('YYYY-MM-DD HH:mm:ss') : moment.utc(this.pitr).format('YYYY-MM-DD HH:mm:ss') ) : '';
             }
 
         },
