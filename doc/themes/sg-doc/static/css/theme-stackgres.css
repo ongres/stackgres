@@ -23,7 +23,7 @@ body {
     --baseLightColor: var(--lBlue);
     --baseGradient: linear-gradient(to bottom right, var(--textColor), var(--baseColor));
     --invertedGradient: linear-gradient(to bottom left, var(--textColor), var(--baseColor));
-    --verticalGradient: linear-gradient(to bottom, var(--textColor), var(--baseColor));
+    --verticalGradient: linear-gradient(to bottom, var(--baseColor), var(--baseLightColor));
 
     /* Hugo Theme Vars */
     --MAIN-TEXT-color: var(--textColor); /* Color of text by default */
@@ -1495,7 +1495,7 @@ code.language-bash {
         position: fixed;
         width: 100%;
         height: 100%;
-        background: var(--darkBlue);
+        background: var(--bgColor);
         display: block;
         content: " ";
         top: 0;
