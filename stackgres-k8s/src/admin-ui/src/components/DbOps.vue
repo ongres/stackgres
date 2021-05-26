@@ -137,6 +137,14 @@
                                         {{ op.data.spec.runAt | formatTimestamp('time') }}
                                     </span>
                                 </template>
+                                <template v-else-if="hasProp(op,'data.status.opStarted')">
+                                    <span class='date'>
+                                        {{ op.data.status.opStarted | formatTimestamp('date') }}
+                                    </span>
+                                    <span class='time'>
+                                        {{ op.data.status.opStarted | formatTimestamp('time') }}
+                                    </span>
+                                </template>
                                 <span v-else class="asap">
                                     ASAP
                                 </span>
