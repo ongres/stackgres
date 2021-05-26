@@ -1481,7 +1481,7 @@ const vm = new Vue({
         });
       }
 
-      if ( !store.state.permissions.forbidden.includes('sgclusters') && ( !kind.length || (kind == 'cluster') ) ){
+      if ( !store.state.permissions.forbidden.includes('sgclusters') && ( !kind.length || (kind == 'sgcluster') ) ){
         /* Clusters Data */
         axios
         .get(apiURL+'sgcluster',
@@ -1542,7 +1542,7 @@ const vm = new Vue({
 
       }
 
-      if (!store.state.permissions.forbidden.includes('sgbackups') && ( !kind.length || (kind == 'backup') )) {
+      if (!store.state.permissions.forbidden.includes('sgbackups') && ( !kind.length || (kind == 'sgbackup') )) {
         
         /* Backups */
         axios
