@@ -3,7 +3,7 @@ $(document).ready(function(){
 
         // Get postgres extensions file
         $.ajax({
-            url: "extensions.json",
+            url: "https://extensions.stackgres.io/postgres/repository/index.json",
         }).done(function(extIndex) {
             let extensions = extIndex.extensions.sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
     
