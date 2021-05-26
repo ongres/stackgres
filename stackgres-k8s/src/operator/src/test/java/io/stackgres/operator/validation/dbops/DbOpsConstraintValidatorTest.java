@@ -5,6 +5,9 @@
 
 package io.stackgres.operator.validation.dbops;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -15,6 +18,7 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.operator.common.StackGresDbOpsReview;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 
@@ -128,6 +132,19 @@ class DbOpsConstraintValidatorTest extends ConstraintValidationTest<StackGresDbO
     checkErrorCause(StackGresDbOpsSpec.class, "spec.maxRetries",
         review, Max.class);
 
+  }
+
+  @Test
+  void invalidDuration_shouldFailWithMessage() {
+    StackGresDbOpsReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getBenchmark().getPgbench().setDuration("P5M");
+
+    ValidationFailed assertThrows = assertThrows(ValidationFailed.class,
+        () -> validator.validate(review));
+
+    assertEquals("SGDbOps has invalid properties. "
+        + "duration must be positive and in ISO 8601 duration format: `PnDTnHnMn.nS`.",
+        assertThrows.getMessage());
   }
 
 }
