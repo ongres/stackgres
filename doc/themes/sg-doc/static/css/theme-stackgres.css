@@ -519,6 +519,10 @@ img.border {
     width: 100%;
 }
 
+.capitalFirstLetter::first-letter {
+    text-transform: uppercase;
+}
+
 /* Lightmode Fixes */
 pre code {
     color: var(--textColor);
