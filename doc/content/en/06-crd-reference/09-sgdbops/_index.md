@@ -212,22 +212,13 @@ metadata:
 spec:
  sgCluster: my-cluster
  op: benchmark
+ maxRetries: 1
  benchmark:
    type: pgbench
    pgbench:
      databaseSize: 1Gi
-     duration: P5M
+     duration: P0DT0H10M0S
      concurrentClients: 10
      threads: 10
    connectionType: primary-service
-status:
- opStatus: completed
- opRetries: 0
- benchmark:
-   pgbench:
-     scaleFactor: 4
-     transactionsProcessed: 3000000
-     latencyAverage: 0.054
-     tpsIncludingConnectionsEstablishing: 29300
-     tpsExcludingConnectionsEstablishing: 30500
 ```
