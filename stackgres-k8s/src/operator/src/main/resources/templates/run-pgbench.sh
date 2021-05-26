@@ -14,7 +14,7 @@ run_op() {
   DROP_RETRY=3
   while [ "$DROP_RETRY" -ge 0 ]
   do
-    if psql -c "SELECT pg_terminate_backend(pid)
+    if psql --host="$PRIMARY_PGHOST" -c "SELECT pg_terminate_backend(pid)
         FROM pg_stat_activity WHERE datname = 'pgbench'" \
       -c "DROP DATABASE pgbench"
     then
