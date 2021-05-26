@@ -368,6 +368,7 @@ spec:
                     * Extensions that requires to add an entry to [`shared_preload_libraries`](https://postgresqlco.nf/en/doc/param/shared_preload_libraries/) configuration parameter.
                     * Upgrading extensions that overwrite any file that is not the extension''s control file or extension''s script file.
                     * Removing extensions. Until the cluster is not restarted a removed extension will still be available.
+                    * Install of extensions that require extra mount. After installed the cluster will require to be restarted.
                   items:
                     type: object
                     properties:
