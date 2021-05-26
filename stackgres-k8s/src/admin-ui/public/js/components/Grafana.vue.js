@@ -47,7 +47,7 @@ var Grafana = Vue.component("Grafana", {
 					</li>
 				</ul>
 
-				<ul class="selector">
+				<ul class="selector" v-if="grafanaUrl.length && cluster.data.pods.length">
 					<li><strong>Select a node:</strong></li>
 					<li v-for="pod in cluster.data.pods">
 						<router-link :to="'/admin/cluster/monitor/'+$route.params.namespace+'/'+cluster.name+'/'+pod.ip">{{ pod.name }}</router-link>
@@ -56,7 +56,12 @@ var Grafana = Vue.component("Grafana", {
 			</header>
 
 			<div class="content grafana">
-				<iframe :src="($route.params.hasOwnProperty('pod') && $route.params.pod.length) ? grafana+$route.params.pod : grafana+cluster.data.pods[0].ip" id="grafana"></iframe>
+				<template v-if="cluster.data.pods.length">
+					<iframe v-if="grafanaUrl.length" :src="($route.params.hasOwnProperty('pod') && $route.params.pod.length) ? grafanaUrl+$route.params.pod : grafanaUrl+cluster.data.pods[0].ip" id="grafana"></iframe>
+				</template>
+				<div v-else class="no-data">
+					No pods yet available
+				</div>
 			</div>
 		</template>
 		</div>`,
@@ -66,40 +71,7 @@ var Grafana = Vue.component("Grafana", {
 			grafana: ""
 		}
 	},
-	created: function() {
-
-		// Read Grafana URL
-		let vc = this;
-		var url = '';
-
-		$.get("/grafana")
-		.done(function( data, textStatus, jqXHR ) {
-				url = data;
-				url += (url.includes('?') ? '&' : '?') + 'theme='+vc.theme+'&kiosk&var-instance=';
-
-				$.get(url)
-				.done(function( data, textStatus, jqXHR ) {
-						vc.grafana = url;
-				})
-				.fail(function( jqXHR, textStatus, errorThrown ) {
-						notify({
-								title: errorThrown,
-								detail: 'There was a problem when trying to access Grafana\'s dashboard. Please confirm you have setup the operator\'s credentials to view Grafana properly',
-								type: 'https://stackgres.io/doc/0.9/install/prerequisites/monitoring/#installing-grafana-and-create-basic-dashboards',
-								status: 403
-						},'error')
-						$('#grafana').remove();
-				});
-		})
-		.fail(function( jqXHR, textStatus, errorThrown ) {
-				if(textStatus == 'error') {
-						notify('There was a problem when trying to access Grafana\'s dashboard','message')
-						$('#grafana').hide()
-				}       
-		});
-		//console.log(this.$route)
-
-	},
+	
 	computed: {
 		currentNamespace () {
 			return store.state.currentNamespace
@@ -111,6 +83,51 @@ var Grafana = Vue.component("Grafana", {
 
 		theme () {
 			return store.state.theme
+		},
+
+		grafanaUrl() {
+			// Read Grafana URL
+			let vc = this;
+			let url = '';
+
+			$.get("/grafana")
+			.done(function( data, textStatus, jqXHR ) {
+
+				if(!data.startsWith('<!DOCTYPE html>')) { // Check "/grafana" isn't just returning web console's HTML content
+					url = data;
+					url += (url.includes('?') ? '&' : '?') + 'theme=' + vc.theme + '&kiosk&var-instance=';
+
+					$.get(url)
+					.fail(function( jqXHR, textStatus, errorThrown ) {
+						url = '';
+						vc.notifyGrafanaError();
+					});
+				}
+				
+			})
+			.fail(function( jqXHR, textStatus, errorThrown ) {
+				if(textStatus == 'error') {
+					vc.notifyGrafanaError();
+				}       
+			});
+
+			return url
 		}
+
+	},
+
+	methods: {
+
+		notifyGrafanaError() {
+			notify({
+				title: '',
+				detail: 'There was a problem when trying to access Grafana\'s dashboard. Please confirm the cluster is functioning properly and that you have correctly setup the operator\'s credentials to view Grafana.',
+				type: 'https://stackgres.io/doc/latest/install/prerequisites/monitoring/#installing-grafana-and-create-basic-dashboards',
+				status: 403
+			},'error')
+			$('#grafana').remove();
+		}
+
 	}
+
 })
