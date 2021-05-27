@@ -21,9 +21,8 @@ import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
-import io.fabric8.kubernetes.api.model.batch.v1.CronJobBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
-import io.fabric8.kubernetes.api.model.batch.v1.JobTemplateSpecBuilder;
+import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobBuilder;
 import io.stackgres.common.PatroniUtil;
 
 public class KubernetessMockResourceGenerationUtil {
@@ -102,17 +101,17 @@ public class KubernetessMockResourceGenerationUtil {
             .withNamespace(namespace)
             .endMetadata()
             .withNewSpec()
-            .withJobTemplate(new JobTemplateSpecBuilder()
-                .withNewSpec()
-                .withNewTemplate()
-                .withNewSpec()
-                .addNewContainer()
-                .withImage(generateRandom())
-                .endContainer()
-                .endSpec()
-                .endTemplate()
-                .endSpec()
-                .build())
+            .withNewJobTemplate()
+            .withNewSpec()
+            .withNewTemplate()
+            .withNewSpec()
+            .addNewContainer()
+            .withImage(generateRandom())
+            .endContainer()
+            .endSpec()
+            .endTemplate()
+            .endSpec()
+            .endJobTemplate()
             .endSpec()
             .build(),
         new JobBuilder()

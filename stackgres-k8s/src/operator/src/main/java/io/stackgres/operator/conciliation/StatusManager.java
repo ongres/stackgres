@@ -7,7 +7,7 @@ package io.stackgres.operator.conciliation;
 
 public interface StatusManager<T, C> {
 
-  void refreshCondition(T source);
+  T refreshCondition(T source);
 
   void updateCondition(C condition, T context);
 }

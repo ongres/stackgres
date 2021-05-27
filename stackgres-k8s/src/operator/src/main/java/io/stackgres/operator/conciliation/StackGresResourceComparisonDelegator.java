@@ -15,18 +15,18 @@ public abstract class StackGresResourceComparisonDelegator<T extends CustomResou
   protected abstract ResourceComparator getComparator(HasMetadata r1);
 
   @Override
-  public boolean isTheSameResource(HasMetadata r1, HasMetadata r2) {
-    ResourceComparator comparator = getComparator(r1);
+  public boolean isTheSameResource(HasMetadata required, HasMetadata deployed) {
+    ResourceComparator comparator = getComparator(required);
 
     return comparator
-        .isTheSameResource(r1, r2);
+        .isTheSameResource(required, deployed);
   }
 
   @Override
-  public boolean isResourceContentEqual(HasMetadata r1, HasMetadata r2) {
-    ResourceComparator comparator = getComparator(r1);
+  public boolean isResourceContentEqual(HasMetadata required, HasMetadata deployed) {
+    ResourceComparator comparator = getComparator(required);
 
     return comparator
-        .isResourceContentEqual(r1, r2);
+        .isResourceContentEqual(required, deployed);
   }
 }

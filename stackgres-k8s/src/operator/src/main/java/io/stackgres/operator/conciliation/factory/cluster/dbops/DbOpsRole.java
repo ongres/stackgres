@@ -26,13 +26,11 @@ import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
@@ -41,8 +39,6 @@ public class DbOpsRole implements ResourceGenerator<StackGresClusterContext> {
   public static final String SUFFIX = "-dbops";
 
   private LabelFactory<StackGresCluster> labelFactory;
-
-  private ResourceFinder<ServiceAccount> serviceAccountFinder;
 
   public static String roleName(StackGresClusterContext clusterContext) {
     return roleName(clusterContext.getSource());
@@ -60,12 +56,12 @@ public class DbOpsRole implements ResourceGenerator<StackGresClusterContext> {
   public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
     final List<StackGresDbOps> dbOps = context.getDbOps();
     if (!dbOps.isEmpty()) {
-      return Seq.of(
+      return Stream.of(
           createServiceAccount(context),
           createRole(context),
           createRoleBinding(context));
     } else {
-      return Seq.of();
+      return Stream.of();
     }
   }
 
@@ -79,18 +75,13 @@ public class DbOpsRole implements ResourceGenerator<StackGresClusterContext> {
 
     final String serviceAccountName = roleName(context);
     final String serviceAccountNamespace = cluster.getMetadata().getNamespace();
-    return serviceAccountFinder.findByNameAndNamespace(serviceAccountName, serviceAccountNamespace)
-        .map(sa -> {
-          sa.getMetadata().setLabels(labels);
-          return sa;
-        })
-        .orElse(new ServiceAccountBuilder()
-            .withNewMetadata()
-            .withName(serviceAccountName)
-            .withNamespace(serviceAccountNamespace)
-            .withLabels(labels)
-            .endMetadata()
-            .build());
+    return new ServiceAccountBuilder()
+        .withNewMetadata()
+        .withName(serviceAccountName)
+        .withNamespace(serviceAccountNamespace)
+        .withLabels(labels)
+        .endMetadata()
+        .build();
 
   }
 
@@ -188,8 +179,4 @@ public class DbOpsRole implements ResourceGenerator<StackGresClusterContext> {
     this.labelFactory = labelFactory;
   }
 
-  @Inject
-  public void setServiceAccountFinder(ResourceFinder<ServiceAccount> serviceAccountFinder) {
-    this.serviceAccountFinder = serviceAccountFinder;
-  }
 }

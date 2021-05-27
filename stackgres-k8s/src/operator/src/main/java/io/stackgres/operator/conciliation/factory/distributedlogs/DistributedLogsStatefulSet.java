@@ -6,7 +6,9 @@
 package io.stackgres.operator.conciliation.factory.distributedlogs;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -18,7 +20,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimSpecBuilder;
-import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
@@ -32,23 +34,28 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
-import io.stackgres.operator.conciliation.factory.ResourceFactory;
+import io.stackgres.operator.conciliation.factory.PodTemplateFactory;
+import io.stackgres.operator.conciliation.factory.PodTemplateResult;
+import io.stackgres.operator.conciliation.factory.VolumeDiscoverer;
+import io.stackgres.operator.conciliation.factory.VolumePair;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
 public class DistributedLogsStatefulSet
     implements ResourceGenerator<DistributedLogsContext> {
 
-  private LabelFactory<StackGresDistributedLogs> labelFactory;
-
-  private ResourceFactory<DistributedLogsContext, PodTemplateSpec> podSpecFactory;
+  private final PodTemplateFactory<DistributedLogsContainerContext> podTemplateSpecFactory;
+  private final LabelFactory<StackGresDistributedLogs> labelFactory;
+  private final VolumeDiscoverer<DistributedLogsContext> volumeDiscoverer;
 
   @Inject
   public DistributedLogsStatefulSet(
       LabelFactory<StackGresDistributedLogs> labelFactory,
-      ResourceFactory<DistributedLogsContext, PodTemplateSpec> podSpecFactory) {
+      PodTemplateFactory<DistributedLogsContainerContext> podTemplateSpecFactory,
+      VolumeDiscoverer<DistributedLogsContext> volumeDiscoverer) {
     this.labelFactory = labelFactory;
-    this.podSpecFactory = podSpecFactory;
+    this.podTemplateSpecFactory = podTemplateSpecFactory;
+    this.volumeDiscoverer = volumeDiscoverer;
   }
 
   public static String dataName(StackGresDistributedLogs cluster) {
@@ -81,6 +88,21 @@ public class DistributedLogsStatefulSet
     final Map<String, String> labels = labelFactory.clusterLabels(cluster);
     final Map<String, String> podLabels = labelFactory.statefulSetPodLabels(cluster);
 
+    Map<String, VolumePair> availableVolumesPairs = volumeDiscoverer.discoverVolumes(context);
+
+    Map<String, Volume> availableVolumes = availableVolumesPairs.entrySet().stream()
+        .collect(Collectors.toMap(
+            Map.Entry::getKey,
+            vp -> vp.getValue().getVolume()
+        ));
+
+    final PodTemplateResult buildPodTemplate = podTemplateSpecFactory
+        .getPodTemplateSpec(ImmutableDistributedLogsContainerContext.builder()
+            .distributedLogsContext(context)
+            .availableVolumes(availableVolumes)
+            .dataVolumeName(dataName(cluster))
+            .build());
+
     StatefulSet clusterStatefulSet = new StatefulSetBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
@@ -97,7 +119,7 @@ public class DistributedLogsStatefulSet
             .withType("OnDelete")
             .build())
         .withServiceName(name)
-        .withTemplate(podSpecFactory.createResource(context))
+        .withTemplate(buildPodTemplate.getSpec())
         .withVolumeClaimTemplates(Stream.of(
             Stream.of(new PersistentVolumeClaimBuilder()
                 .withNewMetadata()
@@ -113,7 +135,14 @@ public class DistributedLogsStatefulSet
         .endSpec()
         .build();
 
-    return Stream.of(clusterStatefulSet);
+    var volumeDependencies = buildPodTemplate.claimedVolumes().stream()
+        .map(availableVolumesPairs::get)
+        .filter(Objects::nonNull)
+        .map(VolumePair::getSource)
+        .filter(Optional::isPresent)
+        .map(Optional::get);
+
+    return Stream.concat(Stream.of(clusterStatefulSet), volumeDependencies);
   }
 
 }

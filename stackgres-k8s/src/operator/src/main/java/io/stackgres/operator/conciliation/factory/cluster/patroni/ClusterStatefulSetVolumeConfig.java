@@ -95,18 +95,15 @@ public enum ClusterStatefulSetVolumeConfig {
     this.volumeConfig = volumeConfig;
   }
 
-  public Collection<VolumeMount> volumeMounts(StackGresClusterContext context) {
-    return new ArrayList<>(volumeConfig.volumeMounts(context));
-  }
-
-  public static Stream<VolumeMount> volumeMounts(StackGresClusterContext context,
-                                                 ClusterStatefulSetVolumeConfig... configs) {
-    return Seq.of(configs)
-        .map(ClusterStatefulSetVolumeConfig::config)
-        .flatMap(volumeConfig -> volumeConfig.volumeMounts(context).stream());
-  }
-
   public static Stream<Volume> volumes(StackGresClusterContext context) {
+    return Seq.of(values())
+        .map(ClusterStatefulSetVolumeConfig::config)
+        .map(volumeConfig -> volumeConfig.volume(context))
+        .filter(Optional::isPresent)
+        .map(Optional::get);
+  }
+
+  public static Stream<Volume> allVolumes(StackGresClusterContext context) {
     return Seq.of(values())
         .map(ClusterStatefulSetVolumeConfig::config)
         .map(volumeConfig -> volumeConfig.volume(context))
@@ -116,6 +113,17 @@ public enum ClusterStatefulSetVolumeConfig {
 
   public VolumeConfig config() {
     return volumeConfig;
+  }
+
+  public static Stream<VolumeMount> volumeMounts(StackGresClusterContext context,
+                                                 ClusterStatefulSetVolumeConfig... configs) {
+    return Seq.of(configs)
+        .map(ClusterStatefulSetVolumeConfig::config)
+        .flatMap(volumeConfig -> volumeConfig.volumeMounts(context).stream());
+  }
+
+  public Collection<VolumeMount> volumeMounts(StackGresClusterContext context) {
+    return new ArrayList<>(volumeConfig.volumeMounts(context));
   }
 
   public VolumeMount volumeMount(StackGresClusterContext context) {
@@ -151,15 +159,6 @@ public enum ClusterStatefulSetVolumeConfig {
         .orElseThrow(() -> new IllegalStateException(
             "Volume " + volumeConfig.name()
                 + " is not configured or not available for this context"));
-  }
-
-
-  public static Stream<Volume> allVolumes(StackGresClusterContext context) {
-    return Seq.of(values())
-        .map(ClusterStatefulSetVolumeConfig::config)
-        .map(volumeConfig -> volumeConfig.volume(context))
-        .filter(Optional::isPresent)
-        .map(Optional::get);
   }
 
 }

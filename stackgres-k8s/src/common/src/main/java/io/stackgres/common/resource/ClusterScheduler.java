@@ -8,6 +8,7 @@ package io.stackgres.common.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -25,6 +26,16 @@ public class ClusterScheduler extends
   public ClusterScheduler() {
     super(null, null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
+  }
+
+  public StackGresCluster update(StackGresCluster resource) {
+    try (KubernetesClient client = clientFactory.create()) {
+      return client.customResources(StackGresCluster.class, StackGresClusterList.class)
+          .inNamespace(resource.getMetadata().getNamespace())
+          .withName(resource.getMetadata().getName())
+          .lockResourceVersion(resource.getMetadata().getResourceVersion())
+          .replace(resource);
+    }
   }
 
 }

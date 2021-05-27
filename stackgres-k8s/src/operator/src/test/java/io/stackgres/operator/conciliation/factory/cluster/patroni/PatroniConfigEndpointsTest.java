@@ -22,7 +22,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.ClusterLabelFactory;
+import io.stackgres.common.ClusterLabelMapper;
 import io.stackgres.common.ClusterStatefulSetEnvVars;
+import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -42,24 +45,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PatroniConfigEndpointsTest {
 
   private static final JsonMapper MAPPER = new JsonMapper();
-
+  private final LabelFactory<StackGresCluster> labelFactory = new ClusterLabelFactory(
+      new ClusterLabelMapper());
   @Mock
   private StackGresClusterContext context;
-
   private PatroniConfigEndpoints generator;
-
   private StackGresCluster cluster;
-
   private StackGresBackupConfig backupConfig;
-
   private StackGresPostgresConfig postgresConfig;
-
   private String clusterName, clusterNamespace;
 
   @BeforeEach
   void setUp() {
     generator = new PatroniConfigEndpoints(
-        MAPPER);
+        MAPPER, labelFactory);
 
 
     cluster = JsonUtil
@@ -72,7 +71,6 @@ class PatroniConfigEndpointsTest {
 
     lenient().when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
     lenient().when(context.getPostgresConfig()).thenReturn(postgresConfig);
-    lenient().when(context.getPatroniClusterLabels()).thenReturn(Map.of());
   }
 
   @Test
@@ -84,8 +82,8 @@ class PatroniConfigEndpointsTest {
     Map<String, String> pgParams = generator.getPostgresConfigValues(context);
 
     assertTrue(pgParams.containsKey("archive_command"));
-    final String expected = "exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value(cluster) + "'"
-        + " -- wal-g wal-push %p";
+    final String expected = "exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value(cluster)
+        + "' -- wal-g wal-push %p";
     assertEquals(expected, pgParams.get("archive_command"));
   }
 
@@ -139,20 +137,14 @@ class PatroniConfigEndpointsTest {
   @Test
   void generateResource_shouldSetLabelsFromLabelFactory() {
 
-    final Map<String, String> labels = Map
-        .of(StringUtil.generateRandom(), StringUtil.generateRandom());
-    when(context.getPatroniClusterLabels()).thenReturn(labels);
-
     Endpoints endpoints = generateEndpoint();
 
-    assertEquals(labels, endpoints.getMetadata().getLabels());
+    assertEquals(labelFactory.patroniClusterLabels(cluster), endpoints.getMetadata().getLabels());
 
   }
 
   @Test
   void generatedEndpoint_shouldBeAnnotatedWithPatroniKeyAndAValidPostgresConfig() throws JsonProcessingException {
-
-    when(context.getPatroniClusterLabels()).thenReturn(Map.of());
 
     Endpoints endpoints = generateEndpoint();
 

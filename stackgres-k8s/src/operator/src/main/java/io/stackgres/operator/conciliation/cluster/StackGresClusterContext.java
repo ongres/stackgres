@@ -6,9 +6,9 @@
 package io.stackgres.operator.conciliation.cluster;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
+import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
@@ -27,7 +27,8 @@ import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple4;
 
 @Value.Immutable
-public interface StackGresClusterContext extends GenerationContext<StackGresCluster>, ClusterContext {
+public interface StackGresClusterContext extends GenerationContext<StackGresCluster>,
+    ClusterContext {
 
   @Override
   default StackGresCluster getCluster() {
@@ -46,19 +47,18 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
 
   List<StackGresBackup> getBackups();
 
-  Map<String, String> getPatroniClusterLabels();
-
-  String getClusterScope();
-
-  Seq<StackGresClusterScriptEntry> getInternalScripts();
+  List<StackGresClusterScriptEntry> getInternalScripts();
 
   Optional<Prometheus> getPrometheus();
 
   List<StackGresDbOps> getDbOps();
 
+  Optional<Secret> getDatabaseCredentials();
+
   @Value.Derived
   default List<Tuple4<StackGresClusterScriptEntry, Long, String, Long>> getIndexedScripts() {
-    return getInternalScripts()
+    Seq<StackGresClusterScriptEntry> internalScripts =  Seq.seq(getInternalScripts());
+    return internalScripts
         .zipWithIndex()
         .map(t -> t.concat(PatroniScriptsConfigMap.INTERNAL_SCRIPT))
         .append(Seq.of(Optional.ofNullable(

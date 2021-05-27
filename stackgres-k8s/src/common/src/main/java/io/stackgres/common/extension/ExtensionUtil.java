@@ -165,6 +165,7 @@ public interface ExtensionUtil {
       StackGresClusterExtension extension, StackGresExtensionMetadata extensionMetadata) {
     StackGresClusterInstalledExtension installedExtension =
         new StackGresClusterInstalledExtension();
+
     installedExtension.setName(extensionMetadata.getExtension().getName());
     installedExtension.setPublisher(extensionMetadata.getExtension().getPublisherOrDefault());
     installedExtension.setVersion(extensionMetadata.getVersion().getVersion());

@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(StackGresReconciliator.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger("io.stackgres.reconciliator");
 
   private static final String STACKGRES_IO_RECONCILIATION = "stackgres.io/reconciliation-pause";
 
@@ -31,6 +31,7 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
 
   public synchronized void reconcile() {
     getExistentSources().forEach(cluster -> {
+      onPreReconciliation(cluster);
       final ObjectMeta metadata = cluster.getMetadata();
       final String clusterId = metadata.getNamespace() + "/" + metadata.getName();
       LOGGER.info("Checking reconciliation status of cluster "
@@ -48,7 +49,7 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
                   handlerDelegator.create(resource);
                 } catch (KubernetesClientException ex) {
                   if (ex.getCode() == 409) {
-                    handlerDelegator.patch(resource);
+                    handlerDelegator.replace(resource);
                   } else {
                     throw ex;
                   }
@@ -57,9 +58,9 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
 
           result.getPatches()
               .forEach(resource -> {
-                LOGGER.info("Patching resource " + resource.getMetadata().getName()
-                    + " of kind: " + resource.getKind());
-                handlerDelegator.patch(resource);
+                LOGGER.info("Patching resource " + resource.v2.getMetadata().getName()
+                    + " of kind: " + resource.v2.getKind());
+                handlerDelegator.patch(resource.v1, resource.v2);
               });
 
           result.getDeletions()
@@ -93,6 +94,8 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
             .map(b -> !b)
             .orElse(true));
   }
+
+  public abstract void onPreReconciliation(T config);
 
   public abstract void onPostReconciliation(T config);
 

@@ -18,9 +18,9 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
+import io.stackgres.operator.conciliation.StackGresRandomPasswordKeys;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -28,16 +28,9 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
 public class PatroniSecret implements
-    ResourceGenerator<StackGresClusterContext> {
-
-  public static final String SUPERUSER_PASSWORD_KEY = "superuser-password";
-  protected static final String REPLICATION_PASSWORD_KEY = "replication-password";
-  protected static final String AUTHENTICATOR_PASSWORD_KEY = "authenticator-password";
-  private static final String RESTAPI_PASSWORD_KEY = "restapi-password";
+    ResourceGenerator<StackGresClusterContext>, StackGresRandomPasswordKeys {
 
   private LabelFactory<StackGresCluster> factoryFactory;
-
-  private ResourceFinder<Secret> secretFinder;
 
   public static String name(StackGresClusterContext clusterContext) {
     return ResourceUtil.resourceName(clusterContext.getSource().getMetadata().getName());
@@ -62,8 +55,9 @@ public class PatroniSecret implements
     final Map<String, String> labels = factoryFactory
         .clusterLabels(cluster);
 
-    Map<String, String> generatedPasswords = secretFinder.findByNameAndNamespace(name, namespace)
-        .map(Secret::getData).orElse(new HashMap<>());
+    Map<String, String> generatedPasswords = context.getDatabaseCredentials()
+        .map(Secret::getData)
+        .orElse(Map.of());
 
     Map<String, String> data = new HashMap<>();
     data.put(SUPERUSER_PASSWORD_KEY, generatedPasswords
@@ -92,8 +86,4 @@ public class PatroniSecret implements
     this.factoryFactory = factoryFactory;
   }
 
-  @Inject
-  public void setSecretFinder(ResourceFinder<Secret> secretFinder) {
-    this.secretFinder = secretFinder;
-  }
 }

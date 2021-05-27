@@ -7,6 +7,7 @@ package io.stackgres.jobs.dbops;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
@@ -19,6 +20,7 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
+import io.smallrye.mutiny.TimeoutException;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -40,25 +42,18 @@ public class DbOpLauncherImpl implements DbOpLauncher {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DbOpLauncherImpl.class);
 
-  private final CustomResourceFinder<StackGresDbOps> dbOpsFinder;
-
-  private final CustomResourceScheduler<StackGresDbOps> dbOpsScheduler;
-
-  private final LockAcquirer<StackGresCluster> lockAcquirer;
-
-  private final Instance<DatabaseOperationJob> instance;
+  @Inject
+  CustomResourceFinder<StackGresDbOps> dbOpsFinder;
 
   @Inject
-  public DbOpLauncherImpl(
-      CustomResourceFinder<StackGresDbOps> dbOpsFinder,
-      CustomResourceScheduler<StackGresDbOps> dbOpsScheduler,
-      LockAcquirer<StackGresCluster> lockAcquirer,
-      @Any Instance<DatabaseOperationJob> instance) {
-    this.dbOpsFinder = dbOpsFinder;
-    this.dbOpsScheduler = dbOpsScheduler;
-    this.lockAcquirer = lockAcquirer;
-    this.instance = instance;
-  }
+  CustomResourceScheduler<StackGresDbOps> dbOpsScheduler;
+
+  @Inject
+  LockAcquirer<StackGresCluster> lockAcquirer;
+
+  @Inject
+  @Any
+  Instance<DatabaseOperationJob> instance;
 
   private static void setTransitionTimes(List<StackGresDbOpsCondition> conditions) {
     DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
@@ -109,13 +104,23 @@ public class DbOpLauncherImpl implements DbOpLauncher {
           final DatabaseOperationJob databaseOperationJob = jobImpl.get();
 
           Uni<StackGresDbOps> jobUni = databaseOperationJob.runJob(initializedDbOps, targetCluster);
+          StackGresDbOps completedDbOps;
+          if (initializedDbOps.getSpec().getTimeout() != null) {
+            completedDbOps = jobUni.await()
+                .atMost(Duration.parse(initializedDbOps.getSpec().getTimeout())
+                );
+          } else {
+            completedDbOps = jobUni.await().indefinitely();
+          }
 
-          StackGresDbOps completedDbOps = jobUni.await().indefinitely();
           LOGGER.info("Operation completed for SgDbOp {}", completedDbOps.getMetadata().getName());
           updateToCompletedConditions(completedDbOps);
 
         });
 
+      } catch (TimeoutException timeoutEx) {
+        updateToTimeoutConditions(dbOpName, namespace);
+        throw timeoutEx;
       } catch (Exception e) {
         updateToFailedConditions(dbOpName, namespace);
         throw e;
@@ -140,6 +145,13 @@ public class DbOpLauncherImpl implements DbOpLauncher {
     StackGresDbOps dbOps = dbOpsFinder.findByNameAndNamespace(dbOpName, namespace)
         .orElseThrow();
     dbOps.getStatus().setConditions(getFailedConditions());
+    dbOpsScheduler.update(dbOps);
+  }
+
+  private void updateToTimeoutConditions(String dbOpName, String namespace) {
+    StackGresDbOps dbOps = dbOpsFinder.findByNameAndNamespace(dbOpName, namespace)
+        .orElseThrow();
+    dbOps.getStatus().setConditions(getTimeoutConditions());
     dbOpsScheduler.update(dbOps);
   }
 
@@ -168,6 +180,16 @@ public class DbOpLauncherImpl implements DbOpLauncher {
         DbOpsStatusCondition.DB_OPS_FALSE_RUNNING.getCondition(),
         DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED.getCondition(),
         DbOpsStatusCondition.DB_OPS_FAILED.getCondition()
+    );
+    setTransitionTimes(conditions);
+    return conditions;
+  }
+
+  public List<StackGresDbOpsCondition> getTimeoutConditions() {
+    final List<StackGresDbOpsCondition> conditions = List.of(
+        DbOpsStatusCondition.DB_OPS_FALSE_RUNNING.getCondition(),
+        DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED.getCondition(),
+        DbOpsStatusCondition.DB_OPS_TIMED_OUT.getCondition()
     );
     setTransitionTimes(conditions);
     return conditions;

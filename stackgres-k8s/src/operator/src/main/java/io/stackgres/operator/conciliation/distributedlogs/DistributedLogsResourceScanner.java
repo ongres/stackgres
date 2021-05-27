@@ -52,6 +52,7 @@ public class DistributedLogsResourceScanner
                   .equals(StackGresDistributedLogs.KIND)
                   && ownerReference.getName().equals(config.getMetadata().getName())))
           .collect(Collectors.toUnmodifiableList());
+
       return resources;
 
     }

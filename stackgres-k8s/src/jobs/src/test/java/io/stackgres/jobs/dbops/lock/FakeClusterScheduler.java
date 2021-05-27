@@ -5,6 +5,9 @@
 
 package io.stackgres.jobs.dbops.lock;
 
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -44,5 +47,12 @@ public class FakeClusterScheduler implements CustomResourceScheduler<StackGresCl
     var cluster = kubeDb.getCluster(metadata.getName(), metadata.getNamespace());
     cluster.setStatus(resource.getStatus());
     return kubeDb.addOrReplaceCluster(resource);
+  }
+
+  @Override
+  public <S> void updateStatus(@NotNull StackGresCluster resource,
+                               @NotNull Function<StackGresCluster, S> statusGetter,
+                               @NotNull BiConsumer<StackGresCluster, S> statusSetter) {
+    throw new UnsupportedOperationException("not implemented");
   }
 }

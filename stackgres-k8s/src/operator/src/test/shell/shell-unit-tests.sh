@@ -38,6 +38,11 @@ TEST_NAME="$TEST_NAME"
 TEST_TARGET_PATH="$TEST_TARGET_PATH"
 . "$TEST_SHELL_PATH/shell-unit-tests.sh"
 . "$TEST_PATH"
+if command -v shell_unit_test_skip > /dev/null && shell_unit_test_skip
+then
+  echo "Skipping test $TEST_NAME"
+  exit
+fi
 shell_unit_test
 EOF
       )"

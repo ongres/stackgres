@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.CustomResource;
 import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 
 public class Conciliator<T extends CustomResource<?, ?>> {
 
@@ -35,7 +36,7 @@ public class Conciliator<T extends CustomResource<?, ?>> {
         .filter(deployedResource -> requiredResources.stream()
             .noneMatch(requiredResource -> isTheSameResource(deployedResource, requiredResource)));
 
-    Stream<HasMetadata> patches = requiredResources.stream()
+    Stream<Tuple2<HasMetadata, HasMetadata>> patches = requiredResources.stream()
         .map(requiredResource -> {
           Optional<HasMetadata> deployedResource = deployedResources.stream()
               .filter(dr -> isTheSameResource(requiredResource, dr))
@@ -43,8 +44,7 @@ public class Conciliator<T extends CustomResource<?, ?>> {
           return Tuple.tuple(requiredResource, deployedResource);
         }).filter(resourceTuple -> resourceTuple.v2.isPresent())
         .map(rt -> rt.map2(Optional::get))
-        .filter(resourceTuple -> !isResourceContentEqual(resourceTuple.v1, resourceTuple.v2))
-        .map(resourceTuple -> resourceTuple.v1);
+        .filter(resourceTuple -> !isResourceContentEqual(resourceTuple.v1, resourceTuple.v2));
 
     return new ReconciliationResult(creations.collect(Collectors.toUnmodifiableList()),
         patches.collect(Collectors.toUnmodifiableList()),

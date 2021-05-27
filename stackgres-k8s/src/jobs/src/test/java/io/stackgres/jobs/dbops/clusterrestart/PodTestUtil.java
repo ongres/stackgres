@@ -5,6 +5,8 @@
 
 package io.stackgres.jobs.dbops.clusterrestart;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +18,7 @@ import javax.inject.Inject;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.fabric8.kubernetes.client.internal.PatchUtils;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -33,6 +36,13 @@ public class PodTestUtil {
 
   @Inject
   MockKubernetesClientFactory clientFactory;
+
+  public static void assertPodEquals(Pod expected, Pod actual) {
+    var pm = PatchUtils.patchMapper();
+    String expectedJson = pm.valueToTree(expected).toPrettyString();
+    String actualJson = pm.valueToTree(actual).toPrettyString();
+    assertEquals(expectedJson, actualJson);
+  }
 
   public void preparePods(StackGresCluster cluster, int primaryIndex, int... replicaIndexes) {
 

@@ -10,7 +10,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -114,7 +113,8 @@ class ClusterRestartImplTest {
       return Uni.createFrom().item(pod);
     });
 
-    when(switchoverHandler.performSwitchover(CLUSTER_NAME, NAMESPACE))
+    final String primaryName = primary.getMetadata().getName();
+    when(switchoverHandler.performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().voidItem());
 
     List<RestartEvent> events = clusterRestart.restartCluster(clusterState)
@@ -140,7 +140,7 @@ class ClusterRestartImplTest {
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(replica2);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
-    order.verify(switchoverHandler).performSwitchover(CLUSTER_NAME, NAMESPACE);
+    order.verify(switchoverHandler).performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(primary);
 
@@ -166,7 +166,8 @@ class ClusterRestartImplTest {
       return Uni.createFrom().item(pod);
     });
 
-    when(switchoverHandler.performSwitchover(CLUSTER_NAME, NAMESPACE))
+    final String primaryName = primary.getMetadata().getName();
+    when(switchoverHandler.performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().voidItem());
 
     List<RestartEvent> events = clusterRestart.restartCluster(clusterState)
@@ -190,7 +191,7 @@ class ClusterRestartImplTest {
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(replica2);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
-    order.verify(switchoverHandler).performSwitchover(CLUSTER_NAME, NAMESPACE);
+    order.verify(switchoverHandler).performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(primary);
 
@@ -219,7 +220,8 @@ class ClusterRestartImplTest {
       return Uni.createFrom().item(pod);
     });
 
-    when(switchoverHandler.performSwitchover(CLUSTER_NAME, NAMESPACE))
+    final String primaryName = primary.getMetadata().getName();
+    when(switchoverHandler.performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().voidItem());
 
     List<RestartEvent> events = clusterRestart.restartCluster(clusterState)
@@ -241,7 +243,7 @@ class ClusterRestartImplTest {
 
     final InOrder order = inOrder(podRestart, switchoverHandler, clusterWatcher);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
-    order.verify(switchoverHandler).performSwitchover(CLUSTER_NAME, NAMESPACE);
+    order.verify(switchoverHandler).performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(primary);
 
@@ -295,7 +297,7 @@ class ClusterRestartImplTest {
     verify(podRestart, never()).restartPod(replica1);
     verify(podRestart, never()).restartPod(replica2);
 
-    verify(switchoverHandler, never()).performSwitchover(CLUSTER_NAME, NAMESPACE);
+    verify(switchoverHandler, never()).performSwitchover(any(), any(), any());
 
     checkFinalSgClusterOnInPlace();
 
@@ -332,7 +334,8 @@ class ClusterRestartImplTest {
       return Uni.createFrom().item(pod);
     });
 
-    when(switchoverHandler.performSwitchover(CLUSTER_NAME, NAMESPACE))
+    final String primaryName = primary.getMetadata().getName();
+    when(switchoverHandler.performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().voidItem());
 
     List<RestartEvent> events = clusterRestart.restartCluster(clusterState)
@@ -356,7 +359,7 @@ class ClusterRestartImplTest {
     order.verify(instanceManager).increaseClusterInstances(CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(replica1);
     order.verify(podRestart).restartPod(replica2);
-    order.verify(switchoverHandler).performSwitchover(CLUSTER_NAME, NAMESPACE);
+    order.verify(switchoverHandler).performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(primary);
     order.verify(instanceManager).decreaseClusterInstances(CLUSTER_NAME, NAMESPACE);
 
@@ -381,7 +384,8 @@ class ClusterRestartImplTest {
       return Uni.createFrom().item(pod);
     });
 
-    when(switchoverHandler.performSwitchover(CLUSTER_NAME, NAMESPACE))
+    final String primaryName = primary.getMetadata().getName();
+    when(switchoverHandler.performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().voidItem());
 
     when(instanceManager.decreaseClusterInstances(CLUSTER_NAME, NAMESPACE))
@@ -409,7 +413,7 @@ class ClusterRestartImplTest {
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(replica2);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
-    order.verify(switchoverHandler).performSwitchover(CLUSTER_NAME, NAMESPACE);
+    order.verify(switchoverHandler).performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(primary);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
@@ -461,7 +465,7 @@ class ClusterRestartImplTest {
 
     verify(podRestart, never()).restartPod(replica1);
     verify(podRestart, never()).restartPod(replica2);
-    verify(switchoverHandler, never()).performSwitchover(CLUSTER_NAME, NAMESPACE);
+    verify(switchoverHandler, never()).performSwitchover(any(), any(), any());
     verify(instanceManager, never()).increaseClusterInstances(CLUSTER_NAME, NAMESPACE);
 
   }
@@ -506,7 +510,7 @@ class ClusterRestartImplTest {
     verify(podRestart, never()).restartPod(primary);
     verify(podRestart, never()).restartPod(replica1);
     verify(podRestart, never()).restartPod(replica2);
-    verify(switchoverHandler, never()).performSwitchover(CLUSTER_NAME, NAMESPACE);
+    verify(switchoverHandler, never()).performSwitchover(any(), any(), any());
     verify(instanceManager, never()).increaseClusterInstances(CLUSTER_NAME, NAMESPACE);
     verify(instanceManager, never()).decreaseClusterInstances(CLUSTER_NAME, NAMESPACE);
   }

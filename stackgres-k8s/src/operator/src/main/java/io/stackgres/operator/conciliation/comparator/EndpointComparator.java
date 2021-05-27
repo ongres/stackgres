@@ -11,7 +11,6 @@ import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.client.internal.PatchUtils;
 import io.fabric8.zjsonpatch.JsonDiff;
 
 public class EndpointComparator extends StackGresAbstractComparator {
@@ -35,9 +34,9 @@ public class EndpointComparator extends StackGresAbstractComparator {
   }
 
   @Override
-  public boolean isResourceContentEqual(HasMetadata r1, HasMetadata r2) {
-    JsonNode diff = JsonDiff.asJson(PatchUtils.patchMapper().valueToTree(r1),
-        PatchUtils.patchMapper().valueToTree(r2));
+  public boolean isResourceContentEqual(HasMetadata required, HasMetadata deployed) {
+    JsonNode diff = JsonDiff.asJson(PATCH_MAPPER.valueToTree(required),
+        PATCH_MAPPER.valueToTree(deployed));
 
     int ignore = countPatchesToIgnore(diff);
 

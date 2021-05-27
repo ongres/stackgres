@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.stackgres.common.LabelFactory;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
@@ -36,15 +36,16 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
+import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
+import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.factory.Decorator;
-import io.stackgres.operator.conciliation.factory.cluster.DecoratorDiscoverer;
+import io.stackgres.operator.conciliation.factory.DecoratorDiscoverer;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
 import io.stackgres.operator.customresource.prometheus.PrometheusInstallation;
-import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +69,7 @@ public class ClusterRequiredResourcesGenerator
 
   private final CustomResourceScanner<StackGresBackup> backupScanner;
 
-  private final LabelFactory<StackGresCluster> labelFactory;
+  private final ResourceFinder<Secret> secretFinder;
 
   private final CustomResourceScanner<StackGresDbOps> dbOpsScanner;
 
@@ -86,7 +87,7 @@ public class ClusterRequiredResourcesGenerator
       CustomResourceFinder<StackGresPoolingConfig> poolingConfigFinder,
       CustomResourceFinder<StackGresProfile> profileFinder,
       CustomResourceScanner<StackGresBackup> backupScanner,
-      LabelFactory<StackGresCluster> labelFactory,
+      ResourceFinder<Secret> secretFinder,
       CustomResourceScanner<StackGresDbOps> dbOpsScanner,
       DecoratorDiscoverer<StackGresCluster> decoratorDiscoverer,
       CustomResourceScanner<PrometheusConfig> prometheusScanner,
@@ -97,7 +98,7 @@ public class ClusterRequiredResourcesGenerator
     this.poolingConfigFinder = poolingConfigFinder;
     this.profileFinder = profileFinder;
     this.backupScanner = backupScanner;
-    this.labelFactory = labelFactory;
+    this.secretFinder = secretFinder;
     this.dbOpsScanner = dbOpsScanner;
     this.decoratorDiscoverer = decoratorDiscoverer;
     this.prometheusScanner = prometheusScanner;
@@ -145,7 +146,8 @@ public class ClusterRequiredResourcesGenerator
       restoreBackup = restoreConfig.map(restore -> {
         final List<StackGresBackup> backups = backupScanner.getResources();
         return backups.stream()
-            .filter(backup -> backup.getMetadata().getUid().equals(restore.getFromBackup().getUid()))
+            .filter(backup -> backup.getMetadata().getUid().equals(
+                restore.getFromBackup().getUid()))
             .peek(backup -> {
               Preconditions.checkNotNull(backup.getStatus(),
                   "Backup is " + BackupPhase.RUNNING.label());
@@ -172,18 +174,21 @@ public class ClusterRequiredResourcesGenerator
         .restoreBackup(restoreBackup)
         .addAllDbOps(getDbOps(config))
         .prometheus(getPrometheus(config))
-        .internalScripts(Seq.of(getPostgresExporterInitScript()))
-        .patroniClusterLabels(labelFactory.patroniClusterLabels(config))
-        .clusterScope(labelFactory.clusterScope(config))
+        .internalScripts(List.of(getPostgresExporterInitScript()))
+        .databaseCredentials(secretFinder.findByNameAndNamespace(clusterName, clusterNamespace))
         .build();
 
-    final List<HasMetadata> resources = generators.getResourceGenerators(context)
+    final List<ResourceGenerator<StackGresClusterContext>> resourceGenerators = generators
+        .getResourceGenerators(context);
+
+    final List<HasMetadata> resources = resourceGenerators
         .stream().flatMap(generator -> generator.generateResource(context))
         .collect(Collectors.toUnmodifiableList());
 
     List<Decorator<StackGresCluster>> decorators = decoratorDiscoverer.discoverDecorator(config);
 
-    decorators.forEach(decorator -> decorator.decorate(config, List.of(), resources));
+    decorators.forEach(decorator -> decorator.decorate(config, resources));
+
     return resources;
   }
 

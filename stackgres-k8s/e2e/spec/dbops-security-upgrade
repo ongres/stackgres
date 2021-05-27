@@ -24,23 +24,17 @@ e2e_test_install() {
     --set instanceProfiles[0].cpu=250m \
     --set instanceProfiles[0].memory=512Mi \
     --set-string configurations.postgresconfig.postgresql\.conf.max_connections=100
-  create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
-    "$CLUSTER_NAME-for-restart-primary-first" "$CLUSTER_NAMESPACE" 1 \
-    --set cluster.create=false \
-    --set instanceProfiles=null \
-    --set cluster.configurations.sgPostgresConfig=postgresconf-for-restart-primary-first \
-    --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-restart-primary-first \
-    --set-string configurations.postgresconfig.postgresql\.conf.max_connections=100
+
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
     "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.postgresVersion=latest
+
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
     "$CLUSTER_NAME-2" "$CLUSTER_NAMESPACE" 2 \
     --set configurations.create=false --set instanceProfiles=false \
-    --set-string cluster.postgresVersion=latest \
-    --set cluster.configurations.sgPostgresConfig=postgresconf-for-restart-primary-first \
-    --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-restart-primary-first
+    --set-string cluster.postgresVersion=latest 
+    
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
     "$CLUSTER_NAME-3" "$CLUSTER_NAMESPACE" 3 \
     --set configurations.create=false --set instanceProfiles=false \
@@ -144,69 +138,35 @@ check_operator_upgrade() {
 
 
 check_cluster_1() {
-  #check_sts_is_not_altered "$CLUSTER_NAME-1"
+  check_sts_is_not_altered "$CLUSTER_NAME-1"
   check_mock_data_samehost "$CLUSTER_NAME-1"
 }
 
-check_cluster_2() {
-  #check_sts_is_not_altered "$CLUSTER_NAME-1"
+check_cluster_2() {  
+  check_sts_is_not_altered "$CLUSTER_NAME-2"
   check_mock_data_samehost "$CLUSTER_NAME-2"
 }
 
-check_cluster_3() {
-  #check_sts_is_not_altered "$CLUSTER_NAME-1"
+check_cluster_3() {  
+  check_sts_is_not_altered "$CLUSTER_NAME-3"
   check_mock_data_samehost "$CLUSTER_NAME-3"
 }
 
 check_cluster_1_restart() {
-  check_cluster_restart "$CLUSTER_NAME-1" 1 "ReducedImpact" false
-  wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-1" --for condition=PendingRestart'
+  check_cluster_restart "$CLUSTER_NAME-1" "ReducedImpact"
 }
 
 check_cluster_2_restart() {
-  create_or_replace_cluster "$CLUSTER_NAME-for-restart-primary-first" "$CLUSTER_NAMESPACE" 1 \
-    --set cluster.create=false \
-    --set instanceProfiles=null \
-    --set cluster.configurations.sgPostgresConfig=postgresconf-for-restart-primary-first \
-    --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-restart-primary-first \
-    --set-string configurations.postgresconfig.postgresql\.conf.max_connections=50
-  check_cluster_restart "$CLUSTER_NAME-2" 2 "InPlace" true
-  wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-2" --for condition=PendingRestart'
+  check_cluster_restart "$CLUSTER_NAME-2" "ReducedImpact"
 }
 
 check_cluster_3_restart() {
-  check_cluster_restart "$CLUSTER_NAME-3" 3 "InPlace" false
-  wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-3" --for condition=PendingRestart'
+  check_cluster_restart "$CLUSTER_NAME-3" "InPlace"
 }
 
 check_cluster_restart() {
-  local CLUSTER_NAME="$1"
-  local CLUSTER_SIZE="$2"
-  local METHOD="$3"
-  local RESTART_PRIMARY_FIRST="$4"
-
-  local POD
-  local PODS
-  PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true" -o name \
-    | cut -d / -f 2)"
-  for POD in $PODS
-  do
-    POD_PATRONI_IMAGE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" \
-      --template '{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}' \
-       | grep '/patroni\(-ext\)\?:')"
-    if [ "$POD_PATRONI_IMAGE" = "$PREVIOUS_PATRONI_IMAGE" ]
-    then
-      echo "SUCCESS. Pod $POD is using the previous patroni image"
-    else
-      echo "FAILURE. Pod $POD is not using the previous patroni image"
-      echo
-      echo "Previous patroni image is $PREVIOUS_PATRONI_IMAGE"
-      echo
-      echo "Used patroni image is $POD_PATRONI_IMAGE"
-      return 1
-    fi
-  done
+  local CLUSTER_NAME="$1"  
+  local METHOD="$2"
 
     cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
@@ -254,35 +214,21 @@ EOF
     POD_PATRONI_IMAGE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" \
       --template '{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}' \
        | grep '/patroni\(-ext\)\?:')"
-    if [ "$POD_PATRONI_IMAGE" = "$PREVIOUS_PATRONI_IMAGE" ]
+    if [ "$POD_PATRONI_IMAGE" = "$PATRONI_IMAGE" ]
     then
-      echo "SUCCESS. Pod $POD is still using the same patroni image after restart"
+      echo "SUCCESS. Pod $POD is using the latest patroni image"
     else
-      echo "FAILURE. Pod $POD is not using the same patroni image"
+      echo "FAILURE. Pod $POD is not using the latest patroni image"
       echo
-      echo "New patroni images is $PATRONI_IMAGE"
+      echo "New patroni images is '$PATRONI_IMAGE'"
       echo
-      echo "Used patroni image is $POD_PATRONI_IMAGE"
+      echo "Used patroni image is '$POD_PATRONI_IMAGE'"
       return 1
     fi
   done
 
-  POD=$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true,role=master" -o name \
-    | cut -d / -f 2 )
-
   check_mock_data_samehost "$CLUSTER_NAME"
-
-  local PRIMARY_SERVICE_TYPE="$(kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-primary" \
-    --template '{{ .spec.type }}')"
-  if [ "$PRIMARY_SERVICE_TYPE" = "ExternalName" ]
-  then
-    echo "SUCCESS. Primary service is of type ExternalName"
-  else
-    echo "FAILURE. Primary service is not of type ExternalName"
-    return 1
-  fi
-  unset POD
+ 
 }
 
 check_conversion_webhook_configured(){
@@ -293,31 +239,12 @@ check_conversion_webhook_configured(){
 
 }
 
-create_or_replace_cluster_for_version() {
-  local VERSION="$1"
-  local RELEASE="$2"
-  local NAMESPACE="$3"
-  local INSTANCES="$4"
-  shift 4
-
-  if helm get values "$RELEASE" --namespace "$NAMESPACE" > /dev/null 2>&1
-  then
-    helm upgrade "$RELEASE" --namespace "$NAMESPACE" "$CLUSTER_PREVIOUS_VERSION_HELM_URL" \
-        --reuse-values --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
-  else
-    create_namespace_if_not_exists "$NAMESPACE"
-    helm install "$RELEASE" "$CLUSTER_PREVIOUS_VERSION_HELM_URL" \
-      --namespace "$NAMESPACE" \
-      --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
-  fi
-}
-
 check_sts_is_not_altered() {
   local TARGET_CLUSTER="$1"
-  local STS_UPDATE_REVISION=$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER" -o jsonpath='{.status.updateRevision}')
-  local POD_REVISION=$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER-0" -o jsonpath='{.metadata.labels.controller-revision-hash}')
 
-  if assert_string_equal "$STS_UPDATE_REVISION" "$POD_REVISION"
+  local STS_PATRONI_IMAGE=$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER" -o jsonpath='{.spec.template.spec.containers[0].image}')
+
+  if assert_string_equal "$STS_PATRONI_IMAGE" "$PREVIOUS_PATRONI_IMAGE"
   then
     echo "SUCCESS. StatefulSet is not being altered on operator upgrade"
   else 
@@ -326,4 +253,3 @@ check_sts_is_not_altered() {
   fi
 
 }
-

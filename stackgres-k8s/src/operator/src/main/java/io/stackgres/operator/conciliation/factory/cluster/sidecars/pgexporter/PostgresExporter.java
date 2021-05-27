@@ -5,17 +5,16 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.pgexporter;
 
+import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
+import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_SOCKET;
+
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -25,11 +24,6 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.LabelSelector;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.ServicePortBuilder;
-import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
@@ -40,35 +34,32 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
+import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
+import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
+import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
-import io.stackgres.operator.customresource.prometheus.Endpoint;
-import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
-import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
-import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
-import io.stackgres.operatorframework.resource.ResourceUtil;
-import org.jooq.lambda.Seq;
+import io.stackgres.operator.conciliation.factory.VolumeFactory;
+import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
+import io.stackgres.operator.conciliation.factory.VolumePair;
+import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
+import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
 @Sidecar(PostgresExporter.NAME)
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
-@RunningContainer(order = 3)
-public class PostgresExporter implements ContainerFactory<StackGresClusterContext>,
-    ResourceGenerator<StackGresClusterContext> {
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
+@RunningContainer(order = 2)
+public class PostgresExporter implements ContainerFactory<StackGresClusterContainerContext>,
+    VolumeFactory<StackGresClusterContext> {
 
-  public static final String SERVICE_MONITOR = "-stackgres-postgres-exporter";
-  public static final String SERVICE = "-prometheus-postgres-exporter";
-  public static final String CONFIG_MAP = "-prometheus-postgres-exporter-config";
   public static final String NAME = StackgresClusterContainers.POSTGRES_EXPORTER;
 
   private static final Logger POSTGRES_EXPORTER_LOGGER = LoggerFactory.getLogger(
@@ -76,37 +67,18 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContex
 
   private LabelFactory<StackGresCluster> labelFactory;
 
-  @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContext context) {
-    return ImmutableMap.of(
-        StackGresContext.PROMETHEUS_POSTGRES_EXPORTER_VERSION_KEY,
-        StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER.findLatestVersion());
-  }
+  private VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
 
-  public static String serviceName(StackGresClusterContext clusterContext) {
-    String name = clusterContext.getSource().getMetadata().getName();
-    return ResourceUtil.resourceName(name + SERVICE);
-  }
+  private VolumeMountsProvider<ContainerContext> postgresSocket;
 
   public static String configName(StackGresClusterContext clusterContext) {
-    String name = clusterContext.getSource().getMetadata().getName();
-    return ResourceUtil.resourceName(name + CONFIG_MAP);
-  }
-
-  public static String serviceMonitorName(StackGresClusterContext clusterContext) {
-    String namespace = clusterContext.getSource().getMetadata().getNamespace();
-    String name = clusterContext.getSource().getMetadata().getName();
-    return ResourceUtil.resourceName(namespace + "-" + name + SERVICE_MONITOR);
+    final String name = clusterContext.getSource().getMetadata().getName();
+    return StatefulSetDynamicVolumes.EXPORTER_QUERIES.getResourceName(name);
   }
 
   @Override
-  public boolean isActivated(StackGresClusterContext context) {
-    return true;
-  }
-
-  @Override
-  public Container getContainer(StackGresClusterContext context) {
-    StackGresCluster cluster = context.getSource();
+  public Container getContainer(StackGresClusterContainerContext context) {
+    StackGresCluster cluster = context.getClusterContext().getSource();
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER.findLatestImageName())
@@ -117,7 +89,7 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContex
             + "  set -x\n"
             + "  exec /usr/local/bin/postgres_exporter \\\n"
             + "    --log.level="
-              + (POSTGRES_EXPORTER_LOGGER.isTraceEnabled() ? "debug" : "info") + "\n"
+            + (POSTGRES_EXPORTER_LOGGER.isTraceEnabled() ? "debug" : "info") + "\n"
             + "}\n"
             + "\n"
             + "set +x\n"
@@ -154,112 +126,68 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContex
                 .build(),
             new EnvVarBuilder()
                 .withName("PG_EXPORTER_CONSTANT_LABELS")
-                .withValue("cluster_name=" + context.getCluster().getMetadata().getName()
-                    + ", namespace=" + context.getCluster().getMetadata().getNamespace())
+                .withValue("cluster_name=" + cluster.getMetadata().getName()
+                    + ", namespace=" + cluster.getMetadata().getNamespace())
                 .build())
         .withPorts(new ContainerPortBuilder()
             .withContainerPort(9187)
             .build())
-        .withVolumeMounts(
-            ClusterStatefulSetVolumeConfig.SOCKET.volumeMount(context),
+        .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
+        .addToVolumeMounts(
             new VolumeMountBuilder()
-                .withName("queries")
+                .withName(StatefulSetDynamicVolumes.EXPORTER_QUERIES.getVolumeName())
                 .withMountPath("/var/opt/postgres-exporter/queries.yaml")
                 .withSubPath("queries.yaml")
-                .withReadOnly(Boolean.TRUE)
-                .build())
-        .addAllToVolumeMounts(ClusterStatefulSetVolumeConfig.USER.volumeMounts(context));
+                .withReadOnly(true)
+                .build()
+        )
+        .addAllToVolumeMounts(containerUserOverrideMounts.getVolumeMounts(context));
 
     return container.build();
   }
 
   @Override
-  public ImmutableList<Volume> getVolumes(StackGresClusterContext context) {
-    return ImmutableList.of(new VolumeBuilder()
-        .withName("queries")
-        .withConfigMap(new ConfigMapVolumeSourceBuilder()
-            .withName(configName(context))
-            .build())
-        .build());
+  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
+    return ImmutableMap.of(
+        StackGresContext.PROMETHEUS_POSTGRES_EXPORTER_VERSION_KEY,
+        StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER.findLatestVersion());
   }
 
   @Override
-  public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
-    final StackGresCluster cluster = context.getSource();
-    final Map<String, String> defaultLabels = labelFactory.clusterLabels(cluster);
-    Map<String, String> labels = new ImmutableMap.Builder<String, String>()
-        .putAll(labelFactory.clusterCrossNamespaceLabels(cluster))
+  public @NotNull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
+    return Stream.of(
+        ImmutableVolumePair.builder()
+            .volume(buildVolume(context))
+            .source(buildSource(context))
+            .build()
+    );
+  }
+
+  public @NotNull Volume buildVolume(StackGresClusterContext context) {
+    return new VolumeBuilder()
+        .withName(StatefulSetDynamicVolumes.EXPORTER_QUERIES.getVolumeName())
+        .withConfigMap(new ConfigMapVolumeSourceBuilder()
+            .withName(configName(context))
+            .build())
         .build();
+  }
 
-    Optional<Prometheus> prometheus = context.getPrometheus();
-    ImmutableList.Builder<HasMetadata> resourcesBuilder = ImmutableList.builder();
-    final String clusterNamespace = cluster.getMetadata().getNamespace();
+  public @NotNull HasMetadata buildSource(StackGresClusterContext context) {
 
-    resourcesBuilder.add(new ConfigMapBuilder()
+    return new ConfigMapBuilder()
         .withNewMetadata()
         .withName(configName(context))
-        .withNamespace(clusterNamespace)
-        .withLabels(labels)
+        .withNamespace(context.getSource().getMetadata().getNamespace())
+        .withLabels(labelFactory.clusterCrossNamespaceLabels(context.getSource()))
         .endMetadata()
         .withData(ImmutableMap.of("queries.yaml",
             Unchecked.supplier(() -> Resources
-                .asCharSource(PostgresExporter.class.getResource(
-                    "/prometheus-postgres-exporter/queries.yaml"),
+                .asCharSource(Objects.requireNonNull(PostgresExporter.class.getResource(
+                    "/prometheus-postgres-exporter/queries.yaml")),
                     StandardCharsets.UTF_8)
                 .read()).get()))
-        .build());
+        .build();
 
-    resourcesBuilder.add(
-        new ServiceBuilder()
-            .withNewMetadata()
-            .withNamespace(clusterNamespace)
-            .withName(serviceName(context))
-            .withLabels(ImmutableMap.<String, String>builder()
-                .putAll(labels)
-                .put("container", NAME)
-                .build())
-            .endMetadata()
-            .withSpec(new ServiceSpecBuilder()
-                .withSelector(defaultLabels)
-                .withPorts(new ServicePortBuilder()
-                    .withName(NAME)
-                    .withPort(9187)
-                    .build())
-                .build())
-            .build());
-
-    prometheus.ifPresent(c -> {
-      if (Optional.ofNullable(c.getCreateServiceMonitor()).orElse(false)) {
-        c.getPrometheusInstallations().forEach(pi -> {
-          ServiceMonitor serviceMonitor = new ServiceMonitor();
-          serviceMonitor.setMetadata(new ObjectMetaBuilder()
-              .withNamespace(pi.getNamespace())
-              .withName(serviceMonitorName(context))
-              .withLabels(ImmutableMap.<String, String>builder()
-                  .putAll(pi.getMatchLabels())
-                  .putAll(labels)
-                  .build())
-              .build());
-
-          ServiceMonitorSpec spec = new ServiceMonitorSpec();
-          serviceMonitor.setSpec(spec);
-          LabelSelector selector = new LabelSelector();
-          spec.setSelector(selector);
-          NamespaceSelector namespaceSelector = new NamespaceSelector();
-          namespaceSelector.setMatchNames(ImmutableList.of(clusterNamespace));
-          spec.setNamespaceSelector(namespaceSelector);
-
-          selector.setMatchLabels(labels);
-          Endpoint endpoint = new Endpoint();
-          endpoint.setPort(NAME);
-          spec.setEndpoints(Collections.singletonList(endpoint));
-
-          resourcesBuilder.add(serviceMonitor);
-
-        });
-      }
-    });
-    return Seq.seq(resourcesBuilder.build());
   }
 
   @Inject
@@ -267,4 +195,17 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContex
     this.labelFactory = labelFactory;
   }
 
+  @Inject
+  public void setContainerUserOverrideMounts(
+      @ProviderName(CONTAINER_USER_OVERRIDE)
+          VolumeMountsProvider<ContainerContext> containerUserOverrideMounts) {
+    this.containerUserOverrideMounts = containerUserOverrideMounts;
+  }
+
+  @Inject
+  public void setPostgresSocket(
+      @ProviderName(POSTGRES_SOCKET)
+          VolumeMountsProvider<ContainerContext> postgresSocket) {
+    this.postgresSocket = postgresSocket;
+  }
 }

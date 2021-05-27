@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.envoy;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -17,20 +16,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.LabelSelector;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.ServicePortBuilder;
-import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
@@ -41,22 +35,21 @@ import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.operator.common.Prometheus;
-import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.v09.ClusterStatefulSetVolumeConfig;
-import io.stackgres.operator.customresource.prometheus.Endpoint;
-import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
-import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
-import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
+import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
+import io.stackgres.operator.conciliation.factory.VolumeFactory;
+import io.stackgres.operator.conciliation.factory.VolumePair;
+import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractEnvoy implements ContainerFactory<StackGresClusterContext>,
-    ResourceGenerator<StackGresClusterContext> {
+public abstract class AbstractEnvoy implements ContainerFactory<StackGresClusterContainerContext>,
+    VolumeFactory<StackGresClusterContext> {
 
   public static final String SERVICE_MONITOR = "-stackgres-envoy";
   public static final String SERVICE = "-prometheus-envoy";
@@ -104,7 +97,7 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
   }
 
   @Override
-  public Container getContainer(StackGresClusterContext context) {
+  public Container getContainer(StackGresClusterContainerContext context) {
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(StackGresComponent.ENVOY.findLatestImageName())
@@ -113,8 +106,9 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
             .withName(NAME)
             .withMountPath("/etc/envoy")
             .withReadOnly(true)
-            .build())
-        .addAllToVolumeMounts(ClusterStatefulSetVolumeConfig.USER.volumeMounts(context))
+            .build()
+        )
+        .addAllToVolumeMounts(getVolumeMounts(context))
         .withPorts(
             new ContainerPortBuilder().withContainerPort(EnvoyUtil.PG_ENTRY_PORT).build(),
             new ContainerPortBuilder().withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT).build())
@@ -130,25 +124,33 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
   }
 
   @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContext context) {
+  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.ENVOY_VERSION_KEY,
         StackGresComponent.ENVOY.findLatestVersion());
   }
 
   @Override
-  public ImmutableList<Volume> getVolumes(
-      StackGresClusterContext context) {
-    return ImmutableList.of(new VolumeBuilder()
-        .withName(AbstractEnvoy.NAME)
-        .withConfigMap(new ConfigMapVolumeSourceBuilder()
-            .withName(AbstractEnvoy.configName(context))
-            .build())
-        .build());
+  public @NotNull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
+    return Stream.of(
+        ImmutableVolumePair.builder()
+            .volume(buildVolume(context))
+            .source(buildSource(context))
+            .build()
+    );
   }
 
-  @Override
-  public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
+  public @NotNull Volume buildVolume(StackGresClusterContext context) {
+    final String clusterName = context.getSource().getMetadata().getName();
+    return new VolumeBuilder()
+        .withName(AbstractEnvoy.NAME)
+        .withConfigMap(new ConfigMapVolumeSourceBuilder()
+            .withName(StatefulSetDynamicVolumes.ENVOY.getResourceName(clusterName))
+            .build())
+        .build();
+  }
+
+  public @NotNull HasMetadata buildSource(StackGresClusterContext context) {
 
     final StackGresCluster stackGresCluster = context.getSource();
     boolean disablePgBouncer = Optional
@@ -208,9 +210,8 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
 
     String namespace = stackGresCluster.getMetadata().getNamespace();
     String configMapName = AbstractEnvoy.configName(context);
-    ImmutableList.Builder<HasMetadata> resourcesBuilder = ImmutableList.builder();
 
-    ConfigMap cm = new ConfigMapBuilder()
+    return new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(configMapName)
@@ -218,66 +219,11 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
         .endMetadata()
         .withData(data)
         .build();
-    resourcesBuilder.add(cm);
 
-    final Map<String, String> defaultLabels = labelFactory.clusterLabels(stackGresCluster);
-    Map<String, String> labels = new ImmutableMap.Builder<String, String>()
-        .putAll(labelFactory.clusterCrossNamespaceLabels(stackGresCluster))
-        .build();
-
-    Optional<Prometheus> prometheus = context.getPrometheus();
-    resourcesBuilder.add(
-        new ServiceBuilder()
-            .withNewMetadata()
-            .withNamespace(stackGresCluster.getMetadata().getNamespace())
-            .withName(AbstractEnvoy.serviceName(context))
-            .withLabels(ImmutableMap.<String, String>builder()
-                .putAll(labels)
-                .put("container", AbstractEnvoy.NAME)
-                .build())
-            .endMetadata()
-            .withSpec(new ServiceSpecBuilder()
-                .withSelector(defaultLabels)
-                .withPorts(new ServicePortBuilder()
-                    .withName(AbstractEnvoy.NAME)
-                    .withPort(8001)
-                    .build())
-                .build())
-            .build());
-
-    prometheus.ifPresent(c -> {
-      if (Optional.ofNullable(c.getCreateServiceMonitor()).orElse(false)) {
-        c.getPrometheusInstallations().forEach(pi -> {
-          ServiceMonitor serviceMonitor = new ServiceMonitor();
-          serviceMonitor.setMetadata(new ObjectMetaBuilder()
-              .withNamespace(pi.getNamespace())
-              .withName(AbstractEnvoy.serviceMonitorName(context))
-              .withLabels(ImmutableMap.<String, String>builder()
-                  .putAll(pi.getMatchLabels())
-                  .putAll(labels)
-                  .build())
-              .build());
-
-          ServiceMonitorSpec spec = new ServiceMonitorSpec();
-          serviceMonitor.setSpec(spec);
-          LabelSelector selector = new LabelSelector();
-          spec.setSelector(selector);
-          NamespaceSelector namespaceSelector = new NamespaceSelector();
-          namespaceSelector.setAny(true);
-          spec.setNamespaceSelector(namespaceSelector);
-
-          selector.setMatchLabels(labels);
-          Endpoint endpoint = new Endpoint();
-          endpoint.setPort(AbstractEnvoy.NAME);
-          endpoint.setPath("/stats/prometheus");
-          spec.setEndpoints(Collections.singletonList(endpoint));
-
-          resourcesBuilder.add(serviceMonitor);
-
-        });
-      }
-    });
-
-    return Seq.seq(resourcesBuilder.build());
   }
+
+  public abstract List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context);
+
+  public abstract String getImageName();
+
 }

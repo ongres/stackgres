@@ -9,9 +9,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -29,7 +30,6 @@ import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
-import org.mockito.stubbing.Answer;
 
 @QuarkusTest
 class ClusterInstanceManagerImplTest {
@@ -85,7 +85,7 @@ class ClusterInstanceManagerImplTest {
     Pod createdPod = clusterInstanceManager.increaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
 
-    assertEquals(newPod, createdPod);
+    PodTestUtil.assertPodEquals(newPod, createdPod);
 
     final int actualInstances = kubeDb.getCluster(clusterName, namespace).getSpec().getInstances();
     assertEquals(
@@ -109,7 +109,7 @@ class ClusterInstanceManagerImplTest {
     Pod createdPod = clusterInstanceManager.increaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
 
-    assertEquals(newPod, createdPod);
+    PodTestUtil.assertPodEquals(newPod, createdPod);
 
     final int actualInstances = kubeDb.getCluster(clusterName, namespace).getSpec().getInstances();
     assertEquals(
@@ -136,7 +136,7 @@ class ClusterInstanceManagerImplTest {
     Pod createdPod = clusterInstanceManager.increaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
 
-    assertEquals(newPod, createdPod);
+    PodTestUtil.assertPodEquals(newPod, createdPod);
 
     final int actualInstances = kubeDb.getCluster(clusterName, namespace).getSpec().getInstances();
     assertEquals(

@@ -12,7 +12,6 @@ import javax.enterprise.context.ApplicationScoped;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.client.internal.PatchUtils;
 import io.fabric8.zjsonpatch.JsonDiff;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.ReconciliationScope;
@@ -30,6 +29,10 @@ public class ClusterJobComparator extends StackGresAbstractComparator {
       new SimpleIgnorePatch("/spec/template/metadata/labels/controller-uid",
           "add"),
       new SimpleIgnorePatch("/spec/template/metadata/labels/job-name",
+          "add"),
+      new SimpleIgnorePatch("/spec/template/metadata/labels/job-name",
+          "add"),
+      new SimpleIgnorePatch("/spec/template/metadata/annotations",
           "add"),
       new PatchPattern(Pattern
           .compile("/spec/template/spec/containers/\\d+/resources"),
@@ -93,9 +96,11 @@ public class ClusterJobComparator extends StackGresAbstractComparator {
   }
 
   @Override
-  public boolean isResourceContentEqual(HasMetadata r1, HasMetadata r2) {
-    JsonNode diff = JsonDiff.asJson(PatchUtils.patchMapper().valueToTree(r1),
-        PatchUtils.patchMapper().valueToTree(r2));
+  public boolean isResourceContentEqual(HasMetadata required, HasMetadata deployed) {
+
+    final JsonNode source = PATCH_MAPPER.valueToTree(required);
+    final JsonNode target = PATCH_MAPPER.valueToTree(deployed);
+    JsonNode diff = JsonDiff.asJson(source, target);
 
     int ignore = countPatchesToIgnore(diff);
 
@@ -112,4 +117,5 @@ public class ClusterJobComparator extends StackGresAbstractComparator {
 
     return actualDifferences == 0;
   }
+
 }

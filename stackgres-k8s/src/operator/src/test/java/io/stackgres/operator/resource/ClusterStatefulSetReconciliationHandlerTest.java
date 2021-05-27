@@ -11,6 +11,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyMap;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,9 +31,11 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StringUtil;
+import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.testutil.JsonUtil;
+import io.stackgres.testutil.StringUtils;
 import io.stackgres.operator.conciliation.cluster.ClusterStatefulSetReconciliationHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,6 +57,9 @@ class ClusterStatefulSetReconciliationHandlerTest {
   @Mock
   private ResourceWriter<Pod> podWriter;
 
+  @Mock
+  private ResourceFinder<StatefulSet> statefulSetFinder;
+
   private ClusterStatefulSetReconciliationHandler handler;
 
   private StatefulSet requiredStatefulSet;
@@ -62,12 +68,16 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
   @BeforeEach
   void setUp() {
-    handler = new ClusterStatefulSetReconciliationHandler(statefulSetWriter, podScanner, podWriter);
+    handler = new ClusterStatefulSetReconciliationHandler(statefulSetWriter, podScanner, podWriter, statefulSetFinder);
     requiredStatefulSet = JsonUtil
         .readFromJson("statefulset/required.json", StatefulSet.class);
 
     deployedStatefulSet = JsonUtil
         .readFromJson("statefulset/deployed.json", StatefulSet.class);
+    lenient().when(statefulSetFinder.findByNameAndNamespace(
+        requiredStatefulSet.getMetadata().getName(),
+        requiredStatefulSet.getMetadata().getNamespace())
+    ).thenReturn(Optional.of(deployedStatefulSet));
   }
 
   @Test
@@ -98,7 +108,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     final int desiredReplicas = setUpDownscale(0, 0, MasterPosition.FIRST);
 
-    StatefulSet sts = (StatefulSet) handler.patch(requiredStatefulSet);
+    StatefulSet sts = (StatefulSet) handler.replace(requiredStatefulSet);
 
     assertEquals(desiredReplicas, sts.getSpec().getReplicas());
 
@@ -113,7 +123,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     final int desiredReplicas = setUpUpscale(0, 0, MasterPosition.FIRST);
 
-    StatefulSet sts = (StatefulSet) handler.patch(requiredStatefulSet);
+    StatefulSet sts = (StatefulSet) handler.replace(requiredStatefulSet);
 
     assertEquals(desiredReplicas, sts.getSpec().getReplicas());
 
@@ -127,7 +137,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     final int desiredReplicas = setUpDownscale(1, 0, MasterPosition.FIRST);
 
-    StatefulSet sts = (StatefulSet) handler.patch(requiredStatefulSet);
+    StatefulSet sts = (StatefulSet) handler.replace(requiredStatefulSet);
 
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
@@ -142,7 +152,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     final int desiredReplicas = setUpUpscale(1, 1, MasterPosition.FIRST);
 
-    StatefulSet sts = (StatefulSet) handler.patch(requiredStatefulSet);
+    StatefulSet sts = (StatefulSet) handler.replace(requiredStatefulSet);
 
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
@@ -161,7 +171,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
     when(podWriter.update(podArgumentCaptor.capture()))
         .then((Answer<Pod>) invocationOnMock -> invocationOnMock.getArgument(0));
 
-    StatefulSet sts = (StatefulSet) handler.patch(requiredStatefulSet);
+    StatefulSet sts = (StatefulSet) handler.replace(requiredStatefulSet);
 
     assertEquals(desiredReplicas, sts.getSpec().getReplicas());
 
@@ -188,7 +198,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
     when(podWriter.update(any(Pod.class)))
         .then((Answer<Pod>) invocationOnMock -> invocationOnMock.getArgument(0));
 
-    StatefulSet sts = (StatefulSet) handler.patch(requiredStatefulSet);
+    StatefulSet sts = (StatefulSet) handler.replace(requiredStatefulSet);
 
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
@@ -213,7 +223,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     final int desiredReplicas = setUpDownscale(1, 0, MasterPosition.FIRST_NONDISRUPTABLE);
 
-    StatefulSet sts = (StatefulSet) handler.patch(requiredStatefulSet);
+    StatefulSet sts = (StatefulSet) handler.replace(requiredStatefulSet);
 
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
@@ -227,7 +237,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     final int desiredReplicas = setUpDownscale(1, 1, MasterPosition.FIRST_NONDISRUPTABLE);
 
-    StatefulSet sts = (StatefulSet) handler.patch(requiredStatefulSet);
+    StatefulSet sts = (StatefulSet) handler.replace(requiredStatefulSet);
 
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
@@ -292,6 +302,54 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
   }
 
+  @Test
+  void givenVolumeClaimTemplateAnnotationChanges_shouldNotBeApplied() {
+
+    setUpUpscale(0, 0, MasterPosition.FIRST);
+    requiredStatefulSet.getSpec().getVolumeClaimTemplates().forEach(vct -> vct
+        .getMetadata().setAnnotations(
+            Map.of(StringUtils.getRandomString(), StringUtils.getRandomString())));
+
+    final Map<String, String> deployedAnnotations = Map
+        .of(StringUtils.getRandomString(), StringUtils.getRandomString());
+
+    deployedStatefulSet.getSpec().getVolumeClaimTemplates().forEach(vct -> vct.getMetadata()
+        .setAnnotations(deployedAnnotations));
+
+    ArgumentCaptor<StatefulSet> patchedStatefulSetCaptor = ArgumentCaptor.forClass(StatefulSet.class);
+
+    when(statefulSetWriter.update(patchedStatefulSetCaptor.capture())).thenReturn(requiredStatefulSet);
+
+    handler.replace(requiredStatefulSet);
+
+    var patchedStatefulSet = patchedStatefulSetCaptor.getValue();
+    patchedStatefulSet.getSpec().getVolumeClaimTemplates()
+        .forEach(vct -> assertEquals(deployedAnnotations, vct.getMetadata().getAnnotations()));
+
+  }
+
+  @Test
+  void givenPodAnnotationChanges_shouldBeAppliedDirectlyToPods() {
+    setUpUpscale(0, 0, MasterPosition.FIRST);
+
+    final Map<String, String> requiredAnnotations = Map
+        .of(StringUtils.getRandomString(), StringUtils.getRandomString());
+    requiredStatefulSet.getSpec().getTemplate().getMetadata().setAnnotations(requiredAnnotations);
+
+    when(statefulSetWriter.update(any())).thenReturn(requiredStatefulSet);
+    ArgumentCaptor<Pod> podArgumentCaptor = ArgumentCaptor.forClass(Pod.class);
+
+    when(podWriter.update(podArgumentCaptor.capture()))
+        .then((Answer<Pod>) invocationOnMock -> invocationOnMock.getArgument(0));
+
+    handler.replace(requiredStatefulSet);
+
+    podArgumentCaptor.getAllValues().forEach(pod -> {
+      assertEquals(requiredAnnotations, pod.getMetadata().getAnnotations());
+    });
+
+  }
+
   private int setUpDownscale(int distuptiblePods, int distance, MasterPosition masterPosition) {
     final int desiredReplicas = new Random().nextInt(10) + 1;
     requiredStatefulSet.getSpec().setReplicas(desiredReplicas);
@@ -300,7 +358,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     setUpPods(desiredReplicas + 1, distuptiblePods, distance, masterIndex);
 
-    when(statefulSetWriter.update(requiredStatefulSet)).thenReturn(requiredStatefulSet);
+    lenient().when(statefulSetWriter.update(requiredStatefulSet)).thenReturn(requiredStatefulSet);
 
     return desiredReplicas;
   }
@@ -313,7 +371,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     setUpPods(desiredReplicas - 1, distuptiblePods, distance, masterIndex);
 
-    when(statefulSetWriter.update(requiredStatefulSet)).thenReturn(requiredStatefulSet);
+    lenient().when(statefulSetWriter.update(requiredStatefulSet)).thenReturn(requiredStatefulSet);
 
     return desiredReplicas;
   }

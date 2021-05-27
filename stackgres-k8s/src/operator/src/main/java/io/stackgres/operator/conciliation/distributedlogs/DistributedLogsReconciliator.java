@@ -36,11 +36,16 @@ public class DistributedLogsReconciliator extends StackGresReconciliator<StackGr
   private EventEmitter<StackGresDistributedLogs> eventController;
 
   @Override
+  public void onPreReconciliation(StackGresDistributedLogs config) {
+
+  }
+
+  @Override
   public void onPostReconciliation(StackGresDistributedLogs config) {
     refreshConnectedClusters(config);
 
-    distributedLogsScheduler.updateStatus(config);
     statusManager.refreshCondition(config);
+    distributedLogsScheduler.updateStatus(config);
 
   }
 

@@ -5,16 +5,22 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
@@ -38,13 +44,17 @@ public class ClusterStatefulSetReconciliationHandler implements ReconciliationHa
 
   private final ResourceWriter<Pod> podWriter;
 
+  private final ResourceFinder<StatefulSet> statefulSetFinder;
+
   @Inject
   public ClusterStatefulSetReconciliationHandler(ResourceWriter<StatefulSet> statefulSetWriter,
                                                  ResourceScanner<Pod> podScanner,
-                                                 ResourceWriter<Pod> podWriter) {
+                                                 ResourceWriter<Pod> podWriter,
+                                                 ResourceFinder<StatefulSet> statefulSetFinder) {
     this.statefulSetWriter = statefulSetWriter;
     this.podScanner = podScanner;
     this.podWriter = podWriter;
+    this.statefulSetFinder = statefulSetFinder;
   }
 
   private static StatefulSet safeCast(HasMetadata resource) {
@@ -60,16 +70,14 @@ public class ClusterStatefulSetReconciliationHandler implements ReconciliationHa
     return statefulSetWriter.create(sts);
   }
 
-  @Override
-  public HasMetadata patch(HasMetadata newResource) {
-
-    final StatefulSet requiredSts = safeCast(newResource);
+  private StatefulSet patchSts(HasMetadata resource, Function<StatefulSet, StatefulSet> updater) {
+    final StatefulSet requiredSts = safeCast(resource);
     final StatefulSetSpec spec = requiredSts.getSpec();
     final Map<String, String> podSelectorLabels = spec.getSelector().getMatchLabels();
     Map<String, String> podLabels = new HashMap<>(podSelectorLabels);
     podLabels.remove(StackGresContext.DISRUPTIBLE_KEY);
 
-    final String namespace = newResource.getMetadata().getNamespace();
+    final String namespace = resource.getMetadata().getNamespace();
     var pods = podScanner.findByLabelsAndNamespace(namespace, podLabels)
         .stream().sorted(Comparator.comparing(pod -> pod.getMetadata().getName()))
         .collect(Collectors.toUnmodifiableList());
@@ -83,11 +91,58 @@ public class ClusterStatefulSetReconciliationHandler implements ReconciliationHa
     int replicas = (int) (desiredReplicas - nonDisruptablePodsRemaining);
     spec.setReplicas(replicas);
 
-    final StatefulSet updatedSts = statefulSetWriter.update(requiredSts);
+    final StatefulSet updatedSts = updater.apply(requiredSts);
 
-    fixNonDisruptablePods(requiredSts, pods, lastReplicaIndex);
+    List<Pod> disruptablePodsToPatch = fixNonDisruptablePods(requiredSts, pods, lastReplicaIndex);
+    List<Pod> podAnnotationsToPatch =
+        fixPodAnnotations(requiredSts, pods);
+    Set<Pod> podsToPatch = Stream.concat(disruptablePodsToPatch.stream(),
+        podAnnotationsToPatch.stream())
+        .collect(Collectors.toSet());
+    updatePodChanges(podsToPatch);
 
     return updatedSts;
+
+  }
+
+  private void updatePodChanges(Collection<Pod> pods) {
+    pods.forEach(podWriter::update);
+  }
+
+  private List<Pod> fixPodAnnotations(StatefulSet requiredSts, List<Pod> pods) {
+    var requiredPodAnnotations = requiredSts
+        .getSpec().getTemplate().getMetadata().getAnnotations();
+
+    return pods.stream()
+        .filter(pod -> !Objects.equals(requiredPodAnnotations, pod.getMetadata().getAnnotations()))
+        .peek(pod -> pod.getMetadata().setAnnotations(requiredPodAnnotations))
+        .collect(Collectors.toUnmodifiableList());
+
+  }
+
+  @Override
+  public HasMetadata patch(HasMetadata newResource, HasMetadata oldResource) {
+
+    return patchSts(newResource, sts -> updateStatefulSet(sts, safeCast(oldResource)));
+  }
+
+  @Override
+  public HasMetadata replace(HasMetadata resource) {
+
+    return patchSts(resource, this::updateStatefulSet);
+  }
+
+  private StatefulSet updateStatefulSet(StatefulSet requiredSts) {
+    final ObjectMeta metadata = requiredSts.getMetadata();
+    statefulSetFinder.findByNameAndNamespace(metadata.getName(), metadata.getNamespace())
+        .ifPresent(deployedSts -> requiredSts.getSpec()
+            .setVolumeClaimTemplates(deployedSts.getSpec().getVolumeClaimTemplates()));
+    return statefulSetWriter.update(requiredSts);
+  }
+
+  private StatefulSet updateStatefulSet(StatefulSet requiredSts, StatefulSet deployedSts) {
+    requiredSts.getSpec().setVolumeClaimTemplates(deployedSts.getSpec().getVolumeClaimTemplates());
+    return statefulSetWriter.update(requiredSts);
   }
 
   private void preventPrimaryToBeDisrupted(StatefulSet requiredSts,
@@ -136,19 +191,18 @@ public class ClusterStatefulSetReconciliationHandler implements ReconciliationHa
         .equals(StackGresContext.WRONG_VALUE);
   }
 
-  private void fixNonDisruptablePods(StatefulSet requiredSts,
+  private List<Pod> fixNonDisruptablePods(StatefulSet requiredSts,
                                      List<Pod> pods,
                                      int lastReplicaIndex) {
-    pods.stream()
+    return pods.stream()
         .filter(this::isNonDisruptable)
-        .forEach(pod -> {
+        .filter(pod -> {
           int podIndex = getPodIndex(requiredSts, pod);
-          if (podIndex < lastReplicaIndex) {
-            pod.getMetadata().getLabels()
-                .put(StackGresContext.DISRUPTIBLE_KEY, StackGresContext.RIGHT_VALUE);
-            podWriter.update(pod);
-          }
-        });
+          return podIndex < lastReplicaIndex;
+        })
+        .peek(pod -> pod.getMetadata().getLabels()
+            .put(StackGresContext.DISRUPTIBLE_KEY, StackGresContext.RIGHT_VALUE))
+        .collect(Collectors.toUnmodifiableList());
   }
 
   @Override

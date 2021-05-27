@@ -7,6 +7,8 @@ package io.stackgres.jobs.dbops.clusterrestart;
 
 public class InvalidCluster extends RuntimeException {
 
+  static final long serialVersionUID = 0L;
+
   public InvalidCluster(String message) {
     super(message);
   }

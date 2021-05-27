@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.cluster;
 
-import java.util.Collection;
 import java.util.List;
 
 import javax.inject.Singleton;
@@ -26,7 +25,6 @@ public class OwnerReferenceDecoratorImpl implements
 
   @Override
   public void decorate(StackGresCluster cluster,
-                       Collection<? extends HasMetadata> existingResources,
                        Iterable<? extends HasMetadata> resources) {
 
     List<OwnerReference> ownerReferences = List

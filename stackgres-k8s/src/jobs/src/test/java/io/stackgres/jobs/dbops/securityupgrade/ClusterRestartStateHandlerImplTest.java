@@ -5,6 +5,7 @@
 
 package io.stackgres.jobs.dbops.securityupgrade;
 
+import static io.stackgres.jobs.dbops.clusterrestart.PodTestUtil.assertPodEquals;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
@@ -26,7 +27,9 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSecurityUpgradeStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
+import io.stackgres.jobs.dbops.StateHandler;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartImpl;
+import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.ImmutableClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.ImmutableRestartEvent;
 import io.stackgres.jobs.dbops.clusterrestart.PodTestUtil;
@@ -34,6 +37,7 @@ import io.stackgres.jobs.dbops.clusterrestart.RestartEventType;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
+import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -44,6 +48,7 @@ class ClusterRestartStateHandlerImplTest {
   ClusterRestartImpl clusterRestart;
 
   @Inject
+  @StateHandler("securityUpgrade")
   ClusterRestartStateHandlerImpl restartStateHandler;
 
   @Inject
@@ -183,7 +188,7 @@ class ClusterRestartStateHandlerImplTest {
 
     var clusterState = restartStateHandler.buildClusterState(securityUpgradeOp, pods);
 
-    assertEquals(expectedClusterState, clusterState);
+    assertEqualsRestartState(expectedClusterState, clusterState);
 
   }
 
@@ -236,5 +241,25 @@ class ClusterRestartStateHandlerImplTest {
     assertEquals(pods.size(), securityUpgradeStatus.getInitialInstances().size());
     assertTrue(() -> securityUpgradeStatus.getFailure() == null
         || securityUpgradeStatus.getFailure().isEmpty());
+  }
+
+  private static void assertEqualsRestartState(ClusterRestartState expected,
+                                               ClusterRestartState actual){
+    assertEquals(expected.getClusterName(), actual.getClusterName());
+    assertEquals(expected.getNamespace(), actual.getNamespace());
+
+    assertPodEquals(expected.getPrimaryInstance(), actual.getPrimaryInstance());
+
+    var expectedInitialInstances = expected.getInitialInstances();
+    var actualInitialInstances = actual.getInitialInstances();
+
+    Seq.zip(expectedInitialInstances, actualInitialInstances)
+        .forEach(tuple -> assertPodEquals(tuple.v1, tuple.v2));
+
+    Seq.zip(expected.getRestartedInstances(), actual.getRestartedInstances())
+        .forEach(tuple -> assertPodEquals(tuple.v1, tuple.v2));
+
+    Seq.zip(expected.getTotalInstances(), actual.getTotalInstances())
+        .forEach(tuple -> assertPodEquals(tuple.v1, tuple.v2));
   }
 }

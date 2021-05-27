@@ -70,11 +70,13 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
         podStatus.getInstalledPostgresExtensions();
     LOGGER.info("Reconcile postgres extensions...");
     boolean clusterUpdated = false;
-    for (StackGresClusterInstalledExtension installedExtension : installedExtensions
+    final List<StackGresClusterInstalledExtension> extensionToUninstall = installedExtensions
         .stream()
         .filter(installedExtension -> extensions.stream()
-            .noneMatch(extension -> installedExtension.same(extension)))
-        .collect(Collectors.toList())) {
+            .noneMatch(installedExtension::same))
+        .collect(Collectors.toList());
+
+    for (StackGresClusterInstalledExtension installedExtension : extensionToUninstall) {
       ExtensionUninstaller extensionUninstaller = extensionManager.getExtensionUninstaller(
           context, installedExtension);
       try {
@@ -115,6 +117,7 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
                 context, extension)));
         final StackGresClusterInstalledExtension installedExtension =
             extensionInstaller.getInstalledExtension();
+        LOGGER.info("Installing extension " + installedExtension.toString());
         if (!extensionInstaller.isExtensionInstalled()
             && (!skipSharedLibrariesOverwrites
                 || !extensionInstaller.isExtensionPendingOverwrite())) {

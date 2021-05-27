@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.controller;
 
-import java.util.List;
 import java.util.Map;
 
 import javax.inject.Singleton;
@@ -15,24 +14,24 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
-import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterControllerProperty;
+import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresController;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
+import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
-@InitContainer(order = 8)
-public class InitReconciliationCycle implements ContainerFactory<StackGresClusterContext> {
+@InitContainer(order = 5)
+public class InitReconciliationCycle implements ContainerFactory<StackGresClusterContainerContext> {
 
   @Override
-  public Container getContainer(StackGresClusterContext context) {
+  public Container getContainer(StackGresClusterContainerContext context) {
     return new ContainerBuilder()
         .withName("cluster-reconciliation-cycle")
         .withImage(StackGresController.CLUSTER_CONTROLLER.getImageName())
@@ -44,11 +43,13 @@ public class InitReconciliationCycle implements ContainerFactory<StackGresCluste
             new EnvVarBuilder()
                 .withName(ClusterControllerProperty.CLUSTER_NAME.getEnvironmentVariableName())
                 .withValue(context
+                    .getClusterContext()
                     .getCluster().getMetadata().getName())
                 .build(),
             new EnvVarBuilder()
                 .withName(ClusterControllerProperty.CLUSTER_NAMESPACE.getEnvironmentVariableName())
                 .withValue(context
+                    .getClusterContext()
                     .getCluster().getMetadata().getNamespace())
                 .build(),
             new EnvVarBuilder()
@@ -90,17 +91,15 @@ public class InitReconciliationCycle implements ContainerFactory<StackGresCluste
                 .withName("DEBUG_CLUSTER_CONTROLLER_SUSPEND")
                 .withValue(System.getenv("DEBUG_OPERATOR_SUSPEND"))
                 .build())
-        .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(context))
+        .addToVolumeMounts(new VolumeMountBuilder()
+            .withName(context.getDataVolumeName())
+            .withMountPath(ClusterStatefulSetPath.PG_BASE_PATH.path())
+            .build())
         .build();
   }
 
   @Override
-  public List<Volume> getVolumes(StackGresClusterContext context) {
-    return List.of();
-  }
-
-  @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContext context) {
+  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
     return Map.of();
   }
 }

@@ -10,7 +10,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 
 public interface ComparisonDelegator<T extends CustomResource<?, ?>> {
 
-  boolean isTheSameResource(HasMetadata r1, HasMetadata r2);
+  boolean isTheSameResource(HasMetadata required, HasMetadata deployed);
 
-  boolean isResourceContentEqual(HasMetadata r1, HasMetadata r2);
+  boolean isResourceContentEqual(HasMetadata required, HasMetadata deployed);
 }

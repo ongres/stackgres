@@ -12,7 +12,9 @@ public interface HandlerDelegator<T extends CustomResource<?, ?>> {
 
   HasMetadata create(HasMetadata resource);
 
-  HasMetadata patch(HasMetadata resource);
+  HasMetadata patch(HasMetadata newResource, HasMetadata oldResource);
+
+  HasMetadata replace(HasMetadata resource);
 
   void delete(HasMetadata resource);
 

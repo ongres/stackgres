@@ -98,8 +98,24 @@ public enum ClusterStatefulSetVolumeConfig {
     this.volumeConfig = volumeConfig;
   }
 
-  public static Stream<VolumeMount> volumeMounts(io.stackgres.operator.common.StackGresClusterContext context,
-                                                 ClusterStatefulSetVolumeConfig... configs) {
+  public VolumeConfig config() {
+    return volumeConfig;
+  }
+
+  public static Stream<Volume> volumes(ClusterContext context) {
+    return Seq.of(values())
+        .map(ClusterStatefulSetVolumeConfig::config)
+        .map(volumeConfig -> volumeConfig.volume(context))
+        .filter(Optional::isPresent)
+        .map(Optional::get);
+  }
+
+  public static Stream<VolumeMount> allVolumeMounts(StackGresClusterContext context) {
+    return allVolumeMounts(context, values());
+  }
+
+  public static Stream<VolumeMount> allVolumeMounts(StackGresClusterContext context,
+                                                    ClusterStatefulSetVolumeConfig... configs) {
     return Seq.of(configs)
         .map(ClusterStatefulSetVolumeConfig::config)
         .flatMap(volumeConfig -> volumeConfig.volumeMounts(context).stream());
@@ -114,18 +130,6 @@ public enum ClusterStatefulSetVolumeConfig {
     return Seq.of(configs)
         .map(ClusterStatefulSetVolumeConfig::config)
         .flatMap(volumeConfig -> volumeConfig.volumeMounts(context).stream());
-  }
-
-  public static Stream<Volume> volumes(ClusterContext context) {
-    return Seq.of(values())
-        .map(ClusterStatefulSetVolumeConfig::config)
-        .map(volumeConfig -> volumeConfig.volume(context))
-        .filter(Optional::isPresent)
-        .map(Optional::get);
-  }
-
-  public VolumeConfig config() {
-    return volumeConfig;
   }
 
   public Collection<VolumeMount> volumeMounts(StackGresClusterContext context) {
@@ -157,7 +161,7 @@ public enum ClusterStatefulSetVolumeConfig {
     return volumeConfig.volumeMount(path, context)
         .orElseThrow(() -> new IllegalStateException(
             "Volume mount " + volumeConfig.name() + " with path " + path.path(context)
-            + " and subPath " + path.subPath(context) + " is not available for this context"));
+                + " and subPath " + path.subPath(context) + " is not available for this context"));
   }
 
   public VolumeMount volumeMount(ClusterStatefulSetPath path, StackGresClusterContext context,
@@ -169,33 +173,14 @@ public enum ClusterStatefulSetVolumeConfig {
         .map(VolumeMountBuilder::build)
         .orElseThrow(() -> new IllegalStateException(
             "Volume mount " + volumeConfig.name() + " with path " + path.path(context)
-            + " and subPath " + path.subPath(context) + " is not available for this context"));
+                + " and subPath " + path.subPath(context) + " is not available for this context"));
   }
 
   public Volume volume(StackGresClusterContext context) {
     return volumeConfig.volume(context)
         .orElseThrow(() -> new IllegalStateException(
             "Volume " + volumeConfig.name()
-            + " is not configured or not available for this context"));
-  }
-
-  public static Stream<VolumeMount> allVolumeMounts(StackGresClusterContext context) {
-    return allVolumeMounts(context, values());
-  }
-
-  public static Stream<VolumeMount> allVolumeMounts(StackGresClusterContext context,
-      ClusterStatefulSetVolumeConfig...configs) {
-    return Seq.of(configs)
-        .map(ClusterStatefulSetVolumeConfig::config)
-        .flatMap(volumeConfig -> volumeConfig.volumeMounts(context).stream());
-  }
-
-  public static Stream<Volume> allVolumes(StackGresClusterContext context) {
-    return Seq.of(values())
-        .map(ClusterStatefulSetVolumeConfig::config)
-        .map(volumeConfig -> volumeConfig.volume(context))
-        .filter(Optional::isPresent)
-        .map(Optional::get);
+                + " is not configured or not available for this context"));
   }
 
 }

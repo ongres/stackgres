@@ -5,7 +5,10 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
-import java.util.ArrayList;
+import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
+import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_DATA;
+import static io.stackgres.operator.conciliation.VolumeMountProviderName.SCRIPT_TEMPLATES;
+
 import java.util.List;
 import java.util.Map;
 
@@ -15,33 +18,43 @@ import javax.inject.Singleton;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
-import io.fabric8.kubernetes.api.model.Volume;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresContext;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
+import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
+import io.stackgres.operator.conciliation.factory.ProviderName;
+import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
+import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
 @InitContainer(order = 1)
-public class DataPathsInitializer implements ContainerFactory<StackGresClusterContext> {
+public class DataPathsInitializer implements ContainerFactory<StackGresClusterContainerContext> {
 
-  private final ClusterEnvironmentVariablesFactoryDiscoverer<StackGresClusterContext>
-      clusterEnvVarFactoryDiscoverer;
+  private final VolumeMountsProvider<ContainerContext> postgresDataMounts;
+
+  private final VolumeMountsProvider<ContainerContext> scriptTemplateMounts;
+
+  private final VolumeMountsProvider<ContainerContext> containerUserOverride;
 
   @Inject
   public DataPathsInitializer(
-      ClusterEnvironmentVariablesFactoryDiscoverer<StackGresClusterContext>
-          clusterEnvVarFactoryDiscoverer) {
-    this.clusterEnvVarFactoryDiscoverer = clusterEnvVarFactoryDiscoverer;
+      @ProviderName(POSTGRES_DATA)
+          VolumeMountsProvider<ContainerContext> postgresDataMounts,
+      @ProviderName(SCRIPT_TEMPLATES)
+          VolumeMountsProvider<ContainerContext> scriptTemplateMounts,
+      @ProviderName(CONTAINER_USER_OVERRIDE)
+          VolumeMountsProvider<ContainerContext> containerUserOverride) {
+    this.postgresDataMounts = postgresDataMounts;
+    this.scriptTemplateMounts = scriptTemplateMounts;
+    this.containerUserOverride = containerUserOverride;
   }
 
   @Override
-  public Container getContainer(StackGresClusterContext context) {
+  public Container getContainer(StackGresClusterContainerContext context) {
     return new ContainerBuilder()
         .withName("setup-data-paths")
         .withImage(StackGresComponent.KUBECTL.findLatestImageName())
@@ -50,10 +63,9 @@ public class DataPathsInitializer implements ContainerFactory<StackGresClusterCo
             ClusterStatefulSetPath.TEMPLATES_PATH.path()
                 + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH.filename())
         .withEnv(getClusterEnvVars(context))
-        .withVolumeMounts(
-            ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context),
-            ClusterStatefulSetVolumeConfig.DATA.volumeMount(context),
-            ClusterStatefulSetVolumeConfig.USER.volumeMount(context))
+        .withVolumeMounts(containerUserOverride.getVolumeMounts(context))
+        .addAllToVolumeMounts(scriptTemplateMounts.getVolumeMounts(context))
+        .addAllToVolumeMounts(postgresDataMounts.getVolumeMounts(context))
         .build();
   }
 
@@ -62,20 +74,8 @@ public class DataPathsInitializer implements ContainerFactory<StackGresClusterCo
     return Map.of();
   }
 
-  @Override
-  public List<Volume> getVolumes(StackGresClusterContext context) {
-    return List.of();
-  }
-
-  private List<EnvVar> getClusterEnvVars(StackGresClusterContext context) {
-    List<EnvVar> clusterEnvVars = new ArrayList<>();
-
-    List<ClusterEnvironmentVariablesFactory<StackGresClusterContext>> clusterEnvVarFactories =
-        clusterEnvVarFactoryDiscoverer.discoverFactories(context);
-
-    clusterEnvVarFactories.forEach(envVarFactory ->
-        clusterEnvVars.addAll(envVarFactory.buildEnvironmentVariables(context)));
-    return clusterEnvVars;
+  private List<EnvVar> getClusterEnvVars(StackGresClusterContainerContext context) {
+    return postgresDataMounts.getDerivedEnvVars(context);
   }
 
 }

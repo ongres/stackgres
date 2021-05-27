@@ -13,7 +13,7 @@ public interface Watcher<T> {
 
   Uni<Void> waitUntilIsRemoved(String name, String namespace);
 
-  default Uni<T> waitUntilIsReplaced(T pod){
+  default Uni<T> waitUntilIsReplaced(T pod) {
     throw new UnsupportedOperationException("Not supported");
   }
 

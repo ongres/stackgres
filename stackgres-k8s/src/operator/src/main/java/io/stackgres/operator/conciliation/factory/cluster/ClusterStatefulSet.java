@@ -6,7 +6,9 @@
 package io.stackgres.operator.conciliation.factory.cluster;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -15,10 +17,9 @@ import javax.inject.Singleton;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimSpecBuilder;
-import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
@@ -33,7 +34,10 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
-import io.stackgres.operator.conciliation.factory.ResourceFactory;
+import io.stackgres.operator.conciliation.factory.PodTemplateFactory;
+import io.stackgres.operator.conciliation.factory.PodTemplateResult;
+import io.stackgres.operator.conciliation.factory.VolumeDiscoverer;
+import io.stackgres.operator.conciliation.factory.VolumePair;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
@@ -43,14 +47,17 @@ public class ClusterStatefulSet
   public static final String GCS_CREDENTIALS_FILE_NAME = "gcs-credentials.json";
   private final LabelFactory<StackGresCluster> labelFactory;
 
-  private final ResourceFactory<StackGresClusterContext, PodTemplateSpec> podSpecFactory;
+  private final PodTemplateFactory<StackGresClusterContainerContext> podTemplateSpecFactory;
+  private final VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer;
 
   @Inject
   public ClusterStatefulSet(
       LabelFactory<StackGresCluster> labelFactory,
-      ResourceFactory<StackGresClusterContext, PodTemplateSpec> podSpecFactory) {
+      PodTemplateFactory<StackGresClusterContainerContext> podTemplateSpecFactory,
+      VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer) {
     this.labelFactory = labelFactory;
-    this.podSpecFactory = podSpecFactory;
+    this.podTemplateSpecFactory = podTemplateSpecFactory;
+    this.volumeDiscoverer = volumeDiscoverer;
   }
 
   public static String dataName(ClusterContext cluster) {
@@ -79,13 +86,29 @@ public class ClusterStatefulSet
             .orElse(null))
         .build();
 
+    final Map<String, String> labels = labelFactory.clusterLabels(cluster);
+    final Map<String, String> podLabels = labelFactory.statefulSetPodLabels(cluster);
+
+    Map<String, VolumePair> availableVolumesPairs = volumeDiscoverer.discoverVolumes(context);
+
     final PersistentVolumeClaimSpecBuilder volumeClaimSpec = new PersistentVolumeClaimSpecBuilder()
         .withAccessModes("ReadWriteOnce")
         .withResources(dataStorageConfig.getResourceRequirements())
         .withStorageClassName(dataStorageConfig.getStorageClass());
 
-    final Map<String, String> labels = labelFactory.clusterLabels(cluster);
-    final Map<String, String> podLabels = labelFactory.statefulSetPodLabels(cluster);
+    Map<String, Volume> availableVolumes = availableVolumesPairs.entrySet().stream()
+        .collect(Collectors.toMap(
+            Map.Entry::getKey,
+            vp -> vp.getValue().getVolume()
+        ));
+
+    final PodTemplateResult podTemplateSpec = podTemplateSpecFactory.getPodTemplateSpec(
+        ImmutableStackGresClusterContainerContext.builder()
+            .clusterContext(context)
+            .availableVolumes(availableVolumes)
+            .dataVolumeName(dataName(context))
+            .build()
+    );
 
     StatefulSet clusterStatefulSet = new StatefulSetBuilder()
         .withNewMetadata()
@@ -102,22 +125,29 @@ public class ClusterStatefulSet
             .withType("OnDelete")
             .build())
         .withServiceName(name)
-        .withTemplate(podSpecFactory.createResource(context))
-        .withVolumeClaimTemplates(Stream.of(
-            Stream.of(new PersistentVolumeClaimBuilder()
+        .withTemplate(podTemplateSpec.getSpec())
+        .withVolumeClaimTemplates(
+            new PersistentVolumeClaimBuilder()
                 .withNewMetadata()
                 .withNamespace(namespace)
                 .withName(dataName(context))
                 .withLabels(labels)
                 .endMetadata()
                 .withSpec(volumeClaimSpec.build())
-                .build()))
-            .flatMap(s -> s)
-            .toArray(PersistentVolumeClaim[]::new))
+                .build()
+        )
         .endSpec()
         .build();
 
-    return Stream.of(clusterStatefulSet);
+    var volumeDependencies = podTemplateSpec.claimedVolumes().stream()
+        .map(availableVolumesPairs::get)
+        .filter(Objects::nonNull)
+        .map(VolumePair::getSource)
+        .filter(Optional::isPresent)
+        .map(Optional::get);
+
+    return Stream.concat(Stream.of(clusterStatefulSet), volumeDependencies);
+
   }
 
 }

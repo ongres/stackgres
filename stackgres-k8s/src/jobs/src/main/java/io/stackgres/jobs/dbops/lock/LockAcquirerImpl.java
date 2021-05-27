@@ -26,25 +26,16 @@ import org.slf4j.LoggerFactory;
 public class LockAcquirerImpl implements LockAcquirer<StackGresCluster> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LockAcquirerImpl.class);
-
-  private final CustomResourceScheduler<StackGresCluster> clusterScheduler;
-
-  private final CustomResourceFinder<StackGresCluster> clusterFinder;
-
-  private static final ScheduledThreadPoolExecutor EXECUTOR
-      = new ScheduledThreadPoolExecutor(
+  private static final ScheduledThreadPoolExecutor EXECUTOR = new ScheduledThreadPoolExecutor(
       1,
       new ThreadFactoryBuilder()
           .setNameFormat("LockAcquirerThread-%d")
           .build());
+  @Inject
+  CustomResourceScheduler<StackGresCluster> clusterScheduler;
 
   @Inject
-  public LockAcquirerImpl(CustomResourceScheduler<StackGresCluster> clusterScheduler,
-                          CustomResourceFinder<StackGresCluster> clusterFinder) {
-    this.clusterScheduler = clusterScheduler;
-    this.clusterFinder = clusterFinder;
-    EXECUTOR.setRemoveOnCancelPolicy(true);
-  }
+  CustomResourceFinder<StackGresCluster> clusterFinder;
 
   @Override
   public void lockRun(LockRequest target, Consumer<StackGresCluster> tasks) {

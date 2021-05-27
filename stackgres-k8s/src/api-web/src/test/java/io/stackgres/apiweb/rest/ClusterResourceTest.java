@@ -491,8 +491,6 @@ class ClusterResourceTest
     statsDtoFinder.setManagedExecutor(managedExecutor);
 
     return new ClusterResource(
-        finder,
-        scheduler, clusterTransformer,
         dtoScanner,
         dtoFinder,
         statsDtoFinder,

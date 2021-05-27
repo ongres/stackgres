@@ -29,11 +29,14 @@ import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 @ApplicationScoped
 public class DefaultPostgresDelegator implements ClusterMutator {
 
-  private PostgresDefaultFactoriesProvider resorceFactoryProducer;
+  @Inject
+  PostgresDefaultFactoriesProvider resorceFactoryProducer;
 
-  private CustomResourceFinder<StackGresPostgresConfig> finder;
+  @Inject
+  CustomResourceFinder<StackGresPostgresConfig> finder;
 
-  private CustomResourceScheduler<StackGresPostgresConfig> scheduler;
+  @Inject
+  CustomResourceScheduler<StackGresPostgresConfig> scheduler;
 
   @Override
   public List<JsonPatchOperation> mutate(StackGresClusterReview review) {
@@ -56,8 +59,10 @@ public class DefaultPostgresDelegator implements ClusterMutator {
         .map(factoryMap::get)
         .map(factory -> {
           try {
-            final DefaultPostgresMutator mutator =
-                new DefaultPostgresMutator(factory, finder, scheduler);
+            final DefaultPostgresMutator mutator = new DefaultPostgresMutator();
+            mutator.setFinder(finder);
+            mutator.setScheduler(scheduler);
+            mutator.setResourceFactory(factory);
             mutator.init();
             return mutator;
           } catch (NoSuchFieldException e) {
@@ -66,18 +71,4 @@ public class DefaultPostgresDelegator implements ClusterMutator {
         });
   }
 
-  @Inject
-  public void setResorceFactoryProducer(PostgresDefaultFactoriesProvider resourceFactoryProducer) {
-    this.resorceFactoryProducer = resourceFactoryProducer;
-  }
-
-  @Inject
-  public void setFinder(CustomResourceFinder<StackGresPostgresConfig> finder) {
-    this.finder = finder;
-  }
-
-  @Inject
-  public void setScheduler(CustomResourceScheduler<StackGresPostgresConfig> scheduler) {
-    this.scheduler = scheduler;
-  }
 }

@@ -5,12 +5,10 @@
 
 package io.stackgres.jobs.dbops.clusterrestart;
 
-import java.util.concurrent.CompletableFuture;
-
 import io.smallrye.mutiny.Uni;
 
 public interface ClusterSwitchoverHandler {
 
-  Uni<Void> performSwitchover(String clusterName, String clusterNamespace);
+  Uni<Void> performSwitchover(String leader, String clusterName, String clusterNamespace);
 
 }

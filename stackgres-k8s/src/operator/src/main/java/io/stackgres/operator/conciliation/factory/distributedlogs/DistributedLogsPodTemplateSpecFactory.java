@@ -7,8 +7,10 @@ package io.stackgres.operator.conciliation.factory.distributedlogs;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -22,10 +24,10 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodAffinityTermBuilder;
 import io.fabric8.kubernetes.api.model.PodAntiAffinityBuilder;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
-import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.TolerationBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
@@ -37,65 +39,81 @@ import io.stackgres.operator.conciliation.ContainerFactoryDiscoverer;
 import io.stackgres.operator.conciliation.InitContainerFactoryDiscover;
 import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
+import io.stackgres.operator.conciliation.factory.ImmutablePodTemplateResult;
+import io.stackgres.operator.conciliation.factory.PodTemplateFactory;
+import io.stackgres.operator.conciliation.factory.PodTemplateResult;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.distributedlogs.patroni.PatroniRole;
 import org.jooq.lambda.Seq;
 
 @Singleton
 public class DistributedLogsPodTemplateSpecFactory
-    implements ResourceFactory<DistributedLogsContext, PodTemplateSpec> {
+    implements PodTemplateFactory<DistributedLogsContainerContext> {
 
   private final ResourceFactory<DistributedLogsContext, PodSecurityContext> podSecurityContext;
 
   private final LabelFactory<StackGresDistributedLogs> labelFactory;
 
-  private final ContainerFactoryDiscoverer<DistributedLogsContext> containerFactoryDiscoverer;
+  private final ContainerFactoryDiscoverer<DistributedLogsContainerContext>
+      containerFactoryDiscoverer;
 
-  private final InitContainerFactoryDiscover<DistributedLogsContext>
+  private final InitContainerFactoryDiscover<DistributedLogsContainerContext>
       initContainerFactoryDiscoverer;
 
   @Inject
   public DistributedLogsPodTemplateSpecFactory(
       ResourceFactory<DistributedLogsContext, PodSecurityContext> podSecurityContext,
       LabelFactory<StackGresDistributedLogs> labelFactory,
-      ContainerFactoryDiscoverer<DistributedLogsContext> containerFactoryDiscoverer,
-      InitContainerFactoryDiscover<DistributedLogsContext> initContainerFactoryDiscoverer) {
+      ContainerFactoryDiscoverer<DistributedLogsContainerContext> containerFactoryDiscoverer,
+      InitContainerFactoryDiscover<DistributedLogsContainerContext> iniContainerFactoryDiscoverer) {
     this.podSecurityContext = podSecurityContext;
     this.labelFactory = labelFactory;
     this.containerFactoryDiscoverer = containerFactoryDiscoverer;
-    this.initContainerFactoryDiscoverer = initContainerFactoryDiscoverer;
+    this.initContainerFactoryDiscoverer = iniContainerFactoryDiscoverer;
   }
 
   @Override
-  public PodTemplateSpec createResource(DistributedLogsContext context) {
-
-    StackGresDistributedLogs cluster = context.getSource();
+  public PodTemplateResult getPodTemplateSpec(DistributedLogsContainerContext context) {
+    StackGresDistributedLogs cluster = context.getDistributedLogsContext().getSource();
 
     final Map<String, String> podLabels = labelFactory.statefulSetPodLabels(cluster);
 
-    List<ContainerFactory<DistributedLogsContext>> containerFactories = containerFactoryDiscoverer
-        .discoverContainers(context);
+    List<ContainerFactory<DistributedLogsContainerContext>> containerFactories =
+        containerFactoryDiscoverer.discoverContainers(context);
 
     List<Container> containers = containerFactories.stream()
         .map(f -> f.getContainer(context)).collect(Collectors.toUnmodifiableList());
 
-    List<Volume> volumes = containerFactories.stream()
-        .flatMap(f -> f.getVolumes(context).stream())
-        .collect(Collectors.toUnmodifiableList());
+    final List<ContainerFactory<DistributedLogsContainerContext>> initContainerFactories
+        = initContainerFactoryDiscoverer.discoverContainers(context);
 
-    List<Container> initContainers = initContainerFactoryDiscoverer.discoverContainers(context)
+    List<Container> initContainers = initContainerFactories
         .stream().map(f -> f.getContainer(context))
         .collect(Collectors.toUnmodifiableList());
 
-    List<Volume> initContainerVolumes = initContainerFactoryDiscoverer.discoverContainers(context)
-        .stream().flatMap(f -> f.getVolumes(context).stream())
+    final List<String> claimedVolumes = Stream.concat(containers.stream(), initContainers.stream())
+        .flatMap(container -> container.getVolumeMounts().stream())
+        .map(VolumeMount::getName)
+        .distinct()
         .collect(Collectors.toUnmodifiableList());
 
-    return new PodTemplateSpecBuilder()
+    claimedVolumes.forEach(rv -> {
+      if (!context.availableVolumes().containsKey(rv) && !context.getDataVolumeName().equals(rv)) {
+        throw new IllegalStateException("Volume " + rv + " is required but not available");
+      }
+    });
+
+    List<Volume> volumes = claimedVolumes.stream()
+        .map(volumeName -> context.availableVolumes().get(volumeName))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toUnmodifiableList());
+
+    var podTemplateSpec = new PodTemplateSpecBuilder()
         .withMetadata(new ObjectMetaBuilder()
             .addToLabels(podLabels)
-            .addToAnnotations(StackGresContext.VERSION_KEY,
-                StackGresProperty.OPERATOR_VERSION.getString())
+            .addToAnnotations(StackGresContext.VERSION_KEY, cluster.getMetadata().getAnnotations()
+                .getOrDefault(StackGresContext.VERSION_KEY,
+                    StackGresProperty.OPERATOR_VERSION.getString()))
             .build())
         .withNewSpec()
         .withAffinity(Optional.of(new AffinityBuilder()
@@ -137,15 +155,18 @@ public class DistributedLogsPodTemplateSpecFactory
                 .toList())
             .orElse(null))
         .withShareProcessNamespace(Boolean.TRUE)
-        .withServiceAccountName(PatroniRole.roleName(context))
-        .withSecurityContext(podSecurityContext.createResource(context))
-        .addAllToVolumes(volumes)
+        .withServiceAccountName(PatroniRole.roleName(context.getDistributedLogsContext()))
+        .withSecurityContext(podSecurityContext.createResource(context.getDistributedLogsContext()))
+        .withVolumes(volumes)
         .withContainers(containers)
         .withInitContainers(initContainers)
-        .addAllToVolumes(initContainerVolumes)
         .withTerminationGracePeriodSeconds(60L)
         .endSpec()
         .build();
-  }
 
+    return ImmutablePodTemplateResult.builder()
+        .spec(podTemplateSpec)
+        .claimedVolumes(claimedVolumes)
+        .build();
+  }
 }

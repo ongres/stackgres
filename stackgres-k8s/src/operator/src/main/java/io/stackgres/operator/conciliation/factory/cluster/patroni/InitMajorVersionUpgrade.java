@@ -5,10 +5,11 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
-import java.util.List;
+import static io.stackgres.operator.conciliation.VolumeMountProviderName.MAJOR_VERSION_UPGRADE;
+import static io.stackgres.operator.conciliation.VolumeMountProviderName.SCRIPT_TEMPLATES;
+
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -19,8 +20,6 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
-import io.fabric8.kubernetes.api.model.Volume;
-import io.stackgres.common.ClusterStatefulSetEnvVars;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackgresClusterContainers;
@@ -28,38 +27,49 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
+import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
+import io.stackgres.operator.conciliation.factory.ImmutablePostgresContainerContext;
 import io.stackgres.operator.conciliation.factory.InitContainer;
+import io.stackgres.operator.conciliation.factory.PostgresContainerContext;
+import io.stackgres.operator.conciliation.factory.ProviderName;
+import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
+import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
-@InitContainer(order = 3)
-public class InitMajorVersionUpgrade implements ContainerFactory<StackGresClusterContext> {
+@InitContainer(order = 6)
+public class InitMajorVersionUpgrade implements ContainerFactory<StackGresClusterContainerContext> {
 
-  private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;
+  private final VolumeMountsProvider<PostgresContainerContext> majorVersionUpgradeMounts;
+  private final VolumeMountsProvider<ContainerContext> templateMounts;
 
   @Inject
   public InitMajorVersionUpgrade(
-      ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables) {
-    this.clusterStatefulSetEnvironmentVariables = clusterStatefulSetEnvironmentVariables;
+      @ProviderName(MAJOR_VERSION_UPGRADE)
+          VolumeMountsProvider<PostgresContainerContext> majorVersionUpgradeMounts,
+      @ProviderName(SCRIPT_TEMPLATES)
+          VolumeMountsProvider<ContainerContext> templateMounts) {
+    this.majorVersionUpgradeMounts = majorVersionUpgradeMounts;
+    this.templateMounts = templateMounts;
   }
 
   @Override
-  public boolean isActivated(StackGresClusterContext context) {
-    return Optional.of(context.getSource())
+  public boolean isActivated(StackGresClusterContainerContext context) {
+    return Optional.of(context.getClusterContext().getSource())
         .map(StackGresCluster::getStatus)
         .map(StackGresClusterStatus::getDbOps)
         .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade).isPresent();
   }
 
   @Override
-  public Container getContainer(StackGresClusterContext context) {
+  public Container getContainer(StackGresClusterContainerContext context) {
+    final StackGresClusterContext clusterContext = context.getClusterContext();
     StackGresClusterDbOpsMajorVersionUpgradeStatus majorVersionUpgradeStatus =
-        Optional.of(context.getCluster())
+        Optional.of(clusterContext.getSource())
             .map(StackGresCluster::getStatus)
             .map(StackGresClusterStatus::getDbOps)
             .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
@@ -68,9 +78,6 @@ public class InitMajorVersionUpgrade implements ContainerFactory<StackGresCluste
     String targetVersion = majorVersionUpgradeStatus.getTargetPostgresVersion();
     String sourceVersion = majorVersionUpgradeStatus.getSourcePostgresVersion();
     String sourceMajorVersion = StackGresComponent.POSTGRESQL.findMajorVersion(sourceVersion);
-    ImmutableMap<String, String> sourceEnvVars = ImmutableMap.of(
-        ClusterStatefulSetEnvVars.POSTGRES_VERSION.name(), sourceVersion,
-        ClusterStatefulSetEnvVars.POSTGRES_MAJOR_VERSION.name(), sourceMajorVersion);
     String locale = majorVersionUpgradeStatus.getLocale();
     String encoding = majorVersionUpgradeStatus.getEncoding();
     String dataChecksum = majorVersionUpgradeStatus.getDataChecksum().toString();
@@ -83,6 +90,19 @@ public class InitMajorVersionUpgrade implements ContainerFactory<StackGresCluste
         ImmutableMap.of(StackGresComponent.POSTGRESQL,
             targetVersion));
 
+    final PostgresContainerContext postgresContainerContext =
+        ImmutablePostgresContainerContext.builder()
+            .from(context)
+            .postgresMajorVersion(StackGresComponent.POSTGRESQL
+                .findMajorVersion(targetVersion))
+            .oldMajorVersion(sourceMajorVersion)
+            .imageBuildMajorVersion(StackGresComponent.POSTGRESQL
+                .findBuildMajorVersion(targetVersion))
+            .oldImageBuildMajorVersion(StackGresComponent.POSTGRESQL
+                .findBuildMajorVersion(sourceVersion))
+            .postgresVersion(targetVersion)
+            .oldPostgresVersion(sourceVersion)
+            .build();
     return
         new ContainerBuilder()
             .withName(StackgresClusterContainers.MAJOR_VERSION_UPGRADE)
@@ -92,7 +112,6 @@ public class InitMajorVersionUpgrade implements ContainerFactory<StackGresCluste
                 ClusterStatefulSetPath.TEMPLATES_PATH.path()
                     + "/"
                     + ClusterStatefulSetPath.LOCAL_BIN_MAJOR_VERSION_UPGRADE_SH_PATH.filename())
-            .withEnv(clusterStatefulSetEnvironmentVariables.listResources(context.getSource()))
             .addToEnv(
                 new EnvVarBuilder()
                     .withName("PRIMARY_INSTANCE")
@@ -136,96 +155,16 @@ public class InitMajorVersionUpgrade implements ContainerFactory<StackGresCluste
                         .withFieldRef(new ObjectFieldSelector("v1", "metadata.name"))
                         .build())
                     .build())
-            .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(context),
-                ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context))
-            .addAllToVolumeMounts(ClusterStatefulSetVolumeConfig.USER.volumeMounts(context))
-            .addToVolumeMounts(
-                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                    context,
-                    volumeMountBuilder -> volumeMountBuilder
-                        .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_LIB64_PATH
-                            .subPath(context, ClusterStatefulSetPath.PG_BASE_PATH))
-                        .withMountPath(ClusterStatefulSetPath.PG_LIB64_PATH.path(context))),
-                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                    context,
-                    volumeMountBuilder -> volumeMountBuilder
-                        .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH.subPath(context,
-                            ClusterStatefulSetPath.PG_BASE_PATH))
-                        .withMountPath(ClusterStatefulSetPath.PG_LIB_PATH.path(context))),
-                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                    context,
-                    volumeMountBuilder -> volumeMountBuilder
-                        .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_BIN_PATH.subPath(context,
-                            ClusterStatefulSetPath.PG_BASE_PATH))
-                        .withMountPath(ClusterStatefulSetPath.PG_BIN_PATH.path(context))),
-                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                    context,
-                    volumeMountBuilder -> volumeMountBuilder
-                        .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_SHARE_PATH.subPath(context,
-                            ClusterStatefulSetPath.PG_BASE_PATH))
-                        .withMountPath(ClusterStatefulSetPath.PG_SHARE_PATH.path(context))),
-                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                    context,
-                    volumeMountBuilder -> volumeMountBuilder
-                        .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_EXTENSION_PATH
-                            .subPath(context, ClusterStatefulSetPath.PG_BASE_PATH))
-                        .withMountPath(ClusterStatefulSetPath.PG_EXTENSION_PATH.path(context))),
-                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                    context,
-                    volumeMountBuilder -> volumeMountBuilder
-                        .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_BIN_PATH.subPath(context,
-                            ClusterStatefulSetPath.PG_BASE_PATH))
-                        .withMountPath(
-                            ClusterStatefulSetPath.PG_EXTRA_BIN_PATH.path(context))),
-                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                    context,
-                    volumeMountBuilder -> volumeMountBuilder
-                        .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH
-                            .subPath(context, ClusterStatefulSetPath.PG_BASE_PATH))
-                        .withMountPath(ClusterStatefulSetPath.PG_EXTRA_LIB_PATH.path(context))))
-            .addToVolumeMounts(
-                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                    context,
-                    volumeMountBuilder -> volumeMountBuilder
-                        .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH.subPath(
-                            context, sourceEnvVars,
-                            ClusterStatefulSetPath.PG_BASE_PATH))
-                        .withMountPath(ClusterStatefulSetPath.PG_LIB_PATH
-                            .path(context, sourceEnvVars))),
-                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                    context,
-                    volumeMountBuilder -> volumeMountBuilder
-                        .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_BIN_PATH.subPath(
-                            context, sourceEnvVars,
-                            ClusterStatefulSetPath.PG_BASE_PATH))
-                        .withMountPath(ClusterStatefulSetPath.PG_BIN_PATH
-                            .path(context, sourceEnvVars))),
-                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                    context,
-                    volumeMountBuilder -> volumeMountBuilder
-                        .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_SHARE_PATH.subPath(
-                            context, sourceEnvVars,
-                            ClusterStatefulSetPath.PG_BASE_PATH))
-                        .withMountPath(ClusterStatefulSetPath.PG_SHARE_PATH.
-                            path(context, sourceEnvVars))),
-                ClusterStatefulSetVolumeConfig.DATA.volumeMount(
-                    context,
-                    volumeMountBuilder -> volumeMountBuilder
-                        .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_EXTENSION_PATH.subPath(
-                            context, sourceEnvVars,
-                            ClusterStatefulSetPath.PG_BASE_PATH))
-                        .withMountPath(ClusterStatefulSetPath.PG_EXTENSION_PATH.path(
-                            context, sourceEnvVars))))
+            .addAllToEnv(majorVersionUpgradeMounts.getDerivedEnvVars(postgresContainerContext))
+            .withVolumeMounts(templateMounts.getVolumeMounts(context))
+            .addAllToVolumeMounts(
+                majorVersionUpgradeMounts.getVolumeMounts(postgresContainerContext)
+            )
             .build();
   }
 
   @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContext context) {
+  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
     return Map.of();
-  }
-
-  @Override
-  public List<Volume> getVolumes(StackGresClusterContext context) {
-    return List.of();
   }
 }

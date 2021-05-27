@@ -7,15 +7,19 @@ package io.stackgres.jobs.dbops.clusterrestart;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.smallrye.mutiny.Uni;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class ClusterSwitchoverHandlerImpl implements ClusterSwitchoverHandler {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ClusterSwitchoverHandlerImpl.class);
 
   private final PatroniApiHandler patroniApi;
 
@@ -25,15 +29,14 @@ public class ClusterSwitchoverHandlerImpl implements ClusterSwitchoverHandler {
   }
 
   @Override
-  public Uni<Void> performSwitchover(String clusterName, String clusterNamespace) {
+  public Uni<Void> performSwitchover(String leader, String clusterName, String clusterNamespace) {
 
     return patroniApi.getClusterMembers(clusterName, clusterNamespace)
-        .chain(this::doSwitchOver);
+        .chain(members -> doSwitchOver(members, leader));
 
   }
 
-
-  private Uni<Void> doSwitchOver(List<ClusterMember> members) {
+  private Uni<Void> doSwitchOver(List<ClusterMember> members, String givenLeader) {
     if (members.size() == 1) {
       return Uni.createFrom().voidItem();
     } else {
@@ -57,13 +60,19 @@ public class ClusterSwitchoverHandlerImpl implements ClusterSwitchoverHandler {
           });
 
       if (leader.isPresent() && candidate.isPresent()) {
-        return Uni.createFrom().emitter(em -> patroniApi
-            .performSwitchover(leader.get(), candidate.get())
-            .onFailure()
-            .retry()
-            .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
-            .atMost(50)
-            .subscribe().with(item -> em.complete(null), em::fail));
+        ClusterMember actualLeader = leader.get();
+        if (Objects.equals(actualLeader.getName(), givenLeader)) {
+          return Uni.createFrom().emitter(em -> patroniApi
+              .performSwitchover(leader.get(), candidate.get())
+              .onFailure()
+              .retry()
+              .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
+              .atMost(50)
+              .subscribe().with(item -> em.complete(null), em::fail));
+        } else {
+          LOGGER.info("Leader of the cluster is not {} anymore. Skipping switchover", givenLeader);
+          return Uni.createFrom().voidItem();
+        }
 
       } else {
         return Uni.createFrom().failure(() -> new FailoverException("Cluster not healthy"));

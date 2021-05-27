@@ -49,13 +49,7 @@ class PatroniSecretTest {
       .build();
 
   @Mock
-  private LabelFactoryDelegator delegator;
-
-  @Mock
   private LabelFactory<StackGresCluster> labelFactory;
-
-  @Mock
-  private ResourceFinder<Secret> secretFinder;
 
   @Mock
   private StackGresClusterContext generatorContext;
@@ -67,7 +61,6 @@ class PatroniSecretTest {
     StackGresCluster defaultCluster = JsonUtil
         .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
     patroniSecret.setFactoryFactory(labelFactory);
-    patroniSecret.setSecretFinder(secretFinder);
     when(labelFactory.clusterLabels(any(StackGresCluster.class))).thenReturn(ImmutableMap.of());
 
     when(generatorContext.getSource()).thenReturn(defaultCluster);
@@ -76,9 +69,6 @@ class PatroniSecretTest {
 
   @Test
   void generateResources_shouldGenerateRandomPasswords() {
-
-    when(secretFinder.findByNameAndNamespace(anyString(), anyString()))
-        .thenReturn(Optional.empty());
 
     Stream<HasMetadata> resourcesStream = patroniSecret.generateResource(generatorContext);
     List<HasMetadata> resources = resourcesStream.collect(Collectors.toUnmodifiableList());
@@ -100,29 +90,5 @@ class PatroniSecretTest {
 
   }
 
-  @Test
-  void generateResources_shouldNotGenerateRandomPasswords() {
 
-    when(secretFinder.findByNameAndNamespace(anyString(), anyString()))
-        .thenReturn(Optional.of(existentSecret));
-
-    Stream<HasMetadata> resourcesStream = patroniSecret.generateResource(generatorContext);
-    List<HasMetadata> resources = resourcesStream.collect(Collectors.toUnmodifiableList());
-    assertEquals(1, resources.size());
-
-    assertEquals(Secret.class, resources.get(0).getClass());
-
-    Secret secret = (Secret) resources.get(0);
-
-    final Map<String, String> data = secret.getData();
-    assertTrue(data.containsKey(SUPERUSER_PASSWORD_KEY));
-    assertTrue(data.containsKey(REPLICATION_PASSWORD_KEY));
-    assertTrue(data.containsKey(AUTHENTICATOR_PASSWORD_KEY));
-
-    final Map<String, String> existentData = existentSecret.getData();
-    assertEquals(existentData.get(SUPERUSER_PASSWORD_KEY), data.get(SUPERUSER_PASSWORD_KEY));
-    assertEquals(existentData.get(REPLICATION_PASSWORD_KEY), data.get(REPLICATION_PASSWORD_KEY));
-    assertEquals(existentData.get(AUTHENTICATOR_PASSWORD_KEY), data.get(AUTHENTICATOR_PASSWORD_KEY));
-
-  }
 }

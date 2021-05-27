@@ -7,6 +7,7 @@ package io.stackgres.operator.conciliation.factory.cluster.backup;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -14,36 +15,56 @@ import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
-import io.stackgres.operatorframework.resource.ResourceUtil;
-import org.jooq.lambda.Seq;
+import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
+import io.stackgres.operator.conciliation.factory.VolumeFactory;
+import io.stackgres.operator.conciliation.factory.VolumePair;
+import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
+import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
 public class BackupSecret
-    implements ResourceGenerator<StackGresClusterContext> {
-
-  private static final String BACKUP_SECRET_SUFFIX = "-backup";
+    implements VolumeFactory<StackGresClusterContext> {
 
   private LabelFactory<StackGresCluster> labelFactory;
 
   private BackupEnvVarFactory backupEnvVarFactory;
 
   public static String name(ClusterContext context) {
-    return ResourceUtil.resourceName(
-        context.getCluster().getMetadata().getName() + BACKUP_SECRET_SUFFIX);
+    final String clusterName = context.getCluster().getMetadata().getName();
+    return StatefulSetDynamicVolumes.BACKUP_CREDENTIALS.getResourceName(clusterName);
   }
 
   @Override
-  public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
-    Map<String, String> data = new HashMap<String, String>();
+  public @NotNull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
+    return Stream.of(
+        ImmutableVolumePair.builder()
+            .volume(buildVolume(context))
+            .source(buildSource(context))
+            .build()
+    );
+  }
+
+  public @NotNull Volume buildVolume(StackGresClusterContext context) {
+    return new VolumeBuilder()
+        .withName(StatefulSetDynamicVolumes.BACKUP_CREDENTIALS.getVolumeName())
+        .withNewSecret()
+        .withSecretName(name(context))
+        .endSecret()
+        .build();
+  }
+
+  public @NotNull Optional<HasMetadata> buildSource(StackGresClusterContext context) {
+    Map<String, String> data = new HashMap<>();
 
     context.getBackupConfig().ifPresent(backupConfig -> {
       data.put("BACKUP_CONFIG_RESOURCE_VERSION",
@@ -53,7 +74,7 @@ public class BackupSecret
 
     StackGresCluster cluster = context.getSource();
 
-    return Seq.of(new SecretBuilder()
+    return Optional.of(new SecretBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(name(context))

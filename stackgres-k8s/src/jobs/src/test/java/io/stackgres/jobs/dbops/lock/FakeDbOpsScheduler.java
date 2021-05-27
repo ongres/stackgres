@@ -5,6 +5,9 @@
 
 package io.stackgres.jobs.dbops.lock;
 
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+
 import javax.inject.Inject;
 
 import io.quarkus.test.Mock;
@@ -46,5 +49,12 @@ public class FakeDbOpsScheduler implements CustomResourceScheduler<StackGresDbOp
     StackGresDbOps savedOp = kubeDb.getDbOps(name, namespace);
     savedOp.setStatus(resource.getStatus());
     return kubeDb.addOrReplaceDbOps(savedOp);
+  }
+
+  @Override
+  public <S> void updateStatus(@NotNull StackGresDbOps resource,
+                               @NotNull Function<StackGresDbOps, S> statusGetter,
+                               @NotNull BiConsumer<StackGresDbOps, S> statusSetter) {
+    throw new UnsupportedOperationException("not implemented");
   }
 }

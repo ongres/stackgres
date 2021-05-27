@@ -5,6 +5,9 @@
 
 package io.stackgres.operator.conciliation.factory.distributedlogs.patroni;
 
+import static io.stackgres.operator.conciliation.VolumeMountProviderName.LOCAL_BIN;
+import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_EXTENSIONS;
+import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_SOCKET;
 import static io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap.PATRONI_RESTAPI_PORT_NAME;
 
 import java.util.List;
@@ -13,20 +16,21 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
-import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HTTPGetActionBuilder;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
-import io.fabric8.kubernetes.api.model.Volume;
-import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
@@ -35,35 +39,51 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
-import io.stackgres.operator.conciliation.factory.AbstractPatroniTemplatesConfigMap;
+import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
+import io.stackgres.operator.conciliation.factory.ContextUtil;
+import io.stackgres.operator.conciliation.factory.FactoryName;
+import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
+import io.stackgres.operator.conciliation.factory.PostgresContainerContext;
+import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
+import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap;
-import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsStatefulSet;
+import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsContainerContext;
+import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
 @RunningContainer(order = 0)
-public class PatroniContainer implements ContainerFactory<DistributedLogsContext> {
-
-  static final String DISTRIBUTED_LOGS_TEMPLATE_NAME = "distributed-logs-template";
-  private static final String SOCKET_VOLUME_NAME = "socket";
-  private static final String LOCAL_VOLUME_NAME = "local";
-  private static final String DSHM_VOLUME_NAME = "dshm";
-  private static final String PATRONI_ENV_VOLUME_NAME = "patroni-env";
-  private static final String PATRONI_CONFIG_VOLUME_NAME = "patroni-config";
+public class PatroniContainer implements ContainerFactory<DistributedLogsContainerContext> {
 
   private final ResourceFactory<DistributedLogsContext, List<EnvVar>> envVarFactory;
 
+  private final VolumeMountsProvider<ContainerContext> postgresSocket;
+  private final VolumeMountsProvider<PostgresContainerContext> postgresExtensions;
+  private final VolumeMountsProvider<ContainerContext> localBinMounts;
+
   @Inject
-  public PatroniContainer(ResourceFactory<DistributedLogsContext, List<EnvVar>> envVarFactory) {
+  public PatroniContainer(
+      @FactoryName(DistributedLogsEnvVarFactories.LATEST_PATRONI_ENV_VAR_FACTORY)
+          ResourceFactory<DistributedLogsContext, List<EnvVar>> envVarFactory,
+      @ProviderName(POSTGRES_SOCKET)
+          VolumeMountsProvider<ContainerContext> postgresSocket,
+      @ProviderName(POSTGRES_EXTENSIONS)
+          VolumeMountsProvider<PostgresContainerContext> postgresExtensions,
+      @ProviderName(LOCAL_BIN)
+          VolumeMountsProvider<ContainerContext> localBinMounts) {
     this.envVarFactory = envVarFactory;
+    this.postgresSocket = postgresSocket;
+    this.postgresExtensions = postgresExtensions;
+    this.localBinMounts = localBinMounts;
   }
 
   @Override
-  public Container getContainer(DistributedLogsContext context) {
-    final StackGresDistributedLogs cluster = context.getSource();
+  public Container getContainer(DistributedLogsContainerContext context) {
+    final DistributedLogsContext distributedLogsContext = context.getDistributedLogsContext();
+    final StackGresDistributedLogs cluster = distributedLogsContext.getSource();
     final String pgVersion = StackGresComponent.POSTGRESQL.findVersion(StackGresComponent.LATEST);
 
     final String patroniImageName = StackGresComponent.PATRONI.findImageName(
@@ -90,71 +110,12 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContext
                 .withProtocol("TCP")
                 .withContainerPort(EnvoyUtil.PATRONI_ENTRY_PORT)
                 .build())
-        .withVolumeMounts(new VolumeMountBuilder()
-                .withName(DistributedLogsStatefulSet.dataName(cluster))
-                .withMountPath(PatroniEnvPaths.PG_BASE_PATH.getPath())
-                .build(),
-            new VolumeMountBuilder()
-                .withName(SOCKET_VOLUME_NAME)
-                .withMountPath(PatroniEnvPaths.PG_RUN_PATH.getPath())
-                .build(),
-            new VolumeMountBuilder()
-                .withName(DSHM_VOLUME_NAME)
-                .withMountPath(PatroniEnvPaths.SHARED_MEMORY_PATH.getPath())
-                .build(),
-            new VolumeMountBuilder()
-                .withName(LOCAL_VOLUME_NAME)
-                .withMountPath("/usr/local/bin")
-                .withSubPath("usr/local/bin")
-                .build(),
-            new VolumeMountBuilder()
-                .withName(LOCAL_VOLUME_NAME)
-                .withMountPath("/var/log/postgresql")
-                .withSubPath("var/log/postgresql")
-                .build(),
-            new VolumeMountBuilder()
-                .withName(LOCAL_VOLUME_NAME)
-                .withMountPath("/etc/passwd")
-                .withSubPath("etc/passwd")
-                .withReadOnly(true)
-                .build(),
-            new VolumeMountBuilder()
-                .withName(LOCAL_VOLUME_NAME)
-                .withMountPath("/etc/group")
-                .withSubPath("etc/group")
-                .withReadOnly(true)
-                .build(),
-            new VolumeMountBuilder()
-                .withName(LOCAL_VOLUME_NAME)
-                .withMountPath("/etc/shadow")
-                .withSubPath("etc/shadow")
-                .withReadOnly(true)
-                .build(),
-            new VolumeMountBuilder()
-                .withName(LOCAL_VOLUME_NAME)
-                .withMountPath("/etc/gshadow")
-                .withSubPath("etc/gshadow")
-                .withReadOnly(true)
-                .build(),
-            new VolumeMountBuilder()
-                .withName(PATRONI_ENV_VOLUME_NAME)
-                .withMountPath("/etc/env/patroni")
-                .build(),
-            new VolumeMountBuilder()
-                .withName(PATRONI_CONFIG_VOLUME_NAME)
-                .withMountPath("/etc/patroni")
-                .build(),
-            new VolumeMountBuilder()
-                .withName(DISTRIBUTED_LOGS_TEMPLATE_NAME)
-                .withMountPath("/etc/patroni/init-script.d/distributed-logs-template.template1.sql")
-                .withSubPath("distributed-logs-template.sql")
-                .withReadOnly(true)
-                .build())
+        .withVolumeMounts(getVolumeMounts(context))
         .withEnvFrom(new EnvFromSourceBuilder()
             .withConfigMapRef(new ConfigMapEnvSourceBuilder()
                 .withName(cluster.getMetadata().getName()).build())
             .build())
-        .withEnv(envVarFactory.createResource(context))
+        .withEnv(getEnvVar(context))
         .withLivenessProbe(new ProbeBuilder()
             .withHttpGet(new HTTPGetActionBuilder()
                 .withNewPath("/cluster")
@@ -178,7 +139,7 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContext
   }
 
   @Override
-  public Map<String, String> getComponentVersions(DistributedLogsContext context) {
+  public Map<String, String> getComponentVersions(DistributedLogsContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.POSTGRES_VERSION_KEY,
         StackGresComponent.POSTGRESQL.findVersion(StackGresComponent.LATEST),
@@ -186,60 +147,51 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContext
         StackGresComponent.PATRONI.findLatestVersion());
   }
 
-  @Override
-  public List<Volume> getVolumes(DistributedLogsContext context) {
-
-    final StackGresDistributedLogs source = context.getSource();
-
-    return List.of(
-        new VolumeBuilder()
-            .withName(SOCKET_VOLUME_NAME)
-            .withNewEmptyDir()
-            .withMedium("Memory")
-            .endEmptyDir()
-            .build(),
-        new VolumeBuilder()
-            .withName(DSHM_VOLUME_NAME)
-            .withNewEmptyDir()
-            .withMedium("Memory")
-            .endEmptyDir()
-            .build(),
-        new VolumeBuilder()
-            .withName("shared")
-            .withNewEmptyDir()
-            .endEmptyDir().build(),
-        new VolumeBuilder()
-            .withName(LOCAL_VOLUME_NAME)
-            .withNewEmptyDir()
-            .endEmptyDir()
-            .build(),
-        new VolumeBuilder()
-            .withName(PATRONI_ENV_VOLUME_NAME)
-            .withConfigMap(new ConfigMapVolumeSourceBuilder()
-                .withDefaultMode(444)
-                .withName(source.getMetadata().getName())
+  public List<VolumeMount> getVolumeMounts(DistributedLogsContainerContext context) {
+    return ImmutableList.<VolumeMount>builder()
+        .addAll(postgresSocket.getVolumeMounts(context))
+        .add(new VolumeMountBuilder()
+            .withName(PatroniStaticVolume.DSHM.getVolumeName())
+            .withMountPath(ClusterStatefulSetPath.SHARED_MEMORY_PATH.path())
+            .build())
+        .add(new VolumeMountBuilder()
+            .withName(PatroniStaticVolume.LOG.getVolumeName())
+            .withMountPath(ClusterStatefulSetPath.PG_LOG_PATH.path())
+            .build())
+        .addAll(localBinMounts.getVolumeMounts(context))
+        .add(
+            new VolumeMountBuilder()
+                .withName(StatefulSetDynamicVolumes.PATRONI_ENV.getVolumeName())
+                .withMountPath("/etc/env/patroni")
+                .build(),
+            new VolumeMountBuilder()
+                .withName(PatroniStaticVolume.PATRONI_CONFIG.getVolumeName())
+                .withMountPath("/etc/patroni")
+                .build(),
+            new VolumeMountBuilder()
+                .withName(StatefulSetDynamicVolumes.INIT_SCRIPT.getVolumeName())
+                .withMountPath("/etc/patroni/init-script.d/distributed-logs-template.template1.sql")
+                .withSubPath("distributed-logs-template.sql")
+                .withReadOnly(true)
                 .build())
-            .build(),
-        new VolumeBuilder()
-            .withName(PATRONI_CONFIG_VOLUME_NAME)
-            .withNewEmptyDir()
-            .endEmptyDir()
-            .build(),
-        new VolumeBuilder()
-            .withName("distributed-logs-templates")
-            .withConfigMap(new ConfigMapVolumeSourceBuilder()
-                .withName(AbstractPatroniTemplatesConfigMap.name(source))
-                .withDefaultMode(444)
-                .withOptional(false)
-                .build())
-            .build(),
-        new VolumeBuilder()
-            .withName(DISTRIBUTED_LOGS_TEMPLATE_NAME)
-            .withConfigMap(new ConfigMapVolumeSourceBuilder()
-                .withName(PatroniInitScriptConfigMap.name(source))
-                .withDefaultMode(420)
-                .withOptional(false)
-                .build())
-            .build());
+        .addAll(postgresExtensions.getVolumeMounts(ContextUtil.toPostgresContext(context)))
+        .build();
   }
+
+  public List<EnvVar> getEnvVar(DistributedLogsContainerContext context) {
+    return ImmutableList.<EnvVar>builder()
+        .addAll(localBinMounts.getDerivedEnvVars(context))
+        .addAll(postgresExtensions.getDerivedEnvVars(ContextUtil.toPostgresContext(context)))
+        .addAll(envVarFactory.createResource(context.getDistributedLogsContext()))
+        .add(new EnvVarBuilder()
+                .withName("PATRONI_CONFIG_PATH")
+                .withValue("/etc/patroni")
+                .build(),
+            new EnvVarBuilder()
+                .withName("PATRONI_ENV_PATH")
+                .withValue("/etc/env/patroni")
+                .build())
+        .build();
+  }
+
 }

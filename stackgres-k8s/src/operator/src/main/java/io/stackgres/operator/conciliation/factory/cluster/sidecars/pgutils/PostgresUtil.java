@@ -5,18 +5,61 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.pgutils;
 
+import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
+
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
+import io.stackgres.operator.conciliation.factory.ContainerContext;
+import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
+import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
+import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
+import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 
 @Sidecar(StackgresClusterContainers.POSTGRES_UTIL)
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
 @RunningContainer(order = 5)
 public class PostgresUtil extends AbstractPostgresUtil {
+
+  private VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
+
+  @Override
+  public Container getContainer(StackGresClusterContainerContext context) {
+    return new ContainerBuilder()
+        .withName(StackgresClusterContainers.POSTGRES_UTIL)
+        .withImage(StackGresComponent.POSTGRES_UTIL.findImageName(
+            context.getClusterContext().getSource().getSpec().getPostgresVersion()))
+        .withImagePullPolicy("IfNotPresent")
+        .withStdin(Boolean.TRUE)
+        .withTty(Boolean.TRUE)
+        .withCommand("/bin/sh")
+        .withArgs("-c", "while true; do sleep 10; done")
+        .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
+        .addToVolumeMounts(
+            new VolumeMountBuilder()
+                .withName(PatroniStaticVolume.EMPTY_BASE.getVolumeName())
+                .withMountPath("/var/lib/postgresql")
+                .build()
+        )
+        .addAllToVolumeMounts(containerUserOverrideMounts.getVolumeMounts(context))
+        .build();
+  }
+
+  @Inject
+  public void setContainerUserOverrideMounts(
+      @ProviderName(CONTAINER_USER_OVERRIDE)
+          VolumeMountsProvider<ContainerContext> containerUserOverrideMounts) {
+    this.containerUserOverrideMounts = containerUserOverrideMounts;
+  }
 
 }

@@ -30,7 +30,6 @@ public class PodWatcher implements Watcher<Pod> {
     this.clientFactory = clientFactory;
   }
 
-
   @Override
   public Uni<Pod> waitUntilIsReady(String name, String namespace) {
 

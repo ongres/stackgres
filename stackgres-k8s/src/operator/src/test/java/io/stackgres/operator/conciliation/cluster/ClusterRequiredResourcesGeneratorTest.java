@@ -5,10 +5,15 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +31,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackupList;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
@@ -37,8 +43,8 @@ import io.stackgres.common.resource.PostgresConfigFinder;
 import io.stackgres.common.resource.ProfileConfigFinder;
 import io.stackgres.common.resource.SecretFinder;
 import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.customresource.prometheus.PrometheusConfigList;
 import io.stackgres.operator.resource.PrometheusScanner;
-import io.stackgres.operator.resource.ServiceAccountFinder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -58,16 +64,13 @@ class ClusterRequiredResourcesGeneratorTest {
   PoolingConfigFinder poolingConfigFinder;
 
   @InjectMock
-  ServiceAccountFinder serviceAccountFinder;
-
-  @InjectMock
   BackupScanner backupScanner;
 
   @InjectMock
-  SecretFinder secretFinder;
+  PrometheusScanner prometheusScanner;
 
   @InjectMock
-  PrometheusScanner prometheusScanner;
+  SecretFinder secretFinder;
 
   @Inject
   ClusterRequiredResourcesGenerator generator;
@@ -97,7 +100,10 @@ class ClusterRequiredResourcesGeneratorTest {
     backups = JsonUtil.readFromJson("backup/list.json", StackGresBackupList.class).getItems();
     backups.forEach(this::setNamespace);
     minioSecret = JsonUtil.readFromJson("secret/minio.json", Secret.class);
-    lenient().when(prometheusScanner.findResources(any())).thenReturn(Optional.empty());
+    lenient().when(prometheusScanner.findResources(any())).thenReturn(Optional.of(
+        JsonUtil.readFromJson("prometheus/prometheus_list.json", PrometheusConfigList.class)
+        .getItems()
+    ));
   }
 
   private void setNamespace(HasMetadata resource){
@@ -123,9 +129,7 @@ class ClusterRequiredResourcesGeneratorTest {
         .thenReturn(Optional.of(instanceProfile));
     when(backupScanner.getResources())
         .thenReturn(backups);
-    when(serviceAccountFinder.findByNameAndNamespace(any(), eq(clusterNamespace)))
-        .thenReturn(Optional.empty());
-    mockSecrets(clusterName, clusterNamespace);
+    mockSecrets(clusterNamespace);
 
     generator.getRequiredResources(cluster);
 
@@ -134,8 +138,6 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupScanner).getResources();
-    verify(serviceAccountFinder).findByNameAndNamespace(any(), eq(clusterNamespace));
-    verify(secretFinder).findByNameAndNamespace(clusterName, clusterNamespace);
 
   }
 
@@ -158,9 +160,7 @@ class ClusterRequiredResourcesGeneratorTest {
         .thenReturn(Optional.of(instanceProfile));
     when(backupScanner.getResources())
         .thenReturn(backups);
-    when(serviceAccountFinder.findByNameAndNamespace(any(), eq(clusterNamespace)))
-        .thenReturn(Optional.empty());
-    mockSecrets(clusterName, clusterNamespace);
+    mockSecrets(clusterNamespace);
 
     List<HasMetadata> resources = generator.getRequiredResources(cluster);
 
@@ -177,9 +177,6 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupScanner).getResources();
-    verify(serviceAccountFinder)
-        .findByNameAndNamespace(any(), eq(clusterNamespace));
-    verify(secretFinder).findByNameAndNamespace(clusterName, clusterNamespace);
 
   }
 
@@ -201,9 +198,7 @@ class ClusterRequiredResourcesGeneratorTest {
         .thenReturn(Optional.of(instanceProfile));
     when(backupScanner.getResources())
         .thenReturn(backups);
-    when(serviceAccountFinder.findByNameAndNamespace(any(), eq(clusterNamespace)))
-        .thenReturn(Optional.empty());
-    mockSecrets(clusterName, clusterNamespace);
+    mockSecrets(clusterNamespace);
 
     generator.getRequiredResources(cluster);
 
@@ -212,9 +207,6 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupScanner).getResources();
-    verify(serviceAccountFinder)
-        .findByNameAndNamespace(any(), eq(clusterNamespace));
-    verify(secretFinder).findByNameAndNamespace(clusterName, clusterNamespace);
 
   }
 
@@ -237,9 +229,7 @@ class ClusterRequiredResourcesGeneratorTest {
         .thenReturn(Optional.of(instanceProfile));
     when(backupScanner.getResources())
         .thenReturn(backups);
-    when(serviceAccountFinder.findByNameAndNamespace(any(), eq(clusterNamespace)))
-        .thenReturn(Optional.empty());
-    mockSecrets(clusterName, clusterNamespace);
+    mockSecrets(clusterNamespace);
 
     generator.getRequiredResources(cluster);
 
@@ -248,9 +238,6 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(poolingConfigFinder, never()).findByNameAndNamespace(any(), any());
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupScanner).getResources();
-    verify(serviceAccountFinder)
-        .findByNameAndNamespace(any(), eq(clusterNamespace));
-    verify(secretFinder).findByNameAndNamespace(clusterName, clusterNamespace);
 
   }
 
@@ -274,9 +261,7 @@ class ClusterRequiredResourcesGeneratorTest {
     final String resourceProfile = clusterSpec.getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
-    when(serviceAccountFinder.findByNameAndNamespace(any(), eq(clusterNamespace)))
-        .thenReturn(Optional.empty());
-    mockSecrets(clusterName, clusterNamespace);
+    mockSecrets(clusterNamespace);
 
     generator.getRequiredResources(cluster);
 
@@ -285,15 +270,13 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupScanner, never()).getResources();
-    verify(serviceAccountFinder)
-        .findByNameAndNamespace(any(), eq(clusterNamespace));
-    verify(secretFinder).findByNameAndNamespace(clusterName, clusterNamespace);
 
   }
 
   @Test
   void givenAClusterInvalidRestoreData_getRequiredResourcesShouldNotScanForBackups() {
 
+    cluster.getSpec().getInitData().getRestore().setFromBackup(new StackGresClusterRestoreFromBackup());
     cluster.getSpec().getInitData().getRestore().getFromBackup().setUid(UUID.randomUUID().toString());
 
     final ObjectMeta metadata = cluster.getMetadata();
@@ -313,10 +296,6 @@ class ClusterRequiredResourcesGeneratorTest {
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
     when(backupScanner.getResources()).thenReturn(backups);
-    when(serviceAccountFinder.findByNameAndNamespace(any(), eq(clusterNamespace)))
-        .thenReturn(Optional.empty());
-    when(secretFinder.findByNameAndNamespace(clusterName, clusterNamespace))
-        .thenReturn(Optional.empty());
 
     assertException("SGCluster " + clusterNamespace + "/" + clusterName + " have an invalid restore backup Uid");
 
@@ -325,8 +304,6 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupScanner).getResources();
-    verify(serviceAccountFinder, never()).findByNameAndNamespace(any(), eq(clusterNamespace));
-    verify(secretFinder, never()).findByNameAndNamespace(clusterName, clusterNamespace);
 
   }
 
@@ -359,8 +336,6 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(backupConfigFinder,never()).findByNameAndNamespace(any(), any());
     verify(poolingConfigFinder, never()).findByNameAndNamespace(any(), any());
     verify(backupScanner, never()).getResources();
-    verify(serviceAccountFinder, never()).findByNameAndNamespace(any(), eq(clusterNamespace));
-    verify(secretFinder, never()).findByNameAndNamespace(clusterName, clusterNamespace);
 
   }
 
@@ -386,8 +361,6 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(backupConfigFinder, never()).findByNameAndNamespace(any(), any());
     verify(poolingConfigFinder, never()).findByNameAndNamespace(any(), any());
     verify(backupScanner, never()).getResources();
-    verify(serviceAccountFinder, never()).findByNameAndNamespace(any(), eq(clusterNamespace));
-    verify(secretFinder, never()).findByNameAndNamespace(clusterName, clusterNamespace);
 
   }
 
@@ -411,9 +384,7 @@ class ClusterRequiredResourcesGeneratorTest {
         .thenReturn(Optional.of(instanceProfile));
     when(backupScanner.getResources())
         .thenReturn(backups);
-    when(serviceAccountFinder.findByNameAndNamespace(any(), eq(clusterNamespace)))
-        .thenReturn(Optional.empty());
-    mockSecrets(clusterName, clusterNamespace);
+    mockSecrets(clusterNamespace);
 
     generator.getRequiredResources(cluster);
 
@@ -422,9 +393,6 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupScanner).getResources();
-    verify(serviceAccountFinder)
-        .findByNameAndNamespace(any(), eq(clusterNamespace));
-    verify(secretFinder).findByNameAndNamespace(clusterName, clusterNamespace);
 
   }
 
@@ -448,9 +416,7 @@ class ClusterRequiredResourcesGeneratorTest {
         .thenReturn(Optional.of(instanceProfile));
     when(backupScanner.getResources())
         .thenReturn(backups);
-    when(serviceAccountFinder.findByNameAndNamespace(any(), eq(clusterNamespace)))
-        .thenReturn(Optional.empty());
-    mockSecrets(clusterName, clusterNamespace);
+    mockSecrets(clusterNamespace);
 
     generator.getRequiredResources(cluster);
 
@@ -459,17 +425,12 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupScanner).getResources();
-    verify(serviceAccountFinder)
-        .findByNameAndNamespace(any(), eq(clusterNamespace));
-    verify(secretFinder).findByNameAndNamespace(clusterName, clusterNamespace);
 
   }
 
-  private void mockSecrets(String clusterName, String clusterNamespace) {
+  private void mockSecrets(String clusterNamespace) {
     when(secretFinder.findByNameAndNamespace("minio", clusterNamespace))
         .thenReturn(Optional.of(minioSecret));
-    when(secretFinder.findByNameAndNamespace(clusterName, clusterNamespace))
-        .thenReturn(Optional.empty());
   }
 
   private void mockBackupConfig(String clusterNamespace, String backupConfigName) {

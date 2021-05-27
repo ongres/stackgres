@@ -31,11 +31,20 @@ public abstract class AbstractReconciliationHandler implements ReconciliationHan
   }
 
   @Override
-  public HasMetadata patch(HasMetadata resource) {
+  public HasMetadata patch(HasMetadata resource, HasMetadata oldResource) {
     return clientFactory.withNewClient(client -> getResourceOperation(client, resource)
         .inNamespace(resource.getMetadata().getNamespace())
         .withName(resource.getMetadata().getName())
         .patch(resource));
+  }
+
+  @Override
+  public HasMetadata replace(HasMetadata resource) {
+    return clientFactory.withNewClient(client -> getResourceOperation(client, resource)
+        .inNamespace(resource.getMetadata().getNamespace())
+        .withName(resource.getMetadata().getName())
+        .lockResourceVersion(resource.getMetadata().getResourceVersion())
+        .replace(resource));
   }
 
   @Override

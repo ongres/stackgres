@@ -14,33 +14,54 @@ import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
-import io.stackgres.operatorframework.resource.ResourceUtil;
-import org.jooq.lambda.Seq;
+import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
+import io.stackgres.operator.conciliation.factory.VolumeFactory;
+import io.stackgres.operator.conciliation.factory.VolumePair;
+import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
+import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
 public class BackupConfigMap extends AbstractBackupConfigMap
-    implements ResourceGenerator<StackGresClusterContext> {
-
-  private static final String BACKUP_SUFFIX = "-backup";
+    implements VolumeFactory<StackGresClusterContext> {
 
   private LabelFactory<StackGresCluster> labelFactory;
 
   public static String name(ClusterContext clusterContext) {
-    return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName()
-        + BACKUP_SUFFIX);
+    final String clusterName = clusterContext.getCluster().getMetadata().getName();
+    return StatefulSetDynamicVolumes.BACKUP_ENV.getResourceName(clusterName);
   }
 
   @Override
-  public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
+  public @NotNull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
+    return Stream.of(
+        ImmutableVolumePair.builder()
+            .source(buildSource(context))
+            .volume(buildVolume(context))
+            .build()
+    );
+  }
+
+  public @NotNull Volume buildVolume(StackGresClusterContext context) {
+    return new VolumeBuilder()
+        .withName(StatefulSetDynamicVolumes.BACKUP_ENV.getVolumeName())
+        .withNewConfigMap()
+        .withName(name(context))
+        .withDefaultMode(444)
+        .endConfigMap()
+        .build();
+  }
+
+  public @NotNull HasMetadata buildSource(StackGresClusterContext context) {
     final Map<String, String> data = new HashMap<>();
 
     final StackGresCluster cluster = context.getCluster();
@@ -53,14 +74,14 @@ public class BackupConfigMap extends AbstractBackupConfigMap
               cluster.getMetadata().getName(),
               backupConfig.getSpec()));
         });
-    return Seq.of(new ConfigMapBuilder()
+    return new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(name(context))
         .withLabels(labelFactory.patroniClusterLabels(cluster))
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(data))
-        .build());
+        .build();
   }
 
   @Inject

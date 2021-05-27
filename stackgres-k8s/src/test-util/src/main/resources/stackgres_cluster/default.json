@@ -13,7 +13,7 @@
   },
   "spec": {
     "instances": 1,
-    "postgresVersion": "11.5",
+    "postgresVersion": "11.6",
     "sgInstanceProfile": "size-xs",
     "initialData": {
       "restore": {

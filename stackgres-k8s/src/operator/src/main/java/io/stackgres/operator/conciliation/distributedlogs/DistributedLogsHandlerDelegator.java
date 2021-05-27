@@ -39,8 +39,13 @@ public class DistributedLogsHandlerDelegator implements HandlerDelegator<StackGr
   }
 
   @Override
-  public HasMetadata patch(HasMetadata resource) {
-    return getHandler(resource).patch(resource);
+  public HasMetadata patch(HasMetadata newResource, HasMetadata oldResource) {
+    return getHandler(newResource).patch(newResource, oldResource);
+  }
+
+  @Override
+  public HasMetadata replace(HasMetadata resource) {
+    return getHandler(resource).replace(resource);
   }
 
   @Override

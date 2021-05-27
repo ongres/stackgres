@@ -5,6 +5,8 @@
 
 package io.stackgres.jobs;
 
+import java.io.IOException;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
@@ -12,6 +14,7 @@ import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.test.Mock;
+import io.smallrye.mutiny.Uni;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.testutil.CrdUtils;
 import io.stackgres.testutil.KubernetesServerSupplier;
@@ -25,11 +28,16 @@ public class MockKubernetesClientFactory implements KubernetesClientFactory {
   @PostConstruct
   public void setup() throws Exception {
 
-    try (KubernetesClient client = serverSupplier.get().getClient()) {
-      CrdUtils.installCrds(client);
-    }
-  }
+    Uni.createFrom().emitter(em -> {
+      try (KubernetesClient client = serverSupplier.get().getClient()) {
+        CrdUtils.installCrds(client);
+        em.complete(null);
+      } catch (IOException e) {
+        em.fail(e);
+      }
+    }).onFailure().retry().atMost(10);
 
+  }
 
   @Override
   public KubernetesClient create() {

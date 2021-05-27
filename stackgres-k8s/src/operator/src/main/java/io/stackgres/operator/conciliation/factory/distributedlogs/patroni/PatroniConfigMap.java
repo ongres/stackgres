@@ -15,29 +15,33 @@ import javax.inject.Singleton;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
-import io.stackgres.operatorframework.resource.ResourceUtil;
-import org.jooq.lambda.Seq;
+import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
+import io.stackgres.operator.conciliation.factory.VolumeFactory;
+import io.stackgres.operator.conciliation.factory.VolumePair;
+import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
-public class PatroniConfigMap implements ResourceGenerator<DistributedLogsContext> {
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
+public class PatroniConfigMap implements VolumeFactory<DistributedLogsContext> {
 
   public static final int PATRONI_LOG_FILE_SIZE = 256 * 1024 * 1024;
   public static final String POSTGRES_PORT_NAME = "pgport";
   public static final String POSTGRES_REPLICATION_PORT_NAME = "pgreplication";
-  public static final String PATRONI_RESTAPI_PORT_NAME = "patroniport";
 
   private static final Logger PATRONI_LOGGER = LoggerFactory.getLogger("io.stackgres.patroni");
   private final LabelFactory<StackGresDistributedLogs> labelFactory;
@@ -52,7 +56,8 @@ public class PatroniConfigMap implements ResourceGenerator<DistributedLogsContex
   }
 
   public static String name(DistributedLogsContext clusterContext) {
-    return ResourceUtil.resourceName(clusterContext.getSource().getMetadata().getName());
+    final String name = clusterContext.getSource().getMetadata().getName();
+    return StatefulSetDynamicVolumes.PATRONI_ENV.getResourceName(name);
   }
 
   public static String getKubernetesPorts(final int pgPort, final int pgRawPort) {
@@ -67,7 +72,26 @@ public class PatroniConfigMap implements ResourceGenerator<DistributedLogsContex
   }
 
   @Override
-  public Stream<HasMetadata> generateResource(DistributedLogsContext context) {
+  public @NotNull Stream<VolumePair> buildVolumes(DistributedLogsContext context) {
+    return Stream.of(
+        ImmutableVolumePair.builder()
+            .volume(buildVolume(context))
+            .source(buildSource(context))
+            .build()
+    );
+  }
+
+  public @NotNull Volume buildVolume(DistributedLogsContext context) {
+    return new VolumeBuilder()
+        .withName(StatefulSetDynamicVolumes.PATRONI_ENV.getVolumeName())
+        .withConfigMap(new ConfigMapVolumeSourceBuilder()
+            .withDefaultMode(444)
+            .withName(name(context))
+            .build())
+        .build();
+  }
+
+  public @NotNull HasMetadata buildSource(DistributedLogsContext context) {
     final StackGresDistributedLogs cluster = context.getSource();
     final String pgVersion = StackGresComponent.POSTGRESQL.findVersion(
         StackGresComponent.LATEST);
@@ -107,7 +131,7 @@ public class PatroniConfigMap implements ResourceGenerator<DistributedLogsContex
 
     data.put("PATRONI_SCRIPTS", "1");
 
-    return Seq.of(new ConfigMapBuilder()
+    return new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(name(context))
@@ -115,7 +139,7 @@ public class PatroniConfigMap implements ResourceGenerator<DistributedLogsContex
         .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(data))
-        .build());
+        .build();
   }
 
 }

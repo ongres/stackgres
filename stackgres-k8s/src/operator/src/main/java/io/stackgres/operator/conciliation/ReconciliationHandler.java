@@ -11,7 +11,9 @@ public interface ReconciliationHandler {
 
   HasMetadata create(HasMetadata resource);
 
-  HasMetadata patch(HasMetadata newResource);
+  HasMetadata patch(HasMetadata newResource, HasMetadata oldResource);
+
+  HasMetadata replace(HasMetadata resource);
 
   void delete(HasMetadata resource);
 }

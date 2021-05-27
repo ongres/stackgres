@@ -7,6 +7,8 @@ package io.stackgres.jobs.dbops.clusterrestart;
 
 public class FailoverException extends RuntimeException {
 
+  static final long serialVersionUID = 0L;
+
   public FailoverException(String message) {
     super(message);
   }

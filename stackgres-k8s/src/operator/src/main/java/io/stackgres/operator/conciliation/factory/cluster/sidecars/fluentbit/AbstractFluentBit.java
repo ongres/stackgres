@@ -5,22 +5,24 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.fluentbit;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
-import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.LabelFactory;
@@ -29,33 +31,29 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
-import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
+import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
+import io.stackgres.operator.conciliation.factory.VolumeFactory;
+import io.stackgres.operator.conciliation.factory.VolumePair;
+import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-import org.jooq.lambda.Seq;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jetbrains.annotations.NotNull;
 
-public abstract class AbstractFluentBit implements ContainerFactory<StackGresClusterContext>,
-    ResourceGenerator<StackGresClusterContext> {
+public abstract class AbstractFluentBit implements
+    ContainerFactory<StackGresClusterContainerContext>,
+    VolumeFactory<StackGresClusterContext> {
   public static final String NAME = StackgresClusterContainers.FLUENT_BIT;
 
-  private static final Logger FLUENT_BIT_LOGGER = LoggerFactory.getLogger(
-      "io.stackgres.fluent-bit");
   private static final String CONFIG_SUFFIX = "-fluent-bit";
 
-  private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;
   private final LabelFactory<StackGresCluster> labelFactory;
 
   @Inject
   public AbstractFluentBit(
-      ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables,
       LabelFactory<StackGresCluster> labelFactory) {
     super();
-    this.clusterStatefulSetEnvironmentVariables = clusterStatefulSetEnvironmentVariables;
     this.labelFactory = labelFactory;
   }
 
@@ -71,22 +69,22 @@ public abstract class AbstractFluentBit implements ContainerFactory<StackGresClu
   }
 
   @Override
-  public boolean isActivated(StackGresClusterContext context) {
-    return context.getSource().getSpec().getDistributedLogs() != null;
+  public boolean isActivated(StackGresClusterContainerContext context) {
+    return context.getClusterContext().getSource().getSpec().getDistributedLogs() != null;
   }
 
   @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContext context) {
+  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.FLUENTBIT_VERSION_KEY,
         StackGresComponent.FLUENT_BIT.findLatestVersion());
   }
 
   @Override
-  public Container getContainer(StackGresClusterContext context) {
+  public Container getContainer(StackGresClusterContainerContext context) {
     return new ContainerBuilder()
         .withName(NAME)
-        .withImage(StackGresComponent.FLUENT_BIT.findLatestImageName())
+        .withImage(getImageImageName())
         .withImagePullPolicy("IfNotPresent")
         .withStdin(Boolean.TRUE)
         .withTty(Boolean.TRUE)
@@ -130,22 +128,41 @@ public abstract class AbstractFluentBit implements ContainerFactory<StackGresClu
             + "  fi\n"
             + "  sleep 5\n"
             + "done\n")
-        .withEnv(clusterStatefulSetEnvironmentVariables.listResources(context.getSource()))
-        .withVolumeMounts(
-            ClusterStatefulSetVolumeConfig.LOG.volumeMount(context),
-            new VolumeMountBuilder()
-                .withName(NAME)
-                .withMountPath("/etc/fluent-bit")
-                .withReadOnly(Boolean.TRUE)
-                .build())
+        .withEnv(getContainerEnvironmentVariables(context))
+        .withVolumeMounts(getVolumeMounts(context))
         .build();
   }
 
+  protected String getImageImageName() {
+    return StackGresComponent.FLUENT_BIT.findLatestImageName();
+  }
+
+  public abstract List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context);
+
+  protected abstract List<EnvVar> getContainerEnvironmentVariables(
+      StackGresClusterContainerContext context);
+
   @Override
-  public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
+  public @NotNull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
+    return Stream.of(ImmutableVolumePair.builder()
+        .volume(buildVolume(context))
+        .source(buildSource(context))
+        .build());
+  }
+
+  public @NotNull Volume buildVolume(StackGresClusterContext context) {
+    return new VolumeBuilder()
+        .withName(StatefulSetDynamicVolumes.FLUENT_BIT.getVolumeName())
+        .withConfigMap(new ConfigMapVolumeSourceBuilder()
+            .withName(configName(context))
+            .build())
+        .build();
+  }
+
+  public @NotNull Optional<HasMetadata> buildSource(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getSource();
     if (cluster.getSpec().getDistributedLogs() == null) {
-      return Stream.of();
+      return Optional.empty();
     }
     final String namespace = cluster.getMetadata().getNamespace();
     final String fluentdRelativeId = cluster.getSpec()
@@ -265,17 +282,8 @@ public abstract class AbstractFluentBit implements ContainerFactory<StackGresClu
         .withData(data)
         .build();
 
-    return Seq.of(configMap);
+    return Optional.of(configMap);
+
   }
 
-  @Override
-  public ImmutableList<Volume> getVolumes(
-      StackGresClusterContext context) {
-    return ImmutableList.of(new VolumeBuilder()
-        .withName(NAME)
-        .withConfigMap(new ConfigMapVolumeSourceBuilder()
-            .withName(configName(context))
-            .build())
-        .build());
-  }
 }

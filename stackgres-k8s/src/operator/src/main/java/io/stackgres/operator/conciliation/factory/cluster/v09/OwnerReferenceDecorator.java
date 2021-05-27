@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.v09;
 
-import java.util.Collection;
 import java.util.List;
 
 import javax.inject.Singleton;
@@ -21,12 +20,11 @@ import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.Decorator;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V095)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
 public class OwnerReferenceDecorator implements Decorator<StackGresCluster> {
 
   @Override
   public void decorate(StackGresCluster cluster,
-                       Collection<? extends HasMetadata> existingResources,
                        Iterable<? extends HasMetadata> resources) {
     List<OwnerReference> ownerReferences = getOwnerReferences(cluster);
     resources.forEach(resource -> {

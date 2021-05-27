@@ -10,24 +10,15 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
-import io.stackgres.common.resource.DistributedLogsScheduler;
 import io.stackgres.distributedlogs.common.StackGresDistributedLogsContext;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
 
 @ApplicationScoped
 public class DistributedLogsStatusManager
     extends ConditionUpdater<StackGresDistributedLogsContext, StackGresDistributedLogsCondition> {
-
-  private final DistributedLogsScheduler distributedLogsScheduler;
-
-  @Inject
-  public DistributedLogsStatusManager(DistributedLogsScheduler distributedLogsScheduler) {
-    this.distributedLogsScheduler = distributedLogsScheduler;
-  }
 
   @Override
   protected List<StackGresDistributedLogsCondition> getConditions(

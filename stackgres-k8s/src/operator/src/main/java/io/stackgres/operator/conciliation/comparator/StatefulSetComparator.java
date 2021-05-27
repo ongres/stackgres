@@ -10,14 +10,13 @@ import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.client.internal.PatchUtils;
 import io.fabric8.zjsonpatch.JsonDiff;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class StatefulSetComparator extends StackGresAbstractComparator {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(StatefulSetComparator.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger("io.stackgres.comparator");
 
   private static final IgnorePatch[] IGNORE_PATTERS = {
       new PatchPattern(Pattern
@@ -63,6 +62,9 @@ public class StatefulSetComparator extends StackGresAbstractComparator {
           .compile("/spec/template/spec/containers/\\d+/resources"),
           "add",
           "{}"),
+      new PatchPattern(Pattern.compile("/spec/template/spec/initContainers/\\d+/imagePullPolicy"),
+          "add",
+          "IfNotPresent"),
       new PatchPattern(Pattern
           .compile("/spec/template/spec/initContainers/\\d+/resources"),
           "add",
@@ -85,6 +87,10 @@ public class StatefulSetComparator extends StackGresAbstractComparator {
           .compile("/spec/template/spec/volumes/\\d+/configMap/defaultMode"),
           "add",
           "420"),
+      new PatchPattern(Pattern
+          .compile("/spec/template/spec/volumes/\\d+/secret/defaultMode"),
+          "add",
+          "420"),
       new SimpleIgnorePatch("/spec/template/spec/dnsPolicy",
           "add",
           "ClusterFirst"),
@@ -101,6 +107,14 @@ public class StatefulSetComparator extends StackGresAbstractComparator {
           "Filesystem"),
       new PatchPattern(Pattern.compile("/spec/volumeClaimTemplates/\\d+/status"),
           "add"),
+      new PatchPattern(Pattern.compile("/spec/volumeClaimTemplates/\\d+/metadata/annotations"),
+          "remove"),
+      new PatchPattern(Pattern.compile("/spec/volumeClaimTemplates/\\d+/metadata/annotations/.+"),
+          "remove"),
+      new PatchPattern(Pattern.compile("/spec/volumeClaimTemplates/\\d+/metadata/annotations/.+"),
+          "add"),
+      new PatchPattern(Pattern.compile("/spec/volumeClaimTemplates/\\d+/metadata/annotations/.+"),
+          "replace"),
       new SimpleIgnorePatch("/spec/podManagementPolicy",
           "add",
           "OrderedReady"),
@@ -117,19 +131,20 @@ public class StatefulSetComparator extends StackGresAbstractComparator {
   }
 
   @Override
-  public boolean isResourceContentEqual(HasMetadata r1, HasMetadata r2) {
-    JsonNode diff = JsonDiff.asJson(PatchUtils.patchMapper().valueToTree(r1),
-        PatchUtils.patchMapper().valueToTree(r2));
+  public boolean isResourceContentEqual(HasMetadata required, HasMetadata deployed) {
+    final JsonNode r1Tree = PATCH_MAPPER.valueToTree(required);
+    final JsonNode r2Tree = PATCH_MAPPER.valueToTree(deployed);
+    JsonNode diff = JsonDiff.asJson(r1Tree, r2Tree);
 
     int ignore = countPatchesToIgnore(diff);
 
     final int actualDifferences = diff.size() - ignore;
-    if (LOGGER.isTraceEnabled() && actualDifferences != 0) {
+    if (actualDifferences != 0) {
       for (JsonNode jsonPatch : diff) {
         JsonPatch patch = new JsonPatch(jsonPatch);
         if (Arrays.stream(getPatchPattersToIgnore())
             .noneMatch(patchPattern -> patchPattern.matches(patch))) {
-          LOGGER.trace("StatefulSet diff {}", jsonPatch.toPrettyString());
+          LOGGER.info("StatefulSet diff {}", jsonPatch.toPrettyString());
         }
       }
     }

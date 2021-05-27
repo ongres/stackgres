@@ -5,10 +5,10 @@
 
 package io.stackgres.common;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import org.jooq.lambda.Seq;
@@ -102,11 +102,11 @@ public enum ClusterStatefulSetPath implements VolumePath {
     this.path = path;
   }
 
-  ClusterStatefulSetPath(String...paths) {
+  ClusterStatefulSetPath(String... paths) {
     this(Seq.of(paths).toString("/"));
   }
 
-  ClusterStatefulSetPath(ClusterStatefulSetPath parent, String...paths) {
+  ClusterStatefulSetPath(ClusterStatefulSetPath parent, String... paths) {
     this(Seq.of(parent.path).append(paths).toString("/"));
   }
 
@@ -210,7 +210,7 @@ public enum ClusterStatefulSetPath implements VolumePath {
 
   @Override
   public String subPath(ClusterContext context, Map<String, String> envVars,
-      VolumePath relativeTo) {
+                        VolumePath relativeTo) {
     return relativize(subPath(envVars(context, envVars)),
         relativeTo.subPath(envVars(context, envVars)));
   }
@@ -245,8 +245,9 @@ public enum ClusterStatefulSetPath implements VolumePath {
         .build();
   }
 
-  private Map<String, String> envVars(ClusterContext context, Map<String, String> envVars) {
-    Map<String, String> mergedEnvVars = new HashMap<>(context.getEnvironmentVariables());
+  private Map<String, String> envVars(ClusterContext context,
+                                               Map<String, String> envVars) {
+    Map<String, String> mergedEnvVars = Maps.newHashMap(context.getEnvironmentVariables());
     mergedEnvVars.putAll(envVars);
     return Map.copyOf(mergedEnvVars);
   }

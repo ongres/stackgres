@@ -5,8 +5,9 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.controller;
 
+import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_EXTENSIONS;
+import static io.stackgres.operator.conciliation.VolumeMountProviderName.SCRIPT_TEMPLATES;
 
-import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -15,36 +16,47 @@ import javax.inject.Singleton;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
-import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
+import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
+import io.stackgres.operator.conciliation.factory.ContextUtil;
 import io.stackgres.operator.conciliation.factory.InitContainer;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
+import io.stackgres.operator.conciliation.factory.PostgresContainerContext;
+import io.stackgres.operator.conciliation.factory.ProviderName;
+import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
+import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
-@InitContainer(order = 7)
-public class InitRelocateBinaries implements ContainerFactory<StackGresClusterContext> {
+@InitContainer(order = 4)
+public class InitRelocateBinaries implements ContainerFactory<StackGresClusterContainerContext> {
 
-  private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;
+  private final VolumeMountsProvider<PostgresContainerContext> postgresExtensionsMounts;
+
+  private final VolumeMountsProvider<ContainerContext> templateMounts;
 
   @Inject
   public InitRelocateBinaries(
-      ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables) {
-    this.clusterStatefulSetEnvironmentVariables = clusterStatefulSetEnvironmentVariables;
+      @ProviderName(POSTGRES_EXTENSIONS)
+          VolumeMountsProvider<PostgresContainerContext> postgresExtensionsMounts,
+      @ProviderName(SCRIPT_TEMPLATES)
+          VolumeMountsProvider<ContainerContext> templateMounts) {
+    this.postgresExtensionsMounts = postgresExtensionsMounts;
+    this.templateMounts = templateMounts;
   }
 
   @Override
-  public Container getContainer(StackGresClusterContext context) {
+  public Container getContainer(StackGresClusterContainerContext context) {
+    final StackGresClusterContext clusterContext = context.getClusterContext();
     final String patroniImageName = StackGresComponent.PATRONI.findImageName(
         StackGresComponent.LATEST,
         ImmutableMap.of(StackGresComponent.POSTGRESQL,
-            context.getCluster().getSpec().getPostgresVersion()));
+            clusterContext.getCluster().getSpec().getPostgresVersion()));
     return new ContainerBuilder()
         .withName("relocate-binaries")
         .withImage(patroniImageName)
@@ -52,20 +64,17 @@ public class InitRelocateBinaries implements ContainerFactory<StackGresClusterCo
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.TEMPLATES_PATH.path()
                 + "/" + ClusterStatefulSetPath.LOCAL_BIN_RELOCATE_BINARIES_SH_PATH.filename())
-        .withEnv(clusterStatefulSetEnvironmentVariables.listResources(context.getCluster()))
-        .withVolumeMounts(
-            ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context),
-            ClusterStatefulSetVolumeConfig.DATA.volumeMount(context))
+        .withEnv(postgresExtensionsMounts.getDerivedEnvVars(ContextUtil.toPostgresContext(context)))
+        .withVolumeMounts(templateMounts.getVolumeMounts(context))
+        .addToVolumeMounts(new VolumeMountBuilder()
+            .withName(context.getDataVolumeName())
+            .withMountPath(ClusterStatefulSetPath.PG_BASE_PATH.path())
+            .build())
         .build();
   }
 
   @Override
-  public List<Volume> getVolumes(StackGresClusterContext context) {
-    return List.of();
-  }
-
-  @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContext context) {
+  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
     return Map.of();
   }
 }

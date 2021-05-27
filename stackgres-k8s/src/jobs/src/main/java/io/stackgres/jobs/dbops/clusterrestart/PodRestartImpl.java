@@ -36,7 +36,7 @@ public class PodRestartImpl implements PodRestart {
         .chain(() -> podWatcher.waitUntilIsReady(podName, podNamespace));
   }
 
-  public Uni<Void> deletePod(Pod pod){
+  public Uni<Void> deletePod(Pod pod) {
     return Uni.createFrom().emitter(em -> {
       podWriter.delete(pod);
       em.complete(null);

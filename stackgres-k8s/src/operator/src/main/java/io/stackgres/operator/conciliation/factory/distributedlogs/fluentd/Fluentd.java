@@ -7,6 +7,8 @@ package io.stackgres.operator.conciliation.factory.distributedlogs.fluentd;
 
 import static io.stackgres.common.FluentdUtil.PATRONI_LOG_TYPE;
 import static io.stackgres.common.FluentdUtil.POSTGRES_LOG_TYPE;
+import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
+import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_SOCKET;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -15,7 +17,6 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -23,7 +24,6 @@ import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
-import io.fabric8.kubernetes.api.model.EmptyDirVolumeSource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
@@ -34,7 +34,6 @@ import io.fabric8.kubernetes.api.model.TCPSocketActionBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.LabelFactory;
@@ -48,18 +47,29 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
+import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
+import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
+import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
+import io.stackgres.operator.conciliation.factory.VolumeFactory;
+import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
+import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.fluentbit.FluentBit;
+import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsContainerContext;
+import io.stackgres.operator.conciliation.factory.distributedlogs.FluentdStaticVolume;
+import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
+import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
 @RunningContainer(order = 2)
-public class Fluentd implements ContainerFactory<DistributedLogsContext>,
-    ResourceGenerator<DistributedLogsContext> {
+public class Fluentd implements ContainerFactory<DistributedLogsContainerContext>,
+    ResourceGenerator<DistributedLogsContext>,
+    VolumeFactory<DistributedLogsContext> {
 
   static final String PATRONI_TABLE_FIELDS = Stream.of(PatroniTableFields.values())
       .map(PatroniTableFields::getFieldName)
@@ -68,6 +78,8 @@ public class Fluentd implements ContainerFactory<DistributedLogsContext>,
       .map(PostgresTableFields::getFieldName)
       .collect(Collectors.joining(","));
   private static final Logger FLEUNTD_LOGGER = LoggerFactory.getLogger("io.stackgres.fleuntd");
+  private VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
+  private VolumeMountsProvider<ContainerContext> postgresSocket;
   private LabelFactory<StackGresDistributedLogs> labelFactory;
 
   @Override
@@ -79,7 +91,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContext>,
 
   // list of log_patroni table fields
   @Override
-  public Container getContainer(DistributedLogsContext context) {
+  public Container getContainer(DistributedLogsContainerContext context) {
     return new ContainerBuilder()
         .withName(StackgresClusterContainers.FLUENTD)
         .withImage(StackGresComponent.FLUENTD.findLatestImageName())
@@ -108,76 +120,44 @@ public class Fluentd implements ContainerFactory<DistributedLogsContext>,
             .withInitialDelaySeconds(5)
             .withPeriodSeconds(10)
             .build())
-        .withVolumeMounts(
+        .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
+        .addToVolumeMounts(
             new VolumeMountBuilder()
-                .withMountPath(ClusterStatefulSetPath.PG_RUN_PATH.path())
-                .withName("socket")
-                .build(),
-            new VolumeMountBuilder()
-                .withName(FluentdUtil.CONFIG)
+                .withName(StatefulSetDynamicVolumes.FLUENTD_CONFIG.getVolumeName())
                 .withMountPath("/etc/fluentd")
                 .withReadOnly(Boolean.FALSE)
                 .build(),
             new VolumeMountBuilder()
-                .withName(FluentdUtil.LOG)
+                .withName(FluentdStaticVolume.FLUENTD_BUFFER.getVolumeName())
                 .withMountPath("/var/log/fluentd")
-                .withReadOnly(Boolean.FALSE)
-                .build(),
-            new VolumeMountBuilder()
-                .withName("local")
-                .withMountPath("/etc/passwd")
-                .withSubPath("etc/passwd")
-                .withReadOnly(true)
-                .build(),
-            new VolumeMountBuilder()
-                .withName("local")
-                .withMountPath("/etc/group")
-                .withSubPath("etc/group")
-                .withReadOnly(true)
-                .build(),
-            new VolumeMountBuilder()
-                .withName("local")
-                .withMountPath("/etc/shadow")
-                .withSubPath("etc/shadow")
-                .withReadOnly(true)
-                .build(),
-            new VolumeMountBuilder()
-                .withName("local")
-                .withMountPath("/etc/gshadow")
-                .withSubPath("etc/gshadow")
-                .withReadOnly(true)
                 .build())
+        .addAllToVolumeMounts(containerUserOverrideMounts.getVolumeMounts(context))
         .build();
 
   }
 
   @Override
-  public ImmutableList<Volume> getVolumes(DistributedLogsContext context) {
-    return ImmutableList.of(
-        new VolumeBuilder()
-            .withName(FluentdUtil.CONFIG)
-            .withConfigMap(new ConfigMapVolumeSourceBuilder()
-                .withName(FluentdUtil.configName(
-                    context.getSource()))
-                .withDefaultMode(420)
-                .build())
-            .build(),
-        new VolumeBuilder()
-            .withName(FluentdUtil.NAME)
-            .withEmptyDir(new EmptyDirVolumeSource())
-            .build(),
-        new VolumeBuilder()
-            .withName(FluentdUtil.BUFFER)
-            .withEmptyDir(new EmptyDirVolumeSource())
-            .build(),
-        new VolumeBuilder()
-            .withName(FluentdUtil.LOG)
-            .withEmptyDir(new EmptyDirVolumeSource())
-            .build());
+  public @NotNull Stream<VolumePair> buildVolumes(DistributedLogsContext context) {
+    return Stream.of(
+        ImmutableVolumePair.builder()
+            .volume(buildVolume(context))
+            .source(buildSource(context))
+            .build()
+    );
   }
 
-  @Override
-  public Stream<HasMetadata> generateResource(DistributedLogsContext context) {
+  public @NotNull Volume buildVolume(DistributedLogsContext context) {
+    return new VolumeBuilder()
+        .withName(StatefulSetDynamicVolumes.FLUENTD_CONFIG.getVolumeName())
+        .withConfigMap(new ConfigMapVolumeSourceBuilder()
+            .withName(FluentdUtil.configName(
+                context.getSource()))
+            .withDefaultMode(420)
+            .build())
+        .build();
+  }
+
+  public @NotNull HasMetadata buildSource(DistributedLogsContext context) {
     final StackGresDistributedLogs cluster = context.getSource();
     final String namespace = cluster.getMetadata().getNamespace();
 
@@ -195,6 +175,13 @@ public class Fluentd implements ContainerFactory<DistributedLogsContext>,
         .endMetadata()
         .withData(data)
         .build();
+    return configMap;
+  }
+
+  @Override
+  public Stream<HasMetadata> generateResource(DistributedLogsContext context) {
+    final StackGresDistributedLogs cluster = context.getSource();
+    final String namespace = cluster.getMetadata().getNamespace();
 
     final Map<String, String> labels = labelFactory
         .patroniPrimaryLabels(cluster);
@@ -217,7 +204,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContext>,
         .endSpec()
         .build();
 
-    return Seq.of(configMap, service);
+    return Seq.of(service);
   }
 
   private String getFluentdConfig(final DistributedLogsContext distributedLogsContext) {
@@ -352,5 +339,19 @@ public class Fluentd implements ContainerFactory<DistributedLogsContext>,
   @Inject
   public void setLabelFactory(LabelFactory<StackGresDistributedLogs> labelFactory) {
     this.labelFactory = labelFactory;
+  }
+
+  @Inject
+  public void setContainerUserOverrideMounts(
+      @ProviderName(CONTAINER_USER_OVERRIDE)
+          VolumeMountsProvider<ContainerContext> containerUserOverrideMounts) {
+    this.containerUserOverrideMounts = containerUserOverrideMounts;
+  }
+
+  @Inject
+  public void setPostgresSocket(
+      @ProviderName(POSTGRES_SOCKET)
+          VolumeMountsProvider<ContainerContext> postgresSocket) {
+    this.postgresSocket = postgresSocket;
   }
 }

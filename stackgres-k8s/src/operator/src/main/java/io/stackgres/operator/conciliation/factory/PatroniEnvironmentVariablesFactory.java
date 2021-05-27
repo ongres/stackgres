@@ -14,13 +14,12 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.stackgres.common.EnvoyUtil;
-import org.jooq.lambda.Seq;
 
 public abstract class PatroniEnvironmentVariablesFactory<T>
     implements ResourceFactory<T, List<EnvVar>> {
 
   protected List<EnvVar> createPatroniEnvVars(HasMetadata cluster) {
-    return Seq.of(
+    return List.of(
         new EnvVarBuilder()
             .withName("PATRONI_RESTAPI_CONNECT_ADDRESS")
             .withValue("${PATRONI_KUBERNETES_POD_IP}:" + EnvoyUtil.PATRONI_ENTRY_PORT)
@@ -92,7 +91,7 @@ public abstract class PatroniEnvironmentVariablesFactory<T>
             .build(),
         new EnvVarBuilder().withName("PATRONI_authenticator_OPTIONS")
             .withValue("superuser")
-            .build()).toList();
+            .build());
 
   }
 }

@@ -366,7 +366,7 @@ install_operator_only() {
 
 install_operator_previous_version() {
 
-  STACKGRES_SOURCE_VERSION=${1:-$STACKGRES_PREVIOUS_VERSION}
+  STACKGRES_SOURCE_VERSION="$STACKGRES_PREVIOUS_VERSION"
 
   OPERATOR_SOURCE_VERSION_HELM_URL="$(get_operator_helm_url "$STACKGRES_SOURCE_VERSION")"
 

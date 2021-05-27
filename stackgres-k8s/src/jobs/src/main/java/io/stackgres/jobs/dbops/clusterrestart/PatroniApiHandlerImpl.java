@@ -21,9 +21,13 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.ext.web.client.WebClient;
 import io.vertx.mutiny.ext.web.codec.BodyCodec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class PatroniApiHandlerImpl implements PatroniApiHandler {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(PatroniApiHandlerImpl.class);
 
   @Inject
   PatroniApiMetadataFinder apiFinder;
@@ -107,7 +111,13 @@ public class PatroniApiHandlerImpl implements PatroniApiHandler {
         .transform(res -> {
           if (res.statusCode() == 200) {
             return null;
+          } else if (res.statusCode() == 412) {
+            LOGGER.warn("{} is not the leader anymore, skipping", leader.getName());
+            return null;
           } else {
+            LOGGER.debug("Failed switchover, status {}, body {}",
+                res.statusCode(),
+                res.bodyAsString());
             throw new RuntimeException(res.body());
           }
         });

@@ -5,9 +5,13 @@
 
 package io.stackgres.operator.conciliation.factory.distributedlogs.controller;
 
-import java.util.List;
+import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
+import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_DATA;
+import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_SOCKET;
+
 import java.util.Map;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableMap;
@@ -19,30 +23,50 @@ import io.fabric8.kubernetes.api.model.HTTPGetActionBuilder;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
-import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.DistributedLogsControllerProperty;
-import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresController;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
-import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
+import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
+import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
-import io.stackgres.operator.conciliation.factory.distributedlogs.patroni.PatroniEnvPaths;
+import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
+import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsContainerContext;
+import io.stackgres.operator.conciliation.factory.distributedlogs.FluentdStaticVolume;
+import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
 @RunningContainer(order = 3)
-public class DistributedLogsController implements ContainerFactory<DistributedLogsContext> {
+public class DistributedLogsController
+    implements ContainerFactory<DistributedLogsContainerContext> {
 
-  public static final String IMAGE_NAME = "docker.io/stackgres/distributedlogs-controller:%s";
+  private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
+
+  private final VolumeMountsProvider<ContainerContext> postgresSocket;
+
+  private final VolumeMountsProvider<ContainerContext> postgresDataMounts;
+
+  @Inject
+  public DistributedLogsController(
+      @ProviderName(POSTGRES_DATA)
+          VolumeMountsProvider<ContainerContext> postgresDataMounts,
+      @ProviderName(CONTAINER_USER_OVERRIDE)
+          VolumeMountsProvider<ContainerContext> containerUserOverrideMounts,
+      @ProviderName(POSTGRES_SOCKET)
+          VolumeMountsProvider<ContainerContext> postgresSocket) {
+    this.containerUserOverrideMounts = containerUserOverrideMounts;
+    this.postgresSocket = postgresSocket;
+    this.postgresDataMounts = postgresDataMounts;
+  }
 
   @Override
-  public Container getContainer(DistributedLogsContext context) {
+  public Container getContainer(DistributedLogsContainerContext context) {
     return new ContainerBuilder()
         .withName(StackgresClusterContainers.DISTRIBUTEDLOGS_CONTROLLER)
         .withImage(StackGresController.DISTRIBUTEDLOGS_CONTROLLER.getImageName())
@@ -71,12 +95,14 @@ public class DistributedLogsController implements ContainerFactory<DistributedLo
                 .withName(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAME
                     .getEnvironmentVariableName())
                 .withValue(context
+                    .getDistributedLogsContext()
                     .getSource().getMetadata().getName())
                 .build(),
             new EnvVarBuilder()
                 .withName(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAMESPACE
                     .getEnvironmentVariableName())
                 .withValue(context
+                    .getDistributedLogsContext()
                     .getSource().getMetadata().getNamespace())
                 .build(),
             new EnvVarBuilder()
@@ -119,54 +145,26 @@ public class DistributedLogsController implements ContainerFactory<DistributedLo
                 .withName("DEBUG_DISTRIBUTEDLOGS_CONTROLLER_SUSPEND")
                 .withValue(System.getenv("DEBUG_OPERATOR_SUSPEND"))
                 .build())
-        .withVolumeMounts(new VolumeMountBuilder()
-                .withName("socket")
-                .withMountPath(PatroniEnvPaths.PG_RUN_PATH.getPath())
-                .build(),
+        .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
+        .addAllToVolumeMounts(postgresDataMounts.getVolumeMounts(context))
+        .addToVolumeMounts(
             new VolumeMountBuilder()
-                .withName(FluentdUtil.CONFIG)
-                .withMountPath("/etc/fluentd")
-                .withReadOnly(Boolean.TRUE)
-                .build(),
-            new VolumeMountBuilder()
-                .withName(FluentdUtil.NAME)
+                .withName(FluentdStaticVolume.FLUENTD.getVolumeName())
                 .withMountPath("/fluentd")
                 .withReadOnly(Boolean.FALSE)
                 .build(),
             new VolumeMountBuilder()
-                .withName("local")
-                .withMountPath("/etc/passwd")
-                .withSubPath("etc/passwd")
-                .withReadOnly(true)
-                .build(),
-            new VolumeMountBuilder()
-                .withName("local")
-                .withMountPath("/etc/group")
-                .withSubPath("etc/group")
-                .withReadOnly(true)
-                .build(),
-            new VolumeMountBuilder()
-                .withName("local")
-                .withMountPath("/etc/shadow")
-                .withSubPath("etc/shadow")
-                .withReadOnly(true)
-                .build(),
-            new VolumeMountBuilder()
-                .withName("local")
-                .withMountPath("/etc/gshadow")
-                .withSubPath("etc/gshadow")
-                .withReadOnly(true)
-                .build())
+                .withName(StatefulSetDynamicVolumes.FLUENTD_CONFIG.getVolumeName())
+                .withMountPath("/etc/fluentd")
+                .withReadOnly(Boolean.TRUE)
+                .build()
+        )
+        .addAllToVolumeMounts(containerUserOverrideMounts.getVolumeMounts(context))
         .build();
   }
 
   @Override
-  public List<Volume> getVolumes(DistributedLogsContext context) {
-    return List.of();
-  }
-
-  @Override
-  public Map<String, String> getComponentVersions(DistributedLogsContext context) {
+  public Map<String, String> getComponentVersions(DistributedLogsContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.DISTRIBUTEDLOGS_CONTROLLER_VERSION_KEY,
         StackGresController.DISTRIBUTEDLOGS_CONTROLLER.getVersion());

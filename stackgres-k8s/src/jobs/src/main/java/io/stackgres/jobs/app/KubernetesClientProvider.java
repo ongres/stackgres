@@ -25,10 +25,14 @@ public class KubernetesClientProvider implements KubernetesClientFactory {
 
   @Override
   public KubernetesClient create() {
-    metricsHolder.newConnection();
-    DebugKubernetesClient client = new DebugKubernetesClient();
-    client.setMetricsHolder(metricsHolder);
-    return client;
+    if (LOGGER.isDebugEnabled()) {
+      metricsHolder.newConnection();
+      DebugKubernetesClient client = new DebugKubernetesClient();
+      client.setMetricsHolder(metricsHolder);
+      return client;
+    } else {
+      return new DefaultKubernetesClient();
+    }
   }
 
   @PreDestroy

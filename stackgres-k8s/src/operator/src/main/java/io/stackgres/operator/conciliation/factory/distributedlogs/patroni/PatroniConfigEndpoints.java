@@ -78,6 +78,7 @@ public class PatroniConfigEndpoints
     Map<String, String> params = new HashMap<>(DefaultValues.getDefaultValues());
 
     params.put("archive_command", "/bin/true");
+    params.put("dynamic_library_path", "$libdir:/opt/stackgres/lib");
     params.put("wal_level", "logical");
     params.put("wal_log_hints", "on");
     params.put("archive_mode", "on");

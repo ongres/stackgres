@@ -62,6 +62,7 @@
     <stackgres.conversionWebhooks>false</stackgres.conversionWebhooks>
     <stackgres.crdUpgrade>false</stackgres.crdUpgrade>
     <stackgres.containerRegistry>docker.io</stackgres.containerRegistry>
+    <stackgres.extensionsRepositoryUrls>https://extensions.stackgres.io/postgres/repository</stackgres.extensionsRepositoryUrls>
     <stackgres.databaseOperationJob>false</stackgres.databaseOperationJob>
     <stackgres.databaseOperationCrName>stackgres</stackgres.databaseOperationCrName>
     <stackgres.dbops.podName>stackgres</stackgres.dbops.podName>

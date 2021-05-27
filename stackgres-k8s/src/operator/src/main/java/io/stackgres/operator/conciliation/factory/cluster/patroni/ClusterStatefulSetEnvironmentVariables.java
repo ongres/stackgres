@@ -26,7 +26,7 @@ public class ClusterStatefulSetEnvironmentVariables
   @Override
   public List<EnvVar> buildEnvironmentVariables(StackGresClusterContext context) {
     return Seq.of(ClusterStatefulSetPath.values())
-        .map(ClusterStatefulSetPath::envVar)
+        .map(clusterStatefulSetPath -> clusterStatefulSetPath.envVar(context))
         .append(Seq.of(ClusterStatefulSetEnvVars.values())
             .map(cssev -> cssev.envVar(context.getSource())))
         .collect(Collectors.toUnmodifiableList());

@@ -14,7 +14,6 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.KubernetesClientFactory;
-import io.stackgres.jobs.app.KubernetesClientProvider;
 import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped

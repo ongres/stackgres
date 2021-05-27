@@ -21,9 +21,8 @@ import org.slf4j.LoggerFactory;
 @ApplicationScoped
 public class ClusterRestartImpl implements ClusterRestart {
 
+  public static final String REDUCED_IMPACT_METHOD = "ReducedImpact";
   private static final Logger LOGGER = LoggerFactory.getLogger(ClusterRestartImpl.class);
-
-  private static final String REDUCED_IMPACT_METHOD = "ReducedImpact";
   private final PodRestart podRestart;
 
   private final ClusterSwitchoverHandler switchoverHandler;
@@ -101,7 +100,9 @@ public class ClusterRestartImpl implements ClusterRestart {
         restartChain = restartChain.onItem()
             .invoke(() -> LOGGER.info("Performing Switchover over cluster {}", clusterName))
             .chain(() ->
-                switchoverHandler.performSwitchover(clusterName, clusterState.getNamespace())
+                switchoverHandler.performSwitchover(
+                    clusterState.getPrimaryInstance().getMetadata().getName(),
+                    clusterName, clusterState.getNamespace())
             ).onItem()
             .invoke(() -> em.emit(ImmutableRestartEvent.builder()
                 .pod(primaryInstance)
@@ -125,7 +126,6 @@ public class ClusterRestartImpl implements ClusterRestart {
                   .eventType(RestartEventType.POD_RESTART)
                   .build());
             });
-
 
         restartChain = waitForClusterToBeHealthy(clusterState, restartChain);
 
@@ -165,7 +165,8 @@ public class ClusterRestartImpl implements ClusterRestart {
 
   }
 
-  private boolean isPrimaryInstanceRestarted(ClusterRestartState clusterState, Pod primaryInstance) {
+  private boolean isPrimaryInstanceRestarted(ClusterRestartState clusterState,
+                                             Pod primaryInstance) {
     return !clusterState.getRestartedInstances().contains(primaryInstance);
   }
 
@@ -176,9 +177,9 @@ public class ClusterRestartImpl implements ClusterRestart {
 
   private boolean hasInstancesNotBeenDecreased(ClusterRestartState clusterState) {
     return clusterState.getTotalInstances().size() > clusterState.getInitialInstances().size()
-        || (
+        ||
         clusterState.getTotalInstances().size() == clusterState.getInitialInstances().size()
-            && clusterState.getRestartedInstances().isEmpty());
+            && clusterState.getRestartedInstances().isEmpty();
   }
 
   private boolean isReducedImpact(ClusterRestartState clusterState) {

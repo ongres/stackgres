@@ -6,16 +6,17 @@
 package io.stackgres.operator.conciliation.cluster;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -23,11 +24,13 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
 import org.slf4j.Logger;
@@ -44,15 +47,11 @@ public class ClusterStatusManager
 
   private final KubernetesClientFactory clientFactory;
 
-  private final CustomResourceScheduler<StackGresCluster> clusterScheduler;
-
   @Inject
   public ClusterStatusManager(LabelFactory<StackGresCluster> labelFactory,
-                              KubernetesClientFactory clientFactory,
-                              CustomResourceScheduler<StackGresCluster> clusterScheduler) {
+                              KubernetesClientFactory clientFactory) {
     this.labelFactory = labelFactory;
     this.clientFactory = clientFactory;
-    this.clusterScheduler = clusterScheduler;
   }
 
   private static String getClusterId(StackGresCluster cluster) {
@@ -60,32 +59,45 @@ public class ClusterStatusManager
   }
 
   @Override
-  public void refreshCondition(StackGresCluster source) {
+  public StackGresCluster refreshCondition(StackGresCluster source) {
     if (isPendingRestart(source)) {
-      withNewClient(client -> updateCondition(getPodRequiresRestart(), source));
+      updateCondition(getPodRequiresRestart(), source);
     } else {
-      withNewClient(client -> updateCondition(getFalsePendingRestart(), source));
+      updateCondition(getFalsePendingRestart(), source);
     }
-
-  }
-
-  private void withNewClient(Consumer<KubernetesClient> func) {
-    try (var client = clientFactory.create()) {
-      func.accept(client);
-    }
-  }
-
-  @Override
-  public void updateCondition(StackGresClusterCondition condition, StackGresCluster context) {
-    withNewClient(client -> updateCondition(condition, context));
+    return source;
   }
 
   /**
    * Check pending restart status condition.
    */
   public boolean isPendingRestart(StackGresCluster source) {
-    return isStatefulSetPendingRestart(source)
-        || isPatroniPendingRestart(source);
+    return isClusterPendingUpgrade(source)
+        || isStatefulSetPendingRestart(source)
+        || isPatroniPendingRestart(source)
+        || isAnyPodPendingRestart(source);
+  }
+
+  private boolean isClusterPendingUpgrade(StackGresCluster context) {
+    final Map<String, String> podClusterLabels =
+        labelFactory.patroniClusterLabels(context);
+
+    return getClusterStatefulSet(context)
+        .map(sts -> getStsPods(sts, context)
+            .stream()
+            .filter(pod -> pod.getMetadata() != null
+                && pod.getMetadata().getAnnotations() != null
+                && podClusterLabels.entrySet().stream()
+                .allMatch(podClusterLabel -> pod.getMetadata().getLabels().entrySet().stream()
+                    .anyMatch(podLabel -> Objects.equals(podLabel, podClusterLabel))))
+            .anyMatch(pod -> Optional.ofNullable(pod.getMetadata().getAnnotations())
+                .orElse(ImmutableMap.of())
+                .entrySet()
+                .stream()
+                .noneMatch(e -> e.getKey().equals(StackGresContext.VERSION_KEY)
+                    && e.getValue().equals(StackGresProperty.OPERATOR_VERSION.getString()))))
+        .orElse(false);
+
   }
 
   private boolean isStatefulSetPendingRestart(StackGresCluster source) {
@@ -130,6 +142,19 @@ public class ClusterStatusManager
           getClusterId(cluster));
     }
     return patroniPendingRestart;
+  }
+
+  private boolean isAnyPodPendingRestart(StackGresCluster context) {
+    return Optional.ofNullable(context.getStatus())
+        .map(StackGresClusterStatus::getPodStatuses)
+        .stream()
+        .flatMap(Collection::stream)
+        .map(StackGresClusterPodStatus::getPendingRestart)
+        .map(Optional::ofNullable)
+        .map(pensingRestart -> pensingRestart.orElse(false))
+        .filter(pensingRestart -> pensingRestart)
+        .findAny()
+        .orElse(false);
   }
 
   private Optional<StatefulSet> getClusterStatefulSet(StackGresCluster cluster) {

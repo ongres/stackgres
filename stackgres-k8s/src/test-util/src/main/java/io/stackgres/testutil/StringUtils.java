@@ -5,6 +5,7 @@
 
 package io.stackgres.testutil;
 
+import java.util.Locale;
 import java.util.Random;
 
 import org.jetbrains.annotations.NotNull;
@@ -17,7 +18,7 @@ public class StringUtils {
 
   }
 
-  public static String getRandomString(int length){
+  public static String getRandomString(int length) {
     int leftLimit = 48; // numeral '0'
     int rightLimit = 122; // letter 'z'
 
@@ -31,7 +32,7 @@ public class StringUtils {
   }
 
   private static String sanitize(String s) {
-    return s.toLowerCase().replaceAll("^\\d", "a");
+    return s.toLowerCase(Locale.ENGLISH).replaceAll("^\\d", "a");
   }
 
   @NotNull

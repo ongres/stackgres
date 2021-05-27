@@ -12,6 +12,7 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.common.StringUtil;
 import io.stackgres.testutil.JsonUtil;
+import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -49,6 +50,32 @@ class ClusterStatefulSetComparatorTest {
   }
 
   @Test
+  void volumeClaimAnnotationChanges_shouldNotBeDetected() {
+    required.getSpec().getVolumeClaimTemplates().forEach(vct -> vct.getMetadata().setAnnotations(
+        ImmutableMap.of(StringUtils.getRandomString(), StringUtils.getRandomString())));
+
+    var isContentEqual = comparator.isResourceContentEqual(required, deployed);
+
+    assertTrue(isContentEqual);
+
+    deployed.getSpec().getVolumeClaimTemplates().forEach(vct -> vct.getMetadata().setAnnotations(
+        ImmutableMap.of(StringUtils.getRandomString(), StringUtils.getRandomString())));
+
+    isContentEqual = comparator.isResourceContentEqual(required, deployed);
+    assertTrue(isContentEqual);
+
+    required.getSpec().getVolumeClaimTemplates().forEach(vct -> vct.getMetadata().setAnnotations(
+        ImmutableMap.of("test-property", StringUtils.getRandomString())));
+
+    deployed.getSpec().getVolumeClaimTemplates().forEach(vct -> vct.getMetadata().setAnnotations(
+        ImmutableMap.of("test-property", StringUtils.getRandomString())));
+
+    isContentEqual = comparator.isResourceContentEqual(required, deployed);
+    assertTrue(isContentEqual);
+
+  }
+
+  @Test
   void containerImageChanges_shouldBeDetected() {
     required.getSpec().getTemplate().getSpec().getContainers()
         .get(0).setImage("docker.io/ongres/patroni:v1.6.5-pg12.3-build-5.2");
@@ -60,4 +87,5 @@ class ClusterStatefulSetComparatorTest {
 
     assertFalse(isContentEqual);
   }
+
 }

@@ -9,12 +9,12 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 
 public interface ResourceComparator {
 
-  default boolean isTheSameResource(HasMetadata r1, HasMetadata r2) {
-    return r1.getKind().equals(r2.getKind())
-        && r1.getMetadata().getNamespace().equals(r2.getMetadata().getNamespace())
-        && r1.getMetadata().getName().equals(r2.getMetadata().getName());
+  default boolean isTheSameResource(HasMetadata required, HasMetadata deployed) {
+    return required.getKind().equals(deployed.getKind())
+        && required.getMetadata().getNamespace().equals(deployed.getMetadata().getNamespace())
+        && required.getMetadata().getName().equals(deployed.getMetadata().getName());
   }
 
-  boolean isResourceContentEqual(HasMetadata r1, HasMetadata r2);
+  boolean isResourceContentEqual(HasMetadata required, HasMetadata deployed);
 
 }

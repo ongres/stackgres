@@ -17,7 +17,7 @@ import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeFactory;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V095)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
 public class ClusterStatefulSetVolumeFactoryImpl
     implements ClusterStatefulSetVolumeFactory<StackGresClusterContext> {
 

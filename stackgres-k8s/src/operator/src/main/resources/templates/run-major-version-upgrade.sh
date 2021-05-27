@@ -21,7 +21,7 @@ run_op() {
       --template="{{ range .spec.containers }}{{ if eq .name \"$PATRONI_CONTAINER_NAME\" }}{{ .image }}{{ end }}{{ end }}")"
     SOURCE_VERSION="$(printf '%s' "$SOURCE_IMAGE" | sed 's/^.*-pg\([0-9]\+\.[0-9]\+\)-.*$/\1/')"
     TARGET_VERSION="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-      --template '{{ .spec.postgresVersion }}')"
+      --template='{{ .spec.postgresVersion }}')"
     LOCALE="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c patroni \
       -- psql -t -A -c "SHOW lc_collate")"
     ENCODING="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" \
@@ -37,7 +37,6 @@ run_op() {
 
     echo "Signaling major version upgrade started to cluster"
     echo
-
     DB_OPS_PATCH="$(cat << EOF
       {
         "dbOps": {
@@ -70,7 +69,6 @@ run_op() {
 EOF
     )"
 
-
     until kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | \
      jq '.status |= . + '"$DB_OPS_PATCH" |
      kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME"/status -f -
@@ -86,7 +84,7 @@ EOF
     PRIMARY_INSTANCE="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
       --template='{{ .status.dbOps.majorVersionUpgrade.primaryInstance }}')"
 
-    until kubectl patch "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
+    until kubectl patch "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
         -p "$(cat << EOF
 [
   {"op":"replace","path":"/status/dbOps/majorVersionUpgrade/link","value": $LINK},
@@ -129,7 +127,7 @@ EOF
       echo "Upscaling cluster to 2 instances"
       echo
 
-      kubectl patch "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
+      kubectl patch "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
         -p "$(cat << EOF
 [
   {"op":"replace","path":"/spec/instances","value":2}

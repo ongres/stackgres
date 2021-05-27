@@ -15,9 +15,7 @@ import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
@@ -25,7 +23,7 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
-import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
@@ -37,22 +35,22 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
-import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
+import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
+import io.stackgres.operator.conciliation.factory.VolumeFactory;
+import io.stackgres.operator.conciliation.factory.VolumePair;
+import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.Blocklist;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.DefaultValues;
-import io.stackgres.operatorframework.resource.ResourceUtil;
-import org.jooq.lambda.Seq;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractPgPooling
-    implements ContainerFactory<StackGresClusterContext>,
-    ResourceGenerator<StackGresClusterContext> {
-
+    implements ContainerFactory<StackGresClusterContainerContext>,
+    VolumeFactory<StackGresClusterContext> {
 
   private static final String NAME = "pgbouncer";
-  private static final String CONFIG_SUFFIX = "-connection-pooling-config";
   private static final Map<String, String> DEFAULT_PARAMETERS = ImmutableMap
       .<String, String>builder()
       .put("listen_port", Integer.toString(EnvoyUtil.PG_POOL_PORT))
@@ -61,18 +59,19 @@ public abstract class AbstractPgPooling
   private final LabelFactory<StackGresCluster> labelFactory;
 
   @Inject
-  protected AbstractPgPooling(LabelFactory<StackGresCluster> labelFactory) {
+  protected AbstractPgPooling(
+      LabelFactory<StackGresCluster> labelFactory) {
     this.labelFactory = labelFactory;
   }
 
   public static String configName(StackGresClusterContext clusterContext) {
     String name = clusterContext.getSource().getMetadata().getName();
-    return ResourceUtil.resourceName(name + CONFIG_SUFFIX);
+    return StatefulSetDynamicVolumes.PG_BOUNCER.getResourceName(name);
   }
 
   @Override
-  public boolean isActivated(StackGresClusterContext context) {
-    return Optional.ofNullable(context.getSource().getSpec())
+  public boolean isActivated(StackGresClusterContainerContext context) {
+    return Optional.ofNullable(context.getClusterContext().getSource().getSpec())
         .map(StackGresClusterSpec::getPod)
         .map(StackGresClusterPod::getDisableConnectionPooling)
         .map(disable -> !disable)
@@ -80,7 +79,25 @@ public abstract class AbstractPgPooling
   }
 
   @Override
-  public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
+  public @NotNull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
+    return Stream.of(
+        ImmutableVolumePair.builder()
+            .volume(buildVolume(context))
+            .source(buildSource(context))
+            .build()
+    );
+  }
+
+  public @NotNull Volume buildVolume(StackGresClusterContext context) {
+    return new VolumeBuilder()
+        .withName(StatefulSetDynamicVolumes.PG_BOUNCER.getVolumeName())
+        .withConfigMap(new ConfigMapVolumeSourceBuilder()
+            .withName(configName(context))
+            .build())
+        .build();
+  }
+
+  public @NotNull HasMetadata buildSource(StackGresClusterContext context) {
     final StackGresCluster stackGresCluster = context.getSource();
     Optional<StackGresPoolingConfig> pgbouncerConfig = context.getPoolingConfig();
     Map<String, String> newParams = pgbouncerConfig.map(StackGresPoolingConfig::getSpec)
@@ -114,7 +131,8 @@ public abstract class AbstractPgPooling
 
     String namespace = stackGresCluster.getMetadata().getNamespace();
     String configMapName = configName(context);
-    ConfigMap cm = new ConfigMapBuilder()
+
+    return new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(configMapName)
@@ -122,26 +140,16 @@ public abstract class AbstractPgPooling
         .endMetadata()
         .withData(data)
         .build();
-
-    return Seq.of(cm);
   }
 
   @Override
-  public Container getContainer(StackGresClusterContext context) {
-    ContainerBuilder container = new ContainerBuilder();
-    container.withName(NAME)
-        .withImage(StackGresComponent.PGBOUNCER.findLatestImageName())
+  public Container getContainer(StackGresClusterContainerContext context) {
+    return new ContainerBuilder()
+        .withName(NAME)
+        .withImage(getImageName())
         .withImagePullPolicy("IfNotPresent")
-        .withVolumeMounts(
-            ClusterStatefulSetVolumeConfig.SOCKET.volumeMount(context),
-            new VolumeMountBuilder()
-                .withName(NAME)
-                .withMountPath("/etc/pgbouncer")
-                .withReadOnly(Boolean.TRUE)
-                .build())
-        .addAllToVolumeMounts(ClusterStatefulSetVolumeConfig.USER.volumeMounts(context));
-
-    return container.build();
+        .withVolumeMounts(getVolumeMounts(context))
+        .build();
   }
 
   @Override
@@ -151,14 +159,10 @@ public abstract class AbstractPgPooling
         StackGresComponent.PGBOUNCER.findLatestVersion());
   }
 
-  @Override
-  public List<Volume> getVolumes(StackGresClusterContext context) {
-    return ImmutableList.of(new VolumeBuilder()
-        .withName(NAME)
-        .withConfigMap(new ConfigMapVolumeSourceBuilder()
-            .withName(configName(context))
-            .build())
-        .build());
+  protected String getImageName() {
+    return StackGresComponent.PGBOUNCER.findLatestImageName();
   }
+
+  protected abstract List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context);
 
 }

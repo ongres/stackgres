@@ -32,6 +32,7 @@ import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
@@ -111,19 +112,19 @@ public class BackupJob
     Map<String, String> labels = labelFactory.backupPodLabels(context.getSource());
     return context.getBackupConfig()
         .map(backupConfig -> {
-          final VolumeMount utilsVolumeMount = ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
-          volumeMountBuilder -> volumeMountBuilder
-              .withSubPath(ClusterStatefulSetPath
-                  .LOCAL_BIN_SHELL_UTILS_PATH.filename())
-              .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.path())
-              .withReadOnly(true));
-          final VolumeMount backupVolumeMount = ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
-          volumeMountBuilder -> volumeMountBuilder
-              .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH
-                  .filename())
-              .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH
-                  .path())
-              .withReadOnly(true));
+          final VolumeMount utilsVolumeMount = ClusterStatefulSetVolumeConfig.TEMPLATES
+              .volumeMount(context, volumeMountBuilder -> volumeMountBuilder
+                  .withSubPath(ClusterStatefulSetPath
+                      .LOCAL_BIN_SHELL_UTILS_PATH.filename())
+                  .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.path())
+                  .withReadOnly(true));
+          final VolumeMount backupVolumeMount = ClusterStatefulSetVolumeConfig.TEMPLATES
+              .volumeMount(context, volumeMountBuilder -> volumeMountBuilder
+                  .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH
+                      .filename())
+                  .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH
+                      .path())
+                  .withReadOnly(true));
           return new JobBuilder()
               .withNewMetadata()
               .withNamespace(namespace)
@@ -227,9 +228,9 @@ public class BackupJob
                                   .collect(Collectors.joining(",")))
                               .build(),
                           new EnvVarBuilder()
-                            .withName("PATRONI_CONTAINER_NAME")
-                            .withValue(StackGresComponent.KUBECTL.findLatestImageName())
-                            .build(),
+                              .withName("PATRONI_CONTAINER_NAME")
+                              .withValue(StackgresClusterContainers.PATRONI)
+                              .build(),
                           new EnvVarBuilder().withName("POD_NAME")
                               .withValueFrom(
                                   new EnvVarSourceBuilder()

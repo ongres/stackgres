@@ -29,29 +29,20 @@ public class ClusterInstanceManagerImpl implements ClusterInstanceManager {
 
   private static final String POD_NAME_FORMAT = "%s-%d";
 
-  private final CustomResourceFinder<StackGresCluster> resourceFinder;
-
-  private final CustomResourceScheduler<StackGresCluster> resourceScheduler;
-
-  private final LabelFactory<StackGresCluster> labelFactory;
-
-  private final Watcher<Pod> podWatcher;
-
-  private final ResourceScanner<Pod> podScanner;
+  @Inject
+  CustomResourceFinder<StackGresCluster> resourceFinder;
 
   @Inject
-  public ClusterInstanceManagerImpl(
-      CustomResourceFinder<StackGresCluster> resourceFinder,
-      CustomResourceScheduler<StackGresCluster> resourceScheduler,
-      LabelFactory<StackGresCluster> labelFactory,
-      Watcher<Pod> podWatcher,
-      ResourceScanner<Pod> podScanner) {
-    this.resourceFinder = resourceFinder;
-    this.resourceScheduler = resourceScheduler;
-    this.labelFactory = labelFactory;
-    this.podWatcher = podWatcher;
-    this.podScanner = podScanner;
-  }
+  CustomResourceScheduler<StackGresCluster> resourceScheduler;
+
+  @Inject
+  LabelFactory<StackGresCluster> labelFactory;
+
+  @Inject
+  Watcher<Pod> podWatcher;
+
+  @Inject
+  ResourceScanner<Pod> podScanner;
 
   @Override
   public Uni<Pod> increaseClusterInstances(String name, String namespace) {
@@ -115,8 +106,8 @@ public class ClusterInstanceManagerImpl implements ClusterInstanceManager {
 
     List<Pod> currentPods = geClusterPods(cluster);
 
-    List<String> podNames = currentPods.stream().
-        map(Pod::getMetadata)
+    List<String> podNames = currentPods.stream()
+        .map(Pod::getMetadata)
         .map(ObjectMeta::getName)
         .collect(Collectors.toUnmodifiableList());
 

@@ -14,57 +14,70 @@ import javax.inject.Singleton;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
-import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.StackGresComponent;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
+import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
+import io.stackgres.operator.conciliation.factory.ProviderName;
+import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
+import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactory;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactoryDiscoverer;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
+import io.stackgres.operator.conciliation.factory.v09.PatroniStaticVolume;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V095)
-@InitContainer(order = 1)
-public class ScriptsSetUp implements ContainerFactory<StackGresClusterContext> {
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
+@InitContainer(order = 2)
+public class ScriptsSetUp implements ContainerFactory<StackGresClusterContainerContext> {
 
   private final ClusterEnvironmentVariablesFactoryDiscoverer<StackGresClusterContext>
       clusterEnvVarFactoryDiscoverer;
 
+  private final VolumeMountsProvider<ContainerContext> containerLocalOverride;
+
   @Inject
   public ScriptsSetUp(
       ClusterEnvironmentVariablesFactoryDiscoverer<StackGresClusterContext>
-          clusterEnvVarFactoryDiscoverer) {
+          clusterEnvVarFactoryDiscoverer,
+      @ProviderName(VolumeMountProviderName.CONTAINER_LOCAL_OVERRIDE)
+          VolumeMountsProvider<ContainerContext> containerLocalOverride) {
     this.clusterEnvVarFactoryDiscoverer = clusterEnvVarFactoryDiscoverer;
+    this.containerLocalOverride = containerLocalOverride;
   }
 
   @Override
-  public Container getContainer(StackGresClusterContext context) {
+  public Container getContainer(StackGresClusterContainerContext context) {
     return new ContainerBuilder()
         .withName("setup-scripts")
-        .withImage(StackGresComponent.KUBECTL.findLatestImageName())
+        .withImage("busybox:1.31.1")
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.TEMPLATES_PATH.path()
                 + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_SCRIPTS_SH_PATH.filename())
-        .withEnv(getClusterEnvVars(context))
-        .withVolumeMounts(ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context),
-            ClusterStatefulSetVolumeConfig.USER.volumeMount(
-                ClusterStatefulSetPath.LOCAL_BIN_PATH, context))
+        .withEnv(getClusterEnvVars(context.getClusterContext()))
+        .withVolumeMounts(
+            new VolumeMountBuilder()
+                .withName(StatefulSetDynamicVolumes.SCRIPT_TEMPLATES.getVolumeName())
+                .withMountPath(ClusterStatefulSetPath.TEMPLATES_PATH.path())
+                .build(),
+            new VolumeMountBuilder()
+                .withName(PatroniStaticVolume.LOCAL.getVolumeName())
+                .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_PATH.path())
+                .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_PATH.subPath())
+                .build())
+        .addAllToVolumeMounts(containerLocalOverride.getVolumeMounts(context))
         .build();
   }
 
   @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContext context) {
+  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
     return Map.of();
-  }
-
-  @Override
-  public List<Volume> getVolumes(StackGresClusterContext context) {
-    return List.of();
   }
 
   private List<EnvVar> getClusterEnvVars(StackGresClusterContext context) {

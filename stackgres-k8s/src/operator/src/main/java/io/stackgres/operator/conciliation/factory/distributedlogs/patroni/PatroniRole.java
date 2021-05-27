@@ -31,7 +31,6 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
@@ -45,8 +44,6 @@ public class PatroniRole implements
   public static final String SUFFIX = "-patroni";
 
   private LabelFactory<StackGresDistributedLogs> labelFactory;
-
-  private ResourceFinder<ServiceAccount> serviceAccountFinder;
 
   public static String roleName(DistributedLogsContext clusterContext) {
     return roleName(clusterContext.getSource().getMetadata().getName());
@@ -74,19 +71,14 @@ public class PatroniRole implements
     final String serviceAccountName = roleName(context);
     final String serviceAccountNamespace = cluster.getMetadata().getNamespace();
 
-    return serviceAccountFinder.findByNameAndNamespace(serviceAccountName, serviceAccountNamespace)
-        .map(sa -> {
-          sa.getMetadata().setLabels(labels);
-          return sa;
-        })
-        .orElse(new ServiceAccountBuilder()
-            .withNewMetadata()
-            .withName(serviceAccountName)
-            .withNamespace(serviceAccountNamespace)
-            .withLabels(labels)
-            .withOwnerReferences(context.getOwnerReferences())
-            .endMetadata()
-            .build());
+    return new ServiceAccountBuilder()
+        .withNewMetadata()
+        .withName(serviceAccountName)
+        .withNamespace(serviceAccountNamespace)
+        .withLabels(labels)
+        .withOwnerReferences(context.getOwnerReferences())
+        .endMetadata()
+        .build();
   }
 
   /**
@@ -158,8 +150,19 @@ public class PatroniRole implements
             .build())
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups(CommonDefinition.GROUP)
+            .withResources(HasMetadata.getPlural(StackGresDistributedLogs.class))
+            .withVerbs("update", "patch")
+            .build())
+        .addToRules(new PolicyRuleBuilder()
+            .withApiGroups(CommonDefinition.GROUP)
             .withResources(
                 HasMetadata.getPlural(StackGresDistributedLogs.class) + "/status")
+            .withVerbs("update")
+            .build())
+        .addToRules(new PolicyRuleBuilder()
+            .withApiGroups(CommonDefinition.GROUP)
+            .withResources(
+                HasMetadata.getPlural(StackGresCluster.class) + "/status")
             .withVerbs("update")
             .build())
         .build();
@@ -190,11 +193,6 @@ public class PatroniRole implements
             .withApiGroup("rbac.authorization.k8s.io")
             .build())
         .build();
-  }
-
-  @Inject
-  public void setServiceAccountFinder(ResourceFinder<ServiceAccount> serviceAccountFinder) {
-    this.serviceAccountFinder = serviceAccountFinder;
   }
 
   @Inject

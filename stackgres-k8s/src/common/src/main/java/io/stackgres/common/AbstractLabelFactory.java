@@ -22,8 +22,8 @@ public abstract class AbstractLabelFactory<T extends CustomResource<?, ?>>
   @Override
   public Map<String, String> clusterLabels(T resource) {
     return ImmutableMap.of(getLabelMapper().appKey(), getLabelMapper().appName(),
-        getLabelMapper().clusterUidKey(), ResourceUtil.labelValue(clusterUid(resource)),
-        getLabelMapper().clusterNameKey(), ResourceUtil.labelValue(clusterName(resource)));
+        getLabelMapper().clusterNameKey(), ResourceUtil.labelValue(clusterName(resource)),
+        getLabelMapper().clusterUidKey(), ResourceUtil.labelValue(clusterUid(resource)));
   }
 
   @Override
@@ -51,10 +51,10 @@ public abstract class AbstractLabelFactory<T extends CustomResource<?, ?>>
   @Override
   public Map<String, String> statefulSetPodLabels(T resource) {
     return ImmutableMap.of(getLabelMapper().appKey(), getLabelMapper().appName(),
-        getLabelMapper().clusterUidKey(), ResourceUtil.labelValue(clusterUid(resource)),
-        getLabelMapper().clusterNameKey(), ResourceUtil.labelValue(clusterName(resource)),
         getLabelMapper().clusterKey(), StackGresContext.RIGHT_VALUE,
-        getLabelMapper().disruptibleKey(), StackGresContext.RIGHT_VALUE);
+        getLabelMapper().disruptibleKey(), StackGresContext.RIGHT_VALUE,
+        getLabelMapper().clusterNameKey(), ResourceUtil.labelValue(clusterName(resource)),
+        getLabelMapper().clusterUidKey(), ResourceUtil.labelValue(clusterUid(resource)));
   }
 
   @Override

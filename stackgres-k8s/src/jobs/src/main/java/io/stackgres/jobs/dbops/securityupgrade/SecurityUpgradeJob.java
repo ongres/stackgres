@@ -23,12 +23,10 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
-import io.stackgres.jobs.app.JobsProperty;
+import io.stackgres.jobs.dbops.ClusterRestartStateHandler;
 import io.stackgres.jobs.dbops.DatabaseOperation;
 import io.stackgres.jobs.dbops.DatabaseOperationJob;
-import io.stackgres.jobs.dbops.lock.ImmutableLockRequest;
-import io.stackgres.jobs.dbops.lock.LockAcquirer;
-import io.stackgres.jobs.dbops.lock.LockRequest;
+import io.stackgres.jobs.dbops.StateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,32 +36,24 @@ public class SecurityUpgradeJob implements DatabaseOperationJob {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SecurityUpgradeJob.class);
 
-  private final CustomResourceScheduler<StackGresCluster> clusterScheduler;
-
-  private final ResourceFinder<StatefulSet> statefulSetFinder;
-
-  private final ResourceWriter<StatefulSet> statefulSetWriter;
-
-  private final ClusterRestartStateHandler restartStateHandler;
-
-  private final CustomResourceScheduler<StackGresDbOps> dbOpsScheduler;
-
-  private final CustomResourceFinder<StackGresDbOps> dbOpsFinder;
+  @Inject
+  CustomResourceScheduler<StackGresCluster> clusterScheduler;
 
   @Inject
-  public SecurityUpgradeJob(CustomResourceScheduler<StackGresCluster> clusterScheduler,
-                            ResourceFinder<StatefulSet> statefulSetFinder,
-                            ResourceWriter<StatefulSet> statefulSetWriter,
-                            ClusterRestartStateHandler restartStateHandler,
-                            CustomResourceScheduler<StackGresDbOps> dbOpsScheduler,
-                            CustomResourceFinder<StackGresDbOps> dbOpsFinder) {
-    this.clusterScheduler = clusterScheduler;
-    this.statefulSetFinder = statefulSetFinder;
-    this.statefulSetWriter = statefulSetWriter;
-    this.restartStateHandler = restartStateHandler;
-    this.dbOpsScheduler = dbOpsScheduler;
-    this.dbOpsFinder = dbOpsFinder;
-  }
+  ResourceFinder<StatefulSet> statefulSetFinder;
+
+  @Inject
+  ResourceWriter<StatefulSet> statefulSetWriter;
+
+  @Inject
+  @StateHandler("securityUpgrade")
+  ClusterRestartStateHandler restartStateHandler;
+
+  @Inject
+  CustomResourceScheduler<StackGresDbOps> dbOpsScheduler;
+
+  @Inject
+  CustomResourceFinder<StackGresDbOps> dbOpsFinder;
 
   @Override
   public Uni<StackGresDbOps> runJob(StackGresDbOps dbOps, StackGresCluster cluster) {

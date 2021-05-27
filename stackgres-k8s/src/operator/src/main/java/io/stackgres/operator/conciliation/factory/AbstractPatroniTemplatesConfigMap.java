@@ -8,16 +8,16 @@ package io.stackgres.operator.conciliation.factory;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Unchecked;
 
 public abstract class AbstractPatroniTemplatesConfigMap<T>
-    implements ResourceGenerator<T> {
+    implements VolumeFactory<T> {
 
   private static final String TEMPLATES_SUFFIX = "-templates";
 
@@ -28,7 +28,7 @@ public abstract class AbstractPatroniTemplatesConfigMap<T>
   protected Map<String, String> getPatroniTemplates() {
     Map<String, String> data = new HashMap<String, String>();
 
-    for (String resource : new String[] {
+    for (String resource : new String[]{
         ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH.filename(),
@@ -56,8 +56,8 @@ public abstract class AbstractPatroniTemplatesConfigMap<T>
         ClusterStatefulSetPath.LOCAL_BIN_RESET_PATRONI_INITIALIZE_SH_PATH.filename(),
     }) {
       data.put(resource, Unchecked.supplier(() -> Resources
-          .asCharSource(AbstractPatroniTemplatesConfigMap.class
-                  .getResource("/templates/" + resource),
+          .asCharSource(Objects.requireNonNull(AbstractPatroniTemplatesConfigMap.class
+                  .getResource("/templates/" + resource)),
               StandardCharsets.UTF_8)
           .read()).get());
     }

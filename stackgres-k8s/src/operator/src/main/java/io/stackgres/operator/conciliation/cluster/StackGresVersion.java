@@ -19,8 +19,12 @@ public enum StackGresVersion {
   V093("0.9.3"),
   V094("0.9.4"),
   V095("0.9.5"),
+  V09_LAST("0.9.5"),
   V10A1("1.0.0-alpha1"),
   V10A2("1.0.0-alpha2"),
+  V10A3("1.0.0-alpha3"),
+  V10A4("1.0.0-alpha4"),
+  V10B1("1.0.0-beta1"),
   V10("1.0");
 
   private final String version;

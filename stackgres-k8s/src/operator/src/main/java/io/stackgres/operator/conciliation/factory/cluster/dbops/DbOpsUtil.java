@@ -26,7 +26,7 @@ public class DbOpsUtil {
         .orElse(0) >= Optional.of(dbOps)
         .map(StackGresDbOps::getSpec)
         .map(StackGresDbOpsSpec::getMaxRetries)
-        .orElse(1);
+        .orElse(0);
   }
 
   public static boolean isFailed(StackGresDbOps dbOps) {
@@ -56,7 +56,7 @@ public class DbOpsUtil {
         + "-" + getCurrentRetry(dbOps));
   }
 
-  public static String getTimeout(StackGresDbOps dbOps){
+  public static String getTimeout(StackGresDbOps dbOps) {
     return Optional.of(dbOps)
         .map(StackGresDbOps::getSpec)
         .map(StackGresDbOpsSpec::getTimeout)

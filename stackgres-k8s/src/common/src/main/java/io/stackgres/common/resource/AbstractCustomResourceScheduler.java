@@ -8,9 +8,9 @@ package io.stackgres.common.resource;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -24,11 +24,10 @@ public abstract class AbstractCustomResourceScheduler
     <T extends CustomResource<?, ?>, L extends CustomResourceList<T>>
     implements CustomResourceScheduler<T> {
 
-  @Inject
-  KubernetesClientFactory clientFactory;
-
   private final Class<T> customResourceClass;
   private final Class<L> customResourceListClass;
+  @Inject
+  KubernetesClientFactory clientFactory;
 
   protected AbstractCustomResourceScheduler(
       KubernetesClientFactory clientFactory,
@@ -58,7 +57,7 @@ public abstract class AbstractCustomResourceScheduler
 
   @Override
   public <S> void updateStatus(T resource, Function<T, S> statusGetter,
-      BiConsumer<T, S> statusSetter) {
+                               BiConsumer<T, S> statusSetter) {
     try (KubernetesClient client = clientFactory.create()) {
       T resourceOverwrite = getCustomResourceEndpoints(client)
           .inNamespace(resource.getMetadata().getNamespace())
@@ -84,22 +83,22 @@ public abstract class AbstractCustomResourceScheduler
   }
 
   @Override
-  public void delete(T resource) {
-    try (KubernetesClient client = clientFactory.create()) {
-      getCustomResourceEndpoints(client)
-          .inNamespace(resource.getMetadata().getNamespace())
-          .withName(resource.getMetadata().getName())
-          .delete();
-    }
-  }
-
-  @Override
   public T updateStatus(T resource) {
     try (KubernetesClient client = clientFactory.create()) {
       return getCustomResourceEndpoints(client)
           .inNamespace(resource.getMetadata().getNamespace())
           .withName(resource.getMetadata().getName())
           .updateStatus(resource);
+    }
+  }
+
+  @Override
+  public void delete(T resource) {
+    try (KubernetesClient client = clientFactory.create()) {
+      getCustomResourceEndpoints(client)
+          .inNamespace(resource.getMetadata().getNamespace())
+          .withName(resource.getMetadata().getName())
+          .delete();
     }
   }
 

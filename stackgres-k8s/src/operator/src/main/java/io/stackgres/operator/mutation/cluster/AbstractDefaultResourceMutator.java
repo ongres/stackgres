@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
@@ -23,19 +24,16 @@ import io.stackgres.operatorframework.admissionwebhook.Operation;
 public abstract class AbstractDefaultResourceMutator<T extends CustomResource<?, ?>>
     implements ClusterMutator {
 
-  private final DefaultCustomResourceFactory<T> resourceFactory;
-  private final CustomResourceFinder<T> finder;
-  private final CustomResourceScheduler<T> scheduler;
+  @Inject
+  DefaultCustomResourceFactory<T> resourceFactory;
+
+  @Inject
+  CustomResourceFinder<T> finder;
+
+  @Inject
+  CustomResourceScheduler<T> scheduler;
 
   private transient JsonPointer targetPointer;
-
-  protected AbstractDefaultResourceMutator(DefaultCustomResourceFactory<T> resourceFactory,
-      CustomResourceFinder<T> finder, CustomResourceScheduler<T> scheduler) {
-    super();
-    this.resourceFactory = resourceFactory;
-    this.finder = finder;
-    this.scheduler = scheduler;
-  }
 
   @PostConstruct
   public void init() throws NoSuchFieldException {
@@ -83,4 +81,15 @@ public abstract class AbstractDefaultResourceMutator<T extends CustomResource<?,
 
   protected abstract JsonPointer getTargetPointer() throws NoSuchFieldException;
 
+  public void setResourceFactory(DefaultCustomResourceFactory<T> resourceFactory) {
+    this.resourceFactory = resourceFactory;
+  }
+
+  public void setFinder(CustomResourceFinder<T> finder) {
+    this.finder = finder;
+  }
+
+  public void setScheduler(CustomResourceScheduler<T> scheduler) {
+    this.scheduler = scheduler;
+  }
 }

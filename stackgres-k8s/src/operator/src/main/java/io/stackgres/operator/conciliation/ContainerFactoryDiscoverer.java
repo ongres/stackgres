@@ -7,9 +7,10 @@ package io.stackgres.operator.conciliation;
 
 import java.util.List;
 
+import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 
-public interface ContainerFactoryDiscoverer<T> {
+public interface ContainerFactoryDiscoverer<T extends ContainerContext> {
 
   List<ContainerFactory<T>> discoverContainers(T context);
 }

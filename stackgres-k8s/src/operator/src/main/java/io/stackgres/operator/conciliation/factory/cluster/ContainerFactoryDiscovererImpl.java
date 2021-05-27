@@ -14,20 +14,19 @@ import javax.inject.Inject;
 
 import io.stackgres.operator.conciliation.ContainerFactoryDiscoverer;
 import io.stackgres.operator.conciliation.ResourceDiscoverer;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 
 @ApplicationScoped
 public class ContainerFactoryDiscovererImpl
-    extends ResourceDiscoverer<ContainerFactory<StackGresClusterContext>>
-    implements ContainerFactoryDiscoverer<StackGresClusterContext> {
+    extends ResourceDiscoverer<ContainerFactory<StackGresClusterContainerContext>>
+    implements ContainerFactoryDiscoverer<StackGresClusterContainerContext> {
 
   @Inject
   public ContainerFactoryDiscovererImpl(
       @RunningContainer
-          Instance<ContainerFactory<StackGresClusterContext>> instance) {
+          Instance<ContainerFactory<StackGresClusterContainerContext>> instance) {
     init(instance);
     resourceHub.forEach((key, value) -> {
       value.sort((f1, f2) -> {
@@ -41,9 +40,10 @@ public class ContainerFactoryDiscovererImpl
   }
 
   @Override
-  public List<ContainerFactory<StackGresClusterContext>> discoverContainers(
-      StackGresClusterContext context) {
-    StackGresVersion version = StackGresVersion.getClusterStackGresVersion(context.getSource());
+  public List<ContainerFactory<StackGresClusterContainerContext>> discoverContainers(
+      StackGresClusterContainerContext context) {
+    StackGresVersion version = StackGresVersion.getClusterStackGresVersion(context
+        .getClusterContext().getSource());
     return resourceHub.get(version).stream()
         .filter(f -> f.isActivated(context))
         .collect(Collectors.toUnmodifiableList());

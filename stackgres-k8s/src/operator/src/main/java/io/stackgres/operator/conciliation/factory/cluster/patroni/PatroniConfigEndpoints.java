@@ -19,6 +19,8 @@ import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.ClusterStatefulSetEnvVars;
 import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.EnvoyUtil;
+import io.stackgres.common.LabelFactory;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
@@ -43,10 +45,13 @@ public class PatroniConfigEndpoints
 
   private final JsonMapper objectMapper;
 
+  private final LabelFactory<StackGresCluster> labelFactory;
+
   @Inject
-  public PatroniConfigEndpoints(
-      JsonMapper objectMapper) {
+  public PatroniConfigEndpoints(JsonMapper objectMapper,
+                                LabelFactory<StackGresCluster> labelFactory) {
     this.objectMapper = objectMapper;
+    this.labelFactory = labelFactory;
   }
 
   @Override
@@ -62,7 +67,7 @@ public class PatroniConfigEndpoints
 
     final String patroniConfigJson = objectMapper.valueToTree(patroniConf).toString();
 
-    final Map<String, String> labels = context.getPatroniClusterLabels();
+    final Map<String, String> labels = labelFactory.patroniClusterLabels(context.getSource());
 
     StackGresCluster cluster = context.getSource();
     return Stream.of(new EndpointsBuilder()
@@ -79,17 +84,26 @@ public class PatroniConfigEndpoints
   public Map<String, String> getPostgresConfigValues(StackGresClusterContext context) {
     Map<String, String> params = new HashMap<>(DefaultValues.getDefaultValues());
 
+    StackGresPostgresConfig pgConfig = context.getPostgresConfig();
+
+    Map<String, String> userParams = pgConfig.getSpec().getPostgresqlConf();
+    for (String bl : Blocklist.getBlocklistParameters()) {
+      userParams.remove(bl);
+    }
+    for (Map.Entry<String, String> userParam : userParams.entrySet()) {
+      params.put(userParam.getKey(), userParam.getValue());
+    }
+
+    params.put("port", String.valueOf(EnvoyUtil.PG_PORT));
+
     if (isBackupConfigurationPresent(context)) {
       params.put("archive_command",
           "exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value(context
-          .getSource()) + "'"
+              .getSource()) + "'"
               + " -- wal-g wal-push %p");
     } else {
       params.put("archive_command", "/bin/true");
     }
-
-    params.put("dynamic_library_path",
-        "$libdir:/opt/stackgres/lib");
 
     if (Optional.ofNullable(context.getSource())
         .map(StackGresCluster::getSpec)
@@ -108,20 +122,11 @@ public class PatroniConfigEndpoints
     params.put("wal_log_hints", "on");
     params.put("archive_mode", "on");
 
-    StackGresPostgresConfig pgConfig = context.getPostgresConfig();
-
-    Map<String, String> userParams = pgConfig.getSpec().getPostgresqlConf();
-    for (String bl : Blocklist.getBlocklistParameters()) {
-      userParams.remove(bl);
-    }
-    for (Map.Entry<String, String> userParam : userParams.entrySet()) {
-      params.put(userParam.getKey(), userParam.getValue());
-    }
     return params;
   }
 
   private String configName(StackGresClusterContext context) {
-    final String scope = context.getClusterScope();
+    final String scope = labelFactory.clusterScope(context.getSource());
     return ResourceUtil.resourceName(scope + PatroniUtil.CONFIG_SERVICE);
   }
 

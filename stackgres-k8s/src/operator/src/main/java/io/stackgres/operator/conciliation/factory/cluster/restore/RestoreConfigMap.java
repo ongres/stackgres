@@ -14,7 +14,10 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactory;
@@ -24,31 +27,49 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
+import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
+import io.stackgres.operator.conciliation.factory.VolumeFactory;
+import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterStatefulSet;
+import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import io.stackgres.operator.conciliation.factory.cluster.backup.AbstractBackupConfigMap;
-import io.stackgres.operatorframework.resource.ResourceUtil;
+import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
 public class RestoreConfigMap extends AbstractBackupConfigMap
-    implements ResourceGenerator<StackGresClusterContext> {
-
-  private static final String RESTORE_SUFFIX = "-restore";
+    implements VolumeFactory<StackGresClusterContext> {
 
   private LabelFactory<StackGresCluster> labelFactory;
 
-  public static String name(ClusterContext clusterContext) {
-    return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName()
-        + RESTORE_SUFFIX);
+  public static String name(ClusterContext context) {
+    final String clusterName = context.getCluster().getMetadata().getName();
+    return StatefulSetDynamicVolumes.RESTORE_ENV.getResourceName(clusterName);
   }
 
   @Override
-  public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
-    if (context.getRestoreBackup().isPresent()) {
-      var restoreBackup = context.getRestoreBackup().get();
+  public @NotNull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
+    return Stream.of(
+        ImmutableVolumePair.builder()
+            .volume(buildVolume(context))
+            .source(buildSource(context))
+            .build()
+    );
+  }
+
+  public @NotNull Volume buildVolume(StackGresClusterContext context) {
+    return new VolumeBuilder()
+        .withName(StatefulSetDynamicVolumes.RESTORE_ENV.getVolumeName())
+        .withConfigMap(new ConfigMapVolumeSourceBuilder()
+            .withName(name(context))
+            .build())
+        .build();
+  }
+
+  public @NotNull Optional<HasMetadata> buildSource(StackGresClusterContext context) {
+    return context.getRestoreBackup().map(restoreBackup -> {
       final Map<String, String> data = new HashMap<>();
 
       data.put("BACKUP_RESOURCE_VERSION",
@@ -68,17 +89,15 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
           .map(StackGresClusterRestore::getDownloadDiskConcurrency)
           .ifPresent(downloadDiskConcurrency -> data.put(
               "WALG_DOWNLOAD_CONCURRENCY", convertEnvValue(downloadDiskConcurrency)));
-      return Stream.of(new ConfigMapBuilder()
+      return new ConfigMapBuilder()
           .withNewMetadata()
           .withNamespace(cluster.getMetadata().getNamespace())
           .withName(name(context))
           .withLabels(labelFactory.patroniClusterLabels(cluster))
           .endMetadata()
           .withData(StackGresUtil.addMd5Sum(data))
-          .build());
-    } else {
-      return Stream.of();
-    }
+          .build();
+    });
   }
 
   @Override

@@ -31,8 +31,6 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniServices;
 import org.jooq.lambda.Seq;
 
 @Singleton

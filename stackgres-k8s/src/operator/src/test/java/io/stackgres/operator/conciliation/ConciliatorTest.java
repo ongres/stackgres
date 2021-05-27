@@ -39,14 +39,14 @@ public abstract class ConciliatorTest<T extends CustomResource<?, ?>> {
     };
 
     @Override
-    public boolean isTheSameResource(HasMetadata r1, HasMetadata r2) {
+    public boolean isTheSameResource(HasMetadata required, HasMetadata deployed) {
 
-      return comparator.isTheSameResource(r1, r2);
+      return comparator.isTheSameResource(required, deployed);
     }
 
     @Override
-    public boolean isResourceContentEqual(HasMetadata r1, HasMetadata r2) {
-      return comparator.isResourceContentEqual(r1, r2);
+    public boolean isResourceContentEqual(HasMetadata required, HasMetadata deployed) {
+      return comparator.isResourceContentEqual(required, deployed);
     }
   };
 
@@ -127,7 +127,7 @@ public abstract class ConciliatorTest<T extends CustomResource<?, ?>> {
     assertEquals(0, result.getCreations().size());
     assertEquals(1, result.getPatches().size());
 
-    assertEquals(updatedResource, result.getPatches().get(0));
+    assertEquals(updatedResource, result.getPatches().get(0).v1);
 
   }
 

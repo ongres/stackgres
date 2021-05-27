@@ -17,7 +17,10 @@ import javax.inject.Singleton;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
@@ -28,17 +31,19 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
-import io.stackgres.operatorframework.resource.ResourceUtil;
-import org.jooq.lambda.Seq;
+import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
+import io.stackgres.operator.conciliation.factory.VolumeFactory;
+import io.stackgres.operator.conciliation.factory.VolumePair;
+import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
-public class PatroniConfigMap implements ResourceGenerator<StackGresClusterContext> {
+public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> {
 
   public static final int PATRONI_LOG_FILE_SIZE = 256 * 1024 * 1024;
   public static final String POSTGRES_PORT_NAME = "pgport";
@@ -52,7 +57,8 @@ public class PatroniConfigMap implements ResourceGenerator<StackGresClusterConte
   private LabelFactory<StackGresCluster> labelFactory;
 
   public static String name(ClusterContext clusterContext) {
-    return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName());
+    return StatefulSetDynamicVolumes.PATRONI_ENV
+        .getResourceName(clusterContext.getCluster().getMetadata().getName());
   }
 
   public static String getKubernetesPorts(final int pgPort, final int pgRawPort) {
@@ -67,11 +73,29 @@ public class PatroniConfigMap implements ResourceGenerator<StackGresClusterConte
   }
 
   @Override
-  public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
+  public @NotNull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
+    return Stream.of(
+        ImmutableVolumePair.builder()
+            .volume(buildVolume(context))
+            .source(buildSource(context))
+            .build()
+    );
+  }
+
+  public @NotNull Volume buildVolume(StackGresClusterContext context) {
+    return new VolumeBuilder()
+        .withName(StatefulSetDynamicVolumes.PATRONI_ENV.getVolumeName())
+        .withConfigMap(new ConfigMapVolumeSourceBuilder()
+            .withName(name(context))
+            .withDefaultMode(444)
+            .build())
+        .build();
+  }
+
+  public @NotNull HasMetadata buildSource(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getSource();
     final String pgVersion = StackGresComponent.POSTGRESQL.findVersion(
         cluster.getSpec().getPostgresVersion());
-
 
     final String patroniLabels;
     final Map<String, String> value = labelFactory
@@ -121,14 +145,14 @@ public class PatroniConfigMap implements ResourceGenerator<StackGresClusterConte
             .map(String::valueOf)
             .orElse("0"));
 
-    return Seq.of(new ConfigMapBuilder()
+    return new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(name(context))
         .withLabels(value)
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(data))
-        .build());
+        .build();
   }
 
   @Inject

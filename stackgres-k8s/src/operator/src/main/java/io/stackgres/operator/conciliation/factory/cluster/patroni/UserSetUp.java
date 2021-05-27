@@ -5,42 +5,51 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
-import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
+import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
+import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
+import io.stackgres.operator.conciliation.factory.ProviderName;
+import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
+import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
 @InitContainer(order = 0)
-public class UserSetUp implements ContainerFactory<StackGresClusterContext> {
+public class UserSetUp implements ContainerFactory<StackGresClusterContainerContext> {
 
-  private final ClusterEnvironmentVariablesFactoryDiscoverer<StackGresClusterContext>
-      clusterEnvVarFactoryDiscoverer;
+  private final VolumeMountsProvider<ContainerContext> scriptTemplateMounts;
+
+  private final VolumeMountsProvider<ContainerContext> postgresSocketMounts;
 
   @Inject
   public UserSetUp(
-      ClusterEnvironmentVariablesFactoryDiscoverer<StackGresClusterContext>
-          clusterEnvVarFactoryDiscoverer) {
-    this.clusterEnvVarFactoryDiscoverer = clusterEnvVarFactoryDiscoverer;
+      @ProviderName(VolumeMountProviderName.SCRIPT_TEMPLATES)
+          VolumeMountsProvider<ContainerContext> scriptTemplateMounts,
+      @ProviderName(VolumeMountProviderName.POSTGRES_DATA)
+          VolumeMountsProvider<ContainerContext> postgresSocketMounts) {
+    this.scriptTemplateMounts = scriptTemplateMounts;
+    this.postgresSocketMounts = postgresSocketMounts;
   }
 
   @Override
-  public Container getContainer(StackGresClusterContext context) {
+  public Container getContainer(StackGresClusterContainerContext context) {
     return new ContainerBuilder()
         .withName("setup-arbitrary-user")
         .withImage(StackGresComponent.KUBECTL.findLatestImageName())
@@ -49,35 +58,28 @@ public class UserSetUp implements ContainerFactory<StackGresClusterContext> {
             ClusterStatefulSetPath.TEMPLATES_PATH.path()
                 + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH.filename())
         .withEnv(getClusterEnvVars(context))
-        .withVolumeMounts(
-            ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context),
-            ClusterStatefulSetVolumeConfig.USER.volumeMount(
-                context, volumeMountBuilder -> volumeMountBuilder
-                    .withSubPath("etc")
-                    .withMountPath("/local/etc")
-                    .withReadOnly(false)))
+        .withVolumeMounts(scriptTemplateMounts.getVolumeMounts(context))
+        .addToVolumeMounts(
+            new VolumeMountBuilder()
+                .withName(PatroniStaticVolume.USER.getVolumeName())
+                .withMountPath("/local/etc")
+                .withSubPath("etc")
+                .withReadOnly(false)
+                .build())
         .build();
-  }
-
-  @Override
-  public List<Volume> getVolumes(StackGresClusterContext context) {
-    return List.of();
   }
 
   @Override
   public Map<String, String> getComponentVersions(StackGresClusterContext context) {
     return Map.of();
-  }
+  }  
 
-  @NotNull
-  private List<EnvVar> getClusterEnvVars(StackGresClusterContext context) {
-    List<EnvVar> clusterEnvVars = new ArrayList<>();
+  private List<EnvVar> getClusterEnvVars(StackGresClusterContainerContext context) {
 
-    List<ClusterEnvironmentVariablesFactory<StackGresClusterContext>> clusterEnvVarFactories =
-        clusterEnvVarFactoryDiscoverer.discoverFactories(context);
+    return ImmutableList.<EnvVar>builder()
+        .addAll(scriptTemplateMounts.getDerivedEnvVars(context))
+        .addAll(postgresSocketMounts.getDerivedEnvVars(context))
+        .build();
 
-    clusterEnvVarFactories.forEach(envVarFactory ->
-        clusterEnvVars.addAll(envVarFactory.buildEnvironmentVariables(context)));
-    return clusterEnvVars;
   }
 }

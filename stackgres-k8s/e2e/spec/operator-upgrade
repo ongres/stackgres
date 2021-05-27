@@ -136,6 +136,7 @@ EOF
   check_mock_data "$CLUSTER_NAME-3"
 }
 
+
 is_backup_phase() {
   [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.status.process.status}')" = "$1" ]
 }
@@ -154,7 +155,7 @@ e2e_test() {
   run_test "Check that cluster with 3 node after upgrade" check_cluster_3
   run_test "Check that distributedlogs node can be restarted after upgrade" check_distributedlogs_restart
   run_test "Check that cluster with 1 node can be restarted after upgrade with reduced impact" check_cluster_1_restart
-  run_test "Check that cluster with 2 node can be restarted after upgrade with restart primary first" check_cluster_2_restart
+  run_test "Check that cluster with 2 node can be restarted after upgrade with reduced impact" check_cluster_2_restart
   run_test "Check that cluster with 3 node can be restarted after upgrade with in-place restart" check_cluster_3_restart
   run_test "Checking that metrics are exported for cluster with 1 node" check_metrics "$CLUSTER_NAME-1"
   run_test "Checking that metrics are exported for cluster with 2 node" check_metrics "$CLUSTER_NAME-2"
@@ -231,17 +232,17 @@ check_operator_upgrade() {
 
 
 check_cluster_1() {
-  #check_sts_is_not_altered "$CLUSTER_NAME-1"
+  check_sts_is_not_altered "$CLUSTER_NAME-1"
   check_mock_data_samehost "$CLUSTER_NAME-1"
 }
 
 check_cluster_2() {
-  #check_sts_is_not_altered "$CLUSTER_NAME-1"
+  check_sts_is_not_altered "$CLUSTER_NAME-2"
   check_mock_data_samehost "$CLUSTER_NAME-2"
 }
 
 check_cluster_3() {
-  #check_sts_is_not_altered "$CLUSTER_NAME-1"
+  check_sts_is_not_altered "$CLUSTER_NAME-3"
   check_mock_data_samehost "$CLUSTER_NAME-3"
 }
 
@@ -257,65 +258,51 @@ check_distributedlogs_restart() {
   wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgdistributedlogs/check_cluster_after_restart" --for condition=PendingRestart'
 }
 
-check_cluster_1_restart() {
-  check_cluster_restart "$CLUSTER_NAME-1" 1 "ReducedImpact" false
-  wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-1" --for condition=PendingRestart'
+check_cluster_1_restart() {  
+  check_cluster_restart "$CLUSTER_NAME-1" "ReducedImpact"
 }
 
 check_cluster_2_restart() {
-  create_or_replace_cluster "$CLUSTER_NAME-for-restart-primary-first" "$CLUSTER_NAMESPACE" 1 \
-    --set cluster.create=false \
-    --set instanceProfiles=null \
-    --set cluster.configurations.sgPostgresConfig=postgresconf-for-restart-primary-first \
-    --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-restart-primary-first \
-    --set-string configurations.postgresconfig.postgresql\.conf.max_connections=50
-  check_cluster_restart "$CLUSTER_NAME-2" 2 "InPlace" true
-  wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-2" --for condition=PendingRestart'
+  check_cluster_restart "$CLUSTER_NAME-2" "ReducedImpact"  
 }
 
 check_cluster_3_restart() {
-  check_cluster_restart "$CLUSTER_NAME-3" 3 "InPlace" false
-  wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-3" --for condition=PendingRestart'
+  check_cluster_restart "$CLUSTER_NAME-3" "InPlace"
 }
 
 check_cluster_restart() {
   local CLUSTER_NAME="$1"
-  local CLUSTER_SIZE="$2"
-  local METHOD="$3"
-  local RESTART_PRIMARY_FIRST="$4"
-  shift 4
+  local METHOD="$2"
+  shift 2
 
   check_cluster_before_restart
 
-  try_function create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$CLUSTER_SIZE" \
-    --set cluster.restart=true \
-    --set cluster.restartReducedImpact="$REDUCED_IMPACT" \
-    --set cluster.restartPrimaryFirst="$RESTART_PRIMARY_FIRST" \
-    "$@"
-  if "$RESULT"
+    cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $CLUSTER_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: restart
+  restart:
+    method: $METHOD
+EOF
+
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$CLUSTER_NAME" \
+    --for condition=Completed
   then
-    echo "SUCCESS. Cluster restart completed sucesfully"
+    echo "SUCCESS. restart completed."
   else
-    echo "FAILURE. Cluster restart did not completed sucesfully"
-    echo
-    echo "Cluster restart output:"
-    kubectl logs -n "$CLUSTER_NAMESPACE" -l app=stackgres-restart-cluster
+    echo "FAILED. restart failed."
     return 1
   fi
 
   check_cluster_after_restart
 
   check_mock_data_samehost "$CLUSTER_NAME"
-
-  local PRIMARY_SERVICE_TYPE="$(kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-primary" \
-    --template '{{ .spec.type }}')"
-  if [ "$PRIMARY_SERVICE_TYPE" = "ExternalName" ]
-  then
-    echo "SUCCESS. Primary service is of type ExternalName"
-  else
-    echo "FAILURE. Primary service is not of type ExternalName"
-    return 1
-  fi
+  
 }
 
 check_cluster_before_restart() {
@@ -343,28 +330,7 @@ check_cluster_before_restart() {
   done
 }
 
-    cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1
-kind: SGDbOps
-metadata:
-  name: $CLUSTER_NAME
-  namespace: $CLUSTER_NAMESPACE
-spec:
-  sgCluster: $CLUSTER_NAME
-  op: restart
-  restart:
-    method: $METHOD
-EOF
-
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$CLUSTER_NAME" \
-    --for condition=Completed
-  then
-    echo "SUCCESS. security upgrade completed."
-  else
-    echo "FAILED. security upgrade failed."
-    return 1
-  fi
-
+check_cluster_after_restart() {
   local STS_UPDATE_REVISION="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .status.updateRevision }}')"
   local POD_CONTROLLER_REVISION_HASH
   local POD_CONTROLLER_REVISION_HASHES="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
@@ -402,22 +368,6 @@ EOF
     fi
   done
 
-  POD=$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true,role=master" -o name \
-    | cut -d / -f 2 )
-
-  check_mock_data_samehost "$CLUSTER_NAME"
-
-  local PRIMARY_SERVICE_TYPE="$(kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-primary" \
-    --template '{{ .spec.type }}')"
-  if [ "$PRIMARY_SERVICE_TYPE" = "ExternalName" ]
-  then
-    echo "FAILURE. Primary service was migrated"
-    return 1
-  else
-    echo "SUCCESS. Primary service was not migrated"
-  fi
-  unset POD
 }
 
 check_conversion_webhook_configured(){
@@ -428,53 +378,12 @@ check_conversion_webhook_configured(){
 
 }
 
-create_or_replace_cluster_for_version() {
-  local VERSION="$1"
-  local RELEASE="$2"
-  local NAMESPACE="$3"
-  local INSTANCES="$4"
-  shift 4
-
-  local CLUSTER_HELM_URL
-  CLUSTER_HELM_URL="$(get_cluster_helm_url "$VERSION")"
-
-  local TRANSFORMER="dont_transform"
-  if [ "$(get_version_as_number "$VERSION")" -lt "$(get_version_as_number 1.0.0-alpha2)" ]
-  then
-    TRANSFORMER="transform_pre_1_0_0_alpha2"
-  fi
-
-  if helm get values "$RELEASE" --namespace "$NAMESPACE" > /dev/null 2>&1
-  then
-    eval "$(transform_params "$TRANSFORMER" helm upgrade "$RELEASE" --namespace "$NAMESPACE" "$CLUSTER_HELM_URL" \
-        --reuse-values --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@")"
-  else
-    create_namespace_if_not_exists "$NAMESPACE"
-    eval "$(transform_params "$TRANSFORMER" helm install "$RELEASE" "$CLUSTER_HELM_URL" \
-      --namespace "$NAMESPACE" \
-      --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@")"
-  fi
-}
-
-dont_transform() {
-  printf "%s" "$1"
-}
-
-transform_pre_1_0_0_alpha2() {
-  if [ "${1%=*}" = "cluster.initialData.restore.fromBackup.uid" ]
-  then
-    printf "%s=%s" "cluster.initialData.restore.fromBackup" "${1#*=}"
-  else
-    printf "%s" "$1"
-  fi
-}
-
 check_sts_is_not_altered() {
   local TARGET_CLUSTER="$1"
-  local STS_UPDATE_REVISION=$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER" -o jsonpath='{.status.updateRevision}')
-  local POD_REVISION=$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER-0" -o jsonpath='{.metadata.labels.controller-revision-hash}')
 
-  if assert_string_equal "$STS_UPDATE_REVISION" "$POD_REVISION"
+  local STS_PATRONI_IMAGE=$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER" -o jsonpath='{.spec.template.spec.containers[0].image}')
+
+  if assert_string_equal "$STS_PATRONI_IMAGE" "$PREVIOUS_PATRONI_IMAGE"
   then
     echo "SUCCESS. StatefulSet is not being altered on operator upgrade"
   else 

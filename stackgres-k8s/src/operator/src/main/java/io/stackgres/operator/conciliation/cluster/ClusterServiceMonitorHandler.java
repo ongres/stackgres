@@ -28,7 +28,7 @@ public class ClusterServiceMonitorHandler  implements ReconciliationHandler {
 
   private static ServiceMonitor safeCast(HasMetadata resource) {
     if (!(resource instanceof ServiceMonitor)) {
-      throw new IllegalArgumentException("Resource must be a StatefulSet instance");
+      throw new IllegalArgumentException("Resource must be a ServiceMonitor instance");
     }
     return (ServiceMonitor) resource;
   }
@@ -40,9 +40,14 @@ public class ClusterServiceMonitorHandler  implements ReconciliationHandler {
   }
 
   @Override
-  public HasMetadata patch(HasMetadata newResource) {
+  public HasMetadata patch(HasMetadata newResource, HasMetadata oldResource) {
     var sm = safeCast(newResource);
     return serviceMonitorWriter.update(sm);
+  }
+
+  @Override
+  public HasMetadata replace(HasMetadata resource) {
+    return serviceMonitorWriter.update(safeCast(resource));
   }
 
   @Override

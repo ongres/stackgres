@@ -36,7 +36,6 @@ import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariab
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.Patroni;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple;
@@ -151,7 +150,7 @@ public abstract class DbOpsJob implements JobFactory {
             .withImage(getSetResultImage())
             .withImagePullPolicy("IfNotPresent")
             .withEnv(ImmutableList.<EnvVar>builder()
-                .addAll(clusterStatefulSetEnvironmentVariables.listResources(context.getSource()))
+                .addAll(clusterStatefulSetEnvironmentVariables.listResources(context))
                 .add(
                     new EnvVarBuilder()
                         .withName("OP_NAME")
@@ -192,7 +191,7 @@ public abstract class DbOpsJob implements JobFactory {
                         .build())
                     .toList())
                 .build())
-            .withCommand("/bin/sh", "-e" + (DBOPS_LOGGER.isTraceEnabled() ? "x" : ""),
+            .withCommand("/bin/sh", "-ex",
                 ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RUNNING_SH_PATH.path())
             .withVolumeMounts(
                 ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
@@ -215,7 +214,7 @@ public abstract class DbOpsJob implements JobFactory {
                 .withImagePullPolicy("IfNotPresent")
                 .withEnv(ImmutableList.<EnvVar>builder()
                     .addAll(clusterStatefulSetEnvironmentVariables
-                        .listResources(context.getSource()))
+                        .listResources(context))
                     .add(
                         new EnvVarBuilder()
                             .withName("OP_NAME")
@@ -281,7 +280,7 @@ public abstract class DbOpsJob implements JobFactory {
                 .withImagePullPolicy("IfNotPresent")
                 .withEnv(ImmutableList.<EnvVar>builder()
                     .addAll(clusterStatefulSetEnvironmentVariables
-                        .listResources(context.getSource()))
+                        .listResources(context))
                     .add(
                         new EnvVarBuilder()
                             .withName("OP_NAME")

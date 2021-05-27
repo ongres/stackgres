@@ -11,8 +11,8 @@ import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import io.stackgres.common.ClusterStatefulSetEnvVars;
 
+//TODO review patroni env paths
 public enum PatroniEnvPaths {
 
   ETC_PASSWD_PATH("/etc/passwd"),
@@ -54,7 +54,9 @@ public enum PatroniEnvPaths {
   PG_LOG_PATH("/var/log/postgresql"),
   BASE_ENV_PATH("/etc/env"),
   BASE_SECRET_PATH(BASE_ENV_PATH, ".secret"),
+  PATRONI_CONFIG_PATH("/etc/patroni"),
   TEMPLATES_PATH("/templates");
+
 
   private final String path;
   private final EnvVar envVar;

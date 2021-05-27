@@ -67,7 +67,7 @@ class ClusterSwitchoverHandlerImplTest {
     when(patroniApiHandler.performSwitchover(leader, replica))
         .thenReturn(Uni.createFrom().voidItem());
 
-    switchoverHandler.performSwitchover(TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME)
+    switchoverHandler.performSwitchover(leader.getName(), TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME)
         .await().indefinitely();
 
     InOrder order = Mockito.inOrder(patroniApiHandler);
@@ -148,7 +148,7 @@ class ClusterSwitchoverHandlerImplTest {
     when(patroniApiHandler.performSwitchover(leader, candidate))
         .thenReturn(Uni.createFrom().voidItem());
 
-    switchoverHandler.performSwitchover(TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME)
+    switchoverHandler.performSwitchover(leader.getName(), TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME)
         .await().indefinitely();
 
     verify(patroniApiHandler).getClusterMembers(any(), any());
@@ -174,7 +174,7 @@ class ClusterSwitchoverHandlerImplTest {
                 .build()
         )));
 
-    switchoverHandler.performSwitchover(TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME)
+    switchoverHandler.performSwitchover("member-0", TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME)
         .await().indefinitely();
 
     verify(patroniApiHandler).getClusterMembers(any(), any());
@@ -210,11 +210,55 @@ class ClusterSwitchoverHandlerImplTest {
         )));
 
     assertThrows(FailoverException.class,
-        () -> switchoverHandler.performSwitchover(TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME)
+        () -> switchoverHandler.performSwitchover("member-0", TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME)
             .await().indefinitely());
 
     verify(patroniApiHandler).getClusterMembers(any(), any());
     verify(patroniApiHandler, never()).performSwitchover(any(), any());
+  }
+
+  @Test
+  void ifTheLeaderNameDoesNotMatch_switchoverShouldBeSkipped(){
+
+    final ClusterMember leader = ImmutableClusterMember.builder()
+        .name("member-0")
+        .clusterName(TEST_CLUSTER_NAME)
+        .namespace(TEST_NAMESPACE_NAME)
+        .state(MemberState.RUNNING)
+        .role(MemberRole.LEADER)
+        .host("127.0.0.1")
+        .apiUrl("http://127.0.0.1:8008/patroni")
+        .port(7433)
+        .timeline(1)
+        .build();
+    final ClusterMember replica = ImmutableClusterMember.builder()
+        .name("member-1")
+        .clusterName(TEST_CLUSTER_NAME)
+        .namespace(TEST_NAMESPACE_NAME)
+        .state(MemberState.RUNNING)
+        .role(MemberRole.REPlICA)
+        .host("127.0.0.2")
+        .apiUrl("http://127.0.0.2:8008/patroni")
+        .port(7433)
+        .timeline(1)
+        .lag(0)
+        .build();
+    when(patroniApiHandler.getClusterMembers(TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME))
+        .thenReturn(Uni.createFrom().item(List.of(
+            leader,
+            replica)
+        ));
+
+    when(patroniApiHandler.performSwitchover(leader, replica))
+        .thenReturn(Uni.createFrom().voidItem());
+
+    switchoverHandler.performSwitchover(replica.getName(), TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME)
+        .await().indefinitely();
+
+    verify(patroniApiHandler).getClusterMembers(TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME);
+
+    verify(patroniApiHandler, never()).performSwitchover(any(), any());
+
   }
 
 }

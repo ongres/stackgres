@@ -11,17 +11,18 @@ import java.util.Objects;
 import javax.validation.constraints.NotNull;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import org.jooq.lambda.tuple.Tuple2;
 
 public class ReconciliationResult {
 
   private List<HasMetadata> creations;
 
-  private List<HasMetadata> patches;
+  private List<Tuple2<HasMetadata, HasMetadata>> patches;
 
   private List<HasMetadata> deletions;
 
   public ReconciliationResult(@NotNull List<HasMetadata> creations,
-                              @NotNull List<HasMetadata> patches,
+                              @NotNull List<Tuple2<HasMetadata, HasMetadata>> patches,
                               @NotNull List<HasMetadata> deletions) {
     Objects.requireNonNull(creations);
     Objects.requireNonNull(patches);
@@ -43,11 +44,11 @@ public class ReconciliationResult {
     this.creations = creations;
   }
 
-  public List<HasMetadata> getPatches() {
+  public List<Tuple2<HasMetadata, HasMetadata>> getPatches() {
     return patches;
   }
 
-  public void setPatches(List<HasMetadata> patches) {
+  public void setPatches(List<Tuple2<HasMetadata, HasMetadata>> patches) {
     this.patches = patches;
   }
 

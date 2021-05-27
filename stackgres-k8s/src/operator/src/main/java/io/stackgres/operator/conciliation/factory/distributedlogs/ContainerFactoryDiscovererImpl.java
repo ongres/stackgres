@@ -12,22 +12,22 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.ContainerFactoryDiscoverer;
 import io.stackgres.operator.conciliation.ResourceDiscoverer;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
-import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 
 @ApplicationScoped
 public class ContainerFactoryDiscovererImpl
-    extends ResourceDiscoverer<ContainerFactory<DistributedLogsContext>>
-    implements ContainerFactoryDiscoverer<DistributedLogsContext> {
+    extends ResourceDiscoverer<ContainerFactory<DistributedLogsContainerContext>>
+    implements ContainerFactoryDiscoverer<DistributedLogsContainerContext> {
 
   @Inject
   public ContainerFactoryDiscovererImpl(
       @RunningContainer
-          Instance<ContainerFactory<DistributedLogsContext>> instance) {
+          Instance<ContainerFactory<DistributedLogsContainerContext>> instance) {
     init(instance);
     resourceHub.forEach((key, value) -> {
       value.sort((f1, f2) -> {
@@ -41,9 +41,10 @@ public class ContainerFactoryDiscovererImpl
   }
 
   @Override
-  public List<ContainerFactory<DistributedLogsContext>> discoverContainers(
-      DistributedLogsContext context) {
-    StackGresVersion version = StackGresVersion.getClusterStackGresVersion(context.getSource());
+  public List<ContainerFactory<DistributedLogsContainerContext>> discoverContainers(
+      DistributedLogsContainerContext context) {
+    final StackGresDistributedLogs cluster = context.getDistributedLogsContext().getSource();
+    StackGresVersion version = StackGresVersion.getClusterStackGresVersion(cluster);
     return resourceHub.get(version).stream()
         .filter(f -> f.isActivated(context))
         .collect(Collectors.toUnmodifiableList());

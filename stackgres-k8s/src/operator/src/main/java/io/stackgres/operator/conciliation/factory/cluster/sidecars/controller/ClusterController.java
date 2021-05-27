@@ -5,10 +5,12 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.controller;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
+import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_DATA;
 
+import java.util.Map;
+
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableMap;
@@ -17,7 +19,6 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
-import io.fabric8.kubernetes.api.model.Volume;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresContext;
@@ -25,22 +26,37 @@ import io.stackgres.common.StackGresController;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
+import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
+import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
+import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
+import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 
 @Singleton
 @Sidecar(ClusterController.NAME)
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
-@RunningContainer(order = 6)
-public class ClusterController implements ContainerFactory<StackGresClusterContext> {
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
+@RunningContainer(order = 3)
+public class ClusterController implements ContainerFactory<StackGresClusterContainerContext> {
 
   public static final String NAME = StackgresClusterContainers.CLUSTER_CONTROLLER;
 
+  private final VolumeMountsProvider<ContainerContext> postgresDataMounts;
+  private final VolumeMountsProvider<ContainerContext> userContainerMounts;
+
+  @Inject
+  public ClusterController(
+      @ProviderName(POSTGRES_DATA)
+          VolumeMountsProvider<ContainerContext> postgresDataMounts,
+      @ProviderName(CONTAINER_USER_OVERRIDE)
+      VolumeMountsProvider<ContainerContext> userContainerMounts) {
+    this.postgresDataMounts = postgresDataMounts;
+    this.userContainerMounts = userContainerMounts;
+  }
+
   @Override
-  public Container getContainer(StackGresClusterContext context) {
+  public Container getContainer(StackGresClusterContainerContext context) {
     return new ContainerBuilder()
         .withName(StackgresClusterContainers.CLUSTER_CONTROLLER)
         .withImage(StackGresController.CLUSTER_CONTROLLER.getImageName())
@@ -48,11 +64,13 @@ public class ClusterController implements ContainerFactory<StackGresClusterConte
         .withEnv(new EnvVarBuilder()
                 .withName(ClusterControllerProperty.CLUSTER_NAME.getEnvironmentVariableName())
                 .withValue(context
+                    .getClusterContext()
                     .getCluster().getMetadata().getName())
                 .build(),
             new EnvVarBuilder()
                 .withName(ClusterControllerProperty.CLUSTER_NAMESPACE.getEnvironmentVariableName())
                 .withValue(context
+                    .getClusterContext()
                     .getCluster().getMetadata().getNamespace())
                 .build(),
             new EnvVarBuilder()
@@ -94,21 +112,16 @@ public class ClusterController implements ContainerFactory<StackGresClusterConte
                 .withName("DEBUG_CLUSTER_CONTROLLER_SUSPEND")
                 .withValue(System.getenv("DEBUG_OPERATOR_SUSPEND"))
                 .build())
-        .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(context))
-        .addAllToVolumeMounts(ClusterStatefulSetVolumeConfig.USER.volumeMounts(context))
+        .withVolumeMounts(userContainerMounts.getVolumeMounts(context))
+        .addAllToVolumeMounts(postgresDataMounts.getVolumeMounts(context))
         .build();
   }
 
   @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContext context) {
+  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.CLUSTER_CONTROLLER_VERSION_KEY,
         StackGresController.CLUSTER_CONTROLLER.getVersion());
-  }
-
-  @Override
-  public List<Volume> getVolumes(StackGresClusterContext context) {
-    return List.of();
   }
 
 }

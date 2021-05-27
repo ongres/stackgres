@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -27,7 +26,6 @@ import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
-import io.stackgres.common.resource.DistributedLogsScheduler;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
 
@@ -38,30 +36,22 @@ public class DistributedLogsStatusManager
 
   private final KubernetesClientFactory clientFactory;
   private final LabelFactory<StackGresDistributedLogs> labelFactory;
-  private final DistributedLogsScheduler distributedLogsScheduler;
 
   @Inject
   public DistributedLogsStatusManager(KubernetesClientFactory clientFactory,
-                                      LabelFactory<StackGresDistributedLogs> labelFactory,
-                                      DistributedLogsScheduler distributedLogsScheduler) {
+                                      LabelFactory<StackGresDistributedLogs> labelFactory) {
     this.clientFactory = clientFactory;
     this.labelFactory = labelFactory;
-    this.distributedLogsScheduler = distributedLogsScheduler;
   }
 
   @Override
-  public void refreshCondition(StackGresDistributedLogs source) {
+  public StackGresDistributedLogs refreshCondition(StackGresDistributedLogs source) {
     if (isPendingRestart(source)) {
-      withNewClient(client -> updateCondition(getPodRequiresRestart(), source));
+      updateCondition(getPodRequiresRestart(), source);
     } else {
-      withNewClient(client -> updateCondition(getFalsePendingRestart(), source));
+      updateCondition(getFalsePendingRestart(), source);
     }
-  }
-
-  private void withNewClient(Consumer<KubernetesClient> func) {
-    try (var client = clientFactory.create()) {
-      func.accept(client);
-    }
+    return source;
   }
 
   /**

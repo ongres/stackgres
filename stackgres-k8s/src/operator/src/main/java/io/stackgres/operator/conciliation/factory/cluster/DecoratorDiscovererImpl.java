@@ -17,6 +17,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.ResourceDiscoverer;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.Decorator;
+import io.stackgres.operator.conciliation.factory.DecoratorDiscoverer;
 
 @ApplicationScoped
 public class DecoratorDiscovererImpl

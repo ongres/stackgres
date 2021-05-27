@@ -5,6 +5,8 @@
 
 package io.stackgres.jobs.dbops.securityupgrade;
 
+import static io.stackgres.jobs.dbops.clusterrestart.ClusterRestartImpl.REDUCED_IMPACT_METHOD;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,10 +26,15 @@ import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsSecurityUpgrade;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSecurityUpgradeStatus;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceScanner;
+import io.stackgres.jobs.dbops.ClusterRestartStateHandler;
+import io.stackgres.jobs.dbops.IllegalDbOpsState;
+import io.stackgres.jobs.dbops.StateHandler;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestart;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.ImmutableClusterRestartState;
@@ -37,36 +44,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
+@StateHandler("securityUpgrade")
 public class ClusterRestartStateHandlerImpl implements ClusterRestartStateHandler {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ClusterRestartStateHandlerImpl.class);
-
-  private final ClusterRestart clusterRestart;
-
-  private final CustomResourceScheduler<StackGresDbOps> dbOpsScheduler;
-
-  private final CustomResourceFinder<StackGresDbOps> dbOpsFinder;
-
-  private final CustomResourceFinder<StackGresCluster> clusterFinder;
-
-  private final LabelFactory<StackGresCluster> labelFactory;
-
-  private final ResourceScanner<Pod> podScanner;
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(ClusterRestartStateHandlerImpl.class);
 
   @Inject
-  public ClusterRestartStateHandlerImpl(ClusterRestart clusterRestart,
-                                        CustomResourceScheduler<StackGresDbOps> dbOpsScheduler,
-                                        CustomResourceFinder<StackGresDbOps> dbOpsFinder,
-                                        CustomResourceFinder<StackGresCluster> clusterFinder,
-                                        LabelFactory<StackGresCluster> labelFactory,
-                                        ResourceScanner<Pod> podScanner) {
-    this.clusterRestart = clusterRestart;
-    this.dbOpsScheduler = dbOpsScheduler;
-    this.dbOpsFinder = dbOpsFinder;
-    this.clusterFinder = clusterFinder;
-    this.labelFactory = labelFactory;
-    this.podScanner = podScanner;
-  }
+  ClusterRestart clusterRestart;
+
+  @Inject
+  CustomResourceScheduler<StackGresDbOps> dbOpsScheduler;
+
+  @Inject
+  CustomResourceFinder<StackGresDbOps> dbOpsFinder;
+
+  @Inject
+  CustomResourceFinder<StackGresCluster> clusterFinder;
+
+  @Inject
+  LabelFactory<StackGresCluster> labelFactory;
+
+  @Inject
+  ResourceScanner<Pod> podScanner;
 
   @Override
   public Uni<StackGresDbOps> restartCluster(StackGresDbOps op) {
@@ -118,9 +118,6 @@ public class ClusterRestartStateHandlerImpl implements ClusterRestartStateHandle
 
   private void logEvent(StackGresDbOps initializedOp, RestartEvent event) {
     switch (event.getEventType()) {
-      case POD_RESTART:
-        LOGGER.info("Pod {} restarted", event.getPod().getMetadata().getName());
-        break;
       case POD_CREATED:
         LOGGER.info("Pod {} created", event.getPod().getMetadata().getName());
         break;
@@ -128,10 +125,12 @@ public class ClusterRestartStateHandlerImpl implements ClusterRestartStateHandle
         LOGGER.info("Switchover of cluster " + initializedOp.getSpec().getSgCluster()
             + " performed");
         break;
+      default:
+        LOGGER.info("Pod {} restarted", event.getPod().getMetadata().getName());
     }
   }
 
-  private StackGresDbOps getDbOp(String name, String namespace){
+  private StackGresDbOps getDbOp(String name, String namespace) {
     return dbOpsFinder.findByNameAndNamespace(name, namespace)
         .orElseThrow();
   }
@@ -160,7 +159,7 @@ public class ClusterRestartStateHandlerImpl implements ClusterRestartStateHandle
         }
         securityUpgradeStatus.getRestartedInstances().add(podName);
         break;
-      case SWITCHOVER:
+      default:
         securityUpgradeStatus.setSwitchoverInitiated(Boolean.TRUE.toString());
         break;
     }
@@ -216,8 +215,13 @@ public class ClusterRestartStateHandlerImpl implements ClusterRestartStateHandle
             .collect(Collectors.toUnmodifiableList()))
         .orElse(List.of());
 
+    final String method = Optional.of(op.getSpec())
+        .map(StackGresDbOpsSpec::getSecurityUpgrade)
+        .map(StackGresDbOpsSecurityUpgrade::getMethod)
+        .orElse(REDUCED_IMPACT_METHOD);
+
     return ImmutableClusterRestartState.builder()
-        .restartMethod(op.getSpec().getSecurityUpgrade().getMethod())
+        .restartMethod(method)
         .clusterName(op.getSpec().getSgCluster())
         .namespace(op.getMetadata().getNamespace())
         .primaryInstance(clusterPods.stream()

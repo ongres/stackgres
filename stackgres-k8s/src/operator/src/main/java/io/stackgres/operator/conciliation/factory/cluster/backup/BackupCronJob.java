@@ -46,7 +46,6 @@ import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniRoleGenerator;
-import org.jooq.lambda.Seq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,14 +79,16 @@ public class BackupCronJob
 
   @Override
   public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
-    return Seq.of(context.getBackupConfig())
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .map(backupConfig -> createCronJob(context, backupConfig));
+    if (context.getBackupConfig().isPresent()) {
+      var backupConfig = context.getBackupConfig().get();
+      return Stream.of(createCronJob(context, backupConfig));
+    } else {
+      return Stream.of();
+    }
   }
 
   private CronJob createCronJob(StackGresClusterContext context,
-      StackGresBackupConfig backupConfig) {
+                                StackGresBackupConfig backupConfig) {
     String namespace = context.getSource().getMetadata().getNamespace();
     String name = context.getSource().getMetadata().getName();
     final StackGresCluster cluster = context.getSource();
@@ -132,7 +133,7 @@ public class BackupCronJob
                 .withImage(StackGresComponent.KUBECTL.findLatestImageName())
                 .withImagePullPolicy("IfNotPresent")
                 .withEnv(ImmutableList.<EnvVar>builder()
-                    .addAll(clusterStatefulSetEnvironmentVariables.listResources(cluster))
+                    .addAll(clusterStatefulSetEnvironmentVariables.listResources(context))
                     .add(new EnvVarBuilder()
                             .withName("CLUSTER_NAMESPACE")
                             .withValue(namespace)
@@ -235,21 +236,22 @@ public class BackupCronJob
                 .withCommand("/bin/bash", "-e" + (BACKUP_LOGGER.isTraceEnabled() ? "x" : ""),
                     ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
                 .withVolumeMounts(ClusterStatefulSetVolumeConfig.TEMPLATES
-                    .volumeMount(context,
-                        volumeMountBuilder -> volumeMountBuilder
-                        .withSubPath(
-                            ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.filename())
-                        .withMountPath(
-                            ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
-                        .withReadOnly(true)),
+                        .volumeMount(context,
+                            volumeMountBuilder -> volumeMountBuilder
+                                .withSubPath(
+                                    ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH
+                                        .filename())
+                                .withMountPath(
+                                    ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
+                                .withReadOnly(true)),
                     ClusterStatefulSetVolumeConfig.TEMPLATES
-                    .volumeMount(context,
-                        volumeMountBuilder -> volumeMountBuilder
-                        .withSubPath(
-                            ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.filename())
-                        .withMountPath(
-                            ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.path())
-                        .withReadOnly(true)))
+                        .volumeMount(context,
+                            volumeMountBuilder -> volumeMountBuilder
+                                .withSubPath(
+                                    ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.filename())
+                                .withMountPath(
+                                    ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.path())
+                                .withReadOnly(true)))
                 .build())
             .withVolumes(new VolumeBuilder(ClusterStatefulSetVolumeConfig.TEMPLATES
                 .volume(context))

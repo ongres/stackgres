@@ -14,10 +14,12 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
+import io.stackgres.operator.conciliation.factory.FactoryName;
 import io.stackgres.operator.conciliation.factory.PatroniEnvironmentVariablesFactory;
-import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsCommonEnvVars;
+import io.stackgres.operator.conciliation.factory.distributedlogs.patroni.v09.DistributedLogsCommonEnvVars;
 
 @ApplicationScoped
+@FactoryName(DistributedLogsEnvVarFactories.LATEST_PATRONI_ENV_VAR_FACTORY)
 public class EnvVarFactory extends PatroniEnvironmentVariablesFactory<DistributedLogsContext> {
 
   @Override

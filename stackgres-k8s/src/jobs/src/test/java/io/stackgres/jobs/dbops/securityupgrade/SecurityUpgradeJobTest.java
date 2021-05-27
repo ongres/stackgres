@@ -27,6 +27,7 @@ import io.stackgres.jobs.MockKubernetesClientFactory;
 import io.stackgres.jobs.app.JobsProperty;
 import io.stackgres.jobs.dbops.DatabaseOperation;
 import io.stackgres.jobs.dbops.JobsStatefulSetWriter;
+import io.stackgres.jobs.dbops.StateHandler;
 import io.stackgres.jobs.dbops.lock.LockAcquirerImpl;
 import io.stackgres.jobs.dbops.lock.LockRequest;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
@@ -47,8 +48,11 @@ class SecurityUpgradeJobTest {
   SecurityUpgradeJob securityUpgradeJob;
   @Inject
   MockKubeDb kubeDb;
+
   @InjectMock
+  @StateHandler("securityUpgrade")
   ClusterRestartStateHandlerImpl clusterRestart;
+
   @InjectMock
   StatefulSetWriter statefulSetReader;
   @InjectMock
