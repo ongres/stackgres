@@ -225,12 +225,7 @@ pre_cache() {
 }
 
 pre_cache_disabled() {
-  flock /tmp/kind-cache-index-lock sh -c \
-    '
-    [ -f /tmp/kind-cache-index ] || printf "%s\n" -1 > /tmp/kind-cache-index
-    echo "$(( ( $(cat /tmp/kind-cache-index) + 1 ) % (E2E_JOBS + E2E_EXCLUSIVE_JOBS) ))" \
-      > /tmp/kind-cache-index
-    '
+  true
 }
 
 pre_cache_link() {
@@ -277,7 +272,7 @@ reset_cache() {
 
 reset_cache_disabled() {
   echo "Resetting cache for $KIND_NAME ..."
-  "$RUN_ON_HOST" rm -rf /tmp/kind-cache/kind-"$(cat /tmp/kind-cache-index)"
+  "$RUN_ON_HOST" rm -rf /tmp/kind-cache/"$KIND_NAME"
   echo "done"
 }
 
@@ -358,7 +353,7 @@ mount_cache() {
 
 mount_cache_disabled() {
   echo "Creating cache folder for $KIND_NAME ..."
-  "$RUN_ON_HOST" mkdir -p /tmp/kind-cache/kind-"$(cat /tmp/kind-cache-index)"
+  "$RUN_ON_HOST" mkdir -p /tmp/kind-cache/"$KIND_NAME"
   echo "done"
 }
 
