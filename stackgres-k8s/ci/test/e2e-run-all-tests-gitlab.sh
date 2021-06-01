@@ -54,15 +54,7 @@ do
     flock "$KIND_LOCK_PATH" \
       sh stackgres-k8s/ci/test/e2e-create-kind-cache-base.sh
   fi
-  if [ "${KIND_CONTAINERD_CACHE_SHARED_TYPE:-disabled}" = disabled ]
-  then
-    KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache/kind-$(cat /tmp/kind-cache-index)"
-    KIND_CONTAINERD_CACHE_LOCK_PATH="/tmp/kind-cache/kind-lock-$(cat /tmp/kind-cache-index)"
-  else
-    KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache/$KIND_NAME"
-    KIND_CONTAINERD_CACHE_LOCK_PATH="/tmp/kind-cache-lock$SUFFIX"
-  fi
-  export KIND_CONTAINERD_CACHE_PATH
+  export KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache/$KIND_NAME"
 
   echo "Retrieving jobs cache..."
   if "$IS_WEB"
