@@ -1,3 +1,53 @@
+# :rocket: Release 1.0.0-alpha3 (2021-06-01)
+
+## :notepad_spiral: NOTES
+
+Here it comes StackGres 1.0.0-alpha3!! :tada: :bottle_with_popping_cork:
+
+This release brings a lot of bugfixes and improvements you can not miss. Get safe and upgrade now!
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 0.9 version or above) helm chart issue following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `1.0.0-alpha1` version. Upgrading from that version will require to uninstall completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+## :sparkles: CHANGES
+
+* pgbench benchmark SGDbOps operation now clean up the database after benchmark is completed (or failed).
+* Use new kubectl image based on ubi8.
+
+## :bug: FIXES
+
+* Cannot load specific version of an extension.
+* REST API is not able to update `shared_preload_libraries` configuration parameters.
+* Default `log_line_prefix` include quotes in the value.
+* Major version upgrade break cluster when version is not upgraded.
+* Check and sanitize database names in initial data scripts.
+* Custom Annotations are not updated in StatefulSet on change in SGCluster.
+* Extensions with shared library make major version upgrade to fail.
+* Extensions extra mount not correctly specified.
+* Restrict cluster names to a 63 character limit.
+* Improve Grafana tab on the Web UI when no pods info is available.
+* Enable PITR feature on the Web UI.
+* SGDbOps `.runAt` operates in UTC, but Web UI on browser's timezone.
+* Cluster creation in Web UI send an empty string as database name for initial data script entries.
+* Validate Web UI documentation links corresponds with current docs structure.
+* Configure vue-markdown to avoid adding html line breaks in Web UI.
+* Cannot restore from a backup from the Web UI.
+* Fixed data types and added panels in the grafana dashboard.
+
+## :construction: KNOWN ISSUES
+
+* Kubernetes 1.20+ is not supported yet, see #950
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.0.0-alpha3)
+
 # Release 1.0.0-alpha2 (2021-05-06)
 
 ## NOTES
@@ -110,7 +160,7 @@ helm upgrade -n "$NAMESPACE" "$RELEASE" https://stackgres.io/downloads/stackgres
 
 ## NOTES
 
-We are proud to present StackGres 1.0.0-alpha1!! :fireworks: :bottle_with_popping_cork: 
+We are proud to present StackGres 1.0.0-alpha1!! :fireworks: :bottle_with_popping_cork:
 
 This is our first 1.0 series release and it comes with some very useful features to automate your StackGres daily tasks. This is an alpha version so new features !
 
@@ -152,7 +202,7 @@ helm upgrade -n "$NAMESPACE" "$RELEASE" https://stackgres.io/downloads/stackgres
 
 ## NOTES
 
-Here it comes StackGres 0.9.4!! :tada: :bottle_with_popping_cork: 
+Here it comes StackGres 0.9.4!! :tada: :bottle_with_popping_cork:
 
 We want you to be safe and a bit more powerful so we bring to you some bugfixes and small changes!
 
@@ -194,7 +244,7 @@ helm upgrade -n "$NAMESPACE" "$RELEASE" https://stackgres.io/downloads/stackgres
 
 ## NOTES
 
-Here it comes StackGres 0.9.3!! :tada: :bottle_with_popping_cork: 
+Here it comes StackGres 0.9.3!! :tada: :bottle_with_popping_cork:
 
 We want you to be safe and a bit more powerful so we bring to you some bugfixes and small changes!
 
@@ -221,7 +271,7 @@ helm upgrade -n "$NAMESPACE" "$RELEASE" https://stackgres.io/downloads/stackgres
 * Fixed default pooling configuration to not limit downstream connections to postgres (they are now limited to [`max_connections`](https://postgresqlco.nf/en/doc/param/max_connections/)). This only affect installation that uses default pooling configuration.
 * Fixed slow queries in prometheus postgres exporter sidecar for table and index bloats
 * Fixed some grafana dashboard panels units
-* Added workaround for JIT memory leak in postgres. See https://www.postgresql.org/message-id/flat/20201111121420.GA666413%40roeckx.be#81aedc67713fbc01b4443ee586580fb5 
+* Added workaround for JIT memory leak in postgres. See https://www.postgresql.org/message-id/flat/20201111121420.GA666413%40roeckx.be#81aedc67713fbc01b4443ee586580fb5
 * Fixed some UI bugs
 
 # KNOWN ISSUES
@@ -233,7 +283,7 @@ helm upgrade -n "$NAMESPACE" "$RELEASE" https://stackgres.io/downloads/stackgres
 
 ## NOTES
 
-Here it comes StackGres 0.9.2!! :tada: :bottle_with_popping_cork: 
+Here it comes StackGres 0.9.2!! :tada: :bottle_with_popping_cork:
 
 We want you to be safe so we bring to you some buigfixes!
 
@@ -268,7 +318,7 @@ helm upgrade -n "$NAMESPACE" "$RELEASE" https://stackgres.io/downloads/stackgres
 
 ## NOTES
 
-Here it comes StackGres 0.9.1!! :tada: :bottle_with_popping_cork: 
+Here it comes StackGres 0.9.1!! :tada: :bottle_with_popping_cork:
 
 We want you to be safe and cool so we bring to you some component version upgrades and buigfixes!
 
@@ -305,7 +355,7 @@ This release comes with new images that fix a bug with the [JIT library not pres
 * Cluster status do not show the message when one node is failing in the operator admin UI
 * Various fixes and small improvements in the operator admin UI
 * Helm chart init jobs uses the same service account used by the operator
-* Helm chart grafana integration fail if grafana.secret* are specified 
+* Helm chart grafana integration fail if grafana.secret* are specified
 
 # KNOWN ISSUES
 
@@ -316,7 +366,7 @@ This release comes with new images that fix a bug with the [JIT library not pres
 
 ## NOTES
 
-Here it comes StackGres 0.9!! :tada: :bottle_with_popping_cork: 
+Here it comes StackGres 0.9!! :tada: :bottle_with_popping_cork:
 
 The most prominent new feature in this release is easy access to postgres logs with an easy to use interface (through the we UI). It is backed by a dedicated postgres instance, with his own special CR called `SGDistributedLogs`. But even if that is the main feature of this release there are many other new features, changes and fixes that we are proud to bring to you.
 
