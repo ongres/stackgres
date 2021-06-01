@@ -38,6 +38,7 @@ do
   docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
 
   echo "Preparing kind shared cache cache..."
+  export E2E_LOCK_PATH="/tmp/e2e-lock$SUFFIX"
   export KIND_LOCK_PATH="/tmp/kind-lock$SUFFIX"
   if docker manifest inspect \
     "$CI_REGISTRY/$CI_PROJECT_PATH/stackgres/operator:$IMAGE_TAG_BASE" >/dev/null 2>&1
@@ -51,7 +52,7 @@ do
     flock /tmp/e2e-create-kind-cache-base \
       sh stackgres-k8s/ci/test/e2e-create-kind-cache-base.sh
   else
-    flock "$KIND_LOCK_PATH" \
+    flock "$E2E_LOCK_PATH" \
       sh stackgres-k8s/ci/test/e2e-create-kind-cache-base.sh
   fi
   export KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache/$KIND_NAME"
@@ -92,6 +93,7 @@ do
     flock -s /tmp/stackgres-build-jobs-native-executable \
     flock -s /tmp/stackgres-build-distributedlogs-controller-native-executable \
     flock "/tmp/stackgres-integration-test$SUFFIX" \
+    flock "$E2E_LOCK_PATH" \
     timeout -s KILL 3600 \
     "$E2E_SHELL" $SHELL_XTRACE stackgres-k8s/e2e/run-all-tests.sh
   )
