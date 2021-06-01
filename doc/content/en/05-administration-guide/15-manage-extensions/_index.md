@@ -4,7 +4,10 @@ weight: 15
 url: administration/extensions
 ---
 
-Some extensions needs extra software to be installed and configured before they are ready to use. Aiming to fix that problem, it was developed a extra service in the StackGres operator that handles the installation and set up. To use that is necessary to update the SGCluster, adding the extensions that needs to be installed, like below:
+A StackGres cluster comes stripped of all his core extensions. Only some basic extensions are installed
+ by default, like `plpgsql` that is always installed and created in every database. To install other
+ extensions StackGres provide a mechanism to make them available on the fly by simply declaring them in
+ the `SGCluster` like in the following example:
 
 ```yaml
 ---
@@ -17,28 +20,46 @@ spec:
   # ..
   postgresExtensions:
   - name: postgis
-    publisher: com.ongres
-    repository: https://extensions.stackgres.io/postgres/repository
-    version: 3.0.1
   - name: timescaledb
-    publisher: com.ongres
-    repository: https://extensions.stackgres.io/postgres/repository
-    version: 1.7.4
 ```
 
+After adding an extension this way it will be downloaded and will become available:
 
-Once they are installed, is necessary to create the extension, like below:
+```shell
+# select * from pg_available_extensions;
+        name        | default_version | installed_version |                               comment                               
+--------------------+-----------------+-------------------+---------------------------------------------------------------------
+ postgis            | 3.0.1           | 3.0.1             | PostGIS geometry, geography, and raster spatial types and functions
+ timescaledb        | 2.2.0           | 2.2.0             | Enables scalable inserts and complex queries for time-series data
+ pg_stat_statements | 1.6             |                   | track execution statistics of all SQL statements executed
+ plpgsql            | 1.0             | 1.0               | PL/pgSQL procedural language
+ dblink             | 1.2             | 1.2               | connect to other PostgreSQL databases from within a database
+ plpython3u         | 1.0             | 1.0               | PL/Python3U untrusted procedural language
+(5 rows)
+```
+
+As usual, to use an extension on a database use the [`CREATE EXTENSION`](https://www.postgresql.org/docs/current/sql-createextension.html)
+ command like below:
 
 ```sql
 postgres=# create extension postgis;
 CREATE EXTENSION
 ```
-> Check [here for more details]({{% relref "05-administration-guide/02-Connecting-to-the-cluster/03-postgres-util" %}}) about how to connect using kubectl.
 
+> Check [here for more details]({{% relref "05-administration-guide/02-connecting-to-the-cluster/03-postgres-util" %}}) about how to connect using kubectl.
+
+Some extensions needs extra files to be installed and configured before they can be used. This
+ vary depending on the extension and, in some cases, requires the cluster to be configured and restarted:
+
+* Extensions that requires to add an entry to [`shared_preload_libraries`](https://postgresqlco.nf/en/doc/param/shared_preload_libraries/) configuration parameter.
+* Upgrading extensions that overwrite any file that is not the extension''s control file or extension''s script file.
+* Removing extensions. Until the cluster is not restarted a removed extension will still be available.
+* Install of extensions that require extra mount. After installed the cluster will require to be restarted.
 
 ### Update the configuration for the new extensions
 
-Some extensions, such as `timescale` needs to update some configuration to work, as shown in the error below:
+Some extensions, such as `timescale` needs to update some configuration to work, as shown in the error
+ below:
 
 ```sql
 postgres=# create extension timescaledb;
@@ -63,14 +84,16 @@ server closed the connection unexpectedly
 The connection to the server was lost. Attempting reset: Succeeded.
 ```
 
-To fix that is necessary to find the configuration used in the `SGCluster`, update it with the new values, then reload the cluster.
+To fix that is necessary to find the configuration used in the `SGCluster`, update it with the new
+ values, then reload the cluster.
 
 #### Finding and editing the `PostgresConfig` of the cluster
 
-Assuming that my cluster name is named `my-db-cluster`, execute the command below to find its current postgres configuration:
+Assuming that my cluster name is named `my-db-cluster`, execute the command below to find its current
+ postgres configuration:
 
 ```bash
-➜ kubectl get sgcluster/my-db-cluster -o jsonpath="{ .spec.configurations.sgPostgresConfig }"
+$ kubectl get sgcluster/my-db-cluster -o jsonpath="{ .spec.configurations.sgPostgresConfig }"
 postgres-12-generated-from-default-1622494739858
 ```
 
@@ -95,22 +118,32 @@ spec:
     # ...
     shared_preload_libraries: pg_stat_statements,auto_explain,timescaledb
 ```
-> Please note that the `pg_stat_statements` and the `auto_explain` are automatically set up by the cluster creation, they are used for the monitoring and will break the node creation if removed.
+
+> Please note that the `pg_stat_statements` and the `auto_explain` are automatically set up by the
+>  cluster creation, they are used for the monitoring and will break the node creation if removed.
 
 
 #### Reloading and testing
 
-Once updated the configuration is necessary to reload patroni to update the configuration, like below:
+Once updated the configuration is necessary to reload the cluster to update the configuration. To 
+ do so, a `restart` `SGDbOps` can be created:
+
+```yaml
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: restart-1622494739858
+  namespace: default
+spec:
+  sgCluster: my-db-cluster
+  op: restart
+```
+
+You can wait for the completion of the task using `kubectl wait` command:
 
 ```bash
-➜ kubectl exec pod/my-db-cluster-0 -c patroni -it -- patronictl reload my-db-cluster 
-+ Cluster: my-db-cluster (6968565955771891961) ---------+----+-----------+
-|      Member     |       Host       |  Role  |  State  | TL | Lag in MB |
-+-----------------+------------------+--------+---------+----+-----------+
-| my-db-cluster-0 | 10.244.0.66:7433 | Leader | running |  1 |           |
-+-----------------+------------------+--------+---------+----+-----------+
-Are you sure you want to reload members my-db-cluster-0? [y/N]: y
-Reload request received for member my-db-cluster-0 and will be processed within 10 seconds
+$ kubectl wait sgdbops/restart-1622494739858 --for=condition=Completed 
+sgdbops.stackgres.io/restart-1622494739858 condition met
 ```
 
 Connect in the `psql` and run the following commands:
@@ -146,4 +179,5 @@ CREATE EXTENSION
 
 ## Checking available extensions
 
-Check the [Extensions page]({{% relref "01-introduction/08-Extensions" %}}) for the complete list of available extensions.
+Check the [Extensions page]({{% relref "01-introduction/08-Extensions" %}}) for the complete list of
+ available extensions.
