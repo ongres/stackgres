@@ -71,3 +71,15 @@ do_transform_params() {
 escape_quote() {
   printf '%s' "$1" | sed s/\'/\'\\\\\'\'/g
 }
+
+run_as_root_on_host() {
+  "$@"
+}
+
+if [ "$(id -u)" != 0 ] || cat /proc/1/cgroup | grep -q ':/docker/'
+then
+  run_as_root_on_host() {
+    docker run --privileged --pid=host -i --rm alpine nsenter -t 1 -m -u -n -i -- "$@"
+  }
+fi
+
