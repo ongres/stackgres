@@ -27,7 +27,7 @@ shared_cache_requires_reset_or_update_disabled() {
   false
 }
 
-shared_cache_requires_reset_or_update_link() {
+shared_cache_requires_reset_or_update_hardlink() {
   shared_cache_requires_reset \
     || ( [ "$KIND_CONTAINERD_SHARED_CACHE_UPDATE" = true ] \
       && [ "$(cat /tmp/kind-cache-reset-pipeline || true)" != "$CI_PIPELINE_ID" ] )
@@ -54,8 +54,8 @@ shared_cache_requires_reset_disabled() {
   false
 }
 
-shared_cache_requires_reset_link() {
-  ! [ -f /tmp/kind-cache-link.reset ] \
+shared_cache_requires_reset_hardlink() {
+  ! [ -f /tmp/kind-cache-hardlink.reset ] \
     || ( [ "$KIND_CONTAINERD_SHARED_CACHE_RESET" = true ] \
       && [ "$(cat /tmp/kind-cache-reset-pipeline || true)" != "$CI_PIPELINE_ID" ] )
 }
@@ -77,12 +77,12 @@ reset_others_shared_caches() {
 }
 
 reset_others_shared_caches_disabled() {
-  reset_others_shared_caches_link
+  reset_others_shared_caches_hardlink
   reset_others_shared_caches_btrfs
   reset_others_shared_caches_zfs
 }
 
-reset_others_shared_caches_link() {
+reset_others_shared_caches_hardlink() {
   "$RUN_ON_HOST" umount /tmp/kind-cache/* 2>/dev/null || true
   "$RUN_ON_HOST" mount zfs destroy -r kind-cache 2>/dev/null || true
   "$RUN_ON_HOST" zpool destroy kind-cache 2>/dev/null || true
@@ -94,13 +94,13 @@ reset_others_shared_caches_btrfs() {
   "$RUN_ON_HOST" umount /tmp/kind-cache/* 2>/dev/null || true
   "$RUN_ON_HOST" mount zfs destroy -r kind-cache 2>/dev/null || true
   "$RUN_ON_HOST" zpool destroy kind-cache 2>/dev/null || true
-  "$RUN_ON_HOST" rm -f /tmp/kind-cache.link
+  "$RUN_ON_HOST" rm -f /tmp/kind-cache.hardlink
   "$RUN_ON_HOST" rm -f /tmp/kind-cache.zfs
 }
 
 reset_others_shared_caches_zfs() {
   "$RUN_ON_HOST" umount /tmp/kind-cache 2>/dev/null || true
-  "$RUN_ON_HOST" rm -f /tmp/kind-cache.link
+  "$RUN_ON_HOST" rm -f /tmp/kind-cache.hardlink
   "$RUN_ON_HOST" rm -f /tmp/kind-cache.btrfs
 }
 
@@ -108,13 +108,13 @@ reset_shared_cache() {
   reset_shared_cache_"$KIND_CONTAINERD_CACHE_SHARED_TYPE"
 }
 
-reset_shared_cache_link() {
-  echo "Resetting cache using link ..."
-  "$RUN_ON_HOST" rm -f /tmp/kind-cache-link.reset
+reset_shared_cache_hardlink() {
+  echo "Resetting cache using hardlink ..."
+  "$RUN_ON_HOST" rm -f /tmp/kind-cache-hardlink.reset
   remove_containers_using_shared_cache
   "$RUN_ON_HOST" rm -rf /tmp/kind-cache
   "$RUN_ON_HOST" mkdir -p /tmp/kind-cache
-  touch /tmp/kind-cache-link.reset
+  touch /tmp/kind-cache-hardlink.reset
   echo "done"
 }
 
@@ -156,8 +156,8 @@ pre_update_shared_cache() {
   pre_update_shared_cache_"$KIND_CONTAINERD_CACHE_SHARED_TYPE"
 }
 
-pre_update_shared_cache_link() {
-  echo "Mounting shared cache using link ..."
+pre_update_shared_cache_hardlink() {
+  echo "Mounting shared cache using hardlink ..."
   "$RUN_ON_HOST" mkdir -p /tmp/kind-cache/kind-shared
   echo "done"
 }
@@ -205,7 +205,7 @@ post_update_shared_cache() {
   post_update_shared_cache_"$KIND_CONTAINERD_CACHE_SHARED_TYPE"
 }
 
-post_update_shared_cache_link() {
+post_update_shared_cache_hardlink() {
   true
 }
 
@@ -228,7 +228,7 @@ pre_cache_disabled() {
   true
 }
 
-pre_cache_link() {
+pre_cache_hardlink() {
   true
 }
 
@@ -248,7 +248,7 @@ cache_requires_reset_disabled() {
   [ "$KIND_CONTAINERD_CACHE_RESET" = true ]
 }
 
-cache_requires_reset_link() {
+cache_requires_reset_hardlink() {
   ! "$RUN_ON_HOST" [ -f /tmp/kind-cache/"$KIND_NAME"/updated ] \
     || [ "$KIND_CONTAINERD_CACHE_RESET" = true ]
 }
@@ -276,49 +276,25 @@ reset_cache_disabled() {
   echo "done"
 }
 
-reset_cache_link() {
-  echo "Resetting cache for $KIND_NAME using link ..."
+reset_cache_hardlink() {
+  echo "Resetting cache for $KIND_NAME using hardlink ..."
   docker rm -fv "$KIND_NAME"-control-plane 2>/dev/null
   "$RUN_ON_HOST" rm -rf /tmp/kind-cache/"$KIND_NAME"
   "$RUN_ON_HOST" mkdir -p /tmp/kind-cache/"$KIND_NAME"
-  "$RUN_ON_HOST" sh -c "find /tmp/kind-cache/kind-shared/io.containerd.content.v1.content -type d \
-    | while read FILE
-      do
-        mkdir -p \"\$(echo \"\$FILE\" \
-          | sed 's#/kind-cache/kind-shared/#/kind-cache/$KIND_NAME/#')\"
-      done"
-  "$RUN_ON_HOST" sh -c "find /tmp/kind-cache/kind-shared/io.containerd.content.v1.content -type d \
-    | while read FILE
-      do
-        ln \"\$FILE\" \"\$(echo \"\$FILE\" \
-          | sed 's#/kind-cache/kind-shared/#/kind-cache/$KIND_NAME/#')\"
-      done"
-  "$RUN_ON_HOST" sh -c "find /tmp/kind-cache/kind-shared/io.containerd.snapshotter.v1.overlayfs/ -maxdepth 2 -type d \
-    | while read FILE
-      do
-        mkdir -p \"\$(echo \"\$FILE\" \
-          | sed 's#/kind-cache/kind-shared/#/kind-cache/$KIND_NAME/#')\"
-      done"
-  "$RUN_ON_HOST" sh -c "find /tmp/kind-cache/kind-shared/io.containerd.snapshotter.v1.overlayfs/ -maxdepth 2 -type f \
-    | while read FILE
-      do
-        cp -a \"\$FILE\" \"\$(echo \"\$FILE\" \
-          | sed 's#/kind-cache/kind-shared/#/kind-cache/$KIND_NAME/#')\"
-      done"
-  "$RUN_ON_HOST" sh -c "find /tmp/kind-cache/kind-shared/io.containerd.snapshotter.v1.overlayfs/ -mindepth 3 -maxdepth 3 -type d \
-    | grep '/work$' \
-    | while read FILE
-      do
-        mkdir -p \"\$(echo \"\$FILE\" \
-          | sed 's#/kind-cache/kind-shared/#/kind-cache/$KIND_NAME/#')\"
-      done"
-  "$RUN_ON_HOST" sh -c "find /tmp/kind-cache/kind-shared/io.containerd.snapshotter.v1.overlayfs/ -mindepth 3 -maxdepth 3 -type d \
-    | grep '/fs$' \
-    | while read FILE
-      do
-        ln -s \"\$FILE\" \"\$(echo \"\$FILE\" \
-          | sed 's#/kind-cache/kind-shared/#/kind-cache/$KIND_NAME/#')\"
-      done"
+  "$RUN_ON_HOST" sh -ec '(
+      find /tmp/kind-cache/kind-shared/io.containerd.content.v1.content/
+    ) | while read FILE
+        do
+          TARGET="/tmp/kind-cache/$KIND_NAME/${FILE#/tmp/kind-cache/kind-shared/}"
+          mkdir -p "${TARGET%/*}"
+          if [ -d "$FILE" ]
+          then
+            mkdir -p "$TARGET"
+          elif [ -f "$FILE" ]
+          then
+            ln "$FILE" "$TARGET"
+          fi
+        done'
   "$RUN_ON_HOST" touch /tmp/kind-cache/"$KIND_NAME"/updated
   echo "done"
 }
