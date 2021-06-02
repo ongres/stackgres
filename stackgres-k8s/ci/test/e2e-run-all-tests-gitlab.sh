@@ -18,8 +18,6 @@ do
   export E2E_BUILD_IMAGES=false
   export E2E_WAIT_OPERATOR=false
   export E2E_PULLED_IMAGES_PATH="/tmp/pulled-images$SUFFIX"
-  export KIND_LOCK_PATH="/tmp/kind-lock$SUFFIX"
-  export KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache$SUFFIX"
   export E2E_OPERATOR_REGISTRY=$CI_REGISTRY
   export E2E_OPERATOR_REGISTRY_PATH=/$CI_PROJECT_PATH/
   export E2E_FORCE_IMAGE_PULL=true
@@ -40,22 +38,17 @@ do
   echo "Preparing kind shared cache cache..."
   export E2E_LOCK_PATH="/tmp/e2e-lock$SUFFIX"
   export KIND_LOCK_PATH="/tmp/kind-lock$SUFFIX"
+  export KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache/$KIND_NAME"
+  export KIND_CONTAINERD_SHARED_CACHE_RUN_ID="$CI_PIPELINE_ID"
+  export KIND_CONTAINERD_SHARED_CACHE_PATH=/tmp/kind-cache
+  export KIND_CONTAINERD_SHARED_CACHE_EXTRA_IMAGES_FILE=/tmp/pulled-images*
   if docker manifest inspect \
     "$CI_REGISTRY/$CI_PROJECT_PATH/stackgres/operator:$IMAGE_TAG_BASE" >/dev/null 2>&1
   then
-    IMAGE_TAGS="$IMAGE_TAG_BASE-jvm $IMAGE_TAG_BASE"
+    export KIND_CONTAINERD_SHARED_CACHE_IMAGE_TAGS="$IMAGE_TAG_BASE-jvm $IMAGE_TAG_BASE"
   else
-    IMAGE_TAGS="$IMAGE_TAG_BASE-jvm"
+    export KIND_CONTAINERD_SHARED_CACHE_IMAGE_TAGS="$IMAGE_TAG_BASE-jvm"
   fi
-  if sh stackgres-k8s/ci/test/e2e-shared-cache-requires-reset.sh
-  then
-    flock /tmp/e2e-create-kind-cache-base \
-      sh stackgres-k8s/ci/test/e2e-create-kind-cache-base.sh
-  else
-    flock "$E2E_LOCK_PATH" \
-      sh stackgres-k8s/ci/test/e2e-create-kind-cache-base.sh
-  fi
-  export KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache/$KIND_NAME"
 
   echo "Retrieving jobs cache..."
   if "$IS_WEB"
