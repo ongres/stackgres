@@ -57,7 +57,7 @@ jq -r -s "$(cat << EOF
   . as \$in | $TEST_HASHES as \$test_hashes
     | \$in[] | select(.[0].test_suites != null)
     | select(.[0].test_suites[] | select(.name == "build").test_cases
-      | map(.classname == "module type jvm-image" and .name == "$JAVA_MODULE_HASH") | any)
+      | map(($IS_NATIVE) or .classname == "module type jvm-image" and .name == "$JAVA_MODULE_HASH") | any)
     | select(.[0].test_suites[] | select(.name == "build").test_cases
       | map(($IS_WEB | not) or (.classname == "module admin-ui-image" and .name == "$WEB_MODULE_HASH")) | any)
     | select(.[0].test_suites[] | select(.name == "build").test_cases
