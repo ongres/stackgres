@@ -1,6 +1,6 @@
 
 .build native executable:
-  image: docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11
+  image: $GRAALVM_IMAGE
   stage: native build
   tags:
     - stackgres-runner
@@ -11,7 +11,7 @@
     NATIVE_IMAGE_EXTRA_PREFIX: ""
     MAVEN_EXTRA_ARGS: ""
     QUARKUS_NATIVE_NATIVE_IMAGE_XMX: 18g
-  timeout: 12 hour
+  timeout: 3 hour
   script:
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
     - |
@@ -25,13 +25,15 @@
       - stackgres-k8s/src/*/target/stackgres-*-runner
       - stackgres-k8s/src/*/target/lib/
       - stackgres-k8s/src/*/target/stackgres-*-runner.jar
-  only:
-    variables:
-      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
-      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
-      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
-      - $DO_NATIVE
+  rules:
+    - if: '$SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/'
+    - if: '$SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"'
+    - if: '$SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/'
+    - if: '$DO_DEPLOY'
+    - if: '$DO_NATIVE'
+    - if: '$DOCS_ONLY'
+      when: never
+    - when: on_success
 
 build operator native executable:
   extends: .build native executable

@@ -1,0 +1,98 @@
+
+swagger validations:
+  image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:13.0
+  stage: test
+  tags:
+    - stackgres-runner
+  cache: {}
+  script:
+    - yajsv -s stackgres-k8s/src/api-web/src/main/swagger/schema.json stackgres-k8s/src/api-web/target/swagger-merged.json
+  needs:
+    - job: build
+  rules:
+    - if: '$DOCS_ONLY || $DO_PAGES'
+    - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/ || $CI_COMMIT_REF_NAME =~ /^development.*/'
+    - when: on_success
+
+build documentation:
+  image: registry.gitlab.com/pages/hugo/hugo_extended:0.83.1
+  stage: documentation
+  tags:
+    - stackgres-runner
+  cache: {}
+  variables:
+    DOC_BASE_URL: "$CI_PAGES_URL"
+    DOC_EXTRA_PATH: "$CI_COMMIT_REF_SLUG/"
+  script:
+  - sh doc/build.sh
+  - hugo -v --source doc --destination "$(pwd)/doc/public/${DOC_EXTRA_PATH}${SG_DOC_VERSION}" --baseURL="${DOC_BASE_URL}/${DOC_EXTRA_PATH}${SG_DOC_VERSION}"
+  - |
+    if [ "$DOC_PRODUCTION" = "true" ] && [ "$SG_CURRENT_VERSION" = "$SG_DOC_VERSION" ]; then
+      hugo -v --source doc --destination "$(pwd)/doc/public/current" --baseURL="${DOC_BASE_URL}/current"
+    fi
+  needs:
+    - job: build
+    - job: swagger validations
+      artifacts: false
+  artifacts:
+    expire_in: 1 week
+    paths:
+    - doc/public
+  rules:
+    - if: '$DOCS_ONLY || $DO_PAGES'
+    - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/ || $CI_COMMIT_REF_NAME =~ /^development.*/'
+      variables:
+        DOC_BASE_URL: "https://stackgres.io/doc"
+        DOC_EXTRA_PATH: ""
+        DOC_PRODUCTION: "true"
+    - when: on_success
+
+pages:
+  stage: deploy
+  image: alpine
+  tags:
+    - stackgres-runner
+  cache: {}
+  environment:
+    name: development
+    url: "$CI_PAGES_URL"
+  needs:
+    - job: build documentation
+  script:
+  - 'mv -v doc/public public && rm -rf doc'
+  - find public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
+  artifacts:
+    paths:
+    - public
+  rules:
+    - if: '$SKIP_DEPLOY == "true"'
+      when: never
+    - if: '$DOCS_ONLY && $CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$DO_PAGES'
+
+deploy documentation:
+  stage: deploy
+  image:
+    name: amazon/aws-cli
+    entrypoint: [""]
+  tags:
+    - stackgres-runner
+  cache: {}
+  needs:
+    - job: build documentation
+  script:
+    - cd doc/public/
+    - |
+      for dir in */; do
+        if [ -z "$ASSETS_ONLY" ]; then
+          aws s3 sync "$dir" "s3://$S3_BUCKET_NAME/doc/${dir}" --delete --exclude "*" --include "${dir}*" --dryrun
+        else
+          aws s3 sync "$dir" "s3://$S3_BUCKET_NAME/doc/${dir}" --delete --exclude "*" --include "*.css" --include "*.js" --dryrun
+        fi
+      done
+    - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths '/doc/*' --dryrun
+  rules:
+    - if: '$SKIP_DEPLOY == "true"'
+      when: never
+    - if: '$DOCS_ONLY && $CI_COMMIT_BRANCH =~ /^development.*/'
+    - if: '$CI_COMMIT_TAG'

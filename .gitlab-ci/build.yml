@@ -1,23 +1,33 @@
 build:
-  image: docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11
+  image: $GRAALVM_IMAGE
   stage: build
   tags:
     - stackgres-runner
   script:
-    - 'microdnf install python3-pip jq'
+    - 'mvn $MAVEN_CLI_OPTS clean verify -P safer -DskipTests'
+    - 'microdnf install python3 jq'
     - 'pip3 install yamllint yq'
-    - 'mvn $MAVEN_CLI_OPTS clean verify -P safer'
     - 'sh -x stackgres-k8s/src/api-web/src/main/swagger/build.sh'
-  cache:
-    paths:
-      - $CI_PROJECT_DIR/.m2/repository
+    - |
+      MAVEN_CLI_OPTS="-f stackgres-k8s/src/pom.xml -B -q"
+      EXTRA_OPTS="build-helper:parse-version help:evaluate -DforceStdout"
+      echo "STACKGRES_VERSION="$(mvn $MAVEN_CLI_OPTS $EXTRA_OPTS -Dexpression=project.version)"" >> build.env
+      SG_MAJOR_VERSION="$(mvn $MAVEN_CLI_OPTS $EXTRA_OPTS -Dexpression=parsedVersion.majorVersion)"
+      echo "SG_MAJOR_VERSION="${SG_MAJOR_VERSION}"" >> build.env
+      SG_MINOR_VERSION="$(mvn $MAVEN_CLI_OPTS $EXTRA_OPTS -Dexpression=parsedVersion.minorVersion)"
+      echo "SG_MINOR_VERSION="${SG_MINOR_VERSION}"" >> build.env
+      echo "SG_PATCH_VERSION="$(mvn $MAVEN_CLI_OPTS $EXTRA_OPTS -Dexpression=parsedVersion.incrementalVersion)"" >> build.env
+      SG_QUALIFIER_VERSION="$(mvn $MAVEN_CLI_OPTS $EXTRA_OPTS -Dexpression=parsedVersion.qualifier)"
+      echo "SG_QUALIFIER_VERSION="${SG_QUALIFIER_VERSION}"" >> build.env
+      SG_MAJOR_MINOR_VERSION="$(printf "%d.%d" "$SG_MAJOR_VERSION" "$SG_MINOR_VERSION")"
+      echo "SG_MAJOR_MINOR_VERSION="${SG_MAJOR_MINOR_VERSION}"" >> build.env
+      DEV_VERSION="$(printf "%s" "$SG_QUALIFIER_VERSION" | grep -q ".-SNAPSHOT$" && printf "%s" "-dev" || true)"
+      SG_DOC_VERSION="$(printf "%s%s" "$SG_MAJOR_MINOR_VERSION" "$DEV_VERSION")" >> build.env
+      cat build.env
   artifacts:
     expire_in: 1 week
     when: always
     paths:
-      - stackgres-k8s/src/target
       - stackgres-k8s/src/*/target
     reports:
-      junit:
-        - stackgres-k8s/src/*/target/surefire-reports/TEST-*.xml
-
+      dotenv: build.env

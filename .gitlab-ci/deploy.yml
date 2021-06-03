@@ -17,17 +17,19 @@
     - export IMAGE_PUSH_NAME="docker.io/$IMAGE_NAME:$IMAGE_PUSH_TAG"
     - buildah pull "$IMAGE_PULL_NAME"
     - buildah push --format=docker --authfile "$REGISTRY_AUTH_FILE" "$IMAGE_PULL_NAME" "docker://$IMAGE_PUSH_NAME"
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
+  rules:
+    - if: '$SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/'
+    - if: '$SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/'
+    - if: '$DO_DEPLOY'
+    - if: '$DOCS_ONLY'
+      when: never
 
 deploy operator jvm image:
   extends: .deploy image
   variables:
     IMAGE_TAG_SUFFIX: "-jvm"
     IMAGE_NAME: "stackgres/operator"
+
 
 deploy restapi jvm image:
   extends: .deploy image
@@ -58,33 +60,36 @@ deploy operator native image:
   variables:
     IMAGE_TAG_SUFFIX: ""
     IMAGE_NAME: "stackgres/operator"
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
+  rules:
+    - if: '$SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/'
+    - if: '$SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/'
+    - if: '$DO_DEPLOY'
+    - if: '$DOCS_ONLY'
+      when: never
 
 deploy restapi native image:
   extends: .deploy image
   variables:
     IMAGE_TAG_SUFFIX: ""
     IMAGE_NAME: "stackgres/restapi"
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
+  rules:
+    - if: '$SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/'
+    - if: '$SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/'
+    - if: '$DO_DEPLOY'
+    - if: '$DOCS_ONLY'
+      when: never
 
 deploy job native image:
   extends: .deploy image
   variables:
     IMAGE_TAG_SUFFIX: ""
     IMAGE_NAME: "stackgres/jobs"
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
+  rules:
+    - if: '$SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/'
+    - if: '$SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/'
+    - if: '$DO_DEPLOY'
+    - if: '$DOCS_ONLY'
+      when: never
 
 deploy adminui image:
   extends: .deploy image
@@ -97,22 +102,24 @@ deploy cluster-controller native image:
   variables:
     IMAGE_TAG_SUFFIX: ""
     IMAGE_NAME: "stackgres/cluster-controller"
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
+  rules:
+    - if: '$SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/'
+    - if: '$SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/'
+    - if: '$DO_DEPLOY'
+    - if: '$DOCS_ONLY'
+      when: never
 
 deploy distributedlogs-controller native image:
   extends: .deploy image
   variables:
     IMAGE_TAG_SUFFIX: ""
     IMAGE_NAME: "stackgres/distributedlogs-controller"
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
+  rules:
+    - if: '$SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/'
+    - if: '$SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/'
+    - if: '$DO_DEPLOY'
+    - if: '$DOCS_ONLY'
+      when: never
 
 deploy helm packages and templates:
   image: mikesir87/aws-cli:latest
@@ -122,30 +129,11 @@ deploy helm packages and templates:
     - build helm templates
   script:
     - set -e
-    - aws s3 sync ./stackgres-k8s/install/helm/target/public/ s3://$S3_BUCKET_NAME/
+    - aws s3 sync ./stackgres-k8s/install/helm/target/public/ s3://$S3_BUCKET_NAME/ --exclude "*" --include "downloads/*"
     - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths '/*'
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
-
-pages:
-  stage: deploy
-  image: alpine
-  environment:
-    name: development
-    url: https://ongresinc.gitlab.io/stackgres/
-  dependencies:
-    - build documentation
-  script:
-  - tar cC doc public | tar x
-  - find public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
-  artifacts:
-    paths:
-    - public
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_PAGES
+  rules:
+    - if: '$SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/'
+    - if: '$SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/'
+    - if: '$DO_DEPLOY'
+    - if: '$DOCS_ONLY'
+      when: never

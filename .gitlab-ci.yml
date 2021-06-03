@@ -1,9 +1,11 @@
 image: null
 
 variables:
+  GRAALVM_IMAGE: docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11
   # This will suppress any download for dependencies and plugins or upload messages which would clutter the console log.
   # `showDateTime` will show the passed time in milliseconds. You need to specify `--batch-mode` to make this work.
   MAVEN_OPTS: |
+    -Djdk.tls.client.protocols=TLSv1.2
     -Dhttps.protocols=TLSv1.2
     -Dorg.slf4j.simpleLogger.showDateTime=true
     -Djava.awt.headless=true
@@ -17,10 +19,11 @@ variables:
     --errors
     --fail-at-end
     --show-version
+    --no-transfer-progress
     -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository
+    -Dmaven.user.home=$CI_PROJECT_DIR/.m2
     -DinstallAtEnd=true
     -DdeployAtEnd=true
-    -Dsurefire.useFile=false
     -Dsurefire.useFile=false
     -DtrimStackTrace=false
   SKIP_NATIVE: "false"
@@ -34,21 +37,29 @@ variables:
   K8S_VERSION: 1.16.15
   K8S_FROM_DIND: "true"
   K8S_REUSE: "true"
-  LATEST: "false"
+  SG_CURRENT_VERSION: "1.0"
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
 
 # Cache downloaded dependencies and plugins between builds.
 # To keep cache across branches add 'key: "$CI_JOB_NAME"'
-cache:
+cache: &global_cache
   paths:
-    - .m2/repository
+    - .m2
+  policy: pull-push
 
 stages:
   - build
   - post-build
-  - check-release
   - native build
   - image build
   - test
+  - documentation
   - deploy
 
 include:
@@ -59,3 +70,4 @@ include:
   - local: .gitlab-ci/test.yml
   - local: .gitlab-ci/check-release.yml
   - local: .gitlab-ci/deploy.yml
+  - local: .gitlab-ci/documentation.yml

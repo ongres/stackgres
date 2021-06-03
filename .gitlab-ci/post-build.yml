@@ -1,8 +1,11 @@
 build ui:
-  image: node:13.7.0
+  image: node:14-buster
   stage: post-build
-  dependencies:
-    - build
+  cache: {}
+  tags:
+    - stackgres-runner
+  needs:
+    - job: build
   script:
   - cd stackgres-k8s/src/admin-ui
   - npm install
@@ -13,58 +16,21 @@ build ui:
     when: always
     paths:
     - stackgres-k8s/src/admin-ui/target
-
-build documentation:
-  image:
-    name: klakegg/hugo:0.81.0-ubuntu
-    entrypoint: [ "" ]
-  stage: post-build
-  dependencies:
-    - build
-  script:
-  - sh -x doc/build.sh
-  - |
-    STACKGRES_VERSION="$(
-      grep '<artifactId>stackgres-parent</artifactId>' "stackgres-k8s/src/pom.xml" -A 2 -B 2 \
-      | grep -oP '(?<=<version>).*?(?=</version>)')"
-    STACKGRES_DOC_VERSION="$(printf "%s" "$STACKGRES_VERSION" | cut -d . -f 1-2)$(printf "%s" "$STACKGRES_VERSION" \
-      | grep -q ".-SNAPSHOT$" && printf "%s" "-dev" || true)"
-  - |
-    DOCUMENTATION_EXTRA_PATH=""
-    if [[ ! -z "$CI_COMMIT_TAG" && ! "$CI_COMMIT_TAG" =~ ^latest-.*$ ]]
-    then
-      DOCUMENTATION_BASE_URL="https://stackgres.io/doc"
-    else
-      DOCUMENTATION_BASE_URL="https://ongresinc.gitlab.io/stackgres"
-      if [ "${CI_COMMIT_REF_NAME%%-*}" != "development" ] && [ "${CI_COMMIT_REF_NAME%%-*}" != "master" ]
-      then
-        DOCUMENTATION_EXTRA_PATH="$CI_COMMIT_REF_NAME/"
-      fi
-    fi
-  - mkdir -p "doc/public/$DOCUMENTATION_EXTRA_PATH$STACKGRES_VERSION"
-  - hugo -v --source doc --destination "$(pwd)/doc/public/$DOCUMENTATION_EXTRA_PATH$STACKGRES_DOC_VERSION" --baseURL="$DOCUMENTATION_BASE_URL/$DOCUMENTATION_EXTRA_PATH$STACKGRES_DOC_VERSION"
-  - |
-    if ( [[ ! -z "$CI_COMMIT_TAG" && ! "$CI_COMMIT_TAG" =~ ^latest-.*$ ]] \
-        || [ "${CI_COMMIT_REF_NAME%%-*}" = "development" ] || [ "${CI_COMMIT_REF_NAME%%-*}" = "master" ] ) \
-      && [ "$LATEST" = true ]
-    then
-      hugo -v --source doc --destination "$(pwd)/doc/public/latest" --baseURL="$DOCUMENTATION_BASE_URL/latest"
-    fi
-  artifacts:
-    expire_in: 1 week
-    when: always
-    paths:
-    - doc/public
+  rules:
+    - if: '$DOCS_ONLY'
+      when: never
+    - when: on_success
 
 build helm packages:
-  image: dtzar/helm-kubectl:3.3.1
+  image: dtzar/helm-kubectl:3.5.4
   stage: post-build
+  tags:
+    - stackgres-runner
   script:
   - sh -x stackgres-k8s/install/helm/build-helm-packages.sh
   - |
-    if [[ ! -z "$CI_COMMIT_TAG" && ! "$CI_COMMIT_TAG" =~ ^latest-.*$ ]]
-    then
-      cp -a "stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres"/* stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/latest
+    if [ "$DEPLOY_LATEST" == "true" ] && [ "$SG_CURRENT_VERSION" = "$SG_MAJOR_MINOR_VERSION" ]; then
+      cp -a "stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres"/* stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/current
     fi
   - find stackgres-k8s/install/helm/target/public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
   artifacts:
@@ -72,16 +38,24 @@ build helm packages:
     when: always
     paths:
     - stackgres-k8s/install/helm/target
+  rules:
+    - if: '$DOCS_ONLY'
+      when: never
+    - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/'
+      variables:
+        DEPLOY_LATEST: "true"
+    - when: on_success
 
 build helm templates:
-  image: dtzar/helm-kubectl:3.3.1
+  image: dtzar/helm-kubectl:3.5.4
   stage: post-build
+  tags:
+    - stackgres-runner
   script:
   - sh -x stackgres-k8s/install/helm/build-helm-templates.sh
   - |
-    if [[ ! -z "$CI_COMMIT_TAG" && ! "$CI_COMMIT_TAG" =~ ^latest-.*$ ]]
-    then
-      cp -a "stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres"/* stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/latest
+    if [ "$DEPLOY_LATEST" == "true" ] && [ "$SG_CURRENT_VERSION" = "$SG_MAJOR_MINOR_VERSION" ]; then
+      cp -a "stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres"/* stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/current
     fi
   - find stackgres-k8s/install/helm/target/public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
   artifacts:
@@ -89,3 +63,10 @@ build helm templates:
     when: always
     paths:
     - stackgres-k8s/install/helm/target
+  rules:
+    - if: '$DOCS_ONLY'
+      when: never
+    - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/'
+      variables:
+        DEPLOY_LATEST: "true"
+    - when: on_success

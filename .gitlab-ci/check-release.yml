@@ -1,14 +1,11 @@
 
+# Fail early if a tag is pushed but the project is still SNAPSHOT.
 enforce release:
-  image: docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11
-  stage: check-release
+  image: $GRAALVM_IMAGE
+  stage: .pre
   tags:
     - stackgres-runner
-  dependencies:
-    - build
   script:
-    - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -Dmaven.test.skip=true -Dquarkus.build.skip=true"
-    - 'mvn $MAVEN_CLI_OPTS enforcer:enforce@enforce-no-snapshots'
-  only:
-    variables:
-      - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+    - 'mvn $MAVEN_CLI_OPTS -q enforcer:enforce -Drules=requireReleaseVersion -Denforcer.failFast=true'
+  rules:
+    - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/'
