@@ -878,8 +878,8 @@
 
 <script>
     import { mixin } from './mixins/mixin'
-    import router from '../router'
     import store from '../store'
+    import moment from 'moment'
 
     export default {
         name: 'DbOps',

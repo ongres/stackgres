@@ -700,7 +700,7 @@
 
 			unparseProps ( props, key = 'annotation' ) {
 				var propsArray = [];
-				if(!jQuery.isEmptyObject(props)) {
+				if(!$.isEmptyObject(props)) {
 					Object.entries(props).forEach(([k, v]) => {
 						var prop = {};
 						prop[key] = k;

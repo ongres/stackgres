@@ -602,7 +602,10 @@
 
 		},
 		mounted: function() {
-			
+
+			// Load datepicker
+			require('daterangepicker');
+						
 			const vc = this;
 
 			$(document).ready(function(){

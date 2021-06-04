@@ -785,7 +785,7 @@
 	import store from '../store'
 	import router from '../router'
 	import { mixin } from './mixins/mixin'
-
+	import moment from 'moment'
 
     export default {
         name: 'Backups',
@@ -969,6 +969,9 @@
 
 		mounted: function() {
 
+			// Load datepicker
+			require('daterangepicker');
+			
 			const vc = this;
 
 			// Detect if URL contains filters
@@ -991,6 +994,20 @@
 					}
 					
 				})
+			}
+
+			function clearDatePicker() {
+				vc.filters.datePicker = '';
+				vc.filters.dateStart = '';
+				vc.filters.dateEnd = '';
+				vc.activeFilters.datePicker = '';
+				router.push(vc.$route.path + vc.getActiveFilters())
+
+				$('.daterangepicker td.deactivate').removeClass('deactivate')
+				$('#datePicker').focus()
+				$('.daterangepicker td.active').removeClass('active')
+				$('.daterangepicker td.in-range').removeClass('in-range')
+				$('#datePicker').parent().removeClass('open');
 			}
 			
 			$(document).ready(function(){
@@ -1035,17 +1052,7 @@
 						});
 
 						$('#datePicker').on('cancel.daterangepicker', function(ev, picker) {
-							vc.filters.datePicker = '';
-							vc.filters.dateStart = '';
-							vc.filters.dateEnd = '';
-							vc.activeFilters.datePicker = '';
-							router.push(vc.$route.path + vc.getActiveFilters())
-
-							$('.daterangepicker td.deactivate').removeClass('deactivate')
-							$('#datePicker').focus()
-							$('.daterangepicker td.active').removeClass('active')
-							$('.daterangepicker td.in-range').removeClass('in-range')
-							$('#datePicker').parent().removeClass('open');
+							clearDatePicker();
 						});
 
 						$('#datePicker').on('apply.daterangepicker', function(ev, picker) {
