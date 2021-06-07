@@ -161,14 +161,17 @@
 
 		data: function() {
 			return {
-				currentSort: 'data.metadata.name',
+				currentSort: {
+					param: 'data.metadata.name',
+					type: 'alphabetical'
+				},
 				currentSortDir: 'desc',
 			}
 		},
 		computed: {
 
 			config () {
-				return this.sortTable( store.state.poolConfig, this.currentSort, this.currentSortDir )
+				return this.sortTable( [...store.state.poolConfig], this.currentSort.param, this.currentSortDir, this.currentSort.type )
 			},
 
 			tooltips() {

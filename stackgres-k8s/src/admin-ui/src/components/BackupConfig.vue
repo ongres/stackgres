@@ -455,15 +455,17 @@
 		data: function() {
 
 			return {
-				currentSort: 'data.metadata.name',
+				currentSort: {
+					param: 'data.metadata.name',
+					type: 'alphabetical'
+				},
 				currentSortDir: 'desc',
 			}
 		},
 		computed: {
 
 			config () {
-				//return store.state.backupConfig
-				return this.sortTable( store.state.backupConfig, this.currentSort, this.currentSortDir )
+				return this.sortTable( [...store.state.backupConfig], this.currentSort.param, this.currentSortDir, this.currentSort.type )
 			},
 
 			tooltips () {

@@ -519,12 +519,11 @@
 
                 t.forEach(function(item, index) {
                     if(JSON.stringify(item) == '{"key":"","operator":"Equal","value":null,"effect":null,"tolerationSeconds":null}') {
-                        console.log('empty tol')
                         vc.tolerations.splice( index, 1 )
                     }
                 })
                 
-                return t.length
+                return vc.tolerations.length
             },
 
             pushLabel: function( prop ) {

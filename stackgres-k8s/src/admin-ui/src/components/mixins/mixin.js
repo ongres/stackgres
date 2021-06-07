@@ -568,12 +568,13 @@ export const mixin = {
         return params;
       },
   
-      sort: function(s) {
+      sort: function(param, type = 'alphabetical') {
               
-        if(s === this.currentSort) {
+        if(param === this.currentSort.param) {
           this.currentSortDir = this.currentSortDir==='asc'?'desc':'asc';
         }
-        this.currentSort = s;
+        this.currentSort.param = param;
+        this.currentSort.type = type;
 
       },
   
@@ -815,7 +816,7 @@ export const mixin = {
       },      
 
       // Sort tables by an specific parameter
-      sortTable( table, param, direction ) {
+      sortTable( table, param, direction, type = 'alphabetical' ) {
         const vc = this;
 
         var backupFixedParams = ['data.spec.subjectToRetentionPolicy','data.metadata.name','data.spec.sgCluster','data.status.process.status'];
@@ -830,7 +831,6 @@ export const mixin = {
             // If record is not sortable by the provided param
             if(a.data.status !== null) {
               if( (a.data.status.process.status == 'Failed') && !backupFixedParams.includes(param)){
-                //console.log('failed');
                 return 1
               } else if ((a.data.status.process.status == 'Running') && !backupFixedParams.includes(param)){
                 return -1
@@ -839,11 +839,46 @@ export const mixin = {
           } 
 
           if (param == 'data.status.conditions') { // If dbOps sorted by Status
-            a = a.data.status.conditions.find(c => (c.status === 'True') )
-            a = a.type
 
-            b = b.data.status.conditions.find(c => (c.status === 'True') )
-            b = b.type
+            if(a.data.hasOwnProperty('status')) {
+              a = a.data.status.conditions.find(c => (c.status === 'True') )
+              a = a.type
+            } else {
+              a = '-'
+            }
+
+            if(b.data.hasOwnProperty('status')) {
+              b = b.data.status.conditions.find(c => (c.status === 'True') )
+              b = b.type
+            } else {
+              b = '-'
+            }
+
+          } else if (param == 'data.spec.runAt' ) { // If dbOps sorted by runAt
+            
+            a = a.data.spec.hasOwnProperty('runAt') ? a.data.spec.runAt : (vc.hasProp(a, 'data.status.opStarted') ? a.data.status.opStarted : '-');
+            b = b.data.spec.hasOwnProperty('runAt') ? b.data.spec.runAt : (vc.hasProp(b, 'data.status.opStarted') ? b.data.status.opStarted : '-');
+
+          } else if (param == 'data.status.elapsed' ) { // If dbOps sorted by elapsed
+            
+            if( a.data.hasOwnProperty('status') ) {
+              let lastStatus = a.data.status.conditions.find(c => (c.status === 'True') )
+              let begin = moment(a.data.status.opStarted)
+              let finish = (lastStatus.type == 'Running') ? moment() : moment(lastStatus.lastTransitionTime);
+              a = moment.duration(finish.diff(begin));
+            } else {
+              a = -1
+            }
+
+            if( b.data.hasOwnProperty('status') ) {
+              let lastStatus = b.data.status.conditions.find(c => (c.status === 'True') )
+              let begin = moment(b.data.status.opStarted)
+              let finish = (lastStatus.type == 'Running') ? moment() : moment(lastStatus.lastTransitionTime);
+              b = moment.duration(finish.diff(begin));
+            } else {
+              b = -1
+            }
+
           } else { // Every other param
 
             if(vc.hasParams( a, param.split(".")))
@@ -857,12 +892,53 @@ export const mixin = {
               b = '';
 
           }
-          
-          if( a < b )
-            return -1 * modifier;
-          
-          if( a > b )
-            return 1 * modifier;
+
+          switch(type) {
+
+            case 'timestamp':
+
+              if(moment(a).isValid && moment(b).isValid) {
+
+                if(moment(a).isBefore(moment(b)))
+                  return -1 * modifier;
+              
+                if(moment(a).isAfter(moment(b)))
+                  return 1 * modifier;  
+
+              } else if (!moment(a).isValid && moment(b).isValid) {
+                return -1 * modifier;
+              } else if (moment(a).isValid && !moment(b).isValid) {
+                return 1 * modifier;
+              }
+              
+              break;
+
+            case 'memory':
+              
+              if( vc.getBytes(a) < vc.getBytes(b) )
+                return -1 * modifier;
+              
+              if( vc.getBytes(a) > vc.getBytes(b) )
+                return 1 * modifier;
+              
+              break;
+            
+            default: // alphabetical, duration, cpu
+
+              if(type == 'cpu') {
+                a = a.includes('m') ? (parseFloat(a.replace('m','')/1000)) : a;
+                b = b.includes('m') ? (parseFloat(b.replace('m','')/1000)) : b;
+              }
+                          
+              if( a < b )
+                return -1 * modifier;
+              
+              if( a > b )
+                return 1 * modifier;
+              
+                break;
+            
+          }
           
           return 0;
         });
@@ -877,7 +953,7 @@ export const mixin = {
       
         var res = regex.exec(text);
       
-        return res[1] * Math.pow(1024, powers[res[2]]);
+        return (typeof res[2] !== 'undefined') ? (res[1] * Math.pow(1024, powers[res[2]]) ) : text;
       },
       
       hasProp(obj, propertyPath){

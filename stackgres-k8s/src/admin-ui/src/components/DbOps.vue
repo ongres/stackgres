@@ -83,38 +83,37 @@
             
             <table class="dbops" id="sgdbops">
                 <thead class="sort">
-                    <th class="desc start">
-                        <span @click="sort('data.spec.runAt')">Start</span>
+                    <th class="asc start">
+                        <span @click="sort('data.spec.runAt', 'timestamp')">Start</span>
                         <span class="helpTooltip" :data-tooltip="(timezone == 'local') ? getTooltip('sgdbops.spec.runAt').replace('UTC ','') : getTooltip('sgdbops.spec.runAt')"></span>
                     </th>
-                    <th class="desc operationType">
+                    <th class="asc operationType">
                         <span @click="sort('data.spec.op')">Operation</span>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.op')"></span>
                     </th>
-                    <th class="desc opName">
+                    <th class="asc opName">
                         <span @click="sort('data.metadata.name')">Name</span>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.metadata.name')"></span>
                     </th>
-                    <th class="desc phase">
+                    <th class="asc phase">
                         <span @click="sort('data.status.conditions')">Status</span>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.conditions')"></span>
                     </th>
-                    <th class="desc targetCluster">
+                    <th class="asc targetCluster">
                         <span @click="sort('data.spec.sgCluster')">Target Cluster</span>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.sgCluster')"></span>
                     </th>
-                    <th class="desc elapsed">
-                        <span @click="sort('data.status.elapsed')">Elapsed</span>
+                    <th class="asc elapsed">
+                        <span @click="sort('data.status.elapsed', 'duration')">Elapsed</span>
                         <span class="helpTooltip" data-tooltip="The time between the moment the operation started and the moment on which it reached its current status."></span>
                     </th>
-                    <th class="desc retries">
+                    <th class="asc retries">
                         <span @click="sort('data.status.opRetries')">Current / Max Retries</span>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.opRetries') + ' / '+ getTooltip('sgdbops.spec.maxRetries')"></span> 
                     </th>
-                    <th class="desc timedOut">
+                    <th class="asc timedOut">
                         <span @click="sort('data.spec.timeout')">Timed Out</span>
                         <span class="helpTooltip" data-tooltip="States whether the operation failed because of timeout expiration."></span>
-                        
                     </th>
                     <th class="actions"></th>
                 </thead>
@@ -887,8 +886,11 @@
 
         data: function() {
             return {
-                currentSort: 'data.spec.runAt',
-				currentSortDir: 'desc',
+                currentSort: {
+                    param: 'data.spec.runAt',
+                    type: 'timestamp'
+                },
+				currentSortDir: 'asc',
                 filters: {
 					clusterName: '',
 					keyword: '',
@@ -1037,7 +1039,7 @@
 
 				})
 
-				return vc.sortTable( store.state.dbOps, vc.currentSort, vc.currentSortDir)
+				return vc.sortTable( [...store.state.dbOps], vc.currentSort.param, vc.currentSortDir, vc.currentSort.type)
             },
             
             tooltips() {

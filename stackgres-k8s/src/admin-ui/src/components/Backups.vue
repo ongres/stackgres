@@ -152,7 +152,7 @@
 				<table class="backups">
 					<thead class="sort">
 						<th class="sorted desc timestamp">
-							<span @click="sort('data.status.process.timing.stored')">Timestamp</span>
+							<span @click="sort('data.status.process.timing.stored','timestamp')">Timestamp</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.timing.stored')"></span>
 						</th>
 						<th class="desc managedLifecycle">
@@ -164,7 +164,7 @@
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.status')"></span>
 						</th>
 						<th class="desc size">
-							<span @click="sort('data.status.backupInformation.size.uncompressed')">Size uncompressed (compressed)</span>
+							<span @click="sort('data.status.backupInformation.size.uncompressed', 'memory')">Size uncompressed (compressed)</span>
 							<span class="helpTooltip" data-tooltip="Size (in bytes) of the uncompressed backup (Size (in bytes) of the compressed backup)."></span>
 						</th>
 						<th class="desc postgresVersion" v-if="!isCluster">
@@ -790,7 +790,10 @@
 		data: function() {
 
 			return {
-				currentSort: 'data.status.process.timing.stored',
+				currentSort: {
+					param: 'data.status.process.timing.stored',
+					type: 'timestamp'
+				},
 				currentSortDir: 'desc',
 				filters: {
 					clusterName: '',
@@ -858,7 +861,7 @@
 
 				})
 
-				return vc.sortTable( store.state.backups, vc.currentSort, vc.currentSortDir)
+				return vc.sortTable( [...store.state.backups], vc.currentSort.param, vc.currentSortDir, vc.currentSort.type)
 			},
 
 			clusters () {

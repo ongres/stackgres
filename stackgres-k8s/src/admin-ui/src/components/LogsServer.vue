@@ -33,7 +33,7 @@
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.metadata.name')"></span>
                     </th>
                     <th class="desc volumeSize">
-                        <span @click="sort('data.spec.persistentVolume.size')">
+                        <span @click="sort('data.spec.persistentVolume.size', 'memory')">
                             Volume Size
                         </span>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.persistentVolume.size')"></span>
@@ -232,7 +232,11 @@
 
         data: function() {
             return {
-                
+                currentSort: {
+					param: 'data.metadata.name',
+					type: 'alphabetical'
+				},
+				currentSortDir: 'asc',
             }
         },
         methods: {
@@ -279,7 +283,7 @@
         computed: {
 
             clusters () {
-                return store.state.logsClusters
+                return this.sortTable( [...store.state.logsClusters], this.currentSort.param, this.currentSortDir, this.currentSort.type )
             },
             
             tooltips() {
