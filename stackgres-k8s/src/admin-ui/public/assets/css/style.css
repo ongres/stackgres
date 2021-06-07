@@ -711,6 +711,7 @@ aside {
 #sgVersion {
     font-size: 12px;
     letter-spacing: 1px;
+    margin-left: 5px;
 }
 
 #nav #logo svg {
