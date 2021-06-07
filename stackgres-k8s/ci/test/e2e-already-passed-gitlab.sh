@@ -6,13 +6,34 @@
 [ "$IS_NATIVE" = true ] || [ "$IS_NATIVE" = false ]
 
 curl -f -s --header "PRIVATE-TOKEN: $READ_API_TOKEN" \
-  "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/pipelines" > stackgres-k8s/ci/test/target/pipelines.json
-jq '.[].id' stackgres-k8s/ci/test/target/pipelines.json | xargs -I @ -P 16 sh -ec "$(
-  get_or_default_script "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/pipelines/@/test_report" '{}' "$TEMP_DIR/test_report.@")"
-jq '.[].id' stackgres-k8s/ci/test/target/pipelines.json | xargs -I @ -P 16 sh -ec "$(
-  get_or_default_script "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/pipelines/@/variables" '[]' "$TEMP_DIR/variables.@")"
-jq '.[].id' stackgres-k8s/ci/test/target/pipelines.json | xargs -I @ -P 16 sh -ec "
-    [ -f '$TEMP_DIR/test_report_with_variables.@' ] || jq -s '.' '$TEMP_DIR/test_report.@' '$TEMP_DIR/variables.@' > '$TEMP_DIR/test_report_with_variables.@'"
+  "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/pipelines?per_page=100" \
+  > stackgres-k8s/ci/test/target/pipelines.json
+mkdir -p "$TEMP_DIR/pipeline-status"
+grep '^running$' "$TEMP_DIR/pipeline-status" -R \
+  | tr ':' ' ' | while read PIPELINE_ID
+    do
+      rm -f "$TEMP_DIR/test_report.$PIPELINE_ID" \
+        "$TEMP_DIR/variables.$PIPELINE_ID" \
+        "$TEMP_DIR/test_report_with_variables.$PIPELINE_ID"
+    done
+jq -r '.[].id' stackgres-k8s/ci/test/target/pipelines.json \
+  | xargs -I @ -P 16 sh -ec "$(
+    get_or_default_script "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/pipelines/@/test_report" \
+      '{}' "$TEMP_DIR/test_report.@"
+    )"
+jq -r '.[].id' stackgres-k8s/ci/test/target/pipelines.json \
+  | xargs -I @ -P 16 sh -ec "$(
+    get_or_default_script "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/pipelines/@/variables" \
+      '[]' "$TEMP_DIR/variables.@"
+    )"
+jq -r '.[].id' stackgres-k8s/ci/test/target/pipelines.json | xargs -I @ -P 16 sh -ec "
+    [ -f '$TEMP_DIR/test_report_with_variables.@' ] || jq -s '.' \
+      '$TEMP_DIR/test_report.@' '$TEMP_DIR/variables.@' > '$TEMP_DIR/test_report_with_variables.@'"
+jq -r '.[] | .status + " " + (.id | tostring)' stackgres-k8s/ci/test/target/pipelines.json \
+  | while read STATUS PIPELINE_ID
+    do
+      echo "$STATUS" > "$TEMP_DIR/pipeline-status/$PIPELINE_ID"
+    done
 
 if [ "$E2E_DO_ALL_TESTS" = true ]
 then
@@ -46,8 +67,9 @@ EOF
 VARIABLE_PREFIXES='["E2E_", "K8S_", "KIND_", "EXTENSIONS_"]'
 VARIABLES="$(jq -c -s "$(cat << EOF
   .[]
-    | map(select(.key as \$key | $VARIABLE_PREFIXES | map(\$key | startswith(.)) | any))
-    | sort_by(.variable_type + "." + .key)
+    | map(select(.key as \$key | $VARIABLE_PREFIXES
+      | map(. as \$prefix | \$key | startswith(\$prefix)) | any))
+    | sort_by(.key)
 EOF
       )" "$TEMP_DIR/variables.$CI_PIPELINE_ID")"
 TEST_HASHES="$(sh stackgres-k8s/e2e/e2e calculate_spec_hashes | sed 's#^.*/\([^/]\+\)$#\1#' \
@@ -63,14 +85,15 @@ jq -r -s "$(cat << EOF
     | select(.[0].test_suites[] | select(.name == "build").test_cases
       | map(($IS_NATIVE | not) or (.classname == "module type native-image" and .name == "$NATIVE_MODULE_HASH")) | any)
     | select((.[1]
-      | map(select(.key as \$key | $VARIABLE_PREFIXES | map(\$key | startswith(.)) | any))
-      | sort_by(.variable_type + "." + .key)) == $VARIABLES)
+      | map(select(.key as \$key | $VARIABLE_PREFIXES
+        | map(. as \$prefix | \$key | startswith(\$prefix)) | any))
+      | sort_by(.key)) == $VARIABLES)
     | .[0].test_suites[]
     | select(
-        (($IS_NATIVE | not) and ((.name | startswith("e2e tests jvm ")) or (.name | startswith("e2e ex tests jvm "))))
-        or (($IS_NATIVE) and ((.name | startswith("e2e tests native ")) or (.name | startswith("e2e ex tests native "))))
+        (($IS_NATIVE | not) and (.name | test("^e2e ([^ ]+ )?tests jvm( |$)")))
+        or (($IS_NATIVE) and (.name | test("^e2e ([^ ]+ )?tests native( |$)")))
       ).test_cases[]
-    | select(\$test_hashes[.classname] == .name and .status == "success").name
+    | select(\$test_hashes[.classname] == .name and .status == "success").classname
 EOF
   )" "$TEMP_DIR"/test_report_with_variables.* \
     | sort | uniq | tr '\n' ' '
