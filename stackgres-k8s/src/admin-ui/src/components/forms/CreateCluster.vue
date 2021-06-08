@@ -758,7 +758,7 @@
                 editReady: false,
                 help: 'Click on a question mark to get help and tips about that field.',
                 nullVal: null,
-                advancedMode: false,
+                advancedMode: (vm.$route.name === 'EditCluster') ? true : false,
                 name: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
                 namespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 postgresVersion: 'latest',
