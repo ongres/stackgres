@@ -27,12 +27,16 @@ java_module_image_name() {
   [ -n "$1" -a -n "$2" ]
   local MODULE="$1"
   local SOURCE_IMAGE_NAME="$2"
+  local MODULE_ARTIFACT
   local MODULE_HASH
+  MODULE_ARTIFACT="$(jq -r ".modules[\"$MODULE\"].artifact | if . != null then . else \"$MODULE\" end" stackgres-k8s/ci/build/target/config.json)"
   MODULE_HASH="$( (
     cat stackgres-k8s/ci/build/Dockerfile-java
     echo "$SOURCE_IMAGE_NAME"
     jq -r ".modules[\"$MODULE\"].pre_build_commands" stackgres-k8s/ci/build/target/config.json
     jq -r ".modules[\"$MODULE\"].post_build_commands" stackgres-k8s/ci/build/target/config.json
+    jq "if has(\"$MODULE_ARTIFACT.version\") then .[\"$MODULE_ARTIFACT.version\"] else error(\"Missing java hash for $MODULE_ARTIFACT\") end" \
+      stackgres-k8s/src/target/hashversions.json
     jq ".[\"$MODULE.version\"]" stackgres-k8s/src/target/hashversions.json
     jq -r '.maven_opts' stackgres-k8s/ci/build/target/config.json
     jq -r '.maven_cli_opts' stackgres-k8s/ci/build/target/config.json
@@ -434,6 +438,9 @@ generate_image_hashes() {
   (
   cd stackgres-k8s/src
   ./mvnw -q pro.avodonosov:hashver-maven-plugin:1.6:hashver
+  echo
+  jq -r 'to_entries[] | " - " + (.key|split(".")[0]) + ": " + .value' target/hashversions.json
+  echo
   )
   echo "done"
 

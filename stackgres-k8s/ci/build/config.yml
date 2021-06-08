@@ -20,17 +20,23 @@ base_native_image: registry.access.redhat.com/ubi8-minimal:8.3-298.1618432845
 modules:
   stackgres-parent:
     type: java
+    artifact: stackgres-parent
     path: .
   operator-framework:
     type: java
+    artifact: stackgres-operator-framework
   test-util:
     type: java
+    artifact: stackgres-test-util
   common:
     type: java
+    artifact: stackgres-common
   operator:
     type: java
+    artifact: stackgres-operator
   restapi:
     type: java
+    artifact: stackgres-restapi
     path: api-web
     post_build_commands:
       - 'microdnf install python3-pip jq'
@@ -38,10 +44,13 @@ modules:
       - 'sh stackgres-k8s/src/api-web/src/main/swagger/build.sh'
   jobs:
     type: java
+    artifact: stackgres-jobs
   cluster-controller:
     type: java
+    artifact: stackgres-cluster-controller
   distributedlogs-controller:
     type: java
+    artifact: stackgres-distributedlogs-controller
   admin-ui:
     type: web
   operator-jvm-image:
