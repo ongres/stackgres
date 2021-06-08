@@ -79,7 +79,7 @@
 		data: function() {
 
 			return {
-
+				grafanaUrl: ''
 			}
 		},
 		
@@ -93,36 +93,40 @@
 				return store.state.theme
 			},
 
-			grafanaUrl() {
-				// Read Grafana URL
-				let vc = this;
-				let url = '';
-
-				$.get("/grafana")
-				.done(function( data, textStatus, jqXHR ) {
-
-					if(!data.startsWith('<!DOCTYPE html>')) { // Check "/grafana" isn't just returning web console's HTML content
-						url = data;
-						url += (url.includes('?') ? '&' : '?') + 'theme='+vc.theme+'&kiosk&var-instance=';
-
-						$.get(url)
-						.fail(function( jqXHR, textStatus, errorThrown ) {
-							url = '';
-							vc.notifyGrafanaError();
-						});
-					}
-					
-				})
-				.fail(function( jqXHR, textStatus, errorThrown ) {
-					if(textStatus == 'error') {
-						vc.notifyGrafanaError();
-					}       
-				});
-
-				return url
-			}
 		},
 
+		mounted: function() {
+			
+			// Read Grafana URL
+			let vc = this;
+			let url = '';
+
+			$.get("/grafana")
+			.done(function( data, textStatus, jqXHR ) {
+
+				if(!data.startsWith('<!DOCTYPE html>')) { // Check "/grafana" isn't just returning web console's HTML content
+					url = data;
+					url += (url.includes('?') ? '&' : '?') + 'theme='+vc.theme+'&kiosk&var-instance=';
+
+					$.get(url)
+					.done(function(data, textStatus, jqXHR) {
+						vc.grafanaUrl = url;
+					})
+					.fail(function( jqXHR, textStatus, errorThrown ) {
+						vc.notifyGrafanaError();
+					});
+				} else {
+					vc.notifyGrafanaError();
+				}
+			})
+			.fail(function( jqXHR, textStatus, errorThrown ) {
+				if(textStatus == 'error') {
+					vc.notifyGrafanaError();
+				}       
+			});
+
+		},
+		
 		methods: {
 
 			notifyGrafanaError() {
