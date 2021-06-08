@@ -195,14 +195,17 @@
 		data: function() {
 
 			return {
-				currentSort: 'data.metadata.name',
-				currentSortDir: 'desc',
+				currentSort: {
+					param: 'data.metadata.name',
+					type: 'alphabetical'
+				},
+				currentSortDir: 'asc',
 			}
 		},
 		computed: {
 
 			config () {
-				return this.sortTable( store.state.pgConfig, this.currentSort, this.currentSortDir )
+				return this.sortTable( [...store.state.pgConfig], this.currentSort.param, this.currentSortDir, this.currentSort.type )
 			},
 
 			tooltips() {

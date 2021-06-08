@@ -26,20 +26,20 @@
 		<div class="content">
 			<table id="profiles" class="profiles pgConfig">
 				<thead class="sort">
-					<th class="sorted desc name">
+					<th class="asc name">
 						<span @click="sort('data.metadata.name')">
 							Name
 						</span>
 						<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.metadata.name')"></span>
 					</th>
-					<th class="desc memory">
-						<span @click="sort('data.spec.memory')" >
+					<th class="sorted asc memory">
+						<span @click="sort('data.spec.memory', 'memory')" >
 							RAM
 						</span>
 						<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.memory')"></span>
 					</th>
-					<th class="desc cpu">
-						<span @click="sort('data.spec.cpu')">
+					<th class="asc cpu">
+						<span @click="sort('data.spec.cpu', 'cpu')">
 							CPU
 						</span>
 						<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.cpu')"></span>
@@ -131,14 +131,17 @@
 		data: function() {
 
 			return {
-				currentSort: 'data.metadata.name',
-				currentSortDir: 'desc',
+				currentSort: {
+					param: 'data.spec.memory',
+					type: 'memory'
+				},
+				currentSortDir: 'asc',
 			}
 		},
 		computed: {
 
 			config () {
-				return this.sortTable( store.state.profiles, this.currentSort, this.currentSortDir )
+				return this.sortTable( [...store.state.profiles], this.currentSort.param, this.currentSortDir, this.currentSort.type )
 			},
 
 			tooltips() {
