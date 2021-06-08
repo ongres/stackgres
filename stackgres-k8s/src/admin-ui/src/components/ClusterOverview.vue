@@ -160,13 +160,23 @@
 </script>
 
 <style scoped>
-	table.clusterOverview .clusterName a.no-color {
-		display: inline-block;
+	.clusterOverview td {
+		padding: 0;
+	} 
+
+	.clusterOverview td > a {
+   		padding: 12px 0;
+	}
+
+	.clusterOverview .clusterName > a {
+		padding-left: 25px;
 	}
 
 	.clusterName .helpTooltip.alert {
 		top: 13px;
 		position: absolute;
-		transform: translateX(5px);
+		height: 10px;
+		top: 14px;
+		left: 3px;
 	}
 </style>

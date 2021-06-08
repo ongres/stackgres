@@ -4553,7 +4553,7 @@ span.closeLog:hover {
 
 /* Backups YAML */
 
-table.backups tr.base:hover td.timestamp:before, table.backups tr.base.open td.timestamp:before, table.pgConfig tr.base:not(.open):hover td:first-of-type:before, table.poolConfig tr.base:not(.open):hover td:first-of-type:before, table.backupConfig tr.base:not(.open):hover td:first-of-type:before, table.profiles tr.base:not(.open):hover td:first-of-type:before, table.clusterOverview tr:not(.no-results):hover td:first-of-type:before, table.profiles tr.open-profile td:first-of-type:before {
+table.backups tr.base:hover td.timestamp:before, table.backups tr.base.open td.timestamp:before, table.pgConfig tr.base:not(.open):hover td:first-of-type:before, table.poolConfig tr.base:not(.open):hover td:first-of-type:before, table.backupConfig tr.base:not(.open):hover td:first-of-type:before, table.profiles tr.base:not(.open):hover td:first-of-type:before, table.profiles tr.open-profile td:first-of-type:before {
     content: " ";
     width: 5px;
     border: 1px solid var(--blue);
