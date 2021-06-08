@@ -1,3 +1,39 @@
+# :rocket: Release 1.0.0-alpha4 (2021-06-08)
+
+## :notepad_spiral: NOTES
+
+Here it comes StackGres 1.0.0-alpha4!! :tada: :bottle_with_popping_cork:
+
+This release brings some bugfixes and small improvements. Get safe and upgrade now!
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 0.9 version or above) helm chart issue following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `1.0.0-alpha1` version. Upgrading from that version will require to uninstall completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+## :sparkles: CHANGES
+
+* Introduce a small padding between StackGres logo and version in the Web UI
+* Show expanded advanced options when edit cluster if any advanced option was already used in the Web UI
+
+## :bug: FIXES
+
+* Can not find candidate version of extension on the Web UI
+* Grafana dashboard is not loading on the Web UI
+* Bug on columns ordering on the Web UI
+
+## :construction: KNOWN ISSUES
+
+* Kubernetes 1.20+ is not supported yet, see #950 
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.0.0-alpha4)
+
 # :rocket: Release 1.0.0-alpha3 (2021-06-01)
 
 ## :notepad_spiral: NOTES
