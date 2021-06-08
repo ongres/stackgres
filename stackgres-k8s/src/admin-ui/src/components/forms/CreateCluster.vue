@@ -173,7 +173,7 @@
                         <li v-for="(ext, index) in extensionsList" v-if="!searchExtension.length || (ext.name+ext.description+ext.tags.toString()).includes(searchExtension)" class="extension" :class="( (viewExtension == index) && !searchExtension.length) ? 'show' : ''">
                             <label class="hoverTooltip">
                                 <input type="checkbox" class="plain" @change="setExtension(index)" :checked="(extIsSet(ext.name) !== -1)" :disabled="!ext.versions.length"/>
-                                {{ ext.name }} <span v-if="!ext.versions.length" class="notCompatible" title="This extention is not compatible with the selected Postgres version"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16.001"><path class="a" d="M657.435,374.5l6.7,13.363h-13.4l6.7-13.363Zm0-1.45a1.157,1.157,0,0,0-.951.7l-6.83,13.608c-.523.93-.078,1.691.989,1.691h13.583c1.067,0,1.512-.761.989-1.691h0l-6.829-13.61a1.156,1.156,0,0,0-.951-.7Zm1,13a1,1,0,1,1-1-1,1,1,0,0,1,1,1Zm-1-2a1,1,0,0,1-1-1v-3a1,1,0,0,1,2,0v3a1,1,0,0,1-1,1Z" transform="translate(-649.435 -373.043)"/></svg> </span>
+                                {{ ext.name }} <span v-if="!ext.versions.length" class="notCompatible" title="This extension is not compatible with the selected Postgres version"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16.001"><path class="a" d="M657.435,374.5l6.7,13.363h-13.4l6.7-13.363Zm0-1.45a1.157,1.157,0,0,0-.951.7l-6.83,13.608c-.523.93-.078,1.691.989,1.691h13.583c1.067,0,1.512-.761.989-1.691h0l-6.829-13.61a1.156,1.156,0,0,0-.951-.7Zm1,13a1,1,0,1,1-1-1,1,1,0,0,1,1,1Zm-1-2a1,1,0,0,1-1-1v-3a1,1,0,0,1,2,0v3a1,1,0,0,1-1,1Z" transform="translate(-649.435 -373.043)"/></svg> </span>
                             </label>
                             <button class="textBtn anchor toggleExt" @click.stop.prevent="viewExt(index)">-</button>
 
@@ -196,9 +196,9 @@
                                     <div class="header">
                                         <h4>Choose Version</h4>
                                     </div>
-                                    <select v-model="extVersion" @change="setExtVersion(extVersion)" class="extVersion">
+                                    <select v-model="extVersion.version" @change="setExtVersion(extVersion.version)" class="extVersion">
                                         <option v-if="!ext.versions.length" selected>Not available for this postgres version</option>
-                                        <option v-for="v in ext.versions" :selected="extVersion == v">{{ v }}</option>
+                                        <option v-for="v in ext.versions" :selected="extVersion.version == v">{{ v }}</option>
                                     </select>
                                 </template>
                                 <template v-else>
@@ -210,7 +210,7 @@
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16.001"><path class="a" d="M657.435,374.5l6.7,13.363h-13.4l6.7-13.363Zm0-1.45a1.157,1.157,0,0,0-.951.7l-6.83,13.608c-.523.93-.078,1.691.989,1.691h13.583c1.067,0,1.512-.761.989-1.691h0l-6.829-13.61a1.156,1.156,0,0,0-.951-.7Zm1,13a1,1,0,1,1-1-1,1,1,0,0,1,1,1Zm-1-2a1,1,0,0,1-1-1v-3a1,1,0,0,1,2,0v3a1,1,0,0,1-1,1Z" transform="translate(-649.435 -373.043)"/></svg>
                                             Not Compatible
                                         </strong><br/>
-                                        This extention is not compatible with the selected Postgres version
+                                        This extension is not compatible with the selected Postgres version
                                     </p>
                                 </template>
 
@@ -799,7 +799,10 @@
                 extensionsList: [],
                 selectedExtensions: [],
                 viewExtension: -1,
-                extVersion: '',
+                extVersion: {
+                    name: '',
+                    version: ''
+                },
             }
 
         },
@@ -1250,10 +1253,20 @@
             },
 
             viewExt(index) {
-                this.viewExtension = (this.viewExtension == index) ? -1 : index
+                const vc = this;
+                
+                vc.viewExtension = (vc.viewExtension == index) ? -1 : index
 
-                // Always set current extension version to its first option
-                this.extVersion = this.extensionsList[index].versions.length ? this.extensionsList[index].versions[0] : ''
+                let ext = vc.selectedExtensions.find(e => (e.name == vc.extensionsList[index].name))
+
+                if(typeof ext !== 'undefined') {
+                    vc.extVersion.version = ext.version
+                    vc.extVersion.name = ext.name
+                }
+                else {
+                    vc.extVersion.version = vc.extensionsList[index].versions[0]
+                    vc.extVersion.name = vc.extensionsList[index].name
+                }
             },
 
             setExtension(index) {
@@ -1270,7 +1283,7 @@
                 if( i == -1) // If not included, add extension
                     vc.selectedExtensions.push({
                         name: vc.extensionsList[index].name,
-                        version: !vc.extVersion.length ? vc.extensionsList[index].versions[0] : vc.extVersion,
+                        version: (vc.extensionsList[index].versions.length > 1) ? ( (vc.extVersion.name == vc.extensionsList[index].name) ? vc.extVersion.version : vc.extensionsList[index].versions[0] ) : vc.extensionsList[index].versions[0],
                         publisher: vc.extensionsList[index].publisher,
                         repository: vc.extensionsList[index].repository
                     })
@@ -1322,8 +1335,8 @@
                 else
                     ext.version = version
                 
-                //$('li.extension.show .active, li.extension.show [data-val="'+version+'"]').toggleClass('active');
-                //$('li.extension.show li.selected').text(version + ' | ' + channel)
+                vc.extVersion.name = vc.extensionsList[vc.viewExtension].name
+                vc.extVersion.version = version
             },
 
             clearExtFilters() {
