@@ -8,13 +8,18 @@
 curl -f -s --header "PRIVATE-TOKEN: $READ_API_TOKEN" \
   "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/pipelines?per_page=100" \
   > stackgres-k8s/ci/test/target/pipelines.json
-mkdir -p "$TEMP_DIR/pipeline-status"
-grep '^running$' "$TEMP_DIR/pipeline-status" -R \
-  | tr ':' ' ' | while read PIPELINE_ID
+jq -r '.[] | .status + " " + .updated_at + " " + (.id | tostring)' stackgres-k8s/ci/test/target/pipelines.json \
+  | while read STATUS UPDATED_AT PIPELINE_ID
     do
-      rm -f "$TEMP_DIR/test_report.$PIPELINE_ID" \
-        "$TEMP_DIR/variables.$PIPELINE_ID" \
-        "$TEMP_DIR/test_report_with_variables.$PIPELINE_ID"
+      UPDATED_AT="$(date -d "$UPDATED_AT" --iso-8601=seconds)"
+      META_UPDATED_AT="$(stat -c %Y "$TEMP_DIR/test_report_with_variables.$PIPELINE_ID")"
+      # Re-download if pipeline updated after meta has been updated
+      if [ "$((UPDATED_AT + 300))" -gt "$META_UPDATED_AT" ]
+      then
+        rm -f "$TEMP_DIR/test_report.$PIPELINE_ID" \
+          "$TEMP_DIR/variables.$PIPELINE_ID" \
+          "$TEMP_DIR/test_report_with_variables.$PIPELINE_ID"
+      fi
     done
 jq -r '.[].id' stackgres-k8s/ci/test/target/pipelines.json \
   | xargs -I @ -P 16 sh -ec "$(
@@ -29,11 +34,6 @@ jq -r '.[].id' stackgres-k8s/ci/test/target/pipelines.json \
 jq -r '.[].id' stackgres-k8s/ci/test/target/pipelines.json | xargs -I @ -P 16 sh -ec "
     [ -f '$TEMP_DIR/test_report_with_variables.@' ] || jq -s '.' \
       '$TEMP_DIR/test_report.@' '$TEMP_DIR/variables.@' > '$TEMP_DIR/test_report_with_variables.@'"
-jq -r '.[] | .status + " " + (.id | tostring)' stackgres-k8s/ci/test/target/pipelines.json \
-  | while read STATUS PIPELINE_ID
-    do
-      echo "$STATUS" > "$TEMP_DIR/pipeline-status/$PIPELINE_ID"
-    done
 
 if [ "$E2E_DO_ALL_TESTS" = true ]
 then
