@@ -271,26 +271,47 @@ delete_k8s() {
     echo "Cleanup kind containerd cache in $KIND_CONTAINERD_CACHE_PATH..."
 
     kind get nodes --name "$KIND_NAME" \
-      | xargs -r -n 1 -I % -P "$E2E_PARALLELISM" sh -ec "
-      docker exec '%' sh -ec '
-        while [ \"\$(ctr -n k8s.io snapshot ls | tail -n +2 | wc -l)\" != 0 ]
+      | xargs -r -n 1 -I @ -P "$E2E_PARALLELISM" sh -ec "
+      docker exec '@' sh -ec '
+        du -hs /containerd-cache 2>/dev/null || true
+        service kubelet stop
+        ctr -n k8s.io task ls | tail -n +2 | cut -d \" \" -f 1 \
+          | while read TASK
+            do
+              ctr -n k8s.io task kill -s SIGKILL \"\$TASK\" \
+                || ! ctr -n k8s.io task ls | grep -q \"^\$TASK \" >/dev/null 2>&1
+            done
+        ctr -n k8s.io container ls | tail -n +2 | cut -d \" \" -f 1 \
+          | while read CONTAINER
+            do
+              ctr -n k8s.io container rm \"\$CONTAINER\" \
+                || ! ctr -n k8s.io container info \"\$CONTAINER\" >/dev/null 2>&1
+            done
+        [ \"\$(ctr -n k8s.io task ls | tail -n +2 | wc -l)\" = 0 ] || exit 1
+        while true
         do
-          KEYS=\"\$(ctr -n k8s.io snapshot ls | tail -n +2)\"
-          echo \"Snapshots: \$(echo \"\$KEYS\" | wc -l)\"
-          PARENT_KEYS=\"\$(echo \"\$KEYS\" | cut -d \" \" -f 2 | grep -v \"^\$\")\"
+          KEYS=\"\$(ctr -n k8s.io snapshot ls)\"
+          KEYS=\"\$(echo \"\$KEYS\" | tail -n +2 | tr -s \" \" | sed \"s/ [^ ]\\\\+ \$//\" | cut -d \" \" -f 1-2)\"
+          echo \"Snapshots: \$(echo \"\$KEYS\" | tr \"\\n\" \" \" | wc -w)\"
+          PARENT_KEYS=\"\$(echo \"\$KEYS\" | cut -d \" \" -f 2 -s | grep -v \"^\$\" || true)\"
+          echo \"Unused parent snapshots: \$(echo \"\$KEYS\" | tr \"\\n\" \" \" | wc -w)\"
           CHILD_KEYS=\"\$(echo \"\$KEYS\" | cut -d \" \" -f 1 \
             | while read KEY
               do
                 echo \"\$PARENT_KEYS\" | grep -q \"^\$KEY\$\" || echo \"\$KEY\"
               done)\"
-          echo \"Child snapshots: \$(echo \"\$CHILD_KEYS\" | wc -l)\"
+          echo \"Child snapshots: \$(echo \"\$CHILD_KEYS\" | tr \"\\n\" \" \" | wc -w)\"
+          echo
+          [ \"\$(echo \"\$CHILD_KEYS\" | tr \"\\n\" \" \" | wc -w)\" != 0 ] || break
           for KEY in \$CHILD_KEYS
           do
-            ctr -n k8s.io snapshot rm \"\$KEY\"
+            ctr -n k8s.io snapshot rm \"\$KEY\" \
+              || ! ctr -n k8s.io snapshot info \"\$KEY\" >/dev/null 2>&1
           done
-        done
+        done || true
+        du -hs /containerd-cache 2>/dev/null || true
       '
-      " || true
+      "
   fi
 
   if kind get clusters | grep -q "^$KIND_NAME$"
