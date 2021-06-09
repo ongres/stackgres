@@ -272,7 +272,7 @@ delete_k8s() {
 
     kind get nodes --name "$KIND_NAME" \
       | xargs -r -n 1 -I % -P "$E2E_PARALLELISM" sh -ec "
-      docker exec '%' sh -c '
+      docker exec '%' sh -ec '
         while [ \"\$(ctr -n k8s.io snapshot ls | tail -n +2 | wc -l)\" != 0 ]
         do
           KEYS=\"\$(ctr -n k8s.io snapshot ls | tail -n +2)\"
@@ -288,9 +288,9 @@ delete_k8s() {
           do
             ctr -n k8s.io snapshot rm \"\$KEY\"
           done
-        done || true
+        done
       '
-      "
+      " || true
   fi
 
   if kind get clusters | grep -q "^$KIND_NAME$"
