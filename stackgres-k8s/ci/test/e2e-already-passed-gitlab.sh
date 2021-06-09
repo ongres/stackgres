@@ -11,8 +11,8 @@ curl -f -s --header "PRIVATE-TOKEN: $READ_API_TOKEN" \
 jq -r '.[] | .status + " " + .updated_at + " " + (.id | tostring)' stackgres-k8s/ci/test/target/pipelines.json \
   | while read STATUS UPDATED_AT PIPELINE_ID
     do
-      UPDATED_AT="$(date -d "$UPDATED_AT" --iso-8601=seconds)"
-      META_UPDATED_AT="$(stat -c %Y "$TEMP_DIR/test_report_with_variables.$PIPELINE_ID")"
+      UPDATED_AT="$(date -d "$UPDATED_AT" +%s)"
+      META_UPDATED_AT="$(stat -c %Y "$TEMP_DIR/test_report_with_variables.$PIPELINE_ID" 2>/dev/null || echo 0)"
       # Re-download if pipeline updated after meta has been updated
       if [ "$((UPDATED_AT + 300))" -gt "$META_UPDATED_AT" ]
       then
