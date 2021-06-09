@@ -81,38 +81,38 @@
                 </div> 
             </div>
             
-            <table class="dbops" id="sgdbops">
+            <table id="sgdbops" class="dbops resizable" v-columns-resizable>
                 <thead class="sort">
-                    <th class="asc start">
-                        <span @click="sort('data.spec.runAt', 'timestamp')">Start</span>
+                    <th class="asc start hasTooltip">
+                        <span @click="sort('data.spec.runAt', 'timestamp')" title="Start">Start</span>
                         <span class="helpTooltip" :data-tooltip="(timezone == 'local') ? getTooltip('sgdbops.spec.runAt').replace('UTC ','') : getTooltip('sgdbops.spec.runAt')"></span>
                     </th>
                     <th class="asc operationType">
-                        <span @click="sort('data.spec.op')">Operation</span>
+                        <span @click="sort('data.spec.op')" title="Operation">Operation</span>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.op')"></span>
                     </th>
-                    <th class="asc opName">
-                        <span @click="sort('data.metadata.name')">Name</span>
+                    <th class="asc opName hasTooltip">
+                        <span @click="sort('data.metadata.name')" title="Name">Name</span>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.metadata.name')"></span>
                     </th>
-                    <th class="asc phase">
-                        <span @click="sort('data.status.conditions')">Status</span>
+                    <th class="asc phase hasTooltip">
+                        <span @click="sort('data.status.conditions')" title="Status">Status</span>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.conditions')"></span>
                     </th>
-                    <th class="asc targetCluster">
-                        <span @click="sort('data.spec.sgCluster')">Target Cluster</span>
+                    <th class="asc targetCluster hasTooltip">
+                        <span @click="sort('data.spec.sgCluster')" title="Target Cluster">Target Cluster</span>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.sgCluster')"></span>
                     </th>
-                    <th class="asc elapsed">
-                        <span @click="sort('data.status.elapsed', 'duration')">Elapsed</span>
+                    <th class="asc elapsed hasTooltip">
+                        <span @click="sort('data.status.elapsed', 'duration')" title="Elapsed">Elapsed</span>
                         <span class="helpTooltip" data-tooltip="The time between the moment the operation started and the moment on which it reached its current status."></span>
                     </th>
-                    <th class="asc retries">
-                        <span @click="sort('data.status.opRetries')">Current / Max Retries</span>
+                    <th class="asc retries hasTooltip">
+                        <span @click="sort('data.status.opRetries')" title="Current / Max Retries">Current / Max Retries</span>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.opRetries') + ' / '+ getTooltip('sgdbops.spec.maxRetries')"></span> 
                     </th>
-                    <th class="asc timedOut">
-                        <span @click="sort('data.spec.timeout')">Timed Out</span>
+                    <th class="asc timedOut hasTooltip">
+                        <span @click="sort('data.spec.timeout')" title="Timed Out">Timed Out</span>
                         <span class="helpTooltip" data-tooltip="States whether the operation failed because of timeout expiration."></span>
                     </th>
                     <th class="actions"></th>
@@ -120,32 +120,34 @@
 
                 <tbody>
                     <tr class="no-results">
-						<td colspan="999">
-							No records matched your search terms
-						</td>
-					</tr>
+                        <td colspan="999">
+                            No records matched your search terms
+                        </td>
+                    </tr>
 
                     <template v-for="op in dbOps" v-if="( op.show && ( op.data.metadata.namespace == $route.params.namespace ) )">                       
                         <tr class="base" @click="goTo('/dbops/' + $route.params.namespace + '/' + op.data.metadata.name)" :class="($route.params.name == op.data.metadata.name) ? 'open': ''">
-                            <td class="timestamp">
-                                <template v-if="op.data.spec.hasOwnProperty('runAt')">
-                                    <span class='date'>
-                                        {{ op.data.spec.runAt | formatTimestamp('date') }}
+                            <td class="timestamp hasTooltip">
+                                <span>
+                                    <template v-if="op.data.spec.hasOwnProperty('runAt')">
+                                        <span class='date'>
+                                            {{ op.data.spec.runAt | formatTimestamp('date') }}
+                                        </span>
+                                        <span class='time'>
+                                            {{ op.data.spec.runAt | formatTimestamp('time') }}
+                                        </span>
+                                    </template>
+                                    <template v-else-if="hasProp(op,'data.status.opStarted')">
+                                        <span class='date'>
+                                            {{ op.data.status.opStarted | formatTimestamp('date') }}
+                                        </span>
+                                        <span class='time'>
+                                            {{ op.data.status.opStarted | formatTimestamp('time') }}
+                                        </span>
+                                    </template>
+                                    <span v-else class="asap">
+                                        ASAP
                                     </span>
-                                    <span class='time'>
-                                        {{ op.data.spec.runAt | formatTimestamp('time') }}
-                                    </span>
-                                </template>
-                                <template v-else-if="hasProp(op,'data.status.opStarted')">
-                                    <span class='date'>
-                                        {{ op.data.status.opStarted | formatTimestamp('date') }}
-                                    </span>
-                                    <span class='time'>
-                                        {{ op.data.status.opStarted | formatTimestamp('time') }}
-                                    </span>
-                                </template>
-                                <span v-else class="asap">
-                                    ASAP
                                 </span>
                             </td>
                             <td :class="op.data.spec.op" class="operationType">
@@ -153,7 +155,7 @@
                                     {{ op.data.spec.op }}
                                 </span>
                             </td>
-                            <td class="baseHide opName">
+                            <td class="baseHide opName hasTooltip">
                                 <span>
                                     {{ op.data.metadata.name }}
                                 </span>
@@ -163,15 +165,15 @@
                                     {{ getOpStatus(op) }}
                                 </span>
                             </td>
-                            <td class="baseHide targetCluster">
+                            <td class="baseHide targetCluster hasTooltip">
                                 <span>
                                     {{ op.data.spec.sgCluster }}
                                 </span>
                             </td>
-                            <td class="timestamp baseHide elapsed">
+                            <td class="timestamp baseHide elapsed textRight hasTooltip">
                                 <span class="time" v-if="op.data.hasOwnProperty('status')" v-html="getElapsedTime(op)"></span>
                             </td>
-                            <td class="baseHide retries">
+                            <td class="baseHide retries textRight">
                                 <span>
                                     {{ (op.data.hasOwnProperty('status') && op.data.status.hasOwnProperty('opRetries')) ? op.data.status.opRetries : '0' }}
                                 </span>
@@ -180,17 +182,17 @@
                                     {{ op.data.spec.hasOwnProperty('maxRetries') ? op.data.spec.maxRetries : '1' }}
                                 </span>
                             </td>
-                            <td class="baseHide timedOut">
+                            <td class="baseHide timedOut textRight">
                                 {{ hasTimedOut(op) }}
                             </td>
-                            <td class="actions">
+                            <td class="actions textRight">
                                 <a class="delete" title="Delete Configuration" @click="deleteCRD('sgdbops',$route.params.namespace, op.name)">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="13.5" height="15" viewBox="0 0 13.5 15"><g transform="translate(-61 -90)"><path d="M73.765,92.7H71.513a.371.371,0,0,1-.355-.362v-.247A2.086,2.086,0,0,0,69.086,90H66.413a2.086,2.086,0,0,0-2.072,2.094V92.4a.367.367,0,0,1-.343.3H61.735a.743.743,0,0,0,0,1.486h.229a.375.375,0,0,1,.374.367v8.35A2.085,2.085,0,0,0,64.408,105h6.684a2.086,2.086,0,0,0,2.072-2.095V94.529a.372.372,0,0,1,.368-.34h.233a.743.743,0,0,0,0-1.486Zm-7.954-.608a.609.609,0,0,1,.608-.607h2.667a.6.6,0,0,1,.6.6v.243a.373.373,0,0,1-.357.371H66.168a.373.373,0,0,1-.357-.371Zm5.882,10.811a.61.61,0,0,1-.608.608h-6.67a.608.608,0,0,1-.608-.608V94.564a.375.375,0,0,1,.375-.375h7.136a.375.375,0,0,1,.375.375Z" transform="translate(0)"/><path d="M68.016,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,68.016,98.108Z" transform="translate(-1.693 -3.214)"/><path d="M71.984,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,71.984,98.108Z" transform="translate(-2.807 -3.214)"/></g></svg>
                                 </a>
                             </td>
                         </tr>
 
-                        <tr class="details" v-if="($route.params.hasOwnProperty('name') && ( $route.params.name == op.name) )" style="display: table-row">
+                        <tr class="details open" v-if="($route.params.hasOwnProperty('name') && ( $route.params.name == op.name) )" style="display: table-row">
                             <td colspan="999">
                                 <div class="opSpec">
                                     <table>
@@ -1121,7 +1123,7 @@
     }
 
     .operationType {
-        min-width: 200px;
+        min-width: 200px !important;
     }
 
     .phase, td.actions {
@@ -1145,10 +1147,6 @@
         min-width: 190px;
     }
 
-    .elapsed, .retries, .timedOut, td.actions {
-        text-align: right;
-    }
-
     td.phase > span.Completed {
         color: #03CC03;
         background: #00F90040;
@@ -1166,6 +1164,12 @@
 
     tr.base.open .baseHide {
         opacity: 0;
+    }
+
+    th.actions, td.actions {
+        width: 55px !important;
+        min-width: 55px;
+        max-width: 55px;
     }
 
     table#sgdbops, #sgdbops thead, #sgdbops th, #sgdbops tbody, #sgdbops tr, #sgdbops td {

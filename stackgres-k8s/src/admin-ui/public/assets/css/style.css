@@ -219,6 +219,10 @@ svg.background circle {
     text-align: center;
 }
 
+.textRight {
+    text-align: right;
+}
+
 .cursor:hover {
     cursor: pointer;
 }
@@ -469,13 +473,8 @@ form#login .warning {
     background-color: #444;
 }
 
-.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode #ns-select, .darkmode .set.active:not(.conf):not(.backups), .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode table.clusterConfig td, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .toolbar .toggle, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select, .darkmode .options li.textFilter .search, .darkmode #nav .right > div#clone, .darkmode header .actions, .darkmode #contentTooltip .info {
-    border-color: #333333;
-}
-
-
-.darkmode ul.tabs, .darkmode .content h2, .darkmode .form .header, .darkmode .set.active:not(.conf), .darkmode table.poolConfig tr.details .paramDetails table, .darkmode table.pgConfig tr.details .paramDetails table {
-    border-color: #333333;
+.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode #ns-select, .darkmode .set.active:not(.conf):not(.backups), .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode table.clusterConfig td, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .toolbar .toggle, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select, .darkmode .options li.textFilter .search, .darkmode #nav .right > div#clone, .darkmode header .actions, .darkmode #contentTooltip .info, .darkmode ul.tabs, .darkmode .content h2, .darkmode .form .header, .darkmode .set.active:not(.conf), .darkmode table.poolConfig tr.details .paramDetails table, .darkmode table.pgConfig tr.details .paramDetails table {
+    border-color: var(--borderColor);
 }
 
 .darkmode tr:nth-child(4n+2), .darkmode .options, .darkmode .tooltip, .darkmode #nav .tooltip:before, .darkmode table tr:nth-child(even):not(.base), .darkmode #nav .right > div#clone {
@@ -1097,11 +1096,11 @@ ul.zg-ul-select.active li.active:hover {
     border-right: 1px solid var(--borderColor);
 }
 
-.set:hover li:first-child > a {
+.set:hover:not(.active) li:first-child > a {
     border-top: 1px solid var(--borderColor);
 }
 
-.set:hover li:last-child > a {
+.set:hover:not(.active) li:last-child > a {
     border-bottom: 1px solid var(--borderColor);
 }
 
@@ -1961,8 +1960,23 @@ li.status {
     cursor: pointer;
 }
 
+#main > .content {
+    max-height: calc(100vh - 230px);
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
 .content table {
     margin-bottom: 10px;
+}
+
+.tableContainer {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.tableContainer > table {
+    max-width: calc(100% - 5px) !important;
 }
 
 #backups tr.details.open > td > table:last-child {
@@ -2133,7 +2147,7 @@ ul.selector li {
     background-position-x: 15px;
 }
 
-#backups .timestamp {
+/* #backups .timestamp {
     min-width: 210px;
     width: 210px;
 }
@@ -2142,19 +2156,9 @@ ul.selector li {
     min-width: 225px;
     width: 225px;
 }
-
+ */
 #backups .details.Failed div {
     width: calc(100% - 50px);
-}
-
-#backups td.actions {
-    width: 70px;
-    z-index: 0;
-}
-
-#backups th.actions {
-    background: #fff;
-    display: table-cell;
 }
 
 #nav #backup-btn, #nav #grafana-btn {
@@ -2223,11 +2227,11 @@ ul.selector li {
     display: none;
 }
 
-.backups .detail {
+/* .backups .detail {
     display: block;
     width: 33.33%;
     float: left;
-}
+} */
 
 /* Forms */
 .form {
@@ -2893,8 +2897,9 @@ tr:nth-child(even), tr:nth-child(even) + tr.details {
 } */
 
 th, td {
-    /*height: 40px;*/
-    padding: 10px 0;
+    height: 38px;
+    padding: 0 10px;
+    position: relative;
     vertical-align: middle;
 }
 
@@ -2905,18 +2910,99 @@ th {
     min-width: 35px;
 }
 
-th:first-child, td:first-child {
-    padding-left: 20px;
+/* Resizable Columns */
+
+table.resizable {
+    position: relative;
+}
+
+table.resizable > tbody {
+    border-right: 1px solid var(--borderColor);
+    border-left: 1px solid var(--borderColor);
+}
+
+table.resizable > thead th:not(.actions), table.resizable > tbody > tr > td:not(.actions) {
+    padding: 0 20px;
+}
+
+table.resizable tr.base.open {
+    border-top: 1px solid var(--borderColor);
+}
+
+table.resizable tr.details.open {
+    border-bottom: 1px solid var(--borderColor);
+}
+
+table.resizable td:not(:last-child) {
+    border-right: 1px solid var(--borderColor);
+    min-width: 80px;
+}
+
+table.resizable > thead > th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--bgColor);
+    border: 1px solid var(--borderColor);
+    border-top: 0;
+}
+
+table.resizable > thead th:before, table.resizable > thead th:after {
+    content: ' ';
+    display: block;
+    height: 1px;
+    background: var(--borderColor);
+    position: absolute;
+    top: 0;
+    left: 0px;
+    width: 100%;
+    z-index: -1;
+}
+
+table.resizable > thead th:after {
+    top: auto;
+    bottom: -1px;
+}
+
+table.resizable th:after {
+    bottom: -1px;
+    top: auto;
 }
 
 th:last-child, td:last-child {
     padding-right: 15px;
 }
 
-td.actions {
+table.resizable tr.open > td {
+    border: 0;
+}
+
+table.resizable th:not(.label) span:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: calc(100% - 25px);
+    position: absolute;
+    top: 10px;
+    left: 0;
+    padding-left: 20px;
+}
+
+table.resizable th.textRight span:first-child {
+    width: calc(100% - 20px);
+    padding-right: 30px;
+}
+
+.columns-resize-bar {
+    right: -5px !important;
+}
+
+th.actions, td.actions {
     text-align: right;
-    width: 100px;
-    padding-right: 15px;
+    width: 93px !important;
+    min-width: 93px;
+    max-width: 93px;
+    padding: 0 10px;
     text-transform: uppercase;
 }
 
@@ -2951,7 +3037,7 @@ tbody {
     border-bottom: 1px solid #F0F0F1;
 }
 
-table .sort, a.uploadLink {
+table .sort th:not(.notSortable):not(.actions):hover, a.uploadLink {
     cursor: pointer;
 }
 
@@ -2959,24 +3045,30 @@ table .sort, a.uploadLink {
     position: relative;
 }
 
-.sort th span + span.helpTooltip {
-    margin-left: -29px;
+.sort th span.helpTooltip {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1;
 }
 
-.sort th > span:not(.helpTooltip):after {
+.sort th:not(.actions) span:first-child:after {
     content: "▾";
     opacity: 0;
-    display: inline-block;
-    margin-left: 23px;
-    position: relative;
-    top: -1px;
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 5px;
+    width: 15px;
+    text-align: center;
+    background: var(--bgColor);
 }
 
-th.sorted span:after, .sort th:hover span:after {
+th.sorted span:first-child:after, .sort th:not(.notSortable) span:first-child:hover:after {
     opacity: 1;
 }
 
-.sorted.asc span:after {
+.sorted.asc:after {
     transform: rotate(180deg);
 }
 
@@ -3044,16 +3136,13 @@ td.phase.Failed > span {
 td.timestamp span.time, span.timestamp span.time {
     color: var(--blue);
     display: inline-block;
-    margin-right: -3px;
 }
 
-td.timestamp, span.timestamp {
+td .timestamp {
     color: var(--gray3);
-    width: 190px;
-    min-width: 190px;
 }
 
-#backups .phase {
+/* #backups .phase {
     min-width: 265px;
     width: 265px;
 }
@@ -3067,7 +3156,7 @@ td.timestamp, span.timestamp {
     width: 75px;
     min-width: 75px;
     padding-left: 10px;
-}
+} */
 
 td.timestamp span.ms, span.timestamp span.ms {
     color: var(--gray5);
@@ -3152,22 +3241,25 @@ tr.open .router-link-exact-active path {
     fill: var(--blue);
 }
 
-td.parameters {
-    width: 50%;
-}
-
 ul.yaml {
     list-style: none;
     /*margin: 10px 0;*/
     line-height: 1.5;
 }
 
+tr:not(.open) .parameters {
+    position: relative;
+}
+
 tr:not(.open) .parameters ul.yaml {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    width: 40vw;
-    padding-right: 25px;
+    max-width: 100%;
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    right: 10px;
 }
 
 tr:not(.open) .parameters ul.yaml li {
@@ -3179,11 +3271,6 @@ tr:not(.open) td.parameters ul.yaml li:not(:last-of-type):after {
     display: inline;
     content: ";";
     padding-right: 5px;
-}
-
-tr.open td {
-    vertical-align: top;
-    padding-top: 15px;
 }
 
 tr.open ul.yaml {
@@ -3625,28 +3712,22 @@ tr.no-results {
     width: 13px;
 }
 
-table.logs, table.backups, table.dbops {
-    margin-bottom: 0;
-    /* max-height: calc(100vh - 310px) !important; */
-    border: none !important;
-}
-
-table.logs tbody, table.backups > tbody {
+/* table.logs tbody, table.backups > tbody {
     max-height: calc(100vh - 353px);
     max-width: calc(100vw - 430px);
     display: inline-block;
     overflow: auto;
     width: 100%;
     border: none;
-}
+} */
 
-table.logs thead, table.backups > thead {
+/* table.logs thead, table.backups > thead {
     display: inline-block;
     margin-bottom: -4px;
     border-bottom: 1px solid #f0f0f1;
     width: initial !important;
     min-width: 100%;
-}
+} */
 
 /* table.logs tbody:hover > tr.base, table.backups tbody:hover > tr.base {
     opacity: 0.6;
@@ -4276,7 +4357,7 @@ tr.logInfo.open:before {
 }
 
 /* Luis Logs & Filters */
-table.logs, table.backups, table.dbops {
+/* table.logs, table.backups, table.dbops {
     max-height: calc(100vh - 335px);
     height: calc(100vh - 335px);
     max-width: calc(100vw - 430px);
@@ -4285,7 +4366,7 @@ table.logs, table.backups, table.dbops {
     width: 100%;
     border: 1px solid #f1f1f1;
     position: relative;
-}
+} */
 
 table.logs:after {
     opacity: 0;
@@ -4317,7 +4398,7 @@ table.logs tbody, table.backups > tbody {
     width: initial;
     min-width: 100%;
 }
-
+/* 
 table.logs thead, table.backups > thead {
     display: inline-block;
     position: sticky;
@@ -4325,7 +4406,7 @@ table.logs thead, table.backups > thead {
     top: 0;
     background: #fff;
     width: 100%;
-}
+} */
 
 tr.logInfo {
     display: none;
@@ -4372,13 +4453,7 @@ tr.no-results:first-child:last-child {
     display: table-row;
 }
 
-table.backups tr.no-results:first-child:last-child, table.logs tr.no-results:first-child:last-child {
-    width: 100%;
-	display: block;
-}
-
 table.backups tr.no-results td, table.logs tr.no-results td {
-    display: block;
     padding: 50px 0;
     text-align: center;
 }
@@ -4389,39 +4464,45 @@ table.backups tr.no-results td, table.logs tr.no-results td {
     position: relative;
 }
 
-/* table.logs td.hasTooltip > span {
+td.hasTooltip {
+    /* overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap; */
+    position: relative;
+}
+
+td.hasTooltip > span {
+    position: absolute;
+    left: 20px;
+    right: 5px;
+    top: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+td.hasTooltip.textRight > span {
+    left: auto;
+    right: 10px;
+}
+
+.hasTooltip .auxTooltip {
+    visibility: hidden;
+    position: absolute;
+    white-space: nowrap;
     display: block;
-    width: max-content;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-} */
-
-table.logs td.hasTooltip, table.pgConfig tr:not(.open) td.hasTooltip, table.poolConfig tr:not(.open) td.hasTooltip, table.backupConfig tr:not(.open) td.hasTooltip, table.backups td.hasTooltip {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
-table.logs td.hasTooltip.logMessage > span, table.pgConfig td.hasTooltip > span, table.poolConfig td.hasTooltip > span, table.backupConfig td.hasTooltip > span {
-    max-width: 300px;
-}
-
-table.profiles td.hasTooltip > span {
-    width: 100%;
-}
-
-table.logs th.logMessage, table.logs td.logMessage {
+/* table.logs th.logMessage, table.logs td.logMessage {
     min-width: calc(100vw - 1350px);
     width: calc(100vw - 1350px);
     max-width: calc(100vw - 1350px);
-}
+} 
 
 td.logMessage, th.logMessage {
     position: initial;
     width: auto;
-}
+}*/
 
 table.logs .podName {
     min-width: 90px;
@@ -4440,6 +4521,7 @@ table.logs .podName {
     border-radius: 5px;
     box-shadow: 0 10px 20px rgba(0,0,0,.1);
     border: 1px solid;
+    z-index: 10;
 }
 
 span.closeLog {
@@ -4553,26 +4635,26 @@ span.closeLog:hover {
 
 /* Backups YAML */
 
-table.backups tr.base:hover td.timestamp:before, table.backups tr.base.open td.timestamp:before, table.pgConfig tr.base:not(.open):hover td:first-of-type:before, table.poolConfig tr.base:not(.open):hover td:first-of-type:before, table.backupConfig tr.base:not(.open):hover td:first-of-type:before, table.profiles tr.base:not(.open):hover td:first-of-type:before, table.profiles tr.open-profile td:first-of-type:before {
+tr.base:hover td:first-child::before {
     content: " ";
-    width: 5px;
+    width: 3px;
     border: 1px solid var(--blue);
     display: inline-block;
     position: absolute;
     top: 17px;
-    left: 5px;
+    left: 10px;
 }
 table.backups td.timestamp, table.backups tr.details > td{
     position: relative;
 }
 tr.details:not(.Failed).open > td:first-child:before {
-    width: 7px;
+    width: 3px;
     content: " ";
     background: transparent;
     height: calc(100% + 5px);
-    left: 4px;
+    left: 10px;
     position: absolute;
-    top: -28px;
+    top: -20px;
     border: 2px solid var(--blue);
     border-right: 0;
 }
@@ -4583,18 +4665,9 @@ tr.controlData a {
     display: block;
 }
 
-/* */
-table.pgConfig, table.poolConfig {
-    table-layout: fixed;
-}
-
 tr.base > td:not(.actions):hover {
     cursor: pointer;
 }
-
-/*table.clusterOverview td.actions a:first-of-type, table.backups td.actions a:first-of-type, table.pgConfig td.actions a:first-of-type, table.poolConfig td.actions a:first-of-type, table.backupConfig td.actions a:first-of-type {
-    display: none;
-}*/
 
 table.backupConfig tr.details.open td:first-of-type {
     position: relative;
@@ -4605,40 +4678,15 @@ table.pgConfig tr.toggle:not(.open) td:first-of-type {
     display: initial;
 }
 
-table.backupConfig tr.details.open td:first-of-type:before {
-    width: 7px;
-    content: " ";
-    background: transparent;
-    height: calc(100% + 5px);
-    left: 4px;
-    position: absolute;
-    top: -22px;
-    border: 2px solid var(--blue);
-    border-right: 0;
-}
-
-table.pgConfig tr.open td.hasTooltip:before, table.poolConfig tr.open td.hasTooltip:before {
-    width: 7px;
-    content: " ";
-    background: transparent;
-    height: calc(100% - 33px);
-    left: 4px;
-    position: absolute;
-    top: 17px;
-    border: 2px solid var(--blue);
-    border-right: 0;
-}
-
-
 /* Tooltips for table height */
 
-table.pgConfig .hasTooltip, table.poolConfig .hasTooltip, table.backupConfig .hasTooltip {
+/* table.pgConfig .hasTooltip, table.poolConfig .hasTooltip, table.backupConfig .hasTooltip {
     position: absolute;
     width: 20%;
     padding-right: 35px;
-}
+} */
 
-table.pgConfig tr.open > td, table.poolConfig tr.open > td {
+/* table.pgConfig tr.open > td, table.poolConfig tr.open > td {
     padding-top: 10px;
 }
 
@@ -4660,43 +4708,21 @@ table.backupConfig th.name {
 
 #backup .storageType {
     width: 125px;
-}
+} */
 
-table.backupConfig tr.details.open {
-    display: table-row;
-}
-
-table.backups {
-    border: none;
-}
-
-table.backups th.name, table.backups td.name {
+/* table.backups th.name, table.backups td.name {
     min-width: 250px;
     width: 250px;
-}
-
-#backups .actions {
-    min-width: 70px;
-    width: 70px;
-}
-
-table.backups .hasTooltip {
-    width: 120px;
-    /*position: absolute;*/
 }
 
 table.backups td.hasTooltip > span {
     max-width: 120px;
 }
 
-table.profiles td, table.clusterOverview td, table.pgConfig tr.open td.hasTooltip, table.poolConfig tr.open td.hasTooltip {
-    position: relative;
-}
-
 table.backups .clusterName {
     padding-left: 15px;
     min-width: 200px;
-}
+} */
 
 table.profiles td.inlineList svg, table.backupConfig td.usedOn svg {
     width: 14px;
@@ -4736,12 +4762,6 @@ table.profiles td.inlineList svg:hover path, table.backupConfig td.usedOn svg:ho
 
 
 /* Extra Styling | June 15, 2020 */
-
-
-td.actions {
-    position: relative;
-    z-index: 1;
-}
 
 table.pgConfig.profiles td.actions a:first-of-type {
     display: inline-block;
@@ -4854,11 +4874,7 @@ tr.details.pgConfig .configurationDetails .title, tr.details.poolConfig .configu
 
 table.pgConfig tr.open td.configName, table.poolConfig tr.open td.configName {
     position: absolute;
-    width: 100%;
-}
-
-table.pgConfig tr.details.open > td:first-child:before, table.poolConfig tr.details.open > td:first-child:before {
-    top: -23px;
+    width: calc(100% - 100px);
 }
 
 td.inlineList ul {
@@ -5013,9 +5029,16 @@ table.backupConfig tr.details.open td:first-of-type {
     background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNSAxNSI+PHBhdGggZmlsbD0iIzdBN0I4NSIgZD0iTTcuNSwwQzMuNCwwLDAsMy40LDAsNy41QzAsMTEuNiwzLjQsMTUsNy41LDE1UzE1LDExLjYsMTUsNy41QzE1LDMuNCwxMS42LDAsNy41LDB6IE04LDExLjJjLTAuMiwwLjEtMC40LDAuMi0wLjYsMC4yaDBjLTAuMiwwLTAuNC0wLjEtMC42LTAuMmMtMC4yLTAuMi0wLjMtMC40LTAuMy0wLjdjMC0wLjIsMC4xLTAuNSwwLjMtMC42QzcsOS43LDcuMiw5LjcsNy40LDkuN2MwLjIsMCwwLjQsMC4xLDAuNiwwLjNjMC4yLDAuMiwwLjMsMC40LDAuMiwwLjZDOC4zLDEwLjgsOC4yLDExLDgsMTEuMnogTTkuOCw2LjZDOS43LDYuOCw5LjYsNyw5LjQsNy4xQzkuMyw3LjMsOSw3LjUsOC42LDcuOUM4LjUsOCw4LjQsOC4xLDguNCw4LjFjMCwwLjEtMC4xLDAuMS0wLjEsMC4yYzAsMCwwLDAuMS0wLjEsMC4yYzAsMC4xLDAsMC4yLTAuMSwwLjNDOC4xLDksOCw5LjEsNy45LDkuMkM3LjcsOS4zLDcuNiw5LjQsNy40LDkuNGgwQzcuMiw5LjQsNyw5LjMsNi44LDkuMkM2LjcsOSw2LjYsOC44LDYuNiw4LjZjMC0wLjMsMC0wLjUsMC4xLTAuN0M2LjgsNy42LDcsNy41LDcuMSw3LjNjMC4yLTAuMiwwLjQtMC40LDAuNi0wLjVDNy45LDYuNiw4LDYuNCw4LjEsNi40YzAuMS0wLjEsMC4xLTAuMiwwLjItMC4zYzAtMC4xLDAuMS0wLjIsMC4xLTAuM2MwLTAuMi0wLjEtMC40LTAuMi0wLjVDOCw1LjEsNy44LDUuMSw3LjUsNS4xQzcuMyw1LDcuMSw1LjEsNi45LDUuM0M2LjcsNS41LDYuNiw1LjcsNi41LDZDNi40LDYuNCw2LjEsNi42LDUuNyw2LjZoMGMtMC4yLDAtMC40LTAuMS0wLjUtMC4yQzUsNi4zLDQuOSw2LjEsNC45LDUuOXYwYzAtMC40LDAuMS0wLjcsMC4zLTFjMC4yLTAuMywwLjUtMC42LDAuOS0wLjhjMC40LTAuMiwwLjktMC4zLDEuNC0wLjNDOCwzLjcsOC40LDMuOCw4LjgsNGMwLjQsMC4yLDAuNywwLjQsMC45LDAuN2MwLjIsMC4zLDAuMywwLjcsMC4zLDFDMTAsNi4xLDEwLDYuMyw5LjgsNi42eiIvPjwvc3ZnPg==);
     width: 13px;
     height: 13px;
-    top: 1px;
-    margin-left: 3px;
+    top: -1px;    
     cursor: pointer;
+}
+
+thead.sort .helpTooltip {
+    margin-left: 5px;
+}
+
+thead:not(.sort) th:not(.label) .helpTooltip {
+    right: -10px;
 }
 
 td.label .helpTooltip {
