@@ -30,7 +30,8 @@ cache:
 
 stages:
   - pre build
-  - build
+  - build 1
+  - build 2
   - post build
   - check release
   - native build

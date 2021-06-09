@@ -1,6 +1,6 @@
 build:
   image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
-  stage: build
+  stage: build 1
   tags:
     - stackgres-runner
     - stackgres-maven-runner
@@ -10,12 +10,7 @@ build:
         stackgres-parent \
         operator-framework \
         test-util \
-        common \
-        operator \
-        restapi \
-        jobs \
-        cluster-controller \
-        distributedlogs-controller
+        common
   retry:
     max: 2
     when: [ unknown_failure, api_failure, stuck_or_timeout_failure, runner_system_failure, runner_unsupported,
@@ -27,11 +22,83 @@ build:
   artifacts:
     expire_in: 1 week
     when: always
-    paths:
-      - stackgres-k8s/src/api-web/target/swagger*
-      - stackgres-k8s/ci/build/target
     reports:
       junit:
         - stackgres-k8s/ci/build/target/junit-build.hashes.xml
         - stackgres-k8s/src/*/target/surefire-reports/TEST-*.xml
+
+build operator:
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  stage: build 2
+  tags:
+    - stackgres-runner
+  script:
+    - |
+      sh stackgres-k8s/ci/build/build-gitlab.sh \
+        operator
+  cache:
+    paths:
+      - stackgres-k8s/src/.m2/repository
+      - stackgres-k8s/src/.mvn
+
+build restapi:
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  stage: build 2
+  tags:
+    - stackgres-runner
+  script:
+    - |
+      sh stackgres-k8s/ci/build/build-gitlab.sh \
+        restapi
+  cache:
+    paths:
+      - stackgres-k8s/src/.m2/repository
+      - stackgres-k8s/src/.mvn
+  artifacts:
+    expire_in: 1 week
+    when: always
+    paths:
+      - stackgres-k8s/src/api-web/target/swagger*
+
+build jobs:
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  stage: build 2
+  tags:
+    - stackgres-runner
+  script:
+    - |
+      sh stackgres-k8s/ci/build/build-gitlab.sh \
+        jobs
+  cache:
+    paths:
+      - stackgres-k8s/src/.m2/repository
+      - stackgres-k8s/src/.mvn
+
+build cluster-controller:
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  stage: build 2
+  tags:
+    - stackgres-runner
+  script:
+    - |
+      sh stackgres-k8s/ci/build/build-gitlab.sh \
+        cluster-controller
+  cache:
+    paths:
+      - stackgres-k8s/src/.m2/repository
+      - stackgres-k8s/src/.mvn
+
+build distributedlogs-controller:
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  stage: build 2
+  tags:
+    - stackgres-runner
+  script:
+    - |
+      sh stackgres-k8s/ci/build/build-gitlab.sh \
+        distributedlogs-controller
+  cache:
+    paths:
+      - stackgres-k8s/src/.m2/repository
+      - stackgres-k8s/src/.mvn
 
