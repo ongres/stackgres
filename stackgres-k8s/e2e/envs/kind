@@ -266,6 +266,33 @@ EOF
 delete_k8s() {
   check_kind_version
 
+  if [ -n "$KIND_CONTAINERD_CACHE_PATH" ]
+  then
+    echo "Cleanup kind containerd cache in $KIND_CONTAINERD_CACHE_PATH..."
+
+    kind get nodes --name "$KIND_NAME" \
+      | xargs -r -n 1 -I % -P "$E2E_PARALLELISM" sh -ec "
+      docker exec '%' sh -c '
+        while [ \"\$(ctr -n k8s.io snapshot ls | tail -n +2 | wc -l)\" != 0 ]
+        do
+          KEYS=\"\$(ctr -n k8s.io snapshot ls | tail -n +2)\"
+          echo \"Snapshots: \$(echo \"\$KEYS\" | wc -l)\"
+          PARENT_KEYS=\"\$(echo \"\$KEYS\" | cut -d \" \" -f 2 | grep -v \"^\$\")\"
+          CHILD_KEYS=\"\$(echo \"\$KEYS\" | cut -d \" \" -f 1 \
+            | while read KEY
+              do
+                echo \"\$PARENT_KEYS\" | grep -q \"^\$KEY\$\" || echo \"\$KEY\"
+              done)\"
+          echo \"Child snapshots: \$(echo \"\$CHILD_KEYS\" | wc -l)\"
+          for KEY in \$CHILD_KEYS
+          do
+            ctr -n k8s.io snapshot rm \"\$KEY\"
+          done
+        done || true
+      '
+      "
+  fi
+
   if kind get clusters | grep -q "^$KIND_NAME$"
   then
     echo "Deleting kind environment $KIND_NAME..."
@@ -273,15 +300,6 @@ delete_k8s() {
     kind delete cluster --name "$KIND_NAME" || true
 
     echo "...done"
-  fi
-
-  if [ -n "$KIND_CONTAINERD_CACHE_PATH" ]
-  then
-    echo "Cleanup kind containerd cache in $KIND_CONTAINERD_CACHE_PATH..."
-    docker run -v "$KIND_CONTAINERD_CACHE_PATH:/containerd-cache" alpine \
-      sh -c 'ls -1 /containerd-cache/* 2>/dev/null \
-        | grep -v /containerd-cache/io.containerd.content.v1.content \
-        | xargs rm -rf'
   fi
 }
 
@@ -339,7 +357,7 @@ load_certificate_k8s() {
   kind get nodes --name "$KIND_NAME" \
     | xargs -r -n 1 -I % -P "$E2E_PARALLELISM" sh -ec "
     docker cp '$1' '%':/usr/local/share/ca-certificates/validator.crt
-    docker exec '%' sh -c "update-ca-certificates"
+    docker exec '%' sh -c update-ca-certificates
     "
 
   echo "...done"
