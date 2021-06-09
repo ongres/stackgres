@@ -137,6 +137,14 @@ const routes = [
     },
   },
   { 
+    path: '/crd/edit/backup/:namespace/:cluster/:uid', 
+    component: CreateBackup,
+    name: 'EditClusterBackup',
+    meta: {
+      conditionalRoute: false
+    },
+  },
+  { 
     path: '/crd/create/logs/:namespace', 
     component: CreateLogsServer,
     name: 'CreateLogsServer',
