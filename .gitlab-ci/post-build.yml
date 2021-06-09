@@ -16,7 +16,7 @@ build documentation:
     entrypoint: [ "" ]
   stage: post build
   dependencies:
-    - build
+    - build restapi
   script:
   - sh -x doc/build.sh
   - |

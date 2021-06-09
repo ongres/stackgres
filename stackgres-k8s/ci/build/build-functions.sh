@@ -413,6 +413,11 @@ build_image() {
       echo "Already exists locally. Skipping build ..."
     else
       echo "Building  ..."
+      docker images --filter "label=build-of=$IMAGE_NAME" --format '{{.ID}}' \
+	| while read ID
+          do
+            docker rmi "$ID"
+          done
       "$MODULE_BUILD_FUNCTION" "$MODULE" "$SOURCE_IMAGE_NAME" "$IMAGE_NAME"
       if command -v "$MODULE_COPY_CACHE_FUNCTION" > /dev/null
       then
