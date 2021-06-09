@@ -24,16 +24,16 @@
 		</header>
 
 		<div class="content">
-			<table id="connectionpooling" class="configurations poolConfig">
+			<table id="connectionpooling" class="configurations poolConfig resizable" v-columns-resizable>
 				<thead class="sort">
-					<th class="sorted desc name">
-						<span @click="sort('data.metadata.name')">
+					<th class="sorted desc name hasTooltip">
+						<span @click="sort('data.metadata.name')" title="Name">
 							Name
 						</span>
 						<span class="helpTooltip" :data-tooltip="getTooltip('sgpoolingconfig.metadata.name')"></span>
 					</th>
-					<th class="config">
-						Parameters
+					<th class="config notSortable hasTooltip">
+						<span title="Parameters">Parameters</span>
 						<span class="helpTooltip" :data-tooltip="getTooltip('sgpoolingconfig.spec.pgBouncer.pgbouncer.ini')"></span>
 					</th>
 					<th class="actions"></th>

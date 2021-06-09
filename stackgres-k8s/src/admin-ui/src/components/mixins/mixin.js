@@ -24,6 +24,10 @@ export const mixin = {
 
       isReady () {
         return store.state.ready
+      },
+
+      tooltips () {
+        return store.state.tooltips
       }
   
     },
@@ -990,19 +994,20 @@ export const mixin = {
 
       getTooltip(field) {
         const vc = this;
-        let tooltips = store.state.tooltips        
 
-        if(Object.keys(store.state.tooltips).length) {
+        if(Object.keys(vc.tooltips).length) {
           if(field == 'sgpostgresconfig.spec.postgresql.conf') {
-            return tooltips.sgpostgresconfig.spec['postgresql.conf'].description
+            return vc.tooltips.sgpostgresconfig.spec['postgresql.conf'].description
           } else if (field == 'sgpoolingconfig.spec.pgBouncer.pgbouncer.ini') {
-            return tooltips.sgpoolingconfig.spec.pgBouncer['pgbouncer.ini'].description
-          } else if (vc.hasProp(tooltips, field)) {
+            return vc.tooltips.sgpoolingconfig.spec.pgBouncer['pgbouncer.ini'].description
+          } else if (vc.hasProp(vc.tooltips, field)) {
             let params = field.split('.');
+            let tooltipText = vc.tooltips;
+
             params.forEach(function(item, index){
-              tooltips = tooltips[item]
+              tooltipText = tooltipText[item]
             })
-            return tooltips.description
+            return tooltipText.description
           } else {
             return 'Information not available'
           }

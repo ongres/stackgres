@@ -29,7 +29,7 @@ body {
 body.darkmode {
     --textColor: var(--white);
     --bgColor: var(--black);
-    --borderColor: #2f2f2f ;
+    --borderColor: #3d3d3d ;
     --inputBg: rgba(255,255,255,.05);
     --rowBg: #202020;
     --activeBg: #292929;

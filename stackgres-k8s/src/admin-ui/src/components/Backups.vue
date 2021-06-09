@@ -149,38 +149,37 @@
 						</ul>
 					</div>
 				</div>
-				<table class="backups">
+				<table class="backups resizable" v-columns-resizable>
 					<thead class="sort">
-						<th class="sorted desc timestamp">
-							<span @click="sort('data.status.process.timing.stored','timestamp')">Timestamp</span>
+						<th class="sorted desc timestamp hasTooltip">
+							<span @click="sort('data.status.process.timing.stored','timestamp')" title="Timestamp">Timestamp</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.timing.stored')"></span>
 						</th>
-						<th class="desc managedLifecycle">
-							<span @click="sort('data.spec.managedLifecycle')" >Managed Lifecycle (request)</span>
+						<th class="desc managedLifecycle hasTooltip">
+							<span @click="sort('data.spec.managedLifecycle')" title="Managed Lifecycle (request)">Managed Lifecycle (request)</span>
 							<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.spec.managedLifecycle')"></span>
 						</th>
-						<th class="desc phase center">
-							<span @click="sort('data.status.process.status')" >Status</span>
+						<th class="desc phase center hasTooltip">
+							<span @click="sort('data.status.process.status')" title="Status">Status</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.status')"></span>
 						</th>
-						<th class="desc size">
-							<span @click="sort('data.status.backupInformation.size.uncompressed', 'memory')">Size uncompressed (compressed)</span>
+						<th class="desc size hasTooltip">
+							<span @click="sort('data.status.backupInformation.size.uncompressed', 'memory')" title="Size uncompressed (compressed)">Size uncompressed (compressed)</span>
 							<span class="helpTooltip" data-tooltip="Size (in bytes) of the uncompressed backup (Size (in bytes) of the compressed backup)."></span>
 						</th>
-						<th class="desc postgresVersion" v-if="!isCluster">
-							<span@click="sort('data.status.backupInformation.postgresVersion')" >PG</span>
+						<th class="desc postgresVersion hasTooltip" v-if="!isCluster">
+							<span@click="sort('data.status.backupInformation.postgresVersion')" title="Postgres Version">PG</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.postgresVersion')"></span>
 						</th>
-						<th class="desc name">
-							<span @click="sort('data.metadata.name')">Name</span>
+						<th class="desc name hasTooltip">
+							<span @click="sort('data.metadata.name')" title="Name">Name</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.metadata.name')"></span>
 						</th>
-						<th class="desc clusterName" v-if="!isCluster">
-							<span @click="sort('data.spec.sgCluster')" >Source Cluster</span>
+						<th class="desc clusterName hasTooltip" v-if="!isCluster">
+							<span @click="sort('data.spec.sgCluster')" title="Source Cluster">Source Cluster</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.spec.sgCluster')"></span>
 						</th>
 						<th class="actions"></th>
-						<!--<th class="details"></th>-->
 					</thead>
 					<tbody>
 						<tr class="no-results">
@@ -194,7 +193,8 @@
 						<template v-for="(back, index) in backups" v-if="( ( (back.data.metadata.namespace == $route.params.namespace) && !isCluster) || (isCluster && (back.data.spec.sgCluster == $route.params.name ) && (back.data.metadata.namespace == $route.params.namespace ) ) ) && back.show">
 							<template v-if="back.data.status">
 								<tr :id="back.data.metadata.uid" :class="[ back.data.status.process.status != 'Running' ? 'base' : '', back.data.status.process.status+' sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name, $route.params.uid == back.data.metadata.uid ? 'open' : '']" :data-cluster="back.data.spec.sgCluster" :data-uid="back.data.metadata.uid">
-										<td class="timestamp" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.process.timing.stored.substr(0,19).replace('T',' ') : ''">
+									<td class="timestamp hasTooltip" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.process.timing.stored.substr(0,19).replace('T',' ') : ''">
+										<span>
 											<template v-if="back.data.status.process.status == 'Completed'">
 												<span class='date'>
 													{{ back.data.status.process.timing.stored | formatTimestamp('date') }}
@@ -206,29 +206,32 @@
 													{{ back.data.status.process.timing.stored | formatTimestamp('ms') }}
 												</span>
 											</template>
-										</td>
-										<td class="managedLifecycle center icon" :class="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle.toString() : 'false'" :data-val="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle : 'false'"></td>
-										<td class="phase center" :class="back.data.status.process.status">
-											<span>{{ back.data.status.process.status }}</span>
-										</td>
-										<td class="size" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.backupInformation.size.uncompressed : ''">
+										</span>
+									</td>
+									<td class="managedLifecycle center icon" :class="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle.toString() : 'false'" :data-val="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle : 'false'"></td>
+									<td class="phase center" :class="back.data.status.process.status">
+										<span>{{ back.data.status.process.status }}</span>
+									</td>
+									<td class="size hasTooltip" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.backupInformation.size.uncompressed : ''">
+										<span>
 											<template v-if="back.data.status.process.status === 'Completed'">
 											{{ back.data.status.backupInformation.size.uncompressed | formatBytes }} ({{ back.data.status.backupInformation.size.compressed | formatBytes }})
 											</template>
-										</td>
-										<td class="postgresVersion" :class="[(back.data.status.process.status === 'Completed') ? 'pg'+(back.data.status.backupInformation.postgresVersion.substr(0,2)) : '']"  v-if="!isCluster" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.backupInformation.postgresVersion : ''">
-											<template v-if="back.data.status.process.status === 'Completed'">
-												{{ back.data.status.backupInformation.postgresVersion | prefix }}
-											</template>											
-										</td>
-										<td class="name hasTooltip" :data-val="back.data.metadata.name">
-											<span>{{ back.data.metadata.name }}</span>
-										</td>
-										<td class="clusterName hasTooltip" :class="back.data.spec.sgCluster" v-if="!isCluster" :data-val="back.data.spec.sgCluster">
-											<span>{{ back.data.spec.sgCluster }}</span>
-										</td>
+										</span>
+									</td>
+									<td class="postgresVersion" :class="[(back.data.status.process.status === 'Completed') ? 'pg'+(back.data.status.backupInformation.postgresVersion.substr(0,2)) : '']"  v-if="!isCluster" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.backupInformation.postgresVersion : ''">
+										<template v-if="back.data.status.process.status === 'Completed'">
+											{{ back.data.status.backupInformation.postgresVersion | prefix }}
+										</template>											
+									</td>
+									<td class="name hasTooltip" :data-val="back.data.metadata.name">
+										<span>{{ back.data.metadata.name }}</span>
+									</td>
+									<td class="clusterName hasTooltip" :class="back.data.spec.sgCluster" v-if="!isCluster" :data-val="back.data.spec.sgCluster">
+										<span>{{ back.data.spec.sgCluster }}</span>
+									</td>
 									<td class="actions">
-										<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/crd/edit/backup/'+$route.params.namespace+'/' + ($route.params.hasOwnProperty('name') ? ($route.params.name + '/') : '') + back.data.metadata.uid" title="Edit Backup">
+										<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/crd/edit/backup/'+$route.params.namespace+'/'+back.data.metadata.uid" title="Edit Backup">
 											<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M90,135.721v2.246a.345.345,0,0,0,.345.345h2.246a.691.691,0,0,0,.489-.2l8.042-8.041a.346.346,0,0,0,0-.489l-2.39-2.389a.345.345,0,0,0-.489,0L90.2,135.232A.691.691,0,0,0,90,135.721Zm13.772-8.265a.774.774,0,0,0,0-1.095h0l-1.82-1.82a.774.774,0,0,0-1.095,0h0l-1.175,1.176a.349.349,0,0,0,0,.495l2.421,2.421a.351.351,0,0,0,.5,0Z" transform="translate(-90 -124.313)"/></svg>
 										</router-link>
 										<a v-if="iCan('delete','sgbackups',$route.params.namespace)"  v-on:click="deleteCRD('sgbackup',$route.params.namespace, back.data.metadata.name)" class="delete" title="Delete Backup">
@@ -754,7 +757,9 @@
 									<td class="name hasTooltip">
 										<span>{{ back.name }}</span>
 									</td>
-									<td class="clusterName hasTooltip stackgres">{{ back.data.spec.sgCluster }}</td>
+									<td class="clusterName hasTooltip stackgres">
+										<span>{{ back.data.spec.sgCluster }}</span>
+									</td>
 									<td class="actions">
 										<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)" :to="'/crd/edit/backup/'+$route.params.namespace+'/'+back.data.metadata.uid" title="Edit Backup">
 											<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M90,135.721v2.246a.345.345,0,0,0,.345.345h2.246a.691.691,0,0,0,.489-.2l8.042-8.041a.346.346,0,0,0,0-.489l-2.39-2.389a.345.345,0,0,0-.489,0L90.2,135.232A.691.691,0,0,0,90,135.721Zm13.772-8.265a.774.774,0,0,0,0-1.095h0l-1.82-1.82a.774.774,0,0,0-1.095,0h0l-1.175,1.176a.349.349,0,0,0,0,.495l2.421,2.421a.351.351,0,0,0,.5,0Z" transform="translate(-90 -124.313)"/></svg>

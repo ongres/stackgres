@@ -24,22 +24,22 @@
 		</header>
 
 		<div class="content">
-			<table id="postgres" class="configurations pgConfig">
+			<table id="postgres" class="configurations pgConfig resizable" v-columns-resizable>
 				<thead class="sort">
-					<th class="sorted desc name">
-						<span @click="sort('data.metadata.name')">
+					<th class="sorted desc name hasTooltip">
+						<span @click="sort('data.metadata.name')" title="Name">
 							Name
 						</span>
 						<span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.metadata.name')"></span>
 					</th>
-					<th class="desc postgresVersion">
-						<span @click="sort('data.spec.postgresVersion')">
+					<th class="desc postgresVersion hasTooltip">
+						<span @click="sort('data.spec.postgresVersion')" title="Postgres Version">
 							PG
 						</span>
 						<span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.spec.postgresVersion')"></span>
 					</th>
-					<th class="config">
-						<span>
+					<th class="config notSortable hasTooltip">
+						<span title="Parameters">
 							Parameters
 						</span>
 						<span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.spec.postgresql.conf')"></span>

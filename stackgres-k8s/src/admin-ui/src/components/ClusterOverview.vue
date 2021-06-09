@@ -22,35 +22,36 @@
 			</header>
 
 			<div class="content">
-				<table class="clusterOverview" v-if="iCan('list','sgclusters',$route.params.namespace)">
-					<thead>
-						<th>
-							<span>StackGres Cluster</span>
+				
+				<table class="clusterOverview resizable" v-if="iCan('list','sgclusters',$route.params.namespace)" v-columns-resizable>
+					<thead class="sort">
+						<th class="sorted asc name hasTooltip">
+							<span @click="sort('data.metadata.name')" title="StackGres Cluster">StackGres Cluster</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.metadata.name')"></span>
 						</th>
 
-						<th>
-							<span>Instances</span>
+						<th class="asc instances hasTooltip">
+							<span @click="sort('data.spec.instances')" title="Instances">Instances</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.instances')"></span>
 						</th>
 
-						<th>
-							<span>CPU</span>
+						<th class="asc cpu hasTooltip">
+							<span @click="sort('status.cpuRequested', 'cpu')" title="CPU">CPU</span>
 							<span class="helpTooltip"  :data-tooltip="getTooltip('sgprofile.spec.cpu')"></span>
 						</th>
 
-						<th>
-							<span>Memory</span>
+						<th class="asc memory hasTooltip">
+							<span @click="sort('status.memoryRequested', 'memory')" title="Memory">Memory</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.memory')"></span>
 						</th>
 
-						<th>
-							<span>Disk</span>
-							<span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.pods.persistentVolume.size')"></span>
+						<th class="asc disk hasTooltip">
+							<span @click="sort('data.spec.pods.persistentVolume.size', 'memory')" title="Disk">Disk</span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.persistentVolume.size')"></span>
 						</th>
 
-						<th>
-							<span>Health</span>
+						<th class="notSortable hasTooltip">
+							<span title="Health">Health</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.podsReady').slice(0, -2) + ' / ' + getTooltip('sgcluster.spec.instances')"></span>
 						</th>
 						
@@ -113,6 +114,9 @@
 				</table>
 			</div>
 		</template>
+		<div id="nameTooltip">
+			<div class="info"></div>
+		</div>
 	</div>
 </template>
 
@@ -129,11 +133,17 @@
 		data: function() {
 			
 			return {
+				currentSort: {
+					param: 'data.metadata.name',
+					type: 'alphabetical'
+				},
+				currentSortDir: 'asc',
 			}
+
 		},
 		computed: {
 			clusters () {
-				return store.state.clusters
+				return this.sortTable([...store.state.clusters], this.currentSort.param, this.currentSortDir, this.currentSort.type)
 			},
 
 			namespaces() {
@@ -160,16 +170,12 @@
 </script>
 
 <style scoped>
-	.clusterOverview td {
-		padding: 0;
+	.clusterOverview td.actions {
+		padding: 0 10px;
 	} 
 
 	.clusterOverview td > a {
    		padding: 12px 0;
-	}
-
-	.clusterOverview .clusterName > a {
-		padding-left: 25px;
 	}
 
 	.clusterName .helpTooltip.alert {

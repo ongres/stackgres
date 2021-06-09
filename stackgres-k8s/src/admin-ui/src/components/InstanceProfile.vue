@@ -24,22 +24,22 @@
 		</header>
 
 		<div class="content">
-			<table id="profiles" class="profiles pgConfig">
+			<table id="profiles" class="profiles pgConfig resizable" v-columns-resizable>
 				<thead class="sort">
-					<th class="asc name">
-						<span @click="sort('data.metadata.name')">
+					<th class="asc name hasTooltip">
+						<span @click="sort('data.metadata.name')" title="Name">
 							Name
 						</span>
 						<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.metadata.name')"></span>
 					</th>
-					<th class="sorted asc memory">
-						<span @click="sort('data.spec.memory', 'memory')" >
+					<th class="sorted asc memory hasTooltip">
+						<span @click="sort('data.spec.memory', 'memory')" title="RAM">
 							RAM
 						</span>
 						<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.memory')"></span>
 					</th>
-					<th class="asc cpu">
-						<span @click="sort('data.spec.cpu', 'cpu')">
+					<th class="asc cpu hasTooltip">
+						<span @click="sort('data.spec.cpu', 'cpu')" title="CPU">
 							CPU
 						</span>
 						<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.cpu')"></span>
@@ -57,7 +57,11 @@
 					</tr>
 					<template v-for="conf in config" v-if="(conf.data.metadata.namespace == $route.params.namespace)">
 						<tr class="base" :class="[ $route.params.name == conf.name ? 'open' : '', 'profile-'+conf.data.metadata.namespace+'-'+conf.name ]" :data-name="conf.name">
-							<td class="hasTooltip configName"><span>{{ conf.name }}</span></td>
+							<td class="hasTooltip configName">
+								<span :data-tooltip="conf.name">
+									{{ conf.name }}
+								</span>
+							</td>
 							<td class="memory fontZero">{{ conf.data.spec.memory }}</td>
 							<td class="cpu fontZero">{{ conf.data.spec.cpu }}</td>
 							<td class="actions">
@@ -177,3 +181,17 @@
 	}
 
 </script>
+
+<style scoped>
+	th.memory {
+		width: 95px;
+	}
+
+	th.cpu {
+		width: 90px;
+	}
+
+	th.name {
+		width: 100px;
+	}
+</style>

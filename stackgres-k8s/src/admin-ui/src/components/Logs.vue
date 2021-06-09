@@ -204,50 +204,51 @@
 					</div>-->
 				</div>
 
-				<table class="logs" v-on:scroll.passive="handleScroll">
+				
+				<table class="logs resizable" v-on:scroll.passive="handleScroll" v-columns-resizable>
 					<thead class="sort">
-						<th class="logTime sorted desc timestamp">
+						<th class="logTime sorted desc timestamp hasTooltip">
 							<span @click="sort()">Log Time</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.logTime')"></span>
 						</th>
-						<th class="logType center label" v-if="showColumns.logType">
-							Type
+						<th class="logType center label hasTooltip" v-if="showColumns.logType">
+							<span title="type">Type</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.logType')"></span>
 						</th>
-						<th class="errorLevel center" v-if="showColumns.errorLevel">
-							Error Level
+						<th class="errorLevel center hasTooltip" v-if="showColumns.errorLevel">
+							<span title="Error Level">Error Level</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.errorLevel')"></span>
 						</th>
-						<th class="podName" v-if="showColumns.podName">
-							Pod Name
+						<th class="podName hasTooltip" v-if="showColumns.podName">
+							<span title="Pod Name">Pod Name</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.podName')"></span>
 						</th>
-						<th class="role center label" v-if="showColumns.role">
-							Role
+						<th class="role center label hasTooltip" v-if="showColumns.role">
+							<span title="Role">Role</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.role')"></span>
 						</th>
-						<th class="logMessage" v-if="showColumns.logMessage">
-							Message
+						<th class="logMessage hasTooltip" v-if="showColumns.logMessage">
+							<span title="Message">Message</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.message')"></span>
 						</th>
-						<th class="userName" v-if="showColumns.userName">
-							User
+						<th class="userName hasTooltip" v-if="showColumns.userName">
+							<span title="User">User</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.userName')"></span>
 						</th>
-						<th class="databaseName" v-if="showColumns.databaseName">
-							Database
+						<th class="databaseName hasTooltip" v-if="showColumns.databaseName">
+							<span title="Database">Database</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.databaseName')"></span>
 						</th>
-						<th class="processId" v-if="showColumns.processId">
-							Process ID
+						<th class="processId hasTooltip" v-if="showColumns.processId">
+							<span title="Process ID">Process ID</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.processId')"></span>
 						</th>
-						<th class="connectionFrom" v-if="showColumns.connectionFrom">
-							Connection From
+						<th class="connectionFrom hasTooltip" v-if="showColumns.connectionFrom">
+							<span title="Connection From">Connection From</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.connectionFrom')"></span>
 						</th>
-						<th class="applicationName" v-if="showColumns.applicationName">
-							Application
+						<th class="applicationName hasTooltip" v-if="showColumns.applicationName">
+							<span title="Application">Application</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.applicationName')"></span>
 						</th>
 					</thead>
