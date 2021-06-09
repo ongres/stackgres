@@ -228,7 +228,7 @@
 											<span>{{ back.data.spec.sgCluster }}</span>
 										</td>
 									<td class="actions">
-										<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/crd/edit/backup/'+$route.params.namespace+'/'+back.data.metadata.uid" title="Edit Backup">
+										<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/crd/edit/backup/'+$route.params.namespace+'/' + ($route.params.hasOwnProperty('name') ? ($route.params.name + '/') : '') + back.data.metadata.uid" title="Edit Backup">
 											<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M90,135.721v2.246a.345.345,0,0,0,.345.345h2.246a.691.691,0,0,0,.489-.2l8.042-8.041a.346.346,0,0,0,0-.489l-2.39-2.389a.345.345,0,0,0-.489,0L90.2,135.232A.691.691,0,0,0,90,135.721Zm13.772-8.265a.774.774,0,0,0,0-1.095h0l-1.82-1.82a.774.774,0,0,0-1.095,0h0l-1.175,1.176a.349.349,0,0,0,0,.495l2.421,2.421a.351.351,0,0,0,.5,0Z" transform="translate(-90 -124.313)"/></svg>
 										</router-link>
 										<a v-if="iCan('delete','sgbackups',$route.params.namespace)"  v-on:click="deleteCRD('sgbackup',$route.params.namespace, back.data.metadata.name)" class="delete" title="Delete Backup">
