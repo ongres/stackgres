@@ -429,7 +429,7 @@ function checkLogin() {
 function checkAuthError(error) {
   if(error.response) {
     if(error.response.status == 401 ) {
-      document.cookie = 'sgToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      document.cookie = 'sgToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Strict;';
       store.commit('setLoginToken');
       window.location.replace('/admin/')
       process.exit(1);

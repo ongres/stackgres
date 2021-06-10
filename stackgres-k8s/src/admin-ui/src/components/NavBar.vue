@@ -235,7 +235,7 @@
 				.then( function(response){
 					store.commit('setLoginToken', response.data.access_token);
 					$('#signup').fadeOut();
-					document.cookie = "sgToken="+response.data.access_token+"; Path=/";
+					document.cookie = "sgToken="+response.data.access_token+"; Path=/; SameSite=Strict;";
 					vc.fetchAPI();
 					
 					let ns = vc.$route.params.hasOwnProperty('namespace') ? vc.$route.params.namespace : 'default' 
@@ -258,7 +258,7 @@
 			},
 
 			logout: function() {
-				document.cookie = 'sgToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+				document.cookie = 'sgToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Strict;';
 				store.commit('setLoginToken');
 				$('#signup').addClass('login').fadeIn();
 				router.push('/');
@@ -329,7 +329,7 @@
 				});
 			},
 			flushToken: function() {
-				document.cookie = 'sgToken=';
+				document.cookie = 'sgToken=; SameSite=Strict;';
 				store.commit('setLoginToken','401 Authentication Error');
 				console.log('Flushed');
 			},
