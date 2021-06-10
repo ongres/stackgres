@@ -78,7 +78,7 @@ export default new Vuex.Store({
 
     setTheme (state, theme) {
       state.theme = theme;
-      document.cookie = "sgTheme="+theme+"; Path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT";
+      document.cookie = "sgTheme="+theme+"; Path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=Strict;";
     },
 
     setCurrentPath (state, path) {
@@ -341,7 +341,7 @@ export default new Vuex.Store({
 
     toggleTimezone (state) {
       state.timezone = (state.timezone == 'local') ? 'utc' : 'local';
-      document.cookie = "sgTimezone=" + state.timezone + "; Path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT";
+      document.cookie = "sgTimezone=" + state.timezone + "; Path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=Strict;";
     },
     
   }
