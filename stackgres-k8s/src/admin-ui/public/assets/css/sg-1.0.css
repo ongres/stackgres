@@ -182,7 +182,7 @@ body, #sets h4, #sets h3, #side a.router-link-exact-active, th, .tabs a, #keywor
     border-color: var(--lBlue);
 }
 
-.darkmode #side, .darkmode #nav {
+.darkmode #side, .darkmode #nav, .darkmode .set:not(.active) > ul li {
     background: var(--bgColor);
 }
 

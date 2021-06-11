@@ -50,7 +50,7 @@
 			<div id="log">
 				<div class="toolbar">
 					<div class="searchBar">
-						<input id="keyword" v-model="text" class="search" placeholder="Search text..." @keyup="toggleClear('keyword')">
+						<input id="keyword" v-model="text" class="search" placeholder="Search text..." @keyup="toggleClear('keyword')" autocomplete="off">
 						<a @click="getLogs()" class="btn">APPLY</a>
 						<a @click="clearFilters('keyword')" class="btn clear border keyword" style="display:none">CLEAR</a>
 					</div>

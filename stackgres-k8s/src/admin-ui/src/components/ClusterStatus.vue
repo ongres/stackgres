@@ -147,8 +147,8 @@
 					<tbody>
 						<tr v-for="pod in cluster.status.pods">
 							<td>{{ pod.name }}</td>
-							<td class="label" :class="pod.role"><span>{{ pod.role }}</span></td>
-							<td class="label" :class="pod.status"><span>{{ pod.status }}</span></td>
+							<td class="tag" :class="pod.role"><span>{{ pod.role }}</span></td>
+							<td class="tag" :class="pod.status"><span>{{ pod.status }}</span></td>
 							<td>
 								{{ pod.cpuRequested }} 
 								<template v-if="pod.status !== 'Pending'">

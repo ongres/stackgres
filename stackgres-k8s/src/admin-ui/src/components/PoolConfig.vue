@@ -102,11 +102,11 @@
 											</thead>
 											<tbody>
 												<tr v-for="param in conf.data.status.pgBouncer['pgbouncer.ini']" v-if="!conf.data.status.pgBouncer.defaultParameters.includes(param.parameter)">
-													<td class="label">
-														{{ param.parameter }}
+													<td class="label hasTooltip">
+														<span>{{ param.parameter }}</span>
 													</td>
-													<td class="paramValue">
-														{{ param.value }}
+													<td class="paramValue hasTooltip">
+														<span>{{ param.value }}</span>
 													</td>
 												</tr>
 											</tbody>
@@ -114,8 +114,7 @@
 									</template>
 
 									<template v-if="conf.data.status.pgBouncer.defaultParameters.length">
-										
-										<table>
+										<table class="defaultParams">
 											<thead>
 												<th colspan="2" class="label">
 													Default Parameters
@@ -124,11 +123,11 @@
 											</thead>
 											<tbody>
 												<tr v-for="param in conf.data.status.pgBouncer['pgbouncer.ini']" v-if="conf.data.status.pgBouncer.defaultParameters.includes(param.parameter)">
-													<td class="label">
-														{{ param.parameter }}
+													<td class="label hasTooltip">
+														<span>{{ param.parameter }}</span>
 													</td>
-													<td class="paramValue">
-														{{ param.value }}
+													<td class="paramValue hasTooltip">
+														<span>{{ param.value }}</span>
 													</td>
 												</tr>
 											</tbody>
