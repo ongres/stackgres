@@ -1109,11 +1109,6 @@
         float: left;
     }
 
-    tr.details .opSpec table .label, tr.details .opStatus table .label {
-        min-width: 100px;
-        /* width: auto; */
-    }
-
     .opSpec th, .opStatus th {
         text-transform: capitalize;
     }
@@ -1124,19 +1119,6 @@
 
     .operationType {
         min-width: 200px !important;
-    }
-
-    .phase, td.actions {
-        min-width: 80px;
-        text-align: center;
-    }
-
-    .elapsed {
-        min-width: 130px;  
-    }
-
-    .timedOut {
-        min-width: 120px;
     }
 
     td.elapsed, td.retries, td.timedOut {
@@ -1167,9 +1149,9 @@
     }
 
     th.actions, td.actions {
-        width: 55px !important;
-        min-width: 55px;
-        max-width: 55px;
+        width: 45px !important;
+        min-width: 45px;
+        max-width: 45px;
     }
 
     table#sgdbops, #sgdbops thead, #sgdbops th, #sgdbops tbody, #sgdbops tr, #sgdbops td {

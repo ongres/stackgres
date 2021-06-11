@@ -370,7 +370,7 @@ $(document).ready(function(){
     let submenu = $(this).children("ul");
     
     if(window.innerHeight > 700)
-      submenu.css("bottom","auto").css("top",offset.top - window.scrollY)
+      submenu.css("bottom","auto").css("top",offset.top - window.scrollY).css("max-height",window.innerHeight - (offset.top - window.scrollY))
     else
       submenu.css("top", "auto").css("bottom",window.innerHeight - $(this).height() - offset.top)
       

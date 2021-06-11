@@ -489,7 +489,7 @@ form#login .warning {
     background-color: #1b1b1b;    
 }
 
-.darkmode .set.active, .darkmode .set.active a:hover, .darkmode .set:hover a:hover, .darkmode .set:not(.active) > ul li, .darkmode #keyword, .darkmode ul.select, .darkmode ul.select.active, .darkmode ul.select.active ul, .darkmode .options li.textFilter .search {
+.darkmode .set.active, .darkmode .set.active a:hover, .darkmode .set:hover a:hover, .darkmode #keyword, .darkmode ul.select, .darkmode ul.select.active, .darkmode ul.select.active ul, .darkmode .options li.textFilter .search {
     background-color: rgba(122, 123, 133, .10);
 }
 
@@ -1071,12 +1071,16 @@ ul.zg-ul-select.active li.active:hover {
     position: fixed;
     left: 350px;
     z-index: 2;
-    overflow: hidden;
+    overflow: auto;
     padding-left: 0;
+    border-bottom: 1px solid var(--borderColor);
+    border-top: 1px solid var(--borderColor);
+    background-color: var(--bgColor);
+    box-shadow: 2px 2px 5px rgba(0,0,0,.1);
 }
 
 .set:not(.active) ul.show:before {
-    box-shadow: 2px 2px 5px rgba(0,0,0,.1);
+    /*box-shadow: 2px 2px 5px rgba(0,0,0,.1);*/
     content: " ";
     position: absolute;
     top: 0;
@@ -3207,7 +3211,6 @@ tr.details {
 }
 
 tr.details table {
-    border: 1px solid #f0f0f1;
     margin-left: 0;
 }
 
@@ -3219,15 +3222,13 @@ tr.details table th, tr.details table td {
 
 tr.details table .label {
     min-width: 200px;
-    width: 200px;
     padding-right: 35px;
-    /*color: var(--blue);*/
     color: #4D4F5C;
     font-weight: bold;
     position: relative;
 }
 
-.details .label span {
+.details .label span.helpTooltip {
     position: absolute;
     right: 15px;
     top: calc(50% - 6px);
@@ -3293,14 +3294,14 @@ table.clusterInfo{
 }
 
 .clusterInfo th {
-    width: 25%;
+    width: 20%;
 }
 
 .clusterInfo tr, .podStatus tr {
     background: #fafafa;
 }
 
-td.label span:not(.helpTooltip) {
+td.tag span:not(.helpTooltip) {
     text-transform: capitalize;
     padding: 3px 9px;
     font-size: 11px;
@@ -4684,9 +4685,15 @@ table.pgConfig tr.toggle:not(.open) td:first-of-type {
     position: absolute;
     width: 20%;
     padding-right: 35px;
+<<<<<<< HEAD
 } */
 
 /* table.pgConfig tr.open > td, table.poolConfig tr.open > td {
+=======
+}
+ */
+table.pgConfig tr.open > td, table.poolConfig tr.open > td {
+>>>>>>> fix(ui): make postgres and pooling config params tables scrollable
     padding-top: 10px;
 }
 
@@ -4797,12 +4804,16 @@ td.usedOn li:last-child {
     border-bottom: 0;
 }
 
-table tr.details .configurationDetails a, table tr.details .paramDetails a {
+table tr.details .configurationDetails a {
     float: right;
-    display: inline-block;
     padding: 2px 14px;
 }
 
+table tr.details .paramDetails a, .paramValue svg.grayscale {
+    float: right;
+    position: absolute;
+    right: 15px;
+}
 table.pgConfig tr.details a svg path, table.poolConfig tr.details a svg path {
     fill: var(--blue);
 }
@@ -4819,23 +4830,8 @@ tr.details.pgConfig .title {
 }
 
 .paramDetails table {
-    max-height: 240px;
-    overflow: auto;
-    display: block;
-    width: 100%;
-}
-
-tr.details .paramDetails table {
     margin-bottom: 30px;
-}
-
-tr.details .paramDetails table.defaultParams {
-    margin-bottom: 10px;
-}
-
-.paramDetails table {
-    width: 100%;
-    display: inline-table;
+    border: 0;
 }
 
 tr.details.pgConfig.open > td:first-child {
@@ -4846,18 +4842,43 @@ table.pgConfig tr.base.open td:before, table.poolConfig tr.base.open td:before {
     border: 0;
 }
 
-table.pgConfig tr.details td.paramValue a, table.poolConfig tr.details td.paramValue a {
+.paranDetails td.paramValue a {
     padding: 0;
 }
 
-table.pgConfig tr.details .paramDetails table td, table.poolConfig tr.details .paramDetails table td {
+.paramDetails table td {
     padding: 10px;
     padding-right: 14px;
+    height: 40px;
 }
 
-table.pgConfig tr.details .paramDetails table, table.poolConfig tr.details .paramDetails table {
-    border: 0;
-    border-bottom: 1px solid #f0f0f1;
+.paramDetails table tbody {
+    max-height: 241px;
+    width: 100%;
+    position: relative;
+    display: inline-block;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+tr.details .paramDetails table .label {
+    padding-right: 10px;
+}
+
+.paramDetails tr {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+
+.paramDetails tbody td {
+    border-top: 0 !important;
+}
+
+table.pgConfig .paramDetails tbody td:last-child {
+    border-left: 0;
+    padding-right: 35px;
 }
 
 table.pgConfig tr:nth-child(4n-2), table.pgConfig tr:nth-child(4n-2) + tr.details, table.pgConfig tr:nth-child(4n-2), table.poolConfig tr:nth-child(4n-2), table.poolConfig tr:nth-child(4n-2) + tr.details, table.poolConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + tr.details, table.backupConfig tr:nth-child(4n-2) {
@@ -4916,11 +4937,6 @@ table.backupConfig tr.details.open td:first-of-type {
     border: 1px solid #f0f0f1;
     margin-top: 0;
     padding: 10px 15px;
-}
-
-.paramValue svg.grayscale {
-    display: inline-block;
-    float: right;
 }
 
 /* 404 Not Found */

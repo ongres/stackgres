@@ -65,7 +65,7 @@
 						Please type the exact name of the {{ deleteItem.kind }} to confirm.
 					</p>
 					<form @submit="confirmDelete(confirmDeleteName)">
-						<input id="deleteName" v-model="confirmDeleteName" :placeholder="deleteItem.kind+' name'">
+						<input id="deleteName" v-model="confirmDeleteName" :placeholder="deleteItem.kind+' name'" autocomplete="off">
 						<span class="warning" style="display:none">The {{ deleteItem.kind }} name does not match the name of the element requested to be deleted.</span>
 						<a @click="confirmDelete(confirmDeleteName)">DELETE ITEM</a> <a @click="cancelDelete()">CANCEL</a>
 					</form>
@@ -114,7 +114,7 @@
 					</select>
 
 					<label for="cloneName">Name <span class="req">*</span></label>
-					<input @keyup="setCloneName" id="cloneName">
+					<input @keyup="setCloneName" id="cloneName" autocomplete="off">
 
 					<span class="warning" v-if="nameColission">
 						There's already a <strong>{{ clone.kind }}</strong> with the same name on the specified namespace. Please specify a different name or choose another namespace

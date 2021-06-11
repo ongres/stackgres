@@ -1127,4 +1127,10 @@
 	#backups .options {
 		width: 370px;
 	}
+
+	th.actions, td.actions {
+        width: 70px !important;
+        min-width: 70px;
+        max-width: 70px;
+    }
 </style>
