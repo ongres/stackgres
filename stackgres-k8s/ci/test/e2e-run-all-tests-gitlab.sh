@@ -35,21 +35,6 @@ do
 
   docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
 
-  echo "Preparing kind shared cache cache..."
-  export E2E_LOCK_PATH="/tmp/e2e-lock$SUFFIX"
-  export KIND_LOCK_PATH="/tmp/kind-lock$SUFFIX"
-  export KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache/$KIND_NAME"
-  export KIND_CONTAINERD_SHARED_CACHE_RUN_ID="$CI_PIPELINE_ID"
-  export KIND_CONTAINERD_SHARED_CACHE_PATH=/tmp/kind-cache
-  export KIND_CONTAINERD_SHARED_CACHE_EXTRA_IMAGES_FILE=/tmp/pulled-images*
-  if docker manifest inspect \
-    "$CI_REGISTRY/$CI_PROJECT_PATH/stackgres/operator:$IMAGE_TAG_BASE" >/dev/null 2>&1
-  then
-    export KIND_CONTAINERD_SHARED_CACHE_IMAGE_TAGS="$IMAGE_TAG_BASE-jvm $IMAGE_TAG_BASE"
-  else
-    export KIND_CONTAINERD_SHARED_CACHE_IMAGE_TAGS="$IMAGE_TAG_BASE-jvm"
-  fi
-
   echo "Retrieving jobs cache..."
   if "$IS_WEB"
   then
