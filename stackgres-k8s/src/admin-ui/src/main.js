@@ -2,10 +2,16 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
+import moment from 'moment'
 
 Vue.config.productionTip = false
 
-Vue.use(VueMarkdown);
+// Include jQuery
+const $ = require('jquery')
+window.$ = $
+
+// Include Prettycron
+var prettyCron = require('prettycron');
 
 
 /* Resize Columns */
@@ -132,18 +138,6 @@ const vm = new Vue({
     currentPods: '',
     clustersData: {},
     init: false
-    //clusters: []
-  },
-  methods: {
-    
-
-  },
-  mounted: function() {
-
-  },
-
-  computed: {
-
   }
 }).$mount('#app')
 

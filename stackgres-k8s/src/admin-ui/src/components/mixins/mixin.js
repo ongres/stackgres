@@ -1,6 +1,8 @@
 import store from '../../store'
 import axios from 'axios'
 import router from '../../router'
+import VueMarkdown from 'vue-markdown'
+import moment from 'moment'
 
 export const mixin = {
 
@@ -8,6 +10,9 @@ export const mixin = {
       return {
         confirmDeleteName: ''
       }
+    },
+    components: {
+      VueMarkdown
     },
     computed: {
   

@@ -1385,6 +1385,9 @@
                 if(!maxDate)
                     maxDate = new Date(new Date().getTime());
 
+                // Load datepicker
+			    require('daterangepicker');
+
                 $('.daterangepicker').remove()
                 $(document).find('.datePicker').daterangepicker({
                     "autoApply": true,
