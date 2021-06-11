@@ -47,7 +47,7 @@
 				</ul>
 			</header>
 
-			<div class="content">
+			<div class="content noScroll">
 				<h2>Cluster Details</h2>
 				<div class="connectionInfo" v-if="hasProp(cluster, 'data.info')" :set="hasPrimary = ( typeof ( cluster.data.pods.find(p => (p.role == 'primary')) ) == 'undefined' )">
 					<a @click="setContentTooltip('#connectionInfo', hasPrimary)"> 
@@ -304,6 +304,7 @@
 										<span class='ms'>
 											{{ backup.data.status.process.timing.stored | formatTimestamp('ms') }}
 										</span>
+										<span class='tzOffset'>{{ showTzOffset() }}</span>
 									</template>
 								</td>
 							</tr>
@@ -322,6 +323,7 @@
 									<span class='ms'>
 										{{ cluster.data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp | formatTimestamp('ms') }}
 									</span>
+									<span class='tzOffset'>{{ showTzOffset() }}</span>
 								</td>
 							</tr>
 						</template>	

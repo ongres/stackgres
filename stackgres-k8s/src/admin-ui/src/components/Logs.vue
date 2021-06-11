@@ -271,6 +271,7 @@
 										<span class='ms'>
 											{{ log.logTime | formatTimestamp('ms') }}
 										</span>
+										<span class='tzOffset'>{{ showTzOffset() }}</span>
 									</td>
 									<td class="logType label postgres center" v-if="showColumns.logType">
 										<span>Postgres</span>
@@ -316,6 +317,7 @@
 										<span class='ms'>
 											{{ log.logTime | formatTimestamp('ms') }}
 										</span>
+										<span class='tzOffset'>{{ showTzOffset() }}</span>
 									</td>
 									<td class="logType label patroni center" v-if="showColumns.logType">
 										<span>Patroni</span>
@@ -352,6 +354,7 @@
 											<span class='ms'>
 												{{ log.logTime | formatTimestamp('ms') }}
 											</span>
+											<span class='tzOffset'>{{ showTzOffset() }}</span>
 										</span>
 										<span class="closeLog">✕</span>
 									</div>

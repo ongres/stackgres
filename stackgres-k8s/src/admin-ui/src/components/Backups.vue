@@ -205,6 +205,7 @@
 												<span class='ms'>
 													{{ back.data.status.process.timing.stored | formatTimestamp('ms') }}
 												</span>
+												<span class='tzOffset'>{{ showTzOffset() }}</span>
 											</template>
 										</span>
 									</td>
@@ -316,6 +317,7 @@
 															<span class='ms'>
 																{{ back.data.status.process.timing.start | formatTimestamp('ms') }}
 															</span>
+															<span class='tzOffset'>{{ showTzOffset() }}</span>
 														</td>
 													</tr>
 													<tr>
@@ -417,6 +419,7 @@
 															<span class='ms'>
 																{{ back.data.status.process.timing.end | formatTimestamp('ms') }}
 															</span>
+															<span class='tzOffset'>{{ showTzOffset() }}</span>
 														</td>
 													</tr>
 													<tr>
@@ -434,6 +437,7 @@
 															<span class='ms'>
 																{{ back.data.status.process.timing.stored | formatTimestamp('ms') }}
 															</span>
+															<span class='tzOffset'>{{ showTzOffset() }}</span>
 														</td>
 													</tr>
 													<tr>

@@ -1964,7 +1964,7 @@ li.status {
     cursor: pointer;
 }
 
-#main > .content {
+#main > .content:not(.noScroll) {
     max-height: calc(100vh - 230px);
     overflow-y: auto;
     padding-right: 5px;
@@ -2994,7 +2994,7 @@ table.resizable th:not(.label) span:first-child {
 
 table.resizable th.textRight span:first-child {
     width: calc(100% - 20px);
-    padding-right: 30px;
+    padding-right: 10px;
 }
 
 .columns-resize-bar {
@@ -3139,66 +3139,35 @@ td.phase.Failed > span {
 
 td.timestamp span.time, span.timestamp span.time {
     color: var(--blue);
-    display: inline-block;
 }
 
 td .timestamp {
     color: var(--gray3);
 }
 
-/* #backups .phase {
-    min-width: 265px;
-    width: 265px;
-}
-
-#backups .size {
-    min-width: 265px;
-    width: 265px;
-}
-
-#backups .postgresVersion {
-    width: 75px;
-    min-width: 75px;
-    padding-left: 10px;
-} */
-
 td.timestamp span.ms, span.timestamp span.ms {
     color: var(--gray5);
 }
 
-/* tr.details th:first-child, tr.details td:first-child {
-    padding-left: 0;
-} */
-
-/* tr.details tr {
-    background: transparent !important;
-} */
+td.timestamp span.tzOffset {
+    opacity: .4;
+}
 
 table table {
     margin-left: -15px;
     width: calc(100% - 12px);
 }
 
-/*body:not(.darkmode) tr.base.open {
-    border: 1px solid #f0f0f1;
-}
-*/
-
 table table tbody {
     border-top-color: #f0f0f1;
     border-bottom: 0;
 }
-
-/*body:not(.darkmode) tr.details.open {
-    border: 1px solid #f0f0f1;
-}*/
 
 table table + table {
     border-top: 1px solid #f0f0f1;
 }
 
 .details th {
-    /*color: var(--blue);*/
     color: #4D4F5C;
 }
 
@@ -4483,7 +4452,7 @@ td.hasTooltip > span {
 }
 
 td.hasTooltip.textRight > span {
-    left: auto;
+    left: 20px;
     right: 10px;
 }
 

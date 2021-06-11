@@ -103,15 +103,15 @@
                         <span @click="sort('data.spec.sgCluster')" title="Target Cluster">Target Cluster</span>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.sgCluster')"></span>
                     </th>
-                    <th class="asc elapsed hasTooltip">
+                    <th class="asc elapsed textRight hasTooltip">
                         <span @click="sort('data.status.elapsed', 'duration')" title="Elapsed">Elapsed</span>
                         <span class="helpTooltip" data-tooltip="The time between the moment the operation started and the moment on which it reached its current status."></span>
                     </th>
-                    <th class="asc retries hasTooltip">
+                    <th class="asc retries textRight hasTooltip">
                         <span @click="sort('data.status.opRetries')" title="Current / Max Retries">Current / Max Retries</span>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.opRetries') + ' / '+ getTooltip('sgdbops.spec.maxRetries')"></span> 
                     </th>
-                    <th class="asc timedOut hasTooltip">
+                    <th class="asc timedOut textRight hasTooltip">
                         <span @click="sort('data.spec.timeout')" title="Timed Out">Timed Out</span>
                         <span class="helpTooltip" data-tooltip="States whether the operation failed because of timeout expiration."></span>
                     </th>
@@ -136,6 +136,7 @@
                                         <span class='time'>
                                             {{ op.data.spec.runAt | formatTimestamp('time') }}
                                         </span>
+                                        <span class='tzOffset'>{{ showTzOffset() }}</span>
                                     </template>
                                     <template v-else-if="hasProp(op,'data.status.opStarted')">
                                         <span class='date'>
@@ -144,6 +145,7 @@
                                         <span class='time'>
                                             {{ op.data.status.opStarted | formatTimestamp('time') }}
                                         </span>
+                                        <span class='tzOffset'>{{ showTzOffset() }}</span>
                                     </template>
                                     <span v-else class="asap">
                                         ASAP
@@ -661,6 +663,7 @@
                                                         <span class='time'>
                                                             {{ condition.lastTransitionTime | formatTimestamp('time') }}
                                                         </span>
+                                                        <span class='tzOffset'>{{ showTzOffset() }}</span>
                                                     </td>
                                                 </tr>
                                                 <tr v-if="condition.hasOwnProperty('reason')">
@@ -713,6 +716,7 @@
                                                     <span class='time'>
                                                         {{ op.data.status.opStarted | formatTimestamp('time') }}
                                                     </span>
+                                                    <span class='tzOffset'>{{ showTzOffset() }}</span>
                                                 </td>
                                             </tr>
                                             <tr v-if="op.data.status.hasOwnProperty('opRetries')">
@@ -1071,6 +1075,7 @@
         padding: 2px 10px;
         position: relative;
         top: -2px;
+            white-space: nowrap;
     }
     td.operationType span:before {
         width: 15px;
@@ -1117,16 +1122,8 @@
         margin-bottom: 12px;
     }
 
-    .operationType {
-        min-width: 200px !important;
-    }
-
     td.elapsed, td.retries, td.timedOut {
         padding-right: 5px;
-    }
-
-    th.start, .opName, .targetCluster, .retries {
-        min-width: 190px;
     }
 
     td.phase > span.Completed {
