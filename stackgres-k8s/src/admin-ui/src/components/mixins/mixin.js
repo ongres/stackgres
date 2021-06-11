@@ -1124,6 +1124,15 @@ export const mixin = {
         } 
 
         return baseCrontab
+      },
+
+      showTzOffset() {
+        if( !!moment().utcOffset() && (store.state.timezone == 'local') ) {
+          var offset = new Date().getTimezoneOffset(), o = Math.abs(offset);
+          return (offset < 0 ? "+" : "-") + ("00" + Math.floor(o / 60)).slice(-2) + ":" + ("00" + (o % 60)).slice(-2);
+        } else {
+          return '+00:00'
+        }
       }
       
     },
