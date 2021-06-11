@@ -24,6 +24,7 @@ build ci image:
       echo ...done
       EOF
     - flock /tmp/stackgres-build-ci-image sh -xe build-ci-image.sh
+  retry: 2
 
 build test image:
   image: docker:20.10.6
@@ -51,3 +52,4 @@ build test image:
       echo ...done
       EOF
     - flock /tmp/stackgres-build-test-image sh -xe build-test-image.sh
+  retry: 2
