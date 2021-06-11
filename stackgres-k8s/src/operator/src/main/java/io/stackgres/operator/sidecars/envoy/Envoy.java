@@ -113,7 +113,7 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
         .withVolumeMounts(new VolumeMountBuilder()
             .withName(NAME)
             .withMountPath("/etc/envoy")
-            .withNewReadOnly(true)
+            .withReadOnly(Boolean.TRUE)
             .build())
         .addAllToVolumeMounts(ClusterStatefulSetVolumeConfig.USER.volumeMounts(context))
         .withPorts(

@@ -84,4 +84,9 @@
     <Bug pattern="MF_CLASS_MASKS_FIELD" />
     <Package name="~io\.stackgres\.common\.crd.*" />
   </Match>
+
+  <!-- Native image fails with Random object created and used only once -->
+  <Match>
+    <Bug pattern="DMI_RANDOM_USED_ONLY_ONCE" />
+  </Match>
 </FindBugsFilter>

@@ -69,23 +69,23 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <!-- Dependencies versions -->
-    <quarkus.version>1.12.2.Final</quarkus.version>
-    <kubernetes-client.version>5.2.0</kubernetes-client.version>
+    <quarkus.version>1.13.7.Final</quarkus.version>
+    <kubernetes-client.version>5.4.1</kubernetes-client.version>
     <jool.version>0.9.14</jool.version>
     <immutables.version>2.8.8</immutables.version>
-    <checkstyle.version>8.41</checkstyle.version>
-    <spotbugs.version>4.2.2</spotbugs.version>
-    <pmd.version>6.32.0</pmd.version>
+    <checkstyle.version>8.43</checkstyle.version>
+    <spotbugs.version>4.2.3</spotbugs.version>
+    <pmd.version>6.35.0</pmd.version>
     <docker-junit-extension.version>1.2.15</docker-junit-extension.version>
     <jersey.version>2.32</jersey.version>
     <fluent-process.version>1.0.1</fluent-process.version>
     <log4j.version>2.13.3</log4j.version>
     <jooq.version>3.13.4</jooq.version>
-    <jetbrains-annotations.version>20.1.0</jetbrains-annotations.version>
+    <jetbrains-annotations.version>21.0.1</jetbrains-annotations.version>
     <mockito.version>3.0.0</mockito.version>
-    <swagger-annotations.version>2.1.7</swagger-annotations.version>
+    <swagger-annotations.version>2.1.9</swagger-annotations.version>
     <reflections.version>0.9.12</reflections.version>
-    <truth.version>1.1.2</truth.version>
+    <truth.version>1.1.3</truth.version>
     <!-- Plugins versions -->
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <jar-plugin.version>3.2.0</jar-plugin.version>
@@ -94,15 +94,15 @@
     <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
     <failsafe-plugin.version>3.0.0-M5</failsafe-plugin.version>
     <checkstyle-plugin.version>3.1.2</checkstyle-plugin.version>
-    <spotbugs-plugin.version>4.2.0</spotbugs-plugin.version>
+    <spotbugs-plugin.version>4.2.3</spotbugs-plugin.version>
     <pmd-plugin.version>3.14.0</pmd-plugin.version>
     <enforcer-plugin.version>3.0.0-M3</enforcer-plugin.version>
     <dependency-plugin.version>3.1.1</dependency-plugin.version>
     <docker-maven-plugin.version>0.34.1</docker-maven-plugin.version>
-    <jandex-maven-plugin.version>1.0.8</jandex-maven-plugin.version>
-    <jandex.version>2.2.3.Final</jandex.version>
+    <jandex-maven-plugin.version>1.1.0</jandex-maven-plugin.version>
+    <jandex.version>2.3.0.Final</jandex.version>
     <build-helper-maven-plugin.version>3.2.0</build-helper-maven-plugin.version>
-    <swagger-maven-plugin.version>2.1.5</swagger-maven-plugin.version>
+    <swagger-maven-plugin.version>2.1.6</swagger-maven-plugin.version>
     <!-- Checkstyle, SpotBugs and PMD properties -->
     <checks.location>${project.basedir}/checks</checks.location>
     <checkstyle.config.location>${checks.location}/checkstyle.xml</checkstyle.config.location>
@@ -454,11 +454,11 @@
           <artifactId>maven-pmd-plugin</artifactId>
           <version>${pmd-plugin.version}</version>
           <configuration>
-            <failurePriority>5</failurePriority>
+            <failurePriority>3</failurePriority>
             <failOnViolation>true</failOnViolation>
             <printFailingErrors>true</printFailingErrors>
             <linkXRef>false</linkXRef>
-            <verbose>true</verbose>
+            <verbose>false</verbose>
             <rulesets>
               <ruleset>${pmd.ruleset.file}</ruleset>
             </rulesets>

@@ -67,11 +67,11 @@ import io.fabric8.kubernetes.api.model.VolumeNodeAffinity;
 import io.fabric8.kubernetes.api.model.WeightedPodAffinityTerm;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
-import io.fabric8.kubernetes.api.model.batch.CronJob;
-import io.fabric8.kubernetes.api.model.batch.CronJobSpec;
-import io.fabric8.kubernetes.api.model.batch.Job;
-import io.fabric8.kubernetes.api.model.batch.JobSpec;
-import io.fabric8.kubernetes.api.model.batch.JobTemplateSpec;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
+import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
+import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobSpec;
+import io.fabric8.kubernetes.api.model.batch.v1beta1.JobTemplateSpec;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -1137,7 +1137,8 @@ public class ResourcePairVisitor<T, C> {
    * Visit using a pair visitor.
    */
   public PairVisitor<ServiceSpec, T> visitServiceSpec(PairVisitor<ServiceSpec, T> pairVisitor) {
-    if (Optional.ofNullable(pairVisitor.right.getType()).filter(type -> type.equals("ExternalName"))
+    if (Optional.ofNullable(pairVisitor.right.getType())
+        .filter("ExternalName"::equals)
         .isPresent()) {
       pairVisitor = pairVisitor.visit()
           .visit(ServiceSpec::getClusterIP, ServiceSpec::setClusterIP);

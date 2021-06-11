@@ -11,7 +11,7 @@ import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.batch.Job;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
