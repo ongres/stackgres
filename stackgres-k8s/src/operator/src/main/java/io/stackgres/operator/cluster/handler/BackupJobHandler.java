@@ -8,7 +8,7 @@ package io.stackgres.operator.cluster.handler;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.batch.Job;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSet;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;

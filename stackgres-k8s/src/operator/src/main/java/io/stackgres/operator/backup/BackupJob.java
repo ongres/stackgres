@@ -21,8 +21,8 @@ import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
-import io.fabric8.kubernetes.api.model.batch.Job;
-import io.fabric8.kubernetes.api.model.batch.JobBuilder;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactory;
@@ -78,6 +78,7 @@ public class BackupJob implements StackGresClusterResourceStreamFactory {
         name + StackGresUtil.BACKUP_SUFFIX);
   }
 
+  @Override
   public Stream<HasMetadata> streamResources(StackGresClusterContext context) {
     if (!context.getBackupContext().isPresent()) {
       return Seq.empty();

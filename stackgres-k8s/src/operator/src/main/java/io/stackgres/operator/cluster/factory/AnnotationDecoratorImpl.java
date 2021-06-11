@@ -18,11 +18,11 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
-import io.fabric8.kubernetes.api.model.batch.CronJob;
-import io.fabric8.kubernetes.api.model.batch.CronJobSpec;
-import io.fabric8.kubernetes.api.model.batch.Job;
-import io.fabric8.kubernetes.api.model.batch.JobSpec;
-import io.fabric8.kubernetes.api.model.batch.JobTemplateSpec;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
+import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
+import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobSpec;
+import io.fabric8.kubernetes.api.model.batch.v1beta1.JobTemplateSpec;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
@@ -190,6 +190,7 @@ public class AnnotationDecoratorImpl implements AnnotationDecorator {
           break;
         default:
           resourceAnnotations.putAll(allResourcesAnnotations);
+          break;
       }
       resource.getMetadata().setAnnotations(resourceAnnotations);
 

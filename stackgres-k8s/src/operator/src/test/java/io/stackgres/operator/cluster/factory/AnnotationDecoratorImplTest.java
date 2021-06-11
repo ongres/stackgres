@@ -30,11 +30,11 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
-import io.fabric8.kubernetes.api.model.batch.CronJob;
-import io.fabric8.kubernetes.api.model.batch.CronJobBuilder;
-import io.fabric8.kubernetes.api.model.batch.JobBuilder;
-import io.fabric8.kubernetes.api.model.batch.JobTemplateSpec;
-import io.fabric8.kubernetes.api.model.batch.JobTemplateSpecBuilder;
+import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
+import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
+import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobBuilder;
+import io.fabric8.kubernetes.api.model.batch.v1beta1.JobTemplateSpec;
+import io.fabric8.kubernetes.api.model.batch.v1beta1.JobTemplateSpecBuilder;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -68,7 +68,7 @@ class AnnotationDecoratorImplTest {
             .endMetadata()
             .build(),
         new StatefulSetBuilder()
-            .withNewMetadata().withNamespace("test").withNewName("testStatefulSet").endMetadata()
+            .withNewMetadata().withNamespace("test").withName("testStatefulSet").endMetadata()
             .withNewSpec()
             .withTemplate(
                 new PodTemplateSpecBuilder()

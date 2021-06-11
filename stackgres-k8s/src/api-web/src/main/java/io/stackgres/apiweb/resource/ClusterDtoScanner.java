@@ -76,7 +76,7 @@ public class ClusterDtoScanner implements CustomResourceScanner<ClusterDto> {
       this.clusterPodsMap = clusterPodsMap;
     }
 
-    private ClusterDto transform(StackGresCluster cluster) {
+    ClusterDto transform(StackGresCluster cluster) {
       return clusterTransformer.toResourceWithPods(cluster,
           clusterPodsMap.get(cluster.getMetadata().getUid()));
     }
