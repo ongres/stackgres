@@ -19,7 +19,7 @@ Currently following module types are supported (types are opnionated by the proj
 * `java`: A Maven Java module.
 * `web`: A npm Web module.
 * `native`: A Maven Java module to build native image.
-* `java-image`: A container image module to run a `java` module. Uses the `src/<module path>/src/main/docker/Dockerfile.jvm` to build the image.
+* `jvm-image`: A container image module to run a `java` module using a JVM. Uses the `src/<module path>/src/main/docker/Dockerfile.jvm` to build the image.
 * `native-image`: A container image module to run a `native` module. Uses the `src/<module path>/src/main/docker/Dockerfile.native` to build the image.
 * `image`: A container image to run another module. Uses the `src/<module path>/docker/Dockerfile` to build the image.
 
@@ -32,12 +32,15 @@ The process is performed by the `build.sh` shell script that accept as parameter
 
 | Field | Description |
 |+------|+------------|
+| base_jvm_image | The image used to build modules of type jvm-image |
+| base_native_image | The image used to build modules of type native-image |
 | maven_opts | The value is mapped to `MAVEN_OPTS` environmant variables for `java` and `native` module types |
 | maven_cli_opts | The value is passed as an inline environment variables (not quoted) to the `mvn` command |
 | modules | An object that defines all available modules |
 | modules.<name> | <name> represent the name of a module |
 | modules.<name>.type | The type of the module |
 | modules.<name>.name | The name of a Maven module. If not defined is equals to the module name |
+| modules.<name>.artifact | The artifact id of Maven module. If not defined is equals to the module name |
 | modules.<name>.path | The path of Maven module. If not defined is equals to the module name |
 | modules.<name>.pre_build_commands | An optional list of shell command to execute before the build |
 | modules.<name>.post_build_commands | An optional list of shell command to execute after the build |
