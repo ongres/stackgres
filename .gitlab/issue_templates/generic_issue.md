@@ -9,4 +9,4 @@
 <!-- Acceptance Criteria, Definition of Done, describe the expected output -->
 
 
-/label ~StackGres
+/label ~StackGres ~Triage

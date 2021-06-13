@@ -44,4 +44,4 @@ more generic: `kubectl get deployments -n stackgres stackgres-operator --templat
 <!-- (Paste any relevant logs - please use code blocks (```) to format console output,
 logs, and code as it's very hard to read otherwise.) -->
 
-/label ~Bug ~StackGres
+/label ~Bug ~StackGres ~Triage

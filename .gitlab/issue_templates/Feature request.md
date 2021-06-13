@@ -35,4 +35,4 @@ and verify the issue you're about to submit isn't a duplicate.
 
 
 
-/label ~"Feature Request" ~StackGres
+/label ~"Feature Request" ~StackGres ~Triage
