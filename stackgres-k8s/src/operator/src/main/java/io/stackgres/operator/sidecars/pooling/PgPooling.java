@@ -30,6 +30,7 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
@@ -65,6 +66,13 @@ public class PgPooling
     super();
     this.labelFactory = labelFactory;
     this.poolingConfigScanner = poolingConfigScanner;
+  }
+
+  @Override
+  public Map<String, String> getComponentVersions(StackGresClusterContext context) {
+    return ImmutableMap.of(
+        StackGresContext.PGBOUNCER_VERSION_KEY,
+        StackGresComponent.PGBOUNCER.findLatestVersion());
   }
 
   public static String configName(StackGresClusterContext clusterContext) {

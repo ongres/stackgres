@@ -38,6 +38,7 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -67,6 +68,13 @@ public class Fluentd implements ContainerResourceFactory<Void,
       .collect(Collectors.joining(","));
 
   private LabelFactoryDelegator factoryDelegator;
+
+  @Override
+  public Map<String, String> getComponentVersions(StackGresDistributedLogsContext context) {
+    return ImmutableMap.of(
+        StackGresContext.FLUENTD_VERSION_KEY,
+        StackGresComponent.FLUENTD.findLatestVersion());
+  }
 
   // list of log_patroni table fields
   @Override

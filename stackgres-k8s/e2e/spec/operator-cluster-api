@@ -28,6 +28,8 @@ e2e_test() {
 
   run_test "Check that the stats endpoint are returning the master stats" test_cluster_stats_are_loaded
 
+  run_test "Check that the component versions are annotated" test_cluster_component_versions_are_annotated
+
   run_test "Check that the number of pods match with the master and replicas" test_cluster_pod_count
 
   run_test "Check that a cluster was removed after its deletion in the API" check_cluster_removed
@@ -119,6 +121,67 @@ test_cluster_stats_are_loaded() {
     echo "Cluster $CLUSTER_NAME stats was not returned by the api"
     return 1
   fi
+}
+
+test_cluster_component_versions_are_annotated() {
+  local POSTGRESQL_VERSION
+  local PATRONI_VERSION
+  local ENVOY_VERSION
+  local PGBOUNCER_VERSION
+  local PROMETHEUS_POSTGRES_EXPORTER_VERSION
+  POSTGRESQL_VERSION="$(get_component_versions "$STACKGRES_VERSION" "postgresql" | tail -n 1)"
+  POSTGRESQL_VERSION="${POSTGRESQL_VERSION%-build-*}"
+  PATRONI_VERSION="$(get_component_versions "$STACKGRES_VERSION" "patroni" | tail -n 1)"
+  PATRONI_VERSION="${PATRONI_VERSION%-build-*}"
+  ENVOY_VERSION="$(get_component_versions "$STACKGRES_VERSION" "envoy" | tail -n 1)"
+  ENVOY_VERSION="${ENVOY_VERSION%-build-*}"
+  PGBOUNCER_VERSION="$(get_component_versions "$STACKGRES_VERSION" "pgbouncer" | tail -n 1)"
+  PGBOUNCER_VERSION="${PGBOUNCER_VERSION%-build-*}"
+  PROMETHEUS_POSTGRES_EXPORTER_VERSION="$(get_component_versions "$STACKGRES_VERSION" "prometheus-postgres-exporter" | tail -n 1)"
+  PROMETHEUS_POSTGRES_EXPORTER_VERSION="${PROMETHEUS_POSTGRES_EXPORTER_VERSION%-build-*}"
+
+  for POD in "$CLUSTER_NAME-0" "$CLUSTER_NAME-1"
+  do
+    if [ "$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" -o jsonpath="{.metadata.annotations['stackgres\.io/postgresql-version']}")" = "$POSTGRESQL_VERSION" ]
+    then
+      echo "SUCCESS. Version of component 'postgresql' is $POSTGRESQL_VERSION for por $POD"
+    else
+      echo "FALIURE. Version of component 'postgresql' is not $POSTGRESQL_VERSION for por $POD"
+      return 1
+    fi
+
+    if [ "$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" -o jsonpath="{.metadata.annotations['stackgres\.io/patroni-version']}")" = "$PATRONI_VERSION" ]
+    then
+      echo "SUCCESS. Version of component 'patroni' is $PATRONI_VERSION for por $POD"
+    else
+      echo "FALIURE. Version of component 'patroni' is not $PATRONI_VERSION for por $POD"
+      return 1
+    fi
+
+    if [ "$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" -o jsonpath="{.metadata.annotations['stackgres\.io/envoy-version']}")" = "$ENVOY_VERSION" ]
+    then
+      echo "SUCCESS. Version of component 'envoy' is $ENVOY_VERSION for por $POD"
+    else
+      echo "FALIURE. Version of component 'envoy' is not $ENVOY_VERSION for por $POD"
+      return 1
+    fi
+
+    if [ "$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" -o jsonpath="{.metadata.annotations['stackgres\.io/pgbouncer-version']}")" = "$PGBOUNCER_VERSION" ]
+    then
+      echo "SUCCESS. Version of component 'pgbouncer' is $PGBOUNCER_VERSION for por $POD"
+    else
+      echo "FALIURE. Version of component 'pgbouncer' is not $PGBOUNCER_VERSION for por $POD"
+      return 1
+    fi
+
+    if [ "$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" -o jsonpath="{.metadata.annotations['stackgres\.io/prometheus-postgres-exporter-version']}")" = "$PROMETHEUS_POSTGRES_EXPORTER_VERSION" ]
+    then
+      echo "SUCCESS. Version of component 'prometheus-postgres-exporter' is $PROMETHEUS_POSTGRES_EXPORTER_VERSION for por $POD"
+    else
+      echo "FALIURE. Version of component 'prometheus-postgres-exporter' is not $PROMETHEUS_POSTGRES_EXPORTER_VERSION for por $POD"
+      return 1
+    fi
+  done
 }
 
 test_cluster_pod_count() {

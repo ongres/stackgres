@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.distributedlogs.controller;
 
+import java.util.Map;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -22,6 +23,7 @@ import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresController;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
@@ -39,6 +41,13 @@ public class DistributedLogsController implements ContainerResourceFactory<Void,
   public DistributedLogsController(
       ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables) {
     this.clusterStatefulSetEnvironmentVariables = clusterStatefulSetEnvironmentVariables;
+  }
+
+  @Override
+  public Map<String, String> getComponentVersions(StackGresDistributedLogsContext context) {
+    return ImmutableMap.of(
+        StackGresContext.DISTRIBUTEDLOGS_CONTROLLER_VERSION_KEY,
+        StackGresController.DISTRIBUTEDLOGS_CONTROLLER.getVersion());
   }
 
   @Override

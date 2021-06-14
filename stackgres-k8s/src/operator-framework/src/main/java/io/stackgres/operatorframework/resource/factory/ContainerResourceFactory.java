@@ -5,6 +5,7 @@
 
 package io.stackgres.operatorframework.resource.factory;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -16,6 +17,8 @@ import org.jooq.lambda.Seq;
 
 public interface ContainerResourceFactory<T, C>
     extends SubResourceStreamFactory<HasMetadata, C> {
+
+  Map<String, String> getComponentVersions(C context);
 
   Container getContainer(C context);
 

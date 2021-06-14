@@ -36,6 +36,7 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
@@ -66,6 +67,13 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
       "io.stackgres.prometheus-postgres-exporter");
 
   private LabelFactory<StackGresCluster> labelFactory;
+
+  @Override
+  public Map<String, String> getComponentVersions(StackGresClusterContext context) {
+    return ImmutableMap.of(
+        StackGresContext.PROMETHEUS_POSTGRES_EXPORTER_VERSION_KEY,
+        StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER.findLatestVersion());
+  }
 
   public static String serviceName(StackGresClusterContext clusterContext) {
     String name = clusterContext.getCluster().getMetadata().getName();

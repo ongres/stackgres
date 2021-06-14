@@ -7,7 +7,11 @@
       "metadata": {
         "annotations": {
           "status": "{\"conn_url\":\"postgres://10.244.3.23:5433/postgres\",\"api_url\":\"http://10.244.3.23:8008/patroni\",\"timeline\":1,\"state\":\"running\",\"version\":\"1.6.4\",\"role\":\"master\",\"xlog_location\":50331976}",
-          "customAnnotation": "customValue"
+          "customAnnotation": "customValue",
+          "stackgres.io/postgresql-version": "12.2",
+          "stackgres.io/patroni-version": "1.6.4",
+          "stackgres.io/envoy-version": "1.13.1",
+          "stackgres.io/prometheus-postgres-exporter-version": "0.8"
         },
         "creationTimestamp": "2020-03-13T12:32:51Z",
         "generateName": "stackgres-",
@@ -739,6 +743,12 @@
       "apiVersion": "v1",
       "kind": "Pod",
       "metadata": {
+        "annotations": {
+          "stackgres.io/postgresql-version": "12.2",
+          "stackgres.io/patroni-version": "1.6.4",
+          "stackgres.io/envoy-version": "1.13.1",
+          "stackgres.io/prometheus-postgres-exporter-version": "0.8"
+        },
         "creationTimestamp": "2020-03-13T12:33:28Z",
         "generateName": "stackgres-",
         "labels": {

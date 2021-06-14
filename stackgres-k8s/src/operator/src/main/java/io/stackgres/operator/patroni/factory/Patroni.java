@@ -8,6 +8,7 @@ package io.stackgres.operator.patroni.factory;
 import static io.stackgres.operator.patroni.factory.PatroniConfigMap.PATRONI_RESTAPI_PORT_NAME;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -42,6 +43,7 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
@@ -96,6 +98,16 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
     this.clusterStatefulSetEnvironmentVariables = clusterStatefulSetEnvironmentVariables;
     this.patroniEnvironmentVariables = patroniEnvironmentVariables;
     this.factoryDelegator = factoryDelegator;
+  }
+
+  @Override
+  public Map<String, String> getComponentVersions(StackGresClusterContext context) {
+    return ImmutableMap.of(
+        StackGresContext.POSTGRES_VERSION_KEY,
+        StackGresComponent.POSTGRESQL.findVersion(
+            context.getCluster().getSpec().getPostgresVersion()),
+        StackGresContext.PATRONI_VERSION_KEY,
+        StackGresComponent.PATRONI.findLatestVersion());
   }
 
   public String postInitName(StackGresClusterContext clusterContext) {

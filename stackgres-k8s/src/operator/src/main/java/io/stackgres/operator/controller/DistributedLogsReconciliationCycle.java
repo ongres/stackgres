@@ -6,6 +6,7 @@
 package io.stackgres.operator.controller;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -270,6 +271,12 @@ public class DistributedLogsReconciliationCycle
         ContainerResourceFactory<T, StackGresDistributedLogsContext>
             containerResourceFactory) {
       this.containerResourceFactory = containerResourceFactory;
+    }
+
+    @Override
+    public Map<String, String> getComponentVersions(StackGresClusterContext context) {
+      return this.containerResourceFactory.getComponentVersions(
+          (StackGresDistributedLogsContext) context);
     }
 
     @Override

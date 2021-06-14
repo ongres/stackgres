@@ -41,6 +41,17 @@ public interface StackGresContext {
   String RECONCILIATION_PAUSE_KEY = STACKGRES_KEY_PREFIX + "reconciliation-pause";
   String RECONCILIATION_PAUSE_UNTIL_RESTART_KEY =
       STACKGRES_KEY_PREFIX + "reconciliation-pause-until-restart";
+  String CLUSTER_CONTROLLER_VERSION_KEY = STACKGRES_KEY_PREFIX + "cluster-controller-version";
+  String DISTRIBUTEDLOGS_CONTROLLER_VERSION_KEY =
+      STACKGRES_KEY_PREFIX + "distributedlogs-controller-version";
+  String POSTGRES_VERSION_KEY = STACKGRES_KEY_PREFIX + "postgresql-version";
+  String PATRONI_VERSION_KEY = STACKGRES_KEY_PREFIX + "patroni-version";
+  String ENVOY_VERSION_KEY = STACKGRES_KEY_PREFIX + "envoy-version";
+  String PGBOUNCER_VERSION_KEY = STACKGRES_KEY_PREFIX + "pgbouncer-version";
+  String PROMETHEUS_POSTGRES_EXPORTER_VERSION_KEY =
+      STACKGRES_KEY_PREFIX + "prometheus-postgres-exporter-version";
+  String FLUENTBIT_VERSION_KEY = STACKGRES_KEY_PREFIX + "fluentbit-version";
+  String FLUENTD_VERSION_KEY = STACKGRES_KEY_PREFIX + "fluentd-version";
 
   String AUTH_KEY = "api.stackgres.io/auth";
   String AUTH_USER_VALUE = "user";

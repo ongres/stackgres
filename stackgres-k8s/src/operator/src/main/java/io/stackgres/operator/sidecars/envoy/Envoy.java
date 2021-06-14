@@ -36,6 +36,7 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -86,6 +87,13 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
   public Envoy(YamlMapperProvider yamlMapperProvider, LabelFactoryDelegator factoryDelegator) {
     this.yamlMapperProvider = yamlMapperProvider;
     this.factoryDelegator = factoryDelegator;
+  }
+
+  @Override
+  public Map<String, String> getComponentVersions(StackGresClusterContext context) {
+    return ImmutableMap.of(
+        StackGresContext.ENVOY_VERSION_KEY,
+        StackGresComponent.ENVOY.findLatestVersion());
   }
 
   public static String configName(StackGresClusterContext clusterContext) {
