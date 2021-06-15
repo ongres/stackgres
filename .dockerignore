@@ -1,0 +1,4 @@
+*
+!stackgres-k8s/src/distributedlogs-controller/target/stackgres-distributedlogs-controller-runner.jar
+!stackgres-k8s/src/distributedlogs-controller/src/main/docker/stackgres-distributedlogs-controller.jvm.sh
+!stackgres-k8s/src/distributedlogs-controller/target/lib
