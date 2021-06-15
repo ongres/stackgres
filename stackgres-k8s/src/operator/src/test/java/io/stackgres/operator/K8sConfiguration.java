@@ -12,7 +12,7 @@ import com.ongres.junit.docker.Port;
 import com.ongres.junit.docker.WaitFor;
 
 @DockerContainer(
-    image = "stackgres/it:14.0",
+    image = "registry.gitlab.com/ongresinc/stackgres/ci:1.3",
     arguments = { "/bin/sh", "-c",
         "set -e;"
             + "echo 'K8s cluster started';"

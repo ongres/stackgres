@@ -4,12 +4,6 @@
 
 set -e
 
-mkdir -p stackgres-k8s/ci/build/target
-
-UID="$(id -u)"
-
-yq . stackgres-k8s/ci/build/config.yml > stackgres-k8s/ci/build/target/config.json
-
 if [ -n "$1" ]
 then
   MODULES="$*"
@@ -18,6 +12,13 @@ else
 fi
 
 generate_image_hashes
+
+retrieve_image_digests
+
+if [ "$MODULES" = "hashes" ]
+then
+  exit
+fi
 
 for MODULE in $MODULES
 do

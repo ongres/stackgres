@@ -1,4 +1,7 @@
-*
-!stackgres-k8s/src/distributedlogs-controller/target/stackgres-distributedlogs-controller-runner.jar
-!stackgres-k8s/src/distributedlogs-controller/src/main/docker/stackgres-distributedlogs-controller.jvm.sh
-!stackgres-k8s/src/distributedlogs-controller/target/lib
+.git
+.idea
+**/target/
+!stackgres-k8s/ci/build/target
+!**/target/*-runner
+!**/target/*-runner.jar
+!**/target/lib/*

@@ -1,5 +1,5 @@
 shell unit tests:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$IT_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: test
   tags:
     - stackgres-runner
@@ -30,7 +30,7 @@ shell unit tests:
         - stackgres-k8s/src/operator/target/shell/shell-unit-tests-junit-report-*.xml
 
 swagger validations:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$IT_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: test
   tags:
     - stackgres-runner
@@ -49,13 +49,9 @@ swagger validations:
 
 .e2e tests:
   stage: test
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$IT_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   tags:
     - stackgres-runner
-  dependencies:
-    - build
-    - build helm packages
-    - build helm templates
   variables:
     IMAGE_TAG_SUFFIX: ""
     E2E_SUFFIX: ""
@@ -88,6 +84,7 @@ swagger validations:
     reports:
       junit:
         - stackgres-k8s/e2e/target/e2e-tests-junit-report.xml
+        - stackgres-k8s/ci/test/target/already-passed-e2e-tests-junit-report.xml
 
 .e2e tests jvm:
   extends: .e2e tests

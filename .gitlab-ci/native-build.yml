@@ -1,6 +1,6 @@
 
 .build native executable:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: native build
   tags:
     - stackgres-runner
@@ -14,7 +14,14 @@
     - |
       flock "/tmp/stackgres-build$NATIVE_IMAGE_EXTRA_PREFIX-native-executable" \
         timeout -s KILL 3600 \
-        sh stackgres-k8s/ci/build/build-gitlab.sh "$MODULE-native"
+        sh stackgres-k8s/ci/build/build-gitlab.sh build \
+          --copy .m2/repository \
+          --copy stackgres-k8s/src/.mvn \
+          "$MODULE-native"
+  cache:
+    paths:
+      - .m2/repository
+      - stackgres-k8s/src/.mvn
   retry:
     max: 2
     when: [ unknown_failure, api_failure, stuck_or_timeout_failure, runner_system_failure, runner_unsupported,

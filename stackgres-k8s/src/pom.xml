@@ -120,7 +120,7 @@
     <spotbugs.excludeFilterFile>${checks.location}/spotbugs-exclude.xml</spotbugs.excludeFilterFile>
     <pmd.ruleset.file>${checks.location}/pmd-ruleset.xml</pmd.ruleset.file>
 
-    <it.image>stackgres/it:14.0</it.image>
+    <ci.image>registry.gitlab.com/ongresinc/stackgres/ci:1.3</ci.image>
     <docker.image>docker:20.10.6</docker.image>
   </properties>
 

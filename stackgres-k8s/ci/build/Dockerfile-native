@@ -2,18 +2,18 @@ ARG SOURCE_IMAGE_NAME
 
 FROM "$SOURCE_IMAGE_NAME" as source
   USER root
-  RUN mkdir -p /project/stackgres-k8s/src/
+  RUN mkdir -p /project/
   ARG UID
-  RUN chown "$UID" /project /project/stackgres-k8s /project/stackgres-k8s/src
+  RUN chown "$UID:$UID" /project
   USER $UID
 
 FROM docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11 as build
   USER root
-  RUN mkdir -p /project/stackgres-k8s/src/
+  RUN mkdir -p /project/
   ARG UID
-  RUN chown "$UID" /project /project/stackgres-k8s /project/stackgres-k8s/src
+  RUN chown "$UID:$UID" /project
   USER $UID
-  COPY --chown="$UID" . /project/stackgres-k8s/src/.
+  COPY --chown="$UID:$UID" . /project/.
   WORKDIR /project
   COPY --from=source /project /project-copy
   RUN cp -r /project-copy/. /project
@@ -22,12 +22,13 @@ FROM docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11 as build
   ARG MAVEN_CLI_OPTS
   ARG PRE_BUILD_COMMANDS
   USER root
-  RUN sh -ec "$PRE_BUILD_COMMANDS"
+  ARG SHELL_XTRACE
+  RUN sh -ec $SHELL_XTRACE "$PRE_BUILD_COMMANDS"
   USER $UID
-  RUN mvn $MAVEN_CLI_OPTS package -DskipTests -P native -pl "$MODULE_PATH"
+  RUN mvn $MAVEN_CLI_OPTS package -DskipTests -P native -f "$MODULE_PATH/pom.xml" -N
   ARG POST_BUILD_COMMANDS
   USER root
-  RUN sh -ec "$POST_BUILD_COMMANDS"
+  RUN sh -ec $SHELL_XTRACE "$POST_BUILD_COMMANDS"
   USER $UID
   ARG IMAGE_NAME
   LABEL build-of=$IMAGE_NAME
@@ -35,5 +36,5 @@ FROM docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11 as build
 FROM "$SOURCE_IMAGE_NAME" as package
   ARG MODULE_PATH
   ARG MODULE_NAME
-  COPY --from=build /project/stackgres-k8s/src/$MODULE_PATH/target/stackgres-$MODULE_NAME-runner /project/stackgres-k8s/src/$MODULE_PATH/target/.
+  COPY --from=build /project/$MODULE_PATH/target/stackgres-$MODULE_NAME-runner /project/$MODULE_PATH/target/.
   WORKDIR /project

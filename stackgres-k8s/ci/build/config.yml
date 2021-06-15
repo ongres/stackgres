@@ -4,107 +4,158 @@ maven_opts: |
   -Djava.awt.headless=true
   -XX:+UseParallelGC
 maven_cli_opts: |
-  -f stackgres-k8s/src/pom.xml
   --batch-mode
   --errors
   --fail-at-end
   --show-version
-  -Dmaven.repo.local=stackgres-k8s/src/.m2/repository
+  -Dmaven.repo.local=.m2/repository
   -DinstallAtEnd=true
   -DdeployAtEnd=true
   -Dsurefire.useFile=false
   -Dsurefire.useFile=false
   -DtrimStackTrace=false
+base_image: alpine:3.13.5
 base_jvm_image: registry.access.redhat.com/ubi8/openjdk-11:1.3-15
 base_native_image: registry.access.redhat.com/ubi8-minimal:8.3-298.1618432845
 modules:
   stackgres-parent:
     type: java
     artifact: stackgres-parent
-    path: .
+    path: stackgres-k8s/src/.
+    sources:
+      - stackgres-k8s/src/pom.xml
+      - stackgres-k8s/src/checks
   operator-framework:
     type: java
-    artifact: stackgres-operator-framework
+    path: stackgres-k8s/src/operator-framework
   test-util:
     type: java
-    artifact: stackgres-test-util
+    path: stackgres-k8s/src/test-util
   common:
     type: java
-    artifact: stackgres-common
+    path: stackgres-k8s/src/common
   operator:
     type: java
-    artifact: stackgres-operator
+    path: stackgres-k8s/src/operator
   restapi:
     type: java
-    artifact: stackgres-restapi
-    path: api-web
+    path: stackgres-k8s/src/api-web
     post_build_commands:
       - 'microdnf install python3-pip jq'
       - 'pip3 install yamllint yq'
-      - 'sh stackgres-k8s/src/api-web/src/main/swagger/build.sh'
+      - 'sh $SHELL_XTRACE stackgres-k8s/src/api-web/src/main/swagger/build.sh'
   jobs:
     type: java
-    artifact: stackgres-jobs
+    path: stackgres-k8s/src/jobs
   cluster-controller:
     type: java
-    artifact: stackgres-cluster-controller
+    path: stackgres-k8s/src/cluster-controller
   distributedlogs-controller:
     type: java
-    artifact: stackgres-distributedlogs-controller
+    path: stackgres-k8s/src/distributedlogs-controller
   admin-ui:
     type: web
+    path: stackgres-k8s/src/admin-ui
+    sources:
+      - "stackgres-k8s/src/admin-ui/babel.config.js"
+      - "stackgres-k8s/src/admin-ui/build.sh"
+      - "stackgres-k8s/src/admin-ui/npmw"
+      - "stackgres-k8s/src/admin-ui/package.json"
+      - "stackgres-k8s/src/admin-ui/vue.config.js"
+      - "stackgres-k8s/src/admin-ui/public"
+      - "stackgres-k8s/src/admin-ui/src"
+    build_commands:
+      - cd stackgres-k8s/src/admin-ui
+      - export HOME=/project
+      - npm install
+      - npm run build
+      - sh $SHELL_XTRACE build.sh
   operator-jvm-image:
     type: jvm-image
     name: operator
+    path: stackgres-k8s/src/operator
   restapi-jvm-image:
     type: jvm-image
     name: restapi
-    path: api-web
+    path: stackgres-k8s/src/api-web
   jobs-jvm-image:
     type: jvm-image
     name: jobs
+    path: stackgres-k8s/src/jobs
   cluster-controller-jvm-image:
     type: jvm-image
     name: cluster-controller
+    path: stackgres-k8s/src/cluster-controller
   distributedlogs-controller-jvm-image:
     type: jvm-image
     name: distributedlogs-controller
+    path: stackgres-k8s/src/distributedlogs-controller
   admin-ui-image:
     type: image
-    path: admin-ui
+    path: stackgres-k8s/src/admin-ui
     base_image: registry.access.redhat.com/ubi8/nginx-118:1-18.1614609200
   operator-native:
     type: native
     name: operator
+    path: stackgres-k8s/src/operator
   restapi-native:
     type: native
     name: restapi
-    path: api-web
+    path: stackgres-k8s/src/api-web
   jobs-native:
     type: native
     name: jobs
+    path: stackgres-k8s/src/jobs
   cluster-controller-native:
     type: native
     name: cluster-controller
+    path: stackgres-k8s/src/cluster-controller
   distributedlogs-controller-native:
     type: native
     name: distributedlogs-controller
+    path: stackgres-k8s/src/distributedlogs-controller
   operator-native-image:
     type: native-image
     name: operator
+    path: stackgres-k8s/src/operator
   restapi-native-image:
     type: native-image
     name: restapi
-    path: api-web
+    path: stackgres-k8s/src/api-web
   jobs-native-image:
     type: native-image
     name: jobs
+    path: stackgres-k8s/src/jobs
   cluster-controller-native-image:
     type: native-image
     name: cluster-controller
+    path: stackgres-k8s/src/cluster-controller
   distributedlogs-controller-native-image:
     type: native-image
     name: distributedlogs-controller
+    path: stackgres-k8s/src/distributedlogs-controller
+  helm-packages:
+    type: resource
+    sources:
+      - stackgres-k8s/install/helm/stackgres-operator
+      - stackgres-k8s/install/helm/stackgres-cluster
+      - stackgres-k8s/install/helm/build-helm-packages.sh
+    build_image: dtzar/helm-kubectl:3.3.1
+    build_commands:
+      - export HOME=/project
+      - sh $SHELL_XTRACE stackgres-k8s/install/helm/build-helm-packages.sh
+    target: stackgres-k8s/install/helm/target/packages
+  helm-templates:
+    type: resource
+    sources:
+      - stackgres-k8s/install/helm/stackgres-operator
+      - stackgres-k8s/install/helm/stackgres-cluster
+      - stackgres-k8s/install/helm/build-helm-templates.sh
+    build_image: dtzar/helm-kubectl:3.3.1
+    build_commands:
+      - export HOME=/project
+      - sh $SHELL_XTRACE stackgres-k8s/install/helm/build-helm-templates.sh
+    target: stackgres-k8s/install/helm/target/templates
 stages:
   - stackgres-parent: null
   - operator-framework: stackgres-parent
@@ -132,3 +183,5 @@ stages:
   - jobs-native-image: jobs-native
   - cluster-controller-native-image: cluster-controller-native
   - distributedlogs-controller-native-image: distributedlogs-controller-native
+  - helm-packages: null
+  - helm-templates: null

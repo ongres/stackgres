@@ -1,23 +1,24 @@
 build:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: build 1
   tags:
     - stackgres-runner
     - stackgres-maven-runner
   script:
     - |
-      sh stackgres-k8s/ci/build/build-gitlab.sh \
-        stackgres-parent \
-        operator-framework \
-        test-util \
-        common
+      sh stackgres-k8s/ci/build/build-gitlab.sh build \
+        --copy stackgres-k8s/src/.mvn \
+        --copy .m2/repository \
+        --extract operator-framework:'stackgres-k8s/src/operator-framework/target/surefire-reports/TEST-*.xml' \
+        --extract common:'stackgres-k8s/src/common/target/surefire-reports/TEST-*.xml' \
+        stackgres-parent operator-framework test-util common
   retry:
     max: 2
     when: [ unknown_failure, api_failure, stuck_or_timeout_failure, runner_system_failure, runner_unsupported,
      stale_schedule, job_execution_timeout, archived_failure, unmet_prerequisites, scheduler_failure, data_integrity_failure ] 
   cache:
     paths:
-      - stackgres-k8s/src/.m2/repository
+      - .m2/repository
       - stackgres-k8s/src/.mvn
   artifacts:
     expire_in: 1 week
@@ -28,13 +29,15 @@ build:
         - stackgres-k8s/src/*/target/surefire-reports/TEST-*.xml
 
 build operator:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: build 2
   tags:
     - stackgres-runner
   script:
     - |
-      sh stackgres-k8s/ci/build/build-gitlab.sh \
+      sh stackgres-k8s/ci/build/build-gitlab.sh build \
+        --copy .m2/repository \
+        --extract operator:'stackgres-k8s/src/operator/target/surefire-reports/TEST-*.xml' \
         operator
   retry:
     max: 2
@@ -42,17 +45,20 @@ build operator:
      stale_schedule, job_execution_timeout, archived_failure, unmet_prerequisites, scheduler_failure, data_integrity_failure ] 
   cache:
     paths:
-      - stackgres-k8s/src/.m2/repository
+      - .m2/repository
       - stackgres-k8s/src/.mvn
 
 build restapi:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: build 2
   tags:
     - stackgres-runner
   script:
     - |
-      sh stackgres-k8s/ci/build/build-gitlab.sh \
+      sh stackgres-k8s/ci/build/build-gitlab.sh build \
+        --copy .m2/repository \
+        --extract restapi:'stackgres-k8s/src/operator/target/surefire-reports/TEST-*.xml' \
+        --extract restapi:'stackgres-k8s/src/api-web/target/swagger*' \
         restapi
   retry:
     max: 2
@@ -60,7 +66,7 @@ build restapi:
      stale_schedule, job_execution_timeout, archived_failure, unmet_prerequisites, scheduler_failure, data_integrity_failure ] 
   cache:
     paths:
-      - stackgres-k8s/src/.m2/repository
+      - .m2/repository
       - stackgres-k8s/src/.mvn
   artifacts:
     expire_in: 1 week
@@ -69,13 +75,15 @@ build restapi:
       - stackgres-k8s/src/api-web/target/swagger*
 
 build jobs:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: build 2
   tags:
     - stackgres-runner
   script:
     - |
-      sh stackgres-k8s/ci/build/build-gitlab.sh \
+      sh stackgres-k8s/ci/build/build-gitlab.sh build \
+        --copy .m2/repository \
+        --extract jobs:'stackgres-k8s/src/jobs/target/surefire-reports/TEST-*.xml' \
         jobs
   retry:
     max: 2
@@ -83,17 +91,19 @@ build jobs:
      stale_schedule, job_execution_timeout, archived_failure, unmet_prerequisites, scheduler_failure, data_integrity_failure ] 
   cache:
     paths:
-      - stackgres-k8s/src/.m2/repository
+      - .m2/repository
       - stackgres-k8s/src/.mvn
 
 build cluster-controller:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: build 2
   tags:
     - stackgres-runner
   script:
     - |
-      sh stackgres-k8s/ci/build/build-gitlab.sh \
+      sh stackgres-k8s/ci/build/build-gitlab.sh build \
+        --copy .m2/repository \
+        --extract cluster-controller:'stackgres-k8s/src/cluster-controller/target/surefire-reports/TEST-*.xml' \
         cluster-controller
   retry:
     max: 2
@@ -101,17 +111,19 @@ build cluster-controller:
      stale_schedule, job_execution_timeout, archived_failure, unmet_prerequisites, scheduler_failure, data_integrity_failure ] 
   cache:
     paths:
-      - stackgres-k8s/src/.m2/repository
+      - .m2/repository
       - stackgres-k8s/src/.mvn
 
 build distributedlogs-controller:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: build 2
   tags:
     - stackgres-runner
   script:
     - |
-      sh stackgres-k8s/ci/build/build-gitlab.sh \
+      sh stackgres-k8s/ci/build/build-gitlab.sh build \
+        --copy .m2/repository \
+        --extract distributedlogs-controller:'stackgres-k8s/src/distributedlogs-controller/target/surefire-reports/TEST-*.xml' \
         distributedlogs-controller
   retry:
     max: 2
@@ -119,16 +131,19 @@ build distributedlogs-controller:
      stale_schedule, job_execution_timeout, archived_failure, unmet_prerequisites, scheduler_failure, data_integrity_failure ] 
   cache:
     paths:
-      - stackgres-k8s/src/.m2/repository
+      - .m2/repository
       - stackgres-k8s/src/.mvn
 
 build ui:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: build 3
   tags:
     - stackgres-runner
   script:
-    - sh stackgres-k8s/ci/build/build-gitlab.sh admin-ui
+    - |
+      sh stackgres-k8s/ci/build/build-gitlab.sh build \
+        --copy stackgres-k8s/src/admin-ui/node_modules \
+        admin-ui
   retry: 2
   cache:
     paths:
@@ -159,9 +174,14 @@ build documentation:
       DOCUMENTATION_BASE_URL="https://ongresinc.gitlab.io/stackgres"
       if [ "${CI_COMMIT_REF_NAME%%-*}" != "main" ] && [ "${CI_COMMIT_REF_NAME%%-*}" != "current" ]
       then
-        DOCUMENTATION_EXTRA_PATH="$CI_COMMIT_REF_NAME/"
+        DOCUMENTATION_BASE_URL="https://stackgres.io/doc"
+      else
+        DOCUMENTATION_BASE_URL="https://ongresinc.gitlab.io/stackgres"
+        if [ "${CI_COMMIT_REF_NAME%%-*}" != "development" ] && [ "${CI_COMMIT_REF_NAME%%-*}" != "master" ]
+        then
+          DOCUMENTATION_EXTRA_PATH="$CI_COMMIT_REF_NAME/"
+        fi
       fi
-    fi
   - mkdir -p "doc/public/$DOCUMENTATION_EXTRA_PATH$STACKGRES_VERSION"
   - hugo -v --source doc --destination "$(pwd)/doc/public/$DOCUMENTATION_EXTRA_PATH$STACKGRES_DOC_VERSION" --baseURL="$DOCUMENTATION_BASE_URL/$DOCUMENTATION_EXTRA_PATH$STACKGRES_DOC_VERSION"
   - |
@@ -179,37 +199,19 @@ build documentation:
     - doc/public
 
 build helm packages:
-  image: dtzar/helm-kubectl:3.3.1
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: build 3
+  tags:
+    - stackgres-runner
   script:
-  - sh -x stackgres-k8s/install/helm/build-helm-packages.sh
-  - |
-    if [[ ! -z "$CI_COMMIT_TAG" && ! "$CI_COMMIT_TAG" =~ ^latest-.*$ ]]
-    then
-      cp -a "stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres"/* stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/latest
-    fi
-  - find stackgres-k8s/install/helm/target/public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
+    - sh stackgres-k8s/ci/build/build-gitlab.sh build helm-packages
   retry: 2
-  artifacts:
-    expire_in: 1 week
-    when: always
-    paths:
-    - stackgres-k8s/install/helm/target
 
 build helm templates:
-  image: dtzar/helm-kubectl:3.3.1
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: build 3
+  tags:
+    - stackgres-runner
   script:
-  - sh -x stackgres-k8s/install/helm/build-helm-templates.sh
-  - |
-    if [[ ! -z "$CI_COMMIT_TAG" && ! "$CI_COMMIT_TAG" =~ ^latest-.*$ ]]
-    then
-      cp -a "stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres"/* stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/latest
-    fi
-  - find stackgres-k8s/install/helm/target/public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
+    - sh stackgres-k8s/ci/build/build-gitlab.sh build helm-templates
   retry: 2
-  artifacts:
-    expire_in: 1 week
-    when: always
-    paths:
-    - stackgres-k8s/install/helm/target

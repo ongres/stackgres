@@ -1,6 +1,6 @@
 
 build operator jvm image:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: image build
   tags:
     - stackgres-runner
@@ -11,14 +11,17 @@ build operator jvm image:
     - 'export TARGET_OPERATOR_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$OPERATOR_IMAGE_NAME"'
     - |
       flock /tmp/stackgres-operator-build-jvm-image \
-        sh stackgres-k8s/ci/build/build-gitlab.sh operator-jvm-image
+        sh stackgres-k8s/ci/build/build-gitlab.sh build \
+          --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
+          operator-jvm-image
     - HASH_OPERATOR_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.operator-jvm-image)"
+    - docker pull "$HASH_OPERATOR_IMAGE_NAME"
     - docker tag "$HASH_OPERATOR_IMAGE_NAME" "$TARGET_OPERATOR_IMAGE_NAME"
     - docker push "$TARGET_OPERATOR_IMAGE_NAME"
   retry: 2
 
 build restapi jvm image:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: image build
   tags:
     - stackgres-runner
@@ -29,14 +32,17 @@ build restapi jvm image:
     - 'export TARGET_RESTAPI_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$RESTAPI_IMAGE_NAME"'
     - |
       flock /tmp/stackgres-restapi-build-jvm-image \
-        sh stackgres-k8s/ci/build/build-gitlab.sh restapi-jvm-image
+        sh stackgres-k8s/ci/build/build-gitlab.sh build \
+          --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
+          restapi-jvm-image
     - HASH_RESTAPI_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.restapi-jvm-image)"
+    - docker pull "$HASH_RESTAPI_IMAGE_NAME"
     - docker tag "$HASH_RESTAPI_IMAGE_NAME" "$TARGET_RESTAPI_IMAGE_NAME"
     - docker push "$TARGET_RESTAPI_IMAGE_NAME"
   retry: 2
 
 build jobs jvm image:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: image build
   tags:
     - stackgres-runner
@@ -47,14 +53,17 @@ build jobs jvm image:
     - 'export TARGET_JOBS_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$JOBS_IMAGE_NAME"'
     - |
       flock /tmp/stackgres-jobs-build-jvm-image \
-        sh stackgres-k8s/ci/build/build-gitlab.sh jobs-jvm-image
+        sh stackgres-k8s/ci/build/build-gitlab.sh build \
+          --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
+          jobs-jvm-image
     - HASH_JOBS_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.jobs-jvm-image)"
+    - docker pull "$HASH_JOBS_IMAGE_NAME"
     - docker tag "$HASH_JOBS_IMAGE_NAME" "$TARGET_JOBS_IMAGE_NAME"
     - docker push "$TARGET_JOBS_IMAGE_NAME"
   retry: 2
 
 build cluster-controller jvm image:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: image build
   tags:
     - stackgres-runner
@@ -65,14 +74,17 @@ build cluster-controller jvm image:
     - 'export TARGET_CLUSTER_CONTROLLER_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$CLUSTER_CONTROLLER_IMAGE_NAME"'
     - |
       flock /tmp/stackgres-cluster-controller-build-jvm-image \
-        sh stackgres-k8s/ci/build/build-gitlab.sh cluster-controller-jvm-image
+        sh stackgres-k8s/ci/build/build-gitlab.sh build \
+          --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
+          cluster-controller-jvm-image
     - HASH_CLUSTER_CONTROLLER_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.cluster-controller-jvm-image)"
+    - docker pull "$HASH_CLUSTER_CONTROLLER_IMAGE_NAME"
     - docker tag "$HASH_CLUSTER_CONTROLLER_IMAGE_NAME" "$TARGET_CLUSTER_CONTROLLER_IMAGE_NAME"
     - docker push "$TARGET_CLUSTER_CONTROLLER_IMAGE_NAME"
   retry: 2
 
 build distributedlogs-controller jvm image:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: image build
   tags:
     - stackgres-runner
@@ -83,14 +95,17 @@ build distributedlogs-controller jvm image:
     - 'export TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"'
     - |
       flock /tmp/stackgres-distributedlogs-controller-build-jvm-image \
-        sh stackgres-k8s/ci/build/build-gitlab.sh distributedlogs-controller-jvm-image
+        sh stackgres-k8s/ci/build/build-gitlab.sh build \
+          --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
+          distributedlogs-controller-jvm-image
     - HASH_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.distributedlogs-controller-jvm-image)"
+    - docker pull "$HASH_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
     - docker tag "$HASH_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
     - docker push "$TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
   retry: 2
 
 build operator native image:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: image build
   tags:
     - stackgres-runner
@@ -101,8 +116,11 @@ build operator native image:
     - 'export TARGET_OPERATOR_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$OPERATOR_IMAGE_NAME"'
     - |
       flock /tmp/stackgres-operator-build-native-image \
-        sh stackgres-k8s/ci/build/build-gitlab.sh operator-native-image
+        sh stackgres-k8s/ci/build/build-gitlab.sh build \
+          --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
+          operator-native-image
     - HASH_OPERATOR_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.operator-native-image)"
+    - docker pull "$HASH_OPERATOR_IMAGE_NAME"
     - docker tag "$HASH_OPERATOR_IMAGE_NAME" "$TARGET_OPERATOR_IMAGE_NAME"
     - docker push "$TARGET_OPERATOR_IMAGE_NAME"
   retry: 2
@@ -115,7 +133,7 @@ build operator native image:
       - $DO_NATIVE
 
 build restapi native image:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: image build
   tags:
     - stackgres-runner
@@ -126,8 +144,11 @@ build restapi native image:
     - 'export TARGET_RESTAPI_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$RESTAPI_IMAGE_NAME"'
     - |
       flock /tmp/stackgres-restapi-build-native-image \
-        sh stackgres-k8s/ci/build/build-gitlab.sh restapi-native-image
+        sh stackgres-k8s/ci/build/build-gitlab.sh build \
+          --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
+          restapi-native-image
     - HASH_RESTAPI_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.restapi-native-image)"
+    - docker pull "$HASH_RESTAPI_IMAGE_NAME"
     - docker tag "$HASH_RESTAPI_IMAGE_NAME" "$TARGET_RESTAPI_IMAGE_NAME"
     - docker push "$TARGET_RESTAPI_IMAGE_NAME"
   retry: 2
@@ -140,7 +161,7 @@ build restapi native image:
       - $DO_NATIVE
 
 build jobs native image:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: image build
   tags:
     - stackgres-runner
@@ -151,8 +172,11 @@ build jobs native image:
     - 'export TARGET_JOBS_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$JOBS_IMAGE_NAME"'
     - |
       flock /tmp/stackgres-jobs-build-native-image \
-        sh stackgres-k8s/ci/build/build-gitlab.sh jobs-native-image
+        sh stackgres-k8s/ci/build/build-gitlab.sh build \
+          --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
+          jobs-native-image
     - HASH_JOBS_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.jobs-native-image)"
+    - docker pull "$HASH_JOBS_IMAGE_NAME"
     - docker tag "$HASH_JOBS_IMAGE_NAME" "$TARGET_JOBS_IMAGE_NAME"
     - docker push "$TARGET_JOBS_IMAGE_NAME"
   retry: 2
@@ -165,7 +189,7 @@ build jobs native image:
       - $DO_NATIVE
 
 build cluster-controller native image:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: image build
   tags:
     - stackgres-runner
@@ -176,8 +200,11 @@ build cluster-controller native image:
     - 'export TARGET_CLUSTER_CONTROLLER_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$CLUSTER_CONTROLLER_IMAGE_NAME"'
     - |
       flock /tmp/stackgres-cluster-controller-build-native-image \
-        sh stackgres-k8s/ci/build/build-gitlab.sh cluster-controller-native-image
+        sh stackgres-k8s/ci/build/build-gitlab.sh build \
+          --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
+          cluster-controller-native-image
     - HASH_CLUSTER_CONTROLLER_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.cluster-controller-native-image)"
+    - docker pull "$HASH_CLUSTER_CONTROLLER_IMAGE_NAME"
     - docker tag "$HASH_CLUSTER_CONTROLLER_IMAGE_NAME" "$TARGET_CLUSTER_CONTROLLER_IMAGE_NAME"
     - docker push "$TARGET_CLUSTER_CONTROLLER_IMAGE_NAME"
   retry: 2
@@ -190,7 +217,7 @@ build cluster-controller native image:
       - $DO_NATIVE
 
 build distributedlogs-controller native image:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: image build
   tags:
     - stackgres-runner
@@ -201,8 +228,11 @@ build distributedlogs-controller native image:
     - 'export TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"'
     - |
       flock /tmp/stackgres-distributedlogs-controller-build-native-image \
-        sh stackgres-k8s/ci/build/build-gitlab.sh distributedlogs-controller-native-image
+        sh stackgres-k8s/ci/build/build-gitlab.sh build \
+          --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
+          distributedlogs-controller-native-image
     - HASH_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.distributedlogs-controller-native-image)"
+    - docker pull "$HASH_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
     - docker tag "$HASH_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
     - docker push "$TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
   retry: 2
@@ -215,7 +245,7 @@ build distributedlogs-controller native image:
       - $DO_NATIVE
 
 build admin-ui image:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: image build
   tags:
     - stackgres-runner
@@ -226,8 +256,11 @@ build admin-ui image:
     - 'export TARGET_ADMINUI_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$ADMINUI_IMAGE_NAME"'
     - |
       flock /tmp/stackgres-adminui-build-image \
-        sh stackgres-k8s/ci/build/build-gitlab.sh admin-ui-image
+        sh stackgres-k8s/ci/build/build-gitlab.sh build \
+          --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
+          admin-ui-image
     - HASH_ADMINUI_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.admin-ui-image)"
+    - docker pull "$HASH_ADMINUI_IMAGE_NAME"
     - docker tag "$HASH_ADMINUI_IMAGE_NAME" "$TARGET_ADMINUI_IMAGE_NAME"
     - docker push "$TARGET_ADMINUI_IMAGE_NAME"
   retry: 2
