@@ -4,13 +4,13 @@
 
 export E2E_DOCKER_IMAGE="${E2E_DOCKER_IMAGE:-$(grep -n '</\?properties>' "$STACKGRES_PATH/src/pom.xml" | cut -d : -f 1 | tr '\n' ':' \
   | xargs -I % sh -c 'head -n "$(echo % | cut -d : -f 2)" '"$STACKGRES_PATH/src/pom.xml"' | tail -n "$(( $(echo % | cut -d : -f 2) - $(echo % | cut -d : -f 1) - 1 ))"' \
-  | grep -o '<it.image>\([^<]\+\)</it.image>' | tr -d ' ' | tr '<>' '  ' | cut -d ' ' -f 3)}"
+  | grep -o '<ci.image>\([^<]\+\)</ci.image>' | tr -d ' ' | tr '<>' '  ' | cut -d ' ' -f 3)}"
 export E2E_CONTAINER_NAME="${E2E_CONTAINER_NAME:-stackgres-e2e}"
 
 if ! docker inspect "$E2E_DOCKER_IMAGE" > /dev/null 2>&1
 then
   docker build --network host \
-    -f "$STACKGRES_PATH/src/operator/src/test/docker/Dockerfile.it" \
+    -f "$STACKGRES_PATH/ci/build/Dockerfile-ci" \
     -t "$E2E_DOCKER_IMAGE" .
 fi
 
@@ -30,5 +30,5 @@ docker run "$([ -t 1 ] && echo '-it' || echo '-i')" \
   -u "$(id -u):$(id -g)" \
   $(id -G | tr ' ' '\n' | sed 's/^\(.*\)$/--group-add \1/') \
   -v "$HOME":"$HOME":rw -e PROMPT_COMMAND= \
-  -v /var/run/docker.sock:/var/run/docker.sock -v "$PROJECT_PATH:/stackgres" -w /stackgres \
+  -v /var/run/docker.sock:/var/run/docker.sock -v "$PROJECT_PATH:$PROJECT_PATH" -w "$PROJECT_PATH" \
   --env-file "$ENV_PATH" "$E2E_DOCKER_IMAGE" "$@"

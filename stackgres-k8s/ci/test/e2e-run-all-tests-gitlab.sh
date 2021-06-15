@@ -22,6 +22,9 @@ do
   export E2E_OPERATOR_REGISTRY_PATH=/$CI_PROJECT_PATH/
   export E2E_FORCE_IMAGE_PULL=true
   export K8S_USE_INTERNAL_REPOSITORY=true
+  export KIND_LOCK_PATH="/tmp/kind-lock$SUFFIX"
+  export E2E_LOCK_PATH="/tmp/e2e-lock$SUFFIX"
+  export KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache/$KIND_NAME"
 
   if [ -n "$E2E_TEST" ]
   then
@@ -63,6 +66,9 @@ do
   E2E_EXCLUDES="$(echo "$("$IS_WEB" || echo "ui ")$E2E_EXCLUDES $E2E_EXCLUDES_BY_HASH" | tr ' ' '\n' | sort | uniq | tr '\n' ' ')"
   export E2E_EXCLUDES
   flock /tmp/e2e-retrieve-pipeline-info.lock timeout -s KILL 300 sh stackgres-k8s/ci/test/e2e-variables.sh || true
+
+  sh stackgres-k8s/ci/build/build-gitlab.sh extract helm-packages stackgres-k8s/install/helm/template/packages
+  sh stackgres-k8s/ci/build/build-gitlab.sh extract helm-templates stackgres-k8s/install/helm/template/templates
 
   unset DEBUG
 

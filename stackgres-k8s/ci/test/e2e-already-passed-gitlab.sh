@@ -40,6 +40,14 @@ then
   exit
 fi
 
+RESOURCE_MODULE_HASH="$(jq -r -s "$(cat << EOF
+  .[] | select(.test_suites != null)
+    | .test_suites[]
+    | select(.name == "build").test_cases[]
+    | select(.classname == "module type resource").name
+EOF
+      )" "$TEMP_DIR/test_report.$CI_PIPELINE_ID" \
+    | tr -d '\n')"
 JAVA_MODULE_HASH="$(jq -r -s "$(cat << EOF
   .[] | select(.test_suites != null)
     | .test_suites[]
@@ -79,6 +87,8 @@ jq -r -s "$(cat << EOF
   . as \$in | $TEST_HASHES as \$test_hashes
     | \$in[] | select(.[0].test_suites != null)
     | select(.[0].test_suites[] | select(.name == "build").test_cases
+      | map(.classname == "module type resource" and .name == "$RESOURCE_MODULE_HASH") | any)
+    | select(.[0].test_suites[] | select(.name == "build").test_cases
       | map(($IS_NATIVE) or .classname == "module type jvm-image" and .name == "$JAVA_MODULE_HASH") | any)
     | select(.[0].test_suites[] | select(.name == "build").test_cases
       | map(($IS_WEB | not) or (.classname == "module admin-ui-image" and .name == "$WEB_MODULE_HASH")) | any)
@@ -97,3 +107,26 @@ jq -r -s "$(cat << EOF
 EOF
   )" "$TEMP_DIR"/test_report_with_variables.* \
     | sort | uniq | tr '\n' ' '
+
+jq -r "$(cat << EOF
+  .[0].test_suites[]
+    | select(.name == "$CI_JOB_NAME").test_cases[]
+    | select(.status == "success") | "<testcase classname=\" + .classname + "\" name=\" + .name + "\" time=\" + (.execution_time|tostring) + "\" />"
+EOF
+  )" "$TEMP_DIR/test_report_with_variables.$CI_PIPELINE_ID" > stackgres-k8s/ci/test/target/already-passed-e2e-tests-junit-report.results.xml
+
+E2E_ALREADY_PASSED_TIME="$(jq -r \
+  ".[0].test_suites[] | select(.name == \"$CI_JOB_NAME\").total_time" \
+  "$TEMP_DIR/test_report_with_variables.$CI_PIPELINE_ID")"
+E2E_ALREADY_PASSED_COUNT="$(jq -r \
+  ".[0].test_suites[] | select(.name == \"$CI_JOB_NAME\").success_count" \
+  "$TEMP_DIR/test_report_with_variables.$CI_PIPELINE_ID")"
+
+cat << EOF > stackgres-k8s/ci/test/target/already-passed-e2e-tests-junit-report.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites time="$E2E_ALREADY_PASSED_TIME">
+  <testsuite name="e2e tests already passed" tests="$E2E_ALREADY_PASSED_COUNT" time="$E2E_ALREADY_PASSED_TIME">
+    $(cat stackgres-k8s/ci/test/target/already-passed-e2e-tests-junit-report.results.xml)
+  </testsuite>
+</testsuites>
+EOF

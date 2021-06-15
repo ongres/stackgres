@@ -18,49 +18,91 @@ set +e
 (
 set -e
 cd "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
-docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
 
 echo
 
-echo "Building $* ..."
+if [ "$1" = build ]
+then
+  shift
 
-sh stackgres-k8s/ci/build/build.sh "$@"
+  TO_COPY_FILES=""
+  TO_EXTRACT_MODULE_FILES=""
+  while [ "x$1" = x--copy -o "x$1" = x--extract ]
+  do
+    TO_COPY_FILE="$2"
+    if [ "x$1" = x--extract ]
+    then
+      TO_EXTRACT_MODULE_FILES="$TO_EXTRACT_MODULE_FILES $2"
+      TO_COPY_FILE="${TO_COPY_FILE#*:}"
+    fi
+    TO_COPY_FILES="$TO_COPY_FILES $TO_COPY_FILE"
+    shift 2
+  done
 
-echo "done"
+  echo "Building $* ..."
 
-echo
+  docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  sh stackgres-k8s/ci/build/build.sh "$@"
 
-echo "Extracting files ..."
+  echo "done"
 
-for MODULE in "$@"
-do
-  sh stackgres-k8s/ci/build/build-functions.sh extract "$MODULE" \
-    'stackgres-k8s/src/api-web/target/swagger*' \
-    'stackgres-k8s/src/*/target/surefire-reports/TEST-*.xml' \
-    'stackgres-k8s/src/admin-ui/node_modules'
-done
-
-echo "done"
-
-echo
-
-echo "Copying extracted files ..."
-
-for FILE in stackgres-k8s/ci/build/target \
-  stackgres-k8s/src/.mvn \
-  stackgres-k8s/src/.m2/repository \
-  stackgres-k8s/src/api-web/target/swagger* \
-  stackgres-k8s/src/*/target/surefire-reports/TEST-*.xml \
-  stackgres-k8s/src/admin-ui/node_modules
-do
-  if [ -e "$FILE" ]
+  if [ -n "$TO_EXTRACT_MODULE_FILES" ]
   then
-    mkdir -p "$CI_PROJECT_DIR/${FILE%/*}"
-    cp -rf "$FILE" "$CI_PROJECT_DIR/${FILE%/*}/."
-  fi
-done
+    echo
+    echo "Extracting files ..."
 
-echo "done"
+    for MODULE_FILE in $TO_EXTRACT_MODULE_FILES
+    do
+      sh stackgres-k8s/ci/build/build-functions.sh extract "${MODULE_FILE%:*}" "${MODULE_FILE#*:}"
+    done
+
+    echo "done"
+  fi
+
+  if [ -n "$TO_COPY_FILES" ]
+  then
+    echo
+    echo "Copying extracted files ..."
+
+    for FILE in $TO_COPY_FILES
+    do
+      if [ -d "$FILE" ]
+      then
+        mkdir -p "$CI_PROJECT_DIR/$FILE"
+        cp -rf "$FILE/." "$CI_PROJECT_DIR/$FILE"
+      elif [ -e "$FILE" ]
+      then
+        mkdir -p "$CI_PROJECT_DIR/${FILE%/*}"
+        cp -f "$FILE" "$CI_PROJECT_DIR/$FILE"
+      fi
+    done
+
+    echo "done"
+  fi
+elif [ "$1" = extract ]
+then
+  shift
+
+  echo "Extracting files from $2 ..."
+
+  sh stackgres-k8s/ci/build/build-functions.sh generate_image_hashes
+  sh stackgres-k8s/ci/build/build-functions.sh extract "$@"
+
+  for FILE in $*
+  do
+    if [ -d "$FILE" ]
+    then
+      mkdir -p "$CI_PROJECT_DIR/$FILE"
+      cp -rf "$FILE/." "$CI_PROJECT_DIR/$FILE"
+    elif [ -e "$FILE" ]
+    then
+      mkdir -p "$CI_PROJECT_DIR/${FILE%/*}"
+      cp -f "$FILE" "$CI_PROJECT_DIR/$FILE"
+    fi
+  done
+
+  echo "done"
+fi
 
 echo
 

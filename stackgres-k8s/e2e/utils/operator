@@ -15,7 +15,6 @@ export ADMINUI_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY
 export EXTENSIONS_REPOSITORY_URL="${EXTENSIONS_REPOSITORY_URL:-https://extensions.stackgres.io/postgres/repository}"
 
 export STACKGRES_PATH="${STACKGRES_PATH:-$E2E_PATH/..}"
-export PROJECT_PATH="${PROJECT_PATH:-$STACKGRES_PATH/..}"
 export STACKGRES_VERSION="$(grep '<artifactId>stackgres-parent</artifactId>' "$STACKGRES_PATH/src/pom.xml" -A 2 -B 2 \
   | grep -o '<version>\([^<]\+\)</version>' | tr '<>' '  ' | cut -d ' ' -f 3)"
 export STACKGRES_IMAGE_BUILDER="${STACKGRES_IMAGE_BUILDER:-docker}"
@@ -59,6 +58,7 @@ setup_images() {
 }
 
 build_components() {
+  echo "Building components..."
   (
   cd "$STACKGRES_PATH/src"
   ./mvnw -q clean package -DskipTests
@@ -67,6 +67,7 @@ build_components() {
 }
 
 build_operator_image() {
+  echo "Building operator image..."
   (
   cd "$STACKGRES_PATH/src"
   shell "operator/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
@@ -74,6 +75,7 @@ build_operator_image() {
 }
 
 build_restapi_image() {
+  echo "Building restapi image..."
   (
   cd "$STACKGRES_PATH/src"
   shell "api-web/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
@@ -81,6 +83,7 @@ build_restapi_image() {
 }
 
 build_jobs_image() {
+  echo "Building jobs image..."
   (
   cd "$STACKGRES_PATH/src"
   shell "jobs/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
@@ -88,6 +91,7 @@ build_jobs_image() {
 }
 
 build_cluster_controller_image() {
+  echo "Building cluster-controller image..."
   (
   cd "$STACKGRES_PATH/src"
   shell "cluster-controller/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
@@ -95,6 +99,7 @@ build_cluster_controller_image() {
 }
 
 build_distributedlogs_controller_image() {
+  echo "Building distributedlogs-controller image..."
   (
   cd "$STACKGRES_PATH/src"
   shell "distributedlogs-controller/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
@@ -102,6 +107,7 @@ build_distributedlogs_controller_image() {
 }
 
 build_adminui_image() {
+  echo "Building admin-ui image..."
   (
   cd "$STACKGRES_PATH/src"
   shell admin-ui/npmw install
@@ -114,6 +120,7 @@ build_adminui_image() {
 }
 
 build_helm_artifacts() {
+  echo "Building helm artifacts..."
   (
   cd "$STACKGRES_PATH/install/helm"
   shell build-helm-packages.sh

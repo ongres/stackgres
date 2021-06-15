@@ -22,6 +22,7 @@ Currently following module types are supported (types are opnionated by the proj
 * `jvm-image`: A container image module to run a `java` module using a JVM. Uses the `src/<module path>/src/main/docker/Dockerfile.jvm` to build the image.
 * `native-image`: A container image module to run a `native` module. Uses the `src/<module path>/src/main/docker/Dockerfile.native` to build the image.
 * `image`: A container image to run another module. Uses the `src/<module path>/docker/Dockerfile` to build the image.
+* `resource`: A resource module.
 
 ## build.sh
 
@@ -32,6 +33,7 @@ The process is performed by the `build.sh` shell script that accept as parameter
 
 | Field | Description |
 |+------|+------------|
+| base_image | The image used to packge modules output of any type |
 | base_jvm_image | The image used to build modules of type jvm-image |
 | base_native_image | The image used to build modules of type native-image |
 | maven_opts | The value is mapped to `MAVEN_OPTS` environmant variables for `java` and `native` module types |
@@ -39,12 +41,13 @@ The process is performed by the `build.sh` shell script that accept as parameter
 | modules | An object that defines all available modules |
 | modules.<name> | <name> represent the name of a module |
 | modules.<name>.type | The type of the module |
-| modules.<name>.name | The name of a Maven module. If not defined is equals to the module name |
-| modules.<name>.artifact | The artifact id of Maven module. If not defined is equals to the module name |
-| modules.<name>.path | The path of Maven module. If not defined is equals to the module name |
-| modules.<name>.pre_build_commands | An optional list of shell command to execute before the build |
-| modules.<name>.post_build_commands | An optional list of shell command to execute after the build |
-| modules.<name>.base_image | Only for module of type `image`. Is mapped to the environment variable `BASE_IMAGE` passed to `src/<module path>/docker/Dockerfile` |
+| modules.<name>.name | The name of a Maven module. Only required for module of type native, jvm-image or native-image |
+| modules.<name>.path | The path of the module relative to project root |
+| modules.<name>.sources | Only required for module of type `resource` and optional for module of type `java`. A list of source files and folders used to calculate the hash. |
+| modules.<name>.build_commands | Only required for module of type `resource`. A list of shell commands to build the module. |
+| modules.<name>.pre_build_commands | An optional list of shell commands to execute before the build. Only for `java` and `native` modules |
+| modules.<name>.post_build_commands | An optional list of shell commands to execute after the build. Only for `java` and `native` modules |
+| modules.<name>.base_image | Only required for module of type `image` and optional for module of type `resource`. Is mapped to the environment variable `BASE_IMAGE` passed to `src/<module path>/docker/Dockerfile` |
 | stages | A list of stages to build |
 | stages.<index> | A stage to build in sequence |
 | stages.<index>.<module name> | <module name> is the name of a module defined under `.stages` and the value is the name of another module that represent the dependency of <module name>. If `null` is specified the module has no dependency. Please do not create any module called `null` :-) |
