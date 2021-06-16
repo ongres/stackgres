@@ -124,7 +124,7 @@ connection have to be dispatched.
 
 It is also capable of [exporting metrics]({{% relref "05-administration-guide/18-monitoring-metrics/01-envoy-metrics/" %}}) using well established prometheus format.
 
-OnGres Inc. sponsors the Envoy Proxy project, with contributions such as exposing [stat metrics](https://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/network_filters/postgres_proxy_filter#statistics) and SSL support (currently WIP).
+OnGres Inc. sponsors the Envoy Proxy project, with contributions such as exposing PostgreSQL [monitoring metrics](https://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/network_filters/postgres_proxy_filter#statistics) and implementing the [SSL termination support](https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/network/postgres_proxy/v3alpha/postgres_proxy.proto#envoy-v3-api-field-extensions-filters-network-postgres-proxy-v3alpha-postgresproxy-terminate-ssl).
 
 ## Monitoring
 
