@@ -8,6 +8,7 @@ package io.stackgres.apiweb.distributedlogs;
 import java.time.Instant;
 import java.util.Optional;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import org.immutables.value.Value;
@@ -24,7 +25,7 @@ public abstract class DistributedLogsQueryParameters {
 
   public abstract Optional<Tuple2<Instant, Integer>> getToTimeAndIndex();
 
-  public abstract ImmutableMap<String, Optional<String>> getFilters();
+  public abstract ImmutableMap<String, ImmutableList<String>> getFilters();
 
   public abstract boolean isSortAsc();
 

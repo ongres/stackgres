@@ -979,11 +979,11 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(parameters.getRecords(), 50);
-        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getFilters(), ImmutableMap.of());
-        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertEquals( 50,parameters.getRecords());
+        assertEquals( Optional.empty(),parameters.getFromTimeAndIndex());
+        assertEquals( Optional.empty(),parameters.getToTimeAndIndex());
+        assertEquals( ImmutableMap.of(),parameters.getFilters());
+        assertEquals( Optional.empty(),parameters.getFullTextSearchQuery());
         assertFalse(parameters.isSortAsc());
         assertFalse(parameters.isFromInclusive());
 
@@ -996,12 +996,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1022,11 +1022,11 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(parameters.getRecords(), 1);
-        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getFilters(), ImmutableMap.of());
-        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertEquals( 1,parameters.getRecords());
+        assertEquals( Optional.empty(),parameters.getFromTimeAndIndex());
+        assertEquals( Optional.empty(),parameters.getToTimeAndIndex());
+        assertEquals( ImmutableMap.of(),parameters.getFilters());
+        assertEquals( Optional.empty(),parameters.getFullTextSearchQuery());
         assertFalse(parameters.isSortAsc());
         assertFalse(parameters.isFromInclusive());
 
@@ -1039,12 +1039,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1066,12 +1066,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     assertThrows(BadRequestException.class,
         () -> service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1090,11 +1090,11 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(parameters.getRecords(), 50);
-        assertEquals(parameters.getFromTimeAndIndex(), Optional.of(Tuple.tuple(Instant.EPOCH, 0)));
-        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getFilters(), ImmutableMap.of());
-        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertEquals(50,parameters.getRecords());
+        assertEquals(Optional.of(Tuple.tuple(Instant.EPOCH, 0)), parameters.getFromTimeAndIndex());
+        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
+        assertEquals(ImmutableMap.of(),parameters.getFilters());
+        assertEquals(Optional.empty(), parameters.getFullTextSearchQuery());
         assertFalse(parameters.isSortAsc());
         assertFalse(parameters.isFromInclusive());
 
@@ -1107,12 +1107,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1150,12 +1150,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1177,12 +1177,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     assertThrows(BadRequestException.class,
         () -> service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1202,12 +1202,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     assertThrows(BadRequestException.class,
         () -> service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1244,12 +1244,12 @@ class ClusterResourceTest
     String to = Instant.EPOCH.toString();
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1270,9 +1270,9 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(parameters.getRecords(), 50);
-        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getToTimeAndIndex(), Optional.of(Tuple.tuple(Instant.EPOCH, 1)));
+        assertEquals(50, parameters.getRecords());
+        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+        assertEquals(Optional.of(Tuple.tuple(Instant.EPOCH, 1)), parameters.getToTimeAndIndex());
         assertEquals(parameters.getFilters(), ImmutableMap.of());
         assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
         assertFalse(parameters.isSortAsc());
@@ -1287,12 +1287,12 @@ class ClusterResourceTest
     String to = Instant.EPOCH.toString() + "," + 1;
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1314,12 +1314,12 @@ class ClusterResourceTest
     String to = Instant.EPOCH.toString().substring(5) + "," + 1;
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     assertThrows(BadRequestException.class,
         () -> service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1339,12 +1339,12 @@ class ClusterResourceTest
     String to = Instant.EPOCH.toString() + "," + "a";
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     assertThrows(BadRequestException.class,
         () -> service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1364,12 +1364,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     assertThrows(BadRequestException.class,
         () -> service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1388,9 +1388,9 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(parameters.getRecords(), 50);
-        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(50, parameters.getRecords());
+        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
         assertEquals(parameters.getFilters(), ImmutableMap.of());
         assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
         assertFalse(parameters.isSortAsc());
@@ -1405,12 +1405,12 @@ class ClusterResourceTest
     String to = null;
     String sort = "desc";
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1431,9 +1431,9 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(parameters.getRecords(), 50);
-        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(50, parameters.getRecords());
+        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
         assertEquals(parameters.getFilters(), ImmutableMap.of());
         assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
         assertTrue(parameters.isSortAsc());
@@ -1448,12 +1448,12 @@ class ClusterResourceTest
     String to = null;
     String sort = "asc";
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1475,12 +1475,12 @@ class ClusterResourceTest
     String to = null;
     String sort = "down";
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     assertThrows(BadRequestException.class,
         () -> service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1499,9 +1499,9 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(parameters.getRecords(), 50);
-        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(50, parameters.getRecords());
+        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
         assertEquals(parameters.getFilters(), ImmutableMap.of());
         assertEquals(parameters.getFullTextSearchQuery(),
             Optional.of(new FullTextSearchQuery("test")));
@@ -1517,12 +1517,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = "test";
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1543,9 +1543,9 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(parameters.getRecords(), 50);
-        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(50, parameters.getRecords());
+        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
         assertEquals(parameters.getFilters(), ImmutableMap.of());
         assertEquals(parameters.getFullTextSearchQuery(),
             Optional.of(new FullTextSearchQuery("")));
@@ -1561,12 +1561,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = "";
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1587,10 +1587,10 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(parameters.getRecords(), 50);
-        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getFilters(), ImmutableMap.of("logType", Optional.of("test")));
+        assertEquals(50, parameters.getRecords());
+        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
+        assertEquals(parameters.getFilters(), ImmutableMap.of("logType", List.of("test")));
         assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
         assertFalse(parameters.isSortAsc());
         assertFalse(parameters.isFromInclusive());
@@ -1604,12 +1604,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = null;
-    String logType = "test";
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = List.of("test");
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1630,10 +1630,10 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(parameters.getRecords(), 50);
-        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getFilters(), ImmutableMap.of("podName", Optional.of("test")));
+        assertEquals(50, parameters.getRecords());
+        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
+        assertEquals(parameters.getFilters(), ImmutableMap.of("podName", List.of("test")));
         assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
         assertFalse(parameters.isSortAsc());
         assertFalse(parameters.isFromInclusive());
@@ -1647,12 +1647,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = "test";
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = List.of("test");
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1673,10 +1673,10 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(parameters.getRecords(), 50);
-        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getFilters(), ImmutableMap.of("role", Optional.of("test")));
+        assertEquals(50, parameters.getRecords());
+        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
+        assertEquals(parameters.getFilters(), ImmutableMap.of("role", List.of("test")));
         assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
         assertFalse(parameters.isSortAsc());
         assertFalse(parameters.isFromInclusive());
@@ -1690,12 +1690,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = "test";
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = List.of("test");
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1716,10 +1716,10 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(parameters.getRecords(), 50);
-        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getFilters(), ImmutableMap.of("errorLevel", Optional.of("test")));
+        assertEquals(50, parameters.getRecords());
+        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
+        assertEquals(parameters.getFilters(), ImmutableMap.of("errorLevel", List.of("test")));
         assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
         assertFalse(parameters.isSortAsc());
         assertFalse(parameters.isFromInclusive());
@@ -1733,12 +1733,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = "test";
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = List.of("test");
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1759,10 +1759,10 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(parameters.getRecords(), 50);
-        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getFilters(), ImmutableMap.of("userName", Optional.of("test")));
+        assertEquals(50, parameters.getRecords());
+        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
+        assertEquals(parameters.getFilters(), ImmutableMap.of("userName", List.of("test")));
         assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
         assertFalse(parameters.isSortAsc());
         assertFalse(parameters.isFromInclusive());
@@ -1776,12 +1776,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = "test";
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = List.of("test");
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1802,11 +1802,11 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(parameters.getRecords(), 50);
-        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getFilters(), ImmutableMap.of("databaseName", Optional.of("test")));
-        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertEquals(50, parameters.getRecords());
+        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
+        assertEquals(ImmutableMap.of("databaseName", List.of("test", "demo")), parameters.getFilters());
+        assertEquals(Optional.empty(), parameters.getFullTextSearchQuery());
         assertFalse(parameters.isSortAsc());
         assertFalse(parameters.isFromInclusive());
 
@@ -1819,12 +1819,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = "test";
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = List.of("test", "demo");
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1845,10 +1845,10 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(parameters.getRecords(), 50);
-        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getFilters(), ImmutableMap.of("logType", Optional.empty()));
+        assertEquals(50, parameters.getRecords());
+        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
+        assertEquals(parameters.getFilters(), ImmutableMap.of("logType", List.of()));
         assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
         assertFalse(parameters.isSortAsc());
         assertFalse(parameters.isFromInclusive());
@@ -1862,12 +1862,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = null;
-    String logType = "";
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = List.of("");
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1888,10 +1888,10 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(parameters.getRecords(), 50);
-        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getFilters(), ImmutableMap.of("podName", Optional.empty()));
+        assertEquals(50, parameters.getRecords());
+        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
+        assertEquals(parameters.getFilters(), ImmutableMap.of("podName", List.of()));
         assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
         assertFalse(parameters.isSortAsc());
         assertFalse(parameters.isFromInclusive());
@@ -1905,12 +1905,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = "";
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = List.of("");
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1931,10 +1931,10 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(parameters.getRecords(), 50);
-        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getFilters(), ImmutableMap.of("role", Optional.empty()));
+        assertEquals(50, parameters.getRecords());
+        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
+        assertEquals(parameters.getFilters(), ImmutableMap.of("role", List.of()));
         assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
         assertFalse(parameters.isSortAsc());
         assertFalse(parameters.isFromInclusive());
@@ -1948,12 +1948,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = "";
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = List.of("");
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -1974,11 +1974,11 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(parameters.getRecords(), 50);
-        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getFilters(), ImmutableMap.of("errorLevel", Optional.empty()));
-        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertEquals(50, parameters.getRecords());
+        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
+        assertEquals(ImmutableMap.of("errorLevel", List.of()), parameters.getFilters());
+        assertEquals(Optional.empty(), parameters.getFullTextSearchQuery());
         assertFalse(parameters.isSortAsc());
         assertFalse(parameters.isFromInclusive());
 
@@ -1991,12 +1991,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = "";
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = List.of("");
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -2017,11 +2017,11 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(parameters.getRecords(), 50);
-        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getFilters(), ImmutableMap.of("userName", Optional.empty()));
-        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertEquals(50, parameters.getRecords());
+        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
+        assertEquals(ImmutableMap.of("userName", List.of()), parameters.getFilters());
+        assertEquals(Optional.empty(), parameters.getFullTextSearchQuery());
         assertFalse(parameters.isSortAsc());
         assertFalse(parameters.isFromInclusive());
 
@@ -2034,12 +2034,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = "";
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = List.of("");
+    List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -2060,11 +2060,11 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(parameters.getRecords(), 50);
-        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getFilters(), ImmutableMap.of("databaseName", Optional.empty()));
-        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertEquals(50, parameters.getRecords());
+        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
+        assertEquals(ImmutableMap.of("databaseName", List.of()), parameters.getFilters());
+        assertEquals(Optional.empty(), parameters.getFullTextSearchQuery());
         assertFalse(parameters.isSortAsc());
         assertFalse(parameters.isFromInclusive());
 
@@ -2077,12 +2077,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = "";
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = List.of("");
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -2103,11 +2103,11 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(parameters.getRecords(), 50);
-        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getFilters(), ImmutableMap.of());
-        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertEquals(50, parameters.getRecords());
+        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
+        assertEquals(ImmutableMap.of(), parameters.getFilters());
+        assertEquals(Optional.empty(), parameters.getFullTextSearchQuery());
         assertFalse(parameters.isSortAsc());
         assertTrue(parameters.isFromInclusive());
 
@@ -2120,12 +2120,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = true;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
@@ -2146,11 +2146,11 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(parameters.getRecords(), 50);
-        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getFilters(), ImmutableMap.of());
-        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertEquals( 50,parameters.getRecords());
+        assertEquals( Optional.empty(),parameters.getFromTimeAndIndex());
+        assertEquals( Optional.empty(),parameters.getToTimeAndIndex());
+        assertEquals( ImmutableMap.of(),parameters.getFilters());
+        assertEquals( Optional.empty(),parameters.getFullTextSearchQuery());
         assertFalse(parameters.isSortAsc());
         assertFalse(parameters.isFromInclusive());
 
@@ -2163,12 +2163,12 @@ class ClusterResourceTest
     String to = null;
     String sort = null;
     String text = null;
-    String logType = null;
-    String podName = null;
-    String role = null;
-    String errorLevel = null;
-    String userName = null;
-    String databaseName = null;
+    List<String> logType = null;
+    List<String> podName = null;
+    List<String> role = null;
+    List<String> errorLevel = null;
+    List<String> userName = null;
+    List<String> databaseName = null;
     Boolean fromInclusive = false;
     List<ClusterLogEntryDto> logs =
         service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,

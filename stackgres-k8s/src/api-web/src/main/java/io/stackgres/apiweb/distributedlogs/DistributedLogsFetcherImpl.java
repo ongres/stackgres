@@ -59,6 +59,7 @@ public class DistributedLogsFetcherImpl implements DistributedLogsFetcher {
     this.postgresConnectionManager = null;
   }
 
+  @Override
   public List<ClusterLogEntryDto> logs(DistributedLogsQueryParameters parameters) {
     try (Connection connection = getConnection(parameters.getCluster());
         DSLContext context = DSL.using(connection)) {

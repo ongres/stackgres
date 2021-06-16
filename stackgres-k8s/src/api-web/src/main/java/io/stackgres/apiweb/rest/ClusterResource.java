@@ -27,7 +27,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
@@ -458,12 +460,12 @@ public class ClusterResource
       @QueryParam("to") String to,
       @QueryParam("sort") String sort,
       @QueryParam("text") String text,
-      @QueryParam("logType") String logType,
-      @QueryParam("podName") String podName,
-      @QueryParam("role") String role,
-      @QueryParam("errorLevel") String errorLevel,
-      @QueryParam("userName") String userName,
-      @QueryParam("databaseName") String databaseName,
+      @QueryParam("logType") List<String> logType,
+      @QueryParam("podName") List<String> podName,
+      @QueryParam("role") List<String> role,
+      @QueryParam("errorLevel") List<String> errorLevel,
+      @QueryParam("userName") List<String> userName,
+      @QueryParam("databaseName") List<String> databaseName,
       @QueryParam("fromInclusive") Boolean fromInclusive) {
     final ClusterDto cluster = clusterFinder.findByNameAndNamespace(name, namespace)
         .orElseThrow(NotFoundException::new);
@@ -485,32 +487,13 @@ public class ClusterResource
           "Distributed logs are not configured for specified cluster");
     }
 
-    final ImmutableMap.Builder<String, Optional<String>> filters =
-        ImmutableMap.<String, Optional<String>>builder();
-    if (logType != null) {
-      filters.put("logType", Optional.of(logType)
-          .filter(value -> !value.isEmpty()));
-    }
-    if (podName != null) {
-      filters.put("podName", Optional.of(podName)
-          .filter(value -> !value.isEmpty()));
-    }
-    if (role != null) {
-      filters.put("role", Optional.of(role)
-          .filter(value -> !value.isEmpty()));
-    }
-    if (errorLevel != null) {
-      filters.put("errorLevel", Optional.of(errorLevel)
-          .filter(value -> !value.isEmpty()));
-    }
-    if (userName != null) {
-      filters.put("userName", Optional.of(userName)
-          .filter(value -> !value.isEmpty()));
-    }
-    if (databaseName != null) {
-      filters.put("databaseName", Optional.of(databaseName)
-          .filter(value -> !value.isEmpty()));
-    }
+    final var filters = ImmutableMap.<String, ImmutableList<String>>builder();
+    addFilter("logType", logType, filters);
+    addFilter("podName", podName, filters);
+    addFilter("role", role, filters);
+    addFilter("errorLevel", errorLevel, filters);
+    addFilter("userName", userName, filters);
+    addFilter("databaseName", databaseName, filters);
 
     try {
       fromTuple = Optional.ofNullable(from)
@@ -554,4 +537,14 @@ public class ClusterResource
 
     return distributedLogsFetcher.logs(logs);
   }
+
+  private void addFilter(String key, List<String> values,
+      final Builder<String, ImmutableList<String>> filters) {
+    if (values != null && !values.isEmpty()) {
+      filters.put(key, values.stream()
+          .filter(value -> !value.isEmpty())
+          .collect(ImmutableList.toImmutableList()));
+    }
+  }
+
 }
