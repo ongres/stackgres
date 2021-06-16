@@ -125,8 +125,8 @@
                         </td>
                     </tr>
 
-                    <template v-for="op in dbOps" v-if="( op.show && ( op.data.metadata.namespace == $route.params.namespace ) )">                       
-                        <tr class="base" @click="goTo('/dbops/' + $route.params.namespace + '/' + op.data.metadata.name)" :class="($route.params.name == op.data.metadata.name) ? 'open': ''">
+                    <template v-for="(op, index) in dbOps">
+                        <tr class="base" @click="goTo('/dbops/' + $route.params.namespace + '/' + op.data.metadata.name)" :class="[($route.params.name == op.data.metadata.name) ? 'open': '', ( (index < pagination.start) || (index >= pagination.end) ? 'hide' : '' ) ]">
                             <td class="timestamp hasTooltip">
                                 <span>
                                     <template v-if="op.data.spec.hasOwnProperty('runAt')">
@@ -194,7 +194,7 @@
                             </td>
                         </tr>
 
-                        <tr class="details open" v-if="($route.params.hasOwnProperty('name') && ( $route.params.name == op.name) )" style="display: table-row">
+                        <tr class="details" :class="[($route.params.hasOwnProperty('name') && ( $route.params.name == op.name) ) ? 'open' : '', ( (index < pagination.start) || (index >= pagination.end) ? 'hide' : '' ) ]">
                             <td colspan="999">
                                 <div class="opSpec">
                                     <table>
@@ -874,6 +874,7 @@
                 </tbody>
             </table>
         </div>
+        <v-page :key="'pagination-'+pagination.rows" v-if="pagination.rows < dbOps.length" v-model="pagination.current" :page-size-menu="[ pagination.rows, pagination.rows*2, pagination.rows*3 ]" :total-row="dbOps.length" @page-change="pageChange" align="center" ref="page"></v-page>
         <div id="nameTooltip">
             <div class="info"></div>
         </div>
@@ -1045,7 +1046,7 @@
 
 				})
 
-				return vc.sortTable( [...store.state.dbOps], vc.currentSort.param, vc.currentSortDir, vc.currentSort.type)
+				return vc.sortTable( [...(store.state.dbOps.filter(op => ( op.show && ( op.data.metadata.namespace == vc.$route.params.namespace ))))], vc.currentSort.param, vc.currentSortDir, vc.currentSort.type)
             },
             
             tooltips() {

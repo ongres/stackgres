@@ -57,8 +57,8 @@
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10.55.55A9.454 9.454 0 001.125 9.5H.479a.458.458 0 00-.214.053.51.51 0 00-.214.671l1.621 3.382a.49.49 0 00.213.223.471.471 0 00.644-.223l1.62-3.382A.51.51 0 004.2 10a.49.49 0 00-.479-.5H3.1a7.47 7.47 0 117.449 7.974 7.392 7.392 0 01-3.332-.781.988.988 0 00-.883 1.767 9.356 9.356 0 004.215.99 9.45 9.45 0 000-18.9z" class="a"></path><path d="M13.554 10a3 3 0 10-3 3 3 3 0 003-3z" class="a"></path></svg>
 						SGBackupList
 				</li>
-				<li v-if="(typeof $route.params.uid !== 'undefined')">
-						{{ $route.params.uid }}
+				<li v-if="(typeof $route.params.name !== 'undefined')">
+						{{ $route.params.name }}
 				</li>
 			</ul>
 
@@ -190,9 +190,9 @@
 								No backups have been found. You don't have enough permissions to create a new one
 							</td>
 						</tr>
-						<template v-for="(back, index) in backups" v-if="( ( (back.data.metadata.namespace == $route.params.namespace) && !isCluster) || (isCluster && (back.data.spec.sgCluster == $route.params.name ) && (back.data.metadata.namespace == $route.params.namespace ) ) ) && back.show">
+						<template v-for="(back, index) in backups">
 							<template v-if="back.data.status">
-								<tr :id="back.data.metadata.uid" :class="[ back.data.status.process.status != 'Running' ? 'base' : '', back.data.status.process.status+' sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name, $route.params.uid == back.data.metadata.uid ? 'open' : '']" :data-cluster="back.data.spec.sgCluster" :data-uid="back.data.metadata.uid">
+								<tr :data-url="($route.params.hasOwnProperty('name') ? '/cluster' : '') + '/backups/' + $route.params.namespace + ($route.params.hasOwnProperty('name') ? '/' + $route.params.name : '') + '/' + back.data.metadata.name + getActiveFilters()" @click="goTo( ($route.params.hasOwnProperty('name') ? '/cluster' : '') + '/backups/' + $route.params.namespace + ($route.params.hasOwnProperty('name') ? '/' + $route.params.name : '') + '/' + back.data.metadata.name + getActiveFilters())" :id="back.data.metadata.uid" :class="[ back.data.status.process.status != 'Running' ? 'base' : '', back.data.status.process.status+' sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name, $route.params.backupname == back.data.metadata.name ? 'open' : '', ( (index < pagination.start) || (index >= pagination.end) ? 'hide' : '' )]" :data-cluster="back.data.spec.sgCluster" :data-name="back.data.metadata.name">
 									<td class="timestamp hasTooltip" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.process.timing.stored.substr(0,19).replace('T',' ') : ''">
 										<span>
 											<template v-if="back.data.status.process.status == 'Completed'">
@@ -232,7 +232,7 @@
 										<span>{{ back.data.spec.sgCluster }}</span>
 									</td>
 									<td class="actions">
-										<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/crd/edit/backup/'+$route.params.namespace+'/'+back.data.metadata.uid" title="Edit Backup">
+										<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/crd/edit/backup/'+$route.params.namespace+'/'+back.data.metadata.name" title="Edit Backup">
 											<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M90,135.721v2.246a.345.345,0,0,0,.345.345h2.246a.691.691,0,0,0,.489-.2l8.042-8.041a.346.346,0,0,0,0-.489l-2.39-2.389a.345.345,0,0,0-.489,0L90.2,135.232A.691.691,0,0,0,90,135.721Zm13.772-8.265a.774.774,0,0,0,0-1.095h0l-1.82-1.82a.774.774,0,0,0-1.095,0h0l-1.175,1.176a.349.349,0,0,0,0,.495l2.421,2.421a.351.351,0,0,0,.5,0Z" transform="translate(-90 -124.313)"/></svg>
 										</router-link>
 										<a v-if="iCan('delete','sgbackups',$route.params.namespace)"  v-on:click="deleteCRD('sgbackup',$route.params.namespace, back.data.metadata.name)" class="delete" title="Delete Backup">
@@ -240,7 +240,7 @@
 										</a>
 									</td>
 								</tr>
-								<tr class="details" :class="[ $route.params.uid == back.data.metadata.uid ? 'open' : '', 'sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name]" :style="$route.params.uid == back.data.metadata.uid ? 'display: table-row;' : ''" v-if="back.data.status.process.status === 'Completed'">
+								<tr class="details" :class="[ $route.params.backupname == back.data.metadata.name ? 'open' : '', 'sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name, ( (index < pagination.start) || (index >= pagination.end) ? 'hide' : '' )]" v-if="back.data.status.process.status === 'Completed'">
 									<td :colspan="(isCluster) ? 6 : 8">
 										<div>
 											<table>
@@ -742,7 +742,7 @@
 										<strong>Backup Running</strong><br/>
 									</td>
 								</tr>
-								<tr class="details Failed" :class="[ $route.params.uid == back.data.metadata.uid ? 'open' : '', 'sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name]" :style="$route.params.uid == back.data.metadata.uid ? 'display: table-row;' : ''" v-else-if="back.data.status.process.status === 'Failed'">
+								<tr class="details Failed" :class="[ $route.params.backupname == back.data.metadata.name ? 'open' : '', 'sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name, ( (index < pagination.start) || (index >= pagination.end) ? 'hide' : '' )]" v-else-if="back.data.status.process.status === 'Failed'">
 									<td :colspan="(isCluster) ? 6 : 8" class="center">
 										<strong>Failure Cause</strong><br/>
 										<vue-markdown :source="back.data.status.process.failure"></vue-markdown>
@@ -765,7 +765,7 @@
 										<span>{{ back.data.spec.sgCluster }}</span>
 									</td>
 									<td class="actions">
-										<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)" :to="'/crd/edit/backup/'+$route.params.namespace+'/'+back.data.metadata.uid" title="Edit Backup">
+										<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)" :to="'/crd/edit/backup/'+$route.params.namespace+'/'+back.data.metadata.name" title="Edit Backup">
 											<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M90,135.721v2.246a.345.345,0,0,0,.345.345h2.246a.691.691,0,0,0,.489-.2l8.042-8.041a.346.346,0,0,0,0-.489l-2.39-2.389a.345.345,0,0,0-.489,0L90.2,135.232A.691.691,0,0,0,90,135.721Zm13.772-8.265a.774.774,0,0,0,0-1.095h0l-1.82-1.82a.774.774,0,0,0-1.095,0h0l-1.175,1.176a.349.349,0,0,0,0,.495l2.421,2.421a.351.351,0,0,0,.5,0Z" transform="translate(-90 -124.313)"/></svg>
 										</router-link>
 										<a v-if="iCan('delete','sgbackups',$route.params.namespace)" v-on:click="deleteCRD('sgbackup',$route.params.namespace, back.data.metadata.name)" class="delete" title="Delete Backup">
@@ -779,6 +779,7 @@
 				</table>
 			</div>
 		</div>
+		<v-page :key="'pagination-'+pagination.rows" v-if="pagination.rows < backups.length" v-model="pagination.current" :page-size-menu="[ pagination.rows, pagination.rows*2, pagination.rows*3 ]" :total-row="backups.length" @page-change="pageChange" align="center" ref="page"></v-page>
 		<div id="nameTooltip">
 			<div class="info"></div>
 		</div>
@@ -870,7 +871,7 @@
 
 				})
 
-				return vc.sortTable( [...store.state.backups], vc.currentSort.param, vc.currentSortDir, vc.currentSort.type)
+				return vc.sortTable( [...(store.state.backups.filter(back => ( ( (back.data.metadata.namespace == vc.$route.params.namespace) && !vc.isCluster) || (vc.isCluster && (back.data.spec.sgCluster == vc.$route.params.name ) && (back.data.metadata.namespace == vc.$route.params.namespace ) ) ) && back.show ))], vc.currentSort.param, vc.currentSortDir, vc.currentSort.type)
 			},
 
 			clusters () {
@@ -943,6 +944,9 @@
 				}
 
 				router.push(vc.$route.path + vc.getActiveFilters())
+
+				vc.pagination.start = 0;
+				vc.pagination.current = 0;
 				
 			},
 
@@ -1104,12 +1108,13 @@
 					$(this).parent().parent().toggleClass("open");
 				});
 
-				$(document).on("click", "table.backups tr.base:not(.Pending) td:not(.actions)", function() {
+				/* $(document).on("click", "table.backups tr.base:not(.Pending) td:not(.actions)", function() {
 					if(!$(this).parent().hasClass('open')) {
 						if(vc.$route.name.includes('Cluster'))
-							router.push('/cluster/backups/'+vc.$route.params.namespace+'/'+$(this).parent().data('cluster')+'/'+$(this).parent().data('uid') + vc.getActiveFilters())
-						else
-							router.push('/backups/'+vc.$route.params.namespace+'/'+$(this).parent().data('cluster')+'/'+$(this).parent().data('uid') + vc.getActiveFilters())
+							router.push('/cluster/backups/'+vc.$route.params.namespace+'/'+$(this).parent().data('cluster')+'/'+$(this).parent().data('name') + vc.getActiveFilters())
+						else {
+							router.push('/backups/'+vc.$route.params.namespace+'/'+$(this).parent().data('name') + vc.getActiveFilters())
+						}
 					}
 					else {
 						if(vc.$route.name.includes('Cluster'))
@@ -1117,7 +1122,7 @@
 						else
 							router.push('/backups/'+vc.$route.params.namespace + vc.getActiveFilters())
 					}
-				});
+				}); */
 
 			});
 

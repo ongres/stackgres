@@ -66,8 +66,8 @@
 								No clusters have been found. You don't have enough permissions to create a new one
 							</td>
 						</tr>
-						<template v-for="cluster in clusters">
-							<tr v-if="cluster.data.metadata.namespace == $route.params.namespace" :class="'sgcluster-'+cluster.data.metadata.namespace+'-'+cluster.name" >
+						<template v-for="(cluster, index) in clusters">
+							<tr :class="['sgcluster-'+cluster.data.metadata.namespace+'-'+cluster.name, ( (index < pagination.start) || (index >= pagination.end) ? 'hide' : '' )]" >
 								<td class="clusterName">
 									<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+cluster.name" title="Cluster Status" data-active=".set.clu" class="no-color">
 										{{ cluster.name }}
@@ -112,6 +112,7 @@
 						</template>
 					</tbody>
 				</table>
+				<v-page :key="'pagination-'+pagination.rows" v-if="pagination.rows < clusters.length" v-model="pagination.current" :page-size-menu="[ pagination.rows, pagination.rows*2, pagination.rows*3 ]" :total-row="clusters.length" @page-change="pageChange" align="center" ref="page"></v-page>
 			</div>
 		</template>
 		<div id="nameTooltip">
@@ -143,7 +144,7 @@
 		},
 		computed: {
 			clusters () {
-				return this.sortTable([...store.state.clusters], this.currentSort.param, this.currentSortDir, this.currentSort.type)
+				return this.sortTable([...(store.state.clusters.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type)
 			},
 
 			namespaces() {

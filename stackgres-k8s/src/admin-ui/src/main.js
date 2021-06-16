@@ -3,12 +3,18 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import moment from 'moment'
+import page from 'v-page';
 
 Vue.config.productionTip = false
 
 // Include jQuery
 const $ = require('jquery')
 window.$ = $
+
+// Include v-page for pagination
+Vue.use(page, {
+  language: 'en',
+})
 
 // Include Prettycron
 var prettyCron = require('prettycron');

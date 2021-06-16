@@ -49,10 +49,10 @@
                             No configurations have been found. You don't have enough permissions to create a new one
                         </td>
                     </tr>
-                    <template v-for="cluster in clusters" v-if="(cluster.data.metadata.namespace == $route.params.namespace)">
-                        <tr class="base" :class="[ $route.params.name == cluster.data.metadata.name ? 'open' : '', 'logs-'+cluster.data.metadata.namespace+'-'+cluster.data.metadata.name ]" :data-name="cluster.data.metadata.name">
+                    <template v-for="(cluster, index) in clusters">
+                        <tr class="base" :class="[ $route.params.name == cluster.data.metadata.name ? 'open' : '', 'logs-'+cluster.data.metadata.namespace+'-'+cluster.data.metadata.name, ( (index < pagination.start) || (index >= pagination.end) ? 'hide' : '' )]" :data-name="cluster.data.metadata.name">
                             <td class="hasTooltip clusterName">
-                                <span>{{ cluster.data.metadata.name }}</span>
+                                <span>{{ cluster.name }}</span>
                             </td>
                             <td class="volumeSize fontZero">
                                 {{ cluster.data.spec.persistentVolume.size }}
@@ -67,7 +67,7 @@
                                 </a>
                             </td>
                         </tr>
-                        <tr :style="$route.params.name == cluster.data.metadata.name ? 'display: table-row' : ''" :class="$route.params.name == cluster.data.metadata.name ? 'open details logsCluster pgConfig' : 'details logsCluster pgConfig'">
+                        <tr :class="[$route.params.name == cluster.data.metadata.name ? 'open details logsCluster pgConfig' : 'details logsCluster pgConfig', ( (index < pagination.start) || (index >= pagination.end) ? 'hide' : '' )]">
                             <td colspan="3">
                                 <div class="configurationDetails">
                                     <table>
@@ -214,6 +214,7 @@
                 </tbody>
             </table>
         </div>
+        <v-page :key="'pagination-'+pagination.rows" v-if="pagination.rows < clusters.length" v-model="pagination.current" :page-size-menu="[ pagination.rows, pagination.rows*2, pagination.rows*3 ]" :total-row="clusters.length" @page-change="pageChange" align="center" ref="page"></v-page>
         <div id="nameTooltip">
             <div class="info"></div>
         </div>
@@ -256,9 +257,7 @@
             },
 
         },
-        created: function() {
-            
-        },
+        
         mounted: function() {
 
             const vc = this
@@ -283,7 +282,7 @@
         computed: {
 
             clusters () {
-                return this.sortTable( [...store.state.logsClusters], this.currentSort.param, this.currentSortDir, this.currentSort.type )
+                return this.sortTable([...(store.state.logsClusters.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type )
             },
             
             tooltips() {

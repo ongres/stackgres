@@ -1965,9 +1965,13 @@ li.status {
 }
 
 #main > .content:not(.noScroll) {
-    max-height: calc(100vh - 230px);
+    height: calc(100vh - 230px);
     overflow-y: auto;
     padding-right: 5px;
+}
+
+#main > .content.withPagination:not(.noScroll) {
+    height: calc(100vh - 290px);
 }
 
 .content table {
@@ -2901,7 +2905,7 @@ tr:nth-child(even), tr:nth-child(even) + tr.details {
 } */
 
 th, td {
-    height: 38px;
+    height: 40px;
     padding: 0 10px;
     position: relative;
     vertical-align: middle;
@@ -3169,6 +3173,10 @@ table table + table {
 
 .details th {
     color: #4D4F5C;
+}
+
+tr.details.open {
+    display: table-row;
 }
 
 tr.details > td {

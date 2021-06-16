@@ -55,12 +55,10 @@
 							No configurations have been found. You don't have enough permissions to create a new one
 						</td>
 					</tr>
-					<template v-for="conf in config" v-if="(conf.data.metadata.namespace == $route.params.namespace)">
-						<tr class="base" :class="[ $route.params.name == conf.name ? 'open' : '', 'profile-'+conf.data.metadata.namespace+'-'+conf.name ]" :data-name="conf.name">
+					<template v-for="(conf, index) in config">
+						<tr class="base" :class="[ $route.params.name == conf.name ? 'open' : '', 'profile-'+conf.data.metadata.namespace+'-'+conf.name, ( (index < pagination.start) || (index >= pagination.end) ? 'hide' : '' ) ]" :data-name="conf.name">
 							<td class="hasTooltip configName">
-								<span :data-tooltip="conf.name">
-									{{ conf.name }}
-								</span>
+								<span>{{ conf.name }}</span>
 							</td>
 							<td class="memory fontZero">{{ conf.data.spec.memory }}</td>
 							<td class="cpu fontZero">{{ conf.data.spec.cpu }}</td>
@@ -74,7 +72,7 @@
 								</a>
 							</td>
 						</tr>
-						<tr :style="$route.params.name == conf.name ? 'display: table-row' : ''" :class="$route.params.name == conf.name ? 'open details profile pgConfig' : 'details profile pgConfig'">
+						<tr :class="[$route.params.name == conf.name ? 'open details profile pgConfig' : 'details profile pgConfig',  ( (index < pagination.start) || (index >= pagination.end) ? 'hide' : '' ) ]">
 							<td colspan="4">
 								<div class="configurationDetails">
 									<table>
@@ -116,6 +114,7 @@
 				</tbody>
 			</table>
 		</div>
+		<v-page :key="'pagination-'+pagination.rows" v-if="pagination.rows < config.length" v-model="pagination.current" :page-size-menu="[ pagination.rows, pagination.rows*2, pagination.rows*3 ]" :total-row="config.length" @page-change="pageChange" align="center" ref="page"></v-page>
 		<div id="nameTooltip">
 			<div class="info"></div>
 		</div>
@@ -145,7 +144,7 @@
 		computed: {
 
 			config () {
-				return this.sortTable( [...store.state.profiles], this.currentSort.param, this.currentSortDir, this.currentSort.type )
+				return this.sortTable( [...(store.state.profiles.filter(conf => (conf.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type )
 			},
 
 			tooltips() {

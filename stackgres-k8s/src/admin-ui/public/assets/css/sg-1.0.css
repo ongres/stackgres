@@ -238,6 +238,32 @@ svg.background circle {
     border-color: #444444;
 }
 
+/* Pagination Styling */
+.v-pagination>ul>li>a {
+    font-size: inherit;
+}
+
+.darkmode .v-pagination>ul>li>a, .darkmode div.v-pagination>ul>li.disabled>a:hover, .darkmode div.v-pagination>ul>li.v-pagination__info>a:hover, .darkmode div.v-pagination>ul>li.v-pagination__list>a:hover {
+    background: var(--activeBg);
+    border-color: var(--borderColor);
+    color: var(--textColor);
+}
+
+.darkmode div.v-pagination>ul>li.disabled>a:hover, .darkmode div.v-pagination>ul>li.v-pagination__info>a:hover, .darkmode div.v-pagination>ul>li.v-pagination__list>a:hover {
+    filter: brightness(1.2)
+}
+
+.darkmode div.v-pagination>ul>li.active>a {
+    background: #444;
+    color: var(--textColor);
+}
+
+.darkmode div.v-pagination>ul>li.v-pagination__list select {
+    background: #444;
+    color: var(--textColor);
+    border-color: var(--borderColor);
+}
+
 .connInfo code, #contentTooltip .connInfo pre {
     font-weight: 600;
     font-family: monospace;
