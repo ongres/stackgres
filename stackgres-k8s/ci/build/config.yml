@@ -18,41 +18,32 @@ base_image: alpine:3.13.5
 base_jvm_image: registry.access.redhat.com/ubi8/openjdk-11:1.3-15
 base_native_image: registry.access.redhat.com/ubi8-minimal:8.3-298.1618432845
 modules:
-  stackgres-parent:
+  stackgres:
     type: java
-    artifact: stackgres-parent
     path: stackgres-k8s/src/.
     sources:
       - stackgres-k8s/src/pom.xml
       - stackgres-k8s/src/checks
-  operator-framework:
-    type: java
-    path: stackgres-k8s/src/operator-framework
-  test-util:
-    type: java
-    path: stackgres-k8s/src/test-util
-  common:
-    type: java
-    path: stackgres-k8s/src/common
-  operator:
-    type: java
-    path: stackgres-k8s/src/operator
-  restapi:
-    type: java
-    path: stackgres-k8s/src/api-web
+      - stackgres-k8s/src/operator-framework/pom.xml
+      - stackgres-k8s/src/operator-framework/src
+      - stackgres-k8s/src/test-util/pom.xml
+      - stackgres-k8s/src/test-util/src
+      - stackgres-k8s/src/common/pom.xml
+      - stackgres-k8s/src/common/src
+      - stackgres-k8s/src/operator/pom.xml
+      - stackgres-k8s/src/operator/src
+      - stackgres-k8s/src/api-web/pom.xml
+      - stackgres-k8s/src/api-web/src
+      - stackgres-k8s/src/jobs/pom.xml
+      - stackgres-k8s/src/jobs/src
+      - stackgres-k8s/src/cluster-controller/pom.xml
+      - stackgres-k8s/src/cluster-controller/src
+      - stackgres-k8s/src/ditributedlogs-controller/pom.xml
+      - stackgres-k8s/src/ditributedlogs-controller/src
     post_build_commands:
       - 'microdnf install python3-pip jq'
       - 'pip3 install yamllint yq'
       - 'sh $SHELL_XTRACE stackgres-k8s/src/api-web/src/main/swagger/build.sh'
-  jobs:
-    type: java
-    path: stackgres-k8s/src/jobs
-  cluster-controller:
-    type: java
-    path: stackgres-k8s/src/cluster-controller
-  distributedlogs-controller:
-    type: java
-    path: stackgres-k8s/src/distributedlogs-controller
   admin-ui:
     type: web
     path: stackgres-k8s/src/admin-ui
@@ -157,27 +148,19 @@ modules:
       - sh $SHELL_XTRACE stackgres-k8s/install/helm/build-helm-templates.sh
     target: stackgres-k8s/install/helm/target/templates
 stages:
-  - stackgres-parent: null
-  - operator-framework: stackgres-parent
-  - test-util: operator-framework
-  - common: test-util
-  - operator: common
-  - restapi: common
-  - jobs: common
-  - cluster-controller: common
-  - distributedlogs-controller: common
-  - admin-ui: restapi
-  - operator-jvm-image: operator
-  - restapi-jvm-image: restapi
-  - jobs-jvm-image: jobs
-  - cluster-controller-jvm-image: cluster-controller
-  - distributedlogs-controller-jvm-image: distributedlogs-controller
+  - stackgres: null
+  - admin-ui: stackgres
+  - operator-jvm-image: stackgres
+  - restapi-jvm-image: stackgres
+  - jobs-jvm-image: stackgres
+  - cluster-controller-jvm-image: stackgres
+  - distributedlogs-controller-jvm-image: stackgres
   - admin-ui-image: admin-ui
-  - operator-native: operator
-  - restapi-native: restapi
-  - jobs-native: jobs
-  - cluster-controller-native: cluster-controller
-  - distributedlogs-controller-native: distributedlogs-controller
+  - operator-native: stackgres
+  - restapi-native: stackgres
+  - jobs-native: stackgres
+  - cluster-controller-native: stackgres
+  - distributedlogs-controller-native: stackgres
   - operator-native-image: operator-native
   - restapi-native-image: restapi-native
   - jobs-native-image: jobs-native

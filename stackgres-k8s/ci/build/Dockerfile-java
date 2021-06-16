@@ -26,7 +26,7 @@ FROM docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11 as build
   RUN sh -ec $SHELL_XTRACE "$PRE_BUILD_COMMANDS"
   USER $UID
   ENV HOME=/project
-  RUN mvn $MAVEN_CLI_OPTS clean install -P safer -f "$MODULE_PATH/pom.xml" -N
+  RUN mvn $MAVEN_CLI_OPTS clean install -P safer -f "$MODULE_PATH/pom.xml"
   ARG POST_BUILD_COMMANDS
   USER root
   RUN sh -ec $SHELL_XTRACE "$POST_BUILD_COMMANDS"
