@@ -33,7 +33,8 @@ java_module_image_name() {
   local MODULE_SOURCES
   local MODULE_HASH
   MODULE_PATH="$(jq -r ".modules[\"$MODULE\"].path" stackgres-k8s/ci/build/target/config.json)"
-  MODULE_SOURCES="$(module_sources "$MODULE" "[ \"$MODULE_PATH/pom.xml\", \"$MODULE_PATH/src\" ]")"
+  MODULE_SOURCES="$(module_list_of_files "$MODULE" sources "[ \"$MODULE_PATH/pom.xml\", \"$MODULE_PATH/src\" ]")"
+  MODULE_ARTIFACTS="$(module_list_of_files "$MODULE" artifacts)"
   for MODULE_SOURCE in $MODULE_SOURCES
   do
     [ -f "$MODULE_SOURCE" ] || [ -d "$MODULE_SOURCE" ] \
@@ -45,7 +46,8 @@ java_module_image_name() {
     jq -r ".modules[\"$MODULE\"]" stackgres-k8s/ci/build/target/config.json
     jq -r '.maven_opts' stackgres-k8s/ci/build/target/config.json
     jq -r '.maven_cli_opts' stackgres-k8s/ci/build/target/config.json
-    cat_module_sources $MODULE_SOURCES
+    cat_files $MODULE_SOURCES
+    echo "$MODULE_ARTIFACTS"
     ) | md5sum | cut -d ' ' -f 1)"
   printf 'registry.gitlab.com/ongresinc/stackgres/build/%s:hash-%s\n' "$MODULE" "$MODULE_HASH"
 }
@@ -65,6 +67,14 @@ build_java_image() {
   POST_BUILD_COMMANDS="$(jq -r ".modules[\"$MODULE\"].post_build_commands | if . != null then . | join(\"\n\") else true end" stackgres-k8s/ci/build/target/config.json)"
   MAVEN_OPTS="$(jq -r '.maven_opts' stackgres-k8s/ci/build/target/config.json)"
   MAVEN_CLI_OPTS="$(jq -r '.maven_cli_opts' stackgres-k8s/ci/build/target/config.json)"
+  MODULE_ARTIFACTS="$(module_list_of_files "$MODULE" artifacts)"
+  (
+  cat stackgres-k8s/ci/build/Dockerfile-java
+  for MODULE_ARTIFACT in $MODULE_ARTIFACTS
+  do
+    echo "  COPY --from=build /project/$MODULE_ARTIFACT /project/$MODULE_ARTIFACT"
+  done
+  ) > "stackgres-k8s/ci/build/target/Dockerfile.$MODULE"
   docker_build $DOCKER_BUILD_OPTS -t "$IMAGE_NAME" \
     --build-arg "UID=$UID" \
     --build-arg "IMAGE_NAME=$IMAGE_NAME" \
@@ -76,15 +86,7 @@ build_java_image() {
     --build-arg "MAVEN_CLI_OPTS=$MAVEN_CLI_OPTS" \
     --build-arg "MODULE_PACKAGE_PATH=io/stackgres" \
     --build-arg "SHELL_XTRACE=$([ "$DEBUG" != true ] || printf '%s' -x)" \
-    -f stackgres-k8s/ci/build/Dockerfile-java .
-}
-
-copy_java_cache() {
-  [ -n "$1" -a -n "$2" ]
-  local MODULE="$1"
-  local BUILD_IMAGE_ID="$2"
-  MODULE_PATH="$(jq -r ".modules[\"$MODULE\"].path" stackgres-k8s/ci/build/target/config.json)"
-  extract_from_image "$BUILD_IMAGE_ID" .m2 "$MODULE_PATH/target/surefire-reports/TEST-*.xml"
+    -f "stackgres-k8s/ci/build/target/Dockerfile.$MODULE" .
 }
 
 #
@@ -99,14 +101,21 @@ web_module_image_name() {
   local MODULE_SOURCES
   local MODULE_HASH
   MODULE_PATH="$(jq -r ".modules[\"$MODULE\"].path" stackgres-k8s/ci/build/target/config.json)"
-  MODULE_SOURCES="$(module_sources "$MODULE")"
+  MODULE_SOURCES="$(module_list_of_files "$MODULE" sources)"
+  MODULE_ARTIFACTS="$(module_list_of_files "$MODULE" artifacts)"
+  for MODULE_SOURCE in $MODULE_SOURCES
+  do
+    [ -f "$MODULE_SOURCE" ] || [ -d "$MODULE_SOURCE" ] \
+      || message_and_exit "$MODULE_SOURCE not found or type not supported for module $MODULE" 1
+  done
   MODULE_HASH="$( (
     echo "$SOURCE_IMAGE_NAME"
     cat stackgres-k8s/ci/build/Dockerfile-web
     jq -r ".modules[\"$MODULE\"]" stackgres-k8s/ci/build/target/config.json
     grep '<artifactId>stackgres-parent</artifactId>' "stackgres-k8s/src/pom.xml" -A 2 -B 2 \
       | sed -n 's/^.*<version>\([^<]\+\)<\/version>.*$/\1/p'
-    cat_module_sources $MODULE_SOURCES
+    cat_files $MODULE_SOURCES
+    echo "$MODULE_ARTIFACTS"
     ) | md5sum | cut -d ' ' -f 1)"
   printf 'registry.gitlab.com/ongresinc/stackgres/build/%s:hash-%s' "$MODULE" "$MODULE_HASH"
 }
@@ -120,6 +129,14 @@ build_web_image() {
   local BUILD_COMMANDS
   MODULE_PATH="$(jq -r ".modules[\"$MODULE\"].path" stackgres-k8s/ci/build/target/config.json)"
   BUILD_COMMANDS="$(jq -r ".modules[\"$MODULE\"].build_commands | join(\"\n\")" stackgres-k8s/ci/build/target/config.json)"
+  MODULE_ARTIFACTS="$(module_list_of_files "$MODULE" artifacts)"
+  (
+  cat stackgres-k8s/ci/build/Dockerfile-web
+  for MODULE_ARTIFACT in $MODULE_ARTIFACTS
+  do
+    echo "  COPY --from=build /project/$MODULE_ARTIFACT /project/$MODULE_ARTIFACT"
+  done
+  ) > "stackgres-k8s/ci/build/target/Dockerfile.$MODULE"
   docker_build $DOCKER_BUILD_OPTS -t "$IMAGE_NAME" \
     --build-arg "UID=$UID" \
     --build-arg "SOURCE_IMAGE_NAME=$SOURCE_IMAGE_NAME" \
@@ -127,16 +144,7 @@ build_web_image() {
     --build-arg "BUILD_COMMANDS=$BUILD_COMMANDS" \
     --build-arg "MODULE_PATH=$MODULE_PATH" \
     --build-arg "SHELL_XTRACE=$([ "$DEBUG" != true ] || printf '%s' -x)" \
-    -f stackgres-k8s/ci/build/Dockerfile-web .
-}
-
-copy_web_cache() {
-  [ -n "$1" -a -n "$2" ]
-  local MODULE="$1"
-  local BUILD_IMAGE_ID="$2"
-  local MODULE_PATH
-  MODULE_PATH="$(jq -r ".modules[\"$MODULE\"].path" stackgres-k8s/ci/build/target/config.json)"
-  extract_from_image "$BUILD_IMAGE_ID" "$MODULE_PATH/node_modules"
+    -f "stackgres-k8s/ci/build/target/Dockerfile.$MODULE" .
 }
 
 #
@@ -263,6 +271,14 @@ build_native_image() {
   POST_BUILD_COMMANDS="$(jq -r ".modules[\"$MODULE\"].post_build_commands | if . != null then . | join(\"\n\") else true end" stackgres-k8s/ci/build/target/config.json)"
   MAVEN_OPTS="$(jq -r '.maven_opts' stackgres-k8s/ci/build/target/config.json)"
   MAVEN_CLI_OPTS="$(jq -r '.maven_cli_opts' stackgres-k8s/ci/build/target/config.json)"
+  MODULE_ARTIFACTS="$(module_list_of_files "$MODULE" artifacts)"
+  (
+  cat stackgres-k8s/ci/build/Dockerfile-native
+  for MODULE_ARTIFACT in $MODULE_ARTIFACTS
+  do
+    echo "  COPY --from=build /project/$MODULE_ARTIFACT /project/$MODULE_ARTIFACT"
+  done
+  ) > "stackgres-k8s/ci/build/target/Dockerfile.$MODULE"
   docker_build $DOCKER_BUILD_OPTS -t "$IMAGE_NAME" \
     --build-arg "UID=$UID" \
     --build-arg "IMAGE_NAME=$IMAGE_NAME" \
@@ -274,15 +290,7 @@ build_native_image() {
     --build-arg "MAVEN_OPTS=$MAVEN_OPTS" \
     --build-arg "MAVEN_CLI_OPTS=$MAVEN_CLI_OPTS" \
     --build-arg "SHELL_XTRACE=$([ "$DEBUG" != true ] || printf '%s' -x)" \
-    -f stackgres-k8s/ci/build/Dockerfile-native .
-}
-
-copy_native_cache() {
-  [ -n "$1" -a -n "$2" ]
-  local MODULE="$1"
-  local BUILD_IMAGE_ID="$2"
-  MODULE_PATH="$(jq -r ".modules[\"$MODULE\"].path" stackgres-k8s/ci/build/target/config.json)"
-  extract_from_image "$BUILD_IMAGE_ID" .m2
+    -f "stackgres-k8s/ci/build/target/Dockerfile.$MODULE" .
 }
 
 #
@@ -339,11 +347,18 @@ resource_module_image_name() {
   local SOURCE_IMAGE_NAME="$2"
   local MODULE_SOURCES
   local MODULE_HASH
-  MODULE_SOURCES="$(module_sources "$MODULE")"
+  MODULE_SOURCES="$(module_list_of_files "$MODULE" sources)"
+  MODULE_ARTIFACTS="$(module_list_of_files "$MODULE" artifacts)"
+  for MODULE_SOURCE in $MODULE_SOURCES
+  do
+    [ -f "$MODULE_SOURCE" ] || [ -d "$MODULE_SOURCE" ] \
+      || message_and_exit "$MODULE_SOURCE not found or type not supported for module $MODULE" 1
+  done
   MODULE_HASH="$( (
     echo "$SOURCE_IMAGE_NAME"
     cat stackgres-k8s/ci/build/Dockerfile-resource
-    cat_module_sources $MODULE_SOURCES
+    cat_files $MODULE_SOURCES
+    echo "$MODULE_ARTIFACTS"
     ) | md5sum | cut -d ' ' -f 1)"
   printf 'registry.gitlab.com/ongresinc/stackgres/build/%s:hash-%s' "$MODULE" "$MODULE_HASH"
 }
@@ -359,6 +374,14 @@ build_resource_image() {
   BUILD_IMAGE_NAME="$(jq -r ". as \$doc | .modules[\"$MODULE\"].build_image | if . != null then . else \$doc.base_image end" stackgres-k8s/ci/build/target/config.json)"
   BUILD_COMMANDS="$(jq -r ".modules[\"$MODULE\"].build_commands | join(\"\n\")" stackgres-k8s/ci/build/target/config.json)"
   MODULE_TARGET="$(jq -r ".modules[\"$MODULE\"].target" stackgres-k8s/ci/build/target/config.json)"
+  MODULE_ARTIFACTS="$(module_list_of_files "$MODULE" artifacts)"
+  (
+  cat stackgres-k8s/ci/build/Dockerfile-resource
+  for MODULE_ARTIFACT in $MODULE_ARTIFACTS
+  do
+    echo "  COPY --from=build /project/$MODULE_ARTIFACT /project/$MODULE_ARTIFACT"
+  done
+  ) > "stackgres-k8s/ci/build/target/Dockerfile.$MODULE"
   docker_build $DOCKER_BUILD_OPTS -t "$IMAGE_NAME" \
     --build-arg "UID=$UID" \
     --build-arg "IMAGE_NAME=$IMAGE_NAME" \
@@ -367,45 +390,41 @@ build_resource_image() {
     --build-arg "BUILD_COMMANDS=$BUILD_COMMANDS" \
     --build-arg "MODULE_TARGET=$MODULE_TARGET" \
     --build-arg "SHELL_XTRACE=$([ "$DEBUG" != true ] || printf '%s' -x)" \
-    -f stackgres-k8s/ci/build/Dockerfile-resource .
+    -f "stackgres-k8s/ci/build/target/Dockerfile.$MODULE" .
 }
 
 #
 # Other helper functions
 #
 
-module_sources() {
-  [ -n "$1" ]
+module_list_of_files() {
+  [ -n "$1" -a -n "$2" ]
   local MODULE="$1"
-  if [ -n "$2" ]
-  then
-    jq -r ".modules[\"$MODULE\"].sources | if . != null then . else $2 end | .[]" stackgres-k8s/ci/build/target/config.json
-  else
-    jq -r ".modules[\"$MODULE\"].sources[]" stackgres-k8s/ci/build/target/config.json
-  fi
-  for MODULE_SOURCE in $MODULE_SOURCES
-  do
-    if ! [ -f "$MODULE_SOURCE" ] && ! [ -d "$MODULE_SOURCE" ]
+  local MODULE_FILES_PATH="$2"
+  local MODULE_FILES
+  MODULE_FILES="$(
+    if [ -n "$3" ]
     then
-      echo "$MODULE_SOURCE not found or type not supported" >&2
-      return 1
+      jq -r ".modules[\"$MODULE\"][\"$MODULE_FILES_PATH\"] | if . != null then . else $3 end | .[]" stackgres-k8s/ci/build/target/config.json
+    else
+      jq -r ".modules[\"$MODULE\"][\"$MODULE_FILES_PATH\"][]" stackgres-k8s/ci/build/target/config.json
     fi
-  done
+    )"
+  printf '%s' "$MODULE_FILES"
 }
 
-cat_module_sources() {
-  local MODULE_SOURCE
-  for MODULE_SOURCE in "$@"
+cat_files() {
+  local MODULE_FILE
+  for MODULE_FILE in "$@"
   do
-    if [ -f "$MODULE_SOURCE" ]
+    if [ -f "$MODULE_FILE" ]
     then
-      cat "$MODULE_SOURCE"
-    elif [ -d "$MODULE_SOURCE" ]
+      cat "$MODULE_FILE"
+    elif [ -d "$MODULE_FILE" ]
     then
-      find "$MODULE_SOURCE" -type f | sort | xargs -I @ cat '@'
+      find "$MODULE_FILE" -type f | sort | xargs -I @ cat '@'
     fi
   done
-
 }
 
 docker_build() {
@@ -434,7 +453,6 @@ set_module_functions() {
   MODULE_TYPE_PREFIX="$(printf '%s' "$MODULE_TYPE" | tr '-' '_')"
   MODULE_IMAGE_NAME_FUNCTION="${MODULE_TYPE_PREFIX}_module_image_name"
   MODULE_BUILD_FUNCTION="build_${MODULE_TYPE_PREFIX}_image"
-  MODULE_COPY_CACHE_FUNCTION="copy_${MODULE_TYPE_PREFIX}_cache"
 }
 
 source_image_name() {
@@ -488,17 +506,18 @@ build_image() {
     then
       echo "Already exists locally. Skipping build ..."
     else
-      echo "Building  ..."
+      echo "Building $MODULE ..."
       docker images --filter "label=build-of=$IMAGE_NAME" --format '{{.ID}}' \
 	| while read ID
           do
             docker rmi "$ID"
           done
       "$MODULE_BUILD_FUNCTION" "$MODULE" "$SOURCE_IMAGE_NAME" "$IMAGE_NAME"
-      if command -v "$MODULE_COPY_CACHE_FUNCTION" > /dev/null
+      MODULE_CACHE="$(module_list_of_files "$MODULE" cache "[]")"
+      if [ -n "$MODULE_CACHE" ]
       then
         BUILD_IMAGE_ID="$(docker images --filter "label=build-of=$IMAGE_NAME" --format '{{.ID}}')"
-        "$MODULE_COPY_CACHE_FUNCTION" "$MODULE" "$BUILD_IMAGE_ID"
+        extract_from_image "$BUILD_IMAGE_ID" $MODULE_CACHE
       fi
     fi
     if [ "$SKIP_PUSH" != true ]

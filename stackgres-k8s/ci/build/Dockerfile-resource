@@ -25,6 +25,6 @@ FROM "$BUILD_IMAGE_NAME" as build
   LABEL build-of=$IMAGE_NAME
 
 FROM "$SOURCE_IMAGE_NAME" as package
-  ARG MODULE_TARGET
-  COPY --from=build /project/$MODULE_TARGET /project/$MODULE_TARGET
+  ARG UID
+  USER $UID
   WORKDIR /project

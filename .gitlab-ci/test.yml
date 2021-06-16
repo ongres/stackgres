@@ -42,7 +42,7 @@ swagger validations:
     when: [ unknown_failure, api_failure, stuck_or_timeout_failure, runner_system_failure, runner_unsupported,
      stale_schedule, job_execution_timeout, archived_failure, unmet_prerequisites, scheduler_failure, data_integrity_failure ] 
   dependencies:
-    - build restapi
+    - build
   artifacts:
     expire_in: 1 week
     when: always
@@ -58,6 +58,9 @@ swagger validations:
     IS_NATIVE: "false"
     IS_WEB: "false"
   timeout: 12 hour
+  dependencies:
+    - build helm packages
+    - build helm templates
   script:
     - |
       if ! (test "$E2E_JOBS" -ge 1 && test "$E2E_JOBS" -le 6)

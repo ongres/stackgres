@@ -31,9 +31,7 @@ stages:
   - pre build
   - build 1
   - build 2
-  - build 3
   - check release
-  - native build
   - image build
   - test
   - deploy

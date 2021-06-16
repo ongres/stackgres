@@ -44,6 +44,8 @@ The process is performed by the `build.sh` shell script that accept as parameter
 | modules.<name>.name | The name of a Maven module. Only required for module of type native, jvm-image or native-image |
 | modules.<name>.path | The path of the module relative to project root |
 | modules.<name>.sources | Only required for module of type `resource` and optional for module of type `java`. A list of source files and folders used to calculate the hash. |
+| modules.<name>.artifacts | Only required for module of type `java`, `native`, `web` and `resource`. A list of artifact files and folders to store in the built image. |
+| modules.<name>.cache | An optional list of cache files and folders to extract from the build stage image. |
 | modules.<name>.build_commands | Only required for module of type `resource`. A list of shell commands to build the module. |
 | modules.<name>.pre_build_commands | An optional list of shell commands to execute before the build. Only for `java` and `native` modules |
 | modules.<name>.post_build_commands | An optional list of shell commands to execute after the build. Only for `java` and `native` modules |
