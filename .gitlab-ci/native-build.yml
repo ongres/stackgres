@@ -1,7 +1,7 @@
 
 .build native executable:
   image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
-  stage: native build
+  stage: build 2
   tags:
     - stackgres-runner
     - stackgres-native-build-runner

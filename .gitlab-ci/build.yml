@@ -7,6 +7,7 @@ build:
   script:
     - |
       sh stackgres-k8s/ci/build/build-gitlab.sh build \
+        --copy stackgres-k8s/ci/build/target/junit-build.hashes.xml \
         --copy stackgres-k8s/src/.mvn \
         --copy .m2/repository \
         --extract stackgres:'stackgres-k8s/src/operator-framework/target/surefire-reports/TEST-*.xml' \
@@ -16,7 +17,7 @@ build:
         --extract stackgres:'stackgres-k8s/src/jobs/target/surefire-reports/TEST-*.xml' \
         --extract stackgres:'stackgres-k8s/src/cluster-controller/target/surefire-reports/TEST-*.xml' \
         --extract stackgres:'stackgres-k8s/src/distributedlogs-controller/target/surefire-reports/TEST-*.xml' \
-        --extract restapi:'stackgres-k8s/src/api-web/target/swagger*' \
+        --extract stackgres:'stackgres-k8s/src/api-web/target/swagger*' \
         stackgres
   retry:
     max: 2
@@ -33,6 +34,7 @@ build:
       junit:
         - stackgres-k8s/ci/build/target/junit-build.hashes.xml
         - stackgres-k8s/src/*/target/surefire-reports/TEST-*.xml
+    paths:
         - stackgres-k8s/src/api-web/target/swagger*
 
 build ui:
@@ -56,7 +58,7 @@ build documentation:
     entrypoint: [ "" ]
   stage: build 2
   dependencies:
-    - build restapi
+    - build
   script:
   - sh -x doc/build.sh
   - |
@@ -105,8 +107,16 @@ build helm packages:
   tags:
     - stackgres-runner
   script:
-    - sh stackgres-k8s/ci/build/build-gitlab.sh build helm-packages
+    - |
+      sh stackgres-k8s/ci/build/build-gitlab.sh build \
+        --extract helm-packages:stackgres-k8s/install/helm/target/packages \
+        helm-packages
   retry: 2
+  artifacts:
+    expire_in: 1 week
+    when: always
+    paths:
+      - stackgres-k8s/install/helm/target/packages
 
 build helm templates:
   image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
@@ -114,5 +124,13 @@ build helm templates:
   tags:
     - stackgres-runner
   script:
-    - sh stackgres-k8s/ci/build/build-gitlab.sh build helm-templates
+    - |
+      sh stackgres-k8s/ci/build/build-gitlab.sh build \
+        --extract helm-templates:stackgres-k8s/install/helm/target/templates \
+        helm-templates
   retry: 2
+  artifacts:
+    expire_in: 1 week
+    when: always
+    paths:
+      - stackgres-k8s/install/helm/target/templates

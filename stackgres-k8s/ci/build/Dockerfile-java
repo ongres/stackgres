@@ -35,8 +35,6 @@ FROM docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11 as build
   LABEL build-of=$IMAGE_NAME
 
 FROM "$SOURCE_IMAGE_NAME" as package
-  ARG MODULE_PATH
-  COPY --from=build /project/$MODULE_PATH/target /project/$MODULE_PATH/target
-  ARG MODULE_PACKAGE_PATH
-  COPY --from=build /project/.m2/repository/io/stackgres /project/.m2/repository/$MODULE_PACKAGE_PATH
+  ARG UID
+  USER $UID
   WORKDIR /project

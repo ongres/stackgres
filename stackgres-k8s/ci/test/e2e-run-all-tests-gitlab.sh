@@ -26,19 +26,11 @@ do
   export E2E_LOCK_PATH="/tmp/e2e-lock$SUFFIX"
   export KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache/$KIND_NAME"
 
-  if [ -n "$E2E_TEST" ]
-  then
-    export E2E_ONLY_INCLUDES="$E2E_TEST"
-  fi
-
   if [ "$E2E_CLEAN_IMAGE_CACHE" = "true" ]
   then
     rm -rf "$E2E_PULLED_IMAGES_PATH"
   fi
 
-  docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-
-  echo "Retrieving jobs cache..."
   if "$IS_WEB"
   then
     E2E_TEST=ui
@@ -47,6 +39,10 @@ do
   then
     export E2E_ONLY_INCLUDES="$E2E_TEST"
   fi
+
+  docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+
+  echo "Retrieving jobs cache..."
   export IS_WEB
   export IS_NATIVE
   E2E_EXCLUDES_BY_HASH="$(flock /tmp/e2e-retrieve-pipeline-info.lock \
