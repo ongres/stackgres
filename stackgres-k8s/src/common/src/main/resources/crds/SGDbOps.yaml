@@ -296,6 +296,11 @@ spec:
                           last longer so we encourage use the reduced impact restart and especially for a production environment.
                         * `ReducedImpact`: this procedure is the same as the in-place method but require additional
                           resources in order to spawn a new updated replica that will be removed when the procedure completes.
+                    onlyPendingRestart:
+                      type: boolean
+                      description: |
+                        By default all Pods are restarted. Setting this option to `true` allow to restart only those Pods which
+                         are in pending restart state as detected by the operation.
                 minorVersionUpgrade:
                   type: object
                   description: |

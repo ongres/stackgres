@@ -33,6 +33,9 @@ public class StackGresDbOpsRestart implements KubernetesResource {
   @JsonProperty("restartPrimaryFirst")
   private Boolean restartPrimaryFirst;
 
+  @JsonProperty("onlyPendingRestart")
+  private Boolean onlyPendingRestart;
+
   @ReferencedField("method")
   interface Method extends FieldReference { }
 
@@ -63,6 +66,14 @@ public class StackGresDbOpsRestart implements KubernetesResource {
 
   public void setRestartPrimaryFirst(Boolean restartPrimaryFirst) {
     this.restartPrimaryFirst = restartPrimaryFirst;
+  }
+
+  public Boolean getOnlyPendingRestart() {
+    return onlyPendingRestart;
+  }
+
+  public void setOnlyPendingRestart(Boolean onlyPendingRestart) {
+    this.onlyPendingRestart = onlyPendingRestart;
   }
 
   @Override

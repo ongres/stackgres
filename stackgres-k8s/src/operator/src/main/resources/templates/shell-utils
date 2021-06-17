@@ -122,6 +122,11 @@ date_iso8601() {
   date +%Y-%m-%dT%H:%M:%SZ --utc
 }
 
+from_date_iso8601_to_unix_timestamp() {
+  [ -n "$1" ]
+  date -d "$1" +%s
+}
+
 kill_with_childs() {
   (
   set +e
@@ -146,6 +151,7 @@ kill_session_siblings() {
   (
   set +e
   local PID="$(exec "$SHELL" -c 'echo $PPID')"
+  local NSUID="$(id -u)"
   local NSSID="$(grep '^NSsid:[[:space:]]' "/proc/$PID/status" \
         | tr -d '[:space:]' | cut -d : -f 2)"
   local SPIDS="x"
@@ -163,8 +169,8 @@ kill_session_siblings() {
       -lt "$(echo "$SPIDS" | wc -w)" ]
   do
     test "$SPIDS" = "x" || kill -13 $SPIDS 2>/dev/null || true
-    SPIDS="$(grep '^NSsid:[[:space:]]'"$NSSID"'$' /proc/[0-9]*/status 2>/dev/null \
-      | cut -d / -f 3 | grep -v '^'"\($(echo "$OPIDS" | sed 's/ /\\|/g')\)"'$' | tr '\n' ' ')"
+    SPIDS="$(grep '\(^Uid:[[:space:]]\+'"$NSUID"'[[:space:]]\|^NSsid:[[:space:]]'"$NSSID"'$\)' -c /proc/[0-9]*/status 2>/dev/null \
+      | grep ':2$' | cut -d / -f 3 | grep -v '^'"\($(echo "$OPIDS" | sed 's/ /\\|/g')\)"'$' | tr '\n' ' ')"
   done
   ) || true
 }
