@@ -20,8 +20,9 @@ class StorageValidatorTest {
   @Test
   void givenCreationWithoutVolumeProperties_shouldFail() {
 
-    BackupConfigReview review = JsonUtil.readFromJson("backupconfig_allow_request/invalid_creation_no_s3.json",
-        BackupConfigReview.class);
+    BackupConfigReview review =
+        JsonUtil.readFromJson("backupconfig_allow_request/invalid_creation_no_s3.json",
+            BackupConfigReview.class);
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
@@ -35,8 +36,9 @@ class StorageValidatorTest {
   @Test
   void givenCreationWithGcsAndS3Properties_shouldFail() {
 
-    BackupConfigReview review = JsonUtil.readFromJson("backupconfig_allow_request/invalid_creation_gcs_and_s3.json",
-        BackupConfigReview.class);
+    BackupConfigReview review =
+        JsonUtil.readFromJson("backupconfig_allow_request/invalid_creation_gcs_and_s3.json",
+            BackupConfigReview.class);
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);

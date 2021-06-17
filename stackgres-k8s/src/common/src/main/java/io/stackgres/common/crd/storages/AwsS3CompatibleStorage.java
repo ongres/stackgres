@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.validation.ValidEnum;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -43,6 +44,8 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
   private Boolean enablePathStyleAddressing;
 
   @JsonProperty("storageClass")
+  @ValidEnum(enumClass = StorageClassS3.class, allowNulls = true,
+      message = "storageClass must be one of STANDARD, STANDARD_IA or REDUCED_REDUNDANCY.")
   private String storageClass;
 
   @Override
