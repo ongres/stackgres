@@ -1238,6 +1238,7 @@ export const mixin = {
 
       $(window).on('resize', function() {
         vc.pagination.rows = parseInt(($(window).innerHeight() - 380)/40)
+        vc.pagination.rows = (vc.pagination.rows <= 0) ? 1 : vc.pagination.rows
         vc.pageChange({
           pageNumber: 1,
           pageSize: vc.pagination.rows

@@ -246,10 +246,13 @@ svg.background circle {
 .darkmode .v-pagination>ul>li>a, .darkmode div.v-pagination>ul>li.disabled>a:hover, .darkmode div.v-pagination>ul>li.v-pagination__info>a:hover, .darkmode div.v-pagination>ul>li.v-pagination__list>a:hover {
     background: var(--activeBg);
     border-color: var(--borderColor);
+}
+
+.darkmode .v-pagination>ul>li:not(.disabled):not(.v-pagination__info):not(.v-pagination__list)>a:hover, .darkmode .v-pagination>ul>li:not(.disabled):not(.v-pagination__info):not(.v-pagination__list)>a {
     color: var(--textColor);
 }
 
-.darkmode div.v-pagination>ul>li.disabled>a:hover, .darkmode div.v-pagination>ul>li.v-pagination__info>a:hover, .darkmode div.v-pagination>ul>li.v-pagination__list>a:hover {
+.darkmode .v-pagination>ul>li:not(.disabled):not(.v-pagination__info):not(.v-pagination__list)>a:hover {
     filter: brightness(1.2)
 }
 
@@ -262,6 +265,10 @@ svg.background circle {
     background: #444;
     color: var(--textColor);
     border-color: var(--borderColor);
+}
+
+div.v-pagination>ul>li:nth-child(n+8):not(:last-child):not(:nth-last-child(2)) {
+    display: none;
 }
 
 .connInfo code, #contentTooltip .connInfo pre {

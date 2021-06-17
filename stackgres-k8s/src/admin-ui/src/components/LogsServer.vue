@@ -214,7 +214,7 @@
                 </tbody>
             </table>
         </div>
-        <v-page :key="'pagination-'+pagination.rows" v-if="pagination.rows < clusters.length" v-model="pagination.current" :page-size-menu="[ pagination.rows, pagination.rows*2, pagination.rows*3 ]" :total-row="clusters.length" @page-change="pageChange" align="center" ref="page"></v-page>
+        <v-page :key="'pagination-'+pagination.rows" v-if="pagination.rows < clusters.length" v-model="pagination.current" :page-size-menu="(pagination.rows > 1) ? [ pagination.rows, pagination.rows*2, pagination.rows*3 ] : [1]" :total-row="clusters.length" @page-change="pageChange" align="center" ref="page"></v-page>
         <div id="nameTooltip">
             <div class="info"></div>
         </div>
