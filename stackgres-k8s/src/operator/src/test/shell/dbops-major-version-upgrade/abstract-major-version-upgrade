@@ -167,22 +167,14 @@ kubectl_mock() {
     ("delete pod -n $CLUSTER_NAMESPACE test-1")
     echo true > "$TEST_TARGET_PATH/pod_1_restarted"
     ;;
-    ("exec -n $CLUSTER_NAMESPACE test-0 -c $PATRONI_CONTAINER_NAME -- psql "*)
-    STDIN="$(cat)"
-    case "$STDIN" in
-      (*"SHOW lc_collate"*)
-      echo 'en_US.UTF-8'
-      ;;
-      (*"SHOW server_encoding"*)
-      echo 'UTF8'
-      ;;
-      (*"data_checksums"*)
-      echo '"true"'
-      ;;
-      *)
-      echo 'false'
-      ;;
-    esac
+    ("exec -n $CLUSTER_NAMESPACE test-"*" -c $PATRONI_CONTAINER_NAME -- psql -t -A -c SHOW lc_collate")
+    echo 'en_US.UTF-8'
+    ;;
+    ("exec -n $CLUSTER_NAMESPACE test-"*" -c $PATRONI_CONTAINER_NAME -- psql -t -A -c SHOW server_encoding")
+    echo 'UTF8'
+    ;;
+    ("exec -n $CLUSTER_NAMESPACE test-"*" -c $PATRONI_CONTAINER_NAME -- psql -t -A -c SELECT CASE WHEN current_setting('data_checksums')"*)
+    echo '"true"'
     ;;
     *)
     not_mokked

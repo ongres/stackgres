@@ -1,0 +1,11 @@
+#!/bin/sh
+
+RESTART_PRIMARY_FIRST=fasle
+ONLY_PENDING_RESTART=true
+REDUCED_IMPACT=true
+
+. "$TEST_SHELL_PATH/dbops-restart/abstract-restart"
+
+shell_unit_test() {
+  shell_unit_test_dbops_restart
+}

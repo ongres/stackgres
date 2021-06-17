@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.quarkus.test.junit.mockito.InjectMock;
@@ -146,11 +147,11 @@ public abstract class ClusterStateHandlerTest {
 
     podTestUtil.preparePods(cluster, 0, 1, 2);
 
-    var pods = podTestUtil.getCLusterPods(cluster);
+    var pods = podTestUtil.getClusterPods(cluster);
 
     final String dbOpsName = dbOps.getMetadata().getName();
     var initializedOp = getRestartStateHandler()
-        .initDbOpsStatus(dbOpsName, namespace, pods)
+        .initDbOpsStatus(dbOpsName, namespace, cluster, pods)
         .await()
         .atMost(Duration.ofMillis(50))
         .getItem1();
@@ -195,7 +196,7 @@ public abstract class ClusterStateHandlerTest {
   void givenAnUninitializedClusterStatus_itShouldInitializeIt() {
     podTestUtil.preparePods(cluster, 0, 1, 2);
 
-    var pods = podTestUtil.getCLusterPods(cluster);
+    var pods = podTestUtil.getClusterPods(cluster);
 
     var initializedCluster = getRestartStateHandler()
         .initClusterDbOpsStatus(clusterName, namespace)
@@ -238,13 +239,13 @@ public abstract class ClusterStateHandlerTest {
     podTestUtil.preparePods(cluster, 0, 1, 2);
 
 
-    var pods = podTestUtil.getCLusterPods(cluster);
+    var pods = podTestUtil.getClusterPods(cluster);
 
     initializeDbOpsStatus(dbOps, pods);
 
     final String dbOpsName = dbOps.getMetadata().getName();
     var initializedOp = getRestartStateHandler()
-        .initDbOpsStatus(dbOpsName, namespace, pods)
+        .initDbOpsStatus(dbOpsName, namespace, cluster, pods)
         .await()
         .atMost(Duration.ofMillis(50))
         .getItem1();
@@ -256,7 +257,7 @@ public abstract class ClusterStateHandlerTest {
   void givenAnInitializedClusterStatus_itShouldNotModifiedIt() {
     podTestUtil.preparePods(cluster, 0, 1, 2);
 
-    var pods = podTestUtil.getCLusterPods(cluster);
+    var pods = podTestUtil.getClusterPods(cluster);
 
     initializeClusterStatus(cluster, pods);
 
@@ -276,7 +277,7 @@ public abstract class ClusterStateHandlerTest {
   void buildRestartState_shouldNotFail() {
     podTestUtil.preparePods(cluster, 0, 1, 2);
 
-    var pods = podTestUtil.getCLusterPods(cluster);
+    var pods = podTestUtil.getClusterPods(cluster);
 
     final Pod primaryPod = podTestUtil.buildPrimaryPod(cluster, 0);
 
@@ -289,6 +290,7 @@ public abstract class ClusterStateHandlerTest {
     var expectedClusterState = ImmutableClusterRestartState.builder()
         .namespace(namespace)
         .clusterName(clusterName)
+        .isOnlyPendingRrestart(false)
         .restartMethod(dbOps.getSpec().getSecurityUpgrade().getMethod())
         .isSwitchoverInitiated(Boolean.FALSE)
         .primaryInstance(primaryPod)
@@ -297,7 +299,8 @@ public abstract class ClusterStateHandlerTest {
         .addAllTotalInstances(pods)
         .build();
 
-    var clusterState = getRestartStateHandler().buildClusterRestartState(dbOps, pods);
+    var clusterState = getRestartStateHandler().buildClusterRestartState(
+        dbOps, ImmutableList.of(), Optional.empty(), pods);
 
     assertEqualsRestartState(expectedClusterState, clusterState);
 
@@ -308,7 +311,7 @@ public abstract class ClusterStateHandlerTest {
   void givenACleanCluster_shouldUpdateTheOpStatus() {
     podTestUtil.preparePods(cluster, 0, 1, 2);
 
-    var pods = podTestUtil.getCLusterPods(cluster)
+    var pods = podTestUtil.getClusterPods(cluster)
         .stream().sorted(Comparator.comparing(p -> p.getMetadata().getName()))
         .collect(Collectors.toUnmodifiableList());
 

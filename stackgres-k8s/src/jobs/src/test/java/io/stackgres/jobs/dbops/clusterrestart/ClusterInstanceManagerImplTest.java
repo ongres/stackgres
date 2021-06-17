@@ -177,7 +177,7 @@ class ClusterInstanceManagerImplTest {
     clusterInstanceManager.decreaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
 
-    var pods = podTestUtil.getCLusterPods(cluster);
+    var pods = podTestUtil.getClusterPods(cluster);
 
     assertEquals(2, pods.size());
 
@@ -208,7 +208,7 @@ class ClusterInstanceManagerImplTest {
     clusterInstanceManager.decreaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
 
-    var pods = podTestUtil.getCLusterPods(cluster);
+    var pods = podTestUtil.getClusterPods(cluster);
 
     assertEquals(2, pods.size());
 
@@ -237,7 +237,7 @@ class ClusterInstanceManagerImplTest {
     clusterInstanceManager.decreaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
 
-    var pods = podTestUtil.getCLusterPods(cluster);
+    var pods = podTestUtil.getClusterPods(cluster);
 
     assertEquals(2, pods.size());
 
@@ -269,7 +269,7 @@ class ClusterInstanceManagerImplTest {
     clusterInstanceManager.decreaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
 
-    var pods = podTestUtil.getCLusterPods(cluster);
+    var pods = podTestUtil.getClusterPods(cluster);
 
     assertEquals(0, pods.size());
 
@@ -300,7 +300,7 @@ class ClusterInstanceManagerImplTest {
     clusterInstanceManager.decreaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
 
-    var pods = podTestUtil.getCLusterPods(cluster);
+    var pods = podTestUtil.getClusterPods(cluster);
 
     assertEquals(0, pods.size());
 

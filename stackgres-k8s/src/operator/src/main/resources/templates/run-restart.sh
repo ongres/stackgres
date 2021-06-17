@@ -283,14 +283,14 @@ update_status() {
         then
           POD_CREATION_TIMESTAMP="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$INSTANCE" \
             --template '{{ .metadata.creationTimestamp }}')"
-          POD_CREATION_TIMESTAMP="$(from_date_iso8601_to_unix_timestamp "$POD_TIMESTAMP")"
+          POD_CREATION_TIMESTAMP="$(from_date_iso8601_to_unix_timestamp "$POD_CREATION_TIMESTAMP")"
           if [ "$POD_CREATION_TIMESTAMP" -lt "$START_TIMESTAMP" ]
           then
             echo "$INSTANCE"
           fi
         else
-          CLUSTER_POD_STATUS="$(kubectl get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$INSTANCE" \
-            -o=jsonpath='{ .status.podStatuses[(@.name == "'"$INSTANCE"'")].pendingRestart }')"
+          CLUSTER_POD_STATUS="$(kubectl get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+            -o=jsonpath='{ .status.podStatuses[?(@.name == "'"$INSTANCE"'")].pendingRestart }')"
           PATRONI_STATUS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$INSTANCE" \
             --template='{{ .metadata.annotations.status }}')"
           POD_STATEFULSET_REVISION="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$INSTANCE" \

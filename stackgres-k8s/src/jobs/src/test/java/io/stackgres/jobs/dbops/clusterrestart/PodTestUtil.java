@@ -61,7 +61,7 @@ public class PodTestUtil {
         .create(pod);
   }
 
-  public List<Pod> getCLusterPods(StackGresCluster cluster) {
+  public List<Pod> getClusterPods(StackGresCluster cluster) {
     return clientFactory.withNewClient(client ->
         client.pods().inNamespace(cluster.getMetadata().getNamespace())
             .withLabels(labelFactory.patroniClusterLabels(cluster))

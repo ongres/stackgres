@@ -8,7 +8,6 @@ package io.stackgres.operator.conciliation.factory.cluster.dbops;
 import static io.stackgres.operator.conciliation.factory.cluster.dbops.DbOpsUtil.jobName;
 
 import java.util.Map;
-import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -23,7 +22,6 @@ import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsRestart;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
@@ -51,7 +49,6 @@ public class DbOpsRestartJob implements JobFactory {
   public Job createJob(StackGresClusterContext context, StackGresDbOps dbOps) {
     String namespace = dbOps.getMetadata().getNamespace();
     final Map<String, String> labels = labelFactory.dbOpsPodLabels(context.getSource());
-    StackGresDbOpsRestart restart = dbOps.getSpec().getRestart();
     return new JobBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
@@ -78,27 +75,6 @@ public class DbOpsRestartJob implements JobFactory {
             .withImage(String.format(IMAGE_NAME,
                 StackGresProperty.OPERATOR_IMAGE_VERSION.getString()))
             .addToEnv(
-                new EnvVarBuilder()
-                .withName("REDUCED_IMPACT")
-                .withValue(Optional.ofNullable(restart)
-                    .map(StackGresDbOpsRestart::isMethodReducedImpact)
-                    .map(String::valueOf)
-                    .orElse("true"))
-                .build(),
-                new EnvVarBuilder()
-                .withName("RESTART_PRIMARY_FIRST")
-                .withValue(Optional.ofNullable(restart)
-                    .map(StackGresDbOpsRestart::getRestartPrimaryFirst)
-                    .map(String::valueOf)
-                    .orElse("true"))
-                .build(),
-                new EnvVarBuilder()
-                .withName("ONLY_PENDING_RESTART")
-                .withValue(Optional.ofNullable(restart)
-                    .map(StackGresDbOpsRestart::getOnlyPendingRestart)
-                    .map(String::valueOf)
-                    .orElse("false"))
-                .build(),
                 new EnvVarBuilder()
                     .withName(OperatorProperty.OPERATOR_NAME.getEnvironmentVariableName())
                     .withValue(OperatorProperty.OPERATOR_NAME.getString())

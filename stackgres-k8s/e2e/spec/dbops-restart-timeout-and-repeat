@@ -21,6 +21,8 @@ spec:
   sgCluster: $CLUSTER_NAME
   op: restart
   timeout: PT1S
+  restart:
+    method: InPlace
 EOF
 
   if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops restart \
@@ -60,14 +62,16 @@ EOF
 
 check_restart_repeat() {
     cat << EOF | kubectl create -f -
-  apiVersion: stackgres.io/v1
-  kind: SGDbOps
-  metadata:
-    name: restart
-    namespace: $CLUSTER_NAMESPACE
-  spec:
-    sgCluster: $CLUSTER_NAME
-    op: restart
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: restart
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: restart
+  restart:
+    method: InPlace
 EOF
 
   check_restart
