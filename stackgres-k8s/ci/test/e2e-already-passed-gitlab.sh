@@ -8,6 +8,36 @@
 curl -f -s --header "PRIVATE-TOKEN: $READ_API_TOKEN" \
   "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/pipelines?per_page=100" \
   > stackgres-k8s/ci/test/target/pipelines.json
+curl -f -s --header "PRIVATE-TOKEN: $READ_API_TOKEN" \
+  "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?per_page=100&scope[]=failed&scope[]=success&include_retried=true" \
+  > stackgres-k8s/ci/test/target/jobs.json
+mkdir -p "$TEMP_DIR/jobs"
+jq -r ".[] | select(.name == \"$CI_JOB_NAME\").id" stackgres-k8s/ci/test/target/jobs.json \
+  | xargs -I '~' -P 16 sh -ec "$(
+    get_or_default_script "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/~/artifacts" \
+      '' "$TEMP_DIR/jobs/artifacts.zip.~"
+    )
+    [ -f '$TEMP_DIR/jobs/job_test_report.~' ] \
+      || (unzip -p '$TEMP_DIR/jobs/artifacts.zip.~' stackgres-k8s/e2e/target/e2e-tests-junit-report.xml 2>/dev/null \
+          || echo '<empty />') \
+        | xq 'select(has(\"empty\")|not) | .testsuites.testsuite.test_cases = (
+            (if (.testsuites.testsuite.testcase | type) == \"object\"
+              then [.testsuites.testsuite.testcase] else .testsuites.testsuite.testcase end)
+            | map(.status = if has(\"failure\") then \"failure\" else \"success\" end
+              | del(.failure)
+              | .execution_time = .[\"@time\"]
+              | del(.[\"@time\"])))
+          | del(.testsuites.testsuite.testcase)
+          | .testsuites.testsuite.total_time = .testsuites.testsuite[\"@time\"]
+          | del(.testsuites.testsuite[\"@time\"])
+          | .testsuites.testsuite.total_count = .testsuites.testsuite[\"@tests\"]
+          | del(.testsuites.testsuite[\"@tests\"])
+          | .testsuites.testsuite[\"@name\"] = '\"\$(
+              jq '.[] | select(.id == ~).name' stackgres-k8s/ci/test/target/jobs.json
+            )\"'
+          | .test_suites = [ .testsuites.testsuite ]
+          | del(.testsuites)' | tr -d '@' \
+        > '$TEMP_DIR/jobs/job_test_report.~'"
 jq -r '.[] | .status + " " + .updated_at + " " + (.id | tostring)' stackgres-k8s/ci/test/target/pipelines.json \
   | while read STATUS UPDATED_AT PIPELINE_ID
     do
@@ -83,6 +113,7 @@ EOF
 TEST_HASHES="$(sh stackgres-k8s/e2e/e2e calculate_spec_hashes | sed 's#^.*/\([^/]\+\)$#\1#' \
   | jq -R . | jq -s 'map(.|split(":")|{ key: .[0], value: .[1] })|from_entries')"
 [ -n "$JAVA_MODULE_HASH" -a -n "$WEB_MODULE_HASH" -a -n "$NATIVE_MODULE_HASH" ]
+(
 jq -r -s "$(cat << EOF
   . as \$in | $TEST_HASHES as \$test_hashes
     | \$in[] | select(.[0].test_suites != null)
@@ -99,28 +130,25 @@ jq -r -s "$(cat << EOF
         | map(. as \$prefix | \$key | startswith(\$prefix)) | any))
       | sort_by(.key)) == $VARIABLES)
     | .[0].test_suites[]
-    | select(
-        (($IS_NATIVE | not) and (.name | test("^e2e ([^ ]+ )?tests jvm( |$)")))
-        or (($IS_NATIVE) and (.name | test("^e2e ([^ ]+ )?tests native( |$)")))
-      ).test_cases[]
-    | select(\$test_hashes[.classname] == .name and .status == "success").classname
-EOF
-  )" "$TEMP_DIR"/test_report_with_variables.* \
-    | sort | uniq | tr '\n' ' '
-
-jq -r "$(cat << EOF
-  .[0].test_suites[]
     | select(.name == "$CI_JOB_NAME").test_cases[]
-    | select(.status == "success") | "<testcase classname=\" + .classname + "\" name=\" + .name + "\" time=\" + (.execution_time|tostring) + "\" />"
+    | select(\$test_hashes[.classname] == .name and .status == "success")
 EOF
-  )" "$TEMP_DIR/test_report_with_variables.$CI_PIPELINE_ID" > stackgres-k8s/ci/test/target/already-passed-e2e-tests-junit-report.results.xml
+  )" "$TEMP_DIR"/test_report_with_variables.*
+jq -r -s "$(cat << EOF
+  .[] | .test_suites[]
+    | select(.name == "$CI_JOB_NAME").test_cases[]
+    | select(.status == "success")
+EOF
+  )" $(jq -r ".[] | select(.name == \"$CI_JOB_NAME\").id" stackgres-k8s/ci/test/target/jobs.json \
+    | xargs -I @ echo "$TEMP_DIR/jobs/job_test_report.@")
+) > stackgres-k8s/ci/test/target/already_passed_tests.json
+jq -r -s '.[] | .classname' stackgres-k8s/ci/test/target/already_passed_tests.json | sort | uniq | tr '\n' ' '
 
-E2E_ALREADY_PASSED_TIME="$(jq -r \
-  ".[0].test_suites[] | select(.name == \"$CI_JOB_NAME\").total_time" \
-  "$TEMP_DIR/test_report_with_variables.$CI_PIPELINE_ID")"
-E2E_ALREADY_PASSED_COUNT="$(jq -r \
-  ".[0].test_suites[] | select(.name == \"$CI_JOB_NAME\").success_count" \
-  "$TEMP_DIR/test_report_with_variables.$CI_PIPELINE_ID")"
+jq -r -s 'unique_by(.classname)[] | "<testcase classname=\"" + .classname + "\" name=\"" + .name + "\" time=\"" + (.execution_time|tostring) + "\" />"' \
+  stackgres-k8s/ci/test/target/already_passed_tests.json > stackgres-k8s/ci/test/target/already-passed-e2e-tests-junit-report.results.xml
+
+E2E_ALREADY_PASSED_COUNT="$(jq -r -s 'unique_by(.classname) | length' stackgres-k8s/ci/test/target/already_passed_tests.json)"
+E2E_ALREADY_PASSED_TIME="$(jq -r -s 'unique_by(.classname) | map(.execution_time) | add' stackgres-k8s/ci/test/target/already_passed_tests.json)"
 
 cat << EOF > stackgres-k8s/ci/test/target/already-passed-e2e-tests-junit-report.xml
 <?xml version="1.0" encoding="UTF-8"?>
