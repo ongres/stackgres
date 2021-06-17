@@ -24,10 +24,10 @@ get_or_default_script() {
 [ "$DEBUG" != true ] || set -x
 if [ ! -f '$FILE' ]
 then
-  HTTP_CODE="\$(curl -w '%{http_code}' -s --header 'PRIVATE-TOKEN: $READ_API_TOKEN' '$URL' -o '$FILE' || true)"
+  HTTP_CODE="\$(curl -w '%{http_code}' -s --location --header 'PRIVATE-TOKEN: $READ_API_TOKEN' '$URL' -o '$FILE' || true)"
   if [ "\${HTTP_CODE%??}" != 2 ]
   then
-    if [ "\${HTTP_CODE}" = 404 ]
+    if [ "\${HTTP_CODE}" = 404 -a -n '$DEFAULT' ]
     then
       printf '%s' '$DEFAULT' > '$FILE'
     else
