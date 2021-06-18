@@ -2,8 +2,6 @@
 
 . "$(dirname "$0")/e2e"
 
-setup_images
-
 export E2E_DOCKER_IMAGE="${E2E_DOCKER_IMAGE:-$(grep -n '</\?properties>' "$STACKGRES_PATH/src/pom.xml" | cut -d : -f 1 | tr '\n' ':' \
   | xargs -I % sh -c 'head -n "$(echo % | cut -d : -f 2)" '"$STACKGRES_PATH/src/pom.xml"' | tail -n "$(( $(echo % | cut -d : -f 2) - $(echo % | cut -d : -f 1) - 1 ))"' \
   | grep -o '<it.image>\([^<]\+\)</it.image>' | tr -d ' ' | tr '<>' '  ' | cut -d ' ' -f 3)}"
