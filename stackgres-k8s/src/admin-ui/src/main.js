@@ -336,8 +336,8 @@ $(document).ready(function(){
       $("#be-select.active").removeClass("active");
     }
 
-    if (!$(e.target).parents().addBack().is('.cloneCRD') && $('#clone').hasClass('show'))
-      $('#clone.show').fadeOut().removeClass('show');
+    if($('#clone.show').length && !$(e.target).parents().addBack().is('.cloneCRD'))
+      store.commit('setCloneCRD', {});
 
   });
   

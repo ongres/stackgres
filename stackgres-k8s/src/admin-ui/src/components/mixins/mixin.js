@@ -799,11 +799,8 @@ export const mixin = {
   
           store.commit('setCloneCRD', crd);
           
-          $('#cloneName').val(crd.data.metadata.name);
-          $('#cloneNamespace').val(crd.data.metadata.namespace);
           $("#notifications.hasTooltip.active").removeClass("active");
           $("#notifications.hasTooltip .message.show").removeClass("show");
-          $('#clone').fadeIn().addClass('show');
         }
       },
 
@@ -1221,10 +1218,27 @@ export const mixin = {
       // Pagination handle
       pageChange(pInfo){
         const vc = this;
+<<<<<<< HEAD
         
         vc.pagination.start = pInfo.pageSize * (pInfo.pageNumber-1);
         vc.pagination.end = vc.pagination.start + pInfo.pageSize;
         
+=======
+
+        vc.pagination.start = pInfo.pageSize * (pInfo.pageNumber-1);
+        vc.pagination.end = vc.pagination.start + pInfo.pageSize;        
+      },
+
+      getSingleCRDPage() {
+        const vc = this;
+
+        if( (typeof vc.$refs.page != 'undefined') && (vc.$route.params.hasOwnProperty('name') || vc.$route.params.hasOwnProperty('backupname')) && $('tr.base.open').hasClass('hide') ) {
+          let elIndex = ( ($('tr.base.open.hide').index() - 1) / 2 ) + 2;
+          return Math.ceil(elIndex / (vc.pagination.start + vc.pagination.rows));
+        } else {
+          return -1;
+        }
+>>>>>>> fix(ui): setup full view for single crd details
       }
 
     },
@@ -1237,7 +1251,7 @@ export const mixin = {
       const vc = this;
 
       $(window).on('resize', function() {
-        vc.pagination.rows = parseInt(($(window).innerHeight() - 380)/40)
+        vc.pagination.rows = parseInt(($(window).innerHeight() - 420)/40)
         vc.pagination.rows = (vc.pagination.rows <= 0) ? 1 : vc.pagination.rows
         vc.pageChange({
           pageNumber: 1,
@@ -1251,7 +1265,7 @@ export const mixin = {
     updated: function(){
       const vc = this
 
-      // Little hack to fetch single CRD page offset
+      // Little hack to set container height
       vc.$nextTick(function () {
         if( (typeof vc.$refs.page != 'undefined') && $('.v-pagination').length && !$('.content').hasClass('withPagination'))
           $('.content').addClass('withPagination')
