@@ -4,6 +4,7 @@ weight: 1
 url: api/responses/error
 aliases: 
   - /07-developer-documentation/01-error-types
+description: Details about the Error Codes, PostgreSQL Denylist settings, and forbidden actions.
 ---
 
 The operator error responses follows the [RFC 7807](https://datatracker.ietf.org/doc/rfc7807/?include_text=1).
@@ -34,7 +35,7 @@ That means that all of error messages follows the following structure:
 | [constraint-violation](#constraint-violation) | One of the properties of the CR that you are creating or updating violates its syntactic rules. |
 | [forbidden-authorization](#forbidden-authorization) | You don't have the permisions to access the Kubernetes resource based on the RBAC rules. |
 
-## Postgres Blacklist
+## Postgres Denylist
 
 Some postgres configuration properties are managed automatically by StackGres, therefore you cannot include them.
 

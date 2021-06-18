@@ -2,6 +2,7 @@
 title: Create your first cluster
 weight: 3
 url: demo/cluster/create
+description: Details about the how to create the first StackGres cluster.
 ---
 
 ## Installation with kubectl

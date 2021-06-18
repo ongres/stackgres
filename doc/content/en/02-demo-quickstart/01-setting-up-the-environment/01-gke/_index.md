@@ -2,6 +2,7 @@
 title: "GKE"
 weight: 1
 url: demo/setenv/gke
+description: Details about how to set up a GKE cluster.
 ---
 
 To create a [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/) you have to do so in a [Google Cloud Project](https://cloud.google.com/resource-manager/docs/creating-managing-projects).

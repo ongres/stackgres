@@ -2,6 +2,7 @@
 title: Create the Cluster
 weight: 6
 url: tutorial/complete-cluster/create-cluster
+description: Details about how to create the database cluster.
 ---
 
 In the section [Create a simple cluster]({{% relref "03-tutorial/03-simple-cluster" %}}) it was already presented how to

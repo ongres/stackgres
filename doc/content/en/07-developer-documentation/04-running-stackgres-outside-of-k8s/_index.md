@@ -2,6 +2,7 @@
 title: Running StackGres outside of K8s
 weight: 4
 url: developer/stackgres/outside
+description: Details about how to run the operator outside kubernetes.
 ---
 
 To run StackGres outside of kubernetes you will first need to install some required kubernetes resources:

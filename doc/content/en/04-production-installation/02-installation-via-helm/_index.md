@@ -2,6 +2,7 @@
 title: Installation via Helm
 weight: 2
 url: install/helm
+description: Details about how to install the operator using helm.
 ---
 
 StackGres operator and clusters can be installed using [Helm](https://helm.sh/) version >= `3.1.1`.

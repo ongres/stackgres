@@ -2,6 +2,7 @@
 title: Software
 weight: 1
 url: tutorial/prerequisites/software
+description: Details about the necessary tools to run the tutorial.
 ---
 
 To run this tutorial, you will need to have installed in your environment:

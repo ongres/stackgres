@@ -121,4 +121,31 @@ jQuery(document).ready(function() {
   $(document).on("click", "#lightbox .close", function(){
     $("#lightbox").detach();
   });
+  // TOC index
+  let activeLi = $('ul.topics li.active');
+  let tocIndex = '';
+  
+  activeLi.parents('li').each(function(index, el){
+    tocIndex = ($(el).index()+1) + '.' + tocIndex
+  })
+  tocIndex += (activeLi.index()+1) + '.'
+
+  if($('ul.children[data-numbers="true"]').length) {
+    
+    $('ul.children li').each(function(index, el){
+      let childIndex = ($(el).index()+1) + '.'
+      $(el).parents('li').each(function(index, child){
+        childIndex = ($(child).index()+1) + '.' + childIndex
+      })
+
+      $(el).children('a').text( tocIndex + childIndex + ' ' + $(el).children('a').text())
+    })
+  }
+  
+  
+  if(window.location.href.includes(activeLi.children('a').prop('href')))
+    $('#body-inner h1:first-of-type').text(tocIndex + ' ' + $('#body-inner h1').text()).addClass('show')
+  else
+    $('#body-inner h1').addClass('show')
+
 });

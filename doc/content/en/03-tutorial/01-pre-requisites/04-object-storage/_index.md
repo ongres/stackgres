@@ -2,6 +2,7 @@
 title: Object Storage
 weight: 4
 url: tutorial/prerequisites/object-storage
+description: Details about the object storage set up for the tutorial.
 ---
 
 StackGres stores backups on object storage buckets. Currently supported are S3, GCS, Azure Blob and S3-compatible APIs.
@@ -13,7 +14,7 @@ section on how to create buckets and credentials for some of the above object st
 
 Providers:
 
-* [AWS S3]({{% relref "03-tutorial/01-pre-requisites/04-object-storage/01-aws-s3" %}})
+{{% children style="li" depth="2" description="true" %}}
 
-Alternatively, you may consider using [MinIO](https://min.io/), which works as an S3-compatible API for StackGres, and
-allows to run object storage locally.
+> Alternatively, you may consider using [MinIO](https://min.io/), which works as an S3-compatible API for StackGres, and
+allows to run object storage locally (useful for bare-metal instances).

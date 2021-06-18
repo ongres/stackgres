@@ -1,7 +1,6 @@
 ---
 title: Production Installation
 weight: 4
-pre: "<b>4. </b>"
 chapter: true
 url: install
 ---
@@ -11,3 +10,5 @@ url: install
 # Production Installation
 
 StackGres installation documentation for production environment.
+
+{{% children style="li" depth="1" description="true" %}}

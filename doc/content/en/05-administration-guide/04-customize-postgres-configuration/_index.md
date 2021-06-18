@@ -2,6 +2,7 @@
 title: Customize Postgres Configuration
 weight: 4
 url: administration/custom/postgres/config
+description: Details about how to customize the PostgreSQL configuration.
 ---
 
 StackGres operator creates default configurations in the same namespace where the operator has

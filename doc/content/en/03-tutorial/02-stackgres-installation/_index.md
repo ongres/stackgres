@@ -2,6 +2,7 @@
 title: StackGres Installation
 weight: 2
 url: tutorial/stackgres-installation
+description: Details about the operator installation.
 ---
 
 StackGres (the operator and associated components) may be installed on any namespace. It is recommended to create a

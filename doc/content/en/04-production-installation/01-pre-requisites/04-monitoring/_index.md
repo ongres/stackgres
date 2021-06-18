@@ -2,7 +2,7 @@
 title: Monitoring
 weight: 4
 url: install/prerequisites/monitoring
-description: Details about how to setup and configure prometheus
+description: Details about how to setup and configure prometheus.
 ---
 
 As early indicated in [Component of the Stack]({{% relref "01-introduction/04-components-of-the-stack/#monitoring" %}}) StackGres, at the moment, only supports Prometheus integration.

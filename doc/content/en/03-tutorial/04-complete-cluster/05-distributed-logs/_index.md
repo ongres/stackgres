@@ -2,6 +2,7 @@
 title: Distributed Logs
 weight: 5
 url: tutorial/complete-cluster/distributed-logs
+description: Details about how to create a distributed log instance.
 ---
 
 By default, Postgres logs are written to the ephemeral storage of the `Patroni` container, and can be accessed in the

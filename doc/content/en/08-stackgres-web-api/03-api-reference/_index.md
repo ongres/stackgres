@@ -2,6 +2,7 @@
 title: StackGres REST API Reference
 weight: 3
 layout: swagger
+description: Details about REST API and its endpoints.
 ---
 
 The StackGres REST API offers a way to interact with StackGres in a similar way as using the

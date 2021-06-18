@@ -1,7 +1,6 @@
 ---
 title: CRD Reference
 weight: 6
-pre: "<b>6. </b>"
 chapter: true
 url: reference/crd
 ---
@@ -12,4 +11,4 @@ url: reference/crd
 
 Alongside with the Administration Guide StackGres provides a detailed list of each CRD entry.
 
-{{% children style="li" depth="2" description="false" %}}
+{{% children style="li" depth="2" description="true" %}}

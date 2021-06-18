@@ -2,6 +2,7 @@
 title: Custom Postgres Configuration
 weight: 2
 url: tutorial/complete-cluster/postgres-config
+description: Details about how to create custom PostgreSQL configurations.
 ---
 
 While StackGres comes with a carefully tuned, default Postgres configuration, you may want to set your own configuration

@@ -1,7 +1,6 @@
 ---
 title: Developer documentation
 weight: 7
-pre: "<b>7. </b>"
 chapter: true
 url: developer
 ---
@@ -11,3 +10,6 @@ url: developer
 # Developer documentation
 
 Try the latest functionalities or enhance StackGres yourself.
+
+
+{{% children style="li" depth="1" description="true" %}}

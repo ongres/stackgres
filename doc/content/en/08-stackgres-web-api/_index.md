@@ -1,7 +1,6 @@
 ---
 title: Operator API
 weight: 8
-pre: "<b>8. </b>"
 chapter: true
 url: api
 ---
@@ -12,3 +11,4 @@ url: api
 
 Operator Rest API to manipulate stackgres
 
+{{% children style="li" depth="2" description="true" %}}

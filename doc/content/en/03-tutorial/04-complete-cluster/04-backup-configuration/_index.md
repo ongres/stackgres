@@ -2,6 +2,7 @@
 title: Backup configuration
 weight: 4
 url: tutorial/complete-cluster/backup-configuration
+description: Details about how to create custom backup configurations.
 ---
 
 StackGres takes and maintains backups of your clusters automatically, if configured to do so. You will need an object
@@ -18,4 +19,4 @@ are stored. The keys of the secret may have any name that you want, they will be
 depending on the object storage technology used, continue to the technology of your choice link below to configure the
 credentials and the backup configuration:
 
-* [AWS S3]({{% relref "03-tutorial/04-complete-cluster/04-backup-configuration/01-AWS-S3" %}})
+{{% children style="li" depth="1" description="true" %}}

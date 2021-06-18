@@ -64,9 +64,9 @@ spec:
 
 To guarantee a functional postgres configuration some of the parameters specified in
  [postgres configuration documentation](https://www.postgresql.org/docs/12/runtime-config.html)
- have been blacklisted and will be ignored. The parameters that will be ignored are:
+ have been added to the denylisted and will be ignored. The parameters that will be ignored are:
 
-| Blacklisted parameter   |
+| denylisted parameters   |
 |:------------------------|
 | listen_addresses        |
 | port                    |

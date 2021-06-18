@@ -2,6 +2,7 @@
 title: Cluster Parameters
 weight: 6
 url: install/cluster/parameters
+description: Details about cluster parameters that can be used with helm to set up the operador.
 ---
 
 ## AdminUI Parameters

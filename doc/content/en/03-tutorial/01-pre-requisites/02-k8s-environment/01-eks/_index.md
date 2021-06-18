@@ -2,6 +2,7 @@
 title: AWS EKS
 weight: 2
 url: tutorial/prerequisites/kubernetes-environment/aws-eks
+description: Details about the requirements to set up AWS EKS to run the tutorial.
 ---
 
 You will need to have installed the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
