@@ -23,8 +23,8 @@ run_curl() {
   local CONTENT_TYPE="application/json"
   local ACCEPT="application/json"
   local DATA_FILENAME=""
-  local PASSWORD="$(kubectl get secrets --namespace "$SERVICE_NAMESPACE" "$SERVICE" -o jsonpath="{.data.clearPassword}" | base64 -d)"
-  local AUTHORIZATION="{ \"username\": \"admin\", \"password\": \"$PASSWORD\" }"
+  local PASSWORD
+  local AUTHORIZATION=auto
   local JWT=""
 
   local opt
@@ -58,6 +58,12 @@ run_curl() {
       ;;
     esac
   done
+
+  if [ "$AUTHORIZATION" = auto ]
+  then
+    PASSWORD="$(kubectl get secrets --namespace "$SERVICE_NAMESPACE" "$SERVICE" -o jsonpath="{.data.clearPassword}" | base64 -d)"
+    AUTHORIZATION="{ \"username\": \"admin\", \"password\": \"$PASSWORD\" }"
+  fi
 
   if [ -n "$AUTHORIZATION" ] && [ -z "$JWT" ]
   then

@@ -90,6 +90,9 @@ check_distributed_logs_attach_to_clusters() {
 
   wait_pods_running "$CLUSTER_NAMESPACE" "5"
   wait_services_available "$CLUSTER_NAMESPACE" "1" "$CLUSTER_NAME$"
+  wait_until -t "$((E2E_TIMEOUT * 4))" has_cluster_joined_distributedlogs
+  wait_services_available "$CLUSTER_NAMESPACE" "1" "$CLUSTER_NAME-copy$"
+  wait_until -t "$((E2E_TIMEOUT * 4))" has_cluster_joined_distributedlogs -copy
 
   local TEXT
   local RESPONSE
@@ -107,8 +110,6 @@ check_distributed_logs_attach_to_clusters() {
       return 1
     fi
   done
-
-  wait_services_available "$CLUSTER_NAMESPACE" "1" "$CLUSTER_NAME-copy$"
 
   for TEXT in distributed-logs-copy-worked distributed-logs-copy-works distributed-logs-copy-still-works
   do
@@ -169,6 +170,14 @@ check_distributed_logs_attach_to_clusters() {
       return 1
     fi
   done
+}
+
+has_cluster_joined_distributedlogs() {
+  local RESPONSE
+  RESPONSE="$(run_query -c "$CLUSTER_NAME$1" -x psql -k postgres \
+    -h "$CLUSTER_NAME$1"-primary -p 5432 -q "SELECT 'distributed-logs-joined'")"
+  [ "$RESPONSE" = "distributed-logs-joined" ] \
+    && get_logs_count_with_text "distributed-logs-joined" "$1" | jq 'length > 0' | grep -q "^true$"
 }
 
 check_distributed_logs_query_endpoint() {
