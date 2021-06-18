@@ -1,7 +1,8 @@
 ---
 title: DigitalOcean
 weight: 1
-url: tutorial/complete-cluster/backup-configuration/aws-s3
+url: tutorial/complete-cluster/backup-configuration/do-spaces
+description: Details about how to create custom backup configuration using the DigitalOcean's Spaces service.
 ---
 
 To proceed, a Kubernetes `Secret` with the folling shape needs to be created:
