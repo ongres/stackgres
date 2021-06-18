@@ -47,10 +47,11 @@ public class DistributedLogsQueryGenerator {
 
   public static final Param<String> PRIMARY_ROLE_VALUE = DSL.value("Primary");
   public static final Param<String> REPLICA_ROLE_VALUE = DSL.value("Replica");
-  public static final Param<String> PROMOTE_ROLE_VALUE = DSL.value("Promote");
-  public static final Param<String> DEMOTE_ROLE_VALUE = DSL.value("Demote");
+  public static final Param<String> PROMOTED_ROLE_VALUE = DSL.value("Promoted");
+  public static final Param<String> DEMOTED_ROLE_VALUE = DSL.value("Demoted");
   public static final Param<String> UNINITIALIZED_ROLE_VALUE = DSL.value("Uninitialized");
-  public static final Param<String> STANDBY_LEADER_ROLE_VALUE = DSL.value("Standby");
+  public static final Param<String> REPLICA_LEADER_ROLE_VALUE = DSL.value("ReplicaLeader");
+  public static final Param<String> SYNC_REPLICA_ROLE_VALUE = DSL.value("SyncReplica");
 
   public static final String LOG_TIME = LogTableFields.LOG_TIME;
   public static final String LOG_TIME_INDEX = LogTableFields.LOG_TIME_INDEX;
@@ -102,10 +103,11 @@ public class DistributedLogsQueryGenerator {
   public static final Field<String> MAPPED_ROLE_FIELD = DSL.case_(ROLE_FIELD)
       .when(StackGresContext.PRIMARY_ROLE, PRIMARY_ROLE_VALUE)
       .when(StackGresContext.REPLICA_ROLE, REPLICA_ROLE_VALUE)
-      .when(StackGresContext.PROMOTE_ROLE, PROMOTE_ROLE_VALUE)
-      .when(StackGresContext.DEMOTE_ROLE, DEMOTE_ROLE_VALUE)
+      .when(StackGresContext.PROMOTED_ROLE, PROMOTED_ROLE_VALUE)
+      .when(StackGresContext.DEMOTED_ROLE, DEMOTED_ROLE_VALUE)
       .when(StackGresContext.UNINITIALIZED_ROLE, UNINITIALIZED_ROLE_VALUE)
-      .when(StackGresContext.STANDBY_LEADER_ROLE, STANDBY_LEADER_ROLE_VALUE)
+      .when(StackGresContext.STANDBY_LEADER_ROLE, REPLICA_LEADER_ROLE_VALUE)
+      .when(StackGresContext.SYNC_STANDBY_ROLE, SYNC_REPLICA_ROLE_VALUE)
       .else_(DSL.castNull(ROLE_FIELD))
       .as(ROLE_FIELD);
 
@@ -113,10 +115,11 @@ public class DistributedLogsQueryGenerator {
       ImmutableMap.<String, String>builder()
           .put(PRIMARY_ROLE_VALUE.getValue(), StackGresContext.PRIMARY_ROLE)
           .put(REPLICA_ROLE_VALUE.getValue(), StackGresContext.REPLICA_ROLE)
-          .put(PROMOTE_ROLE_VALUE.getValue(), StackGresContext.PROMOTE_ROLE)
-          .put(DEMOTE_ROLE_VALUE.getValue(), StackGresContext.DEMOTE_ROLE)
+          .put(PROMOTED_ROLE_VALUE.getValue(), StackGresContext.PROMOTED_ROLE)
+          .put(DEMOTED_ROLE_VALUE.getValue(), StackGresContext.DEMOTED_ROLE)
           .put(UNINITIALIZED_ROLE_VALUE.getValue(), StackGresContext.UNINITIALIZED_ROLE)
-          .put(STANDBY_LEADER_ROLE_VALUE.getValue(), StackGresContext.STANDBY_LEADER_ROLE)
+          .put(REPLICA_LEADER_ROLE_VALUE.getValue(), StackGresContext.STANDBY_LEADER_ROLE)
+          .put(SYNC_REPLICA_ROLE_VALUE.getValue(), StackGresContext.SYNC_STANDBY_ROLE)
           .build();
 
   public static final ImmutableMap<String, String> FILTER_CONVERSION_MAP =
