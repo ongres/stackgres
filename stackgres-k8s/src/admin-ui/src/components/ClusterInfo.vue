@@ -746,8 +746,15 @@
 			},
 
 			clusterProfileMismatch(cluster, profile) {
-				let mismatch = cluster.status.pods.find(pod => (( pod.cpuRequested != ( (pod.cpuRequested.includes('m') && !profile.data.spec.cpu.includes('m')) ? ( (profile.data.spec.cpu * 1000) + 'm' ) : profile.data.spec.cpu ) ) || (pod.memoryRequested.replace('.00','') != profile.data.spec.memory)))				
-				return (vc.hasProp(cluster, 'status.pods') && cluster.status.pods.length && (typeof mismatch !== 'undefined'))
+				const vc = this;
+				
+				if(vc.hasProp(cluster, 'status.pods') && cluster.status.pods.length) {
+					let mismatch = cluster.status.pods.find(pod => (( pod.cpuRequested != ( (pod.cpuRequested.includes('m') && !profile.data.spec.cpu.includes('m')) ? ( (profile.data.spec.cpu * 1000) + 'm' ) : profile.data.spec.cpu ) ) || (pod.memoryRequested.replace('.00','') != profile.data.spec.memory)))				
+					return (typeof mismatch !== 'undefined')
+				} else {
+					return false;
+				}
+
 			}
 
 		},
