@@ -213,3 +213,30 @@ paths:
           type: string
       security:
       - JWT: []
+  /stackgres/sgcluster/events/{namespace}/{name}:
+    get:
+      tags:
+      - sgcluster
+      summary: Get events related to an sgcluster
+      description: |
+        Get events related to an sgcluster including `StatefulSet`, `Pod`s and `SGDbOps`.
+
+        ### RBAC permissions required
+
+        * events list
+        * sgdbops list
+      parameters:
+      - name: namespace
+        description: The namespace to retrieve the resources from
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: name
+        description: The name of the resource the retrieved events are related with
+        in: path
+        required: true
+        schema:
+          type: string
+      security:
+      - JWT: []

@@ -1,0 +1,161 @@
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+package io.stackgres.apiweb.rest;
+
+import static io.restassured.RestAssured.given;
+
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+
+import javax.inject.Inject;
+
+import com.google.common.collect.ImmutableList;
+import io.fabric8.kubernetes.api.model.EventBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.quarkus.test.junit.QuarkusMock;
+import io.quarkus.test.junit.QuarkusTest;
+import io.stackgres.common.KubernetesClientFactory;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
+import io.stackgres.common.resource.DbOpsScanner;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
+
+@QuarkusTest
+//@EnabledIfEnvironmentVariable(named = "QUARKUS_PROFILE", matches = "test")
+class ClusterEventResourceTest implements AuthenticatedResourceTest {
+
+  @Inject
+  KubernetesClientFactory factory;
+
+  @BeforeAll
+  public static void setup() {
+    StackGresDbOps dbOps = new StackGresDbOps();
+    dbOps.setMetadata(new ObjectMeta());
+    dbOps.getMetadata().setNamespace("test");
+    dbOps.getMetadata().setName("test-operation");
+    dbOps.getMetadata().setUid("1");
+    dbOps.setSpec(new StackGresDbOpsSpec());
+    dbOps.getSpec().setSgCluster("test");
+    DbOpsScanner dbOpsScanner = Mockito.mock(DbOpsScanner.class);  
+    Mockito.when(dbOpsScanner.getResources(ArgumentMatchers.any())).thenReturn(ImmutableList.of(dbOps));
+    QuarkusMock.installMockForType(dbOpsScanner, DbOpsScanner.class);  
+  }
+
+  @BeforeEach
+  void setUp() {
+    try (KubernetesClient client = factory.create()) {
+      client.v1().events().inNamespace("test").delete();
+    }
+  }
+
+  @Test
+  void ifNoEventsAreCreated_itShouldReturnAnEmptyArray() {
+    given()
+        .when()
+        .header(AUTHENTICATION_HEADER)
+        .get("/stackgres/sgcluster/events/test/test")
+        .then().statusCode(200)
+        .body("", Matchers.hasSize(0));
+  }
+
+  @Test
+  void ifEventsAreCreated_itShouldReturnThenInAnArray() {
+    try (KubernetesClient client = factory.create()) {
+      client.v1().events().inNamespace("test")
+      .create(new EventBuilder()
+          .withNewMetadata()
+          .withNamespace("test")
+          .withName("test.1")
+          .endMetadata()
+          .withType("Normal")
+          .withMessage("Test")
+          .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(1)))
+          .withInvolvedObject(new ObjectReferenceBuilder()
+              .withKind(StackGresCluster.KIND)
+              .withNamespace("test")
+              .withName("test")
+              .withUid("1")
+              .build())
+          .build());
+      client.v1().events().inNamespace("test")
+      .create(new EventBuilder()
+          .withNewMetadata()
+          .withNamespace("test")
+          .withName("test.2")
+          .endMetadata()
+          .withType("Normal")
+          .withMessage("All good!")
+          .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(2)))
+          .withInvolvedObject(new ObjectReferenceBuilder()
+              .withKind("StatefulSet")
+              .withNamespace("test")
+              .withName("test")
+              .withUid("1")
+              .build())
+          .build());
+      client.v1().events().inNamespace("test")
+      .create(new EventBuilder()
+          .withNewMetadata()
+          .withNamespace("test")
+          .withName("test.3")
+          .endMetadata()
+          .withType("Warning")
+          .withMessage("Something wrong :(")
+          .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(3)))
+          .withInvolvedObject(new ObjectReferenceBuilder()
+              .withKind("Pod")
+              .withNamespace("test")
+              .withName("test-0")
+              .withUid("1")
+              .build())
+          .build());
+      client.v1().events().inNamespace("test")
+      .create(new EventBuilder()
+          .withNewMetadata()
+          .withNamespace("test")
+          .withName("test.4")
+          .endMetadata()
+          .withType("Normal")
+          .withMessage("I am here too")
+          .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(0)))
+          .withInvolvedObject(new ObjectReferenceBuilder()
+              .withKind(StackGresDbOps.KIND)
+              .withNamespace("test")
+              .withName("test-operation")
+              .withUid("1")
+              .build())
+          .build());
+    }
+
+    given()
+        .when()
+        .header(AUTHENTICATION_HEADER)
+        .get("/stackgres/sgcluster/events/test/test")
+        .then().statusCode(200)
+        .body("", Matchers.hasSize(4))
+        .body("[0].metadata.name", Matchers.equalTo("test.4"))
+        .body("[0].type", Matchers.equalTo("Normal"))
+        .body("[0].message", Matchers.equalTo("I am here too"))
+        .body("[1].metadata.name", Matchers.equalTo("test.1"))
+        .body("[1].type", Matchers.equalTo("Normal"))
+        .body("[1].message", Matchers.equalTo("Test"))
+        .body("[2].metadata.name", Matchers.equalTo("test.2"))
+        .body("[2].type", Matchers.equalTo("Normal"))
+        .body("[2].message", Matchers.equalTo("All good!"))
+        .body("[3].metadata.name", Matchers.equalTo("test.3"))
+        .body("[3].type", Matchers.equalTo("Warning"))
+        .body("[3].message", Matchers.equalTo("Something wrong :("));
+  }
+
+}
