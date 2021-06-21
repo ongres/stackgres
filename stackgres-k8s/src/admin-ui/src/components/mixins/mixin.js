@@ -8,7 +8,15 @@ export const mixin = {
 
     data: function(){
       return {
-        confirmDeleteName: ''
+        confirmDeleteName: '',
+        pagination: {
+          amount: 0,
+          rows: 999,
+          start: 0,
+          end: 999,
+          current: this.$route.query.hasOwnProperty('page') ? parseInt(this.$route.query.page) : 1,
+          singleLoaded: false
+        }
       }
     },
     components: {
@@ -791,11 +799,8 @@ export const mixin = {
   
           store.commit('setCloneCRD', crd);
           
-          $('#cloneName').val(crd.data.metadata.name);
-          $('#cloneNamespace').val(crd.data.metadata.namespace);
           $("#notifications.hasTooltip.active").removeClass("active");
           $("#notifications.hasTooltip .message.show").removeClass("show");
-          $('#clone').fadeIn().addClass('show');
         }
       },
 
@@ -1002,7 +1007,7 @@ export const mixin = {
 
         if( !$target.closest('td.actions').length) {
         
-          if(window.location.href.includes(path)) // Already in resource, go to parent page
+          if(window.location.href.endsWith(path)) // Already in resource, go to parent page
             router.push(path.substring(0, path.lastIndexOf("/") + 1))
           else
             router.push(path)
@@ -1209,12 +1214,47 @@ export const mixin = {
           }
 
         })
+      },
 
+      // Pagination handle
+      pageChange(pInfo){
+        const vc = this;
+        
+        vc.pagination.start = pInfo.pageSize * (pInfo.pageNumber-1);
+        vc.pagination.end = vc.pagination.start + pInfo.pageSize;
+        
       }
-      
+
     },
   
     beforeCreate: function() {
       store.commit('setTooltipsText','Click on a question mark to get help and tips about that field.');
+    },
+
+    mounted: function() {
+      const vc = this;
+
+      $(window).on('resize', function() {
+        vc.pagination.rows = parseInt(($(window).innerHeight() - 420)/40)
+        vc.pagination.rows = (vc.pagination.rows <= 0) ? 1 : vc.pagination.rows
+        vc.pageChange({
+          pageNumber: 1,
+          pageSize: vc.pagination.rows
+        })
+      });
+      $(window).resize()
+
+    },
+
+    updated: function(){
+      const vc = this
+
+      // Little hack to set container height
+      vc.$nextTick(function () {
+        if( (typeof vc.$refs.page != 'undefined') && $('.v-pagination').length && !$('.content').hasClass('withPagination'))
+          $('.content').addClass('withPagination')
+        else if (!$('.v-pagination').length)
+          $('.content').removeClass('withPagination')
+      })
     }
 }

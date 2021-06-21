@@ -129,7 +129,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/edit/backup/:namespace/:uid', 
+    path: '/crd/edit/backup/:namespace/:name', 
     component: CreateBackup,
     name: 'EditBackup',
     meta: {
@@ -137,7 +137,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/edit/backup/:namespace/:cluster/:uid', 
+    path: '/crd/edit/backup/:namespace/:cluster/:backupname', 
     component: CreateBackup,
     name: 'EditClusterBackup',
     meta: {
@@ -241,7 +241,7 @@ const routes = [
     },
   },
   { 
-    path: '/backups/:namespace/:name/:uid', 
+    path: '/backups/:namespace/:backupname', 
     component: Backups,
     name: 'SingleBackups',
     meta: {
@@ -257,7 +257,7 @@ const routes = [
     },
   },
   { 
-    path: '/cluster/backups/:namespace/:name/:uid', 
+    path: '/cluster/backups/:namespace/:name/:backupname', 
     component: Backups,
     name: 'SingleClusterBackups',
     meta: {
@@ -726,13 +726,13 @@ router.beforeResolve((to, from, next) => {
                   show: true
                 });
 
-                if( to.params.hasOwnProperty('uid') && (to.params.uid == item.metadata.uid) && (to.params.namespace == item.metadata.namespace) )
+                if( to.params.hasOwnProperty('backupname') && (to.params.backupname == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
                   found = true;
 
               });
             }
 
-            if( to.params.hasOwnProperty('uid') && !found) {
+            if( to.params.hasOwnProperty('backupname') && !found) {
               notFound()
             }
             else {
@@ -762,13 +762,13 @@ router.beforeResolve((to, from, next) => {
                   show: true
                 });
 
-                if( to.params.hasOwnProperty('uid') && (to.params.uid == item.metadata.uid) && (to.params.namespace == item.metadata.namespace) )
+                if( to.params.hasOwnProperty('backupname') && (to.params.backupname == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
                   found = true;
 
               });
             }
 
-            if( to.params.hasOwnProperty('uid') && !found) {
+            if( to.params.hasOwnProperty('backupname') && !found) {
               notFound()
             }
             else {

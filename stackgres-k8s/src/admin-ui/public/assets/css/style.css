@@ -115,6 +115,7 @@ a {
 
 a:hover {
     color: var(--lblue);
+    cursor: pointer;
 }
 
 strong {
@@ -128,6 +129,10 @@ pre {
 /* Extra Classes */
 .upper {
     text-transform: uppercase;
+}
+
+.capitalize {
+    text-transform: capitalize;
 }
 
 .no-border {
@@ -162,6 +167,10 @@ a.no-color{
 .flex-center {
     display: flex;
     align-items: center;
+}
+
+.relative {
+    position: relative;
 }
 
 .donut {
@@ -477,14 +486,6 @@ form#login .warning {
     border-color: var(--borderColor);
 }
 
-.darkmode tr:nth-child(4n+2), .darkmode .options, .darkmode .tooltip, .darkmode #nav .tooltip:before, .darkmode table tr:nth-child(even):not(.base), .darkmode #nav .right > div#clone {
-    background: #1e1e1e;
-}
-
-/*.darkmode .actions svg path {
-    fill: #7A7B85;
-}*/
-
 .darkmode .form input, .darkmode .form select, .darkmode .form textarea {
     background-color: #1b1b1b;    
 }
@@ -493,7 +494,7 @@ form#login .warning {
     background-color: rgba(122, 123, 133, .10);
 }
 
-.darkmode ul#postgresVersion, .darkmode ul#postgresVersion ul, .darkmode table.pgConfig tr:nth-child(4n-2), .darkmode table.pgConfig tr:nth-child(4n-2) + tr.details, .darkmode table.poolConfig tr:nth-child(4n-2), .darkmode table.poolConfig tr:nth-child(4n-2) + tr.details, .darkmode table.backupConfig tr:nth-child(4n-2), .darkmode table.backupConfig tr:nth-child(4n-2) + tr.details, .darkmode #contentTooltip tr:nth-child(odd), .darkmode #contentTooltip .info {
+.darkmode ul#postgresVersion, .darkmode ul#postgresVersion ul, .darkmode #contentTooltip tr:nth-child(odd), .darkmode #contentTooltip .info {
     background-color: #171717;
 }
 
@@ -536,30 +537,10 @@ form#login .warning {
     filter: invert(1) grayscale(1);
 }
 
-.darkmode tr.details.open {
-    background: #323642;
-}
-
 .darkmode table table tbody {
     border-top-color: #333333;
     border-bottom: 0;
 }
-
-/*.darkmode tr.details {
-    border: 1px solid #333333;
-}*/
-
-.darkmode tr:nth-child(even), .darkmode tr:nth-child(even) + tr.details {
-    background: #1e1e1e;
-}
-
-.darkmode #backups tr:nth-child(4n+2), .darkmode tr:nth-child(4n+2) + tr.details {
-    background: #171717;
-}
-
-/*.darkmode #backups tr.base.Completed.open {
-    border: 1px solid #333333;
-}*/
 
 .darkmode table table + table {
     border-top: 1px solid #333333;
@@ -976,8 +957,6 @@ ul.zg-ul-select.active li.active:hover {
 #ns-select, .set.active:not(.conf) {
     border-bottom: 1px solid #f1f1f1;
     border-top: 1px solid #f1f1f1;
-    max-height: calc(100vh - 525px);
-    overflow: auto;
 }
 
 /* .set.active:not(.conf):not(.backups):not(.logs) { 
@@ -1002,6 +981,12 @@ ul.zg-ul-select.active li.active:hover {
 
 .set a {
     color: inherit;
+}
+
+.set.active:not(.conf) > ul {
+    min-height: 50px;
+    max-height: calc(100vh - 580px) !important;
+    overflow: auto;
 }
 
 .set.active > ul > li > .item:before {
@@ -1744,6 +1729,11 @@ header .actions a {
     margin-left: 15px;
 }
 
+a.borderLeft {
+    border-left: 1px solid var(--borderColor);
+    padding-left: 15px;
+}
+
 header .actions > div {
     float: right;
     margin-top: 5px;
@@ -1965,9 +1955,18 @@ li.status {
 }
 
 #main > .content:not(.noScroll) {
-    max-height: calc(100vh - 230px);
+    min-height: 280px;
+    height: calc(100vh - 230px);
     overflow-y: auto;
     padding-right: 5px;
+}
+
+#main > .content.withPagination:not(.noScroll) {
+    height: calc(100vh - 320px);
+}
+
+#main > .content.cluster:not(.noScroll)  {
+    height: calc(100vh - 290px);
 }
 
 .content table {
@@ -2888,20 +2887,8 @@ table {
     text-align: left;
 }
 
-tr:nth-child(even), tr:nth-child(even) + tr.details {
-    background: #fafafa;
-}
-
-/* #backups tr:nth-child(4n+2), tr:nth-child(4n+2) + tr.details {
-    background: #fff;
-} */
-
-/* #backups tr.base.Completed.open {
-    border-top: 1px solid #f0f0f1;
-} */
-
 th, td {
-    height: 38px;
+    height: 40px;
     padding: 0 10px;
     position: relative;
     vertical-align: middle;
@@ -3104,6 +3091,10 @@ td.false {
     background:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIxOSIgdmlld0JveD0iMCAwIDIwIDE5Ij48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMTguNzEzKSI+PHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjE5IiByeD0iOS41IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxOC43MTMpIiBmaWxsPSIjYTZhN2FlIiBvcGFjaXR5PSIwLjI1Ii8+PHBhdGggZD0iTTEwNS43OTQsMTA0LjY0MWwyLjIzLTIuMjNhMS4wMzcsMS4wMzcsMCwxLDAtMS40NjYtMS40NjZsLTIuMjMsMi4yMy0yLjIzLTIuMjNhMS4wMzcsMS4wMzcsMCwxLDAtMS40NjYsMS40NjZsMi4yMywyLjIzLTIuMjMsMi4yM2ExLjAzNiwxLjAzNiwwLDEsMCwxLjQ2NiwxLjQ2NWwyLjIzLTIuMjMsMi4yMywyLjIzYTEuMDM2LDEuMDM2LDAsMCwwLDEuNDY2LTEuNDY1WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTc1LjYxNSAtOTUuMTQxKSIgZmlsbD0iI2E2YTdhZSIvPjwvZz48L3N2Zz4=) calc(50% - 7px) center no-repeat;
 }
 
+.crdDetails td.false, .crdDetails td.true {
+    background-position: 10px center;
+}
+
 .base td.phase {
     padding: 0px 15px;
 }
@@ -3115,6 +3106,7 @@ td.phase > span {
     font-size: 11px;
     border-radius: 10px;
     font-weight: bold;
+    text-align: center;
 }
 
 td.phase.Completed > span {
@@ -3169,6 +3161,10 @@ table table + table {
 
 .details th {
     color: #4D4F5C;
+}
+
+tr.details.open {
+    display: table-row;
 }
 
 tr.details > td {
@@ -4461,6 +4457,7 @@ td.hasTooltip.textRight > span {
     position: absolute;
     white-space: nowrap;
     display: block;
+    top: 0;
 }
 
 /* table.logs th.logMessage, table.logs td.logMessage {
@@ -4649,23 +4646,6 @@ table.pgConfig tr.toggle:not(.open) td:first-of-type {
 }
 
 /* Tooltips for table height */
-
-/* table.pgConfig .hasTooltip, table.poolConfig .hasTooltip, table.backupConfig .hasTooltip {
-    position: absolute;
-    width: 20%;
-    padding-right: 35px;
-<<<<<<< HEAD
-} */
-
-/* table.pgConfig tr.open > td, table.poolConfig tr.open > td {
-=======
-}
- */
-table.pgConfig tr.open > td, table.poolConfig tr.open > td {
->>>>>>> fix(ui): make postgres and pooling config params tables scrollable
-    padding-top: 10px;
-}
-
 table.pgConfig th.postgresVersion {
     width: 60px;
 }
@@ -4714,7 +4694,7 @@ table.profiles td.inlineList svg:hover path, table.backupConfig td.usedOn svg:ho
 
 /*Clone*/
 
-#nav .right > div#clone {
+#nav #clone {
     display: none;
     position: fixed;
     background: #fff;
@@ -4723,14 +4703,17 @@ table.profiles td.inlineList svg:hover path, table.backupConfig td.usedOn svg:ho
     border-radius: 10px;
     box-shadow: 0 0px 20px rgba(0,0,0,.05);
     margin-left: 70px;
-    display: none;
     line-height: 1;
     width: 320px;
     top: 57px;
     right: 30px;
 }
 
-#nav .right > div#clone form {
+#nav #clone.show {
+    display: block;
+}
+
+#clone form {
     max-width: 320px;
     padding: 15px 0;
     width: 280px;
@@ -4778,11 +4761,6 @@ table tr.details .configurationDetails a {
     padding: 2px 14px;
 }
 
-table tr.details .paramDetails a, .paramValue svg.grayscale {
-    float: right;
-    position: absolute;
-    right: 15px;
-}
 table.pgConfig tr.details a svg path, table.poolConfig tr.details a svg path {
     fill: var(--blue);
 }
@@ -4801,6 +4779,31 @@ tr.details.pgConfig .title {
 .paramDetails table {
     margin-bottom: 30px;
     border: 0;
+}
+
+.paramDetails a {
+    float: right;
+    position: relative;
+    z-index: 1;
+}
+
+.paramDetails .grayscale {
+    opacity: .3;
+    cursor: initial;
+}
+
+.paramDetails .helpTooltip, .crdDetails .helpTooltip {
+    top: 2px;
+    margin-left: 5px;
+}
+
+.paramDetails a:not(:hover) svg path {
+    fill: var(--textColor);
+    opacity: .5;
+}
+
+.paramDetails a:not(.grayscale):hover svg path {
+    fill: var(--blue);
 }
 
 tr.details.pgConfig.open > td:first-child {
@@ -4822,7 +4825,7 @@ table.pgConfig tr.base.open td:before, table.poolConfig tr.base.open td:before {
 }
 
 .paramDetails table tbody {
-    max-height: 241px;
+    max-height: 33vh;
     width: 100%;
     position: relative;
     display: inline-block;
@@ -4848,10 +4851,6 @@ tr.details .paramDetails table .label {
 table.pgConfig .paramDetails tbody td:last-child {
     border-left: 0;
     padding-right: 35px;
-}
-
-table.pgConfig tr:nth-child(4n-2), table.pgConfig tr:nth-child(4n-2) + tr.details, table.pgConfig tr:nth-child(4n-2), table.poolConfig tr:nth-child(4n-2), table.poolConfig tr:nth-child(4n-2) + tr.details, table.poolConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + tr.details, table.backupConfig tr:nth-child(4n-2) {
-    background: #fff;
 }
 
 table.pgConfig tr.details .configurationDetails table, table.poolConfig tr.details .configurationDetails table {
@@ -5014,7 +5013,7 @@ table.backupConfig tr.details.open td:first-of-type {
     background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNSAxNSI+PHBhdGggZmlsbD0iIzdBN0I4NSIgZD0iTTcuNSwwQzMuNCwwLDAsMy40LDAsNy41QzAsMTEuNiwzLjQsMTUsNy41LDE1UzE1LDExLjYsMTUsNy41QzE1LDMuNCwxMS42LDAsNy41LDB6IE04LDExLjJjLTAuMiwwLjEtMC40LDAuMi0wLjYsMC4yaDBjLTAuMiwwLTAuNC0wLjEtMC42LTAuMmMtMC4yLTAuMi0wLjMtMC40LTAuMy0wLjdjMC0wLjIsMC4xLTAuNSwwLjMtMC42QzcsOS43LDcuMiw5LjcsNy40LDkuN2MwLjIsMCwwLjQsMC4xLDAuNiwwLjNjMC4yLDAuMiwwLjMsMC40LDAuMiwwLjZDOC4zLDEwLjgsOC4yLDExLDgsMTEuMnogTTkuOCw2LjZDOS43LDYuOCw5LjYsNyw5LjQsNy4xQzkuMyw3LjMsOSw3LjUsOC42LDcuOUM4LjUsOCw4LjQsOC4xLDguNCw4LjFjMCwwLjEtMC4xLDAuMS0wLjEsMC4yYzAsMCwwLDAuMS0wLjEsMC4yYzAsMC4xLDAsMC4yLTAuMSwwLjNDOC4xLDksOCw5LjEsNy45LDkuMkM3LjcsOS4zLDcuNiw5LjQsNy40LDkuNGgwQzcuMiw5LjQsNyw5LjMsNi44LDkuMkM2LjcsOSw2LjYsOC44LDYuNiw4LjZjMC0wLjMsMC0wLjUsMC4xLTAuN0M2LjgsNy42LDcsNy41LDcuMSw3LjNjMC4yLTAuMiwwLjQtMC40LDAuNi0wLjVDNy45LDYuNiw4LDYuNCw4LjEsNi40YzAuMS0wLjEsMC4xLTAuMiwwLjItMC4zYzAtMC4xLDAuMS0wLjIsMC4xLTAuM2MwLTAuMi0wLjEtMC40LTAuMi0wLjVDOCw1LjEsNy44LDUuMSw3LjUsNS4xQzcuMyw1LDcuMSw1LjEsNi45LDUuM0M2LjcsNS41LDYuNiw1LjcsNi41LDZDNi40LDYuNCw2LjEsNi42LDUuNyw2LjZoMGMtMC4yLDAtMC40LTAuMS0wLjUtMC4yQzUsNi4zLDQuOSw2LjEsNC45LDUuOXYwYzAtMC40LDAuMS0wLjcsMC4zLTFjMC4yLTAuMywwLjUtMC42LDAuOS0wLjhjMC40LTAuMiwwLjktMC4zLDEuNC0wLjNDOCwzLjcsOC40LDMuOCw4LjgsNGMwLjQsMC4yLDAuNywwLjQsMC45LDAuN2MwLjIsMC4zLDAuMywwLjcsMC4zLDFDMTAsNi4xLDEwLDYuMyw5LjgsNi42eiIvPjwvc3ZnPg==);
     width: 13px;
     height: 13px;
-    top: -1px;    
+    top: 2px;    
     cursor: pointer;
 }
 

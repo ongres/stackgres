@@ -103,7 +103,7 @@
 				</form>
 			</div>
 
-			<div id="clone" style="display:none">
+			<div id="clone" :class="clone.hasOwnProperty('name') ? 'show' : ''">
 				<form class="form noSubmit">
 					<div class="header">
 						<h2>Clone {{ clone.kind }}</h2>
@@ -114,7 +114,7 @@
 					</select>
 
 					<label for="cloneName">Name <span class="req">*</span></label>
-					<input @keyup="setCloneName" id="cloneName" autocomplete="off">
+					<input @keyup="setCloneName" id="cloneName" autocomplete="off" :value="'copy-of-' + clone.name">
 
 					<span class="warning" v-if="nameColission">
 						There's already a <strong>{{ clone.kind }}</strong> with the same name on the specified namespace. Please specify a different name or choose another namespace
@@ -295,7 +295,6 @@
 			},
 
 			cancelClone: function() {
-				$('#clone').hide();
 				store.commit('setCloneCRD', {});
 			},
 
@@ -315,17 +314,15 @@
 					store.state.cloneCRD.data 
 				)
 				.then(function (response) {
-					//console.log("GOOD");
 					vc.notify(store.state.cloneCRD.kind+' <strong>"'+store.state.cloneCRD.data.metadata.name+'"</strong> cloned successfully', 'message', store.state.cloneCRD.kind.toLowerCase());
-
 					vc.fetchAPI(endpoint);
-					$('#clone').fadeOut().removeClass('show');
-					$('#cloneName, #cloneNamespace').val('');				
+					vc.cancelClone();		
 				})
 				.catch(function (error) {
 					console.log(error.response);
+					vc.cancelClone();
 					vc.notify(error.response.data,'error',endpoint);
-					$('#clone').fadeOut().removeClass('show');
+
 				});
 			},
 			flushToken: function() {

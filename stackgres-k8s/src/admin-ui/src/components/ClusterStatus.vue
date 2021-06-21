@@ -47,7 +47,7 @@
 				</ul>
 			</header>
 			
-			<div class="content" v-if="hasProp(cluster, 'status.pods') && cluster.status.pods.length">
+			<div class="content noScroll" v-if="hasProp(cluster, 'status.pods') && cluster.status.pods.length">
 				<h2>
 					Cluster
 					<template v-for="condition in cluster.data.status.conditions" v-if="( (condition.type == 'PendingRestart') && (condition.status == 'True') )">

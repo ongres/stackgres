@@ -27,7 +27,7 @@
                     </li>
                 </template>
                 <li v-if="editMode">
-                    <router-link :to="'/backups/'+$route.params.namespace+'/'+backupCluster+'/'+$route.params.uid" title="Backup Details">{{ $route.params.uid }}</router-link>
+                    <router-link :to="'/backups/'+$route.params.namespace+'/'+backupCluster+'/'+$route.params.name" title="Backup Details">{{ $route.params.name }}</router-link>
                 </li>
                 <li class="action">
                     {{ $route.name == 'EditBackup' ? 'Edit' : 'Create' }}
@@ -150,7 +150,7 @@
                 
                 if( vm.editMode && !vm.editReady ) {
                     store.state.backups.forEach(function( bk ){
-                        if( (bk.data.metadata.uid === vm.$route.params.uid) && (bk.data.metadata.namespace === vm.$route.params.namespace) ) {
+                        if( (bk.data.metadata.name === vm.$route.params.name) && (bk.data.metadata.namespace === vm.$route.params.namespace) ) {
                             vm.backupName = bk.name;
                             vm.backupCluster = bk.data.spec.sgCluster;
                             vm.managedLifecycle = bk.data.spec.managedLifecycle

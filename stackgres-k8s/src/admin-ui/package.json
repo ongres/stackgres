@@ -29,6 +29,7 @@
     "later": "github:RickCarlino/later",
     "moment": "^2.29.1",
     "prettycron": "^0.10.0",
+    "v-page": "^2.0.9",
     "vue": "^2.6.12",
     "vue-axios": "^3.2.4",
     "vue-markdown": "^2.2.4",
