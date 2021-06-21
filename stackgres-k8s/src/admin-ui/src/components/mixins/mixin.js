@@ -1214,31 +1214,15 @@ export const mixin = {
           }
 
         })
+      },
 
       // Pagination handle
       pageChange(pInfo){
         const vc = this;
-<<<<<<< HEAD
         
         vc.pagination.start = pInfo.pageSize * (pInfo.pageNumber-1);
         vc.pagination.end = vc.pagination.start + pInfo.pageSize;
         
-=======
-
-        vc.pagination.start = pInfo.pageSize * (pInfo.pageNumber-1);
-        vc.pagination.end = vc.pagination.start + pInfo.pageSize;        
-      },
-
-      getSingleCRDPage() {
-        const vc = this;
-
-        if( (typeof vc.$refs.page != 'undefined') && (vc.$route.params.hasOwnProperty('name') || vc.$route.params.hasOwnProperty('backupname')) && $('tr.base.open').hasClass('hide') ) {
-          let elIndex = ( ($('tr.base.open.hide').index() - 1) / 2 ) + 2;
-          return Math.ceil(elIndex / (vc.pagination.start + vc.pagination.rows));
-        } else {
-          return -1;
-        }
->>>>>>> fix(ui): setup full view for single crd details
       }
 
     },
