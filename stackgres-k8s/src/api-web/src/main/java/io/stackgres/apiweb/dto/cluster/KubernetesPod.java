@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -192,6 +194,9 @@ public class KubernetesPod {
 
   @JsonProperty("connections")
   private String connections;
+
+  @JsonProperty("componentVersions")
+  private Map<String, String> componentVersions;
 
   public String getNamespace() {
     return namespace;
@@ -663,6 +668,14 @@ public class KubernetesPod {
 
   public void setConnections(String connections) {
     this.connections = connections;
+  }
+
+  public Map<String, String> getComponentVersions() {
+    return componentVersions;
+  }
+
+  public void setComponentVersions(Map<String, String> componentVersions) {
+    this.componentVersions = componentVersions;
   }
 
   @Override

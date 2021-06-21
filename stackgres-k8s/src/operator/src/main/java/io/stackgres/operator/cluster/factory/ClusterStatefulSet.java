@@ -8,12 +8,14 @@ package io.stackgres.operator.cluster.factory;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
@@ -43,6 +45,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.LabelFactoryDelegator;
+import io.stackgres.operator.common.SidecarEntry;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresPodSecurityContext;
@@ -133,6 +136,13 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
                 .addToLabels(podLabels)
                 .addToAnnotations(StackGresContext.VERSION_KEY,
                     StackGresProperty.OPERATOR_VERSION.getString())
+                .addToAnnotations(patroni.getComponentVersions(context))
+                .addToAnnotations(Seq.seq(context.getSidecars())
+                    .map(SidecarEntry::getSidecar)
+                    .map(sidecar -> sidecar.getComponentVersions(context))
+                    .map(Map::entrySet)
+                    .flatMap(Set::stream)
+                    .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue)))
                 .build())
             .withNewSpec()
             .withAffinity(Optional.of(new AffinityBuilder()

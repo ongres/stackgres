@@ -12,9 +12,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
@@ -669,6 +669,15 @@ class ClusterResourceTest
       assertEquals("stackgres", dto.getPods().get(0).getNamespace());
       assertEquals("primary", dto.getPods().get(0).getRole());
       assertEquals("Active", dto.getPods().get(0).getStatus());
+      assertEquals(4, dto.getPods().get(0).getComponentVersions().size());
+      assertEquals("12.2",
+          dto.getPods().get(0).getComponentVersions().get("postgresql"));
+      assertEquals("1.6.4",
+          dto.getPods().get(0).getComponentVersions().get("patroni"));
+      assertEquals("1.13.1",
+          dto.getPods().get(0).getComponentVersions().get("envoy"));
+      assertEquals("0.8",
+          dto.getPods().get(0).getComponentVersions().get("prometheus-postgres-exporter"));
       assertEquals(4, dto.getPods().get(1).getContainers());
       assertEquals(0, dto.getPods().get(1).getContainersReady());
       assertNull(dto.getPods().get(1).getIp());
@@ -676,6 +685,15 @@ class ClusterResourceTest
       assertEquals("stackgres", dto.getPods().get(1).getNamespace());
       assertNull(dto.getPods().get(1).getRole());
       assertEquals("Pending", dto.getPods().get(1).getStatus());
+      assertEquals(4, dto.getPods().get(1).getComponentVersions().size());
+      assertEquals("12.2",
+          dto.getPods().get(1).getComponentVersions().get("postgresql"));
+      assertEquals("1.6.4",
+          dto.getPods().get(1).getComponentVersions().get("patroni"));
+      assertEquals("1.13.1",
+          dto.getPods().get(1).getComponentVersions().get("envoy"));
+      assertEquals("0.8",
+          dto.getPods().get(1).getComponentVersions().get("prometheus-postgres-exporter"));
     }
 
     if (dto.getInfo() != null) {

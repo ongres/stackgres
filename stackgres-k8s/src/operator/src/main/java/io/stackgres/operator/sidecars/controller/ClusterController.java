@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.sidecars.controller;
 
+import java.util.Map;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -20,6 +21,7 @@ import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresController;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
@@ -40,6 +42,13 @@ public class ClusterController implements StackGresClusterSidecarResourceFactory
   public ClusterController(
       ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables) {
     this.clusterStatefulSetEnvironmentVariables = clusterStatefulSetEnvironmentVariables;
+  }
+
+  @Override
+  public Map<String, String> getComponentVersions(StackGresClusterContext context) {
+    return ImmutableMap.of(
+        StackGresContext.CLUSTER_CONTROLLER_VERSION_KEY,
+        StackGresController.CLUSTER_CONTROLLER.getVersion());
   }
 
   @Override
