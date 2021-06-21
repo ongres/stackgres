@@ -5,11 +5,14 @@
 
 package io.stackgres.apiweb.distributedlogs;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Optional;
 import java.util.Properties;
+import java.util.stream.Stream;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import org.jooq.DSLContext;
@@ -20,10 +23,11 @@ import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-public class DistributedLogsQueryGeneratorTest {
+class DistributedLogsQueryGeneratorTest {
 
   private static final Properties EXPECTED = Unchecked.supplier(
       DistributedLogsQueryGeneratorTest::loadExpected).get();
@@ -61,7 +65,7 @@ public class DistributedLogsQueryGeneratorTest {
   }
 
   @Test
-  public void descQueryTest() {
+  void descQueryTest() {
     assertEquals(EXPECTED.get("descQueryTest"),
         generateQuery(ImmutableDistributedLogsQueryParameters.builder()
             .cluster(new ClusterDto())
@@ -72,7 +76,7 @@ public class DistributedLogsQueryGeneratorTest {
   }
 
   @Test
-  public void fromDescQueryTest() {
+  void fromDescQueryTest() {
     assertEquals(EXPECTED.get("fromDescQueryTest"),
         generateQuery(ImmutableDistributedLogsQueryParameters.builder()
             .cluster(new ClusterDto())
@@ -84,7 +88,7 @@ public class DistributedLogsQueryGeneratorTest {
   }
 
   @Test
-  public void fromInclusiveDescQueryTest() {
+  void fromInclusiveDescQueryTest() {
     assertEquals(EXPECTED.get("fromInclusiveDescQueryTest"),
         generateQuery(ImmutableDistributedLogsQueryParameters.builder()
             .cluster(new ClusterDto())
@@ -96,7 +100,7 @@ public class DistributedLogsQueryGeneratorTest {
   }
 
   @Test
-  public void toDescQueryTest() {
+  void toDescQueryTest() {
     assertEquals(EXPECTED.get("toDescQueryTest"),
         generateQuery(ImmutableDistributedLogsQueryParameters.builder()
             .cluster(new ClusterDto())
@@ -108,7 +112,7 @@ public class DistributedLogsQueryGeneratorTest {
   }
 
   @Test
-  public void fromToDescQueryTest() {
+  void fromToDescQueryTest() {
     assertEquals(EXPECTED.get("fromToDescQueryTest"),
         generateQuery(ImmutableDistributedLogsQueryParameters.builder()
             .cluster(new ClusterDto())
@@ -121,7 +125,7 @@ public class DistributedLogsQueryGeneratorTest {
   }
 
   @Test
-  public void fromInclusiveToDescQueryTest() {
+  void fromInclusiveToDescQueryTest() {
     assertEquals(EXPECTED.get("fromInclusiveToDescQueryTest"),
         generateQuery(ImmutableDistributedLogsQueryParameters.builder()
             .cluster(new ClusterDto())
@@ -134,7 +138,7 @@ public class DistributedLogsQueryGeneratorTest {
   }
 
   @Test
-  public void ascQueryTest() {
+  void ascQueryTest() {
     assertEquals(EXPECTED.get("ascQueryTest"),
         generateQuery(ImmutableDistributedLogsQueryParameters.builder()
             .cluster(new ClusterDto())
@@ -145,7 +149,7 @@ public class DistributedLogsQueryGeneratorTest {
   }
 
   @Test
-  public void fromAscQueryTest() {
+  void fromAscQueryTest() {
     assertEquals(EXPECTED.get("fromAscQueryTest"),
         generateQuery(ImmutableDistributedLogsQueryParameters.builder()
             .cluster(new ClusterDto())
@@ -157,7 +161,7 @@ public class DistributedLogsQueryGeneratorTest {
   }
 
   @Test
-  public void fromInclusiveAscQueryTest() {
+  void fromInclusiveAscQueryTest() {
     assertEquals(EXPECTED.get("fromInclusiveAscQueryTest"),
         generateQuery(ImmutableDistributedLogsQueryParameters.builder()
             .cluster(new ClusterDto())
@@ -169,7 +173,7 @@ public class DistributedLogsQueryGeneratorTest {
   }
 
   @Test
-  public void toAscQueryTest() {
+  void toAscQueryTest() {
     assertEquals(EXPECTED.get("toAscQueryTest"),
         generateQuery(ImmutableDistributedLogsQueryParameters.builder()
             .cluster(new ClusterDto())
@@ -181,7 +185,7 @@ public class DistributedLogsQueryGeneratorTest {
   }
 
   @Test
-  public void fromToAscQueryTest() {
+  void fromToAscQueryTest() {
     assertEquals(EXPECTED.get("fromToAscQueryTest"),
         generateQuery(ImmutableDistributedLogsQueryParameters.builder()
             .cluster(new ClusterDto())
@@ -194,7 +198,7 @@ public class DistributedLogsQueryGeneratorTest {
   }
 
   @Test
-  public void fromInclusiveToAscQueryTest() {
+  void fromInclusiveToAscQueryTest() {
     assertEquals(EXPECTED.get("fromInclusiveToAscQueryTest"),
         generateQuery(ImmutableDistributedLogsQueryParameters.builder()
             .cluster(new ClusterDto())
@@ -206,24 +210,26 @@ public class DistributedLogsQueryGeneratorTest {
             .build()));
   }
 
-  @Test
-  public void filterQueryTest() {
-    DistributedLogsQueryGenerator.FILTER_CONVERSION_MAP.keySet()
-        .forEach(filter -> {
-          assertEquals(EXPECTED.get("filterQueryTest_" + filter),
-              generateQuery(ImmutableDistributedLogsQueryParameters.builder()
-                  .cluster(new ClusterDto())
-                  .records(1)
-                  .isSortAsc(false)
-                  .isFromInclusive(false)
-                  .filters(ImmutableMap.of(filter, Optional.of("")))
-                  .build()),
-              "Expected query filterQueryTest_" + filter + " not matching actual");
-        });
+  @ParameterizedTest
+  @MethodSource("provideFilterConversionKeys")
+  void filterQueryTest(String filter) {
+    assertEquals(EXPECTED.get("filterQueryTest_" + filter),
+        generateQuery(ImmutableDistributedLogsQueryParameters.builder()
+            .cluster(new ClusterDto())
+            .records(1)
+            .isSortAsc(false)
+            .isFromInclusive(false)
+            .filters(ImmutableMap.of(filter, ImmutableList.of("")))
+            .build()),
+        "Expected query filterQueryTest_" + filter + " not matching actual");
+  }
+
+  private static Stream<String> provideFilterConversionKeys() {
+    return DistributedLogsQueryGenerator.FILTER_CONVERSION_MAP.keySet().stream();
   }
 
   @Test
-  public void nullFilterQueryTest() {
+  void nullFilterQueryTest() {
     DistributedLogsQueryGenerator.FILTER_CONVERSION_MAP.keySet()
         .forEach(filter -> {
           assertEquals(EXPECTED.get("nullFilterQueryTest_" + filter),
@@ -232,14 +238,14 @@ public class DistributedLogsQueryGeneratorTest {
                   .records(1)
                   .isSortAsc(false)
                   .isFromInclusive(false)
-                  .filters(ImmutableMap.of(filter, Optional.empty()))
+                  .filters(ImmutableMap.of(filter, ImmutableList.of()))
                   .build()),
               "Expected query nullFilterQueryTest_" + filter + " not matching actual");
         });
   }
 
   @Test
-  public void allFiltersQueryTest() {
+  void allFiltersQueryTest() {
     assertEquals(EXPECTED.get("allFiltersQueryTest"),
         generateQuery(ImmutableDistributedLogsQueryParameters.builder()
             .cluster(new ClusterDto())
@@ -248,12 +254,12 @@ public class DistributedLogsQueryGeneratorTest {
             .isFromInclusive(false)
             .filters(DistributedLogsQueryGenerator.FILTER_CONVERSION_MAP.keySet()
                 .stream()
-                .collect(ImmutableMap.toImmutableMap(filter -> filter, filter -> Optional.of(""))))
+                .collect(ImmutableMap.toImmutableMap(filter -> filter, filter -> ImmutableList.of(""))))
             .build()));
   }
 
   @Test
-  public void fullTextQueryTest() {
+  void fullTextQueryTest() {
     assertEquals(EXPECTED.get("fullTextQueryTest"),
         generateQuery(ImmutableDistributedLogsQueryParameters.builder()
             .cluster(new ClusterDto())

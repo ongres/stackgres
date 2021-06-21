@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -17,6 +18,7 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.distributedlogs.LogTableFields;
 import io.stackgres.common.distributedlogs.PostgresTableFields;
 import io.stackgres.common.distributedlogs.Tables;
+import org.jetbrains.annotations.NotNull;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -230,7 +232,9 @@ public class DistributedLogsQueryGenerator {
         .where(Seq.seq(parameters.getFilters())
             .map(filter -> Tuple.tuple(FILTER_CONVERSION_MAP.get(filter.v1), filter.v2))
             .filter(filter -> filter.v1.equals(LOG_TYPE_FIELD.getName()))
-            .map(filter -> filter.v2.map(PATRONI_LOG_TYPE_VALUE.getValue()::equals).orElse(false)
+            .map(filter -> filter.v2.stream()
+                .map(PATRONI_LOG_TYPE_VALUE.getValue()::equals)
+                .filter(Boolean.TRUE::equals).findAny().orElse(Boolean.FALSE)
                 ? DSL.trueCondition() : DSL.falseCondition())
             .findAny()
             .orElse(DSL.trueCondition()));
@@ -242,7 +246,9 @@ public class DistributedLogsQueryGenerator {
         .where(Seq.seq(parameters.getFilters())
             .map(filter -> Tuple.tuple(FILTER_CONVERSION_MAP.get(filter.v1), filter.v2))
             .filter(filter -> filter.v1.equals(LOG_TYPE_FIELD.getName()))
-            .map(filter -> filter.v2.map(POSTGRES_LOG_TYPE_VALUE.getValue()::equals).orElse(false)
+            .map(filter -> filter.v2.stream()
+                .map(POSTGRES_LOG_TYPE_VALUE.getValue()::equals)
+                .filter(Boolean.TRUE::equals).findAny().orElse(Boolean.FALSE)
                 ? DSL.trueCondition() : DSL.falseCondition())
             .findAny()
             .orElse(DSL.trueCondition()));
@@ -303,8 +309,8 @@ public class DistributedLogsQueryGenerator {
                     OffsetDateTime.ofInstant(to.v1, ZoneOffset.UTC), to.v2)));
       }
     }
-    for (Tuple2<String, String> filter : Seq.seq(parameters.getFilters())
-        .map(filter -> Tuple.tuple(FILTER_CONVERSION_MAP.get(filter.v1), filter.v2.orElse(null)))
+    for (Tuple2<String, ImmutableList<String>> filter : Seq.seq(parameters.getFilters())
+        .map(filter -> Tuple.tuple(FILTER_CONVERSION_MAP.get(filter.v1), filter.v2))
         .toList()) {
       selectFromLogPatroni = applyFilterForFields(
           selectFromLogPatroni, filter, PATRONI_FIELDS);
@@ -343,7 +349,7 @@ public class DistributedLogsQueryGenerator {
   }
 
   private SelectConditionStep<Record> applyFilterForFields(
-      SelectConditionStep<Record> selectFrom, Tuple2<String, String> filter,
+      SelectConditionStep<Record> selectFrom, Tuple2<String, ImmutableList<String>> filter,
       ImmutableList<Field<?>> fields) {
     final SelectConditionStep<Record> currentSelectFrom = selectFrom;
     selectFrom = fields.stream()
@@ -355,21 +361,28 @@ public class DistributedLogsQueryGenerator {
     return selectFrom;
   }
 
-  protected Condition filterCondition(Tuple2<String, String> filter, Field<?> field) {
-    if (filter.v2 == null) {
+  protected Condition filterCondition(Tuple2<String, ImmutableList<String>> filter,
+      Field<?> field) {
+    if (filter.v2.isEmpty()) {
       if (field == MAPPED_ROLE_FIELD) {
         return DSL.field(field.getName()).isNull()
             .or(DSL.field(field.getName()).notIn(
                 Seq.seq(REVERSE_ROLE_MAP.keySet())
-                .map(value -> DSL.cast(value, field))
-                .toArray(Field<?>[]::new)));
+                    .map(value -> DSL.cast(value, field))
+                    .toArray(Field<?>[]::new)));
       }
       return DSL.field(field.getName()).isNull();
     }
     if (field == MAPPED_ROLE_FIELD) {
       return DSL.field(field.getName())
-          .eq(DSL.cast(REVERSE_ROLE_MAP.getOrDefault(filter.v2, filter.v2), field));
+          .in(filter.v2.stream()
+              .map(f -> REVERSE_ROLE_MAP.getOrDefault(f, f))
+              .map(f -> DSL.cast(f, field))
+              .collect(Collectors.toList()));
     }
-    return DSL.field(field.getName()).eq(DSL.cast(filter.v2, field));
+    return DSL.field(field.getName())
+        .in(filter.v2.stream()
+            .map(f -> DSL.cast(f, field))
+            .collect(Collectors.toList()));
   }
 }

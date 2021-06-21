@@ -45,9 +45,9 @@ e2e_test() {
 
   run_test "Checking that distributed logs attach to clusters" check_distributed_logs_attach_to_clusters
 
-  run_test "Checking that distributed logs query endpoint works correctly"  check_distributed_logs_query_endpoint
+  run_test "Checking that distributed logs query endpoint works correctly" check_distributed_logs_query_endpoint
 
-  run_test "Checking that retention works correctly"  check_retention
+  run_test "Checking that retention works correctly" check_retention
 }
 
 check_latest_timescaledb_version_is_installed() {
@@ -246,6 +246,15 @@ check_distributed_logs_query_endpoint() {
     echo "SUCCESS: Cluster log entry included in json response for patroni"
   fi
 
+  RESPONSE="$(get_error_and_info_logs_count)"
+  if echo "$RESPONSE" | grep -q "^0$"
+  then
+    echo "FAIL: Cluster log entry not included in json response for error and info"
+    return 1
+  else
+    echo "SUCCESS: Cluster log entry included in json response for error and info"
+  fi
+
   for field in \
     logType \
     podName \
@@ -341,6 +350,14 @@ get_patroni_logs_count() {
   local FILTER="{\"logType\":\"pa\"}"
   local RESULT="$(run_curl \
     -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?logType=pa" \
+    -n "$CLUSTER_NAMESPACE")"
+  echo_raw "$RESULT" \
+    | jq -r "map(select(.message != null)) | length"
+}
+
+get_error_and_info_logs_count() {
+  local RESULT="$(run_curl \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?errorLevel=ERROR&errorLevel=LOG&errorLevel=INFO" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
     | jq -r "map(select(.message != null)) | length"
