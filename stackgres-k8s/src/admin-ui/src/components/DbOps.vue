@@ -27,6 +27,7 @@
                         <a v-if="iCan('delete','sgdbops',$route.params.namespace)" title="Delete Operation" @click="deleteCRD('sgdbops',$route.params.namespace, $route.params.name)">
                             Delete Operation
                         </a>
+                        <router-link class="borderLeft" :to="'/dbops/'+$route.params.namespace" title="Close Details">Close Details</router-link>
                     </template>
                     <template v-else>
                         <router-link v-if="iCan('create','sgdbops',$route.params.namespace)"  :to="'/crd/create/dbops/'+$route.params.namespace" class="add">Add New</router-link>

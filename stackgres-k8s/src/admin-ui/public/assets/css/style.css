@@ -1729,6 +1729,11 @@ header .actions a {
     margin-left: 15px;
 }
 
+a.borderLeft {
+    border-left: 1px solid var(--borderColor);
+    padding-left: 15px;
+}
+
 header .actions > div {
     float: right;
     margin-top: 5px;

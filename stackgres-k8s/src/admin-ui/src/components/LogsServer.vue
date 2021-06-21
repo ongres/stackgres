@@ -34,6 +34,7 @@
                             <a v-if="iCan('delete','sgdistributedlogs',$route.params.namespace)" v-on:click="deleteCRD('sgdistributedlogs',$route.params.namespace, cluster.data.metadata.name, '/logs/' + $route.params.namespace)" class="delete" title="Delete Configuration" :class="cluster.data.status.clusters.length ? 'disabled' : ''">
                                 Delete Logs Cluster
                             </a>
+                            <router-link class="borderLeft" :to="'/logs/'+$route.params.namespace" title="Close Details">Close Details</router-link>
 						</template>
 					</template>
 					<template v-else>

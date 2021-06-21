@@ -34,6 +34,7 @@
 							<a v-if="iCan('delete','sgpoolconfigs',$route.params.namespace)" v-on:click="deleteCRD('sgpoolconfig',$route.params.namespace, conf.name)" title="Delete Configuration" :class="conf.data.status.clusters.length ? 'disabled' : ''">
 								Delete Configuration
 							</a>
+							<router-link class="borderLeft" :to="'/configurations/connectionpooling/'+$route.params.namespace" title="Close Details">Close Details</router-link>
 						</template>
 					</template>
 					<template v-else>

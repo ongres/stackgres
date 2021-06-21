@@ -86,6 +86,7 @@
 						<a v-if="iCan('delete','sgbackups',$route.params.namespace)" v-on:click="deleteCRD('sgbackup',$route.params.namespace, $route.params.backupname)" title="Delete Backup">
 							Delete Backup
 						</a>
+						<router-link class="borderLeft" :to="'/backups/'+$route.params.namespace" title="Close Details">Close Details</router-link>
 					</template>
 					<template v-else>
 						<router-link v-if="iCan('create','sgbackups',$route.params.namespace)" :to="'/crd/create/backup/'+$route.params.namespace" class="add">Add New</router-link>
@@ -318,6 +319,7 @@
 								<a v-if="iCan('delete','sgbackups',$route.params.namespace)" v-on:click="deleteCRD('sgbackup',$route.params.namespace, $route.params.backupname)" title="Delete Backup">
 									Delete Backup
 								</a>
+								<router-link class="borderLeft" :to=" isCluster ? ('/cluster/backups/'+$route.params.namespace+'/'+$route.params.name) : ('/backups/'+$route.params.namespace)" title="Close Details">Close Details</router-link>
 							</div>
 						</template>
 					</div>
@@ -587,6 +589,15 @@
 									</td>
 									<td>
 										{{ back.name }}
+									</td>
+								</tr>
+								<tr>
+									<td class="label">
+										Status
+										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.status')"></span>
+									</td>
+									<td class="phase" :class="back.data.status.process.status">
+										<span>{{ back.data.status.process.status }}</span>
 									</td>
 								</tr>
 								<tr>

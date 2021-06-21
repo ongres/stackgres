@@ -23,7 +23,23 @@
 			<div class="actions">
 				<a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sgpgconfig/" target="_blank" title="SGPostgresConfig Documentation">SGPostgresConfig Documentation</a>
 				<div>
-					<router-link v-if="iCan('create','sgpgconfigs',$route.params.namespace)" :to="'/crd/create/pgconfig/'+$route.params.namespace" class="add">Add New</router-link>
+					<template v-if="$route.params.hasOwnProperty('name')">
+						<template v-for="conf in config" v-if="conf.name == $route.params.name">
+							<router-link v-if="iCan('patch','sgpgconfigs',$route.params.namespace)" :to="'/crd/edit/postgres/'+$route.params.namespace+'/'+conf.name" title="Edit Configuration">
+								Edit Configuration
+							</router-link>
+							<a v-if="iCan('create','sgpgconfigs',$route.params.namespace)" v-on:click="cloneCRD('SGPostgresConfig', $route.params.namespace, conf.name)" title="Clone Configuration">
+								Clone Configuration
+							</a>
+							<a v-if="iCan('delete','sgpgconfigs',$route.params.namespace)" v-on:click="deleteCRD('sgpgconfig',$route.params.namespace, conf.name)" title="Delete Configuration" :class="conf.data.status.clusters.length ? 'disabled' : ''">
+								Delete Configuration
+							</a>
+							<router-link class="borderLeft" :to="'/configurations/postgres/'+$route.params.namespace" title="Close Details">Close Details</router-link>
+						</template>
+					</template>
+					<template v-else>
+						<router-link v-if="iCan('create','sgpgconfigs',$route.params.namespace)" :to="'/crd/create/pgconfig/'+$route.params.namespace" class="add">Add New</router-link>
+					</template>
 				</div>
 			</div>	
 		</header>

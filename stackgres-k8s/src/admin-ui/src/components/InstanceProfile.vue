@@ -35,6 +35,7 @@
 							<a v-if="iCan('delete','sginstanceprofiles',$route.params.namespace)" v-on:click="deleteCRD('sginstanceprofile',$route.params.namespace, conf.name)" title="Delete Profile" :class="conf.data.status.clusters.length ? 'disabled' : ''">
 								Delete Profile
 							</a>
+							<router-link class="borderLeft" :to="'/profiles/'+$route.params.namespace" title="Close Details">Close Details</router-link>
 						</template>
 					</template>
 					<template v-else>

@@ -34,6 +34,7 @@
 							<a v-if="iCan('delete','sgbackupconfigs',$route.params.namespace)" v-on:click="deleteCRD('sgbackupconfig',$route.params.namespace, conf.name, '/configurations/backup/' + $route.params.namespace)" class="delete" title="Delete Configuration"  :class="conf.data.status.clusters.length ? 'disabled' : ''">
 								Delete Configuration
 							</a>
+							<router-link class="borderLeft" :to="'/configurations/backup/'+$route.params.namespace" title="Close Details">Close Details</router-link>
 						</template>
 					</template>
 					<template v-else>
