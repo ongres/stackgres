@@ -7,6 +7,7 @@ unit tests:
   tags:
     - stackgres-runner
     - stackgres-quarkus-test-runner
+    - stackgres-maven-runner
   script:
     - 'mvn $MAVEN_CLI_OPTS clean verify'
   artifacts:
@@ -21,7 +22,6 @@ shell unit tests:
   stage: test
   tags:
     - stackgres-runner
-    - stackgres-maven-runner
   script:
     - |
       set +e

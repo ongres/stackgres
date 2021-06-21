@@ -73,8 +73,4 @@ public class InitRelocateBinaries implements ContainerFactory<StackGresClusterCo
         .build();
   }
 
-  @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
-    return Map.of();
-  }
 }

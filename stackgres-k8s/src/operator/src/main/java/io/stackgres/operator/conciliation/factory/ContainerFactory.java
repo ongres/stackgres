@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory;
 
-import java.util.List;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.Container;
@@ -18,5 +17,7 @@ public interface ContainerFactory<T extends ContainerContext> {
 
   Container getContainer(T context);
 
-  Map<String, String> getComponentVersions(T context);
+  default Map<String, String> getComponentVersions(T context) {
+    return Map.of();
+  }
 }

@@ -9,6 +9,7 @@ import static io.stackgres.operator.conciliation.factory.cluster.patroni.Patroni
 import static io.stackgres.operator.conciliation.factory.distributedlogs.patroni.DistributedLogsEnvVarFactories.V09_PATRONI_ENV_VAR_FACTORY;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -105,7 +106,7 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
                 .build())
         .withLivenessProbe(new ProbeBuilder()
             .withHttpGet(new HTTPGetActionBuilder()
-                .withNewPath("/cluster")
+                .withPath("/cluster")
                 .withPort(new IntOrString(EnvoyUtil.PATRONI_ENTRY_PORT))
                 .withScheme("HTTP")
                 .build())
@@ -123,6 +124,11 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
             .withPeriodSeconds(10)
             .build())
         .build();
+  }
+
+  @Override
+  public Map<String, String> getComponentVersions(DistributedLogsContainerContext context) {
+    return Map.of();
   }
 
   public List<VolumeMount> getVolumeMounts(DistributedLogsContainerContext context) {

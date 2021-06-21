@@ -118,7 +118,7 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
         .withEnv(getEnvVar(context))
         .withLivenessProbe(new ProbeBuilder()
             .withHttpGet(new HTTPGetActionBuilder()
-                .withNewPath("/cluster")
+                .withPath("/cluster")
                 .withPort(new IntOrString(EnvoyUtil.PATRONI_ENTRY_PORT))
                 .withScheme("HTTP")
                 .build())

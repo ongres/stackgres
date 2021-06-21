@@ -9,6 +9,7 @@ import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAIN
 import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_SOCKET;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 

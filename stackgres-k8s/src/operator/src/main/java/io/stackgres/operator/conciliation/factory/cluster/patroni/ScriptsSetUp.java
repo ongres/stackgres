@@ -70,10 +70,6 @@ public class ScriptsSetUp implements ContainerFactory<StackGresClusterContainerC
         .build();
   }
 
-  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
-    return Map.of();
-  }
-
   private List<EnvVar> getClusterEnvVars(StackGresClusterContainerContext context) {
     return ImmutableList.<EnvVar>builder()
         .addAll(localBinMounts.getDerivedEnvVars(context))

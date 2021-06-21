@@ -19,8 +19,8 @@ import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.testutil.CrdUtils;
 import io.stackgres.testutil.KubernetesServerSupplier;
 
-@Mock
-@Singleton
+//@Mock
+//@Singleton
 public class MockKubernetesClientFactory implements KubernetesClientFactory {
 
   private final KubernetesServerSupplier serverSupplier = new KubernetesServerSupplier();

@@ -5,15 +5,11 @@
 
 package io.stackgres.jobs.dbops;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
-import java.util.TimeZone;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Any;
@@ -56,9 +52,7 @@ public class DbOpLauncherImpl implements DbOpLauncher {
   Instance<DatabaseOperationJob> instance;
 
   private static void setTransitionTimes(List<StackGresDbOpsCondition> conditions) {
-    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
-    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    String currentDateTime = dateFormat.format(new Date());
+    String currentDateTime = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
     conditions.forEach(condition -> condition.setLastTransitionTime(currentDateTime));
   }
 
@@ -79,7 +73,7 @@ public class DbOpLauncherImpl implements DbOpLauncher {
           .orElseGet(() -> {
             final StackGresDbOpsStatus dbOpsStatus = new StackGresDbOpsStatus();
             dbOpsStatus.setOpStarted(Instant.now().toString());
-            dbOpsStatus.setOpRetries(1);
+            dbOpsStatus.setOpRetries(0);
             dbOpsStatus.setConditions(getStartingConditions());
             return dbOpsStatus;
           });

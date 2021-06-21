@@ -59,6 +59,7 @@ public class BackupSecret
         .withName(StatefulSetDynamicVolumes.BACKUP_CREDENTIALS.getVolumeName())
         .withNewSecret()
         .withSecretName(name(context))
+        .withDefaultMode(444)
         .endSecret()
         .build();
   }

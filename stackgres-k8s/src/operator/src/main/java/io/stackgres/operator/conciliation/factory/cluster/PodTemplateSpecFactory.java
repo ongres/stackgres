@@ -32,6 +32,7 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
@@ -89,6 +90,7 @@ public class PodTemplateSpecFactory
         .map(f -> f.getComponentVersions(context))
         .map(Map::entrySet)
         .flatMap(Set::stream)
+        .distinct()
         .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
 
     final List<ContainerFactory<StackGresClusterContainerContext>> initContainerFactories =

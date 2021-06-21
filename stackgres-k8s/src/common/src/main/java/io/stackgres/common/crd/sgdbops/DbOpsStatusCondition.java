@@ -37,16 +37,6 @@ public enum DbOpsStatusCondition {
     return new StackGresDbOpsCondition(type, status, reason);
   }
 
-  public StackGresDbOpsCondition buildCondition() {
-    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
-    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    String currentDateTime = dateFormat.format(new Date());
-    final StackGresDbOpsCondition stackGresDbOpsCondition =
-        new StackGresDbOpsCondition(type, status, reason);
-    stackGresDbOpsCondition.setLastTransitionTime(currentDateTime);
-    return stackGresDbOpsCondition;
-  }
-
   public boolean isCondition(StackGresDbOpsCondition condition) {
     return Objects.equals(condition.getType(), type)
         && Objects.equals(condition.getStatus(), status)

@@ -22,7 +22,7 @@ import io.fabric8.kubernetes.client.internal.PatchUtils;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.jobs.MockKubernetesClientFactory;
+import io.stackgres.jobs.app.KubernetesClientProvider;
 import io.stackgres.testutil.StringUtils;
 
 @ApplicationScoped
@@ -35,7 +35,7 @@ public class PodTestUtil {
   LabelFactory<StackGresCluster> labelFactory;
 
   @Inject
-  MockKubernetesClientFactory clientFactory;
+  KubernetesClientProvider clientFactory;
 
   public static void assertPodEquals(Pod expected, Pod actual) {
     var pm = PatchUtils.patchMapper();

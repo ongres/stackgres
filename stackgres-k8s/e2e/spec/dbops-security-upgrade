@@ -64,7 +64,7 @@ e2e_test() {
   run_test "Check that cluster with 2 node after upgrade" check_cluster_2
   run_test "Check that cluster with 3 node after upgrade" check_cluster_3
   run_test "Check that cluster with 1 node can be restarted after upgrade with reduced impact" check_cluster_1_restart
-  run_test "Check that cluster with 2 node can be restarted after upgrade with restart primary first" check_cluster_2_restart
+  run_test "Check that cluster with 2 node can be restarted after upgrade with reduced impact" check_cluster_2_restart
   run_test "Check that cluster with 3 node can be restarted after upgrade with in-place restart" check_cluster_3_restart
   run_test "Checking that metrics are exported for cluster with 1 node" check_metrics "$CLUSTER_NAME-1"
   run_test "Checking that metrics are exported for cluster with 2 node" check_metrics "$CLUSTER_NAME-2"
@@ -228,6 +228,16 @@ EOF
   done
 
   check_mock_data_samehost "$CLUSTER_NAME"
+
+  local PRIMARY_SERVICE_TYPE="$(kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-primary" \
+    --template '{{ .spec.type }}')"
+  if [ "$PRIMARY_SERVICE_TYPE" = "ExternalName" ]
+  then
+    echo "SUCCESS. Primary service is of type ExternalName"
+  else
+    echo "FAILURE. Primary service is not of type ExternalName"
+    return 1
+  fi
  
 }
 

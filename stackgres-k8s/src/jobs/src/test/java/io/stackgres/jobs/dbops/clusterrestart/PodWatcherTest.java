@@ -18,20 +18,23 @@ import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.TimeoutException;
 import io.stackgres.jobs.MockKubernetesClientFactory;
+import io.stackgres.jobs.app.KubernetesClientProvider;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
+@WithKubernetesTestServer
 class PodWatcherTest {
 
   @Inject
   PodWatcher podWatcher;
 
   @Inject
-  MockKubernetesClientFactory clientFactory;
+  KubernetesClientProvider clientFactory;
 
   String namespace;
   String podName;

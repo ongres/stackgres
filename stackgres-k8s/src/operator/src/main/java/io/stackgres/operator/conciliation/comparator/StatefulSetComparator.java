@@ -69,6 +69,10 @@ public class StatefulSetComparator extends StackGresAbstractComparator {
           .compile("/spec/template/spec/initContainers/\\d+/resources"),
           "add",
           "{}"),
+      new PatchPattern(Pattern.compile(
+          "/spec/template/spec/initContainers/\\d+/env/\\d+/valueFrom/fieldRef/apiVersion"),
+          "add",
+          "v1"),
       new PatchPattern(Pattern
           .compile("/spec/template/spec/initContainers/\\d+/terminationMessagePath"),
           "add",
@@ -115,6 +119,9 @@ public class StatefulSetComparator extends StackGresAbstractComparator {
           "add"),
       new PatchPattern(Pattern.compile("/spec/volumeClaimTemplates/\\d+/metadata/annotations/.+"),
           "replace"),
+      new PatchPattern(Pattern
+          .compile("/spec/volumeClaimTemplates/\\d+/metadata/ownerReferences/\\d+/apiVersion"),
+          "replace"),
       new SimpleIgnorePatch("/spec/podManagementPolicy",
           "add",
           "OrderedReady"),
@@ -139,12 +146,12 @@ public class StatefulSetComparator extends StackGresAbstractComparator {
     int ignore = countPatchesToIgnore(diff);
 
     final int actualDifferences = diff.size() - ignore;
-    if (actualDifferences != 0) {
+    if (LOGGER.isDebugEnabled() && actualDifferences != 0) {
       for (JsonNode jsonPatch : diff) {
         JsonPatch patch = new JsonPatch(jsonPatch);
         if (Arrays.stream(getPatchPattersToIgnore())
             .noneMatch(patchPattern -> patchPattern.matches(patch))) {
-          LOGGER.info("StatefulSet diff {}", jsonPatch.toPrettyString());
+          LOGGER.debug("StatefulSet diff {}", jsonPatch.toPrettyString());
         }
       }
     }

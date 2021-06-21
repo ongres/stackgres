@@ -153,7 +153,7 @@ public abstract class AbstractPgPooling
   }
 
   @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContext context) {
+  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.PGBOUNCER_VERSION_KEY,
         StackGresComponent.PGBOUNCER.findLatestVersion());

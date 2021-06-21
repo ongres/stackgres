@@ -17,6 +17,7 @@ import javax.inject.Inject;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.junit.mockito.InjectSpy;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
@@ -131,7 +132,7 @@ class DbOpLauncherImplTest {
       var persistedOpStarted = Instant.parse(persistedDbOps.getStatus().getOpStarted());
       return beforeExecute.isBefore(persistedOpStarted) && afterExecute.isAfter(persistedOpStarted);
     }, "OpStarted should be close to now");
-    assertEquals(initialRetries + 1, persistedDbOps.getStatus().getOpRetries());
+    assertEquals(initialRetries, persistedDbOps.getStatus().getOpRetries());
   }
 
   @Test

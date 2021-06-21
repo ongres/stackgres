@@ -69,11 +69,6 @@ public class UserSetUp implements ContainerFactory<StackGresClusterContainerCont
         .build();
   }
 
-  @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContext context) {
-    return Map.of();
-  }  
-
   private List<EnvVar> getClusterEnvVars(StackGresClusterContainerContext context) {
 
     return ImmutableList.<EnvVar>builder()

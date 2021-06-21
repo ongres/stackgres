@@ -23,7 +23,7 @@ public class KubernetesServerSupplier implements Supplier<KubernetesServer> {
   @Override
   public synchronized KubernetesServer get() {
     if (server == null) {
-      server = new KubernetesServer(false, true);
+      server = new KubernetesServer(true, true);
       server.before();
       final NamespacedKubernetesClient client = server.getClient();
 

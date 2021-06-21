@@ -365,22 +365,13 @@ install_operator_only() {
 }
 
 install_operator_previous_version() {
-
-  STACKGRES_SOURCE_VERSION="$STACKGRES_PREVIOUS_VERSION"
-
-  OPERATOR_SOURCE_VERSION_HELM_URL="$(get_operator_helm_url "$STACKGRES_SOURCE_VERSION")"
-
   kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null 2>&1 \
     || kubectl create namespace "$OPERATOR_NAMESPACE"
 
-  local TAG
-  TAG="$(get_operator_image_tag "$STACKGRES_SOURCE_VERSION")"
-  install_operator_vanilla_from "$OPERATOR_SOURCE_VERSION_HELM_URL" \
-    --set-string operator.image.tag="$TAG" \
-    --set-string restapi.image.tag="$TAG" \
-    --set-string adminui.image.tag="${TAG%-jvm}" \
+  install_operator_vanilla_from "$OPERATOR_PREVIOUS_VERSION_HELM_URL" \
     $E2E_OPERATOR_OPTS "$@"
 }
+
 
 install_operator_vanilla() {
   install_operator_vanilla_from "$OPERATOR_CHART_PATH" \

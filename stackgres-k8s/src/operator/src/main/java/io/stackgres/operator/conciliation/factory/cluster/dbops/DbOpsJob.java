@@ -47,7 +47,6 @@ public abstract class DbOpsJob implements JobFactory {
 
   private static final Pattern UPPERCASE_PATTERN = Pattern.compile("(\\p{javaUpperCase})");
 
-  private static final Logger DBOPS_LOGGER = LoggerFactory.getLogger("io.stackgres.dbops");
   private final ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory;
   private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;
   private final ImmutableMap<DbOpsStatusCondition, String> conditions;
@@ -75,14 +74,6 @@ public abstract class DbOpsJob implements JobFactory {
 
   protected String getOperation(StackGresDbOps dbOps) {
     return dbOps.getSpec().getOp();
-  }
-
-  private Integer getCurrentRetry(StackGresDbOps dbOps) {
-    return Optional.of(dbOps)
-        .map(StackGresDbOps::getStatus)
-        .map(StackGresDbOpsStatus::getOpRetries)
-        .map(r -> r + (DbOpsUtil.isFailed(dbOps) && !DbOpsUtil.isMaxRetriesReached(dbOps) ? 1 : 0))
-        .orElse(0);
   }
 
   protected boolean isExclusiveOp() {
@@ -118,7 +109,7 @@ public abstract class DbOpsJob implements JobFactory {
 
   @Override
   public Job createJob(StackGresClusterContext context, StackGresDbOps dbOps) {
-    final String retries = String.valueOf(getCurrentRetry(dbOps));
+    final String retries = String.valueOf(DbOpsUtil.getCurrentRetry(dbOps));
     List<EnvVar> runEnvVars = getRunEnvVars(context, dbOps);
     List<EnvVar> setResultEnvVars = getSetResultEnvVars(context, dbOps);
     final String namespace = dbOps.getMetadata().getNamespace();
@@ -250,7 +241,7 @@ public abstract class DbOpsJob implements JobFactory {
                             .build())
                     .addAll(runEnvVars)
                     .build())
-                .withCommand("/bin/sh", "-e" + (DBOPS_LOGGER.isTraceEnabled() ? "x" : ""),
+                .withCommand("/bin/sh", "-ex",
                     ClusterStatefulSetPath.LOCAL_BIN_RUN_DBOPS_SH_PATH.path())
                 .withVolumeMounts(
                     ClusterStatefulSetVolumeConfig.SHARED.volumeMount(context),
@@ -332,7 +323,7 @@ public abstract class DbOpsJob implements JobFactory {
                         .toList())
                     .addAll(setResultEnvVars)
                     .build())
-                .withCommand("/bin/sh", "-e" + (DBOPS_LOGGER.isTraceEnabled() ? "x" : ""),
+                .withCommand("/bin/sh", "-ex",
                     ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RESULT_SH_PATH.path())
                 .withVolumeMounts(
                     ClusterStatefulSetVolumeConfig.SHARED.volumeMount(context),

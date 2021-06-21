@@ -155,7 +155,7 @@ e2e_test() {
   run_test "Check that cluster with 3 node after upgrade" check_cluster_3
   run_test "Check that distributedlogs node can be restarted after upgrade" check_distributedlogs_restart
   run_test "Check that cluster with 1 node can be restarted after upgrade with reduced impact" check_cluster_1_restart
-  run_test "Check that cluster with 2 node can be restarted after upgrade with reduced impact" check_cluster_2_restart
+  run_test "Check that cluster with 2 node can be restarted after upgrade with reduced impact and restart primary first" check_cluster_2_restart
   run_test "Check that cluster with 3 node can be restarted after upgrade with in-place restart" check_cluster_3_restart
   run_test "Checking that metrics are exported for cluster with 1 node" check_metrics "$CLUSTER_NAME-1"
   run_test "Checking that metrics are exported for cluster with 2 node" check_metrics "$CLUSTER_NAME-2"
@@ -263,7 +263,7 @@ check_cluster_1_restart() {
 }
 
 check_cluster_2_restart() {
-  check_cluster_restart "$CLUSTER_NAME-2" "ReducedImpact"  
+  check_cluster_restart "$CLUSTER_NAME-2" "ReducedImpact"
 }
 
 check_cluster_3_restart() {
@@ -302,6 +302,7 @@ EOF
   check_cluster_after_restart
 
   check_mock_data_samehost "$CLUSTER_NAME"
+
   
 }
 

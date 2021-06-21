@@ -17,6 +17,7 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -86,7 +87,7 @@ public class DbOpsMajorVersionUpgradeJob extends DbOpsJob {
                 .build(),
             new EnvVarBuilder()
                 .withName("CLUSTER_CRD_NAME")
-                .withValue(CustomResource.getPlural(StackGresCluster.class))
+                .withValue(HasMetadata.getPlural(StackGresCluster.class))
                 .build(),
             new EnvVarBuilder()
                 .withName("CLUSTER_NAMESPACE")

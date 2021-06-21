@@ -6,7 +6,13 @@
 package io.stackgres.operator.conciliation;
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
@@ -54,6 +60,8 @@ class ClusterReconciliatorTest {
   @Mock
   EventEmitter<StackGresCluster> eventController;
   @Mock
+  CustomResourceScheduler<StackGresCluster> clusterScheduler;
+  @Mock
   CustomResourceScanner<StackGresBackup> backupScanner;
   @Mock
   CustomResourceScheduler<StackGresBackup> backupScheduler;
@@ -72,11 +80,13 @@ class ClusterReconciliatorTest {
     reconciliator.setHandlerDelegator(handlerDelegator);
     reconciliator.setEventController(eventController);
     reconciliator.setStatusManager(statusManager);
+    reconciliator.setClusterScheduler(clusterScheduler);
     reconciliator.setBackupConfigFinder(backupConfigFinder);
     reconciliator.setBackupScanner(backupScanner);
     reconciliator.setBackupScheduler(backupScheduler);
     reconciliator.setBackupEventEmitter(backupEventEmitter);
     lenient().when(backupScanner.getResources(anyString())).thenReturn(List.of());
+    when(clusterScheduler.updateStatus(cluster)).thenReturn(cluster);
   }
 
   @Test

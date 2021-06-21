@@ -7,6 +7,7 @@ package io.stackgres.operator.conciliation.factory.cluster.patroni.v09;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;

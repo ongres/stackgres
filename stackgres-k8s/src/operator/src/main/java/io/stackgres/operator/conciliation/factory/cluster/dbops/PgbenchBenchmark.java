@@ -67,7 +67,7 @@ public class PgbenchBenchmark extends DbOpsJob {
         .divide(Quantity.getAmountInBytes(Quantity.parse("16Mi")))
         .toPlainString();
     final String duration = String.valueOf(Duration.parse(pgbench.getDuration()).getSeconds());
-    List<EnvVar> runEnvVars = ImmutableList.of(
+    return ImmutableList.of(
         new EnvVarBuilder()
             .withName("PGHOST")
             .withValue(serviceDns)
@@ -125,7 +125,6 @@ public class PgbenchBenchmark extends DbOpsJob {
                 .map(String::valueOf)
                 .orElse("1"))
             .build());
-    return runEnvVars;
   }
 
   @Override

@@ -10,7 +10,6 @@ import static io.stackgres.operator.conciliation.factory.cluster.patroni.Patroni
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -186,6 +185,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
         StackGresContext.PATRONI_VERSION_KEY,
         StackGresComponent.PATRONI.findLatestVersion());
   }
+
   private List<EnvVar> getClusterEnvVars(StackGresClusterContext context) {
     List<EnvVar> clusterEnvVars = new ArrayList<>();
 

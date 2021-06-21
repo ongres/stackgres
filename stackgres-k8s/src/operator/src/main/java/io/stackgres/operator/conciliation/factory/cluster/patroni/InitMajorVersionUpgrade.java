@@ -163,8 +163,4 @@ public class InitMajorVersionUpgrade implements ContainerFactory<StackGresCluste
             .build();
   }
 
-  @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
-    return Map.of();
-  }
 }

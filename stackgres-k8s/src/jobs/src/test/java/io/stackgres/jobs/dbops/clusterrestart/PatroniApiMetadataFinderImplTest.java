@@ -20,7 +20,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.quarkus.test.junit.QuarkusTest;
-import io.stackgres.jobs.MockKubernetesClientFactory;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.stackgres.jobs.app.KubernetesClientProvider;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
@@ -28,11 +28,12 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+@WithKubernetesTestServer
 @QuarkusTest
 class PatroniApiMetadataFinderImplTest {
 
   @Inject
-  MockKubernetesClientFactory  clientProvider;
+  KubernetesClientProvider clientProvider;
 
   @Inject
   PatroniApiMetadataFinderImpl patroniApiFinder;

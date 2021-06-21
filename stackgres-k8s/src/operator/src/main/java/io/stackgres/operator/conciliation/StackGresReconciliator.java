@@ -31,20 +31,20 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
 
   public synchronized void reconcile() {
     getExistentSources().forEach(cluster -> {
-      onPreReconciliation(cluster);
       final ObjectMeta metadata = cluster.getMetadata();
       final String clusterId = metadata.getNamespace() + "/" + metadata.getName();
-      LOGGER.info("Checking reconciliation status of cluster "
-          + clusterId);
+
       try {
+        onPreReconciliation(cluster);
+        LOGGER.info("Checking reconciliation status of cluster {}", clusterId);
         ReconciliationResult result = clusterConciliator.evalReconciliationState(cluster);
         if (!result.isUpToDate()) {
-          LOGGER.info("Cluster " + clusterId + " it's not up to date. Reconciling");
+          LOGGER.info("Cluster {} it's not up to date. Reconciling", clusterId);
 
           result.getCreations()
               .forEach(resource -> {
-                LOGGER.info("Creating resource " + resource.getMetadata().getName()
-                    + " of kind: " + resource.getKind());
+                LOGGER.info("Creating resource {} of kind: {}",
+                    resource.getMetadata().getName(), resource.getKind());
                 try {
                   handlerDelegator.create(resource);
                 } catch (KubernetesClientException ex) {
@@ -58,15 +58,15 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
 
           result.getPatches()
               .forEach(resource -> {
-                LOGGER.info("Patching resource " + resource.v2.getMetadata().getName()
-                    + " of kind: " + resource.v2.getKind());
+                LOGGER.info("Patching resource {}of kind: {}", resource.v2.getMetadata().getName(),
+                    resource.v2.getKind());
                 handlerDelegator.patch(resource.v1, resource.v2);
               });
 
           result.getDeletions()
               .forEach(resource -> {
-                LOGGER.info("Deleting resource " + resource.getMetadata().getName()
-                    + " of kind: " + resource.getKind());
+                LOGGER.info("Deleting resource {} of kind: {}", resource.getMetadata().getName(),
+                    resource.getKind());
                 handlerDelegator.delete(resource);
               });
           if (result.getDeletions().size() == 0 && result.getPatches().size() == 0) {
@@ -77,10 +77,16 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
         } else {
           LOGGER.info("Cluster " + clusterId + " it's up to date");
         }
+
         onPostReconciliation(cluster);
+
       } catch (Exception e) {
-        LOGGER.error("Reconciliation of cluster " + clusterId + " failed", e);
-        onError(e, cluster);
+        LOGGER.error("Reconciliation of cluster {} failed", clusterId, e);
+        try {
+          onError(e, cluster);
+        } catch (Exception onErrorEx) {
+          LOGGER.error("Failed of executing on error event of cluster {}", clusterId, onErrorEx);
+        }
       }
     });
 

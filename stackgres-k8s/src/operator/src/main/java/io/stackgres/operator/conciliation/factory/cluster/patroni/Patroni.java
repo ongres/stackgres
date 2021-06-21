@@ -9,9 +9,6 @@ import static io.stackgres.operator.conciliation.factory.cluster.patroni.Patroni
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;

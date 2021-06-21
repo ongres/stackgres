@@ -41,11 +41,8 @@ public class DbOpsUtil {
   }
 
   public static String jobName(StackGresDbOps dbOps) {
-    String name = dbOps.getMetadata().getName();
-    UUID uid = UUID.fromString(dbOps.getMetadata().getUid());
-    return ResourceUtil.resourceName(name + "-" + getOperation(dbOps) + "-"
-        + Long.toHexString(uid.getMostSignificantBits())
-        + "-" + getCurrentRetry(dbOps));
+
+    return jobName(dbOps, getOperation(dbOps));
   }
 
   public static String jobName(StackGresDbOps dbOps, String operation) {
@@ -70,11 +67,11 @@ public class DbOpsUtil {
     return dbOps.getSpec().getOp();
   }
 
-  private static Integer getCurrentRetry(StackGresDbOps dbOps) {
+  public static Integer getCurrentRetry(StackGresDbOps dbOps) {
     return Optional.of(dbOps)
         .map(StackGresDbOps::getStatus)
         .map(StackGresDbOpsStatus::getOpRetries)
         .map(r -> r + (DbOpsUtil.isFailed(dbOps) && !DbOpsUtil.isMaxRetriesReached(dbOps) ? 1 : 0))
-        .orElse(1);
+        .orElse(0);
   }
 }
