@@ -113,12 +113,11 @@ export const mixin = {
             }
           )
           .then( function(response){
+
+            vc.lookupCRDs('sgcluster', response.data);
   
             response.data.forEach( function(item, index) {
 
-              /* if(!index)
-                store.commit('flushClusters') */
-  
               var cluster = {
                 name: item.metadata.name,
                 data: item,
@@ -173,6 +172,8 @@ export const mixin = {
             }
           })
           .then( function(response) {
+
+            vc.lookupCRDs('sgbackup', response.data);
   
               var start, finish, duration;
   
@@ -234,6 +235,8 @@ export const mixin = {
             }
           })
           .then( function(response) {
+
+            vc.lookupCRDs('sgpgconfig', response.data);
   
             response.data.forEach( function(item, index) {
                 
@@ -267,6 +270,8 @@ export const mixin = {
             }
           })
           .then( function(response) {
+
+            vc.lookupCRDs('sgpoolconfig', response.data);
   
             response.data.forEach( function(item, index) {
                 
@@ -299,6 +304,8 @@ export const mixin = {
             }
           })
           .then( function(response) {
+
+            vc.lookupCRDs('sgbackupconfig', response.data);
   
               response.data.forEach( function(item, index) {
                 
@@ -333,6 +340,8 @@ export const mixin = {
             }
           })
           .then( function(response) {
+
+            vc.lookupCRDs('sginstanceprofile', response.data);
   
             response.data.forEach( function(item, index) {
                 
@@ -385,6 +394,8 @@ export const mixin = {
             }
           )
           .then( function(response){
+
+            vc.lookupCRDs('sgdistributedlogs', response.data);
   
             var logs = [];
   
@@ -413,6 +424,8 @@ export const mixin = {
             }
           )
           .then( function(response){
+
+            vc.lookupCRDs('sgdbops', response.data);
   
             var dbOps = [];
   
@@ -1133,6 +1146,70 @@ export const mixin = {
         } else {
           return '+00:00'
         }
+      },
+
+      lookupCRDs(kind, crds) {
+
+        let sgKind = kind;
+
+        switch(kind) {
+          
+          case 'sgcluster':
+            kind = 'clusters'
+            break;
+          
+          case 'sgbackup':
+            kind = 'backups'
+            break;
+
+          case 'sgpgconfig':
+            kind = 'pgConfig'
+            break;
+
+          case 'sgpoolconfig':
+            kind = 'poolConfig'
+            break;
+
+          case 'sgbackupconfig':
+            kind = 'backupConfig'
+            break;
+          
+          case 'sginstanceprofile':
+            kind = 'profiles'
+            break;
+          
+          case 'sgdistributedlogs':
+            kind = 'logsClusters'
+            break;
+          
+          case 'sgdbops':
+            kind = 'dbOps'
+            break;
+        }
+
+        store.state[kind].forEach(function(storeItem, index) {
+
+          let foundItem = crds.find(e => (e.metadata.name == storeItem.data.metadata.name) && (e.metadata.namespace == storeItem.data.metadata.namespace))
+
+          if(typeof foundItem === 'undefined') {
+
+            store.commit('setDeleteItem', {
+              kind: sgKind,
+              name: storeItem.data.metadata.name,
+              namespace: storeItem.data.metadata.namespace,
+              redirect: ''
+            })
+
+            store.commit("setDeleteItem", {
+							kind: '',
+							namespace: '',
+							name: '',
+							redirect: ''
+						});
+          }
+
+        })
+
       }
       
     },
