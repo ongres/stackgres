@@ -2360,7 +2360,7 @@ ul.select a.active {
     border-color: var(--blue);
 }
 
-.warning {
+form .warning {
     background: rgba(0,173,181,.05);
     border: 1px solid var(--blue);
     padding: 20px;
