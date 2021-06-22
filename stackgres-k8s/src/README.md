@@ -78,3 +78,7 @@ Integration tests requires docker to be installed (if not on Linux set the envir
                                   by OnGres, Inc.
 
 ```
+
+#### IDE plugins
+
+- [Immutables](https://immutables.github.io/getstarted.html)
