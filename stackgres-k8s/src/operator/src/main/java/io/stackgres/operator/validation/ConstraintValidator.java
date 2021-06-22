@@ -13,6 +13,7 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.validation.ConstraintViolation;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Status;
@@ -48,7 +49,9 @@ public abstract class ConstraintValidator<T extends AdmissionReview<?>> implemen
       if (StackGresCluster.KIND.equals(target.getKind())) {
         try {
           // Names must not be longer than valid labels.
-          ResourceUtil.labelValue(target.getMetadata().getName());
+          Preconditions.checkArgument(target.getMetadata().getName().length() <= 53,
+              "Valid name must be 53 characters or less");
+          ResourceUtil.resourceName(target.getMetadata().getName());
         } catch (IllegalArgumentException e) {
           throw new ValidationFailed(e.getMessage());
         }

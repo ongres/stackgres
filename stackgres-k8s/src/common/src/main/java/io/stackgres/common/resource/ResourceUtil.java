@@ -40,6 +40,7 @@ public class ResourceUtil {
   public static final BigDecimal LOAD_MULTIPLIER = new BigDecimal(1000);
   public static final BigDecimal KILOBYTE = new BigDecimal(1024);
 
+  private static final Pattern DNS_LABEL_NAME = Pattern.compile("[a-z]([-a-z0-9]*[a-z0-9])?");
   private static final Pattern VALID_VALUE =
       Pattern.compile("(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?");
   private static final Pattern PREFIX_PART =
@@ -62,7 +63,12 @@ public class ResourceUtil {
   }
 
   public static String resourceName(String name) {
-    Preconditions.checkArgument(name.length() <= 253);
+    Preconditions.checkArgument(name.length() <= 63,
+        "Valid name must be 63 characters or less");
+    Preconditions.checkArgument(DNS_LABEL_NAME.matcher(name).matches(),
+        "Name must consist of lower case alphanumeric "
+            + "characters or '-', start with an alphabetic character, "
+            + "and end with an alphanumeric character");
     return name;
   }
 
