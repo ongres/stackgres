@@ -6,7 +6,7 @@
 package io.stackgres.operator.conciliation;
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.mockito.Mockito.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
@@ -30,9 +30,9 @@ import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.cluster.factory.KubernetessMockResourceGenerationUtil;
 import io.stackgres.operator.conciliation.cluster.ClusterReconciliator;
+import io.stackgres.testutil.JsonUtil;
 import org.hamcrest.MatcherAssert;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;

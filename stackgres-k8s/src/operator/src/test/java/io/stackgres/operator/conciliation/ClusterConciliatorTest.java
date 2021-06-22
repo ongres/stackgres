@@ -11,8 +11,8 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.conciliation.cluster.ClusterConciliator;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;

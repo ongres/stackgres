@@ -31,10 +31,10 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.patroni.PatroniConfig;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.Blocklist;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.DefaultValues;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,7 +53,6 @@ class PatroniConfigEndpointsTest {
   private StackGresCluster cluster;
   private StackGresBackupConfig backupConfig;
   private StackGresPostgresConfig postgresConfig;
-  private String clusterName, clusterNamespace;
 
   @BeforeEach
   void setUp() {
@@ -65,9 +64,6 @@ class PatroniConfigEndpointsTest {
         .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
     backupConfig = JsonUtil.readFromJson("backup_config/default.json", StackGresBackupConfig.class);
     postgresConfig = JsonUtil.readFromJson("postgres_config/default_postgres.json", StackGresPostgresConfig.class);
-
-    clusterName = cluster.getMetadata().getName();
-    clusterNamespace = cluster.getMetadata().getNamespace();
 
     lenient().when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
     lenient().when(context.getPostgresConfig()).thenReturn(postgresConfig);

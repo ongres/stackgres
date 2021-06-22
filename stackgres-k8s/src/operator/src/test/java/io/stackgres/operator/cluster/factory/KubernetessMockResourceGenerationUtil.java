@@ -50,7 +50,7 @@ public class KubernetessMockResourceGenerationUtil {
             .build(),
         new StatefulSetBuilder()
             .withNewMetadata()
-            .withNewName(cluster)
+            .withName(cluster)
             .withNamespace(namespace)
             .endMetadata()
             .withNewSpec()

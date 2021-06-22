@@ -42,9 +42,9 @@ import io.stackgres.common.resource.PoolingConfigFinder;
 import io.stackgres.common.resource.PostgresConfigFinder;
 import io.stackgres.common.resource.ProfileConfigFinder;
 import io.stackgres.common.resource.SecretFinder;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfigList;
 import io.stackgres.operator.resource.PrometheusScanner;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -113,7 +113,6 @@ class ClusterRequiredResourcesGeneratorTest {
   @Test
   void givenValidCluster_getRequiredResourcesShouldNotFail() {
     final ObjectMeta metadata = cluster.getMetadata();
-    final String clusterName = metadata.getName();
     final String clusterNamespace = metadata.getNamespace();
 
     final StackGresClusterSpec clusterSpec = cluster.getSpec();
@@ -144,7 +143,6 @@ class ClusterRequiredResourcesGeneratorTest {
   @Test
   void givenValidCluster_getRequiredResourcesAllReturnedResourcesShouldHaveTheOwnerReference() {
     final ObjectMeta metadata = cluster.getMetadata();
-    final String clusterName = metadata.getName();
     final String clusterNamespace = metadata.getNamespace();
 
     final StackGresClusterSpec clusterSpec = cluster.getSpec();
@@ -183,7 +181,6 @@ class ClusterRequiredResourcesGeneratorTest {
   @Test
   void givenValidClusterWithoutBackupConfig_getRequiredResourcesShouldNotFail() {
     final ObjectMeta metadata = cluster.getMetadata();
-    final String clusterName = metadata.getName();
     final String clusterNamespace = metadata.getNamespace();
 
     final StackGresClusterSpec clusterSpec = cluster.getSpec();
@@ -213,7 +210,6 @@ class ClusterRequiredResourcesGeneratorTest {
   @Test
   void givenValidClusterWithNoPoolingConfig_getRequiredResourcesShouldNotFail() {
     final ObjectMeta metadata = cluster.getMetadata();
-    final String clusterName = metadata.getName();
     final String clusterNamespace = metadata.getNamespace();
 
     final StackGresClusterSpec clusterSpec = cluster.getSpec();
@@ -247,7 +243,6 @@ class ClusterRequiredResourcesGeneratorTest {
     cluster.getSpec().getInitData().setRestore(null);
 
     final ObjectMeta metadata = cluster.getMetadata();
-    final String clusterName = metadata.getName();
     final String clusterNamespace = metadata.getNamespace();
 
     final StackGresClusterSpec clusterSpec = cluster.getSpec();
@@ -367,7 +362,6 @@ class ClusterRequiredResourcesGeneratorTest {
   @Test
   void givenClusterWithNoBackupConfig_NotFail() {
     final ObjectMeta metadata = cluster.getMetadata();
-    final String clusterName = metadata.getName();
     final String clusterNamespace = metadata.getNamespace();
 
     final StackGresClusterSpec clusterSpec = cluster.getSpec();
@@ -399,7 +393,6 @@ class ClusterRequiredResourcesGeneratorTest {
   @Test
   void givenClusterWithNoPoolingConfig_shouldNotFail() {
     final ObjectMeta metadata = cluster.getMetadata();
-    final String clusterName = metadata.getName();
     final String clusterNamespace = metadata.getNamespace();
 
     final StackGresClusterSpec clusterSpec = cluster.getSpec();

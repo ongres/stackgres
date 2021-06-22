@@ -14,8 +14,8 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.conciliation.cluster.ClusterEndpointComparator;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 
 class ClusterEndpointComparatorTest {

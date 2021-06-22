@@ -5,19 +5,17 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
-import static io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret.AUTHENTICATOR_PASSWORD_KEY;
-import static io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret.REPLICATION_PASSWORD_KEY;
-import static io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret.SUPERUSER_PASSWORD_KEY;
+import static io.stackgres.operator.conciliation.StackGresRandomPasswordKeys.AUTHENTICATOR_PASSWORD_KEY;
+import static io.stackgres.operator.conciliation.StackGresRandomPasswordKeys.REPLICATION_PASSWORD_KEY;
+import static io.stackgres.operator.conciliation.StackGresRandomPasswordKeys.SUPERUSER_PASSWORD_KEY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,10 +26,8 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.resource.ResourceFinder;
-import io.stackgres.testutil.JsonUtil;
-import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

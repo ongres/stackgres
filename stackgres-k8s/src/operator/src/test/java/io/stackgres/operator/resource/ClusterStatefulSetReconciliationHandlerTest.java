@@ -7,9 +7,9 @@ package io.stackgres.operator.resource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyMap;
-import static org.mockito.Mockito.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
@@ -34,9 +34,9 @@ import io.stackgres.common.StringUtil;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.common.resource.ResourceWriter;
+import io.stackgres.operator.conciliation.cluster.ClusterStatefulSetReconciliationHandler;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
-import io.stackgres.operator.conciliation.cluster.ClusterStatefulSetReconciliationHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -339,9 +339,6 @@ class ClusterStatefulSetReconciliationHandlerTest {
     when(statefulSetWriter.update(any())).thenReturn(requiredStatefulSet);
     ArgumentCaptor<Pod> podArgumentCaptor = ArgumentCaptor.forClass(Pod.class);
 
-    when(podWriter.update(podArgumentCaptor.capture()))
-        .then((Answer<Pod>) invocationOnMock -> invocationOnMock.getArgument(0));
-
     handler.replace(requiredStatefulSet);
 
     podArgumentCaptor.getAllValues().forEach(pod -> {
@@ -385,6 +382,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
         break;
       case FIRST_NONDISRUPTABLE:
         masterIndex = desiredReplicas - distuptiblePods;
+        break;
+      default:
         break;
     }
     return masterIndex;

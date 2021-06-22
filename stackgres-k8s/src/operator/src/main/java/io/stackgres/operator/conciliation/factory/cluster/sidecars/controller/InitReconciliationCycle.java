@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.controller;
 
-import java.util.Map;
-
 import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.Container;

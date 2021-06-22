@@ -11,11 +11,11 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.conciliation.Conciliator;
 import io.stackgres.operator.conciliation.ConciliatorTest;
 import io.stackgres.operator.conciliation.DeployedResourcesScanner;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;

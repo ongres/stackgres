@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -20,7 +19,6 @@ import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.TimeoutException;
-import io.stackgres.jobs.MockKubernetesClientFactory;
 import io.stackgres.jobs.app.KubernetesClientProvider;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;

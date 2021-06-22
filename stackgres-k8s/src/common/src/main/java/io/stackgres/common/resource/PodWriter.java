@@ -15,7 +15,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.Deletable;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.stackgres.common.KubernetesClientFactory;
-import io.stackgres.common.resource.ResourceWriter;
 import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped

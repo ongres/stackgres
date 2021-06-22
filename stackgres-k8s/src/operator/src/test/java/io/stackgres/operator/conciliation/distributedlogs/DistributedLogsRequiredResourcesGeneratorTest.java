@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.TreeMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -49,10 +48,10 @@ import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.testutil.JsonUtil;
-import io.stackgres.testutil.StringUtils;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import io.stackgres.operator.conciliation.comparator.DefaultComparator;
+import io.stackgres.testutil.JsonUtil;
+import io.stackgres.testutil.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
@@ -88,12 +87,6 @@ class DistributedLogsRequiredResourcesGeneratorTest {
 
     sts.getSpec().getTemplate().getSpec().getVolumes()
         .sort(Comparator.comparing(Volume::getName));
-  }
-
-  private static void sortConfigMapData(ConfigMap configMap) {
-    TreeMap<String, String> data = new TreeMap<>(String::compareTo);
-    data.putAll(configMap.getData());
-    configMap.setData(data);
   }
 
   private static String getResourceAsString(String classpathResource) {

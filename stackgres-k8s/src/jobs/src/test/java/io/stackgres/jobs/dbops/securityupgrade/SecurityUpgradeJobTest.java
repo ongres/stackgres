@@ -5,9 +5,13 @@
 
 package io.stackgres.jobs.dbops.securityupgrade;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -17,27 +21,21 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
-import io.quarkus.test.junit.mockito.InjectSpy;
-import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.resource.StatefulSetWriter;
-import io.stackgres.jobs.MockKubernetesClientFactory;
 import io.stackgres.jobs.app.JobsProperty;
 import io.stackgres.jobs.dbops.DatabaseOperation;
 import io.stackgres.jobs.dbops.JobsStatefulSetWriter;
 import io.stackgres.jobs.dbops.StateHandler;
-import io.stackgres.jobs.dbops.lock.LockAcquirerImpl;
-import io.stackgres.jobs.dbops.lock.LockRequest;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.stubbing.Answer;
 
 @QuarkusTest
 class SecurityUpgradeJobTest {

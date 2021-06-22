@@ -15,8 +15,6 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
-import io.fabric8.kubernetes.api.model.NamespaceBuilder;
-import io.fabric8.kubernetes.api.model.Pod;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
@@ -24,7 +22,6 @@ import io.smallrye.mutiny.TimeoutException;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.jobs.app.KubernetesClientProvider;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;

@@ -16,6 +16,7 @@ import io.fabric8.zjsonpatch.JsonDiff;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("deprecation")
 public class DefaultComparator implements ResourceComparator {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger("io.stackgres.comparator");

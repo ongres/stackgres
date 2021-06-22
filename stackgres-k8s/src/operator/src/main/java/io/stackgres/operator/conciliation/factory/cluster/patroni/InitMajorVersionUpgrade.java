@@ -8,7 +8,6 @@ package io.stackgres.operator.conciliation.factory.cluster.patroni;
 import static io.stackgres.operator.conciliation.VolumeMountProviderName.MAJOR_VERSION_UPGRADE;
 import static io.stackgres.operator.conciliation.VolumeMountProviderName.SCRIPT_TEMPLATES;
 
-import java.util.Map;
 import java.util.Optional;
 
 import javax.inject.Inject;

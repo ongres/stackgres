@@ -10,7 +10,6 @@ import static io.stackgres.operator.conciliation.VolumeMountProviderName.LOCAL_B
 import static io.stackgres.operator.conciliation.VolumeMountProviderName.SCRIPT_TEMPLATES;
 
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;

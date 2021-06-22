@@ -8,8 +8,6 @@ package io.stackgres.operator.conciliation.factory.cluster.sidecars.controller;
 import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_EXTENSIONS;
 import static io.stackgres.operator.conciliation.VolumeMountProviderName.SCRIPT_TEMPLATES;
 
-import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 

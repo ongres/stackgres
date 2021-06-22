@@ -5,15 +5,17 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
