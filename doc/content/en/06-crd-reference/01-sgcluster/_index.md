@@ -85,26 +85,26 @@ spec:
 
 Specifies the service configuration for the cluster:
 
-| Property                            | Required | Updatable | Type     | Default   | Description                                                            |
-|:------------------------------------|----------|-----------|:---------|:----------|:-----------------------------------------------------------------------|
-| [Primary](#primary-service-type)    |          | ✓         | object   |           | {{< crd-field-description SGCluster.spec.postgresServices.primary >}}  |
-| [Replicas](#replicas-service-type)  |          | ✓         | object   |           | {{< crd-field-description SGCluster.spec.postgresServices.replicas >}} |
+| Property                            | Required | Updatable | Type     | Default                              | Description                                                            |
+|:------------------------------------|----------|-----------|:---------|:-------------------------------------|:-----------------------------------------------------------------------|
+| [Primary](#primary-service-type)    |          | ✓         | object   | [primary](#primary-service-type)   | {{< crd-field-description SGCluster.spec.postgresServices.primary >}}  |
+| [Replicas](#replicas-service-type)  |          | ✓         | object   | [replicas](#replicas-service-type) | {{< crd-field-description SGCluster.spec.postgresServices.replicas >}} |
 
 ### Primary service type
 
 | Property                        | Required | Updatable | Type     | Default   | Description                                                                 |
 |:--------------------------------|----------|-----------|:---------|:----------|:----------------------------------------------------------------------------|
-| enabled                         |          | ✓         | boolean  | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.primary.enabled >}}  |
+| enabled                         |          | ✓         | boolean  | true      | {{< crd-field-description SGCluster.spec.postgresServices.primary.enabled >}}  |
 | type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.primary.type >}}  |
-| annotations                     |          | ✓         | object   | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.primary.annotations >}}  |
+| annotations                     |          | ✓         | object   |           | {{< crd-field-description SGCluster.spec.postgresServices.primary.annotations >}}  |
 
 ### Replicas service type
 
 | Property                        | Required | Updatable | Type     | Default   | Description                                                                 |
 |:--------------------------------|----------|-----------|:---------|:----------|:----------------------------------------------------------------------------|
-| enabled                         |          | ✓         | boolean  | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.replicas.enabled >}}  |
+| enabled                         |          | ✓         | boolean  | true      | {{< crd-field-description SGCluster.spec.postgresServices.replicas.enabled >}}  |
 | type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.replicas.type >}}  |
-| annotations                     |          | ✓         | object   | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.replicas.annotations >}}  |
+| annotations                     |          | ✓         | object   |           | {{< crd-field-description SGCluster.spec.postgresServices.replicas.annotations >}}  |
 
 ## Pods
 
@@ -220,8 +220,8 @@ Custom configurations to be applied to the cluster.
 | [sgPoolingConfig]({{% relref "06-crd-reference/04-sgpoolingconfig" %}})  |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPoolingConfig >}} |
 | [sgBackupConfig]({{% relref "06-crd-reference/05-sgbackupconfig" %}})                     |          | ✓         | string   |                   | {{< crd-field-description SGCluster.spec.configurations.sgBackupConfig >}} |
 
-Example: 
- 
+Example:
+
 ``` yaml
 
 apiVersion: stackgres.io/v1
@@ -247,8 +247,8 @@ Extensions to be installed in the cluster.
 | publisher        |          | ✓         | string   | com.ongres        | {{< crd-field-description SGCluster.spec.postgresExtensions.items.publisher >}} |
 | repository       |          | ✓         | string   |                   | {{< crd-field-description SGCluster.spec.postgresExtensions.items.repository >}} |
 
-Example: 
- 
+Example:
+
 ``` yaml
 
 apiVersion: stackgres.io/v1
@@ -270,9 +270,9 @@ Specifies the cluster initialization data configurations
 
 ## Restore configuration
 
-By default, stackgres it's creates as an empty database. To create a cluster with data 
- from an existent backup, we have the restore options. It works, by simply indicating the 
- backup CR UUI that we want to restore. 
+By default, stackgres it's creates as an empty database. To create a cluster with data
+ from an existent backup, we have the restore options. It works, by simply indicating the
+ backup CR UUI that we want to restore.
 
 | Property                                 | Required | Updatable | Type     | Default | Description |
 |:-----------------------------------------|----------|-----------|:---------|:--------|:------------|
@@ -300,7 +300,7 @@ kind: SGCluster
 metadata:
   name: stackgres
 spec:
-  initialData: 
+  initialData:
     restore:
       fromBackup:
         uid: d7e660a9-377c-11ea-b04b-0242ac110004
@@ -328,7 +328,7 @@ kind: SGCluster
 metadata:
   name: stackgres
 spec:
-  initialData: 
+  initialData:
     scripts:
     - name: create-stackgres-user
       scriptFrom:
@@ -382,7 +382,7 @@ kind: SGCluster
 metadata:
   name: stackgres
 spec:
-  distributedLogs: 
+  distributedLogs:
     sgDistributedLogs: distributedlogs
 ```
 

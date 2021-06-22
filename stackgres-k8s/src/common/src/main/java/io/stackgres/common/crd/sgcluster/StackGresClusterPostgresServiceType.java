@@ -5,6 +5,8 @@
 
 package io.stackgres.common.crd.sgcluster;
 
+import org.jetbrains.annotations.NotNull;
+
 public enum StackGresClusterPostgresServiceType {
 
   CLUSTER_IP("ClusterIP"),
@@ -12,13 +14,18 @@ public enum StackGresClusterPostgresServiceType {
   NODE_PORT("NodePort"),
   EXTERNAL_NAME("ExternalName");
 
-  private final String type;
+  private final @NotNull String type;
 
-  StackGresClusterPostgresServiceType(String type) {
+  StackGresClusterPostgresServiceType(@NotNull String type) {
     this.type = type;
   }
 
   public String type() {
+    return type;
+  }
+
+  @Override
+  public @NotNull String toString() {
     return type;
   }
 }
