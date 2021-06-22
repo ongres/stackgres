@@ -64,7 +64,7 @@ public class ClusterEventsResource {
   @GET
   @Authenticated
   public List<EventDto> list(@PathParam("namespace") String namespace,
-      @PathParam("namespace") String name) {
+      @PathParam("name") String name) {
     Map<String, List<ObjectMeta>> relatedResources = new HashMap<>();
     relatedResources.put(StackGresDbOps.KIND,
         Seq.seq(dbOpsScanner.getResources(namespace))

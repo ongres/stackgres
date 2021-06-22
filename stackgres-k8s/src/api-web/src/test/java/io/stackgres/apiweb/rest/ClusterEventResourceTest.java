@@ -32,7 +32,6 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 @QuarkusTest
-//@EnabledIfEnvironmentVariable(named = "QUARKUS_PROFILE", matches = "test")
 class ClusterEventResourceTest implements AuthenticatedResourceTest {
 
   @Inject
@@ -42,7 +41,7 @@ class ClusterEventResourceTest implements AuthenticatedResourceTest {
   public static void setup() {
     StackGresDbOps dbOps = new StackGresDbOps();
     dbOps.setMetadata(new ObjectMeta());
-    dbOps.getMetadata().setNamespace("test");
+    dbOps.getMetadata().setNamespace("test-namespace");
     dbOps.getMetadata().setName("test-operation");
     dbOps.getMetadata().setUid("1");
     dbOps.setSpec(new StackGresDbOpsSpec());
@@ -55,7 +54,7 @@ class ClusterEventResourceTest implements AuthenticatedResourceTest {
   @BeforeEach
   void setUp() {
     try (KubernetesClient client = factory.create()) {
-      client.v1().events().inNamespace("test").delete();
+      client.v1().events().inNamespace("test-namespace").delete();
     }
   }
 
@@ -72,10 +71,10 @@ class ClusterEventResourceTest implements AuthenticatedResourceTest {
   @Test
   void ifEventsAreCreated_itShouldReturnThenInAnArray() {
     try (KubernetesClient client = factory.create()) {
-      client.v1().events().inNamespace("test")
+      client.v1().events().inNamespace("test-namespace")
       .create(new EventBuilder()
           .withNewMetadata()
-          .withNamespace("test")
+          .withNamespace("test-namespace")
           .withName("test.1")
           .endMetadata()
           .withType("Normal")
@@ -83,15 +82,15 @@ class ClusterEventResourceTest implements AuthenticatedResourceTest {
           .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(1)))
           .withInvolvedObject(new ObjectReferenceBuilder()
               .withKind(StackGresCluster.KIND)
-              .withNamespace("test")
+              .withNamespace("test-namespace")
               .withName("test")
               .withUid("1")
               .build())
           .build());
-      client.v1().events().inNamespace("test")
+      client.v1().events().inNamespace("test-namespace")
       .create(new EventBuilder()
           .withNewMetadata()
-          .withNamespace("test")
+          .withNamespace("test-namespace")
           .withName("test.2")
           .endMetadata()
           .withType("Normal")
@@ -99,15 +98,15 @@ class ClusterEventResourceTest implements AuthenticatedResourceTest {
           .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(2)))
           .withInvolvedObject(new ObjectReferenceBuilder()
               .withKind("StatefulSet")
-              .withNamespace("test")
+              .withNamespace("test-namespace")
               .withName("test")
               .withUid("1")
               .build())
           .build());
-      client.v1().events().inNamespace("test")
+      client.v1().events().inNamespace("test-namespace")
       .create(new EventBuilder()
           .withNewMetadata()
-          .withNamespace("test")
+          .withNamespace("test-namespace")
           .withName("test.3")
           .endMetadata()
           .withType("Warning")
@@ -115,15 +114,15 @@ class ClusterEventResourceTest implements AuthenticatedResourceTest {
           .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(3)))
           .withInvolvedObject(new ObjectReferenceBuilder()
               .withKind("Pod")
-              .withNamespace("test")
+              .withNamespace("test-namespace")
               .withName("test-0")
               .withUid("1")
               .build())
           .build());
-      client.v1().events().inNamespace("test")
+      client.v1().events().inNamespace("test-namespace")
       .create(new EventBuilder()
           .withNewMetadata()
-          .withNamespace("test")
+          .withNamespace("test-namespace")
           .withName("test.4")
           .endMetadata()
           .withType("Normal")
@@ -131,7 +130,7 @@ class ClusterEventResourceTest implements AuthenticatedResourceTest {
           .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(0)))
           .withInvolvedObject(new ObjectReferenceBuilder()
               .withKind(StackGresDbOps.KIND)
-              .withNamespace("test")
+              .withNamespace("test-namespace")
               .withName("test-operation")
               .withUid("1")
               .build())

@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 @QuarkusTest
-@EnabledIfEnvironmentVariable(named = "QUARKUS_PROFILE", matches = "test")
 class ConfigMapResourceTest implements AuthenticatedResourceTest {
 
   @Inject

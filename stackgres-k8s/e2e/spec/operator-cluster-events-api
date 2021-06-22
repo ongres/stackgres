@@ -38,8 +38,9 @@ spec:
   op: minorVersionUpgrade
 EOF
 
-  kubectl get sgbops -n "$CLUSTER_NAMESPACE" "$DBOPS_MINOR_VERSION_UPGRADE_NAME" -o json \
-    jq '. as $dbops | {} | {
+  kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_MINOR_VERSION_UPGRADE_NAME" -o json \
+    | jq "$(cat << EOF
+      . as \$dbops | {} | {
         metadata: {
           name: "$DBOPS_MINOR_VERSION_UPGRADE_NAME.1-test",
           namespace: "$CLUSTER_NAMESPACE"
@@ -51,22 +52,24 @@ EOF
         firstTimestamp: "2021-06-15T15:29:39Z",
         lastTimestamp: "2021-06-21T17:20:46Z",
         type: "Normal",
-        message: "StackGres Cluster default.stackgres updated"
+        message: "StackGres Cluster default.stackgres updated",
         reason: "ClusterUpdated",
         reportingComponent: "",
         reportingInstance: "",
         involvedObject: {
-          apiVersion: $dbops.apiVersion,
-          kind: $dbops.kind,
-          namespace: $dbops.metadata.namespace,
-          name: $dbops.metadata.name,
-          resourceVersion: $dbops.metadata.resourceVersion,
-          uid: $dbops.metadata.uid
+          apiVersion: \$dbops.apiVersion,
+          kind: \$dbops.kind,
+          namespace: \$dbops.metadata.namespace,
+          name: \$dbops.metadata.name,
+          resourceVersion: \$dbops.metadata.resourceVersion,
+          uid: \$dbops.metadata.uid
         },
         source: {
           component: "stackgres-operator"
         }
-      }' | kubectl create -f -
+      }
+EOF
+    )" | kubectl create -f -
 }
 
 e2e_test() {
