@@ -25,7 +25,7 @@ import io.smallrye.mutiny.Uni;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.resource.StatefulSetWriter;
+import io.stackgres.common.resource.StatefulSetFinder;
 import io.stackgres.jobs.app.JobsProperty;
 import io.stackgres.jobs.dbops.DatabaseOperation;
 import io.stackgres.jobs.dbops.JobsStatefulSetWriter;
@@ -53,7 +53,7 @@ class SecurityUpgradeJobTest {
   ClusterRestartStateHandlerImpl clusterRestart;
 
   @InjectMock
-  StatefulSetWriter statefulSetReader;
+  StatefulSetFinder statefulSetReader;
   @InjectMock
   JobsStatefulSetWriter statefulSetWriter;
 
