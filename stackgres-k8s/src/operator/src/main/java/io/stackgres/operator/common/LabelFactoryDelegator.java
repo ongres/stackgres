@@ -22,15 +22,27 @@ public class LabelFactoryDelegator {
   private LabelFactory<StackGresDistributedLogs> distributedLogsLabelFactory;
 
   public Map<String, String> patroniClusterLabels(StackGresClusterContext context) {
-    return pickFactory(context).patroniClusterLabels(context.getCluster());
+    if (context instanceof StackGresDistributedLogsContext) {
+      return distributedLogsLabelFactory
+          .patroniClusterLabels(((StackGresDistributedLogsContext) context).getDistributedLogs());
+    } else {
+      return clusterLabelFactory
+          .patroniClusterLabels(context.getCluster());
+    }
   }
 
   public Map<String, String> genericClusterLabels(StackGresClusterContext context) {
-    return pickFactory(context).genericClusterLabels(context.getCluster());
+    if (context instanceof StackGresDistributedLogsContext) {
+      return distributedLogsLabelFactory
+          .genericClusterLabels(((StackGresDistributedLogsContext) context).getDistributedLogs());
+    } else {
+      return clusterLabelFactory
+          .genericClusterLabels(context.getCluster());
+    }
   }
 
   public Map<String, String> clusterLabels(StackGresClusterContext context) {
-    return pickFactory(context).genericClusterLabels(context.getCluster());
+    return this.genericClusterLabels(context);
   }
 
   public LabelFactory<?> pickFactory(StackGresClusterContext context) {

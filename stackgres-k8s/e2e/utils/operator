@@ -372,6 +372,7 @@ install_operator_previous_version() {
     $E2E_OPERATOR_OPTS "$@"
 }
 
+
 install_operator_vanilla() {
   install_operator_vanilla_from "$OPERATOR_CHART_PATH" \
     "$@"

@@ -8,6 +8,7 @@ package io.stackgres.common.resource;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -50,16 +51,15 @@ public class PodFinder implements
 
   @Override
   public List<Pod> findResourcesInNamespace(String namespace) {
-    try (KubernetesClient client = kubClientFactory.create()) {
-      return client.pods().inNamespace(namespace).list().getItems();
-    }
+    return kubClientFactory
+        .withNewClient(client -> client.pods().inNamespace(namespace).list().getItems());
   }
 
-  public List<Pod> findResourcesInNamespaceWithLabels(String namespace,
-      Map<String, String> labels) {
-    try (KubernetesClient client = kubClientFactory.create()) {
-      return client.pods().inNamespace(namespace).withLabels(labels).list().getItems();
-    }
+  @Override
+  public List<Pod> findByLabelsAndNamespace(String namespace, Map<String, String> labels) {
+    return kubClientFactory.withNewClient(client ->
+        client.pods().inNamespace(namespace).withLabels(labels).list().getItems().stream()
+            .collect(Collectors.toUnmodifiableList()));
   }
 
   @Inject

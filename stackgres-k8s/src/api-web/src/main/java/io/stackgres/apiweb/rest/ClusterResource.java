@@ -50,7 +50,6 @@ import io.stackgres.apiweb.dto.cluster.ClusterScriptFrom;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
 import io.stackgres.apiweb.resource.ResourceTransactionHandler;
-import io.stackgres.apiweb.transformer.ResourceTransformer;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
@@ -59,7 +58,6 @@ import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -94,9 +92,6 @@ public class ClusterResource
 
   @Inject
   public ClusterResource(
-      CustomResourceFinder<StackGresCluster> finder,
-      CustomResourceScheduler<StackGresCluster> scheduler,
-      ResourceTransformer<ClusterDto, StackGresCluster> transformer,
       CustomResourceScanner<ClusterDto> clusterScanner,
       CustomResourceFinder<ClusterDto> clusterFinder,
       CustomResourceFinder<ClusterStatsDto> clusterResourceStatsFinder,
@@ -106,7 +101,6 @@ public class ClusterResource
       ResourceFinder<Secret> secretFinder,
       ResourceFinder<ConfigMap> configMapFinder,
       ResourceFinder<Service> serviceFinder) {
-    super(null, finder, scheduler, transformer);
     this.clusterScanner = clusterScanner;
     this.clusterFinder = clusterFinder;
     this.clusterResourceStatsFinder = clusterResourceStatsFinder;
@@ -119,7 +113,6 @@ public class ClusterResource
   }
 
   public ClusterResource() {
-    super(null, null, null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.clusterScanner = null;
     this.clusterFinder = null;
@@ -385,30 +378,30 @@ public class ClusterResource
 
   private Tuple2<String, Tuple4<String, Consumer<String>, SecretKeySelector,
       Consumer<SecretKeySelector>>> extractSecretInfo(
-          ClusterDto resource, Tuple2<ClusterScriptEntry, Long> script) {
+      ClusterDto resource, Tuple2<ClusterScriptEntry, Long> script) {
     return Tuple.<String, Tuple4<String, Consumer<String>, SecretKeySelector,
         Consumer<SecretKeySelector>>>tuple(
-            scriptResourceName(resource, script),
-            Tuple.<String, Consumer<String>, SecretKeySelector,
+        scriptResourceName(resource, script),
+        Tuple.<String, Consumer<String>, SecretKeySelector,
             Consumer<SecretKeySelector>>tuple(
-                script.v1.getScriptFrom().getSecretScript(),
-                script.v1.getScriptFrom()::setSecretScript,
-                script.v1.getScriptFrom().getSecretKeyRef(),
-                script.v1.getScriptFrom()::setSecretKeyRef));
+            script.v1.getScriptFrom().getSecretScript(),
+            script.v1.getScriptFrom()::setSecretScript,
+            script.v1.getScriptFrom().getSecretKeyRef(),
+            script.v1.getScriptFrom()::setSecretKeyRef));
   }
 
   private Tuple2<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector,
       Consumer<ConfigMapKeySelector>>> extractConfigMapInfo(
-          ClusterDto resource, Tuple2<ClusterScriptEntry, Long> script) {
+      ClusterDto resource, Tuple2<ClusterScriptEntry, Long> script) {
     return Tuple.<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector,
         Consumer<ConfigMapKeySelector>>>tuple(
-            scriptResourceName(resource, script),
-            Tuple.<String, Consumer<String>, ConfigMapKeySelector,
+        scriptResourceName(resource, script),
+        Tuple.<String, Consumer<String>, ConfigMapKeySelector,
             Consumer<ConfigMapKeySelector>>tuple(
-                script.v1.getScriptFrom().getConfigMapScript(),
-                script.v1.getScriptFrom()::setConfigMapScript,
-                script.v1.getScriptFrom().getConfigMapKeyRef(),
-                script.v1.getScriptFrom()::setConfigMapKeyRef));
+            script.v1.getScriptFrom().getConfigMapScript(),
+            script.v1.getScriptFrom()::setConfigMapScript,
+            script.v1.getScriptFrom().getConfigMapKeyRef(),
+            script.v1.getScriptFrom()::setConfigMapKeyRef));
   }
 
   private String scriptResourceName(ClusterDto resource, Tuple2<ClusterScriptEntry, Long> tuple) {
@@ -432,7 +425,7 @@ public class ClusterResource
   @Path("/stats/{namespace}/{name}")
   @Authenticated
   public ClusterStatsDto stats(@PathParam("namespace") String namespace,
-      @PathParam("name") String name) {
+                               @PathParam("name") String name) {
     return clusterResourceStatsFinder.findByNameAndNamespace(name, namespace)
         .orElseThrow(NotFoundException::new);
   }

@@ -21,6 +21,7 @@ class PostgresConfigInitializerTest extends InitializerTest<StackGresPostgresCon
   @Override
   StackGresPostgresConfig getDefaultCR() {
     return JsonUtil
-        .readFromJson("postgres_config/default_postgres.json", StackGresPostgresConfig.class);
+        .readFromJson("postgres_config/default_postgres.json",
+            StackGresPostgresConfig.class);
   }
 }

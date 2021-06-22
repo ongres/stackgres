@@ -13,12 +13,8 @@ import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsDto;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
 import io.stackgres.apiweb.transformer.DistributedLogsTransformer;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
-import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.common.resource.CustomResourceScanner;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -46,13 +42,8 @@ class DistributedLogsResourceTest
   }
 
   @Override
-  protected DistributedLogsResource getService(
-      CustomResourceScanner<StackGresDistributedLogs> scanner,
-      CustomResourceFinder<StackGresDistributedLogs> finder,
-      CustomResourceScheduler<StackGresDistributedLogs> scheduler,
-      CustomResourceScanner<StackGresCluster> clusterScanner,
-      AbstractDependencyResourceTransformer<DistributedLogsDto, StackGresDistributedLogs> transformer) {
-    return new DistributedLogsResource(scanner, finder, scheduler, clusterScanner, transformer);
+  protected DistributedLogsResource getService() {
+    return new DistributedLogsResource();
   }
 
   @Override

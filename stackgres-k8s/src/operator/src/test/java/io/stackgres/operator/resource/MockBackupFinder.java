@@ -11,7 +11,7 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.testutil.JsonUtil;
 
-
+//@Mock
 public class MockBackupFinder implements CustomResourceFinder<StackGresBackupConfig> {
 
   @Override

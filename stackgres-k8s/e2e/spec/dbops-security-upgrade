@@ -1,0 +1,265 @@
+#!/bin/sh
+
+. "$SPEC_PATH/abstract/metrics"
+
+e2e_exclusive_lock() {
+  true
+}
+
+e2e_test_install() {
+  PREVIOUS_PATRONI_IMAGE="$(get_component_images "$STACKGRES_PREVIOUS_VERSION" | grep '/patroni\(-ext\)\?:' | tail -n 1)"
+  PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_PATRONI_IMAGE##*-pg}"
+  PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
+  PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION" | grep '/patroni\(-ext\)\?:' | grep "[-]pg$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION-" | tail -n 1)"
+  k8s_unnamespaced_cleanup
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+  k8s_async_cleanup
+  install_operator_previous_version
+
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+
+  create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set cluster.create=false \
+    --set instanceProfiles[0].name=size-xs \
+    --set instanceProfiles[0].cpu=250m \
+    --set instanceProfiles[0].memory=512Mi \
+    --set-string configurations.postgresconfig.postgresql\.conf.max_connections=100
+
+  create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
+    "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1 \
+    --set configurations.create=false --set instanceProfiles=false \
+    --set-string cluster.postgresVersion=latest
+
+  create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
+    "$CLUSTER_NAME-2" "$CLUSTER_NAMESPACE" 2 \
+    --set configurations.create=false --set instanceProfiles=false \
+    --set-string cluster.postgresVersion=latest 
+    
+  create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
+    "$CLUSTER_NAME-3" "$CLUSTER_NAMESPACE" 3 \
+    --set configurations.create=false --set instanceProfiles=false \
+    --set-string cluster.postgresVersion=latest
+
+  deploy_curl_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 7
+
+  generate_mock_data "$CLUSTER_NAME-1"
+  check_mock_data_samehost "$CLUSTER_NAME-1"
+  generate_mock_data "$CLUSTER_NAME-2"
+  check_mock_data "$CLUSTER_NAME-2"
+  generate_mock_data "$CLUSTER_NAME-3"
+  check_mock_data "$CLUSTER_NAME-3"
+}
+
+e2e_test_uninstall() {
+  delete_operator_only
+  install_operator_only
+  wait_pods_running "$OPERATOR_NAMESPACE" 2
+}
+
+e2e_test() {
+  run_test "Check that operator can be upgraded to newer version" check_operator_upgrade
+  run_test "Check that cluster with 1 node after upgrade" check_cluster_1
+  run_test "Check that cluster with 2 node after upgrade" check_cluster_2
+  run_test "Check that cluster with 3 node after upgrade" check_cluster_3
+  run_test "Check that cluster with 1 node can be restarted after upgrade with reduced impact" check_cluster_1_restart
+  run_test "Check that cluster with 2 node can be restarted after upgrade with reduced impact" check_cluster_2_restart
+  run_test "Check that cluster with 3 node can be restarted after upgrade with in-place restart" check_cluster_3_restart
+  run_test "Checking that metrics are exported for cluster with 1 node" check_metrics "$CLUSTER_NAME-1"
+  run_test "Checking that metrics are exported for cluster with 2 node" check_metrics "$CLUSTER_NAME-2"
+  run_test "Checking that metrics are exported for cluster with 3 node" check_metrics "$CLUSTER_NAME-3"
+  run_test "Check that the conversion webhook is configured" check_conversion_webhook_configured
+}
+
+check_operator_upgrade() {
+  local POD_OPERATOR_IMAGE
+  POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
+    --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
+    | grep '/operator:')"
+  if [ "$POD_OPERATOR_IMAGE" = "$STACKGRES_PREVIOUS_OPERATOR_IMAGE" ]
+  then
+    echo "SUCCESS. Operator pod is using the previous operator image"
+  else
+    echo "FAILURE. Operator pod is not using the previous operator image"
+    echo
+    echo "Previous operator image is $STACKGRES_PREVIOUS_OPERATOR_IMAGE"
+    echo
+    echo "Used operator image is $POD_OPERATOR_IMAGE"
+    return 1
+  fi
+  local POD_RESTAPI_IMAGE
+  POD_RESTAPI_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-restapi \
+    --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
+    | grep '/restapi:')"
+  if [ "$POD_RESTAPI_IMAGE" = "$STACKGRES_PREVIOUS_RESTAPI_IMAGE" ]
+  then
+    echo "SUCCESS. Operator pod is using the previous restapi image"
+  else
+    echo "FAILURE. Operator pod is not using the previous restapi image"
+    echo
+    echo "Previous restapi image is $STACKGRES_PREVIOUS_RESTAPI_IMAGE"
+    echo
+    echo "Used restapi image is $POD_RESTAPI_IMAGE"
+    return 1
+  fi
+
+  upgrade_operator --reset-values
+
+  POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
+    --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
+    | grep '/operator:' | sed 's#^[^/]\+/\([^/]\+/[^:]\+\)#\1#')"
+  if [ "$POD_OPERATOR_IMAGE" = "$STACKGRES_OPERATOR_IMAGE" ]
+  then
+    echo "SUCCESS. Operator pod is using the new operator image"
+  else
+    echo "FAILURE. Operator pod is not using the new operator image"
+    echo
+    echo "New operator image is $STACKGRES_OPERATOR_IMAGE"
+    echo
+    echo "Used operator image is $POD_OPERATOR_IMAGE"
+    return 1
+  fi
+  POD_RESTAPI_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-restapi \
+    --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
+    | grep '/restapi:' | sed 's#^[^/]\+/\([^/]\+/[^:]\+\)#\1#')"
+  if [ "$POD_RESTAPI_IMAGE" = "$STACKGRES_RESTAPI_IMAGE" ]
+  then
+    echo "SUCCESS. Operator pod is using the new restapi image"
+  else
+    echo "FAILURE. Operator pod is not using the new restapi image"
+    echo
+    echo "New restapi image is $STACKGRES_RESTAPI_IMAGE"
+    echo
+    echo "Used restapi image is $POD_RESTAPI_IMAGE"
+    return 1
+  fi
+}
+
+
+check_cluster_1() {
+  check_sts_is_not_altered "$CLUSTER_NAME-1"
+  check_mock_data_samehost "$CLUSTER_NAME-1"
+}
+
+check_cluster_2() {  
+  check_sts_is_not_altered "$CLUSTER_NAME-2"
+  check_mock_data_samehost "$CLUSTER_NAME-2"
+}
+
+check_cluster_3() {  
+  check_sts_is_not_altered "$CLUSTER_NAME-3"
+  check_mock_data_samehost "$CLUSTER_NAME-3"
+}
+
+check_cluster_1_restart() {
+  check_cluster_restart "$CLUSTER_NAME-1" "ReducedImpact"
+}
+
+check_cluster_2_restart() {
+  check_cluster_restart "$CLUSTER_NAME-2" "ReducedImpact"
+}
+
+check_cluster_3_restart() {
+  check_cluster_restart "$CLUSTER_NAME-3" "InPlace"
+}
+
+check_cluster_restart() {
+  local CLUSTER_NAME="$1"  
+  local METHOD="$2"
+
+    cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $CLUSTER_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: securityUpgrade
+  securityUpgrade:
+    method: $METHOD
+EOF
+
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$CLUSTER_NAME" \
+    --for condition=Completed
+  then
+    echo "SUCCESS. security upgrade completed."
+  else
+    echo "FAILED. security upgrade failed."
+    return 1
+  fi
+
+  local STS_UPDATE_REVISION="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .status.updateRevision }}')"
+  local POD_CONTROLLER_REVISION_HASH
+  local POD_CONTROLLER_REVISION_HASHES="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+      -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true" -o json \
+    | jq ".items[]|select(.metadata.name | startswith(\"$CLUSTER_NAME\"))" \
+    | jq -r '.metadata.labels."controller-revision-hash"')"
+
+  for POD_CONTROLLER_REVISION_HASH in $POD_CONTROLLER_REVISION_HASHES
+  do
+    if [ "$POD_CONTROLLER_REVISION_HASH" != "$STS_UPDATE_REVISION" ]
+    then
+      echo "FAILURE. Cluster restart did not updated sucesfully some pods"
+      return 1
+    fi
+  done
+
+  PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true" -o name \
+    | cut -d / -f 2)"
+  for POD in $PODS
+  do
+    POD_PATRONI_IMAGE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" \
+      --template '{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}' \
+       | grep '/patroni\(-ext\)\?:')"
+    if [ "$POD_PATRONI_IMAGE" = "$PATRONI_IMAGE" ]
+    then
+      echo "SUCCESS. Pod $POD is using the latest patroni image"
+    else
+      echo "FAILURE. Pod $POD is not using the latest patroni image"
+      echo
+      echo "New patroni images is '$PATRONI_IMAGE'"
+      echo
+      echo "Used patroni image is '$POD_PATRONI_IMAGE'"
+      return 1
+    fi
+  done
+
+  check_mock_data_samehost "$CLUSTER_NAME"
+
+  local PRIMARY_SERVICE_TYPE="$(kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-primary" \
+    --template '{{ .spec.type }}')"
+  if [ "$PRIMARY_SERVICE_TYPE" = "ExternalName" ]
+  then
+    echo "SUCCESS. Primary service is of type ExternalName"
+  else
+    echo "FAILURE. Primary service is not of type ExternalName"
+    return 1
+  fi
+ 
+}
+
+check_conversion_webhook_configured(){
+
+  CONVERSTION_STRATEGY=$(kubectl get crd sgclusters.stackgres.io -o jsonpath='{.spec.conversion.strategy}')
+
+  assert_string_equal "Webhook" "$CONVERSTION_STRATEGY"
+
+}
+
+check_sts_is_not_altered() {
+  local TARGET_CLUSTER="$1"
+
+  local STS_PATRONI_IMAGE=$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER" -o jsonpath='{.spec.template.spec.containers[0].image}')
+
+  if assert_string_equal "$STS_PATRONI_IMAGE" "$PREVIOUS_PATRONI_IMAGE"
+  then
+    echo "SUCCESS. StatefulSet is not being altered on operator upgrade"
+  else 
+    echo "FAIL. StatefulSet is being altered on operator upgrade"
+    return 1
+  fi
+
+}

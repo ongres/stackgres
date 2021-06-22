@@ -7,9 +7,7 @@ package io.stackgres.distributedlogs.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.Optional;
 
@@ -32,13 +30,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-@RunWith(MockitoJUnitRunner.class)
 public class DistributedLogsClusterReconciliatorTest {
 
   @Mock
@@ -147,6 +142,7 @@ public class DistributedLogsClusterReconciliatorTest {
 
   @Test
   void testReconciliationWithEmptyDatabaseStatus_isPerformed() throws Exception {
+
     when(propertyContext.getString(
         same(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_CONTROLLER_POD_NAME)))
         .thenReturn("stackgres-0");

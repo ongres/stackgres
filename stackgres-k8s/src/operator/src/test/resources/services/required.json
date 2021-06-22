@@ -1,0 +1,33 @@
+{
+  "apiVersion" : "v1",
+  "kind" : "Service",
+  "metadata" : {
+    "labels" : {
+      "app" : "StackGresCluster",
+      "cluster-namespace" : "connectivity-5fa07f2f",
+      "cluster-uid" : "70127ec1-e667-4bbe-94f7-1ca61e52b46f",
+      "cluster-name" : "connectivity",
+      "container" : "prometheus-postgres-exporter"
+    },
+    "name" : "connectivity-prometheus-postgres-exporter",
+    "namespace" : "connectivity-5fa07f2f",
+    "ownerReferences" : [ {
+      "apiVersion" : "stackgres.io/v1beta1",
+      "kind" : "SGCluster",
+      "controller" : true,
+      "name" : "connectivity",
+      "uid" : "70127ec1-e667-4bbe-94f7-1ca61e52b46f"
+    } ]
+  },
+  "spec" : {
+    "ports" : [ {
+      "name" : "prometheus-postgres-exporter",
+      "port" : 9187
+    } ],
+    "selector" : {
+      "app" : "StackGresCluster",
+      "cluster-uid" : "70127ec1-e667-4bbe-94f7-1ca61e52b46f",
+      "cluster-name" : "connectivity"
+    }
+  }
+}

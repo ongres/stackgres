@@ -14,12 +14,8 @@ import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.dto.pgconfig.PostgresConfigDto;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
 import io.stackgres.apiweb.transformer.PostgresConfigTransformer;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigList;
-import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.common.resource.CustomResourceScanner;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,13 +42,8 @@ class PostgresConfigResourceTest
   }
 
   @Override
-  protected PostgresConfigResource getService(
-      CustomResourceScanner<StackGresPostgresConfig> scanner,
-      CustomResourceFinder<StackGresPostgresConfig> finder,
-      CustomResourceScheduler<StackGresPostgresConfig> scheduler,
-      CustomResourceScanner<StackGresCluster> clusterScanner,
-      AbstractDependencyResourceTransformer<PostgresConfigDto, StackGresPostgresConfig> transformer) {
-    return new PostgresConfigResource(scanner, finder, scheduler, clusterScanner, transformer);
+  protected PostgresConfigResource getService() {
+    return new PostgresConfigResource();
   }
 
   @Override

@@ -30,7 +30,7 @@ public abstract class EventEmitter {
    * Send an event related to a resource.
    */
   public void sendEvent(EventReason reason, String message, HasMetadata involvedObject,
-      KubernetesClient client) {
+                        KubernetesClient client) {
     if (involvedObject == null) {
       LOGGER.warn("Can not send event {} ({}), involved object was null", reason, message);
       return;

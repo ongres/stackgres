@@ -11,7 +11,7 @@ import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.testutil.JsonUtil;
 
-
+//@Mock
 public class MockProfileFinder implements CustomResourceFinder<StackGresProfile> {
 
   @Override

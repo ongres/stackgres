@@ -15,7 +15,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -33,6 +32,7 @@ import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceStatus;
+import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +46,11 @@ public class StackGresUtil {
 
   private static final String DNS_SERVICE = "svc.cluster.local";
 
-  public static String statefulSetDataPersistentVolumeName(StackGresCluster cluster) {
+  public static String statefulSetDataPersistentVolumeName(ClusterContext cluster) {
+    return ResourceUtil.resourceName(cluster.getCluster().getMetadata().getName() + DATA_SUFFIX);
+  }
+
+  public static String statefulSetDataPersistentVolumeName(CustomResource<?, ?> cluster) {
     return ResourceUtil.resourceName(cluster.getMetadata().getName() + DATA_SUFFIX);
   }
 
@@ -138,8 +142,8 @@ public class StackGresUtil {
     MessageDigest messageDigest = Unchecked
         .supplier(() -> MessageDigest.getInstance("MD5")).get();
     messageDigest.update(data.entrySet().stream()
-        .sorted(Comparator.comparing(Map.Entry::getKey))
-        .map(e -> e.getValue())
+        .sorted(Map.Entry.comparingByKey())
+        .map(Map.Entry::getValue)
         .collect(Collectors.joining())
         .getBytes(StandardCharsets.UTF_8));
     return ImmutableMap.<String, String>builder()

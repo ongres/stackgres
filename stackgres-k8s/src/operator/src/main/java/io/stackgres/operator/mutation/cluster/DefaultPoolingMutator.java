@@ -8,36 +8,18 @@ package io.stackgres.operator.mutation.cluster;
 import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 @ApplicationScoped
 public class DefaultPoolingMutator
     extends AbstractDefaultResourceMutator<StackGresPoolingConfig> {
-
-  @Inject
-  public DefaultPoolingMutator(
-      DefaultCustomResourceFactory<StackGresPoolingConfig> resourceFactory,
-      CustomResourceFinder<StackGresPoolingConfig> finder,
-      CustomResourceScheduler<StackGresPoolingConfig> scheduler) {
-    super(resourceFactory, finder, scheduler);
-  }
-
-  public DefaultPoolingMutator() {
-    super(null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-  }
 
   @Override
   public List<JsonPatchOperation> mutate(StackGresClusterReview review) {

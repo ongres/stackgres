@@ -177,7 +177,7 @@ public class DistributedLogsControllerReconciliationCycle
         .distributedLogs(distributedLogs)
         .cluster(cluster)
         .extensions(getDefaultExtensions(cluster))
-        .labels(labelFactory.clusterLabels(cluster))
+        .labels(labelFactory.clusterLabels(distributedLogs))
         .build();
   }
 

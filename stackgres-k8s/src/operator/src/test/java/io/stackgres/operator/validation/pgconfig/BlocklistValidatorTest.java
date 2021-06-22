@@ -15,7 +15,7 @@ import java.util.Set;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.PgConfigReview;
-import io.stackgres.operator.patroni.factory.parameters.Blocklist;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.Blocklist;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.Test;
 

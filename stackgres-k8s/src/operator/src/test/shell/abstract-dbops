@@ -1,6 +1,7 @@
 #!/bin/sh
 
-CLUSTER_CRD_NAME=sgcluster.stackgres.io
+CLUSTER_CRD_NAME=sgcluster
+CRD_GROUP=stackgres.io
 CLUSTER_NAMESPACE=test
 CLUSTER_NAME=test
 POD_NAME=test
@@ -20,6 +21,10 @@ CONDITION_DB_OPS_LOCK_LOST='{"lastTransitionTime":"$LAST_TRANSITION_TIME","reaso
 CONDITION_DB_OPS_FALSE_FAILED='{"lastTransitionTime":"$LAST_TRANSITION_TIME","reason":"OperationNotFailed","status":"False","type":"Failed"}'
 CONDITION_DB_OPS_COMPLETED='{"lastTransitionTime":"$LAST_TRANSITION_TIME","reason":"OperationCompleted","status":"True","type":"Completed"}'
 CONDITION_DB_OPS_FALSE_COMPLETED='{"lastTransitionTime":"$LAST_TRANSITION_TIME","reason":"OperationNotCompleted","status":"False","type":"Completed"}'
+
+shell_unit_test_skip() {
+  return 1;
+}
 
 shell_unit_test_dbops() {
   rm -rf "$SHARED_PATH"

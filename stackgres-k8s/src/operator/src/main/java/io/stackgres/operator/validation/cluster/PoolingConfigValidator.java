@@ -64,7 +64,7 @@ public class PoolingConfigValidator implements ClusterValidator {
       Optional<StackGresPoolingConfig> poolingConfigOpt = configFinder
           .findByNameAndNamespace(poolingConfig, namespace);
 
-      if (!poolingConfigOpt.isPresent()) {
+      if (poolingConfigOpt.isEmpty()) {
         fail(onError);
       }
     }

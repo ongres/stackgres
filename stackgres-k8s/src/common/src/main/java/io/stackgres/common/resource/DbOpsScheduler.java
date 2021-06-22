@@ -26,5 +26,4 @@ public class DbOpsScheduler
     super(null, null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
-
 }

@@ -12,12 +12,8 @@ import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.dto.profile.ProfileDto;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
 import io.stackgres.apiweb.transformer.ProfileTransformer;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileList;
-import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.common.resource.CustomResourceScanner;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -42,13 +38,8 @@ class   ProfileResourceTest
   }
 
   @Override
-  protected ProfileResource getService(
-      CustomResourceScanner<StackGresProfile> scanner,
-      CustomResourceFinder<StackGresProfile> finder,
-      CustomResourceScheduler<StackGresProfile> scheduler,
-      CustomResourceScanner<StackGresCluster> clusterScanner,
-      AbstractDependencyResourceTransformer<ProfileDto, StackGresProfile> transformer) {
-    return new ProfileResource(scanner, finder, scheduler, clusterScanner, transformer);
+  protected ProfileResource getService() {
+    return new ProfileResource();
   }
 
   @Override

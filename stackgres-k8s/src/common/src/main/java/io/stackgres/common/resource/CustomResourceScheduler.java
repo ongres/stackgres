@@ -13,12 +13,14 @@ import org.jetbrains.annotations.NotNull;
 
 public interface CustomResourceScheduler<T extends CustomResource<?, ?>> {
 
-  void create(@NotNull T resource);
+  T create(@NotNull T resource);
 
-  void update(@NotNull T resource);
+  T update(@NotNull T resource);
 
   <S> void updateStatus(@NotNull T resource, @NotNull Function<T, S> statusGetter,
       @NotNull BiConsumer<T, S> statusSetter);
+
+  T updateStatus(T resource);
 
   void delete(@NotNull T resource);
 

@@ -74,10 +74,9 @@ ignore_sgcluster_patch(){
 
   wait_until has_cluster_generated_resources
 
-  kubectl annotate sgcluster "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=true" --overwrite
+  kubectl annotate sgcluster "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=true"
 
-  kubectl patch sgcluster "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" --type='json' \
-    -p='[{"op": "replace", "path": "/spec/instances", "value": 2}]'
+  patch_sgcluster_instances "2"
 
   if wait_until -t "15" eval '[ $(get_cluster_replicas) = 2 ]'
   then
@@ -127,11 +126,12 @@ EOF
 }
 
 ignore_sgdistributedlogs_patch(){
+  
   kubectl annotate sgdistributedlogs "$CLUSTER_NAME-logs" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=false" --overwrite
 
   wait_until has_logs_generated_resources
 
-  kubectl annotate sgdistributedlogs "$CLUSTER_NAME-logs" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=true" --overwrite
+  kubectl annotate sgdistributedlogs "$CLUSTER_NAME-logs" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=true"  --overwrite
 
   kubectl patch sts "$CLUSTER_NAME-logs" -n "$CLUSTER_NAMESPACE" --type='json' \
     -p='[{"op": "replace", "path": "/spec/replicas", "value": 2}]'
@@ -167,4 +167,27 @@ get_cluster_replicas() {
 
 get_sgdistributedlogs_replicas() {
   kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-logs" -o jsonpath='{.spec.replicas}'
+}
+
+patch_sgcluster_instances(){
+  local DESIRED_INSTANCES="$1"
+
+  SG_INSTANCES=$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath='{.spec.instances}')
+
+  echo "Current SGCluster instances $SG_INSTANCES, patching to $DESIRED_INSTANCES"
+
+  while [ ! "$SG_INSTANCES" = 2 ]
+  do
+    kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type='json' \
+      -p='[{"op": "replace", "path": "/spec/instances", "value": '"$DESIRED_INSTANCES"'}]'
+    
+    sleep 10
+    SG_INSTANCES=$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath='{.spec.instances}')
+    if [ ! "$SG_INSTANCES" = 2 ]
+    then
+      echo "Patch not applied... retrying"
+      sleep 1
+    fi
+  done
+
 }

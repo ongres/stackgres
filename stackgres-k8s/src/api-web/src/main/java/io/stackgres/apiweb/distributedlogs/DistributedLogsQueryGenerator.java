@@ -18,7 +18,6 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.distributedlogs.LogTableFields;
 import io.stackgres.common.distributedlogs.PostgresTableFields;
 import io.stackgres.common.distributedlogs.Tables;
-import org.jetbrains.annotations.NotNull;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;

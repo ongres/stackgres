@@ -17,7 +17,7 @@ public interface ClusterContext {
 
   default Map<String, String> getEnvironmentVariables() {
     return Seq.of(ClusterStatefulSetEnvVars.values())
-        .map(clusterStatefulSetEnvVars -> clusterStatefulSetEnvVars.envVar(this))
+        .map(clusterStatefulSetEnvVars -> clusterStatefulSetEnvVars.envVar(getCluster()))
         .toMap(EnvVar::getName, EnvVar::getValue);
   }
 

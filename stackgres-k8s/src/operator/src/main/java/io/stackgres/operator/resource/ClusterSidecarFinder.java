@@ -16,7 +16,7 @@ import com.google.common.collect.ImmutableList;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.SidecarLiteral;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
-import io.stackgres.operator.sidecars.envoy.Envoy;
+import io.stackgres.operator.conciliation.factory.cluster.sidecars.envoy.Envoy;
 
 @ApplicationScoped
 public class ClusterSidecarFinder implements SidecarFinder {

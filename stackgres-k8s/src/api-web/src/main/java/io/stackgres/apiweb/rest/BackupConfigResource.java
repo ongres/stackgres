@@ -23,14 +23,9 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.backupconfig.BackupConfigDto;
-import io.stackgres.apiweb.transformer.DependencyResourceTransformer;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.common.resource.CustomResourceScanner;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.common.resource.ResourceWriter;
@@ -49,33 +44,13 @@ import org.jooq.lambda.tuple.Tuple;
 public class BackupConfigResource extends
     AbstractDependencyRestService<BackupConfigDto, StackGresBackupConfig> {
 
-  private final CustomResourceFinder<StackGresBackupConfig> finder;
-  private final ResourceFinder<Secret> secretFinder;
-  private final ResourceWriter<Secret> secretWriter;
-  private final BackupConfigResourceUtil util = new BackupConfigResourceUtil();
+  @Inject
+  ResourceFinder<Secret> secretFinder;
 
   @Inject
-  public BackupConfigResource(
-      CustomResourceScanner<StackGresBackupConfig> scanner,
-      CustomResourceFinder<StackGresBackupConfig> finder,
-      CustomResourceScheduler<StackGresBackupConfig> scheduler,
-      CustomResourceScanner<StackGresCluster> clusterScanner,
-      DependencyResourceTransformer<BackupConfigDto, StackGresBackupConfig> transformer,
-      ResourceFinder<Secret> secretFinder,
-      ResourceWriter<Secret> secretWriter) {
-    super(scanner, finder, scheduler, clusterScanner, transformer);
-    this.finder = finder;
-    this.secretFinder = secretFinder;
-    this.secretWriter = secretWriter;
-  }
+  ResourceWriter<Secret> secretWriter;
 
-  public BackupConfigResource() {
-    super(null, null, null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.finder = null;
-    this.secretFinder = null;
-    this.secretWriter = null;
-  }
+  private final BackupConfigResourceUtil util = new BackupConfigResourceUtil();
 
   @Override
   public boolean belongsToCluster(StackGresBackupConfig resource, StackGresCluster cluster) {

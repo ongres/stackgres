@@ -30,17 +30,15 @@ public class DefaultDistributedLogsResourceHandler
 
   @Override
   public Stream<HasMetadata> getResources(KubernetesClient client,
-      StackGresDistributedLogsContext context) {
+                                          StackGresDistributedLogsContext context) {
     return STACKGRES_DISTRIBUTED_LOGS_RESOURCE_OPERATIONS.values()
         .stream()
-        .flatMap(resourceOperationGetter -> {
-          return resourceOperationGetter.apply(client)
-              .inNamespace(context.getDistributedLogs().getMetadata().getNamespace())
-              .withLabels(labelFactory.clusterLabels(context.getCluster()))
-              .list()
-              .getItems()
-              .stream();
-        });
+        .flatMap(resourceOperationGetter -> resourceOperationGetter.apply(client)
+            .inNamespace(context.getDistributedLogs().getMetadata().getNamespace())
+            .withLabels(labelFactory.clusterLabels(context.getDistributedLogs()))
+            .list()
+            .getItems()
+            .stream());
   }
 
 }

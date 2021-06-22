@@ -12,7 +12,7 @@ import javax.enterprise.context.Dependent;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
-import io.stackgres.operator.patroni.factory.parameters.Blocklist;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.Blocklist;
 
 @Dependent
 public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackGresPostgresConfig>

@@ -58,7 +58,7 @@ public class ClusterStatsDtoFinder
   }
 
   private ClusterStatsDto getClusterStats(StackGresCluster cluster) {
-    List<Pod> pods = podFinder.findResourcesInNamespaceWithLabels(
+    List<Pod> pods = podFinder.findByLabelsAndNamespace(
         cluster.getMetadata().getNamespace(),
         clusterLabelFactory.patroniClusterLabels(cluster));
 

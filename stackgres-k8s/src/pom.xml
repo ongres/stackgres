@@ -51,6 +51,7 @@
     <stackgres.crd.version>v1</stackgres.crd.version>
     <stackgres.operatorName>stackgres-operator</stackgres.operatorName>
     <stackgres.operatorNamespace>stackgres</stackgres.operatorNamespace>
+    <stackgres.jobNamespace>stackgres</stackgres.jobNamespace>
     <stackgres.operatorImageVersion>development-jvm</stackgres.operatorImageVersion>
     <stackgres.operatorIP>localhost</stackgres.operatorIP>
     <stackgres.operatorVersion>${project.version}</stackgres.operatorVersion>
@@ -61,6 +62,12 @@
     <stackgres.conversionWebhooks>false</stackgres.conversionWebhooks>
     <stackgres.crdUpgrade>false</stackgres.crdUpgrade>
     <stackgres.containerRegistry>docker.io</stackgres.containerRegistry>
+    <stackgres.extensionsRepositoryUrls>https://extensions.stackgres.io/postgres/repository</stackgres.extensionsRepositoryUrls>
+    <stackgres.databaseOperationJob>false</stackgres.databaseOperationJob>
+    <stackgres.databaseOperationCrName>stackgres</stackgres.databaseOperationCrName>
+    <stackgres.dbops.podName>stackgres</stackgres.dbops.podName>
+    <stackgres.dbops.pollInterval>5</stackgres.dbops.pollInterval>
+    <stackgres.dbops.lockTimeout>30</stackgres.dbops.lockTimeout>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- Java compilation -->

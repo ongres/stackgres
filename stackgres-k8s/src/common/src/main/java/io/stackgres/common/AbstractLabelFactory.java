@@ -9,26 +9,25 @@ import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceUtil;
 
 public abstract class AbstractLabelFactory<T extends CustomResource<?, ?>>
     implements LabelFactory<T> {
   @Override
-  public Map<String, String> genericClusterLabels(StackGresCluster resource) {
+  public Map<String, String> genericClusterLabels(T resource) {
     return ImmutableMap.of(getLabelMapper().appKey(), getLabelMapper().appName(),
         getLabelMapper().clusterNameKey(), ResourceUtil.labelValue(clusterName(resource)));
   }
 
   @Override
-  public Map<String, String> clusterLabels(StackGresCluster resource) {
+  public Map<String, String> clusterLabels(T resource) {
     return ImmutableMap.of(getLabelMapper().appKey(), getLabelMapper().appName(),
-        getLabelMapper().clusterUidKey(), ResourceUtil.labelValue(clusterUid(resource)),
-        getLabelMapper().clusterNameKey(), ResourceUtil.labelValue(clusterName(resource)));
+        getLabelMapper().clusterNameKey(), ResourceUtil.labelValue(clusterName(resource)),
+        getLabelMapper().clusterUidKey(), ResourceUtil.labelValue(clusterUid(resource)));
   }
 
   @Override
-  public Map<String, String> patroniClusterLabels(StackGresCluster resource) {
+  public Map<String, String> patroniClusterLabels(T resource) {
     return ImmutableMap.of(getLabelMapper().appKey(), getLabelMapper().appName(),
         getLabelMapper().clusterUidKey(), ResourceUtil.labelValue(clusterUid(resource)),
         getLabelMapper().clusterNameKey(), ResourceUtil.labelValue(clusterName(resource)),
@@ -36,30 +35,30 @@ public abstract class AbstractLabelFactory<T extends CustomResource<?, ?>>
   }
 
   @Override
-  public Map<String, String> patroniPrimaryLabels(StackGresCluster resource) {
+  public Map<String, String> patroniPrimaryLabels(T resource) {
     return ImmutableMap.<String, String>builder().putAll(patroniClusterLabels(resource))
         .put(StackGresContext.ROLE_KEY, StackGresContext.PRIMARY_ROLE)
         .build();
   }
 
   @Override
-  public Map<String, String> patroniReplicaLabels(StackGresCluster resource) {
+  public Map<String, String> patroniReplicaLabels(T resource) {
     return ImmutableMap.<String, String>builder().putAll(patroniClusterLabels(resource))
         .put(StackGresContext.ROLE_KEY, StackGresContext.REPLICA_ROLE)
         .build();
   }
 
   @Override
-  public Map<String, String> statefulSetPodLabels(StackGresCluster resource) {
+  public Map<String, String> statefulSetPodLabels(T resource) {
     return ImmutableMap.of(getLabelMapper().appKey(), getLabelMapper().appName(),
-        getLabelMapper().clusterUidKey(), ResourceUtil.labelValue(clusterUid(resource)),
-        getLabelMapper().clusterNameKey(), ResourceUtil.labelValue(clusterName(resource)),
         getLabelMapper().clusterKey(), StackGresContext.RIGHT_VALUE,
-        getLabelMapper().disruptibleKey(), StackGresContext.RIGHT_VALUE);
+        getLabelMapper().disruptibleKey(), StackGresContext.RIGHT_VALUE,
+        getLabelMapper().clusterNameKey(), ResourceUtil.labelValue(clusterName(resource)),
+        getLabelMapper().clusterUidKey(), ResourceUtil.labelValue(clusterUid(resource)));
   }
 
   @Override
-  public Map<String, String> backupPodLabels(StackGresCluster resource) {
+  public Map<String, String> backupPodLabels(T resource) {
     return ImmutableMap.of(getLabelMapper().appKey(), getLabelMapper().appName(),
         getLabelMapper().clusterUidKey(), ResourceUtil.labelValue(clusterUid(resource)),
         getLabelMapper().clusterNameKey(), ResourceUtil.labelValue(clusterName(resource)),
@@ -67,7 +66,7 @@ public abstract class AbstractLabelFactory<T extends CustomResource<?, ?>>
   }
 
   @Override
-  public Map<String, String> scheduledBackupPodLabels(StackGresCluster resource) {
+  public Map<String, String> scheduledBackupPodLabels(T resource) {
     return ImmutableMap.of(getLabelMapper().appKey(), getLabelMapper().appName(),
         getLabelMapper().clusterUidKey(), ResourceUtil.labelValue(clusterUid(resource)),
         getLabelMapper().clusterNameKey(), ResourceUtil.labelValue(clusterName(resource)),
@@ -75,7 +74,7 @@ public abstract class AbstractLabelFactory<T extends CustomResource<?, ?>>
   }
 
   @Override
-  public Map<String, String> dbOpsPodLabels(StackGresCluster resource) {
+  public Map<String, String> dbOpsPodLabels(T resource) {
     return ImmutableMap.of(getLabelMapper().appKey(), getLabelMapper().appName(),
         getLabelMapper().clusterUidKey(), ResourceUtil.labelValue(clusterUid(resource)),
         getLabelMapper().clusterNameKey(), ResourceUtil.labelValue(clusterName(resource)),
@@ -88,7 +87,7 @@ public abstract class AbstractLabelFactory<T extends CustomResource<?, ?>>
         getLabelMapper().clusterKey(), StackGresContext.RIGHT_VALUE);
   }
 
-  public Map<String, String> clusterCrossNamespaceLabels(StackGresCluster resource) {
+  public Map<String, String> clusterCrossNamespaceLabels(T resource) {
     return ImmutableMap.of(getLabelMapper().appKey(), getLabelMapper().appName(),
         getLabelMapper().clusterNamespaceKey(), ResourceUtil.labelValue(clusterNamespace(resource)),
         getLabelMapper().clusterUidKey(), ResourceUtil.labelValue(clusterUid(resource)),

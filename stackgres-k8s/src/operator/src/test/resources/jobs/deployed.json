@@ -1,0 +1,662 @@
+{
+  "apiVersion" : "batch/v1",
+  "kind" : "Job",
+  "metadata" : {
+    "labels" : {
+      "app" : "StackGresCluster",
+      "cluster-name" : "dbops-pgbench",
+      "cluster-uid" : "f5f340dd-db24-4913-beaa-dcba3fa43108",
+      "db-ops" : "true"
+    },
+    "name" : "benchmark-benchmark-8d6cb2948606468e-0",
+    "namespace" : "dbops-pgbench-6000a807",
+    "ownerReferences" : [ {
+      "apiVersion" : "stackgres.io/v1beta1",
+      "kind" : "SGCluster",
+      "controller" : true,
+      "name" : "dbops-pgbench",
+      "uid" : "f5f340dd-db24-4913-beaa-dcba3fa43108"
+    } ]
+  },
+  "spec" : {
+    "backoffLimit" : 0,
+    "completions" : 1,
+    "parallelism" : 1,
+    "selector" : {
+      "matchLabels" : {
+        "controller-uid" : "c41b5693-48a2-49bc-b7ce-a8d605a10941"
+      }
+    },
+    "template" : {
+      "metadata" : {
+        "labels" : {
+          "app" : "StackGresCluster",
+          "cluster-name" : "dbops-pgbench",
+          "cluster-uid" : "f5f340dd-db24-4913-beaa-dcba3fa43108",
+          "controller-uid" : "c41b5693-48a2-49bc-b7ce-a8d605a10941",
+          "db-ops" : "true",
+          "job-name" : "benchmark-benchmark-8d6cb2948606468e-0"
+        },
+        "name" : "benchmark-benchmark-8d6cb2948606468e-0",
+        "namespace" : "dbops-pgbench-6000a807"
+      },
+      "spec" : {
+        "containers" : [ {
+          "command" : [ "/bin/bash", "-ex", "/usr/local/bin/dbops/pgbench/run-pgbench.sh" ],
+          "env" : [ {
+            "name" : "ETC_PASSWD_PATH",
+            "value" : "/etc/passwd"
+          }, {
+            "name" : "ETC_GROUP_PATH",
+            "value" : "/etc/group"
+          }, {
+            "name" : "ETC_SHADOW_PATH",
+            "value" : "/etc/shadow"
+          }, {
+            "name" : "ETC_GSHADOW_PATH",
+            "value" : "/etc/gshadow"
+          }, {
+            "name" : "SHARED_MEMORY_PATH",
+            "value" : "/dev/shm"
+          }, {
+            "name" : "LOCAL_BIN_PATH",
+            "value" : "/usr/local/bin"
+          }, {
+            "name" : "LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH",
+            "value" : "/usr/local/bin/setup-data-paths.sh"
+          }, {
+            "name" : "LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH",
+            "value" : "/usr/local/bin/setup-arbitrary-user.sh"
+          }, {
+            "name" : "LOCAL_BIN_SETUP_SCRIPTS_SH_PATH",
+            "value" : "/usr/local/bin/setup-scripts.sh"
+          }, {
+            "name" : "LOCAL_BIN_START_PATRONI_SH_PATH",
+            "value" : "/usr/local/bin/start-patroni.sh"
+          }, {
+            "name" : "LOCAL_BIN_START_PATRONI_WITH_RESTORE_SH_PATH",
+            "value" : "/usr/local/bin/start-patroni-with-restore.sh"
+          }, {
+            "name" : "LOCAL_BIN_POST_INIT_SH_PATH",
+            "value" : "/usr/local/bin/post-init.sh"
+          }, {
+            "name" : "LOCAL_BIN_EXEC_WITH_ENV_PATH",
+            "value" : "/usr/local/bin/exec-with-env"
+          }, {
+            "name" : "LOCAL_BIN_CREATE_BACKUP_SH_PATH",
+            "value" : "/usr/local/bin/create-backup.sh"
+          }, {
+            "name" : "LOCAL_BIN_SET_DBOPS_RUNNING_SH_PATH",
+            "value" : "/usr/local/bin/set-dbops-running.sh"
+          }, {
+            "name" : "LOCAL_BIN_RUN_PGBENCH_SH_PATH",
+            "value" : "/usr/local/bin/dbops/pgbench/run-pgbench.sh"
+          }, {
+            "name" : "LOCAL_BIN_SET_PGBENCH_RESULT_SH_PATH",
+            "value" : "/usr/local/bin/dbops/pgbench/set-pgbench-result.sh"
+          }, {
+            "name" : "LOCAL_BIN_RUN_VACUUM_SH_PATH",
+            "value" : "/usr/local/bin/dbops/vacuum/run-vacuum.sh"
+          }, {
+            "name" : "LOCAL_BIN_SET_VACUUM_RESULT_SH_PATH",
+            "value" : "/usr/local/bin/dbops/vacuum/set-vacuum-result.sh"
+          }, {
+            "name" : "LOCAL_BIN_RUN_REPACK_SH_PATH",
+            "value" : "/usr/local/bin/dbops/repack/run-repack.sh"
+          }, {
+            "name" : "LOCAL_BIN_SET_REPACK_RESULT_SH_PATH",
+            "value" : "/usr/local/bin/dbops/repack/set-repack-result.sh"
+          }, {
+            "name" : "LOCAL_BIN_RUN_MAJOR_VERSION_UPGRADE_SH_PATH",
+            "value" : "/usr/local/bin/dbops/major-version-upgrade/run-major-version-upgrade.sh"
+          }, {
+            "name" : "LOCAL_BIN_SET_MAJOR_VERSION_UPGRADE_RESULT_SH_PATH",
+            "value" : "/usr/local/bin/dbops/major-version-upgrade/set-major-version-upgrade-result.sh"
+          }, {
+            "name" : "LOCAL_BIN_COPY_BINARIES_SH_PATH",
+            "value" : "/usr/local/bin/dbops/major-version-upgrade/copy-binaries.sh"
+          }, {
+            "name" : "LOCAL_BIN_MAJOR_VERSION_UPGRADE_SH_PATH",
+            "value" : "/usr/local/bin/dbops/major-version-upgrade/major-version-upgrade.sh"
+          }, {
+            "name" : "LOCAL_BIN_RESET_PATRONI_INITIALIZE_SH_PATH",
+            "value" : "/usr/local/bin/dbops/major-version-upgrade/reset-patroni-initialize.sh"
+          }, {
+            "name" : "PG_BASE_PATH",
+            "value" : "/var/lib/postgresql"
+          }, {
+            "name" : "PG_DATA_PATH",
+            "value" : "/var/lib/postgresql/data"
+          }, {
+            "name" : "PG_UPGRADE_PATH",
+            "value" : "/var/lib/postgresql/upgrade"
+          }, {
+            "name" : "PG_RUN_PATH",
+            "value" : "/var/run/postgresql"
+          }, {
+            "name" : "PG_LOG_PATH",
+            "value" : "/var/log/postgresql"
+          }, {
+            "name" : "BASE_ENV_PATH",
+            "value" : "/etc/env"
+          }, {
+            "name" : "BASE_SECRET_PATH",
+            "value" : "/etc/env/.secret"
+          }, {
+            "name" : "PATRONI_ENV_PATH",
+            "value" : "/etc/env/patroni"
+          }, {
+            "name" : "PATRONI_CONFIG_PATH",
+            "value" : "/etc/patroni"
+          }, {
+            "name" : "BACKUP_ENV_PATH",
+            "value" : "/etc/env/backup"
+          }, {
+            "name" : "BACKUP_SECRET_PATH",
+            "value" : "/etc/env/.secret/backup"
+          }, {
+            "name" : "RESTORE_ENV_PATH",
+            "value" : "/etc/env/restore"
+          }, {
+            "name" : "RESTORE_SECRET_PATH",
+            "value" : "/etc/env/.secret/restore"
+          }, {
+            "name" : "TEMPLATES_PATH",
+            "value" : "/templates"
+          }, {
+            "name" : "SHARED_PATH",
+            "value" : "/shared"
+          }, {
+            "name" : "PATRONI_ENV",
+            "value" : "patroni"
+          }, {
+            "name" : "BACKUP_ENV",
+            "value" : "backup"
+          }, {
+            "name" : "RESTORE_ENV",
+            "value" : "restore"
+          }, {
+            "name" : "POSTGRES_ENTRY_PORT",
+            "value" : "7432"
+          }, {
+            "name" : "POSTGRES_REPL_ENTRY_PORT",
+            "value" : "7433"
+          }, {
+            "name" : "POSTGRES_POOL_PORT",
+            "value" : "6432"
+          }, {
+            "name" : "POSTGRES_PORT",
+            "value" : "5432"
+          }, {
+            "name" : "TIMEOUT",
+            "value" : "2147483647"
+          }, {
+            "name" : "PGHOST",
+            "value" : "dbops-pgbench-primary"
+          }, {
+            "name" : "PRIMARY_PGHOST",
+            "value" : "dbops-pgbench-primary"
+          }, {
+            "name" : "PGUSER",
+            "value" : "postgres"
+          }, {
+            "name" : "PGPASSWORD",
+            "valueFrom" : {
+              "secretKeyRef" : {
+                "key" : "superuser-password",
+                "name" : "dbops-pgbench"
+              }
+            }
+          }, {
+            "name" : "SCALE",
+            "value" : "4"
+          }, {
+            "name" : "DURATION",
+            "value" : "10"
+          }, {
+            "name" : "PROTOCOL",
+            "value" : "simple"
+          }, {
+            "name" : "READ_WRITE",
+            "value" : "true"
+          }, {
+            "name" : "CLIENTS",
+            "value" : "1"
+          }, {
+            "name" : "JOBS",
+            "value" : "1"
+          } ],
+          "image" : "docker.io/ongres/postgres-util:v12.3-build-5.1",
+          "imagePullPolicy" : "IfNotPresent",
+          "name" : "run-dbops",
+          "resources" : { },
+          "terminationMessagePath" : "/dev/termination-log",
+          "terminationMessagePolicy" : "File",
+          "volumeMounts" : [ {
+            "mountPath" : "/shared",
+            "name" : "shared"
+          }, {
+            "mountPath" : "/usr/local/bin/dbops/pgbench/run-pgbench.sh",
+            "name" : "templates",
+            "readOnly" : true,
+            "subPath" : "run-pgbench.sh"
+          } ]
+        }, {
+          "command" : [ "/bin/bash", "-ex", "/usr/local/bin/dbops/pgbench/set-pgbench-result.sh" ],
+          "env" : [ {
+            "name" : "ETC_PASSWD_PATH",
+            "value" : "/etc/passwd"
+          }, {
+            "name" : "ETC_GROUP_PATH",
+            "value" : "/etc/group"
+          }, {
+            "name" : "ETC_SHADOW_PATH",
+            "value" : "/etc/shadow"
+          }, {
+            "name" : "ETC_GSHADOW_PATH",
+            "value" : "/etc/gshadow"
+          }, {
+            "name" : "SHARED_MEMORY_PATH",
+            "value" : "/dev/shm"
+          }, {
+            "name" : "LOCAL_BIN_PATH",
+            "value" : "/usr/local/bin"
+          }, {
+            "name" : "LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH",
+            "value" : "/usr/local/bin/setup-data-paths.sh"
+          }, {
+            "name" : "LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH",
+            "value" : "/usr/local/bin/setup-arbitrary-user.sh"
+          }, {
+            "name" : "LOCAL_BIN_SETUP_SCRIPTS_SH_PATH",
+            "value" : "/usr/local/bin/setup-scripts.sh"
+          }, {
+            "name" : "LOCAL_BIN_START_PATRONI_SH_PATH",
+            "value" : "/usr/local/bin/start-patroni.sh"
+          }, {
+            "name" : "LOCAL_BIN_START_PATRONI_WITH_RESTORE_SH_PATH",
+            "value" : "/usr/local/bin/start-patroni-with-restore.sh"
+          }, {
+            "name" : "LOCAL_BIN_POST_INIT_SH_PATH",
+            "value" : "/usr/local/bin/post-init.sh"
+          }, {
+            "name" : "LOCAL_BIN_EXEC_WITH_ENV_PATH",
+            "value" : "/usr/local/bin/exec-with-env"
+          }, {
+            "name" : "LOCAL_BIN_CREATE_BACKUP_SH_PATH",
+            "value" : "/usr/local/bin/create-backup.sh"
+          }, {
+            "name" : "LOCAL_BIN_SET_DBOPS_RUNNING_SH_PATH",
+            "value" : "/usr/local/bin/set-dbops-running.sh"
+          }, {
+            "name" : "LOCAL_BIN_RUN_PGBENCH_SH_PATH",
+            "value" : "/usr/local/bin/dbops/pgbench/run-pgbench.sh"
+          }, {
+            "name" : "LOCAL_BIN_SET_PGBENCH_RESULT_SH_PATH",
+            "value" : "/usr/local/bin/dbops/pgbench/set-pgbench-result.sh"
+          }, {
+            "name" : "LOCAL_BIN_RUN_VACUUM_SH_PATH",
+            "value" : "/usr/local/bin/dbops/vacuum/run-vacuum.sh"
+          }, {
+            "name" : "LOCAL_BIN_SET_VACUUM_RESULT_SH_PATH",
+            "value" : "/usr/local/bin/dbops/vacuum/set-vacuum-result.sh"
+          }, {
+            "name" : "LOCAL_BIN_RUN_REPACK_SH_PATH",
+            "value" : "/usr/local/bin/dbops/repack/run-repack.sh"
+          }, {
+            "name" : "LOCAL_BIN_SET_REPACK_RESULT_SH_PATH",
+            "value" : "/usr/local/bin/dbops/repack/set-repack-result.sh"
+          }, {
+            "name" : "LOCAL_BIN_RUN_MAJOR_VERSION_UPGRADE_SH_PATH",
+            "value" : "/usr/local/bin/dbops/major-version-upgrade/run-major-version-upgrade.sh"
+          }, {
+            "name" : "LOCAL_BIN_SET_MAJOR_VERSION_UPGRADE_RESULT_SH_PATH",
+            "value" : "/usr/local/bin/dbops/major-version-upgrade/set-major-version-upgrade-result.sh"
+          }, {
+            "name" : "LOCAL_BIN_COPY_BINARIES_SH_PATH",
+            "value" : "/usr/local/bin/dbops/major-version-upgrade/copy-binaries.sh"
+          }, {
+            "name" : "LOCAL_BIN_MAJOR_VERSION_UPGRADE_SH_PATH",
+            "value" : "/usr/local/bin/dbops/major-version-upgrade/major-version-upgrade.sh"
+          }, {
+            "name" : "LOCAL_BIN_RESET_PATRONI_INITIALIZE_SH_PATH",
+            "value" : "/usr/local/bin/dbops/major-version-upgrade/reset-patroni-initialize.sh"
+          }, {
+            "name" : "PG_BASE_PATH",
+            "value" : "/var/lib/postgresql"
+          }, {
+            "name" : "PG_DATA_PATH",
+            "value" : "/var/lib/postgresql/data"
+          }, {
+            "name" : "PG_UPGRADE_PATH",
+            "value" : "/var/lib/postgresql/upgrade"
+          }, {
+            "name" : "PG_RUN_PATH",
+            "value" : "/var/run/postgresql"
+          }, {
+            "name" : "PG_LOG_PATH",
+            "value" : "/var/log/postgresql"
+          }, {
+            "name" : "BASE_ENV_PATH",
+            "value" : "/etc/env"
+          }, {
+            "name" : "BASE_SECRET_PATH",
+            "value" : "/etc/env/.secret"
+          }, {
+            "name" : "PATRONI_ENV_PATH",
+            "value" : "/etc/env/patroni"
+          }, {
+            "name" : "PATRONI_CONFIG_PATH",
+            "value" : "/etc/patroni"
+          }, {
+            "name" : "BACKUP_ENV_PATH",
+            "value" : "/etc/env/backup"
+          }, {
+            "name" : "BACKUP_SECRET_PATH",
+            "value" : "/etc/env/.secret/backup"
+          }, {
+            "name" : "RESTORE_ENV_PATH",
+            "value" : "/etc/env/restore"
+          }, {
+            "name" : "RESTORE_SECRET_PATH",
+            "value" : "/etc/env/.secret/restore"
+          }, {
+            "name" : "TEMPLATES_PATH",
+            "value" : "/templates"
+          }, {
+            "name" : "SHARED_PATH",
+            "value" : "/shared"
+          }, {
+            "name" : "PATRONI_ENV",
+            "value" : "patroni"
+          }, {
+            "name" : "BACKUP_ENV",
+            "value" : "backup"
+          }, {
+            "name" : "RESTORE_ENV",
+            "value" : "restore"
+          }, {
+            "name" : "POSTGRES_ENTRY_PORT",
+            "value" : "7432"
+          }, {
+            "name" : "POSTGRES_REPL_ENTRY_PORT",
+            "value" : "7433"
+          }, {
+            "name" : "POSTGRES_POOL_PORT",
+            "value" : "6432"
+          }, {
+            "name" : "POSTGRES_PORT",
+            "value" : "5432"
+          }, {
+            "name" : "CLUSTER_NAMESPACE",
+            "value" : "dbops-pgbench-6000a807"
+          }, {
+            "name" : "DB_OPS_NAME",
+            "value" : "benchmark"
+          }, {
+            "name" : "DB_OPS_CRD_NAME",
+            "value" : "sgdbops.stackgres.io"
+          }, {
+            "name" : "JOB_POD_LABELS",
+            "value" : "app=StackGresCluster,cluster-uid=f5f340dd-db24-4913-beaa-dcba3fa43108,cluster-name=dbops-pgbench,db-ops=true,job-name=benchmark-benchmark-8d6cb2948606468e-0"
+          }, {
+            "name" : "CONDITION_DB_OPS_FALSE_RUNNING",
+            "value" : "{\"lastTransitionTime\":\"$LAST_TRANSITION_TIME\",\"reason\":\"OperationNotRunning\",\"status\":\"False\",\"type\":\"Running\"}"
+          }, {
+            "name" : "CONDITION_DB_OPS_RUNNING",
+            "value" : "{\"lastTransitionTime\":\"$LAST_TRANSITION_TIME\",\"reason\":\"OperationRunning\",\"status\":\"True\",\"type\":\"Running\"}"
+          }, {
+            "name" : "CONDITION_DB_OPS_FAILED",
+            "value" : "{\"lastTransitionTime\":\"$LAST_TRANSITION_TIME\",\"reason\":\"OperationFailed\",\"status\":\"True\",\"type\":\"Failed\"}"
+          }, {
+            "name" : "CONDITION_DB_OPS_TIMED_OUT",
+            "value" : "{\"lastTransitionTime\":\"$LAST_TRANSITION_TIME\",\"reason\":\"OperationTimedOut\",\"status\":\"True\",\"type\":\"Failed\"}"
+          }, {
+            "name" : "CONDITION_DB_OPS_FALSE_FAILED",
+            "value" : "{\"lastTransitionTime\":\"$LAST_TRANSITION_TIME\",\"reason\":\"OperationNotFailed\",\"status\":\"False\",\"type\":\"Failed\"}"
+          }, {
+            "name" : "CONDITION_DB_OPS_COMPLETED",
+            "value" : "{\"lastTransitionTime\":\"$LAST_TRANSITION_TIME\",\"reason\":\"OperationCompleted\",\"status\":\"True\",\"type\":\"Completed\"}"
+          }, {
+            "name" : "CONDITION_DB_OPS_FALSE_COMPLETED",
+            "value" : "{\"lastTransitionTime\":\"$LAST_TRANSITION_TIME\",\"reason\":\"OperationNotCompleted\",\"status\":\"False\",\"type\":\"Completed\"}"
+          } ],
+          "image" : "bitnami/kubectl:1.19.2",
+          "imagePullPolicy" : "IfNotPresent",
+          "name" : "set-dbops-result",
+          "resources" : { },
+          "terminationMessagePath" : "/dev/termination-log",
+          "terminationMessagePolicy" : "File",
+          "volumeMounts" : [ {
+            "mountPath" : "/shared",
+            "name" : "shared"
+          }, {
+            "mountPath" : "/usr/local/bin/dbops/pgbench/set-pgbench-result.sh",
+            "name" : "templates",
+            "readOnly" : true,
+            "subPath" : "set-pgbench-result.sh"
+          } ]
+        } ],
+        "dnsPolicy" : "ClusterFirst",
+        "initContainers" : [ {
+          "command" : [ "/bin/bash", "-ex", "/usr/local/bin/set-dbops-running.sh" ],
+          "env" : [ {
+            "name" : "ETC_PASSWD_PATH",
+            "value" : "/etc/passwd"
+          }, {
+            "name" : "ETC_GROUP_PATH",
+            "value" : "/etc/group"
+          }, {
+            "name" : "ETC_SHADOW_PATH",
+            "value" : "/etc/shadow"
+          }, {
+            "name" : "ETC_GSHADOW_PATH",
+            "value" : "/etc/gshadow"
+          }, {
+            "name" : "SHARED_MEMORY_PATH",
+            "value" : "/dev/shm"
+          }, {
+            "name" : "LOCAL_BIN_PATH",
+            "value" : "/usr/local/bin"
+          }, {
+            "name" : "LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH",
+            "value" : "/usr/local/bin/setup-data-paths.sh"
+          }, {
+            "name" : "LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH",
+            "value" : "/usr/local/bin/setup-arbitrary-user.sh"
+          }, {
+            "name" : "LOCAL_BIN_SETUP_SCRIPTS_SH_PATH",
+            "value" : "/usr/local/bin/setup-scripts.sh"
+          }, {
+            "name" : "LOCAL_BIN_START_PATRONI_SH_PATH",
+            "value" : "/usr/local/bin/start-patroni.sh"
+          }, {
+            "name" : "LOCAL_BIN_START_PATRONI_WITH_RESTORE_SH_PATH",
+            "value" : "/usr/local/bin/start-patroni-with-restore.sh"
+          }, {
+            "name" : "LOCAL_BIN_POST_INIT_SH_PATH",
+            "value" : "/usr/local/bin/post-init.sh"
+          }, {
+            "name" : "LOCAL_BIN_EXEC_WITH_ENV_PATH",
+            "value" : "/usr/local/bin/exec-with-env"
+          }, {
+            "name" : "LOCAL_BIN_CREATE_BACKUP_SH_PATH",
+            "value" : "/usr/local/bin/create-backup.sh"
+          }, {
+            "name" : "LOCAL_BIN_SET_DBOPS_RUNNING_SH_PATH",
+            "value" : "/usr/local/bin/set-dbops-running.sh"
+          }, {
+            "name" : "LOCAL_BIN_RUN_PGBENCH_SH_PATH",
+            "value" : "/usr/local/bin/dbops/pgbench/run-pgbench.sh"
+          }, {
+            "name" : "LOCAL_BIN_SET_PGBENCH_RESULT_SH_PATH",
+            "value" : "/usr/local/bin/dbops/pgbench/set-pgbench-result.sh"
+          }, {
+            "name" : "LOCAL_BIN_RUN_VACUUM_SH_PATH",
+            "value" : "/usr/local/bin/dbops/vacuum/run-vacuum.sh"
+          }, {
+            "name" : "LOCAL_BIN_SET_VACUUM_RESULT_SH_PATH",
+            "value" : "/usr/local/bin/dbops/vacuum/set-vacuum-result.sh"
+          }, {
+            "name" : "LOCAL_BIN_RUN_REPACK_SH_PATH",
+            "value" : "/usr/local/bin/dbops/repack/run-repack.sh"
+          }, {
+            "name" : "LOCAL_BIN_SET_REPACK_RESULT_SH_PATH",
+            "value" : "/usr/local/bin/dbops/repack/set-repack-result.sh"
+          }, {
+            "name" : "LOCAL_BIN_RUN_MAJOR_VERSION_UPGRADE_SH_PATH",
+            "value" : "/usr/local/bin/dbops/major-version-upgrade/run-major-version-upgrade.sh"
+          }, {
+            "name" : "LOCAL_BIN_SET_MAJOR_VERSION_UPGRADE_RESULT_SH_PATH",
+            "value" : "/usr/local/bin/dbops/major-version-upgrade/set-major-version-upgrade-result.sh"
+          }, {
+            "name" : "LOCAL_BIN_COPY_BINARIES_SH_PATH",
+            "value" : "/usr/local/bin/dbops/major-version-upgrade/copy-binaries.sh"
+          }, {
+            "name" : "LOCAL_BIN_MAJOR_VERSION_UPGRADE_SH_PATH",
+            "value" : "/usr/local/bin/dbops/major-version-upgrade/major-version-upgrade.sh"
+          }, {
+            "name" : "LOCAL_BIN_RESET_PATRONI_INITIALIZE_SH_PATH",
+            "value" : "/usr/local/bin/dbops/major-version-upgrade/reset-patroni-initialize.sh"
+          }, {
+            "name" : "PG_BASE_PATH",
+            "value" : "/var/lib/postgresql"
+          }, {
+            "name" : "PG_DATA_PATH",
+            "value" : "/var/lib/postgresql/data"
+          }, {
+            "name" : "PG_UPGRADE_PATH",
+            "value" : "/var/lib/postgresql/upgrade"
+          }, {
+            "name" : "PG_RUN_PATH",
+            "value" : "/var/run/postgresql"
+          }, {
+            "name" : "PG_LOG_PATH",
+            "value" : "/var/log/postgresql"
+          }, {
+            "name" : "BASE_ENV_PATH",
+            "value" : "/etc/env"
+          }, {
+            "name" : "BASE_SECRET_PATH",
+            "value" : "/etc/env/.secret"
+          }, {
+            "name" : "PATRONI_ENV_PATH",
+            "value" : "/etc/env/patroni"
+          }, {
+            "name" : "PATRONI_CONFIG_PATH",
+            "value" : "/etc/patroni"
+          }, {
+            "name" : "BACKUP_ENV_PATH",
+            "value" : "/etc/env/backup"
+          }, {
+            "name" : "BACKUP_SECRET_PATH",
+            "value" : "/etc/env/.secret/backup"
+          }, {
+            "name" : "RESTORE_ENV_PATH",
+            "value" : "/etc/env/restore"
+          }, {
+            "name" : "RESTORE_SECRET_PATH",
+            "value" : "/etc/env/.secret/restore"
+          }, {
+            "name" : "TEMPLATES_PATH",
+            "value" : "/templates"
+          }, {
+            "name" : "SHARED_PATH",
+            "value" : "/shared"
+          }, {
+            "name" : "PATRONI_ENV",
+            "value" : "patroni"
+          }, {
+            "name" : "BACKUP_ENV",
+            "value" : "backup"
+          }, {
+            "name" : "RESTORE_ENV",
+            "value" : "restore"
+          }, {
+            "name" : "POSTGRES_ENTRY_PORT",
+            "value" : "7432"
+          }, {
+            "name" : "POSTGRES_REPL_ENTRY_PORT",
+            "value" : "7433"
+          }, {
+            "name" : "POSTGRES_POOL_PORT",
+            "value" : "6432"
+          }, {
+            "name" : "POSTGRES_PORT",
+            "value" : "5432"
+          }, {
+            "name" : "CLUSTER_NAMESPACE",
+            "value" : "dbops-pgbench-6000a807"
+          }, {
+            "name" : "DB_OPS_NAME",
+            "value" : "benchmark"
+          }, {
+            "name" : "DB_OPS_CRD_NAME",
+            "value" : "sgdbops.stackgres.io"
+          }, {
+            "name" : "CURRENT_RETRY",
+            "value" : "0"
+          }, {
+            "name" : "CONDITION_DB_OPS_FALSE_RUNNING",
+            "value" : "{\"lastTransitionTime\":\"$LAST_TRANSITION_TIME\",\"reason\":\"OperationNotRunning\",\"status\":\"False\",\"type\":\"Running\"}"
+          }, {
+            "name" : "CONDITION_DB_OPS_RUNNING",
+            "value" : "{\"lastTransitionTime\":\"$LAST_TRANSITION_TIME\",\"reason\":\"OperationRunning\",\"status\":\"True\",\"type\":\"Running\"}"
+          }, {
+            "name" : "CONDITION_DB_OPS_FAILED",
+            "value" : "{\"lastTransitionTime\":\"$LAST_TRANSITION_TIME\",\"reason\":\"OperationFailed\",\"status\":\"True\",\"type\":\"Failed\"}"
+          }, {
+            "name" : "CONDITION_DB_OPS_TIMED_OUT",
+            "value" : "{\"lastTransitionTime\":\"$LAST_TRANSITION_TIME\",\"reason\":\"OperationTimedOut\",\"status\":\"True\",\"type\":\"Failed\"}"
+          }, {
+            "name" : "CONDITION_DB_OPS_FALSE_FAILED",
+            "value" : "{\"lastTransitionTime\":\"$LAST_TRANSITION_TIME\",\"reason\":\"OperationNotFailed\",\"status\":\"False\",\"type\":\"Failed\"}"
+          }, {
+            "name" : "CONDITION_DB_OPS_COMPLETED",
+            "value" : "{\"lastTransitionTime\":\"$LAST_TRANSITION_TIME\",\"reason\":\"OperationCompleted\",\"status\":\"True\",\"type\":\"Completed\"}"
+          }, {
+            "name" : "CONDITION_DB_OPS_FALSE_COMPLETED",
+            "value" : "{\"lastTransitionTime\":\"$LAST_TRANSITION_TIME\",\"reason\":\"OperationNotCompleted\",\"status\":\"False\",\"type\":\"Completed\"}"
+          } ],
+          "image" : "bitnami/kubectl:1.19.2",
+          "imagePullPolicy" : "IfNotPresent",
+          "name" : "set-dbops-running",
+          "resources" : { },
+          "terminationMessagePath" : "/dev/termination-log",
+          "terminationMessagePolicy" : "File",
+          "volumeMounts" : [ {
+            "mountPath" : "/usr/local/bin/set-dbops-running.sh",
+            "name" : "templates",
+            "readOnly" : true,
+            "subPath" : "set-dbops-running.sh"
+          } ]
+        } ],
+        "restartPolicy" : "Never",
+        "schedulerName" : "default-scheduler",
+        "securityContext" : {
+          "fsGroup" : 999,
+          "runAsGroup" : 999,
+          "runAsNonRoot" : true,
+          "runAsUser" : 999
+        },
+        "serviceAccount" : "dbops-pgbench-dbops",
+        "serviceAccountName" : "dbops-pgbench-dbops",
+        "terminationGracePeriodSeconds" : 30,
+        "volumes" : [ {
+          "emptyDir" : { },
+          "name" : "shared"
+        }, {
+          "configMap" : {
+            "defaultMode" : 365,
+            "name" : "dbops-pgbench-templates"
+          },
+          "name" : "templates"
+        } ]
+      }
+    }
+  },
+  "status" : {
+    "active" : 1,
+    "startTime" : "2021-01-14T20:23:22Z"
+  }
+}

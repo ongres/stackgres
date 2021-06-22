@@ -59,6 +59,12 @@ rules:
   - update
   - patch
   - delete
+- apiGroups: ["stackgres.io"]
+  resources:
+  - sgclusters/status
+  - sgdistributedlogs/status
+  verbs:
+  - update
 {{- if .Values.prometheus.allowAutobind }}
 - apiGroups: ["monitoring.coreos.com"]
   resources:

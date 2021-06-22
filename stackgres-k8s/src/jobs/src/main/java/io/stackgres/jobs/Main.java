@@ -13,24 +13,30 @@ import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.resource.SecretFinder;
+import io.stackgres.jobs.app.JobsProperty;
 import io.stackgres.jobs.crdupgrade.CrdInstaller;
 import io.stackgres.jobs.crdupgrade.CrdInstallerImpl;
 import io.stackgres.jobs.crdupgrade.CrdLoader;
 import io.stackgres.jobs.crdupgrade.CrdLoaderImpl;
-import io.stackgres.jobs.crdupgrade.CrdUpgradeProperty;
 import io.stackgres.jobs.crdupgrade.CustomResourceDefinitionFinder;
 import io.stackgres.jobs.crdupgrade.WebhookConfigurator;
 import io.stackgres.jobs.crdupgrade.WebhookConfiguratorImpl;
+import io.stackgres.jobs.dbops.DbOpLauncher;
 
 @QuarkusMain
 public class Main implements QuarkusApplication {
 
   boolean conversionWebhooks =
-      CrdUpgradeProperty.CONVERSION_WEBHOOKS.getBoolean();
-  boolean crdUpgrade = CrdUpgradeProperty.CRD_UPGRADE.getBoolean();
+      JobsProperty.CONVERSION_WEBHOOKS.getBoolean();
+  boolean crdUpgrade = JobsProperty.CRD_UPGRADE.getBoolean();
+
+  boolean dbOpsJob = JobsProperty.DATABASE_OPERATION_JOB.getBoolean();
 
   @Inject
   KubernetesClientFactory kubernetesClientFactory;
+
+  @Inject
+  DbOpLauncher dbOpLauncher;
 
   @Override
   @SuppressWarnings("deprecation")
@@ -60,6 +66,12 @@ public class Main implements QuarkusApplication {
           crdLoader);
 
       webhookConfigurator.configureWebhooks();
+    }
+
+    if (dbOpsJob) {
+      String dbOpsCrName = JobsProperty.DATABASE_OPERATION_CR_NAME.getString();
+      String jobsNamespace = JobsProperty.JOB_NAMESPACE.getString();
+      dbOpLauncher.launchDbOp(dbOpsCrName, jobsNamespace);
     }
     return 0;
   }

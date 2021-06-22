@@ -1,0 +1,1284 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "StatefulSet",
+  "metadata": {
+    "creationTimestamp": "2021-04-29T16:31:22Z",
+    "generation": 2,
+    "labels": {
+      "app": "StackGresCluster",
+      "cluster-name": "operator-upgrade-1",
+      "cluster-uid": "87be005a-f465-40b4-b2fd-524da7d83c9b"
+    },
+    "name": "operator-upgrade-1",
+    "namespace": "operator-upgrade-608adf10",
+    "ownerReferences": [
+      {
+        "apiVersion": "stackgres.io/v1beta1",
+        "controller": true,
+        "kind": "SGCluster",
+        "name": "operator-upgrade-1",
+        "uid": "87be005a-f465-40b4-b2fd-524da7d83c9b"
+      }
+    ],
+    "resourceVersion": "73241",
+    "selfLink": "/apis/apps/v1/namespaces/operator-upgrade-608adf10/statefulsets/operator-upgrade-1",
+    "uid": "e1bb828a-26b9-451f-9f73-f95a3cc8bc7a"
+  },
+  "spec": {
+    "podManagementPolicy": "OrderedReady",
+    "replicas": 1,
+    "revisionHistoryLimit": 10,
+    "selector": {
+      "matchLabels": {
+        "app": "StackGresCluster",
+        "cluster": "true",
+        "cluster-name": "operator-upgrade-1",
+        "cluster-uid": "87be005a-f465-40b4-b2fd-524da7d83c9b",
+        "disruptible": "true"
+      }
+    },
+    "serviceName": "operator-upgrade-1",
+    "template": {
+      "metadata": {
+        "annotations": {
+          "stackgres.io/operatorVersion": "0.9.5"
+        },
+        "creationTimestamp": null,
+        "labels": {
+          "app": "StackGresCluster",
+          "cluster": "true",
+          "cluster-name": "operator-upgrade-1",
+          "cluster-uid": "87be005a-f465-40b4-b2fd-524da7d83c9b",
+          "disruptible": "true"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "command": [
+              "/bin/sh",
+              "-ex",
+              "/usr/local/bin/start-patroni.sh"
+            ],
+            "env": [
+              {
+                "name": "ETC_PASSWD_PATH",
+                "value": "/etc/passwd"
+              },
+              {
+                "name": "ETC_GROUP_PATH",
+                "value": "/etc/group"
+              },
+              {
+                "name": "ETC_SHADOW_PATH",
+                "value": "/etc/shadow"
+              },
+              {
+                "name": "ETC_GSHADOW_PATH",
+                "value": "/etc/gshadow"
+              },
+              {
+                "name": "LOCAL_BIN_PATH",
+                "value": "/usr/local/bin"
+              },
+              {
+                "name": "LOCAL_BIN_SHELL_UTILS_PATH",
+                "value": "/usr/local/bin/shell-utils"
+              },
+              {
+                "name": "LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH",
+                "value": "/usr/local/bin/setup-data-paths.sh"
+              },
+              {
+                "name": "LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH",
+                "value": "/usr/local/bin/setup-arbitrary-user.sh"
+              },
+              {
+                "name": "LOCAL_BIN_SETUP_SCRIPTS_SH_PATH",
+                "value": "/usr/local/bin/setup-scripts.sh"
+              },
+              {
+                "name": "LOCAL_BIN_START_PATRONI_SH_PATH",
+                "value": "/usr/local/bin/start-patroni.sh"
+              },
+              {
+                "name": "LOCAL_BIN_START_PATRONI_WITH_RESTORE_SH_PATH",
+                "value": "/usr/local/bin/start-patroni-with-restore.sh"
+              },
+              {
+                "name": "LOCAL_BIN_POST_INIT_SH_PATH",
+                "value": "/usr/local/bin/post-init.sh"
+              },
+              {
+                "name": "LOCAL_BIN_EXEC_WITH_ENV_PATH",
+                "value": "/usr/local/bin/exec-with-env"
+              },
+              {
+                "name": "LOCAL_BIN_CREATE_BACKUP_SH_PATH",
+                "value": "/usr/local/bin/create-backup.sh"
+              },
+              {
+                "name": "PG_BASE_PATH",
+                "value": "/var/lib/postgresql"
+              },
+              {
+                "name": "PG_DATA_PATH",
+                "value": "/var/lib/postgresql/data"
+              },
+              {
+                "name": "PG_RUN_PATH",
+                "value": "/var/run/postgresql"
+              },
+              {
+                "name": "PG_LOG_PATH",
+                "value": "/var/log/postgresql"
+              },
+              {
+                "name": "BASE_ENV_PATH",
+                "value": "/etc/env"
+              },
+              {
+                "name": "SHARED_MEMORY_PATH",
+                "value": "/dev/shm"
+              },
+              {
+                "name": "BASE_SECRET_PATH",
+                "value": "/etc/env/.secret"
+              },
+              {
+                "name": "PATRONI_ENV_PATH",
+                "value": "/etc/env/patroni"
+              },
+              {
+                "name": "PATRONI_CONFIG_PATH",
+                "value": "/etc/patroni"
+              },
+              {
+                "name": "BACKUP_ENV_PATH",
+                "value": "/etc/env/backup"
+              },
+              {
+                "name": "BACKUP_SECRET_PATH",
+                "value": "/etc/env/.secret/backup"
+              },
+              {
+                "name": "RESTORE_ENV_PATH",
+                "value": "/etc/env/restore"
+              },
+              {
+                "name": "RESTORE_SECRET_PATH",
+                "value": "/etc/env/.secret/restore"
+              },
+              {
+                "name": "TEMPLATES_PATH",
+                "value": "/templates"
+              },
+              {
+                "name": "PATRONI_ENV",
+                "value": "patroni"
+              },
+              {
+                "name": "BACKUP_ENV",
+                "value": "backup"
+              },
+              {
+                "name": "RESTORE_ENV",
+                "value": "restore"
+              },
+              {
+                "name": "POSTGRES_ENTRY_PORT",
+                "value": "7432"
+              },
+              {
+                "name": "POSTGRES_REPL_ENTRY_PORT",
+                "value": "7433"
+              },
+              {
+                "name": "POSTGRES_POOL_PORT",
+                "value": "6432"
+              },
+              {
+                "name": "POSTGRES_PORT",
+                "value": "5432"
+              },
+              {
+                "name": "PATRONI_RESTAPI_LISTEN",
+                "value": "0.0.0.0:8009"
+              },
+              {
+                "name": "PATRONI_RESTAPI_CONNECT_ADDRESS",
+                "value": "${PATRONI_KUBERNETES_POD_IP}:8008"
+              },
+              {
+                "name": "PATRONI_RESTAPI_USERNAME",
+                "value": "superuser"
+              },
+              {
+                "name": "PATRONI_RESTAPI_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "key": "restapi-password",
+                    "name": "operator-upgrade-1"
+                  }
+                }
+              },
+              {
+                "name": "PATRONI_NAME",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "metadata.name"
+                  }
+                }
+              },
+              {
+                "name": "PATRONI_KUBERNETES_NAMESPACE",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "metadata.namespace"
+                  }
+                }
+              },
+              {
+                "name": "PATRONI_KUBERNETES_POD_IP",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "PATRONI_SUPERUSER_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "key": "superuser-password",
+                    "name": "operator-upgrade-1"
+                  }
+                }
+              },
+              {
+                "name": "PATRONI_REPLICATION_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "key": "replication-password",
+                    "name": "operator-upgrade-1"
+                  }
+                }
+              },
+              {
+                "name": "PATRONI_authenticator_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "key": "authenticator-password",
+                    "name": "operator-upgrade-1"
+                  }
+                }
+              },
+              {
+                "name": "PATRONI_authenticator_OPTIONS",
+                "value": "superuser"
+              }
+            ],
+            "envFrom": [
+              {
+                "configMapRef": {
+                  "name": "operator-upgrade-1"
+                }
+              }
+            ],
+            "image": "docker.io/ongres/patroni:v1.6.5-pg12.6-build-5.1",
+            "imagePullPolicy": "IfNotPresent",
+            "livenessProbe": {
+              "failureThreshold": 6,
+              "httpGet": {
+                "path": "/cluster",
+                "port": 8008,
+                "scheme": "HTTP"
+              },
+              "initialDelaySeconds": 15,
+              "periodSeconds": 20,
+              "successThreshold": 1,
+              "timeoutSeconds": 1
+            },
+            "name": "patroni",
+            "ports": [
+              {
+                "containerPort": 7432,
+                "name": "pgport",
+                "protocol": "TCP"
+              },
+              {
+                "containerPort": 7433,
+                "name": "pgreplication",
+                "protocol": "TCP"
+              },
+              {
+                "containerPort": 8008,
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/read-only",
+                "port": 8008,
+                "scheme": "HTTP"
+              },
+              "initialDelaySeconds": 5,
+              "periodSeconds": 10,
+              "successThreshold": 1,
+              "timeoutSeconds": 1
+            },
+            "resources": {
+              "limits": {
+                "cpu": "250m",
+                "memory": "512Mi"
+              },
+              "requests": {
+                "cpu": "250m",
+                "memory": "512Mi"
+              }
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/var/lib/postgresql",
+                "name": "operator-upgrade-1-data"
+              },
+              {
+                "mountPath": "/var/run/postgresql",
+                "name": "socket"
+              },
+              {
+                "mountPath": "/dev/shm",
+                "name": "dshm"
+              },
+              {
+                "mountPath": "/usr/local/bin",
+                "name": "local",
+                "subPath": "usr/local/bin"
+              },
+              {
+                "mountPath": "/var/log/postgresql",
+                "name": "local",
+                "subPath": "var/log/postgresql"
+              },
+              {
+                "mountPath": "/etc/passwd",
+                "name": "local",
+                "readOnly": true,
+                "subPath": "etc/passwd"
+              },
+              {
+                "mountPath": "/etc/group",
+                "name": "local",
+                "readOnly": true,
+                "subPath": "etc/group"
+              },
+              {
+                "mountPath": "/etc/shadow",
+                "name": "local",
+                "readOnly": true,
+                "subPath": "etc/shadow"
+              },
+              {
+                "mountPath": "/etc/gshadow",
+                "name": "local",
+                "readOnly": true,
+                "subPath": "etc/gshadow"
+              },
+              {
+                "mountPath": "/etc/env/patroni",
+                "name": "patroni-env"
+              },
+              {
+                "mountPath": "/etc/patroni",
+                "name": "patroni-config"
+              },
+              {
+                "mountPath": "/etc/env/backup",
+                "name": "backup-env"
+              },
+              {
+                "mountPath": "/etc/env/.secret/backup",
+                "name": "backup-secret"
+              },
+              {
+                "mountPath": "/etc/patroni/init-script.d/00000-prometheus-postgres-exporter-init.postgres.sql",
+                "name": "operator-upgrade-1-internal-00000-prometheus-postgres-exporterx",
+                "readOnly": true,
+                "subPath": "00000-prometheus-postgres-exporter-init.postgres.sql"
+              }
+            ]
+          },
+          {
+            "args": [
+              "-c",
+              "/etc/envoy/default_envoy.yaml",
+              "-l",
+              "debug"
+            ],
+            "command": [
+              "/usr/local/bin/envoy"
+            ],
+            "image": "docker.io/ongres/envoy:v1.17.1-build-6.0",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "envoy",
+            "ports": [
+              {
+                "containerPort": 7432,
+                "protocol": "TCP"
+              },
+              {
+                "containerPort": 7433,
+                "protocol": "TCP"
+              }
+            ],
+            "resources": {},
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/etc/envoy",
+                "name": "envoy",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/etc/passwd",
+                "name": "local",
+                "readOnly": true,
+                "subPath": "etc/passwd"
+              },
+              {
+                "mountPath": "/etc/group",
+                "name": "local",
+                "readOnly": true,
+                "subPath": "etc/group"
+              },
+              {
+                "mountPath": "/etc/shadow",
+                "name": "local",
+                "readOnly": true,
+                "subPath": "etc/shadow"
+              },
+              {
+                "mountPath": "/etc/gshadow",
+                "name": "local",
+                "readOnly": true,
+                "subPath": "etc/gshadow"
+              }
+            ]
+          },
+          {
+            "image": "docker.io/ongres/pgbouncer:v1.13.0-build-6.0",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "pgbouncer",
+            "resources": {},
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/var/run/postgresql",
+                "name": "socket"
+              },
+              {
+                "mountPath": "/etc/pgbouncer",
+                "name": "pgbouncer",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/etc/passwd",
+                "name": "local",
+                "readOnly": true,
+                "subPath": "etc/passwd"
+              },
+              {
+                "mountPath": "/etc/group",
+                "name": "local",
+                "readOnly": true,
+                "subPath": "etc/group"
+              },
+              {
+                "mountPath": "/etc/shadow",
+                "name": "local",
+                "readOnly": true,
+                "subPath": "etc/shadow"
+              },
+              {
+                "mountPath": "/etc/gshadow",
+                "name": "local",
+                "readOnly": true,
+                "subPath": "etc/gshadow"
+              }
+            ]
+          },
+          {
+            "args": [
+              "run_postgres_exporter() {\n  set -x\n  exec /usr/local/bin/postgres_exporter \\\n    --log.level=info\n}\n\nset +x\nwhile true\ndo\n  if ( [ -z \"$PID\" ] || [ ! -d \"/proc/$PID\" ] ) \\\n    \u0026\u0026 [ -S '/var/run/postgresql/.s.PGSQL.5432' ]\n  then\n    if [ -n \"$PID\" ]\n    then\n      kill \"$PID\"\n      wait \"$PID\" || true\n    fi\n    run_postgres_exporter \u0026\n    PID=\"$!\"\n  fi\n  sleep 5\ndone\n"
+            ],
+            "command": [
+              "/bin/sh",
+              "-exc"
+            ],
+            "env": [
+              {
+                "name": "PGAPPNAME",
+                "value": "prometheus-postgres-exporter"
+              },
+              {
+                "name": "DATA_SOURCE_NAME",
+                "value": "postgresql://postgres@:5432/postgres?host=/var/run/postgresql\u0026sslmode=disable"
+              },
+              {
+                "name": "PG_EXPORTER_EXTEND_QUERY_PATH",
+                "value": "/var/opt/postgres-exporter/queries.yaml"
+              },
+              {
+                "name": "PG_EXPORTER_CONSTANT_LABELS",
+                "value": "cluster_name=operator-upgrade-1, namespace=operator-upgrade-608adf10"
+              }
+            ],
+            "image": "docker.io/ongres/prometheus-postgres-exporter:v0.8.0-build-6.0",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "prometheus-postgres-exporter",
+            "ports": [
+              {
+                "containerPort": 9187,
+                "protocol": "TCP"
+              }
+            ],
+            "resources": {},
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/var/run/postgresql",
+                "name": "socket"
+              },
+              {
+                "mountPath": "/var/opt/postgres-exporter/queries.yaml",
+                "name": "queries",
+                "readOnly": true,
+                "subPath": "queries.yaml"
+              },
+              {
+                "mountPath": "/etc/passwd",
+                "name": "local",
+                "readOnly": true,
+                "subPath": "etc/passwd"
+              },
+              {
+                "mountPath": "/etc/group",
+                "name": "local",
+                "readOnly": true,
+                "subPath": "etc/group"
+              },
+              {
+                "mountPath": "/etc/shadow",
+                "name": "local",
+                "readOnly": true,
+                "subPath": "etc/shadow"
+              },
+              {
+                "mountPath": "/etc/gshadow",
+                "name": "local",
+                "readOnly": true,
+                "subPath": "etc/gshadow"
+              }
+            ]
+          },
+          {
+            "args": [
+              "-c",
+              "while true; do sleep 10; done"
+            ],
+            "command": [
+              "/bin/sh"
+            ],
+            "image": "docker.io/ongres/postgres-util:v12.6-build-6.0",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "postgres-util",
+            "resources": {},
+            "stdin": true,
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "tty": true,
+            "volumeMounts": [
+              {
+                "mountPath": "/var/run/postgresql",
+                "name": "socket"
+              },
+              {
+                "mountPath": "/etc/passwd",
+                "name": "local",
+                "readOnly": true,
+                "subPath": "etc/passwd"
+              },
+              {
+                "mountPath": "/etc/group",
+                "name": "local",
+                "readOnly": true,
+                "subPath": "etc/group"
+              },
+              {
+                "mountPath": "/etc/shadow",
+                "name": "local",
+                "readOnly": true,
+                "subPath": "etc/shadow"
+              },
+              {
+                "mountPath": "/etc/gshadow",
+                "name": "local",
+                "readOnly": true,
+                "subPath": "etc/gshadow"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "initContainers": [
+          {
+            "command": [
+              "/bin/sh",
+              "-ex",
+              "/templates/setup-data-paths.sh"
+            ],
+            "env": [
+              {
+                "name": "ETC_PASSWD_PATH",
+                "value": "/etc/passwd"
+              },
+              {
+                "name": "ETC_GROUP_PATH",
+                "value": "/etc/group"
+              },
+              {
+                "name": "ETC_SHADOW_PATH",
+                "value": "/etc/shadow"
+              },
+              {
+                "name": "ETC_GSHADOW_PATH",
+                "value": "/etc/gshadow"
+              },
+              {
+                "name": "LOCAL_BIN_PATH",
+                "value": "/usr/local/bin"
+              },
+              {
+                "name": "LOCAL_BIN_SHELL_UTILS_PATH",
+                "value": "/usr/local/bin/shell-utils"
+              },
+              {
+                "name": "LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH",
+                "value": "/usr/local/bin/setup-data-paths.sh"
+              },
+              {
+                "name": "LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH",
+                "value": "/usr/local/bin/setup-arbitrary-user.sh"
+              },
+              {
+                "name": "LOCAL_BIN_SETUP_SCRIPTS_SH_PATH",
+                "value": "/usr/local/bin/setup-scripts.sh"
+              },
+              {
+                "name": "LOCAL_BIN_START_PATRONI_SH_PATH",
+                "value": "/usr/local/bin/start-patroni.sh"
+              },
+              {
+                "name": "LOCAL_BIN_START_PATRONI_WITH_RESTORE_SH_PATH",
+                "value": "/usr/local/bin/start-patroni-with-restore.sh"
+              },
+              {
+                "name": "LOCAL_BIN_POST_INIT_SH_PATH",
+                "value": "/usr/local/bin/post-init.sh"
+              },
+              {
+                "name": "LOCAL_BIN_EXEC_WITH_ENV_PATH",
+                "value": "/usr/local/bin/exec-with-env"
+              },
+              {
+                "name": "LOCAL_BIN_CREATE_BACKUP_SH_PATH",
+                "value": "/usr/local/bin/create-backup.sh"
+              },
+              {
+                "name": "PG_BASE_PATH",
+                "value": "/var/lib/postgresql"
+              },
+              {
+                "name": "PG_DATA_PATH",
+                "value": "/var/lib/postgresql/data"
+              },
+              {
+                "name": "PG_RUN_PATH",
+                "value": "/var/run/postgresql"
+              },
+              {
+                "name": "PG_LOG_PATH",
+                "value": "/var/log/postgresql"
+              },
+              {
+                "name": "BASE_ENV_PATH",
+                "value": "/etc/env"
+              },
+              {
+                "name": "SHARED_MEMORY_PATH",
+                "value": "/dev/shm"
+              },
+              {
+                "name": "BASE_SECRET_PATH",
+                "value": "/etc/env/.secret"
+              },
+              {
+                "name": "PATRONI_ENV_PATH",
+                "value": "/etc/env/patroni"
+              },
+              {
+                "name": "PATRONI_CONFIG_PATH",
+                "value": "/etc/patroni"
+              },
+              {
+                "name": "BACKUP_ENV_PATH",
+                "value": "/etc/env/backup"
+              },
+              {
+                "name": "BACKUP_SECRET_PATH",
+                "value": "/etc/env/.secret/backup"
+              },
+              {
+                "name": "RESTORE_ENV_PATH",
+                "value": "/etc/env/restore"
+              },
+              {
+                "name": "RESTORE_SECRET_PATH",
+                "value": "/etc/env/.secret/restore"
+              },
+              {
+                "name": "TEMPLATES_PATH",
+                "value": "/templates"
+              },
+              {
+                "name": "PATRONI_ENV",
+                "value": "patroni"
+              },
+              {
+                "name": "BACKUP_ENV",
+                "value": "backup"
+              },
+              {
+                "name": "RESTORE_ENV",
+                "value": "restore"
+              },
+              {
+                "name": "POSTGRES_ENTRY_PORT",
+                "value": "7432"
+              },
+              {
+                "name": "POSTGRES_REPL_ENTRY_PORT",
+                "value": "7433"
+              },
+              {
+                "name": "POSTGRES_POOL_PORT",
+                "value": "6432"
+              },
+              {
+                "name": "POSTGRES_PORT",
+                "value": "5432"
+              }
+            ],
+            "image": "busybox:1.31.1",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "setup-data-paths",
+            "resources": {},
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/templates",
+                "name": "templates"
+              },
+              {
+                "mountPath": "/var/lib/postgresql",
+                "name": "operator-upgrade-1-data"
+              }
+            ]
+          },
+          {
+            "command": [
+              "/bin/sh",
+              "-ex",
+              "/templates/setup-scripts.sh"
+            ],
+            "env": [
+              {
+                "name": "ETC_PASSWD_PATH",
+                "value": "/etc/passwd"
+              },
+              {
+                "name": "ETC_GROUP_PATH",
+                "value": "/etc/group"
+              },
+              {
+                "name": "ETC_SHADOW_PATH",
+                "value": "/etc/shadow"
+              },
+              {
+                "name": "ETC_GSHADOW_PATH",
+                "value": "/etc/gshadow"
+              },
+              {
+                "name": "LOCAL_BIN_PATH",
+                "value": "/usr/local/bin"
+              },
+              {
+                "name": "LOCAL_BIN_SHELL_UTILS_PATH",
+                "value": "/usr/local/bin/shell-utils"
+              },
+              {
+                "name": "LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH",
+                "value": "/usr/local/bin/setup-data-paths.sh"
+              },
+              {
+                "name": "LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH",
+                "value": "/usr/local/bin/setup-arbitrary-user.sh"
+              },
+              {
+                "name": "LOCAL_BIN_SETUP_SCRIPTS_SH_PATH",
+                "value": "/usr/local/bin/setup-scripts.sh"
+              },
+              {
+                "name": "LOCAL_BIN_START_PATRONI_SH_PATH",
+                "value": "/usr/local/bin/start-patroni.sh"
+              },
+              {
+                "name": "LOCAL_BIN_START_PATRONI_WITH_RESTORE_SH_PATH",
+                "value": "/usr/local/bin/start-patroni-with-restore.sh"
+              },
+              {
+                "name": "LOCAL_BIN_POST_INIT_SH_PATH",
+                "value": "/usr/local/bin/post-init.sh"
+              },
+              {
+                "name": "LOCAL_BIN_EXEC_WITH_ENV_PATH",
+                "value": "/usr/local/bin/exec-with-env"
+              },
+              {
+                "name": "LOCAL_BIN_CREATE_BACKUP_SH_PATH",
+                "value": "/usr/local/bin/create-backup.sh"
+              },
+              {
+                "name": "PG_BASE_PATH",
+                "value": "/var/lib/postgresql"
+              },
+              {
+                "name": "PG_DATA_PATH",
+                "value": "/var/lib/postgresql/data"
+              },
+              {
+                "name": "PG_RUN_PATH",
+                "value": "/var/run/postgresql"
+              },
+              {
+                "name": "PG_LOG_PATH",
+                "value": "/var/log/postgresql"
+              },
+              {
+                "name": "BASE_ENV_PATH",
+                "value": "/etc/env"
+              },
+              {
+                "name": "SHARED_MEMORY_PATH",
+                "value": "/dev/shm"
+              },
+              {
+                "name": "BASE_SECRET_PATH",
+                "value": "/etc/env/.secret"
+              },
+              {
+                "name": "PATRONI_ENV_PATH",
+                "value": "/etc/env/patroni"
+              },
+              {
+                "name": "PATRONI_CONFIG_PATH",
+                "value": "/etc/patroni"
+              },
+              {
+                "name": "BACKUP_ENV_PATH",
+                "value": "/etc/env/backup"
+              },
+              {
+                "name": "BACKUP_SECRET_PATH",
+                "value": "/etc/env/.secret/backup"
+              },
+              {
+                "name": "RESTORE_ENV_PATH",
+                "value": "/etc/env/restore"
+              },
+              {
+                "name": "RESTORE_SECRET_PATH",
+                "value": "/etc/env/.secret/restore"
+              },
+              {
+                "name": "TEMPLATES_PATH",
+                "value": "/templates"
+              },
+              {
+                "name": "PATRONI_ENV",
+                "value": "patroni"
+              },
+              {
+                "name": "BACKUP_ENV",
+                "value": "backup"
+              },
+              {
+                "name": "RESTORE_ENV",
+                "value": "restore"
+              },
+              {
+                "name": "POSTGRES_ENTRY_PORT",
+                "value": "7432"
+              },
+              {
+                "name": "POSTGRES_REPL_ENTRY_PORT",
+                "value": "7433"
+              },
+              {
+                "name": "POSTGRES_POOL_PORT",
+                "value": "6432"
+              },
+              {
+                "name": "POSTGRES_PORT",
+                "value": "5432"
+              }
+            ],
+            "image": "busybox:1.31.1",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "setup-scripts",
+            "resources": {},
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/templates",
+                "name": "templates"
+              },
+              {
+                "mountPath": "/usr/local/bin",
+                "name": "local",
+                "subPath": "usr/local/bin"
+              }
+            ]
+          },
+          {
+            "command": [
+              "/bin/sh",
+              "-ex",
+              "/templates/setup-arbitrary-user.sh"
+            ],
+            "env": [
+              {
+                "name": "ETC_PASSWD_PATH",
+                "value": "/etc/passwd"
+              },
+              {
+                "name": "ETC_GROUP_PATH",
+                "value": "/etc/group"
+              },
+              {
+                "name": "ETC_SHADOW_PATH",
+                "value": "/etc/shadow"
+              },
+              {
+                "name": "ETC_GSHADOW_PATH",
+                "value": "/etc/gshadow"
+              },
+              {
+                "name": "LOCAL_BIN_PATH",
+                "value": "/usr/local/bin"
+              },
+              {
+                "name": "LOCAL_BIN_SHELL_UTILS_PATH",
+                "value": "/usr/local/bin/shell-utils"
+              },
+              {
+                "name": "LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH",
+                "value": "/usr/local/bin/setup-data-paths.sh"
+              },
+              {
+                "name": "LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH",
+                "value": "/usr/local/bin/setup-arbitrary-user.sh"
+              },
+              {
+                "name": "LOCAL_BIN_SETUP_SCRIPTS_SH_PATH",
+                "value": "/usr/local/bin/setup-scripts.sh"
+              },
+              {
+                "name": "LOCAL_BIN_START_PATRONI_SH_PATH",
+                "value": "/usr/local/bin/start-patroni.sh"
+              },
+              {
+                "name": "LOCAL_BIN_START_PATRONI_WITH_RESTORE_SH_PATH",
+                "value": "/usr/local/bin/start-patroni-with-restore.sh"
+              },
+              {
+                "name": "LOCAL_BIN_POST_INIT_SH_PATH",
+                "value": "/usr/local/bin/post-init.sh"
+              },
+              {
+                "name": "LOCAL_BIN_EXEC_WITH_ENV_PATH",
+                "value": "/usr/local/bin/exec-with-env"
+              },
+              {
+                "name": "LOCAL_BIN_CREATE_BACKUP_SH_PATH",
+                "value": "/usr/local/bin/create-backup.sh"
+              },
+              {
+                "name": "PG_BASE_PATH",
+                "value": "/var/lib/postgresql"
+              },
+              {
+                "name": "PG_DATA_PATH",
+                "value": "/var/lib/postgresql/data"
+              },
+              {
+                "name": "PG_RUN_PATH",
+                "value": "/var/run/postgresql"
+              },
+              {
+                "name": "PG_LOG_PATH",
+                "value": "/var/log/postgresql"
+              },
+              {
+                "name": "BASE_ENV_PATH",
+                "value": "/etc/env"
+              },
+              {
+                "name": "SHARED_MEMORY_PATH",
+                "value": "/dev/shm"
+              },
+              {
+                "name": "BASE_SECRET_PATH",
+                "value": "/etc/env/.secret"
+              },
+              {
+                "name": "PATRONI_ENV_PATH",
+                "value": "/etc/env/patroni"
+              },
+              {
+                "name": "PATRONI_CONFIG_PATH",
+                "value": "/etc/patroni"
+              },
+              {
+                "name": "BACKUP_ENV_PATH",
+                "value": "/etc/env/backup"
+              },
+              {
+                "name": "BACKUP_SECRET_PATH",
+                "value": "/etc/env/.secret/backup"
+              },
+              {
+                "name": "RESTORE_ENV_PATH",
+                "value": "/etc/env/restore"
+              },
+              {
+                "name": "RESTORE_SECRET_PATH",
+                "value": "/etc/env/.secret/restore"
+              },
+              {
+                "name": "TEMPLATES_PATH",
+                "value": "/templates"
+              },
+              {
+                "name": "PATRONI_ENV",
+                "value": "patroni"
+              },
+              {
+                "name": "BACKUP_ENV",
+                "value": "backup"
+              },
+              {
+                "name": "RESTORE_ENV",
+                "value": "restore"
+              },
+              {
+                "name": "POSTGRES_ENTRY_PORT",
+                "value": "7432"
+              },
+              {
+                "name": "POSTGRES_REPL_ENTRY_PORT",
+                "value": "7433"
+              },
+              {
+                "name": "POSTGRES_POOL_PORT",
+                "value": "6432"
+              },
+              {
+                "name": "POSTGRES_PORT",
+                "value": "5432"
+              }
+            ],
+            "image": "busybox:1.31.1",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "setup-arbitrary-user",
+            "resources": {},
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/templates",
+                "name": "templates"
+              },
+              {
+                "mountPath": "/local/etc",
+                "name": "local",
+                "subPath": "etc"
+              }
+            ]
+          }
+        ],
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 999,
+          "runAsGroup": 999,
+          "runAsNonRoot": true,
+          "runAsUser": 999
+        },
+        "serviceAccount": "operator-upgrade-1-patroni",
+        "serviceAccountName": "operator-upgrade-1-patroni",
+        "shareProcessNamespace": true,
+        "terminationGracePeriodSeconds": 60,
+        "volumes": [
+          {
+            "emptyDir": {
+              "medium": "Memory"
+            },
+            "name": "socket"
+          },
+          {
+            "emptyDir": {
+              "medium": "Memory"
+            },
+            "name": "dshm"
+          },
+          {
+            "emptyDir": {},
+            "name": "local"
+          },
+          {
+            "configMap": {
+              "defaultMode": 444,
+              "name": "operator-upgrade-1"
+            },
+            "name": "patroni-env"
+          },
+          {
+            "emptyDir": {},
+            "name": "patroni-config"
+          },
+          {
+            "configMap": {
+              "defaultMode": 444,
+              "name": "operator-upgrade-1-backup"
+            },
+            "name": "backup-env"
+          },
+          {
+            "name": "backup-secret",
+            "secret": {
+              "defaultMode": 444,
+              "secretName": "operator-upgrade-1-backup"
+            }
+          },
+          {
+            "configMap": {
+              "defaultMode": 444,
+              "name": "operator-upgrade-1-templates"
+            },
+            "name": "templates"
+          },
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "operator-upgrade-1-internal-00000-prometheus-postgres-exporterx",
+              "optional": false
+            },
+            "name": "operator-upgrade-1-internal-00000-prometheus-postgres-exporterx"
+          },
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "operator-upgrade-1-envoy-config"
+            },
+            "name": "envoy"
+          },
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "operator-upgrade-1-connection-pooling-config"
+            },
+            "name": "pgbouncer"
+          },
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "operator-upgrade-1-prometheus-postgres-exporter-config"
+            },
+            "name": "queries"
+          }
+        ]
+      }
+    },
+    "updateStrategy": {
+      "type": "OnDelete"
+    },
+    "volumeClaimTemplates": [
+      {
+        "metadata": {
+          "creationTimestamp": null,
+          "labels": {
+            "app": "StackGresCluster",
+            "cluster-name": "operator-upgrade-1",
+            "cluster-uid": "87be005a-f465-40b4-b2fd-524da7d83c9b"
+          },
+          "name": "operator-upgrade-1-data",
+          "namespace": "operator-upgrade-608adf10",
+          "ownerReferences": [
+            {
+              "apiVersion": "stackgres.io/v1beta1",
+              "controller": true,
+              "kind": "SGCluster",
+              "name": "operator-upgrade-1",
+              "uid": "87be005a-f465-40b4-b2fd-524da7d83c9b"
+            }
+          ]
+        },
+        "spec": {
+          "accessModes": [
+            "ReadWriteOnce"
+          ],
+          "resources": {
+            "requests": {
+              "storage": "128Mi"
+            }
+          },
+          "volumeMode": "Filesystem"
+        },
+        "status": {
+          "phase": "Pending"
+        }
+      }
+    ]
+  },
+  "status": {
+    "collisionCount": 0,
+    "currentReplicas": 1,
+    "currentRevision": "operator-upgrade-1-6b77f69597",
+    "observedGeneration": 2,
+    "readyReplicas": 1,
+    "replicas": 1,
+    "updateRevision": "operator-upgrade-1-84d98d747d"
+  }
+}

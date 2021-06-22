@@ -8,6 +8,8 @@ package io.stackgres.common.resource;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import javax.inject.Inject;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.CustomResourceList;
@@ -22,10 +24,10 @@ public abstract class AbstractCustomResourceScheduler
     <T extends CustomResource<?, ?>, L extends CustomResourceList<T>>
     implements CustomResourceScheduler<T> {
 
-  private final KubernetesClientFactory clientFactory;
-
   private final Class<T> customResourceClass;
   private final Class<L> customResourceListClass;
+  @Inject
+  KubernetesClientFactory clientFactory;
 
   protected AbstractCustomResourceScheduler(
       KubernetesClientFactory clientFactory,
@@ -36,19 +38,17 @@ public abstract class AbstractCustomResourceScheduler
     this.customResourceListClass = customResourceListClass;
   }
 
-  @Override
-  public void create(T resource) {
+  public T create(T resource) {
     try (KubernetesClient client = clientFactory.create()) {
-      getCustomResourceEndpoints(client)
+      return getCustomResourceEndpoints(client)
           .inNamespace(resource.getMetadata().getNamespace())
           .create(resource);
     }
   }
 
-  @Override
-  public void update(T resource) {
+  public T update(T resource) {
     try (KubernetesClient client = clientFactory.create()) {
-      getCustomResourceEndpoints(client)
+      return getCustomResourceEndpoints(client)
           .inNamespace(resource.getMetadata().getNamespace())
           .withName(resource.getMetadata().getName())
           .patch(resource);
@@ -57,7 +57,7 @@ public abstract class AbstractCustomResourceScheduler
 
   @Override
   public <S> void updateStatus(T resource, Function<T, S> statusGetter,
-      BiConsumer<T, S> statusSetter) {
+                               BiConsumer<T, S> statusSetter) {
     try (KubernetesClient client = clientFactory.create()) {
       T resourceOverwrite = getCustomResourceEndpoints(client)
           .inNamespace(resource.getMetadata().getNamespace())
@@ -79,6 +79,16 @@ public abstract class AbstractCustomResourceScheduler
           .replace(resourceOverwrite);
     } catch (KubernetesClientException ex) {
       throw new KubernetesClientStatusUpdateException(ex);
+    }
+  }
+
+  @Override
+  public T updateStatus(T resource) {
+    try (KubernetesClient client = clientFactory.create()) {
+      return getCustomResourceEndpoints(client)
+          .inNamespace(resource.getMetadata().getNamespace())
+          .withName(resource.getMetadata().getName())
+          .updateStatus(resource);
     }
   }
 

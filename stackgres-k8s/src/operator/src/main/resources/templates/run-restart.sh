@@ -3,7 +3,7 @@
 run_op() {
   set -e
 
-  if [ "$(kubectl get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+  if [ "$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     --template="{{ if .status.dbOps }}{{ if .status.dbOps.$OP_NAME }}true{{ end }}{{ end }}")" != "true" ]
   then
     INITIAL_PODS="$(kubectl get pods -n "$CLUSTER_NAMESPACE" -l "$CLUSTER_POD_LABELS" -o name)"
@@ -14,45 +14,43 @@ run_op() {
     echo "Signaling $NORMALIZED_OP_NAME started to cluster"
     echo
 
-    until kubectl patch "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
-        -p "$(cat << EOF
-[
-  {"op":"add","path":"/status/dbOps","value": {
-      "$OP_NAME":{
-        "initialInstances": [$(
-          FIRST=true
-          for INSTANCE in $INITIAL_INSTANCES
-          do
-            if "$FIRST"
-            then
-              printf '%s' "\"$INSTANCE\""
-              FIRST=false
-            else
-              printf '%s' ",\"$INSTANCE\""
-            fi
-          done
-          )],
-        "primaryInstance": "$PRIMARY_INSTANCE"
+    DB_OPS_PATCH="$(cat << EOF
+      {
+        "dbOps": {
+          "$OP_NAME":{
+            "initialInstances": [$(
+              FIRST=true
+              for INSTANCE in $INITIAL_INSTANCES
+              do
+                if "$FIRST"
+                then
+                  printf '%s' "\"$INSTANCE\""
+                  FIRST=false
+                else
+                  printf '%s' ",\"$INSTANCE\""
+                fi
+              done
+              )],
+            "primaryInstance": "$PRIMARY_INSTANCE"
+          }
+        }
       }
-    }
-  }
-]
 EOF
-        )"
+    )"
+    until kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | \
+     jq '.status |= . + '"$DB_OPS_PATCH" |
+     kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME"/status -f -
     do
-      kubectl patch "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
-        -p "$(cat << EOF
-[
-  {"op":"remove","path":"/status/dbOps"}
-]
-EOF
-        )"
+      kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | \
+      jq 'del(.status.dbOps)' | \
+      kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME"/status -f -
     done
+
   else
-    INITIAL_INSTANCES="$(kubectl get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    INITIAL_INSTANCES="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
       --template="{{ .status.dbOps.$OP_NAME.initialInstances }}")"
     INITIAL_INSTANCES="$(printf '%s' "$INITIAL_INSTANCES" | tr -d '[]' | tr ' ' '\n')"
-    PRIMARY_INSTANCE="$(kubectl get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    PRIMARY_INSTANCE="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
       --template="{{ .status.dbOps.$OP_NAME.primaryInstance }}")"
 
     CURRENT_PRIMARY_POD="$(kubectl get pods -n "$CLUSTER_NAMESPACE" -l "$CLUSTER_PRIMARY_POD_LABELS" -o name)"
@@ -114,7 +112,7 @@ EOF
     echo "Upscaling cluster to $((INITIAL_INSTANCES_COUNT + 1)) instances"
     echo
 
-    kubectl patch "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
+    kubectl patch "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
       -p "$(cat << EOF
 [
   {"op":"replace","path":"/spec/instances","value":$((INITIAL_INSTANCES_COUNT + 1))}
@@ -237,7 +235,7 @@ EOF
     echo "Downscaling cluster to $INITIAL_INSTANCES_COUNT instances"
     echo
 
-    kubectl patch "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
+    kubectl patch "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
       -p "$(cat << EOF
 [
   {"op":"replace","path":"/spec/instances","value":$INITIAL_INSTANCES_COUNT}
@@ -259,13 +257,9 @@ EOF
   echo "Signaling $NORMALIZED_OP_NAME finished to cluster"
   echo
 
-  until kubectl patch "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
-      -p "$(cat << EOF
-[
-  {"op":"remove","path":"/status/dbOps"}
-]
-EOF
-      )"
+  until kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | \
+    jq 'del(.status.dbOps)' | \
+    kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME"/status -f -
   do
     sleep 1
   done

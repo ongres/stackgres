@@ -12,6 +12,10 @@ POD_1_RESTARTED=false
 
 mock kubectl kubectl_mock
 
+shell_unit_test_skip() {
+  return 1;
+}
+
 kubectl_mock() {
   mokked
   case "$*" in

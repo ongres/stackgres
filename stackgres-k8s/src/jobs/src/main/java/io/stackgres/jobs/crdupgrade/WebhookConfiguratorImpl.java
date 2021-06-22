@@ -16,12 +16,13 @@ import io.fabric8.kubernetes.api.model.apiextensions.v1.WebhookConversionBuilder
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.common.resource.SecretFinder;
+import io.stackgres.jobs.app.JobsProperty;
 
 public class WebhookConfiguratorImpl implements WebhookConfigurator {
 
-  String operatorName = CrdUpgradeProperty.OPERATOR_NAME.getString();
+  String operatorName = JobsProperty.OPERATOR_NAME.getString();
 
-  String operatorNamespace = CrdUpgradeProperty.OPERATOR_NAMESPACE
+  String operatorNamespace = JobsProperty.OPERATOR_NAMESPACE
       .getString();
 
   String operatorSecretName = operatorName + "-certs";

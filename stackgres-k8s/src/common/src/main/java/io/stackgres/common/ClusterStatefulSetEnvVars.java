@@ -9,15 +9,16 @@ import java.util.function.Function;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 
 public enum ClusterStatefulSetEnvVars {
-  POSTGRES_VERSION(context -> context.getCluster().getSpec().getPostgresVersion()),
+  POSTGRES_VERSION(context -> context.getSpec().getPostgresVersion()),
   POSTGRES_MAJOR_VERSION(context -> StackGresComponent.POSTGRESQL.findMajorVersion(
-      context.getCluster().getSpec().getPostgresVersion())),
+      context.getSpec().getPostgresVersion())),
   BUILD_VERSION(context -> StackGresComponent.POSTGRESQL.findBuildVersion(
-      context.getCluster().getSpec().getPostgresVersion())),
+      context.getSpec().getPostgresVersion())),
   BUILD_MAJOR_VERSION(context -> StackGresComponent.POSTGRESQL.findBuildMajorVersion(
-      context.getCluster().getSpec().getPostgresVersion())),
+      context.getSpec().getPostgresVersion())),
   PATRONI_ENV("patroni"),
   BACKUP_ENV("backup"),
   RESTORE_ENV("restore"),
@@ -29,7 +30,7 @@ public enum ClusterStatefulSetEnvVars {
   LOCK_SLEEP(String.valueOf(5));
 
   private final String substVar;
-  private final Function<ClusterContext, EnvVar> getEnvVar;
+  private final Function<StackGresCluster, EnvVar> getEnvVar;
 
   ClusterStatefulSetEnvVars(String value) {
     this.substVar = getSubstVar();
@@ -40,7 +41,7 @@ public enum ClusterStatefulSetEnvVars {
     this.getEnvVar = context -> envVar;
   }
 
-  ClusterStatefulSetEnvVars(Function<ClusterContext, String> getValue) {
+  ClusterStatefulSetEnvVars(Function<StackGresCluster, String> getValue) {
     this.substVar = getSubstVar();
     this.getEnvVar = context -> new EnvVarBuilder()
         .withName(name())
@@ -56,11 +57,11 @@ public enum ClusterStatefulSetEnvVars {
     return substVar;
   }
 
-  public String value(ClusterContext context) {
+  public String value(StackGresCluster context) {
     return getEnvVar.apply(context).getValue();
   }
 
-  public EnvVar envVar(ClusterContext context) {
+  public EnvVar envVar(StackGresCluster context) {
     return getEnvVar.apply(context);
   }
 }

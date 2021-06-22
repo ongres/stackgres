@@ -7,10 +7,7 @@ package io.stackgres.operator.initialization;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,16 +26,16 @@ import org.mockito.Mock;
 public abstract class InitializerTest<T extends CustomResource<?, ?>> {
 
   @Mock
-  private CustomResourceScheduler<T> customResourceScheduler;
+  protected CustomResourceScheduler<T> customResourceScheduler;
 
   @Mock
-  private DefaultCustomResourceFactory<T> resourceFactory;
+  protected DefaultCustomResourceFactory<T> resourceFactory;
 
   @Mock
-  private DefaultFactoryProvider<DefaultCustomResourceFactory<T>> factoryProvider;
+  protected DefaultFactoryProvider<DefaultCustomResourceFactory<T>> factoryProvider;
 
   @Mock
-  private CustomResourceScanner<T> resourceScanner;
+  protected CustomResourceScanner<T> resourceScanner;
 
   private AbstractDefaultCustomResourceInitializer<T> initializer;
 
@@ -49,10 +46,10 @@ public abstract class InitializerTest<T extends CustomResource<?, ?>> {
   @BeforeEach
   void init() {
     initializer = getInstance();
-    initializer.setResourceScheduler(customResourceScheduler);
+    initializer.customResourceScheduler = customResourceScheduler;
+    initializer.resourceScanner = resourceScanner;
+    initializer.factoryProvider = factoryProvider;
     when(factoryProvider.getFactories()).thenReturn(Collections.singletonList(resourceFactory));
-    initializer.setFactoryProvider(factoryProvider);
-    initializer.setResourceScanner(resourceScanner);
     defaultCustomResource = configureDefaultCR();
     resourceNamespace = defaultCustomResource.getMetadata().getNamespace();
   }
@@ -83,7 +80,7 @@ public abstract class InitializerTest<T extends CustomResource<?, ?>> {
     when(resourceFactory.buildResource()).thenReturn(defaultCustomResource);
 
 
-    doNothing().when(customResourceScheduler).create(defaultCustomResource);
+    doReturn(defaultCustomResource).when(customResourceScheduler).create(defaultCustomResource);
 
     initializer.initialize();
 

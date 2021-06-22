@@ -1,0 +1,43 @@
+{
+  "apiVersion": "v1",
+  "kind": "Service",
+  "metadata": {
+    "labels": {
+      "app": "StackGresCluster",
+      "cluster-name": "distributed-logs",
+      "cluster-uid": "ffbbdc44-b7cb-44c5-9fe5-66d40013288b"
+    },
+    "name": "distributed-logs-rest",
+    "namespace": "distributed-logs-606c983e",
+    "ownerReferences": [
+      {
+        "apiVersion": "stackgres.io/v1",
+        "controller": true,
+        "kind": "SGCluster",
+        "name": "distributed-logs",
+        "uid": "ffbbdc44-b7cb-44c5-9fe5-66d40013288b"
+      }
+    ]
+  },
+  "spec": {
+    "ports": [
+      {
+        "name": "patroniport",
+        "port": 8008,
+        "protocol": "TCP",
+        "targetPort": "patroniport"
+      }
+    ],
+    "selector": {
+      "app": "StackGresCluster",
+      "cluster": "true",
+      "cluster-name": "distributed-logs",
+      "cluster-uid": "ffbbdc44-b7cb-44c5-9fe5-66d40013288b"
+    },
+    "sessionAffinity": "None",
+    "type": "ClusterIP"
+  },
+  "status": {
+    "loadBalancer": {}
+  }
+}

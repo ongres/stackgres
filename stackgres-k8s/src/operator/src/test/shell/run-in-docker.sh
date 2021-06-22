@@ -68,6 +68,7 @@ run_in_container() {
     -v "$HOME":"$HOME":rw -e PROMPT_COMMAND= \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v "$(realpath "$(pwd)/$PROJECT_PATH"):/project" -w /project \
+    -e IMAGE_NAME="$IMAGE_NAME" \
     --entrypoint /bin/sh \
     "$IMAGE_NAME" -c "sh $SHELL_XTRACE src/test/shell/shell-unit-tests.sh $*"
 }

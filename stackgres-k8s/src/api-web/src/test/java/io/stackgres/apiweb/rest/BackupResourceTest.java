@@ -17,9 +17,6 @@ import io.stackgres.apiweb.transformer.BackupConfigTransformer;
 import io.stackgres.apiweb.transformer.BackupTransformer;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupList;
-import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.common.resource.CustomResourceScanner;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -46,11 +43,8 @@ class BackupResourceTest
   }
 
   @Override
-  protected BackupResource getService(
-      CustomResourceScanner<StackGresBackup> scanner, CustomResourceFinder<StackGresBackup> finder,
-      CustomResourceScheduler<StackGresBackup> scheduler,
-      AbstractResourceTransformer<BackupDto, StackGresBackup> transformer) {
-    return new BackupResource(scanner, finder, scheduler, transformer);
+  protected BackupResource getService() {
+    return new BackupResource();
   }
 
   @Override

@@ -88,14 +88,11 @@ public abstract class AbstractResourceHandlerSelector<T extends ResourceHandlerC
     Optional<ResourceHandler<T>> customHandler = getResourceHandlers()
         .filter(handler -> handler.isHandlerForResource(resource)).findAny();
 
-    if (customHandler.isPresent()) {
-      return customHandler.get();
-    }
-
-    return getDefaultResourceHandler()
+    return customHandler.orElseGet(() -> getDefaultResourceHandler()
         .orElseThrow(() -> new IllegalStateException("Can not find handler for resource "
             + resource.getMetadata().getNamespace() + "." + resource.getMetadata().getName()
-            + " of kind " + resource.getKind()));
+            + " of kind " + resource.getKind())));
+
   }
 
   protected abstract Stream<ResourceHandler<T>> getResourceHandlers();

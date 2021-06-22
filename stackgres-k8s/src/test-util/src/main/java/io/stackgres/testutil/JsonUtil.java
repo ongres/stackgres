@@ -13,10 +13,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.io.CharStreams;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
@@ -24,7 +27,10 @@ public class JsonUtil {
 
   private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
-  private JsonUtil() {}
+  private JsonUtil() {
+    JSON_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    JSON_MAPPER.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
+  }
 
   public static <T> T readFromJson(String resource, Class<T> clazz) {
     Objects.requireNonNull(resource, "resource");
@@ -84,6 +90,15 @@ public class JsonUtil {
 
   public static JsonNode toJson(Object object) {
     return JSON_MAPPER.valueToTree(object);
+  }
+
+  public static <T> T toJson(String content, Class<T> clazz) {
+    try {
+      return JSON_MAPPER.readValue(content, clazz);
+    } catch (JsonProcessingException e) {
+      throw new IllegalArgumentException("invalid json content", e);
+    }
+
   }
 
   public static <T> T fromJson(TreeNode json, Class<T> clazz) {

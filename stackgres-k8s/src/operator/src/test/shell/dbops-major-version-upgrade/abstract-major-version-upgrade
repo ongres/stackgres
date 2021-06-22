@@ -9,6 +9,16 @@ NORMALIZED_OP_NAME='major version upgrade'
 KEBAB_OP_NAME='major-version-upgrade'
 PATRONI_CONTAINER_NAME=patroni
 MAJOR_VERSION_UPGRADE_CONTAINER_NAME=major-version-upgrade
+DATA_CHECKSUM=true
+
+shell_unit_test_skip() {
+  if [ -z "$IMAGE_NAME" ] && echo "$IMAGE_NAME" | grep "patroni"
+  then
+    return 0;
+  else
+    return 1;
+  fi
+}
 
 shell_unit_test_dbops_major_version_upgrade_setup() {
   (
@@ -30,7 +40,7 @@ mock kubectl kubectl_mock
 kubectl_mock() {
   mokked
   case "$*" in
-    ("get $CLUSTER_CRD_NAME "*" --template="'
+    ("get $CLUSTER_CRD_NAME.$CRD_GROUP "*" --template="'
   LOCK_POD={{ if .metadata.annotations.lockPod }}{{ .metadata.annotations.lockPod }}{{ else }}{{ end }}
   LOCK_TIMESTAMP={{ if .metadata.annotations.lockTimestamp }}{{ .metadata.annotations.lockTimestamp }}{{ else }}0{{ end }}
   RESOURCE_VERSION={{ .metadata.resourceVersion }}
@@ -43,10 +53,47 @@ kubectl_mock() {
     ;;
     ("annotate $CLUSTER_CRD_NAME "*)
     ;;
-    ("get $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ if .status.dbOps }}{{ if .status.dbOps.$OP_NAME }}true{{ end }}{{ end }}")
+    ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ if .status.dbOps }}{{ if .status.dbOps.$OP_NAME }}true{{ end }}{{ end }}")
     ;;
-    ("get $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ .spec.postgresVersion }}")
+    ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ .spec.postgresVersion }}")
     printf '%s' "12.4"
+    ;;
+    ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME -o json")
+      echo '{
+              "apiVersion": "stackgres.io/v1",
+              "kind": "SGCluster",
+              "metadata": {
+                  "name": "'"$CLUSTER_NAME"'",
+                  "namespace": "'"$CLUSTER_NAMESPACE"'"
+              },
+              "spec": {
+                  "instances": 2,
+                  "postgresVersion": "12.6",
+                  "sgInstanceProfile": "size-xs"
+              },
+              "status": {
+                "dbOps": {
+                  "majorVersionUpgrade": {
+                    "check": false,
+                    "clone": false,
+                    "dataChecksum": '"$DATA_CHECKSUM"',
+                    "encoding": "UTF8",
+                    "initialInstances": [
+                        "'"$CLUSTER_NAME-0"'",
+                        "'"$CLUSTER_NAME-1"'"
+                    ],
+                    "link": false,
+                    "locale": "C.UTF-8",
+                    "primaryInstance": "'"$CLUSTER_NAME-0"'",
+                    "sourcePostgresVersion": "11.8",
+                    "targetPostgresVersion": "12.6"
+                  }
+                }
+              }
+            }'
+    ;;
+    ("replace --raw /apis/$CRD_GROUP/v1/namespaces/$CLUSTER_NAMESPACE/$CLUSTER_CRD_NAME/$CLUSTER_NAME/status -f"*)
+
     ;;
     ("get $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME --template={{ if .status }}true{{ else }}false{{ end }}")
     printf '%s' false
@@ -97,18 +144,18 @@ kubectl_mock() {
     ("get sts -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ range .spec.template.spec.initContainers }}{{ if eq .name \"$MAJOR_VERSION_UPGRADE_CONTAINER_NAME\" }}true{{ end }}{{ end }}")
     echo "true"
     ;;
-    ("patch $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --type=json -p "*"{\"op\":\"replace\",\"path\":\"/spec/instances\",\"value\":1}"*)
+    ("patch $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --type=json -p "*"{\"op\":\"replace\",\"path\":\"/spec/instances\",\"value\":1}"*)
     (
     echo "pod/test-0"
     ) > "$TEST_TARGET_PATH/cluster_pods"
     ;;
-    ("patch $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --type=json -p "*"{\"op\":\"replace\",\"path\":\"/spec/instances\",\"value\":2}"*)
+    ("patch $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --type=json -p "*"{\"op\":\"replace\",\"path\":\"/spec/instances\",\"value\":2}"*)
     (
     echo "pod/test-0"
     echo "pod/test-1"
     ) > "$TEST_TARGET_PATH/cluster_pods"
     ;;
-    ("patch $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --type=json -p "*)
+    ("patch $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --type=json -p "*)
     ;;
     ("patch $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME --type=json -p "*)
     ;;
@@ -130,7 +177,10 @@ kubectl_mock() {
       echo 'UTF8'
       ;;
       (*"data_checksums"*)
-      echo 'true'
+      echo '"true"'
+      ;;
+      *)
+      echo 'false'
       ;;
     esac
     ;;

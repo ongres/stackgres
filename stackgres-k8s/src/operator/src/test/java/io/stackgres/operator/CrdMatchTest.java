@@ -117,7 +117,7 @@ class CrdMatchTest {
       assertEquals(declaredSingular, definition.getSpec().getNames().getSingular());
 
       Class<? extends CustomResource> clazz = getCustomResourceClass(crdTree);
-      String singular = CustomResource.getSingular(clazz);
+      String singular = HasMetadata.getSingular(clazz);
       assertEquals(declaredSingular, singular, "Kind : " + HasMetadata.getKind(clazz));
     });
   }
@@ -132,7 +132,7 @@ class CrdMatchTest {
       assertEquals(declaredPlural, definition.getSpec().getNames().getPlural());
 
       Class<? extends CustomResource> clazz = getCustomResourceClass(crdTree);
-      String plural = CustomResource.getPlural(clazz);
+      String plural = HasMetadata.getPlural(clazz);
       assertEquals(declaredPlural, plural, "Kind : " + HasMetadata.getKind(clazz));
     });
   }
