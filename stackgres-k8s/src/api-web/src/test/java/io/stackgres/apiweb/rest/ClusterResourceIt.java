@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.mockito.InjectMock;
 import io.restassured.http.ContentType;
 import io.stackgres.apiweb.dto.Metadata;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
@@ -28,17 +29,19 @@ import io.stackgres.apiweb.dto.cluster.ClusterScriptFrom;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
+import io.stackgres.common.resource.ClusterScheduler;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 @QuarkusTest
-@EnabledIfEnvironmentVariable(named = "QUARKUS_PROFILE", matches = "test")
 class ClusterResourceIt implements AuthenticatedResourceTest {
 
   @Inject
   KubernetesClientFactory factory;
+
+  @InjectMock
+  ClusterScheduler clusterScheduler;
 
   @BeforeEach
   void setUp() {
@@ -54,7 +57,6 @@ class ClusterResourceIt implements AuthenticatedResourceTest {
 
   @Test
   void givenACreationWithInlineScripts_shouldNotFail() {
-
     ClusterDto cluster = getClusterInlineScripts();
     final Metadata metadata = cluster.getMetadata();
     metadata.setNamespace("test");
@@ -66,12 +68,10 @@ class ClusterResourceIt implements AuthenticatedResourceTest {
         .accept(ContentType.JSON)
         .post("/stackgres/sgcluster")
         .then().statusCode(204);
-
   }
 
   @Test
   void givenACreationWithConfigMapsScripts_shouldNotFail() {
-
     ClusterDto cluster = getClusterInlineScripts();
     ClusterScriptEntry entry = getConfigMapScriptEntry();
 
@@ -95,14 +95,11 @@ class ClusterResourceIt implements AuthenticatedResourceTest {
 
       String actualConfigScript = configMap.getData().get(entry.getScriptFrom().getConfigMapKeyRef().getKey());
       assertEquals(entry.getScriptFrom().getConfigMapScript(), actualConfigScript);
-
     }
-
   }
 
   @Test
   void givenACreationWithSecretScripts_shouldNotFail() {
-
     ClusterDto cluster = getClusterInlineScripts();
     ClusterScriptEntry entry = getSecretScriptEntry();
 
@@ -130,12 +127,10 @@ class ClusterResourceIt implements AuthenticatedResourceTest {
       assertEquals(scriptFrom.getSecretScript(),
           new String(actualScript, StandardCharsets.UTF_8));
     }
-
   }
 
   @Test
   void givenACreationWithSecretAndConfigMapScripts_shouldNotFail() {
-
     ClusterDto cluster = getClusterInlineScripts();
     ClusterScriptEntry secretScriptEntry = getSecretScriptEntry();
     ClusterScriptEntry configMapScriptEntry = getConfigMapScriptEntry();
@@ -176,9 +171,7 @@ class ClusterResourceIt implements AuthenticatedResourceTest {
 
       assertEquals(configMapScriptFrom.getConfigMapScript(),
           configMap.getData().get(configMapKeyRef.getKey()));
-
     }
-
   }
 
   private ClusterScriptEntry getSecretScriptEntry() {
