@@ -49,8 +49,8 @@ public class StringUtils {
   public static String getRandomClusterName() {
     String clusterName = sanitize(getRandomString());
     clusterName = clusterName.replaceAll("^\\d", "a");
-    if (clusterName.length() >= 59) {
-      return clusterName.substring(0, 58);
+    if (clusterName.length() >= 53) {
+      return clusterName.substring(0, 52);
     }
     return clusterName;
   }

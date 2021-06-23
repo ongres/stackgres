@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.validation.cluster;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
@@ -435,14 +436,30 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
 
   @ParameterizedTest
   @ValueSource(strings = {"hardcover-lady-somebody-arrives-specialty-risk-stocking-nodes-"
-      + "fisheries-introduces-5", "stackgres.io/", "*9stackgres",
+      + "fisheries-introduces-5",
       "suzuki-stroke-rail-remix-suite-flux-diploma-slip-airfare-extremely-1",
-      "mozilla-rose-types-border-biome-upright-weak-promote-monday-1234"})
+  "mozilla-rose-types-border-biome-upright-weak-promote-monday-1234"})
+  void invalidLongNames_shouldFail(String name) {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getMetadata().setName(name);
+
+    ValidationFailed message =
+        assertThrows(ValidationFailed.class, () -> validator.validate(review));
+    assertEquals("Valid name must be 53 characters or less", message.getMessage());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"stackgres.io/", "*9stackgres", "1143", "1143a", "-1143a", ".demo",
+      "123-primary", "123-primary", "primary*", "stackgres-demo_1"})
   void invalidNames_shouldFail(String name) {
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getMetadata().setName(name);
 
-    assertThrows(ValidationFailed.class, () -> validator.validate(review));
+    ValidationFailed message =
+        assertThrows(ValidationFailed.class, () -> validator.validate(review));
+    assertEquals("Name must consist of lower case alphanumeric "
+        + "characters or '-', start with an alphabetic character, "
+        + "and end with an alphanumeric character", message.getMessage());
   }
 
 }
