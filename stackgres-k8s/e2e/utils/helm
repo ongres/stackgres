@@ -10,28 +10,6 @@ setup_helm() {
     exit 1
   fi
 
-  local HELM_REPO
-  for HELM_REPO in 'stable|https://charts.helm.sh/stable' \
-    'minio|https://helm.min.io/' \
-    'prometheus-community|https://prometheus-community.github.io/helm-charts'
-  do
-    if ! helm repo list | grep -q "\s${HELM_REPO#*|}\s*$"
-    then
-      if helm repo list | grep -q "^${HELM_REPO%|*}"
-      then
-        helm repo remove "${HELM_REPO%|*}"
-      fi
-      helm repo add "${HELM_REPO%|*}" "${HELM_REPO#*|}"
-    fi
-
-    if [ -f "$HOME/.cache/helm/repository/${HELM_REPO%|*}-index.yaml" ] \
-      && [ "$(stat -c %Y "$HOME/.cache/helm/repository/${HELM_REPO%|*}-index.yaml")" \
-        -lt "$(($(date +%s) - (60 * 60 * 24)))" ]
-    then
-      helm repo update
-    fi
-  done
-
   for CHART_PATH in "$OPERATOR_CHART_PATH" "$CLUSTER_CHART_PATH"
   do
     if [ "$(helm dep list "$CHART_PATH" | tail -n +2 | head -n -1 | grep -v 'ok\s*$' | wc -l)" -gt 0 ]

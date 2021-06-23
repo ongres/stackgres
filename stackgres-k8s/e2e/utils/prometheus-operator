@@ -18,9 +18,8 @@ install_prometheus_operator() {
     oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-prometheus-oper-prometheus
   fi
 
-  helm install prometheus prometheus-community/kube-prometheus-stack \
+  helm install prometheus "$E2E_PATH/helm/kube-prometheus-stack-12.8.0.tgz" \
     --create-namespace \
-    --version 12.8.0 \
     --namespace "$(prometheus_namespace)" \
     --disable-openapi-validation \
     --set prometheusOperator.createCustomResource=false \

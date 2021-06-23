@@ -41,20 +41,6 @@ do
   echo --- >> "target/templates/stackgres-operator-demo.yml"
 done
 
-for HELM_REPO in 'minio|https://helm.min.io/'
-do
-  if ! helm repo list | grep -q "\s${HELM_REPO#*|}\s*$"
-  then
-    if helm repo list | grep -q "^${HELM_REPO%|*}"
-    then
-      helm repo remove "${HELM_REPO%|*}"
-    fi
-    helm repo add "${HELM_REPO%|*}" "${HELM_REPO#*|}"
-    helm repo add minio https://helm.min.io/
-  fi
-done
-helm repo update
-
 helm template --namespace stackgres stackgres-operator \
   "target/stackgres-operator" \
   --set-string adminui.service.type=LoadBalancer \
@@ -78,12 +64,9 @@ helm template --namespace default simple \
   > "target/templates/stackgres-simple-cluster-demo.yml"
 
 rm -rf target/minio
-helm fetch minio/minio \
-  --version 7.0.1 \
-  --untar --untardir target
 
 helm template --namespace default minio \
-  target/minio \
+  ../../e2e/helm/minio-7.0.1.tgz \
   --set buckets[0].name=stackgres,buckets[0].policy=none,buckets[0].purge=true \
   | grep -v '^ \+namespace: "\?default"\?$' \
   > "target/templates/minio-demo.yml"
