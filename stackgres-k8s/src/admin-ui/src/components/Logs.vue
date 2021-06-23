@@ -252,7 +252,12 @@
 						</li>
 					</ul>
 					<div class="records">
-						<template v-for="(log, logIndex) in logs">
+						<template v-if="!logs.length">
+							<div class="log no-data">
+								No records matched your search terms
+							</div>
+						</template>
+						<template v-else v-for="(log, logIndex) in logs">
 							<div class="log" :class="( (logIndex == currentLog) ? 'open' : '' )">
 								<span class="errorLevel" :class="log.errorLevel.toLowerCase().replace(' ','-')" :title="'Error Level: ' + log.errorLevel" v-if="showColumns.errorLevel"></span>
 								<div v-if="logIndex != currentLog" class="base" @click="currentLog = logIndex">
@@ -329,7 +334,13 @@
 										</li>
 										<li v-if="log.hasOwnProperty('sessionStartTime')">
 											<span class="param">Session Start Time <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.sessionStartTime')"></span></span>
-											<span class="field value">{{ log.sessionStartTime }}</span>
+											<span class="field value timestamp">
+												<span class='date'>
+													{{ log.sessionStartTime | formatTimestamp('date') }}
+												</span>
+												<span class='time'>{{ log.sessionStartTime | formatTimestamp('time') }}</span><span class='ms'>{{ log.sessionStartTime | formatTimestamp('ms') }}</span>
+												<span class='tzOffset'>{{ showTzOffset() }}</span>
+											</span>
 										</li>
 										<li v-if="log.hasOwnProperty('virtualTransactionId')">
 											<span class="param">Virtual Transaction ID <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.virtualTransactionId')"></span></span>
@@ -896,15 +907,16 @@
 		box-shadow: 0 10px 40px rgb(255 255 255 / 90%);
 		z-index: 1;
 		font-size: 14px;
+		padding: 10px 0;
 	}
 
 	.darkmode ul.legend {
-		box-shadow: 0 10px 60px rgb(0 0 0 / 90%);
+		box-shadow: 0 10px 60px rgb(23 23 23 / 90%);
 	}
 
 	ul.legend li {
 		display: inline-block;
-		margin: 20px 10px;
+		margin: 5px 10px;
 	}
 
 	ul.legend span.helpTooltip {
@@ -949,11 +961,15 @@
 		content: "▾"
 	}
 
-	.log .base {
-		max-height: 225px;
-    	overflow: hidden;
-		display: flex;
+	.records > .log:not(.open):hover {
+		background: var(--activeBg);
 		cursor: pointer;
+	}
+
+	.log .base {
+		/* max-height: 225px;
+    	overflow: hidden; */
+		display: flex;
 	}
 
 	.log .base span.field {
@@ -1100,14 +1116,14 @@
 
 	ul.fields li {
 		display: inline-block;
-		width: 30%;
+		width: 31%;
 		padding: 7px 10px;
 		border-bottom: 1px solid var(--borderColor);
-		margin: 0 1.5%;
+		margin: 0 1%;
 	}
 	
 	ul.fields li.logMessage {
-		width: 96%;
+		width: 97%;
 		border-top: 1px solid var(--borderColor);
 	}
 
@@ -1147,17 +1163,31 @@
 		text-transform: uppercase;
 		margin-left: 10px;
 		cursor: pointer;
+		float: right;
+		margin-right: 2%;
+		display: block;
+		width: calc(100% - 250px);
+		text-align: right;
+		position: relative;
+	}
+	
+	span.closeDetails:hover {
+		color: var(--lBlue);
 	}
 
 	span.closeDetails:before {
 		display: inline-block;
-		width: calc(100% - 360px);
+		width: calc(100% - 98px);
 		height: 1px;
 		background: var(--blue);
 		content: " ";
-		position: relative;
-		top: -4px;
-		margin-right: 10px;
+		position: absolute;
+		top: 8px;
+		right: 100px;
+	}
+
+	span.closeDetails:hover:before {
+		background: var(--lBlue);
 	}
 
 	.details .errorLevel:before {
@@ -1175,15 +1205,28 @@
 		position: relative;
 	}
 
-	@media screen and (min-width: 2000px) {
+	@media screen and (min-width: 2500px) {
 		ul.fields li {
 			width: 21.75%;;
 		}
+
+		span.closeDetails {
+			width: calc(100% - 255px);
+		}
 	}
 
-	@media screen and (max-width: 1500px) {
+	@media screen and (max-width: 1800px) {
 		ul.fields li {
 			width: 47%;
+		}
+
+		ul.fields li.logMessage {
+			width: 96%;
+		}
+
+		span.closeDetails {
+			margin-right: 3%;
+			width: calc(99% - 245px);
 		}
 	}
 
