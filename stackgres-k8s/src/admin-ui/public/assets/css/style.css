@@ -643,7 +643,7 @@ form#login .warning {
     background: #A6A7AE40;
 }
 
-.darkmode table.loading:after {
+.darkmode .logsContainer.loading:after {
     background: url(img/loader.gif) center center no-repeat rgba(6, 5, 40, .9);
     background-size: 30px;
 }
@@ -1551,7 +1551,7 @@ footer .tooltip p {
     text-transform: uppercase;
 }
 
-.message {
+#notifications .message {
     border-top: 1px solid var(--gray2);
     position: relative;
     max-width: 320px;
@@ -3186,7 +3186,7 @@ td.timestamp span.ms, span.timestamp span.ms {
     color: var(--gray5);
 }
 
-td.timestamp span.tzOffset {
+.timestamp span.tzOffset {
     opacity: .4;
 }
 
@@ -3607,6 +3607,7 @@ table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + t
 
 .options label span {
     position: relative;
+    z-index: 1;
 }
 
 .options .li span, .options label span, #keyword {
@@ -3958,160 +3959,6 @@ td.role.Standby span {
     border: 1px solid #A6A7AE;
 }
 
-td.logMessage {
-    width: 30%;
-    position: absolute;
-}
-
-.logMessage > tbody tr {
-    background: transparent !important;
-}
-
-table.logs td.label {
-    padding: 0 10px;
-}
-
-th.number, th.fraction {
-    width: 5vw;
-}
-
-th.sysId, th.operation {
-    width: 8vw;
-}
-
-/*td.logMessage span {
-    overflow: hidden; 
-    text-overflow: ellipsis;
-    white-space: nowrap; 
-    width: 100%;
-    display: inline-block;
-}*/
-
-.logInfo.open {
-    /*background: transparent;*/
-    opacity: 100% !important;
-}
-
-.logInfo.open .logMessage {
-    padding-top: 0;
-    padding-bottom: 0;
-    display: inline-block;
-    border: 1px solid #f0f0f1;
-    margin: 10px auto 20px auto;
-    width: calc(100% - 7px);
-}
-
-.logMessage .param {
-    /*color: var(--blue);*/
-    /* color: #4D4F5C; */
-    font-weight: bold;
-    width: 200px;
-    display: table-cell;
-    border-right: 1px solid #f0f0f1;
-    vertical-align: middle;
-    padding-left: 15px;
-}
-
-table.logs table.logMessage tr, #backups .details thead {
-    background: transparent;
-}
-
-.logInfo.open .logMessage p {
-    padding-bottom: 5px;
-    display: table-cell;
-    padding: 11px 15px;
-    border: 1px solid #f0f0f1;
-    vertical-align: top;
-    max-width: calc(100% - 202px);
-}
-
-.logDetails table {
-    margin-left: 0px;
-    margin-bottom: -1px;
-    border: 1px solid #F0F0F1;
-    width: calc(50% - 15px);
-}
-
-.logDetails > table {
-    vertical-align: top;
-}
-
-.logDetails table:last-of-type {
-    margin-bottom: 15px;
-}
-
-.logDetails.postgres table, .logDetails.patroni table {
-    display: inline-block;
-}
-
-.logDetails.postgres table:last-of-type, .logDetails.patroni table:last-of-type {
-    margin-left: 20px;
-}
-
-.logDetails.postgres tr:not(:last-of-type), .logDetails.patroni tr:not(:last-of-type) {
-    border-bottom: 1px solid #F0F0F1;
-}
-
-.logDetails tbody {
-    border-top: none;
-}
-
-/* .logDetails tr {
-    background: transparent !important;
-} */
-
-.logDetails td, .logMessage td {
-    padding-left: 15px;
-}
-
-.logDetails td.param {
-    min-width: 200px;
-    /*color: var(--blue);*/
-    /* color: #4D4F5C; */
-    font-weight: bold;
-    border-right: 1px solid #F0F0F1;
-}
-
-.logDetails td.value {
-    width: 100%;
-}
-
-.logDetails td.label {
-    vertical-align: middle;
-}
-
-table.logs th {
-    background: #fff;
-}
-
-table.logs tr.item:not(:first-of-type) {
-    margin-top: -4px;
-}
-
-table.logs tr.base {
-    margin-top: -4px;
-}
-
-table.logs tr.base td {
-    height: 39px !important; 
-}
-
-.logs td.actions svg {
-    cursor: pointer;
-}
-
-.logs td.actions svg:hover path {
-    fill: var(--blue);
-}
-
-tr.logInfo > td {
-    padding-top: 10px;
-}
-
-tr.logInfo span.actions {
-    display: none;
-}
-
 td.operation> span {
     display: inline-block;
     width: 90px;
@@ -4379,80 +4226,29 @@ tr.logInfo.open:before {
     position: relative;
 } */
 
-table.logs:after {
+.logsContainer:after {
     opacity: 0;
     display: block;
     transition: opacity .2s ease-in;
 }
 
-table.loading:after {
+.logsContainer.loading:after {
     border-radius: 100%;
     content: " ";
     position: fixed;
-    bottom: 60px;
+    bottom: 50px;
     right: 50px;
-    width: 50px;
-    height: 50px;
-    background: url(img/loader.gif) center center no-repeat rgba(0,0,0,.1);
-    background-size: 30px;
+    width: 30px;
+    height: 30px;
+    background: url(../img/loader.gif) center center no-repeat rgba(0,0,0,.05);
+    background-size: 70%;
     opacity: 1;
     transition: opacity .4s ease-in;
 }
 
-.darkmode table.loading:after {
-    background: url(img/loader.gif) center center no-repeat rgba(0,0,0,.5);
-    background-size: 4vw;
-}
-
-table.logs tbody, table.backups > tbody {
-    overflow: initial;
-    width: initial;
-    min-width: 100%;
-}
-/* 
-table.logs thead, table.backups > thead {
-    display: inline-block;
-    position: sticky;
-    z-index: 1;
-    top: 0;
-    background: #fff;
-    width: 100%;
-} */
-
-tr.logInfo {
-    display: none;
-}
-
-tr.logInfo.open {
-    display: block;
-    width: 100%;;
-}
-
-tr.logInfo span.actions {
-    float: right;
-}
-
-tr.logInfo > td {
-    display: inline-block;
-    width: 100%;
-}
-
-/* table.logs tr {
-    background: #fafafa;
-} */
-
-table.logs tr.base {
-    display: inline-block;
-    min-width: 100%;
-    position: relative;
-}
-
-/* table.logs tr:nth-child(4n), table.logs tr:nth-child(4n) + tr.logInfo {
-    background: #fff;
-} */
-
-table.logs tr.base td {
-    height: 50px;
+.darkmode .logsContainer.loading:after {
+    background: url(../img/loader.gif) center center no-repeat rgba(0,0,0,.5);
+    background-size: 70%;
 }
 
 #log > .daterangepicker {

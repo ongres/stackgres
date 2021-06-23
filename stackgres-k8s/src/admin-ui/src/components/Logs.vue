@@ -37,7 +37,7 @@
 				<li v-if="iCan('list','sgbackups',$route.params.namespace)">
 					<router-link :to="'/cluster/backups/'+$route.params.namespace+'/'+$route.params.name" title="Backups" class="backups">Backups</router-link>
 				</li>
-				<li v-if="iCan('list','sgdistributedlogs',$route.params.namespace) && cluster.data.spec.hasOwnProperty('distributedLogs')">
+				<li v-if="iCan('list','sgdistributedlogs',$route.params.namespace)">
 					<router-link :to="'/cluster/logs/'+$route.params.namespace+'/'+$route.params.name" title="Distributed Logs" class="logs">Logs</router-link>
 				</li>
 				<li v-if="grafanaEmbedded">
@@ -46,10 +46,10 @@
 			</ul>
 		</header>
 
-		<div class="content">
-			<div id="log">
+		<div class="content noScroll">
+			<div id="logs">
 				<div class="toolbar">
-					<div class="searchBar">
+					<div class="searchBar" :class="(text.length ? 'filtered' : '')" >
 						<input id="keyword" v-model="text" class="search" placeholder="Search text..." @keyup="toggleClear('keyword')" autocomplete="off">
 						<a @click="getLogs()" class="btn">APPLY</a>
 						<a @click="clearFilters('keyword')" class="btn clear border keyword" style="display:none">CLEAR</a>
@@ -126,8 +126,8 @@
 						</ul>
 					</div>
 
-					<div class="filter columns" :class="filteredColumns ? 'filtered' : ''">
-						<span class="toggle">VISIBLE COLUMNS</span>
+					<div class="filter columns">
+						<span class="toggle">VISIBLE FIELDS</span>
 
 						<ul class="options">
 							<li>
@@ -157,7 +157,7 @@
 							<li>
 								<label for="viewLogMessage">
 									<span>Message</span>
-									<input @change="toggleColumn('logMessage')" type="checkbox" id="viewLogMessage" checked/>
+									<input @change="toggleColumn('message')" type="checkbox" id="viewLogMessage" checked/>
 								</label>
 							</li>
 							<li>
@@ -204,310 +204,187 @@
 					</div>-->
 				</div>
 
-				
-				<table class="logs resizable" v-on:scroll.passive="handleScroll" v-columns-resizable>
-					<thead class="sort">
-						<th class="logTime sorted desc timestamp hasTooltip">
-							<span @click="sort()">Log Time</span>
-							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.logTime')"></span>
-						</th>
-						<th class="logType center label hasTooltip" v-if="showColumns.logType">
-							<span title="type">Type</span>
-							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.logType')"></span>
-						</th>
-						<th class="errorLevel center hasTooltip" v-if="showColumns.errorLevel">
+				<div class="logsContainer monoFont" v-on:scroll.passive="handleScroll">
+					<ul class="legend">
+						<li class="field errorLevel" v-if="showColumns.errorLevel">
 							<span title="Error Level">Error Level</span>
-							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.errorLevel')"></span>
-						</th>
-						<th class="podName hasTooltip" v-if="showColumns.podName">
+							<span class="helpTooltip" data-tooltip='Error Level of the log entry. Available levels are:<br/><ul class="monoFont errorLevelLegend"><li class="not-set">Not Set</li><li class="debug">Debug</li><li class="info">Info</li><li class="notice">Notice</li><li class="warning">Warning</li><li class="error">Error</li><li class="log">Log</li><li class="fatal">Fatal</li><li class="critical">Critical</li><li class="panic">Panic</li></ul>'></span>
+						</li>
+						<li class="field logTime">
+							<span title="Log Time">Log Time</span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.logTime')"></span>
+						</li>
+						<li class="field logType" v-if="showColumns.logType">
+							<span title="Type">Type</span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.logType')"></span>
+						</li>
+						<li class="field podName" v-if="showColumns.podName">
 							<span title="Pod Name">Pod Name</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.podName')"></span>
-						</th>
-						<th class="role center label hasTooltip" v-if="showColumns.role">
+						</li>
+						<li class="field role" v-if="showColumns.role">
 							<span title="Role">Role</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.role')"></span>
-						</th>
-						<th class="logMessage hasTooltip" v-if="showColumns.logMessage">
-							<span title="Message">Message</span>
-							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.message')"></span>
-						</th>
-						<th class="userName hasTooltip" v-if="showColumns.userName">
+						</li>
+						<li class="field userName" v-if="showColumns.userName">
 							<span title="User">User</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.userName')"></span>
-						</th>
-						<th class="databaseName hasTooltip" v-if="showColumns.databaseName">
+						</li>
+						<li class="field databaseName" v-if="showColumns.databaseName">
 							<span title="Database">Database</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.databaseName')"></span>
-						</th>
-						<th class="processId hasTooltip" v-if="showColumns.processId">
+						</li>
+						<li class="field processId" v-if="showColumns.processId">
 							<span title="Process ID">Process ID</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.processId')"></span>
-						</th>
-						<th class="connectionFrom hasTooltip" v-if="showColumns.connectionFrom">
+						</li>
+						<li class="field connectionFrom" v-if="showColumns.connectionFrom">
 							<span title="Connection From">Connection From</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.connectionFrom')"></span>
-						</th>
-						<th class="applicationName hasTooltip" v-if="showColumns.applicationName">
+						</li>
+						<li class="field applicationName" v-if="showColumns.applicationName">
 							<span title="Application">Application</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.applicationName')"></span>
-						</th>
-					</thead>
-					<tbody>
-						<tr class="no-results">
-							<td colspan="999">
-								No records matched your search terms
-							</td>
-						</tr>
+						</li>
+						<li class="field message" v-if="showColumns.message">
+							<span title="Message">Message</span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.message')"></span>
+						</li>
+					</ul>
+					<div class="records">
 						<template v-for="(log, logIndex) in logs">
-							<template v-if="log.logType === 'pg'">
-								<tr :id="'log-'+logIndex" :class="(($route.params.time === log.logTime) && ($route.params.index === log.logTimeIndex)) ? 'open' : ''" class="base" @click="toggleLogDetails(logIndex)">
-									<td class="timestamp logTime">
+							<div class="log" :class="( (logIndex == currentLog) ? 'open' : '' )">
+								<span class="errorLevel" :class="log.errorLevel.toLowerCase().replace(' ','-')" :title="'Error Level: ' + log.errorLevel" v-if="showColumns.errorLevel"></span>
+								<div v-if="logIndex != currentLog" class="base" @click="currentLog = logIndex">
+									<span class="field timestamp logTime">
 										<span class='date'>
 											{{ log.logTime | formatTimestamp('date') }}
 										</span>
-										<span class='time'>
-											{{ log.logTime | formatTimestamp('time') }}
-										</span>
-										<span class='ms'>
-											{{ log.logTime | formatTimestamp('ms') }}
-										</span>
+										<span class='time'>{{ log.logTime | formatTimestamp('time') }}</span><span class='ms'>{{ log.logTime | formatTimestamp('ms') }}</span>
 										<span class='tzOffset'>{{ showTzOffset() }}</span>
-									</td>
-									<td class="logType label postgres center" v-if="showColumns.logType">
-										<span>Postgres</span>
-									</td>
-									<td class="errorLevel label center" :class="log.errorLevel" v-if="showColumns.errorLevel">
-										<span>{{ log.errorLevel }}</span>
-									</td>
-									<td class="podName hasTooltip" v-if="showColumns.podName">
-										<span>{{ log.podName }}</span>
-									</td>
-									<td class="role label center" :class="log.role" v-if="showColumns.role">
-										<span>{{ log.role }}</span>
-									</td>
-									<td class="logMessage hasTooltip" v-if="showColumns.logMessage">
-										<span>{{ log.message }}</span>
-									</td>
-									<td class="userName hasTooltip" v-if="showColumns.userName">
-										<span>{{ log.userName }}</span>
-									</td>
-									<td class="databaseName hasTooltip" v-if="showColumns.databaseName">
-										<span>{{ log.databaseName }}</span>
-									</td>
-									<td class="processId" v-if="showColumns.processId">
-										<span>{{ log.processId }}</span>
-									</td>
-									<td class="connectionFrom hasTooltip" v-if="showColumns.connectionFrom">
-										<span>{{ log.connectionFrom }}</span>
-									</td>
-									<td class="applicationName hasTooltip" v-if="showColumns.applicationName">
-										<span>{{ log.applicationName }}</span>
-									</td>
-								</tr>
-							</template>
-							<template v-else>
-								<tr :id="'log-'+logIndex" :class="(($route.params.time === log.logTime) && ($route.params.index === log.logTimeIndex)) ? 'open' : ''"  class="base" @click="toggleLogDetails(logIndex)">
-									<td class="timestamp logTime">
+									</span>
+									<template v-for="(value, prop) in showColumns" v-if="( value && (!['logTime','errorLevel'].includes(prop)) )">
+										<span class="field" :class="prop" v-if="log.hasOwnProperty(prop)">{{ log[prop] }}</span>
+									</template>
+								</div>
+								<div v-else class="details">
+									<span class="field timestamp logTime">
 										<span class='date'>
 											{{ log.logTime | formatTimestamp('date') }}
 										</span>
-										<span class='time'>
-											{{ log.logTime | formatTimestamp('time') }}
-										</span>
-										<span class='ms'>
-											{{ log.logTime | formatTimestamp('ms') }}
-										</span>
+										<span class='time'>{{ log.logTime | formatTimestamp('time') }}</span><span class='ms'>{{ log.logTime | formatTimestamp('ms') }}</span>
 										<span class='tzOffset'>{{ showTzOffset() }}</span>
-									</td>
-									<td class="logType label patroni center" v-if="showColumns.logType">
-										<span>Patroni</span>
-									</td>
-									<td class="errorLevel label center" :class="log.errorLevel" v-if="showColumns.errorLevel">
-										<span>{{ log.errorLevel }}</span>
-									</td>
-									<td class="podName hasTooltip" v-if="showColumns.podName">
-										<span>{{ log.podName }}</span>
-									</td>
-									<td class="role label center" :class="log.role" v-if="showColumns.role">
-										<span>{{ log.role }}</span>
-									</td>
-									<td class="logMessage hasTooltip" v-if="showColumns.logMessage">
-										<span>{{ log.message }}</span>
-									</td>
-									<td class="userName" v-if="showColumns.userName"></td>
-									<td class="databaseName" v-if="showColumns.databaseName"></td>
-									<td class="processId" v-if="showColumns.processId"></td>
-									<td class="connectionFrom" v-if="showColumns.connectionFrom"></td>
-									<td class="applicationName" v-if="showColumns.applicationName"></td>
-								</tr>
-							</template>
-							<tr class="logInfo">
-								<td colspan="999">
-									<div class="header">
-										<span class="timestamp">
-											<span class='date'>
-												{{ log.logTime | formatTimestamp('date') }}
+									</span>
+									<span class="closeDetails" @click="currentLog = -1">Close Details</span>
+									<ul class="fields">
+										<li class="logMessage">
+											<span class="param">Message <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.message')"></span></span>
+											<span class="value">{{ log.message }}</span>
+										</li>
+										<li>
+											<span class="param">Type <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.logType')"></span></span>
+											<span class="field value label logType upper">{{ log.logType }}</span>
+										</li>
+										<li v-if="log.hasOwnProperty('podName')">
+											<span class="param">Pod Name <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.podName')"></span></span>
+											<span class="field value podName">{{ log.podName }}</span>
+										</li>
+										<li v-if="log.hasOwnProperty('role')">
+											<span class="param">Role <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.role')"></span></span>
+											<span class="field value label role" :class="log.role">
+												<span>{{ log.role }}</span>
 											</span>
-											<span class='time'>
-												{{ log.logTime | formatTimestamp('time') }}
-											</span>
-											<span class='ms'>
-												{{ log.logTime | formatTimestamp('ms') }}
-											</span>
-											<span class='tzOffset'>{{ showTzOffset() }}</span>
-										</span>
-										<span class="closeLog">✕</span>
-									</div>
-									<table class="logMessage">
-										<tbody>
-											<tr>
-												<td class="param">Message <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.message')"></span></td>
-												<td class="value">{{ log.message }}</td>
-											</tr>
-										</tbody>
-									</table>
-									<div class="logDetails postgres" v-if="log.logType === 'pg'">
-										<table>
-											<tbody>
-												<tr>
-													<td class="param">Type <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.logType')"></span></td>
-													<td class="value label logType pg"><span>Postgres</span></td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('podName')">
-													<td class="param">Pod Name <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.podName')"></span></td>
-													<td class="value">{{ log.podName }}</td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('role')">
-													<td class="param">Role <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.role')"></span></td>
-													<td class="value label role" :class="log.role">
-														<span>{{ log.role }}</span>
-													</td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('userName')">
-													<td class="param">User <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.userName')"></span></td>
-													<td class="value">{{ log.userName }}</td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('databaseName')">
-													<td class="param">Database <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.databaseName')"></span></td>
-													<td class="value">{{ log.databaseName }}</td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('processId')">
-													<td class="param">Process ID <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.processId')"></span></td>
-													<td class="value">{{ log.processId }}</td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('connectionFrom')">
-													<td class="param">Connection From <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.connectionFrom')"></span></td>
-													<td class="value">{{ log.connectionFrom }}</td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('sessionId')">
-													<td class="param">Session ID <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.sessionId')"></span></td>
-													<td class="value">{{ log.sessionId }}</td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('sessionLineNum')">
-													<td class="param">Session Line Number <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.sessionLineNum')"></span></td>
-													<td class="value">{{ log.sessionLineNum }}</td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('commandTag')">
-													<td class="param">Command Tag <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.commandTag')"></span></td>
-													<td class="value">{{ log.commandTag }}</td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('sessionStartTime')">
-													<td class="param">Session Start Time <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.sessionStartTime')"></span></td>
-													<td class="value">{{ log.sessionStartTime }}</td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('virtualTransactionId')">
-													<td class="param">Virtual Transaction ID <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.virtualTransactionId')"></span></td>
-													<td class="value">{{ log.virtualTransactionId }}</td>
-												</tr>
-											</tbody>
-										</table>
-										
-										<table>
-											<tbody>
-												<tr v-if="log.hasOwnProperty('transactionId')">
-													<td class="param">Transaction ID <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.transactionId')"></span></td>
-													<td class="value">{{ log.transactionId }}</td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('errorLevel')">
-													<td class="param">Error Level <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.errorLevel')"></span></td>
-													<td class="value label errorLevel" :class="log.errorLevel"><span>{{ log.errorLevel }}</span></td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('sqlStateCode')">
-													<td class="param">SQL State Code <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.sqlStateCode')"></span></td>
-													<td class="value">{{ log.sqlStateCode }}</td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('detail')">
-													<td class="param">Detail <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.detail')"></span></td>
-													<td class="value">{{ log.detail }}</td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('hint')">
-													<td class="param">Hint <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.hint')"></span></td>
-													<td class="value">{{ log.hint }}</td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('internalQuery')">
-													<td class="param">Internal Query <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.internalQuery')"></span></td>
-													<td class="value">{{ log.internalQuery }}</td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('internalQueryPos')">
-													<td class="param">Internal Query Pos <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.internalQueryPos')"></span></td>
-													<td class="value">{{ log.internalQueryPos }}</td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('context')">
-													<td class="param">Context <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.context')"></span></td>
-													<td class="value">{{ log.context }}</td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('query')">
-													<td class="param">Query <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.query')"></span></td>
-													<td class="value">{{ log.query }}</td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('queryPos')">
-													<td class="param">Query Pos <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.queryPos')"></span></td>
-													<td class="value">{{ log.queryPos }}</td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('location')">
-													<td class="param">Location <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.location')"></span></td>
-													<td class="value">{{ log.location }}</td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('applicationName')">
-													<td class="param">Application Name <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.applicationName')"></span></td>
-													<td class="value">{{ log.applicationName }}</td>
-												</tr>
-											</tbody>
-										</table>
-									</div>
-									<div v-else-if="log.logType === 'pa'" class="logDetails patroni">
-										<table>
-											<tbody>
-												<tr>
-													<td class="param">Type <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.logType')"></span></td>
-													<td class="value label logType pa"><span>Patroni</span></td>
-												</tr>
-												<tr>
-													<td class="param">Pod Name <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.podName')"></span></td>
-													<td class="value">{{ log.podName }}</td>
-												</tr>
-											</tbody>
-										</table>
-										<table>
-											<tbody>
-												<tr v-if="log.hasOwnProperty('role')">
-													<td class="param">Role <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.role')"></span></td>
-													<td class="value label role" :class="log.role">
-														<span>{{ log.role }}</span>
-													</td>
-												</tr>
-												<tr v-if="log.hasOwnProperty('errorLevel')">
-													<td class="param">Error Level <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.errorLevel')"></span></td>
-													<td class="value label errorLevel" :class="log.errorLevel"><span>{{ log.errorLevel }}</span></td>
-												</tr>
-											</tbody>
-										</table>
-									</div>
-								</td>
-							</tr>
+										</li>
+										<li v-if="log.hasOwnProperty('userName')">
+											<span class="param">User <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.userName')"></span></span>
+											<span class="field value userName">{{ log.userName }}</span>
+										</li>
+										<li v-if="log.hasOwnProperty('databaseName')">
+											<span class="param">Database <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.databaseName')"></span></span>
+											<span class="field value databaseName">{{ log.databaseName }}</span>
+										</li>
+										<li v-if="log.hasOwnProperty('processId')">
+											<span class="param">Process ID <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.processId')"></span></span>
+											<span class="field value processId">{{ log.processId }}</span>
+										</li>
+										<li v-if="log.hasOwnProperty('connectionFrom')">
+											<span class="param">Connection From <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.connectionFrom')"></span></span>
+											<span class="field value connectionFrom">{{ log.connectionFrom }}</span>
+										</li>
+										<li v-if="log.hasOwnProperty('errorLevel')">
+											<span class="param">Error Level <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.errorLevel')"></span></span>
+											<span class="field value label errorLevel" :class="log.errorLevel.toLowerCase().replace(' ','-')"><span>{{ log.errorLevel }}</span></span>
+										</li>
+										<li v-if="log.hasOwnProperty('sessionId')">
+											<span class="param">Session ID <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.sessionId')"></span></span>
+											<span class="field value">{{ log.sessionId }}</span>
+										</li>
+										<li v-if="log.hasOwnProperty('sessionLineNum')">
+											<span class="param">Session Line Number <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.sessionLineNum')"></span></span>
+											<span class="field value">{{ log.sessionLineNum }}</span>
+										</li>
+										<li v-if="log.hasOwnProperty('commandTag')">
+											<span class="param">Command Tag <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.commandTag')"></span></span>
+											<span class="field value">{{ log.commandTag }}</span>
+										</li>
+										<li v-if="log.hasOwnProperty('sessionStartTime')">
+											<span class="param">Session Start Time <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.sessionStartTime')"></span></span>
+											<span class="field value">{{ log.sessionStartTime }}</span>
+										</li>
+										<li v-if="log.hasOwnProperty('virtualTransactionId')">
+											<span class="param">Virtual Transaction ID <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.virtualTransactionId')"></span></span>
+											<span class="field value">{{ log.virtualTransactionId }}</span>
+										</li>
+										<li v-if="log.hasOwnProperty('transactionId')">
+											<span class="param">Transaction ID <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.transactionId')"></span></span>
+											<span class="field value">{{ log.transactionId }}</span>
+										</li>
+										<li v-if="log.hasOwnProperty('sqlStateCode')">
+											<span class="param">SQL State Code <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.sqlStateCode')"></span></span>
+											<span class="field value">{{ log.sqlStateCode }}</span>
+										</li>
+										<li v-if="log.hasOwnProperty('detail')">
+											<span class="param">Detail <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.detail')"></span></span>
+											<span class="field value">{{ log.detail }}</span>
+										</li>
+										<li v-if="log.hasOwnProperty('hint')">
+											<span class="param">Hint <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.hint')"></span></span>
+											<span class="field value">{{ log.hint }}</span>
+										</li>
+										<li v-if="log.hasOwnProperty('internalQuery')">
+											<span class="param">Internal Query <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.internalQuery')"></span></span>
+											<span class="field value">{{ log.internalQuery }}</span>
+										</li>
+										<li v-if="log.hasOwnProperty('internalQueryPos')">
+											<span class="param">Internal Query Pos <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.internalQueryPos')"></span></span>
+											<span class="field value">{{ log.internalQueryPos }}</span>
+										</li>
+										<li v-if="log.hasOwnProperty('context')">
+											<span class="param">Context <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.context')"></span></span>
+											<span class="field value">{{ log.context }}</span>
+										</li>
+										<li v-if="log.hasOwnProperty('query')">
+											<span class="param">Query <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.query')"></span></span>
+											<span class="field value">{{ log.query }}</span>
+										</li>
+										<li v-if="log.hasOwnProperty('queryPos')">
+											<span class="param">Query Pos <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.queryPos')"></span></span>
+											<span class="field value">{{ log.queryPos }}</span>
+										</li>
+										<li v-if="log.hasOwnProperty('location')">
+											<span class="param">Location <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.location')"></span></span>
+											<span class="field value">{{ log.location }}</span>
+										</li>
+										<li v-if="log.hasOwnProperty('applicationName')">
+											<span class="param">Application Name <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.applicationName')"></span></span>
+											<span class="field value">{{ log.applicationName }}</span>
+										</li>
+									</ul>
+								</div>
+							</div>
 						</template>
-					</tbody>
-				</table>
+					</div>
+				</div>
 			</div>
 		</div>
 		<div id="logTooltip">
@@ -533,6 +410,7 @@
 				records: 50,
 				fetching: false,
 				lastCall: '',
+				currentLog: -1,
 				text: '',
 				logType: [],
 				errorLevel: '',
@@ -544,16 +422,17 @@
 				dateStart: '',
 				dateEnd: '',
 				showColumns: {
-					logType: true,
 					errorLevel: true,
+					logTime: true,
+					logType: true,
 					podName: true,
 					role: true,
-					logMessage: true,
 					userName: true,
 					databaseName: true,
 					processId: true,
 					connectionFrom: true,
-					applicationName: true
+					applicationName: true,
+					message: true
 				},
 			}
 		},
@@ -564,7 +443,7 @@
 			},
 
 			logs() {
-				return store.state.logs
+				return [...store.state.logs]
 			},
 			
 			grafanaEmbedded() {
@@ -682,7 +561,7 @@
 					}
 				})
 			
-				vc.records = parseInt((window.innerHeight - 350) / 30);
+				vc.records = parseInt($('.logsContainer').height() / 15);
 				vc.getLogs(this.records);
 
 				$(document).on('mousemove', function (e) {
@@ -703,7 +582,7 @@
 				})
 
 				$(document).on('mouseenter', 'td.hasTooltip', function(){
-					c = $(this).children('span');
+					let c = $(this).children('span');
 					if(c.width() > $(this).width()){
 						$('#logTooltip .info').text(c.text());
 						$('#logTooltip').addClass('show');
@@ -755,9 +634,9 @@
 
 			xCheckbox(param, value) {
 
-				vc = this;
+				const vc = this;
 
-				el = $('#'+param+value);
+				let el = $('#'+param+value);
 
 				if(el.is(':checked')) {
 					el.parents('li').find('.active').removeClass('active').prop('checked', false);
@@ -773,7 +652,6 @@
 
 				this.toggleClear('filters')
 
-				//vc.getLogs();
 			},
 
 			toggleClear( filter ){
@@ -822,11 +700,9 @@
 
 			getLogs(append = false, byDate = false) {
 
-				let vc = this;
+				const vc = this;
 
-				vc.fetching = true;
-
-				$('table.logs').addClass('loading');
+				$('.logsContainer').addClass('loading');
 
 				let params = '';
 
@@ -839,12 +715,8 @@
 				if(this.dateEnd.length && byDate)
 					params += '&to='+this.dateEnd;
 
-				if(this.text.length) {
+				if(this.text.length)
 					params += '&text='+this.text;
-					$('.searchBar').addClass('filtered')
-				} else {
-					$('.searchBar').removeClass('filtered')
-				}
 
 				if(this.logType.length)
 					params += '&logType='+this.logType[0];
@@ -862,40 +734,59 @@
 				if( (store.state.loginToken.search('Authentication Error') == -1) ) {
 
 					let thisCall = '/stackgres/sgcluster/logs/'+this.$route.params.namespace+'/'+this.$route.params.name+params;
-					
-					if (this.lastCall != thisCall) {
+					let scrollToBottom = ( ($('.logsContainer')[0].scrollHeight - $('.logsContainer')[0].offsetHeight) == $('.logsContainer').scrollTop() )
+					vc.fetching = true;
 
-						this.lastCall = thisCall;
+					axios
+					.get(thisCall)
+					.then( function(response){
 
-						axios
-						.get(thisCall)
-						.then( function(response){
+						if(response.data.length) {
 
-							if(append)
+							if(append) {
 								store.commit('appendLogs', response.data)
-							else
-								store.commit('setLogs', response.data)
+							} else {
+								store.commit('setLogs', response.data.reverse())
+								vc.currentSortDir = 'asc';
+							}
 
-							$('table.logs').removeClass('loading');
-							vc.fetching = false;
-							
-						}).catch(function(err) {
-							vc.notify(
-								{
-								title: 'Error',
-								detail: 'There was an error while trying to fetch the information from the API, please refresh the window and try again.'
-								},
-								'error'
-							);
+							if(scrollToBottom) {
+								let scrollAwait = setTimeout(function() {
+									if(( ($('.logsContainer')[0].scrollHeight - $('.logsContainer')[0].offsetHeight) != $('.logsContainer').scrollTop() )) {
+										$('.logsContainer').scrollTop($('.logsContainer')[0].scrollHeight)
+										clearTimeout(scrollAwait)
+									}
+								},100)
+							} 
+						}
 
-							store.commit('setLogs', []);
-							console.log(err);
-							checkAuthError(err);
+						$('.logsContainer').removeClass('loading');
+						vc.fetching = false;
+						
+					}).catch(function(err) {
+						vc.notify(
+							{
+							title: 'Error',
+							detail: 'There was an error while trying to fetch the information from the API, please refresh the window and try again.'
+							},
+							'error'
+						);
 
-							$('table.logs').removeClass('loading');
-							vc.fetching = false;
-						});
-					}
+						store.commit('setLogs', []);
+						console.log(err);
+						vc.checkAuthError(err);
+
+						$('.logsContainer').removeClass('loading');
+						vc.fetching = false;
+					});
+
+					setTimeout(() => {
+						let ltime = store.state.logs[store.state.logs.length-1].logTime;
+						let lindex = store.state.logs[store.state.logs.length-1].logTimeIndex;
+						vc.dateStart = ltime+','+lindex;
+						vc.getLogs(true, true);
+					}, 3000);
+					
 				} else {
 					vc.notify(
 						{
@@ -906,8 +797,7 @@
 					);
 				}
 
-				$('.logInfo.open').prev().toggle();
-				$('.logInfo.open').toggleClass('open');
+				
 
 			},
 
@@ -927,7 +817,7 @@
 
 			setTime(time) {
 
-				vc = this;
+				const vc = this;
 
 				switch(time) {
 
@@ -952,32 +842,16 @@
 				}
 
 			},
-
-			toggleLogDetails( id ) {
-
-				let row;
-
-				$('tr.logInfo.open').prev().toggle();
-				$('tr.logInfo.open').removeClass('open');
-				$('#log-'+id).toggle();
-				$('#log-'+id).next().toggleClass('open');
-				
-			},
-
-			filterLogs() {
-
-				let vc = this;
-			},
-
+			
 			handleScroll() {
-				let vc = this;
+				/* let vc = this;
 
-				if( ($('table.logs').scrollTop() + $('table.logs').innerHeight() >= $('table.logs')[0].scrollHeight) && store.state.logs.length && !vc.fetching && ($('table.logs').get(0).scrollHeight > $('table.logs').get(0).clientHeight)) {
-					ltime = store.state.logs[store.state.logs.length-1].logTime;
-					lindex = store.state.logs[store.state.logs.length-1].logTimeIndex;
+				if( ($('.logsContainer').scrollTop() + $('.logsContainer').height() + 200 >= $('.logsContainer')[0].scrollHeight) && store.state.logs.length && !vc.fetching && ($('.logsContainer').get(0).scrollHeight > $('.logsContainer').get(0).clientHeight)) {
+					let ltime = store.state.logs[store.state.logs.length-1].logTime;
+					let lindex = store.state.logs[store.state.logs.length-1].logTimeIndex;
 					vc.dateStart = ltime+','+lindex;
 					vc.getLogs(true, true);
-				}
+				} */
 			}
 
 		},
@@ -986,3 +860,331 @@
 		}
 	}
 </script>
+
+<style>
+
+	:root {
+		--log: #AFAFB0;
+		--not-set: #7A7B85;
+		--debug: #0A67FC;
+		--info: #4E9A06;
+		--notice: #32AFFF;
+		--warning: #FCDE38;
+		--error: #FF6200;
+		--fatal: #CC0000;
+		--critical: #9D2BF0;
+		--panic: #E85FC9;
+		--logType: #6762E8;
+		--podName: #556B2F;
+		--role: #A78904;
+		--userName: #2EB9B9;
+		--databaseName: #B474AD;
+		--processId: #FCC061;
+		--connectionFrom: #67A52B;
+		--applicationName: #A24D4D;
+		--message: #171717;
+	}
+
+	.darkmode {
+		--message: #E8E8E8;
+	}	
+
+	ul.legend {
+		position: sticky;
+		top: 0;
+		background: var(--bgColor);
+		box-shadow: 0 10px 40px rgb(255 255 255 / 90%);
+		z-index: 1;
+		font-size: 14px;
+	}
+
+	.darkmode ul.legend {
+		box-shadow: 0 10px 60px rgb(0 0 0 / 90%);
+	}
+
+	ul.legend li {
+		display: inline-block;
+		margin: 20px 10px;
+	}
+
+	ul.legend span.helpTooltip {
+		margin-left: 5px;
+	}
+
+	ul.errorLevelLegend li {
+		width: 50%;
+		float: left;
+		text-transform: uppercase;
+	}
+	
+	.logsContainer {
+		height: calc(100vh - 330px);
+		max-height: calc(100vh - 330px);
+		overflow: auto;
+	}
+
+	.records {
+		padding-top: 15px;
+		padding-left: 10px;
+	}
+
+	.records > .log {
+		font-size: 14px;
+		padding: 4px 0;
+		display: inline-block;
+		width: 100%;
+		position: relative;
+		margin: 2px 0;
+	}
+
+	.records > .log:before {
+		content: "▸";
+		position: absolute;
+		left: -11px;
+		font-size: 11px;
+		top: 6px;
+	}
+
+	.records > .log.open:before {
+		content: "▾"
+	}
+
+	.log .base {
+		max-height: 225px;
+    	overflow: hidden;
+		display: flex;
+		cursor: pointer;
+	}
+
+	.log .base span.field {
+		margin-left: 10px;
+		flex: none;
+	}
+
+	.log .field.logType {
+		text-transform: uppercase;
+	}
+
+	.log .base span.field:nth-last-child(2):not(.timestamp) {
+		margin-right: 10px;
+	}
+
+	.log span.field.message {
+		display: contents;
+	}
+
+	.log > .errorLevel {
+		width: 4px;
+		display: block;
+		height: 100%;
+		position: absolute;
+		border-radius: 5px;
+		top: 2px;
+	}
+
+	.errorLevelLegend .not-set, .details .not-set {
+		color: var(--not-set);
+	}
+
+	.errorLevelLegend .debug, .details .debug {
+		color: var(--debug);
+	}
+
+	.errorLevelLegend .info, .details .info {
+		color: var(--info);
+	}
+
+	.errorLevelLegend .notice, .details .notice {
+		color: var(--notice);
+	}
+
+	.errorLevelLegend .warning, .details .warning {
+		color: var(--warning);
+	}
+
+	.errorLevelLegend .error, .details .error {
+		color: var(--error);
+	}
+
+	.errorLevelLegend .log, .details .log {
+		color: var(--log);
+	}
+
+	.errorLevelLegend .fatal, .details .fatal {
+		color: var(--fatal);
+	}
+
+	.errorLevelLegend .critical, .details .critical {
+		color: var(--critical);
+	}
+
+	.errorLevelLegend .panic, .details .panic {
+		color: var(--panic);
+	}
+
+	.log > .errorLevel.not-set {
+		background: var(--not-set);
+	}
+
+	.log > .errorLevel.debug {
+		background: var(--debug);
+	}
+
+	.log > .errorLevel.info {
+		background: var(--info);
+	}
+
+	.log > .errorLevel.notice {
+		background: var(--notice);
+	}
+
+	.log > .errorLevel.warning {
+		background: var(--warning);
+	}
+
+	.log > .errorLevel.error {
+		background: var(--error);
+	}
+
+	.log > .errorLevel.log {
+		background: var(--log);
+	}
+
+	.log > .errorLevel.fatal {
+		background: var(--fatal);
+	}
+
+	.log > .errorLevel.critical {
+		background: var(--critical);
+	}
+
+	.log > .errorLevel.panic {
+		background: var(--panic);
+	}
+
+	.field.logType {
+		color: var(--logType);
+	}
+
+	.field.podName {
+		color: var(--podName);
+	}
+
+	.field.role {
+		color: var(--role);
+	}
+
+	.field.userName {
+		color: var(--userName);
+	}
+
+	.field.databaseName {
+		color: var(--databaseName);
+	}
+
+	.field.processId {
+		color: var(--processId);
+	}
+
+	.field.connectionFrom {
+		color: var(--connectionFrom);
+	}
+
+	.field.applicationName {
+		color: var(--applicationName);
+	}
+
+	.field.message {
+		color: var(--message);
+	}
+
+	ul.fields li {
+		display: inline-block;
+		width: 30%;
+		padding: 7px 10px;
+		border-bottom: 1px solid var(--borderColor);
+		margin: 0 1.5%;
+	}
+	
+	ul.fields li.logMessage {
+		width: 96%;
+		border-top: 1px solid var(--borderColor);
+	}
+
+	ul.fields li:not(.logMessage) > span {
+		width: 50%;
+		display: inline-block;
+	}
+
+	.log .details {
+		padding: 0 10px;
+	}
+
+	.log .details .fields {
+		margin: 15px 0;
+	}
+
+	.logMessage span.param {
+		display: block;
+		margin-bottom: 5px;
+	}
+
+	.logMessage span.value {
+		max-height: 35vh;
+		overflow: auto;
+		display: inline-block;
+		width: 100%;
+	}
+
+	/* .log.open .details {
+		background: var(--activeBg);
+		padding: 10px 0;
+	} */
+
+	span.closeDetails {
+		font-weight: bold;
+		color: var(--blue);
+		text-transform: uppercase;
+		margin-left: 10px;
+		cursor: pointer;
+	}
+
+	span.closeDetails:before {
+		display: inline-block;
+		width: calc(100% - 360px);
+		height: 1px;
+		background: var(--blue);
+		content: " ";
+		position: relative;
+		top: -4px;
+		margin-right: 10px;
+	}
+
+	.details .errorLevel:before {
+		content: "|";
+		font-size: 30px;
+		position: absolute;
+		top: -7px;
+		left: -6px;
+		height: 23px;
+		overflow: hidden;
+	}
+
+	.details .errorLevel {
+		padding-left: 9px;
+		position: relative;
+	}
+
+	@media screen and (min-width: 2000px) {
+		ul.fields li {
+			width: 21.75%;;
+		}
+	}
+
+	@media screen and (max-width: 1500px) {
+		ul.fields li {
+			width: 47%;
+		}
+	}
+
+</style>

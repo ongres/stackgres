@@ -124,6 +124,10 @@ body, html {
     font-family: 'Poppins', sans-serif;
 }
 
+.monoFont {
+    font-family: 'Ubuntu Mono', 'Courier New', Courier, monospace;
+}
+
 th, table th, table.clusterConfig td.label, tr.details table .label, .yaml .label {
     font-weight: 600;
 }
