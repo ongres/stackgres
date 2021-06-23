@@ -24,6 +24,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceFinder;
@@ -122,13 +123,11 @@ public class ClusterStatefulSetReconciliationHandler implements ReconciliationHa
 
   @Override
   public HasMetadata patch(HasMetadata newResource, HasMetadata oldResource) {
-
     return patchSts(newResource, sts -> updateStatefulSet(sts, safeCast(oldResource)));
   }
 
   @Override
   public HasMetadata replace(HasMetadata resource) {
-
     return patchSts(resource, this::updateStatefulSet);
   }
 
@@ -141,8 +140,16 @@ public class ClusterStatefulSetReconciliationHandler implements ReconciliationHa
   }
 
   private StatefulSet updateStatefulSet(StatefulSet requiredSts, StatefulSet deployedSts) {
-    requiredSts.getSpec().setVolumeClaimTemplates(deployedSts.getSpec().getVolumeClaimTemplates());
-    return statefulSetWriter.update(requiredSts);
+    try {
+      return statefulSetWriter.update(requiredSts);
+    } catch (KubernetesClientException ex) {
+      if (ex.getCode() == 422) {
+        statefulSetWriter.deleteWithoutCascading(deployedSts);
+        return statefulSetWriter.create(requiredSts);
+      } else {
+        throw ex;
+      }
+    }
   }
 
   private void preventPrimaryToBeDisrupted(StatefulSet requiredSts,
