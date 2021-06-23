@@ -1,13 +1,5 @@
 #!/bin/sh
 
-prometheus_namespace() {
-  echo "$CLUSTER_NAMESPACE-monitor"
-}
-
-prometheus_service() {
-  echo "prometheus-kube-prometheus-prometheus"
-}
-
 e2e_exclusive_lock() {
   true
 }
@@ -16,18 +8,7 @@ e2e_test_install() {
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
 
-  if [ "$E2E_ENV" = "minishift" ]
-  then
-    eval "$(minishift oc-env)"
-    oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-prometheus-oper-admission
-    oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-grafana
-    oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-prometheus-oper-operator
-    oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-prometheus-oper-prometheus
-  fi
-
-  install_prometheus
-
-  wait_pods_running "$(prometheus_namespace)" 3
+  install_prometheus_operator
 
   kubectl create namespace "$OPERATOR_NAMESPACE"
   install_operator_only \
@@ -75,25 +56,6 @@ EOF
 
   kubectl cp "$UI_TESTS_RESOURCES_PATH/cypress" "$CLUSTER_NAMESPACE/$CYPRESS_POD":/
   kubectl cp "$UI_TESTS_RESOURCES_PATH/cypress.json" "$CLUSTER_NAMESPACE/$CYPRESS_POD":/
-}
-
-install_prometheus(){
-  kubectl create namespace "$(prometheus_namespace)" || true
-
-  helm install prometheus prometheus-community/kube-prometheus-stack \
-    --version 12.8.0 \
-    --namespace "$(prometheus_namespace)" \
-    --disable-openapi-validation \
-    --set prometheusOperator.createCustomResource=false \
-    --set alertmanager.enabled=false \
-    --set kubeStateMetrics.enabled=false \
-    --set nodeExporter.enabled=false \
-    --set kubeDns.enabled=false \
-    --set kubeProxy.enabled=false \
-    --set kubeScheduler.enabled=false \
-    --set coreDns.enabled=false \
-    --set kubeControllerManager.enabled=false \
-    --set kubeEtcd.enabled=false
 }
 
 e2e_test() {  
