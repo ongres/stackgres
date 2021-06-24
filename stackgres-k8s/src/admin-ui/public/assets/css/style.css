@@ -286,6 +286,8 @@ svg.background circle {
     text-align: center;
     border-bottom: 1px solid var(--borderColor);
     padding-top: 40px;
+    width: 100%;
+    display: block;
 }
 
 /* Log in */
@@ -1552,14 +1554,14 @@ footer .tooltip p {
 }
 
 #notifications .message {
-    border-top: 1px solid var(--gray2);
+    border-top: 1px solid var(--borderColor);
     position: relative;
     max-width: 320px;
     padding: 15px 0;
     display: none;
 }
 
-.message.show, .message.zero {
+#notifications .message.show, #notifications .message.zero, .message.show {
     display: block;
 }
 
@@ -2564,7 +2566,6 @@ button {
     color: var(--blue);
     background: transparent;
     border: 1px solid var(--blue);
-    font-size: .9rem;
 }
 
 .form button.border:hover, .btn.border:hover, .daterangepicker button.cancelBtn, .btn.clear:hover {
@@ -3536,7 +3537,7 @@ table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + t
     padding: 20px;
     box-shadow: 0 0 20px rgba(0,0,0,.05);
     list-style: none;
-    width: 325px;
+    width: 480px;
 }
 
 .options.open {
@@ -3561,6 +3562,7 @@ table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + t
 
 .options li.textFilter {
     margin-bottom: 7px;
+    position: relative;
 }
 
 .options label {
@@ -3662,10 +3664,6 @@ tr.no-results {
 .searchBar {
     display: initial;
 }
-/* .searchBar #keyword {
-    background-image: none;
-    padding-left: 15px;
-} */
 
 .searchBar a.button {
     fill: #7A7B85;
@@ -3689,19 +3687,25 @@ tr.no-results {
 }
 
 .options li.textFilter > span.clear {
-    padding: 4px 7px;
+    position: absolute;
+    bottom: 4px;
+    right: 2px;
+    padding: 0px 3px;
+    border-radius: 3px;
 }
 
 .options li.textFilter .search {
-    padding: 0 10px 0 20px;
+    padding: 0 10px 0 23px;
     border: 1px solid var(--gray2);
-    border-radius: 6px;
+    border-radius: 3px;
     height: 25px;
     color: var(--gray4);
     background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIGlkPSJDYXBhXzEiIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDI4LjkzMSAyOC45MzIiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDI4LjkzMSAyOC45MzI7IiB4bWw6c3BhY2U9InByZXNlcnZlIiBjbGFzcz0iIj48Zz48Zz4KCTxwYXRoIGQ9Ik0yOC4zNDQsMjUuNTE4bC02LjExNC02LjExNWMxLjQ4Ni0yLjA2NywyLjMwMy00LjUzNywyLjMwMy03LjEzN2MwLTMuMjc1LTEuMjc1LTYuMzU1LTMuNTk0LTguNjcyICAgQzE4LjYyNSwxLjI3OCwxNS41NDMsMCwxMi4yNjYsMEM4Ljk5LDAsNS45MDksMS4yNzUsMy41OTMsMy41OTRDMS4yNzcsNS45MDksMC4wMDEsOC45OSwwLjAwMSwxMi4yNjYgICBjMCwzLjI3NiwxLjI3NSw2LjM1NiwzLjU5Miw4LjY3NGMyLjMxNiwyLjMxNiw1LjM5NiwzLjU5NCw4LjY3MywzLjU5NGMyLjU5OSwwLDUuMDY3LTAuODEzLDcuMTM2LTIuMzAzbDYuMTE0LDYuMTE1ICAgYzAuMzkyLDAuMzkxLDAuOTAyLDAuNTg2LDEuNDE0LDAuNTg2YzAuNTEzLDAsMS4wMjQtMC4xOTUsMS40MTQtMC41ODZDMjkuMTI1LDI3LjU2NCwyOS4xMjUsMjYuMjk5LDI4LjM0NCwyNS41MTh6IE02LjQyMiwxOC4xMTEgICBjLTEuNTYyLTEuNTYyLTIuNDIxLTMuNjM5LTIuNDIxLTUuODQ2UzQuODYsNy45ODMsNi40MjIsNi40MjFjMS41NjEtMS41NjIsMy42MzYtMi40MjIsNS44NDQtMi40MjJzNC4yODQsMC44Niw1Ljg0NSwyLjQyMiAgIGMxLjU2MiwxLjU2MiwyLjQyMiwzLjYzOCwyLjQyMiw1Ljg0NXMtMC44NTksNC4yODMtMi40MjIsNS44NDZjLTEuNTYyLDEuNTYyLTMuNjM2LDIuNDItNS44NDUsMi40MlM3Ljk4MSwxOS42NzIsNi40MjIsMTguMTExeiIgZGF0YS1vcmlnaW5hbD0iIzAwMDAwMCIgY2xhc3M9ImFjdGl2ZS1wYXRoIiBzdHlsZT0iZmlsbDojN0E3Qjg1IiBkYXRhLW9sZF9jb2xvcj0iIzAwMDAwMCI+PC9wYXRoPgo8L2c+PC9nPiA8L3N2Zz4=);
     background-repeat: no-repeat;
     background-size: 12px;
     background-position: 5px center;
+    width: 100%;
+    font-size: 90%;
 }
 
 .options li.textFilter .search:focus {
@@ -3724,33 +3728,6 @@ tr.no-results {
     width: 13px;
 }
 
-/* table.logs tbody, table.backups > tbody {
-    max-height: calc(100vh - 353px);
-    max-width: calc(100vw - 430px);
-    display: inline-block;
-    overflow: auto;
-    width: 100%;
-    border: none;
-} */
-
-/* table.logs thead, table.backups > thead {
-    display: inline-block;
-    margin-bottom: -4px;
-    border-bottom: 1px solid #f0f0f1;
-    width: initial !important;
-    min-width: 100%;
-} */
-
-/* table.logs tbody:hover > tr.base, table.backups tbody:hover > tr.base {
-    opacity: 0.6;
-}
-
-
-table.logs tbody:hover > tr.base:hover, table.backups tbody:hover > tr.base:hover {
-    opacity: 1.0;
-}
-*/
-
 table th {
     font-weight: bold;
 }
@@ -3770,13 +3747,6 @@ table.logs .logTime {
     color: #336791;
     background: #33679140;
 }
-
-/* table.logs .logMesssage{
-    min-width: 500px;
-    max-width: 500px;
-    width: 500px;
-    padding: 0 10px;
-} */
 
 table.logs .userName {
     min-width: 70px;
@@ -4066,6 +4036,10 @@ td.operation.Reset > span {
     padding: 20px !important;
 }
 
+#logs .daterangepicker {
+    top: 273px !important;
+}
+
 .daterangepicker tbody {
     color: var(--gray5);
 }
@@ -4214,61 +4188,11 @@ tr.logInfo.open:before {
     border-right: 0;
 }
 
-/* Luis Logs & Filters */
-/* table.logs, table.backups, table.dbops {
-    max-height: calc(100vh - 335px);
-    height: calc(100vh - 335px);
-    max-width: calc(100vw - 430px);
-    display: inline-block;
-    overflow: auto;
-    width: 100%;
-    border: 1px solid #f1f1f1;
-    position: relative;
-} */
+/* Logs & Filters */
 
-.logsContainer:after {
-    opacity: 0;
-    display: block;
-    transition: opacity .2s ease-in;
-}
-
-.logsContainer.loading:after {
-    border-radius: 100%;
-    content: " ";
-    position: fixed;
-    bottom: 50px;
-    right: 50px;
-    width: 30px;
-    height: 30px;
-    background: url(../img/loader.gif) center center no-repeat rgba(0,0,0,.05);
-    background-size: 70%;
-    opacity: 1;
-    transition: opacity .4s ease-in;
-}
-
-.darkmode .logsContainer.loading:after {
-    background: url(../img/loader.gif) center center no-repeat rgba(0,0,0,.5);
-    background-size: 70%;
-}
-
-#log > .daterangepicker {
-    margin-top: 63px;
-    margin-right: 0;
-}
-
-tr.no-results:first-child:last-child {
-    display: table-row;
-}
-
-table.backups tr.no-results td, table.logs tr.no-results td {
+table tr.no-results td {
     padding: 50px 0;
     text-align: center;
-}
-
-
-
-#log .calendar li span {
-    position: relative;
 }
 
 td.hasTooltip {
@@ -4299,23 +4223,6 @@ td.hasTooltip.textRight > span {
     white-space: nowrap;
     display: block;
     top: 0;
-}
-
-/* table.logs th.logMessage, table.logs td.logMessage {
-    min-width: calc(100vw - 1350px);
-    width: calc(100vw - 1350px);
-    max-width: calc(100vw - 1350px);
-} 
-
-td.logMessage, th.logMessage {
-    position: initial;
-    width: auto;
-}*/
-
-table.logs .podName {
-    min-width: 90px;
-    width: auto;
-    max-width: 90px;
 }
 
 .options label.active span {
@@ -4385,16 +4292,45 @@ span.closeLog:hover {
     border: 1px solid var(--gray2);
     border-radius: 3px;
     width: 100%;
+    margin: 0;
 }
-.filter.columns .options li {
-    width: 50%;
+
+.filter.columns li.column {
+    width: 33.33%;
     float: left;
     padding: 0 5px;
+}
+
+.filter.columns:not(.filters) li.column {
+    width: 50%;
+}
+
+.filter.columns:not(.filters) ul.options {
+    padding: 20px 10px 15px;
+    width: 340px;
 }
 
 .filter.open .options {
     display: block;
 }
+
+.filter span.title {
+    font-weight: bold;
+    display: block;
+    border-bottom: 1px solid var(--borderColor);
+    width: 100%;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+}
+
+ul.options ul.options {
+    position: initial;
+    padding: 0;
+    border: 0;
+    margin: 0 -5px;
+    width: calc(100% + 10px);
+}
+
 
 .daterangepicker button.cancelBtn {
     float: right;
