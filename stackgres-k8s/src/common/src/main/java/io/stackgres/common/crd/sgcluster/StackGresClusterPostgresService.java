@@ -8,14 +8,11 @@ package io.stackgres.common.crd.sgcluster;
 import java.util.Map;
 import java.util.Objects;
 
-import javax.validation.constraints.AssertTrue;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
-import org.jooq.lambda.Seq;
+import io.stackgres.common.validation.ValidEnum;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -24,17 +21,11 @@ public class StackGresClusterPostgresService {
 
   private Boolean enabled;
 
+  @ValidEnum(enumClass = StackGresClusterPostgresServiceType.class, allowNulls = true,
+      message = "type must be one of ClusterIP, LoadBalancer, NodePort or ExternalName")
   private String type;
 
   private Map<String, String> annotations;
-
-  @JsonIgnore
-  @AssertTrue(message = "type must be one of ClusterIP, LoadBalancer or NodePort")
-  public boolean isTypeValid() {
-    return type == null || Seq.of(StackGresClusterPostgresServiceType.values())
-        .map(StackGresClusterPostgresServiceType::type)
-        .anyMatch(type -> type.equals(this.type));
-  }
 
   public Boolean getEnabled() {
     return enabled;
