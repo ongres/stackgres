@@ -90,12 +90,12 @@ public class ClusterEventsResource {
             && involvedObject.getNamespace().equals(namespace)
             && involvedObject.getName().matches(ResourceUtil.getNameWithIndexPattern(name)))
         || (involvedObject.getNamespace().equals(namespace)
-            && Seq.seq(relatedResources).flatMap(relatedResource -> relatedResource.v2().stream()
-                .map(metadata -> relatedResource.map2(metadatas -> metadata)))
-            .anyMatch(relatedResource -> relatedResource.v1().equals(involvedObject.getKind())
-                && relatedResource.v2().getNamespace().equals(involvedObject.getNamespace())
-                && relatedResource.v2().getName().equals(involvedObject.getName())
-                && relatedResource.v2().getUid().equals(involvedObject.getUid())));
+            && Optional.ofNullable(relatedResources.get(involvedObject.getKind()))
+            .stream().flatMap(relatedResource -> relatedResource.stream())
+            .anyMatch(relatedResource -> relatedResource.getNamespace()
+                .equals(involvedObject.getNamespace())
+                && relatedResource.getName().equals(involvedObject.getName())
+                && relatedResource.getUid().equals(involvedObject.getUid())));
   }
 
   private int orderByLastTimestamp(EventDto e1, EventDto e2) {

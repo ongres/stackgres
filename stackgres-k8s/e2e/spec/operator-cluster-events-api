@@ -4,26 +4,14 @@ e2e_test_install() {
   NODE_LABEL_KEY=$(ramdom_string)
   NODE_LABEL_VALUE=$(ramdom_string)
 
-  BACKUPCONF="backupconf"
-
-  kubectl create namespace "$CLUSTER_NAMESPACE"
-  kubectl create secret generic -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-minio" \
-     --from-literal=accesskey=test --from-literal=secretkey=test
-
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
-    --set cluster.configurations.sgBackupConfig="$BACKUPCONF" \
-    --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
-    --set configurations.backupconfig.create=true \
-    --set-string configurations.backupconfig.storage.s3Compatible.bucket=test \
-    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.name=test \
-    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.key=accesskey \
-    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.name=test \
-    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.key=secretkey \
-    --set-string configurations.backupconfig.baseBackups.cronSchedule='0 5 31 2 *'
+    --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1
+
+  wait_until kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" > /dev/null 2>&1
 
   DBOPS_MINOR_VERSION_UPGRADE_NAME=minor-version-upgrade
 
@@ -52,8 +40,8 @@ EOF
         firstTimestamp: "2021-06-15T15:29:39Z",
         lastTimestamp: "2021-06-21T17:20:46Z",
         type: "Normal",
-        message: "StackGres Cluster default.stackgres updated",
-        reason: "ClusterUpdated",
+        message: "StackGres DbOps $CLUSTER_NAMESPACE.$DBOPS_MINOR_VERSION_UPGRADE_NAME started",
+        reason: "DbOpsStarted",
         reportingComponent: "",
         reportingInstance: "",
         involvedObject: {
@@ -80,17 +68,17 @@ e2e_test() {
 
 check_cluster_events() {
   if run_curl -r "stackgres/sgcluster/events/$CLUSTER_NAMESPACE/$CLUSTER_NAME" \
-    | jq -r ".[] | any(.metadata.namespace == \"$CLUSTER_NAMESPACE\" and .involvedObjects.name == \"SGDbOps\" and .involvedObjects.name == \"$DBOPS_MINOR_VERSION_UPGRADE_NAME\")" \
+    | jq -r "any(.metadata.namespace == \"$CLUSTER_NAMESPACE\" and .involvedObject.kind == \"SGDbOps\" and .involvedObject.name == \"$DBOPS_MINOR_VERSION_UPGRADE_NAME\")" \
     | grep -q "^true$"
   then
-    echo "Dbops events for $DBOPS_MINOR_VERSION_UPGRADE_NAME included in json response"
+    echo "SGDbOps events for $DBOPS_MINOR_VERSION_UPGRADE_NAME included in json response"
   else
-    echo "Dbops events for $DBOPS_MINOR_VERSION_UPGRADE_NAME not included in json response"
+    echo "SGDbOps events for $DBOPS_MINOR_VERSION_UPGRADE_NAME not included in json response"
     return 1
   fi
 
   if run_curl -r "stackgres/sgcluster/events/$CLUSTER_NAMESPACE/$CLUSTER_NAME" \
-    | jq -r ".[] | any(.metadata.namespace == \"$CLUSTER_NAMESPACE\" and .involvedObjects.name == \"StatefulSet\" and .involvedObjects.name == \"$CLUSTER_NAME\")" \
+    | jq -r "any(.metadata.namespace == \"$CLUSTER_NAMESPACE\" and .involvedObject.kind == \"StatefulSet\" and .involvedObject.name == \"$CLUSTER_NAME\")" \
     | grep -q "^true$"
   then
     echo "StatefulSet events included in json response"
@@ -100,7 +88,7 @@ check_cluster_events() {
   fi
 
   if run_curl -r "stackgres/sgcluster/events/$CLUSTER_NAMESPACE/$CLUSTER_NAME" \
-    | jq -r ".[] | any(.metadata.namespace == \"$CLUSTER_NAMESPACE\" and .involvedObjects.name == \"Pod\" and .involvedObjects.name == \"$CLUSTER_NAME-0\")" \
+    | jq -r "any(.metadata.namespace == \"$CLUSTER_NAMESPACE\" and .involvedObject.kind == \"Pod\" and .involvedObject.name == \"$CLUSTER_NAME-0\")" \
     | grep -q "^true$"
   then
     echo "Pods events included in json response"
