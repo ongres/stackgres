@@ -6,6 +6,23 @@ metadata:
 spec:
   instances: {{ .Values.cluster.instances }}
   postgresVersion: '{{ .Values.cluster.postgresVersion }}'
+  {{- if .Values.cluster.postgres }}
+  postgres:
+    {{- if .Values.cluster.postgres.ssl }}
+    ssl:
+      enabled: {{ .Values.cluster.postgres.ssl.enabled }}
+      {{- if .Values.cluster.postgres.ssl.certificateSecretKeySelector }}
+      certificateSecretKeySelector:
+        name: {{ .Values.cluster.postgres.ssl.certificateSecretKeySelector.name }}
+        key: {{ .Values.cluster.postgres.ssl.certificateSecretKeySelector.key }}
+      {{- end }}
+      {{- if .Values.cluster.postgres.ssl.privateKeySecretKeySelector }}
+      privateKeySecretKeySelector:
+        name: {{ .Values.cluster.postgres.ssl.privateKeySecretKeySelector.name }}
+        key: {{ .Values.cluster.postgres.ssl.privateKeySecretKeySelector.key }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
   configurations: 
     sgPostgresConfig: '{{ .Values.cluster.configurations.sgPostgresConfig }}'
     sgPoolingConfig: '{{ .Values.cluster.configurations.sgPoolingConfig }}'

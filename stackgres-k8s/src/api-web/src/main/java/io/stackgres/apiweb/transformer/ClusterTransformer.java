@@ -30,6 +30,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterPod;
 import io.stackgres.apiweb.dto.cluster.ClusterPodMetadata;
 import io.stackgres.apiweb.dto.cluster.ClusterPodPersistentVolume;
 import io.stackgres.apiweb.dto.cluster.ClusterPodScheduling;
+import io.stackgres.apiweb.dto.cluster.ClusterPostgres;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgresService;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgresServices;
 import io.stackgres.apiweb.dto.cluster.ClusterRestore;
@@ -40,6 +41,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterScriptFrom;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecAnnotations;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
+import io.stackgres.apiweb.dto.cluster.ClusterSsl;
 import io.stackgres.apiweb.dto.cluster.ClusterStatus;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.StackGresPropertyContext;
@@ -53,6 +55,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
@@ -63,6 +66,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import org.jetbrains.annotations.NotNull;
@@ -136,8 +140,21 @@ public class ClusterTransformer
     }
     StackGresClusterSpec transformation = new StackGresClusterSpec();
 
-    final ClusterConfiguration sourceClusterConfiguration = source.getConfigurations();
+    final ClusterPostgres sourceClusterPostgres = source.getPostgres();
+    if (sourceClusterPostgres != null) {
+      transformation.setPostgres(new StackGresClusterPostgres());
+      final ClusterSsl sourceClusterSsl = source.getPostgres().getSsl();
+      if (sourceClusterSsl != null) {
+        transformation.getPostgres().setSsl(new StackGresClusterSsl());
+        transformation.getPostgres().getSsl().setEnabled(sourceClusterSsl.getEnabled());
+        transformation.getPostgres().getSsl().setCertificateSecretKeySelector(
+            sourceClusterSsl.getCertificateSecretKeySelector());
+        transformation.getPostgres().getSsl().setPrivateKeySecretKeySelector(
+            sourceClusterSsl.getPrivateKeySecretKeySelector());
+      }
+    }
 
+    final ClusterConfiguration sourceClusterConfiguration = source.getConfigurations();
     if (sourceClusterConfiguration != null) {
       transformation.setConfiguration(new StackGresClusterConfiguration());
       transformation.getConfiguration().setBackupConfig(
@@ -147,6 +164,7 @@ public class ClusterTransformer
       transformation.getConfiguration().setPostgresConfig(
           source.getConfigurations().getSgPostgresConfig());
     }
+
     transformation.setInstances(source.getInstances());
     transformation.setNonProduction(
         getCustomResourceNonProduction(source.getNonProduction()));
@@ -345,6 +363,21 @@ public class ClusterTransformer
       return null;
     }
     ClusterSpec transformation = new ClusterSpec();
+
+    final StackGresClusterPostgres sourceClusterPostgres = source.getPostgres();
+    if (sourceClusterPostgres != null) {
+      transformation.setPostgres(new ClusterPostgres());
+      final StackGresClusterSsl sourceClusterSsl = source.getPostgres().getSsl();
+      if (sourceClusterSsl != null) {
+        transformation.getPostgres().setSsl(new ClusterSsl());
+        transformation.getPostgres().getSsl().setEnabled(sourceClusterSsl.getEnabled());
+        transformation.getPostgres().getSsl().setCertificateSecretKeySelector(
+            sourceClusterSsl.getCertificateSecretKeySelector());
+        transformation.getPostgres().getSsl().setPrivateKeySecretKeySelector(
+            sourceClusterSsl.getPrivateKeySecretKeySelector());
+      }
+    }
+
     transformation.setConfigurations(new ClusterConfiguration());
     transformation.getConfigurations().setSgBackupConfig(
         source.getConfiguration().getBackupConfig());

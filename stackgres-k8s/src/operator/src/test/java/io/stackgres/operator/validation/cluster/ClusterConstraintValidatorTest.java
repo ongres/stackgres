@@ -20,9 +20,11 @@ import io.stackgres.common.crd.Toleration;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.validation.ConstraintValidationTest;
@@ -114,7 +116,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     checkErrorCause(StackGresClusterScriptEntry.class,
         new String[] {"spec.initData.scripts[0].script",
             "spec.initData.scripts[0].scriptFrom"},
-        "spec.pod.scripts[0].isScriptMutuallyExclusiveAndRequired", review, AssertTrue.class);
+        "isScriptMutuallyExclusiveAndRequired", review, AssertTrue.class);
   }
 
   @Test
@@ -138,7 +140,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     checkErrorCause(StackGresClusterScriptEntry.class,
         new String[] {"spec.initData.scripts[0].script",
             "spec.initData.scripts[0].scriptFrom"},
-        "spec.pod.scripts[0].isScriptMutuallyExclusiveAndRequired", review, AssertTrue.class);
+        "isScriptMutuallyExclusiveAndRequired", review, AssertTrue.class);
   }
 
   @Test
@@ -152,7 +154,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
 
     checkErrorCause(StackGresClusterScriptEntry.class,
         new String[] { "spec.initData.scripts[0].database" },
-        "spec.pod.scripts[0].isDatabaseNameNonEmpty", review, AssertTrue.class);
+        "isDatabaseNameNonEmpty", review, AssertTrue.class);
   }
 
   @Test
@@ -206,7 +208,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     checkErrorCause(StackGresClusterScriptFrom.class,
         new String[] {"spec.initData.scripts[0].scriptFrom.secretKeyRef",
             "spec.initData.scripts[0].scriptFrom.configMapKeyRef"},
-        "spec.pod.scripts[0].scriptFrom.isSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndRequired",
+        "isSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndRequired",
         review, AssertTrue.class);
   }
 
@@ -235,7 +237,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     checkErrorCause(StackGresClusterScriptFrom.class,
         new String[] {"spec.initData.scripts[0].scriptFrom.secretKeyRef",
             "spec.initData.scripts[0].scriptFrom.configMapKeyRef"},
-        "spec.pod.scripts[0].scriptFrom.isSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndRequired",
+        "isSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndRequired",
         review, AssertTrue.class);
   }
 
@@ -257,7 +259,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
 
     checkErrorCause(SecretKeySelector.class,
         "spec.initData.scripts[0].scriptFrom.configMapKeyRef.key",
-        "spec.pod.scripts[0].scriptFrom.configMapKeyRef.isKeyNotEmpty", review, AssertTrue.class);
+        "isKeyNotEmpty", review, AssertTrue.class);
   }
 
   @Test
@@ -278,7 +280,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
 
     checkErrorCause(SecretKeySelector.class,
         "spec.initData.scripts[0].scriptFrom.configMapKeyRef.name",
-        "spec.pod.scripts[0].scriptFrom.configMapKeyRef.isNameNotEmpty", review, AssertTrue.class);
+        "isNameNotEmpty", review, AssertTrue.class);
   }
 
   @Test
@@ -298,7 +300,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .getSecretKeyRef().setKey("");
 
     checkErrorCause(SecretKeySelector.class, "spec.initData.scripts[0].scriptFrom.secretKeyRef.key",
-        "spec.pod.scripts[0].scriptFrom.secretKeyRef.isKeyNotEmpty", review, AssertTrue.class);
+        "isKeyNotEmpty", review, AssertTrue.class);
   }
 
   @Test
@@ -319,7 +321,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
 
     checkErrorCause(SecretKeySelector.class,
         "spec.initData.scripts[0].scriptFrom.secretKeyRef.name",
-        "spec.pod.scripts[0].scriptFrom.secretKeyRef.isNameNotEmpty", review, AssertTrue.class);
+        "isNameNotEmpty", review, AssertTrue.class);
   }
 
   @Test
@@ -344,7 +346,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .setNodeSelector(new HashMap<>());
 
     checkErrorCause(StackGresClusterPodScheduling.class, "spec.pod.scheduling.nodeSelector",
-        "spec.pod.scheduling.isNodeSelectorNotEmpty", review, AssertTrue.class);
+        "isNodeSelectorNotEmpty", review, AssertTrue.class);
   }
 
   @Test
@@ -394,7 +396,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     checkErrorCause(Toleration.class,
         new String[] {"spec.pod.scheduling.tolerations[0].key",
             "spec.pod.scheduling.tolerations[0].operator"},
-        "spec.pod.scheduling.tolerations[0].isOperatorExistsWhenKeyIsEmpty", review,
+        "isOperatorExistsWhenKeyIsEmpty", review,
         AssertTrue.class);
   }
 
@@ -413,7 +415,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .setOperator("NotExists");
 
     checkErrorCause(Toleration.class, "spec.pod.scheduling.tolerations[0].operator",
-        "spec.pod.scheduling.isOperatorValid", review, AssertTrue.class);
+        "isOperatorValid", review, AssertTrue.class);
   }
 
   @Test
@@ -431,7 +433,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .setEffect("NeverSchedule");
 
     checkErrorCause(Toleration.class, "spec.pod.scheduling.tolerations[0].effect",
-        "spec.pod.scheduling.isEffectValid", review, AssertTrue.class);
+        "isEffectValid", review, AssertTrue.class);
   }
 
   @ParameterizedTest
@@ -460,6 +462,66 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     assertEquals("Name must consist of lower case alphanumeric "
         + "characters or '-', start with an alphabetic character, "
         + "and end with an alphanumeric character", message.getMessage());
+  }
+
+  @Test
+  void sslCertificateSecretNull_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setPostgres(new StackGresClusterPostgres());
+    review.getRequest().getObject().getSpec().getPostgres().setSsl(new StackGresClusterSsl());
+    review.getRequest().getObject().getSpec().getPostgres().getSsl().setEnabled(true);
+    review.getRequest().getObject().getSpec().getPostgres().getSsl().setPrivateKeySecretKeySelector(
+        new SecretKeySelector("test", "test"));
+
+    checkErrorCause(StackGresClusterSsl.class,
+        "spec.postgres.ssl.certificateSecretKeySelector",
+        "isNotEnabledCertificateSecretKeySelectorRequired", review, AssertTrue.class);
+  }
+
+  @Test
+  void sslPrivateKeySecretNull_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setPostgres(new StackGresClusterPostgres());
+    review.getRequest().getObject().getSpec().getPostgres().setSsl(new StackGresClusterSsl());
+    review.getRequest().getObject().getSpec().getPostgres().getSsl().setEnabled(true);
+    review.getRequest().getObject().getSpec().getPostgres().getSsl().setCertificateSecretKeySelector(
+        new SecretKeySelector("test", "test"));
+
+    checkErrorCause(StackGresClusterSsl.class,
+        "spec.postgres.ssl.privateKeySecretKeySelector",
+        "isNotEnabledSecretKeySecretKeySelectorRequired", review, AssertTrue.class);
+  }
+
+  @Test
+  void sslCertificateSecretWithEmptyName_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setPostgres(new StackGresClusterPostgres());
+    review.getRequest().getObject().getSpec().getPostgres().setSsl(new StackGresClusterSsl());
+    review.getRequest().getObject().getSpec().getPostgres().getSsl().setEnabled(true);
+    review.getRequest().getObject().getSpec().getPostgres().getSsl().setCertificateSecretKeySelector(
+        new SecretKeySelector("test", null));
+    review.getRequest().getObject().getSpec().getPostgres().getSsl().setPrivateKeySecretKeySelector(
+        new SecretKeySelector("test", "test"));
+
+    checkErrorCause(SecretKeySelector.class,
+        "spec.postgres.ssl.certificateSecretKeySelector.name",
+        "isNameNotEmpty", review, AssertTrue.class);
+  }
+
+  @Test
+  void sslPrivateKeySecretWithEmptyName_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setPostgres(new StackGresClusterPostgres());
+    review.getRequest().getObject().getSpec().getPostgres().setSsl(new StackGresClusterSsl());
+    review.getRequest().getObject().getSpec().getPostgres().getSsl().setEnabled(true);
+    review.getRequest().getObject().getSpec().getPostgres().getSsl().setCertificateSecretKeySelector(
+        new SecretKeySelector("test", "test"));
+    review.getRequest().getObject().getSpec().getPostgres().getSsl().setPrivateKeySecretKeySelector(
+        new SecretKeySelector("test", null));
+
+    checkErrorCause(SecretKeySelector.class,
+        "spec.postgres.ssl.privateKeySecretKeySelector.name",
+        "isNameNotEmpty", review, AssertTrue.class);
   }
 
 }

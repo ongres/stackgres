@@ -9,12 +9,13 @@ run_query() {
   local DATABASE=postgres
   local INSTANCE=0
   local CONTAINER="postgres-util"
+  local SSLMODE=prefer
 
   local opt
   local OPTARG
   local OPTIND
 
-  while getopts ":c:n:i:q:p:h:d:x:k:" opt; do
+  while getopts ":c:n:i:q:p:h:d:x:k:m:" opt; do
     case $opt in
       c) NAME="$OPTARG"
       ;;
@@ -34,6 +35,8 @@ run_query() {
       ;;
       k) CONTAINER="$OPTARG"
       ;;
+      m) SSLMODE="$OPTARG"
+      ;;
       \?) echo "Invalid option -$OPTARG" >&2
       return 1
       ;;
@@ -44,6 +47,7 @@ run_query() {
     PGPASSWORD="$(kubectl -n "$NAMESPACE" get secrets "$NAME" \
       -o jsonpath='{.data.superuser-password}' | base64 -d)" \
     PGCONNECT_TIMEOUT="$((5 + E2E_TIMEOUT / 10))" \
+    PGSSLMODE="$SSLMODE" \
     psql -t -A -U postgres -d "$DATABASE" -p "$PORT" -h "$HOST" -c "$QUERY"
 }
 
