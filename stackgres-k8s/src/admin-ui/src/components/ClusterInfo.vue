@@ -554,47 +554,8 @@
 
 				<div class="postgresServices" v-if="hasProp(cluster, 'data.spec.postgresServices') && ((hasProp(cluster, 'data.spec.postgresServices.primary') && cluster.data.spec.postgresServices.primary.enabled) || (hasProp(cluster, 'data.spec.postgresServices.replicas') && cluster.data.spec.postgresServices.replicas.enabled))">
 					<h2>Postgres Services <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresServices')"></span></h2>
-					<table v-if="hasProp(cluster, 'data.spec.postgresServices.primary') && cluster.data.spec.postgresServices.primary.enabled" class="clusterConfig">
-						<thead>
-							<th></th>
-							<th></th>
-							<th></th>
-							<th></th>
-						</thead>
-						<tbody>
-							<tr>
-								<td class="label" v-if="!hasProp(cluster, 'data.spec.postgresServices.primary.annotations')">
-									Primary
-									<span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary')"></span>
-								</td>
-								<td class="label" v-else :rowspan="Object.keys(cluster.data.spec.postgresServices.primary.annotations).length+1">
-									Primary
-									<span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary')"></span>
-								</td>
-								<td class="label">
-									Type
-									<span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary.type')"></span>
-								</td>
-								<td colspan="2">
-									{{ cluster.data.spec.postgresServices.primary.type }}
-								</td>
-							</tr>
-							<tr v-for="(item, index) in unparseProps(cluster.data.spec.postgresServices.primary.annotations)">
-								<td v-if="index == 0" class="label" :rowspan="Object.keys(cluster.data.spec.postgresServices.primary.annotations).length">
-									Annotations
-									<span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary.annotations')"></span>
-								</td>
-								<td class="label">
-									{{ item.annotation }}
-								</td>
-								<td>
-									{{ item.value }}
-								</td>
-							</tr>
-						</tbody>
-					</table>
 
-					<table v-if="hasProp(cluster, 'data.spec.postgresServices.replicas') && cluster.data.spec.postgresServices.replicas.enabled" class="clusterConfig">
+					<table v-for="(service, serviceName) in cluster.data.spec.postgresServices" class="clusterConfig">
 						<thead>
 							<th></th>
 							<th></th>
@@ -603,34 +564,40 @@
 						</thead>
 						<tbody>
 							<tr>
-								<td class="label" v-if="!hasProp(cluster, 'data.spec.postgresServices.replicas.annotations')">
-									Replicas
-									<span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas')"></span>
-								</td>
-								<td class="label" v-else :rowspan="Object.keys(cluster.data.spec.postgresServices.replicas.annotations).length+1">
-									Replicas
-									<span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas')"></span>
+								<td class="label capitalize" :rowspan="service.hasOwnProperty('annotations') ? Object.keys(service.annotations).length+2 : 2">
+									{{ serviceName }}
+									<span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresServices.'+serviceName)"></span>
 								</td>
 								<td class="label">
-									Type
-									<span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas.type')"></span>
+									Name
 								</td>
 								<td colspan="2">
-									{{ cluster.data.spec.postgresServices.replicas.type }}
-								</td>
+									{{ cluster.data.metadata.name }}-{{serviceName}}.{{cluster.data.metadata.namespace}}
+								</td>	
 							</tr>
-							<tr v-for="(item, index) in unparseProps(cluster.data.spec.postgresServices.replicas.annotations)">
-								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.postgresServices.replicas.annotations).length">
-									Annotations
-									<span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas.annotations')"></span>
-								</td>
+							<tr>
 								<td class="label">
-									{{ item.annotation }}
+									Type
+									<span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresServices.'+serviceName+'.type')"></span>
 								</td>
-								<td>
-									{{ item.value }}
+								<td colspan="2">
+									{{ service.type }}
 								</td>
 							</tr>
+							<template v-if="service.hasOwnProperty('annotations')">
+								<tr v-for="(item, index) in unparseProps(service.annotations)">
+									<td v-if="index == 0" class="label" :rowspan="Object.keys(service.annotations).length">
+										Annotations
+										<span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresServices.'+serviceName+'.annotations')"></span>
+									</td>
+									<td class="label">
+										{{ item.annotation }}
+									</td>
+									<td>
+										{{ item.value }}
+									</td>
+								</tr>
+							</template>
 						</tbody>
 					</table>
 				</div>
