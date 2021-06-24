@@ -243,14 +243,6 @@
             cancel: function() {
                 const vc = this
                 router.push('/profiles/'+vc.$route.params.namespace);
-            },
-
-            showFields: function( fields ) {
-                $(fields).slideDown();
-            },
-
-            hideFields: function( fields ) {
-                $(fields).slideUp();
             }
 
         },

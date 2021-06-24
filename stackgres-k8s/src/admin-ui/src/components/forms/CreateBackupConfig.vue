@@ -694,16 +694,6 @@
                             vc.fetchAPI('sgbackupconfig');
                             router.push('/configurations/backup/'+config.metadata.namespace+'/'+config.metadata.name);
                             
-
-                            /* store.commit('updateBackupConfig', { 
-                                name: config.metadata.name,
-                                data: config
-                            }); */
-
-                            setTimeout(function(){
-                                $(".backupConfig").val(config.metadata.name).change().focus();
-                                hideFields('.backup-config');
-                            },1000);
                         })
                         .catch(function (error) {
                             console.log(error.response);
@@ -720,14 +710,6 @@
                 router.push('/configurations/backup/'+vc.$route.params.namespace);
             },
 
-            showFields: function( fields ) {
-                $(fields).slideDown();
-            },
-
-            hideFields: function( fields ) {
-                $(fields).slideUp();
-            },
-            
             uploadJSON: function(e) {
                 var files = e.target.files || e.dataTransfer.files;
                 let vm = this;

@@ -224,14 +224,6 @@
             cancel: function() {
                 const vc = this
                 router.push('/configurations/postgres/'+vc.$route.params.namespace);
-            },
-
-            showFields: function( fields ) {
-                $(fields).slideDown();
-            },
-
-            hideFields: function( fields ) {
-                $(fields).slideUp();
             }
 
         },
