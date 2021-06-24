@@ -246,14 +246,6 @@
                     router.push('/cluster/backups/'+vc.$route.params.namespace+'/'+vc.$route.params.cluster);
                 else    
                     router.push('/backups/'+vc.$route.params.namespace);
-            },
-
-            showFields: function( fields ) {
-                $(fields).slideDown();
-            },
-
-            hideFields: function( fields ) {
-                $(fields).slideUp();
             }
 
         },

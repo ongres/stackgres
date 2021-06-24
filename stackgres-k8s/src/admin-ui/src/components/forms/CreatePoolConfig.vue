@@ -210,14 +210,6 @@
             cancel: function() {
                 const vc = this
                 router.push('/configurations/connectionpooling/'+vc.$route.params.namespace);
-            },
-
-            showFields: function( fields ) {
-                $(fields).slideDown();
-            },
-
-            hideFields: function( fields ) {
-                $(fields).slideUp();
             }
 
         },

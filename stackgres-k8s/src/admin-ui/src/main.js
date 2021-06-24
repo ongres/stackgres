@@ -264,14 +264,6 @@ function getJSON( value ) {
   return(json);
 }
 
-function showFields( fields ) {
-  $(fields).slideDown();
-}
-
-function hideFields( fields ) {
-  $(fields).slideUp();
-}
-
 function discoverText(e) {
   var search = $("#keyword").val();
   console.log(search);

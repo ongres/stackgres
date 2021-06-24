@@ -472,14 +472,6 @@
                     router.push('/logs/'+this.$route.params.namespace+'/'+this.$route.params.name);
             },  
 
-            showFields: function( fields ) {
-                $(fields).slideDown();
-            },
-
-            hideFields: function( fields ) {
-                $(fields).slideUp();
-            },
-
             sanitizeString( string ) {
                return string.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\t/g, "\\t").replace(/\f/g, "\\f").replace(/"/g,"\\\"").replace(/'/g,"\\\'").replace(/\&/g, "\\&"); 
             },

@@ -1145,14 +1145,6 @@
                     router.push('/cluster/status/'+this.$route.params.namespace+'/'+this.$route.params.name);
             },  
 
-            showFields: function( fields ) {
-                $(fields).slideDown();
-            },
-
-            hideFields: function( fields ) {
-                $(fields).slideUp();
-            },
-
             checkPgConfigVersion: function() {
                 let configs = store.state.pgConfig.length;
                 let vc = this;
