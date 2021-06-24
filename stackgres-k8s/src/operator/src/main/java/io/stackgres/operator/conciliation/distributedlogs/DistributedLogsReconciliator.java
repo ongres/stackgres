@@ -20,6 +20,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatusCluster;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.resource.DistributedLogsScheduler;
+import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StackGresReconciliator;
 import io.stackgres.operator.conciliation.StatusManager;
 import org.slf4j.helpers.MessageFormatter;
@@ -69,8 +70,8 @@ public class DistributedLogsReconciliator extends StackGresReconciliator<StackGr
   }
 
   @Override
-  public void onConfigCreated(StackGresDistributedLogs distributedLogs) {
-
+  public void onConfigCreated(StackGresDistributedLogs distributedLogs,
+      ReconciliationResult result) {
     final ObjectMeta metadata = distributedLogs.getMetadata();
     eventController.sendEvent(DistributedLogsEventReason.DISTRIBUTED_LOGS_CREATED,
         "StackGres Centralized Logging " + metadata.getNamespace() + "."
@@ -82,7 +83,8 @@ public class DistributedLogsReconciliator extends StackGresReconciliator<StackGr
   }
 
   @Override
-  public void onConfigUpdated(StackGresDistributedLogs distributedLogs) {
+  public void onConfigUpdated(StackGresDistributedLogs distributedLogs,
+      ReconciliationResult result) {
     final ObjectMeta metadata = distributedLogs.getMetadata();
     eventController.sendEvent(DistributedLogsEventReason.DISTRIBUTED_LOGS_UPDATED,
         "StackGres Centralized Logging " + metadata.getNamespace() + "."

@@ -8,10 +8,10 @@ package io.stackgres.operator.conciliation.comparator;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.zjsonpatch.JsonDiff;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 public class SecretComparator extends StackGresAbstractComparator {
@@ -21,7 +21,22 @@ public class SecretComparator extends StackGresAbstractComparator {
           "add"),
   };
 
-  private static Map<String, String> getData(Secret secret) {
+  @Override
+  protected IgnorePatch[] getPatchPattersToIgnore() {
+    return IGNORE_PATCH_PATTERNS;
+  }
+
+  @Override
+  public ArrayNode getJsonDiff(HasMetadata required, HasMetadata deployed) {
+    return super.getJsonDiff(encodeSecret(required), encodeSecret(deployed));
+  }
+
+  private Secret encodeSecret(HasMetadata resource) {
+    if (!(resource instanceof Secret)) {
+      throw new IllegalArgumentException("Resource "
+          + resource.getKind() + ":" + resource.getMetadata().getName() + " is not a Secret");
+    }
+    Secret secret = (Secret) resource;
     Map<String, String> data = new HashMap<>();
     if (secret.getStringData() != null) {
       final Map<String, String> secretStringData = new HashMap<>(secret.getStringData());
@@ -32,38 +47,11 @@ public class SecretComparator extends StackGresAbstractComparator {
     if (secretData != null) {
       data.putAll(secretData);
     }
-    return data;
-  }
-
-  @Override
-  public boolean isResourceContentEqual(HasMetadata required, HasMetadata deployed) {
-    if (!(required instanceof Secret && deployed instanceof Secret)) {
-      throw new IllegalArgumentException();
-    }
-    Secret s1 = (Secret) required;
-    Secret s2 = (Secret) deployed;
-    JsonNode metadataDiff = JsonDiff.asJson(PATCH_MAPPER.valueToTree(required.getMetadata()),
-        PATCH_MAPPER.valueToTree(deployed.getMetadata()));
-
-    int ignore = countPatchesToIgnore(metadataDiff);
-
-    final int actualDifferences = metadataDiff.size() - ignore;
-
-    if (actualDifferences > 0) {
-      return false;
-    }
-    return isDataEqual(s1, s2);
-  }
-
-  private boolean isDataEqual(Secret required, Secret deployed) {
-    var r1Data = getData(required);
-    var r2Data = getData(deployed);
-    return r1Data.equals(r2Data);
-  }
-
-  @Override
-  protected IgnorePatch[] getPatchPattersToIgnore() {
-    return IGNORE_PATCH_PATTERNS;
+    Secret encodedSecret = new SecretBuilder(secret)
+        .withStringData(null)
+        .withData(data)
+        .build();
+    return encodedSecret;
   }
 
 }

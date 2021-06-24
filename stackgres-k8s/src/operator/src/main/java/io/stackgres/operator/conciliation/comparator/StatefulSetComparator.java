@@ -5,18 +5,9 @@
 
 package io.stackgres.operator.conciliation.comparator;
 
-import java.util.Arrays;
 import java.util.regex.Pattern;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.zjsonpatch.JsonDiff;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class StatefulSetComparator extends StackGresAbstractComparator {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger("io.stackgres.comparator");
 
   private static final IgnorePatch[] IGNORE_PATTERS = {
       new PatchPattern(Pattern
@@ -136,28 +127,6 @@ public class StatefulSetComparator extends StackGresAbstractComparator {
   @Override
   protected IgnorePatch[] getPatchPattersToIgnore() {
     return IGNORE_PATTERS;
-  }
-
-  @Override
-  public boolean isResourceContentEqual(HasMetadata required, HasMetadata deployed) {
-    final JsonNode r1Tree = PATCH_MAPPER.valueToTree(required);
-    final JsonNode r2Tree = PATCH_MAPPER.valueToTree(deployed);
-    JsonNode diff = JsonDiff.asJson(r1Tree, r2Tree);
-
-    int ignore = countPatchesToIgnore(diff);
-
-    final int actualDifferences = diff.size() - ignore;
-    if (LOGGER.isDebugEnabled() && actualDifferences != 0) {
-      for (JsonNode jsonPatch : diff) {
-        JsonPatch patch = new JsonPatch(jsonPatch);
-        if (Arrays.stream(getPatchPattersToIgnore())
-            .noneMatch(patchPattern -> patchPattern.matches(patch))) {
-          LOGGER.debug("StatefulSet diff {}", jsonPatch.toPrettyString());
-        }
-      }
-    }
-
-    return actualDifferences == 0;
   }
 
 }

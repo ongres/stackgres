@@ -10,47 +10,34 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.zjsonpatch.JsonDiff;
 
 public abstract class StackGresAbstractComparator
     extends DefaultComparator {
 
   @Override
-  public boolean isResourceContentEqual(HasMetadata required, HasMetadata deployed) {
-    JsonNode diff = JsonDiff.asJson(PATCH_MAPPER.valueToTree(required),
-        PATCH_MAPPER.valueToTree(deployed));
-
-    int ignore = countPatchesToIgnore(diff);
-
-    final int actualDifferences = diff.size() - ignore;
-    if (LOGGER.isDebugEnabled() && actualDifferences != 0) {
-      for (JsonNode jsonPatch : diff) {
-        JsonPatch patch = new JsonPatch(jsonPatch);
-        if (Arrays.stream(getPatchPattersToIgnore())
-            .noneMatch(patchPattern -> patchPattern.matches(patch))) {
-          LOGGER.debug("{} diff {}", required.getKind(), jsonPatch.toPrettyString());
-        }
+  public ArrayNode getJsonDiff(HasMetadata required, HasMetadata deployed) {
+    ArrayNode diff = super.getJsonDiff(required, deployed);
+    for (int index = diff.size() - 1; index >= 0; index--) {
+      JsonNode singleDiff = diff.get(index);
+      JsonPatch patch = new JsonPatch(singleDiff);
+      if (Arrays.stream(getPatchPattersToIgnore())
+          .anyMatch(patchPattern -> patchPattern.matches(patch))) {
+        diff.remove(index);
       }
     }
-
-    return diff.size() - ignore == 0;
+    if (LOGGER.isDebugEnabled()) {
+      for (JsonNode singleDiff : diff) {
+        LOGGER.debug("{}: {} diff {}",
+            getClass().getSimpleName(), required.getKind(), singleDiff.toPrettyString());
+      }
+    }
+    return diff;
   }
 
   protected abstract IgnorePatch[] getPatchPattersToIgnore();
-
-  protected int countPatchesToIgnore(JsonNode diff) {
-    int diffToIgnore = 0;
-    for (JsonNode jsonPatch : diff) {
-      JsonPatch patch = new JsonPatch(jsonPatch);
-      if (Arrays.stream(getPatchPattersToIgnore())
-          .anyMatch(patchPattern -> patchPattern.matches(patch))) {
-        diffToIgnore++;
-      }
-    }
-    return diffToIgnore;
-  }
 
   protected interface IgnorePatch {
 

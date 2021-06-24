@@ -86,7 +86,6 @@ class ClusterReconciliatorTest {
     reconciliator.setBackupScheduler(backupScheduler);
     reconciliator.setBackupEventEmitter(backupEventEmitter);
     lenient().when(backupScanner.getResources(anyString())).thenReturn(List.of());
-    when(clusterScheduler.updateStatus(cluster)).thenReturn(cluster);
   }
 
   @Test

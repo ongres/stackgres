@@ -5,12 +5,7 @@
 
 package io.stackgres.operator.conciliation.comparator;
 
-import java.util.Arrays;
 import java.util.regex.Pattern;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.zjsonpatch.JsonDiff;
 
 public class ServiceComparator extends StackGresAbstractComparator {
 
@@ -40,27 +35,6 @@ public class ServiceComparator extends StackGresAbstractComparator {
   @Override
   protected IgnorePatch[] getPatchPattersToIgnore() {
     return IGNORE_PATCH_PATTERNS;
-  }
-
-  @Override
-  public boolean isResourceContentEqual(HasMetadata required, HasMetadata deployed) {
-    JsonNode diff = JsonDiff.asJson(PATCH_MAPPER.valueToTree(required),
-        PATCH_MAPPER.valueToTree(deployed));
-
-    int ignore = countPatchesToIgnore(diff);
-
-    final int actualDifferences = diff.size() - ignore;
-
-    if (LOGGER.isDebugEnabled() && actualDifferences != 0) {
-      for (JsonNode jsonPatch : diff) {
-        JsonPatch patch = new JsonPatch(jsonPatch);
-        if (Arrays.stream(getPatchPattersToIgnore())
-            .noneMatch(patchPattern -> patchPattern.matches(patch))) {
-          LOGGER.debug("{} diff {}", required.getKind(), jsonPatch.toPrettyString());
-        }
-      }
-    }
-    return actualDifferences == 0;
   }
 
 }
