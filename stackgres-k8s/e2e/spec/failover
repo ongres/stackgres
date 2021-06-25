@@ -9,7 +9,6 @@ e2e_test() {
 }
 
 check_failover_recovery_after_new_timeline() {
-
   run_query -i 0 -p 5432 -q "CREATE TABLE test(i int, s text)"
   wait_until run_query -i 1 -p 5432 -q "SELECT count(*) FROM test"
 
@@ -30,7 +29,7 @@ spec:
   ingress:
   - ports:
     - protocol: TCP
-      port: 5432
+      port: 7433
 EOF
 
   run_query -i 0 -p 5432 -q "INSERT INTO test SELECT i, 'try to generate a new timeline ' || i FROM generate_series(1, 10000) i"
@@ -44,16 +43,18 @@ EOF
   local PID=$!
   trap_kill "$PID"
 
-  wait_until eval 'sleep 1
-    if ! kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" --template "{{ .metadata.labels.role }}" \
-      | grep -qF "master"
-    then
-      ! kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" \
-        || (
-          kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni
-          kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" --grace-period 0
-        )
-    fi'
+  local RESULT
+  local EXIT_CODE
+  try_function eval '
+    sleep 1
+    kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c patroni -- \
+      patronictl failover --master "$CLUSTER_NAME-0" --candidate "$CLUSTER_NAME-1" --force'
+  if "$RESULT"
+  then
+    echo "SUCCESS. $CLUSTER_NAME-1 has been promoted to primary and $CLUSTER_NAME-0 has been removed abruptly!"
+  else
+    echo "FAILURE. $CLUSTER_NAME-1 has not been promoted to primary or $CLUSTER_NAME-0 has not been removed abruptly!"
+  fi
 
   kill "$PID"
 
