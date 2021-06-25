@@ -55,11 +55,11 @@
 						<a @click="textFilters.text = ''" class="btn clear border keyword" v-if="textFilters.text.length">RESET</a>
 					</div>
 
-					<div class="filter">
+					<div class="filter" :data-filtered="datePicker.length > 0">
 						<span class="toggle date">DATE RANGE <input v-model="datePicker" id="datePicker" autocomplete="off"></span>
 					</div>
 
-					<div class="filter filters columns">
+					<div class="filter filters columns" :data-filtered="isFiltered">
 						<span class="toggle">FILTER</span>
 
 						<ul class="options">
@@ -204,62 +204,62 @@
 						</ul>
 					</div>
 
-					<div class="filter columns">
+					<div class="filter columns" :data-filtered="(typeof (Object.keys(showColumns).find(k => !showColumns[k])) !== 'undefined')">
 						<span class="toggle">VISIBLE FIELDS</span>
 
 						<ul class="options">
 							<li class="column">
 								<label for="viewLogType">
 									<span>Log Type</span>
-									<input @change="toggleColumn('logType')" type="checkbox" id="viewLogType" checked/>
+									<input v-model="showColumns.logType" type="checkbox" id="viewLogType"/>
 								</label>
 							</li>
 							<li class="column">
 								<label for="viewPodName">
 									<span>Pod Name</span>
-									<input @change="toggleColumn('podName')" type="checkbox" id="viewPodName" checked/>
+									<input v-model="showColumns.podName" type="checkbox" id="viewPodName"/>
 								</label>
 							</li>
 							<li class="column">
 								<label for="viewRole">
 									<span>Role</span>
-									<input @change="toggleColumn('role')" type="checkbox" id="viewRole" checked/>
+									<input v-model="showColumns.role" type="checkbox" id="viewRole"/>
 								</label>
 							</li>
 							<li class="column">
 								<label for="viewLogMessage">
 									<span>Message</span>
-									<input @change="toggleColumn('message')" type="checkbox" id="viewLogMessage" checked/>
+									<input v-model="showColumns.message" type="checkbox" id="viewLogMessage"/>
 								</label>
 							</li>
 							<li class="column">
 								<label for="viewUserName">
 									<span>User</span>
-									<input @change="toggleColumn('userName')" type="checkbox" id="viewUserName" checked/>
+									<input v-model="showColumns.userName" type="checkbox" id="viewUserName"/>
 								</label>
 							</li>
 							<li class="column">
 								<label for="viewDatabaseName">
 									<span>Database</span>
-									<input @change="toggleColumn('databaseName')" type="checkbox" id="viewDatabaseName" checked/>
+									<input v-model="showColumns.databaseName" type="checkbox" id="viewDatabaseName"/>
 								</label>
 							</li>
 							<li class="column">
 								<label for="viewProcessId">
 									<span>Process ID</span>
-									<input @change="toggleColumn('processId')" type="checkbox" id="viewProcessId" checked/>
+									<input v-model="showColumns.processId" type="checkbox" id="viewProcessId"/>
 								</label>
 							</li>
 							<li class="column">
 								<label for="viewConnectionFrom">
 									<span>Connection From</span>
-									<input @change="toggleColumn('connectionFrom')" type="checkbox" id="viewConnectionFrom" checked/>
+									<input v-model="showColumns.connectionFrom" type="checkbox" id="viewConnectionFrom"/>
 								</label>
 							</li>
 							<li class="column">
 								<label for="viewApplicationName">
 									<span>Application</span>
-									<input @change="toggleColumn('applicationName')" type="checkbox" id="viewApplicationName" checked/>
+									<input v-model="showColumns.applicationName" type="checkbox" id="viewApplicationName"/>
 								</label>
 							</li>
 						</ul>
@@ -470,7 +470,7 @@
 				</div>
 				<div class="logOptions form">
 					Loading Method:
-					<select v-model="loadingMethod" @change="getLogs(true)">
+					<select v-model="loadingMethod" @change="getLogs(true, true)">
 						<option value="live">Live Reload</option>
 						<option value="scroll">Load on Scroll</option>
 					</select>
@@ -604,19 +604,14 @@
 			},
 
 			isFiltered() {
+
 				const vc = this;
-				let filtered = false;
 
-				Object.keys(vc.filters).forEach(function(filter) {
-					Object.keys(vc.filters[filter]).forEach(function(prop){
-						if(!vc.filters[filter][prop]) {
-							filtered = true
-							return false;
-						}
-					})
-				})
+				let byLogType = (typeof (Object.keys(vc.filters.logType).find( k => !vc.filters.logType[k])) !== 'undefined');
+				let byErrorLevel = (typeof (Object.keys(vc.filters.errorLevel).find( k => !vc.filters.errorLevel[k])) !== 'undefined');
+				let byTextFilters = (typeof (Object.keys(vc.filters.errorLevel).find( k => vc.textFilters.length)) !== 'undefined');
 
-				return filtered
+				return (byLogType || byErrorLevel || byTextFilters)
 			},
 
 
@@ -629,6 +624,9 @@
 			const vc = this;
 
 			$(document).ready(function(){
+
+				vc.records = parseInt($('.logsContainer').height() / 15);
+				vc.getLogs();
 
 				$(document).on('focus', '#datePicker', function() {
 
@@ -646,9 +644,6 @@
 							}
 						}, function(start, end, label) {
 
-							/* vc.dateStart = moment.utc(start).format('YYYY-MM-DDTHH:mm:ss') + ((store.state.timezone == 'utc') ? 'Z' : vc.showTzOffset().replace(':',''));
-							vc.dateEnd = moment.utc(end).format('YYYY-MM-DDTHH:mm:ss') + ((store.state.timezone == 'utc') ? 'Z' : vc.showTzOffset().replace(':','')); */
-
 							if(store.state.timezone == 'utc') {
 								vc.dateStart = start.format('YYYY-MM-DDTHH:mm:ss') + 'Z'
 								vc.dateEnd = end.format('YYYY-MM-DDTHH:mm:ss') + 'Z'
@@ -662,18 +657,11 @@
 						});
 
 						$('#datePicker').on('show.daterangepicker', function(ev, picker) {
-							//console.log('show.daterangepicker');
 							$('#datePicker').parent().addClass('open');
 						});
 
 						$('#datePicker').on('hide.daterangepicker', function(ev, picker) {
-							//console.log('hide.daterangepicker');
 							$('#datePicker').parent().removeClass('open');
-
-							if($('#datePicker').val().length)
-								$('#datePicker').parent().parent().addClass('filtered')
-							else
-								$('#datePicker').parent().parent().removeClass('filtered')
 						});
 
 						$('#datePicker').on('cancel.daterangepicker', function(ev, picker) {
@@ -683,65 +671,12 @@
 							vc.dateStart = '';
 							vc.dateEnd = '';
 
-							$('#datePicker').parent().parent().removeClass('filtered')
-							
 							vc.getLogs();
 							$('#datePicker').parent().removeClass('open');
 						});
-
-						$('#datePicker').on('apply.daterangepicker', function(ev, picker) {
-							//console.log('apply.daterangepicker');
-							$('#datePicker').parent().removeClass('open');
-
-							if($('#datePicker').val().length)
-								$('#datePicker').parent().parent().addClass('filtered')
-							else
-								$('#datePicker').parent().parent().removeClass('filtered')
-								
-						});
-
 					}
 				})
 			
-				vc.records = parseInt($('.logsContainer').height() / 15);
-				vc.getLogs(this.records);
-
-				$(document).on('mousemove', function (e) {
-
-					if( (window.innerWidth - e.clientX) > 420 ) {
-						$('#logTooltip').css({
-							"top": e.clientY+20, 
-							"right": "auto",
-							"left": e.clientX+20
-						})
-					} else {
-						$('#logTooltip').css({
-							"top": e.clientY+20, 
-							"left": "auto",
-							"right": window.innerWidth - e.clientX + 20
-						})
-					}
-				})
-
-				$(document).on('mouseenter', 'td.hasTooltip', function(){
-					let c = $(this).children('span');
-					if(c.width() > $(this).width()){
-						$('#logTooltip .info').text(c.text());
-						$('#logTooltip').addClass('show');
-					}
-						
-				});
-
-				$(document).on('mouseleave', 'td.hasTooltip', function(){ 
-					$('#logTooltip .info').text('');
-					$('#logTooltip').removeClass('show');
-				});
-
-				$(document).on('click', '.closeLog', function(){
-					$(this).parents('tr').prev().toggle();
-					$(this).parents('tr').toggleClass('open');
-				});
-
 				$(document).on('keyup', 'input.search', function(e){
 					if (e.keyCode === 13)
 						vc.getLogs();
@@ -751,28 +686,10 @@
 					$(this).parent().toggleClass('open');
 				});
 
-				$(document).on('change', '.filter select', function () {
-					if($(this).val().length)
-						$(this).addClass('active')
-					else
-						$(this).removeClass('active')
-				});
-
-				$(window).on('resize', function() {
-					if(($('table.logs').height() - 40) > $('table.logs > tbody').height()) {
-						vc.records = parseInt((window.innerHeight - 350) / 30);
-						vc.getLogs(vc.records);
-					}			
-				})
-
 			});
 
 		},
 		methods: {
-
-			toggleColumn( column ) {
-				this.showColumns[column] = !this.showColumns[column]
-			},
 
 			xCheckbox(param, value) {
 
@@ -829,6 +746,8 @@
 						vc.textFilters[filter] = ''
 					})
 
+					$('.filters.open').removeClass('open')
+
 				} else if (section == 'keyword') {
 					this.text = '';
 					$('#keyword').removeClass('active')
@@ -838,7 +757,9 @@
 					this[section] = '';
 				}
 				
-				this.getLogs(false);
+				vc.getLogs(false);
+				vc.currentLog = -1;
+				vc.scrollToBottom();
 			},
 
 			getLogs(append = false, byDate = false) {
@@ -847,8 +768,10 @@
 
 				$('.logsContainer').addClass('loading');
 
-				if(!append)
-					clearTimeout(vc.pooling)
+				if(!append) {
+					clearTimeout(vc.pooling);
+					$('.filter.open').removeClass('open');
+				}
 
 				let params = '';
 
