@@ -158,9 +158,35 @@ a {
     text-decoration: none;
 }
 
+a.noColor, a.noColor:hover {
+    color: inherit;
+}
+
 a:hover {
     color: var(--lblue);
     cursor: pointer;
+}
+
+tr.base td:not(.phase) a.noColor, tr.base td:not(.phase) a.noColor:hover {
+    width: 100%;
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 43px;
+    height: 40px;
+    padding: 0 20px;
+}
+
+tr.base td.hasTooltip:not(.phase) > span a.noColor {
+    padding-left: 0;
+    padding-right: 5px;
+}
+
+a.newTab svg {
+    transform: rotate(-45deg) scale(1.3);
+    position: relative;
+    top: -1px;
 }
 
 strong {
@@ -529,7 +555,7 @@ form#login .warning {
     background-color: #444;
 }
 
-.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode #ns-select, .darkmode .set.active:not(.conf):not(.backups), .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode table.clusterConfig td, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .toolbar .toggle, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select, .darkmode .options li.textFilter .search, .darkmode #nav .right > div#clone, .darkmode header .actions, .darkmode #contentTooltip .info, .darkmode ul.tabs, .darkmode .content h2, .darkmode .form .header, .darkmode .set.active:not(.conf), .darkmode table.poolConfig tr.details .paramDetails table, .darkmode table.pgConfig tr.details .paramDetails table {
+.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode #ns-select, .darkmode .set.active:not(.conf):not(.backups), .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode table.clusterConfig td, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select, .darkmode .options li.textFilter .search, .darkmode #nav .right > div#clone, .darkmode header .actions, .darkmode #contentTooltip .info, .darkmode ul.tabs, .darkmode .content h2, .darkmode .form .header, .darkmode .set.active:not(.conf), .darkmode table.poolConfig tr.details .paramDetails table, .darkmode table.pgConfig tr.details .paramDetails table {
     border-color: var(--borderColor);
 }
 
@@ -2009,7 +2035,7 @@ li.status {
 }
 
 #main > .content.withPagination:not(.noScroll) {
-    height: calc(100vh - 320px);
+    height: calc(100vh - 300px);
 }
 
 #main > .content.cluster:not(.noScroll)  {
@@ -2934,15 +2960,18 @@ table {
 }
 
 th, td {
-    height: 40px;
-    padding: 0 10px;
     position: relative;
     vertical-align: middle;
+    height: 40px;
+}
+
+tr:not(.base) td {
+    padding: 0 10px;
 }
 
 th {
     font-weight: normal;
-    /* text-transform: uppercase; */
+    padding: 0 10px;
     color: var(--gray3);
     min-width: 35px;
 }
@@ -2959,7 +2988,7 @@ table.resizable > tbody {
 }
 
 table.resizable > thead th:not(.actions), table.resizable > tbody > tr > td:not(.actions) {
-    padding: 0 20px;
+    padding: 0;
 }
 
 table.resizable tr.base.open {
@@ -3036,9 +3065,9 @@ table.resizable th.textRight span:first-child {
 
 th.actions, td.actions {
     text-align: right;
-    width: 93px !important;
-    min-width: 93px;
-    max-width: 93px;
+    width: 120px !important;
+    min-width: 120px;
+    max-width: 120px;
     padding: 0 10px;
     text-transform: uppercase;
 }
@@ -3109,10 +3138,6 @@ th.sorted span:first-child:after, .sort th:not(.notSortable) span:first-child:ho
     transform: rotate(180deg);
 }
 
-table .base td:not(.actions) {
-    cursor: pointer;
-}
-
 table .Running td, table .Pending td {
     cursor: not-allowed;
 }
@@ -3145,7 +3170,7 @@ td.false {
     padding: 0px 15px;
 }
 
-td.phase > span {
+td.phase span {
     display: inline-block;
     width: 78px;
     padding: 3px 0;
@@ -3155,24 +3180,33 @@ td.phase > span {
     text-align: center;
 }
 
-td.phase.Completed > span {
+td.phase.Completed span {
     color: #03CC03;
     background: #00F90040;
 }
 
-td.phase.Pending > span {
+td.phase.Pending span {
     color: #ff7600;
     background: #ff760040;
 }
 
-td.phase.Running > span {
+td.phase.Running span {
     color: #DE9826;
     background: #FCC12040;
 }
 
-td.phase.Failed > span {
+td.phase.Failed span {
     color: #FF2600;
     background: #FF260040;
+}
+
+td.phase a.noColor {
+    width: 100%;
+    display: inline-block;
+}
+
+tr.base.pending td:not(.phase) {
+    line-height: 40px;
 }
 
 td.timestamp span.time, span.timestamp span.time {
@@ -3473,7 +3507,7 @@ table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + t
     text-align: center;
     display: inline-block;
     padding: 0 20px 0 15px;
-    border: 1px solid var(--gray2);
+    border: 1px solid var(--borderColor);
     border-radius: 6px;
     height: 30px;
     line-height: 29px;
@@ -3487,13 +3521,13 @@ table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + t
     margin-left: 15px;
 }
 
-.toolbar .toggle:hover, .toolbar .toggle.active, .filter.filtered:not(.open) .toggle {
+.toolbar .toggle:hover, .toolbar .toggle.active, .filter.filtered:not(.open) .toggle, [data-filtered="true"] .toggle {
     color: var(--blue);
     background-color: rgba(0, 173, 181, .25);
     border: 1px solid var(--blue);
 }
 
-.toolbar .toggle:hover:after {
+.toolbar .toggle:hover:after, .toolbar [data-filtered="true"] .toggle:after {
     color: var(--blue);
 }
 
@@ -3622,7 +3656,6 @@ table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + t
 }
 
 tr.no-results {
-    display: none;
     text-align: center;
     height: 120px;
 }
@@ -4206,7 +4239,7 @@ td.hasTooltip > span {
     position: absolute;
     left: 20px;
     right: 5px;
-    top: 10px;
+    top: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -4385,7 +4418,7 @@ tr.base:hover td:first-child::before {
     border: 1px solid var(--blue);
     display: inline-block;
     position: absolute;
-    top: 17px;
+    top: 21px;
     left: 10px;
 }
 table.backups td.timestamp, table.backups tr.details > td{
@@ -4407,20 +4440,7 @@ tr.controlData a {
     cursor: pointer;
     color: var(--blue);
     display: block;
-}
-
-tr.base > td:not(.actions):hover {
-    cursor: pointer;
-}
-
-table.backupConfig tr.details.open td:first-of-type {
-    position: relative;
-    padding-top: 0 !important;
-}
-
-table.pgConfig tr.toggle:not(.open) td:first-of-type {
-    display: initial;
-}
+}}
 
 /* Tooltips for table height */
 table.pgConfig th.postgresVersion {
@@ -4562,6 +4582,11 @@ tr.details.pgConfig .title {
     float: right;
     position: relative;
     z-index: 1;
+}
+
+.paramDetails td.hasTooltip > span {
+    line-height: 40px;
+    left: 10px;
 }
 
 .paramDetails .grayscale {
