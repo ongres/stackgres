@@ -9,10 +9,13 @@ import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAIN
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
+import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.LabelFactory;
@@ -21,10 +24,13 @@ import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
+import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
@@ -46,6 +52,54 @@ public class Envoy extends AbstractEnvoy {
                    VolumeMountsProvider<ContainerContext> containerUserOverrideMounts) {
     super(yamlMapperProvider, labelFactory);
     this.containerUserOverrideMounts = containerUserOverrideMounts;
+  }
+
+  protected Stream<ImmutableVolumePair> buildExtraVolumes(StackGresClusterContext context) {
+    return sslVolume(context);
+  }
+
+  private Stream<ImmutableVolumePair> sslVolume(StackGresClusterContext context) {
+    return Optional.ofNullable(context.getSource().getSpec())
+        .map(StackGresClusterSpec::getPostgres)
+        .map(StackGresClusterPostgres::getSsl)
+        .filter(ssl -> Optional.ofNullable(ssl.getEnabled()).orElse(false))
+        .stream()
+        .map(ssl -> ImmutableVolumePair.builder()
+            .volume(new VolumeBuilder()
+                .withName("ssl")
+                .withSecret(new SecretVolumeSourceBuilder()
+                    .withSecretName(ssl.getCertificateSecretKeySelector().getName())
+                    .withDefaultMode(0400) //NOPMD
+                    .withOptional(false)
+                    .build())
+                .build())
+            .build());
+  }
+
+  @Override
+  protected String getEnvoyConfigPath(final StackGresCluster stackGresCluster,
+      boolean disablePgBouncer) {
+    boolean enableSsl = Optional
+        .ofNullable(stackGresCluster.getSpec())
+        .map(StackGresClusterSpec::getPostgres)
+        .map(StackGresClusterPostgres::getSsl)
+        .map(StackGresClusterSsl::getEnabled)
+        .orElse(false);
+    final String envoyConfPath;
+    if (enableSsl) {
+      if (disablePgBouncer) {
+        envoyConfPath = "/envoy/envoy_ssl_nopgbouncer.yaml";
+      } else {
+        envoyConfPath = "/envoy/envoy_ssl.yaml";
+      }
+    } else {
+      if (disablePgBouncer) {
+        envoyConfPath = "/envoy/envoy_nopgbouncer.yaml";
+      } else {
+        envoyConfPath = "/envoy/default_envoy.yaml";
+      }
+    }
+    return envoyConfPath;
   }
 
   @Override

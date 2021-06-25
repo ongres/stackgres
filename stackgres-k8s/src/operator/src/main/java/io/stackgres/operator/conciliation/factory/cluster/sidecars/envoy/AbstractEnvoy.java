@@ -22,7 +22,6 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
@@ -35,9 +34,7 @@ import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
@@ -140,26 +137,10 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
             .volume(buildVolume(context))
             .source(buildSource(context))
             .build())
-        .append(sslVolume(context));
+        .append(buildExtraVolumes(context));
   }
 
-  private Stream<ImmutableVolumePair> sslVolume(StackGresClusterContext context) {
-    return Optional.ofNullable(context.getSource().getSpec())
-        .map(StackGresClusterSpec::getPostgres)
-        .map(StackGresClusterPostgres::getSsl)
-        .filter(ssl -> Optional.ofNullable(ssl.getEnabled()).orElse(false))
-        .stream()
-        .map(ssl -> ImmutableVolumePair.builder()
-            .volume(new VolumeBuilder()
-                .withName("ssl")
-                .withSecret(new SecretVolumeSourceBuilder()
-                    .withSecretName(ssl.getCertificateSecretKeySelector().getName())
-                    .withDefaultMode(0400) //NOPMD
-                    .withOptional(false)
-                    .build())
-                .build())
-            .build());
-  }
+  protected abstract Stream<ImmutableVolumePair> buildExtraVolumes(StackGresClusterContext context);
 
   public @NotNull Volume buildVolume(StackGresClusterContext context) {
     final String clusterName = context.getSource().getMetadata().getName();
@@ -179,26 +160,7 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
         .map(StackGresClusterSpec::getPod)
         .map(StackGresClusterPod::getDisableConnectionPooling)
         .orElse(false);
-    boolean enableSsl = Optional
-        .ofNullable(stackGresCluster.getSpec())
-        .map(StackGresClusterSpec::getPostgres)
-        .map(StackGresClusterPostgres::getSsl)
-        .map(StackGresClusterSsl::getEnabled)
-        .orElse(false);
-    final String envoyConfPath;
-    if (enableSsl) {
-      if (disablePgBouncer) {
-        envoyConfPath = "/envoy/envoy_ssl_nopgbouncer.yaml";
-      } else {
-        envoyConfPath = "/envoy/envoy_ssl.yaml";
-      }
-    } else {
-      if (disablePgBouncer) {
-        envoyConfPath = "/envoy/envoy_nopgbouncer.yaml";
-      } else {
-        envoyConfPath = "/envoy/default_envoy.yaml";
-      }
-    }
+    final String envoyConfPath = getEnvoyConfigPath(stackGresCluster, disablePgBouncer);
 
     YAMLMapper yamlMapper = yamlMapperProvider.yamlMapper();
     final ObjectNode envoyConfig;
@@ -256,6 +218,9 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
         .build();
 
   }
+
+  protected abstract String getEnvoyConfigPath(final StackGresCluster stackGresCluster,
+      boolean disablePgBouncer);
 
   public abstract List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context);
 
