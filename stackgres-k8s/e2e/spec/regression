@@ -10,6 +10,8 @@ e2e_test() {
   run_test "Checking that pods shared memory is bigger than 64M" check_shared_memory
 
   run_test "Checking that JIT is working" check_jit
+
+  run_test "Checking that PVC is updated in the StatefulSet" check_persistent_volume_claim_is_updated
 }
 
 check_persistent_volume_claim_size() {
@@ -45,4 +47,26 @@ check_jit() {
       echo "FAIL: JIT is not working as expected"
       return 1
   fi
+}
+
+check_persistent_volume_claim_is_updated() {
+  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --type=merge -p '{"spec":{"pods":{"persistentVolume":{"size":"256Mi"}}}}'
+
+  if wait_until check_persistent_volume_claim "256Mi"
+  then
+    echo "Success. Volume Size is the requested"
+  else
+    echo "Fail. Volume is not the requested. Actual: $VOLUME_CLAIM_CAPACITY"
+    return 1
+  fi 
+}
+
+check_persistent_volume_claim() {
+  local EXPECTED_CAPACITY="$1"
+  VOLUME_CLAIM_CAPACITY=$(kubectl get sts -n "$CLUSTER_NAMESPACE" \
+    "$CLUSTER_NAME" \
+    -o jsonpath='{.spec.volumeClaimTemplates[0].spec.resources.requests.storage}')
+
+  [ "$VOLUME_CLAIM_CAPACITY" = "$EXPECTED_CAPACITY" ]
 }

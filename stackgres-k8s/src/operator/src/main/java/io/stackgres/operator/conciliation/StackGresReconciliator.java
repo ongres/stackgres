@@ -58,7 +58,7 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
 
           result.getPatches()
               .forEach(resource -> {
-                LOGGER.info("Patching resource {}of kind: {}", resource.v2.getMetadata().getName(),
+                LOGGER.info("Patching resource {} of kind: {}", resource.v2.getMetadata().getName(),
                     resource.v2.getKind());
                 handlerDelegator.patch(resource.v1, resource.v2);
               });
