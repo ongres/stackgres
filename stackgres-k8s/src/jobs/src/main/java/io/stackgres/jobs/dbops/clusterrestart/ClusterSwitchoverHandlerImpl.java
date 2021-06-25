@@ -67,7 +67,7 @@ public class ClusterSwitchoverHandlerImpl implements ClusterSwitchoverHandler {
               .onFailure()
               .retry()
               .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
-              .atMost(50)
+              .indefinitely()
               .subscribe().with(item -> em.complete(null), em::fail));
         } else {
           LOGGER.info("Leader of the cluster is not {} anymore. Skipping switchover", givenLeader);

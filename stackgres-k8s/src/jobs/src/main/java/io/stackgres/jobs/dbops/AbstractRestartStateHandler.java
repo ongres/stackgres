@@ -132,6 +132,9 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
       var podName = event.getPod().getMetadata().getName();
 
       switch (event.getEventType()) {
+        case SWITCHOVER:
+          restartStatus.setSwitchoverInitiated(Boolean.TRUE.toString());
+          break;
         case POD_RESTART:
           List<String> pendingInstances = restartStatus.getPendingToRestartInstances();
           pendingInstances.remove(podName);
@@ -147,7 +150,6 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
           restartStatus.getRestartedInstances().add(podName);
           break;
         default:
-          restartStatus.setSwitchoverInitiated(Boolean.TRUE.toString());
       }
 
       var newStatus = dbOpsScheduler.update(dbOps);
@@ -178,19 +180,28 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
     return findSgCluster(clusterName, namespace)
         .chain(cluster -> scanClusterPods(cluster)
             .onItem().transform(pods -> Tuple2.of(cluster, pods)))
-        .onItem().transform(tuple -> {
-          final StackGresCluster cluster = tuple.getItem1();
-          final List<Pod> pods = tuple.getItem2();
-          if (isSgClusterDbOpsStatusInitialized(cluster)) {
-            return Tuple2.of(cluster, pods);
-          } else {
-            var clusterStatus = getClusterRestartStatus(cluster);
-            initRestartStatusValues(clusterStatus, pods);
-            var newCluster = clusterScheduler.updateStatus(cluster);
-            return Tuple2.of(newCluster, pods);
-          }
-        });
+        .chain(tuple -> initClusterDbOpsStatus(tuple.getItem1(), tuple.getItem2()));
 
+  }
+
+  public Uni<Tuple2<StackGresCluster, List<Pod>>> initClusterDbOpsStatus(StackGresCluster cluster,
+                                                                         List<Pod> pods) {
+
+    if (isSgClusterDbOpsStatusInitialized(cluster)) {
+      return Uni.createFrom().item(Tuple2.of(cluster, pods));
+    } else {
+      return initRestartStatusValues(cluster, pods)
+          .chain(this::updateClusterStatus)
+          .onItem()
+          .transform(savedCluster -> Tuple2.of(savedCluster, pods));
+    }
+  }
+
+  public Uni<StackGresCluster> updateClusterStatus(StackGresCluster cluster) {
+    return Uni.createFrom().emitter(em -> {
+      var newCluster = clusterScheduler.updateStatus(cluster);
+      em.complete(newCluster);
+    });
   }
 
   public Uni<Tuple2<StackGresDbOps, List<Pod>>> initDbOpsStatus(String dbOpsName,
@@ -198,18 +209,46 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
                                                                 List<Pod> pods) {
 
     return findDbOps(dbOpsName, namespace)
-        .onItem()
-        .transform(dbOps -> {
-          if (isDbOpsStatusInitialized(dbOps)) {
-            return Tuple2.of(dbOps, pods);
-          } else {
-            var dbOpsRestartStatus = getDbOpRestartStatus(dbOps);
-            initDbOpsRestartStatusValues(dbOpsRestartStatus, pods);
-            var newDbOps = dbOpsScheduler.update(dbOps);
-            return Tuple2.of(newDbOps, pods);
-          }
-        });
+        .chain(dbOps -> initDbOpsStatus(dbOps, pods));
 
+  }
+
+  public Uni<Tuple2<StackGresDbOps, List<Pod>>> initDbOpsStatus(StackGresDbOps dbOps,
+                                                                List<Pod> pods) {
+    if (isDbOpsStatusInitialized(dbOps)) {
+      return Uni.createFrom().item(Tuple2.of(dbOps, pods));
+    } else {
+      return initDbOpsRestartStatusValues(dbOps, pods)
+          .chain(() -> updateDbOpsStatus(dbOps))
+          .onItem().transform(newDbOps -> Tuple2.of(newDbOps, pods));
+
+    }
+  }
+
+  public Uni<StackGresDbOps> updateDbOpsStatus(StackGresDbOps dbOps) {
+    return Uni.createFrom().emitter(em -> {
+      var newDbOps = dbOpsScheduler.update(dbOps);
+      em.complete(newDbOps);
+    });
+  }
+
+  protected Uni<Void> initDbOpsRestartStatusValues(StackGresDbOps dbOps,
+                                                   List<Pod> pods) {
+
+    var restartStatus = getDbOpRestartStatus(dbOps);
+
+    String primaryInstance = getPrimaryInstance(pods)
+        .getMetadata().getName();
+
+    List<String> instances = pods.stream()
+        .map(Pod::getMetadata)
+        .map(ObjectMeta::getName)
+        .sorted(String::compareTo)
+        .collect(Collectors.toList());
+    restartStatus.setInitialInstances(instances);
+    restartStatus.setPendingToRestartInstances(instances);
+    restartStatus.setPrimaryInstance(primaryInstance);
+    return Uni.createFrom().voidItem();
   }
 
   protected abstract Optional<String> getRestartMethod(StackGresDbOps op);
@@ -221,6 +260,9 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
         break;
       case SWITCHOVER:
         LOGGER.info("Switchover of cluster {} performed", clusterName);
+        break;
+      case POSTGRES_RESTART:
+        LOGGER.info("Postgres of pod {} restarted", event.getPod().getMetadata().getName());
         break;
       default:
         LOGGER.info("Pod {} restarted", event.getPod().getMetadata().getName());
@@ -266,14 +308,18 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
         .build();
   }
 
-  private Pod getPrimaryInstance(List<Pod> pods) {
+  protected Pod getPrimaryInstance(List<Pod> pods) {
     return pods.stream()
         .filter(pod -> StackGresContext.PRIMARY_ROLE.equals(
             pod.getMetadata().getLabels().get(StackGresContext.ROLE_KEY)))
         .findFirst().orElseThrow(() -> new InvalidCluster("Cluster has no primary pod"));
   }
 
-  protected void initRestartStatusValues(ClusterDbOpsRestartStatus restartStatus, List<Pod> pods) {
+  protected Uni<StackGresCluster> initRestartStatusValues(StackGresCluster cluster,
+                                              List<Pod> pods) {
+
+    var restartStatus = getClusterRestartStatus(cluster);
+
     String primaryInstance = getPrimaryInstance(pods)
         .getMetadata().getName();
 
@@ -284,20 +330,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
         .collect(Collectors.toList());
     restartStatus.setInitialInstances(instances);
     restartStatus.setPrimaryInstance(primaryInstance);
-  }
-
-  protected void initDbOpsRestartStatusValues(DbOpsRestartStatus restartStatus, List<Pod> pods) {
-    String primaryInstance = getPrimaryInstance(pods)
-        .getMetadata().getName();
-
-    List<String> instances = pods.stream()
-        .map(Pod::getMetadata)
-        .map(ObjectMeta::getName)
-        .sorted(String::compareTo)
-        .collect(Collectors.toList());
-    restartStatus.setInitialInstances(instances);
-    restartStatus.setPendingToRestartInstances(instances);
-    restartStatus.setPrimaryInstance(primaryInstance);
+    return Uni.createFrom().item(cluster);
   }
 
   protected Uni<StackGresCluster> findSgCluster(String name, String namespace) {

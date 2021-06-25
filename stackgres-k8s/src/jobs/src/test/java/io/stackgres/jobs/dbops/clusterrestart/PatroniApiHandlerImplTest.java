@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Objects;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -78,6 +80,10 @@ class PatroniApiHandlerImplTest {
     router.route(HttpMethod.GET, "/cluster")
         .produces("application/json")
         .handler(ctx -> ctx.response().end(getClustersResponse()));
+    router.route(HttpMethod.GET, "/patroni")
+        .produces("application/json")
+        .handler(ctx -> ctx.response().end(getPatroniResponse()));
+
     router.route(HttpMethod.POST, "/switchover")
         .consumes("application/json")
         .handler(BodyHandler.create())
@@ -89,10 +95,19 @@ class PatroniApiHandlerImplTest {
           } else {
             String candidateName = ctx.getBodyAsJson().getString("candidate");
             ctx.response()
-              .setStatusCode(200)
+                .setStatusCode(200)
                 .end("Successfully switched over to " + candidateName);
           }
 
+        });
+
+    router.route(HttpMethod.POST, "/restart")
+        .consumes("application/json")
+        .handler(BodyHandler.create())
+        .handler(basicAuthHandler)
+        .handler(ctx -> {
+          ctx.response().setStatusCode(200)
+              .end();
         });
 
     mockServer = vertx.createHttpServer().requestHandler(router)
@@ -107,7 +122,20 @@ class PatroniApiHandlerImplTest {
 
   private String getClustersResponse() {
     try {
-      return Files.readString(Path.of("src/test/resources/patroni/clusters.json"));
+      final String response = Files.readString(Path.of("src/test/resources/patroni/clusters.json"))
+          .replaceAll("127\\.0\\.0\\.1:8008", "127.0.0.1:"
+              + mockServer.actualPort());
+      return response;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private String getPatroniResponse() {
+    try {
+      String patroniFile = new Random().nextInt(2) == 0 ? "replica" : "primary";
+      return Files.readString(Path.of(String
+          .format("src/test/resources/patroni/patroni-%s.json", patroniFile)));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -139,6 +167,21 @@ class PatroniApiHandlerImplTest {
   }
 
   @Test
+  void patroniInformation_shouldNotFail() {
+
+    preparePatroniMetadata(username, password);
+
+    var membersInformation = patroniApiHandler
+        .getMembersPatroniInformation(clusterName, namespace)
+        .await()
+        .atMost(Duration.ofSeconds(5));
+
+    final JsonObject expected = (JsonObject) Json.decodeValue(getClustersResponse());
+
+    assertEquals(expected.getJsonArray("members").size(), membersInformation.size());
+  }
+
+  @Test
   void givenValidCredentials_shouldPerformSwitchOver() {
 
     preparePatroniMetadata(username, password);
@@ -166,25 +209,62 @@ class PatroniApiHandlerImplTest {
   void givenBadCredentials_switchoverShouldFail() {
     preparePatroniMetadata(username, StringUtils.getRandomString());
 
-    assertThrows(RuntimeException.class, () -> {
-      patroniApiHandler.performSwitchover(
-          ImmutableClusterMember.builder()
-              .clusterName(clusterName)
-              .namespace(namespace)
-              .name("leader-member")
-              .state(MemberState.RUNNING)
-              .role(MemberRole.LEADER)
-              .build(),
-          ImmutableClusterMember.builder()
-              .clusterName(clusterName)
-              .namespace(namespace)
-              .name("replica-member")
-              .state(MemberState.RUNNING)
-              .role(MemberRole.REPlICA)
-              .build())
-          .await()
-          .atMost(Duration.ofSeconds(5));
-    });
+    assertThrows(RuntimeException.class, () -> patroniApiHandler.performSwitchover(
+        ImmutableClusterMember.builder()
+            .clusterName(clusterName)
+            .namespace(namespace)
+            .name("leader-member")
+            .state(MemberState.RUNNING)
+            .role(MemberRole.LEADER)
+            .build(),
+        ImmutableClusterMember.builder()
+            .clusterName(clusterName)
+            .namespace(namespace)
+            .name("replica-member")
+            .state(MemberState.RUNNING)
+            .role(MemberRole.REPlICA)
+            .build())
+        .await()
+        .atMost(Duration.ofSeconds(5)));
+
+  }
+
+  @Test
+  void givenValidCredentials_shouldRestartPostgres() {
+    preparePatroniMetadata(username, password);
+
+    ClusterMember leader = ImmutableClusterMember.builder()
+        .clusterName(clusterName)
+        .namespace(namespace)
+        .name("leader-member")
+        .state(MemberState.RUNNING)
+        .role(MemberRole.LEADER)
+        .apiUrl("http://127.0.0.1:"+ mockServer.actualPort() + "/patroni")
+        .build();
+
+    patroniApiHandler.restartPostgres(leader)
+        .await()
+        .atMost(Duration.ofSeconds(5));
+
+  }
+
+  @Test
+  void givenBadCrendeltials_restartShouldFail() {
+
+    preparePatroniMetadata(username, StringUtils.getRandomString());
+
+    ClusterMember leader = ImmutableClusterMember.builder()
+        .clusterName(clusterName)
+        .namespace(namespace)
+        .name("leader-member")
+        .state(MemberState.RUNNING)
+        .role(MemberRole.LEADER)
+        .apiUrl("http://127.0.0.1:"+ mockServer.actualPort() + "/patroni")
+        .build();
+
+    assertThrows(RuntimeException.class, () -> patroniApiHandler.restartPostgres(leader)
+        .await()
+        .atMost(Duration.ofSeconds(5)));
 
   }
 

@@ -63,7 +63,7 @@ public class ClusterRestartStateHandlerImpl extends AbstractRestartStateHandler 
 
   @Override
   protected void cleanClusterStatus(StackGresCluster cluster) {
-    cluster.getStatus().getDbOps().setSecurityUpgrade(null);
+    cluster.getStatus().setDbOps(null);
   }
 
   @Override

@@ -1,0 +1,26 @@
+{
+  "state": "running",
+  "postmaster_start_time": "2021-06-25 15:30:42.911 UTC",
+  "role": "master",
+  "server_version": 110008,
+  "cluster_unlocked": false,
+  "xlog": {
+    "location": 117440944
+  },
+  "timeline": 1,
+  "replication": [
+    {
+      "usename": "replicator",
+      "application_name": "dbops-minor-version-upgrade-1",
+      "client_addr": "127.0.0.1",
+      "state": "streaming",
+      "sync_state": "async",
+      "sync_priority": 0
+    }
+  ],
+  "database_system_identifier": "6977748896200036572",
+  "patroni": {
+    "version": "2.0.2",
+    "scope": "dbops-minor-version-upgrade"
+  }
+}

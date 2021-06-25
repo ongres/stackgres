@@ -5,6 +5,7 @@
 
 package io.stackgres.jobs.dbops.clusterrestart;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -47,18 +48,34 @@ public class ClusterInstanceManagerImpl implements ClusterInstanceManager {
   @Override
   public Uni<Pod> increaseClusterInstances(String name, String namespace) {
 
-    return getCluster(name, namespace)
-        .chain(this::increaseConfiguredInstances)
+    return increaseInstances(name, namespace)
+        .onFailure()
+        .retry()
+        .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))
+        .indefinitely()
         .chain(newPodName -> podWatcher.waitUntilIsReady(newPodName, namespace));
+  }
+
+  private Uni<String> increaseInstances(String name, String namespace) {
+    return getCluster(name, namespace)
+        .onFailure()
+        .retry()
+        .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))
+        .indefinitely()
+        .chain(this::increaseConfiguredInstances);
   }
 
   @Override
   public Uni<Void> decreaseClusterInstances(String name, String namespace) {
 
-    return getCluster(name, namespace)
-        .chain(this::decreaseConfiguredInstances)
+    return decreaseInstances(name, namespace)
         .chain(podToBeDeleted -> podWatcher.waitUntilIsRemoved(podToBeDeleted, namespace));
 
+  }
+
+  private Uni<String> decreaseInstances(String name, String namespace) {
+    return getCluster(name, namespace)
+        .chain(this::decreaseConfiguredInstances);
   }
 
   private Uni<StackGresCluster> getCluster(String name, String namespace) {

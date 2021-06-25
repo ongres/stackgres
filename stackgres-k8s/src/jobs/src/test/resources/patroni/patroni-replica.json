@@ -1,0 +1,19 @@
+{
+  "state": "running",
+  "postmaster_start_time": "2021-06-25 15:10:26.788 UTC",
+  "role": "replica",
+  "server_version": 110008,
+  "cluster_unlocked": false,
+  "xlog": {
+    "received_location": 117440944,
+    "replayed_location": 117440944,
+    "replayed_timestamp": "2021-06-25 15:10:11.666 UTC",
+    "paused": false
+  },
+  "timeline": 1,
+  "database_system_identifier": "6977748896200036572",
+  "patroni": {
+    "version": "2.0.2",
+    "scope": "dbops-minor-version-upgrade"
+  }
+}
