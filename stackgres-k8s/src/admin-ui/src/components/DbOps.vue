@@ -174,11 +174,11 @@
                                         </span>
                                     </td>
                                     <td :class="op.data.spec.op" class="operationType">
-                                        <span>
-                                            <router-link :to="'/dbops/' + $route.params.namespace + '/' + op.data.metadata.name" class="noColor">
+                                        <router-link :to="'/dbops/' + $route.params.namespace + '/' + op.data.metadata.name" class="noColor">
+                                            <span>
                                                 {{ op.data.spec.op }}
-                                            </router-link>
-                                        </span>
+                                            </span>
+                                        </router-link>                                        
                                     </td>
                                     <td class="baseHide opName hasTooltip">
                                         <span>
@@ -188,11 +188,11 @@
                                         </span>
                                     </td>
                                     <td class="phase center baseHide">
-                                        <span :class="getOpStatus(op)">
-                                            <router-link :to="'/dbops/' + $route.params.namespace + '/' + op.data.metadata.name" class="noColor">
+                                        <router-link :to="'/dbops/' + $route.params.namespace + '/' + op.data.metadata.name" class="noColor">
+                                            <span :class="getOpStatus(op)">                                            
                                                 {{ getOpStatus(op) }}
-                                            </router-link>
-                                        </span>
+                                            </span>
+                                        </router-link>
                                     </td>
                                     <td class="baseHide targetCluster hasTooltip">
                                         <span>
@@ -1093,8 +1093,7 @@
         border-radius: 15px;
         padding: 2px 10px;
         position: relative;
-        top: -2px;
-            white-space: nowrap;
+        white-space: nowrap;
     }
     td.operationType span:before {
         width: 15px;
@@ -1140,17 +1139,17 @@
         padding-right: 5px;
     }
 
-    td.phase > span.Completed {
+    td.phase span.Completed {
         color: #03CC03;
         background: #00F90040;
     }
 
-    td.phase > span.Running {
+    td.phase span.Running {
         color: #DE9826;
         background: #FCC12040;
     }
 
-    td.phase > span.Failed {
+    td.phase span.Failed {
         color: #FF2600;
         background: #FF260040;
     }
@@ -1160,9 +1159,9 @@
     }
 
     th.actions, td.actions {
-        width: 45px !important;
-        min-width: 45px;
-        max-width: 45px;
+        width: 75px !important;
+        min-width: 75px;
+        max-width: 75px;
     }
 
     table#sgdbops, #sgdbops thead, #sgdbops th, #sgdbops tbody, #sgdbops tr, #sgdbops td {
