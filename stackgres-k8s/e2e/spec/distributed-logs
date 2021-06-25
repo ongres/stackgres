@@ -192,6 +192,33 @@ check_distributed_logs_query_endpoint() {
     return 1
   fi
 
+  RESPONSE="$(get_logs_entries_with_text distributed-logs-works)"
+  if echo "$RESPONSE" | jq 'any(has("logTime"))' | grep -q true \
+    && echo "$RESPONSE" | jq 'any(has("logTimeIndex"))' | grep -q true \
+    && echo "$RESPONSE" | jq 'any(.logType == "pg")' | grep -q true \
+    && echo "$RESPONSE" | jq 'any(has("podName"))' | grep -q true \
+    && echo "$RESPONSE" | jq 'any(has("role"))' | grep -q true \
+    && echo "$RESPONSE" | jq 'any(has("errorLevel"))' | grep -q true \
+    && echo "$RESPONSE" | jq 'any(has("message"))' | grep -q true \
+    && echo "$RESPONSE" | jq 'any(has("userName"))' | grep -q true \
+    && echo "$RESPONSE" | jq 'any(has("databaseName"))' | grep -q true \
+    && echo "$RESPONSE" | jq 'any(has("processId"))' | grep -q true \
+    && echo "$RESPONSE" | jq 'any(has("connectionFrom"))' | grep -q true \
+    && echo "$RESPONSE" | jq 'any(has("sessionId"))' | grep -q true \
+    && echo "$RESPONSE" | jq 'any(has("sessionLineNum"))' | grep -q true \
+    && echo "$RESPONSE" | jq 'any(has("commandTag"))' | grep -q true \
+    && echo "$RESPONSE" | jq 'any(has("sessionStartTime"))' | grep -q true \
+    && echo "$RESPONSE" | jq 'any(has("virtualTransactionId"))' | grep -q true \
+    && echo "$RESPONSE" | jq 'any(has("transactionId"))' | grep -q true \
+    && echo "$RESPONSE" | jq 'any(has("sqlStateCode"))' | grep -q true \
+    && echo "$RESPONSE" | jq 'any(has("applicationName"))' | grep -q true
+  then
+    echo "SUCCESS: Cluster log entry has correct values"
+  else
+    echo "FAIL: Cluster log entry has incorrect values: $(echo "$RESPONSE" | jq -c .)"
+    return 1
+  fi
+
   RESPONSE="$(get_logs_count_with_text_after_log_with_text distributed-logs-works distributed-logs-still-works)"
   if echo "$RESPONSE" | grep -q "^1$"
   then
@@ -280,6 +307,14 @@ get_logs_count_with_text() {
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
     | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | length"
+}
+
+get_logs_entries_with_text() {
+  local RESULT="$(run_curl \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME$2?text=$1" \
+    -n "$CLUSTER_NAMESPACE")"
+  echo_raw "$RESULT" \
+    | jq "map(select(.message != null and (.message | contains(\"$1\"))))"
 }
 
 get_logs_count_with_text_after_log_with_text() {
