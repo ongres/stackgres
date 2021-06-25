@@ -25,7 +25,7 @@
 				<div>
 					<template v-if="$route.params.hasOwnProperty('name')">
 						<template v-for="conf in config" v-if="conf.name == $route.params.name">
-							<router-link v-if="iCan('patch','sgpgconfigs',$route.params.namespace)" :to="'/crd/edit/postgres/'+$route.params.namespace+'/'+conf.name" title="Edit Configuration">
+							<router-link v-if="iCan('patch','sgpgconfigs',$route.params.namespace)" :to="'/crd/edit/pgconfig/'+$route.params.namespace+'/'+conf.name" title="Edit Configuration">
 								Edit Configuration
 							</router-link>
 							<a v-if="iCan('create','sgpgconfigs',$route.params.namespace)" v-on:click="cloneCRD('SGPostgresConfig', $route.params.namespace, conf.name)" title="Clone Configuration">

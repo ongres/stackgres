@@ -1108,7 +1108,7 @@
                             vc.notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgcluster');
 
                             vc.fetchAPI('sgcluster');
-                            router.push('/overview/'+cluster.metadata.namespace);
+                            router.push('/cluster/status/'+cluster.metadata.namespace+'/'+cluster.metadata.name);
                             
                         })
                         .catch(function (error) {
@@ -1136,14 +1136,7 @@
 
                 }
 
-            },
-
-            cancel: function() {
-                if(this.$route.name == 'CreateCluster')
-                    router.push('/overview/'+this.$route.params.namespace);
-                else
-                    router.push('/cluster/status/'+this.$route.params.namespace+'/'+this.$route.params.name);
-            },  
+            }, 
 
             checkPgConfigVersion: function() {
                 let configs = store.state.pgConfig.length;
