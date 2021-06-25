@@ -28,6 +28,7 @@ public class ClusterScheduler extends
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
+  @Override
   public StackGresCluster update(StackGresCluster resource) {
     try (KubernetesClient client = clientFactory.create()) {
       return client.customResources(StackGresCluster.class, StackGresClusterList.class)
