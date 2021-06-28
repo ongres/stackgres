@@ -925,11 +925,19 @@
 					});
 
 					$('#datePicker').on('show.daterangepicker', function(ev, picker) {
+						if(!vc.datePicker.length) {
+							$('.daterangepicker td.active').addClass('deactivate')
+							$('.daterangepicker td.in-range').removeClass('in-range')
+						}
+
 						$('#datePicker').parent().addClass('open');
 					});
 
 					$('#datePicker').on('hide.daterangepicker', function(ev, picker) {
 						$('#datePicker').parent().removeClass('open');
+
+						if(vc.datePicker.length)
+							$('.daterangepicker td.deactivate').removeClass('deactivate')
 					});
 
 					$('#datePicker').on('cancel.daterangepicker', function(ev, picker) {
