@@ -196,7 +196,7 @@
                             vc.notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','sgpoolconfig');
 
                             vc.fetchAPI('sgpoolconfig');
-                            router.push('/configurations/connectionpooling/'+config.metadata.namespace+'/'+config.metadata.name);
+                            router.push('/configurations/connectionpooling/'+config.metadata.namespace);
                         })
                         .catch(function (error) {
                             console.log(error.response);
@@ -205,13 +205,7 @@
                     }
                 }
 
-            },
-
-            cancel: function() {
-                const vc = this
-                router.push('/configurations/connectionpooling/'+vc.$route.params.namespace);
             }
-
         },
         created: function() {
             

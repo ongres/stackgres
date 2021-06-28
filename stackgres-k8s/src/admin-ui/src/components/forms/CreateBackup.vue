@@ -27,7 +27,7 @@
                     </li>
                 </template>
                 <li v-if="editMode">
-                    <router-link :to="'/backups/'+$route.params.namespace+'/'+backupCluster+'/'+$route.params.name" title="Backup Details">{{ $route.params.name }}</router-link>
+                    <router-link :to="'/backups/'+$route.params.namespace+'/'+$route.params.name" title="Backup Details">{{ $route.params.name }}</router-link>
                 </li>
                 <li class="action">
                     {{ $route.name == 'EditBackup' ? 'Edit' : 'Create' }}
@@ -204,7 +204,7 @@
                             vc.notify('Backup <strong>"'+backup.metadata.name+'"</strong> updated successfully', 'message', 'sgbackup');
 
                             vc.fetchAPI('sgbackup');
-                            router.push('/backups/'+backup.metadata.namespace);
+                            router.push('/backups/'+backup.metadata.namespace+'/'+backup.metadata.name);
                         })
                         .catch(function (error) {
                             console.log(error.response);
@@ -237,17 +237,7 @@
 
                 }
 
-            },
-
-            cancel: function() {
-                const vc = this
-
-                if(vc.$route.params.hasOwnProperty('cluster'))
-                    router.push('/cluster/backups/'+vc.$route.params.namespace+'/'+vc.$route.params.cluster);
-                else    
-                    router.push('/backups/'+vc.$route.params.namespace);
             }
-
         },
         created: function() {
             

@@ -45,6 +45,15 @@ export const mixin = {
   
     },
     methods: {
+      
+      cancel: function() {
+        const vc = this
+        
+        if(window.history.length > 2)
+          vc.$router.go(-1)
+        else
+          vc.$router.push('/overview/default')
+      },
 
       checkAuthError: function(error) {
         if(error.response) {

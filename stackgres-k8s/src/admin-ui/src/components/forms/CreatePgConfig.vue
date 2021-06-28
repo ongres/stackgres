@@ -204,7 +204,7 @@
                             vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message', 'sgpgconfig');
             
                             vc.fetchAPI('sgpgconfig');
-                            router.push('/configurations/postgres/'+config.metadata.namespace+'/'+config.metadata.name);
+                            router.push('/configurations/postgres/'+config.metadata.namespace);
                             
                             /* store.commit('updatePGConfig', { 
                                 name: config.metadata.name,
@@ -219,13 +219,7 @@
                     }
                 }
 
-            },
-
-            cancel: function() {
-                const vc = this
-                router.push('/configurations/postgres/'+vc.$route.params.namespace);
             }
-
         },
         created: function() {
             

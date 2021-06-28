@@ -435,7 +435,7 @@
                             vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgcluster');
 
                             vc.fetchAPI('sgdistributedlogs');
-                            router.push('/logs/'+cluster.metadata.namespace);
+                            router.push('/logs/'+cluster.metadata.namespace+'/'+cluster.metadata.name);
                             
                         })
                         .catch(function (error) {
@@ -464,13 +464,6 @@
                 }
 
             },
-
-            cancel: function() {
-                if(this.$route.name == 'CreateLogsServer')
-                    router.push('/logs/'+this.$route.params.namespace);
-                else
-                    router.push('/logs/'+this.$route.params.namespace+'/'+this.$route.params.name);
-            },  
 
             sanitizeString( string ) {
                return string.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\t/g, "\\t").replace(/\f/g, "\\f").replace(/"/g,"\\\"").replace(/'/g,"\\\'").replace(/\&/g, "\\&"); 

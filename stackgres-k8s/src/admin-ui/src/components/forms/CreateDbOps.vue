@@ -791,11 +791,6 @@
                     },100)
                 }
             },
-            
-            cancel: function() {
-                const vc = this
-                router.push('/dbops/'+vc.$route.params.namespace);
-            },
 
             spliceArray: function( prop, index ) {
                 this[prop].splice( index, 1 )

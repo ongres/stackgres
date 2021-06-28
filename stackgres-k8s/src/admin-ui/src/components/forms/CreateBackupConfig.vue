@@ -692,7 +692,7 @@
                             vc.notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','sgbackupconfig');
 
                             vc.fetchAPI('sgbackupconfig');
-                            router.push('/configurations/backup/'+config.metadata.namespace+'/'+config.metadata.name);
+                            router.push('/configurations/backup/'+config.metadata.namespace);
                             
                         })
                         .catch(function (error) {
@@ -703,11 +703,6 @@
 
                 }
 
-            },
-
-            cancel: function() {
-                const vc = this
-                router.push('/configurations/backup/'+vc.$route.params.namespace);
             },
 
             uploadJSON: function(e) {
