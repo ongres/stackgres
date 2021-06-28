@@ -50,8 +50,10 @@
 			<div class="content noScroll" v-if="hasProp(cluster, 'status.pods') && cluster.status.pods.length">
 				<h2>
 					Cluster
-					<template v-for="condition in cluster.data.status.conditions" v-if="( (condition.type == 'PendingRestart') && (condition.status == 'True') )">
-						<span class="helpTooltip alert" data-tooltip="A restart operation is pending for this cluster"></span>
+					<template v-if="hasProp(cluster, 'data.status.confitions')">
+						<template v-for="condition in cluster.data.status.conditions" v-if="( (condition.type == 'PendingRestart') && (condition.status == 'True') )">
+							<span class="helpTooltip alert" data-tooltip="A restart operation is pending for this cluster"></span>
+						</template>
 					</template>
 				</h2>
 				
