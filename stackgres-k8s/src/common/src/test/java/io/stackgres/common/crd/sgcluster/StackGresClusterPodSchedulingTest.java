@@ -7,9 +7,7 @@ package io.stackgres.common.crd.sgcluster;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import org.junit.Before;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,7 +17,6 @@ import io.stackgres.testutil.JsonUtil;
 
 class StackGresClusterPodSchedulingTest {
 
-	private static final int ONE_SCHEDULE = 1;
 	private static final int TWO_NODE_AFFFINITY_EXPRESSION_VALUES = 2;
 	private static final String MATCH_EXPRESION_OPERATOR = "In";
 	private static final String MATCH_EXPRESION_KEY = "kubernetes.io/e2e-az-name";
