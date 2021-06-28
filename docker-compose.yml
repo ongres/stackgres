@@ -23,7 +23,7 @@ services:
         E2E_PARALLELISM: 32
         E2E_JOBS: 3
         E2E_EXCLUSIVE_JOBS: 3
-        K8S_VERSION: 1.16.15
+        K8S_VERSION: 1.19.11
         LATEST: "false"
         CI_PROJECT_PATH: "/ongresinc/stackgres/"
         SUFFIX: "-TBD"
