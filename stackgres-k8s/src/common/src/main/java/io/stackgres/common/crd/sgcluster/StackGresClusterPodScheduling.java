@@ -34,14 +34,14 @@ public class StackGresClusterPodScheduling {
   @JsonProperty("nodeAffinity")
   @Valid
   private NodeAffinity nodeAffinity;
-  
+
   @JsonProperty("tolerations")
   @Valid
   private List<Toleration> tolerations;
 
   @ReferencedField("nodeSelector")
   interface NodeSelector extends FieldReference { }
-  
+
   @ReferencedField("nodeSelector")
   interface NodeAffinityField extends FieldReference { }
 
@@ -64,14 +64,14 @@ public class StackGresClusterPodScheduling {
   }
 
   public NodeAffinity getNodeAffinity() {
-	return nodeAffinity;
-}
+    return nodeAffinity;
+  }
 
-public void setNodeAffinity(NodeAffinity nodeAffinity) {
-	this.nodeAffinity = nodeAffinity;
-}
+  public void setNodeAffinity(NodeAffinity nodeAffinity) {
+    this.nodeAffinity = nodeAffinity;
+  }
 
-public List<Toleration> getTolerations() {
+  public List<Toleration> getTolerations() {
     return tolerations;
   }
 
