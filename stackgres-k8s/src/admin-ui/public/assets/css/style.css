@@ -158,9 +158,35 @@ a {
     text-decoration: none;
 }
 
+a.noColor, a.noColor:hover {
+    color: inherit;
+}
+
 a:hover {
     color: var(--lblue);
     cursor: pointer;
+}
+
+tr.base td:not(.phase) a.noColor, tr.base td:not(.phase) a.noColor:hover {
+    width: 100%;
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 43px;
+    height: 40px;
+    padding: 0 20px;
+}
+
+tr.base td.hasTooltip:not(.phase) > span a.noColor {
+    padding-left: 0;
+    padding-right: 5px;
+}
+
+a.newTab svg {
+    transform: rotate(-45deg) scale(1.3);
+    position: relative;
+    top: -1px;
 }
 
 strong {
@@ -286,6 +312,8 @@ svg.background circle {
     text-align: center;
     border-bottom: 1px solid var(--borderColor);
     padding-top: 40px;
+    width: 100%;
+    display: block;
 }
 
 /* Log in */
@@ -527,7 +555,7 @@ form#login .warning {
     background-color: #444;
 }
 
-.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode #ns-select, .darkmode .set.active:not(.conf):not(.backups), .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode table.clusterConfig td, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .toolbar .toggle, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select, .darkmode .options li.textFilter .search, .darkmode #nav .right > div#clone, .darkmode header .actions, .darkmode #contentTooltip .info, .darkmode ul.tabs, .darkmode .content h2, .darkmode .form .header, .darkmode .set.active:not(.conf), .darkmode table.poolConfig tr.details .paramDetails table, .darkmode table.pgConfig tr.details .paramDetails table {
+.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode #ns-select, .darkmode .set.active:not(.conf):not(.backups), .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode table.clusterConfig td, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select, .darkmode .options li.textFilter .search, .darkmode #nav .right > div#clone, .darkmode header .actions, .darkmode #contentTooltip .info, .darkmode ul.tabs, .darkmode .content h2, .darkmode .form .header, .darkmode .set.active:not(.conf), .darkmode table.poolConfig tr.details .paramDetails table, .darkmode table.pgConfig tr.details .paramDetails table {
     border-color: var(--borderColor);
 }
 
@@ -643,7 +671,7 @@ form#login .warning {
     background: #A6A7AE40;
 }
 
-.darkmode table.loading:after {
+.darkmode .logsContainer.loading:after {
     background: url(img/loader.gif) center center no-repeat rgba(6, 5, 40, .9);
     background-size: 30px;
 }
@@ -1551,15 +1579,15 @@ footer .tooltip p {
     text-transform: uppercase;
 }
 
-.message {
-    border-top: 1px solid var(--gray2);
+#notifications .message {
+    border-top: 1px solid var(--borderColor);
     position: relative;
     max-width: 320px;
     padding: 15px 0;
     display: none;
 }
 
-.message.show, .message.zero {
+#notifications .message.show, #notifications .message.zero, .message.show {
     display: block;
 }
 
@@ -2007,7 +2035,7 @@ li.status {
 }
 
 #main > .content.withPagination:not(.noScroll) {
-    height: calc(100vh - 320px);
+    height: calc(100vh - 300px);
 }
 
 #main > .content.cluster:not(.noScroll)  {
@@ -2564,7 +2592,6 @@ button {
     color: var(--blue);
     background: transparent;
     border: 1px solid var(--blue);
-    font-size: .9rem;
 }
 
 .form button.border:hover, .btn.border:hover, .daterangepicker button.cancelBtn, .btn.clear:hover {
@@ -2933,15 +2960,18 @@ table {
 }
 
 th, td {
-    height: 40px;
-    padding: 0 10px;
     position: relative;
     vertical-align: middle;
+    height: 40px;
+}
+
+tr:not(.base) td {
+    padding: 0 10px;
 }
 
 th {
     font-weight: normal;
-    /* text-transform: uppercase; */
+    padding: 0 10px;
     color: var(--gray3);
     min-width: 35px;
 }
@@ -2958,7 +2988,7 @@ table.resizable > tbody {
 }
 
 table.resizable > thead th:not(.actions), table.resizable > tbody > tr > td:not(.actions) {
-    padding: 0 20px;
+    padding: 0;
 }
 
 table.resizable tr.base.open {
@@ -3035,9 +3065,9 @@ table.resizable th.textRight span:first-child {
 
 th.actions, td.actions {
     text-align: right;
-    width: 93px !important;
-    min-width: 93px;
-    max-width: 93px;
+    width: 120px !important;
+    min-width: 120px;
+    max-width: 120px;
     padding: 0 10px;
     text-transform: uppercase;
 }
@@ -3108,10 +3138,6 @@ th.sorted span:first-child:after, .sort th:not(.notSortable) span:first-child:ho
     transform: rotate(180deg);
 }
 
-table .base td:not(.actions) {
-    cursor: pointer;
-}
-
 table .Running td, table .Pending td {
     cursor: not-allowed;
 }
@@ -3144,7 +3170,7 @@ td.false {
     padding: 0px 15px;
 }
 
-td.phase > span {
+td.phase span {
     display: inline-block;
     width: 78px;
     padding: 3px 0;
@@ -3154,24 +3180,33 @@ td.phase > span {
     text-align: center;
 }
 
-td.phase.Completed > span {
+td.phase.Completed span {
     color: #03CC03;
     background: #00F90040;
 }
 
-td.phase.Pending > span {
+td.phase.Pending span {
     color: #ff7600;
     background: #ff760040;
 }
 
-td.phase.Running > span {
+td.phase.Running span {
     color: #DE9826;
     background: #FCC12040;
 }
 
-td.phase.Failed > span {
+td.phase.Failed span {
     color: #FF2600;
     background: #FF260040;
+}
+
+td.phase a.noColor {
+    width: 100%;
+    display: inline-block;
+}
+
+tr.base.pending td:not(.phase) {
+    line-height: 40px;
 }
 
 td.timestamp span.time, span.timestamp span.time {
@@ -3186,7 +3221,7 @@ td.timestamp span.ms, span.timestamp span.ms {
     color: var(--gray5);
 }
 
-td.timestamp span.tzOffset {
+.timestamp span.tzOffset {
     opacity: .4;
 }
 
@@ -3472,7 +3507,7 @@ table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + t
     text-align: center;
     display: inline-block;
     padding: 0 20px 0 15px;
-    border: 1px solid var(--gray2);
+    border: 1px solid var(--borderColor);
     border-radius: 6px;
     height: 30px;
     line-height: 29px;
@@ -3486,13 +3521,13 @@ table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + t
     margin-left: 15px;
 }
 
-.toolbar .toggle:hover, .toolbar .toggle.active, .filter.filtered:not(.open) .toggle {
+.toolbar .toggle:hover, .toolbar .toggle.active, .filter.filtered:not(.open) .toggle, [data-filtered="true"] .toggle {
     color: var(--blue);
     background-color: rgba(0, 173, 181, .25);
     border: 1px solid var(--blue);
 }
 
-.toolbar .toggle:hover:after {
+.toolbar .toggle:hover:after, .toolbar [data-filtered="true"] .toggle:after {
     color: var(--blue);
 }
 
@@ -3536,7 +3571,7 @@ table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + t
     padding: 20px;
     box-shadow: 0 0 20px rgba(0,0,0,.05);
     list-style: none;
-    width: 325px;
+    width: 480px;
 }
 
 .options.open {
@@ -3561,6 +3596,7 @@ table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + t
 
 .options li.textFilter {
     margin-bottom: 7px;
+    position: relative;
 }
 
 .options label {
@@ -3607,6 +3643,7 @@ table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + t
 
 .options label span {
     position: relative;
+    z-index: 1;
 }
 
 .options .li span, .options label span, #keyword {
@@ -3619,7 +3656,6 @@ table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + t
 }
 
 tr.no-results {
-    display: none;
     text-align: center;
     height: 120px;
 }
@@ -3661,10 +3697,6 @@ tr.no-results {
 .searchBar {
     display: initial;
 }
-/* .searchBar #keyword {
-    background-image: none;
-    padding-left: 15px;
-} */
 
 .searchBar a.button {
     fill: #7A7B85;
@@ -3688,19 +3720,25 @@ tr.no-results {
 }
 
 .options li.textFilter > span.clear {
-    padding: 4px 7px;
+    position: absolute;
+    bottom: 4px;
+    right: 2px;
+    padding: 0px 3px;
+    border-radius: 3px;
 }
 
 .options li.textFilter .search {
-    padding: 0 10px 0 20px;
+    padding: 0 10px 0 23px;
     border: 1px solid var(--gray2);
-    border-radius: 6px;
+    border-radius: 3px;
     height: 25px;
     color: var(--gray4);
     background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIGlkPSJDYXBhXzEiIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDI4LjkzMSAyOC45MzIiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDI4LjkzMSAyOC45MzI7IiB4bWw6c3BhY2U9InByZXNlcnZlIiBjbGFzcz0iIj48Zz48Zz4KCTxwYXRoIGQ9Ik0yOC4zNDQsMjUuNTE4bC02LjExNC02LjExNWMxLjQ4Ni0yLjA2NywyLjMwMy00LjUzNywyLjMwMy03LjEzN2MwLTMuMjc1LTEuMjc1LTYuMzU1LTMuNTk0LTguNjcyICAgQzE4LjYyNSwxLjI3OCwxNS41NDMsMCwxMi4yNjYsMEM4Ljk5LDAsNS45MDksMS4yNzUsMy41OTMsMy41OTRDMS4yNzcsNS45MDksMC4wMDEsOC45OSwwLjAwMSwxMi4yNjYgICBjMCwzLjI3NiwxLjI3NSw2LjM1NiwzLjU5Miw4LjY3NGMyLjMxNiwyLjMxNiw1LjM5NiwzLjU5NCw4LjY3MywzLjU5NGMyLjU5OSwwLDUuMDY3LTAuODEzLDcuMTM2LTIuMzAzbDYuMTE0LDYuMTE1ICAgYzAuMzkyLDAuMzkxLDAuOTAyLDAuNTg2LDEuNDE0LDAuNTg2YzAuNTEzLDAsMS4wMjQtMC4xOTUsMS40MTQtMC41ODZDMjkuMTI1LDI3LjU2NCwyOS4xMjUsMjYuMjk5LDI4LjM0NCwyNS41MTh6IE02LjQyMiwxOC4xMTEgICBjLTEuNTYyLTEuNTYyLTIuNDIxLTMuNjM5LTIuNDIxLTUuODQ2UzQuODYsNy45ODMsNi40MjIsNi40MjFjMS41NjEtMS41NjIsMy42MzYtMi40MjIsNS44NDQtMi40MjJzNC4yODQsMC44Niw1Ljg0NSwyLjQyMiAgIGMxLjU2MiwxLjU2MiwyLjQyMiwzLjYzOCwyLjQyMiw1Ljg0NXMtMC44NTksNC4yODMtMi40MjIsNS44NDZjLTEuNTYyLDEuNTYyLTMuNjM2LDIuNDItNS44NDUsMi40MlM3Ljk4MSwxOS42NzIsNi40MjIsMTguMTExeiIgZGF0YS1vcmlnaW5hbD0iIzAwMDAwMCIgY2xhc3M9ImFjdGl2ZS1wYXRoIiBzdHlsZT0iZmlsbDojN0E3Qjg1IiBkYXRhLW9sZF9jb2xvcj0iIzAwMDAwMCI+PC9wYXRoPgo8L2c+PC9nPiA8L3N2Zz4=);
     background-repeat: no-repeat;
     background-size: 12px;
     background-position: 5px center;
+    width: 100%;
+    font-size: 90%;
 }
 
 .options li.textFilter .search:focus {
@@ -3723,33 +3761,6 @@ tr.no-results {
     width: 13px;
 }
 
-/* table.logs tbody, table.backups > tbody {
-    max-height: calc(100vh - 353px);
-    max-width: calc(100vw - 430px);
-    display: inline-block;
-    overflow: auto;
-    width: 100%;
-    border: none;
-} */
-
-/* table.logs thead, table.backups > thead {
-    display: inline-block;
-    margin-bottom: -4px;
-    border-bottom: 1px solid #f0f0f1;
-    width: initial !important;
-    min-width: 100%;
-} */
-
-/* table.logs tbody:hover > tr.base, table.backups tbody:hover > tr.base {
-    opacity: 0.6;
-}
-
-
-table.logs tbody:hover > tr.base:hover, table.backups tbody:hover > tr.base:hover {
-    opacity: 1.0;
-}
-*/
-
 table th {
     font-weight: bold;
 }
@@ -3769,13 +3780,6 @@ table.logs .logTime {
     color: #336791;
     background: #33679140;
 }
-
-/* table.logs .logMesssage{
-    min-width: 500px;
-    max-width: 500px;
-    width: 500px;
-    padding: 0 10px;
-} */
 
 table.logs .userName {
     min-width: 70px;
@@ -3958,160 +3962,6 @@ td.role.Standby span {
     border: 1px solid #A6A7AE;
 }
 
-td.logMessage {
-    width: 30%;
-    position: absolute;
-}
-
-.logMessage > tbody tr {
-    background: transparent !important;
-}
-
-table.logs td.label {
-    padding: 0 10px;
-}
-
-th.number, th.fraction {
-    width: 5vw;
-}
-
-th.sysId, th.operation {
-    width: 8vw;
-}
-
-/*td.logMessage span {
-    overflow: hidden; 
-    text-overflow: ellipsis;
-    white-space: nowrap; 
-    width: 100%;
-    display: inline-block;
-}*/
-
-.logInfo.open {
-    /*background: transparent;*/
-    opacity: 100% !important;
-}
-
-.logInfo.open .logMessage {
-    padding-top: 0;
-    padding-bottom: 0;
-    display: inline-block;
-    border: 1px solid #f0f0f1;
-    margin: 10px auto 20px auto;
-    width: calc(100% - 7px);
-}
-
-.logMessage .param {
-    /*color: var(--blue);*/
-    /* color: #4D4F5C; */
-    font-weight: bold;
-    width: 200px;
-    display: table-cell;
-    border-right: 1px solid #f0f0f1;
-    vertical-align: middle;
-    padding-left: 15px;
-}
-
-table.logs table.logMessage tr, #backups .details thead {
-    background: transparent;
-}
-
-.logInfo.open .logMessage p {
-    padding-bottom: 5px;
-    display: table-cell;
-    padding: 11px 15px;
-    border: 1px solid #f0f0f1;
-    vertical-align: top;
-    max-width: calc(100% - 202px);
-}
-
-.logDetails table {
-    margin-left: 0px;
-    margin-bottom: -1px;
-    border: 1px solid #F0F0F1;
-    width: calc(50% - 15px);
-}
-
-.logDetails > table {
-    vertical-align: top;
-}
-
-.logDetails table:last-of-type {
-    margin-bottom: 15px;
-}
-
-.logDetails.postgres table, .logDetails.patroni table {
-    display: inline-block;
-}
-
-.logDetails.postgres table:last-of-type, .logDetails.patroni table:last-of-type {
-    margin-left: 20px;
-}
-
-.logDetails.postgres tr:not(:last-of-type), .logDetails.patroni tr:not(:last-of-type) {
-    border-bottom: 1px solid #F0F0F1;
-}
-
-.logDetails tbody {
-    border-top: none;
-}
-
-/* .logDetails tr {
-    background: transparent !important;
-} */
-
-.logDetails td, .logMessage td {
-    padding-left: 15px;
-}
-
-.logDetails td.param {
-    min-width: 200px;
-    /*color: var(--blue);*/
-    /* color: #4D4F5C; */
-    font-weight: bold;
-    border-right: 1px solid #F0F0F1;
-}
-
-.logDetails td.value {
-    width: 100%;
-}
-
-.logDetails td.label {
-    vertical-align: middle;
-}
-
-table.logs th {
-    background: #fff;
-}
-
-table.logs tr.item:not(:first-of-type) {
-    margin-top: -4px;
-}
-
-table.logs tr.base {
-    margin-top: -4px;
-}
-
-table.logs tr.base td {
-    height: 39px !important; 
-}
-
-.logs td.actions svg {
-    cursor: pointer;
-}
-
-.logs td.actions svg:hover path {
-    fill: var(--blue);
-}
-
-tr.logInfo > td {
-    padding-top: 10px;
-}
-
-tr.logInfo span.actions {
-    display: none;
-}
-
 td.operation> span {
     display: inline-block;
     width: 90px;
@@ -4217,6 +4067,10 @@ td.operation.Reset > span {
     border-color: var(--gray1);
     box-shadow: 0 0 20px rgba(0,0,0,.05);
     padding: 20px !important;
+}
+
+#logs .daterangepicker {
+    top: 273px !important;
 }
 
 .daterangepicker tbody {
@@ -4367,112 +4221,11 @@ tr.logInfo.open:before {
     border-right: 0;
 }
 
-/* Luis Logs & Filters */
-/* table.logs, table.backups, table.dbops {
-    max-height: calc(100vh - 335px);
-    height: calc(100vh - 335px);
-    max-width: calc(100vw - 430px);
-    display: inline-block;
-    overflow: auto;
-    width: 100%;
-    border: 1px solid #f1f1f1;
-    position: relative;
-} */
+/* Logs & Filters */
 
-table.logs:after {
-    opacity: 0;
-    display: block;
-    transition: opacity .2s ease-in;
-}
-
-table.loading:after {
-    border-radius: 100%;
-    content: " ";
-    position: fixed;
-    bottom: 60px;
-    right: 50px;
-    width: 50px;
-    height: 50px;
-    background: url(img/loader.gif) center center no-repeat rgba(0,0,0,.1);
-    background-size: 30px;
-    opacity: 1;
-    transition: opacity .4s ease-in;
-}
-
-.darkmode table.loading:after {
-    background: url(img/loader.gif) center center no-repeat rgba(0,0,0,.5);
-    background-size: 4vw;
-}
-
-table.logs tbody, table.backups > tbody {
-    overflow: initial;
-    width: initial;
-    min-width: 100%;
-}
-/* 
-table.logs thead, table.backups > thead {
-    display: inline-block;
-    position: sticky;
-    z-index: 1;
-    top: 0;
-    background: #fff;
-    width: 100%;
-} */
-
-tr.logInfo {
-    display: none;
-}
-
-tr.logInfo.open {
-    display: block;
-    width: 100%;;
-}
-
-tr.logInfo span.actions {
-    float: right;
-}
-
-tr.logInfo > td {
-    display: inline-block;
-    width: 100%;
-}
-
-/* table.logs tr {
-    background: #fafafa;
-} */
-
-table.logs tr.base {
-    display: inline-block;
-    min-width: 100%;
-    position: relative;
-}
-
-/* table.logs tr:nth-child(4n), table.logs tr:nth-child(4n) + tr.logInfo {
-    background: #fff;
-} */
-
-table.logs tr.base td {
-    height: 50px;
-}
-
-#log > .daterangepicker {
-    margin-top: 63px;
-    margin-right: 0;
-}
-
-tr.no-results:first-child:last-child {
-    display: table-row;
-}
-
-table.backups tr.no-results td, table.logs tr.no-results td {
+table tr.no-results td {
     padding: 50px 0;
     text-align: center;
-}
-
-
-
-#log .calendar li span {
-    position: relative;
 }
 
 td.hasTooltip {
@@ -4486,7 +4239,7 @@ td.hasTooltip > span {
     position: absolute;
     left: 20px;
     right: 5px;
-    top: 10px;
+    top: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -4503,23 +4256,6 @@ td.hasTooltip.textRight > span {
     white-space: nowrap;
     display: block;
     top: 0;
-}
-
-/* table.logs th.logMessage, table.logs td.logMessage {
-    min-width: calc(100vw - 1350px);
-    width: calc(100vw - 1350px);
-    max-width: calc(100vw - 1350px);
-} 
-
-td.logMessage, th.logMessage {
-    position: initial;
-    width: auto;
-}*/
-
-table.logs .podName {
-    min-width: 90px;
-    width: auto;
-    max-width: 90px;
 }
 
 .options label.active span {
@@ -4589,16 +4325,45 @@ span.closeLog:hover {
     border: 1px solid var(--gray2);
     border-radius: 3px;
     width: 100%;
+    margin: 0;
 }
-.filter.columns .options li {
-    width: 50%;
+
+.filter.columns li.column {
+    width: 33.33%;
     float: left;
     padding: 0 5px;
+}
+
+.filter.columns:not(.filters) li.column {
+    width: 50%;
+}
+
+.filter.columns:not(.filters) ul.options {
+    padding: 20px 10px 15px;
+    width: 340px;
 }
 
 .filter.open .options {
     display: block;
 }
+
+.filter span.title {
+    font-weight: bold;
+    display: block;
+    border-bottom: 1px solid var(--borderColor);
+    width: 100%;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+}
+
+ul.options ul.options {
+    position: initial;
+    padding: 0;
+    border: 0;
+    margin: 0 -5px;
+    width: calc(100% + 10px);
+}
+
 
 .daterangepicker button.cancelBtn {
     float: right;
@@ -4653,7 +4418,7 @@ tr.base:hover td:first-child::before {
     border: 1px solid var(--blue);
     display: inline-block;
     position: absolute;
-    top: 17px;
+    top: 21px;
     left: 10px;
 }
 table.backups td.timestamp, table.backups tr.details > td{
@@ -4675,20 +4440,7 @@ tr.controlData a {
     cursor: pointer;
     color: var(--blue);
     display: block;
-}
-
-tr.base > td:not(.actions):hover {
-    cursor: pointer;
-}
-
-table.backupConfig tr.details.open td:first-of-type {
-    position: relative;
-    padding-top: 0 !important;
-}
-
-table.pgConfig tr.toggle:not(.open) td:first-of-type {
-    display: initial;
-}
+}}
 
 /* Tooltips for table height */
 table.pgConfig th.postgresVersion {
@@ -4830,6 +4582,11 @@ tr.details.pgConfig .title {
     float: right;
     position: relative;
     z-index: 1;
+}
+
+.paramDetails td.hasTooltip > span {
+    line-height: 40px;
+    left: 10px;
 }
 
 .paramDetails .grayscale {
