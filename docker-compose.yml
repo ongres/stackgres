@@ -10,6 +10,8 @@ services:
     - /etc/gshadow:/etc/gshadow:ro
     - /var/run/docker.sock:/var/run/docker.sock 
     - "./:/stackgres"
+    - "${HOME}:/home/"
+    # user: "${UID}:${GID}"
     working_dir: /stackgres
     privileged: true
     environment:
@@ -23,18 +25,19 @@ services:
         E2E_PARALLELISM: 32
         E2E_JOBS: 3
         E2E_EXCLUSIVE_JOBS: 3
-        K8S_VERSION: 1.19.11
+        K8S_VERSION: 1.17.17
         LATEST: "false"
         CI_PROJECT_PATH: "/ongresinc/stackgres/"
         SUFFIX: "-TBD"
         KIND_NAME: kind-docker
         K8S_REUSE: "false"
-        K8S_FROM_DIND: "true" #??
+        # K8S_FROM_DIND: "true"
+        K8S_FROM_DIND: "false"
         E2E_BUILD_IMAGES: "false"
         E2E_WAIT_OPERATOR: "false"
         E2E_PULLED_IMAGES_PATH: "/tmp/pulled-images$SUFFIX"
         KIND_LOCK_PATH: "/tmp/kind-lock$SUFFIX"
-        KIND_CONTAINERD_CACHE_PATH: "/tmp/kind-cache$SUFFIX"
+        # KIND_CONTAINERD_CACHE_PATH: "/tmp/kind-cache$SUFFIX"
         E2E_OPERATOR_REGISTRY: $CI_REGISTRY
         E2E_OPERATOR_REGISTRY_PATH: /ongresinc/stackgres/
         E2E_FORCE_IMAGE_PULL: "true"
