@@ -1,0 +1,44 @@
+version: '3.2'
+services:
+  e2e-tests:
+    image: registry.gitlab.com/ongresinc/stackgres/stackgres/it:14.0
+    container_name: sg-e2e-tests
+    volumes:
+    - /etc/passwd:/etc/passwd:ro 
+    - /etc/group:/etc/group:ro
+    - /etc/shadow:/etc/shadow:ro 
+    - /etc/gshadow:/etc/gshadow:ro
+    - /var/run/docker.sock:/var/run/docker.sock 
+    - "./:/stackgres"
+    working_dir: /stackgres
+    privileged: true
+    environment:
+        SKIP_NATIVE: "false"
+        SKIP_E2E: "false"
+        SKIP_DEPLOY: "false"
+        E2E_SHELL: /bin/sh
+        SHELL_XTRACE: "-x"
+        E2E_DEBUG: "true"
+        E2E_ENV: kind
+        E2E_PARALLELISM: 32
+        E2E_JOBS: 3
+        E2E_EXCLUSIVE_JOBS: 3
+        K8S_VERSION: 1.16.15
+        LATEST: "false"
+        CI_PROJECT_PATH: "/ongresinc/stackgres/"
+        SUFFIX: "-TBD"
+        KIND_NAME: kind-docker
+        K8S_REUSE: "false"
+        K8S_FROM_DIND: "true" #??
+        E2E_BUILD_IMAGES: "false"
+        E2E_WAIT_OPERATOR: "false"
+        E2E_PULLED_IMAGES_PATH: "/tmp/pulled-images$SUFFIX"
+        KIND_LOCK_PATH: "/tmp/kind-lock$SUFFIX"
+        KIND_CONTAINERD_CACHE_PATH: "/tmp/kind-cache$SUFFIX"
+        E2E_OPERATOR_REGISTRY: $CI_REGISTRY
+        E2E_OPERATOR_REGISTRY_PATH: /ongresinc/stackgres/
+        E2E_FORCE_IMAGE_PULL: "true"
+        K8S_USE_INTERNAL_REPOSITORY: "true"
+    entrypoint: |
+      /bin/sh -x stackgres-k8s/e2e/run-all-tests.sh
+    network_mode: "host"
