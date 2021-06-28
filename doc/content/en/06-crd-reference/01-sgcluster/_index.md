@@ -60,7 +60,8 @@ spec:
 
 ### Postgres SSL
 
-By default, stackgres do not support SSL connections. To support SSL connections to Postgres configure this section.
+By default, support for SSL connections to Postgres is disabled, to enable it configure this section. SSL connections will
+ be handled by Envoy using [Postgres filter's SSL termination](https://github.com/envoyproxy/envoy/issues/10942).
 
 | Property                   | Required | Updatable | Type     | Default  | Description |
 |:---------------------------|----------|-----------|:---------|:---------|:------------|
