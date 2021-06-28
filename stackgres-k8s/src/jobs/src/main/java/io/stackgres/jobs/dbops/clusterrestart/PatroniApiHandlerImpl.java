@@ -5,6 +5,8 @@
 
 package io.stackgres.jobs.dbops.clusterrestart;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -15,12 +17,14 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.ext.web.client.WebClient;
 import io.vertx.mutiny.ext.web.codec.BodyCodec;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,11 +44,13 @@ public class PatroniApiHandlerImpl implements PatroniApiHandler {
     this.vertx = vertx;
   }
 
-  private static MemberRole toMemberRole(String role) {
-    if (Objects.equals("leader", role)) {
+  private static @NotNull MemberRole toMemberRole(@NotNull String role) {
+    if (Objects.equals("leader", role) || Objects.equals("master", role)) {
       return MemberRole.LEADER;
-    } else {
+    } else if (Objects.equals("replica", role)) {
       return MemberRole.REPlICA;
+    } else {
+      throw new IllegalArgumentException("Unknown role " + role);
     }
   }
 
@@ -55,6 +61,14 @@ public class PatroniApiHandlerImpl implements PatroniApiHandler {
       return MemberState.STOPPED;
     } else {
       return MemberState.INITIALIZING;
+    }
+  }
+
+  private static Optional<Integer> parsePort(JsonObject memberJson) {
+    try {
+      return Optional.ofNullable(memberJson.getInteger("port"));
+    } catch (Exception e) {
+      return Optional.empty();
     }
   }
 
@@ -86,11 +100,62 @@ public class PatroniApiHandlerImpl implements PatroniApiHandler {
                   .state(toMemberState(member.getString("state")))
                   .apiUrl(member.getString("api_url"))
                   .host(Optional.ofNullable(member.getString("host")))
-                  .port(Optional.ofNullable(member.getInteger("port")))
+                  .port(parsePort(member))
                   .timeline(Optional.ofNullable(member.getInteger("timeline")))
                   .lag(Optional.ofNullable(member.getInteger("lag")))
                   .build())
               .collect(Collectors.toUnmodifiableList());
+        });
+  }
+
+  @Override
+  public Uni<List<PatroniInformation>> getMembersPatroniInformation(String name, String namespace) {
+
+    final Uni<List<ClusterMember>> clusterMembers = getClusterMembers(name, namespace);
+    return clusterMembers.chain(this::getPatroniInformation);
+
+  }
+
+  private Uni<List<PatroniInformation>> getPatroniInformation(List<ClusterMember> members) {
+
+    return Multi.createFrom().iterable(members)
+        .onItem().transformToUniAndConcatenate(this::getPatroniInformation)
+        .collect().asList();
+  }
+
+  private Uni<PatroniInformation> getPatroniInformation(ClusterMember member) {
+    URL apiUrl = member.getApiUrl()
+        .map(url -> {
+          try {
+            return new URL(url);
+          } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+          }
+        })
+        .orElseThrow();
+
+    return client.get(apiUrl.getPort(), apiUrl.getHost(), apiUrl.getPath())
+        .as(BodyCodec.jsonObject())
+        .send()
+        .onItem()
+        .transform(res -> {
+          if (res.statusCode() == 200) {
+            JsonObject body = res.body();
+            JsonObject patroni = body.getJsonObject("patroni");
+            return ImmutablePatroniInformation.builder()
+                .role(toMemberRole(body.getString("role")))
+                .state(toMemberState(body.getString("state")))
+                .serverVersion(body.getInteger("server_version"))
+                .patroniScope(patroni.getString("scope"))
+                .patroniVersion(patroni.getString("version"))
+                .build();
+          } else {
+            LOGGER.error("Failed restart postgres of pod {} with message {}",
+                member.getName(),
+                res.bodyAsString());
+            throw new RuntimeException(res.bodyAsString());
+          }
+
         });
   }
 
@@ -124,4 +189,38 @@ public class PatroniApiHandlerImpl implements PatroniApiHandler {
 
   }
 
+  @Override
+  public Uni<Void> restartPostgres(ClusterMember member) {
+
+    URL apiUrl = member.getApiUrl()
+        .map(url -> {
+          try {
+            return new URL(url);
+          } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+          }
+        })
+        .orElseThrow();
+
+    PatroniApiMetadata patroniApi = apiFinder.findPatroniRestApi(
+        member.getClusterName(),
+        member.getNamespace());
+
+    return client.post(apiUrl.getPort(), apiUrl.getHost(), "/restart")
+        .basicAuthentication(patroniApi.getUsername(), patroniApi.getPassword())
+        .as(BodyCodec.string())
+        .sendJsonObject(new JsonObject())
+        .onItem()
+        .transform(res -> {
+          if (res.statusCode() == 200) {
+            return null;
+          } else {
+            LOGGER.debug("Failed restart, status {}, body {}",
+                res.statusCode(),
+                res.bodyAsString());
+            throw new RuntimeException(res.body());
+          }
+        });
+
+  }
 }

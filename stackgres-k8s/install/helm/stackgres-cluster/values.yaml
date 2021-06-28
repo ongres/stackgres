@@ -8,6 +8,15 @@ cluster:
   restartTimeout: 300
   postgresVersion: '12'
   instances: 1
+  postgres:
+    ssl:
+      enabled: false
+      # certificateSecretKeySelector:
+      #   name:
+      #   key:
+      # privateKeySecretKeySelector:
+      #   name:
+      #   key:
   sgInstanceProfile: size-xs
   postgresServices:
     primary:

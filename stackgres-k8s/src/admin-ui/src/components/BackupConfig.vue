@@ -90,35 +90,55 @@
 						</template>	
 						<template v-for="(conf, index) in config">
 							<template  v-if="(index >= pagination.start) && (index < pagination.end)">
-								<router-link :to="'/configurations/backup/' + $route.params.namespace + '/' + conf.name" v-slot="{ navigate }" custom>
 									<tr class="base">
-										<td @click="navigate" class="hasTooltip">
-											<span>{{ conf.name }}</span>
+										<td class="hasTooltip">
+											<span>
+												<router-link :to="'/configurations/backup/' + $route.params.namespace + '/' + conf.name" class="noColor">
+													{{ conf.name }}
+												</router-link>
+											</span>
 										</td>
-										<td @click="navigate" class="fontZero">
+										<td class="fontZero">
 											<template v-if="(typeof conf.data.spec.baseBackups.retention !== 'undefined')">
-												{{ conf.data.spec.baseBackups.retention }}
+												<router-link :to="'/configurations/backup/' + $route.params.namespace + '/' + conf.name" class="noColor">
+													{{ conf.data.spec.baseBackups.retention }}
+												</router-link>
 											</template>
 										</td>
-										<td @click="navigate" class="fontZero hasTooltip">
+										<td class="fontZero hasTooltip">
 											<template v-if="(typeof conf.data.spec.baseBackups.cronSchedule !== 'undefined')">
-												<span>{{ tzCrontab(conf.data.spec.baseBackups.cronSchedule) | prettyCRON }}</span>
+												<span>
+													<router-link :to="'/configurations/backup/' + $route.params.namespace + '/' + conf.name" class="noColor">
+														{{ tzCrontab(conf.data.spec.baseBackups.cronSchedule) | prettyCRON }}
+													</router-link>
+												</span>
 											</template>
 										</td>
-										<td @click="navigate" class="fontZero">
+										<td class="fontZero">
 											<template v-if="(typeof conf.data.spec.baseBackups.compression !== 'undefined')">
-												{{ conf.data.spec.baseBackups.compression }}
+												<router-link :to="'/configurations/backup/' + $route.params.namespace + '/' + conf.name" class="noColor">
+													{{ conf.data.spec.baseBackups.compression }}
+												</router-link>
 											</template>
 										</td>
-										<td @click="navigate" class="fontZero">
+										<td class="fontZero">
 											<template v-if="( (typeof conf.data.spec.baseBackups.performance !== 'undefined') && (typeof conf.data.spec.baseBackups.performance.uploadDiskConcurrency !== 'undefined') )">
-												{{ conf.data.spec.baseBackups.performance.uploadDiskConcurrency }}
+												<router-link :to="'/configurations/backup/' + $route.params.namespace + '/' + conf.name" class="noColor">
+													{{ conf.data.spec.baseBackups.performance.uploadDiskConcurrency }}
+												</router-link>
 											</template>
 										</td>
-										<td @click="navigate" class="fontZero hasTooltip">
-											<span>{{ conf.data.spec.storage.type }}</span>
+										<td class="fontZero hasTooltip">
+											<span>
+												<router-link :to="'/configurations/backup/' + $route.params.namespace + '/' + conf.name" class="noColor">
+													{{ conf.data.spec.storage.type }}
+												</router-link>
+											</span>
 										</td>
 										<td class="actions">
+											<router-link :to="'/configurations/backup/' + $route.params.namespace + '/' + conf.name" target="_blank" class="newTab">
+												<svg xmlns="http://www.w3.org/2000/svg" width="15.001" height="12.751" viewBox="0 0 15.001 12.751"><g transform="translate(167.001 -31.5) rotate(90)"><path d="M37.875,168.688a.752.752,0,0,1-.53-.219l-5.625-5.626a.75.75,0,0,1,0-1.061l2.813-2.813a.75.75,0,0,1,1.06,1.061l-2.283,2.282,4.566,4.566,4.566-4.566-2.283-2.282a.75.75,0,0,1,1.06-1.061l2.813,2.813a.75.75,0,0,1,0,1.061l-5.625,5.626A.752.752,0,0,1,37.875,168.688Z" transform="translate(0 -1.687)" fill="#00adb5"/><path d="M42.156,155.033l-2.813-2.813a.752.752,0,0,0-1.061,0l-2.813,2.813a.75.75,0,1,0,1.06,1.061l1.533-1.534v5.3a.75.75,0,1,0,1.5,0v-5.3l1.533,1.534a.75.75,0,1,0,1.06-1.061Z" transform="translate(-0.937 0)" fill="#00adb5"/></g></svg>
+											</router-link>
 											<router-link v-if="iCan('patch','sgbackupconfigs',$route.params.namespace)"  :to="'/crd/edit/backupconfig/'+$route.params.namespace+'/'+conf.name" title="Edit Configuration">
 												<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M90,135.721v2.246a.345.345,0,0,0,.345.345h2.246a.691.691,0,0,0,.489-.2l8.042-8.041a.346.346,0,0,0,0-.489l-2.39-2.389a.345.345,0,0,0-.489,0L90.2,135.232A.691.691,0,0,0,90,135.721Zm13.772-8.265a.774.774,0,0,0,0-1.095h0l-1.82-1.82a.774.774,0,0,0-1.095,0h0l-1.175,1.176a.349.349,0,0,0,0,.495l2.421,2.421a.351.351,0,0,0,.5,0Z" transform="translate(-90 -124.313)"/></svg>
 											</router-link>

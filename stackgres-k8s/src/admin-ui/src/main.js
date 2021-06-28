@@ -339,18 +339,9 @@ $(document).ready(function(){
 
 
   $(document).on("click", "#sets .nav-item", function(){
-   /*  if(!$(this).parents().hasClass("clu"))
-        $('.clu.active').removeClass('active');
-    
-    if(!($(this).parent().hasClass("active"))) {
-      $(".set.active:not(.conf)").removeClass("active");
-      $(this).parent("div:not(.conf)").addClass("active");
-    } */
     $("#current-namespace").removeClass('open');
     $('#ns-select').slideUp();
-
-    $(".set:not(.active) > ul.show").removeClass("show");
-    
+    $(".set:not(.active) > ul.show").removeClass("show");    
   });
 
   $(document).on("click", ".set .item", function(){    
@@ -490,19 +481,13 @@ $(document).ready(function(){
 
     // if the target of the click isn't the container nor a descendant of the container
     if (!container.is(e.target) && container.has(e.target).length === 0) {
-      if( $('.filter.open').find('.active').length )
-        $('.filter.open').addClass('filtered');
-      else
-        $('.filter.open').removeClass('filtered');
-      
-        $('.filter.open').removeClass("open");
+      $('.filter.open').removeClass("open");
     }
   });
- 
+
   $(document).on("click",".toggle:not(.date)",function(e){
     e.stopPropagation();
     $(this).parent().toggleClass("open");
-    //$(this).next().toggleClass("open");
   })
 
   $(document).on("click", "#current-namespace , #ns-select a", function(){
@@ -533,12 +518,6 @@ $(document).ready(function(){
 
   $(document).on("click","[data-active]", function(){
     $($(this).data("active")).addClass("active");
-  });
-
-  $(document).on("click",".openConfig", function(){
-    $(this).toggleClass('open');
-    $(this).parents('tr').toggleClass('open');
-    $(this).parents('tr').find('.parameters').toggleClass('open');
   });
 
   $(document).on('click', 'ul.select .selected', function(){

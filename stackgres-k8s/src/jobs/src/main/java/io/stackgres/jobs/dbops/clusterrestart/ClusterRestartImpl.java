@@ -31,15 +31,19 @@ public class ClusterRestartImpl implements ClusterRestart {
 
   private final Watcher<StackGresCluster> clusterWatcher;
 
+  private final PostgresRestart postgresRestart;
+
   @Inject
   public ClusterRestartImpl(PodRestart podRestart,
                             ClusterSwitchoverHandler switchoverHandler,
                             ClusterInstanceManager clusterInstanceManager,
-                            Watcher<StackGresCluster> clusterWatcher) {
+                            Watcher<StackGresCluster> clusterWatcher,
+                            PostgresRestart postgresRestart) {
     this.podRestart = podRestart;
     this.switchoverHandler = switchoverHandler;
     this.clusterInstanceManager = clusterInstanceManager;
     this.clusterWatcher = clusterWatcher;
+    this.postgresRestart = postgresRestart;
   }
 
   @Override
@@ -51,7 +55,27 @@ public class ClusterRestartImpl implements ClusterRestart {
 
       Pod primaryInstance = clusterState.getPrimaryInstance();
 
+      final String primaryInstanceName = primaryInstance.getMetadata().getName();
+
       final String clusterName = clusterState.getClusterName();
+
+      if (clusterState.getRestartedInstances().isEmpty()) {
+        restartChain = restartChain
+            .invoke(() -> LOGGER.info("Restarting primary node postgres of cluster {}",
+                clusterName))
+            .chain(() -> postgresRestart.restartPostgres(primaryInstanceName,
+                clusterName,
+                clusterState.getNamespace()))
+            .onItem().invoke(() -> {
+              LOGGER.info("Postgres of instance {} restarted", primaryInstanceName);
+              em.emit(ImmutableRestartEvent.builder()
+                  .pod(primaryInstance)
+                  .eventType(RestartEventType.POSTGRES_RESTART)
+                  .build());
+            });
+        restartChain = waitForClusterToBeHealthy(clusterState, restartChain);
+      }
+
       if (isReducedImpact(clusterState)
           && hasInstancesNotBeenIncreased(clusterState)) {
 
@@ -116,11 +140,11 @@ public class ClusterRestartImpl implements ClusterRestart {
       if (isPrimaryInstanceRestarted(clusterState, primaryInstance)) {
 
         restartChain = restartChain.onItem()
-            .invoke(() -> LOGGER.info("Restarting pod {}", primaryInstance.getMetadata().getName()))
+            .invoke(() -> LOGGER.info("Restarting pod {}", primaryInstanceName))
             .chain(() -> podRestart.restartPod(primaryInstance))
             .onItem()
             .invoke(() -> {
-              LOGGER.info("Pod {} restarted", primaryInstance.getMetadata().getName());
+              LOGGER.info("Pod {} restarted", primaryInstanceName);
               em.emit(ImmutableRestartEvent.builder()
                   .pod(primaryInstance)
                   .eventType(RestartEventType.POD_RESTART)

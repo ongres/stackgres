@@ -18,7 +18,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 @ApplicationScoped
 public class ClusterFinder implements CustomResourceFinder<StackGresCluster> {
 
-  private KubernetesClientFactory kubernetesClientFactory;
+  private final KubernetesClientFactory kubernetesClientFactory;
 
   @Inject
   public ClusterFinder(KubernetesClientFactory kubernetesClientFactory) {

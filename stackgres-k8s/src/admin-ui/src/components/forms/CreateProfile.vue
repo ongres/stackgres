@@ -225,7 +225,7 @@
 
                             vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> created successfully', 'message','profile');
                             vc.fetchAPI('sginstanceprofile');
-                            router.push('/profiles/'+profile.metadata.namespace+'/'+profile.metadata.name);
+                            router.push('/profiles/'+profile.metadata.namespace);
             
                         })
                         .catch(function (error) {
@@ -238,13 +238,7 @@
                     
                 }
 
-            },
-
-            cancel: function() {
-                const vc = this
-                router.push('/profiles/'+vc.$route.params.namespace);
             }
-
         },
         created: function() {
             

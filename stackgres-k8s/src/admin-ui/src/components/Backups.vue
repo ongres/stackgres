@@ -108,7 +108,7 @@
 						<router-link v-if="isCluster && iCan('create','sgbackups',$route.params.namespace)" :to="'/crd/create/backup/'+$route.params.namespace+'/'+$route.params.name" title="Add New Backup" class="btn addClusterBackup">Add Backup</router-link>
 
 						<div class="filter" :class="(filters.dateStart.length && filters.dateEnd.length) ? 'filtered' : ''">
-							<span class="toggle date">DATE RANGE <input v-model="filters.datePicker" id="datePicker" autocomplete="off"></span>
+							<span class="toggle date">DATE RANGE <input v-model="filters.datePicker" id="datePicker" autocomplete="off" @focus="initDatePicker()" /></span>
 						</div>
 
 						<div class="filter filters">
@@ -220,11 +220,11 @@
 							</template>	
 							<template v-for="(back, index) in backups">
 								<template v-if="(index >= pagination.start) && (index < pagination.end)">
-									<router-link :to="($route.params.hasOwnProperty('name') ? '/cluster' : '') + '/backups/' + $route.params.namespace + ($route.params.hasOwnProperty('name') ? '/' + $route.params.name : '') + '/' + back.data.metadata.name + getActiveFilters()" v-slot="{ navigate }" custom>
-										<template v-if="back.data.status">
-											<tr class="base">
-												<td @click="navigate" class="timestamp hasTooltip" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.process.timing.stored.substr(0,19).replace('T',' ') : ''">
-													<span>
+									<template v-if="back.data.hasOwnProperty('status') && (back.data.status.process.status !== 'Pending')">
+										<tr class="base">
+											<td class="timestamp hasTooltip" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.process.timing.stored.substr(0,19).replace('T',' ') : ''">
+												<span>
+													<router-link :to="($route.params.hasOwnProperty('name') ? '/cluster' : '') + '/backups/' + $route.params.namespace + ($route.params.hasOwnProperty('name') ? '/' + $route.params.name : '') + '/' + back.data.metadata.name" class="noColor">
 														<template v-if="back.data.status.process.status == 'Completed'">
 															<span class='date'>
 																{{ back.data.status.process.timing.stored | formatTimestamp('date') }}
@@ -237,66 +237,94 @@
 															</span>
 															<span class='tzOffset'>{{ showTzOffset() }}</span>
 														</template>
+													</router-link>
+												</span>
+											</td>
+											<td class="managedLifecycle center icon hasTooltip" :class="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle.toString() : 'false'" :data-val="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle : 'false'">
+												<router-link :to="($route.params.hasOwnProperty('name') ? '/cluster' : '') + '/backups/' + $route.params.namespace + ($route.params.hasOwnProperty('name') ? '/' + $route.params.name : '') + '/' + back.data.metadata.name" class="noColor">
+													<span></span>
+												</router-link>
+											</td>
+											<td class="phase center" :class="back.data.status.process.status">
+												<router-link :to="($route.params.hasOwnProperty('name') ? '/cluster' : '') + '/backups/' + $route.params.namespace + ($route.params.hasOwnProperty('name') ? '/' + $route.params.name : '') + '/' + back.data.metadata.name" class="noColor">
+													<span>
+														{{ back.data.status.process.status }}
 													</span>
-												</td>
-												<td @click="navigate" class="managedLifecycle center icon" :class="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle.toString() : 'false'" :data-val="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle : 'false'"></td>
-												<td @click="navigate" class="phase center" :class="back.data.status.process.status">
-													<span>{{ back.data.status.process.status }}</span>
-												</td>
-												<td @click="navigate" class="size hasTooltip" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.backupInformation.size.uncompressed : ''">
+												</router-link>
+											</td>
+											<td class="size hasTooltip" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.backupInformation.size.uncompressed : ''">
+												<router-link :to="($route.params.hasOwnProperty('name') ? '/cluster' : '') + '/backups/' + $route.params.namespace + ($route.params.hasOwnProperty('name') ? '/' + $route.params.name : '') + '/' + back.data.metadata.name" class="noColor">
 													<span>
 														<template v-if="back.data.status.process.status === 'Completed'">
-														{{ back.data.status.backupInformation.size.uncompressed | formatBytes }} ({{ back.data.status.backupInformation.size.compressed | formatBytes }})
+															{{ back.data.status.backupInformation.size.uncompressed | formatBytes }} ({{ back.data.status.backupInformation.size.compressed | formatBytes }})
 														</template>
 													</span>
-												</td>
-												<td @click="navigate" class="postgresVersion" :class="[(back.data.status.process.status === 'Completed') ? 'pg'+(back.data.status.backupInformation.postgresVersion.substr(0,2)) : '']"  v-if="!isCluster" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.backupInformation.postgresVersion : ''">
-													<template v-if="back.data.status.process.status === 'Completed'">
-														{{ back.data.status.backupInformation.postgresVersion | prefix }}
-													</template>											
-												</td>
-												<td @click="navigate" class="name hasTooltip" :data-val="back.data.metadata.name">
-													<span>{{ back.data.metadata.name }}</span>
-												</td>
-												<td @click="navigate" class="clusterName hasTooltip" :class="back.data.spec.sgCluster" v-if="!isCluster" :data-val="back.data.spec.sgCluster">
-													<span>{{ back.data.spec.sgCluster }}</span>
-												</td>
-												<td class="actions">
-													<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/crd/edit/backup/'+$route.params.namespace+'/'+back.data.metadata.name" title="Edit Backup">
-														<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M90,135.721v2.246a.345.345,0,0,0,.345.345h2.246a.691.691,0,0,0,.489-.2l8.042-8.041a.346.346,0,0,0,0-.489l-2.39-2.389a.345.345,0,0,0-.489,0L90.2,135.232A.691.691,0,0,0,90,135.721Zm13.772-8.265a.774.774,0,0,0,0-1.095h0l-1.82-1.82a.774.774,0,0,0-1.095,0h0l-1.175,1.176a.349.349,0,0,0,0,.495l2.421,2.421a.351.351,0,0,0,.5,0Z" transform="translate(-90 -124.313)"/></svg>
+												</router-link>
+											</td>
+											<td class="postgresVersion hasTooltip" :class="[(back.data.status.process.status === 'Completed') ? 'pg'+(back.data.status.backupInformation.postgresVersion.substr(0,2)) : '']"  v-if="!isCluster" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.backupInformation.postgresVersion : ''">
+												<router-link :to="($route.params.hasOwnProperty('name') ? '/cluster' : '') + '/backups/' + $route.params.namespace + ($route.params.hasOwnProperty('name') ? '/' + $route.params.name : '') + '/' + back.data.metadata.name" class="noColor">
+													<span>
+														<template v-if="back.data.status.process.status === 'Completed'">
+															{{ back.data.status.backupInformation.postgresVersion | prefix }}
+														</template>
+													</span>
+												</router-link>
+											</td>
+											<td class="name hasTooltip" :data-val="back.data.metadata.name">
+												<span>
+													<router-link :to="($route.params.hasOwnProperty('name') ? '/cluster' : '') + '/backups/' + $route.params.namespace + ($route.params.hasOwnProperty('name') ? '/' + $route.params.name : '') + '/' + back.data.metadata.name" class="noColor">
+														{{ back.data.metadata.name }}
 													</router-link>
-													<a v-if="iCan('delete','sgbackups',$route.params.namespace)"  v-on:click="deleteCRD('sgbackup',$route.params.namespace, back.data.metadata.name)" class="delete" title="Delete Backup">
-														<svg xmlns="http://www.w3.org/2000/svg" width="13.5" height="15" viewBox="0 0 13.5 15"><g transform="translate(-61 -90)"><path d="M73.765,92.7H71.513a.371.371,0,0,1-.355-.362v-.247A2.086,2.086,0,0,0,69.086,90H66.413a2.086,2.086,0,0,0-2.072,2.094V92.4a.367.367,0,0,1-.343.3H61.735a.743.743,0,0,0,0,1.486h.229a.375.375,0,0,1,.374.367v8.35A2.085,2.085,0,0,0,64.408,105h6.684a2.086,2.086,0,0,0,2.072-2.095V94.529a.372.372,0,0,1,.368-.34h.233a.743.743,0,0,0,0-1.486Zm-7.954-.608a.609.609,0,0,1,.608-.607h2.667a.6.6,0,0,1,.6.6v.243a.373.373,0,0,1-.357.371H66.168a.373.373,0,0,1-.357-.371Zm5.882,10.811a.61.61,0,0,1-.608.608h-6.67a.608.608,0,0,1-.608-.608V94.564a.375.375,0,0,1,.375-.375h7.136a.375.375,0,0,1,.375.375Z" transform="translate(0)"/><path d="M68.016,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,68.016,98.108Z" transform="translate(-1.693 -3.214)"/><path d="M71.984,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,71.984,98.108Z" transform="translate(-2.807 -3.214)"/></g></svg>
-													</a>
-												</td>
-											</tr>
-										</template>
-										<template v-else>
-											<tr>
-												<td @click="navigate" class="timestamp"></td>
-												<td @click="navigate" class="managedLifecycle center icon" :class="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle.toString() : 'false'" :data-val="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle : 'false'"></td>
-												<td @click="navigate" class="phase center Pending">
-													<span>Pending</span>
-												</td>
-												<td @click="navigate" class="size"></td>
-												<td @click="navigate" class="postgresVersion"></td>
-												<td @click="navigate" class="name hasTooltip">
-													<span>{{ back.name }}</span>
-												</td>
-												<td @click="navigate" class="clusterName hasTooltip stackgres">
-													<span>{{ back.data.spec.sgCluster }}</span>
-												</td>
-												<td class="actions">
-													<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)" :to="'/crd/edit/backup/'+$route.params.namespace+'/'+back.data.metadata.name" title="Edit Backup">
-														<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M90,135.721v2.246a.345.345,0,0,0,.345.345h2.246a.691.691,0,0,0,.489-.2l8.042-8.041a.346.346,0,0,0,0-.489l-2.39-2.389a.345.345,0,0,0-.489,0L90.2,135.232A.691.691,0,0,0,90,135.721Zm13.772-8.265a.774.774,0,0,0,0-1.095h0l-1.82-1.82a.774.774,0,0,0-1.095,0h0l-1.175,1.176a.349.349,0,0,0,0,.495l2.421,2.421a.351.351,0,0,0,.5,0Z" transform="translate(-90 -124.313)"/></svg>
+												</span>
+											</td>
+											<td class="clusterName hasTooltip" :class="back.data.spec.sgCluster" v-if="!isCluster" :data-val="back.data.spec.sgCluster">
+												<span>
+													<router-link :to="($route.params.hasOwnProperty('name') ? '/cluster' : '') + '/backups/' + $route.params.namespace + ($route.params.hasOwnProperty('name') ? '/' + $route.params.name : '') + '/' + back.data.metadata.name" class="noColor">
+														{{ back.data.spec.sgCluster }}
 													</router-link>
-													<a v-if="iCan('delete','sgbackups',$route.params.namespace)" v-on:click="deleteCRD('sgbackup',$route.params.namespace, back.data.metadata.name)" class="delete" title="Delete Backup">
-														<svg xmlns="http://www.w3.org/2000/svg" width="13.5" height="15" viewBox="0 0 13.5 15"><g transform="translate(-61 -90)"><path d="M73.765,92.7H71.513a.371.371,0,0,1-.355-.362v-.247A2.086,2.086,0,0,0,69.086,90H66.413a2.086,2.086,0,0,0-2.072,2.094V92.4a.367.367,0,0,1-.343.3H61.735a.743.743,0,0,0,0,1.486h.229a.375.375,0,0,1,.374.367v8.35A2.085,2.085,0,0,0,64.408,105h6.684a2.086,2.086,0,0,0,2.072-2.095V94.529a.372.372,0,0,1,.368-.34h.233a.743.743,0,0,0,0-1.486Zm-7.954-.608a.609.609,0,0,1,.608-.607h2.667a.6.6,0,0,1,.6.6v.243a.373.373,0,0,1-.357.371H66.168a.373.373,0,0,1-.357-.371Zm5.882,10.811a.61.61,0,0,1-.608.608h-6.67a.608.608,0,0,1-.608-.608V94.564a.375.375,0,0,1,.375-.375h7.136a.375.375,0,0,1,.375.375Z" transform="translate(0)"/><path d="M68.016,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,68.016,98.108Z" transform="translate(-1.693 -3.214)"/><path d="M71.984,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,71.984,98.108Z" transform="translate(-2.807 -3.214)"/></g></svg>
-													</a>
-												</td>
-											</tr>
-										</template>
-									</router-link>
+												</span>
+											</td>
+											<td class="actions">
+												<router-link :to="($route.params.hasOwnProperty('name') ? '/cluster' : '') + '/backups/' + $route.params.namespace + ($route.params.hasOwnProperty('name') ? '/' + $route.params.name : '') + '/' + back.data.metadata.name" target="_blank" class="newTab">
+													<svg xmlns="http://www.w3.org/2000/svg" width="15.001" height="12.751" viewBox="0 0 15.001 12.751"><g transform="translate(167.001 -31.5) rotate(90)"><path d="M37.875,168.688a.752.752,0,0,1-.53-.219l-5.625-5.626a.75.75,0,0,1,0-1.061l2.813-2.813a.75.75,0,0,1,1.06,1.061l-2.283,2.282,4.566,4.566,4.566-4.566-2.283-2.282a.75.75,0,0,1,1.06-1.061l2.813,2.813a.75.75,0,0,1,0,1.061l-5.625,5.626A.752.752,0,0,1,37.875,168.688Z" transform="translate(0 -1.687)" fill="#00adb5"/><path d="M42.156,155.033l-2.813-2.813a.752.752,0,0,0-1.061,0l-2.813,2.813a.75.75,0,1,0,1.06,1.061l1.533-1.534v5.3a.75.75,0,1,0,1.5,0v-5.3l1.533,1.534a.75.75,0,1,0,1.06-1.061Z" transform="translate(-0.937 0)" fill="#00adb5"/></g></svg>
+												</router-link>
+												<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/crd/edit/backup/'+$route.params.namespace+'/'+back.data.metadata.name" title="Edit Backup">
+													<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M90,135.721v2.246a.345.345,0,0,0,.345.345h2.246a.691.691,0,0,0,.489-.2l8.042-8.041a.346.346,0,0,0,0-.489l-2.39-2.389a.345.345,0,0,0-.489,0L90.2,135.232A.691.691,0,0,0,90,135.721Zm13.772-8.265a.774.774,0,0,0,0-1.095h0l-1.82-1.82a.774.774,0,0,0-1.095,0h0l-1.175,1.176a.349.349,0,0,0,0,.495l2.421,2.421a.351.351,0,0,0,.5,0Z" transform="translate(-90 -124.313)"/></svg>
+												</router-link>
+												<a v-if="iCan('delete','sgbackups',$route.params.namespace)"  v-on:click="deleteCRD('sgbackup',$route.params.namespace, back.data.metadata.name)" class="delete" title="Delete Backup">
+													<svg xmlns="http://www.w3.org/2000/svg" width="13.5" height="15" viewBox="0 0 13.5 15"><g transform="translate(-61 -90)"><path d="M73.765,92.7H71.513a.371.371,0,0,1-.355-.362v-.247A2.086,2.086,0,0,0,69.086,90H66.413a2.086,2.086,0,0,0-2.072,2.094V92.4a.367.367,0,0,1-.343.3H61.735a.743.743,0,0,0,0,1.486h.229a.375.375,0,0,1,.374.367v8.35A2.085,2.085,0,0,0,64.408,105h6.684a2.086,2.086,0,0,0,2.072-2.095V94.529a.372.372,0,0,1,.368-.34h.233a.743.743,0,0,0,0-1.486Zm-7.954-.608a.609.609,0,0,1,.608-.607h2.667a.6.6,0,0,1,.6.6v.243a.373.373,0,0,1-.357.371H66.168a.373.373,0,0,1-.357-.371Zm5.882,10.811a.61.61,0,0,1-.608.608h-6.67a.608.608,0,0,1-.608-.608V94.564a.375.375,0,0,1,.375-.375h7.136a.375.375,0,0,1,.375.375Z" transform="translate(0)"/><path d="M68.016,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,68.016,98.108Z" transform="translate(-1.693 -3.214)"/><path d="M71.984,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,71.984,98.108Z" transform="translate(-2.807 -3.214)"/></g></svg>
+												</a>
+											</td>
+										</tr>
+									</template>
+									<template v-else>
+										<tr class="base pending">
+											<td class="timestamp"></td>
+											<td class="managedLifecycle center icon" :class="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle.toString() : 'false'" :data-val="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle : 'false'"></td>
+											<td class="phase center Pending">
+												<span>Pending</span>
+											</td>
+											<td class="size"></td>
+											<td class="postgresVersion" v-if="!isCluster"></td>
+											<td class="name hasTooltip">
+												<span>{{ back.name }}</span>
+											</td>
+											<td class="clusterName hasTooltip stackgres" v-if="!isCluster">
+												<span>{{ back.data.spec.sgCluster }}</span>
+											</td>
+											<td class="actions">
+												<router-link :to="($route.params.hasOwnProperty('name') ? '/cluster' : '') + '/backups/' + $route.params.namespace + ($route.params.hasOwnProperty('name') ? '/' + $route.params.name : '') + '/' + back.data.metadata.name" target="_blank" class="newTab">
+													<svg xmlns="http://www.w3.org/2000/svg" width="15.001" height="12.751" viewBox="0 0 15.001 12.751"><g transform="translate(167.001 -31.5) rotate(90)"><path d="M37.875,168.688a.752.752,0,0,1-.53-.219l-5.625-5.626a.75.75,0,0,1,0-1.061l2.813-2.813a.75.75,0,0,1,1.06,1.061l-2.283,2.282,4.566,4.566,4.566-4.566-2.283-2.282a.75.75,0,0,1,1.06-1.061l2.813,2.813a.75.75,0,0,1,0,1.061l-5.625,5.626A.752.752,0,0,1,37.875,168.688Z" transform="translate(0 -1.687)" fill="#00adb5"/><path d="M42.156,155.033l-2.813-2.813a.752.752,0,0,0-1.061,0l-2.813,2.813a.75.75,0,1,0,1.06,1.061l1.533-1.534v5.3a.75.75,0,1,0,1.5,0v-5.3l1.533,1.534a.75.75,0,1,0,1.06-1.061Z" transform="translate(-0.937 0)" fill="#00adb5"/></g></svg>
+												</router-link>
+												<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)" :to="'/crd/edit/backup/'+$route.params.namespace+'/'+back.data.metadata.name" title="Edit Backup">
+													<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M90,135.721v2.246a.345.345,0,0,0,.345.345h2.246a.691.691,0,0,0,.489-.2l8.042-8.041a.346.346,0,0,0,0-.489l-2.39-2.389a.345.345,0,0,0-.489,0L90.2,135.232A.691.691,0,0,0,90,135.721Zm13.772-8.265a.774.774,0,0,0,0-1.095h0l-1.82-1.82a.774.774,0,0,0-1.095,0h0l-1.175,1.176a.349.349,0,0,0,0,.495l2.421,2.421a.351.351,0,0,0,.5,0Z" transform="translate(-90 -124.313)"/></svg>
+												</router-link>
+												<a v-if="iCan('delete','sgbackups',$route.params.namespace)" v-on:click="deleteCRD('sgbackup',$route.params.namespace, back.data.metadata.name)" class="delete" title="Delete Backup">
+													<svg xmlns="http://www.w3.org/2000/svg" width="13.5" height="15" viewBox="0 0 13.5 15"><g transform="translate(-61 -90)"><path d="M73.765,92.7H71.513a.371.371,0,0,1-.355-.362v-.247A2.086,2.086,0,0,0,69.086,90H66.413a2.086,2.086,0,0,0-2.072,2.094V92.4a.367.367,0,0,1-.343.3H61.735a.743.743,0,0,0,0,1.486h.229a.375.375,0,0,1,.374.367v8.35A2.085,2.085,0,0,0,64.408,105h6.684a2.086,2.086,0,0,0,2.072-2.095V94.529a.372.372,0,0,1,.368-.34h.233a.743.743,0,0,0,0-1.486Zm-7.954-.608a.609.609,0,0,1,.608-.607h2.667a.6.6,0,0,1,.6.6v.243a.373.373,0,0,1-.357.371H66.168a.373.373,0,0,1-.357-.371Zm5.882,10.811a.61.61,0,0,1-.608.608h-6.67a.608.608,0,0,1-.608-.608V94.564a.375.375,0,0,1,.375-.375h7.136a.375.375,0,0,1,.375.375Z" transform="translate(0)"/><path d="M68.016,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,68.016,98.108Z" transform="translate(-1.693 -3.214)"/><path d="M71.984,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,71.984,98.108Z" transform="translate(-2.807 -3.214)"/></g></svg>
+												</a>
+											</td>
+										</tr>
+									</template>
 								</template>
 							</template>
 						</tbody>
@@ -866,6 +894,7 @@
 		data: function() {
 
 			return {
+				datePickerLoaded: false,
 				currentSort: {
 					param: 'data.status.process.timing.stored',
 					type: 'timestamp'
@@ -1038,6 +1067,74 @@
 				})
 
 				return queryString
+			},
+
+			clearDatePicker() {
+				const vc = this;
+
+				vc.filters.datePicker = '';
+				vc.filters.dateStart = '';
+				vc.filters.dateEnd = '';
+				vc.activeFilters.datePicker = '';
+				router.push(vc.$route.path + vc.getActiveFilters())
+
+				$('.daterangepicker td.deactivate').removeClass('deactivate')
+				$('#datePicker').focus()
+				$('.daterangepicker td.active').removeClass('active')
+				$('.daterangepicker td.in-range').removeClass('in-range')
+				$('#datePicker').parent().removeClass('open');
+			},
+
+			initDatePicker() {
+				const vc = this;
+					
+				if(!vc.datePickerLoaded) {
+						
+					$('#datePicker').daterangepicker({
+						"autoApply": true,
+						"timePicker": true,
+						"timePicker24Hour": true,
+						"timePickerSeconds": true,
+						"opens": "left",
+						locale: {
+							cancelLabel: "Clear"
+						}
+					}, function(start, end, label) {
+						vc.filters.dateStart = start.format('YYYY-MM-DD HH:mm:ss');
+						vc.filters.dateEnd = end.format('YYYY-MM-DD HH:mm:ss');
+						vc.filters.datePicker = vc.filters.dateStart+' / '+vc.filters.dateEnd;
+						vc.filterBackups('datePicker');
+					});
+				
+			
+					$('#datePicker').on('show.daterangepicker', function(ev, picker) {
+
+						if(!vc.filters.datePicker.length) {
+							$('.daterangepicker td.active').addClass('deactivate')
+							$('.daterangepicker td.in-range').removeClass('in-range')
+						}
+
+						$('#datePicker').parent().addClass('open');
+					});
+
+					$('#datePicker').on('hide.daterangepicker', function(ev, picker) {
+						$('#datePicker').parent().removeClass('open');
+
+						if(vc.filters.datePicker.length)
+							$('.daterangepicker td.deactivate').removeClass('deactivate')
+					});
+
+					$('#datePicker').on('cancel.daterangepicker', function(ev, picker) {
+						vc.clearDatePicker();
+					});
+
+					$('#datePicker').on('apply.daterangepicker', function(ev, picker) {
+						$('#datePicker').focus()
+						$('#datePicker').parent().removeClass('open');
+					});
+
+					vc.datePickerLoaded = true;
+				}
 			}
 		},
 
@@ -1070,72 +1167,7 @@
 				})
 			}
 
-			function clearDatePicker() {
-				vc.filters.datePicker = '';
-				vc.filters.dateStart = '';
-				vc.filters.dateEnd = '';
-				vc.activeFilters.datePicker = '';
-				router.push(vc.$route.path + vc.getActiveFilters())
-
-				$('.daterangepicker td.deactivate').removeClass('deactivate')
-				$('#datePicker').focus()
-				$('.daterangepicker td.active').removeClass('active')
-				$('.daterangepicker td.in-range').removeClass('in-range')
-				$('#datePicker').parent().removeClass('open');
-			}
-			
 			$(document).ready(function(){
-
-				$(document).on('focus', '#datePicker', function() {
-
-                    if(!vc.filters.datePicker.length) {
-						$('.daterangepicker').remove()
-
-						$('#datePicker').daterangepicker({
-							"autoApply": true,
-							"timePicker": true,
-							"timePicker24Hour": true,
-							"timePickerSeconds": true,
-							"opens": "left",
-							locale: {
-								cancelLabel: "Clear"
-							}
-						}, function(start, end, label) {
-							vc.filters.dateStart = start.format('YYYY-MM-DD HH:mm:ss');
-							vc.filters.dateEnd = end.format('YYYY-MM-DD HH:mm:ss');
-							vc.filters.datePicker = vc.filters.dateStart+' / '+vc.filters.dateEnd;
-							vc.filterBackups('datePicker');
-						});
-					
-				
-						$('#datePicker').on('show.daterangepicker', function(ev, picker) {
-							
-							if(!vc.filters.datePicker.length) {
-								$('.daterangepicker td.active').addClass('deactivate')
-								$('.daterangepicker td.in-range').removeClass('in-range')
-							}
-
-							$('#datePicker').parent().addClass('open');
-						});
-
-						$('#datePicker').on('hide.daterangepicker', function(ev, picker) {
-							$('#datePicker').parent().removeClass('open');
-
-							if(vc.filters.datePicker.length)
-								$('.daterangepicker td.deactivate').removeClass('deactivate')
-						});
-
-						$('#datePicker').on('cancel.daterangepicker', function(ev, picker) {
-							clearDatePicker();
-						});
-
-						$('#datePicker').on('apply.daterangepicker', function(ev, picker) {
-							$('#datePicker').focus()
-							$('#datePicker').parent().removeClass('open');
-						});
-					}
-				})
-				
 
 				$(document).on('change', '.filter select', function () {
 					if($(this).val().length)
@@ -1185,8 +1217,8 @@
 	}
 
 	th.actions, td.actions {
-        width: 70px !important;
-        min-width: 70px;
-        max-width: 70px;
+        width: 95px !important;
+        min-width: 95px;
+        max-width: 95px;
     }
 </style>

@@ -132,13 +132,15 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
 
   @Override
   public @NotNull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
-    return Stream.of(
+    return Seq.<VolumePair>of(
         ImmutableVolumePair.builder()
             .volume(buildVolume(context))
             .source(buildSource(context))
-            .build()
-    );
+            .build())
+        .append(buildExtraVolumes(context));
   }
+
+  protected abstract Stream<ImmutableVolumePair> buildExtraVolumes(StackGresClusterContext context);
 
   public @NotNull Volume buildVolume(StackGresClusterContext context) {
     final String clusterName = context.getSource().getMetadata().getName();
@@ -158,12 +160,7 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
         .map(StackGresClusterSpec::getPod)
         .map(StackGresClusterPod::getDisableConnectionPooling)
         .orElse(false);
-    final String envoyConfPath;
-    if (disablePgBouncer) {
-      envoyConfPath = "/envoy/envoy_nopgbouncer.yaml";
-    } else {
-      envoyConfPath = "/envoy/default_envoy.yaml";
-    }
+    final String envoyConfPath = getEnvoyConfigPath(stackGresCluster, disablePgBouncer);
 
     YAMLMapper yamlMapper = yamlMapperProvider.yamlMapper();
     final ObjectNode envoyConfig;
@@ -221,6 +218,9 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
         .build();
 
   }
+
+  protected abstract String getEnvoyConfigPath(final StackGresCluster stackGresCluster,
+      boolean disablePgBouncer);
 
   public abstract List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context);
 

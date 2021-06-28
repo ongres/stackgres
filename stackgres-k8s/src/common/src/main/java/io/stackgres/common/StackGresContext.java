@@ -22,10 +22,11 @@ public interface StackGresContext {
   String ROLE_KEY = "role";
   String PRIMARY_ROLE = "master";
   String REPLICA_ROLE = "replica";
-  String PROMOTE_ROLE = "promote";
-  String DEMOTE_ROLE = "demote";
+  String PROMOTED_ROLE = "promoted";
+  String DEMOTED_ROLE = "demoted";
   String UNINITIALIZED_ROLE = "uninitialized";
   String STANDBY_LEADER_ROLE = "standby_leader";
+  String SYNC_STANDBY_ROLE = "sync_standby";
   String REST_APIUSER_KEY = "apiUsername";
   String REST_K8SUSER_KEY = "k8sUsername";
   String REST_PASSWORD_KEY = "password";

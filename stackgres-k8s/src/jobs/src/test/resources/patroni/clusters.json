@@ -4,8 +4,8 @@
       "name": "distributed-logs-0",
       "role": "leader",
       "state": "running",
-      "api_url": "http://192.168.56.182:8008/patroni",
-      "host": "192.168.56.182",
+      "api_url": "http://127.0.0.1:8008/patroni",
+      "host": "127.0.0.1",
       "port": 7433,
       "timeline": 10
     },
@@ -13,8 +13,8 @@
       "name": "distributed-logs-1",
       "role": "replica",
       "state": "running",
-      "api_url": "http://192.168.56.187:8008/patroni",
-      "host": "192.168.56.187",
+      "api_url": "http://127.0.0.1:8008/patroni",
+      "host": "127.0.0.1",
       "port": 7433,
       "timeline": 10,
       "lag": 0
@@ -23,8 +23,8 @@
       "name": "distributed-logs-2",
       "role": "replica",
       "state": "running",
-      "api_url": "http://192.168.56.183:8008/patroni",
-      "host": "192.168.56.183",
+      "api_url": "http://127.0.0.1:8008/patroni",
+      "host": "127.0.0.1",
       "port": 7433,
       "timeline": 10,
       "lag": 0

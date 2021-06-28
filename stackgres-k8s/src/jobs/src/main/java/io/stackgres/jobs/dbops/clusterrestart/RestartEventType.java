@@ -9,5 +9,6 @@ public enum RestartEventType {
 
   POD_CREATED,
   POD_RESTART,
-  SWITCHOVER;
+  SWITCHOVER,
+  POSTGRES_RESTART;
 }
