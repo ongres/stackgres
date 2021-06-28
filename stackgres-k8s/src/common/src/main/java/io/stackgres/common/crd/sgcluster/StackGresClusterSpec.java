@@ -76,6 +76,10 @@ public class StackGresClusterSpec implements KubernetesResource {
   @Valid
   private StackGresClusterSpecMetadata metadata;
 
+  @JsonProperty("postgres")
+  @Valid
+  private StackGresClusterPostgres postgres;
+
   public int getInstances() {
     return instances;
   }
@@ -100,6 +104,22 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.configuration = configuration;
   }
 
+  public String getResourceProfile() {
+    return resourceProfile;
+  }
+
+  public void setResourceProfile(String resourceProfile) {
+    this.resourceProfile = resourceProfile;
+  }
+
+  public StackGresClusterInitData getInitData() {
+    return initData;
+  }
+
+  public void setInitData(StackGresClusterInitData initData) {
+    this.initData = initData;
+  }
+
   public StackGresClusterPod getPod() {
     return pod;
   }
@@ -108,12 +128,20 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.pod = pod;
   }
 
-  public String getResourceProfile() {
-    return resourceProfile;
+  public StackGresClusterDistributedLogs getDistributedLogs() {
+    return distributedLogs;
   }
 
-  public void setResourceProfile(String resourceProfile) {
-    this.resourceProfile = resourceProfile;
+  public void setDistributedLogs(StackGresClusterDistributedLogs distributedLogs) {
+    this.distributedLogs = distributedLogs;
+  }
+
+  public List<StackGresClusterExtension> getPostgresExtensions() {
+    return postgresExtensions;
+  }
+
+  public void setPostgresExtensions(List<StackGresClusterExtension> postgresExtensions) {
+    this.postgresExtensions = postgresExtensions;
   }
 
   public Boolean getPrometheusAutobind() {
@@ -132,22 +160,6 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.nonProduction = nonProduction;
   }
 
-  public StackGresClusterInitData getInitData() {
-    return initData;
-  }
-
-  public void setInitData(StackGresClusterInitData initData) {
-    this.initData = initData;
-  }
-
-  public StackGresClusterDistributedLogs getDistributedLogs() {
-    return distributedLogs;
-  }
-
-  public void setDistributedLogs(StackGresClusterDistributedLogs distributedLogs) {
-    this.distributedLogs = distributedLogs;
-  }
-
   public StackGresClusterPostgresServices getPostgresServices() {
     return postgresServices;
   }
@@ -164,12 +176,19 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.metadata = metadata;
   }
 
-  public List<StackGresClusterExtension> getPostgresExtensions() {
-    return postgresExtensions;
+  public StackGresClusterPostgres getPostgres() {
+    return postgres;
   }
 
-  public void setPostgresExtensions(List<StackGresClusterExtension> postgresExtensions) {
-    this.postgresExtensions = postgresExtensions;
+  public void setPostgres(StackGresClusterPostgres postgres) {
+    this.postgres = postgres;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(configuration, distributedLogs, initData, instances, metadata,
+        nonProduction, pod, postgresExtensions, postgresServices, postgresVersion,
+        prometheusAutobind, resourceProfile, postgres);
   }
 
   @Override
@@ -190,14 +209,8 @@ public class StackGresClusterSpec implements KubernetesResource {
         && Objects.equals(postgresServices, other.postgresServices)
         && Objects.equals(postgresVersion, other.postgresVersion)
         && Objects.equals(prometheusAutobind, other.prometheusAutobind)
-        && Objects.equals(resourceProfile, other.resourceProfile);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(configuration, distributedLogs, initData, instances, metadata,
-        nonProduction, pod, postgresExtensions, postgresServices, postgresVersion,
-        prometheusAutobind, resourceProfile);
+        && Objects.equals(resourceProfile, other.resourceProfile)
+        && Objects.equals(postgres, other.postgres);
   }
 
   @Override

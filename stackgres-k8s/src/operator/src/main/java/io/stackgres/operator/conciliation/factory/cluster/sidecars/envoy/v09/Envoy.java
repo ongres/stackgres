@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.factory.cluster.sidecars.envoy.v09;
 import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_LOCAL_OVERRIDE;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -18,8 +19,10 @@ import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
+import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
@@ -41,6 +44,22 @@ public class Envoy extends AbstractEnvoy {
                      VolumeMountsProvider<ContainerContext> containerLocalOverrideMounts) {
     super(yamlMapperProvider, labelFactory);
     this.containerLocalOverrideMounts = containerLocalOverrideMounts;
+  }
+
+  protected Stream<ImmutableVolumePair> buildExtraVolumes(StackGresClusterContext context) {
+    return Stream.of();
+  }
+
+  @Override
+  protected String getEnvoyConfigPath(final StackGresCluster stackGresCluster,
+      boolean disablePgBouncer) {
+    final String envoyConfPath;
+    if (disablePgBouncer) {
+      envoyConfPath = "/envoy/envoy_nopgbouncer.yaml";
+    } else {
+      envoyConfPath = "/envoy/default_envoy.yaml";
+    }
+    return envoyConfPath;
   }
 
   @Override

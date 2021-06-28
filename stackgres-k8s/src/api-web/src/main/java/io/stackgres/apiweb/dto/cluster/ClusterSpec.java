@@ -24,6 +24,9 @@ public class ClusterSpec {
   @JsonProperty("postgresVersion")
   private String postgresVersion;
 
+  @JsonProperty("postgres")
+  private ClusterPostgres postgres;
+
   @JsonProperty("configurations")
   private ClusterConfiguration configurations;
 
@@ -68,6 +71,14 @@ public class ClusterSpec {
 
   public void setPostgresVersion(String postgresVersion) {
     this.postgresVersion = postgresVersion;
+  }
+
+  public ClusterPostgres getPostgres() {
+    return postgres;
+  }
+
+  public void setPostgres(ClusterPostgres postgres) {
+    this.postgres = postgres;
   }
 
   public ClusterConfiguration getConfigurations() {

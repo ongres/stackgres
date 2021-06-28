@@ -24,6 +24,7 @@ ___
 |:-------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:-------------------------------------------------------------------|
 | postgresVersion                                                                            | ✓        | ✓         | string   |                                     | {{< crd-field-description SGCluster.spec.postgresVersion >}}       |
 | instances                                                                                  | ✓        | ✓         | integer  |                                     | {{< crd-field-description SGCluster.spec.instances >}}             |
+| [postgres](#postgres)                                                                      |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.postgres >}}              |
 | [sgInstanceProfile]({{% relref "/06-crd-reference/02-sginstanceprofile" %}})               |          | ✓         | string   | will be generated                   | {{< crd-field-description SGCluster.spec.sgInstanceProfile >}}     |
 | [metadata](#metadata)                                                                      |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.metadata >}}              |
 | [postgresServices](#postgres-services)                                                     |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.postgresServices >}}      |
@@ -50,6 +51,56 @@ spec:
       size: '5Gi'
   sgInstanceProfile: 'size-xs'
 ```
+
+## Postgres
+
+| Property                   | Required | Updatable | Type     | Default  | Description |
+|:---------------------------|----------|-----------|:---------|:---------|:------------|
+| [ssl](#postgres-ssl)       |          | ✓         | object   |          | {{< crd-field-description SGCluster.spec.postgres.ssl >}} |
+
+### Postgres SSL
+
+By default, support for SSL connections to Postgres is disabled, to enable it configure this section. SSL connections will
+ be handled by Envoy using [Postgres filter's SSL termination](https://github.com/envoyproxy/envoy/issues/10942).
+
+| Property                   | Required | Updatable | Type     | Default  | Description |
+|:---------------------------|----------|-----------|:---------|:---------|:------------|
+| enabled                    |          |           | string   | false    | {{< crd-field-description SGCluster.spec.postgres.ssl.enabled >}} |
+| [certificateSecretKeySelector](#ssl-certificate-secret) |          |           | object   |          | {{< crd-field-description SGCluster.spec.postgres.ssl.certificateSecretKeySelector >}} |
+| [privateKeySecretKeySelector](#ssl-private-key-secret)  |          |           | object   |          | {{< crd-field-description SGCluster.spec.postgres.ssl.privateKeySecretKeySelector >}} |
+
+Example:
+
+```yaml
+apiVersion: stackgres.io/v1
+kind: SGCluster
+metadata:
+  name: stackgres
+spec:
+  postgres:
+    ssl:
+      enabled: true
+      certificateSecretKeySelector:
+        name: stackgres-secrets
+        key: cert
+      secretKeyRef:
+        name: stackgres-secrets
+        key: key
+```
+
+#### SSL Certificate Secret
+
+| Property  | Required | Updatable | Type     | Default  | Description |
+|:----------|----------|-----------|:---------|:---------|:------------|
+| name      | ✓        | ✓         | string   |          | {{< crd-field-description SGCluster.spec.postgres.ssl.certificateSecretKeySelector.name >}} |
+| key       | ✓        | ✓         | string   |          | {{< crd-field-description SGCluster.spec.postgres.ssl.certificateSecretKeySelector.key >}} |
+
+#### SSL Private Key Secret
+
+| Property  | Required | Updatable | Type     | Default  | Description |
+|:----------|----------|-----------|:---------|:---------|:------------|
+| name      | ✓        | ✓         | string   |          | {{< crd-field-description SGCluster.spec.postgres.ssl.privateKeySecretKeySelector.name >}} |
+| key       | ✓        | ✓         | string   |          | {{< crd-field-description SGCluster.spec.postgres.ssl.privateKeySecretKeySelector.key >}} |
 
 ### Metadata
 
