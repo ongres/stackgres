@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.crd.NodeAffinity;
 import io.stackgres.common.crd.Toleration;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
@@ -30,12 +31,19 @@ public class StackGresDistributedLogsPodScheduling {
   @JsonProperty("nodeSelector")
   private Map<String, String> nodeSelector;
 
+  @JsonProperty("nodeAffinity")
+  @Valid
+  private NodeAffinity nodeAffinity;
+
   @JsonProperty("tolerations")
   @Valid
   private List<Toleration> tolerations;
 
   @ReferencedField("nodeSelector")
   interface NodeSelector extends FieldReference { }
+
+  @ReferencedField("nodeAffinity")
+  interface NodeAffinityField extends FieldReference { }
 
   @ReferencedField("tolerations")
   interface TolerationField extends FieldReference { }
@@ -53,6 +61,14 @@ public class StackGresDistributedLogsPodScheduling {
 
   public void setNodeSelector(Map<String, String> nodeSelector) {
     this.nodeSelector = nodeSelector;
+  }
+
+  public NodeAffinity getNodeAffinity() {
+    return nodeAffinity;
+  }
+
+  public void setNodeAffinity(NodeAffinity nodeAffinity) {
+    this.nodeAffinity = nodeAffinity;
   }
 
   public List<Toleration> getTolerations() {
@@ -73,18 +89,20 @@ public class StackGresDistributedLogsPodScheduling {
     }
     StackGresDistributedLogsPodScheduling other = (StackGresDistributedLogsPodScheduling) obj;
     return Objects.equals(nodeSelector, other.nodeSelector)
+        && Objects.equals(nodeAffinity, other.nodeAffinity)
         && Objects.equals(tolerations, other.tolerations);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(nodeSelector, tolerations);
+    return Objects.hash(nodeSelector, nodeAffinity, tolerations);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("nodeSelector", nodeSelector)
+        .add("modeSelector", nodeAffinity)
         .add("tolerations", tolerations)
         .toString();
   }
