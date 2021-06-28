@@ -19,10 +19,8 @@ import io.stackgres.common.StringUtil;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 @QuarkusTest
-@EnabledIfEnvironmentVariable(named = "QUARKUS_PROFILE", matches = "test")
 class ConfigMapResourceTest implements AuthenticatedResourceTest {
 
   @Inject

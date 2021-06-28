@@ -5,7 +5,6 @@
 
 package io.stackgres.common.resource;
 
-import java.util.Optional;
 import java.util.function.Function;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -19,7 +18,7 @@ import io.stackgres.common.KubernetesClientFactory;
 import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped
-public class StatefulSetWriter implements ResourceWriter<StatefulSet>, ResourceFinder<StatefulSet> {
+public class StatefulSetWriter implements ResourceWriter<StatefulSet> {
 
   private final KubernetesClientFactory clientFactory;
 
@@ -69,17 +68,4 @@ public class StatefulSetWriter implements ResourceWriter<StatefulSet>, ResourceF
     });
   }
 
-  @Override
-  public @NotNull Optional<StatefulSet> findByName(String name) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public @NotNull Optional<StatefulSet> findByNameAndNamespace(String name, String namespace) {
-    return Optional.ofNullable(clientFactory.withNewClient(
-        client -> client.apps().statefulSets()
-        .inNamespace(namespace)
-        .withName(name)
-        .get()));
-  }
 }
