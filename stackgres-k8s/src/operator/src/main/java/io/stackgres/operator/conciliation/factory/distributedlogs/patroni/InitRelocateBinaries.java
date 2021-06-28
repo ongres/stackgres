@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
@@ -61,7 +62,7 @@ public class InitRelocateBinaries implements ContainerFactory<DistributedLogsCon
     final String patroniImageName = StackGresComponent.PATRONI.findImageName(
         StackGresComponent.LATEST,
         ImmutableMap.of(StackGresComponent.POSTGRESQL,
-            StackGresComponent.LATEST));
+            StackGresDistributedLogsUtil.getPostgresVersion()));
 
     return new ContainerBuilder()
         .withName("relocate-binaries")

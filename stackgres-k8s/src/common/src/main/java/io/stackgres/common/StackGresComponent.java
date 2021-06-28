@@ -418,6 +418,10 @@ public enum StackGresComponent {
             this.name + " version " + version + " not available"));
   }
 
+  public String findLatestMajorVersion() {
+    return findMajorVersion(LATEST);
+  }
+
   public String findMajorVersion(String version) {
     return latestBuildVersion(version)
         .map(ImageVersion::getMajor)

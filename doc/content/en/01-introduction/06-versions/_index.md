@@ -6,6 +6,24 @@ description: Details about StackGres versions.
 showToc: true
 ---
 
+## StackGres 1.0.0-beta3
+
+| Component | Versions |
+| ------ | ----------- |
+| PostgreSQL 13 | 13.2, 13.1, 13.0 |
+| PostgreSQL 12 | 12.6, 12.5, 12.4, 12.3, 12.2 and 12.1 |
+| Patroni | 1.6.5 |
+| WAL-G | 0.2.19 |
+| PgBouncer | 1.15.0 |
+| Postgres Exporter | 0.9.0 |
+| Envoy | 1.17.1 |
+| Fluent-Bit | 1.7.5 |
+| Fluentd | 1.12.1 |
+
+### Additional extensions included on StackGres
+
+* [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
+
 ## StackGres 1.0.0-beta2
 
 | Component | Versions |
