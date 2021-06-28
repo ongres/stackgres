@@ -51,6 +51,9 @@ class ClusterRestartImplTest {
   @InjectMock
   ClusterWatcher clusterWatcher;
 
+  @InjectMock
+  PostgresRestart postgresRestart;
+
   Pod primary = new PodBuilder()
       .withNewMetadata()
       .withName(CLUSTER_NAME + "-1")
@@ -117,6 +120,9 @@ class ClusterRestartImplTest {
     });
 
     final String primaryName = primary.getMetadata().getName();
+    when(postgresRestart.restartPostgres(primaryName, CLUSTER_NAME, NAMESPACE))
+        .thenReturn(Uni.createFrom().voidItem());
+
     when(switchoverHandler.performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().voidItem());
 
@@ -137,8 +143,13 @@ class ClusterRestartImplTest {
         events.stream().filter(event -> event.getEventType() == RestartEventType.SWITCHOVER)
             .count(), "it should perform a switchover");
 
-    final InOrder order = inOrder(podRestart, switchoverHandler, clusterWatcher);
+    assertEquals(1,
+        events.stream().filter(event -> event.getEventType() == RestartEventType.POSTGRES_RESTART)
+            .count(), "it should restart the primary postgres");
+
+    final InOrder order = inOrder(podRestart, switchoverHandler, clusterWatcher, postgresRestart);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
+    order.verify(postgresRestart).restartPostgres(primaryName, CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(replica1);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(replica2);
@@ -190,6 +201,10 @@ class ClusterRestartImplTest {
         events.stream().filter(event -> event.getEventType() == RestartEventType.SWITCHOVER)
             .count(), "it should perform a switchover");
 
+    assertEquals(0,
+        events.stream().filter(event -> event.getEventType() == RestartEventType.POSTGRES_RESTART)
+            .count(), "it shouldn't restart the primary postgres");
+
     final InOrder order = inOrder(podRestart, switchoverHandler, clusterWatcher);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(replica2);
@@ -199,6 +214,7 @@ class ClusterRestartImplTest {
     order.verify(podRestart).restartPod(primary);
 
     verify(podRestart, never()).restartPod(replica1);
+    verify(postgresRestart, never()).restartPostgres(primaryName, CLUSTER_NAME, NAMESPACE);
 
     checkFinalSgClusterOnInPlace();
 
@@ -244,6 +260,10 @@ class ClusterRestartImplTest {
         events.stream().filter(event -> event.getEventType() == RestartEventType.SWITCHOVER)
             .count(), "it should perform a switchover");
 
+    assertEquals(0,
+        events.stream().filter(event -> event.getEventType() == RestartEventType.POSTGRES_RESTART)
+            .count(), "it shouldn't restart the primary postgres");
+
     final InOrder order = inOrder(podRestart, switchoverHandler, clusterWatcher);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verify(switchoverHandler).performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE);
@@ -252,6 +272,7 @@ class ClusterRestartImplTest {
 
     verify(podRestart, never()).restartPod(replica1);
     verify(podRestart, never()).restartPod(replica2);
+    verify(postgresRestart, never()).restartPostgres(primaryName, CLUSTER_NAME, NAMESPACE);
 
     checkFinalSgClusterOnInPlace();
 
@@ -292,6 +313,10 @@ class ClusterRestartImplTest {
     assertEquals(0,
         events.stream().filter(event -> event.getEventType() == RestartEventType.SWITCHOVER)
             .count(), "it should not perform a switchover");
+    assertEquals(0,
+        events.stream().filter(event -> event.getEventType() == RestartEventType.POSTGRES_RESTART)
+            .count(), "it shouldn't restart the primary postgres");
+
 
     final InOrder order = inOrder(podRestart, clusterWatcher);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
@@ -299,7 +324,7 @@ class ClusterRestartImplTest {
 
     verify(podRestart, never()).restartPod(replica1);
     verify(podRestart, never()).restartPod(replica2);
-
+    verify(postgresRestart, never()).restartPostgres(any(), any(), any());
     verify(switchoverHandler, never()).performSwitchover(any(), any(), any());
 
     checkFinalSgClusterOnInPlace();
@@ -338,6 +363,10 @@ class ClusterRestartImplTest {
     });
 
     final String primaryName = primary.getMetadata().getName();
+
+    when(postgresRestart.restartPostgres(primaryName, CLUSTER_NAME, NAMESPACE))
+        .thenReturn(Uni.createFrom().voidItem());
+
     when(switchoverHandler.performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().voidItem());
 
@@ -357,8 +386,12 @@ class ClusterRestartImplTest {
     assertEquals(1,
         events.stream().filter(event -> event.getEventType() == RestartEventType.SWITCHOVER)
             .count(), "it should perform a switchover");
+    assertEquals(1,
+        events.stream().filter(event -> event.getEventType() == RestartEventType.POSTGRES_RESTART)
+            .count(), "it should restart the primary postgres");
 
-    final InOrder order = inOrder(podRestart, switchoverHandler, instanceManager);
+    final InOrder order = inOrder(podRestart, switchoverHandler, instanceManager, postgresRestart);
+    order.verify(postgresRestart).restartPostgres(primaryName, CLUSTER_NAME, NAMESPACE);
     order.verify(instanceManager).increaseClusterInstances(CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(replica1);
     order.verify(podRestart).restartPod(replica2);
@@ -412,6 +445,11 @@ class ClusterRestartImplTest {
         events.stream().filter(event -> event.getEventType() == RestartEventType.SWITCHOVER)
             .count(), "it should perform a switchover");
 
+    assertEquals(0,
+        events.stream().filter(event -> event.getEventType() == RestartEventType.POSTGRES_RESTART)
+            .count(), "it shouldn't restart the primary postgres");
+
+
     final InOrder order = inOrder(podRestart, switchoverHandler, instanceManager, clusterWatcher);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(replica2);
@@ -423,6 +461,7 @@ class ClusterRestartImplTest {
     order.verify(instanceManager).decreaseClusterInstances(CLUSTER_NAME, NAMESPACE);
 
     verify(podRestart, never()).restartPod(replica1);
+    verify(postgresRestart, never()).restartPostgres(any(), any(), any());
     verify(instanceManager, never()).increaseClusterInstances(CLUSTER_NAME, NAMESPACE);
 
   }
@@ -462,6 +501,9 @@ class ClusterRestartImplTest {
     assertEquals(0,
         events.stream().filter(event -> event.getEventType() == RestartEventType.SWITCHOVER)
             .count(), "it should not perform a switchover");
+    assertEquals(0,
+        events.stream().filter(event -> event.getEventType() == RestartEventType.POSTGRES_RESTART)
+            .count(), "it shouldn't restart the primary postgres");
 
     verify(podRestart).restartPod(primary);
     verify(instanceManager).decreaseClusterInstances(CLUSTER_NAME, NAMESPACE);
@@ -469,6 +511,7 @@ class ClusterRestartImplTest {
     verify(podRestart, never()).restartPod(replica1);
     verify(podRestart, never()).restartPod(replica2);
     verify(switchoverHandler, never()).performSwitchover(any(), any(), any());
+    verify(postgresRestart, never()).restartPostgres(any(), any(), any());
     verify(instanceManager, never()).increaseClusterInstances(CLUSTER_NAME, NAMESPACE);
 
   }
@@ -509,6 +552,9 @@ class ClusterRestartImplTest {
         events.stream().filter(event -> event.getEventType() == RestartEventType.SWITCHOVER)
             .count(), "it should not perform a switchover");
 
+    assertEquals(0,
+        events.stream().filter(event -> event.getEventType() == RestartEventType.POSTGRES_RESTART)
+            .count(), "it shouldn't restart the primary postgres");
 
     verify(podRestart, never()).restartPod(primary);
     verify(podRestart, never()).restartPod(replica1);
@@ -516,6 +562,7 @@ class ClusterRestartImplTest {
     verify(switchoverHandler, never()).performSwitchover(any(), any(), any());
     verify(instanceManager, never()).increaseClusterInstances(CLUSTER_NAME, NAMESPACE);
     verify(instanceManager, never()).decreaseClusterInstances(CLUSTER_NAME, NAMESPACE);
+    verify(postgresRestart, never()).restartPostgres(any(), any(), any());
   }
 
 }
