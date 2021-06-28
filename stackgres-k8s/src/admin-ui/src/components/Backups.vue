@@ -108,7 +108,7 @@
 						<router-link v-if="isCluster && iCan('create','sgbackups',$route.params.namespace)" :to="'/crd/create/backup/'+$route.params.namespace+'/'+$route.params.name" title="Add New Backup" class="btn addClusterBackup">Add Backup</router-link>
 
 						<div class="filter" :class="(filters.dateStart.length && filters.dateEnd.length) ? 'filtered' : ''">
-							<span class="toggle date">DATE RANGE <input v-model="filters.datePicker" id="datePicker" autocomplete="off"></span>
+							<span class="toggle date">DATE RANGE <input v-model="filters.datePicker" id="datePicker" autocomplete="off" @focus="initDatePicker()" /></span>
 						</div>
 
 						<div class="filter filters">
@@ -894,6 +894,7 @@
 		data: function() {
 
 			return {
+				datePickerLoaded: false,
 				currentSort: {
 					param: 'data.status.process.timing.stored',
 					type: 'timestamp'
@@ -1066,6 +1067,79 @@
 				})
 
 				return queryString
+			},
+
+			clearDatePicker() {
+				const vc = this;
+
+				vc.filters.datePicker = '';
+				vc.filters.dateStart = '';
+				vc.filters.dateEnd = '';
+				vc.activeFilters.datePicker = '';
+				router.push(vc.$route.path + vc.getActiveFilters())
+
+				$('.daterangepicker td.deactivate').removeClass('deactivate')
+				$('#datePicker').focus()
+				$('.daterangepicker td.active').removeClass('active')
+				$('.daterangepicker td.in-range').removeClass('in-range')
+				$('#datePicker').parent().removeClass('open');
+			},
+
+			initDatePicker() {
+				const vc = this;
+					
+				if(!vc.datePickerLoaded) {
+						
+					$('#datePicker').daterangepicker({
+						"autoApply": true,
+						"timePicker": true,
+						"timePicker24Hour": true,
+						"timePickerSeconds": true,
+						"opens": "left",
+						locale: {
+							cancelLabel: "Clear"
+						}
+					}, function(start, end, label) {
+						vc.filters.dateStart = start.format('YYYY-MM-DD HH:mm:ss');
+						vc.filters.dateEnd = end.format('YYYY-MM-DD HH:mm:ss');
+						vc.filters.datePicker = vc.filters.dateStart+' / '+vc.filters.dateEnd;
+						vc.filterBackups('datePicker');
+					});
+				
+			
+					$('#datePicker').on('show.daterangepicker', function(ev, picker) {
+
+						console.log('show')
+						
+						if(!vc.filters.datePicker.length) {
+							$('.daterangepicker td.active').addClass('deactivate')
+							$('.daterangepicker td.in-range').removeClass('in-range')
+						}
+
+						$('#datePicker').parent().addClass('open');
+					});
+
+					$('#datePicker').on('hide.daterangepicker', function(ev, picker) {
+						console.log('hide')
+						$('#datePicker').parent().removeClass('open');
+
+						if(vc.filters.datePicker.length)
+							$('.daterangepicker td.deactivate').removeClass('deactivate')
+					});
+
+					$('#datePicker').on('cancel.daterangepicker', function(ev, picker) {
+						console.log('cancel')
+						vc.clearDatePicker();
+					});
+
+					$('#datePicker').on('apply.daterangepicker', function(ev, picker) {
+						console.log('apply')
+						$('#datePicker').focus()
+						$('#datePicker').parent().removeClass('open');
+					});
+
+					vc.datePickerLoaded = true;
+				}
 			}
 		},
 
@@ -1098,72 +1172,7 @@
 				})
 			}
 
-			function clearDatePicker() {
-				vc.filters.datePicker = '';
-				vc.filters.dateStart = '';
-				vc.filters.dateEnd = '';
-				vc.activeFilters.datePicker = '';
-				router.push(vc.$route.path + vc.getActiveFilters())
-
-				$('.daterangepicker td.deactivate').removeClass('deactivate')
-				$('#datePicker').focus()
-				$('.daterangepicker td.active').removeClass('active')
-				$('.daterangepicker td.in-range').removeClass('in-range')
-				$('#datePicker').parent().removeClass('open');
-			}
-			
 			$(document).ready(function(){
-
-				$(document).on('focus', '#datePicker', function() {
-
-                    if(!vc.filters.datePicker.length) {
-						$('.daterangepicker').remove()
-
-						$('#datePicker').daterangepicker({
-							"autoApply": true,
-							"timePicker": true,
-							"timePicker24Hour": true,
-							"timePickerSeconds": true,
-							"opens": "left",
-							locale: {
-								cancelLabel: "Clear"
-							}
-						}, function(start, end, label) {
-							vc.filters.dateStart = start.format('YYYY-MM-DD HH:mm:ss');
-							vc.filters.dateEnd = end.format('YYYY-MM-DD HH:mm:ss');
-							vc.filters.datePicker = vc.filters.dateStart+' / '+vc.filters.dateEnd;
-							vc.filterBackups('datePicker');
-						});
-					
-				
-						$('#datePicker').on('show.daterangepicker', function(ev, picker) {
-							
-							if(!vc.filters.datePicker.length) {
-								$('.daterangepicker td.active').addClass('deactivate')
-								$('.daterangepicker td.in-range').removeClass('in-range')
-							}
-
-							$('#datePicker').parent().addClass('open');
-						});
-
-						$('#datePicker').on('hide.daterangepicker', function(ev, picker) {
-							$('#datePicker').parent().removeClass('open');
-
-							if(vc.filters.datePicker.length)
-								$('.daterangepicker td.deactivate').removeClass('deactivate')
-						});
-
-						$('#datePicker').on('cancel.daterangepicker', function(ev, picker) {
-							clearDatePicker();
-						});
-
-						$('#datePicker').on('apply.daterangepicker', function(ev, picker) {
-							$('#datePicker').focus()
-							$('#datePicker').parent().removeClass('open');
-						});
-					}
-				})
-				
 
 				$(document).on('change', '.filter select', function () {
 					if($(this).val().length)
