@@ -56,7 +56,7 @@
 					</div>
 
 					<div class="filter" :data-filtered="datePicker.length > 0">
-						<span class="toggle date">DATE RANGE <input v-model="datePicker" id="datePicker" autocomplete="off"></span>
+						<span class="toggle date">DATE RANGE <input v-model="datePicker" id="datePicker" autocomplete="off" @focus="initDatePicker()"></span>
 					</div>
 
 					<div class="filter filters columns" :data-filtered="isFiltered">
@@ -628,55 +628,6 @@
 				vc.records = parseInt($('.logsContainer').height() / 15);
 				vc.getLogs();
 
-				$(document).on('focus', '#datePicker', function() {
-
-                    if(!$(this).val()) {
-						
-						$('#datePicker').daterangepicker({
-							"parentEl": "#logs",
-							"autoApply": true,
-							"timePicker": true,
-							"timePicker24Hour": true,
-							"timePickerSeconds": true,
-							"opens": "left",
-							locale: {
-								cancelLabel: "RESET"
-							}
-						}, function(start, end, label) {
-
-							if(store.state.timezone == 'utc') {
-								vc.dateStart = start.format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-								vc.dateEnd = end.format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-							} else {
-								vc.dateStart = moment.utc(start).format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-								vc.dateEnd = moment.utc(end).format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-							}
-							vc.datePicker = vc.dateStart+' / '+vc.dateEnd;
-							vc.getLogs(false, true);
-
-						});
-
-						$('#datePicker').on('show.daterangepicker', function(ev, picker) {
-							$('#datePicker').parent().addClass('open');
-						});
-
-						$('#datePicker').on('hide.daterangepicker', function(ev, picker) {
-							$('#datePicker').parent().removeClass('open');
-						});
-
-						$('#datePicker').on('cancel.daterangepicker', function(ev, picker) {
-							store.commit('setLogs', [])
-							vc.currentSortDir = 'desc';
-							vc.datePicker = '';
-							vc.dateStart = '';
-							vc.dateEnd = '';
-
-							vc.getLogs();
-							$('#datePicker').parent().removeClass('open');
-						});
-					}
-				})
-			
 				$(document).on('keyup', 'input.search', function(e){
 					if (e.keyCode === 13)
 						vc.getLogs();
@@ -941,12 +892,72 @@
 					vc.getLogs(true, true);
 					vc.scrollAmount = $('.logsContainer').scrollTop() + $('.logsContainer').innerHeight();
 				}
-			}
+			},
 
+			initDatePicker() {
+
+				if(!$('.daterangepicker').length) {
+
+					const vc = this;
+						
+					$('#datePicker').daterangepicker({
+						"parentEl": "#logs",
+						"autoApply": true,
+						"timePicker": true,
+						"timePicker24Hour": true,
+						"timePickerSeconds": true,
+						"opens": "left",
+						locale: {
+							cancelLabel: "RESET"
+						}
+					}, function(start, end, label) {
+
+						if(store.state.timezone == 'utc') {
+							vc.dateStart = start.format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+							vc.dateEnd = end.format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+						} else {
+							vc.dateStart = moment.utc(start).format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+							vc.dateEnd = moment.utc(end).format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+						}
+						vc.datePicker = vc.dateStart+' / '+vc.dateEnd;
+						vc.getLogs(false, true);
+
+					});
+
+					$('#datePicker').on('show.daterangepicker', function(ev, picker) {
+						if(!vc.datePicker.length) {
+							$('.daterangepicker td.active').addClass('deactivate')
+							$('.daterangepicker td.in-range').removeClass('in-range')
+						}
+
+						$('#datePicker').parent().addClass('open');
+					});
+
+					$('#datePicker').on('hide.daterangepicker', function(ev, picker) {
+						$('#datePicker').parent().removeClass('open');
+
+						if(vc.datePicker.length)
+							$('.daterangepicker td.deactivate').removeClass('deactivate')
+					});
+
+					$('#datePicker').on('cancel.daterangepicker', function(ev, picker) {
+						store.commit('setLogs', [])
+						vc.currentSortDir = 'desc';
+						vc.datePicker = '';
+						vc.dateStart = '';
+						vc.dateEnd = '';
+
+						vc.getLogs();
+						$('#datePicker').parent().removeClass('open');
+					});
+				}
+
+			}
 
 		},
 		beforeDestroy: function() {
 			store.commit('setLogs', []);
+			$('.daterangepicker').remove()
 		}
 	}
 </script>
