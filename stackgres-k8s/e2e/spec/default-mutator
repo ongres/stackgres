@@ -65,7 +65,7 @@ metadata:
   name: $PGCONFIG
   namespace: $CLUSTER_NAMESPACE
 spec:
-  postgresVersion: "11"
+  postgresVersion: "13"
   postgresql.conf:
     custom.unsignificant: "true"
 EOF
@@ -112,7 +112,7 @@ metadata:
   name: $PGCONFIG
   namespace: $CLUSTER_NAMESPACE
 spec:
-  postgresVersion: "11"
+  postgresVersion: "13"
   postgresql.conf: {}
 EOF
   local PATCH="$(kubectl get sgpgconfig -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json \
@@ -709,7 +709,7 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1
-  postgresVersion: '11'
+  postgresVersion: '13'
   pods:
     persistentVolume:
       size: '128Mi'

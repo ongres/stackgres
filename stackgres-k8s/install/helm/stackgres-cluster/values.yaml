@@ -6,7 +6,7 @@ cluster:
   restartReducedImpact: true
   restartPrimaryFirst: false
   restartTimeout: 300
-  postgresVersion: '12'
+  postgresVersion: '13'
   instances: 1
   postgres:
     ssl:

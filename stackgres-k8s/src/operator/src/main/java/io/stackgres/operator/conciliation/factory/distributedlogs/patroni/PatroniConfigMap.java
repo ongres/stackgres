@@ -21,7 +21,7 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
-import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -93,8 +93,7 @@ public class PatroniConfigMap implements VolumeFactory<DistributedLogsContext> {
 
   public @NotNull HasMetadata buildSource(DistributedLogsContext context) {
     final StackGresDistributedLogs cluster = context.getSource();
-    final String pgVersion = StackGresComponent.POSTGRESQL.findVersion(
-        StackGresComponent.LATEST);
+    final String pgVersion = StackGresDistributedLogsUtil.getPostgresVersion();
 
     final String patroniLabels;
     final Map<String, String> value = labelFactory
