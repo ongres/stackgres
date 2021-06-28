@@ -58,6 +58,14 @@ by kubernetes. Then to deploy the operator run from the project roor folder:
 helm install stackgres-cluster --namespace stackgres stackgres-k8s/install/helm/stackgres-cluster
 ```
 
+#### Code Conventions
+
+To validate all the static code analysis rules and code conventions against the project you can use
+
+```
+./mvnw clean verify -P safer
+```
+
 #### Integration tests
 
 Integration tests requires docker to be installed (if not on Linux set the environment variable `DOCKER_HOST` pointing to the protocol, host and port of the docker daemon). To run the ITs:
