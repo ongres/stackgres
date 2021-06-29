@@ -27,9 +27,9 @@
       - stackgres-k8s/src/*/target/stackgres-*-runner.jar
   only:
     variables:
-      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
-      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
-      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
+      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
+      - $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
       - $DO_NATIVE
 
