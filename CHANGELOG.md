@@ -1,4 +1,4 @@
-# :rocket: Release 1.0.0-beta1 (YYYY-MM-DD)
+# :rocket: Release 1.0.0-beta1 (2021-06-29)
 
 ## :notepad_spiral: NOTES
 
