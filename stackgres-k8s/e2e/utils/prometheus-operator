@@ -31,7 +31,8 @@ install_prometheus_operator() {
     --set kubeScheduler.enabled=false \
     --set coreDns.enabled=false \
     --set kubeControllerManager.enabled=false \
-    --set kubeEtcd.enabled=false
+    --set kubeEtcd.enabled=false \
+    "$@"
 
   wait_pods_running "$(prometheus_namespace)" 3
 }

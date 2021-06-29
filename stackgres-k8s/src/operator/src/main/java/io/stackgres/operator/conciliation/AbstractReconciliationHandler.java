@@ -67,7 +67,7 @@ public abstract class AbstractReconciliationHandler implements ReconciliationHan
       MixedOperation<? extends HasMetadata,
           ? extends KubernetesResourceList<? extends HasMetadata>,
           ? extends Resource<? extends HasMetadata>>> getResourceOperations(M resource) {
-    return STACKGRES_CLUSTER_RESOURCE_OPERATIONS.get(resource.getClass());
+    return STACKGRES_CLUSTER_IN_NAMESPACE_RESOURCE_OPERATIONS.get(resource.getClass());
   }
 
   @Inject

@@ -6,8 +6,8 @@
 package io.stackgres.operator.conciliation.cluster;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -15,9 +15,9 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.OperatorProperty;
@@ -45,6 +45,7 @@ import io.stackgres.operator.conciliation.factory.Decorator;
 import io.stackgres.operator.conciliation.factory.DecoratorDiscoverer;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
+import io.stackgres.operator.customresource.prometheus.PrometheusConfigSpec;
 import io.stackgres.operator.customresource.prometheus.PrometheusInstallation;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
@@ -103,6 +104,19 @@ public class ClusterRequiredResourcesGenerator
     this.decoratorDiscoverer = decoratorDiscoverer;
     this.prometheusScanner = prometheusScanner;
     this.operatorContext = operatorContext;
+  }
+
+  private static PrometheusInstallation toPrometheusInstallation(PrometheusConfig pc) {
+    Map<String, String> matchLabels = Optional.ofNullable(pc.getSpec())
+        .map(PrometheusConfigSpec::getServiceMonitorSelector)
+        .map(LabelSelector::getMatchLabels)
+        .map(Map::copyOf)
+        .orElse(Map.of());
+    PrometheusInstallation pi = new PrometheusInstallation();
+    pi.setNamespace(pc.getMetadata().getNamespace());
+
+    pi.setMatchLabels(matchLabels);
+    return pi;
   }
 
   @Override
@@ -231,30 +245,15 @@ public class ClusterRequiredResourcesGenerator
     if (isAutobindAllowed && isPrometheusAutobindEnabled) {
       LOGGER.trace("Prometheus auto bind enabled, looking for prometheus installations");
 
-      List<PrometheusInstallation> prometheusInstallations = prometheusScanner.findResources()
-          .map(pcs -> pcs.stream()
-              .filter(pc -> pc.getSpec().getServiceMonitorSelector().getMatchLabels() != null)
-              .filter(pc -> !pc.getSpec().getServiceMonitorSelector().getMatchLabels().isEmpty())
-              .map(pc -> {
+      final Optional<List<PrometheusConfig>> prometheusConfigsOpt = prometheusScanner
+          .findResources();
 
-                PrometheusInstallation pi = new PrometheusInstallation();
-                pi.setNamespace(pc.getMetadata().getNamespace());
+      return prometheusConfigsOpt
+          .map(prometheusConfigs -> prometheusConfigs.stream()
+              .map(ClusterRequiredResourcesGenerator::toPrometheusInstallation)
+              .collect(Collectors.toUnmodifiableList()))
+          .map(installations -> new Prometheus(!installations.isEmpty(), installations));
 
-                ImmutableMap<String, String> matchLabels = ImmutableMap
-                    .copyOf(pc.getSpec().getServiceMonitorSelector().getMatchLabels());
-
-                pi.setMatchLabels(matchLabels);
-                return pi;
-
-              })
-              .collect(Collectors.toList()))
-          .orElse(new ArrayList<>());
-
-      if (!prometheusInstallations.isEmpty()) {
-        return Optional.of(new Prometheus(true, prometheusInstallations));
-      } else {
-        return Optional.of(new Prometheus(false, null));
-      }
     } else {
       return Optional.of(new Prometheus(false, null));
     }
