@@ -17,7 +17,7 @@ import CreateDbOps from '../components/forms/CreateDbOps.vue'
 import ClusterOverview from '../components/ClusterOverview.vue'
 import ClusterInfo from '../components/ClusterInfo.vue'
 import ClusterStatus from '../components/ClusterStatus.vue'
-import Logs from '../components/Logs.vue'
+import Logs from '../components/ClusterLogs.vue'
 import Backups from '../components/Backups.vue'
 import PgConfig from '../components/PgConfig.vue'
 import PoolConfig from '../components/PoolConfig.vue'
@@ -33,7 +33,7 @@ Vue.use(VueRouter);
 
 const routes = [
   { 
-    path: '/crd/create/cluster/:namespace', 
+    path: '/:namespace/sgclusters/new', 
     component: CreateCluster,
     name: 'CreateCluster',
     meta: {
@@ -41,7 +41,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/edit/cluster/:namespace/:name', 
+    path: '/:namespace/sgcluster/:name/edit', 
     component: CreateCluster,
     name: 'EditCluster',
     meta: {
@@ -49,7 +49,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/create/profile/:namespace', 
+    path: '/:namespace/sginstanceprofiles/new', 
     component: CreateProfile,
     name: 'CreateProfile',
     meta: {
@@ -57,7 +57,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/edit/profile/:namespace/:name', 
+    path: '/:namespace/sginstanceprofile/:name/edit',
     component: CreateProfile,
     name: 'EditProfile',
     meta: {
@@ -65,7 +65,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/create/pgconfig/:namespace', 
+    path: '/:namespace/sgpgconfigs/new', 
     component: CreatePgConfig,
     name: 'CreatePgConfig',
     meta: {
@@ -73,7 +73,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/edit/pgconfig/:namespace/:name', 
+    path: '/:namespace/sgpgconfig/:name/edit', 
     component: CreatePgConfig,
     name: 'EditPgConfig',
     meta: {
@@ -81,7 +81,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/create/connectionpooling/:namespace', 
+    path: '/:namespace/sgpoolconfigs/new', 
     component: CreatePoolConfig,
     name: 'CreatePoolConfig',
     meta: {
@@ -89,7 +89,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/edit/connectionpooling/:namespace/:name', 
+    path: '/:namespace/sgpoolconfig/:name/edit', 
     component: CreatePoolConfig,
     name: 'EditPoolConfig',
     meta: {
@@ -97,7 +97,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/create/backupconfig/:namespace', 
+    path: '/:namespace/sgbackupconfigs/new', 
     component: CreateBackupConfig,
     name: 'CreateBackupConfig',
     meta: {
@@ -105,7 +105,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/edit/backupconfig/:namespace/:name', 
+    path: '/:namespace/sgbackupconfig/:name/edit', 
     component: CreateBackupConfig,
     name: 'EditBackupConfig',
     meta: {
@@ -113,7 +113,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/create/backup/:namespace', 
+    path: '/:namespace/sgbackups/new', 
     component: CreateBackup,
     name: 'CreateBackups',
     meta: {
@@ -121,7 +121,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/create/backup/:namespace/:cluster', 
+    path: '/:namespace/sgcluster/:cluster/sgbackups/new', 
     component: CreateBackup,
     name: 'CreateClusterBackup',
     meta: {
@@ -129,7 +129,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/edit/backup/:namespace/:name', 
+    path: '/:namespace/sgbackup/:backupname/edit', 
     component: CreateBackup,
     name: 'EditBackup',
     meta: {
@@ -137,7 +137,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/edit/backup/:namespace/:cluster/:backupname', 
+    path: '/:namespace/sgcluster/:cluster/sgbackup/:backupname/edit', 
     component: CreateBackup,
     name: 'EditClusterBackup',
     meta: {
@@ -145,7 +145,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/create/logs/:namespace', 
+    path: '/:namespace/sgdistributedlogs/new', 
     component: CreateLogsServer,
     name: 'CreateLogsServer',
     meta: {
@@ -153,7 +153,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/edit/logs/:namespace/:name', 
+    path: '/:namespace/sgdistributedlog/:name/edit', 
     component: CreateLogsServer,
     name: 'EditLogsServer',
     meta: {
@@ -161,7 +161,7 @@ const routes = [
     },
   },
   { 
-    path: '/crd/:action/dbops/:namespace', 
+    path: '/:namespace/sgdbops/new', 
     component: CreateDbOps,
     name: 'CreateDbOps',
     meta: {
@@ -185,7 +185,7 @@ const routes = [
     },
   },
   { 
-    path: '/overview', 
+    path: '/sgclusters', 
     component: ClusterOverview,
     name: 'ClusterOverviewEmpty',
     meta: {
@@ -193,7 +193,7 @@ const routes = [
     },
   },
   { 
-    path: '/overview/:namespace', 
+    path: '/:namespace/sgclusters', 
     component: ClusterOverview,
     name: 'ClusterOverview',
     meta: {
@@ -201,7 +201,7 @@ const routes = [
     },
   },
   { 
-    path: '/cluster/configuration/:namespace/:name', 
+    path: '/:namespace/sgcluster/:name/config', 
     component: ClusterInfo,
     name: 'ClusterInfo',
     meta: {
@@ -209,7 +209,7 @@ const routes = [
     },
   },
   { 
-    path: '/cluster/status/:namespace/:name', 
+    path: '/:namespace/sgcluster/:name', 
     component: ClusterStatus,
     name: 'ClusterStatus',
     meta: {
@@ -217,23 +217,15 @@ const routes = [
     },
   },
   { 
-    path: '/cluster/logs/:namespace/:name', 
+    path: '/:namespace/sgcluster/:name/logs', 
     component: Logs,
     name: 'ClusterLogs',
     meta: {
       conditionalRoute: false
     },
   },
-  { 
-    path: '/cluster/logs/:namespace/:name/:time/:index', 
-    component: Logs,
-    name: 'SingleClusterLogs',
-    meta: {
-      conditionalRoute: false
-    },
-  },
   {  
-    path: '/backups/:namespace/', 
+    path: '/:namespace/sgbackups', 
     component: Backups,
     name: 'NamespaceBackups',
     meta: {
@@ -241,7 +233,7 @@ const routes = [
     },
   },
   { 
-    path: '/backups/:namespace/:backupname', 
+    path: '/:namespace/sgbackup/:backupname', 
     component: Backups,
     name: 'SingleBackups',
     meta: {
@@ -249,7 +241,7 @@ const routes = [
     },
   },
   { 
-    path: '/cluster/backups/:namespace/:name', 
+    path: '/:namespace/sgcluster/:name/sgbackups', 
     component: Backups,
     name: 'ClusterBackups',
     meta: {
@@ -257,7 +249,7 @@ const routes = [
     },
   },
   { 
-    path: '/cluster/backups/:namespace/:name/:backupname', 
+    path: '/:namespace/sgcluster/:name/sgbackup/:backupname', 
     component: Backups,
     name: 'SingleClusterBackups',
     meta: {
@@ -265,7 +257,7 @@ const routes = [
     },
   },
   { 
-    path: '/configurations/postgres/:namespace', 
+    path: '/:namespace/sgpgconfigs', 
     component: PgConfig,
     name: 'PgConfig',
     meta: {
@@ -273,7 +265,7 @@ const routes = [
     },
   },
   { 
-    path: '/configurations/postgres/:namespace/:name', 
+    path: '/:namespace/sgpgconfig/:name', 
     component: PgConfig,
     name: 'SinglePgConfig',
     meta: {
@@ -281,7 +273,7 @@ const routes = [
     },
   },
   { 
-    path: '/configurations/connectionpooling/:namespace', 
+    path: '/:namespace/sgpoolconfigs', 
     component: PoolConfig,
     name: 'PoolConfig',
     meta: {
@@ -289,7 +281,7 @@ const routes = [
     },
   },
   { 
-    path: '/configurations/connectionpooling/:namespace/:name', 
+    path: '/:namespace/sgpoolconfig/:name', 
     component: PoolConfig,
     name: 'SinglePoolConfig',
     meta: {
@@ -297,7 +289,7 @@ const routes = [
     },
   },
   { 
-    path: '/configurations/backup/:namespace', 
+    path: '/:namespace/sgbackupconfigs', 
     component: BackupConfig,
     name: 'BackupConfig',
     meta: {
@@ -305,7 +297,7 @@ const routes = [
     },
   },
   { 
-    path: '/configurations/backup/:namespace/:name', 
+    path: '/:namespace/sgbackupconfig/:name', 
     component: BackupConfig,
     name: 'SingleBackupConfig',
     meta: {
@@ -313,7 +305,7 @@ const routes = [
     },
   },
   {  
-    path: '/profiles/:namespace/', 
+    path: '/:namespace/sginstanceprofiles', 
     component: InstanceProfile,
     name: 'InstanceProfile',
     meta: {
@@ -321,7 +313,7 @@ const routes = [
     },
   },
   { 
-    path: '/profiles/:namespace/:name', 
+    path: '/:namespace/sginstanceprofile/:name', 
     component: InstanceProfile,
     name: 'SingleInstanceProfile',
     meta: {
@@ -329,7 +321,7 @@ const routes = [
     },
   },
   { 
-    path: '/logs/:namespace', 
+    path: '/:namespace/sgdistributedlogs', 
     component: LogsServer,
     name: 'LogsServer',
     meta: {
@@ -337,7 +329,7 @@ const routes = [
     },
   },
   { 
-    path: '/logs/:namespace/:name', 
+    path: '/:namespace/sgdistributedlog/:name', 
     component: LogsServer,
     name: 'SingleLogsServer',
     meta: {
@@ -345,7 +337,7 @@ const routes = [
     },
   },
   { 
-    path: '/dbops/:namespace', 
+    path: '/:namespace/sgdbops', 
     component: DbOps,
     name: 'DbOps',
     meta: {
@@ -353,7 +345,7 @@ const routes = [
     },
   },
   { 
-    path: '/dbops/:namespace/:name', 
+    path: '/:namespace/sgdbop/:name', 
     component: DbOps,
     name: 'SingleDbOps',
     meta: {
@@ -361,7 +353,7 @@ const routes = [
     },
   },
   { 
-    path: '/:cluster/monitor/:namespace/:name', 
+    path: '/:namespace/sgcluster/:name/monitor', 
     component: Grafana,
     name: 'ClusterMonitor',
     meta: {
@@ -369,7 +361,7 @@ const routes = [
     },
   },
   { 
-    path: '/cluster/monitor/:namespace/:name/:pod', 
+    path: '/:namespace/sgcluster/:name/monitor/:pod', 
     component: Grafana,
     name: 'SingleClusterMonitor',
     meta: {
@@ -673,7 +665,7 @@ router.beforeResolve((to, from, next) => {
       case 'Backups':
       case 'CreateBackup':
         /* If filtered by Cluster, first check if Cluster exists */
-        if(to.name.includes('Cluster')) {
+        if(to.name.includes('ClusterBackup')) {
 
           axios
           .get('/stackgres/sgcluster')
@@ -863,7 +855,7 @@ router.beforeResolve((to, from, next) => {
 
   // Redirect to default namespace overview if in base url
   if(to.name.includes('BaseUrl')) {
-    router.push('/overview/default')
+    router.push('/default/sgclusters')
     store.commit('setCurrentNamespace', 'default');
     store.commit('setCurrentPath', {
       namespace: 'default',
@@ -884,7 +876,7 @@ router.beforeResolve((to, from, next) => {
   }
 
   // If entering a Cluster, setup as current
-  if (to.path.startsWith('/cluster/') || to.path.startsWith('/crd/edit/cluster/')) {
+  if (to.name.includes('Cluster')) {
 
     let cluster = store.state.clusters.find(c => ( (to.params.name == c.name) && (to.params.namespace == c.data.metadata.namespace) ) );
     

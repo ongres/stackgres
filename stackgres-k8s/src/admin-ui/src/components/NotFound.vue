@@ -7,7 +7,7 @@
                 confirm your URL is correct and try again
             </p>
             <br/>
-            <router-link to="/overview/default" class="btn">Go to Default Dashboard</router-link>
+            <router-link to="/default/sgclusters" class="btn">Go to Default Dashboard</router-link>
         </div>
     </div>
 </template>

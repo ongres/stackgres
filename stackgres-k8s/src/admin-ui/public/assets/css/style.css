@@ -1895,18 +1895,11 @@ ul.tabs {
     color: var(--blue);
 }
 
-.tabs a.router-link-active {
+.tabs a.router-link-exact-active {
     color: var(--blue);
     border-bottom-color: var(--blue);
     font-weight: bold;
 }
-
-/* .title {
-    color: var(--blue);
-    padding-top: 12px;
-    font-size: 1.1rem;
-    text-transform: uppercase;
-} */
 
 .subtitle {
     font-weight: 300;
@@ -4412,18 +4405,10 @@ ul.options ul.options {
 
 /* Backups YAML */
 
-tr.base:hover td:first-child::before {
-    content: " ";
-    width: 3px;
-    border: 1px solid var(--blue);
-    display: inline-block;
-    position: absolute;
-    top: 21px;
-    left: 10px;
-}
 table.backups td.timestamp, table.backups tr.details > td{
     position: relative;
 }
+
 tr.details:not(.Failed).open > td:first-child:before {
     width: 3px;
     content: " ";

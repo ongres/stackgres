@@ -52,7 +52,7 @@ export const mixin = {
         if(window.history.length > 2)
           vc.$router.go(-1)
         else
-          vc.$router.push('/overview/default')
+          vc.$router.push('/default/sgclusters')
       },
 
       checkAuthError: function(error) {
