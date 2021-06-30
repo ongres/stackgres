@@ -48,7 +48,7 @@ paths:
         * sgdbops delete
       security:
       - JWT: []
-  /stackgres/sgdbops/{namespace}/{name}:
+  /stackgres/{namespace}/sgdbops/{name}:
     get:
       tags:
       - sgdbops

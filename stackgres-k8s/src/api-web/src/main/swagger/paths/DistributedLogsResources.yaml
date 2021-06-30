@@ -48,7 +48,7 @@ paths:
         * sgdistributedlogs delete
       security:
       - JWT: []
-  /stackgres/sgdistributedlogs/{namespace}/{name}:
+  /stackgres/{namespace}/sgdistributedlogs/{name}:
     get:
       tags:
       - sgdistributedlogs

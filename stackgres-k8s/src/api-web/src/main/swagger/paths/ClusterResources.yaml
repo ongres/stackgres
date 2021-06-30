@@ -1,5 +1,5 @@
 paths:
-  /stackgres/sgcluster:
+  /stackgres/sgclusters:
     get:
       tags:
       - sgcluster
@@ -36,9 +36,9 @@ paths:
         If values for some script configmap or secret is provided respectively a secret or
          configmap named as the script if name is provided or as the sgcluster with
          `-init-script-<script index>` suffix is created/patched.
-        
+
         ### RBAC permissions required
-        
+
         * sgclusters create
         * secrets get, create, patch
         * configmaps get, create, patch
@@ -56,7 +56,7 @@ paths:
         * sgclusters delete
       security:
       - JWT: []
-  /stackgres/sgcluster/logs/{namespace}/{name}:
+  /stackgres/{namespace}/sgclusters/{name}/logs:
     get:
       tags:
       - sgcluster
@@ -155,7 +155,7 @@ paths:
           type: boolean
       security:
       - JWT: []
-  /stackgres/sgcluster/stats/{namespace}/{name}:
+  /stackgres/{namespace}/sgclusters/{name}/stats:
     get:
       tags:
       - sgcluster
@@ -184,7 +184,7 @@ paths:
           type: string
       security:
       - JWT: []
-  /stackgres/sgcluster/{namespace}/{name}:
+  /stackgres/{namespace}/sgclusters/{name}:
     get:
       tags:
       - sgcluster
@@ -213,7 +213,7 @@ paths:
           type: string
       security:
       - JWT: []
-  /stackgres/sgcluster/events/{namespace}/{name}:
+  /stackgres/{namespace}/sgclusters/{name}/events:
     get:
       tags:
       - sgcluster

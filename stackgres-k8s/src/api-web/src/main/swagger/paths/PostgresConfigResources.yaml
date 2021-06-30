@@ -1,5 +1,5 @@
 paths:
-  /stackgres/sgpgconfig:
+  /stackgres/sgpgconfigs:
     get:
       tags:
       - sgpgconfig
@@ -48,7 +48,7 @@ paths:
         * sgpgconfigs delete
       security:
       - JWT: []
-  /stackgres/sgpgconfig/{namespace}/{name}:
+  /stackgres/{namespace}/sgpgconfig/{name}:
     get:
       tags:
       - sgpgconfig
