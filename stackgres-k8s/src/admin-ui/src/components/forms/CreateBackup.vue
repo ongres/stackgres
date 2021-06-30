@@ -30,7 +30,7 @@
                     <router-link :to="'/' + $route.params.namespace + '/sgbackup/' + $route.params.backupname" title="Backup Details">{{ $route.params.backupname }}</router-link>
                 </li>
                 <li class="action">
-                    {{ $route.name == 'EditBackup' ? 'Edit' : 'Create' }}
+                    {{ $route.name.includes('Edit') ? 'Edit' : 'Create' }}
                 </li>
             </ul>
 
