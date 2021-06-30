@@ -4,12 +4,12 @@
             <ul class="breadcrumbs">
                 <li class="namespace">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20.026" height="27"><g fill="#00adb5"><path d="M1.513.9l-1.5 13a.972.972 0 001 1.1h18a.972.972 0 001-1.1l-1.5-13a1.063 1.063 0 00-1-.9h-15a1.063 1.063 0 00-1 .9zm.6 11.5l.9-8c0-.2.3-.4.5-.4h12.9a.458.458 0 01.5.4l.9 8a.56.56 0 01-.5.6h-14.7a.56.56 0 01-.5-.6zM1.113 17.9a1.063 1.063 0 011-.9h15.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-15.8a1.028 1.028 0 01-1-1.1zM3.113 23h13.8a.972.972 0 001-1.1 1.063 1.063 0 00-1-.9h-13.8a1.063 1.063 0 00-1 .9 1.028 1.028 0 001 1.1zM3.113 25.9a1.063 1.063 0 011-.9h11.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-11.8a1.028 1.028 0 01-1-1.1z"/></g></svg>
-                    <router-link :to="'/overview/'+$route.params.namespace" title="Namespace Overview">{{ $route.params.namespace }}</router-link>
+                    <router-link :to="'/' + $route.params.namespace + '/sgclusters'" title="Namespace Clusters Overview">{{ $route.params.namespace }}</router-link>
                 </li>
                 <li>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><g fill="#36A8FF"><path d="M17.1 20c-.6 0-1-.5-1-1 0-1.6-1.3-2.8-2.8-2.8H6.6c-1.6 0-2.8 1.3-2.8 2.8 0 .6-.5 1-1 1s-1-.5-1-1c0-2.7 2.2-4.8 4.8-4.8h6.7c2.7 0 4.8 2.2 4.8 4.8.1.5-.4 1-1 1zM9.9 9.4c-1.4 0-2.5-1.1-2.5-2.5s1.1-2.5 2.5-2.5 2.5 1.1 2.5 2.5c.1 1.4-1.1 2.5-2.5 2.5zm0-3.3c-.4 0-.8.3-.8.8 0 .4.3.8.8.8.5-.1.8-.4.8-.8 0-.5-.3-.8-.8-.8z"/><path d="M10 13.7h-.2c-1-.1-1.8-.8-1.8-1.8v-.1h-.1l-.1.1c-.8.7-2.1.6-2.8-.2s-.7-1.9 0-2.6l.1-.1H5c-1.1 0-2-.8-2.1-1.9 0-1.2.8-2.1 1.8-2.2H5v-.1c-.7-.8-.7-2 .1-2.8.8-.7 1.9-.7 2.7 0 .1 0 .1 0 .2-.1 0-.6.3-1.1.7-1.4.8-.7 2.1-.6 2.8.2.2.3.4.7.4 1.1v.1h.1c.8-.7 2.1-.6 2.8.2.6.7.6 1.9 0 2.6l-.1.1v.1h.1c.5 0 1 .1 1.4.5.8.7.9 2 .2 2.8-.3.4-.8.6-1.4.7h-.3c.4.4.6 1 .6 1.5-.1 1.1-1 1.9-2.1 1.9-.4 0-.9-.2-1.2-.5l-.1-.1v.1c0 1.1-.9 1.9-1.9 1.9zM7.9 10c1 0 1.8.8 1.8 1.7 0 .1.1.2.2.2s.2-.1.2-.2c0-1 .8-1.8 1.8-1.8.5 0 .9.2 1.3.5.1.1.2.1.3 0s.1-.2 0-.3c-.7-.7-.7-1.8 0-2.5.3-.3.8-.5 1.3-.5h.1c.1 0 .2 0 .2-.1 0 0 .1-.1.1-.2s0-.1-.1-.2c0 0-.1-.1-.2-.1h-.2c-.7 0-1.4-.4-1.6-1.1 0-.1 0-.1-.1-.2-.2-.6-.1-1.3.4-1.8.1-.1.1-.2 0-.3s-.2-.1-.3 0c-.3.3-.8.5-1.2.5-1 0-1.8-.8-1.8-1.8 0-.1-.1-.2-.2-.2s-.1 0-.2.1c.1.1 0 .2 0 .3 0 .7-.4 1.4-1.1 1.7-.1 0-.1 0-.2.1-.6.2-1.3 0-1.8-.4-.1-.1-.2-.1-.3 0-.1.1-.1.2 0 .3.3.3.5.7.5 1.2.1 1-.7 1.9-1.7 1.9h-.2c-.1 0-.1 0-.2.1 0-.1 0 0 0 0 0 .1.1.2.2.2h.2c1 0 1.8.8 1.8 1.8 0 .5-.2.9-.5 1.2-.1.1-.1.2 0 .3s.2.1.3 0c.3-.2.7-.4 1.1-.4h.1z"/></g></svg>
                     <template v-if="$route.params.hasOwnProperty('name')">
-						<router-link :to="'/dbops/'+$route.params.namespace" title="SGDbOps">SGDbOps</router-link>
+						<router-link :to="'/' + $route.params.namespace + '/sgdbops'" title="Database Operations">SGDbOps</router-link>
 					</template>
 					<template v-else>
                         SGDbOps
@@ -24,13 +24,13 @@
                 <a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sgdbops/" target="_blank" title="SGDbOps Documentation">SGDbOps Documentation</a>
                 <div>
                     <template v-if="$route.params.hasOwnProperty('name')">
-                        <a v-if="iCan('delete','sgdbops',$route.params.namespace)" title="Delete Operation" @click="deleteCRD('sgdbops',$route.params.namespace, $route.params.name)">
+                        <a v-if="iCan('delete','sgdbops',$route.params.namespace)" title="Delete Operation" @click="deleteCRD('sgdbops',$route.params.namespace, $route.params.name, '/' + $route.params.namespace + '/sgdbops')">
                             Delete Operation
                         </a>
-                        <router-link class="borderLeft" :to="'/dbops/'+$route.params.namespace" title="Close Details">Close Details</router-link>
+                        <router-link class="borderLeft" :to="'/' + $route.params.namespace + '/sgdbops'" title="Close Details">Close Details</router-link>
                     </template>
                     <template v-else>
-                        <router-link v-if="iCan('create','sgdbops',$route.params.namespace)"  :to="'/crd/create/dbops/'+$route.params.namespace" class="add">Add New</router-link>
+                        <router-link v-if="iCan('create','sgdbops',$route.params.namespace)"  :to="'/' + $route.params.namespace + '/sgdbops/new'" class="add">Add New</router-link>
                     </template>
                 </div>	
             </div>		
@@ -136,7 +136,7 @@
                         <template v-if="!dbOps.length">
 							<tr class="no-results">
 								<td colspan="8" v-if="iCan('create','sgdbops',$route.params.namespace)">
-									No database operations have been found, would you like to <router-link :to="'/crd/create/dbops/'+$route.params.namespace" title="Add New Database Operation">create a new one?</router-link>
+									No database operations have been found, would you like to <router-link :to="'/' + $route.params.namespace + '/sgdbops/new'" title="Add New Database Operation">create a new one?</router-link>
 								</td>
 								<td v-else colspan="8">
 									No database operations have been found. You don't have enough permissions to create a new one
@@ -148,7 +148,7 @@
                                 <tr class="base">
                                     <td class="timestamp hasTooltip">
                                         <span>
-                                            <router-link :to="'/dbops/' + $route.params.namespace + '/' + op.data.metadata.name" class="noColor">
+                                            <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
                                                 <template v-if="op.data.spec.hasOwnProperty('runAt')">
                                                     <span class='date'>
                                                         {{ op.data.spec.runAt | formatTimestamp('date') }}
@@ -174,7 +174,7 @@
                                         </span>
                                     </td>
                                     <td :class="op.data.spec.op" class="operationType">
-                                        <router-link :to="'/dbops/' + $route.params.namespace + '/' + op.data.metadata.name" class="noColor">
+                                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
                                             <span>
                                                 {{ op.data.spec.op }}
                                             </span>
@@ -182,13 +182,13 @@
                                     </td>
                                     <td class="baseHide opName hasTooltip">
                                         <span>
-                                            <router-link :to="'/dbops/' + $route.params.namespace + '/' + op.data.metadata.name" class="noColor">
+                                            <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
                                                 {{ op.data.metadata.name }}
                                             </router-link>
                                         </span>
                                     </td>
                                     <td class="phase center baseHide">
-                                        <router-link :to="'/dbops/' + $route.params.namespace + '/' + op.data.metadata.name" class="noColor">
+                                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
                                             <span :class="getOpStatus(op)">                                            
                                                 {{ getOpStatus(op) }}
                                             </span>
@@ -196,18 +196,18 @@
                                     </td>
                                     <td class="baseHide targetCluster hasTooltip">
                                         <span>
-                                            <router-link :to="'/dbops/' + $route.params.namespace + '/' + op.data.metadata.name" class="noColor">
+                                            <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
                                                 {{ op.data.spec.sgCluster }}
                                             </router-link>
                                         </span>
                                     </td>
                                     <td class="timestamp baseHide elapsed textRight hasTooltip">
-                                        <router-link :to="'/dbops/' + $route.params.namespace + '/' + op.data.metadata.name" class="noColor">
+                                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
                                             <span class="time" v-if="op.data.hasOwnProperty('status')" v-html="getElapsedTime(op)"></span>
                                         </router-link>
                                     </td>
                                     <td class="baseHide retries textRight">
-                                        <router-link :to="'/dbops/' + $route.params.namespace + '/' + op.data.metadata.name" class="noColor">
+                                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
                                             <span>
                                                 {{ (op.data.hasOwnProperty('status') && op.data.status.hasOwnProperty('opRetries')) ? op.data.status.opRetries : '0' }}
                                             </span>
@@ -218,15 +218,15 @@
                                         </router-link>
                                     </td>
                                     <td class="baseHide timedOut textRight">
-                                        <router-link :to="'/dbops/' + $route.params.namespace + '/' + op.data.metadata.name" class="noColor">
+                                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
                                             {{ hasTimedOut(op) }}
                                         </router-link>
                                     </td>
                                     <td class="actions textRight">
-                                        <router-link :to="'/dbops/' + $route.params.namespace + '/' + op.data.metadata.name" target="_blank" class="newTab">
+                                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" target="_blank" class="newTab">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="15.001" height="12.751" viewBox="0 0 15.001 12.751"><g transform="translate(167.001 -31.5) rotate(90)"><path d="M37.875,168.688a.752.752,0,0,1-.53-.219l-5.625-5.626a.75.75,0,0,1,0-1.061l2.813-2.813a.75.75,0,0,1,1.06,1.061l-2.283,2.282,4.566,4.566,4.566-4.566-2.283-2.282a.75.75,0,0,1,1.06-1.061l2.813,2.813a.75.75,0,0,1,0,1.061l-5.625,5.626A.752.752,0,0,1,37.875,168.688Z" transform="translate(0 -1.687)" fill="#00adb5"/><path d="M42.156,155.033l-2.813-2.813a.752.752,0,0,0-1.061,0l-2.813,2.813a.75.75,0,1,0,1.06,1.061l1.533-1.534v5.3a.75.75,0,1,0,1.5,0v-5.3l1.533,1.534a.75.75,0,1,0,1.06-1.061Z" transform="translate(-0.937 0)" fill="#00adb5"/></g></svg>
                                         </router-link>
-                                        <a class="delete" title="Delete Configuration" @click="deleteCRD('sgdbops',$route.params.namespace, op.name)">
+                                        <a class="delete" title="Delete Operation" @click="deleteCRD('sgdbops',$route.params.namespace, op.name)">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="13.5" height="15" viewBox="0 0 13.5 15"><g transform="translate(-61 -90)"><path d="M73.765,92.7H71.513a.371.371,0,0,1-.355-.362v-.247A2.086,2.086,0,0,0,69.086,90H66.413a2.086,2.086,0,0,0-2.072,2.094V92.4a.367.367,0,0,1-.343.3H61.735a.743.743,0,0,0,0,1.486h.229a.375.375,0,0,1,.374.367v8.35A2.085,2.085,0,0,0,64.408,105h6.684a2.086,2.086,0,0,0,2.072-2.095V94.529a.372.372,0,0,1,.368-.34h.233a.743.743,0,0,0,0-1.486Zm-7.954-.608a.609.609,0,0,1,.608-.607h2.667a.6.6,0,0,1,.6.6v.243a.373.373,0,0,1-.357.371H66.168a.373.373,0,0,1-.357-.371Zm5.882,10.811a.61.61,0,0,1-.608.608h-6.67a.608.608,0,0,1-.608-.608V94.564a.375.375,0,0,1,.375-.375h7.136a.375.375,0,0,1,.375.375Z" transform="translate(0)"/><path d="M68.016,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,68.016,98.108Z" transform="translate(-1.693 -3.214)"/><path d="M71.984,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,71.984,98.108Z" transform="translate(-2.807 -3.214)"/></g></svg>
                                         </a>
                                     </td>
