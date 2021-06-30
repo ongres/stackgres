@@ -1579,7 +1579,7 @@ footer .tooltip p {
     text-transform: uppercase;
 }
 
-#notifications .message {
+.message {
     border-top: 1px solid var(--borderColor);
     position: relative;
     max-width: 320px;
