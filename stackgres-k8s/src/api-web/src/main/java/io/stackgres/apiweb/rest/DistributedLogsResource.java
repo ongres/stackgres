@@ -10,10 +10,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsDto;
@@ -26,10 +23,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
-@Path("/stackgres/sgdistributedlogs")
+@Path("")
 @RequestScoped
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
+@Authenticated
 public class DistributedLogsResource
     extends AbstractDependencyRestService<DistributedLogsDto, StackGresDistributedLogs> {
 
@@ -50,9 +46,8 @@ public class DistributedLogsResource
                   array = @ArraySchema(
                       schema = @Schema(implementation = DistributedLogsDto.class))) })
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("sgdistributedlogs")
   public List<DistributedLogsDto> list() {
     return super.list();
   }
@@ -64,9 +59,8 @@ public class DistributedLogsResource
                   mediaType = "application/json",
                   schema = @Schema(implementation = DistributedLogsDto.class)) })
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgdistributedlogs/{name}")
   public DistributedLogsDto get(String namespace, String name) {
     return super.get(namespace, name);
   }
@@ -75,9 +69,8 @@ public class DistributedLogsResource
       responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("sgdistributedlogs")
   public void create(DistributedLogsDto resource) {
     super.create(resource);
   }
@@ -86,9 +79,8 @@ public class DistributedLogsResource
       responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("sgdistributedlogs")
   public void delete(DistributedLogsDto resource) {
     super.delete(resource);
   }
@@ -97,9 +89,8 @@ public class DistributedLogsResource
       responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("sgdistributedlogs")
   public void update(DistributedLogsDto resource) {
     super.update(resource);
   }

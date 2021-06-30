@@ -9,10 +9,7 @@ import java.util.List;
 import java.util.Objects;
 
 import javax.enterprise.context.RequestScoped;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigDto;
@@ -24,10 +21,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
-@Path("/stackgres/sgpoolconfig")
+@Path("")
 @RequestScoped
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
+@Authenticated
 public class ConnectionPoolingConfigResource extends
     AbstractDependencyRestService<PoolingConfigDto, StackGresPoolingConfig> {
 
@@ -47,9 +43,8 @@ public class ConnectionPoolingConfigResource extends
                   array = @ArraySchema(
                       schema = @Schema(implementation = PoolingConfigDto.class))) })
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("sgpoolconfigs")
   public List<PoolingConfigDto> list() {
     return super.list();
   }
@@ -61,9 +56,8 @@ public class ConnectionPoolingConfigResource extends
                   mediaType = "application/json",
                   schema = @Schema(implementation = PoolingConfigDto.class)) })
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgpoolconfigs/{name}")
   public PoolingConfigDto get(String namespace, String name) {
     return super.get(namespace, name);
   }
@@ -72,9 +66,8 @@ public class ConnectionPoolingConfigResource extends
       responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("sgpoolconfigs")
   public void create(PoolingConfigDto resource) {
     super.create(resource);
   }
@@ -83,9 +76,8 @@ public class ConnectionPoolingConfigResource extends
       responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("sgpoolconfigs")
   public void delete(PoolingConfigDto resource) {
     super.delete(resource);
   }
@@ -94,9 +86,8 @@ public class ConnectionPoolingConfigResource extends
       responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("sgpoolconfigs")
   public void update(PoolingConfigDto resource) {
     super.update(resource);
   }

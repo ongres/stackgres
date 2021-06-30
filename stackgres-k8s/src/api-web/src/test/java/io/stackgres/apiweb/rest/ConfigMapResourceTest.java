@@ -38,7 +38,7 @@ class ConfigMapResourceTest implements AuthenticatedResourceTest {
     given()
         .when()
         .header(AUTHENTICATION_HEADER)
-        .get("/stackgres/configmaps/test")
+        .get("/stackgres/test/configmaps")
         .then().statusCode(200)
         .body("", Matchers.hasSize(0));
   }
@@ -61,7 +61,7 @@ class ConfigMapResourceTest implements AuthenticatedResourceTest {
     given()
         .when()
         .header(AUTHENTICATION_HEADER)
-        .get("/stackgres/configmaps/test")
+        .get("/stackgres/test/configmaps")
         .then().statusCode(200)
         .body("", Matchers.hasSize(1))
         .body("[0].data.testKey", is(randomPlainValue))

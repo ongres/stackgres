@@ -12,10 +12,7 @@ import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -37,10 +34,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 
-@Path("/stackgres/sgbackupconfig")
+@Path("")
 @RequestScoped
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
+@Authenticated
 public class BackupConfigResource extends
     AbstractDependencyRestService<BackupConfigDto, StackGresBackupConfig> {
 
@@ -67,9 +63,8 @@ public class BackupConfigResource extends
                   mediaType = "application/json",
                   array = @ArraySchema(schema = @Schema(implementation = BackupConfigDto.class))) })
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("sgbackupconfigs")
   public List<BackupConfigDto> list() {
     return Seq.seq(super.list())
         .map(this::setSecrets)
@@ -83,9 +78,8 @@ public class BackupConfigResource extends
                   mediaType = "application/json",
                   schema = @Schema(implementation = BackupConfigDto.class)) })
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgbackupconfigs/{name}")
   public BackupConfigDto get(String namespace, String name) {
     return Optional.of(super.get(namespace, name))
         .map(this::setSecrets)
@@ -96,9 +90,8 @@ public class BackupConfigResource extends
       responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("sgbackupconfigs")
   public void create(BackupConfigDto resource) {
     setSecretKeySelectors(resource);
     createOrUpdateSecret(resource);
@@ -110,9 +103,8 @@ public class BackupConfigResource extends
       responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("sgbackupconfigs")
   public void delete(BackupConfigDto resource) {
     setSecretKeySelectors(resource);
     super.delete(resource);
@@ -123,9 +115,8 @@ public class BackupConfigResource extends
       responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("sgbackupconfigs")
   public void update(BackupConfigDto resource) {
     setSecretKeySelectors(resource);
     createOrUpdateSecret(resource);

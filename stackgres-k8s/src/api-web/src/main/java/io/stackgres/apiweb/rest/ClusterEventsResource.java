@@ -13,12 +13,9 @@ import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.quarkus.security.Authenticated;
@@ -36,10 +33,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.jooq.lambda.Seq;
 
-@Path("/stackgres/sgcluster/events")
+@Path("")
 @RequestScoped
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
+@Authenticated
 public class ClusterEventsResource {
 
   private final ResourceScanner<EventDto> scanner;
@@ -60,9 +56,8 @@ public class ClusterEventsResource {
                   array = @ArraySchema(schema = @Schema(implementation = EventDto.class))) })
       })
   @CommonApiResponses
-  @Path("/{namespace}/{name}")
   @GET
-  @Authenticated
+  @Path("/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgclusters/{name}/events")
   public List<EventDto> list(@PathParam("namespace") String namespace,
       @PathParam("name") String name) {
     Map<String, List<ObjectMeta>> relatedResources = new HashMap<>();

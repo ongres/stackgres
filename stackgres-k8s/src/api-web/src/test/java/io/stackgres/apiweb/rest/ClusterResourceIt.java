@@ -58,15 +58,16 @@ class ClusterResourceIt implements AuthenticatedResourceTest {
   @Test
   void givenACreationWithInlineScripts_shouldNotFail() {
     ClusterDto cluster = getClusterInlineScripts();
-    final Metadata metadata = cluster.getMetadata();
-    metadata.setNamespace("test");
+    cluster.getSpec().setInitData(null);
+    //final Metadata metadata = cluster.getMetadata();
+    //metadata.setNamespace("test");
 
     given()
         .header(AUTHENTICATION_HEADER)
         .body(cluster)
         .contentType(ContentType.JSON)
         .accept(ContentType.JSON)
-        .post("/stackgres/sgcluster")
+        .post("/stackgres/sgclusters")
         .then().statusCode(204);
   }
 
@@ -84,7 +85,7 @@ class ClusterResourceIt implements AuthenticatedResourceTest {
         .body(cluster)
         .contentType(ContentType.JSON)
         .accept(ContentType.JSON)
-        .post("/stackgres/sgcluster")
+        .post("/stackgres/sgclusters")
         .then().statusCode(204);
 
     try (KubernetesClient client = factory.create()){
@@ -112,7 +113,7 @@ class ClusterResourceIt implements AuthenticatedResourceTest {
         .body(cluster)
         .contentType(ContentType.JSON)
         .accept(ContentType.JSON)
-        .post("/stackgres/sgcluster")
+        .post("/stackgres/sgclusters")
         .then().statusCode(204);
 
     try (KubernetesClient client = factory.create()){
@@ -146,7 +147,7 @@ class ClusterResourceIt implements AuthenticatedResourceTest {
         .body(cluster)
         .contentType(ContentType.JSON)
         .accept(ContentType.JSON)
-        .post("/stackgres/sgcluster")
+        .post("/stackgres/sgclusters")
         .then().statusCode(204);
 
     try (KubernetesClient client = factory.create()){

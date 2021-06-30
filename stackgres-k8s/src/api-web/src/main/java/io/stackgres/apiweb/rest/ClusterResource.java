@@ -18,14 +18,11 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -65,16 +62,14 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import org.jetbrains.annotations.Nullable;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 import org.jooq.lambda.tuple.Tuple4;
 
-@Path("/stackgres/sgcluster")
+@Path("")
 @RequestScoped
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
+@Authenticated
 public class ClusterResource
     extends AbstractRestService<ClusterDto, StackGresCluster> {
 
@@ -132,9 +127,8 @@ public class ClusterResource
                   mediaType = "application/json",
                   array = @ArraySchema(schema = @Schema(implementation = ClusterDto.class)))})
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("sgclusters")
   public List<ClusterDto> list() {
     return Seq.seq(clusterScanner.getResources())
         .map(this::setSecrets)
@@ -150,9 +144,8 @@ public class ClusterResource
                   mediaType = "application/json",
                   schema = @Schema(implementation = ClusterDto.class))})
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgclusters/{name}")
   public ClusterDto get(String namespace, String name) {
     return clusterFinder.findByNameAndNamespace(name, namespace)
         .map(this::setSecrets)
@@ -165,9 +158,8 @@ public class ClusterResource
       responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("sgclusters")
   public void create(ClusterDto resource) {
     Deque<Secret> secretsToCreate = getSecretsToCreate(resource);
     Deque<ConfigMap> configMapsToCreate = getConfigMapsToCreate(resource);
@@ -181,9 +173,8 @@ public class ClusterResource
       responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("sgclusters")
   public void update(ClusterDto resource) {
     super.update(resource);
   }
@@ -192,14 +183,12 @@ public class ClusterResource
       responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("sgclusters")
   public void delete(ClusterDto resource) {
     super.delete(resource);
   }
 
-  @Nullable
   private ClusterDto setInfo(ClusterDto resource) {
     if (resource.getMetadata() == null) {
       return resource;
@@ -422,8 +411,7 @@ public class ClusterResource
       })
   @CommonApiResponses
   @GET
-  @Path("/stats/{namespace}/{name}")
-  @Authenticated
+  @Path("{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgclusters/{name}/stats")
   public ClusterStatsDto stats(@PathParam("namespace") String namespace,
                                @PathParam("name") String name) {
     return clusterResourceStatsFinder.findByNameAndNamespace(name, namespace)
@@ -443,8 +431,7 @@ public class ClusterResource
       })
   @CommonApiResponses
   @GET
-  @Path("/logs/{namespace}/{name}")
-  @Authenticated
+  @Path("{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgclusters/{name}/logs")
   public List<ClusterLogEntryDto> logs(
       @PathParam("namespace") String namespace,
       @PathParam("name") String name,

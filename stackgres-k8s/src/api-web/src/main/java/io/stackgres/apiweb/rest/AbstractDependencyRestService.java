@@ -27,6 +27,7 @@ import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import org.jooq.lambda.Seq;
 
+@Path("")
 public abstract class AbstractDependencyRestService
     <T extends ResourceDto, R extends CustomResource<?, ?>>
     implements ResourceRestService<T> {
@@ -55,6 +56,7 @@ public abstract class AbstractDependencyRestService
    */
   @GET
   @Authenticated
+  @CommonApiResponses
   @Override
   public List<T> list() {
     List<StackGresCluster> clusters = clusterScanner.getResources();
@@ -76,9 +78,9 @@ public abstract class AbstractDependencyRestService
    * @return the founded resource
    * @throws NotFoundException if no resource is found
    */
-  @Path("/{namespace}/{name}")
   @GET
   @Authenticated
+  @CommonApiResponses
   @Override
   public T get(@PathParam("namespace") String namespace, @PathParam("name") String name) {
     List<StackGresCluster> clusters = clusterScanner.getResources();
@@ -99,6 +101,7 @@ public abstract class AbstractDependencyRestService
    */
   @POST
   @Authenticated
+  @CommonApiResponses
   @Override
   public void create(T resource) {
     scheduler.create(transformer.toCustomResource(resource, null));
@@ -110,6 +113,7 @@ public abstract class AbstractDependencyRestService
    */
   @DELETE
   @Authenticated
+  @CommonApiResponses
   @Override
   public void delete(T resource) {
     scheduler.delete(transformer.toCustomResource(resource, null));
@@ -121,6 +125,7 @@ public abstract class AbstractDependencyRestService
    */
   @PUT
   @Authenticated
+  @CommonApiResponses
   @Override
   public void update(T resource) {
     scheduler.update(transformer.toCustomResource(resource,

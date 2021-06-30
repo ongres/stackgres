@@ -13,13 +13,10 @@ import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -49,10 +46,8 @@ import org.eclipse.microprofile.jwt.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path("/stackgres/auth/rbac")
+@Path("auth/rbac")
 @RequestScoped
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
 public class RbacResource {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RbacResource.class);
@@ -78,7 +73,7 @@ public class RbacResource {
       })
   @CommonApiResponses
   @GET
-  @Path("/can-i/{verb}/{resource}")
+  @Path("can-i/{verb}/{resource}")
   public Response verb(@PathParam("verb") String verb, @PathParam("resource") String resource,
       @QueryParam("namespace") String namespace, @QueryParam("group") Optional<String> group) {
     LOGGER.debug("User to review access {}", user);
@@ -120,14 +115,13 @@ public class RbacResource {
       })
   @CommonApiResponses
   @GET
-  @Produces(MediaType.APPLICATION_JSON)
-  @Path("/can-i")
+  @Path("can-i")
   public Response caniList() {
     // Connect with the serviceaccount permissions
     try (KubernetesClient client = new DefaultKubernetesClient()) {
 
       List<String> verbs = ImmutableList.of("get", "list", "create", "patch", "delete");
-      List<String> resourcesNamespaced = ImmutableList.of("pods", "secrets",
+      List<String> resourcesNamespaced = ImmutableList.of("pods", "secrets", "configmaps",
           CustomResource.getCRDName(StackGresBackupConfig.class),
           CustomResource.getCRDName(StackGresBackup.class),
           CustomResource.getCRDName(StackGresCluster.class),

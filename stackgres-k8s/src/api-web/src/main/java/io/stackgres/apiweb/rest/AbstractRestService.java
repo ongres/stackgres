@@ -25,6 +25,7 @@ import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import org.jooq.lambda.Seq;
 
+@Path("")
 public abstract class AbstractRestService<T extends ResourceDto, R extends CustomResource<?, ?>>
     implements ResourceRestService<T> {
 
@@ -41,12 +42,13 @@ public abstract class AbstractRestService<T extends ResourceDto, R extends Custo
   ResourceTransformer<T, R> transformer;
 
   /**
-   * Looks for all resources of type <code>{R}</code> that are installed in the kubernetes cluster.
+   * Looks for all resources of type {@code <R>} that are installed in the kubernetes cluster.
    * @return a list with the installed resources
-   * @throws RuntimeException if no custom resource of type <code>{R}</code> is defined
+   * @throws RuntimeException if no custom resource of type {@code <R>} is defined
    */
   @GET
   @Authenticated
+  @CommonApiResponses
   @Override
   public List<T> list() {
     return Seq.seq(scanner.getResources())
@@ -61,9 +63,9 @@ public abstract class AbstractRestService<T extends ResourceDto, R extends Custo
    * @return the founded resource
    * @throws NotFoundException if no resource is found
    */
-  @Path("/{namespace}/{name}")
   @GET
   @Authenticated
+  @CommonApiResponses
   @Override
   public T get(@PathParam("namespace") String namespace, @PathParam("name") String name) {
     return finder.findByNameAndNamespace(name, namespace)
@@ -72,7 +74,7 @@ public abstract class AbstractRestService<T extends ResourceDto, R extends Custo
   }
 
   /**
-   * Creates a resource of type <code>{R}</code>.
+   * Creates a resource of type {@code <R>}.
    * @param resource the resource to create
    */
   @POST
@@ -83,11 +85,12 @@ public abstract class AbstractRestService<T extends ResourceDto, R extends Custo
   }
 
   /**
-   * Deletes a custom resource of type <code>{R}</code>.
+   * Deletes a custom resource of type {@code <R>}.
    * @param resource the resource to delete
    */
   @DELETE
   @Authenticated
+  @CommonApiResponses
   @Override
   public void delete(T resource) {
     scheduler.delete(transformer.toCustomResource(resource, null));
@@ -99,6 +102,7 @@ public abstract class AbstractRestService<T extends ResourceDto, R extends Custo
    */
   @PUT
   @Authenticated
+  @CommonApiResponses
   @Override
   public void update(T resource) {
     scheduler.update(transformer.toCustomResource(resource,

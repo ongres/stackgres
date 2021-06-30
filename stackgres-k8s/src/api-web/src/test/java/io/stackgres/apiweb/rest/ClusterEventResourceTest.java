@@ -63,7 +63,7 @@ class ClusterEventResourceTest implements AuthenticatedResourceTest {
     given()
         .when()
         .header(AUTHENTICATION_HEADER)
-        .get("/stackgres/sgcluster/events/test-namespace/test")
+        .get("/stackgres/test-namespace/sgclusters/test/events")
         .then().statusCode(200)
         .body("", Matchers.hasSize(0));
   }
@@ -140,7 +140,7 @@ class ClusterEventResourceTest implements AuthenticatedResourceTest {
     given()
         .when()
         .header(AUTHENTICATION_HEADER)
-        .get("/stackgres/sgcluster/events/test-namespace/test")
+        .get("/stackgres/test-namespace/sgclusters/test/events")
         .then().statusCode(200)
         .body("", Matchers.hasSize(4))
         .body("[0].metadata.name", Matchers.equalTo("test.4"))

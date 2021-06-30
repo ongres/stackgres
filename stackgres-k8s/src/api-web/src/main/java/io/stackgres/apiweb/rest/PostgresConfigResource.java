@@ -9,10 +9,7 @@ import java.util.List;
 import java.util.Objects;
 
 import javax.enterprise.context.RequestScoped;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.pgconfig.PostgresConfigDto;
@@ -24,10 +21,8 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
-@Path("/stackgres/sgpgconfig")
 @RequestScoped
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
+@Authenticated
 public class PostgresConfigResource extends
     AbstractDependencyRestService<PostgresConfigDto, StackGresPostgresConfig> {
 
@@ -47,9 +42,8 @@ public class PostgresConfigResource extends
                   array = @ArraySchema(
                       schema = @Schema(implementation = PostgresConfigDto.class)))})
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("sgpgconfigs")
   public List<PostgresConfigDto> list() {
     return super.list();
   }
@@ -61,9 +55,8 @@ public class PostgresConfigResource extends
                   mediaType = "application/json",
                   schema = @Schema(implementation = PostgresConfigDto.class))})
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgpgconfigs/{name}")
   public PostgresConfigDto get(String namespace, String name) {
     return super.get(namespace, name);
   }
@@ -72,9 +65,8 @@ public class PostgresConfigResource extends
       responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("sgpgconfigs")
   public void create(PostgresConfigDto resource) {
     super.create(resource);
   }
@@ -83,9 +75,8 @@ public class PostgresConfigResource extends
       responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("sgpgconfigs")
   public void delete(PostgresConfigDto resource) {
     super.delete(resource);
   }
@@ -94,9 +85,8 @@ public class PostgresConfigResource extends
       responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
+  @Path("sgpgconfigs")
   public void update(PostgresConfigDto resource) {
     super.update(resource);
   }
