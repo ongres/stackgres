@@ -7,9 +7,15 @@ package io.stackgres.jobs.dbops.clusterrestart;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.notNull;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -21,10 +27,12 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.junit.mockito.InjectSpy;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.jobs.app.KubernetesClientProvider;
+import io.stackgres.jobs.dbops.lock.FakeClusterScheduler;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
@@ -50,6 +58,9 @@ class ClusterInstanceManagerImplTest {
 
   @Inject
   PodTestUtil podTestUtil;
+
+  @InjectSpy
+  FakeClusterScheduler clusterScheduler;
 
   String namespace;
 
@@ -298,6 +309,58 @@ class ClusterInstanceManagerImplTest {
         initialInstances - 1, actualInstances);
 
     verify(podWatcher).waitUntilIsRemoved(podName, namespace);
+  }
+
+  @Test
+  void givenAIncreasingInstanceFailure_operationShouldBeRetried() {
+
+    podTestUtil.preparePods(cluster, 0, 1, 2);
+
+    final Pod newPod = podTestUtil.buildReplicaPod(cluster, 3);
+
+    configureCreationPodWatchers();
+
+    configureNewPodCreated(newPod);
+
+    final int initialInstances = cluster.getSpec().getInstances();
+
+    kubeDb.introduceReplaceFailures(1, cluster);
+
+    clusterInstanceManager.increaseClusterInstances(clusterName, namespace)
+        .await().indefinitely();
+
+    final int actualInstances = kubeDb.getCluster(clusterName, namespace).getSpec().getInstances();
+    assertEquals(
+        initialInstances + 1, actualInstances);
+
+    verify(clusterScheduler, times(2)).update(any());
+
+  }
+
+  @Test
+  void givenADecreasingInstanceFailure_operationShouldBeRetried() {
+
+    podTestUtil.preparePods(cluster, 0, 1, 2);
+
+    final Pod newPod = podTestUtil.buildReplicaPod(cluster, 3);
+
+    configureCreationPodWatchers();
+
+    configureNewPodCreated(newPod);
+
+    final int initialInstances = cluster.getSpec().getInstances();
+
+    kubeDb.introduceReplaceFailures(1, cluster);
+
+    clusterInstanceManager.decreaseClusterInstances(clusterName, namespace)
+        .await().indefinitely();
+
+    final int actualInstances = kubeDb.getCluster(clusterName, namespace).getSpec().getInstances();
+    assertEquals(
+        initialInstances - 1, actualInstances);
+
+    verify(clusterScheduler, times(2)).update(any());
+
   }
 
   private void configureNonDisruptablePod(int index) {

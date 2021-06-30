@@ -26,7 +26,7 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 public class MockKubeDb {
 
   public static final JsonMapper JSON_MAPPER = new JsonMapper();
-  private final Map<String, StackGresCluster> clusterMap;
+  private final Map<String, StoredCluster> clusterMap;
   private final Map<String, StackGresDbOps> dbOpsMap;
   private final Map<String, List<Consumer<StackGresCluster>>> clusterWatchers;
   String KEY_FORMAT = "%s/%s";
@@ -42,7 +42,7 @@ public class MockKubeDb {
 
   public StackGresCluster getCluster(String name, String namespace) {
     String key = getResourceKey(name, namespace);
-    return copy(clusterMap.get(key), StackGresCluster.class);
+    return copy(clusterMap.get(key).getCluster(), StackGresCluster.class);
   }
 
   public StackGresDbOps getDbOps(String name, String namespace) {
@@ -61,28 +61,20 @@ public class MockKubeDb {
 
   public StackGresCluster addOrReplaceCluster(StackGresCluster cluster) {
 
-    final StackGresCluster clusterCopy = copy(cluster, StackGresCluster.class);
     final String clusterKey = getResourceKey(cluster);
     if (clusterMap.containsKey(clusterKey)) {
-      var oldCluster = clusterMap.get(clusterKey);
-      var oldVersion = oldCluster.getMetadata().getResourceVersion();
-      var newVersion = clusterCopy.getMetadata().getResourceVersion();
-      if (oldVersion.equals(newVersion)) {
-        int updatedVersion = Integer.parseInt(oldVersion) + 1;
-        clusterCopy.getMetadata().setResourceVersion(Integer.toString(updatedVersion));
-      } else {
-        throw new IllegalArgumentException("Cluster override with data loss");
-      }
+      clusterMap.get(clusterKey).replace(cluster);
     } else {
-      clusterCopy.getMetadata().setResourceVersion("1");
+      clusterMap.put(clusterKey, new StoredCluster(cluster));
     }
-    clusterMap.put(clusterKey, clusterCopy);
+
+    StackGresCluster replacedCluster = clusterMap.get(clusterKey).getCluster();
 
     if (clusterWatchers.containsKey(clusterKey)) {
-      clusterWatchers.get(clusterKey).forEach(consumer -> consumer.accept(clusterCopy));
+      clusterWatchers.get(clusterKey).forEach(consumer -> consumer.accept(replacedCluster));
     }
 
-    return clusterCopy;
+    return replacedCluster;
 
   }
 
@@ -110,7 +102,6 @@ public class MockKubeDb {
       }
     } else {
       resourceCopy.getMetadata().setResourceVersion("1");
-
     }
 
     dbOpsMap.put(key, resourceCopy);
@@ -118,6 +109,12 @@ public class MockKubeDb {
 
   }
 
+  public void introduceReplaceFailures(int numberOfFailures, StackGresCluster cluster) {
+
+    String resourceKey = getResourceKey(cluster);
+
+    clusterMap.get(resourceKey).introduceFailures(numberOfFailures);
+  }
 
   private String getResourceKey(HasMetadata resource) {
     return getResourceKey(resource.getMetadata().getName(), resource.getMetadata().getNamespace());
@@ -131,12 +128,53 @@ public class MockKubeDb {
     String key = getResourceKey(cluster);
     var deleted = clusterMap.remove(key);
     if (clusterWatchers.containsKey(key)) {
-      clusterWatchers.get(key).forEach(consumer -> consumer.accept(deleted));
+      clusterWatchers.get(key).forEach(consumer -> consumer.accept(deleted.getCluster()));
     }
   }
 
   public void delete(StackGresDbOps dbOp) {
     String key = getResourceKey(dbOp);
     dbOpsMap.remove(key);
+  }
+
+  private class StoredCluster {
+    private StackGresCluster cluster;
+    private int pendingFailures;
+
+    public StoredCluster(StackGresCluster cluster) {
+      this.cluster = copy(cluster, StackGresCluster.class);
+      this.pendingFailures = 0;
+      this.cluster.getMetadata().setResourceVersion("1");
+    }
+
+    public StackGresCluster getCluster() {
+      return cluster;
+    }
+
+    public void introduceFailures(int failures) {
+      pendingFailures += failures;
+    }
+
+    synchronized void replace(StackGresCluster newCluster) {
+      var oldVersion = cluster.getMetadata().getResourceVersion();
+      if (pendingFailures > 0) {
+        pendingFailures--;
+        final StackGresCluster clusterCopy = copy(cluster, StackGresCluster.class);
+        int updatedVersion = Integer.parseInt(oldVersion) + 1;
+        clusterCopy.getMetadata().setResourceVersion(Integer.toString(updatedVersion));
+        throw new RuntimeException("Simulated failure");
+      }
+      final StackGresCluster newClusterCopy = copy(newCluster, StackGresCluster.class);
+      var newVersion = newClusterCopy.getMetadata().getResourceVersion();
+
+      if (oldVersion.equals(newVersion)) {
+        int updatedVersion = Integer.parseInt(oldVersion) + 1;
+        newClusterCopy.getMetadata().setResourceVersion(Integer.toString(updatedVersion));
+      } else {
+        throw new IllegalArgumentException("Cluster override with data loss");
+      }
+      cluster = newClusterCopy;
+    }
+
   }
 }

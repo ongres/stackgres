@@ -58,10 +58,6 @@ public class ClusterInstanceManagerImpl implements ClusterInstanceManager {
 
   private Uni<String> increaseInstances(String name, String namespace) {
     return getCluster(name, namespace)
-        .onFailure()
-        .retry()
-        .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))
-        .indefinitely()
         .chain(this::increaseConfiguredInstances);
   }
 
@@ -69,6 +65,10 @@ public class ClusterInstanceManagerImpl implements ClusterInstanceManager {
   public Uni<Void> decreaseClusterInstances(String name, String namespace) {
 
     return decreaseInstances(name, namespace)
+        .onFailure()
+        .retry()
+        .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))
+        .indefinitely()
         .chain(podToBeDeleted -> podWatcher.waitUntilIsRemoved(podToBeDeleted, namespace));
 
   }
@@ -105,7 +105,7 @@ public class ClusterInstanceManagerImpl implements ClusterInstanceManager {
     return Uni.createFrom().emitter(em -> {
       String podToBeDeleted = getPodToBeDeleted(cluster);
       int currentInstances = cluster.getSpec().getInstances();
-      cluster.getSpec().setInstances(currentInstances + -1);
+      cluster.getSpec().setInstances(currentInstances - 1);
       resourceScheduler.update(cluster);
       em.complete(podToBeDeleted);
     });

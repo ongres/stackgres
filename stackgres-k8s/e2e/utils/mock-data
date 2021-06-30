@@ -67,12 +67,15 @@ check_mock_data(){
 }
 
 check_mock_data_replication(){
+  
   local CLUSTER_NAME="${1:-$CLUSTER_NAME}"
+  local REPLICA_INDEX="$(get_replica_index)"
   SERVER="primary"
-  RESPONSE_PRIMARY=$(read_mock_table -i 1)
+  RESPONSE_PRIMARY=$(read_mock_table -i "$REPLICA_INDEX")
 
+  local PRIMARY_INDEX="$(get_primary_index)"
   SERVER="replicas"
-  RESPONSE_REPlICA=$(read_mock_table -i 0)
+  RESPONSE_REPlICA=$(read_mock_table -i "$PRIMARY_INDEX")
   if [ "$RESPONSE_PRIMARY" = "$RESPONSE_REPlICA" ]
   then
     return 0
@@ -80,4 +83,12 @@ check_mock_data_replication(){
     echo "FAIL. data not replication"
     return 1
   fi
+}
+
+get_replica_index() {
+  kubectl -n "$CLUSTER_NAMESPACE" get pod -l role=replica | tail -n 1 | awk '{print $1}' | awk -F "-" '{print $NF}'
+}
+
+get_primary_index() {
+  kubectl -n "$CLUSTER_NAMESPACE" get pod -l role=master | tail -n 1 | awk '{print $1}' | awk -F "-" '{print $NF}'
 }
