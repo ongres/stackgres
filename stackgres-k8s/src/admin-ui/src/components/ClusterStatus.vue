@@ -198,7 +198,11 @@
 						<tr v-for="pod in cluster.status.pods">
 							<td>{{ pod.name }}</td>
 							<td class="tag" :class="pod.role"><span>{{ pod.role }}</span></td>
-							<td class="tag" :class="pod.status"><span>{{ pod.status }}</span></td>
+							<td class="tag" :class="pod.status">
+								<span :data-tooltip="(pod.status == 'Pending') ? getPodLastEvent(pod.name) : ''" :title="( (pod.status == 'Pending') && getPodLastEvent(pod.name).length) ? 'Click for details' : ''">
+									{{ pod.status }}
+								</span>
+							</td>
 							<td>
 								{{ pod.cpuRequested }} 
 								<template v-if="pod.status !== 'Pending'">
@@ -240,7 +244,7 @@
 
 <script>
 	import store from '../store'
-	import router from '../router'
+	import axios from 'axios'
 	import { mixin } from './mixins/mixin'
 
     export default {
@@ -250,38 +254,30 @@
 
 		data: function() {
 			return {
-				
+				events: [],
+				eventsPooling: null
 			}
 		},
-		methods: {
-
-		},
+		
 		mounted: function() {
+			const vc = this;
 
-
+			vc.getClusterEvents();
+			vc.eventsPooling = setInterval( function() {
+				vc.getClusterEvents()
+			}, 10000);
 		},
-		created: function() {
-
-			if ( (store.state.currentCluster.length > 0) && (store.state.currentCluster.name == this.$route.params.name) ) {
-				this.dataReady = true;
-			}
-
-			this.name = this.$route.params.name;
-			this.namespace = this.$route.params.namespace;
-			
-		},
+		
 		computed: {
 
 			clusters () {
-				//console.log(store.state.currentCluster);
-				//return store.state.currentCluster
-
 				return store.state.clusters
 			},
+
 			pods () {
-				//console.log(store.state.currentPods);
 				return store.state.currentPods
 			},
+
 			diskUsed () {
 				const vc = this
 				
@@ -296,10 +292,7 @@
 					return 0
 
 			},
-			notFound () {
-				//window.location.href = '/not-found.html';
-			},
-
+			
 			tooltips () {
 				return store.state.tooltips
 			},
@@ -309,9 +302,35 @@
 			}
 
 		},
+
+		methods: {
+			getClusterEvents() {
+				const vc = this;
+				
+				axios
+				.get('/stackgres/sgcluster/events/' + vc.$route.params.namespace + '/' + vc.$route.params.name)
+				.then( function(response) {
+					vc.events = [...response.data]
+				}).catch(function(err) {
+					console.log(err);
+					vc.checkAuthError(err);
+				});
+			},
+
+			getPodLastEvent(podName) {
+				const vc = this;
+
+				let event = vc.events.find(e => ( ( e.involvedObject.kind == 'Pod' ) && (e.involvedObject.name == podName) ) )
+
+				if(event !== undefined)
+					return event.message
+				else
+					return 'There are no events related to this pod'
+			}
+		},
+
 		beforeDestroy () {
-			clearInterval(this.polling);
-			//console.log('Interval cleared');
+			clearInterval(this.eventsPooling);
 		} 
 	}
 </script>
@@ -329,5 +348,21 @@
 
 	h2 .helpTooltip.alert {
 		top: 2px;
+	}
+
+	.podStatus td.tag.Pending span {
+		cursor: pointer;
+	}
+
+	.podStatus td.tag.Pending span:after {
+		content: " ";
+		display: inline-block;
+		position: absolute;
+		width: 13px;
+		height: 13px;
+		background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDIwIDE4Ij48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwIC0xODMpIj48cGF0aCBkPSJNMTguOTk0LDIwMUgxLjAwNmExLDEsMCwwLDEtLjg3MS0uNTE2LDEuMDUyLDEuMDUyLDAsMCwxLDAtMS4wMzFsOC45OTMtMTUuOTc0YTEuMDMzLDEuMDMzLDAsMCwxLDEuNzQ0LDBsOC45OTMsMTUuOTc0YTEuMDUyLDEuMDUyLDAsMCwxLDAsMS4wMzFBMSwxLDAsMCwxLDE4Ljk5NCwyMDFaTTIuNzUsMTk4LjkzN2gxNC41TDEwLDE4Ni4wNTlaIiBmaWxsPSIjMDBhZGI1Ii8+PHJlY3Qgd2lkdGg9IjIiIGhlaWdodD0iNS4zNzgiIHJ4PSIwLjk0NyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoOSAxODkuMDU5KSIgZmlsbD0iIzAwYWRiNSIvPjxyZWN0IHdpZHRoPSIyIiBoZWlnaHQ9IjIiIHJ4PSIxIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg5IDE5NS40MzcpIiBmaWxsPSIjMDBhZGI1Ii8+PC9nPjwvc3ZnPg==) center no-repeat;
+		transform: translateX(15px);
+		background-size: contain;
+		filter: hue-rotate(35deg);
 	}
 </style>	

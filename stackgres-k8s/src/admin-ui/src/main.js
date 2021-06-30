@@ -643,7 +643,7 @@ $(document).ready(function(){
     
     if( $('.hideOnClick.show').length && !$target.closest('.show').length) {
       $('.hideOnClick.show').removeClass('show').fadeOut()
-      $('.helpTooltip.show').removeClass('show')
+      $('.helpTooltip.show, [data-tooltip].show').removeClass('show')
     }
   });
 
