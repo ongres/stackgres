@@ -6,7 +6,9 @@
 package io.stackgres.operator.conciliation.cluster;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Any;
@@ -46,18 +48,31 @@ public class ClusterDeployedResourceScanner implements DeployedResourcesScanner<
 
     try (KubernetesClient client = clientFactory.create()) {
 
-      List<HasMetadata> deployedResources = STACKGRES_CLUSTER_RESOURCE_OPERATIONS.values()
+      final Map<String, String> genericClusterLabels = labelFactory.genericClusterLabels(config);
+
+      Stream<HasMetadata> inNamespace = STACKGRES_CLUSTER_IN_NAMESPACE_RESOURCE_OPERATIONS
+          .values()
           .stream()
           .flatMap(resourceOperationGetter -> resourceOperationGetter.apply(client)
               .inNamespace(config.getMetadata().getNamespace())
-              .withLabels(labelFactory.genericClusterLabels(config))
+              .withLabels(genericClusterLabels)
               .list()
               .getItems()
-              .stream())
-          .filter(resource -> resource.getMetadata().getOwnerReferences()
+              .stream());
+
+      Stream<HasMetadata> anyNamespace = STACKGRES_CLUSTER_ANY_NAMESPACE_RESOURCE_OPERATIONS
+          .values()
+          .stream()
+          .flatMap(resourceOperationGetter -> resourceOperationGetter
+              .apply(client, genericClusterLabels)
+              .stream());
+
+      List<HasMetadata> deployedResources = Stream.concat(inNamespace, anyNamespace)
+          .filter(resource1 -> resource1.getMetadata().getOwnerReferences()
               .stream().anyMatch(ownerReference -> ownerReference.getKind()
                   .equals(StackGresCluster.KIND)
-                  && ownerReference.getName().equals(config.getMetadata().getName())))
+                  && ownerReference.getName().equals(config.getMetadata().getName())
+                  && ownerReference.getUid().equals(config.getMetadata().getUid())))
           .collect(Collectors.toUnmodifiableList());
 
       deployedResources.forEach(resource -> {
