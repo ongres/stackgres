@@ -242,12 +242,22 @@ spec:
 
 ### Scheduling
 
-Holds scheduling configuration for StackGres pods to have.
+Sets the pod's affinity to restrict it to run only on a certain set of node(s)
 
 | Property                    | Required | Updatable | Type     | Default        | Description |
 |:----------------------------|----------|-----------|:---------|:---------------|:------------|
 | nodeSelector                |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeSelector >}} |
+| [nodeAffinity](#nodeAffinity) |          | ✓         | object    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeAffinity >}} |
 | [tolerations](#tolerations) |          | ✓         | array    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations >}} |
+
+#### Node Affinity
+
+Configuration the pod's affinity to restrict it to run only on a certain set of nodes
+
+| Property          | Required | Updatable | Type     | Default                 | Description |
+|:------------------|----------|-----------|:---------|:------------------------|:------------|
+| requiredDuringSchedulingIgnoredDuringExecution               |          | ✓         | object   |                         | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution >}} |
+
 
 #### Tolerations
 
