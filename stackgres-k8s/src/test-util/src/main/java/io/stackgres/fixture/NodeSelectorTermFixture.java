@@ -15,10 +15,6 @@ public class NodeSelectorTermFixture {
 
   private NodeSelectorRequirement requirement;
 
-  public static NodeSelectorTermFixture get() {
-    return new NodeSelectorTermFixture();
-  }
-
   public NodeSelectorTermFixture withRequirement(NodeSelectorRequirement requirement) {
     this.requirement = requirement;
     return this;
