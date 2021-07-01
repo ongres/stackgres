@@ -223,6 +223,38 @@ spec:
                           additionalProperties:
                             type: string
                           description: Pod custom node selector.
+                        nodeAffinity:
+                          type: object
+                          description: Pod custom node affinity.
+                          properties:
+                            requiredDuringSchedulingIgnoredDuringExecution:
+                              type: object
+                              description: Pod custom node affinity.
+                              properties:
+                                nodeSelectorTerms:
+                                  type: array
+                                  description: Pod custom node tolerations
+                                  items:
+                                    type: object
+                                    description: Pod custom node toleration
+                                    properties:
+                                      key:
+                                        type: string
+                                        description: |
+                                          Key is the taint key that the node affinity applies to. Empty means match all taint
+                                          keys. If the key is empty, operator must be Exists; this combination means to
+                                          match all values and all keys.
+                                      operator:
+                                        type: string
+                                        description: |
+                                          Operator represents a key's relationship to the value. Valid operators are Exists
+                                          and Equal. Defaults to Equal. Exists is equivalent to wildcard for value, so that
+                                          a pod can tolerate all taints of a particular category.
+                                      values:
+                                        type: array
+                                        description: Pod node affinity tag
+                                        items:
+                                          type: string
                         tolerations:
                           type: array
                           description: Pod custom node tolerations
