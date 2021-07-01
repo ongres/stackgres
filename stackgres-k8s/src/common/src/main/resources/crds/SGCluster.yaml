@@ -229,7 +229,8 @@ spec:
                           properties:
                             requiredDuringSchedulingIgnoredDuringExecution:
                               type: object
-                              description: Pod custom node affinity.
+                              description: |
+                                This type of affinity can restrict to only run the pod on specifically nodes like "Intel CPUs"
                               properties:
                                 nodeSelectorTerms:
                                   type: array
