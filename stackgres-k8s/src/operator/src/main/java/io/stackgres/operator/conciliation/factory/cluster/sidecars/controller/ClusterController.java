@@ -105,6 +105,10 @@ public class ClusterController implements ContainerFactory<StackGresClusterConta
                 .withValue(System.getenv("APP_OPTS"))
                 .build(),
             new EnvVarBuilder()
+                .withName("JAVA_OPTS")
+                .withValue(System.getenv("JAVA_OPTS"))
+                .build(),
+            new EnvVarBuilder()
                 .withName("DEBUG_CLUSTER_CONTROLLER")
                 .withValue(System.getenv("DEBUG_OPERATOR"))
                 .build(),
