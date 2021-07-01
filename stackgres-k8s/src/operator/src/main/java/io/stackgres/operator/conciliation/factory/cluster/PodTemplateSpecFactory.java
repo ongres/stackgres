@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.cluster;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -22,11 +23,17 @@ import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorRequirementBuilder;
+import io.fabric8.kubernetes.api.model.NodeAffinity;
+import io.fabric8.kubernetes.api.model.NodeAffinityBuilder;
+import io.fabric8.kubernetes.api.model.NodeSelector;
+import io.fabric8.kubernetes.api.model.NodeSelectorTermBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodAffinityTermBuilder;
 import io.fabric8.kubernetes.api.model.PodAntiAffinityBuilder;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
+import io.fabric8.kubernetes.api.model.PreferredSchedulingTerm;
+import io.fabric8.kubernetes.api.model.PreferredSchedulingTermBuilder;
 import io.fabric8.kubernetes.api.model.TolerationBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
@@ -131,6 +138,7 @@ public class PodTemplateSpecFactory
             .build())
         .withNewSpec()
         .withAffinity(Optional.of(new AffinityBuilder()
+            .withNodeAffinity(buildPodNodeAffinity(cluster))
             .withPodAntiAffinity(new PodAntiAffinityBuilder()
                 .addAllToRequiredDuringSchedulingIgnoredDuringExecution(ImmutableList.of(
                     new PodAffinityTermBuilder()
@@ -186,13 +194,60 @@ public class PodTemplateSpecFactory
         .build();
   }
 
-  public Map<String, String> posCustomLabels(StackGresCluster cluster) {
-    return Optional.ofNullable(cluster)
-        .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getPod)
-        .map(StackGresClusterPod::getMetadata)
-        .map(StackGresClusterPodMetadata::getLabels)
-        .orElse(ImmutableMap.of());
+  public NodeAffinity buildPodNodeAffinity(StackGresCluster cluster) {
+    boolean hasNoStackGresClusterPodScheduling = cluster.getSpec() == null
+        || cluster.getSpec().getPod() == null
+        || cluster.getSpec().getPod().getScheduling() == null;
+
+    if (hasNoStackGresClusterPodScheduling) {
+      return new NodeAffinityBuilder().build();
+    }
+
+    io.stackgres.common.crd.NodeAffinity nodeAffinity = cluster
+        .getSpec().getPod().getScheduling().getNodeAffinity();
+    NodeAffinityBuilder nodeAffinityBuilder = new NodeAffinityBuilder();
+    buildRequiredNodeAffinity(nodeAffinityBuilder, cluster);
+    buildPreferredNodeAffinity(nodeAffinityBuilder, nodeAffinity);
+    return nodeAffinityBuilder.build();
   }
 
+  private void buildRequiredNodeAffinity(NodeAffinityBuilder builder,
+      StackGresCluster cluster) {
+    builder.withNewRequiredDuringSchedulingIgnoredDuringExecution()
+      .withNodeSelectorTerms(Optional.ofNullable(cluster.getSpec())
+        .map(StackGresClusterSpec::getPod)
+        .map(StackGresClusterPod::getScheduling)
+        .map(StackGresClusterPodScheduling::getNodeAffinity)
+        .map(io.stackgres.common.crd.NodeAffinity
+          ::getRequiredDuringSchedulingIgnoredDuringExecution)
+        .map(NodeSelector::getNodeSelectorTerms)
+        .map(nodeSelectorTerms -> Seq.seq(nodeSelectorTerms)
+          .map(NodeSelectorTermBuilder::new)
+          .map(NodeSelectorTermBuilder::build)
+          .toList())
+        .get())
+        .endRequiredDuringSchedulingIgnoredDuringExecution();
+  }
+
+  private void buildPreferredNodeAffinity(NodeAffinityBuilder builder,
+      io.stackgres.common.crd.NodeAffinity nodeAffinity) {
+    List<PreferredSchedulingTerm> preferredTerms = new ArrayList<PreferredSchedulingTerm>();
+    nodeAffinity.getPreferredDuringSchedulingIgnoredDuringExecution()
+        .forEach(preference -> {
+          preferredTerms.add(new PreferredSchedulingTermBuilder()
+              .withPreference(preference.getPreference())
+              .withWeight(preference.getWeight())
+              .build());
+        });
+    builder.withPreferredDuringSchedulingIgnoredDuringExecution(preferredTerms);
+  }
+
+  public Map<String, String> posCustomLabels(StackGresCluster cluster) {
+    return Optional.ofNullable(cluster)
+      .map(StackGresCluster::getSpec)
+      .map(StackGresClusterSpec::getPod)
+      .map(StackGresClusterPod::getMetadata)
+      .map(StackGresClusterPodMetadata::getLabels)
+      .orElse(ImmutableMap.of());
+  }
 }
