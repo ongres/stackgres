@@ -35,7 +35,7 @@ public class RestartJob implements DatabaseOperationJob {
   ClusterRestartStateHandler restartStateHandler;
 
   @Override
-  public Uni<StackGresDbOps> runJob(StackGresDbOps dbOps, StackGresCluster cluster) {
+  public Uni<ClusterRestartState> runJob(StackGresDbOps dbOps, StackGresCluster cluster) {
     return restartStateHandler.restartCluster(dbOps)
         .onFailure().invoke(ex -> reportFailure(dbOps, ex));
   }

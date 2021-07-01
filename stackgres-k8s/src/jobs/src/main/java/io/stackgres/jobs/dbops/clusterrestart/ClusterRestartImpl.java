@@ -11,11 +11,9 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
-import io.stackgres.common.ClusterPendingRestartUtil;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -51,24 +49,24 @@ public class ClusterRestartImpl implements ClusterRestart {
   }
 
   @Override
-  public Multi<RestartEvent> restartCluster(ClusterRestartState clusterState) {
+  public Multi<RestartEvent> restartCluster(ClusterRestartState clusterRestartState) {
     return Multi.createFrom().emitter(em -> {
-      Uni<?> restartChain = waitForClusterToBeHealthy(clusterState);
+      Uni<?> restartChain = waitForClusterToBeHealthy(clusterRestartState);
 
-      Pod primaryInstance = clusterState.getPrimaryInstance();
+      Pod primaryInstance = clusterRestartState.getPrimaryInstance();
 
       final String primaryInstanceName = primaryInstance.getMetadata().getName();
 
-      final String clusterName = clusterState.getClusterName();
+      final String clusterName = clusterRestartState.getClusterName();
 
-      if (clusterState.getRestartedInstances().isEmpty()
-          && hasPodToBeRestarted(primaryInstance, clusterState)) {
+      if (clusterRestartState.getRestartedInstances().isEmpty()
+          && clusterRestartState.hasToBeRestarted(primaryInstance)) {
         restartChain = restartChain
             .invoke(() -> LOGGER.info("Restarting primary node postgres of cluster {}",
                 clusterName))
             .chain(() -> postgresRestart.restartPostgres(primaryInstanceName,
                 clusterName,
-                clusterState.getNamespace()))
+                clusterRestartState.getNamespace()))
             .onItem().invoke(() -> {
               LOGGER.info("Postgres of instance {} restarted", primaryInstanceName);
               em.emit(ImmutableRestartEvent.builder()
@@ -76,18 +74,18 @@ public class ClusterRestartImpl implements ClusterRestart {
                   .eventType(RestartEventType.POSTGRES_RESTART)
                   .build());
             });
-        restartChain = waitForClusterToBeHealthy(clusterState, restartChain);
+        restartChain = waitForClusterToBeHealthy(clusterRestartState, restartChain);
       }
 
-      if (isReducedImpact(clusterState)
-          && hasInstancesNotBeenIncreased(clusterState)) {
+      if (isReducedImpact(clusterRestartState)
+          && hasInstancesNotBeenIncreased(clusterRestartState)) {
 
         restartChain = restartChain.onItem()
             .invoke(() -> LOGGER.info("Increasing instances of cluster {}", clusterName))
             .chain(() ->
                 clusterInstanceManager.increaseClusterInstances(
                     clusterName,
-                    clusterState.getNamespace())
+                    clusterRestartState.getNamespace())
 
             ).onItem().invoke((createdPod) -> {
               LOGGER.info("Instances of cluster {} increased", clusterName);
@@ -97,18 +95,18 @@ public class ClusterRestartImpl implements ClusterRestart {
                   .build());
             });
 
-        restartChain = waitForClusterToBeHealthy(clusterState, restartChain);
+        restartChain = waitForClusterToBeHealthy(clusterRestartState, restartChain);
       }
 
-      List<Pod> replicas = clusterState.getInitialInstances().stream()
+      List<Pod> replicas = clusterRestartState.getInitialInstances().stream()
           .filter(pod -> !primaryInstance.equals(pod))
-          .filter(pod -> hasPodToBeRestarted(pod, clusterState))
+          .filter(pod -> clusterRestartState.hasToBeRestarted(pod))
           .collect(Collectors.toUnmodifiableList());
 
       for (Pod replica : replicas) {
         restartChain = restartChain
             .onItem()
-            .invoke(() -> logPodRestartReason(replica, clusterState))
+            .invoke(() -> logPodRestartReason(replica, clusterRestartState))
             .invoke(() -> LOGGER.info("Restarting pod {}", replica.getMetadata().getName()))
             .chain(() -> podRestart.restartPod(replica))
             .onItem()
@@ -120,29 +118,29 @@ public class ClusterRestartImpl implements ClusterRestart {
                   .build());
             });
 
-        restartChain = waitForClusterToBeHealthy(clusterState, restartChain);
+        restartChain = waitForClusterToBeHealthy(clusterRestartState, restartChain);
       }
 
-      if (!clusterState.isSwitchoverInitiated()
-          && hasPrimaryInstanceToBeRestarted(clusterState, primaryInstance)) {
+      if (!clusterRestartState.isSwitchoverInitiated()
+          && clusterRestartState.hasToBeRestarted(primaryInstance)) {
         restartChain = restartChain.onItem()
             .invoke(() -> LOGGER.info("Performing Switchover over cluster {}", clusterName))
             .chain(() ->
                 switchoverHandler.performSwitchover(
-                    clusterState.getPrimaryInstance().getMetadata().getName(),
-                    clusterName, clusterState.getNamespace())
+                    clusterRestartState.getPrimaryInstance().getMetadata().getName(),
+                    clusterName, clusterRestartState.getNamespace())
             ).onItem()
             .invoke(() -> em.emit(ImmutableRestartEvent.builder()
                 .pod(primaryInstance)
                 .eventType(RestartEventType.SWITCHOVER)
                 .build()));
 
-        restartChain = waitForClusterToBeHealthy(clusterState, restartChain);
+        restartChain = waitForClusterToBeHealthy(clusterRestartState, restartChain);
       }
 
-      if (hasPrimaryInstanceToBeRestarted(clusterState, primaryInstance)) {
+      if (clusterRestartState.hasToBeRestarted(primaryInstance)) {
         restartChain = restartChain.onItem()
-            .invoke(() -> logPodRestartReason(primaryInstance, clusterState))
+            .invoke(() -> logPodRestartReason(primaryInstance, clusterRestartState))
             .invoke(() -> LOGGER.info("Restarting pod {}", primaryInstanceName))
             .chain(() -> podRestart.restartPod(primaryInstance))
             .onItem()
@@ -154,14 +152,15 @@ public class ClusterRestartImpl implements ClusterRestart {
                   .build());
             });
 
-        restartChain = waitForClusterToBeHealthy(clusterState, restartChain);
+        restartChain = waitForClusterToBeHealthy(clusterRestartState, restartChain);
       }
 
-      if (isReducedImpact(clusterState) && hasInstancesNotBeenDecreased(clusterState)) {
+      if (isReducedImpact(clusterRestartState)
+          && hasInstancesNotBeenDecreased(clusterRestartState)) {
         restartChain = restartChain.onItem()
             .invoke(() -> LOGGER.info("Decreasing instances of cluster {}", clusterName))
             .chain(() -> clusterInstanceManager.decreaseClusterInstances(clusterName,
-                clusterState.getNamespace()))
+                clusterRestartState.getNamespace()))
             .onItem()
             .invoke(() -> LOGGER.info("Instances of cluster {} decreased", clusterName));
       }
@@ -170,24 +169,8 @@ public class ClusterRestartImpl implements ClusterRestart {
     });
   }
 
-  private boolean hasPodToBeRestarted(Pod pod, ClusterRestartState clusterState) {
-    return !clusterState.getRestartedInstances().contains(pod)
-        && (!clusterState.isOnlyPendingRrestart()
-            || isPendingRestart(pod, clusterState));
-  }
-
-  private boolean isPendingRestart(Pod pod, ClusterRestartState clusterState) {
-    return ClusterPendingRestartUtil.getRestartReasons(
-        clusterState.getPodStatuses(),
-        clusterState.getStatefulSet(),
-        ImmutableList.of(pod)).requiresRestart();
-  }
-
-  private void logPodRestartReason(Pod pod, ClusterRestartState clusterState) {
-    RestartReasons reasons = ClusterPendingRestartUtil.getRestartReasons(
-        clusterState.getPodStatuses(),
-        clusterState.getStatefulSet(),
-        ImmutableList.of(pod));
+  private void logPodRestartReason(Pod pod, ClusterRestartState clusterRestartState) {
+    RestartReasons reasons = clusterRestartState.getRestartReasons(pod);
     for (RestartReason reason : reasons.getReasons()) {
       switch (reason) {
         case OPERATOR_VERSION:
@@ -212,40 +195,39 @@ public class ClusterRestartImpl implements ClusterRestart {
     }
   }
 
-  private Uni<StackGresCluster> waitForClusterToBeHealthy(ClusterRestartState clusterState) {
-    String clusterName = clusterState.getClusterName();
+  private Uni<StackGresCluster> waitForClusterToBeHealthy(ClusterRestartState clusterRestartState) {
+    String clusterName = clusterRestartState.getClusterName();
     LOGGER.info("Waiting for cluster {} to be healthy", clusterName);
-    return clusterWatcher.waitUntilIsReady(clusterName, clusterState.getNamespace())
+    return clusterWatcher.waitUntilIsReady(clusterName, clusterRestartState.getNamespace())
         .onItem().invoke(() -> LOGGER.info("Cluster {} healthy", clusterName));
   }
 
-  private Uni<StackGresCluster> waitForClusterToBeHealthy(ClusterRestartState clusterState,
+  private Uni<StackGresCluster> waitForClusterToBeHealthy(ClusterRestartState clusterRestartState,
                                                           Uni<?> chain) {
-    String clusterName = clusterState.getClusterName();
+    String clusterName = clusterRestartState.getClusterName();
     return chain
         .onItem().invoke(() -> LOGGER.info("Waiting for cluster {} to be healthy", clusterName))
-        .chain(() -> clusterWatcher.waitUntilIsReady(clusterName, clusterState.getNamespace()))
+        .chain(() -> clusterWatcher.waitUntilIsReady(
+            clusterName, clusterRestartState.getNamespace()))
         .onItem().invoke(() -> LOGGER.info("Cluster {} healthy", clusterName));
   }
 
-  private boolean hasPrimaryInstanceToBeRestarted(ClusterRestartState clusterState,
-                                             Pod primaryInstance) {
-    return hasPodToBeRestarted(primaryInstance, clusterState);
+  private boolean hasInstancesNotBeenIncreased(ClusterRestartState clusterRestartState) {
+    final int totalInstances = clusterRestartState.getTotalInstances().size();
+    final int initialInstances = clusterRestartState.getInitialInstances().size();
+    return totalInstances == initialInstances
+        && clusterRestartState.getRestartedInstances().isEmpty();
   }
 
-  private boolean hasInstancesNotBeenIncreased(ClusterRestartState clusterState) {
-    return clusterState.getTotalInstances().size() == clusterState.getInitialInstances().size()
-        && clusterState.getRestartedInstances().isEmpty();
+  private boolean hasInstancesNotBeenDecreased(ClusterRestartState clusterRestartState) {
+    final int totalInstances = clusterRestartState.getTotalInstances().size();
+    final int initialInstances = clusterRestartState.getInitialInstances().size();
+    return totalInstances > initialInstances
+        || (totalInstances == initialInstances
+            && clusterRestartState.getRestartedInstances().isEmpty());
   }
 
-  private boolean hasInstancesNotBeenDecreased(ClusterRestartState clusterState) {
-    return clusterState.getTotalInstances().size() > clusterState.getInitialInstances().size()
-        ||
-        clusterState.getTotalInstances().size() == clusterState.getInitialInstances().size()
-            && clusterState.getRestartedInstances().isEmpty();
-  }
-
-  private boolean isReducedImpact(ClusterRestartState clusterState) {
-    return clusterState.getRestartMethod().equals(REDUCED_IMPACT_METHOD);
+  private boolean isReducedImpact(ClusterRestartState clusterRestartState) {
+    return clusterRestartState.getRestartMethod().equals(REDUCED_IMPACT_METHOD);
   }
 }

@@ -39,8 +39,8 @@ class ClusterRestartStateHandlerImplTest extends ClusterStateHandlerTest {
   }
 
   @Override
-  public DbOpsRestartStatus getRestartStatus(StackGresDbOps dbOps) {
-    return dbOps.getStatus().getRestart();
+  public DbOpsRestartStatus getRestartStatus(ClusterRestartState clusterRestartState) {
+    return clusterRestartState.getDbOps().getStatus().getRestart();
   }
 
   @Override

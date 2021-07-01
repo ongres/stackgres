@@ -25,6 +25,7 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsSecurityUpgradeStatus;
 import io.stackgres.jobs.dbops.AbstractRestartStateHandler;
 import io.stackgres.jobs.dbops.ClusterStateHandlerTest;
 import io.stackgres.jobs.dbops.StateHandler;
+import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 
 @QuarkusTest
 class ClusterRestartStateHandlerImplTest extends ClusterStateHandlerTest {
@@ -39,8 +40,8 @@ class ClusterRestartStateHandlerImplTest extends ClusterStateHandlerTest {
   }
 
   @Override
-  public DbOpsRestartStatus getRestartStatus(StackGresDbOps dbOps) {
-    return dbOps.getStatus().getSecurityUpgrade();
+  public DbOpsRestartStatus getRestartStatus(ClusterRestartState clusterRestartState) {
+    return clusterRestartState.getDbOps().getStatus().getSecurityUpgrade();
   }
 
   @Override

@@ -15,6 +15,7 @@ import io.stackgres.jobs.dbops.ClusterRestartStateHandler;
 import io.stackgres.jobs.dbops.DatabaseOperation;
 import io.stackgres.jobs.dbops.DatabaseOperationJob;
 import io.stackgres.jobs.dbops.StateHandler;
+import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 
 @ApplicationScoped
 @DatabaseOperation("minorVersionUpgrade")
@@ -30,8 +31,7 @@ public class MinorVersionUpgradeJob implements DatabaseOperationJob {
   }
 
   @Override
-  public Uni<StackGresDbOps> runJob(StackGresDbOps dbOps, StackGresCluster cluster) {
-
+  public Uni<ClusterRestartState> runJob(StackGresDbOps dbOps, StackGresCluster cluster) {
     return restartStateHandler.restartCluster(dbOps);
   }
 

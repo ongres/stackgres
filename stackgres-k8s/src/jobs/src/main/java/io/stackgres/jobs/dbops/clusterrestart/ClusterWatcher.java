@@ -86,7 +86,9 @@ public class ClusterWatcher implements Watcher<StackGresCluster> {
 
       scanClusterPods(cluster)
           .chain(() -> getClusterMembers(cluster))
-          .onFailure().retry().withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
+          .onFailure()
+          .retry()
+          .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
           .indefinitely()
           .subscribe().with(members -> em.complete(cluster));
     });

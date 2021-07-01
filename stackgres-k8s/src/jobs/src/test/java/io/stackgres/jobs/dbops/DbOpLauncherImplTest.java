@@ -21,6 +21,7 @@ import java.util.Optional;
 
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.api.model.Pod;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.junit.mockito.InjectSpy;
@@ -29,6 +30,8 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
+import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
+import io.stackgres.jobs.dbops.clusterrestart.ImmutableClusterRestartState;
 import io.stackgres.jobs.dbops.lock.LockAcquirerImpl;
 import io.stackgres.jobs.dbops.lock.LockRequest;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
@@ -61,14 +64,14 @@ class DbOpLauncherImplTest {
   StackGresCluster cluster;
 
   String namespace;
-  String randomCluster;
+  String randomClusterName;
   String randomDbOpsName;
 
   @BeforeEach
   void setUp() {
     namespace = StringUtils.getRandomNamespace();
     randomDbOpsName = StringUtils.getRandomString();
-    randomCluster = StringUtils.getRandomClusterName();
+    randomClusterName = StringUtils.getRandomClusterName();
 
     dbOps = JsonUtil.readFromJson("stackgres_dbops/dbops_securityupgrade.json",
         StackGresDbOps.class);
@@ -78,24 +81,33 @@ class DbOpLauncherImplTest {
 
     dbOps.getMetadata().setNamespace(namespace);
     dbOps.getMetadata().setName(randomDbOpsName);
-    dbOps.getSpec().setSgCluster(randomCluster);
+    dbOps.getSpec().setSgCluster(randomClusterName);
     dbOps = mockKubeDb.addOrReplaceDbOps(dbOps);
 
     cluster.getMetadata().setNamespace(namespace);
-    cluster.getMetadata().setName(randomCluster);
+    cluster.getMetadata().setName(randomClusterName);
     cluster = mockKubeDb.addOrReplaceCluster(cluster);
+  }
 
+  private Uni<ClusterRestartState> getClusterRestartStateUni() {
+    return Uni.createFrom().item(
+        ImmutableClusterRestartState.builder()
+        .dbOps(mockKubeDb.getDbOps(randomDbOpsName, namespace))
+        .cluster(mockKubeDb.getCluster(randomClusterName, namespace))
+        .isOnlyPendingRestart(false)
+        .isSwitchoverInitiated(false)
+        .primaryInstance(new Pod())
+        .restartMethod("InPlace")
+        .build());
   }
 
   @Test
   void givenAValidDbOps_shouldExecuteTheJob() {
-
-    when(securityUpgradeJob.runJob(any(StackGresDbOps.class), any(StackGresCluster.class)))
-        .thenAnswer(invocation -> Uni.createFrom().item(mockKubeDb.getDbOps(randomDbOpsName, namespace)));
+    when(securityUpgradeJob.runJob(any(), any()))
+        .thenAnswer(invocation -> getClusterRestartStateUni());
 
     dbOpLauncher.launchDbOp(randomDbOpsName, namespace);
     verify(securityUpgradeJob).runJob(any(StackGresDbOps.class), any(StackGresCluster.class));
-
   }
 
   @Test
@@ -120,8 +132,8 @@ class DbOpLauncherImplTest {
 
   @Test
   void givenAValidDbOps_shouldUpdateItsStatusInformation() {
-    when(securityUpgradeJob.runJob(any(StackGresDbOps.class), any(StackGresCluster.class)))
-        .thenAnswer(invocation -> Uni.createFrom().item(mockKubeDb.getDbOps(randomDbOpsName, namespace)));
+    when(securityUpgradeJob.runJob(any(), any()))
+        .thenAnswer(invocation -> getClusterRestartStateUni());
 
     int initialRetries = Optional.ofNullable(dbOps.getStatus())
         .map(StackGresDbOpsStatus::getOpRetries)
@@ -143,16 +155,16 @@ class DbOpLauncherImplTest {
 
   @Test
   void givenANonExistentDbOps_shouldThrowIAE() {
-    when(securityUpgradeJob.runJob(any(StackGresDbOps.class), any(StackGresCluster.class)))
-        .thenAnswer(invocation -> Uni.createFrom().item(mockKubeDb.getDbOps(randomDbOpsName, namespace)));
+    when(securityUpgradeJob.runJob(any(), any()))
+        .thenAnswer(invocation -> getClusterRestartStateUni());
     assertThrows(IllegalArgumentException.class, () -> dbOpLauncher
         .launchDbOp(StringUtils.getRandomString(), namespace));
   }
 
   @Test
   void givenAInvalidOp_shouldThrowIEE() {
-    when(securityUpgradeJob.runJob(any(StackGresDbOps.class), any(StackGresCluster.class)))
-        .thenAnswer(invocation -> Uni.createFrom().item(mockKubeDb.getDbOps(randomDbOpsName, namespace)));
+    when(securityUpgradeJob.runJob(any(), any()))
+        .thenAnswer(invocation -> getClusterRestartStateUni());
     dbOps.getSpec().setOp(StringUtils.getRandomString());
 
     dbOps = mockKubeDb.addOrReplaceDbOps(dbOps);
@@ -164,10 +176,8 @@ class DbOpLauncherImplTest {
   void givenAValidDbOps_shouldSetRunningConditionsBeforeExecutingTheJob() {
     ArgumentCaptor<StackGresDbOps> captor = ArgumentCaptor.forClass(StackGresDbOps.class);
 
-    when(securityUpgradeJob.runJob(captor.capture(), any(StackGresCluster.class)))
-        .thenAnswer(invocation -> {
-          return Uni.createFrom().item(mockKubeDb.getDbOps(randomDbOpsName, namespace));
-        });
+    when(securityUpgradeJob.runJob(captor.capture(), any()))
+        .thenAnswer(invocation -> getClusterRestartStateUni());
 
     dbOpLauncher.launchDbOp(randomDbOpsName, namespace);
 
@@ -189,8 +199,8 @@ class DbOpLauncherImplTest {
 
   @Test
   void givenAValidDbOps_shouldSetCompletedConditionsAfterExecutingTheJob() {
-    when(securityUpgradeJob.runJob(any(StackGresDbOps.class), any(StackGresCluster.class)))
-        .thenAnswer(invocation -> Uni.createFrom().item((StackGresDbOps) invocation.getArgument(0)));
+    when(securityUpgradeJob.runJob(any(), any()))
+        .thenAnswer(invocation -> getClusterRestartStateUni());
 
     dbOpLauncher.launchDbOp(randomDbOpsName, namespace);
 
@@ -211,7 +221,7 @@ class DbOpLauncherImplTest {
 
   @Test
   void givenAValidDbOps_shouldSetFailedConditionsIdTheJobFails() {
-    when(securityUpgradeJob.runJob(any(StackGresDbOps.class), any(StackGresCluster.class)))
+    when(securityUpgradeJob.runJob(any(), any()))
         .thenThrow(new RuntimeException("failed job"));
 
     assertThrows(RuntimeException.class, () -> dbOpLauncher.launchDbOp(randomDbOpsName, namespace));
@@ -230,6 +240,5 @@ class DbOpLauncherImplTest {
         .anyMatch(DbOpsStatusCondition.DB_OPS_FAILED::isCondition)
     );
   }
-
 
 }

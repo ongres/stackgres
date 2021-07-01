@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -18,163 +19,161 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
 public class MockKubeDb {
 
-  public static final JsonMapper JSON_MAPPER = new JsonMapper();
-  private final Map<String, StoredCluster> clusterMap;
-  private final Map<String, StackGresDbOps> dbOpsMap;
-  private final Map<String, List<Consumer<StackGresCluster>>> clusterWatchers;
-  String KEY_FORMAT = "%s/%s";
+  private static final JsonMapper JSON_MAPPER = new JsonMapper();
+  private static final String KEY_FORMAT = "%s/%s";
+  private static final String PENDING_FAILURES = "pendingFailures";
+
+  private final Map<Tuple2<Class<?>, String>, CustomResource<?, ?>> customResourceMap;
+  private final Map<Tuple2<Class<?>, String>, List<Consumer<CustomResource<?, ?>>>> customResourceWatchers;
 
   public MockKubeDb() {
-    this.clusterMap = new HashMap<>();
-    this.dbOpsMap = new HashMap<>();
-    clusterWatchers = new HashMap<>();
+    this.customResourceMap = new HashMap<>();
+    customResourceWatchers = new HashMap<>();
     JSON_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     JSON_MAPPER.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
     JSON_MAPPER.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);
   }
 
-  public StackGresCluster getCluster(String name, String namespace) {
-    String key = getResourceKey(name, namespace);
-    return copy(clusterMap.get(key).getCluster(), StackGresCluster.class);
+  private <T extends CustomResource<?, ?>> Tuple2<Class<?>, String> getResourceKey(
+      T resource, Class<T> customResourceClass) {
+    return getResourceKey(resource.getMetadata().getName(), resource.getMetadata().getNamespace(),
+        customResourceClass);
   }
 
-  public StackGresDbOps getDbOps(String name, String namespace) {
-    String key = getResourceKey(name, namespace);
-    return copy(dbOpsMap.get(key), StackGresDbOps.class);
+  private <T extends CustomResource<?, ?>> Tuple2<Class<?>, String> getResourceKey(
+      String name, String namespace, Class<T> customResourceClass) {
+    return Tuple.tuple(customResourceClass, String.format(KEY_FORMAT, namespace, name));
   }
 
-  private <T> T copy(T source, Class<T> clazz) {
+  private <T extends CustomResource<?, ?>> T getCustomResource(T customResource, Class<T> customResourceClass) {
+    var key = getResourceKey(customResource.getMetadata().getName(),
+        customResource.getMetadata().getNamespace(), customResourceClass);
+    return customResourceClass.cast(customResourceMap.get(key));
+  }
+
+  private <T extends CustomResource<?, ?>> T getCustomResource(String name, String namespace, Class<T> customResourceClass) {
+    var key = getResourceKey(name, namespace, customResourceClass);
+    return customResourceClass.cast(customResourceMap.get(key));
+  }
+
+  private <T extends CustomResource<?, ?>> T copy(T source, Class<T> clazz) {
     JsonNode jsonValue = JSON_MAPPER.valueToTree(source);
     try {
-      return JSON_MAPPER.treeToValue(jsonValue, clazz);
+      T customResourceCopy = JSON_MAPPER.treeToValue(jsonValue, clazz);
+      if (customResourceCopy != null) {
+        customResourceCopy.getMetadata().getAdditionalProperties().remove(PENDING_FAILURES);
+      }
+      return customResourceCopy;
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
     }
   }
 
-  public StackGresCluster addOrReplaceCluster(StackGresCluster cluster) {
+  private <T extends CustomResource<?, ?>> T copyCustomResource(String name, String namespace, Class<T> customResourceClass) {
+    return copy(getCustomResource(name, namespace, customResourceClass), customResourceClass);
+  }
 
-    final String clusterKey = getResourceKey(cluster);
-    if (clusterMap.containsKey(clusterKey)) {
-      clusterMap.get(clusterKey).replace(cluster);
+  private <T extends CustomResource<?, ?>> T addOrReplaceCustomResource(T customResource, Class<T> customResourceClass) {
+    final T storedCustomResource = getCustomResource(customResource, customResourceClass);
+    final T customResourceCopy = copy(customResource, customResourceClass);
+    var customResourceKey = getResourceKey(customResource, customResourceClass);
+    if (customResourceMap.containsKey(customResourceKey)) {
+      Optional<Integer> pendingFailures = Optional.ofNullable((Integer) storedCustomResource
+          .getMetadata().getAdditionalProperties().get(PENDING_FAILURES));
+      if (pendingFailures.orElse(0) > 0) {
+        storedCustomResource.getMetadata().getAdditionalProperties()
+            .put(PENDING_FAILURES, pendingFailures.get() - 1);
+        throw new RuntimeException("Simulated failure");
+      }
+      var oldCustomResource = getCustomResource(customResource, customResourceClass);
+      var oldVersion = oldCustomResource.getMetadata().getResourceVersion();
+      var newVersion = customResourceCopy.getMetadata().getResourceVersion();
+      if (oldVersion.equals(newVersion)) {
+        int updatedVersion = Integer.parseInt(oldVersion) + 1;
+        customResourceCopy.getMetadata().setResourceVersion(Integer.toString(updatedVersion));
+      } else {
+        throw new IllegalArgumentException(customResourceClass.getSimpleName() + " override with data loss");
+      }
     } else {
-      clusterMap.put(clusterKey, new StoredCluster(cluster));
+      customResourceCopy.getMetadata().setResourceVersion("1");
+    }
+    customResourceMap.put(customResourceKey, customResourceCopy);
+
+    if (customResourceWatchers.containsKey(customResourceKey)) {
+      customResourceWatchers.get(customResourceKey)
+          .forEach(consumer -> consumer.accept(customResourceCopy));
     }
 
-    StackGresCluster replacedCluster = clusterMap.get(clusterKey).getCluster();
+    return customResourceCopy;
 
-    if (clusterWatchers.containsKey(clusterKey)) {
-      clusterWatchers.get(clusterKey).forEach(consumer -> consumer.accept(replacedCluster));
+  }
+
+  private <T extends CustomResource<?, ?>> void watchCustomResource(String name, String namespace,
+      Consumer<T> consumer, Class<T> customResourceClass) {
+    var customResourceKey = getResourceKey(name, namespace, customResourceClass);
+    if (!customResourceWatchers.containsKey(customResourceKey)) {
+      customResourceWatchers.put(customResourceKey, new ArrayList<>());
     }
+    customResourceWatchers.get(customResourceKey).add(customResource -> consumer
+        .accept(customResourceClass.cast(customResource)));
+  }
 
-    return replacedCluster;
+  private <T extends CustomResource<?, ?>> void delete(T customResource, Class<T> customResourceClass) {
+    var customResourceKey = getResourceKey(customResource, customResourceClass);
+    var deleted = customResourceMap.remove(customResourceKey);
+    if (customResourceWatchers.containsKey(customResourceKey)) {
+      customResourceWatchers.get(customResourceKey).forEach(consumer -> consumer.accept(deleted));
+    }
+  }
 
+  public StackGresCluster getCluster(String name, String namespace) {
+    return copyCustomResource(name, namespace, StackGresCluster.class);
+  }
+
+  public StackGresCluster addOrReplaceCluster(StackGresCluster cluster) {
+    return addOrReplaceCustomResource(cluster, StackGresCluster.class);
   }
 
   public void watchCluster(String name, String namespace, Consumer<StackGresCluster> consumer) {
-
-    String clusterKey = getResourceKey(name, namespace);
-    if (!clusterWatchers.containsKey(clusterKey)) {
-      clusterWatchers.put(clusterKey, new ArrayList<>());
-    }
-    clusterWatchers.get(clusterKey).add(consumer);
-  }
-
-  public StackGresDbOps addOrReplaceDbOps(StackGresDbOps dbOp) {
-    final StackGresDbOps resourceCopy = copy(dbOp, StackGresDbOps.class);
-    final String key = getResourceKey(dbOp);
-    if (dbOpsMap.containsKey(key)) {
-      var oldCluster = dbOpsMap.get(key);
-      var oldVersion = oldCluster.getMetadata().getResourceVersion();
-      var newVersion = resourceCopy.getMetadata().getResourceVersion();
-      if (oldVersion.equals(newVersion)) {
-        int updatedVersion = Integer.parseInt(oldVersion) + 1;
-        resourceCopy.getMetadata().setResourceVersion(Integer.toString(updatedVersion));
-      } else {
-        throw new IllegalArgumentException("DbOps override with data loss");
-      }
-    } else {
-      resourceCopy.getMetadata().setResourceVersion("1");
-    }
-
-    dbOpsMap.put(key, resourceCopy);
-    return resourceCopy;
-
-  }
-
-  public void introduceReplaceFailures(int numberOfFailures, StackGresCluster cluster) {
-
-    String resourceKey = getResourceKey(cluster);
-
-    clusterMap.get(resourceKey).introduceFailures(numberOfFailures);
-  }
-
-  private String getResourceKey(HasMetadata resource) {
-    return getResourceKey(resource.getMetadata().getName(), resource.getMetadata().getNamespace());
-  }
-
-  private String getResourceKey(String name, String namespace) {
-    return String.format(KEY_FORMAT, namespace, name);
+    watchCustomResource(name, namespace, consumer, StackGresCluster.class);
   }
 
   public void delete(StackGresCluster cluster) {
-    String key = getResourceKey(cluster);
-    var deleted = clusterMap.remove(key);
-    if (clusterWatchers.containsKey(key)) {
-      clusterWatchers.get(key).forEach(consumer -> consumer.accept(deleted.getCluster()));
-    }
+    delete(cluster, StackGresCluster.class);
   }
 
-  public void delete(StackGresDbOps dbOp) {
-    String key = getResourceKey(dbOp);
-    dbOpsMap.remove(key);
+  public StackGresDbOps getDbOps(String name, String namespace) {
+    return copyCustomResource(name, namespace, StackGresDbOps.class);
   }
 
-  private class StoredCluster {
-    private StackGresCluster cluster;
-    private int pendingFailures;
-
-    public StoredCluster(StackGresCluster cluster) {
-      this.cluster = copy(cluster, StackGresCluster.class);
-      this.pendingFailures = 0;
-      this.cluster.getMetadata().setResourceVersion("1");
-    }
-
-    public StackGresCluster getCluster() {
-      return cluster;
-    }
-
-    public void introduceFailures(int failures) {
-      pendingFailures += failures;
-    }
-
-    synchronized void replace(StackGresCluster newCluster) {
-      var oldVersion = cluster.getMetadata().getResourceVersion();
-      if (pendingFailures > 0) {
-        pendingFailures--;
-        final StackGresCluster clusterCopy = copy(cluster, StackGresCluster.class);
-        int updatedVersion = Integer.parseInt(oldVersion) + 1;
-        clusterCopy.getMetadata().setResourceVersion(Integer.toString(updatedVersion));
-        throw new RuntimeException("Simulated failure");
-      }
-      final StackGresCluster newClusterCopy = copy(newCluster, StackGresCluster.class);
-      var newVersion = newClusterCopy.getMetadata().getResourceVersion();
-
-      if (oldVersion.equals(newVersion)) {
-        int updatedVersion = Integer.parseInt(oldVersion) + 1;
-        newClusterCopy.getMetadata().setResourceVersion(Integer.toString(updatedVersion));
-      } else {
-        throw new IllegalArgumentException("Cluster override with data loss");
-      }
-      cluster = newClusterCopy;
-    }
-
+  public StackGresDbOps addOrReplaceDbOps(StackGresDbOps cluster) {
+    return addOrReplaceCustomResource(cluster, StackGresDbOps.class);
   }
+
+  public void watchDbOps(String name, String namespace, Consumer<StackGresDbOps> consumer) {
+    watchCustomResource(name, namespace, consumer, StackGresDbOps.class);
+  }
+
+  public void delete(StackGresDbOps dbOps) {
+    delete(dbOps, StackGresDbOps.class);
+  }
+
+  public void introduceReplaceFailures(int i, StackGresCluster cluster) {
+    StackGresCluster storedCluster = getCustomResource(cluster, StackGresCluster.class);
+    int pendingFailures =
+        Optional.ofNullable((Integer) storedCluster
+            .getMetadata().getAdditionalProperties().get(PENDING_FAILURES))
+        .orElse(0) + 1;
+    storedCluster.getMetadata().getAdditionalProperties().put(PENDING_FAILURES, pendingFailures);
+  }
+
 }
