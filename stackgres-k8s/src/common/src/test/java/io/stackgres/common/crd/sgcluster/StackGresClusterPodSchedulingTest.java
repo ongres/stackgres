@@ -10,14 +10,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import io.fabric8.kubernetes.api.model.NodeSelector;
-import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
 import io.fabric8.kubernetes.api.model.PreferredSchedulingTerm;
 import io.stackgres.common.fixture.StackGresClusterPodSchedulingFixture;
-import io.stackgres.testutil.JsonUtil;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class StackGresClusterPodSchedulingTest {
 

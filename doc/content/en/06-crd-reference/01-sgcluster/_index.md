@@ -256,8 +256,12 @@ Configuration the pod's affinity to restrict it to run only on a certain set of 
 
 | Property          | Required | Updatable | Type     | Default                 | Description |
 |:------------------|----------|-----------|:---------|:------------------------|:------------|
-| requiredDuringSchedulingIgnoredDuringExecution               |          | ✓         | object   |                         | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution >}} |
+| requiredDuringSchedulingIgnoredDuringExecution  |          | ✓         | object   |                         | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution >}} |
+| preferredDuringSchedulingIgnoredDuringExecution |          | ✓         | array   |                         | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution >}} |
 
+See Kubernetes pod node affinity [definition](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity{}) for more details.
+<br>
+<br>
 
 #### Tolerations
 
