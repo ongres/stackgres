@@ -8,54 +8,81 @@ package io.stackgres.common.crd.sgcluster;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import io.fabric8.kubernetes.api.model.NodeSelector;
 import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
+import io.fabric8.kubernetes.api.model.PreferredSchedulingTerm;
+import io.stackgres.common.fixture.StackGresClusterPodSchedulingFixture;
 import io.stackgres.testutil.JsonUtil;
 
 class StackGresClusterPodSchedulingTest {
 
 	private static final int TWO_NODE_AFFFINITY_EXPRESSION_VALUES = 2;
-	private static final String MATCH_EXPRESION_OPERATOR = "In";
-	private static final String MATCH_EXPRESION_KEY = "kubernetes.io/e2e-az-name";
+	private static final String OPERATOR_IN = "In";
+	private static final String REQUIRED_TOPOLOGY_KEY = "kubernetes.io/e2e-az-name-required";
+	private static final String PREFERRED_TOPOLOGY_KEY = "kubernetes.io/e2e-az-name-preferred";
 	private NodeSelector nodeAffinityRequiredDuringScheduling;
-	private NodeSelectorRequirement matchExpression;
+  private List<PreferredSchedulingTerm> nodeAffinityPreferredDuringScheduling;
 
 	@BeforeEach
 	public void setup() {
-		StackGresClusterPodScheduling scheduling = getSGClusterPodScheduling();
-		this.nodeAffinityRequiredDuringScheduling = scheduling
+		StackGresClusterPodScheduling podNodeAffinityScheduling = new StackGresClusterPodSchedulingFixture()
+		    .loadPodNodeAffinityScheduling();
+		this.nodeAffinityRequiredDuringScheduling = podNodeAffinityScheduling
 				.getNodeAffinity()
 				.getRequiredDuringSchedulingIgnoredDuringExecution();
-		this.matchExpression = nodeAffinityRequiredDuringScheduling
-				.getNodeSelectorTerms()
-				.get(0)
-				.getMatchExpressions()
-				.get(0);
+		this.nodeAffinityPreferredDuringScheduling = podNodeAffinityScheduling
+		    .getNodeAffinity()
+		    .getPreferredDuringSchedulingIgnoredDuringExecution();
 	}
 	
 	@Test
-	void shouldValidateOperatorInUsedForSGClusterPodSchedulingNodeAffinityDefinition() {
-		assertTrue(matchExpression.getOperator().equals(MATCH_EXPRESION_OPERATOR));
-	}
-	
-	@Test
-	void shouldValidateMathExpressionKeyOnceLoadingSGClusterPodSchedulingDefinitionWithRequiredDuringSchedulingNodeAffinity() {
-		assertTrue(matchExpression.getKey().equals(MATCH_EXPRESION_KEY));
-	}
-	
-	@Test
-	void shouldValidateMathExpressionValuesOnceLoadingSGClusterPodSchedulingDefinitionWithRequiredDuringSchedulingNodeAffinity() {
-		assertEquals(TWO_NODE_AFFFINITY_EXPRESSION_VALUES,matchExpression.getValues().size());
+	void shouldMatchExpressionKey_BeEqualsForPodNodeAffinityRequiredDuringScheduling() {
+	  nodeAffinityRequiredDuringScheduling.getNodeSelectorTerms().get(0)
+	  .getMatchExpressions().forEach(matchExpression -> {
+	    assertTrue(matchExpression.getKey().equals(REQUIRED_TOPOLOGY_KEY));  
+	  });
 	}
 
-	private StackGresClusterPodScheduling getSGClusterPodScheduling() {
-		StackGresClusterPodScheduling scheduling = JsonUtil
-        .readFromJson("stackgres_cluster/scheduling.json",
-        		StackGresClusterPodScheduling.class);
-    return scheduling;
+	@Test
+	void shouldOperator_BeEqualsInForPodNodeAffinityRequiredDuringScheduling() {
+    nodeAffinityRequiredDuringScheduling.getNodeSelectorTerms().get(0)
+    .getMatchExpressions().forEach(matchExpression -> {
+      assertTrue(matchExpression.getOperator().equals(OPERATOR_IN));  
+    });
 	}
-	
+
+  @Test
+  void shouldMathExpressionValuesSize_BeEqualsPodNodeAffinityRequiredDuringSchedulingSize() {
+    assertEquals(TWO_NODE_AFFFINITY_EXPRESSION_VALUES,
+        nodeAffinityRequiredDuringScheduling.getNodeSelectorTerms().get(0)
+        .getMatchExpressions().get(0).getValues().size());
+  }
+
+  @Test
+  void shouldMatchExpressionKey_BeEqualsForPodNodeAffinityPreferredDuringScheduling() {
+    nodeAffinityPreferredDuringScheduling.get(0).getPreference()
+    .getMatchExpressions().forEach(matchExpression -> {
+      assertTrue(matchExpression.getKey().equals(PREFERRED_TOPOLOGY_KEY));  
+    });
+  }
+
+  @Test
+  void shouldOperator_BeEqualsInForPodNodeAffinityPreferredDuringScheduling() {
+    nodeAffinityPreferredDuringScheduling.get(0)
+        .getPreference().getMatchExpressions().forEach(matchExpression -> {
+          assertEquals(matchExpression.getOperator(),OPERATOR_IN);
+    });
+  }
+
+  @Test
+  void shouldMathExpressionValuesSize_BeEqualsPodNodeAffinityPreferredDuringSchedulingSize() {
+    assertEquals(TWO_NODE_AFFFINITY_EXPRESSION_VALUES,
+        nodeAffinityPreferredDuringScheduling.get(0).getPreference()
+        .getMatchExpressions().get(0).getValues().size());
+  }
 }

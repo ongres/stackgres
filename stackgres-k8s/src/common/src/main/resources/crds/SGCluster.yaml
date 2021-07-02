@@ -227,10 +227,55 @@ spec:
                           type: object
                           description: Pod custom node affinity.
                           properties:
+                            preferredDuringSchedulingIgnoredDuringExecution:
+                              type: array
+                              description: |
+                                This type of affinity will prefer to schedule pods to nodes that satisfy
+                                the affinity expressions specified, but it may choose a node that violates
+                                one or more of the expressions. The node that is most preferred is the one
+                                with the greatest sum of weights.
+                              items:
+                                type: object
+                                description:
+                                properties:
+                                  weight:
+                                    type: integer
+                                    description:
+                                  preference:
+                                    type: object
+                                    description:
+                                    properties:
+                                      matchExpressions:
+                                        type: array
+                                        description: Pod custom node tolerations
+                                        items:
+                                          type: object
+                                          description: Pod custom node toleration
+                                          properties:
+                                            key:
+                                              type: string
+                                              description: |
+                                                Key is the taint key that the node affinity applies to. Empty means match all taint
+                                                keys. If the key is empty, operator must be Exists; this combination means to
+                                                match all values and all keys.
+                                            operator: 
+                                              type: string
+                                              description: |
+                                                Operator represents a key's relationship to the value. Valid operators are Exists
+                                                and Equal. Defaults to Equal. Exists is equivalent to wildcard for value, so that
+                                                a pod can tolerate all taints of a particular category.
+                                            values:
+                                              type: array
+                                              description: Pod Affinity match labes.
+                                              items:
+                                                type: string
                             requiredDuringSchedulingIgnoredDuringExecution:
                               type: object
                               description: |
-                                This type of affinity can restrict to only run the pod on specifically nodes like "Intel CPUs"
+                                If the affinity requirements specified by this field are not met at
+                                scheduling time, the pod will not be scheduled onto the node.
+                                This type of affinity can restrict to only run the pod on specifically
+                                nodes like "Intel CPUs".
                               properties:
                                 nodeSelectorTerms:
                                   type: array
