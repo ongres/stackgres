@@ -48,6 +48,22 @@ cluster:
     # scheduling:
     #   nodeSelector:
     #     key: value
+    #   nodeAffinity:
+    #     preferredDuringSchedulingIgnoredDuringExecution:
+    #       - weight:
+    #         preference:
+    #           matchExpressions:
+    #           - key:
+    #             operator:
+    #             values:
+    #             - another-value
+    #     requiredDuringSchedulingIgnoredDuringExecution:
+    #       nodeSelectorTerms:
+    #       - matchExpressions:
+    #         - key:
+    #           operator:
+    #           values:
+    #           - another-value
     #   tolerations:
     #     - key: 
     #       operator: 

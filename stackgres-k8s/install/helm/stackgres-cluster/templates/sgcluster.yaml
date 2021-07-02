@@ -153,6 +153,42 @@ spec:
     disableMetricsExporter: {{ .Values.cluster.pods.disableMetricsExporter }}
     {{- if .Values.cluster.pods.scheduling }}
     scheduling:
+      {{- if .Values.cluster.pods.scheduling.nodeAffinity }}
+      nodeAffinity:
+        {{- if .Values.cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution }}
+        requiredDuringSchedulingIgnoredDuringExecution:
+          {{- if .Values.cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms }}
+          nodeSelectorTerms:
+            {{- range .Values.cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms }}
+              {{- if .Values.cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.matchExpressions }}
+              matchExpressions:
+                {{- range .Values.cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.matchExpressions }}  
+                - key: {{ .key }}
+                  operator: {{ .operator }}
+                  values: {{ .values }}
+                {{- end }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.cluster.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution }}
+        preferredDuringSchedulingIgnoredDuringExecution:
+          {{- range .Values.cluster.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution }}
+          - weigth: {{ .weight }}
+            {{- if .Values.cluster.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.preference }}
+            preference:
+              {{- if .Values.cluster.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.preference.matchExpressions }}
+              matchExpressions:
+                {{- range .Values.cluster.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.preference.matchExpressions }}
+                - key: {{ .key }}
+                  operator: {{ .operator }}
+                  values: {{ .values }}
+                {{- end }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
       {{- if .Values.cluster.pods.scheduling.nodeSelector }}
       nodeSelector:
         {{- range $label, $value := .Values.cluster.pods.scheduling.nodeSelector }}
