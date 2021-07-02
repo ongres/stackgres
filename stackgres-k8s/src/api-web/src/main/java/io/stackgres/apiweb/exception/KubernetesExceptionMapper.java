@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.rest;
+package io.stackgres.apiweb.exception;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +16,7 @@ import com.fasterxml.jackson.core.io.JsonStringEncoder;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusCause;
 import io.fabric8.kubernetes.client.KubernetesClientException;
+import io.stackgres.apiweb.rest.utils.StatusParser;
 import io.stackgres.common.ErrorType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -5,7 +5,6 @@
 
 package io.stackgres.apiweb.rest;
 
-import java.util.List;
 import java.util.Objects;
 
 import javax.enterprise.context.RequestScoped;
@@ -16,16 +15,15 @@ import io.stackgres.apiweb.dto.pgconfig.PostgresConfigDto;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
-@Path("sgpgconfigs")
+@Path("{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgpgconfigs")
 @RequestScoped
 @Authenticated
-public class PostgresConfigResource extends
-    AbstractRestServiceDependency<PostgresConfigDto, StackGresPostgresConfig> {
+public class NamespacedPostgresConfigResource
+    extends AbstractNamespacedRestServiceDependency<PostgresConfigDto, StackGresPostgresConfig>  {
 
   @Override
   public boolean belongsToCluster(StackGresPostgresConfig resource, StackGresCluster cluster) {
@@ -40,39 +38,11 @@ public class PostgresConfigResource extends
           @ApiResponse(responseCode = "200", description = "OK",
               content = {@Content(
                   mediaType = "application/json",
-                  array = @ArraySchema(
-                      schema = @Schema(implementation = PostgresConfigDto.class)))})
+                  schema = @Schema(implementation = PostgresConfigDto.class))})
       })
   @Override
-  public List<PostgresConfigDto> list() {
-    return super.list();
-  }
-
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
-      })
-  @Override
-  public void create(PostgresConfigDto resource) {
-    super.create(resource);
-  }
-
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
-      })
-  @Override
-  public void delete(PostgresConfigDto resource) {
-    super.delete(resource);
-  }
-
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
-      })
-  @Override
-  public void update(PostgresConfigDto resource) {
-    super.update(resource);
+  public PostgresConfigDto get(String namespace, String name) {
+    return super.get(namespace, name);
   }
 
 }

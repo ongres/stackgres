@@ -5,7 +5,6 @@
 
 package io.stackgres.apiweb.rest;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -18,16 +17,15 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
-@Path("sgdistributedlogs")
+@Path("{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgdistributedlogs")
 @RequestScoped
 @Authenticated
-public class DistributedLogsResource
-    extends AbstractRestServiceDependency<DistributedLogsDto, StackGresDistributedLogs> {
+public class NamespacedDistributedLogsResource
+    extends AbstractNamespacedRestServiceDependency<DistributedLogsDto, StackGresDistributedLogs> {
 
   @Override
   public boolean belongsToCluster(StackGresDistributedLogs resource, StackGresCluster cluster) {
@@ -41,41 +39,13 @@ public class DistributedLogsResource
   @Operation(
       responses = {
           @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
+              content = {@Content(
                   mediaType = "application/json",
-                  array = @ArraySchema(
-                      schema = @Schema(implementation = DistributedLogsDto.class))) })
+                  schema = @Schema(implementation = DistributedLogsDto.class))})
       })
   @Override
-  public List<DistributedLogsDto> list() {
-    return super.list();
-  }
-
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
-      })
-  @Override
-  public void create(DistributedLogsDto resource) {
-    super.create(resource);
-  }
-
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
-      })
-  @Override
-  public void delete(DistributedLogsDto resource) {
-    super.delete(resource);
-  }
-
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
-      })
-  @Override
-  public void update(DistributedLogsDto resource) {
-    super.update(resource);
+  public DistributedLogsDto get(String namespace, String name) {
+    return super.get(namespace, name);
   }
 
 }

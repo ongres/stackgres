@@ -48,7 +48,7 @@ check_grafana_secret() {
     --set grafana.secretNamespace="$(prometheus_namespace)" \
     --set grafana.secretName="prometheus-grafana" \
     --set grafana.secretUserKey="admin-user" \
-    --set grafana.secretPasswordKey="admin-password" 
+    --set grafana.secretPasswordKey="admin-password"
 
   if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "https://stackgres-restapi.$OPERATOR_NAMESPACE/grafana" -o /dev/null --fail
   then
@@ -69,7 +69,7 @@ check_exporter_service() {
     echo "Exporter service was created"
   else
     echo "Exporter service was not created"
-  return 1 
+  return 1
   fi
 }
 
@@ -115,7 +115,7 @@ check_envoy_service() {
     echo "Envoy service was created"
   else
     echo "Envoy service was not created"
-  return 1 
+  return 1
   fi
 }
 
@@ -200,5 +200,5 @@ check_grafana_embedded() {
 }
 
 get_grafana_embedded() {
-  run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-L" | jq '.grafanaEmbedded' -r
+  run_curl -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" -e "-L" | jq '.grafanaEmbedded' -r
 }

@@ -15,6 +15,7 @@ import javax.ws.rs.PathParam;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.secret.SecretDto;
+import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.common.resource.ResourceScanner;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -22,7 +23,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
-@Path("")
+@Path("{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/secrets")
 @RequestScoped
 public class SecretResource {
 
@@ -43,7 +44,6 @@ public class SecretResource {
   @CommonApiResponses
   @Authenticated
   @GET
-  @Path("{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/secrets")
   public List<SecretDto> list(@PathParam("namespace") String namespace) {
     return scanner.findResourcesInNamespace(namespace);
   }

@@ -76,7 +76,7 @@ delete_profile_only() {
 check_profile_in_list() {
   create_profile
 
-  if run_curl -r "stackgres/sginstanceprofile" -n "$CLUSTER_NAMESPACE" \
+  if run_curl -r "stackgres/sginstanceprofiles" -n "$CLUSTER_NAMESPACE" \
     | jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$PROFILE\") | .metadata.name" \
     | grep -q "^$PROFILE$"
   then
@@ -89,7 +89,7 @@ check_profile_in_list() {
 }
 
 get_profile_status() {
-  run_curl -r "stackgres/sginstanceprofile/$CLUSTER_NAMESPACE/$PROFILE"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}"
+  run_curl -r "stackgres/$CLUSTER_NAMESPACE/sginstanceprofiles/$PROFILE"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}"
 }
 
 check_profile_directly() {
@@ -112,13 +112,13 @@ check_profile_directly() {
 check_profile_removed_from_list() {
   delete_profile_only
 
-  if run_curl -r "stackgres/sginstanceprofile"  -n "$CLUSTER_NAMESPACE" \
+  if run_curl -r "stackgres/sginstanceprofiles"  -n "$CLUSTER_NAMESPACE" \
     | jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$PROFILE\") | .metadata.name" \
     | grep -q "^$PROFILE$"
   then
     echo "Profile $PROFILE wasn't removed from cache";
     return 1
-  else 
+  else
     echo "Profile $PROFILE was removed from cache";
     return 0
   fi
@@ -129,7 +129,7 @@ check_profile_deletion_directly() {
 
   delete_profile_only
 
-  HTTP_STATUS="$(run_curl -r "stackgres/sginstanceprofile/$CLUSTER_NAMESPACE/$PROFILE" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -r "stackgres/$CLUSTER_NAMESPACE/sginstanceprofiles/$PROFILE" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   if [ "$HTTP_STATUS" -eq "404" ]
   then
@@ -141,7 +141,7 @@ check_profile_deletion_directly() {
   fi
 }
 
-create_profile_with_api() { 
+create_profile_with_api() {
   echo "Creating profile $PROFILE with the operator API"
 
   delete_profile_only
@@ -150,14 +150,14 @@ create_profile_with_api() {
 
   echo "Sending creation request"
 
-  HTTP_STATUS="$(run_curl -r "stackgres/sginstanceprofile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X POST -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sginstanceprofiles" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X POST -w %{http_code} -o /dev/null')"
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
     echo "Request acknowledged by the operator"
   else
     local ERROR_RESPONSE
-    ERROR_RESPONSE="$(run_curl -r "stackgres/sginstanceprofile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X POST')"
+    ERROR_RESPONSE="$(run_curl -r "stackgres/sginstanceprofiles" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X POST')"
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
   fi
@@ -191,14 +191,14 @@ update_profile_parameter_with_api() {
 
   write_to "$LOG_PATH/updated-profile.json" get_updated_profile $1 $2
 
-  HTTP_STATUS="$(run_curl -r "stackgres/sginstanceprofile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/updated-profile.json" -e '-X PUT -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sginstanceprofiles" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/updated-profile.json" -e '-X PUT -w %{http_code} -o /dev/null')"
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
     echo "Request acknowledged by the operator"
   else
     local ERROR_RESPONSE
-    ERROR_RESPONSE="$(run_curl -r "stackgres/sginstanceprofile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/updated-profile.json" -e '-X PUT')"
+    ERROR_RESPONSE="$(run_curl -r "stackgres/sginstanceprofiles" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/updated-profile.json" -e '-X PUT')"
 
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
@@ -221,7 +221,7 @@ test_update_profile_with_api() {
 }
 
 get_profile_from_api() {
-  run_curl -r "stackgres/sginstanceprofile/$CLUSTER_NAMESPACE/$PROFILE" -n "$CLUSTER_NAMESPACE"
+  run_curl -r "stackgres/$CLUSTER_NAMESPACE/sginstanceprofiles/$PROFILE" -n "$CLUSTER_NAMESPACE"
 }
 
 test_api_updated_profile_is_visible() {
@@ -240,13 +240,13 @@ test_api_updated_profile_is_visible() {
 delete_profile_with_api() {
   local HTTP_STATUS
 
-  HTTP_STATUS=$(run_curl -r "stackgres/sginstanceprofile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X DELETE -w %{http_code} -o /dev/null')
+  HTTP_STATUS=$(run_curl -r "stackgres/sginstanceprofiles" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X DELETE -w %{http_code} -o /dev/null')
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
     echo "Request acknowledged by the operator"
   else
-    ERROR_RESPONSE=$(run_curl -r "stackgres/sginstanceprofile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X PUT')
+    ERROR_RESPONSE=$(run_curl -r "stackgres/sginstanceprofiles" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X PUT')
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
   fi
@@ -286,18 +286,18 @@ test_constraint_violation_api_error() {
 
   echo "$PROFILE" > "$LOG_PATH/invalid-profile.json"
 
-  HTTP_STATUS=$(run_curl -r "stackgres/sginstanceprofile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-profile.json" -e '-X POST -w %{http_code} -o /dev/null')
-  
+  HTTP_STATUS=$(run_curl -r "stackgres/sginstanceprofiles" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-profile.json" -e '-X POST -w %{http_code} -o /dev/null')
+
   if [ "$HTTP_STATUS" = "422" ]
   then
     echo "Success. Operator api validated the profile"
   else
-    ERROR_RESPONSE="$(run_curl -r "stackgres/sginstanceprofile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-profile.json" -e '-X POST')"
+    ERROR_RESPONSE="$(run_curl -r "stackgres/sginstanceprofiles" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-profile.json" -e '-X POST')"
     echo "Fail. Status is not what is expected. HTTP_STATUS=$HTTP_STATUS. RESONSE:$ERROR_RESPONSE"
     return 1
   fi
 
-  ERROR_RESPONSE=$(run_curl -r "stackgres/sginstanceprofile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-profile.json" -e '-X POST')
+  ERROR_RESPONSE=$(run_curl -r "stackgres/sginstanceprofiles" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-profile.json" -e '-X POST')
 
   EXPECTED_ERROR_TYPE="constraint-violation"
   EXPECTED_ERROR_TITLE="do not comply with the syntactic rules"
@@ -315,11 +315,11 @@ test_dependency_api_error(){
 
   local HTTP_STATUS
 
-  HTTP_STATUS=$(run_curl -r "stackgres/sginstanceprofile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X DELETE -w %{http_code} -o /dev/null')
+  HTTP_STATUS=$(run_curl -r "stackgres/sginstanceprofiles" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X DELETE -w %{http_code} -o /dev/null')
 
-  assert_string_equal "409" "$HTTP_STATUS" 
+  assert_string_equal "409" "$HTTP_STATUS"
 
-  ERROR_RESPONSE=$(run_curl -r "stackgres/sginstanceprofile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X DELETE')
+  ERROR_RESPONSE=$(run_curl -r "stackgres/sginstanceprofiles" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X DELETE')
 
   EXPECTED_ERROR_TYPE="forbidden-configuration-deletion"
   EXPECTED_ERROR_TITLE="Forbidden configuration deletion"
@@ -333,23 +333,23 @@ test_dependency_api_error(){
 test_authentication_api_error() {
   local HTTP_STATUS
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sginstanceprofile"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sginstanceprofiles"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sginstanceprofile/$CLUSTER_NAMESPACE/$PROFILE" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/$CLUSTER_NAMESPACE/sginstanceprofiles/$PROFILE" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sginstanceprofile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X POST -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sginstanceprofiles" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X POST -w %{http_code} -o /dev/null')"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sginstanceprofile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X PUT -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sginstanceprofiles" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X PUT -w %{http_code} -o /dev/null')"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sginstanceprofile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sginstanceprofiles" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
 
   check_authentication_error
 }

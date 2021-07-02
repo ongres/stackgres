@@ -15,6 +15,7 @@ import javax.ws.rs.PathParam;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.extension.ExtensionsDto;
+import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.apiweb.transformer.ExtensionsTransformer;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;

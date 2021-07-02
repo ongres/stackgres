@@ -5,7 +5,6 @@
 
 package io.stackgres.apiweb.rest;
 
-import java.util.List;
 import java.util.Objects;
 
 import javax.enterprise.context.RequestScoped;
@@ -16,23 +15,22 @@ import io.stackgres.apiweb.dto.profile.ProfileDto;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
-@Path("sginstanceprofiles")
+@Path("{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sginstanceprofiles")
 @RequestScoped
 @Authenticated
-public class ProfileResource
-    extends AbstractRestServiceDependency<ProfileDto, StackGresProfile> {
+public class NamespacedProfileResource
+    extends AbstractNamespacedRestServiceDependency<ProfileDto, StackGresProfile> {
 
   @Override
   public boolean belongsToCluster(StackGresProfile resource, StackGresCluster cluster) {
     return cluster.getMetadata().getNamespace().equals(
         resource.getMetadata().getNamespace())
         && Objects.equals(cluster.getSpec().getResourceProfile(),
-        resource.getMetadata().getName());
+            resource.getMetadata().getName());
   }
 
   @Operation(
@@ -40,39 +38,11 @@ public class ProfileResource
           @ApiResponse(responseCode = "200", description = "OK",
               content = {@Content(
                   mediaType = "application/json",
-                  array = @ArraySchema(
-                      schema = @Schema(implementation = ProfileDto.class)))})
+                  schema = @Schema(implementation = ProfileDto.class))})
       })
   @Override
-  public List<ProfileDto> list() {
-    return super.list();
-  }
-
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
-      })
-  @Override
-  public void create(ProfileDto resource) {
-    super.create(resource);
-  }
-
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
-      })
-  @Override
-  public void delete(ProfileDto resource) {
-    super.delete(resource);
-  }
-
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
-      })
-  @Override
-  public void update(ProfileDto resource) {
-    super.update(resource);
+  public ProfileDto get(String namespace, String name) {
+    return super.get(namespace, name);
   }
 
 }

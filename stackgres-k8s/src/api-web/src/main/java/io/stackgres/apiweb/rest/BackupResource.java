@@ -19,11 +19,10 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
-@Path("")
+@Path("sgbackups")
 @RequestScoped
 @Authenticated
-public class BackupResource
-    extends AbstractRestService<BackupDto, StackGresBackup> {
+public class BackupResource extends AbstractRestService<BackupDto, StackGresBackup> {
 
   @Operation(
       responses = {
@@ -33,22 +32,8 @@ public class BackupResource
                   array = @ArraySchema(schema = @Schema(implementation = BackupDto.class))) })
       })
   @Override
-  @Path("sgbackups")
   public List<BackupDto> list() {
     return super.list();
-  }
-
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = BackupDto.class)) })
-      })
-  @Override
-  @Path("{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgbackups/{name}")
-  public BackupDto get(String namespace, String name) {
-    return super.get(namespace, name);
   }
 
   @Operation(
@@ -56,7 +41,6 @@ public class BackupResource
           @ApiResponse(responseCode = "200", description = "OK")
       })
   @Override
-  @Path("sgbackups")
   public void create(BackupDto resource) {
     super.create(resource);
   }
@@ -66,7 +50,6 @@ public class BackupResource
           @ApiResponse(responseCode = "200", description = "OK")
       })
   @Override
-  @Path("sgbackups")
   public void delete(BackupDto resource) {
     super.delete(resource);
   }
@@ -76,7 +59,6 @@ public class BackupResource
           @ApiResponse(responseCode = "200", description = "OK")
       })
   @Override
-  @Path("sgbackups")
   public void update(BackupDto resource) {
     super.update(resource);
   }

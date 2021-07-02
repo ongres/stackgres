@@ -15,6 +15,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import io.quarkus.security.AuthenticationFailedException;
+import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.apiweb.security.SecretVerification;
 import io.stackgres.apiweb.security.TokenResponse;
 import io.stackgres.apiweb.security.TokenUtils;

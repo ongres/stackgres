@@ -13,6 +13,7 @@ import javax.ws.rs.core.Response;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.security.Authenticated;
+import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.common.KubernetesClientFactory;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

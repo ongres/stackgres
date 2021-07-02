@@ -19,7 +19,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
-@Path("")
+@Path("sgdbops")
 @RequestScoped
 @Authenticated
 public class DbOpsResource
@@ -34,22 +34,8 @@ public class DbOpsResource
                       schema = @Schema(implementation = DbOpsDto.class))) })
       })
   @Override
-  @Path("sgdbops")
   public List<DbOpsDto> list() {
     return super.list();
-  }
-
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = DbOpsDto.class)) })
-      })
-  @Override
-  @Path("{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgdbops/{name}")
-  public DbOpsDto get(String namespace, String name) {
-    return super.get(namespace, name);
   }
 
   @Operation(
@@ -57,7 +43,6 @@ public class DbOpsResource
           @ApiResponse(responseCode = "200", description = "OK")
       })
   @Override
-  @Path("sgdbops")
   public void create(DbOpsDto resource) {
     super.create(resource);
   }
@@ -67,7 +52,6 @@ public class DbOpsResource
           @ApiResponse(responseCode = "200", description = "OK")
       })
   @Override
-  @Path("sgdbops")
   public void delete(DbOpsDto resource) {
     super.delete(resource);
   }
@@ -77,7 +61,6 @@ public class DbOpsResource
           @ApiResponse(responseCode = "200", description = "OK")
       })
   @Override
-  @Path("sgdbops")
   public void update(DbOpsDto resource) {
     super.update(resource);
   }

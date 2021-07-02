@@ -34,11 +34,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 
-@Path("")
+@Path("sgbackupconfigs")
 @RequestScoped
 @Authenticated
 public class BackupConfigResource extends
-    AbstractDependencyRestService<BackupConfigDto, StackGresBackupConfig> {
+    AbstractRestServiceDependency<BackupConfigDto, StackGresBackupConfig> {
 
   @Inject
   ResourceFinder<Secret> secretFinder;
@@ -64,7 +64,6 @@ public class BackupConfigResource extends
                   array = @ArraySchema(schema = @Schema(implementation = BackupConfigDto.class))) })
       })
   @Override
-  @Path("sgbackupconfigs")
   public List<BackupConfigDto> list() {
     return Seq.seq(super.list())
         .map(this::setSecrets)
@@ -73,25 +72,9 @@ public class BackupConfigResource extends
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = BackupConfigDto.class)) })
-      })
-  @Override
-  @Path("{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgbackupconfigs/{name}")
-  public BackupConfigDto get(String namespace, String name) {
-    return Optional.of(super.get(namespace, name))
-        .map(this::setSecrets)
-        .get();
-  }
-
-  @Operation(
-      responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
   @Override
-  @Path("sgbackupconfigs")
   public void create(BackupConfigDto resource) {
     setSecretKeySelectors(resource);
     createOrUpdateSecret(resource);
@@ -104,7 +87,6 @@ public class BackupConfigResource extends
           @ApiResponse(responseCode = "200", description = "OK")
       })
   @Override
-  @Path("sgbackupconfigs")
   public void delete(BackupConfigDto resource) {
     setSecretKeySelectors(resource);
     super.delete(resource);
@@ -116,14 +98,13 @@ public class BackupConfigResource extends
           @ApiResponse(responseCode = "200", description = "OK")
       })
   @Override
-  @Path("sgbackupconfigs")
   public void update(BackupConfigDto resource) {
     setSecretKeySelectors(resource);
     createOrUpdateSecret(resource);
     super.update(resource);
   }
 
-  private BackupConfigDto setSecrets(BackupConfigDto resource) {
+  BackupConfigDto setSecrets(BackupConfigDto resource) {
     final String namespace = resource.getMetadata().getNamespace();
     util.extractSecretInfo(resource)
         .filter(t -> t.v2.v3 != null)

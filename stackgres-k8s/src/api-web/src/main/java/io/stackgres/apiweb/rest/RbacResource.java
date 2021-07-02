@@ -28,6 +28,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.apiweb.dto.PermissionsListDto;
+import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;

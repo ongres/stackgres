@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.rest;
+package io.stackgres.apiweb.rest.utils;
 
 import java.util.List;
 import java.util.regex.Matcher;

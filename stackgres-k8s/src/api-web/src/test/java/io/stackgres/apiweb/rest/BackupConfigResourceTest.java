@@ -106,13 +106,13 @@ class BackupConfigResourceTest
     super.listShouldReturnAllDtos();
   }
 
-  @Test
-  @Override
-  void getOfAnExistingDtoShouldReturnTheExistingDto() {
-    when(secretFinder.findByNameAndNamespace(anyString(), anyString())).thenReturn(Optional.of(secret));
-
-    super.getOfAnExistingDtoShouldReturnTheExistingDto();
-  }
+//  @Test
+//  @Override
+//  void getOfAnExistingDtoShouldReturnTheExistingDto() {
+//    when(secretFinder.findByNameAndNamespace(anyString(), anyString())).thenReturn(Optional.of(secret));
+//
+//    super.getOfAnExistingDtoShouldReturnTheExistingDto();
+//  }
 
   @Test
   void createBackupConfigWithGoogleIdentity_shouldNotFail() {

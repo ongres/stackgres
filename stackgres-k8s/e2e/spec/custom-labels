@@ -35,7 +35,7 @@ check_label(){
   local ACTUAL_LABEL=$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath="{.spec.template.metadata.labels.test-label}")
 
   if assert_string_equal "$EXPECTED_LABEL_VALUE" "$ACTUAL_LABEL"
-  then 
+  then
     echo "SUCCESS. Custom labels were created"
   else
     echo "FAIL. Custom labels did not match the expected value"
@@ -65,7 +65,7 @@ spec:
         $NODE_LABEL_KEY: $NODE_LABEL_VALUE
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
-    disableClusterPodAntiAffinity: true  
+    disableClusterPodAntiAffinity: true
 EOF
 
   wait_until check_label "$RANDOM_VALUE"
@@ -104,11 +104,11 @@ assert_http_status_succcess(){
   else
     echo "FAIL. Request not sucessful"
     return 1
-  fi 
+  fi
 }
 
 create_cluster_with_api(){
-  HTTP_STATUS="$(run_curl -r "stackgres/sgcluster" -d "$LOG_PATH/stackgres-cluster.json" -e '-X POST -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgclusters" -d "$LOG_PATH/stackgres-cluster.json" -e '-X POST -w %{http_code} -o /dev/null')"
   assert_http_status_succcess "$HTTP_STATUS"
 }
 
@@ -130,7 +130,7 @@ spec:
         $NODE_LABEL_KEY: $NODE_LABEL_VALUE
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
-    disableClusterPodAntiAffinity: true  
+    disableClusterPodAntiAffinity: true
 EOF
 
   RANDOM_VALUE="$(ramdom_string)"
@@ -170,10 +170,10 @@ spec:
         $NODE_LABEL_KEY: $NODE_LABEL_VALUE
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
-    disableClusterPodAntiAffinity: true  
+    disableClusterPodAntiAffinity: true
 EOF
 
-  local LABEL_VALUE=$(run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | jq '.spec.pods.metadata.labels["test-label"]' -r)
+  local LABEL_VALUE=$(run_curl -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.spec.pods.metadata.labels["test-label"]' -r)
 
   assert_string_equal "$RANDOM_VALUE" "$LABEL_VALUE"
 }

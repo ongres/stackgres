@@ -71,15 +71,15 @@ public abstract class AbstractCustomResourceTest<T extends ResourceDto, R extend
     });
   }
 
-  @Test
-  void getOfAnExistingDtoShouldReturnTheExistingDto() {
-    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
-        .thenReturn(Optional.of(customResources.getItems().get(0)));
-
-    T dto = service.get(getResourceNamespace(), getResourceName());
-
-    checkDto(dto, customResources.getItems().get(0));
-  }
+//  @Test
+//  void getOfAnExistingDtoShouldReturnTheExistingDto() {
+//    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+//        .thenReturn(Optional.of(customResources.getItems().get(0)));
+//
+//    T dto = service.get(getResourceNamespace(), getResourceName());
+//
+//    checkDto(dto, customResources.getItems().get(0));
+//  }
 
   @Test
   void createShouldNotFail() {

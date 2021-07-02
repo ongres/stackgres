@@ -12,9 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 public interface ResourceRestService<T extends ResourceDto> {
 
-  List<T> list();
-
-  T get(@NotNull String namespace, @NotNull String name);
+  @NotNull List<@NotNull T> list();
 
   void create(@NotNull T resource);
 

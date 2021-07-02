@@ -303,7 +303,7 @@ check_distributed_logs_query_endpoint() {
 
 get_logs_count_with_text() {
   local RESULT="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME$2?text=$1" \
+    -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME$2/logs?text=$1" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
     | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | length"
@@ -311,7 +311,7 @@ get_logs_count_with_text() {
 
 get_logs_entries_with_text() {
   local RESULT="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME$2?text=$1" \
+    -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME$2/logs?text=$1" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
     | jq "map(select(.message != null and (.message | contains(\"$1\"))))"
@@ -319,11 +319,11 @@ get_logs_entries_with_text() {
 
 get_logs_count_with_text_after_log_with_text() {
   local LOG_TIME="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1" \
+    -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?text=$1" \
     -n "$CLUSTER_NAMESPACE" \
     | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | .[0] | .logTime + \",\" + (.logTimeIndex|tostring)")"
   local RESULT="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?from=$LOG_TIME&sort=asc" \
+    -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?from=$LOG_TIME&sort=asc" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
     | jq -r "map(select(.message != null and (.message | contains(\"$2\")))) | length"
@@ -331,11 +331,11 @@ get_logs_count_with_text_after_log_with_text() {
 
 get_logs_count_with_text_before_log_with_text() {
   local LOG_TIME="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1" \
+    -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?text=$1" \
     -n "$CLUSTER_NAMESPACE" \
     | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | .[0] | .logTime + \",\" + (.logTimeIndex|tostring)")"
   local RESULT="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?from=$LOG_TIME&sort=desc" \
+    -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?from=$LOG_TIME&sort=desc" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
     | jq -r "map(select(.message != null and (.message | contains(\"$2\")))) | length"
@@ -343,15 +343,15 @@ get_logs_count_with_text_before_log_with_text() {
 
 get_logs_count_between_log_with_texts_desc() {
   local START_LOG_TIME="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1&sort=desc" \
+    -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?text=$1&sort=desc" \
     -n "$CLUSTER_NAMESPACE" \
     | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | .[0] | .logTime + \",\" + (.logTimeIndex|tostring)")"
   local END_LOG_TIME="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$3&sort=desc" \
+    -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?text=$3&sort=desc" \
     -n "$CLUSTER_NAMESPACE" \
     | jq -r "map(select(.message != null and (.message | contains(\"$3\")))) | .[0] | .logTime + \",\" + (.logTimeIndex|tostring)")"
   local RESULT="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?from=$START_LOG_TIME&to=$END_LOG_TIME&sort=desc" \
+    -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?from=$START_LOG_TIME&to=$END_LOG_TIME&sort=desc" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
     | jq -r "map(select((.message != null and (.message | contains(\"$1\"))) or (.message != null and (.message | contains(\"$2\"))) or (.message != null and (.message | contains(\"$3\"))))) | length"
@@ -359,15 +359,15 @@ get_logs_count_between_log_with_texts_desc() {
 
 get_logs_count_between_log_with_texts_asc() {
   local START_LOG_TIME="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1&sort=asc" \
+    -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?text=$1&sort=asc" \
     -n "$CLUSTER_NAMESPACE" \
     | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | .[0] | .logTime + \",\" + (.logTimeIndex|tostring)")"
   local END_LOG_TIME="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$3&sort=asc" \
+    -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?text=$3&sort=asc" \
     -n "$CLUSTER_NAMESPACE" \
     | jq -r "map(select(.message != null and (.message | contains(\"$3\")))) | .[0] | .logTime + \",\" + (.logTimeIndex|tostring)")"
   local RESULT="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?from=$START_LOG_TIME&to=$END_LOG_TIME&sort=asc" \
+    -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?from=$START_LOG_TIME&to=$END_LOG_TIME&sort=asc" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
     | jq -r "map(select((.message != null and (.message | contains(\"$1\"))) or (.message != null and (.message | contains(\"$2\"))) or (.message != null and (.message | contains(\"$3\"))))) | length"
@@ -375,7 +375,7 @@ get_logs_count_between_log_with_texts_asc() {
 
 get_postgres_logs_count_with_text() {
   local RESULT="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1&logType=pg" \
+    -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?text=$1&logType=pg" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
     | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | length"
@@ -384,7 +384,7 @@ get_postgres_logs_count_with_text() {
 get_patroni_logs_count() {
   local FILTER="{\"logType\":\"pa\"}"
   local RESULT="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?logType=pa" \
+    -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?logType=pa" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
     | jq -r "map(select(.message != null)) | length"
@@ -392,7 +392,7 @@ get_patroni_logs_count() {
 
 get_error_and_info_logs_count() {
   local RESULT="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?errorLevel=ERROR&errorLevel=LOG&errorLevel=INFO" \
+    -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?errorLevel=ERROR&errorLevel=LOG&errorLevel=INFO" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
     | jq -r "map(select(.message != null)) | length"
@@ -400,11 +400,11 @@ get_error_and_info_logs_count() {
 
 get_logs_count_with_filter_of_log_with_text() {
   local FILTER="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1" \
+    -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?text=$1" \
     -n "$CLUSTER_NAMESPACE" \
     | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | .[0] | .$2 | select(. == null) = \"\"")"
   local RESULT="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1&$2=$(uriencode "$FILTER")" \
+    -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?text=$1&$2=$(uriencode "$FILTER")" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
     | jq -r "map(select(.message != null and (.message | contains(\"$1\")) and (.$2 | select(. == null) = \"\" | tostring) == \"$FILTER\")) | length"
@@ -462,7 +462,7 @@ check_retention() {
 
 get_logs_timestamp_with_text() {
   local RESULT="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME$2?text=$1" \
+    -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME$2/logs?text=$1" \
     -n "$CLUSTER_NAMESPACE")"
   date -d "$(echo_raw "$RESULT" \
     | jq -r ".[] | select(.message != null and (.message | contains(\"$1\"))) | .logTime" \

@@ -15,6 +15,7 @@ import javax.ws.rs.Path;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.quarkus.security.Authenticated;
+import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.common.resource.ResourceScanner;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
