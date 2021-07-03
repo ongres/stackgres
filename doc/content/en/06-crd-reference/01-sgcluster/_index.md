@@ -232,7 +232,7 @@ Holds custom metadata information for StackGres pods to have.
 apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
-  name: stackgres
+  name: stackgres 
 spec:
   pods:
     metadata:
@@ -242,7 +242,7 @@ spec:
 
 ### Scheduling
 
-Sets the pod's affinity to restrict it to run only on a certain set of node(s)
+Holds scheduling configuration for StackGres pods to have.
 
 | Property                    | Required | Updatable | Type     | Default        | Description |
 |:----------------------------|----------|-----------|:---------|:---------------|:------------|
@@ -252,7 +252,7 @@ Sets the pod's affinity to restrict it to run only on a certain set of node(s)
 
 #### Node Affinity
 
-Configuration the pod's affinity to restrict it to run only on a certain set of nodes
+Sets the pod's affinity to restrict it to run only on a certain set of node(s)
 
 | Property          | Required | Updatable | Type     | Default                 | Description |
 |:------------------|----------|-----------|:---------|:------------------------|:------------|
