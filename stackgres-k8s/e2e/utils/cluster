@@ -30,6 +30,13 @@ create_or_replace_cluster() {
   local INSTANCES="$3"
   shift 3
 
+  local OPERATOR_VERSION="$(get_installed_operator_version)"
+  if [ "$OPERATOR_VERSION" != "$STACKGRES_VERSION" ]
+  then
+    create_or_replace_cluster_for_version "$OPERATOR_VERSION" "$RELEASE" "$NAMESPACE" "$INSTANCES"
+    return
+  fi
+
   if helm get values "$RELEASE" --namespace "$NAMESPACE" > /dev/null 2>&1
   then
     helm upgrade "$RELEASE" --namespace "$NAMESPACE" "$CLUSTER_CHART_PATH" \
@@ -90,7 +97,6 @@ transform_pre_1_0_0_alpha2() {
     printf "%s" "$1"
   fi
 }
-
 
 dont_transform() {
   printf "%s" "$1"

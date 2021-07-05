@@ -16,8 +16,6 @@ export STACKGRES_PATH="${STACKGRES_PATH:-$E2E_PATH/..}"
 export PROJECT_PATH="${PROJECT_PATH:-$STACKGRES_PATH/..}"
 export STACKGRES_VERSION="$(grep '<artifactId>stackgres-parent</artifactId>' "$STACKGRES_PATH/src/pom.xml" -A 2 -B 2 \
   | grep -o '<version>\([^<]\+\)</version>' | tr '<>' '  ' | cut -d ' ' -f 3)"
-export CONTAINER_BUILD="$(grep '<properties>' "$STACKGRES_PATH/src/pom.xml" -A 2 -B 2 \
-  | grep -o '<stackgres.containerBuild>\([^<]\+\)</stackgres.containerBuild>' | tr -d ' ' | tr '<>' '  ' | cut -d ' ' -f 3)"
 export STACKGRES_IMAGE_BUILDER="${STACKGRES_IMAGE_BUILDER:-docker}"
 export OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-operator/"}"
 export CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
@@ -319,13 +317,33 @@ install_operator() {
   kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null 2>&1 \
     || kubectl create namespace "$OPERATOR_NAMESPACE"
 
-  if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" -a \
-    -n "$STACKGRES_PREVIOUS_VERSION" ]
+  if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" \
+    -a -n "$STACKGRES_PREVIOUS_VERSION" ]
   then
     install_operator_previous_version "$@"
   fi
 
-  install_operator_only "$@"
+  if [ -n "$E2E_UPGRADE_BEFORE_RUN_TEST" \
+    -a -n "$STACKGRES_PREVIOUS_VERSION" ]
+  then
+    E2E_BEFORE_RUN_TEST=e2e_before_run_test_upgrade
+    E2E_BEFORE_RUN_TEST_COUNT=
+  else
+    install_operator_only "$@"
+  fi
+}
+
+e2e_before_run_test_upgrade() {
+  E2E_BEFORE_RUN_TEST_COUNT="$((E2E_BEFORE_RUN_TEST_COUNT + 1))"
+  if ! e2e_exclusive_lock \
+    && [ "$E2E_UPGRADE_BEFORE_RUN_TEST" = "$E2E_BEFORE_RUN_TEST_COUNT" ]
+  then
+    install_operator_only
+  fi
+}
+
+get_installed_operator_version() {
+  helm list -n "$OPERATOR_NAMESPACE" -o json | jq -r '.[] | select(.name == "stackgres-operator").app_version'
 }
 
 install_operator_only() {
@@ -954,7 +972,7 @@ export STACKGRES_RESTAPI_IMAGE="$(get_restapi_image "$STACKGRES_VERSION")"
 export STACKGRES_ADMINUI_IMAGE="$(get_adminui_image "$STACKGRES_VERSION")"
 
 setup_versions() {
-  export STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-0.9.5}"
+  export STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-1.0.0-alpha4}"
   export OPERATOR_PREVIOUS_VERSION_HELM_URL="${OPERATOR_PREVIOUS_VERSION_HELM_URL:-$(get_operator_helm_url "$STACKGRES_PREVIOUS_VERSION")}"
   export CLUSTER_PREVIOUS_VERSION_HELM_URL="${CLUSTER_PREVIOUS_VERSION_HELM_URL:-$(get_cluster_helm_url "$STACKGRES_PREVIOUS_VERSION")}"
   export STACKGRES_PREVIOUS_OPERATOR_IMAGE="$(get_operator_image "$STACKGRES_PREVIOUS_VERSION")"

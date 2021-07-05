@@ -1,5 +1,12 @@
 #!/bin/sh
 
+export E2E_TEST_BEFORE_ALL="${E2E_TEST_BEFORE_ALL:-e2e_test_before_all}"
+export E2E_TEST_INSTALL="${E2E_TEST_INSTALL:-e2e_test_install}"
+export E2E_TEST="${E2E_TEST:-e2e_test}"
+export E2E_BEFORE_RUN_TEST="${E2E_BEFORE_RUN_TEST:-e2e_before_run_test}"
+export E2E_AFTER_RUN_TEST="${E2E_AFTER_RUN_TEST:-e2e_after_run_test}"
+export E2E_TEST_UNINSTALL="${E2E_TEST_UNINSTALL:-e2e_test_uninstall}"
+export E2E_TEST_AFTER_ALL="${E2E_TEST_AFTER_ALL:-e2e_test_after_all}"
 export SPEC_PATH="$E2E_PATH/spec"
 
 e2e_test_before_all() {
@@ -192,26 +199,52 @@ spec() {
 run_spec() {
   if [ "$E2E_SKIP_SPEC_BEFORE_ALL" != true ]
   then
-    e2e_test_before_all
+    "$E2E_TEST_BEFORE_ALL"
   fi
 
   if [ "$E2E_SKIP_SPEC_INSTALL" != true ]
   then
-    e2e_test_install
+    "$E2E_TEST_INSTALL"
   fi
 
-  e2e_test
+  "$E2E_TEST"
 
   cleanup_spec
 }
 
 cleanup_spec(){
-
   if [ "$E2E_SKIP_SPEC_UNINSTALL" != true ]
   then
-    e2e_test_uninstall
+    "$E2E_TEST_UNINSTALL"
   fi
 
-  e2e_test_after_all
+  "$E2E_TEST_AFTER_ALL"
+}
 
+run_test() {
+  "$E2E_BEFORE_RUN_TEST"
+  local TEST_NAME="$1"
+  shift
+  echo
+  echo "----------------------------------------------------------------"
+  echo "Running test $TEST_NAME"
+  echo "----------------------------------------------------------------"
+  echo
+  local RESULT
+  local EXIT_CODE
+  try_function "$@"
+  if ! "$RESULT"
+  then
+    return "$EXIT_CODE"
+  fi
+  echo "$TEST_NAME. SUCCESS."
+  "$E2E_AFTER_RUN_TEST"
+}
+
+e2e_before_run_test() {
+  true
+}
+
+e2e_after_run_test() {
+  true
 }
