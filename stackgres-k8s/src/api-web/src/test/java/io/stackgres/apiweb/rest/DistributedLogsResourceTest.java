@@ -22,7 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DistributedLogsResourceTest
     extends AbstractDependencyCustomResourceTest<DistributedLogsDto, StackGresDistributedLogs,
-    DistributedLogsResource> {
+    DistributedLogsResource, NamespacedDistributedLogsResource> {
 
   @Override
   protected CustomResourceList<StackGresDistributedLogs> getCustomResourceList() {
@@ -44,6 +44,11 @@ class DistributedLogsResourceTest
   @Override
   protected DistributedLogsResource getService() {
     return new DistributedLogsResource();
+  }
+
+  @Override
+  protected NamespacedDistributedLogsResource getNamespacedService() {
+    return new NamespacedDistributedLogsResource();
   }
 
   @Override

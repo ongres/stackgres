@@ -25,7 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class PgbouncerConfigResourceTest
     extends AbstractDependencyCustomResourceTest<PoolingConfigDto, StackGresPoolingConfig,
-    ConnectionPoolingConfigResource> {
+    ConnectionPoolingConfigResource, NamespacedConnectionPoolingConfigResource> {
 
   @Override
   protected CustomResourceList<StackGresPoolingConfig> getCustomResourceList() {
@@ -45,6 +45,11 @@ class PgbouncerConfigResourceTest
   @Override
   protected ConnectionPoolingConfigResource getService() {
     return new ConnectionPoolingConfigResource();
+  }
+
+  @Override
+  protected NamespacedConnectionPoolingConfigResource getNamespacedService() {
+    return new NamespacedConnectionPoolingConfigResource();
   }
 
   @Override

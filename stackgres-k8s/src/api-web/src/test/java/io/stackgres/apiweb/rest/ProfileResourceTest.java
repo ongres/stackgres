@@ -19,8 +19,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class   ProfileResourceTest
-    extends AbstractDependencyCustomResourceTest<ProfileDto, StackGresProfile, ProfileResource> {
+class ProfileResourceTest
+    extends
+    AbstractDependencyCustomResourceTest<ProfileDto, StackGresProfile, ProfileResource, NamespacedProfileResource> {
 
   @Override
   protected CustomResourceList<StackGresProfile> getCustomResourceList() {
@@ -40,6 +41,11 @@ class   ProfileResourceTest
   @Override
   protected ProfileResource getService() {
     return new ProfileResource();
+  }
+
+  @Override
+  protected NamespacedProfileResource getNamespacedService() {
+    return new NamespacedProfileResource();
   }
 
   @Override
