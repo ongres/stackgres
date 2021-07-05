@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 
 import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.Pattern;
@@ -26,11 +27,11 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
+import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -114,7 +115,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .add(new StackGresClusterScriptEntry());
 
     checkErrorCause(StackGresClusterScriptEntry.class,
-        new String[] {"spec.initData.scripts[0].script",
+        new String[]{"spec.initData.scripts[0].script",
             "spec.initData.scripts[0].scriptFrom"},
         "isScriptMutuallyExclusiveAndRequired", review, AssertTrue.class);
   }
@@ -138,7 +139,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .getConfigMapKeyRef().setKey("test");
 
     checkErrorCause(StackGresClusterScriptEntry.class,
-        new String[] {"spec.initData.scripts[0].script",
+        new String[]{"spec.initData.scripts[0].script",
             "spec.initData.scripts[0].scriptFrom"},
         "isScriptMutuallyExclusiveAndRequired", review, AssertTrue.class);
   }
@@ -153,7 +154,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).setScript("SELECT 1");
 
     checkErrorCause(StackGresClusterScriptEntry.class,
-        new String[] { "spec.initData.scripts[0].database" },
+        new String[]{"spec.initData.scripts[0].database"},
         "isDatabaseNameNonEmpty", review, AssertTrue.class);
   }
 
@@ -206,7 +207,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .setScriptFrom(new StackGresClusterScriptFrom());
 
     checkErrorCause(StackGresClusterScriptFrom.class,
-        new String[] {"spec.initData.scripts[0].scriptFrom.secretKeyRef",
+        new String[]{"spec.initData.scripts[0].scriptFrom.secretKeyRef",
             "spec.initData.scripts[0].scriptFrom.configMapKeyRef"},
         "isSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndRequired",
         review, AssertTrue.class);
@@ -235,7 +236,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .getSecretKeyRef().setKey("test");
 
     checkErrorCause(StackGresClusterScriptFrom.class,
-        new String[] {"spec.initData.scripts[0].scriptFrom.secretKeyRef",
+        new String[]{"spec.initData.scripts[0].scriptFrom.secretKeyRef",
             "spec.initData.scripts[0].scriptFrom.configMapKeyRef"},
         "isSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndRequired",
         review, AssertTrue.class);
@@ -394,7 +395,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .setKey("");
 
     checkErrorCause(Toleration.class,
-        new String[] {"spec.pod.scheduling.tolerations[0].key",
+        new String[]{"spec.pod.scheduling.tolerations[0].key",
             "spec.pod.scheduling.tolerations[0].operator"},
         "isOperatorExistsWhenKeyIsEmpty", review,
         AssertTrue.class);
@@ -440,7 +441,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   @ValueSource(strings = {"hardcover-lady-somebody-arrives-specialty-risk-stocking-nodes-"
       + "fisheries-introduces-5",
       "suzuki-stroke-rail-remix-suite-flux-diploma-slip-airfare-extremely-1",
-  "mozilla-rose-types-border-biome-upright-weak-promote-monday-1234"})
+      "mozilla-rose-types-border-biome-upright-weak-promote-monday-1234"})
   void invalidLongNames_shouldFail(String name) {
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getMetadata().setName(name);
@@ -524,4 +525,45 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         "isNameNotEmpty", review, AssertTrue.class);
   }
 
+  @Test
+  void givenTolerationsSetAndEffectNoExecute_shouldPass() throws ValidationFailed {
+
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getPod()
+        .setScheduling(new StackGresClusterPodScheduling());
+    review.getRequest().getObject().getSpec().getPod().getScheduling()
+        .setTolerations(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations()
+        .add(new Toleration());
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0)
+        .setKey("test");
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0)
+        .setTolerationSeconds(100L);
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0)
+        .setEffect("NoExecute");
+
+    validator.validate(review);
+
+  }
+
+  @Test
+  void givenTolerationsSetAndEffectOtherThanNoExecute_shouldFail() {
+
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getPod()
+        .setScheduling(new StackGresClusterPodScheduling());
+    review.getRequest().getObject().getSpec().getPod().getScheduling()
+        .setTolerations(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations()
+        .add(new Toleration());
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0)
+        .setKey("test");
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0)
+        .setTolerationSeconds(100L);
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0)
+        .setEffect(new Random().nextBoolean() ? "NoSchedule" : "PreferNoSchedule");
+
+    checkErrorCause(Toleration.class, "spec.pod.scheduling.tolerations[0].effect",
+        "isEffectNoExecuteIfTolerationIsSet", review, AssertTrue.class);
+  }
 }
