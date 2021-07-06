@@ -35,14 +35,14 @@ There are two restart strategy:
 * Reduced Impact Restart: this procedure is the same as the in-place restart but require additional
  resources in order to spawn a new updated replica that will be removed when the procedure completes.
 
+> **NOTE**: If any of postgres's parameters `max_connections`, `max_prepared_transactions`, `max_wal_senders`,
+> `max_wal_senders` or `max_locks_per_transaction` are changed to a lower value than they were set
+> the primary have to be restarted before any replica can be restarted too, the service disruption
+> for read write connection will last longer in this case depending how long it take to the primary
+> to restart.
+
 Those procedures includes some shell script snippet examples. In those snippet we assume the
  following environment variables are set with values of the StackGres cluster you want to restart:
-
-NOTE: If any of postgres's parameters `max_connections`, `max_prepared_transactions`, `max_wal_senders`,
- `max_wal_senders` or `max_locks_per_transaction` are changed to a lower value than they were set
- the primary have to be restarted before any replica can be restarted too, the service disruption
- for read write connection will last longer in this case depending how long it take to the primary
- to restart.
 
 ```shell
 NAMESPACE=default
