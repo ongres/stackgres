@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.distributedlogs.patroni;
+package io.stackgres.operator.conciliation.factory.distributedlogs.patroni.v100alpha4;
 
 import static io.stackgres.operator.conciliation.VolumeMountProviderName.LOCAL_BIN;
 import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_EXTENSIONS;
@@ -52,11 +52,15 @@ import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap;
 import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsContainerContext;
 import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
+import io.stackgres.operator.conciliation.factory.distributedlogs.patroni.DistributedLogsEnvVarFactories;
+import io.stackgres.operator.conciliation.factory.distributedlogs.patroni.PatroniEnvPaths;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10B1, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10A4)
 @RunningContainer(order = 0)
 public class PatroniContainer implements ContainerFactory<DistributedLogsContainerContext> {
+
+  private static final String IMAGE_NAME = "docker.io/ongres/patroni:v1.6.5-pg12.6-build-6.2";
 
   private final ResourceFactory<DistributedLogsContext, List<EnvVar>> envVarFactory;
 
@@ -84,17 +88,11 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
   public Container getContainer(DistributedLogsContainerContext context) {
     final DistributedLogsContext distributedLogsContext = context.getDistributedLogsContext();
     final StackGresDistributedLogs cluster = distributedLogsContext.getSource();
-    final String pgVersion = StackGresComponent.POSTGRESQL.findVersion(StackGresComponent.LATEST);
-
-    final String patroniImageName = StackGresComponent.PATRONI.findImageName(
-        StackGresComponent.LATEST,
-        ImmutableMap.of(StackGresComponent.POSTGRESQL,
-            pgVersion));
 
     final String startScript = "/start-patroni.sh";
     return new ContainerBuilder()
         .withName(StackgresClusterContainers.PATRONI)
-        .withImage(patroniImageName)
+        .withImage(IMAGE_NAME)
         .withCommand("/bin/sh", "-ex",
             PatroniEnvPaths.LOCAL_BIN_PATH.getPath() + startScript)
         .withImagePullPolicy("IfNotPresent")
