@@ -168,6 +168,7 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
       podStatus.setPendingRestart(false);
       clusterUpdated = true;
     }
+    LOGGER.info("Reconciliation of postgres extensions completed");
     return new ReconciliationResult<>(clusterUpdated, exceptions.build());
   }
 
