@@ -5,11 +5,18 @@
 
 package io.stackgres.operator.conciliation.comparator;
 
+import java.util.Arrays;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.zjsonpatch.JsonDiff;
 
-public class ServiceAccountComparator extends DefaultComparator {
+public class ServiceAccountComparator extends StackGresAbstractComparator {
+
+  private static final IgnorePatch[] IGNORE_PATCH_PATTERNS = {
+      new StackGresAbstractComparator.SimpleIgnorePatch("/managedFields",
+          "add"),
+  };
 
   @Override
   public boolean isResourceContentEqual(HasMetadata required, HasMetadata deployed) {
@@ -19,6 +26,25 @@ public class ServiceAccountComparator extends DefaultComparator {
 
     JsonNode diff = JsonDiff.asJson(source, target);
 
-    return diff.size() == 0;
+    int ignore = countPatchesToIgnore(diff);
+
+    final int actualDifferences = diff.size() - ignore;
+    if (LOGGER.isDebugEnabled() && actualDifferences != 0) {
+      for (JsonNode jsonPatch : diff) {
+        JsonPatch patch = new JsonPatch(jsonPatch);
+        if (Arrays.stream(getPatchPattersToIgnore())
+            .noneMatch(patchPattern -> patchPattern.matches(patch))) {
+          LOGGER.debug("{} diff {}", required.getKind(), jsonPatch.toPrettyString());
+        }
+      }
+    }
+
+    return actualDifferences == 0;
+
+  }
+
+  @Override
+  protected IgnorePatch[] getPatchPattersToIgnore() {
+    return IGNORE_PATCH_PATTERNS;
   }
 }

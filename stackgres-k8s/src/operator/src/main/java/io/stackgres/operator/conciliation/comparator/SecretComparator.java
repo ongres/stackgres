@@ -14,7 +14,12 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.zjsonpatch.JsonDiff;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
-public class SecretComparator extends DefaultComparator {
+public class SecretComparator extends StackGresAbstractComparator {
+
+  private static final IgnorePatch[] IGNORE_PATCH_PATTERNS = {
+      new StackGresAbstractComparator.SimpleIgnorePatch("/managedFields",
+          "add"),
+  };
 
   private static Map<String, String> getData(Secret secret) {
     Map<String, String> data = new HashMap<>();
@@ -40,7 +45,11 @@ public class SecretComparator extends DefaultComparator {
     JsonNode metadataDiff = JsonDiff.asJson(PATCH_MAPPER.valueToTree(required.getMetadata()),
         PATCH_MAPPER.valueToTree(deployed.getMetadata()));
 
-    if (metadataDiff.size() > 0) {
+    int ignore = countPatchesToIgnore(metadataDiff);
+
+    final int actualDifferences = metadataDiff.size() - ignore;
+
+    if (actualDifferences > 0) {
       return false;
     }
     return isDataEqual(s1, s2);
@@ -50,6 +59,11 @@ public class SecretComparator extends DefaultComparator {
     var r1Data = getData(required);
     var r2Data = getData(deployed);
     return r1Data.equals(r2Data);
+  }
+
+  @Override
+  protected IgnorePatch[] getPatchPattersToIgnore() {
+    return IGNORE_PATCH_PATTERNS;
   }
 
 }
