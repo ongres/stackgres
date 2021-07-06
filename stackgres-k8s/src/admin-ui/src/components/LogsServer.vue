@@ -31,7 +31,7 @@
                             <a v-if="iCan('create','sgdistributedlogs',$route.params.namespace)" @click="cloneCRD('SGDistributedLogs', $route.params.namespace, cluster.data.metadata.name)" class="cloneCRD" title="Clone Logs">
                                 Clone Logs Cluster
                             </a>
-                            <a v-if="iCan('delete','sgdistributedlogs',$route.params.namespace)" @click="deleteCRD('sgdistributedlogs',$route.params.namespace, cluster.data.metadata.name, '/' + $route.params.namespace + '/sgdistributedlogs')" class="delete" title="Delete Configuration" :class="cluster.data.status.clusters.length ? 'disabled' : ''">
+                            <a v-if="iCan('delete','sgdistributedlogs',$route.params.namespace)" @click="deleteCRD('sgdistributedlogs',$route.params.namespace, cluster.data.metadata.name, '/' + $route.params.namespace + '/sgdistributedlogs')" title="Delete Configuration" :class="cluster.data.status.clusters.length ? 'disabled' : ''">
                                 Delete Logs Cluster
                             </a>
                             <router-link class="borderLeft" :to="'/' + $route.params.namespace + '/sgdistributedlogs'" title="Close Details">Close Details</router-link>

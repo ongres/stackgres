@@ -24,7 +24,6 @@ e2e_test() {
 }
 
 get_api_cluster_info() {
-  run_curl -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME"
   local CLUSTER_INFO_PRIMARYDNS=$(run_curl -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.info.primaryDns' -r)
   local CLUSTER_INFO_REPLICADNS=$(run_curl -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.info.replicasDns' -r)
   local CLUSTER_INFO_USERNAME=$(run_curl -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.info.superuserUsername' -r)

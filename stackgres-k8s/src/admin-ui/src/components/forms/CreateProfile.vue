@@ -200,11 +200,11 @@
                     if(this.editMode) {
                         axios
                         .put(
-                            '/stackgres/sginstanceprofile', 
+                            '/stackgres/sginstanceprofiles', 
                             profile 
                         )
                         .then(function (response) {
-                            vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> updated successfully', 'message','profile');
+                            vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> updated successfully', 'message','sginstanceprofiles');
 
                             vc.fetchAPI('sginstanceprofile');
                             router.push('/' + profile.metadata.namespace + '/sginstanceprofile/' + profile.metadata.name);
@@ -212,25 +212,25 @@
                         })
                         .catch(function (error) {
                             console.log(error.response);
-                            vc.notify(error.response.data,'error','profile');
+                            vc.notify(error.response.data,'error','sginstanceprofiles');
                         });
 
                     } else {
                         axios
                         .post(
-                            '/stackgres/sginstanceprofile', 
+                            '/stackgres/sginstanceprofiles', 
                             profile 
                         )
                         .then(function (response) {
 
-                            vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> created successfully', 'message','profile');
+                            vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> created successfully', 'message','sginstanceprofiles');
                             vc.fetchAPI('sginstanceprofile');
                             router.push('/' + profile.metadata.namespace + '/sginstanceprofiles');
             
                         })
                         .catch(function (error) {
                             console.log(error.response);
-                            vc.notify(error.response.data,'error','profile');
+                            vc.notify(error.response.data,'error','sginstanceprofiles');
                         });
 
                     }

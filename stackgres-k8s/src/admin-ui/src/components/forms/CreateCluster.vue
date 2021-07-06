@@ -1105,11 +1105,11 @@
                     if(this.editMode) {
                         const res = axios
                         .put(
-                            '/stackgres/sgcluster/', 
+                            '/stackgres/sgclusters', 
                             cluster 
                         )
                         .then(function (response) {
-                            vc.notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgcluster');
+                            vc.notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgclusters');
 
                             vc.fetchAPI('sgcluster');
                             router.push('/' + cluster.metadata.namespace + '/sgcluster/' + cluster.metadata.name);
@@ -1117,16 +1117,16 @@
                         })
                         .catch(function (error) {
                             console.log(error.response);
-                            vc.notify(error.response.data,'error', 'sgcluster');
+                            vc.notify(error.response.data,'error', 'sgclusters');
                         });
                     } else {
                         const res = axios
                         .post(
-                            '/stackgres/sgcluster/', 
+                            '/stackgres/sgclusters', 
                             cluster 
                         )
                         .then(function (response) {
-                            vc.notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgcluster');
+                            vc.notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgclusters');
 
                             vc.fetchAPI('sgcluster');
                             router.push('/' + cluster.metadata.namespace + '/sgclusters');
@@ -1134,7 +1134,7 @@
                         })
                         .catch(function (error) {
                             console.log(error.response);
-                            vc.notify(error.response.data,'error','sgcluster');
+                            vc.notify(error.response.data,'error','sgclusters');
                         });
                     }
 
@@ -1165,7 +1165,7 @@
                     })
                     .catch(function (error) {
                         console.log(error.response);
-                        vc.notify(error.response.data,'error','sgcluster');
+                        vc.notify(error.response.data,'error','sgclusters');
                     });
                 }
                 
@@ -1408,7 +1408,7 @@
             })
             .catch(function (error) {
                 console.log(error.response);
-                vc.notify(error.response.data,'error','sgcluster');
+                vc.notify(error.response.data,'error','sgclusters');
             });
         },
 

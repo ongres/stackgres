@@ -454,7 +454,7 @@ router.beforeResolve((to, from, next) => {
     if(to.params.hasOwnProperty('namespace')) {
       
       axios
-      .get('/stackgres/namespace')
+      .get('/stackgres/namespaces')
       .then( function(response){
         store.commit('addNamespaces',response.data)
         if(response.data.includes(to.params.namespace)) {
@@ -479,7 +479,7 @@ router.beforeResolve((to, from, next) => {
       case 'ClusterStatus':
 
         axios
-        .get('/stackgres/sgcluster')
+        .get('/stackgres/sgclusters')
         .then( function(response){
 
           var found = false,
@@ -488,7 +488,7 @@ router.beforeResolve((to, from, next) => {
             if(component == 'ClusterStatus') {
               /* Check for Cluster status */
               axios
-              .get('/stackgres/sgcluster/stats/'+to.params.namespace+'/'+to.params.name)
+              .get('/stackgres/'+to.params.namespace+'/sgclusters/'+to.params.name+'/stats')
               .then( function(resp){
                 stats = resp.data;
               }).catch(function(error) {
@@ -532,7 +532,7 @@ router.beforeResolve((to, from, next) => {
       case 'CreateProfile':
         /* Check if Profile exists */
         axios
-        .get('/stackgres/sginstanceprofile')
+        .get('/stackgres/sginstanceprofiles')
         .then( function(response){
 
           var found = false
@@ -566,7 +566,7 @@ router.beforeResolve((to, from, next) => {
         
         /* Check if Postgres Config exists */
         axios
-        .get('/stackgres/sgpgconfig')
+        .get('/stackgres/sgpgconfigs')
         .then( function(response){
 
           var found = false
@@ -600,7 +600,7 @@ router.beforeResolve((to, from, next) => {
 
         /* Check if PgBouncer Config exists */
         axios
-        .get('/stackgres/sgpoolconfig')
+        .get('/stackgres/sgpoolconfigs')
         .then( function(response){
 
           var found = false
@@ -633,7 +633,7 @@ router.beforeResolve((to, from, next) => {
       case 'CreateBackupConfig':
         /* Check if BackupConfig Config exists */
         axios
-        .get('/stackgres/sgbackupconfig')
+        .get('/stackgres/sgbackupconfigs')
         .then( function(response){
 
           var found = false
@@ -668,7 +668,7 @@ router.beforeResolve((to, from, next) => {
         if(to.name.includes('ClusterBackup')) {
 
           axios
-          .get('/stackgres/sgcluster')
+          .get('/stackgres/sgclusters')
           .then( function(response){
   
             var found = false
@@ -702,7 +702,7 @@ router.beforeResolve((to, from, next) => {
           });
 
           axios
-          .get('/stackgres/sgbackup')
+          .get('/stackgres/sgbackups')
           .then( function(response){ 
             var found = false,
                 duration = '';
@@ -738,7 +738,7 @@ router.beforeResolve((to, from, next) => {
         } else {
           
           axios
-          .get('/stackgres/sgbackup')
+          .get('/stackgres/sgbackups')
           .then( function(response){
 
             var found = false

@@ -197,11 +197,11 @@
                     if(this.editMode) {
                         const res = axios
                         .put(
-                            '/stackgres/sgbackup/', 
+                            '/stackgres/sgbackups', 
                             backup 
                         )
                         .then(function (response) {
-                            vc.notify('Backup <strong>"'+backup.metadata.name+'"</strong> updated successfully', 'message', 'sgbackup');
+                            vc.notify('Backup <strong>"'+backup.metadata.name+'"</strong> updated successfully', 'message', 'sgbackups');
 
                             vc.fetchAPI('sgbackup');
 
@@ -224,24 +224,24 @@
                         })
                         .catch(function (error) {
                             console.log(error.response);
-                            vc.notify(error.response.data,'error', 'sgbackup');
+                            vc.notify(error.response.data,'error', 'sgbackups');
                         });
 
                     } else {
                         const res = axios
                         .post(
-                            '/stackgres/sgbackup/', 
+                            '/stackgres/sgbackups', 
                             backup 
                         )
                         .then(function (response) {
-                            vc.notify('Backup <strong>"'+backup.metadata.name+'"</strong> started successfully.', 'message', 'sgbackup');
+                            vc.notify('Backup <strong>"'+backup.metadata.name+'"</strong> started successfully.', 'message', 'sgbackups');
 
                             vc.fetchAPI('sgbackup');
                             router.push('/' + backup.metadata.namespace + '/sgbackups');
                         })
                         .catch(function (error) {
                             console.log(error.response);
-                            vc.notify(error.response.data,'error', 'sgbackup');
+                            vc.notify(error.response.data,'error', 'sgbackups');
                         });
                     }
 

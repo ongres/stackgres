@@ -257,27 +257,27 @@ export default new Vuex.Store({
 
         switch(state.deleteItem.kind) {
           
-          case 'sgcluster':
+          case 'sgclusters':
             kind = 'clusters'
             break;
           
-          case 'sgbackup':
+          case 'sgbackups':
             kind = 'backups'
             break;
 
-          case 'sgpgconfig':
+          case 'sgpgconfigs':
             kind = 'pgConfig'
             break;
 
-          case 'sgpoolconfig':
+          case 'sgpoolconfigs':
             kind = 'poolConfig'
             break;
 
-          case 'sgbackupconfig':
+          case 'sgbackupconfigs':
             kind = 'backupConfig'
             break;
           
-          case 'sginstanceprofile':
+          case 'sginstanceprofiles':
             kind = 'profiles'
             break;
           
