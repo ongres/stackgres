@@ -50,7 +50,8 @@ public class CronJobComparator extends StackGresAbstractComparator {
       new SimpleIgnorePatch("/metadata/annotations",
           "add"),
       new SimpleIgnorePatch("/status",
-          "add")
+          "add"),
+      new SimpleIgnorePatch("/metadata/managedFields", "add")
   };
 
   @Override

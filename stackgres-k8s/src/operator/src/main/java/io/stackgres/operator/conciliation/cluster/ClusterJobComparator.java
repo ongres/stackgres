@@ -88,6 +88,7 @@ public class ClusterJobComparator extends StackGresAbstractComparator {
           .compile("/metadata/ownerReferences/\\d+/apiVersion"),
           "replace"
       ),
+      new SimpleIgnorePatch("/metadata/managedFields", "add")
   };
 
   @Override

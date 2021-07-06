@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.comparator;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -22,6 +23,8 @@ public class EndpointComparator extends StackGresAbstractComparator {
           "add"),
       new SimpleIgnorePatch("/subsets",
           "add"),
+      new SimpleIgnorePatch("/metadata/managedFields",
+           "add"),
       new FunctionValuePattern(Pattern
           .compile("/metadata/annotations"),
           "add",
@@ -39,8 +42,19 @@ public class EndpointComparator extends StackGresAbstractComparator {
         PATCH_MAPPER.valueToTree(deployed));
 
     int ignore = countPatchesToIgnore(diff);
+    final int actualDifferences = diff.size() - ignore;
 
-    return diff.size() - ignore == 0;
+    if (LOGGER.isDebugEnabled() && actualDifferences != 0) {
+      for (JsonNode jsonPatch : diff) {
+        JsonPatch patch = new JsonPatch(jsonPatch);
+        if (Arrays.stream(getPatchPattersToIgnore())
+            .noneMatch(patchPattern -> patchPattern.matches(patch))) {
+          LOGGER.info("{} diff {}", required.getKind(), jsonPatch.toPrettyString());
+        }
+      }
+    }
+
+    return actualDifferences == 0;
   }
 
   private static class FunctionValuePattern extends PatchPattern {

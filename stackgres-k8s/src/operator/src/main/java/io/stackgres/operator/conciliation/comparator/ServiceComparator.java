@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.comparator;
 
+import java.util.Arrays;
 import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -32,7 +33,8 @@ public class ServiceComparator extends StackGresAbstractComparator {
           "add",
           "ClusterIP"),
       new SimpleIgnorePatch("/status",
-          "add")
+          "add"),
+      new SimpleIgnorePatch("/metadata/managedFields", "add")
   };
 
   @Override
@@ -47,7 +49,18 @@ public class ServiceComparator extends StackGresAbstractComparator {
 
     int ignore = countPatchesToIgnore(diff);
 
-    return diff.size() - ignore == 0;
+    final int actualDifferences = diff.size() - ignore;
+
+    if (LOGGER.isDebugEnabled() && actualDifferences != 0) {
+      for (JsonNode jsonPatch : diff) {
+        JsonPatch patch = new JsonPatch(jsonPatch);
+        if (Arrays.stream(getPatchPattersToIgnore())
+            .noneMatch(patchPattern -> patchPattern.matches(patch))) {
+          LOGGER.debug("{} diff {}", required.getKind(), jsonPatch.toPrettyString());
+        }
+      }
+    }
+    return actualDifferences == 0;
   }
 
 }

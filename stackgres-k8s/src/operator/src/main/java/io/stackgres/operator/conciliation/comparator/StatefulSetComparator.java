@@ -129,7 +129,8 @@ public class StatefulSetComparator extends StackGresAbstractComparator {
           "add",
           "10"),
       new SimpleIgnorePatch("/status",
-          "add")
+          "add"),
+      new SimpleIgnorePatch("/metadata/managedFields", "add")
   };
 
   @Override
@@ -146,12 +147,12 @@ public class StatefulSetComparator extends StackGresAbstractComparator {
     int ignore = countPatchesToIgnore(diff);
 
     final int actualDifferences = diff.size() - ignore;
-    if (LOGGER.isDebugEnabled() && actualDifferences != 0) {
+    if (actualDifferences != 0) {
       for (JsonNode jsonPatch : diff) {
         JsonPatch patch = new JsonPatch(jsonPatch);
         if (Arrays.stream(getPatchPattersToIgnore())
             .noneMatch(patchPattern -> patchPattern.matches(patch))) {
-          LOGGER.debug("StatefulSet diff {}", jsonPatch.toPrettyString());
+          LOGGER.info("StatefulSet diff {}", jsonPatch.toPrettyString());
         }
       }
     }
