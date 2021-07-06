@@ -16,8 +16,8 @@ e2e_test_install() {
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
   load_component_images_from \
-    "${E2E_COMPONENTS_REGISTRY:-docker.io}" \
-    "${E2E_COMPONENTS_PATH:-/ongres/}" \
+    "$E2E_COMPONENTS_REGISTRY" \
+    "$E2E_COMPONENTS_PATH" \
     "$STACKGRES_PREVIOUS_VERSION"
 
   install_prometheus_operator
