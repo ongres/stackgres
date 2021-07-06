@@ -101,7 +101,7 @@ public class DistributedLogsStatusManager
           return pods.stream()
               .map(pod -> pod.getMetadata().getLabels().get("controller-revision-hash"))
               .anyMatch(controllerRevisionHash ->
-                  Objects.equals(statefulSetUpdateRevision, controllerRevisionHash));
+                  !Objects.equals(statefulSetUpdateRevision, controllerRevisionHash));
         })
         .orElse(false);
 
