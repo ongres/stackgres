@@ -32,22 +32,19 @@ DISTRIBUTED_LOGS_NAME=example
 
 ## 1. Change operator version annotation
 
-Change the `SGDistributedLogs` and Pod annotations to indicate to use the new operator version.
+Change the `SGDistributedLogs` to indicate to use the new operator version.
 
 ```shell
 OPERATOR_VERSION="$(helm list -o json -n stackgres \
   | jq -r '.[]|select(.name == "stackgres-operator").app_version')"
 kubectl annotate sgdistributedlogs.stackgres.io -n "$NAMESPACE" "$DISTRIBUTED_LOGS_NAME" \
   --overwrite "stackgres.io/operatorVersion=$OPERATOR_VERSION"
-kubectl annotate pod -n "$CLUSTER_NAMESPACE" \
-  -l "app=StackGresDistributedLogs,distributed-logs-name=$DISTRIBUTED_LOGS_NAME,cluster=true" \
-  --overwrite "stackgres.io/operatorVersion=$OPERATOR_VERSION"
 ```
 
-## 2. Restart primary
+## 2. Delete the StatefulSet and wait for the primary to be recreated
 
 ```shell
-kubectl delete pod -n "$NAMESPACE" "$DISTRIBUTED_LOGS_NAME-0" --wait=true
+kubectl delete sts -n "$NAMESPACE" "$DISTRIBUTED_LOGS_NAME" --wait=true
 ```
 
 Wait until the new instance is created and operational, receiving traffic from the service. This new
