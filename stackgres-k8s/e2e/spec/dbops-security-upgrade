@@ -251,10 +251,7 @@ check_distributedlogs_security_upgrade() {
 
   kubectl annotate sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" \
     --overwrite "stackgres.io/operatorVersion=$(get_installed_operator_version)"
-  kubectl annotate pod -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresDistributedLogs,distributed-logs-name=$DISTRIBUTED_LOGS_NAME,cluster=true" \
-    --overwrite "stackgres.io/operatorVersion=$(get_installed_operator_version)"
-  kubectl delete pod -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME-0" --wait=false
+  kubectl delete sts -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1 "$DISTRIBUTED_LOGS_NAME-[0-9]\+"
   wait_cluster "$DISTRIBUTED_LOGS_NAME" "$CLUSTER_NAMESPACE"
