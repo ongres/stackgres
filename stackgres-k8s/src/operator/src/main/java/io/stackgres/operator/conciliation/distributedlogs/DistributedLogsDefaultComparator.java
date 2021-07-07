@@ -9,7 +9,6 @@ import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.ReconciliationScope;
-import io.stackgres.operator.conciliation.comparator.DefaultComparator;
 import io.stackgres.operator.conciliation.comparator.StackGresAbstractComparator;
 
 @ApplicationScoped
