@@ -12,9 +12,7 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.common.StackGresContext;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
@@ -37,15 +35,7 @@ public class Conciliator<T extends CustomResource<?, ?>> {
     var deletions = deployedResources.stream()
         .filter(deployedResource -> requiredResources.stream()
             .noneMatch(requiredResource -> isTheSameResource(deployedResource, requiredResource)))
-        .filter(deployedResource -> Optional
-            .of(deployedResource)
-            .map(HasMetadata::getMetadata)
-            .map(ObjectMeta::getAnnotations)
-            .map(annotations -> annotations.get(StackGresContext.RECONCILIATION_PAUSE_KEY))
-            .map(Boolean::parseBoolean)
-            .filter(pause -> pause)
-            .isEmpty()
-        );
+        .filter(ReconciliationUtil::isResourceReconciliationNotPaused);
 
     Stream<Tuple2<HasMetadata, HasMetadata>> patches = requiredResources.stream()
         .map(requiredResource -> {
@@ -55,13 +45,7 @@ public class Conciliator<T extends CustomResource<?, ?>> {
           return Tuple.tuple(requiredResource, deployedResource);
         }).filter(resourceTuple -> resourceTuple.v2.isPresent())
         .map(rt -> rt.map2(Optional::get))
-        .filter(tuple -> Optional.of(tuple.v2)
-            .map(HasMetadata::getMetadata)
-            .map(ObjectMeta::getAnnotations)
-            .map(annotations -> annotations.get(StackGresContext.RECONCILIATION_PAUSE_KEY))
-            .map(Boolean::parseBoolean)
-            .filter(pause -> pause)
-            .isEmpty())
+        .filter(tuple -> ReconciliationUtil.isResourceReconciliationNotPaused(tuple.v2))
         .filter(resourceTuple -> !isResourceContentEqual(resourceTuple.v1, resourceTuple.v2));
 
     return new ReconciliationResult(creations.collect(Collectors.toUnmodifiableList()),

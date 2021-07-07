@@ -174,7 +174,7 @@ public abstract class ConciliatorTest<T extends CustomResource<?, ?>> {
   }
 
   @Test
-  void conciliation_shouldIgnoreChangesOnResourcesMarkedWithReconciliationPauseAnnotatino() {
+  void conciliation_shouldIgnoreChangesOnResourcesMarkedWithReconciliationPauseAnnotatinon() {
 
     final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
         .buildResources("test", "test");
@@ -216,6 +216,8 @@ public abstract class ConciliatorTest<T extends CustomResource<?, ?>> {
         StackGresContext.RECONCILIATION_PAUSE_KEY,
         Boolean.FALSE.toString()
     ));
+
+    requiredResources.remove(indexToRemove);
 
     Conciliator<T> conciliator = buildConciliator(requiredResources,
         deployedResources);
