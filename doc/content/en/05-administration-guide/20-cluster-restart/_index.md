@@ -65,8 +65,8 @@ echo "Inreasing cluster instances from $INSTANCES to $((INSTANCES+1))"
 kubectl patch sgcluster -n "$NAMESPACE" "$SGCLUSTER" --type merge -p "spec: { instances: $((INSTANCES+1)) }"
 ```
 
-Wait until the new instance is created and operational, receiving traffic from the LB. This new
- replica has already been initialized with the new components. Note the name of the new pod.
+Wait until the new instance is created and operational, receiving traffic from the Service. This new
+ replica has already been initialized with the new components.
 
 ```shell
 READ_ONLY_POD="$SGCLUSTER-$INSTANCES"
@@ -120,8 +120,7 @@ echo "Deleting read-only pod $READ_ONLY_POD"
 kubectl delete -n "$NAMESPACE" pod "$READ_ONLY_POD"
 ```
 
-A new one will be created, and will also have the new components. Wait until fully operational
- and note the name of the new pod.
+A new one will be created, and will also have the new components. Wait until fully operational.
 
 ```shell
 echo "Waiting for pod $READ_ONLY_POD"
