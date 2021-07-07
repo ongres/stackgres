@@ -3,6 +3,7 @@ title: Volume downsize
 weight: 2
 url: runbooks/volume-downsize
 description: Steps about how to perform a volume downsize
+showToc: true
 ---
 
 This runbook will show you how to perform a volume downsize. The normal operation is to extend a volume but in some cases you probably over-dimension your volumes and you might need to reduce cost and resource usage so you'll need to downsize your resources, in this case, your volumes.

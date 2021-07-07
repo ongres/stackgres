@@ -3,6 +3,7 @@ title: SGDistributedLogs
 weight: 8
 url: reference/crd/sgdistributedlogs
 description: Details about SGDistributedLogs configurations
+showToc: true
 ---
 
 ## Creating a distributed logs cluster

@@ -3,6 +3,7 @@ title: Restore a backup
 weight: 3
 url: runbooks/restore-backup
 description: Details about how to restore a StackGres cluster backup.
+showToc: true
 ---
 
 This runbook will show you how to restore a cluster backup. All the steps explained here are also available from the StackGres web console.

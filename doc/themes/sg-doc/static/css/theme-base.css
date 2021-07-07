@@ -271,6 +271,7 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
 }
 #sidebar ul li {
     padding: 0;
+    display: list-item !important;
 }
 #sidebar ul li.visited + span {
     margin-right: 16px;
@@ -285,7 +286,7 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
     white-space: nowrap;
     display: block;
 }
-#sidebar ul li > a {
+#sidebar ul li > a, #TableOfContents li a {
     padding: 4px 0;
     transition: none;
 }
@@ -347,7 +348,7 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
     position: relative;
     margin-left: calc(300px + 5vw);
     min-height: 100%;
-    max-width: calc(100vw - 300px - 10vw);
+    max-width: calc(100vw - 600px - 10vw);
 }
 #body img, #body .video-container {
     margin: 3rem auto;
@@ -370,7 +371,7 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
     border: 1px solid #f0f0f0;
 }
 #body .padding {
-    padding: 3rem 0 3rem 5rem;
+    padding: 3rem;
 }
 @media only all and (max-width: 59.938em) {
     #body .padding {
@@ -452,7 +453,7 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
 #chapter h3 {
     font-family: 'Poppins', sans-serif;
     font-weight: 300;
-    color: var(--baseColor);
+    color: var(--textColor);
 }
 #chapter h1 {
     font-size: 2rem;
@@ -699,6 +700,12 @@ pre code {
     padding: 0;
     margin: 0;
 }
+
+p code, td, td code {
+    white-space: normal;
+    word-break: break-word;
+}
+
 hr {
     border-bottom: 4px solid #f0f0f0;
 }
@@ -1036,7 +1043,7 @@ p .copy-to-clipboard.tooltipped:after {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    width: 70%;
+    width: 100%;
     display: inline-block;
     float: left;
 }
@@ -1058,8 +1065,13 @@ p .copy-to-clipboard.tooltipped:after {
         overflow-x: auto;
     }
 
-    #top-bar {
+    #top-bar #breadcrumbs {
         display: none !important;
+    }
+
+    #top-bar .toc {
+        width: 100% !important;
+        display: block !important;
     }
 
     #chapter {

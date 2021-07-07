@@ -45,6 +45,7 @@
   <body data-url="{{ .RelPermalink }}">
     {{ partial "header-menu.html" . }}
     {{ partial "menu.html" . }}
+
         <section id="body">
           <div id="overlay"></div>
           <div class="padding highlightable">
@@ -63,7 +64,7 @@
                     </div>
                     {{ end }}
                   {{ end }}
-                  {{$toc := (and (not .Params.disableToc) (not .Params.chapter))}}
+                  {{$toc := (and (.Params.showToc) (not .Params.chapter) )}}
                   <div id="breadcrumbs" itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb">
                       <span id="sidebar-toggle-span">
                           <a href="#" id="sidebar-toggle" data-sidebar-toggle="">
@@ -82,7 +83,7 @@
                       {{ end }}
                     </span>
                   </div>
-                  {{ if $toc }}
+                    {{ if $toc }}
                       {{ partial "toc.html" . }}
                   {{ end }}
                 </div>
