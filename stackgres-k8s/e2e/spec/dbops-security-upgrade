@@ -121,6 +121,7 @@ EOF
   wait_cluster "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE"
   wait_cluster "$CLUSTER_NAME-2" "$CLUSTER_NAMESPACE"
   wait_cluster "$CLUSTER_NAME-3" "$CLUSTER_NAMESPACE"
+  wait_cluster "$DISTRIBUTED_LOGS_NAME" "$CLUSTER_NAMESPACE"
 
   generate_mock_data "$CLUSTER_NAME-1"
   generate_mock_data "$CLUSTER_NAME-2"
@@ -248,8 +249,15 @@ check_distributedlogs_security_upgrade() {
 
   check_cluster_before_security_upgrade "$DISTRIBUTED_LOGS_NAME"
 
-  kubectl annotate sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" --overwrite "stackgres.io/operatorVersion=$(get_installed_operator_version)"
+  kubectl annotate sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" \
+    --overwrite "stackgres.io/operatorVersion=$(get_installed_operator_version)"
+  kubectl annotate pod -n "$CLUSTER_NAMESPACE" \
+    -l "app=StackGresDistributedLogs,distributed-logs-name=$DISTRIBUTED_LOGS_NAME,cluster=true" \
+    --overwrite "stackgres.io/operatorVersion=$(get_installed_operator_version)"
   kubectl delete pod -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME-0" --wait=false
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 1 "$DISTRIBUTED_LOGS_NAME-[0-9]\+"
+  wait_cluster "$DISTRIBUTED_LOGS_NAME" "$CLUSTER_NAMESPACE"
 
   check_cluster_after_security_upgrade "$DISTRIBUTED_LOGS_NAME"
 }
