@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClientException;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.resource.CustomResourceScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +22,8 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger("io.stackgres.reconciliator");
 
-  private static final String STACKGRES_IO_RECONCILIATION = "stackgres.io/reconciliation-pause";
+  private static final String STACKGRES_IO_RECONCILIATION = StackGresContext
+      .RECONCILIATION_PAUSE_KEY;
 
   private CustomResourceScanner<T> clusterScanner;
 

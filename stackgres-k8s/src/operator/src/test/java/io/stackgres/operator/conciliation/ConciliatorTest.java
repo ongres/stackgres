@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -21,6 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StringUtil;
 import io.stackgres.operator.cluster.factory.KubernetessMockResourceGenerationUtil;
 import io.stackgres.operator.conciliation.comparator.StackGresAbstractComparator;
@@ -168,6 +170,60 @@ public abstract class ConciliatorTest<T extends CustomResource<?, ?>> {
     assertEquals(0, result.getCreations().size());
     assertEquals(1, result.getPatches().size());
 
+
+  }
+
+  @Test
+  void conciliation_shouldIgnoreChangesOnResourcesMarkedWithReconciliationPauseAnnotatino() {
+
+    final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
+        .buildResources("test", "test");
+    final List<HasMetadata> deployedResources = deepCopy(requiredResources);
+
+    deployedResources.stream().findAny()
+        .orElseThrow().getMetadata().setAnnotations(Map.of(
+        StackGresContext.RECONCILIATION_PAUSE_KEY, Boolean.TRUE.toString()
+    ));
+
+    Conciliator<T> conciliator = buildConciliator(requiredResources, deployedResources);
+
+    ReconciliationResult result = conciliator.evalReconciliationState(getConciliationResource());
+
+    assertEquals(0, result.getDeletions().size());
+    assertEquals(0, result.getCreations().size());
+    assertEquals(0, result.getPatches().size());
+
+    assertTrue(result.isUpToDate());
+
+  }
+
+  @Test
+  void conciliation_shouldIgnoreDeletionsOnResourcesMarkedWithReconciliationPauseAnnotation() {
+
+    final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
+        .buildResources("test", "test");
+
+    final List<HasMetadata> deployedResources = new ArrayList<>(requiredResources);
+
+    int indexToRemove = new Random().nextInt(requiredResources.size());
+    deployedResources.get(indexToRemove).getMetadata().setAnnotations(Map.of(
+        StackGresContext.RECONCILIATION_PAUSE_KEY,
+        Boolean.TRUE.toString()
+        ));
+
+    int indexToChangeFalsePause = new Random().nextInt(requiredResources.size());
+    deployedResources.get(indexToChangeFalsePause).getMetadata().setAnnotations(Map.of(
+        StackGresContext.RECONCILIATION_PAUSE_KEY,
+        Boolean.FALSE.toString()
+    ));
+
+    Conciliator<T> conciliator = buildConciliator(requiredResources,
+        deployedResources);
+
+    ReconciliationResult result = conciliator.evalReconciliationState(getConciliationResource());
+    assertEquals(0, result.getDeletions().size());
+
+    assertTrue(result.isUpToDate());
 
   }
 
