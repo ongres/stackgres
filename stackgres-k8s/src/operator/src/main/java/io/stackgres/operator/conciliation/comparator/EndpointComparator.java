@@ -49,7 +49,7 @@ public class EndpointComparator extends StackGresAbstractComparator {
         JsonPatch patch = new JsonPatch(jsonPatch);
         if (Arrays.stream(getPatchPattersToIgnore())
             .noneMatch(patchPattern -> patchPattern.matches(patch))) {
-          LOGGER.info("{} diff {}", required.getKind(), jsonPatch.toPrettyString());
+          LOGGER.debug("{} diff {}", required.getKind(), jsonPatch.toPrettyString());
         }
       }
     }
