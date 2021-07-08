@@ -159,7 +159,7 @@ check_grafana_embedded() {
     return 1
   fi
 
-  if wait_until eval 'kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "$GRAFANA_URL" --fail | grep -q "<grafana-app "'
+  if wait_until eval 'kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "$GRAFANA_URL" --fail | grep -q "<title>Grafana</title>"'
   then
     echo "Success. Grafana URL $GRAFANA_URL is returning grafana Web"
   else
