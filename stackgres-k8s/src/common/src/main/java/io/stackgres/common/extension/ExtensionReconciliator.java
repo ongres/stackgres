@@ -117,7 +117,6 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
                 context, extension)));
         final StackGresClusterInstalledExtension installedExtension =
             extensionInstaller.getInstalledExtension();
-        LOGGER.info("Installing extension " + installedExtension.toString());
         if (!extensionInstaller.isExtensionInstalled()
             && (!skipSharedLibrariesOverwrites
                 || !extensionInstaller.isExtensionPendingOverwrite())) {
@@ -142,6 +141,7 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
           }
         } else {
           if (!extensionInstaller.isLinksCreated()) {
+            LOGGER.info("Create links for extension " + installedExtension.toString());
             extensionInstaller.createExtensionLinks();
           }
         }
@@ -168,6 +168,7 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
       podStatus.setPendingRestart(false);
       clusterUpdated = true;
     }
+    LOGGER.info("Reconciliation of postgres extensions completed");
     return new ReconciliationResult<>(clusterUpdated, exceptions.build());
   }
 

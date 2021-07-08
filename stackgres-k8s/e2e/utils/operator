@@ -4,20 +4,22 @@
 
 export IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
 export ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
-export OPERATOR_IMAGE_NAME="docker.io/stackgres/operator:$IMAGE_TAG"
-export RESTAPI_IMAGE_NAME="docker.io/stackgres/restapi:$IMAGE_TAG"
-export JOBS_IMAGE_NAME="docker.io/stackgres/jobs:$IMAGE_TAG"
-export CLUSTER_CONTROLLER_IMAGE_NAME="docker.io/stackgres/cluster-controller:$IMAGE_TAG"
-export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="docker.io/stackgres/distributedlogs-controller:$IMAGE_TAG"
-export ADMINUI_IMAGE_NAME="docker.io/stackgres/admin-ui:$ADMINUI_IMAGE_TAG"
+export OPERATOR_PUBLIC_REGISTRY="docker.io"
+export OPERATOR_PUBLIC_REGISTRY_PATH="/stackgres/"
+export COMPONENT_PUBLIC_REGISTRY="docker.io"
+export COMPONENT_PUBLIC_REGISTRY_PATH="/ongres/"
+export OPERATOR_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}operator:$IMAGE_TAG"
+export RESTAPI_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}restapi:$IMAGE_TAG"
+export JOBS_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}jobs:$IMAGE_TAG"
+export CLUSTER_CONTROLLER_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}cluster-controller:$IMAGE_TAG"
+export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}distributedlogs-controller:$IMAGE_TAG"
+export ADMINUI_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}admin-ui:$ADMINUI_IMAGE_TAG"
 export EXTENSIONS_REPOSITORY_URL="${EXTENSIONS_REPOSITORY_URL:-https://extensions.stackgres.io/postgres/repository}"
 
 export STACKGRES_PATH="${STACKGRES_PATH:-$E2E_PATH/..}"
 export PROJECT_PATH="${PROJECT_PATH:-$STACKGRES_PATH/..}"
 export STACKGRES_VERSION="$(grep '<artifactId>stackgres-parent</artifactId>' "$STACKGRES_PATH/src/pom.xml" -A 2 -B 2 \
   | grep -o '<version>\([^<]\+\)</version>' | tr '<>' '  ' | cut -d ' ' -f 3)"
-export CONTAINER_BUILD="$(grep '<properties>' "$STACKGRES_PATH/src/pom.xml" -A 2 -B 2 \
-  | grep -o '<stackgres.containerBuild>\([^<]\+\)</stackgres.containerBuild>' | tr -d ' ' | tr '<>' '  ' | cut -d ' ' -f 3)"
 export STACKGRES_IMAGE_BUILDER="${STACKGRES_IMAGE_BUILDER:-docker}"
 export OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-operator/"}"
 export CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
@@ -174,9 +176,11 @@ setup_operator() {
     if is_operator_installed
     then
       OPERATOR_NAMESPACE="$(get_operator_namespace)"
+      echo "Operator already installed in namespace $OPERATOR_NAMESPACE"
     fi
     if [ "$E2E_SKIP_SETUP" = true ]
     then
+      echo "Skipping operator setup"
       return
     fi
   fi
@@ -192,9 +196,11 @@ setup_operator() {
       load_operator_k8s
     fi
 
+    echo "Performing full cleanup"
     k8s_webhook_cleanup
     helm_cleanup
     k8s_async_cleanup
+    echo "Full cleanup completed"
 
     if [ "$E2E_SKIP_OPERATOR_INSTALL" != true ]
     then
@@ -208,8 +214,10 @@ setup_operator() {
       fi
     fi
   else
+    echo "Performing cleanup skipping operator"
     helm_cleanup_but_operator
     k8s_async_cleanup_but_operator
+    echo "Cleanup skipping operator completed"
   fi
 }
 
@@ -228,6 +236,7 @@ load_operator_k8s() {
   then
     if [ -n "$E2E_OPERATOR_REGISTRY" ]
     then
+      echo "Loading operator images from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
       for IMAGE_NAME in \
         "$OPERATOR_IMAGE_NAME" \
         "$RESTAPI_IMAGE_NAME" \
@@ -239,7 +248,9 @@ load_operator_k8s() {
         echo "$IMAGE_NAME"
       done | xargs -n 1 -I % -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" \
         pull_image_from "$E2E_OPERATOR_REGISTRY" "$E2E_OPERATOR_REGISTRY_PATH" "%"
+      echo "All operator images loaded from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
     else
+      echo "Loading operator images from ${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}"
       for IMAGE_NAME in \
         "$OPERATOR_IMAGE_NAME" \
         "$RESTAPI_IMAGE_NAME" \
@@ -251,11 +262,14 @@ load_operator_k8s() {
         echo "$IMAGE_NAME"
       done | xargs -n 1 -I % -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" \
         docker_pull "%"
+      echo "All operator images loaded from ${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}"
     fi
   fi
   if [ -n "$E2E_COMPONENTS_REGISTRY" ]
   then
+    echo "Loading component images from ${E2E_COMPONENTS_REGISTRY}${E2E_COMPONENTS_PATH}"
     load_component_images_from "$E2E_COMPONENTS_REGISTRY" "$E2E_COMPONENTS_PATH"
+    echo "All component images loaded from ${E2E_COMPONENTS_REGISTRY}${E2E_COMPONENTS_PATH}"
   fi
 
   if [ -n "$1" ]
@@ -287,6 +301,7 @@ load_operator_k8s() {
 }
 
 load_operator_k8s_only() {
+  echo "Loading operator images into Kubernetes registry"
   local IMAGE_NAME
   for IMAGE_NAME in \
     "$OPERATOR_IMAGE_NAME" \
@@ -298,6 +313,7 @@ load_operator_k8s_only() {
   do
     echo "$IMAGE_NAME"
   done | xargs -n 1 -I % -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" load_image_k8s '%'
+  echo "All operator images loaded into Kubernetes registry"
 }
 
 pull_image_from() {
@@ -306,6 +322,7 @@ pull_image_from() {
   local IMAGE_PATH="$2"
   local IMAGE="$3"
   local FROM_IMAGE="$REPOSITORY$IMAGE_PATH${IMAGE#*/}"
+  echo "Pulling $IMAGE from $FROM_IMAGE..."
   docker_pull "$FROM_IMAGE"
   docker_tag "$FROM_IMAGE" "$IMAGE"
   echo "Pulled $IMAGE from $FROM_IMAGE"
@@ -319,13 +336,43 @@ install_operator() {
   kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null 2>&1 \
     || kubectl create namespace "$OPERATOR_NAMESPACE"
 
-  if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" -a \
-    -n "$STACKGRES_PREVIOUS_VERSION" ]
+  if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" \
+    -a -n "$STACKGRES_PREVIOUS_VERSION" ]
   then
     install_operator_previous_version "$@"
+    echo "Installing operator version $STACKGRES_PREVIOUS_VERSION"
   fi
 
-  install_operator_only "$@"
+  if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" \
+    -a -n "$STACKGRES_PREVIOUS_VERSION" \
+    -a -n "$E2E_UPGRADE_BEFORE_RUN_TEST" ]
+  then
+    E2E_BEFORE_RUN_TEST=e2e_before_run_test_upgrade
+    E2E_BEFORE_RUN_TEST_COUNT=
+  else
+    if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" \
+      -a -n "$STACKGRES_PREVIOUS_VERSION" ]
+    then
+      echo "Upgrading operator from version $(get_installed_operator_version) to version $STACKGRES_VERSION"
+    else
+      echo "Installing operator version $STACKGRES_VERSION"
+    fi
+    install_operator_only "$@"
+  fi
+}
+
+e2e_before_run_test_upgrade() {
+  E2E_BEFORE_RUN_TEST_COUNT="$((E2E_BEFORE_RUN_TEST_COUNT + 1))"
+  if ! e2e_exclusive_lock \
+    && [ "$E2E_UPGRADE_BEFORE_RUN_TEST" = "$E2E_BEFORE_RUN_TEST_COUNT" ]
+  then
+    echo "Upgrading operator from version $(get_installed_operator_version) to version $STACKGRES_VERSION"
+    install_operator_only
+  fi
+}
+
+get_installed_operator_version() {
+  helm list -n "$OPERATOR_NAMESPACE" -o json | jq -r '.[] | select(.name == "stackgres-operator").app_version'
 }
 
 install_operator_only() {
@@ -522,8 +569,8 @@ reinstall_operator_if_not_as_expected() {
 
 load_component_images_from() {
   [ -n "$1" ]
-  local REPOSITORY="$1"
-  local IMAGE_PATH="${2:-/ongres/}"
+  local REPOSITORY="${1:-$COMPONENT_PUBLIC_REGISTRY}"
+  local IMAGE_PATH="${2:-$COMPONENT_PUBLIC_REGISTRY_PATH}"
   local VERSION="${3:-$STACKGRES_VERSION}"
   get_component_images "$VERSION" \
     | xargs -n 1 -I % -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" \
@@ -539,7 +586,7 @@ load_component_image_from() {
   echo "Pulling $IMAGE from $FROM_IMAGE..."
   docker_pull "$FROM_IMAGE"
   docker_tag "$FROM_IMAGE" "$IMAGE"
-  echo "done."
+  echo "Image $IMAGE pulled from $FROM_IMAGE"
   load_image_k8s "$IMAGE"
 }
 

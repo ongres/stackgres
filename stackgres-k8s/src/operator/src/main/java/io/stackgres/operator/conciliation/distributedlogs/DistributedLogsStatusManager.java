@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -22,6 +23,8 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsCondition;
@@ -58,8 +61,31 @@ public class DistributedLogsStatusManager
    * Check pending restart status condition.
    */
   public boolean isPendingRestart(StackGresDistributedLogs source) {
-    return isStatefulSetPendingRestart(source)
+    return isClusterPendingUpgrade(source)
+        || isStatefulSetPendingRestart(source)
         || isPatroniPendingRestart(source);
+  }
+
+  private boolean isClusterPendingUpgrade(StackGresDistributedLogs context) {
+    final Map<String, String> podClusterLabels =
+        labelFactory.patroniClusterLabels(context);
+
+    return getClusterStatefulSet(context)
+        .map(sts -> getStsPods(sts, context)
+            .stream()
+            .filter(pod -> pod.getMetadata() != null
+                && pod.getMetadata().getAnnotations() != null
+                && podClusterLabels.entrySet().stream()
+                .allMatch(podClusterLabel -> pod.getMetadata().getLabels().entrySet().stream()
+                    .anyMatch(podLabel -> Objects.equals(podLabel, podClusterLabel))))
+            .anyMatch(pod -> Optional.ofNullable(pod.getMetadata().getAnnotations())
+                .orElse(ImmutableMap.of())
+                .entrySet()
+                .stream()
+                .noneMatch(e -> e.getKey().equals(StackGresContext.VERSION_KEY)
+                    && e.getValue().equals(StackGresProperty.OPERATOR_VERSION.getString()))))
+        .orElse(false);
+
   }
 
   private boolean isStatefulSetPendingRestart(StackGresDistributedLogs source) {
@@ -75,7 +101,7 @@ public class DistributedLogsStatusManager
           return pods.stream()
               .map(pod -> pod.getMetadata().getLabels().get("controller-revision-hash"))
               .anyMatch(controllerRevisionHash ->
-                  Objects.equals(statefulSetUpdateRevision, controllerRevisionHash));
+                  !Objects.equals(statefulSetUpdateRevision, controllerRevisionHash));
         })
         .orElse(false);
 

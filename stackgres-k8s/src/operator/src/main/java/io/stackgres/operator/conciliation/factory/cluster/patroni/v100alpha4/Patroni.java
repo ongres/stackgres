@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.patroni;
+package io.stackgres.operator.conciliation.factory.cluster.patroni.v100alpha4;
 
 import static io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap.PATRONI_RESTAPI_PORT_NAME;
 
@@ -42,7 +42,6 @@ import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ContextUtil;
-import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.PostgresContainerContext;
 import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
@@ -50,12 +49,16 @@ import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap;
+import io.stackgres.operator.conciliation.factory.v09.PatroniStaticVolume;
 import io.stackgres.operator.patroni.factory.PatroniScriptsConfigMap;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10B1, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10A4)
 @RunningContainer(order = 0)
 public class Patroni implements ContainerFactory<StackGresClusterContainerContext> {
+
+  private static final String IMAGE_NAME = "docker.io/ongres/patroni:v1.6.5-pg%s-build-6.2";
 
   public static final String POST_INIT_SUFFIX = "-post-init";
 
@@ -115,11 +118,9 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
   public Container getContainer(StackGresClusterContainerContext context) {
     final StackGresClusterContext clusterContext = context.getClusterContext();
     final StackGresCluster cluster = clusterContext.getSource();
-    final String postgresVersion = cluster.getSpec().getPostgresVersion();
-    final String patroniImageName = StackGresComponent.PATRONI.findImageName(
-        StackGresComponent.LATEST,
-        ImmutableMap.of(StackGresComponent.POSTGRESQL,
-            postgresVersion));
+
+    final String patroniImageName = String.format(IMAGE_NAME,
+        cluster.getSpec().getPostgresVersion());
 
     ResourceRequirements podResources = requirementsFactory
         .createResource(clusterContext);
