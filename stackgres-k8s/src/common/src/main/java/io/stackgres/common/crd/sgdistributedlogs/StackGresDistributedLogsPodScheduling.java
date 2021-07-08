@@ -67,10 +67,6 @@ public class StackGresDistributedLogsPodScheduling {
     return nodeAffinity;
   }
 
-  public void setNodeAffinity(NodeAffinity nodeAffinity) {
-    this.nodeAffinity = nodeAffinity;
-  }
-
   public List<Toleration> getTolerations() {
     return tolerations;
   }
