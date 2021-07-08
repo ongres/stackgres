@@ -34,7 +34,8 @@ public class Conciliator<T extends CustomResource<?, ?>> {
 
     var deletions = deployedResources.stream()
         .filter(deployedResource -> requiredResources.stream()
-            .noneMatch(requiredResource -> isTheSameResource(deployedResource, requiredResource)));
+            .noneMatch(requiredResource -> isTheSameResource(deployedResource, requiredResource)))
+        .filter(ReconciliationUtil::isResourceReconciliationNotPaused);
 
     Stream<Tuple2<HasMetadata, HasMetadata>> patches = requiredResources.stream()
         .map(requiredResource -> {
@@ -44,6 +45,7 @@ public class Conciliator<T extends CustomResource<?, ?>> {
           return Tuple.tuple(requiredResource, deployedResource);
         }).filter(resourceTuple -> resourceTuple.v2.isPresent())
         .map(rt -> rt.map2(Optional::get))
+        .filter(tuple -> ReconciliationUtil.isResourceReconciliationNotPaused(tuple.v2))
         .filter(resourceTuple -> !isResourceContentEqual(resourceTuple.v1, resourceTuple.v2));
 
     return new ReconciliationResult(creations.collect(Collectors.toUnmodifiableList()),

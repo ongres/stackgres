@@ -147,12 +147,12 @@ public class StatefulSetComparator extends StackGresAbstractComparator {
     int ignore = countPatchesToIgnore(diff);
 
     final int actualDifferences = diff.size() - ignore;
-    if (actualDifferences != 0) {
+    if (LOGGER.isDebugEnabled() && actualDifferences != 0) {
       for (JsonNode jsonPatch : diff) {
         JsonPatch patch = new JsonPatch(jsonPatch);
         if (Arrays.stream(getPatchPattersToIgnore())
             .noneMatch(patchPattern -> patchPattern.matches(patch))) {
-          LOGGER.info("StatefulSet diff {}", jsonPatch.toPrettyString());
+          LOGGER.debug("StatefulSet diff {}", jsonPatch.toPrettyString());
         }
       }
     }
