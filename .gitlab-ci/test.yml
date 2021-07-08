@@ -70,6 +70,7 @@ swagger validations:
     IMAGE_TAG_SUFFIX: ""
     E2E_SUFFIX: ""
   timeout: 12 hour
+  retry: $E2E_RETRY
   script:
     - set -e
     - test "$E2E_JOBS" -ge 1 && test "$E2E_JOBS" -le 6
