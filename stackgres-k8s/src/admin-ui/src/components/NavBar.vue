@@ -110,6 +110,16 @@
 						This action will create a new cluster with the same configuration as the source cluster. Please note that the cluster will be created as soon as this configuration is copied and no source data is copied whatsoever.
 					</span>
 
+					<span v-if="missingCRDs.length" class="warning alert">
+						Unable to clone cluster configuration. The following dependencies do not exist on the target namespace:
+						<ul>
+							<li v-for="crd in missingCRDs">
+								<strong>{{ crd.kind }}</strong>: {{ crd.name }} 
+							</li>
+						</ul>
+						Please clone the dependencies to the target namespace and try again.
+					</span>
+
 					<a class="btn" @click="cloneCRD" :disabled="nameColission">CLONE</a> <a class="btn border" @click="cancelClone">CANCEL</a>
 				</form>
 			</div>
@@ -154,6 +164,7 @@
 				loginPassword: '',
 				loginPasswordType: 'password',
 				nameColission: false,
+				missingCRDs: [],
 			}
 		},
 		
@@ -291,25 +302,58 @@
 					var endpoint = 'sgpoolconfig'
 				else if (store.state.cloneCRD.kind == 'SGPostgresConfig')
 					var endpoint = 'sgpgconfig'
+				else if (store.state.cloneCRD.kind == 'SGCluster') {
+					let targetNamespace = store.state.cloneCRD.data.metadata.namespace 
+					
+					let profile = store.state.profiles.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == store.state.cloneCRD.data.spec.sgInstanceProfile))					
+					if (typeof profile == 'undefined')
+						vc.missingCRDs.push({kind: 'SGInstanceProfile', name: store.state.cloneCRD.data.spec.sgInstanceProfile})
+					
+					let pgconfig = store.state.pgConfig.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == store.state.cloneCRD.data.spec.configurations.sgPostgresConfig))
+					if (typeof pgconfig == 'undefined')
+						vc.missingCRDs.push({kind: 'SGPostgresConfig', name: store.state.cloneCRD.data.spec.configurations.sgPostgresConfig})
+
+					let poolconfig = store.state.poolConfig.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == store.state.cloneCRD.data.spec.configurations.sgPoolingConfig))
+					if (typeof poolconfig == 'undefined')
+						vc.missingCRDs.push({kind: 'SGPoolingConfig', name: store.state.cloneCRD.data.spec.configurations.sgPoolingConfig})
+					
+					if (store.state.cloneCRD.data.spec.configurations.hasOwnProperty('sgBackupConfig')) {
+						let backupconfig = store.state.backupConfig.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == store.state.cloneCRD.data.spec.configurations.sgBackupConfig))
+						if (typeof backupconfig == 'undefined')
+							vc.missingCRDs.push({kind: 'SGBackupConfig', name: store.state.cloneCRD.data.spec.configurations.sgBackupConfig})
+					}
+					
+					if (vc.hasProp(store.state.cloneCRD.data.spec, 'distributedLogs.sgDistributedLogs')) {
+						let logscluster = store.state.logsClusters.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == store.state.cloneCRD.data.spec.distributedLogs.sgDistributedLogs))
+						if (typeof logscluster == 'undefined')
+							vc.missingCRDs.push({kind: 'SGDistributedLogs', name: store.state.cloneCRD.data.spec.distributedLogs.sgDistributedLogs})
+					}
+
+					if (vc.hasProp(store.state.cloneCRD.data.spec, 'initialData.restore.fromBackup.uid')) {
+						vc.missingCRDs.push({kind: 'hey', name: store.state.cloneCRD.data.spec.initialData.restore.fromBackup.uid})
+					}
+				}	
 				else
 					var endpoint = store.state.cloneCRD.kind.toLowerCase()
 
-				const res = axios
-				.post(
-					'/stackgres/' + endpoint, 
-					store.state.cloneCRD.data 
-				)
-				.then(function (response) {
-					vc.notify(store.state.cloneCRD.kind+' <strong>"'+store.state.cloneCRD.data.metadata.name+'"</strong> cloned successfully', 'message', store.state.cloneCRD.kind.toLowerCase());
-					vc.fetchAPI(endpoint);
-					vc.cancelClone();		
-				})
-				.catch(function (error) {
-					console.log(error.response);
-					vc.cancelClone();
-					vc.notify(error.response.data,'error',endpoint);
+				if (!vc.missingCRDs.length) {
+					const res = axios
+					.post(
+						'/stackgres/' + endpoint, 
+						store.state.cloneCRD.data 
+					)
+					.then(function (response) {
+						vc.notify(store.state.cloneCRD.kind+' <strong>"'+store.state.cloneCRD.data.metadata.name+'"</strong> cloned successfully', 'message', store.state.cloneCRD.kind.toLowerCase());
+						vc.fetchAPI(endpoint);
+						vc.cancelClone();		
+					})
+					.catch(function (error) {
+						console.log(error.response);
+						vc.cancelClone();
+						vc.notify(error.response.data,'error',endpoint);
 
-				});
+					});
+				} 
 			},
 			flushToken: function() {
 				document.cookie = 'sgToken=; SameSite=Strict;';

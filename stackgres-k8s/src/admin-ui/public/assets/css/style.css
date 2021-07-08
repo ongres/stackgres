@@ -2758,7 +2758,7 @@ fieldset {
 }
 
 .form .alert {
-    border-color: #ff8873;
+    border-color: var(--orange);
 }
 
 span.req {
@@ -4790,6 +4790,12 @@ table.backupConfig tr.details.open td:first-of-type {
 
 #contentTooltip .info.warning span.close {
     color: var(--orange);
+}
+
+.warning.alert li {
+    margin: 10px;
+    left: 10px;
+    position: relative;
 }
 
 /*Help Tooltips*/
