@@ -774,6 +774,14 @@ export const mixin = {
         switch(kind) {
           case 'SGCluster':
             crd = JSON.parse(JSON.stringify(store.state.clusters.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
+            
+            if(this.hasProp(crd, 'data.spec.initialData.restore')) {
+              delete crd.data.spec.initialData.restore
+
+              if(!Object.keys(crd.data.spec.initialData).length)
+                delete crd.data.spec.initialData
+            }
+
             break;
           
           case 'SGBackupConfig':
@@ -803,8 +811,7 @@ export const mixin = {
         
         if(typeof crd !== 'undefined') {
           crd.kind = kind;
-          if($('#cloneName').val() !== crd.data.metadata.name)
-            crd.data.metadata.name = 'copy-of-'+crd.data.metadata.name;
+          crd.data.metadata.name = 'copy-of-'+crd.data.metadata.name;
   
           store.commit('setCloneCRD', crd);
           
