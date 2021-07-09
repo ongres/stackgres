@@ -3,6 +3,7 @@ title: Building StackGres
 weight: 2
 url: developer/stackgres/build
 description: Details about how to build the operator.
+showToc: true
 ---
 
 To build stackgres run the following command inside folder `stackgres-k8s/src`:

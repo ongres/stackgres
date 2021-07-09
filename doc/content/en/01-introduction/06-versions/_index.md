@@ -3,6 +3,7 @@ title: "Versions"
 weight: 6
 url: intro/versions
 description: Details about StackGres versions.
+showToc: true
 ---
 
 ## StackGres 1.0.0-beta1

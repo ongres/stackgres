@@ -3,6 +3,7 @@ title: SGBackup
 weight: 7
 url: reference/crd/sgbackup
 description: Details about SGBackup configurations
+showToc: true
 ---
 
 ## Creating a backup

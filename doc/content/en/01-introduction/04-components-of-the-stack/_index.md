@@ -3,6 +3,7 @@ title: "Components of the Stack"
 weight: 4
 url: intro/stack-components
 description: Details about the components of the "stack".
+showToc: true
 ---
 
 Running Postgres in production requires "a RedHat" of PostgreSQL. A curated set of open source components built,

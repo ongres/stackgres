@@ -3,6 +3,7 @@ title: Add Postgres Alerts
 weight: 4
 url: runbooks/postgres-alerts
 description: How to add postgres alerts to your prometheus installation
+showToc: true
 ---
 
 This runbook will show you how to add Postgres alerts to your Prometheus installation and give you some usefull ones.

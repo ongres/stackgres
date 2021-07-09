@@ -3,6 +3,7 @@ title: node_exporter
 weight: 3
 url: monitoring/metrics/node_exporter
 description: Contains details about the metrics collected by the node_exporter.
+showToc: true
 ---
 
 The next table contains details about the metrics collected by the node_exporter.

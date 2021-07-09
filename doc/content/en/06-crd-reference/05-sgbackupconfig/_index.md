@@ -3,6 +3,7 @@ title: SGBackupConfig
 weight: 5
 url: reference/crd/sgbackupconfig
 description: Details about SGBackupConfig configurations
+showToc: true
 ---
 
 ## Configuration

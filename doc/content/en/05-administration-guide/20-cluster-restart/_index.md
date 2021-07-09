@@ -3,6 +3,7 @@ title: Cluster Restart
 weight: 20
 url: install/restart
 description: Details about how to restart the database nodes.
+showToc: true
 ---
 
 This procedure can be used in general after a configuration change that requires restart (including
