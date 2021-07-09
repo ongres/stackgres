@@ -28,7 +28,7 @@
 							<router-link v-if="iCan('patch','sgpoolconfigs',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgpoolconfig/' + conf.name + '/edit'" title="Edit Configuration">
 								Edit Configuration
 							</router-link>
-							<a v-if="iCan('create','sgpoolconfigs',$route.params.namespace)" @click="cloneCRD('SGPoolingConfig', $route.params.namespace, conf.name)" title="Clone Configuration">
+							<a v-if="iCan('create','sgpoolconfigs',$route.params.namespace)" @click="cloneCRD('SGPoolingConfig', $route.params.namespace, conf.name)" class="cloneCRD" title="Clone Configuration">
 								Clone Configuration
 							</a>
 							<a v-if="iCan('delete','sgpoolconfigs',$route.params.namespace)" @click="deleteCRD('sgpoolconfig',$route.params.namespace, conf.name, '/' + $route.params.namespace + '/sgpoolconfigs')" title="Delete Configuration" :class="conf.data.status.clusters.length ? 'disabled' : ''">

@@ -138,6 +138,11 @@ h1, h2, h3, h4, h5, h6 {
     cursor: pointer;
 }
 
+.btn[disabled] {
+    filter: grayscale(1);
+    cursor: not-allowed;
+}
+
 .form button:hover, .form button:focus, .btn:hover, .btn:focus, button:hover {
     background: var(--lblue);
     border-color: var(--lblue);
@@ -2433,6 +2438,7 @@ form .warning {
     border-radius: 6px;
     margin-bottom: 20px;
     display: inline-block;
+    line-height: 1.1;
     width: 100%;
 }
 
@@ -2758,7 +2764,11 @@ fieldset {
 }
 
 .form .alert {
-    border-color: #ff8873;
+    border-color: var(--orange);
+}
+
+.alert a {
+    color: var(--orange);
 }
 
 span.req {
@@ -4499,6 +4509,8 @@ table.profiles td.inlineList svg:hover path, table.backupConfig td.usedOn svg:ho
     max-width: 320px;
     padding: 15px 0;
     width: 280px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
 }
 
 
@@ -4790,6 +4802,14 @@ table.backupConfig tr.details.open td:first-of-type {
 
 #contentTooltip .info.warning span.close {
     color: var(--orange);
+}
+
+.warning ul {
+    padding-left: 20px;
+}
+
+.warning li {
+    margin: 10px 0;
 }
 
 /*Help Tooltips*/
