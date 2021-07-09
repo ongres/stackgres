@@ -812,6 +812,8 @@ export const mixin = {
         if(typeof crd !== 'undefined') {
           crd.kind = kind;
           crd.data.metadata.name = 'copy-of-'+crd.data.metadata.name;
+          $('#cloneName').val(crd.data.metadata.name);
+          $('#cloneNamespace').val(crd.data.metadata.namespace);
   
           store.commit('setCloneCRD', crd);
           

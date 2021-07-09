@@ -4509,6 +4509,8 @@ table.profiles td.inlineList svg:hover path, table.backupConfig td.usedOn svg:ho
     max-width: 320px;
     padding: 15px 0;
     width: 280px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
 }
 
 

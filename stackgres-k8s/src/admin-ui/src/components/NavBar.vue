@@ -90,7 +90,7 @@
 			</div>
 
 			<div id="clone" :class="clone.hasOwnProperty('name') ? 'show' : ''">
-				<form class="form noSubmit">
+				<form class="form">
 					<div class="header">
 						<h2>Clone {{ clone.kind }}</h2>
 					</div>
@@ -100,7 +100,7 @@
 					</select>
 
 					<label for="cloneName">Name <span class="req">*</span></label>
-					<input @keyup="setCloneName" id="cloneName" autocomplete="off" :value="'copy-of-' + clone.name">
+					<input @keyup="setCloneName" id="cloneName" autocomplete="off">
 
 					<span class="warning" v-if="nameCollision">
 						There's already a <strong>{{ clone.kind }}</strong> with the same name on the specified namespace. Please specify a different name or choose another namespace
@@ -168,7 +168,6 @@
 				loginUser: '',
 				loginPassword: '',
 				loginPasswordType: 'password',
-				missingCRDs: [],
 			}
 		},
 		
@@ -255,6 +254,40 @@
 				}
 
 				return (typeof collision != 'undefined')
+			},
+
+			missingCRDs() {
+				let missingCRDs = [];
+				
+				if(typeof store.state.cloneCRD.data != 'undefined') {
+					let cloneCRD = store.state.cloneCRD.data;
+					let cloneKind = store.state.cloneCRD.kind;
+					let targetNamespace = cloneCRD.metadata.namespace;
+					
+
+					if (cloneKind == 'SGCluster') {
+						
+						let profile = store.state.profiles.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.sgInstanceProfile))					
+						if (typeof profile == 'undefined')
+							missingCRDs.push({kind: 'SGInstanceProfile', name: cloneCRD.spec.sgInstanceProfile})
+						
+						let pgconfig = store.state.pgConfig.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.configurations.sgPostgresConfig))
+						if (typeof pgconfig == 'undefined')
+							missingCRDs.push({kind: 'SGPostgresConfig', name: cloneCRD.spec.configurations.sgPostgresConfig})
+
+						let poolconfig = store.state.poolConfig.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.configurations.sgPoolingConfig))
+						if (typeof poolconfig == 'undefined')
+							missingCRDs.push({kind: 'SGPoolingConfig', name: cloneCRD.spec.configurations.sgPoolingConfig})
+						
+						if (cloneCRD.spec.configurations.hasOwnProperty('sgBackupConfig')) {
+							let backupconfig = store.state.backupConfig.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.configurations.sgBackupConfig))
+							if (typeof backupconfig == 'undefined')
+								missingCRDs.push({kind: 'SGBackupConfig', name: cloneCRD.spec.configurations.sgBackupConfig})
+						}
+					}
+				}
+
+				return missingCRDs
 			}
 		},
 
@@ -322,7 +355,6 @@
 			cancelClone: function() {
 				store.commit('setCloneCRD', {});
 				$('#cloneNamespace').val(this.$route.params.namespace)
-				this.missingCRDs = []
 			},
 
 			cloneCRD: function() {	
@@ -334,32 +366,8 @@
 					cloneKind = 'sgpoolconfig'
 				else if (cloneKind == 'SGPostgresConfig')
 					cloneKind = 'sgpgconfig'
-				
-				if (cloneKind == 'SGCluster') {
-					let targetNamespace = cloneCRD.metadata.namespace 
-					
-					let profile = store.state.profiles.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.sgInstanceProfile))					
-					if (typeof profile == 'undefined')
-						vc.missingCRDs.push({kind: 'SGInstanceProfile', name: cloneCRD.spec.sgInstanceProfile})
-					
-					let pgconfig = store.state.pgConfig.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.configurations.sgPostgresConfig))
-					if (typeof pgconfig == 'undefined')
-						vc.missingCRDs.push({kind: 'SGPostgresConfig', name: cloneCRD.spec.configurations.sgPostgresConfig})
-
-					let poolconfig = store.state.poolConfig.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.configurations.sgPoolingConfig))
-					if (typeof poolconfig == 'undefined')
-						vc.missingCRDs.push({kind: 'SGPoolingConfig', name: cloneCRD.spec.configurations.sgPoolingConfig})
-					
-					if (cloneCRD.spec.configurations.hasOwnProperty('sgBackupConfig')) {
-						let backupconfig = store.state.backupConfig.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.configurations.sgBackupConfig))
-						if (typeof backupconfig == 'undefined')
-							vc.missingCRDs.push({kind: 'SGBackupConfig', name: cloneCRD.spec.configurations.sgBackupConfig})
-					}
-					
-					if (vc.hasProp(cloneCRD.spec, 'distributedLogs.sgDistributedLogs') && !cloneCRD.spec.distributedLogs.sgDistributedLogs.includes('.')) {
-						cloneCRD.spec.distributedLogs.sgDistributedLogs = vc.$route.params.namespace + '.' + cloneCRD.spec.distributedLogs.sgDistributedLogs;
-					}
-				}
+				else if ( (cloneKind == 'SGCluster') && vc.hasProp(cloneCRD.spec, 'distributedLogs.sgDistributedLogs') && !cloneCRD.spec.distributedLogs.sgDistributedLogs.includes('.') )
+					cloneCRD.spec.distributedLogs.sgDistributedLogs = vc.$route.params.namespace + '.' + cloneCRD.spec.distributedLogs.sgDistributedLogs;
 
 				if (!vc.missingCRDs.length) {
 					const res = axios
@@ -380,6 +388,7 @@
 					});
 				} 
 			},
+
 			flushToken: function() {
 				document.cookie = 'sgToken=; SameSite=Strict;';
 				store.commit('setLoginToken','401 Authentication Error');
