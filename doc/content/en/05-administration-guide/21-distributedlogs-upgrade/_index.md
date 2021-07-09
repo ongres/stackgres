@@ -19,7 +19,7 @@ kubectl get sgdistributedlogs.stackgres.io -A --template '
 {{- end }}'
 ```
 
-The upgrade procedure will generate a service disruption. The service disruption will end when Patroni
+**The upgrade procedure will generate a service disruption**. The service disruption will end when Patroni
  elect the new primary instance.
 
 The procedure includes some shell script snippet examples. In those snippet we assume the

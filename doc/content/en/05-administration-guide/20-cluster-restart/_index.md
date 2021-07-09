@@ -21,7 +21,7 @@ kubectl get sgclusters.stackgres.io -A --template '
 {{- end }}'
 ```
 
-The restart procedure will generate a service disruption. The service disruption will start for the
+**The restart procedure will generate a service disruption**. The service disruption will start for the
  read write connections when the primary pod is deleted and will end when Patroni elect the new
  primary. For read only connections the service disruption will start when only one replica exists
  and the replica pod is deleted and will end when Patroni set the role of the pod to replica.

@@ -74,7 +74,7 @@ swagger validations:
     - set -e
     - test "$E2E_JOBS" -ge 1 && test "$E2E_JOBS" -le 6
     - test "$E2E_EXCLUSIVE_JOBS" -ge 1 && test "$E2E_EXCLUSIVE_JOBS" -le 6
-    - set -x
+    - test "$DEBUG" != true || set -x
     - SUFFIX="$(echo "-$E2E_SUFFIX-$E2E_RUN_ONLY" | tr -d '\n' | tr -c 'a-z0-9' '-' | sed 's/\(-[0-9]\+\)-[0-9]\+$/\1/')"
     - SHELL_XTRACE="$([ "$E2E_DEBUG" = true ] && echo "-x" || echo "")"
     - export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}$IMAGE_TAG_SUFFIX"
@@ -108,6 +108,7 @@ swagger validations:
         export E2E_SPEC_TRY_UNINSTALL_ON_FAILURE=true
       fi
     - |
+      unset DEBUG
       flock -s /tmp/stackgres-build-operator-native-executable \
         flock -s /tmp/stackgres-build-restapi-native-executable \
         flock -s /tmp/stackgres-build-jobs-native-executable \

@@ -205,7 +205,7 @@ public abstract class ConciliatorTest<T extends CustomResource<?, ?>> {
 
     final List<HasMetadata> deployedResources = new ArrayList<>(requiredResources);
 
-    int indexToRemove = new Random().nextInt(requiredResources.size() / 2);
+    int indexToRemove = new Random().nextInt(requiredResources.size() / 2 - 1);
     deployedResources.get(indexToRemove).getMetadata().setAnnotations(Map.of(
         StackGresContext.RECONCILIATION_PAUSE_KEY,
         Boolean.TRUE.toString()

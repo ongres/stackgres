@@ -347,7 +347,7 @@ install_operator() {
     -a -n "$STACKGRES_PREVIOUS_VERSION" \
     -a -n "$E2E_UPGRADE_BEFORE_RUN_TEST" ]
   then
-    E2E_BEFORE_RUN_TEST=e2e_before_run_test_upgrade
+    E2E_BEFORE_RUN_TEST_FUNCTION=e2e_before_run_test_upgrade
     E2E_BEFORE_RUN_TEST_COUNT=
   else
     if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" \
