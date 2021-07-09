@@ -1129,7 +1129,7 @@
                             vc.notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgcluster');
 
                             vc.fetchAPI('sgcluster');
-                            router.push(cluster.metadata.namespace + '/sgclusters');
+                            router.push('/' + cluster.metadata.namespace + '/sgclusters');
                             
                         })
                         .catch(function (error) {

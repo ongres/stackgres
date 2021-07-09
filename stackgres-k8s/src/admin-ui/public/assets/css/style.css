@@ -730,7 +730,7 @@ aside {
     width: calc(100% - 350px);
     display: block;
     min-height: 100vh;
-    padding: 60px 40px 40px 40px;
+    padding: 60px 40px 0 40px;
 }
 
 .cta {
