@@ -5,7 +5,7 @@
 
 package io.stackgres.common;
 
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -23,7 +23,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 public class ClusterPendingRestartUtil {
 
   public static class RestartReasons {
-    final Set<RestartReason> reasons = new HashSet<>();
+    final Set<RestartReason> reasons = EnumSet.noneOf(RestartReason.class);
 
     void addReason(RestartReason reason) {
       reasons.add(reason);
