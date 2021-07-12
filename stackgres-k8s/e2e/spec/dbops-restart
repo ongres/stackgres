@@ -7,7 +7,7 @@ e2e_test() {
 
   run_test "Checking that restart in-place is working" check_restart_in_place_is_working
   
-  run_test "Checking that restart with only pendingin restart is working" check_restart_only_pengind_restart_is_working
+  run_test "Checking that restart with only pendingin restart is working" check_restart_only_pending_restart_is_working
 }
 
 check_restart_is_working() {
@@ -50,7 +50,7 @@ EOF
   kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" restart
 }
 
-check_restart_only_pengind_restart_is_working() {
+check_restart_only_pending_restart_is_working() {
   reset_cluster
  
   kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
