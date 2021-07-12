@@ -51,7 +51,7 @@ swagger validations:
   stage: test
   image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   tags:
-    - stackgres-runner
+    - stackgres-runner-v2
   variables:
     IMAGE_TAG_SUFFIX: ""
     E2E_SUFFIX: ""
