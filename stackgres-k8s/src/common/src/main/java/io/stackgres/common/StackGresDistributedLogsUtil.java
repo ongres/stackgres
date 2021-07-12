@@ -28,18 +28,18 @@ import org.jooq.lambda.Unchecked;
 
 public interface StackGresDistributedLogsUtil {
 
-  String POSTGRESQ_VERSION = "12";
+  String POSTGRESQL_VERSION = "12";
 
   static String getPostgresVersion() {
-    return StackGresComponent.POSTGRESQL.findVersion(POSTGRESQ_VERSION);
+    return StackGresComponent.POSTGRESQL.findVersion(POSTGRESQL_VERSION);
   }
 
   static String getPostgresMajorVersion() {
-    return StackGresComponent.POSTGRESQL.findMajorVersion(POSTGRESQ_VERSION);
+    return StackGresComponent.POSTGRESQL.findMajorVersion(POSTGRESQL_VERSION);
   }
 
   static String getPostgresBuildMajorVersion() {
-    return StackGresComponent.POSTGRESQL.findBuildMajorVersion(POSTGRESQ_VERSION);
+    return StackGresComponent.POSTGRESQL.findBuildMajorVersion(POSTGRESQL_VERSION);
   }
 
   static StackGresCluster getStackGresClusterForDistributedLogs(
