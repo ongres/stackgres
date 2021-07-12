@@ -170,27 +170,29 @@ public class ClusterRestartImpl implements ClusterRestart {
   }
 
   private void logPodRestartReason(Pod pod, ClusterRestartState clusterRestartState) {
-    RestartReasons reasons = clusterRestartState.getRestartReasons(pod);
-    for (RestartReason reason : reasons.getReasons()) {
-      switch (reason) {
-        case OPERATOR_VERSION:
-          LOGGER.info("Pod {} requires restart due to operator version change",
-              pod.getMetadata().getName());
-          break;
-        case PATRONI:
-          LOGGER.info("Pod {} requires restart due to patroni's indication",
-              pod.getMetadata().getName());
-          break;
-        case POD_STATUS:
-          LOGGER.info("Pod {} requires restart due to pod status indication",
-              pod.getMetadata().getName());
-          break;
-        case STATEFULSET:
-          LOGGER.info("Pod {} requires restart due to pod template changes",
-              pod.getMetadata().getName());
-          break;
-        default:
-          break;
+    if (LOGGER.isInfoEnabled()) {
+      RestartReasons reasons = clusterRestartState.getRestartReasons(pod);
+      for (RestartReason reason : reasons.getReasons()) {
+        switch (reason) {
+          case OPERATOR_VERSION:
+            LOGGER.info("Pod {} requires restart due to operator version change",
+                pod.getMetadata().getName());
+            break;
+          case PATRONI:
+            LOGGER.info("Pod {} requires restart due to patroni's indication",
+                pod.getMetadata().getName());
+            break;
+          case POD_STATUS:
+            LOGGER.info("Pod {} requires restart due to pod status indication",
+                pod.getMetadata().getName());
+            break;
+          case STATEFULSET:
+            LOGGER.info("Pod {} requires restart due to pod template changes",
+                pod.getMetadata().getName());
+            break;
+          default:
+            break;
+        }
       }
     }
   }
