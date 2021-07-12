@@ -160,12 +160,17 @@ spec:
           {{- if .Values.cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms }}
           nodeSelectorTerms:
             {{- range .Values.cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms }}
-              {{- if .Values.cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.matchExpressions }}
-              matchExpressions:
-                {{- range .Values.cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.matchExpressions }}  
+              {{- if .matchExpressions }}
+              - matchExpressions:
+                {{- range .matchExpressions }}  
                 - key: {{ .key }}
                   operator: {{ .operator }}
-                  values: {{ .values }}
+                  {{- if .values }}
+                  values:
+                    {{-  range .values }}
+                    - {{ . }}
+                    {{- end }}
+                  {{- end }}
                 {{- end }}
               {{- end }}
             {{- end }}
@@ -175,14 +180,19 @@ spec:
         preferredDuringSchedulingIgnoredDuringExecution:
           {{- range .Values.cluster.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution }}
           - weigth: {{ .weight }}
-            {{- if .Values.cluster.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.preference }}
+            {{- if .preference }}
             preference:
-              {{- if .Values.cluster.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.preference.matchExpressions }}
+              {{- if .matchExpressions }}
               matchExpressions:
-                {{- range .Values.cluster.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.preference.matchExpressions }}
+                {{- range .matchExpressions }}
                 - key: {{ .key }}
                   operator: {{ .operator }}
-                  values: {{ .values }}
+                  {{- if .values }}
+                  values:
+                    {{-  range .values }}
+                    - {{ . }}
+                    {{- end }}
+                  {{- end }}
                 {{- end }}
               {{- end }}
             {{- end }}

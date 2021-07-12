@@ -52,18 +52,18 @@ cluster:
     #     preferredDuringSchedulingIgnoredDuringExecution:
     #       - weight:
     #         preference:
-    #           matchExpressions:
-    #           - key:
-    #             operator:
-    #             values:
-    #             - another-value
+    #           - matchExpressions:
+    #             - key:
+    #               operator:
+    #               values:
+    #                 - another-value
     #     requiredDuringSchedulingIgnoredDuringExecution:
     #       nodeSelectorTerms:
     #       - matchExpressions:
     #         - key:
     #           operator:
     #           values:
-    #           - another-value
+    #             - another-value
     #   tolerations:
     #     - key: 
     #       operator: 
