@@ -267,9 +267,9 @@ load_operator_k8s() {
   fi
   if [ -n "$E2E_COMPONENTS_REGISTRY" ]
   then
-    echo "Loading component images from ${E2E_COMPONENTS_REGISTRY}${E2E_COMPONENTS_PATH}"
-    load_component_images_from "$E2E_COMPONENTS_REGISTRY" "$E2E_COMPONENTS_PATH"
-    echo "All component images loaded from ${E2E_COMPONENTS_REGISTRY}${E2E_COMPONENTS_PATH}"
+    echo "Loading component images from ${E2E_COMPONENTS_REGISTRY}${E2E_COMPONENTS_REGISTRY_PATH}"
+    load_component_images_from "$E2E_COMPONENTS_REGISTRY" "$E2E_COMPONENTS_REGISTRY_PATH"
+    echo "All component images loaded from ${E2E_COMPONENTS_REGISTRY}${E2E_COMPONENTS_REGISTRY_PATH}"
   fi
 
   if [ -n "$1" ]
