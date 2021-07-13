@@ -25,8 +25,8 @@ import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.distributedlogs.common.DistributedLogsControllerEventReason;
 import io.stackgres.distributedlogs.common.ImmutableStackGresDistributedLogsContext;
@@ -35,7 +35,6 @@ import io.stackgres.distributedlogs.configuration.DistributedLogsControllerPrope
 import io.stackgres.distributedlogs.resource.DistributedLogsResourceHandlerSelector;
 import io.stackgres.operatorframework.reconciliation.ReconciliationCycle;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
-import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -48,7 +47,6 @@ public class DistributedLogsControllerReconciliationCycle
   private final EventController eventController;
   private final LabelFactory<StackGresDistributedLogs> labelFactory;
   private final CustomResourceFinder<StackGresDistributedLogs> distributedLogsFinder;
-  private final DistributedLogsExtensionMetadataManager distributedLogsExtensionMetadataManager;
 
   @Dependent
   public static class Parameters {
@@ -59,7 +57,6 @@ public class DistributedLogsControllerReconciliationCycle
     @Inject EventController eventController;
     @Inject LabelFactory<StackGresDistributedLogs> labelFactory;
     @Inject CustomResourceFinder<StackGresDistributedLogs> distributedLogsFinder;
-    @Inject DistributedLogsExtensionMetadataManager distributedLogsExtensionMetadataManager;
   }
 
   /**
@@ -74,8 +71,6 @@ public class DistributedLogsControllerReconciliationCycle
     this.eventController = parameters.eventController;
     this.labelFactory = parameters.labelFactory;
     this.distributedLogsFinder = parameters.distributedLogsFinder;
-    this.distributedLogsExtensionMetadataManager =
-        parameters.distributedLogsExtensionMetadataManager;
   }
 
   public DistributedLogsControllerReconciliationCycle() {
@@ -85,7 +80,6 @@ public class DistributedLogsControllerReconciliationCycle
     this.eventController = null;
     this.labelFactory = null;
     this.distributedLogsFinder = null;
-    this.distributedLogsExtensionMetadataManager = null;
   }
 
   public static DistributedLogsControllerReconciliationCycle create(Consumer<Parameters> consumer) {
@@ -176,37 +170,11 @@ public class DistributedLogsControllerReconciliationCycle
     return ImmutableStackGresDistributedLogsContext.builder()
         .distributedLogs(distributedLogs)
         .cluster(cluster)
-        .extensions(getDefaultExtensions(cluster))
+        .extensions(Optional.ofNullable(distributedLogs.getStatus())
+            .map(StackGresDistributedLogsStatus::getToInstallPostgresExtensions)
+            .orElse(ImmutableList.of()))
         .labels(labelFactory.clusterLabels(distributedLogs))
         .build();
   }
 
-  private ImmutableList<StackGresClusterExtension> getDefaultExtensions(StackGresCluster cluster) {
-    return ImmutableList.of(
-        getExtension(cluster, "plpgsql"),
-        getExtension(cluster, "pg_stat_statements"),
-        getExtension(cluster, "dblink"),
-        getExtension(cluster, "plpython3u"),
-        getExtension(cluster, "timescaledb", "1.7.4"));
-  }
-
-  private StackGresClusterExtension getExtension(StackGresCluster cluster, String extensionName) {
-    StackGresClusterExtension extension = new StackGresClusterExtension();
-    extension.setName(extensionName);
-    extension.setVersion(Unchecked.supplier(
-        () -> distributedLogsExtensionMetadataManager.getExtensionCandidateAnyVersion(
-            cluster, extension)).get().getVersion().getVersion());
-    return extension;
-  }
-
-  private StackGresClusterExtension getExtension(StackGresCluster cluster, String extensionName,
-      String extensionVersion) {
-    StackGresClusterExtension extension = new StackGresClusterExtension();
-    extension.setName(extensionName);
-    extension.setVersion(extensionVersion);
-    extension.setVersion(Unchecked.supplier(
-        () -> distributedLogsExtensionMetadataManager.getExtensionCandidateSameMajorBuild(
-            cluster, extension)).get().getVersion().getVersion());
-    return extension;
-  }
 }

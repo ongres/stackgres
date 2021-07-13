@@ -84,18 +84,6 @@ public abstract class ExtensionManager {
   }
 
   public ExtensionInstaller getExtensionInstaller(ClusterContext context,
-      StackGresClusterExtension extension) throws Exception {
-    StackGresExtensionMetadata extensionMetadata = extensionMetadataManager
-        .getExtensionCandidateSameMajorBuild(context.getCluster(), extension);
-    final URI extensionsRepositoryUri = ExtensionUtil
-        .getExtensionRepositoryUri(extension, extensionMetadata)
-        .orElseThrow(() -> new RuntimeException("URI not found for extension "
-            + ExtensionUtil.getDescription(context.getCluster(), extension)));
-    return new ExtensionInstaller(context, extension, extensionMetadata,
-        extensionsRepositoryUri);
-  }
-
-  public ExtensionInstaller getExtensionInstaller(ClusterContext context,
       StackGresClusterInstalledExtension installedExtension) throws Exception {
     StackGresExtensionMetadata extensionMetadata = extensionMetadataManager
         .getExtensionCandidate(installedExtension);
@@ -111,37 +99,19 @@ public abstract class ExtensionManager {
 
   public class ExtensionInstaller {
     private final ClusterContext context;
-    private final StackGresClusterInstalledExtension installedExtension;
     private final StackGresExtensionMetadata extensionMetadata;
     private final URI extensionsRepositoryUri;
     private final URI extensionUri;
-
-    private ExtensionInstaller(ClusterContext context,
-        StackGresClusterExtension extension,
-        StackGresExtensionMetadata extensionMetadata,
-        URI extensionsRepositoryUri) {
-      this.context = context;
-      this.installedExtension = ExtensionUtil.getInstalledExtension(extension, extensionMetadata);
-      this.extensionMetadata = extensionMetadata;
-      this.extensionsRepositoryUri = extensionsRepositoryUri;
-      this.extensionUri = ExtensionUtil.getExtensionPackageUri(
-          extensionsRepositoryUri, extension, extensionMetadata);
-    }
 
     private ExtensionInstaller(ClusterContext context,
         StackGresClusterInstalledExtension installedExtension,
         StackGresExtensionMetadata extensionMetadata,
         URI extensionsRepositoryUri) {
       this.context = context;
-      this.installedExtension = installedExtension;
       this.extensionMetadata = extensionMetadata;
       this.extensionsRepositoryUri = extensionsRepositoryUri;
       this.extensionUri = ExtensionUtil.getExtensionPackageUri(
           extensionsRepositoryUri, installedExtension, extensionMetadata);
-    }
-
-    public StackGresClusterInstalledExtension getInstalledExtension() {
-      return installedExtension;
     }
 
     @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",

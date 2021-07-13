@@ -14,6 +14,7 @@ import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator
 public interface ClusterMutator extends JsonPatchMutator<StackGresClusterReview> {
 
   JsonPointer CLUSTER_CONFIG_POINTER = JsonPointer.of("spec");
+  JsonPointer CLUSTER_STATUS_POINTER = JsonPointer.of("status");
 
   default JsonPointer getTargetPointer(String field) throws NoSuchFieldException {
     String jsonField = getJsonMappingField(field, StackGresClusterSpec.class);

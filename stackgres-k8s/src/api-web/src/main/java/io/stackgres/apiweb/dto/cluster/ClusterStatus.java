@@ -29,6 +29,9 @@ public class ClusterStatus {
     return conditions;
   }
 
+  @JsonProperty("toInstallPostgresExtension")
+  private List<ClusterInstalledExtension> toInstallPostgresExtension;
+
   public void setConditions(List<ClusterCondition> conditions) {
     this.conditions = conditions;
   }
@@ -39,6 +42,15 @@ public class ClusterStatus {
 
   public void setDbOps(ClusterDbOpsStatus dbOps) {
     this.dbOps = dbOps;
+  }
+
+  public List<ClusterInstalledExtension> getToInstallPostgresExtension() {
+    return toInstallPostgresExtension;
+  }
+
+  public void setToInstallPostgresExtension(
+      List<ClusterInstalledExtension> toInstallPostgresExtension) {
+    this.toInstallPostgresExtension = toInstallPostgresExtension;
   }
 
   @Override

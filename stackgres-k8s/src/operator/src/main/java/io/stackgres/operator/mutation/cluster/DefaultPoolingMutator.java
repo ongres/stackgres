@@ -23,9 +23,7 @@ public class DefaultPoolingMutator
 
   @Override
   public List<JsonPatchOperation> mutate(StackGresClusterReview review) {
-
     if (review.getRequest().getOperation() == Operation.CREATE) {
-
       ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
       operations.addAll(ClusterConfigurationMutator.ensureConfigurationNode(review));
       operations.addAll(super.mutate(review));
