@@ -65,13 +65,9 @@ public class ContextUtil {
 
     final List<StackGresClusterInstalledExtension> installedExtensions = Optional
         .ofNullable(cluster.getStatus())
-        .map(StackGresClusterStatus::getPodStatuses)
+        .map(StackGresClusterStatus::getToInstallPostgresExtensions)
         .stream()
         .flatMap(Collection::stream)
-        .flatMap(podStatus ->
-            Optional.ofNullable(podStatus.getInstalledPostgresExtensions())
-                .orElse(List.of())
-                .stream())
         .collect(Collectors.toUnmodifiableList());
     contextBuilder.addAllInstalledExtensions(installedExtensions);
 
@@ -86,13 +82,9 @@ public class ContextUtil {
 
     List<StackGresClusterInstalledExtension> installedExtensions = Optional
         .ofNullable(distributedLogs.getStatus())
-        .map(StackGresDistributedLogsStatus::getPodStatuses)
+        .map(StackGresDistributedLogsStatus::getToInstallPostgresExtensions)
         .stream()
         .flatMap(Collection::stream)
-        .flatMap(podStatus ->
-            Optional.ofNullable(podStatus.getInstalledPostgresExtensions())
-                .orElse(List.of())
-                .stream())
         .collect(Collectors.toUnmodifiableList());
 
     return ImmutablePostgresContainerContext.builder()

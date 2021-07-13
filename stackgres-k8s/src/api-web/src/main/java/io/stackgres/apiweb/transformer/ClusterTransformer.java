@@ -25,6 +25,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterDistributedLogs;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterExtension;
 import io.stackgres.apiweb.dto.cluster.ClusterInitData;
+import io.stackgres.apiweb.dto.cluster.ClusterInstalledExtension;
 import io.stackgres.apiweb.dto.cluster.ClusterNonProduction;
 import io.stackgres.apiweb.dto.cluster.ClusterPod;
 import io.stackgres.apiweb.dto.cluster.ClusterPodMetadata;
@@ -52,6 +53,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
@@ -585,6 +587,10 @@ public class ClusterTransformer
     }
 
     transformation.setDbOps(getDbOpsStatus(source.getDbOps()));
+    if (source.getToInstallPostgresExtensions() != null) {
+      transformation.setToInstallPostgresExtension(source.getToInstallPostgresExtensions().stream()
+          .map(this::getClusterInstalledExtension).collect(ImmutableList.toImmutableList()));
+    }
 
     return transformation;
   }
@@ -655,6 +661,22 @@ public class ClusterTransformer
           source.getMajorVersionUpgrade().getDataChecksum());
       transformation.setMajorVersionUpgrade(transformationMajorVersionUpgrade);
     }
+    return transformation;
+  }
+
+  private ClusterInstalledExtension getClusterInstalledExtension(
+      StackGresClusterInstalledExtension source) {
+    if (source == null) {
+      return null;
+    }
+    ClusterInstalledExtension transformation = new ClusterInstalledExtension();
+    transformation.setName(source.getName());
+    transformation.setPublisher(source.getPublisher());
+    transformation.setRepository(source.getRepository());
+    transformation.setVersion(source.getVersion());
+    transformation.setPostgresVersion(source.getPostgresVersion());
+    transformation.setBuild(source.getBuild());
+    transformation.setExtraMounts(source.getExtraMounts());
     return transformation;
   }
 

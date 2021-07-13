@@ -38,14 +38,11 @@ public abstract class AbstractDefaultResourceMutator<T extends CustomResource<?,
   @PostConstruct
   public void init() throws NoSuchFieldException {
     targetPointer = getTargetPointer();
-
   }
 
   @Override
   public List<JsonPatchOperation> mutate(StackGresClusterReview review) {
-
     if (review.getRequest().getOperation() == Operation.CREATE) {
-
       T defaultResource = resourceFactory.buildResource();
 
       StackGresCluster targetCluster = review.getRequest().getObject();
@@ -66,7 +63,6 @@ public abstract class AbstractDefaultResourceMutator<T extends CustomResource<?,
 
     }
     return Collections.emptyList();
-
   }
 
   protected boolean applyDefault(StackGresCluster targetCluster) {

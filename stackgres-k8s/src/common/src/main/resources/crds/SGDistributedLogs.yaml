@@ -155,6 +155,37 @@ spec:
                       type:
                         description: Type of deployment condition.
                         type: string
+                toInstallPostgresExtensions:
+                  type: array
+                  description: The list of Postgres extensions to install.
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: The name of the extension to install.
+                      publisher:
+                        type: string
+                        description: The id of the publisher of the extension to install.
+                      version:
+                        type: string
+                        description: The version of the extension to install.
+                      repository:
+                        type: string
+                        description: The repository base URL from where the extension will be installed from.
+                      postgresVersion:
+                        type: string
+                        description: The postgres major version of the extension to install.
+                      build:
+                        type: string
+                        description: The build version of the extension to install.
+                      extraMounts:
+                        type: array
+                        description: The extra mounts of the extension to install.
+                        items:
+                          type: string
+                          description: The extra mount of the installed extension.
+                    required: ["name", "publisher", "version", "repository", "postgresVersion"]
                 podStatuses:
                   type: array
                   description: The list of pod statuses.
