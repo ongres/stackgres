@@ -156,7 +156,6 @@ spec:
       {{- if .Values.cluster.pods.scheduling.nodeAffinity }}
       nodeAffinity:
         {{- if .Values.cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution }}
-        #{{ .Values.cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution | quote }}
         requiredDuringSchedulingIgnoredDuringExecution:
           {{- if .Values.cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms }}
           nodeSelectorTerms:
@@ -182,7 +181,6 @@ spec:
           {{- range .Values.cluster.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution }}
             {{- if .preference }}
             - weight: {{ .weight }}
-              #{{ .preference | quote }}    
               preference:
               {{- if .preference.matchExpressions }}
                 matchExpressions:
