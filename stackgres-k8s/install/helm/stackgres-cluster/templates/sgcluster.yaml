@@ -156,6 +156,7 @@ spec:
       {{- if .Values.cluster.pods.scheduling.nodeAffinity }}
       nodeAffinity:
         {{- if .Values.cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution }}
+        #{{ .Values.cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution | quote }}
         requiredDuringSchedulingIgnoredDuringExecution:
           {{- if .Values.cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms }}
           nodeSelectorTerms:
@@ -179,21 +180,22 @@ spec:
         {{- if .Values.cluster.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution }}
         preferredDuringSchedulingIgnoredDuringExecution:
           {{- range .Values.cluster.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution }}
-          - weigth: {{ .weight }}
             {{- if .preference }}
-            preference:
-              {{- if .matchExpressions }}
-              matchExpressions:
-                {{- range .matchExpressions }}
-                - key: {{ .key }}
-                  operator: {{ .operator }}
-                  {{- if .values }}
-                  values:
-                    {{-  range .values }}
-                    - {{ . }}
+            - weight: {{ .weight }}
+              #{{ .preference | quote }}    
+              preference:
+              {{- if .preference.matchExpressions }}
+                matchExpressions:
+                  {{- range .preference.matchExpressions }}
+                  - key: {{ .key }}
+                    operator: {{ .operator }}
+                    {{- if .values }}
+                    values:
+                      {{-  range .values }}
+                      - {{ . }}
+                      {{- end }}
                     {{- end }}
                   {{- end }}
-                {{- end }}
               {{- end }}
             {{- end }}
           {{- end }}
