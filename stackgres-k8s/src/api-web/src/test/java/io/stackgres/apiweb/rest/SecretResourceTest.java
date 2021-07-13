@@ -37,7 +37,7 @@ class SecretResourceTest implements AuthenticatedResourceTest {
   void ifNoSecretsAreCreated_itShouldReturnAnEmptyArray() {
     given()
         .header(AUTHENTICATION_HEADER)
-        .get("/stackgres/test/secrets")
+        .get("/stackgres/namespaces/test/secrets")
         .then().statusCode(200)
         .body("", Matchers.hasSize(0));
   }
@@ -60,7 +60,7 @@ class SecretResourceTest implements AuthenticatedResourceTest {
     given()
         .when()
         .header(AUTHENTICATION_HEADER)
-        .get("/stackgres/test/secrets")
+        .get("/stackgres/namespaces/test/secrets")
         .then().statusCode(200)
         .body("", Matchers.hasSize(1))
         .body("[0].keys", Matchers.contains("testKey"))

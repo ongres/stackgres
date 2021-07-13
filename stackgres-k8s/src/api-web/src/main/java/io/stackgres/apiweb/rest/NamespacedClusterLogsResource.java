@@ -42,7 +42,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
-@Path("{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgclusters")
+@Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgclusters")
 @RequestScoped
 @Authenticated
 public class NamespacedClusterLogsResource {

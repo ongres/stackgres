@@ -173,7 +173,7 @@ spec:
     disableClusterPodAntiAffinity: true
 EOF
 
-  local LABEL_VALUE=$(run_curl -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.spec.pods.metadata.labels["test-label"]' -r)
+  local LABEL_VALUE=$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.spec.pods.metadata.labels["test-label"]' -r)
 
   assert_string_equal "$RANDOM_VALUE" "$LABEL_VALUE"
 }

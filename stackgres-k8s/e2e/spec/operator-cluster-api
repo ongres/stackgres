@@ -69,15 +69,15 @@ check_cluster_in_list() {
 }
 
 get_cluster_http_status() {
-  run_curl -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}"
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}"
 }
 
 get_cluster_stats_http_status() {
-  run_curl -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/stats" -e "-LI -o /dev/null -w %{http_code}"
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/stats" -e "-LI -o /dev/null -w %{http_code}"
 }
 
 get_cluster_pod_count() {
-  run_curl -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.pods | length'
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.pods | length'
 }
 
 check_cluster_directly() {
@@ -109,7 +109,7 @@ test_cluster_stats_are_loaded() {
   fi
 
   local STATUS_RESPONSE
-  STATUS_RESPONSE=$(run_curl -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/stats")
+  STATUS_RESPONSE=$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/stats")
 
   if [ "$(echo_raw "$STATUS_RESPONSE" \
     | jq 'select(.cpuFound != null and .memoryUsed != null and .diskUsed != null and .averageLoad1m != null)' \
@@ -234,7 +234,7 @@ check_cluster_removed() {
     return 0
   fi
 
-  HTTP_STATUS="$(run_curl -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}")"
 
   if [ "$HTTP_STATUS" -eq "404" ]
   then
@@ -312,7 +312,7 @@ test_api_updated_cluster_is_visible() {
     return 1
   fi
 
-  if run_curl -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.spec.instances' -r \
+  if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.spec.instances' -r \
     | grep -q "^2$"
   then
     echo "Cluster updates are being reflected in the api"
@@ -392,15 +392,15 @@ test_authentication_api_error() {
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/stats" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/stats" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 

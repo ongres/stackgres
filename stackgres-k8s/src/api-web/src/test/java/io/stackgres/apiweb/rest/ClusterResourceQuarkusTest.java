@@ -144,7 +144,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
         .pathParam("name", cluster.getMetadata().getName())
         .contentType(ContentType.JSON)
         .accept(ContentType.JSON)
-        .get("/stackgres/{namespace}/sgclusters/{name}")
+        .get("/stackgres/namespaces/{namespace}/sgclusters/{name}")
         .then()
         .body("metadata.namespace", equalTo("test"),
             "metadata.name", equalTo(cluster.getMetadata().getName()),

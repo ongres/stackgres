@@ -23,15 +23,15 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
-@Path("{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/configmaps")
+@Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/configmaps")
 @RequestScoped
 @Authenticated
-public class ConfigMapResource {
+public class NamespacedConfigMapResource {
 
   private ResourceScanner<ConfigMapDto> scanner;
 
   @Inject
-  public ConfigMapResource(ResourceScanner<ConfigMapDto> scanner) {
+  public NamespacedConfigMapResource(ResourceScanner<ConfigMapDto> scanner) {
     this.scanner = scanner;
   }
 

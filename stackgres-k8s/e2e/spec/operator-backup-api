@@ -86,7 +86,7 @@ check_backup_in_list() {
 }
 
 get_backup_http_status() {
-  run_curl -r "stackgres/$CLUSTER_NAMESPACE/sgbackups/$BACKUP_NAME" \
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgbackups/$BACKUP_NAME" \
     -e "-LI -o /dev/null -w %{http_code}"
 }
 
@@ -131,7 +131,7 @@ check_backup_removed() {
     return 0
   fi
 
-  HTTP_STATUS="$(run_curl -r "stackgres/$CLUSTER_NAMESPACE/sgbackups/$BACKUP_NAME" \
+  HTTP_STATUS="$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgbackups/$BACKUP_NAME" \
     -e "-LI -o /dev/null -w %{http_code}")"
 
   if [ "$HTTP_STATUS" -eq "404" ]
@@ -212,7 +212,7 @@ test_api_updated_backup_is_visible() {
     return 1
   fi
 
-  if run_curl -r "stackgres/$CLUSTER_NAMESPACE/sgbackups/$BACKUP_NAME" | jq '.spec.managedLifecycle' -r \
+  if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgbackups/$BACKUP_NAME" | jq '.spec.managedLifecycle' -r \
     | grep -q "^false$"
   then
     echo "Backup updates are being reflected in the api"
@@ -284,7 +284,7 @@ test_authentication_api_error() {
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/$CLUSTER_NAMESPACE/sgbackups/$BACKUP_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgbackups/$BACKUP_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
@@ -330,7 +330,7 @@ check_backup_without_config_is_pending() {
     managedLifecycle: false
 EOF
 
-  if wait_until eval '[ "$(run_curl -r "stackgres/$CLUSTER_NAMESPACE/sgbackups/$BACKUP_NAME" \
+  if wait_until eval '[ "$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgbackups/$BACKUP_NAME" \
     | jq -r ".status.process.status")" = "Pending" ]'
   then
     echo "SUCCESS: backup without configuration get state Pending"

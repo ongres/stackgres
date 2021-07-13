@@ -104,7 +104,7 @@ check_pgconfig_in_list() {
 }
 
 get_pgconfig_status() {
-  run_curl -r "stackgres/$CLUSTER_NAMESPACE/sgpgconfigs/$PGCONFIG" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}"
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgpgconfigs/$PGCONFIG" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}"
 }
 
 check_pgconfig_directly() {
@@ -144,7 +144,7 @@ check_pgconfig_deletion_directly() {
 
   delete_pgconfig_only
 
-  HTTP_STATUS="$(run_curl -r "stackgres/$CLUSTER_NAMESPACE/sgpgconfigs/$PGCONFIG" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgpgconfigs/$PGCONFIG" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   if [ "$HTTP_STATUS" -eq "404" ]
   then
@@ -234,7 +234,7 @@ test_update_pgconfig_with_api() {
 }
 
 get_pgconfig_from_api() {
-  run_curl -r "stackgres/$CLUSTER_NAMESPACE/sgpgconfigs/$PGCONFIG" -n "$CLUSTER_NAMESPACE"
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgpgconfigs/$PGCONFIG" -n "$CLUSTER_NAMESPACE"
 }
 
 test_api_updated_pgconfig_is_visible() {
@@ -328,7 +328,7 @@ test_authentication_api_error() {
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/$CLUSTER_NAMESPACE/sgpgconfig/$PGCONFIG" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgpgconfig/$PGCONFIG" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 

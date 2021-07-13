@@ -1,5 +1,5 @@
 paths:
-  /stackgres/{namespace}/configmaps:
+  /stackgres/namespaces/{namespace}/configmaps:
     get:
       tags:
       - misc
@@ -59,7 +59,7 @@ paths:
                     A namespace
       security:
       - JWT: []
-  /stackgres/{namespace}/secrets:
+  /stackgres/namespaces/{namespace}/secrets:
     get:
       tags:
       - misc

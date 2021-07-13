@@ -271,9 +271,9 @@ get_all_cluster_pod_count() {
 }
 
 get_cluster_pod_count() {
-  run_curl -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.pods | length'
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.pods | length'
 }
 
 get_cluster_stats_pod_count() {
-  run_curl -r "stackgres/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/stats" | jq '.pods | length'
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/stats" | jq '.pods | length'
 }

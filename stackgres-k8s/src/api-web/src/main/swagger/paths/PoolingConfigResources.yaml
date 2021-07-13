@@ -48,7 +48,7 @@ paths:
         * sgpoolconfig delete
       security:
       - JWT: []
-  /stackgres/{namespace}/sgpoolconfigs/{name}:
+  /stackgres/namespaces/{namespace}/sgpoolconfigs/{name}:
     get:
       tags:
       - sgpoolconfig

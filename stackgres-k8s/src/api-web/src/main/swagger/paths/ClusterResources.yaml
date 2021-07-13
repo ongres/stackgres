@@ -56,7 +56,7 @@ paths:
         * sgclusters delete
       security:
       - JWT: []
-  /stackgres/{namespace}/sgclusters/{name}/logs:
+  /stackgres/namespaces/{namespace}/sgclusters/{name}/logs:
     get:
       tags:
       - sgcluster
@@ -155,7 +155,7 @@ paths:
           type: boolean
       security:
       - JWT: []
-  /stackgres/{namespace}/sgclusters/{name}/stats:
+  /stackgres/namespaces/{namespace}/sgclusters/{name}/stats:
     get:
       tags:
       - sgcluster
@@ -184,7 +184,7 @@ paths:
           type: string
       security:
       - JWT: []
-  /stackgres/{namespace}/sgclusters/{name}:
+  /stackgres/namespaces/{namespace}/sgclusters/{name}:
     get:
       tags:
       - sgcluster
@@ -213,7 +213,7 @@ paths:
           type: string
       security:
       - JWT: []
-  /stackgres/{namespace}/sgclusters/{name}/events:
+  /stackgres/namespaces/{namespace}/sgclusters/{name}/events:
     get:
       tags:
       - sgcluster

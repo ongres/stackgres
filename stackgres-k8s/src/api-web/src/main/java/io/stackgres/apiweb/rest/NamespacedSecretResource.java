@@ -23,14 +23,14 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
-@Path("{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/secrets")
+@Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/secrets")
 @RequestScoped
-public class SecretResource {
+public class NamespacedSecretResource {
 
   private final ResourceScanner<SecretDto> scanner;
 
   @Inject
-  public SecretResource(ResourceScanner<SecretDto> scanner) {
+  public NamespacedSecretResource(ResourceScanner<SecretDto> scanner) {
     this.scanner = scanner;
   }
 

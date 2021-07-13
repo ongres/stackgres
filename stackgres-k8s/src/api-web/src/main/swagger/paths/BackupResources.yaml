@@ -48,7 +48,7 @@ paths:
         * sgbackup delete
       security:
       - JWT: []
-  /stackgres/{namespace}/sgbackups/{name}:
+  /stackgres/namespaces/{namespace}/sgbackups/{name}:
     get:
       tags:
       - sgbackup

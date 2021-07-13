@@ -19,7 +19,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
-@Path("{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgpoolconfigs")
+@Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgpoolconfigs")
 @RequestScoped
 @Authenticated
 public class NamespacedConnectionPoolingConfigResource
