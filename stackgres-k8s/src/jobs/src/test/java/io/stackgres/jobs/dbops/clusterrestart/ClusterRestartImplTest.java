@@ -14,18 +14,18 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.smallrye.mutiny.Uni;
-import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresProperty;
+import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
+import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.testutil.JsonUtil;
@@ -62,7 +62,6 @@ class ClusterRestartImplTest {
 
   Pod primary = new PodBuilder()
       .withNewMetadata()
-      .addToAnnotations(StackGresContext.VERSION_KEY, StackGresProperty.OPERATOR_VERSION.getString())
       .withName(CLUSTER_NAME + "-1")
       .withNamespace(NAMESPACE)
       .addToLabels("role", "master")
@@ -71,7 +70,6 @@ class ClusterRestartImplTest {
 
   Pod replica1 = new PodBuilder()
       .withNewMetadata()
-      .addToAnnotations(StackGresContext.VERSION_KEY, StackGresProperty.OPERATOR_VERSION.getString())
       .withName(CLUSTER_NAME + "-2")
       .withNamespace(NAMESPACE)
       .addToLabels("role", "replica")
@@ -80,7 +78,6 @@ class ClusterRestartImplTest {
 
   Pod replica2 = new PodBuilder()
       .withNewMetadata()
-      .addToAnnotations(StackGresContext.VERSION_KEY, StackGresProperty.OPERATOR_VERSION.getString())
       .withName(CLUSTER_NAME + "-3")
       .withNamespace(NAMESPACE)
       .addToLabels("role", "replica")
@@ -89,7 +86,6 @@ class ClusterRestartImplTest {
 
   Pod additionalPod = new PodBuilder()
       .withNewMetadata()
-      .addToAnnotations(StackGresContext.VERSION_KEY, StackGresProperty.OPERATOR_VERSION.getString())
       .withName(CLUSTER_NAME + "-4")
       .withNamespace(NAMESPACE)
       .addToLabels("role", "replica")
@@ -120,13 +116,19 @@ class ClusterRestartImplTest {
   @Test
   void givenACleanState_itShouldRestartAllPods() {
     ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
-        .dbOps(dbOps)
-        .cluster(cluster)
+        .namespace(dbOps.getMetadata().getNamespace())
+        .dbOpsName(dbOps.getMetadata().getName())
+        .dbOpsOperation(dbOps.getSpec().getOp())
+        .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(IN_PLACE_METHOD)
         .isOnlyPendingRestart(false)
         .primaryInstance(primary)
         .addInitialInstances(primary, replica1, replica2)
         .addTotalInstances(primary, replica1, replica2)
+        .putAllPodRestartReasonsMap(ImmutableMap.of(
+            primary, RestartReasons.of(),
+            replica1, RestartReasons.of(),
+            replica2, RestartReasons.of()))
         .isSwitchoverInitiated(false)
         .build();
 
@@ -188,14 +190,20 @@ class ClusterRestartImplTest {
   @Test
   void givenAClusterWithARestartedPod_shouldNotRestartThatPod() {
     ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
-        .dbOps(dbOps)
-        .cluster(cluster)
+        .namespace(dbOps.getMetadata().getNamespace())
+        .dbOpsName(dbOps.getMetadata().getName())
+        .dbOpsOperation(dbOps.getSpec().getOp())
+        .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(IN_PLACE_METHOD)
         .isOnlyPendingRestart(false)
         .primaryInstance(primary)
         .addInitialInstances(primary, replica1, replica2)
         .addTotalInstances(primary, replica1, replica2)
         .addRestartedInstances(replica1)
+        .putAllPodRestartReasonsMap(ImmutableMap.of(
+            primary, RestartReasons.of(),
+            replica1, RestartReasons.of(),
+            replica2, RestartReasons.of()))
         .isSwitchoverInitiated(false)
         .build();
 
@@ -249,22 +257,21 @@ class ClusterRestartImplTest {
 
   @Test
   void givenAClusterWithAPodInPendingRestartWithOnlyPendingRestart_shouldOnlyRestartThatPod() {
-    Pod pendingRestartReplica1 = new PodBuilder(replica1)
-        .editMetadata()
-        .addToAnnotations("status", "{\"pending_restart\":true}")
-        .endMetadata()
-        .build();
-
     ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
-        .dbOps(dbOps)
-        .cluster(cluster)
+        .namespace(dbOps.getMetadata().getNamespace())
+        .dbOpsName(dbOps.getMetadata().getName())
+        .dbOpsOperation(dbOps.getSpec().getOp())
+        .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(IN_PLACE_METHOD)
         .isOnlyPendingRestart(true)
-        .statefulSet(Optional.empty())
         .primaryInstance(primary)
-        .addInitialInstances(primary, pendingRestartReplica1, replica2)
-        .addTotalInstances(primary, pendingRestartReplica1, replica2)
+        .addInitialInstances(primary, replica1, replica2)
+        .addTotalInstances(primary, replica1, replica2)
         .addRestartedInstances()
+        .putAllPodRestartReasonsMap(ImmutableMap.of(
+            primary, RestartReasons.of(),
+            replica1, RestartReasons.of(RestartReason.PATRONI),
+            replica2, RestartReasons.of()))
         .isSwitchoverInitiated(false)
         .build();
 
@@ -292,7 +299,7 @@ class ClusterRestartImplTest {
 
     final InOrder order = inOrder(podRestart, postgresRestart, switchoverHandler, clusterWatcher);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
-    order.verify(podRestart).restartPod(pendingRestartReplica1);
+    order.verify(podRestart).restartPod(replica1);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verifyNoMoreInteractions();
 
@@ -306,22 +313,21 @@ class ClusterRestartImplTest {
 
   @Test
   void givenAClusterWithPrimaryInPendingRestartWithOnlyPendingRestart_shouldOnlyRestartThatPod() {
-    Pod pendingRestartPrimary = new PodBuilder(primary)
-        .editMetadata()
-        .addToAnnotations("status", "{\"pending_restart\":true}")
-        .endMetadata()
-        .build();
-
     ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
-        .dbOps(dbOps)
-        .cluster(cluster)
+        .namespace(dbOps.getMetadata().getNamespace())
+        .dbOpsName(dbOps.getMetadata().getName())
+        .dbOpsOperation(dbOps.getSpec().getOp())
+        .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(IN_PLACE_METHOD)
         .isOnlyPendingRestart(true)
-        .statefulSet(Optional.empty())
-        .primaryInstance(pendingRestartPrimary)
-        .addInitialInstances(pendingRestartPrimary, replica1, replica2)
-        .addTotalInstances(pendingRestartPrimary, replica1, replica2)
+        .primaryInstance(primary)
+        .addInitialInstances(primary, replica1, replica2)
+        .addTotalInstances(primary, replica1, replica2)
         .addRestartedInstances()
+        .putAllPodRestartReasonsMap(ImmutableMap.of(
+            primary, RestartReasons.of(RestartReason.PATRONI),
+            replica1, RestartReasons.of(),
+            replica2, RestartReasons.of()))
         .isSwitchoverInitiated(false)
         .build();
 
@@ -360,7 +366,7 @@ class ClusterRestartImplTest {
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verify(switchoverHandler).performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
-    order.verify(podRestart).restartPod(pendingRestartPrimary);
+    order.verify(podRestart).restartPod(primary);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verifyNoMoreInteractions();
 
@@ -375,14 +381,20 @@ class ClusterRestartImplTest {
   @Test
   void givenAClusterWithAllReplicasRestarted_shouldRestartOnlyThePrimaryNode() {
     ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
-        .dbOps(dbOps)
-        .cluster(cluster)
+        .namespace(dbOps.getMetadata().getNamespace())
+        .dbOpsName(dbOps.getMetadata().getName())
+        .dbOpsOperation(dbOps.getSpec().getOp())
+        .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(IN_PLACE_METHOD)
         .isOnlyPendingRestart(false)
         .primaryInstance(primary)
         .addInitialInstances(primary, replica1, replica2)
         .addTotalInstances(primary, replica1, replica2)
         .addRestartedInstances(replica1, replica2)
+        .putAllPodRestartReasonsMap(ImmutableMap.of(
+            primary, RestartReasons.of(),
+            replica1, RestartReasons.of(),
+            replica2, RestartReasons.of()))
         .isSwitchoverInitiated(false)
         .build();
 
@@ -435,14 +447,20 @@ class ClusterRestartImplTest {
   @Test
   void givenAClusterWithAllReplicasRestartedAndSwitchoverInitiated_shouldNotPerformSwitchover() {
     ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
-        .dbOps(dbOps)
-        .cluster(cluster)
+        .namespace(dbOps.getMetadata().getNamespace())
+        .dbOpsName(dbOps.getMetadata().getName())
+        .dbOpsOperation(dbOps.getSpec().getOp())
+        .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(IN_PLACE_METHOD)
         .isOnlyPendingRestart(false)
         .primaryInstance(primary)
         .addInitialInstances(primary, replica1, replica2)
         .addTotalInstances(primary, replica1, replica2)
         .addRestartedInstances(replica1, replica2)
+        .putAllPodRestartReasonsMap(ImmutableMap.of(
+            primary, RestartReasons.of(),
+            replica1, RestartReasons.of(),
+            replica2, RestartReasons.of()))
         .isSwitchoverInitiated(true)
         .build();
 
@@ -494,13 +512,19 @@ class ClusterRestartImplTest {
   @Test
   void givenACleanStateWithReduceImpact_itShouldRestartAllPods() {
     ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
-        .dbOps(dbOps)
-        .cluster(cluster)
+        .namespace(dbOps.getMetadata().getNamespace())
+        .dbOpsName(dbOps.getMetadata().getName())
+        .dbOpsOperation(dbOps.getSpec().getOp())
+        .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(REDUCED_IMPACT_METHOD)
         .isOnlyPendingRestart(false)
         .primaryInstance(primary)
         .addInitialInstances(primary, replica1, replica2)
         .addTotalInstances(primary, replica1, replica2)
+        .putAllPodRestartReasonsMap(ImmutableMap.of(
+            primary, RestartReasons.of(),
+            replica1, RestartReasons.of(),
+            replica2, RestartReasons.of()))
         .isSwitchoverInitiated(false)
         .build();
 
@@ -571,14 +595,21 @@ class ClusterRestartImplTest {
   @Test
   void givenAClusterWithARestartedPodAndReducedImpact_shouldNotRestartThatPod() {
     ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
-        .dbOps(dbOps)
-        .cluster(cluster)
+        .namespace(dbOps.getMetadata().getNamespace())
+        .dbOpsName(dbOps.getMetadata().getName())
+        .dbOpsOperation(dbOps.getSpec().getOp())
+        .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(REDUCED_IMPACT_METHOD)
         .isOnlyPendingRestart(false)
         .primaryInstance(primary)
         .addInitialInstances(primary, replica1, replica2)
         .addTotalInstances(primary, replica1, replica2, additionalPod)
         .addRestartedInstances(replica1, additionalPod)
+        .putAllPodRestartReasonsMap(ImmutableMap.of(
+            primary, RestartReasons.of(),
+            replica1, RestartReasons.of(),
+            replica2, RestartReasons.of(),
+            additionalPod, RestartReasons.of()))
         .isSwitchoverInitiated(false)
         .build();
 
@@ -639,14 +670,21 @@ class ClusterRestartImplTest {
   @Test
   void givenAClusterWithAllReplicasRestartedAndSwitchoverInitiatedAndReducedImpact_shouldNotPerformSwitchover() {
     ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
-        .dbOps(dbOps)
-        .cluster(cluster)
+        .namespace(dbOps.getMetadata().getNamespace())
+        .dbOpsName(dbOps.getMetadata().getName())
+        .dbOpsOperation(dbOps.getSpec().getOp())
+        .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(REDUCED_IMPACT_METHOD)
         .isOnlyPendingRestart(false)
         .primaryInstance(primary)
         .addInitialInstances(primary, replica1, replica2)
         .addTotalInstances(primary, replica1, replica2, additionalPod)
         .addRestartedInstances(additionalPod, replica1, replica2)
+        .putAllPodRestartReasonsMap(ImmutableMap.of(
+            primary, RestartReasons.of(),
+            replica1, RestartReasons.of(),
+            replica2, RestartReasons.of(),
+            additionalPod, RestartReasons.of()))
         .isSwitchoverInitiated(true)
         .build();
 
@@ -693,14 +731,20 @@ class ClusterRestartImplTest {
   @Test
   void givenAClusterWithAInstancedDecreasedAndReducedImpact_shouldNotDecreaseInstances() {
     ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
-        .dbOps(dbOps)
-        .cluster(cluster)
+        .namespace(dbOps.getMetadata().getNamespace())
+        .dbOpsName(dbOps.getMetadata().getName())
+        .dbOpsOperation(dbOps.getSpec().getOp())
+        .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(REDUCED_IMPACT_METHOD)
         .isOnlyPendingRestart(false)
         .primaryInstance(primary)
         .addInitialInstances(primary, replica1, replica2)
         .addTotalInstances(primary, replica1, replica2)
         .addRestartedInstances(replica1, replica2, primary)
+        .putAllPodRestartReasonsMap(ImmutableMap.of(
+            primary, RestartReasons.of(),
+            replica1, RestartReasons.of(),
+            replica2, RestartReasons.of()))
         .isSwitchoverInitiated(true)
         .build();
 

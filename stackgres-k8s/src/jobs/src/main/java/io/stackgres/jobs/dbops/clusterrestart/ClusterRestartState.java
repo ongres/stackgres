@@ -6,26 +6,23 @@
 package io.stackgres.jobs.dbops.clusterrestart;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.Preconditions;
 import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.apps.StatefulSet;
-import io.stackgres.common.ClusterPendingRestartUtil;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
-import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import org.immutables.value.Value;
 
 @Value.Immutable
 public interface ClusterRestartState {
 
-  StackGresDbOps getDbOps();
+  String getDbOpsName();
 
-  StackGresCluster getCluster();
+  String getDbOpsOperation();
 
-  Optional<StatefulSet> getStatefulSet();
+  String getClusterName();
+
+  String getNamespace();
 
   String getRestartMethod();
 
@@ -41,46 +38,28 @@ public interface ClusterRestartState {
 
   List<Pod> getRestartedInstances();
 
-  @Value.Derived
-  default String getDbOpsName() {
-    return getDbOps().getMetadata().getName();
-  }
+  Map<Pod, RestartReasons> getPodRestartReasonsMap();
 
-  @Value.Derived
-  default String getDbOpsOperation() {
-    return getDbOps().getSpec().getOp();
-  }
-
-  @Value.Derived
-  default String getClusterName() {
-    return getDbOps().getSpec().getSgCluster();
-  }
-
-  @Value.Derived
-  default String getNamespace() {
-    return getDbOps().getMetadata().getNamespace();
+  @Value.Check
+  default void check() {
+    Preconditions.checkState(getTotalInstances().stream()
+        .anyMatch(getPrimaryInstance()::equals));
+    Preconditions.checkState(getInitialInstances().stream()
+        .allMatch(initialInstance -> getTotalInstances().stream()
+            .anyMatch(initialInstance::equals)));
+    Preconditions.checkState(getRestartedInstances().stream()
+        .allMatch(initialInstance -> getTotalInstances().stream()
+            .anyMatch(initialInstance::equals)));
+    Preconditions.checkState(getTotalInstances().size() == getPodRestartReasonsMap().size());
+    Preconditions.checkState(getTotalInstances().stream()
+        .allMatch(getPodRestartReasonsMap()::containsKey));
   }
 
   @Value.Derived
   default boolean hasToBeRestarted(Pod pod) {
     return !getRestartedInstances().contains(pod)
         && (!isOnlyPendingRestart()
-            || isPendingRestart(pod));
-  }
-
-  @Value.Derived
-  default boolean isPendingRestart(Pod pod) {
-    return getRestartReasons(pod).requiresRestart();
-  }
-
-  @Value.Derived
-  default RestartReasons getRestartReasons(Pod pod) {
-    return ClusterPendingRestartUtil.getRestartReasons(
-        Optional.ofNullable(getCluster().getStatus())
-        .map(StackGresClusterStatus::getPodStatuses)
-        .orElse(ImmutableList.of()),
-        getStatefulSet(),
-        ImmutableList.of(pod));
+            || getPodRestartReasonsMap().get(pod).requiresRestart());
   }
 
 }

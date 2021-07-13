@@ -25,6 +25,14 @@ public class ClusterPendingRestartUtil {
   public static class RestartReasons {
     final Set<RestartReason> reasons = EnumSet.noneOf(RestartReason.class);
 
+    public static RestartReasons of(RestartReason...reasons) {
+      RestartReasons restartReasons = new RestartReasons();
+      for (RestartReason reason : reasons) {
+        restartReasons.addReason(reason);
+      }
+      return restartReasons;
+    }
+
     void addReason(RestartReason reason) {
       reasons.add(reason);
     }

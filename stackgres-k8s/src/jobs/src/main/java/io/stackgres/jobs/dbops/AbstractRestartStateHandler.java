@@ -17,14 +17,18 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.smallrye.mutiny.Uni;
+import io.stackgres.common.ClusterPendingRestartUtil;
+import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.ClusterDbOpsRestartStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgdbops.DbOpsRestartStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsRestart;
@@ -73,14 +77,14 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
   CustomResourceScheduler<StackGresCluster> clusterScheduler;
 
   @Override
-  public Uni<ClusterRestartState> restartCluster(StackGresDbOps op) {
-    String clusterName = op.getSpec().getSgCluster();
-    String dbOpsName = op.getMetadata().getName();
-    String namespace = op.getMetadata().getNamespace();
+  public Uni<ClusterRestartState> restartCluster(StackGresDbOps dbOps) {
+    String clusterName = dbOps.getSpec().getSgCluster();
+    String dbOpsName = dbOps.getMetadata().getName();
+    String namespace = dbOps.getMetadata().getNamespace();
 
     return getClusterRestartState(namespace, dbOpsName, clusterName)
         .call(this::initClusterDbOpsStatus)
-        .call(this::initDbOpsStatus)
+        .call(clusterRestartState -> initDbOpsStatus(clusterRestartState, dbOps))
         .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
@@ -113,17 +117,16 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
   protected Uni<StackGresDbOps> updateJobStatus(RestartEvent event,
       ClusterRestartState clusterRestartState) {
     return findDbOps(clusterRestartState.getDbOpsName(), clusterRestartState.getNamespace())
-        .chain(dbOps -> updateJobStatus(dbOps, event, clusterRestartState))
+        .chain(dbOps -> updateJobStatus(dbOps, event))
         .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
         .atMost(10);
   }
 
-  private Uni<StackGresDbOps> updateJobStatus(StackGresDbOps dbOps, RestartEvent event,
-      ClusterRestartState clusterRestartState) {
+  private Uni<StackGresDbOps> updateJobStatus(StackGresDbOps dbOps, RestartEvent event) {
     return Uni.createFrom().emitter(em -> {
-      var restartStatus = getDbOpRestartStatus(clusterRestartState.getDbOps());
+      var restartStatus = getDbOpRestartStatus(dbOps);
 
       var podName = event.getPod().getMetadata().getName();
 
@@ -188,29 +191,32 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
             tuple.getItem2().getItem2(), tuple.getItem2().getItem3()));
   }
 
-  protected Uni<?> initClusterDbOpsStatus(
-      ClusterRestartState clusterRestartState) {
-    if (isSgClusterDbOpsStatusInitialized(clusterRestartState.getCluster())) {
+  protected Uni<?> initClusterDbOpsStatus(ClusterRestartState clusterRestartState) {
+    return findSgCluster(clusterRestartState.getClusterName(), clusterRestartState.getNamespace())
+        .chain(cluster -> {
+          if (isSgClusterDbOpsStatusInitialized(cluster)) {
+            return Uni.createFrom().voidItem();
+          } else {
+            return initRestartStatusValues(clusterRestartState, cluster)
+                .onItem()
+                .invoke(v -> clusterScheduler.updateStatus(cluster));
+          }
+        });
+  }
+
+  protected Uni<?> initDbOpsStatus(ClusterRestartState clusterRestartState, StackGresDbOps dbOps) {
+    if (isDbOpsStatusInitialized(dbOps)) {
       return Uni.createFrom().voidItem();
     } else {
-      return initRestartStatusValues(clusterRestartState)
+      return initDbOpsRestartStatusValues(clusterRestartState, dbOps)
           .onItem()
-          .transform(v -> clusterScheduler.updateStatus(clusterRestartState.getCluster()));
+          .transform(v -> dbOpsScheduler.update(dbOps));
     }
   }
 
-  protected Uni<?> initDbOpsStatus(ClusterRestartState clusterRestartState) {
-    if (isDbOpsStatusInitialized(clusterRestartState.getDbOps())) {
-      return Uni.createFrom().voidItem();
-    } else {
-      return initDbOpsRestartStatusValues(clusterRestartState)
-          .onItem()
-          .transform(v -> dbOpsScheduler.update(clusterRestartState.getDbOps()));
-    }
-  }
-
-  protected Uni<Void> initDbOpsRestartStatusValues(ClusterRestartState clusterRestartState) {
-    var restartStatus = getDbOpRestartStatus(clusterRestartState.getDbOps());
+  protected Uni<Void> initDbOpsRestartStatusValues(ClusterRestartState clusterRestartState,
+      StackGresDbOps dbOps) {
+    var restartStatus = getDbOpRestartStatus(dbOps);
 
     restartStatus.setInitialInstances(
         clusterRestartState.getInitialInstances()
@@ -285,6 +291,11 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
             .collect(Collectors.toUnmodifiableList()))
         .orElse(List.of());
 
+    var podRestartReasonsMap = clusterPods.stream()
+        .collect(Collectors.toUnmodifiableMap(
+            Function.identity(),
+            pod -> getPodRestartReasons(cluster, statefulSet, pod)));
+
     final String method = getRestartMethod(dbOps)
         .orElse(REDUCED_IMPACT_METHOD);
 
@@ -294,17 +305,29 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
         .orElse(false);
 
     return ImmutableClusterRestartState.builder()
-        .dbOps(dbOps)
-        .cluster(cluster)
+        .namespace(dbOps.getMetadata().getNamespace())
+        .dbOpsName(dbOps.getMetadata().getName())
+        .dbOpsOperation(dbOps.getSpec().getOp())
+        .clusterName(cluster.getMetadata().getName())
         .restartMethod(method)
         .isOnlyPendingRestart(onlyPendingRestart)
-        .statefulSet(statefulSet)
         .primaryInstance(getPrimaryInstance(clusterPods))
         .isSwitchoverInitiated(Boolean.parseBoolean(restartStatus.getSwitchoverInitiated()))
         .initialInstances(initialInstances)
         .restartedInstances(restartedInstances)
         .totalInstances(clusterPods)
+        .podRestartReasonsMap(podRestartReasonsMap)
         .build();
+  }
+
+  private RestartReasons getPodRestartReasons(StackGresCluster cluster,
+      Optional<StatefulSet> statefulSet, Pod pod) {
+    return ClusterPendingRestartUtil.getRestartReasons(
+        Optional.ofNullable(cluster.getStatus())
+        .map(StackGresClusterStatus::getPodStatuses)
+        .orElse(ImmutableList.of()),
+        statefulSet,
+        ImmutableList.of(pod));
   }
 
   protected Pod getPrimaryInstance(List<Pod> pods) {
@@ -314,8 +337,9 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
         .findFirst().orElseThrow(() -> new InvalidCluster("Cluster has no primary pod"));
   }
 
-  protected Uni<Void> initRestartStatusValues(ClusterRestartState clusterRestartState) {
-    var restartStatus = getClusterRestartStatus(clusterRestartState.getCluster());
+  protected Uni<Void> initRestartStatusValues(ClusterRestartState clusterRestartState,
+      StackGresCluster cluster) {
+    var restartStatus = getClusterRestartStatus(cluster);
 
     restartStatus.setInitialInstances(
         clusterRestartState.getInitialInstances()

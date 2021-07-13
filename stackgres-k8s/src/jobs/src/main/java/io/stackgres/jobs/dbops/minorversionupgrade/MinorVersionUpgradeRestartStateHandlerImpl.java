@@ -61,17 +61,17 @@ public class MinorVersionUpgradeRestartStateHandlerImpl extends AbstractRestartS
 
   @Override
   protected Uni<Void> initRestartStatusValues(
-      ClusterRestartState clusterRestartState) {
-    return super.initRestartStatusValues(clusterRestartState)
+      ClusterRestartState clusterRestartState, StackGresCluster cluster) {
+    return super.initRestartStatusValues(clusterRestartState, cluster)
         .chain(ignore -> Uni.combine().all()
-            .unis(
-                getSourcePostgresVersion(clusterRestartState.getCluster()),
-                getTargetPostgresVersion(clusterRestartState.getCluster())
-            ).asTuple()
+                .unis(
+                    getSourcePostgresVersion(cluster),
+                    getTargetPostgresVersion(cluster)
+                    ).asTuple()
         )
         .chain(versionTuple -> {
           StackGresClusterDbOpsMinorVersionUpgradeStatus restartStatus =
-              clusterRestartState.getCluster().getStatus().getDbOps().getMinorVersionUpgrade();
+              cluster.getStatus().getDbOps().getMinorVersionUpgrade();
           restartStatus.setSourcePostgresVersion(versionTuple.getItem1());
           restartStatus.setTargetPostgresVersion(versionTuple.getItem2());
           return Uni.createFrom().voidItem();

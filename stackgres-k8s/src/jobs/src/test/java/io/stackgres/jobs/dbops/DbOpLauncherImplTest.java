@@ -21,11 +21,14 @@ import java.util.Optional;
 
 import javax.inject.Inject;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.junit.mockito.InjectSpy;
 import io.smallrye.mutiny.Uni;
+import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -90,14 +93,20 @@ class DbOpLauncherImplTest {
   }
 
   private Uni<ClusterRestartState> getClusterRestartStateUni() {
+    Pod primary = new Pod();
     return Uni.createFrom().item(
         ImmutableClusterRestartState.builder()
-        .dbOps(mockKubeDb.getDbOps(randomDbOpsName, namespace))
-        .cluster(mockKubeDb.getCluster(randomClusterName, namespace))
+        .namespace(dbOps.getMetadata().getNamespace())
+        .dbOpsName(dbOps.getMetadata().getName())
+        .dbOpsOperation(dbOps.getSpec().getOp())
+        .clusterName(dbOps.getSpec().getSgCluster())
         .isOnlyPendingRestart(false)
         .isSwitchoverInitiated(false)
-        .primaryInstance(new Pod())
         .restartMethod("InPlace")
+        .primaryInstance(primary)
+        .initialInstances(ImmutableList.of(primary))
+        .totalInstances(ImmutableList.of(primary))
+        .podRestartReasonsMap(ImmutableMap.of(primary, RestartReasons.of()))
         .build());
   }
 

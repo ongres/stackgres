@@ -45,13 +45,11 @@ public class PodTestUtil {
   }
 
   public void preparePods(StackGresCluster cluster, int primaryIndex, int... replicaIndexes) {
-
     createPod(buildPrimaryPod(cluster, primaryIndex));
     createPod(buildJobPod(cluster, primaryIndex));
 
     Arrays.stream(replicaIndexes)
         .forEach(replicaIndex -> createPod(buildReplicaPod(cluster, replicaIndex)));
-
   }
 
   public void createPod(Pod pod) {

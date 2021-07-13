@@ -171,7 +171,7 @@ public class ClusterRestartImpl implements ClusterRestart {
 
   private void logPodRestartReason(Pod pod, ClusterRestartState clusterRestartState) {
     if (LOGGER.isInfoEnabled()) {
-      RestartReasons reasons = clusterRestartState.getRestartReasons(pod);
+      RestartReasons reasons = getRestartReasons(clusterRestartState, pod);
       for (RestartReason reason : reasons.getReasons()) {
         switch (reason) {
           case OPERATOR_VERSION:
@@ -231,5 +231,9 @@ public class ClusterRestartImpl implements ClusterRestart {
 
   private boolean isReducedImpact(ClusterRestartState clusterRestartState) {
     return clusterRestartState.getRestartMethod().equals(REDUCED_IMPACT_METHOD);
+  }
+
+  private RestartReasons getRestartReasons(ClusterRestartState clusterRestartState, Pod pod) {
+    return clusterRestartState.getPodRestartReasonsMap().get(pod);
   }
 }
