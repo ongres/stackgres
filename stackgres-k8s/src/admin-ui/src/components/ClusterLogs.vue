@@ -63,140 +63,144 @@
 						<span class="toggle">FILTER</span>
 
 						<ul class="options">
-							<li class="columns">
-								<span class="title">Type</span>
+							<!-- <span class="title">Filter logs by</span> -->
+							<li class="columns">		
 								<ul class="options">
 									<li class="column">
-										<label for="logTypePg">
-											<span>Postgres</span>
-											<input v-model="filters.logType.pg" type="checkbox" id="logTypePg"/>
-										</label>
+										<strong class="label">Show logs</strong>
+										<ul class="columns border">
+											<li class="column">
+												<label for="logTypePg">
+													<span>Postgres</span>
+													<input v-model="filters.logType.pg" type="checkbox" id="logTypePg"/>
+												</label>
+											</li>
+											<li class="column">
+												<label for="logTypePatroni">
+													<span>Patroni</span>
+													<input v-model="filters.logType.pa" type="checkbox" id="logTypePatroni"/>
+												</label>
+											</li>
+										</ul>
 									</li>
-									<li class="column">
-										<label for="logTypePatroni">
-											<span>Patroni</span>
-											<input v-model="filters.logType.pa" type="checkbox" id="logTypePatroni"/>
-										</label>
+									<li class="column textFilter">
+										<strong class="label">Pod Name</strong>
+										<input v-model="textFilters.podName" class="search" placeholder="Search pod name...">
 									</li>
 								</ul>
 							</li>
 
-							<li class="columns">
-								<span class="title">Role</span>
-								<ul class="options">
-									<li class="column">
-										<label for="rolePrimary">
-											<span>Primary</span>
-											<input v-model="filters.role.primary" type="checkbox" id="rolePrimary"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="roleReplica">
-											<span>Replica</span>
-											<input v-model="filters.role.replica" type="checkbox" id="roleReplica"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="rolePromoted">
-											<span>Promoted</span>
-											<input v-model="filters.role.promoted" type="checkbox" id="rolePromoted"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="roleDemoted">
-											<span>Demoted</span>
-											<input v-model="filters.role.demoted" type="checkbox" id="roleDemoted"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="roleUninitialized">
-											<span>Uninitialized</span>
-											<input v-model="filters.role.uninitialized" type="checkbox" id="roleUninitialized"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="roleStandby">
-											<span>Standby</span>
-											<input v-model="filters.role.standby" type="checkbox" id="roleStandby"/>
-										</label>
-									</li>
-								</ul>
-							</li>
+							<ul class="options columns">
+								<li class="column">
+									<span class="title">Postgres Filters</span>
 
-							<li class="columns">
-								<span class="title">Error Level</span>
-								<ul class="options">
-									<li class="column">
-										<label for="errorLevelPanic">
-											<span>PANIC</span>
-											<input v-model="filters.errorLevel.PANIC" type="checkbox" id="errorLevelPanic"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="errorLevelCritical">
-											<span>CRITICAL</span>
-											<input v-model="filters.errorLevel.CRITICAL" type="checkbox" id="errorLevelCritical"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="errorLevelFatal">
-											<span>FATAL</span>
-											<input v-model="filters.errorLevel.FATAL" type="checkbox" id="errorLevelFatal"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="errorLevelLog">
-											<span>LOG</span>
-											<input v-model="filters.errorLevel.LOG" type="checkbox" id="errorLevelLog"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="errorLevelError">
-											<span>ERROR</span>
-											<input v-model="filters.errorLevel.ERROR" type="checkbox" id="errorLevelError"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="errorLevelWarning">
-											<span>WARNING</span>
-											<input v-model="filters.errorLevel.WARNING" type="checkbox" id="errorLevelWarning"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="errorLevelNotice">
-											<span>NOTICE</span>
-											<input v-model="filters.errorLevel.NOTICE" type="checkbox" id="errorLevelNotice"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="errorLevelInfo">
-											<span>INFO</span>
-											<input v-model="filters.errorLevel.INFO" type="checkbox" id="errorLevelInfo"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="errorLevelDebug">
-											<span>DEBUG</span>
-											<input v-model="filters.errorLevel.DEBUG" type="checkbox" id="errorLevelDebug"/>
-										</label>
-									</li>
-								</ul>
-							</li>
-							<li class="textFilter">
-								<span class="title">Pod Name</span>
-								<input v-model="textFilters.podName" class="search" placeholder="Search pod name...">
-								<!-- <span class="btn clear border" @click="textFilters.podName = ''" v-if="textFilters.podName.length">×</span> -->
-							</li>
-							<li class="textFilter">
-								<span class="title">User Name</span>
-								<input v-model="textFilters.userName" class="search" placeholder="Search user name...">
-								<!-- <span class="btn clear border" @click="textFilters.userName = ''" v-if="textFilters.userName.length">×</span> -->
-							</li>
-							<li class="textFilter">
-								<span class="title">Database Name</span>
-								<input v-model="textFilters.databaseName" class="search" placeholder="Search database name...">
-								<!-- <span class="btn clear border" @click="textFilters.databaseName = ''" v-if="textFilters.databaseName.length">×</span> -->
-							</li>
+									<ul>
+										<li class="field">
+											<strong class="label">Log Level</strong>
+											<div class="range-slider">
+												<ul class="steps">
+													<li v-for="(level, index) in filters.logLevel.postgres.levels" :class="[level.toLowerCase(), (filters.logLevel.postgres.index == index) ? 'show' : '']"  :style="'left: ' + ( (filters.logLevel.postgres.levels.length == (index + 1)) ? 'calc(100% - 4px)' : ( (100 / (filters.logLevel.postgres.levels.length - 1)) * index) + '%' )">
+														<i></i>
+														<span>{{ level }}</span>
+													</li>
+												</ul>
+
+												<input class="range-slider__range" type="range" min="0" :max="filters.logLevel.postgres.levels.length - 1" v-model="filters.logLevel.postgres.index">
+											</div>
+										</li>
+
+										<li class="field">
+											<strong class="label">Role</strong>
+											<ul class="columns border">
+												<li class="column">
+													<label for="rolePrimary">
+														<span>Primary</span>
+														<input v-model="filters.role.primary" type="checkbox" id="rolePrimary"/>
+													</label>
+												</li>
+												<li class="column">
+													<label for="roleReplica">
+														<span>Replica</span>
+														<input v-model="filters.role.replica" type="checkbox" id="roleReplica"/>
+													</label>
+												</li>
+											</ul>
+										</li>
+
+										<li class="textFilter field">
+											<strong class="label">User Name</strong>
+											<input v-model="textFilters.userName" class="search" placeholder="Search user name...">
+										</li>
+
+										<li class="textFilter field">									
+											<strong class="label">Database Name</strong>
+											<input v-model="textFilters.databaseName" class="search" placeholder="Search database name...">
+										</li>
+									</ul>
+								</li>
+								<li class="column" :class="!filters.logType.patroni ? 'disabled' : ''">
+									<span class="title">Patroni Filters</span>
+
+									<ul>
+										<li class="field">
+											<strong class="label">Log Level</strong>
+											<div class="range-slider">
+												<ul class="steps">
+													<li v-for="(level, index) in filters.logLevel.patroni.levels" :class="[level.toLowerCase(), (filters.logLevel.patroni.index == index) ? 'show' : '']"  :style="'left: ' + ( (filters.logLevel.patroni.levels.length == (index + 1)) ? 'calc(100% - 4px)' : ( (100 / (filters.logLevel.patroni.levels.length - 1)) * index) + '%' )">
+														<i></i>
+														<span>{{ level }}</span>
+													</li>
+												</ul>
+
+												<input class="range-slider__range" type="range" min="0" :max="filters.logLevel.patroni.levels.length - 1" v-model="filters.logLevel.patroni.index" :disabled="!filters.logType.patroni ? 'disabled' : ''">
+											</div>
+										</li>
+
+										<li class="field">
+											<strong class="label">Role</strong>
+											<ul class="columns border">
+												<li class="column">
+													<label for="rolePrimary">
+														<span>Primary</span>
+														<input v-model="filters.role.primary" type="checkbox" id="rolePrimary" :disabled="!filters.logType.patroni ? 'disabled' : ''"/>
+													</label>
+												</li>
+												<li class="column">
+													<label for="roleReplica">
+														<span>Replica</span>
+														<input v-model="filters.role.replica" type="checkbox" id="roleReplica" :disabled="!filters.logType.patroni ? 'disabled' : ''"/>
+													</label>
+												</li>
+												<li class="column">
+													<label for="rolePromoted">
+														<span>Promoted</span>
+														<input v-model="filters.role.promoted" type="checkbox" id="rolePromoted" :disabled="!filters.logType.patroni ? 'disabled' : ''"/>
+													</label>
+												</li>
+												<li class="column">
+													<label for="roleDemoted">
+														<span>Demoted</span>
+														<input v-model="filters.role.demoted" type="checkbox" id="roleDemoted" :disabled="!filters.logType.patroni ? 'disabled' : ''"/>
+													</label>
+												</li>
+												<li class="column">
+													<label for="roleUninitialized">
+														<span>Uninitialized</span>
+														<input v-model="filters.role.uninitialized" type="checkbox" id="roleUninitialized" :disabled="!filters.logType.patroni ? 'disabled' : ''"/>
+													</label>
+												</li>
+												<li class="column">
+													<label for="roleStandby">
+														<span>Standby</span>
+														<input v-model="filters.role.standby" type="checkbox" id="roleStandby" :disabled="!filters.logType.patroni ? 'disabled' : ''"/>
+													</label>
+												</li>
+											</ul>
+										</li>
+									</ul>
+								</li>
+							</ul>
+
 							<li>
 								<hr>
 								<a class="btn" @click="getLogs(false)">APPLY</a> <a class="btn clear border" @click="clearFilters('filters')">RESET</a>
@@ -278,9 +282,9 @@
 
 				<div class="logsContainer monoFont">
 					<ul class="legend">
-						<li class="field errorLevel" v-if="showColumns.errorLevel">
+						<li class="field logLevel" v-if="showColumns.logLevel">
 							<span title="Error Level">Error Level</span>
-							<span class="helpTooltip" data-tooltip='Error Level of the log entry. Available levels are:<br/><ul class="monoFont errorLevelLegend upper"><li class="debug">Debug</li><li class="info">Info</li><li class="notice">Notice</li><li class="warning">Warning</li><li class="error">Error</li><li class="log">Log</li><li class="fatal">Fatal</li><li class="critical">Critical</li><li class="panic">Panic</li></ul>'></span>
+							<span class="helpTooltip" data-tooltip='Error Level of the log entry. Available levels are:<br/><ul class="monoFont logLevelLegend upper"><li class="debug">Debug</li><li class="info">Info</li><li class="notice">Notice</li><li class="warning">Warning</li><li class="error">Error</li><li class="log">Log</li><li class="fatal">Fatal</li><li class="critical">Critical</li><li class="panic">Panic</li></ul>'></span>
 						</li>
 						<li class="field logTime">
 							<span title="Log Time">Log Time</span>
@@ -346,7 +350,7 @@
 									:data-index="index"
 								>
 									<div class="log" :class="( (index == currentLog) ? 'open' : '' )" :set="log = item">
-										<span class="errorLevel" :class="log.errorLevel.toLowerCase()" :title="'Error Level: ' + log.errorLevel" v-if="showColumns.errorLevel"></span>
+										<span class="logLevel" :class="log.errorLevel.toLowerCase()" :title="'Error Level: ' + log.errorLevel" v-if="showColumns.logLevel"></span>
 										<div v-if="index != currentLog" class="base"  @click="currentLog = index">
 											<span class="field timestamp logTime">
 												<span class='date'>
@@ -405,7 +409,7 @@
 												</li>
 												<li v-if="log.hasOwnProperty('errorLevel')">
 													<span class="param">Error Level <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.errorLevel')"></span></span>
-													<span class="field value label errorLevel" :class="log.errorLevel.toLowerCase()"><span>{{ log.errorLevel }}</span></span>
+													<span class="field value label logLevel" :class="log.errorLevel.toLowerCase()"><span>{{ log.errorLevel }}</span></span>
 												</li>
 												<li v-if="log.hasOwnProperty('sessionId')">
 													<span class="param">Session ID <span class="helpTooltip" :data-tooltip="getTooltip('sgclusterlogentry.sessionId')"></span></span>
@@ -552,17 +556,16 @@
 						uninitialized: true,
 						standby: true
 					},
-					errorLevel: {
-						PANIC: true,
-						CRITICAL: true,
-						FATAL: true,
-						LOG: true,
-						ERROR: true,
-						WARNING: true,
-						NOTICE: true,
-						INFO: true,
-						DEBUG: true,
-					},
+					logLevel: {
+						postgres: {
+							index: 6,
+							levels: ["PANIC", "FATAL", "LOG", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"]
+						},
+						patroni: {
+							index: 3,
+							levels: ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"]
+						}
+					}
 				},
 				textFilters: {
 					text: '',
@@ -574,7 +577,7 @@
 				dateStart: '',
 				dateEnd: '',
 				showColumns: {
-					errorLevel: true,
+					logLevel: true,
 					logTime: true,
 					logType: true,
 					podName: true,
@@ -635,10 +638,9 @@
 				const vc = this;
 
 				let byLogType = (typeof (Object.keys(vc.filters.logType).find( k => !vc.filters.logType[k])) !== 'undefined');
-				let byErrorLevel = (typeof (Object.keys(vc.filters.errorLevel).find( k => !vc.filters.errorLevel[k])) !== 'undefined');
-				let byTextFilters = (typeof (Object.keys(vc.filters.errorLevel).find( k => vc.textFilters.length)) !== 'undefined');
+				let byTextFilters = (typeof (Object.keys(vc.textFilters).find( k => vc.textFilters[k].length)) !== 'undefined');
 
-				return (byLogType || byErrorLevel || byTextFilters)
+				return (byLogType || byTextFilters)
 			},
 
 		},
@@ -707,7 +709,7 @@
 						
 							break;
 					case 'filters':
-						if($('.filters .options .active').length || $('.filters .options .search').val().length || this.errorLevel.length || this.role.length )
+						if($('.filters .options .active').length || $('.filters .options .search').val().length || this.role.length )
 							$('.filters .clear').fadeIn()
 						else
 							$('.filters .clear').fadeOut()
@@ -779,7 +781,7 @@
 
 				}
 
-				if( Object.keys(vc.filters.errorLevel).find( k => !vc.filters.errorLevel[k] ) ) {
+				/* if( Object.keys(vc.filters.errorLevel).find( k => !vc.filters.errorLevel[k] ) ) {
 
 					// If no errorLevel selected, clear logs
 					if(typeof Object.keys(vc.filters.errorLevel).find( k => vc.filters.errorLevel[k] ) == 'undefined' ) {
@@ -794,7 +796,7 @@
 						}
 					})
 
-				}
+				} */
 
 				Object.keys(vc.textFilters).forEach( function(filter) {
 					if( vc.textFilters[filter].length ) {
@@ -1052,7 +1054,7 @@
 		margin-left: 5px;
 	}
 
-	ul.errorLevelLegend li {
+	ul.logLevelLegend li {
 		width: 50%;
 		float: left;
 		text-transform: uppercase;
@@ -1156,83 +1158,83 @@
 		top: 2px;
 	}
 
-	.errorLevelLegend .not-set, .details .not-set {
+	.logLevelLegend .not-set, .details .not-set {
 		color: var(--not-set);
 	}
 
-	.errorLevelLegend .debug, .details .debug {
+	.logLevelLegend .debug, .details .debug, .range-slider .steps li.debug span {
 		color: var(--debug);
 	}
 
-	.errorLevelLegend .info, .details .info {
+	.logLevelLegend .info, .details .info, .range-slider .steps li.info span {
 		color: var(--info);
 	}
 
-	.errorLevelLegend .notice, .details .notice {
+	.logLevelLegend .notice, .details .notice, .range-slider .steps li.notice span {
 		color: var(--notice);
 	}
 
-	.errorLevelLegend .warning, .details .warning {
+	.logLevelLegend .warning, .details .warning, .range-slider .steps li.warning span {
 		color: var(--warning);
 	}
 
-	.errorLevelLegend .error, .details .error {
+	.logLevelLegend .error, .details .error, .range-slider .steps li.error span {
 		color: var(--error);
 	}
 
-	.errorLevelLegend .log, .details .log {
+	.logLevelLegend .log, .details .log, .range-slider .steps li.log span {
 		color: var(--log);
 	}
 
-	.errorLevelLegend .fatal, .details .fatal {
+	.logLevelLegend .fatal, .details .fatal, .range-slider .steps li.fatal span {
 		color: var(--fatal);
 	}
 
-	.errorLevelLegend .critical, .details .critical {
+	.logLevelLegend .critical, .details .critical, .range-slider .steps li.critical span {
 		color: var(--critical);
 	}
 
-	.errorLevelLegend .panic, .details .panic {
+	.logLevelLegend .panic, .details .panic, .range-slider .steps li.panic span {
 		color: var(--panic);
 	}
 
-	.log > .errorLevel.not-set {
+	.log > .logLevel.not-set{
 		background: var(--not-set);
 	}
 
-	.log > .errorLevel.debug {
+	.log > .logLevel.debug, .range-slider .steps li.debug i {
 		background: var(--debug);
 	}
 
-	.log > .errorLevel.info {
+	.log > .logLevel.info, .range-slider .steps li.info i {
 		background: var(--info);
 	}
 
-	.log > .errorLevel.notice {
+	.log > .logLevel.notice, .range-slider .steps li.notice i {
 		background: var(--notice);
 	}
 
-	.log > .errorLevel.warning {
+	.log > .logLevel.warning, .range-slider .steps li.warning i {
 		background: var(--warning);
 	}
 
-	.log > .errorLevel.error {
+	.log > .logLevel.error, .range-slider .steps li.error i {
 		background: var(--error);
 	}
 
-	.log > .errorLevel.log {
+	.log > .logLevel.log, .range-slider .steps li.log i {
 		background: var(--log);
 	}
 
-	.log > .errorLevel.fatal {
+	.log > .logLevel.fatal, .range-slider .steps li.fatal i {
 		background: var(--fatal);
 	}
 
-	.log > .errorLevel.critical {
+	.log > .logLevel.critical, .range-slider .steps li.critical i {
 		background: var(--critical);
 	}
 
-	.log > .errorLevel.panic {
+	.log > .logLevel.panic, .range-slider .steps li.panic i {
 		background: var(--panic);
 	}
 
@@ -1348,7 +1350,7 @@
 		background: var(--lBlue);
 	}
 
-	.details .errorLevel:before {
+	.details .logLevel:before {
 		content: "|";
 		font-size: 30px;
 		position: absolute;
@@ -1358,7 +1360,7 @@
 		overflow: hidden;
 	}
 
-	.details .errorLevel {
+	.details .logLevel {
 		padding-left: 9px;
 		position: relative;
 	}
@@ -1418,6 +1420,209 @@
 
 	.scroller {
 		height: 100%;
+	}
+
+	/* Range Slider */
+	.range-slider {
+		width: 100%;
+		position: relative;
+		margin-top: 5px;
+		margin-bottom: 10px;
+	}
+
+	.range-slider:before {
+		content: " ";
+		display: block;
+		background: var(--activeBg);
+		width: 100%;
+		height: 4px;
+		position: absolute;
+		left: 0;
+		top: 8px;
+	}
+
+	.range-slider__range {
+		-webkit-appearance: none;
+		position: relative;
+		z-index: 10;
+		width: 100%;
+		height: 20px;
+		border-radius: 5px;
+		outline: none;
+		padding: 0;
+		margin: 0;
+		background: transparent;
+		cursor: pointer;
+	}		
+
+	.range-slider__range::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		appearance: none;
+		width: 20px;
+		height: 20px;
+		cursor: pointer;
+		background: none;
+		position: relative;
+		z-index: 10;
+		border: 0;
+	}
+
+
+	.range-slider__range::-moz-range-thumb {
+		appearance: none;
+		width: 20px;
+		height: 20px;
+		cursor: pointer;
+		background: none;
+		border: 0;
+	}
+	
+	/* 
+	.range-slider__range::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		appearance: none;
+		width: 10px;
+		height: 20px;
+		transform: translateX(-50%);
+		border-radius: 50%;
+		background: #2c3e50;
+		cursor: pointer;
+		-webkit-transition: background 0.15s ease-in-out;
+		transition: background 0.15s ease-in-out;
+	}
+
+	.range-slider__range::-webkit-slider-thumb:hover {
+		background: #1abc9c;
+	}
+
+	.range-slider__range:active::-webkit-slider-thumb {
+		background: #1abc9c;
+	}
+
+	.range-slider__range::-moz-range-thumb {
+		width: 20px;
+		height: 20px;
+		border: 0;
+		border-radius: 50%;
+		background: #2c3e50;
+		cursor: pointer;
+		-moz-transition: background 0.15s ease-in-out;
+		transition: background 0.15s ease-in-out;
+	}
+
+	.range-slider__range::-moz-range-thumb:hover {
+		background: #1abc9c;
+	}
+
+	.range-slider__range:active::-moz-range-thumb {
+		background: #1abc9c;
+	}
+
+	.range-slider__range:focus::-webkit-slider-thumb {
+		box-shadow: 0 0 0 3px #fff, 0 0 0 6px #1abc9c;
+	}
+
+	.range-slider__value {
+		display: inline-block;
+		position: absolute;
+		color: #fff;
+		line-height: 20px;
+		text-align: center;
+		border-radius: 3px;
+		background: #2c3e50;
+		padding: 5px 10px;
+		margin-left: 8px;
+	}
+
+	.range-slider__value:after {
+		position: absolute;
+		top: 8px;
+		left: -7px;
+		width: 0;
+		height: 0;
+		border-top: 7px solid transparent;
+		border-right: 7px solid #2c3e50;
+		border-bottom: 7px solid transparent;
+		content: "";
+	} */
+
+	::-moz-range-track {
+		border: 0;
+	}
+
+	input::-moz-focus-inner,
+	input::-moz-focus-outer {
+		border: 0;
+	}
+
+	.range-slider .steps li {
+		position: absolute;
+		z-index: 1;
+		width: 20px;
+		height: 10px;
+		transform: translateY(-12px);
+		text-align: center;
+	}
+
+	.range-slider .steps li i {
+		border-radius: 4px;
+		display: inline-block;
+		height: 100%;
+		width: 4px;
+		cursor: pointer;
+	}		
+
+	.range-slider .steps li span {
+		display: none;
+	}
+
+	.range-slider .steps {
+		position: absolute;
+		width: 100%;
+		top: 16px;
+		font-size: 85%;
+		font-weight: bold;
+	}
+
+	.range-slider .steps li.show i {
+		height: 17px;
+    	transform: translateY(-2px);
+	}
+
+	.range-slider .steps li.show span {
+		display: inline-block;
+		width: auto;
+		margin-top: 5px;
+		transform: translateX(calc(-50% + 2px));
+	}
+
+	ul.columns.border {
+		padding: 7px 2px 0;
+	}
+
+	strong.label {
+		display: block;
+		margin-bottom: 5px;
+	}
+
+	.options li.field:not(:last-child) {
+		margin-bottom: 15px;
+	}
+
+	ul.options > li.column:first-child {
+		padding-right: 15px;
+	}
+
+	ul.options > li.column:last-child {
+		padding-left: 15px;
+	}
+
+	.range-slider .steps li:first-child.show span {
+		transform: none;
+	}
+
+	.range-slider .steps li:last-child.show span {
+		transform: translateX(calc(-100% + 4px));
 	}
 
 </style>

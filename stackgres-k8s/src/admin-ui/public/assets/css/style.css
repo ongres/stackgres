@@ -321,6 +321,10 @@ svg.background circle {
     display: block;
 }
 
+.border {
+    border: 1px solid var(--borderColor);
+}
+
 /* Log in */
 
 #nav .right > div#signup {
@@ -552,7 +556,7 @@ form#login .warning {
     color: #e3e3e3;
 }
 
-.darkmode #sets h4, .darkmode h4, .darkmode #sets h3, .darkmode h3, .darkmode h2, .darkmode thead, .darkmode .tabs a, .darkmode #keyword, .darkmode .options li.textFilter .search, .darkmode #help h3.title, .darkmode table.clusterConfig td.label, .darkmode .details th, .darkmode tr.details table td.label, .darkmode .yaml .label, .darkmode .logMessage .param, .darkmode .logDetails td.param {
+.darkmode #sets h4, .darkmode h4, .darkmode #sets h3, .darkmode h3, .darkmode h2, .darkmode thead, .darkmode .tabs a, .darkmode #keyword, .darkmode .options .textFilter .search, .darkmode #help h3.title, .darkmode table.clusterConfig td.label, .darkmode .details th, .darkmode tr.details table td.label, .darkmode .yaml .label, .darkmode .logMessage .param, .darkmode .logDetails td.param {
     color: #a5a5a5;
 }
 
@@ -560,7 +564,7 @@ form#login .warning {
     background-color: #444;
 }
 
-.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode #ns-select, .darkmode .set.active:not(.conf):not(.backups), .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode table.clusterConfig td, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select, .darkmode .options li.textFilter .search, .darkmode #nav .right > div#clone, .darkmode header .actions, .darkmode #contentTooltip .info, .darkmode ul.tabs, .darkmode .content h2, .darkmode .form .header, .darkmode .set.active:not(.conf), .darkmode table.poolConfig tr.details .paramDetails table, .darkmode table.pgConfig tr.details .paramDetails table {
+.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode #ns-select, .darkmode .set.active:not(.conf):not(.backups), .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode table.clusterConfig td, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select, .darkmode .options .textFilter .search, .darkmode #nav .right > div#clone, .darkmode header .actions, .darkmode #contentTooltip .info, .darkmode ul.tabs, .darkmode .content h2, .darkmode .form .header, .darkmode .set.active:not(.conf), .darkmode table.poolConfig tr.details .paramDetails table, .darkmode table.pgConfig tr.details .paramDetails table {
     border-color: var(--borderColor);
 }
 
@@ -568,7 +572,7 @@ form#login .warning {
     background-color: #1b1b1b;    
 }
 
-.darkmode .set.active, .darkmode .set.active a:hover, .darkmode .set:hover a:hover, .darkmode #keyword, .darkmode ul.select, .darkmode ul.select.active, .darkmode ul.select.active ul, .darkmode .options li.textFilter .search {
+.darkmode .set.active, .darkmode .set.active a:hover, .darkmode .set:hover a:hover, .darkmode #keyword, .darkmode ul.select, .darkmode ul.select.active, .darkmode ul.select.active ul, .darkmode .options .textFilter .search {
     background-color: rgba(122, 123, 133, .10);
 }
 
@@ -3577,6 +3581,10 @@ table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + t
     width: 480px;
 }
 
+.filter .options {
+    width: 600px;
+}
+
 .options.open {
     display: block;
 }
@@ -3597,7 +3605,7 @@ table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + t
     float: left;
 }
 
-.options li.textFilter {
+.options .textFilter {
     margin-bottom: 7px;
     position: relative;
 }
@@ -3606,7 +3614,6 @@ table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + t
     position: relative;
     padding: 4px 9px;
     cursor: pointer;
-    top: -3px;
     margin-left: 5px;
     background: var(--gray1);
     border-radius: 10px;
@@ -3653,9 +3660,8 @@ table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + t
     font-size: 0.8rem;
 }
 
-.filter.columns input[type="checkbox"] {
-    top: 3px !important;
-
+ul.columns {
+    width: 100%;
 }
 
 tr.no-results {
@@ -3717,12 +3723,11 @@ tr.no-results {
     width: 12.5px;
 }
 
-.options li.textFilter > span {
-    padding-right: 10px;
-    padding-top: 5px;
+.options .textFilter {
+    width: 100%;
 }
 
-.options li.textFilter > span.clear {
+.options .textFilter > span.clear {
     position: absolute;
     bottom: 4px;
     right: 2px;
@@ -3730,7 +3735,7 @@ tr.no-results {
     border-radius: 3px;
 }
 
-.options li.textFilter .search {
+.options .textFilter .search {
     padding: 0 10px 0 23px;
     border: 1px solid var(--gray2);
     border-radius: 3px;
@@ -3742,25 +3747,26 @@ tr.no-results {
     background-position: 5px center;
     width: 100%;
     font-size: 90%;
+    display: block;
 }
 
-.options li.textFilter .search:focus {
+.options .textFilter .search:focus {
     border-color: var(--blue);
 }
 
-.options li.textFilter a {
+.options .textFilter a {
     fill: #7a7b85;
     position: relative;
     left: -25px;
     top: 5px;
 }
 
-.options li.textFilter a:hover{
+.options .textFilter a:hover{
     fill: var(--blue);
     cursor: pointer;
 }
 
-.options li.textFilter a svg {
+.options .textFilter a svg {
     width: 13px;
 }
 
@@ -3825,7 +3831,7 @@ table.logs .logType {
     width: 100px;
 }
 
-table.logs .errorLevel {
+table.logs .logLevel {
     min-width: 120px;
     max-width: 120px;
     width: 120px;
@@ -3837,7 +3843,7 @@ table.logs .role {
     width: 100px;
 }
 
-td.errorLevel > span {
+td.logLevel > span {
     text-transform: capitalize;
     display: inline-block;
     width: 70px;
@@ -3847,52 +3853,52 @@ td.errorLevel > span {
     font-weight: bold;
 }
 
-td.errorLevel.INFO > span {
+td.logLevel.INFO > span {
     color: #03D803;
     background: #00F50040;
 }
 
-td.errorLevel.DEBUG > span {
+td.logLevel.DEBUG > span {
     color: #1ACE97;
     background: #21E6AA40;
 }
 
-td.errorLevel.LOG > span {
+td.logLevel.LOG > span {
     color: #4D4F5C;
     background: #4D4F5C40;
 }
 
-.darkmode td.errorLevel.LOG > span {
+.darkmode td.logLevel.LOG > span {
     color: #F0F0F1;
     background: #F0F0F140;
 }
 
-td.errorLevel.NOTICE > span {
+td.logLevel.NOTICE > span {
     color: #228BDE;
     background: #228BDE40;
 }
 
-td.errorLevel.WARNING > span {
+td.logLevel.WARNING > span {
     color: #E6C50D;
     background: #E6C50D40;
 }
 
-td.errorLevel.ERROR > span {
+td.logLevel.ERROR > span {
     color: #FF8900;
     background: #FF890040;
 }
 
-td.errorLevel.PANIC > span, td.errorLevel.CRITICAL > span {
+td.logLevel.PANIC > span, td.logLevel.CRITICAL > span {
     color: #FC373E;
     background: #FC373E40;
 }
 
-td.errorLevel.FATAL > span {
+td.logLevel.FATAL > span {
     color: #AC42FA;
     background: #AC42FA40;
 }
 
-td.errorLevel.NOTSET > span {
+td.logLevel.NOTSET > span {
     color: #7A7B85;
     background: #7A7B8540;
 }
@@ -4312,8 +4318,8 @@ span.closeLog:hover {
 }
 
 .filter.columns input[type="checkbox"] {
-    right: 3px;
-    top: 2px;
+    right: 4px;
+    top: 4px;
     left: auto;
     width: 15px;
     height: 15px;
@@ -4329,16 +4335,13 @@ span.closeLog:hover {
     border-radius: 3px;
     width: 100%;
     margin: 0;
+    padding: 5px;
 }
 
 .filter.columns li.column {
-    width: 33.33%;
+    width: 50%;
     float: left;
     padding: 0 5px;
-}
-
-.filter.columns:not(.filters) li.column {
-    width: 50%;
 }
 
 .filter.columns:not(.filters) ul.options {
