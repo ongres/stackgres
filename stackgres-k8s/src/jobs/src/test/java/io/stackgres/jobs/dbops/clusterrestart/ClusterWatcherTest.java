@@ -67,7 +67,7 @@ class ClusterWatcherTest {
     podTestUtil.preparePods(cluster, 1, 2, 3);
 
     when(patroniApiHandler.getClusterMembers(clusterName, namespace)).thenReturn(
-        Uni.createFrom().item(() -> podTestUtil.getCLusterPods(cluster),
+        Uni.createFrom().item(() -> podTestUtil.getClusterPods(cluster),
             (pods) -> pods.stream()
                 .map(pod -> ImmutableClusterMember.builder()
                     .clusterName(clusterName)
@@ -97,7 +97,7 @@ class ClusterWatcherTest {
     podTestUtil.preparePods(cluster, 1, 2);
 
     when(patroniApiHandler.getClusterMembers(clusterName, namespace)).thenReturn(
-        Uni.createFrom().item(() -> podTestUtil.getCLusterPods(cluster),
+        Uni.createFrom().item(() -> podTestUtil.getClusterPods(cluster),
             (pods) -> pods.stream()
                 .map(pod -> ImmutableClusterMember.builder()
                     .clusterName(clusterName)
@@ -126,7 +126,7 @@ class ClusterWatcherTest {
     podTestUtil.preparePods(cluster, 1, 2, 3);
 
     when(patroniApiHandler.getClusterMembers(clusterName, namespace)).thenReturn(
-        Uni.createFrom().item(() -> podTestUtil.getCLusterPods(cluster),
+        Uni.createFrom().item(() -> podTestUtil.getClusterPods(cluster),
             (pods) -> pods.stream()
                 .map(pod -> ImmutableClusterMember.builder()
                     .clusterName(clusterName)
@@ -155,7 +155,7 @@ class ClusterWatcherTest {
     podTestUtil.preparePods(cluster, 1, 2);
 
     when(patroniApiHandler.getClusterMembers(clusterName, namespace)).thenReturn(
-        Uni.createFrom().item(() -> podTestUtil.getCLusterPods(cluster),
+        Uni.createFrom().item(() -> podTestUtil.getClusterPods(cluster),
             (pods) -> pods.stream()
                 .map(pod -> ImmutableClusterMember.builder()
                     .clusterName(clusterName)

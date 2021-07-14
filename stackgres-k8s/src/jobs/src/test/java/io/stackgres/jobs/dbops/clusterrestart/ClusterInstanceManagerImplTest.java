@@ -10,10 +10,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.notNull;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -177,7 +173,7 @@ class ClusterInstanceManagerImplTest {
     clusterInstanceManager.decreaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
 
-    var pods = podTestUtil.getCLusterPods(cluster);
+    var pods = podTestUtil.getClusterPods(cluster);
 
     assertEquals(2, pods.size());
 
@@ -208,7 +204,7 @@ class ClusterInstanceManagerImplTest {
     clusterInstanceManager.decreaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
 
-    var pods = podTestUtil.getCLusterPods(cluster);
+    var pods = podTestUtil.getClusterPods(cluster);
 
     assertEquals(2, pods.size());
 
@@ -237,7 +233,7 @@ class ClusterInstanceManagerImplTest {
     clusterInstanceManager.decreaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
 
-    var pods = podTestUtil.getCLusterPods(cluster);
+    var pods = podTestUtil.getClusterPods(cluster);
 
     assertEquals(2, pods.size());
 
@@ -269,7 +265,7 @@ class ClusterInstanceManagerImplTest {
     clusterInstanceManager.decreaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
 
-    var pods = podTestUtil.getCLusterPods(cluster);
+    var pods = podTestUtil.getClusterPods(cluster);
 
     assertEquals(0, pods.size());
 
@@ -300,7 +296,7 @@ class ClusterInstanceManagerImplTest {
     clusterInstanceManager.decreaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
 
-    var pods = podTestUtil.getCLusterPods(cluster);
+    var pods = podTestUtil.getClusterPods(cluster);
 
     assertEquals(0, pods.size());
 

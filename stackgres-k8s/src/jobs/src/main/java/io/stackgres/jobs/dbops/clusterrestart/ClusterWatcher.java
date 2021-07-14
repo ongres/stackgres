@@ -46,9 +46,7 @@ public class ClusterWatcher implements Watcher<StackGresCluster> {
   }
 
   private static boolean isAllMembersReady(List<ClusterMember> members) {
-    return members.stream().map(ClusterWatcher::isMemberReady)
-        .reduce((first, second) -> first && second)
-        .orElse(true);
+    return members.stream().allMatch(ClusterWatcher::isMemberReady);
   }
 
   private static boolean isMemberReady(ClusterMember member) {
@@ -70,7 +68,7 @@ public class ClusterWatcher implements Watcher<StackGresCluster> {
           && member.getHost().isPresent()
           && member.getLag().isPresent();
       if (!ready) {
-        LOGGER.debug("Replica pod not ready, state: {}", member);
+        LOGGER.debug("Non leader pod not ready, state: {}", member);
       }
       return ready;
     }
@@ -78,9 +76,7 @@ public class ClusterWatcher implements Watcher<StackGresCluster> {
 
   @Override
   public Uni<StackGresCluster> waitUntilIsReady(String name, String namespace) {
-
     return Uni.createFrom().emitter(em -> {
-
       LOGGER.debug("Looking for SGCluster {} in namespace {}", name, namespace);
       StackGresCluster cluster = clusterFinder.findByNameAndNamespace(name, namespace)
           .orElseThrow(() -> {
@@ -90,17 +86,16 @@ public class ClusterWatcher implements Watcher<StackGresCluster> {
 
       scanClusterPods(cluster)
           .chain(() -> getClusterMembers(cluster))
-          .onFailure().retry().withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
+          .onFailure()
+          .retry()
+          .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
           .indefinitely()
           .subscribe().with(members -> em.complete(cluster));
-
     });
-
   }
 
   private Uni<List<Pod>> scanClusterPods(StackGresCluster cluster) {
     return Uni.createFrom().emitter(em -> {
-
       var podsLabels = labelFactory.patroniClusterLabels(cluster);
       final String labelsAsString = Joiner.on(",").withKeyValueSeparator(":").join(podsLabels);
       LOGGER.debug("Scanning for pods of cluster {} with labels {}",
@@ -120,12 +115,10 @@ public class ClusterWatcher implements Watcher<StackGresCluster> {
             pods.size());
         em.fail(new InvalidCluster("No all pods found"));
       }
-
     });
   }
 
   private Uni<List<ClusterMember>> getClusterMembers(StackGresCluster cluster) {
-
     final String name = cluster.getMetadata().getName();
     LOGGER.debug("Looking for cluster members of cluster {}", name);
     return patroniApiHandler.getClusterMembers(name,

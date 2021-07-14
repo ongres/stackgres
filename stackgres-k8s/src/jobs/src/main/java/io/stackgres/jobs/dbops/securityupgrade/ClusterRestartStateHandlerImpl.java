@@ -9,6 +9,7 @@ import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.crd.sgcluster.ClusterDbOpsRestartStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsSecurityUpgradeStatus;
@@ -39,6 +40,12 @@ public class ClusterRestartStateHandlerImpl extends AbstractRestartStateHandler 
 
           return dbOps.getStatus().getSecurityUpgrade();
         });
+  }
+
+  @Override
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
+  protected void setDbOpRestartStatus(StackGresDbOps dbOps, DbOpsRestartStatus dbOpsStatus) {
+    dbOps.getStatus().setSecurityUpgrade((StackGresDbOpsSecurityUpgradeStatus) dbOpsStatus);
   }
 
   @Override

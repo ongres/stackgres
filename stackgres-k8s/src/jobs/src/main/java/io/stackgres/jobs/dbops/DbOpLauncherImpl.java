@@ -27,6 +27,7 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.jobs.app.JobsProperty;
+import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.lock.ImmutableLockRequest;
 import io.stackgres.jobs.dbops.lock.LockAcquirer;
 import io.stackgres.jobs.dbops.lock.LockRequest;
@@ -58,7 +59,6 @@ public class DbOpLauncherImpl implements DbOpLauncher {
 
   @Override
   public void launchDbOp(String dbOpName, String namespace) {
-
     StackGresDbOps dbOps = dbOpsFinder.findByNameAndNamespace(dbOpName, namespace)
         .orElseThrow(() -> new IllegalArgumentException(StackGresDbOps.KIND + " "
             + dbOpName + " does not exists in namespace " + namespace));
@@ -67,7 +67,6 @@ public class DbOpLauncherImpl implements DbOpLauncher {
         instance.select(new DatabaseOperationLiteral(dbOps.getSpec().getOp()));
 
     if (jobImpl.isResolvable()) {
-
       LOGGER.info("Initializing conditions for SgDbOps {}", dbOps.getMetadata().getName());
       var status = Optional.ofNullable(dbOps.getStatus())
           .orElseGet(() -> {
@@ -94,24 +93,22 @@ public class DbOpLauncherImpl implements DbOpLauncher {
 
         Infrastructure.setDroppedExceptionHandler(err -> LOGGER.error("Dropped exception ", err));
 
-        lockAcquirer.lockRun(lockRequest, (targetCluster) -> {
-          final DatabaseOperationJob databaseOperationJob = jobImpl.get();
+        lockAcquirer
+            .lockRun(lockRequest, (targetCluster) -> {
+              final DatabaseOperationJob databaseOperationJob = jobImpl.get();
 
-          Uni<StackGresDbOps> jobUni = databaseOperationJob.runJob(initializedDbOps, targetCluster);
-          StackGresDbOps completedDbOps;
-          if (initializedDbOps.getSpec().getTimeout() != null) {
-            completedDbOps = jobUni.await()
-                .atMost(Duration.parse(initializedDbOps.getSpec().getTimeout())
-                );
-          } else {
-            completedDbOps = jobUni.await().indefinitely();
-          }
+              Uni<ClusterRestartState> jobUni = databaseOperationJob.runJob(
+                  initializedDbOps, targetCluster);
+              if (initializedDbOps.getSpec().getTimeout() != null) {
+                jobUni.await()
+                    .atMost(Duration.parse(initializedDbOps.getSpec().getTimeout()));
+              } else {
+                jobUni.await().indefinitely();
+              }
+            });
 
-          LOGGER.info("Operation completed for SgDbOp {}", completedDbOps.getMetadata().getName());
-          updateToCompletedConditions(completedDbOps);
-
-        });
-
+        LOGGER.info("Operation completed for SgDbOp {}", dbOpName);
+        updateToCompletedConditions(dbOpName, namespace);
       } catch (TimeoutException timeoutEx) {
         updateToTimeoutConditions(dbOpName, namespace);
         throw timeoutEx;
@@ -119,7 +116,6 @@ public class DbOpLauncherImpl implements DbOpLauncher {
         updateToFailedConditions(dbOpName, namespace);
         throw e;
       }
-
     } else if (jobImpl.isAmbiguous()) {
       throw new IllegalStateException("Multiple implementations of the operation "
           + dbOps.getSpec().getOp() + " found");
@@ -130,23 +126,29 @@ public class DbOpLauncherImpl implements DbOpLauncher {
     }
   }
 
-  private void updateToCompletedConditions(StackGresDbOps dbOps) {
-    dbOps.getStatus().setConditions(getCompletedConditions());
-    dbOpsScheduler.update(dbOps);
+  private void updateToConditions(String dbOpName, String namespace,
+      List<StackGresDbOpsCondition> conditions) {
+    Uni.createFrom().item(() -> dbOpsFinder.findByNameAndNamespace(dbOpName, namespace)
+        .orElseThrow())
+        .invoke(currentDbOps -> currentDbOps.getStatus().setConditions(conditions))
+        .invoke(dbOpsScheduler::update)
+        .onFailure()
+        .retry()
+        .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))
+        .indefinitely()
+        .await().indefinitely();
+  }
+
+  private void updateToCompletedConditions(String dbOpName, String namespace) {
+    updateToConditions(dbOpName, namespace, getCompletedConditions());
   }
 
   private void updateToFailedConditions(String dbOpName, String namespace) {
-    StackGresDbOps dbOps = dbOpsFinder.findByNameAndNamespace(dbOpName, namespace)
-        .orElseThrow();
-    dbOps.getStatus().setConditions(getFailedConditions());
-    dbOpsScheduler.update(dbOps);
+    updateToConditions(dbOpName, namespace, getFailedConditions());
   }
 
   private void updateToTimeoutConditions(String dbOpName, String namespace) {
-    StackGresDbOps dbOps = dbOpsFinder.findByNameAndNamespace(dbOpName, namespace)
-        .orElseThrow();
-    dbOps.getStatus().setConditions(getTimeoutConditions());
-    dbOpsScheduler.update(dbOps);
+    updateToConditions(dbOpName, namespace, getTimeoutConditions());
   }
 
   public List<StackGresDbOpsCondition> getStartingConditions() {

@@ -18,15 +18,14 @@ import java.util.Random;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.cluster.factory.KubernetessMockResourceGenerationUtil;
 import io.stackgres.operator.conciliation.Conciliator;
 import io.stackgres.operator.conciliation.ConciliatorTest;
 import io.stackgres.operator.conciliation.DeployedResourcesScanner;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

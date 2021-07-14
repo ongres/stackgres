@@ -3,6 +3,8 @@
 run_op() {
   set -e
 
+  START_TIMESTAMP="$(date +%s)"
+
   if [ "$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     --template="{{ if .status.dbOps }}{{ if .status.dbOps.$OP_NAME }}true{{ end }}{{ end }}")" != "true" ]
   then
@@ -277,14 +279,28 @@ update_status() {
           echo "$INSTANCE"
           continue
         fi
-        PATRONI_STATUS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$INSTANCE" \
-          --template='{{ .metadata.annotations.status }}')"
-        POD_STATEFULSET_REVISION="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$INSTANCE" \
-          --template='{{ index .metadata.labels "controller-revision-hash" }}')"
-        if [ "$STATEFULSET_UPDATE_REVISION" != "$POD_STATEFULSET_REVISION" ] \
-          || echo "$PATRONI_STATUS" | grep -q '"pending_restart":true'
+        if [ "$ONLY_PENDING_RESTART" != true ]
         then
-          echo "$INSTANCE"
+          POD_CREATION_TIMESTAMP="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$INSTANCE" \
+            --template '{{ .metadata.creationTimestamp }}')"
+          POD_CREATION_TIMESTAMP="$(from_date_iso8601_to_unix_timestamp "$POD_CREATION_TIMESTAMP")"
+          if [ "$POD_CREATION_TIMESTAMP" -lt "$START_TIMESTAMP" ]
+          then
+            echo "$INSTANCE"
+          fi
+        else
+          CLUSTER_POD_STATUS="$(kubectl get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+            -o=jsonpath='{ .status.podStatuses[?(@.name == "'"$INSTANCE"'")].pendingRestart }')"
+          PATRONI_STATUS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$INSTANCE" \
+            --template='{{ .metadata.annotations.status }}')"
+          POD_STATEFULSET_REVISION="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$INSTANCE" \
+            --template='{{ index .metadata.labels "controller-revision-hash" }}')"
+          if [ "$CLUSTER_POD_STATUS" = true ] \
+            || echo "$PATRONI_STATUS" | grep -q '"pending_restart":true' \
+            || [ "$STATEFULSET_UPDATE_REVISION" != "$POD_STATEFULSET_REVISION" ]
+          then
+            echo "$INSTANCE"
+          fi
         fi
       done)"
   PENDING_TO_RESTART_INSTANCES_COUNT="$(echo "$PENDING_TO_RESTART_INSTANCES" | tr ' ' 's' | tr '\n' ' ' | wc -w)"

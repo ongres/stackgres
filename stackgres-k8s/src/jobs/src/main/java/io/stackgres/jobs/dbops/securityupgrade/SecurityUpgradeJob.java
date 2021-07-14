@@ -27,6 +27,7 @@ import io.stackgres.jobs.dbops.ClusterRestartStateHandler;
 import io.stackgres.jobs.dbops.DatabaseOperation;
 import io.stackgres.jobs.dbops.DatabaseOperationJob;
 import io.stackgres.jobs.dbops.StateHandler;
+import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +57,7 @@ public class SecurityUpgradeJob implements DatabaseOperationJob {
   CustomResourceFinder<StackGresDbOps> dbOpsFinder;
 
   @Override
-  public Uni<StackGresDbOps> runJob(StackGresDbOps dbOps, StackGresCluster cluster) {
+  public Uni<ClusterRestartState> runJob(StackGresDbOps dbOps, StackGresCluster cluster) {
     LOGGER.info("Starting SecurityUpgrade for SgDbOps {}", dbOps.getMetadata().getName());
 
     return upgradeClusterAndPauseReconciliation(cluster)

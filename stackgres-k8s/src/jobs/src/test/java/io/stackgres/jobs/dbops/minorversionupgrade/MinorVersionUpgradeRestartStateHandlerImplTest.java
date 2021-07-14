@@ -6,7 +6,8 @@
 package io.stackgres.jobs.dbops.minorversionupgrade;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 
 import java.util.List;
 import java.util.Optional;
@@ -132,10 +133,10 @@ class MinorVersionUpgradeRestartStateHandlerImplTest extends ClusterStateHandler
   }
 
   @Override
-  protected void verifyClusterInitializedStatus(List<Pod> pods, StackGresCluster initializedCluster) {
-    super.verifyClusterInitializedStatus(pods, initializedCluster);
-    var restartStatus = initializedCluster.getStatus().getDbOps().getMinorVersionUpgrade();
+  protected void verifyClusterInitializedStatus(List<Pod> pods, StackGresCluster cluster) {
+    super.verifyClusterInitializedStatus(pods, cluster);
+    var restartStatus = cluster.getStatus().getDbOps().getMinorVersionUpgrade();
     assertEquals(cluster.getSpec().getPostgresVersion(), restartStatus.getTargetPostgresVersion());
-    assertEquals("11.5", initializedCluster.getStatus().getDbOps().getMinorVersionUpgrade().getSourcePostgresVersion());
+    assertEquals("11.5", cluster.getStatus().getDbOps().getMinorVersionUpgrade().getSourcePostgresVersion());
   }
 }

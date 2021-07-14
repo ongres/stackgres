@@ -45,13 +45,11 @@ public class PodTestUtil {
   }
 
   public void preparePods(StackGresCluster cluster, int primaryIndex, int... replicaIndexes) {
-
     createPod(buildPrimaryPod(cluster, primaryIndex));
     createPod(buildJobPod(cluster, primaryIndex));
 
     Arrays.stream(replicaIndexes)
         .forEach(replicaIndex -> createPod(buildReplicaPod(cluster, replicaIndex)));
-
   }
 
   public void createPod(Pod pod) {
@@ -61,7 +59,7 @@ public class PodTestUtil {
         .create(pod);
   }
 
-  public List<Pod> getCLusterPods(StackGresCluster cluster) {
+  public List<Pod> getClusterPods(StackGresCluster cluster) {
     return clientFactory.withNewClient(client ->
         client.pods().inNamespace(cluster.getMetadata().getNamespace())
             .withLabels(labelFactory.patroniClusterLabels(cluster))
