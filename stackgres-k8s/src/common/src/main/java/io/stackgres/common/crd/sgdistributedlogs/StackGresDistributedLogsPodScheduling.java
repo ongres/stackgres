@@ -31,10 +31,6 @@ public class StackGresDistributedLogsPodScheduling {
   @JsonProperty("nodeSelector")
   private Map<String, String> nodeSelector;
 
-  @JsonProperty("nodeAffinity")
-  @Valid
-  private NodeAffinity nodeAffinity;
-
   @JsonProperty("tolerations")
   @Valid
   private List<Toleration> tolerations;
@@ -63,10 +59,6 @@ public class StackGresDistributedLogsPodScheduling {
     this.nodeSelector = nodeSelector;
   }
 
-  public NodeAffinity getNodeAffinity() {
-    return nodeAffinity;
-  }
-
   public List<Toleration> getTolerations() {
     return tolerations;
   }
@@ -85,20 +77,18 @@ public class StackGresDistributedLogsPodScheduling {
     }
     StackGresDistributedLogsPodScheduling other = (StackGresDistributedLogsPodScheduling) obj;
     return Objects.equals(nodeSelector, other.nodeSelector)
-        && Objects.equals(nodeAffinity, other.nodeAffinity)
         && Objects.equals(tolerations, other.tolerations);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(nodeSelector, nodeAffinity, tolerations);
+    return Objects.hash(nodeSelector, tolerations);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("nodeSelector", nodeSelector)
-        .add("modeSelector", nodeAffinity)
         .add("tolerations", tolerations)
         .toString();
   }

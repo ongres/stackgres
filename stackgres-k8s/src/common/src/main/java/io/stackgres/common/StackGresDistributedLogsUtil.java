@@ -54,7 +54,6 @@ public interface StackGresDistributedLogsUtil {
         .map(StackGresDistributedLogsSpec::getScheduling)
         .ifPresent(distributedLogsScheduling -> {
           scheduling.setNodeSelector(distributedLogsScheduling.getNodeSelector());
-          scheduling.setNodeAffinity(distributedLogsScheduling.getNodeAffinity());
           scheduling.setTolerations(distributedLogsScheduling.getTolerations());
         });
     pod.setScheduling(scheduling);
