@@ -33,74 +33,6 @@ e2e_test() {
   run_test "sgcluster's StatefulSet has specified preferred node affinity" check_sts_has_node_affinity_preferred_during_scheduling
 }
 
-assert_sts_node_affinity_match_property(){
-  NODE_AFFINITY_TYPE=$1
-  PROPERTY=$2
-  PROPERTY_VALUE=$3
-
-  case $NODE_AFFINITY_TYPE in
-     required)
-       STS_NODE_AFFINITY_PATH="(index (index .spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms 0).matchExpressions 0)"
-       ;;
-     *)
-       STS_NODE_AFFINITY_PATH="(index (index .spec.template.spec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution 0).preference.matchExpressions 0)"
-       ;;
-  esac
-
-  case $PROPERTY in
-    values)
-      TEMPLATE="{{ (index "$STS_NODE_AFFINITY_PATH".values 0) }}"        
-      ;;
-    *)
-      TEMPLATE="{{ "$STS_NODE_AFFINITY_PATH"."$PROPERTY" }}"          
-      ;;
-  esac
-  echo "Waiting for sts with node affinity "$CLUSTER_NAMESPACE" "$CLUSTER_NAME""
-  if [ "$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    --template "$TEMPLATE")" \
-    = "$PROPERTY_VALUE" ]
-  then
-    echo "SUCCESS. sgcluster's StatefulSet has the configured node affinity required during execution $PROPERTY match"
-  else
-    echo "FAIL. sgcluster's StatefulSet has not the configured node affinity required during execution $PROPERTY match"
-    return 1
-  fi
-}
-
-assert_sgcluster_node_affinity_required_match_property(){
-  NODE_AFFINITY_TYPE=$1
-  PROPERTY=$2
-  PROPERTY_VALUE=$3
-
-  case $NODE_AFFINITY_TYPE in
-     required)
-       SGCLUSTER_NODE_AFFINITY_PATH="(index (index .spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms 0).matchExpressions 0)"
-       ;;
-     *)
-       SGCLUSTER_NODE_AFFINITY_PATH="(index (index .spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution 0).preference.matchExpressions 0)"
-       ;;
-  esac
-
-  case $PROPERTY in
-    values)
-      TEMPLATE="{{ (index "$SGCLUSTER_NODE_AFFINITY_PATH".values 0) }}"        
-      ;;
-    *)
-      TEMPLATE="{{ "$SGCLUSTER_NODE_AFFINITY_PATH"."$PROPERTY" }}"          
-      ;;
-  esac
-
-  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    --template "$TEMPLATE")" \
-    = "$PROPERTY_VALUE" ]
-  then
-    echo "SUCCESS. sgcluster has the configured node affinity $NODE_AFFINITY_TYPE during execution $PROPERTY match"
-  else
-    echo "FAIL. sgcluster has not the configured node affinity $NODE_AFFINITY_TYPE during execution $PROPERTY match"
-    return 1
-  fi
-}
-
 should_sgcluster_has_node_affinity_required_during_scheduling_properties() {
   assert_sgcluster_node_affinity_required_match_property "required" "key" $NODE_AFFINITY_KEY
   assert_sgcluster_node_affinity_required_match_property "required" "operator" $NODE_AFFINITY_OPERATOR
@@ -169,6 +101,74 @@ EOF
     echo "SUCCESS. sgcluster's StatefulSet has the configured node affinity preferred during execution weight property"
   else
     echo "FAIL. sgcluster's StatefulSet has not the configured node affinity preferred during execution weight property"
+    return 1
+  fi
+}
+
+assert_sts_node_affinity_match_property(){
+  NODE_AFFINITY_TYPE=$1
+  PROPERTY=$2
+  PROPERTY_VALUE=$3
+
+  case $NODE_AFFINITY_TYPE in
+     required)
+       STS_NODE_AFFINITY_PATH="(index (index .spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms 0).matchExpressions 0)"
+       ;;
+     *)
+       STS_NODE_AFFINITY_PATH="(index (index .spec.template.spec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution 0).preference.matchExpressions 0)"
+       ;;
+  esac
+
+  case $PROPERTY in
+    values)
+      TEMPLATE="{{ (index "$STS_NODE_AFFINITY_PATH".values 0) }}"        
+      ;;
+    *)
+      TEMPLATE="{{ "$STS_NODE_AFFINITY_PATH"."$PROPERTY" }}"          
+      ;;
+  esac
+  echo "Waiting for sts with node affinity "$CLUSTER_NAMESPACE" "$CLUSTER_NAME""
+  if [ "$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --template "$TEMPLATE")" \
+    = "$PROPERTY_VALUE" ]
+  then
+    echo "SUCCESS. sgcluster's StatefulSet has the configured node affinity required during execution $PROPERTY match"
+  else
+    echo "FAIL. sgcluster's StatefulSet has not the configured node affinity required during execution $PROPERTY match"
+    return 1
+  fi
+}
+
+assert_sgcluster_node_affinity_required_match_property(){
+  NODE_AFFINITY_TYPE=$1
+  PROPERTY=$2
+  PROPERTY_VALUE=$3
+
+  case $NODE_AFFINITY_TYPE in
+     required)
+       SGCLUSTER_NODE_AFFINITY_PATH="(index (index .spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms 0).matchExpressions 0)"
+       ;;
+     *)
+       SGCLUSTER_NODE_AFFINITY_PATH="(index (index .spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution 0).preference.matchExpressions 0)"
+       ;;
+  esac
+
+  case $PROPERTY in
+    values)
+      TEMPLATE="{{ (index "$SGCLUSTER_NODE_AFFINITY_PATH".values 0) }}"        
+      ;;
+    *)
+      TEMPLATE="{{ "$SGCLUSTER_NODE_AFFINITY_PATH"."$PROPERTY" }}"          
+      ;;
+  esac
+
+  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --template "$TEMPLATE")" \
+    = "$PROPERTY_VALUE" ]
+  then
+    echo "SUCCESS. sgcluster has the configured node affinity $NODE_AFFINITY_TYPE during execution $PROPERTY match"
+  else
+    echo "FAIL. sgcluster has not the configured node affinity $NODE_AFFINITY_TYPE during execution $PROPERTY match"
     return 1
   fi
 }
