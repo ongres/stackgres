@@ -810,7 +810,7 @@
 					params += '&to='+this.dateEnd;
 				}
 				
-				let thisCall = '/stackgres/sgcluster/logs/'+this.$route.params.namespace+'/'+this.$route.params.name+params;
+				let thisCall = '/stackgres/namespaces/' + this.$route.params.namespace + '/sgclusters/' + this.$route.params.name + '/logs' + params;
 				vc.fetching = true;
 
 				axios

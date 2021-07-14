@@ -149,7 +149,7 @@ export const mixin = {
               store.commit('updateClusters', cluster);
 
               axios
-              .get('/stackgres/'+cluster.data.metadata.namespace+'/sgclusters/'+cluster.data.metadata.name+'/stats',
+              .get('/stackgres/namespaces/'+cluster.data.metadata.namespace+'/sgclusters/'+cluster.data.metadata.name+'/stats',
                 { 
                   headers: {
                     'content-type': 'application/json'

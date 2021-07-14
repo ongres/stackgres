@@ -308,7 +308,7 @@
 				const vc = this;
 				
 				axios
-				.get('/stackgres/' + vc.$route.params.namespace + '/sgclusters/' + vc.$route.params.name + '/events')
+				.get('/stackgres/namespaces/' + vc.$route.params.namespace + '/sgclusters/' + vc.$route.params.name + '/events')
 				.then( function(response) {
 					vc.events = [...response.data]
 				}).catch(function(err) {

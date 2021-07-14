@@ -366,7 +366,7 @@
 					cloneKind = 'sgpoolconfigs'
 				else if (cloneKind == 'SGPostgresConfigs')
 					cloneKind = 'sgpgconfigs'
-				else if ( (cloneKind == 'SGCluster') && vc.hasProp(cloneCRD.spec, 'distributedLogs.sgDistributedLogs') && !cloneCRD.spec.distributedLogs.sgDistributedLogs.includes('.') )
+				else if ( (cloneKind == 'SGClusters') && vc.hasProp(cloneCRD.spec, 'distributedLogs.sgDistributedLogs') && !cloneCRD.spec.distributedLogs.sgDistributedLogs.includes('.') )
 					cloneCRD.spec.distributedLogs.sgDistributedLogs = vc.$route.params.namespace + '.' + cloneCRD.spec.distributedLogs.sgDistributedLogs;
 
 				if (!vc.missingCRDs.length) {

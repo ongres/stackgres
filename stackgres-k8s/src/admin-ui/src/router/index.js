@@ -488,7 +488,7 @@ router.beforeResolve((to, from, next) => {
             if(component == 'ClusterStatus') {
               /* Check for Cluster status */
               axios
-              .get('/stackgres/'+to.params.namespace+'/sgclusters/'+to.params.name+'/stats')
+              .get('/stackgres/namespaces/'+to.params.namespace+'/sgclusters/'+to.params.name+'/stats')
               .then( function(resp){
                 stats = resp.data;
               }).catch(function(error) {
