@@ -215,7 +215,7 @@ load_image_k8s() {
   local IMAGE_ID
   IMAGE_ID="$( (docker inspect --format '{{ .ID }}' "$1" 2>/dev/null || printf unknown) | grep -v '^$')"
   local KIND_IMAGE_ID
-  KIND_IMAGE_ID="$( (docker exec "${KIND_NAME}-control-plane" crictl inspecti -o go-template --template '{{ .status.id }}' "$1" 2>/dev/null || printf unknown) | grep -v '^$')"
+  KIND_IMAGE_ID="$( (docker exec "${KIND_NAME}-control-plane" crictl inspecti -o json "$1" 2>/dev/null || printf '"id": "unknown"') | jq -r '.status.id' | grep -v '^$')"
   if [ "$IMAGE_ID" = unknown ] && [ "$KIND_IMAGE_ID" != unknown ]
   then
     echo "Image $1 already loaded in kind environemnt $KIND_NAME"
