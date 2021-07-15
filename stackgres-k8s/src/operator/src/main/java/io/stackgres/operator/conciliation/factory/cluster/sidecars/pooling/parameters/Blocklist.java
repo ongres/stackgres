@@ -10,7 +10,6 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 
@@ -19,12 +18,10 @@ public class Blocklist {
   private static final List<String> BLOCKLIST;
 
   static {
-    BLOCKLIST = ImmutableList.<String>builder()
-        .addAll(readResource().entrySet().stream()
-            .filter(e -> !e.getKey().toString().isEmpty())
-            .map(e -> e.getKey().toString())
-            .collect(Collectors.toList()))
-        .build();
+    BLOCKLIST = readResource().entrySet().stream()
+        .filter(e -> !e.getKey().toString().isEmpty())
+        .map(e -> e.getKey().toString())
+        .collect(ImmutableList.toImmutableList());
   }
 
   private Blocklist() {}
@@ -33,6 +30,9 @@ public class Blocklist {
     Properties properties = new Properties();
     try (InputStream is = Blocklist.class.getResourceAsStream(
         "/pgbouncer-blocklist.properties")) {
+      if (is == null) {
+        throw new IOException("Couldn't read pgbouncer-blocklist.properties");
+      }
       properties.load(is);
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);

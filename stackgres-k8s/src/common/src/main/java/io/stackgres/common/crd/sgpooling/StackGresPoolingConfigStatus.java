@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.sgpooling.pgbouncer.StackGresPoolingConfigPgBouncerStatus;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -41,15 +42,15 @@ public class StackGresPoolingConfigStatus implements KubernetesResource {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof StackGresPoolingConfigStatus)) {
       return false;
     }
-    StackGresPoolingConfigStatus that = (StackGresPoolingConfigStatus) o;
-    return Objects.equals(pgBouncer, that.pgBouncer);
+    StackGresPoolingConfigStatus other = (StackGresPoolingConfigStatus) obj;
+    return Objects.equals(pgBouncer, other.pgBouncer);
   }
 
   @Override

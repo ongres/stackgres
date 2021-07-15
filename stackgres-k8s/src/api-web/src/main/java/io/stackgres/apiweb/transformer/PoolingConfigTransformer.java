@@ -20,9 +20,9 @@ import io.stackgres.apiweb.dto.pooling.PoolingConfigPgBouncerStatus;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigSpec;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigStatus;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
+import io.stackgres.common.crd.sgpooling.pgbouncer.StackGresPoolingConfigPgBouncer;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple3;
 
