@@ -55,12 +55,13 @@ public class ExtensionsMutator
 
   @Override
   protected List<StackGresClusterExtension> getExtensions(
-      StackGresDistributedLogs StackGresDistributedLogs) {
+      StackGresDistributedLogs distributedLogs) {
     return ImmutableList.of();
   }
 
   @Override
-  protected ImmutableList<StackGresClusterExtension> getDefaultExtensions(StackGresCluster cluster) {
+  protected ImmutableList<StackGresClusterExtension> getDefaultExtensions(
+      StackGresCluster cluster) {
     return ImmutableList.of(
         getExtension(cluster, "plpgsql"),
         getExtension(cluster, "pg_stat_statements"),
