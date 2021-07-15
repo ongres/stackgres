@@ -36,7 +36,7 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
     R extends AdmissionReview<T>> implements JsonPatchMutator<R> {
 
   protected static final ObjectNode EMPTY_OBJECT = FACTORY.objectNode();
-  protected static ArrayNode EMPTY_ARRAY = FACTORY.arrayNode();
+  protected static final ArrayNode EMPTY_ARRAY = FACTORY.arrayNode();
 
   static final JsonPointer CONFIG_POINTER = JsonPointer.of("spec");
   static final JsonPointer STATUS_POINTER = JsonPointer.of("status");
@@ -66,7 +66,7 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
   private ImmutableList<JsonPatchOperation> mutateExtensions(T customResource) {
     final ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
     final List<StackGresClusterExtension> allExtensions =
-        getExtensionsWithDefaults(operations, customResource);
+        getExtensionsWithDefaults(customResource);
     final List<StackGresClusterInstalledExtension> toInstallExtensions =
         new ArrayList<>(getToInstallExtensions(customResource));
     if (customResource.getStatus() == null) {
@@ -102,10 +102,10 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
     return operations.build();
   }
 
-  protected abstract List<StackGresClusterInstalledExtension> getToInstallExtensions(T customResource);
+  protected abstract List<StackGresClusterInstalledExtension> getToInstallExtensions(
+      T customResource);
 
-  private List<StackGresClusterExtension> getExtensionsWithDefaults(
-      final ImmutableList.Builder<JsonPatchOperation> operations, T customResource) {
+  private List<StackGresClusterExtension> getExtensionsWithDefaults(T customResource) {
     List<StackGresClusterExtension> extensions = getExtensions(customResource);
     List<StackGresClusterExtension> missingDefaultExtensions = Seq.seq(
         getDefaultExtensions(getCluster(customResource)))
@@ -197,9 +197,9 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
           installedExtensionPointer, installedExtension);
       toRemoveFromToInstallPostgresExtensions.remove(0);
     } else {
-      toInstallExtensions.add(installedExtension);
       final JsonPointer installedExtensionPointer =
           TO_INSTALL_EXTENSIONS_POINTER.append(toInstallExtensions.size());
+      toInstallExtensions.add(installedExtension);
       addToInstallExtension(operations, installedExtensionPointer,
           installedExtension);
     }

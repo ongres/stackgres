@@ -67,7 +67,8 @@ public class ExtensionsMutator
   }
 
   @Override
-  protected ImmutableList<StackGresClusterExtension> getDefaultExtensions(StackGresCluster cluster) {
+  protected ImmutableList<StackGresClusterExtension> getDefaultExtensions(
+      StackGresCluster cluster) {
     return ImmutableList.of(
         getExtension(cluster, "plpgsql"),
         getExtension(cluster, "pg_stat_statements"),
