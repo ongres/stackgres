@@ -1,11 +1,11 @@
 #!/bin/sh
 
 e2e_test_install() {
-  local NODE_LABEL_KEY=$(ramdom_string)
-  local NODE_LABEL_VALUE=$(ramdom_string)
-  local NODE_AFFINITY_VALUE=$(ramdom_string)
-  local NODE_AFFINITY_OPERATOR=$(ramdom_string)
-  local NODE_AFFINITY_KEY=$(ramdom_string)
+  NODE_LABEL_KEY=$(ramdom_string)
+  NODE_LABEL_VALUE=$(ramdom_string)
+  NODE_AFFINITY_VALUE=$(ramdom_string)
+  NODE_AFFINITY_OPERATOR=$(ramdom_string)
+  NODE_AFFINITY_KEY=$(ramdom_string)
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
@@ -140,9 +140,9 @@ assert_sts_node_affinity_match_property(){
 }
 
 assert_sgcluster_node_affinity_required_match_property(){
-  local NODE_AFFINITY_TYPE=$1
-  local PROPERTY=$2
-  local PROPERTY_VALUE=$3
+  local NODE_AFFINITY_TYPE="$1"
+  local PROPERTY="$2"
+  local PROPERTY_VALUE="$3"
 
   case "$NODE_AFFINITY_TYPE" in
      required)
@@ -153,7 +153,7 @@ assert_sgcluster_node_affinity_required_match_property(){
        ;;
   esac
 
-  case $PROPERTY in
+  case "$PROPERTY" in
     values)
       TEMPLATE="{{ (index "$SGCLUSTER_NODE_AFFINITY_PATH".values 0) }}"        
       ;;
