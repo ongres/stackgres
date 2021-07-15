@@ -34,6 +34,7 @@ public class OwnerReferenceDecoratorImpl implements
         .filter(resource -> Objects.equals(
             resource.getMetadata().getNamespace(),
             cluster.getMetadata().getNamespace()))
+        .filter(resource -> resource.getMetadata().getOwnerReferences().isEmpty())
         .forEach(resource -> {
           resource.getMetadata().setOwnerReferences(ownerReferences);
           if (resource.getKind().equals("StatefulSet")) {
