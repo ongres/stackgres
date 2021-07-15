@@ -79,5 +79,53 @@
     "url": "https://www.postgresql.org/docs/13/xplang.html",
     "source": "https://github.com/postgres/postgres.git",
     "abstract": "PL/pgSQL procedural language"
+  }, {
+    "name": "test-previous",
+    "license": "PostgreSQL",
+    "description": "Test extension with previous build",
+    "channels": {
+      "stable": "1.0"
+    },
+    "tags": [
+      "test",
+      "previous"
+    ],
+    "versions": [{
+      "version": "1.0",
+      "availableFor": [{
+        "build": "5.0",
+        "postgresVersion": "11.9"
+      }, {
+        "build": "5.0",
+        "postgresVersion": "12.4"
+      }]
+    }],
+    "url": "https://stackgres.io",
+    "source": "https://stackgres.io",
+    "abstract": "Test"
+  }, {
+    "name": "test-next",
+    "license": "PostgreSQL",
+    "description": "Test extension with next build",
+    "channels": {
+      "stable": "1.0"
+    },
+    "tags": [
+      "test",
+      "next"
+    ],
+    "versions": [{
+      "version": "1.0",
+      "availableFor": [{
+        "build": "5.2",
+        "postgresVersion": "11.9"
+      }, {
+        "build": "5.2",
+        "postgresVersion": "12.4"
+      }]
+    }],
+    "url": "https://stackgres.io",
+    "source": "https://stackgres.io",
+    "abstract": "Test"
   }]
 }
