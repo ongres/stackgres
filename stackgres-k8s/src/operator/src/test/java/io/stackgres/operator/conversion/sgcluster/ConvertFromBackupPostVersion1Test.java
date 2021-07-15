@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.stackgres.operator.conversion.ConversionUtil;
 import io.stackgres.testutil.JsonUtil;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,7 +41,7 @@ class ConvertFromBackupPostVersion1Test {
   @Test
   void resourceConversionWithBackupFromVersion1beta1ToVersion1_shouldNotFail() {
     version1Cluster.put("apiVersion", ConversionUtil.API_VERSION_1BETA1);
-    Assert.assertEquals(version1Cluster,
+    JsonUtil.assertJsonEquals(version1Cluster,
         converter.convert(
             ConversionUtil.apiVersionAsNumberOf(version1beta1Cluster),
             ConversionUtil.VERSION_1,
@@ -52,7 +51,7 @@ class ConvertFromBackupPostVersion1Test {
   @Test
   void resourceConversionWithBackupFromVersion1ToVersion1beta1_shouldNotFail() {
     version1beta1Cluster.put("apiVersion", ConversionUtil.API_VERSION_1);
-    Assert.assertEquals(version1beta1Cluster,
+    JsonUtil.assertJsonEquals(version1beta1Cluster,
         converter.convert(
             ConversionUtil.apiVersionAsNumberOf(version1Cluster),
             ConversionUtil.VERSION_1BETA1,

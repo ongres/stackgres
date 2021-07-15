@@ -20,8 +20,12 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.io.CharStreams;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import org.json.JSONException;
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
 
 public class JsonUtil {
 
@@ -106,6 +110,15 @@ public class JsonUtil {
       return JSON_MAPPER.treeToValue(json, clazz);
     } catch (IOException e) {
       throw new IllegalArgumentException("could not convert JSON to " + clazz + "\n\n" + json, e);
+    }
+  }
+
+  public static void assertJsonEquals(ObjectNode expected, ObjectNode actual) {
+    try {
+      JSONAssert.assertEquals(
+          expected.toString(), actual.toString(), JSONCompareMode.STRICT);
+    } catch (JSONException ex) {
+      throw new RuntimeException(ex);
     }
   }
 

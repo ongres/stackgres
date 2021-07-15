@@ -80,7 +80,7 @@ ignore_sgcluster_patch(){
 
   if wait_until -t "15" eval '[ $(get_cluster_replicas) = 2 ]'
   then
-    echo "Fail. SGCluster is not being ignored"
+    echo "FAIL. SGCluster is not being ignored"
     return 1
   else
     echo "Sucess. SGCluster is being ignored"
@@ -93,9 +93,9 @@ resume_sgcluster_reconciliation(){
 
   if wait_until -t "15" eval '[ $(get_cluster_replicas) = 2 ]'
   then
-    echo "Success. SGCluster is not being ignored"    
+    echo "SUCCESS. SGCluster is not being ignored"    
   else
-    echo "Fail. SGCluster is being ignored"
+    echo "FAIL. SGCluster is being ignored"
     return 1
   fi
 }
@@ -118,10 +118,10 @@ EOF
 
   if wait_until -t "15" has_logs_generated_resources
   then
-    echo "Fail. Distributed logs cluster where created"
+    echo "FAIL. Distributed logs cluster where created"
     return 1
   else
-    echo "Success. Distributed logs cluster resources wheren't created"
+    echo "SUCCESS. Distributed logs cluster resources wheren't created"
   fi
 }
 
@@ -138,7 +138,7 @@ ignore_sgdistributedlogs_patch(){
 
   if wait_until -t "15" eval '[ $(get_sgdistributedlogs_replicas) = 1 ]'
   then
-    echo "Fail. Distributed logs is not being ignored"
+    echo "FAIL. Distributed logs is not being ignored"
     return 1
   else
     echo "Sucess. Distributed logs is being ignored"
@@ -150,9 +150,9 @@ resume_sgdistributedlogs_reconciliation(){
 
   if wait_until -t "15" eval '[ $(get_sgdistributedlogs_replicas) = 1 ]'
   then
-    echo "Success. Distributed logs is not being ignored"    
+    echo "SUCCESS. Distributed logs is not being ignored"    
   else
-    echo "Fail. Distributed logs is being ignored"
+    echo "FAIL. Distributed logs is being ignored"
     return 1
   fi
 }

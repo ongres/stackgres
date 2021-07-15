@@ -35,7 +35,7 @@ public class PgConfigDefaultStateMutator
     if (pgConfig.getStatus() == null) {
       pgConfig.setStatus(new StackGresPostgresConfigStatus());
       operations.add(buildAddOperation(
-          PG_CONFIG_DEFAULT_PARAMETERS_POINTER.parent(), mapper.createObjectNode()));
+          PG_CONFIG_DEFAULT_PARAMETERS_POINTER.parent(), MAPPER.createObjectNode()));
     }
     operations.addAll(mutate(PG_CONFIG_DEFAULT_PARAMETERS_POINTER, pgConfig));
     return operations;

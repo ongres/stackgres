@@ -56,11 +56,9 @@ spec:
               type: object
               properties:
                 defaultParameters:
-                  type: array
-                  description: |
-                    List of parameters which are set to their default value.
-                  items:
+                  type: object
+                  additionalProperties:
                     type: string
-                    description: |
-                      Name of a parameter that is set to his default value.
+                  description: |
+                    The `postgresql.conf` default parameters which are used if not set.
               required: ["defaultParameters"]

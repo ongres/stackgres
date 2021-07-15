@@ -75,9 +75,9 @@ check_parameter_count(){
 
   if assert_string_equal "1" "$PARAM_COUNT"
   then
-    echo "Success. $PARAM is appearing only once"
+    echo "SUCCESS. $PARAM is appearing only once"
   else
-    echo "Fail. $PARAM is appearing more than once"
+    echo "FAIL. $PARAM is appearing more than once"
     return 1
   fi
 }

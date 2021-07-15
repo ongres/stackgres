@@ -23,26 +23,26 @@ e2e_test() {
 services_disabled(){
   if kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" > /dev/null 2>&1
   then
-    echo "Fail. Primary service was created"
+    echo "FAIL. Primary service was created"
     return 1
   else
-    echo "Success. Primary service was not created"
+    echo "SUCCESS. Primary service was not created"
   fi
 
   if kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"primary" > /dev/null 2>&1
   then
-    echo "Fail. Primary service was created"
+    echo "FAIL. Primary service was created"
     return 1
   else
-    echo "Success. Primary service was not created"
+    echo "SUCCESS. Primary service was not created"
   fi
 
   if kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"replicas" > /dev/null 2>&1
   then
-    echo "Fail. Replica service was created"
+    echo "FAIL. Replica service was created"
     return 1
   else
-    echo "Success. Replica services was not created"
+    echo "SUCCESS. Replica services was not created"
   fi
 
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"

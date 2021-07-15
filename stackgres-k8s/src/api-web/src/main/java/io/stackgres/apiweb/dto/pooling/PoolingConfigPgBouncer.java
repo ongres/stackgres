@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.pooling;
 
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -19,7 +17,6 @@ import io.stackgres.common.StackGresUtil;
 public class PoolingConfigPgBouncer {
 
   @JsonProperty("pgbouncer.ini")
-  @NotNull(message = "pgbouncer.ini is required")
   private String pgbouncerConf;
 
   public String getPgbouncerConf() {

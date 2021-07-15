@@ -2,17 +2,17 @@
 patroni_ports_check() {
   if patroni_liveness_check
   then
-    echo "Success. Patroni liveness endpoint is accesible"
+    echo "SUCCESS. Patroni liveness endpoint is accesible"
   else
-    echo "Fail. Patroni liveness endpoint is not accesible"
+    echo "FAIL. Patroni liveness endpoint is not accesible"
     return 1
   fi
 
   if patroni_readiness_check
   then
-    echo "Success. Patroni readiness endpoint is accesible"
+    echo "SUCCESS. Patroni readiness endpoint is accesible"
   else
-    echo "Fail. Patroni readiness endpoint is not accesible"
+    echo "FAIL. Patroni readiness endpoint is not accesible"
     return 1
   fi
 }
@@ -20,20 +20,20 @@ patroni_ports_check() {
 patroni_management_check(){
   if patroni_switchover
   then
-    echo "Fail. Patroni switchover was not blocked"
+    echo "FAIL. Patroni switchover was not blocked"
     return 1
   else
-    echo "Success. Patroni switchover was blocked"
+    echo "SUCCESS. Patroni switchover was blocked"
   fi
 }
 
 patroni_direct_check(){
   if patroni_direct_switchover_check
   then
-    echo "Fail. Patroni direct access was not blocked"
+    echo "FAIL. Patroni direct access was not blocked"
     return 1
   else
-    echo "Success. Patroni direct access was blocked"
+    echo "SUCCESS. Patroni direct access was blocked"
   fi
 }
 

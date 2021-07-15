@@ -7,9 +7,6 @@ package io.stackgres.apiweb.dto.pooling;
 
 import java.util.List;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -22,12 +19,9 @@ import io.stackgres.common.StackGresUtil;
 public class PoolingConfigStatus {
 
   @JsonProperty("clusters")
-  @NotNull(message = "clusters is required")
   private List<String> clusters;
 
   @JsonProperty("pgBouncer")
-  @NotNull(message = "pgBouncer is required")
-  @Valid
   private PoolingConfigPgBouncerStatus pgBouncer;
 
   public List<String> getClusters() {

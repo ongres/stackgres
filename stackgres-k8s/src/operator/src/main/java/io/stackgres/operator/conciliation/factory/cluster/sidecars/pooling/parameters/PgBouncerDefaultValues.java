@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.patroni.parameters;
+package io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMap;
 
-public class DefaultValues {
+public class PgBouncerDefaultValues {
 
   private static final Map<String, String> DEFAULTS;
 
@@ -27,12 +27,12 @@ public class DefaultValues {
         .build();
   }
 
-  private DefaultValues() {}
+  private PgBouncerDefaultValues() {}
 
   private static Properties readResource() {
     Properties properties = new Properties();
-    try (InputStream is = DefaultValues.class.getResourceAsStream(
-        "/postgresql-default-values.properties")) {
+    try (InputStream is = PgBouncerDefaultValues.class.getResourceAsStream(
+        "/pgbouncer-default-values.properties")) {
       properties.load(is);
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);

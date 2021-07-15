@@ -5,7 +5,7 @@
 
 package io.stackgres.common.crd.sgpgconfig;
 
-import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import javax.validation.constraints.NotNull;
@@ -26,13 +26,13 @@ public class StackGresPostgresConfigStatus implements KubernetesResource {
 
   @JsonProperty("defaultParameters")
   @NotNull(message = "defaultParameters is required")
-  private List<String> defaultParameters;
+  private Map<String, String> defaultParameters;
 
-  public List<String> getDefaultParameters() {
+  public Map<String, String> getDefaultParameters() {
     return defaultParameters;
   }
 
-  public void setDefaultParameters(List<String> defaultParameters) {
+  public void setDefaultParameters(Map<String, String> defaultParameters) {
     this.defaultParameters = defaultParameters;
   }
 

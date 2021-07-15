@@ -55,11 +55,9 @@ spec:
                     Connection pooling configuration status based on PgBouncer.
                   properties:
                     defaultParameters:
-                      type: array
-                      description: |
-                        List of parameters which are set to theirs default value.
-                      items:
+                      type: object
+                      additionalProperties:
                         type: string
-                        description: |
-                          Name of a parameter that is set to his default value.
+                      description: |
+                        The `pgbouncer.ini` default parameters parameters which are used if not set.
                   required: ["defaultParameters"]

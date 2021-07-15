@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,8 +32,6 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
@@ -42,8 +39,6 @@ import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
-import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.Blocklist;
-import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.DefaultValues;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractPgPooling
@@ -100,20 +95,7 @@ public abstract class AbstractPgPooling
   public @NotNull HasMetadata buildSource(StackGresClusterContext context) {
     final StackGresCluster stackGresCluster = context.getSource();
     Optional<StackGresPoolingConfig> pgbouncerConfig = context.getPoolingConfig();
-    Map<String, String> newParams = pgbouncerConfig.map(StackGresPoolingConfig::getSpec)
-        .map(StackGresPoolingConfigSpec::getPgBouncer)
-        .map(StackGresPoolingConfigPgBouncer::getPgbouncerConf)
-        .orElseGet(HashMap::new);
-    // Blocklist removal
-    for (String bl : Blocklist.getBlocklistParameters()) {
-      newParams.remove(bl);
-    }
-    Map<String, String> params = new HashMap<>(DefaultValues.getDefaultValues());
-
-    for (Map.Entry<String, String> entry : newParams.entrySet()) {
-      params.put(entry.getKey(), entry.getValue());
-    }
-
+    Map<String, String> params = getParameters(pgbouncerConfig);
     Map<String, String> pgbouncerIniParams = new LinkedHashMap<>(DEFAULT_PARAMETERS);
     pgbouncerIniParams.putAll(params);
 
@@ -141,6 +123,9 @@ public abstract class AbstractPgPooling
         .withData(data)
         .build();
   }
+
+  protected abstract Map<String, String> getParameters(
+      Optional<StackGresPoolingConfig> pgbouncerConfig);
 
   @Override
   public Container getContainer(StackGresClusterContainerContext context) {

@@ -196,10 +196,10 @@ check_manual_backup() {
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
-    echo "Fail. Default annotations not created"
+    echo "FAIL. Default annotations not created"
     return 1
   else
-    echo "Success. Defaults annotations created"
+    echo "SUCCESS. Defaults annotations created"
   fi
 
   create_backup "$BACKUP_NAME-3" true

@@ -5,9 +5,6 @@
 
 package io.stackgres.apiweb.dto.pgconfig;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -20,11 +17,9 @@ import io.stackgres.common.StackGresUtil;
 public class PostgresConfigSpec {
 
   @JsonProperty("postgresVersion")
-  @NotBlank(message = "The PostgreSQL version is required")
   private String postgresVersion;
 
   @JsonProperty("postgresql.conf")
-  @NotNull(message = "postgresql.conf is required")
   private String postgresqlConf;
 
   public String getPostgresVersion() {

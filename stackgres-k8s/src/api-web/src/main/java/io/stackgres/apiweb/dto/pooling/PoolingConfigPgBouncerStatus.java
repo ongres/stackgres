@@ -6,9 +6,7 @@
 package io.stackgres.apiweb.dto.pooling;
 
 import java.util.List;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -22,13 +20,10 @@ import io.stackgres.common.StackGresUtil;
 public class PoolingConfigPgBouncerStatus {
 
   @JsonProperty("pgbouncer.ini")
-  @NotNull(message = "pgbouncer.ini is required")
-  @Valid
   private List<PgBouncerIniParameter> pgbouncerConf;
 
   @JsonProperty("defaultParameters")
-  @NotNull(message = "defaultParameters is required")
-  private List<String> defaultParameters;
+  private Map<String, String> defaultParameters;
 
   public List<PgBouncerIniParameter> getPgbouncerConf() {
     return pgbouncerConf;
@@ -38,11 +33,11 @@ public class PoolingConfigPgBouncerStatus {
     this.pgbouncerConf = pgbouncerConf;
   }
 
-  public List<String> getDefaultParameters() {
+  public Map<String, String> getDefaultParameters() {
     return defaultParameters;
   }
 
-  public void setDefaultParameters(List<String> defaultParameters) {
+  public void setDefaultParameters(Map<String, String> defaultParameters) {
     this.defaultParameters = defaultParameters;
   }
 

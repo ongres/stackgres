@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.patroni;
+package io.stackgres.operator.conciliation.factory.cluster.patroni.v09;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,15 +22,15 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.AbstractPatroniConfigEndpoints;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.Blocklist;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
 public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
 
   @Inject
@@ -47,10 +47,7 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
   @Override
   protected Map<String, String> getParemters(StackGresClusterContext context,
       StackGresPostgresConfig pgConfig) {
-    Map<String, String> params = Optional.ofNullable(pgConfig.getStatus())
-        .map(StackGresPostgresConfigStatus::getDefaultParameters)
-        .map(HashMap::new)
-        .orElseGet(() -> new HashMap<>(PostgresDefaultValues.getDefaultValues()));
+    Map<String, String> params = new HashMap<>(PostgresDefaultValues.getDefaultValues());
     Map<String, String> userParams = pgConfig.getSpec().getPostgresqlConf();
     for (String bl : Blocklist.getBlocklistParameters()) {
       userParams.remove(bl);
@@ -86,6 +83,7 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
     params.put("wal_level", "logical");
     params.put("wal_log_hints", "on");
     params.put("archive_mode", "on");
+
     return params;
   }
 

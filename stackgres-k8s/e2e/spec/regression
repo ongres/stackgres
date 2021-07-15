@@ -21,9 +21,9 @@ check_persistent_volume_claim_size() {
 
   if [ "$VOLUME_CLAIM_CAPACITY" = "128Mi" ]
   then
-    echo "Success. Volume Size is the requested"
+    echo "SUCCESS. Volume Size is the requested"
   else
-    echo "Fail. Volume is not the requested. Actual: $VOLUME_CLAIM_CAPACITY"
+    echo "FAIL. Volume is not the requested. Actual: $VOLUME_CLAIM_CAPACITY"
     return 1
   fi 
 }
@@ -55,9 +55,9 @@ check_persistent_volume_claim_is_updated() {
 
   if wait_until check_persistent_volume_claim "256Mi"
   then
-    echo "Success. Volume Size is the requested"
+    echo "SUCCESS. Volume Size is the requested"
   else
-    echo "Fail. Volume is not the requested. Actual: $VOLUME_CLAIM_CAPACITY"
+    echo "FAIL. Volume is not the requested. Actual: $VOLUME_CLAIM_CAPACITY"
     return 1
   fi 
 }
