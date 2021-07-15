@@ -3,12 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.common.crd.sgpooling;
+package io.stackgres.common.crd.sgpooling.pgbouncer;
 
 import java.util.Map;
 import java.util.Objects;
 
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -19,23 +19,23 @@ import io.stackgres.common.StackGresUtil;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackGresPoolingConfigPgBouncer {
+public class StackGresPoolingConfigPgBouncerStatus {
 
-  @JsonProperty("pgbouncer.ini")
-  @NotEmpty(message = "pgbouncer.ini should not be empty")
-  private Map<String, String> pgbouncerConf;
+  @JsonProperty("defaultParameters")
+  @NotNull(message = "defaultParameters is required")
+  private Map<String, String> defaultParameters;
 
-  public Map<String, String> getPgbouncerConf() {
-    return pgbouncerConf;
+  public Map<String, String> getDefaultParameters() {
+    return defaultParameters;
   }
 
-  public void setPgbouncerConf(Map<String, String> pgbouncerConf) {
-    this.pgbouncerConf = pgbouncerConf;
+  public void setDefaultParameters(Map<String, String> defaultParameters) {
+    this.defaultParameters = defaultParameters;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(pgbouncerConf);
+    return Objects.hash(defaultParameters);
   }
 
   @Override
@@ -43,11 +43,11 @@ public class StackGresPoolingConfigPgBouncer {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresPoolingConfigPgBouncer)) {
+    if (!(obj instanceof StackGresPoolingConfigPgBouncerStatus)) {
       return false;
     }
-    StackGresPoolingConfigPgBouncer other = (StackGresPoolingConfigPgBouncer) obj;
-    return Objects.equals(pgbouncerConf, other.pgbouncerConf);
+    StackGresPoolingConfigPgBouncerStatus other = (StackGresPoolingConfigPgBouncerStatus) obj;
+    return Objects.equals(defaultParameters, other.defaultParameters);
   }
 
   @Override
