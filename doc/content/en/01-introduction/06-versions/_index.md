@@ -12,7 +12,7 @@ showToc: true
 | ------ | ----------- |
 | PostgreSQL 13 | 13.2, 13.1, 13.0 |
 | PostgreSQL 12 | 12.6, 12.5, 12.4, 12.3, 12.2 and 12.1 |
-| Patroni | 1.6.5 |
+| Patroni | 2.0.2 |
 | WAL-G | 0.2.19 |
 | PgBouncer | 1.15.0 |
 | Postgres Exporter | 0.9.0 |
@@ -30,7 +30,7 @@ showToc: true
 | ------ | ----------- |
 | PostgreSQL 12 | 12.6, 12.5, 12.4, 12.3, 12.2 and 12.1 |
 | PostgreSQL 11 | 11.11, 11.10, 11.9, 11.8, 11.7 and 11.6 |
-| Patroni | 1.6.5 |
+| Patroni | 2.0.2 |
 | WAL-G | 0.2.19 |
 | PgBouncer | 1.15.0 |
 | Postgres Exporter | 0.9.0 |
@@ -48,7 +48,7 @@ showToc: true
 | ------ | ----------- |
 | PostgreSQL 12 | 12.6, 12.5, 12.4, 12.3, 12.2 and 12.1 |
 | PostgreSQL 11 | 11.11, 11.10, 11.9, 11.8, 11.7 and 11.6 |
-| Patroni | 1.6.5 |
+| Patroni | 2.0.2 |
 | WAL-G | 0.2.19 |
 | PgBouncer | 1.15.0 |
 | Postgres Exporter | 0.9.0 |
