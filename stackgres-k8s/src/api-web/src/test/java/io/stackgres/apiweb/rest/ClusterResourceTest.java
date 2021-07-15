@@ -575,6 +575,8 @@ class ClusterResourceTest
           assertNotNull(dtoSpecPods.getScheduling());
           assertEquals(resourcePod.getScheduling().getNodeSelector(),
               dtoSpecPods.getScheduling().getNodeSelector());
+          assertEquals(resourcePod.getScheduling().getNodeAffinity(),
+              dtoSpecPods.getScheduling().getNodeAffinity());
         } else {
           assertNull(dtoSpecPods.getScheduling());
         }
@@ -780,6 +782,7 @@ class ClusterResourceTest
         if (podScheduling != null) {
           assertNotNull(resourceScheduling);
           assertEquals(podScheduling.getNodeSelector(), resourceScheduling.getNodeSelector());
+          assertEquals(podScheduling.getNodeAffinity(), resourceScheduling.getNodeAffinity());
         } else {
           assertNull(resourceScheduling);
         }

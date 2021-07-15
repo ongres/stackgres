@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.NodeAffinity;
 import io.stackgres.common.crd.Toleration;
 
 @JsonDeserialize
@@ -21,6 +22,8 @@ public class ClusterPodScheduling {
 
   private Map<String, String> nodeSelector;
 
+  private NodeAffinity nodeAffinity;
+
   private List<Toleration> tolerations;
 
   public Map<String, String> getNodeSelector() {
@@ -29,6 +32,14 @@ public class ClusterPodScheduling {
 
   public void setNodeSelector(Map<String, String> nodeSelector) {
     this.nodeSelector = nodeSelector;
+  }
+
+  public NodeAffinity getNodeAffinity() {
+    return nodeAffinity;
+  }
+
+  public void setNodeAffinity(NodeAffinity nodeAffinity) {
+    this.nodeAffinity = nodeAffinity;
   }
 
   public List<Toleration> getTolerations() {
