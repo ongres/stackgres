@@ -91,8 +91,8 @@
 
 			<div id="clone" :class="clone.hasOwnProperty('name') ? 'show' : ''">
 				<form class="form">
-					<div class="header">
-						<h2>Clone {{ clone.kind }}</h2>
+					<div class="header" v-if="clone.hasOwnProperty('kind')">
+						<h2>Clone {{ (clone.kind == 'SGDistributedLogs') ? clone.kind : clone.kind.slice(0, -1) }}</h2>
 					</div>
 					<label for="cloneNamespace">Namespace <span class="req">*</span></label>
 					<select @change="setCloneNamespace" id="cloneNamespace">
@@ -102,11 +102,11 @@
 					<label for="cloneName">Name <span class="req">*</span></label>
 					<input @keyup="setCloneName" id="cloneName" autocomplete="off">
 
-					<span class="warning" v-if="nameCollision">
-						There's already a <strong>{{ clone.kind }}</strong> with the same name on the specified namespace. Please specify a different name or choose another namespace
+					<span class="warning" v-if="clone.hasOwnProperty('kind') && nameCollision">
+						There's already a <strong>{{ (clone.kind == 'SGDistributedLogs') ? clone.kind : clone.kind.slice(0, -1) }}</strong> with the same name on the specified namespace. Please specify a different name or choose another namespace
 					</span>
 
-					<span class="warning" v-if="clone.kind == 'SGCluster'">
+					<span class="warning" v-if="clone.kind == 'SGClusters'">
 						This action will create a new cluster with the same configuration as the source cluster. Please note that:
 						<ul>
 							<li>The cluster will be created as soon as this configuration is copied</li>
@@ -224,27 +224,27 @@
 				let collision = {};
 
 				switch(store.state.cloneCRD.kind) {
-					case 'SGCluster':
+					case 'SGClusters':
 						collision = store.state.clusters.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
 						break;
 
-					case 'SGBackupConfig':
+					case 'SGBackupConfigs':
 						collision = store.state.backupConfig.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
 						break;
 
-					case 'SGBackup':
+					case 'SGBackups':
 						collision = store.state.backups.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
 						break;
 
-					case 'SGInstanceProfile':
+					case 'SGInstanceProfiles':
 						collision = store.state.profiles.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
 						break;
 
-					case 'SGPoolingConfig':
+					case 'SGPoolingConfigs':
 						collision = store.state.poolConfig.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
 						break;
 
-					case 'SGPostgresConfig':
+					case 'SGPostgresConfigs':
 						collision = store.state.pgConfig.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
 						break;
 
@@ -265,7 +265,7 @@
 					let targetNamespace = cloneCRD.metadata.namespace;
 
 
-					if (cloneKind == 'SGCluster') {
+					if (cloneKind == 'SGClusters') {
 
 						let profile = store.state.profiles.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.sgInstanceProfile))
 						if (typeof profile == 'undefined')
