@@ -341,8 +341,16 @@ svg.background circle {
     display: block;
 }
 
-.fRight {
+.floatRight {
     float: right;
+}
+
+.xsPad {
+    padding: 10px;
+}
+
+.pad {
+    padding: 20px;
 }
 
 /* Log in */
