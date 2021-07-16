@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.conciliation.comparator.ResourceComparator;
@@ -28,5 +29,13 @@ public abstract class StackGresResourceComparisonDelegator<T extends CustomResou
 
     return comparator
         .isResourceContentEqual(required, deployed);
+  }
+
+  @Override
+  public ArrayNode getJsonDiff(HasMetadata required, HasMetadata deployed) {
+    ResourceComparator comparator = getComparator(required);
+
+    return comparator
+        .getJsonDiff(required, deployed);
   }
 }

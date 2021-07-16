@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -49,6 +50,11 @@ public abstract class ConciliatorTest<T extends CustomResource<?, ?>> {
     @Override
     public boolean isResourceContentEqual(HasMetadata required, HasMetadata deployed) {
       return comparator.isResourceContentEqual(required, deployed);
+    }
+
+    @Override
+    public ArrayNode getJsonDiff(HasMetadata required, HasMetadata deployed) {
+      return comparator.getJsonDiff(required, deployed);
     }
   };
 

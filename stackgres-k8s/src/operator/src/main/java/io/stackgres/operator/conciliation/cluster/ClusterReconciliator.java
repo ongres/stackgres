@@ -27,6 +27,9 @@ import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.operator.common.PatchResumer;
+import io.stackgres.operator.conciliation.ComparisonDelegator;
+import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StackGresReconciliator;
 import io.stackgres.operator.conciliation.StatusManager;
 import org.slf4j.helpers.MessageFormatter;
@@ -48,6 +51,8 @@ public class ClusterReconciliator
   private CustomResourceScheduler<StackGresBackup> backupScheduler;
 
   private CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
+
+  private PatchResumer patchResumer;
 
   @Override
   public void onPreReconciliation(StackGresCluster config) {
@@ -93,20 +98,21 @@ public class ClusterReconciliator
   }
 
   @Override
-  public void onConfigCreated(StackGresCluster cluster) {
+  public void onConfigCreated(StackGresCluster cluster, ReconciliationResult result) {
+    final String resourceChanged = patchResumer.resourceChanged(cluster, result);
     eventController.sendEvent(ClusterEventReason.CLUSTER_CREATED,
-        "StackGres Cluster " + cluster.getMetadata().getNamespace() + "."
-            + cluster.getMetadata().getName() + " created", cluster);
+        "Cluster " + cluster.getMetadata().getNamespace() + "."
+            + cluster.getMetadata().getName() + " created: " + resourceChanged, cluster);
     statusManager.updateCondition(
         ClusterStatusCondition.FALSE_FAILED.getCondition(), cluster);
   }
 
   @Override
-  public void onConfigUpdated(StackGresCluster cluster) {
-
+  public void onConfigUpdated(StackGresCluster cluster, ReconciliationResult result) {
+    final String resourceChanged = patchResumer.resourceChanged(cluster, result);
     eventController.sendEvent(ClusterEventReason.CLUSTER_UPDATED,
-        "StackGres Cluster " + cluster.getMetadata().getNamespace() + "."
-            + cluster.getMetadata().getName() + " updated", cluster);
+        "Cluster " + cluster.getMetadata().getNamespace() + "."
+            + cluster.getMetadata().getName() + " updated: " + resourceChanged, cluster);
     statusManager.updateCondition(
         ClusterStatusCondition.FALSE_FAILED.getCondition(), cluster);
   }
@@ -114,7 +120,7 @@ public class ClusterReconciliator
   @Override
   public void onError(Exception ex, StackGresCluster cluster) {
     String message = MessageFormatter.arrayFormat(
-        "StackGres Cluster reconciliation cycle failed",
+        "Cluster reconciliation cycle failed",
         new String[]{
         }).getMessage();
     eventController.sendEvent(ClusterEventReason.CLUSTER_CONFIG_ERROR,
@@ -156,5 +162,10 @@ public class ClusterReconciliator
   @Inject
   public void setBackupEventEmitter(EventEmitter<StackGresBackup> backupEventEmitter) {
     this.backupEventEmitter = backupEventEmitter;
+  }
+
+  @Inject
+  public void setResourceComparator(ComparisonDelegator<StackGresCluster> resourceComparator) {
+    this.patchResumer = new PatchResumer(resourceComparator);
   }
 }
