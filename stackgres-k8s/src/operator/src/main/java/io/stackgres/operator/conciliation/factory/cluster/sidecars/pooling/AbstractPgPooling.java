@@ -48,10 +48,14 @@ import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContai
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractPgPooling
     implements ContainerFactory<StackGresClusterContainerContext>,
     VolumeFactory<StackGresClusterContext> {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractPgPooling.class);
 
   private static final String NAME = "pgbouncer";
 
@@ -115,13 +119,10 @@ public abstract class AbstractPgPooling
         .map(StackGresPoolingConfigPgBouncer::getUsers)
         .orElseGet(HashMap::new);
 
-    String configFile = "\n"
+    String configFile = ""
         + getDatabaseSection(databases)
-        + "\n"
         + getUserSection(users)
-        + "\n"
-        + getPgBouncerSection(parameters)
-        + "\n";
+        + getPgBouncerSection(parameters);
 
     Map<String, String> data = ImmutableMap.of("pgbouncer.ini", configFile);
 
@@ -149,7 +150,7 @@ public abstract class AbstractPgPooling
         .map(entry -> entry.getKey() + " = " + entry.getValue())
         .collect(Collectors.joining("\n"));
 
-    return "[pgbouncer]\n" + pgBouncerConfig;
+    return "[pgbouncer]\n" + pgBouncerConfig + "\n";
   }
 
   private String getUserSection(Map<String, StackGresPoolingConfigPgBouncerUsers> users) {
@@ -166,7 +167,7 @@ public abstract class AbstractPgPooling
         })
         .collect(Collectors.joining("\n"));
     return !users.isEmpty()
-        ? "[users]\n" + usersSection
+        ? "[users]\n" + usersSection + "\n\n"
         : "";
   }
 
@@ -187,8 +188,8 @@ public abstract class AbstractPgPooling
         })
         .collect(Collectors.joining("\n"));
     return !databases.isEmpty()
-        ? "[databases]\n" + databasesSection
-        : "[databases]\n" + "* = port=" + EnvoyUtil.PG_PORT + "\n";
+        ? "[databases]\n" + databasesSection + "\n\n"
+        : "[databases]\n" + "* = port=" + EnvoyUtil.PG_PORT + "\n\n";
   }
 
   /**
@@ -207,6 +208,8 @@ public abstract class AbstractPgPooling
       if (method.getName().equals(methodName)) {
         try {
           Object invoke = method.invoke(values, (Object[]) null);
+          LOG.debug("invoke {}::{}, result: {}", values.getClass().getSimpleName(),
+              methodName, invoke);
           return Optional.ofNullable(invoke).map(val -> param + "=" + val.toString());
         } catch (IllegalAccessException | IllegalArgumentException
             | InvocationTargetException ignore) {
