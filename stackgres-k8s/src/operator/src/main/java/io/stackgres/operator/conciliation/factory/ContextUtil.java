@@ -65,7 +65,7 @@ public class ContextUtil {
 
     final List<StackGresClusterInstalledExtension> installedExtensions = Optional
         .ofNullable(cluster.getStatus())
-        .map(StackGresClusterStatus::getToInstallPostgresExtensions)
+        .map(StackGresClusterStatus::getPostgresExtensions)
         .stream()
         .flatMap(Collection::stream)
         .collect(Collectors.toUnmodifiableList());
@@ -82,7 +82,7 @@ public class ContextUtil {
 
     List<StackGresClusterInstalledExtension> installedExtensions = Optional
         .ofNullable(distributedLogs.getStatus())
-        .map(StackGresDistributedLogsStatus::getToInstallPostgresExtensions)
+        .map(StackGresDistributedLogsStatus::getPostgresExtensions)
         .stream()
         .flatMap(Collection::stream)
         .collect(Collectors.toUnmodifiableList());

@@ -155,7 +155,7 @@ spec:
                       type:
                         description: Type of deployment condition.
                         type: string
-                toInstallPostgresExtensions:
+                postgresExtensions:
                   type: array
                   description: The list of Postgres extensions to install.
                   items:

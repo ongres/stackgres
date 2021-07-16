@@ -49,7 +49,7 @@ public class ExtensionsMutator
       StackGresCluster cluster) {
     return Optional.of(cluster)
         .map(StackGresCluster::getStatus)
-        .map(StackGresClusterStatus::getToInstallPostgresExtensions)
+        .map(StackGresClusterStatus::getPostgresExtensions)
         .orElse(ImmutableList.of());
   }
 
