@@ -20,17 +20,17 @@ import io.stackgres.common.StackGresUtil;
 public class PoolingConfigPgBouncerStatus {
 
   @JsonProperty("pgbouncer.ini")
-  private List<PgBouncerIniParameter> pgbouncerConf;
+  private List<PgBouncerIniParameter> parameters;
 
   @JsonProperty("defaultParameters")
   private Map<String, String> defaultParameters;
 
-  public List<PgBouncerIniParameter> getPgbouncerConf() {
-    return pgbouncerConf;
+  public List<PgBouncerIniParameter> getParameters() {
+    return parameters;
   }
 
-  public void setPgbouncerConf(List<PgBouncerIniParameter> pgbouncerConf) {
-    this.pgbouncerConf = pgbouncerConf;
+  public void setParameters(List<PgBouncerIniParameter> parameters) {
+    this.parameters = parameters;
   }
 
   public Map<String, String> getDefaultParameters() {

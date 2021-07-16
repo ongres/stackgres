@@ -24,7 +24,7 @@ public class StackGresPoolingConfigPgBouncer {
 
   @JsonProperty("pgbouncer.ini")
   @NotEmpty(message = "pgbouncer.ini should not be empty")
-  private Map<String, String> pgbouncerConf;
+  private Map<String, String> parameters;
 
   @JsonProperty("databases")
   @Valid
@@ -34,12 +34,12 @@ public class StackGresPoolingConfigPgBouncer {
   @Valid
   private Map<String, StackGresPoolingConfigPgBouncerUsers> users;
 
-  public Map<String, String> getPgbouncerConf() {
-    return pgbouncerConf;
+  public Map<String, String> getParameters() {
+    return parameters;
   }
 
-  public void setPgbouncerConf(Map<String, String> pgbouncerConf) {
-    this.pgbouncerConf = pgbouncerConf;
+  public void setParameters(Map<String, String> parameters) {
+    this.parameters = parameters;
   }
 
   public Map<String, StackGresPoolingConfigPgBouncerDatabases> getDatabases() {
@@ -60,7 +60,7 @@ public class StackGresPoolingConfigPgBouncer {
 
   @Override
   public int hashCode() {
-    return Objects.hash(databases, pgbouncerConf, users);
+    return Objects.hash(databases, parameters, users);
   }
 
   @Override
@@ -73,7 +73,8 @@ public class StackGresPoolingConfigPgBouncer {
     }
     StackGresPoolingConfigPgBouncer other = (StackGresPoolingConfigPgBouncer) obj;
     return Objects.equals(databases, other.databases)
-        && Objects.equals(pgbouncerConf, other.pgbouncerConf) && Objects.equals(users, other.users);
+        && Objects.equals(parameters, other.parameters)
+        && Objects.equals(users, other.users);
   }
 
   @Override

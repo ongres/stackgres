@@ -75,7 +75,7 @@ class PgbouncerConfigResourceTest extends AbstractDependencyCustomResourceTest
         "max_client_conn=100",
         "pool_mode='transaction'")
         .toString("\n"),
-        resource.getSpec().getPgBouncer().getPgbouncerConf());
+        resource.getSpec().getPgBouncer().getParameters());
     assertNotNull(resource.getStatus());
     assertNotNull(resource.getStatus().getClusters());
     assertEquals(2, resource.getStatus().getClusters().size());
@@ -112,7 +112,7 @@ class PgbouncerConfigResourceTest extends AbstractDependencyCustomResourceTest
         "default_pool_size", "200",
         "max_client_conn", "100",
         "pool_mode", "'transaction'"),
-        resource.getSpec().getPgBouncer().getPgbouncerConf());
+        resource.getSpec().getPgBouncer().getParameters());
   }
 
 }

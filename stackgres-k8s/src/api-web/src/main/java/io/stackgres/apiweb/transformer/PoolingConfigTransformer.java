@@ -57,12 +57,12 @@ public class PoolingConfigTransformer
       return null;
     }
     StackGresPoolingConfigSpec transformation = new StackGresPoolingConfigSpec();
-    Optional.ofNullable(source)
+    Optional.of(source)
         .map(PoolingConfigSpec::getPgBouncer)
-        .map(PoolingConfigPgBouncer::getPgbouncerConf)
+        .map(PoolingConfigPgBouncer::getParameters)
         .ifPresent(pgbouncerConf -> {
           transformation.setPgBouncer(new StackGresPoolingConfigPgBouncer());
-          transformation.getPgBouncer().setPgbouncerConf(Seq.of(pgbouncerConf.split("\n"))
+          transformation.getPgBouncer().setParameters(Seq.of(pgbouncerConf.split("\n"))
               .map(line -> line.replaceAll("#.*$", ""))
               .skipUntil(line -> !pgbouncerConf.contains("[pgbouncer]")
                   || line.matches("^\\s*\\[pgbouncer\\]\\s*$"))
@@ -73,7 +73,6 @@ public class PoolingConfigTransformer
                   matcher -> matcher.group(1),
                   matcher -> matcher.group(2) != null
                       ? matcher.group(2) : matcher.group(3))));
-
         });
     return transformation;
   }
@@ -81,8 +80,8 @@ public class PoolingConfigTransformer
   private PoolingConfigSpec getResourceSpec(StackGresPoolingConfigSpec source) {
     PoolingConfigSpec transformation = new PoolingConfigSpec();
     transformation.setPgBouncer(new PoolingConfigPgBouncer());
-    transformation.getPgBouncer().setPgbouncerConf(
-        Seq.seq(source.getPgBouncer().getPgbouncerConf().entrySet())
+    transformation.getPgBouncer().setParameters(
+        Seq.seq(source.getPgBouncer().getParameters().entrySet())
             .map(e -> e.getKey() + "=" + e.getValue())
             .toString("\n"));
     return transformation;
@@ -93,8 +92,8 @@ public class PoolingConfigTransformer
     PoolingConfigStatus transformation = new PoolingConfigStatus();
     transformation.setClusters(clusters);
     transformation.setPgBouncer(new PoolingConfigPgBouncerStatus());
-    transformation.getPgBouncer().setPgbouncerConf(
-        Seq.seq(sourceSpec.getPgBouncer().getPgbouncerConf())
+    transformation.getPgBouncer().setParameters(
+        Seq.seq(sourceSpec.getPgBouncer().getParameters())
           .map(t -> t.concat(new PgBouncerIniParameter()))
           .peek(t -> t.v3.setParameter(t.v1))
           .peek(t -> t.v3.setValue(t.v2))

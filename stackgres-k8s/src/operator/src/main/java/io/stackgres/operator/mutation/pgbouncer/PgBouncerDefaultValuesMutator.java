@@ -6,6 +6,7 @@
 package io.stackgres.operator.mutation.pgbouncer;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
 
@@ -13,7 +14,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.common.crd.sgpooling.pgbouncer.StackGresPoolingConfigPgBouncer;
@@ -49,8 +49,8 @@ public class PgBouncerDefaultValuesMutator
       spec.setPgBouncer(pgBouncer);
       operations.add(new AddOperation(PG_BOUNCER_CONFIG_POINTER.parent(), FACTORY.objectNode()));
     }
-    if (pgBouncer.getPgbouncerConf() == null) {
-      pgBouncer.setPgbouncerConf(ImmutableMap.of());
+    if (pgBouncer.getParameters() == null) {
+      pgBouncer.setParameters(Map.of());
       operations.add(new AddOperation(PG_BOUNCER_CONFIG_POINTER, FACTORY.objectNode()));
     }
 

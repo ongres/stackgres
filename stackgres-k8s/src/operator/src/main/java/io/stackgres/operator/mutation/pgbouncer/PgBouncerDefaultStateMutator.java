@@ -14,7 +14,6 @@ import javax.enterprise.context.ApplicationScoped;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonpatch.JsonPatchOperation;
-import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
@@ -55,7 +54,7 @@ public class PgBouncerDefaultStateMutator
   protected Map<String, String> getParametersNode(StackGresPoolingConfig incomingResource) {
     return Optional.ofNullable(incomingResource.getSpec())
         .map(StackGresPoolingConfigSpec::getPgBouncer)
-        .map(StackGresPoolingConfigPgBouncer::getPgbouncerConf)
-        .orElse(ImmutableMap.of());
+        .map(StackGresPoolingConfigPgBouncer::getParameters)
+        .orElseGet(Map::of);
   }
 }

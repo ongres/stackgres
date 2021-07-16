@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.validation.pooling;
 
-import java.util.HashMap;
+import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -29,7 +29,7 @@ public class PoolingValidationPipelineTest
   public PoolingReview getConstraintViolatingReview() {
     PoolingReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getPgBouncer().setPgbouncerConf(new HashMap<>());
+    review.getRequest().getObject().getSpec().getPgBouncer().setParameters(Map.of());
 
     return review;
   }
