@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.distributedlogs;
 
-import javax.validation.constraints.NotBlank;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -28,15 +26,12 @@ public class DistributedLogsCondition implements KubernetesResource {
   private String message;
 
   @JsonProperty("reason")
-  @NotBlank(message = "The condition reason is required")
   private String reason;
 
   @JsonProperty("status")
-  @NotBlank(message = "The condition status is required")
   private String status;
 
   @JsonProperty("type")
-  @NotBlank(message = "The condition type is required")
   private String type;
 
   /**

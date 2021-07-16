@@ -41,7 +41,7 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
   static final JsonPointer CONFIG_POINTER = JsonPointer.of("spec");
   static final JsonPointer STATUS_POINTER = JsonPointer.of("status");
   static final JsonPointer TO_INSTALL_EXTENSIONS_POINTER =
-      STATUS_POINTER.append("toInstallPostgresExtensions");
+      STATUS_POINTER.append("postgresExtensions");
   private final ClusterExtensionMetadataManager extensionMetadataManager;
 
   public AbstractExtensionsMutator(
@@ -73,7 +73,7 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
       operations.add(new AddOperation(STATUS_POINTER, EMPTY_OBJECT));
       operations.add(new AddOperation(TO_INSTALL_EXTENSIONS_POINTER,
           EMPTY_ARRAY));
-    } else if (getCluster(customResource).getStatus().getToInstallPostgresExtensions() == null) {
+    } else if (getCluster(customResource).getStatus().getPostgresExtensions() == null) {
       operations.add(new AddOperation(TO_INSTALL_EXTENSIONS_POINTER,
           EMPTY_ARRAY));
     }
@@ -258,6 +258,9 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
   private void addToInstallExtension(ImmutableList.Builder<JsonPatchOperation> operations,
       JsonPointer installedExtensionPointer,
       StackGresClusterInstalledExtension installedExtension) {
+    operations.add(new AddOperation(
+        installedExtensionPointer,
+        EMPTY_OBJECT));
     operations.add(new AddOperation(
         installedExtensionPointer.append("name"),
         new TextNode(installedExtension.getName())));

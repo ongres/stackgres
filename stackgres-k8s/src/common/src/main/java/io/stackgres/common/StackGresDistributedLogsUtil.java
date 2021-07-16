@@ -105,9 +105,9 @@ public interface StackGresDistributedLogsUtil {
     spec.setMetadata(metadata);
     distributedLogsCluster.setSpec(spec);
     distributedLogsCluster.setStatus(new StackGresClusterStatus());
-    distributedLogsCluster.getStatus().setToInstallPostgresExtensions(
+    distributedLogsCluster.getStatus().setPostgresExtensions(
         Optional.ofNullable(distributedLogs.getStatus())
-        .map(StackGresDistributedLogsStatus::getToInstallPostgresExtensions)
+        .map(StackGresDistributedLogsStatus::getPostgresExtensions)
         .orElse(null));
     return distributedLogsCluster;
   }

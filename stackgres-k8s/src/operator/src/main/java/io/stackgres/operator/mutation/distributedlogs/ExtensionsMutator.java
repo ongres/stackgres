@@ -44,7 +44,7 @@ public class ExtensionsMutator
       StackGresDistributedLogs distributedLogs) {
     return Optional.of(distributedLogs)
         .map(StackGresDistributedLogs::getStatus)
-        .map(StackGresDistributedLogsStatus::getToInstallPostgresExtensions)
+        .map(StackGresDistributedLogsStatus::getPostgresExtensions)
         .orElse(ImmutableList.of());
   }
 

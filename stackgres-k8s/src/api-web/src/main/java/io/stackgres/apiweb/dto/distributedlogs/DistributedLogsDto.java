@@ -5,9 +5,6 @@
 
 package io.stackgres.apiweb.dto.distributedlogs;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.ResourceDto;
@@ -17,12 +14,9 @@ import io.stackgres.common.StackGresUtil;
 public class DistributedLogsDto extends ResourceDto {
 
   @JsonProperty("spec")
-  @NotNull(message = "The specification is required")
-  @Valid
   private DistributedLogsSpec spec;
 
   @JsonProperty("status")
-  @Valid
   private DistributedLogsStatus status;
 
   public DistributedLogsSpec getSpec() {

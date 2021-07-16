@@ -164,7 +164,7 @@ public class ClusterControllerReconciliationCycle
     return ImmutableStackGresClusterContext.builder()
         .cluster(cluster)
         .extensions(Optional.ofNullable(cluster.getStatus())
-            .map(StackGresClusterStatus::getToInstallPostgresExtensions)
+            .map(StackGresClusterStatus::getPostgresExtensions)
             .orElse(ImmutableList.of()))
         .labels(labelFactory.clusterLabels(cluster))
         .build();

@@ -32,9 +32,9 @@ public class StackGresDistributedLogsStatus implements KubernetesResource {
   @Valid
   private List<StackGresDistributedLogsCondition> conditions = new ArrayList<>();
 
-  @JsonProperty("toInstallPostgresExtensions")
+  @JsonProperty("postgresExtensions")
   @Valid
-  private List<StackGresClusterInstalledExtension> toInstallPostgresExtensions;
+  private List<StackGresClusterInstalledExtension> postgresExtensions;
 
   @JsonProperty("podStatuses")
   @Valid
@@ -59,13 +59,13 @@ public class StackGresDistributedLogsStatus implements KubernetesResource {
     this.conditions = conditions;
   }
 
-  public List<StackGresClusterInstalledExtension> getToInstallPostgresExtensions() {
-    return toInstallPostgresExtensions;
+  public List<StackGresClusterInstalledExtension> getPostgresExtensions() {
+    return postgresExtensions;
   }
 
-  public void setToInstallPostgresExtensions(
-      List<StackGresClusterInstalledExtension> toInstallPostgresExtensions) {
-    this.toInstallPostgresExtensions = toInstallPostgresExtensions;
+  public void setPostgresExtensions(
+      List<StackGresClusterInstalledExtension> postgresExtensions) {
+    this.postgresExtensions = postgresExtensions;
   }
 
   public List<StackGresClusterPodStatus> getPodStatuses() {
@@ -103,7 +103,7 @@ public class StackGresDistributedLogsStatus implements KubernetesResource {
   @Override
   public int hashCode() {
     return Objects.hash(conditions, connectedClusters, databases, fluentdConfigHash, podStatuses,
-        toInstallPostgresExtensions);
+        postgresExtensions);
   }
 
   @Override
@@ -120,7 +120,7 @@ public class StackGresDistributedLogsStatus implements KubernetesResource {
         && Objects.equals(databases, other.databases)
         && Objects.equals(fluentdConfigHash, other.fluentdConfigHash)
         && Objects.equals(podStatuses, other.podStatuses)
-        && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);
+        && Objects.equals(postgresExtensions, other.postgresExtensions);
   }
 
   @Override

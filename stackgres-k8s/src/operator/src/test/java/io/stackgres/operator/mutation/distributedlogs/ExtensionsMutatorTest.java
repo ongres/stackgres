@@ -88,8 +88,8 @@ class ExtensionsMutatorTest {
   @Test
   void clusterWithoutExtensions_shouldNotDoAnything() {
     review.getRequest().getObject().setStatus(new StackGresDistributedLogsStatus());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions().addAll(defaultExtensions);
+    review.getRequest().getObject().getStatus().setPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getStatus().getPostgresExtensions().addAll(defaultExtensions);
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
@@ -100,8 +100,8 @@ class ExtensionsMutatorTest {
   void clusterWithoutExtensionsAndState_shouldCreateTheStateWithDefaultExtensions() {
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    assertEquals(31, operations.size());
-    assertEquals(31, operations.stream().filter(o -> o instanceof AddOperation).count());
+    assertEquals(36, operations.size());
+    assertEquals(36, operations.stream().filter(o -> o instanceof AddOperation).count());
   }
 
   private StackGresClusterInstalledExtension getDefaultExtension(String name) {

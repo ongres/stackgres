@@ -91,8 +91,8 @@ class ExtensionsMutatorTest {
   void clusterWithoutExtensions_shouldNotDoAnything() {
     review.getRequest().getObject().getSpec().setPostgresExtensions(null);
     review.getRequest().getObject().setStatus(new StackGresClusterStatus());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions().addAll(defaultExtensions);
+    review.getRequest().getObject().getStatus().setPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getStatus().getPostgresExtensions().addAll(defaultExtensions);
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
@@ -105,8 +105,8 @@ class ExtensionsMutatorTest {
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    assertEquals(26, operations.size());
-    assertEquals(26, operations.stream().filter(o -> o instanceof AddOperation).count());
+    assertEquals(30, operations.size());
+    assertEquals(30, operations.stream().filter(o -> o instanceof AddOperation).count());
   }
 
   @Test
@@ -115,8 +115,8 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getSpec().setPostgresExtensions(
         ImmutableList.of(extension));
     review.getRequest().getObject().setStatus(new StackGresClusterStatus());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions().addAll(defaultExtensions);
+    review.getRequest().getObject().getStatus().setPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getStatus().getPostgresExtensions().addAll(defaultExtensions);
 
     when(extensionMetadataManager.getExtensionCandidateSameMajorBuild(
         same(review.getRequest().getObject()), same(extension)))
@@ -124,8 +124,8 @@ class ExtensionsMutatorTest {
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    assertEquals(7, operations.size());
-    assertEquals(7, operations.stream().filter(o -> o instanceof AddOperation).count());
+    assertEquals(8, operations.size());
+    assertEquals(8, operations.stream().filter(o -> o instanceof AddOperation).count());
   }
 
   @Test
@@ -136,9 +136,9 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getSpec().setPostgresExtensions(
         ImmutableList.of(extension));
     review.getRequest().getObject().setStatus(new StackGresClusterStatus());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions().addAll(defaultExtensions);
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getStatus().setPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getStatus().getPostgresExtensions().addAll(defaultExtensions);
+    review.getRequest().getObject().getStatus().getPostgresExtensions()
         .add(installedExtension);
 
     when(extensionMetadataManager.getExtensionCandidateSameMajorBuild(
@@ -163,9 +163,9 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getSpec().setPostgresExtensions(
         ImmutableList.of(extension, testExtension));
     review.getRequest().getObject().setStatus(new StackGresClusterStatus());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions().addAll(defaultExtensions);
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getStatus().setPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getStatus().getPostgresExtensions().addAll(defaultExtensions);
+    review.getRequest().getObject().getStatus().getPostgresExtensions()
         .add(installedTestExtension);
 
     final StackGresExtensionMetadata extensionTestMetadata = getExtensionMetadata();
@@ -180,8 +180,8 @@ class ExtensionsMutatorTest {
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    assertEquals(6, operations.size());
-    assertEquals(6, operations.stream().filter(o -> o instanceof AddOperation).count());
+    assertEquals(7, operations.size());
+    assertEquals(7, operations.stream().filter(o -> o instanceof AddOperation).count());
   }
 
   @Test
@@ -191,9 +191,9 @@ class ExtensionsMutatorTest {
     extension.setVersion(installedExtension.getVersion());
     review.getRequest().getObject().getSpec().setPostgresExtensions(null);
     review.getRequest().getObject().setStatus(new StackGresClusterStatus());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions().addAll(defaultExtensions);
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getStatus().setPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getStatus().getPostgresExtensions().addAll(defaultExtensions);
+    review.getRequest().getObject().getStatus().getPostgresExtensions()
         .add(installedExtension);
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -210,11 +210,11 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getSpec().setPostgresExtensions(
         ImmutableList.of(extension));
     review.getRequest().getObject().setStatus(new StackGresClusterStatus());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions().addAll(defaultExtensions);
+    review.getRequest().getObject().getStatus().setPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getStatus().getPostgresExtensions().addAll(defaultExtensions);
     final StackGresClusterInstalledExtension installedTestExtension = getInstalledExtension();
     installedTestExtension.setName("test");
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getStatus().getPostgresExtensions()
         .add(installedTestExtension);
 
     when(extensionMetadataManager.getExtensionCandidateSameMajorBuild(
@@ -235,15 +235,15 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getSpec().setPostgresExtensions(
         ImmutableList.of(extension));
     review.getRequest().getObject().setStatus(new StackGresClusterStatus());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions().addAll(defaultExtensions);
+    review.getRequest().getObject().getStatus().setPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getStatus().getPostgresExtensions().addAll(defaultExtensions);
     final StackGresClusterInstalledExtension installedTestExtension = getInstalledExtension();
     installedTestExtension.setName("test");
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getStatus().getPostgresExtensions()
         .add(installedTestExtension);
     final StackGresClusterInstalledExtension installedTestExtension2 = getInstalledExtension();
     installedTestExtension2.setName("test2");
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getStatus().getPostgresExtensions()
         .add(installedTestExtension2);
 
     when(extensionMetadataManager.getExtensionCandidateSameMajorBuild(
@@ -265,11 +265,11 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getSpec().setPostgresExtensions(
         ImmutableList.of(extension));
     review.getRequest().getObject().setStatus(new StackGresClusterStatus());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions().addAll(defaultExtensions);
+    review.getRequest().getObject().getStatus().setPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getStatus().getPostgresExtensions().addAll(defaultExtensions);
     final StackGresClusterInstalledExtension installedTestExtension = getInstalledExtension();
     installedTestExtension.setName("test");
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getStatus().getPostgresExtensions()
         .add(installedTestExtension);
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
@@ -293,12 +293,12 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getSpec().setPostgresExtensions(
         ImmutableList.of(extension));
     review.getRequest().getObject().setStatus(new StackGresClusterStatus());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions().addAll(defaultExtensions);
+    review.getRequest().getObject().getStatus().setPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getStatus().getPostgresExtensions().addAll(defaultExtensions);
     final StackGresClusterInstalledExtension installedTestExtension = getInstalledExtension();
     installedTestExtension.setName("test");
     installedTestExtension.setExtraMounts(ImmutableList.of("test"));
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getStatus().getPostgresExtensions()
         .add(installedTestExtension);
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
@@ -321,12 +321,12 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getSpec().setPostgresExtensions(
         ImmutableList.of(extension));
     review.getRequest().getObject().setStatus(new StackGresClusterStatus());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions().addAll(defaultExtensions);
+    review.getRequest().getObject().getStatus().setPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getStatus().getPostgresExtensions().addAll(defaultExtensions);
     final StackGresClusterInstalledExtension installedTestExtension = getInstalledExtension();
     installedTestExtension.setName("test");
     installedTestExtension.setExtraMounts(ImmutableList.of("test"));
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getStatus().getPostgresExtensions()
         .add(installedTestExtension);
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
@@ -349,12 +349,12 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getSpec().setPostgresExtensions(
         ImmutableList.of(extension));
     review.getRequest().getObject().setStatus(new StackGresClusterStatus());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions().addAll(defaultExtensions);
+    review.getRequest().getObject().getStatus().setPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getStatus().getPostgresExtensions().addAll(defaultExtensions);
     final StackGresClusterInstalledExtension installedTestExtension = getInstalledExtension();
     installedTestExtension.setName("test");
     installedTestExtension.setBuild(null);
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getStatus().getPostgresExtensions()
         .add(installedTestExtension);
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
@@ -377,11 +377,11 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getSpec().setPostgresExtensions(
         ImmutableList.of(extension));
     review.getRequest().getObject().setStatus(new StackGresClusterStatus());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions().addAll(defaultExtensions);
+    review.getRequest().getObject().getStatus().setPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getStatus().getPostgresExtensions().addAll(defaultExtensions);
     final StackGresClusterInstalledExtension installedTestExtension = getInstalledExtension();
     installedTestExtension.setName("test");
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getStatus().getPostgresExtensions()
         .add(installedTestExtension);
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();

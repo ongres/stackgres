@@ -30,9 +30,9 @@ public class StackGresClusterStatus implements KubernetesResource {
   @Valid
   private List<StackGresClusterCondition> conditions = new ArrayList<>();
 
-  @JsonProperty("toInstallPostgresExtensions")
+  @JsonProperty("postgresExtensions")
   @Valid
-  private List<StackGresClusterInstalledExtension> toInstallPostgresExtensions;
+  private List<StackGresClusterInstalledExtension> postgresExtensions;
 
   @JsonProperty("podStatuses")
   @Valid
@@ -50,13 +50,13 @@ public class StackGresClusterStatus implements KubernetesResource {
     this.conditions = conditions;
   }
 
-  public List<StackGresClusterInstalledExtension> getToInstallPostgresExtensions() {
-    return toInstallPostgresExtensions;
+  public List<StackGresClusterInstalledExtension> getPostgresExtensions() {
+    return postgresExtensions;
   }
 
-  public void setToInstallPostgresExtensions(
-      List<StackGresClusterInstalledExtension> toInstallPostgresExtensions) {
-    this.toInstallPostgresExtensions = toInstallPostgresExtensions;
+  public void setPostgresExtensions(
+      List<StackGresClusterInstalledExtension> postgresExtensions) {
+    this.postgresExtensions = postgresExtensions;
   }
 
   public List<StackGresClusterPodStatus> getPodStatuses() {
@@ -77,7 +77,7 @@ public class StackGresClusterStatus implements KubernetesResource {
 
   @Override
   public int hashCode() {
-    return Objects.hash(conditions, dbOps, podStatuses, toInstallPostgresExtensions);
+    return Objects.hash(conditions, dbOps, podStatuses, postgresExtensions);
   }
 
   @Override
@@ -91,7 +91,7 @@ public class StackGresClusterStatus implements KubernetesResource {
     StackGresClusterStatus other = (StackGresClusterStatus) obj;
     return Objects.equals(conditions, other.conditions) && Objects.equals(dbOps, other.dbOps)
         && Objects.equals(podStatuses, other.podStatuses)
-        && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);
+        && Objects.equals(postgresExtensions, other.postgresExtensions);
   }
 
   @Override
