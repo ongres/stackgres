@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.validation.pooling;
 
-import java.util.HashMap;
+import java.util.Map;
 
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
@@ -48,18 +48,20 @@ class PoolingConstraintValidatorTest extends ConstraintValidationTest<PoolingRev
   @Test
   void nullPgBouncerConf_shouldFail() {
     PoolingReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getPgBouncer().setPgbouncerConf(null);
+    review.getRequest().getObject().getSpec().getPgBouncer().setParameters(null);
 
     checkNotEmptyErrorCause(StackGresPoolingConfigPgBouncer.class,
-        "spec.pgBouncer.pgbouncerConf", review);
+        "spec.pgBouncer.parameters", review);
+
   }
 
   @Test
   void emptyPgBouncerConf_shouldFail() {
     PoolingReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getPgBouncer().setPgbouncerConf(new HashMap<>());
+    review.getRequest().getObject().getSpec().getPgBouncer().setParameters(Map.of());
 
     checkNotEmptyErrorCause(StackGresPoolingConfigPgBouncer.class,
-        "spec.pgBouncer.pgbouncerConf", review);
+        "spec.pgBouncer.parameters", review);
+
   }
 }
