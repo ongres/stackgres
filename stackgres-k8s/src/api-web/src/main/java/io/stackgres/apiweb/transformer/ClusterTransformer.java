@@ -263,6 +263,7 @@ public class ClusterTransformer
           StackGresClusterPodScheduling targetScheduling = new StackGresClusterPodScheduling();
           targetScheduling.setNodeSelector(sourceScheduling.getNodeSelector());
           targetScheduling.setTolerations(sourceScheduling.getTolerations());
+          targetScheduling.setNodeAffinity(sourceScheduling.getNodeAffinity());
           return targetScheduling;
         }).orElse(null));
     transformation.setDistributedLogs(

@@ -96,6 +96,7 @@ You can specify following parameters values:
 | `cluster.pods.disablePostgresUtil` | {{< crd-field-description SGCluster.spec.pods.disablePostgresUtil >}} | false |
 | `cluster.pods.metadata.labels` | {{< crd-field-description SGCluster.spec.pods.metadata.labels >}} | |
 | `cluster.pods.scheduling.nodeSelector` | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeSelector >}} | |
+| `cluster.pods.scheduling.nodeAffinity` | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeAffinity >}} | |
 
 ### Resources metadata
 

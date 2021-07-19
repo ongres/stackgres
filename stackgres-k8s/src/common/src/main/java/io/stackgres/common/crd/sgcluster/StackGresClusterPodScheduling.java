@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.NodeAffinity;
 import io.stackgres.common.crd.Toleration;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
@@ -30,12 +31,19 @@ public class StackGresClusterPodScheduling {
   @JsonProperty("nodeSelector")
   private Map<String, String> nodeSelector;
 
+  @JsonProperty("nodeAffinity")
+  @Valid
+  private NodeAffinity nodeAffinity;
+
   @JsonProperty("tolerations")
   @Valid
   private List<Toleration> tolerations;
 
   @ReferencedField("nodeSelector")
   interface NodeSelector extends FieldReference { }
+
+  @ReferencedField("nodeSelector")
+  interface NodeAffinityField extends FieldReference { }
 
   @ReferencedField("tolerations")
   interface TolerationField extends FieldReference { }
@@ -53,6 +61,14 @@ public class StackGresClusterPodScheduling {
 
   public void setNodeSelector(Map<String, String> nodeSelector) {
     this.nodeSelector = nodeSelector;
+  }
+
+  public NodeAffinity getNodeAffinity() {
+    return nodeAffinity;
+  }
+
+  public void setNodeAffinity(NodeAffinity nodeAffinity) {
+    this.nodeAffinity = nodeAffinity;
   }
 
   public List<Toleration> getTolerations() {
@@ -73,12 +89,13 @@ public class StackGresClusterPodScheduling {
     }
     StackGresClusterPodScheduling other = (StackGresClusterPodScheduling) obj;
     return Objects.equals(nodeSelector, other.nodeSelector)
-        && Objects.equals(tolerations, other.tolerations);
+        && Objects.equals(tolerations, other.tolerations)
+        && Objects.equals(nodeAffinity, other.nodeAffinity);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(nodeSelector, tolerations);
+    return Objects.hash(nodeSelector, tolerations, nodeAffinity);
   }
 
   @Override

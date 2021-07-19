@@ -233,7 +233,7 @@ Holds custom metadata information for StackGres pods to have.
 apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
-  name: stackgres
+  name: stackgres 
 spec:
   pods:
     metadata:
@@ -248,7 +248,21 @@ Holds scheduling configuration for StackGres pods to have.
 | Property                    | Required | Updatable | Type     | Default        | Description |
 |:----------------------------|----------|-----------|:---------|:---------------|:------------|
 | nodeSelector                |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeSelector >}} |
+| [nodeAffinity](#nodeAffinity) |          | ✓         | object    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeAffinity >}} |
 | [tolerations](#tolerations) |          | ✓         | array    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations >}} |
+
+#### Node Affinity
+
+Sets the pod's affinity to restrict it to run only on a certain set of node(s)
+
+| Property          | Required | Updatable | Type     | Default                 | Description |
+|:------------------|----------|-----------|:---------|:------------------------|:------------|
+| requiredDuringSchedulingIgnoredDuringExecution  |          | ✓         | object   |                         | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution >}} |
+| preferredDuringSchedulingIgnoredDuringExecution |          | ✓         | array   |                         | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution >}} |
+
+See Kubernetes pod node affinity [definition](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity{}) for more details.
+<br>
+<br>
 
 #### Tolerations
 
