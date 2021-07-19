@@ -22,6 +22,8 @@ spec:
       - name: volume-size
         type: string
         jsonPath: .spec.persistentVolume.size
+      subresources:
+        status: { }
       schema:
         openAPIV3Schema:
           type: object
@@ -263,5 +265,3 @@ spec:
                 fluentdConfigHash:
                   type: string
                   description: The hash of the configuration file that is used by fluentd
-      subresources:
-        status: { }
