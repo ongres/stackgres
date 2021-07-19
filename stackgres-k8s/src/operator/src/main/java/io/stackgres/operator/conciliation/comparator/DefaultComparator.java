@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.internal.patchmixins.ObjectMetaMixIn;
@@ -38,9 +39,16 @@ public class DefaultComparator implements ResourceComparator {
 
   @Override
   public boolean isResourceContentEqual(HasMetadata required, HasMetadata deployed) {
-    final JsonNode source = PATCH_MAPPER.valueToTree(required);
-    final JsonNode target = PATCH_MAPPER.valueToTree(deployed);
-    JsonNode diff = JsonDiff.asJson(source, target);
+    ArrayNode diff = getJsonDiff(required, deployed);
     return diff.size() == 0;
   }
+
+  @Override
+  public ArrayNode getJsonDiff(HasMetadata required, HasMetadata deployed) {
+    final JsonNode source = PATCH_MAPPER.valueToTree(required);
+    final JsonNode target = PATCH_MAPPER.valueToTree(deployed);
+    ArrayNode diff = (ArrayNode) JsonDiff.asJson(source, target);
+    return diff;
+  }
+
 }

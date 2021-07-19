@@ -5,6 +5,7 @@
 
 package io.stackgres.jobs.dbops.lock;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -16,6 +17,7 @@ import javax.inject.Inject;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -38,8 +40,7 @@ public class LockAcquirerImpl implements LockAcquirer<StackGresCluster> {
   CustomResourceFinder<StackGresCluster> clusterFinder;
 
   @Override
-  public void lockRun(LockRequest target, Consumer<StackGresCluster> tasks) {
-
+  public void lockRun(LockRequest target, Consumer<StackGresCluster> task) {
     StackGresCluster targetCluster = getCluster(target);
     String clusterId = targetCluster.getMetadata().getNamespace()
         + "/" + targetCluster.getMetadata().getName();
@@ -54,7 +55,6 @@ public class LockAcquirerImpl implements LockAcquirer<StackGresCluster> {
           LOGGER.error("Interrupted while waiting for lock", e);
         }
       }
-
     }
 
     targetCluster = lock(target, targetCluster);
@@ -68,18 +68,21 @@ public class LockAcquirerImpl implements LockAcquirer<StackGresCluster> {
 
     try {
       LOGGER.info("Executing locked task");
-      tasks.accept(targetCluster);
-      lockFuture.cancel(true);
+      task.accept(targetCluster);
     } catch (Exception e) {
       LOGGER.error("Locked task failed", e);
       throw e;
     } finally {
       lockFuture.cancel(true);
-      targetCluster = getCluster(target);
-
-      targetCluster.getMetadata().getAnnotations().remove(LOCK_POD);
-      targetCluster.getMetadata().getAnnotations().remove(LOCK_TIMESTAMP);
-      clusterScheduler.update(targetCluster);
+      Uni.createFrom().item(() -> getCluster(target))
+          .invoke(cluster -> cluster.getMetadata().getAnnotations().remove(LOCK_POD))
+          .invoke(cluster -> cluster.getMetadata().getAnnotations().remove(LOCK_TIMESTAMP))
+          .invoke(clusterScheduler::update)
+          .onFailure()
+          .retry()
+          .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))
+          .indefinitely()
+          .await().indefinitely();
     }
   }
 

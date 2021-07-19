@@ -52,7 +52,7 @@ export const mixin = {
         if(window.history.length > 2)
           vc.$router.go(-1)
         else
-          vc.$router.push('/overview/default')
+          vc.$router.push('/default/sgclusters')
       },
 
       checkAuthError: function(error) {
@@ -774,6 +774,14 @@ export const mixin = {
         switch(kind) {
           case 'SGCluster':
             crd = JSON.parse(JSON.stringify(store.state.clusters.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
+            
+            if(this.hasProp(crd, 'data.spec.initialData.restore')) {
+              delete crd.data.spec.initialData.restore
+
+              if(!Object.keys(crd.data.spec.initialData).length)
+                delete crd.data.spec.initialData
+            }
+
             break;
           
           case 'SGBackupConfig':
@@ -803,8 +811,9 @@ export const mixin = {
         
         if(typeof crd !== 'undefined') {
           crd.kind = kind;
-          if($('#cloneName').val() !== crd.data.metadata.name)
-            crd.data.metadata.name = 'copy-of-'+crd.data.metadata.name;
+          crd.data.metadata.name = 'copy-of-'+crd.data.metadata.name;
+          $('#cloneName').val(crd.data.metadata.name);
+          $('#cloneNamespace').val(crd.data.metadata.namespace);
   
           store.commit('setCloneCRD', crd);
           

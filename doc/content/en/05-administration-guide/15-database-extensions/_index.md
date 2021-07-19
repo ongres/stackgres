@@ -3,6 +3,7 @@ title: Database Extensions
 weight: 15
 url: administration/extensions
 description: Details about how to set up and install the database extensions.
+showToc: true
 ---
 
 A StackGres cluster comes stripped of all his core extensions. Only some basic extensions are installed

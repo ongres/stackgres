@@ -5,14 +5,14 @@
 				<ul class="breadcrumbs">
 					<li class="namespace">
 						<svg xmlns="http://www.w3.org/2000/svg" width="20.026" height="27"><g fill="#00adb5"><path d="M1.513.9l-1.5 13a.972.972 0 001 1.1h18a.972.972 0 001-1.1l-1.5-13a1.063 1.063 0 00-1-.9h-15a1.063 1.063 0 00-1 .9zm.6 11.5l.9-8c0-.2.3-.4.5-.4h12.9a.458.458 0 01.5.4l.9 8a.56.56 0 01-.5.6h-14.7a.56.56 0 01-.5-.6zM1.113 17.9a1.063 1.063 0 011-.9h15.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-15.8a1.028 1.028 0 01-1-1.1zM3.113 23h13.8a.972.972 0 001-1.1 1.063 1.063 0 00-1-.9h-13.8a1.063 1.063 0 00-1 .9 1.028 1.028 0 001 1.1zM3.113 25.9a1.063 1.063 0 011-.9h11.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-11.8a1.028 1.028 0 01-1-1.1z"/></g></svg>
-						<router-link :to="'/overview/'+$route.params.namespace" title="Namespace Overview">{{ $route.params.namespace }}</router-link>
+						<router-link :to="'/' + $route.params.namespace + '/sgclusters'" title="Namespace Clusters Overview">{{ $route.params.namespace }}</router-link>
 					</li>
 					<li>
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 0C4.9 0 .9 2.218.9 5.05v11.49C.9 19.272 6.621 20 10 20s9.1-.728 9.1-3.46V5.05C19.1 2.218 15.1 0 10 0zm7.1 11.907c0 1.444-2.917 3.052-7.1 3.052s-7.1-1.608-7.1-3.052v-.375a12.883 12.883 0 007.1 1.823 12.891 12.891 0 007.1-1.824zm0-3.6c0 1.443-2.917 3.052-7.1 3.052s-7.1-1.61-7.1-3.053v-.068A12.806 12.806 0 0010 10.1a12.794 12.794 0 007.1-1.862zM10 8.1c-4.185 0-7.1-1.607-7.1-3.05S5.815 2 10 2s7.1 1.608 7.1 3.051S14.185 8.1 10 8.1zm-7.1 8.44v-1.407a12.89 12.89 0 007.1 1.823 12.874 12.874 0 007.106-1.827l.006 1.345C16.956 16.894 14.531 18 10 18c-4.822 0-6.99-1.191-7.1-1.46z"/></svg>
-						<router-link :to="'/overview/'+$route.params.namespace" title="Namespace Overview">SGClusters</router-link>
+						<router-link :to="'/' + $route.params.namespace + '/sgclusters'" title="Namespace Clusters Overview">SGClusters</router-link>
 					</li>
 					<li>
-						<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Status">{{ $route.params.name }}</router-link>
+						<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name" title="Status">{{ $route.params.name }}</router-link>
 					</li>
 					<li>
 						Status
@@ -23,26 +23,26 @@
 				<a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sgcluster/" target="_blank" title="SGCluster Documentation">SGCluster Documentation</a>
 					<div>
 						<a v-if="iCan('create','sgclusters',$route.params.namespace)" class="cloneCRD" @click="cloneCRD('SGCluster', $route.params.namespace, $route.params.name)">Clone Cluster Configuration</a>
-						<router-link v-if="iCan('patch','sgclusters',$route.params.namespace)" :to="'/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link>
-						<a v-if="iCan('delete','sgclusters',$route.params.namespace)" v-on:click="deleteCRD('sgcluster', $route.params.namespace, $route.params.name, '/overview/'+$route.params.namespace)" :class="'/overview/'+$route.params.namespace">Delete Cluster</a>
+						<router-link v-if="iCan('patch','sgclusters',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/edit'">Edit Cluster</router-link>
+						<a v-if="iCan('delete','sgclusters',$route.params.namespace)" @click="deleteCRD('sgcluster', $route.params.namespace, $route.params.name, '/' + $route.params.namespace + '/sgclusters')" :class="$route.params.namespace + '/sgclusters'">Delete Cluster</a>
 					</div>
 				</div>
 
 				<ul class="tabs">
 					<li>
-						<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Status" class="status">Status</router-link>
+						<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name" title="Status" class="status">Status</router-link>
 					</li>
 					<li>
-						<router-link :to="'/cluster/configuration/'+$route.params.namespace+'/'+$route.params.name" title="Configuration" class="info">Configuration</router-link>
+						<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/config'" title="Configuration" class="info">Configuration</router-link>
 					</li>
 					<li v-if="iCan('list','sgbackups',$route.params.namespace)">
-						<router-link :to="'/cluster/backups/'+$route.params.namespace+'/'+$route.params.name" title="Backups" class="backups">Backups</router-link>
+						<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/sgbackups'" title="Backups" class="backups">Backups</router-link>
 					</li>
 					<li v-if="iCan('list','sgdistributedlogs',$route.params.namespace) && cluster.data.spec.hasOwnProperty('distributedLogs')">
-						<router-link :to="'/cluster/logs/'+$route.params.namespace+'/'+$route.params.name" title="Distributed Logs" class="logs">Logs</router-link>
+						<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/logs'" title="Distributed Logs" class="logs">Logs</router-link>
 					</li>
 					<li v-if="cluster.data.grafanaEmbedded">
-						<router-link id="grafana-btn" :to="'/cluster/monitor/'+$route.params.namespace+'/'+$route.params.name" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
+						<router-link id="grafana-btn" :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/monitor'" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
 					</li>
 				</ul>
 			</header>
@@ -198,7 +198,11 @@
 						<tr v-for="pod in cluster.status.pods">
 							<td>{{ pod.name }}</td>
 							<td class="tag" :class="pod.role"><span>{{ pod.role }}</span></td>
-							<td class="tag" :class="pod.status"><span>{{ pod.status }}</span></td>
+							<td class="tag" :class="pod.status">
+								<span :data-tooltip="(pod.status == 'Pending') ? getPodLastEvent(pod.name) : ''" :title="( (pod.status == 'Pending') && getPodLastEvent(pod.name).length) ? 'Click for details' : ''">
+									{{ pod.status }}
+								</span>
+							</td>
 							<td>
 								{{ pod.cpuRequested }} 
 								<template v-if="pod.status !== 'Pending'">
@@ -240,7 +244,7 @@
 
 <script>
 	import store from '../store'
-	import router from '../router'
+	import axios from 'axios'
 	import { mixin } from './mixins/mixin'
 
     export default {
@@ -250,38 +254,30 @@
 
 		data: function() {
 			return {
-				
+				events: [],
+				eventsPooling: null
 			}
 		},
-		methods: {
-
-		},
+		
 		mounted: function() {
+			const vc = this;
 
-
+			vc.getClusterEvents();
+			vc.eventsPooling = setInterval( function() {
+				vc.getClusterEvents()
+			}, 10000);
 		},
-		created: function() {
-
-			if ( (store.state.currentCluster.length > 0) && (store.state.currentCluster.name == this.$route.params.name) ) {
-				this.dataReady = true;
-			}
-
-			this.name = this.$route.params.name;
-			this.namespace = this.$route.params.namespace;
-			
-		},
+		
 		computed: {
 
 			clusters () {
-				//console.log(store.state.currentCluster);
-				//return store.state.currentCluster
-
 				return store.state.clusters
 			},
+
 			pods () {
-				//console.log(store.state.currentPods);
 				return store.state.currentPods
 			},
+
 			diskUsed () {
 				const vc = this
 				
@@ -296,10 +292,7 @@
 					return 0
 
 			},
-			notFound () {
-				//window.location.href = '/not-found.html';
-			},
-
+			
 			tooltips () {
 				return store.state.tooltips
 			},
@@ -309,9 +302,35 @@
 			}
 
 		},
+
+		methods: {
+			getClusterEvents() {
+				const vc = this;
+				
+				axios
+				.get('/stackgres/sgcluster/events/' + vc.$route.params.namespace + '/' + vc.$route.params.name)
+				.then( function(response) {
+					vc.events = [...response.data]
+				}).catch(function(err) {
+					console.log(err);
+					vc.checkAuthError(err);
+				});
+			},
+
+			getPodLastEvent(podName) {
+				const vc = this;
+
+				let event = vc.events.find(e => ( ( e.involvedObject.kind == 'Pod' ) && (e.involvedObject.name == podName) ) )
+
+				if(event !== undefined)
+					return event.message
+				else
+					return 'There are no events related to this pod'
+			}
+		},
+
 		beforeDestroy () {
-			clearInterval(this.polling);
-			//console.log('Interval cleared');
+			clearInterval(this.eventsPooling);
 		} 
 	}
 </script>
@@ -329,5 +348,21 @@
 
 	h2 .helpTooltip.alert {
 		top: 2px;
+	}
+
+	.podStatus td.tag.Pending span {
+		cursor: pointer;
+	}
+
+	.podStatus td.tag.Pending span:after {
+		content: " ";
+		display: inline-block;
+		position: absolute;
+		width: 13px;
+		height: 13px;
+		background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDIwIDE4Ij48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwIC0xODMpIj48cGF0aCBkPSJNMTguOTk0LDIwMUgxLjAwNmExLDEsMCwwLDEtLjg3MS0uNTE2LDEuMDUyLDEuMDUyLDAsMCwxLDAtMS4wMzFsOC45OTMtMTUuOTc0YTEuMDMzLDEuMDMzLDAsMCwxLDEuNzQ0LDBsOC45OTMsMTUuOTc0YTEuMDUyLDEuMDUyLDAsMCwxLDAsMS4wMzFBMSwxLDAsMCwxLDE4Ljk5NCwyMDFaTTIuNzUsMTk4LjkzN2gxNC41TDEwLDE4Ni4wNTlaIiBmaWxsPSIjMDBhZGI1Ii8+PHJlY3Qgd2lkdGg9IjIiIGhlaWdodD0iNS4zNzgiIHJ4PSIwLjk0NyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoOSAxODkuMDU5KSIgZmlsbD0iIzAwYWRiNSIvPjxyZWN0IHdpZHRoPSIyIiBoZWlnaHQ9IjIiIHJ4PSIxIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg5IDE5NS40MzcpIiBmaWxsPSIjMDBhZGI1Ii8+PC9nPjwvc3ZnPg==) center no-repeat;
+		transform: translateX(15px);
+		background-size: contain;
+		filter: hue-rotate(35deg);
 	}
 </style>	

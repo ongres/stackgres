@@ -7,9 +7,10 @@ package io.stackgres.jobs.dbops;
 
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 
 public interface ClusterRestartStateHandler {
 
-  Uni<StackGresDbOps> restartCluster(StackGresDbOps op);
+  Uni<ClusterRestartState> restartCluster(StackGresDbOps op);
 
 }

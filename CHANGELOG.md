@@ -1,3 +1,95 @@
+# :rocket: Release 1.0.0-beta2 (2021-07-09)
+
+## :notepad_spiral: NOTES
+
+Here it comes StackGres 1.0.0-beta2!! :tada: :bottle_with_popping_cork:
+
+This release brings some bugfixes. Get safe and upgrade now!
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 0.9 version or above) helm chart issue following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` version. Upgrading from those versions will require to uninstall completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+## :sparkles: CHANGES
+
+* Check upgrade is not performed on alpha or beta releases
+* Review Web UI URL paths
+* Improve Pods status info when the status is pending in the Web UI
+
+## :bug: FIXES
+
+* Ignoring metadata managed fields during the reconciliation cycle to avoid unnecesary patches of existent resources
+* Subresource status is not added after operator upgrade
+* Grafana integration is failing
+* `stackgres.io/reconciliation-pause` and `stackgres.io/reconciliation-pause-until-restart` do not work on generated resources
+* `sgcluster` or `sgdistributedlogs` the Pods are not created when tolerationSeconds is set
+* Restart DbOps fail due to conflict on cluster update
+* Prometheus integration does not work if the service monitor does not have `matchLabels`
+* Operator fails to edit a cluster created from a backup in the Web UI
+* Improve performance of logs listings on the Web UI
+* Warning when cloning a cluster to a different namespace with missing dependencies in the Web UI
+
+## :construction: KNOWN ISSUES
+
+* Kubernetes 1.20+ is not supported yet, see #950 
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.0.0-beta2)
+
+# :rocket: Release 1.0.0-beta1 (2021-06-29)
+
+## :notepad_spiral: NOTES
+
+Here it comes StackGres 1.0.0-beta1!! :tada: :bottle_with_popping_cork:
+
+This release brings some bugfixes and nice improvements. Get powerful safe and upgrade now!
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 0.9 version or above) helm chart issue following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `1.0.0-alpha1` version. Upgrading from that version will require to uninstall completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+## :sparkles: CHANGES
+
+* SGDbOps to perform Cluster Upgrade
+* Upgrade to Patroni 2
+* `.status.dbOps` is not updating during operation in SGCluster custom resources
+* Include cluster services names on the Web UI
+* Show in the Web UI connection information to a given SG cluster
+* Include timezone indicator on the Web UI
+* Make Web UI table columns resizable
+* Return component versions running in cluster's Pod in /sgcluster REST API endpoint
+* Extend sgcluster logs REST API in order to allow specify multiple values
+
+## :bug: FIXES
+
+* Role value is not returned by the REST API
+* Add default `.spec.postgresServices` section in SGCluster
+* Disabled envoy SQL parsing due to performance issues
+* Operator throws error when cluster name is not valid
+* Cluster in restart pending mode when it shouldn't in the Web UI
+* Web UI lists cluster already deleted from YAML
+* Validate storageClass for s3 SGBackupConfig
+* Web UI styling adjustments
+
+## :construction: KNOWN ISSUES
+
+* Kubernetes 1.20+ is not supported yet, see #950 
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.0.0-beta1)
+
 # :rocket: Release 1.0.0-alpha4 (2021-06-08)
 
 ## :notepad_spiral: NOTES

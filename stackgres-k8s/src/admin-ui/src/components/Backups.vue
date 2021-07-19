@@ -5,19 +5,19 @@
 				<ul class="breadcrumbs">
 					<li class="namespace">
 						<svg xmlns="http://www.w3.org/2000/svg" width="20.026" height="27"><g fill="#00adb5"><path d="M1.513.9l-1.5 13a.972.972 0 001 1.1h18a.972.972 0 001-1.1l-1.5-13a1.063 1.063 0 00-1-.9h-15a1.063 1.063 0 00-1 .9zm.6 11.5l.9-8c0-.2.3-.4.5-.4h12.9a.458.458 0 01.5.4l.9 8a.56.56 0 01-.5.6h-14.7a.56.56 0 01-.5-.6zM1.113 17.9a1.063 1.063 0 011-.9h15.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-15.8a1.028 1.028 0 01-1-1.1zM3.113 23h13.8a.972.972 0 001-1.1 1.063 1.063 0 00-1-.9h-13.8a1.063 1.063 0 00-1 .9 1.028 1.028 0 001 1.1zM3.113 25.9a1.063 1.063 0 011-.9h11.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-11.8a1.028 1.028 0 01-1-1.1z"/></g></svg>
-						<router-link :to="'/overview/'+$route.params.namespace" title="Namespace Overview">{{ $route.params.namespace }}</router-link>
+						<router-link :to="'/' + $route.params.namespace + '/sgclusters'" title="Namespace Clusters Overview">{{ $route.params.namespace }}</router-link>
 					</li>
 					<li>
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 0C4.9 0 .9 2.218.9 5.05v11.49C.9 19.272 6.621 20 10 20s9.1-.728 9.1-3.46V5.05C19.1 2.218 15.1 0 10 0zm7.1 11.907c0 1.444-2.917 3.052-7.1 3.052s-7.1-1.608-7.1-3.052v-.375a12.883 12.883 0 007.1 1.823 12.891 12.891 0 007.1-1.824zm0-3.6c0 1.443-2.917 3.052-7.1 3.052s-7.1-1.61-7.1-3.053v-.068A12.806 12.806 0 0010 10.1a12.794 12.794 0 007.1-1.862zM10 8.1c-4.185 0-7.1-1.607-7.1-3.05S5.815 2 10 2s7.1 1.608 7.1 3.051S14.185 8.1 10 8.1zm-7.1 8.44v-1.407a12.89 12.89 0 007.1 1.823 12.874 12.874 0 007.106-1.827l.006 1.345C16.956 16.894 14.531 18 10 18c-4.822 0-6.99-1.191-7.1-1.46z"/></svg>
-						<router-link :to="'/overview/'+$route.params.namespace" title="Namespace Overview">SGClusters</router-link>
+						<router-link :to="'/' + $route.params.namespace + '/sgclusters'" title="Namespace Clusters Overview">SGClusters</router-link>
 					</li>
 					<li>
-						<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Status">{{ $route.params.name }}</router-link>
+						<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name" title="Status">{{ $route.params.name }}</router-link>
 					</li>
 					<li>
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10.55.55A9.454 9.454 0 001.125 9.5H.479a.458.458 0 00-.214.053.51.51 0 00-.214.671l1.621 3.382a.49.49 0 00.213.223.471.471 0 00.644-.223l1.62-3.382A.51.51 0 004.2 10a.49.49 0 00-.479-.5H3.1a7.47 7.47 0 117.449 7.974 7.392 7.392 0 01-3.332-.781.988.988 0 00-.883 1.767 9.356 9.356 0 004.215.99 9.45 9.45 0 000-18.9z" class="a"></path><path d="M13.554 10a3 3 0 10-3 3 3 3 0 003-3z" class="a"></path></svg>
 						<template v-if="$route.params.hasOwnProperty('backupname')">
-							<router-link :to="'/cluster/backups/'+$route.params.namespace+'/'+$route.params.name" title="SGBackupList">SGBackupList</router-link>
+							<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/sgbackups'" title="SGBackupList">SGBackupList</router-link>
 						</template>
 						<template v-else>
 							SGBackupList
@@ -32,26 +32,26 @@
 					<a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sgcluster/" target="_blank" title="SGCluster Documentation">SGCluster Documentation</a>
 					<div>
 						<a v-if="iCan('create','sgclusters',$route.params.namespace)" class="cloneCRD" @click="cloneCRD('SGCluster', $route.params.namespace, $route.params.name)">Clone Cluster Configuration</a>
-						<router-link v-if="iCan('patch','sgclusters',$route.params.namespace)" :to="'/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link>
-						<a v-if="iCan('delete','sgclusters',$route.params.namespace)" v-on:click="deleteCRD('sgcluster', $route.params.namespace, $route.params.name, '/overview/'+$route.params.namespace)" :class="'/overview/'+$route.params.namespace">Delete Cluster</a>
+						<router-link v-if="iCan('patch','sgclusters',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/edit'">Edit Cluster</router-link>
+						<a v-if="iCan('delete','sgclusters',$route.params.namespace)" @click="deleteCRD('sgcluster', $route.params.namespace, $route.params.name, '/' + $route.params.namespace + '/sgclusters')" :class="$route.params.namespace + '/sgclusters'">Delete Cluster</a>
 					</div>
 				</div>
 
 				<ul class="tabs">
 					<li>
-						<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Status" class="status">Status</router-link>
+						<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name" title="Status" class="status">Status</router-link>
 					</li>
 					<li>
-						<router-link :to="'/cluster/configuration/'+$route.params.namespace+'/'+$route.params.name" title="Configuration" class="info">Configuration</router-link>
+						<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/config'" title="Configuration" class="info">Configuration</router-link>
 					</li>
 					<li v-if="iCan('list','sgbackups',$route.params.namespace)">
-						<router-link :to="'/cluster/backups/'+$route.params.namespace+'/'+$route.params.name" title="Backups" class="backups">Backups</router-link>
+						<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/sgbackups'" title="Backups" class="backups">Backups</router-link>
 					</li>
 					<li v-if="iCan('list','sgdistributedlogs',$route.params.namespace) && cluster.data.spec.hasOwnProperty('distributedLogs')">
-						<router-link :to="'/cluster/logs/'+$route.params.namespace+'/'+$route.params.name" title="Distributed Logs" class="logs">Logs</router-link>
+						<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/logs'" title="Distributed Logs" class="logs">Logs</router-link>
 					</li>
 					<li v-if="cluster.data.grafanaEmbedded">
-						<router-link id="grafana-btn" :to="'/cluster/monitor/'+$route.params.namespace+'/'+$route.params.name" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
+						<router-link id="grafana-btn" :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/monitor'" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
 					</li>
 				</ul>
 			</template>
@@ -60,12 +60,12 @@
 			<ul class="breadcrumbs">
 				<li class="namespace">
 					<svg xmlns="http://www.w3.org/2000/svg" width="20.026" height="27"><g fill="#00adb5"><path d="M1.513.9l-1.5 13a.972.972 0 001 1.1h18a.972.972 0 001-1.1l-1.5-13a1.063 1.063 0 00-1-.9h-15a1.063 1.063 0 00-1 .9zm.6 11.5l.9-8c0-.2.3-.4.5-.4h12.9a.458.458 0 01.5.4l.9 8a.56.56 0 01-.5.6h-14.7a.56.56 0 01-.5-.6zM1.113 17.9a1.063 1.063 0 011-.9h15.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-15.8a1.028 1.028 0 01-1-1.1zM3.113 23h13.8a.972.972 0 001-1.1 1.063 1.063 0 00-1-.9h-13.8a1.063 1.063 0 00-1 .9 1.028 1.028 0 001 1.1zM3.113 25.9a1.063 1.063 0 011-.9h11.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-11.8a1.028 1.028 0 01-1-1.1z"/></g></svg>
-					<router-link :to="'/overview/'+$route.params.namespace" title="Namespace Overview">{{ $route.params.namespace }}</router-link>
+					<router-link :to="'/' + $route.params.namespace + '/sgclusters'" title="Namespace Clusters Overview">{{ $route.params.namespace }}</router-link>
 				</li>
 				<li>
 					<template v-if="$route.params.hasOwnProperty('backupname')">
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10.55.55A9.454 9.454 0 001.125 9.5H.479a.458.458 0 00-.214.053.51.51 0 00-.214.671l1.621 3.382a.49.49 0 00.213.223.471.471 0 00.644-.223l1.62-3.382A.51.51 0 004.2 10a.49.49 0 00-.479-.5H3.1a7.47 7.47 0 117.449 7.974 7.392 7.392 0 01-3.332-.781.988.988 0 00-.883 1.767 9.356 9.356 0 004.215.99 9.45 9.45 0 000-18.9z" class="a"></path><path d="M13.554 10a3 3 0 10-3 3 3 3 0 003-3z" class="a"></path></svg>
-						<router-link :to="'/backups/'+$route.params.namespace" title="SGBackupList">SGBackupList</router-link>
+						<router-link :to="'/' + $route.params.namespace + '/sgbackups'" title="SGBackupList">SGBackupList</router-link>
 					</template>
 					<template v-else>
 						SGBackupList
@@ -80,16 +80,16 @@
 				<a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sgbackup/" target="_blank" title="SGBackup Documentation">SGBackup Documentation</a>
 				<div>
 					<template v-if="$route.params.hasOwnProperty('backupname')">
-						<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/crd/edit/backup/'+$route.params.namespace+'/'+$route.params.backupname" title="Edit Backup">
+						<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/' + $route.params.namespace + '/sgbackup/' + $route.params.backupname + '/edit'" title="Edit Backup">
 							Edit Backup
 						</router-link>
-						<a v-if="iCan('delete','sgbackups',$route.params.namespace)" v-on:click="deleteCRD('sgbackup',$route.params.namespace, $route.params.backupname)" title="Delete Backup">
+						<a v-if="iCan('delete','sgbackups',$route.params.namespace)" @click="deleteCRD('sgbackup',$route.params.namespace, $route.params.backupname, '/' + $route.params.namespace + '/sgbackups')" title="Delete Backup">
 							Delete Backup
 						</a>
-						<router-link class="borderLeft" :to="'/backups/'+$route.params.namespace" title="Close Details">Close Details</router-link>
+						<router-link class="borderLeft" :to="'/' + $route.params.namespace + '/sgbackups'" title="Close Details">Close Details</router-link>
 					</template>
 					<template v-else>
-						<router-link v-if="iCan('create','sgbackups',$route.params.namespace)" :to="'/crd/create/backup/'+$route.params.namespace" class="add">Add New</router-link>
+						<router-link v-if="iCan('create','sgbackups',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgbackups/new'" class="add">Add New</router-link>
 					</template>
 				</div>
 			</div>	
@@ -105,7 +105,7 @@
 							<a @click="clearFilters('keyword')" class="btn clear border keyword" v-if="filters.keyword.length">CLEAR</a>
 						</div>
 
-						<router-link v-if="isCluster && iCan('create','sgbackups',$route.params.namespace)" :to="'/crd/create/backup/'+$route.params.namespace+'/'+$route.params.name" title="Add New Backup" class="btn addClusterBackup">Add Backup</router-link>
+						<router-link v-if="isCluster && iCan('create','sgbackups',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/sgbackups/new'" title="Add New Backup" class="btn addClusterBackup">Add Backup</router-link>
 
 						<div class="filter" :class="(filters.dateStart.length && filters.dateEnd.length) ? 'filtered' : ''">
 							<span class="toggle date">DATE RANGE <input v-model="filters.datePicker" id="datePicker" autocomplete="off" @focus="initDatePicker()" /></span>
@@ -211,7 +211,7 @@
 							<template v-if="!backups.length">
 								<tr class="no-results">
 									<td :colspan="999" v-if="iCan('create','sgbackups',$route.params.namespace)">
-										No backups matched your search terms, would  you like to <router-link :to="'/crd/create/backup/'+$route.params.namespace" title="Add New Backup">create a new one?</router-link>
+										No backups matched your search terms, would  you like to <router-link :to="'/' + $route.params.namespace + '/sgbackups/new'" title="Add New Backup">create a new one?</router-link>
 									</td>
 									<td v-else colspan="999">
 										No backups have been found. You don't have enough permissions to create a new one
@@ -224,7 +224,7 @@
 										<tr class="base">
 											<td class="timestamp hasTooltip" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.process.timing.stored.substr(0,19).replace('T',' ') : ''">
 												<span>
-													<router-link :to="($route.params.hasOwnProperty('name') ? '/cluster' : '') + '/backups/' + $route.params.namespace + ($route.params.hasOwnProperty('name') ? '/' + $route.params.name : '') + '/' + back.data.metadata.name" class="noColor">
+													<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
 														<template v-if="back.data.status.process.status == 'Completed'">
 															<span class='date'>
 																{{ back.data.status.process.timing.stored | formatTimestamp('date') }}
@@ -241,19 +241,19 @@
 												</span>
 											</td>
 											<td class="managedLifecycle center icon hasTooltip" :class="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle.toString() : 'false'" :data-val="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle : 'false'">
-												<router-link :to="($route.params.hasOwnProperty('name') ? '/cluster' : '') + '/backups/' + $route.params.namespace + ($route.params.hasOwnProperty('name') ? '/' + $route.params.name : '') + '/' + back.data.metadata.name" class="noColor">
+												<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
 													<span></span>
 												</router-link>
 											</td>
 											<td class="phase center" :class="back.data.status.process.status">
-												<router-link :to="($route.params.hasOwnProperty('name') ? '/cluster' : '') + '/backups/' + $route.params.namespace + ($route.params.hasOwnProperty('name') ? '/' + $route.params.name : '') + '/' + back.data.metadata.name" class="noColor">
+												<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
 													<span>
 														{{ back.data.status.process.status }}
 													</span>
 												</router-link>
 											</td>
 											<td class="size hasTooltip" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.backupInformation.size.uncompressed : ''">
-												<router-link :to="($route.params.hasOwnProperty('name') ? '/cluster' : '') + '/backups/' + $route.params.namespace + ($route.params.hasOwnProperty('name') ? '/' + $route.params.name : '') + '/' + back.data.metadata.name" class="noColor">
+												<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
 													<span>
 														<template v-if="back.data.status.process.status === 'Completed'">
 															{{ back.data.status.backupInformation.size.uncompressed | formatBytes }} ({{ back.data.status.backupInformation.size.compressed | formatBytes }})
@@ -262,7 +262,7 @@
 												</router-link>
 											</td>
 											<td class="postgresVersion hasTooltip" :class="[(back.data.status.process.status === 'Completed') ? 'pg'+(back.data.status.backupInformation.postgresVersion.substr(0,2)) : '']"  v-if="!isCluster" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.backupInformation.postgresVersion : ''">
-												<router-link :to="($route.params.hasOwnProperty('name') ? '/cluster' : '') + '/backups/' + $route.params.namespace + ($route.params.hasOwnProperty('name') ? '/' + $route.params.name : '') + '/' + back.data.metadata.name" class="noColor">
+												<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
 													<span>
 														<template v-if="back.data.status.process.status === 'Completed'">
 															{{ back.data.status.backupInformation.postgresVersion | prefix }}
@@ -272,26 +272,26 @@
 											</td>
 											<td class="name hasTooltip" :data-val="back.data.metadata.name">
 												<span>
-													<router-link :to="($route.params.hasOwnProperty('name') ? '/cluster' : '') + '/backups/' + $route.params.namespace + ($route.params.hasOwnProperty('name') ? '/' + $route.params.name : '') + '/' + back.data.metadata.name" class="noColor">
+													<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
 														{{ back.data.metadata.name }}
 													</router-link>
 												</span>
 											</td>
 											<td class="clusterName hasTooltip" :class="back.data.spec.sgCluster" v-if="!isCluster" :data-val="back.data.spec.sgCluster">
 												<span>
-													<router-link :to="($route.params.hasOwnProperty('name') ? '/cluster' : '') + '/backups/' + $route.params.namespace + ($route.params.hasOwnProperty('name') ? '/' + $route.params.name : '') + '/' + back.data.metadata.name" class="noColor">
+													<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
 														{{ back.data.spec.sgCluster }}
 													</router-link>
 												</span>
 											</td>
 											<td class="actions">
-												<router-link :to="($route.params.hasOwnProperty('name') ? '/cluster' : '') + '/backups/' + $route.params.namespace + ($route.params.hasOwnProperty('name') ? '/' + $route.params.name : '') + '/' + back.data.metadata.name" target="_blank" class="newTab">
+												<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" target="_blank" class="newTab">
 													<svg xmlns="http://www.w3.org/2000/svg" width="15.001" height="12.751" viewBox="0 0 15.001 12.751"><g transform="translate(167.001 -31.5) rotate(90)"><path d="M37.875,168.688a.752.752,0,0,1-.53-.219l-5.625-5.626a.75.75,0,0,1,0-1.061l2.813-2.813a.75.75,0,0,1,1.06,1.061l-2.283,2.282,4.566,4.566,4.566-4.566-2.283-2.282a.75.75,0,0,1,1.06-1.061l2.813,2.813a.75.75,0,0,1,0,1.061l-5.625,5.626A.752.752,0,0,1,37.875,168.688Z" transform="translate(0 -1.687)" fill="#00adb5"/><path d="M42.156,155.033l-2.813-2.813a.752.752,0,0,0-1.061,0l-2.813,2.813a.75.75,0,1,0,1.06,1.061l1.533-1.534v5.3a.75.75,0,1,0,1.5,0v-5.3l1.533,1.534a.75.75,0,1,0,1.06-1.061Z" transform="translate(-0.937 0)" fill="#00adb5"/></g></svg>
 												</router-link>
-												<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/crd/edit/backup/'+$route.params.namespace+'/'+back.data.metadata.name" title="Edit Backup">
+												<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/' + $route.params.namespace + (isCluster ? ( '/sgcluster/' + $route.params.name ) : '' ) + '/sgbackup/' + back.data.metadata.name + '/edit'" title="Edit Backup">
 													<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M90,135.721v2.246a.345.345,0,0,0,.345.345h2.246a.691.691,0,0,0,.489-.2l8.042-8.041a.346.346,0,0,0,0-.489l-2.39-2.389a.345.345,0,0,0-.489,0L90.2,135.232A.691.691,0,0,0,90,135.721Zm13.772-8.265a.774.774,0,0,0,0-1.095h0l-1.82-1.82a.774.774,0,0,0-1.095,0h0l-1.175,1.176a.349.349,0,0,0,0,.495l2.421,2.421a.351.351,0,0,0,.5,0Z" transform="translate(-90 -124.313)"/></svg>
 												</router-link>
-												<a v-if="iCan('delete','sgbackups',$route.params.namespace)"  v-on:click="deleteCRD('sgbackup',$route.params.namespace, back.data.metadata.name)" class="delete" title="Delete Backup">
+												<a v-if="iCan('delete','sgbackups',$route.params.namespace)"  @click="deleteCRD('sgbackup',$route.params.namespace, back.data.metadata.name)" class="delete" title="Delete Backup">
 													<svg xmlns="http://www.w3.org/2000/svg" width="13.5" height="15" viewBox="0 0 13.5 15"><g transform="translate(-61 -90)"><path d="M73.765,92.7H71.513a.371.371,0,0,1-.355-.362v-.247A2.086,2.086,0,0,0,69.086,90H66.413a2.086,2.086,0,0,0-2.072,2.094V92.4a.367.367,0,0,1-.343.3H61.735a.743.743,0,0,0,0,1.486h.229a.375.375,0,0,1,.374.367v8.35A2.085,2.085,0,0,0,64.408,105h6.684a2.086,2.086,0,0,0,2.072-2.095V94.529a.372.372,0,0,1,.368-.34h.233a.743.743,0,0,0,0-1.486Zm-7.954-.608a.609.609,0,0,1,.608-.607h2.667a.6.6,0,0,1,.6.6v.243a.373.373,0,0,1-.357.371H66.168a.373.373,0,0,1-.357-.371Zm5.882,10.811a.61.61,0,0,1-.608.608h-6.67a.608.608,0,0,1-.608-.608V94.564a.375.375,0,0,1,.375-.375h7.136a.375.375,0,0,1,.375.375Z" transform="translate(0)"/><path d="M68.016,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,68.016,98.108Z" transform="translate(-1.693 -3.214)"/><path d="M71.984,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,71.984,98.108Z" transform="translate(-2.807 -3.214)"/></g></svg>
 												</a>
 											</td>
@@ -313,13 +313,13 @@
 												<span>{{ back.data.spec.sgCluster }}</span>
 											</td>
 											<td class="actions">
-												<router-link :to="($route.params.hasOwnProperty('name') ? '/cluster' : '') + '/backups/' + $route.params.namespace + ($route.params.hasOwnProperty('name') ? '/' + $route.params.name : '') + '/' + back.data.metadata.name" target="_blank" class="newTab">
+												<a target="_blank" class="newTab disabled">
 													<svg xmlns="http://www.w3.org/2000/svg" width="15.001" height="12.751" viewBox="0 0 15.001 12.751"><g transform="translate(167.001 -31.5) rotate(90)"><path d="M37.875,168.688a.752.752,0,0,1-.53-.219l-5.625-5.626a.75.75,0,0,1,0-1.061l2.813-2.813a.75.75,0,0,1,1.06,1.061l-2.283,2.282,4.566,4.566,4.566-4.566-2.283-2.282a.75.75,0,0,1,1.06-1.061l2.813,2.813a.75.75,0,0,1,0,1.061l-5.625,5.626A.752.752,0,0,1,37.875,168.688Z" transform="translate(0 -1.687)" fill="#00adb5"/><path d="M42.156,155.033l-2.813-2.813a.752.752,0,0,0-1.061,0l-2.813,2.813a.75.75,0,1,0,1.06,1.061l1.533-1.534v5.3a.75.75,0,1,0,1.5,0v-5.3l1.533,1.534a.75.75,0,1,0,1.06-1.061Z" transform="translate(-0.937 0)" fill="#00adb5"/></g></svg>
-												</router-link>
-												<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)" :to="'/crd/edit/backup/'+$route.params.namespace+'/'+back.data.metadata.name" title="Edit Backup">
+												</a>
+												<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)" :to="'/' + $route.params.namespace + (isCluster ? ( '/sgcluster/' + $route.params.name ) : '' ) + '/sgbackup/' + back.data.metadata.name + '/edit'" title="Edit Backup">
 													<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M90,135.721v2.246a.345.345,0,0,0,.345.345h2.246a.691.691,0,0,0,.489-.2l8.042-8.041a.346.346,0,0,0,0-.489l-2.39-2.389a.345.345,0,0,0-.489,0L90.2,135.232A.691.691,0,0,0,90,135.721Zm13.772-8.265a.774.774,0,0,0,0-1.095h0l-1.82-1.82a.774.774,0,0,0-1.095,0h0l-1.175,1.176a.349.349,0,0,0,0,.495l2.421,2.421a.351.351,0,0,0,.5,0Z" transform="translate(-90 -124.313)"/></svg>
 												</router-link>
-												<a v-if="iCan('delete','sgbackups',$route.params.namespace)" v-on:click="deleteCRD('sgbackup',$route.params.namespace, back.data.metadata.name)" class="delete" title="Delete Backup">
+												<a v-if="iCan('delete','sgbackups',$route.params.namespace)" @click="deleteCRD('sgbackup',$route.params.namespace, back.data.metadata.name)" class="delete" title="Delete Backup">
 													<svg xmlns="http://www.w3.org/2000/svg" width="13.5" height="15" viewBox="0 0 13.5 15"><g transform="translate(-61 -90)"><path d="M73.765,92.7H71.513a.371.371,0,0,1-.355-.362v-.247A2.086,2.086,0,0,0,69.086,90H66.413a2.086,2.086,0,0,0-2.072,2.094V92.4a.367.367,0,0,1-.343.3H61.735a.743.743,0,0,0,0,1.486h.229a.375.375,0,0,1,.374.367v8.35A2.085,2.085,0,0,0,64.408,105h6.684a2.086,2.086,0,0,0,2.072-2.095V94.529a.372.372,0,0,1,.368-.34h.233a.743.743,0,0,0,0-1.486Zm-7.954-.608a.609.609,0,0,1,.608-.607h2.667a.6.6,0,0,1,.6.6v.243a.373.373,0,0,1-.357.371H66.168a.373.373,0,0,1-.357-.371Zm5.882,10.811a.61.61,0,0,1-.608.608h-6.67a.608.608,0,0,1-.608-.608V94.564a.375.375,0,0,1,.375-.375h7.136a.375.375,0,0,1,.375.375Z" transform="translate(0)"/><path d="M68.016,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,68.016,98.108Z" transform="translate(-1.693 -3.214)"/><path d="M71.984,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,71.984,98.108Z" transform="translate(-2.807 -3.214)"/></g></svg>
 												</a>
 											</td>
@@ -341,13 +341,13 @@
 						<h2>Backup Details</h2>
 						<template v-if="isCluster">
 							<div class="titleLinks">
-								<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/crd/edit/backup/'+$route.params.namespace+'/'+$route.params.backupname" title="Edit Backup">
+								<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/' + $route.params.namespace + (isCluster ? ( '/sgcluster/' + $route.params.name ) : '' ) + '/sgbackup/' + back.data.metadata.name + '/edit'" title="Edit Backup">
 									Edit Backup
 								</router-link>
-								<a v-if="iCan('delete','sgbackups',$route.params.namespace)" v-on:click="deleteCRD('sgbackup',$route.params.namespace, $route.params.backupname)" title="Delete Backup">
+								<a v-if="iCan('delete','sgbackups',$route.params.namespace)" @click="deleteCRD('sgbackup',$route.params.namespace, $route.params.backupname, '/' + $route.params.namespace + '/sgbackups')" title="Delete Backup">
 									Delete Backup
 								</a>
-								<router-link class="borderLeft" :to=" isCluster ? ('/cluster/backups/'+$route.params.namespace+'/'+$route.params.name) : ('/backups/'+$route.params.namespace)" title="Close Details">Close Details</router-link>
+								<router-link class="borderLeft" :to="'/' + $route.params.namespace + (isCluster ? ( '/sgcluster/' + $route.params.name ) : '' ) + '/sgbackups'" title="Close Details">Close Details</router-link>
 							</div>
 						</template>
 					</div>

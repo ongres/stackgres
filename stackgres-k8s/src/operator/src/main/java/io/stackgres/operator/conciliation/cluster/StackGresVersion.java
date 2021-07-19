@@ -25,6 +25,8 @@ public enum StackGresVersion {
   V10A3("1.0.0-alpha3"),
   V10A4("1.0.0-alpha4"),
   V10B1("1.0.0-beta1"),
+  V10B2("1.0.0-beta2"),
+  V10B3("1.0.0-beta3"),
   V10("1.0");
 
   private final String version;

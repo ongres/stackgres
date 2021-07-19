@@ -3,6 +3,7 @@ title: Cluster Restart
 weight: 20
 url: install/restart
 description: Details about how to restart the database nodes.
+showToc: true
 ---
 
 This procedure can be used in general after a configuration change that requires restart (including
@@ -21,7 +22,7 @@ kubectl get sgclusters.stackgres.io -A --template '
 {{- end }}'
 ```
 
-The restart procedure will generate a service disruption. The service disruption will start for the
+**The restart procedure will generate a service disruption**. The service disruption will start for the
  read write connections when the primary pod is deleted and will end when Patroni elect the new
  primary. For read only connections the service disruption will start when only one replica exists
  and the replica pod is deleted and will end when Patroni set the role of the pod to replica.
@@ -35,14 +36,14 @@ There are two restart strategy:
 * Reduced Impact Restart: this procedure is the same as the in-place restart but require additional
  resources in order to spawn a new updated replica that will be removed when the procedure completes.
 
+> **NOTE**: If any of postgres's parameters `max_connections`, `max_prepared_transactions`, `max_wal_senders`,
+> `max_wal_senders` or `max_locks_per_transaction` are changed to a lower value than they were set
+> the primary have to be restarted before any replica can be restarted too, the service disruption
+> for read write connection will last longer in this case depending how long it take to the primary
+> to restart.
+
 Those procedures includes some shell script snippet examples. In those snippet we assume the
  following environment variables are set with values of the StackGres cluster you want to restart:
-
-NOTE: If any of postgres's parameters `max_connections`, `max_prepared_transactions`, `max_wal_senders`,
- `max_wal_senders` or `max_locks_per_transaction` are changed to a lower value than they were set
- the primary have to be restarted before any replica can be restarted too, the service disruption
- for read write connection will last longer in this case depending how long it take to the primary
- to restart.
 
 ```shell
 NAMESPACE=default
@@ -65,8 +66,8 @@ echo "Inreasing cluster instances from $INSTANCES to $((INSTANCES+1))"
 kubectl patch sgcluster -n "$NAMESPACE" "$SGCLUSTER" --type merge -p "spec: { instances: $((INSTANCES+1)) }"
 ```
 
-Wait until the new instance is created and operational, receiving traffic from the LB. This new
- replica has already been initialized with the new components. Note the name of the new pod.
+Wait until the new instance is created and operational, receiving traffic from the Service. This new
+ replica has already been initialized with the new components.
 
 ```shell
 READ_ONLY_POD="$SGCLUSTER-$INSTANCES"
@@ -120,8 +121,7 @@ echo "Deleting read-only pod $READ_ONLY_POD"
 kubectl delete -n "$NAMESPACE" pod "$READ_ONLY_POD"
 ```
 
-A new one will be created, and will also have the new components. Wait until fully operational
- and note the name of the new pod.
+A new one will be created, and will also have the new components. Wait until fully operational.
 
 ```shell
 echo "Waiting for pod $READ_ONLY_POD"

@@ -7,10 +7,6 @@ package io.stackgres.operator.conciliation.comparator;
 
 import java.util.regex.Pattern;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.zjsonpatch.JsonDiff;
-
 public class ServiceComparator extends StackGresAbstractComparator {
 
   private static final IgnorePatch[] IGNORE_PATCH_PATTERNS = {
@@ -32,22 +28,13 @@ public class ServiceComparator extends StackGresAbstractComparator {
           "add",
           "ClusterIP"),
       new SimpleIgnorePatch("/status",
-          "add")
+          "add"),
+      new SimpleIgnorePatch("/metadata/managedFields", "add")
   };
 
   @Override
   protected IgnorePatch[] getPatchPattersToIgnore() {
     return IGNORE_PATCH_PATTERNS;
-  }
-
-  @Override
-  public boolean isResourceContentEqual(HasMetadata required, HasMetadata deployed) {
-    JsonNode diff = JsonDiff.asJson(PATCH_MAPPER.valueToTree(required),
-        PATCH_MAPPER.valueToTree(deployed));
-
-    int ignore = countPatchesToIgnore(diff);
-
-    return diff.size() - ignore == 0;
   }
 
 }

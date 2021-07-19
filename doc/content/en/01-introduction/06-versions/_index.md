@@ -3,7 +3,62 @@ title: "Versions"
 weight: 6
 url: intro/versions
 description: Details about StackGres versions.
+showToc: true
 ---
+
+## StackGres 1.0.0-beta3
+
+| Component | Versions |
+| ------ | ----------- |
+| PostgreSQL 13 | 13.2, 13.1, 13.0 |
+| PostgreSQL 12 | 12.6, 12.5, 12.4, 12.3, 12.2 and 12.1 |
+| Patroni | 2.0.2 |
+| WAL-G | 0.2.19 |
+| PgBouncer | 1.15.0 |
+| Postgres Exporter | 0.9.0 |
+| Envoy | 1.17.1 |
+| Fluent-Bit | 1.7.5 |
+| Fluentd | 1.12.1 |
+
+### Additional extensions included on StackGres
+
+* [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
+
+## StackGres 1.0.0-beta2
+
+| Component | Versions |
+| ------ | ----------- |
+| PostgreSQL 12 | 12.6, 12.5, 12.4, 12.3, 12.2 and 12.1 |
+| PostgreSQL 11 | 11.11, 11.10, 11.9, 11.8, 11.7 and 11.6 |
+| Patroni | 2.0.2 |
+| WAL-G | 0.2.19 |
+| PgBouncer | 1.15.0 |
+| Postgres Exporter | 0.9.0 |
+| Envoy | 1.17.1 |
+| Fluent-Bit | 1.7.5 |
+| Fluentd | 1.12.1 |
+
+### Additional extensions included on StackGres
+
+* [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
+
+## StackGres 1.0.0-beta1
+
+| Component | Versions |
+| ------ | ----------- |
+| PostgreSQL 12 | 12.6, 12.5, 12.4, 12.3, 12.2 and 12.1 |
+| PostgreSQL 11 | 11.11, 11.10, 11.9, 11.8, 11.7 and 11.6 |
+| Patroni | 2.0.2 |
+| WAL-G | 0.2.19 |
+| PgBouncer | 1.15.0 |
+| Postgres Exporter | 0.9.0 |
+| Envoy | 1.17.1 |
+| Fluent-Bit | 1.7.5 |
+| Fluentd | 1.12.1 |
+
+### Additional extensions included on StackGres
+
+* [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
 
 ## StackGres 1.0.0-alpha4
 

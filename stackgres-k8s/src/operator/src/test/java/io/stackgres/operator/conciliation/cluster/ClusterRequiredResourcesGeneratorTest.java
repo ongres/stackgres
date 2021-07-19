@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,6 +17,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -26,6 +26,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupList;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
@@ -43,6 +44,7 @@ import io.stackgres.common.resource.PostgresConfigFinder;
 import io.stackgres.common.resource.ProfileConfigFinder;
 import io.stackgres.common.resource.SecretFinder;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfigList;
+import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
 import io.stackgres.operator.resource.PrometheusScanner;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -87,10 +89,12 @@ class ClusterRequiredResourcesGeneratorTest {
   void setUp() {
     cluster = JsonUtil
         .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    cluster.getSpec().setPostgresVersion(StackGresComponent.POSTGRESQL.findLatestVersion());
     final String namespace = cluster.getMetadata().getNamespace();
     backupConfig = JsonUtil.readFromJson("backup_config/default.json", StackGresBackupConfig.class);
     setNamespace(backupConfig);
     postgresConfig = JsonUtil.readFromJson("postgres_config/default_postgres.json", StackGresPostgresConfig.class);
+    postgresConfig.getSpec().setPostgresVersion(StackGresComponent.POSTGRESQL.findLatestMajorVersion());
     setNamespace(postgresConfig);
     poolingConfig = JsonUtil.readFromJson("pooling_config/default.json", StackGresPoolingConfig.class);
     setNamespace(poolingConfig);
@@ -100,10 +104,6 @@ class ClusterRequiredResourcesGeneratorTest {
     backups = JsonUtil.readFromJson("backup/list.json", StackGresBackupList.class).getItems();
     backups.forEach(this::setNamespace);
     minioSecret = JsonUtil.readFromJson("secret/minio.json", Secret.class);
-    lenient().when(prometheusScanner.findResources(any())).thenReturn(Optional.of(
-        JsonUtil.readFromJson("prometheus/prometheus_list.json", PrometheusConfigList.class)
-        .getItems()
-    ));
   }
 
   private void setNamespace(HasMetadata resource){
@@ -418,6 +418,81 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupScanner).getResources();
+
+  }
+
+  @Test
+  void givenADefaultPrometheusInstallation_shouldGenerateServiceMonitors() {
+
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    final StackGresClusterSpec clusterSpec = cluster.getSpec();
+    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
+    final String backupConfigName = clusterConfiguration.getBackupConfig();
+    mockBackupConfig(clusterNamespace, backupConfigName);
+    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
+    mockPgConfig(clusterNamespace, postgresConfigName);
+    final String connectionPoolingConfig = clusterConfiguration.getConnectionPoolingConfig();
+    mockPoolingConfig(clusterNamespace, connectionPoolingConfig);
+    final String resourceProfile = clusterSpec.getResourceProfile();
+    when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupScanner.getResources())
+        .thenReturn(backups);
+    mockSecrets(clusterNamespace);
+
+    when(prometheusScanner.findResources()).thenReturn(Optional.of(
+        JsonUtil.readFromJson("prometheus/prometheus_list.json", PrometheusConfigList.class)
+            .getItems()
+    ));
+
+    List<HasMetadata> generatedResources = generator.getRequiredResources(cluster);
+
+    var serviceMonitors = generatedResources.stream()
+        .filter(r -> r.getKind().equals(ServiceMonitor.KIND))
+        .collect(Collectors.toUnmodifiableList());
+
+    assertEquals(2, serviceMonitors.size());
+    verify(prometheusScanner).findResources();
+
+  }
+
+  @Test
+  void givenAPrometheusInstallationWithNoServiceMonitorSelector_shouldGenerateServiceMonitors() {
+
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    final StackGresClusterSpec clusterSpec = cluster.getSpec();
+    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
+    final String backupConfigName = clusterConfiguration.getBackupConfig();
+    mockBackupConfig(clusterNamespace, backupConfigName);
+    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
+    mockPgConfig(clusterNamespace, postgresConfigName);
+    final String connectionPoolingConfig = clusterConfiguration.getConnectionPoolingConfig();
+    mockPoolingConfig(clusterNamespace, connectionPoolingConfig);
+    final String resourceProfile = clusterSpec.getResourceProfile();
+    when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupScanner.getResources())
+        .thenReturn(backups);
+    mockSecrets(clusterNamespace);
+
+    when(prometheusScanner.findResources()).thenReturn(Optional.of(
+        JsonUtil.readFromJson("prometheus/prometheus_list.json", PrometheusConfigList.class)
+            .getItems()
+        .stream().peek(pc -> pc.getSpec().setServiceMonitorSelector(null))
+        .collect(Collectors.toUnmodifiableList())
+    ));
+
+    List<HasMetadata> generatedResources = generator.getRequiredResources(cluster);
+
+    var serviceMonitors = generatedResources.stream()
+        .filter(r -> r.getKind().equals(ServiceMonitor.KIND))
+        .collect(Collectors.toUnmodifiableList());
+
+    assertEquals(2, serviceMonitors.size());
 
   }
 

@@ -22,6 +22,9 @@ public class DbOpsRestart {
   @JsonProperty("restartPrimaryFirst")
   private Boolean restartPrimaryFirst;
 
+  @JsonProperty("onlyPendingRestart")
+  private Boolean onlyPendingRestart;
+
   public String getMethod() {
     return method;
   }
@@ -36,6 +39,14 @@ public class DbOpsRestart {
 
   public void setRestartPrimaryFirst(Boolean restartPrimaryFirst) {
     this.restartPrimaryFirst = restartPrimaryFirst;
+  }
+
+  public Boolean getOnlyPendingRestart() {
+    return onlyPendingRestart;
+  }
+
+  public void setOnlyPendingRestart(Boolean onlyPendingRestart) {
+    this.onlyPendingRestart = onlyPendingRestart;
   }
 
   @Override

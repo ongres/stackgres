@@ -5,20 +5,15 @@
 
 package io.stackgres.operator.conciliation.comparator;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.zjsonpatch.JsonDiff;
+public class ServiceAccountComparator extends StackGresAbstractComparator {
 
-public class ServiceAccountComparator extends DefaultComparator {
+  private static final IgnorePatch[] IGNORE_PATCH_PATTERNS = {
+      new StackGresAbstractComparator.SimpleIgnorePatch("/managedFields",
+          "add"),
+  };
 
   @Override
-  public boolean isResourceContentEqual(HasMetadata required, HasMetadata deployed) {
-
-    final JsonNode source = PATCH_MAPPER.valueToTree(required.getMetadata());
-    final JsonNode target = PATCH_MAPPER.valueToTree(deployed.getMetadata());
-
-    JsonNode diff = JsonDiff.asJson(source, target);
-
-    return diff.size() == 0;
+  protected IgnorePatch[] getPatchPattersToIgnore() {
+    return IGNORE_PATCH_PATTERNS;
   }
 }

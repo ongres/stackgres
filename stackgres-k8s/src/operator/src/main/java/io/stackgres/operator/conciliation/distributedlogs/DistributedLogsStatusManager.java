@@ -8,31 +8,37 @@ package io.stackgres.operator.conciliation.distributedlogs;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.fabric8.kubernetes.api.model.ObjectMeta;
+import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
-import io.fabric8.kubernetes.api.model.apps.StatefulSetStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.ClusterPendingRestartUtil;
+import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
+import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class DistributedLogsStatusManager
     extends ConditionUpdater<StackGresDistributedLogs, StackGresDistributedLogsCondition>
     implements StatusManager<StackGresDistributedLogs, StackGresDistributedLogsCondition> {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(DistributedLogsStatusManager.class);
 
   private final KubernetesClientFactory clientFactory;
   private final LabelFactory<StackGresDistributedLogs> labelFactory;
@@ -54,45 +60,47 @@ public class DistributedLogsStatusManager
     return source;
   }
 
+  private static String getDistributedLogsId(StackGresDistributedLogs distributedLogs) {
+    return distributedLogs.getMetadata().getNamespace() + "/"
+        + distributedLogs.getMetadata().getName();
+  }
+
   /**
    * Check pending restart status condition.
    */
-  public boolean isPendingRestart(StackGresDistributedLogs source) {
-    return isStatefulSetPendingRestart(source)
-        || isPatroniPendingRestart(source);
-  }
-
-  private boolean isStatefulSetPendingRestart(StackGresDistributedLogs source) {
-
-    return getClusterStatefulSet(source)
-        .filter(sts -> Optional.ofNullable(sts.getStatus())
-            .map(StatefulSetStatus::getUpdateRevision).isPresent())
-        .map(sts -> {
-          String statefulSetUpdateRevision = sts.getStatus().getUpdateRevision();
-
-          List<Pod> pods = getStsPods(sts, source);
-
-          return pods.stream()
-              .map(pod -> pod.getMetadata().getLabels().get("controller-revision-hash"))
-              .anyMatch(controllerRevisionHash ->
-                  Objects.equals(statefulSetUpdateRevision, controllerRevisionHash));
-        })
-        .orElse(false);
-
-  }
-
-  private boolean isPatroniPendingRestart(StackGresDistributedLogs cluster) {
-    return getClusterStatefulSet(cluster)
-        .map(sts -> getStsPods(sts, cluster))
-        .map(pods -> pods.stream()
-            .map(Pod::getMetadata).filter(Objects::nonNull)
-            .map(ObjectMeta::getAnnotations).filter(Objects::nonNull)
-            .map(Map::entrySet)
-            .anyMatch(p -> p.stream()
-                .map(Map.Entry::getValue).filter(Objects::nonNull)
-                .anyMatch(r -> r.contains("\"pending_restart\":true")))
-        )
-        .orElse(false);
+  public boolean isPendingRestart(StackGresDistributedLogs distributedLogs) {
+    List<StackGresClusterPodStatus> clusterPodStatuses = Optional.ofNullable(
+        distributedLogs.getStatus())
+        .map(StackGresDistributedLogsStatus::getPodStatuses)
+        .orElse(ImmutableList.of());
+    Optional<StatefulSet> clusterStatefulSet = getClusterStatefulSet(distributedLogs);
+    List<Pod> clusterPods = clusterStatefulSet.map(sts -> getStsPods(sts, distributedLogs))
+        .orElse(ImmutableList.of());
+    RestartReasons reasons = ClusterPendingRestartUtil.getRestartReasons(
+        clusterPodStatuses, clusterStatefulSet, clusterPods);
+    for (RestartReason reason : reasons.getReasons()) {
+      switch (reason) {
+        case OPERATOR_VERSION:
+          LOGGER.debug("Distributed Logs {} requires restart due to operator version change",
+              getDistributedLogsId(distributedLogs));
+          break;
+        case PATRONI:
+          LOGGER.debug("Distributed Logs {} requires restart due to patroni's indication",
+              getDistributedLogsId(distributedLogs));
+          break;
+        case POD_STATUS:
+          LOGGER.debug("Distributed Logs {} requires restart due to pod status indication",
+              getDistributedLogsId(distributedLogs));
+          break;
+        case STATEFULSET:
+          LOGGER.debug("Distributed Logs {} requires restart due to pod template changes",
+              getDistributedLogsId(distributedLogs));
+          break;
+        default:
+          break;
+      }
+    }
+    return reasons.requiresRestart();
   }
 
   private Optional<StatefulSet> getClusterStatefulSet(StackGresDistributedLogs cluster) {

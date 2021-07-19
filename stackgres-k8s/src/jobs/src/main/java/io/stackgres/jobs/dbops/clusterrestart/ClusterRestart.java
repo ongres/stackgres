@@ -10,4 +10,5 @@ import io.smallrye.mutiny.Multi;
 public interface ClusterRestart {
 
   Multi<RestartEvent> restartCluster(ClusterRestartState clusterState);
+
 }

@@ -8,8 +8,9 @@ package io.stackgres.jobs.dbops;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 
 public interface DatabaseOperationJob {
 
-  Uni<StackGresDbOps> runJob(StackGresDbOps dbOps, StackGresCluster cluster);
+  Uni<ClusterRestartState> runJob(StackGresDbOps dbOps, StackGresCluster cluster);
 }

@@ -34,6 +34,7 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -54,7 +55,7 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLog
 import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V10B1, stopAt = StackGresVersion.V10)
 @RunningContainer(order = 0)
 public class PatroniContainer implements ContainerFactory<DistributedLogsContainerContext> {
 
@@ -84,7 +85,7 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
   public Container getContainer(DistributedLogsContainerContext context) {
     final DistributedLogsContext distributedLogsContext = context.getDistributedLogsContext();
     final StackGresDistributedLogs cluster = distributedLogsContext.getSource();
-    final String pgVersion = StackGresComponent.POSTGRESQL.findVersion(StackGresComponent.LATEST);
+    final String pgVersion = StackGresDistributedLogsUtil.getPostgresVersion();
 
     final String patroniImageName = StackGresComponent.PATRONI.findImageName(
         StackGresComponent.LATEST,
@@ -142,7 +143,7 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
   public Map<String, String> getComponentVersions(DistributedLogsContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.POSTGRES_VERSION_KEY,
-        StackGresComponent.POSTGRESQL.findVersion(StackGresComponent.LATEST),
+        StackGresDistributedLogsUtil.getPostgresVersion(),
         StackGresContext.PATRONI_VERSION_KEY,
         StackGresComponent.PATRONI.findLatestVersion());
   }

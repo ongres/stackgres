@@ -57,7 +57,7 @@ public class CrdInstallerImpl implements CrdInstaller {
       if (!isCurrentCrdInstalled(currentCrd, installedCrd)) {
         upgradeCrd(currentCrd, installedCrd);
       }
-      updateOldSchemas(currentCrd, installedCrd);
+      updateAlreadyInstalledVersions(currentCrd, installedCrd);
       customResourceDefinitionResourceWriter.update(installedCrd);
       LOGGER.info("CRD {}. Patched", name);
 
@@ -68,16 +68,23 @@ public class CrdInstallerImpl implements CrdInstaller {
     }
   }
 
-  private void updateOldSchemas(CustomResourceDefinition currentCrd,
+  private void updateAlreadyInstalledVersions(CustomResourceDefinition currentCrd,
       CustomResourceDefinition installedCrd) {
-    installedCrd.getSpec().getVersions().forEach(version -> {
-      Optional<CustomResourceDefinitionVersion> currentDefinition = currentCrd.getSpec()
+    installedCrd.getSpec().getVersions().forEach(installedVersion -> {
+      currentCrd.getSpec()
           .getVersions()
           .stream()
-          .filter(v -> v.getName().equals(version.getName()))
-          .findFirst();
-      currentDefinition.ifPresent(cd -> version.setSchema(cd.getSchema()));
+          .filter(v -> v.getName().equals(installedVersion.getName()))
+          .forEach(currentVersion -> updateAlreadyDeployedVersion(
+              installedVersion, currentVersion));
     });
+  }
+
+  private void updateAlreadyDeployedVersion(CustomResourceDefinitionVersion installedVersion,
+      CustomResourceDefinitionVersion currentVersion) {
+    installedVersion.setSchema(currentVersion.getSchema());
+    installedVersion.setSubresources(currentVersion.getSubresources());
+    installedVersion.setAdditionalPrinterColumns(currentVersion.getAdditionalPrinterColumns());
   }
 
   private void upgradeCrd(CustomResourceDefinition currentCrd,

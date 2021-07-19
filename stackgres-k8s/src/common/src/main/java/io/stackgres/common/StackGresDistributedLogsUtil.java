@@ -28,6 +28,20 @@ import org.jooq.lambda.Unchecked;
 
 public interface StackGresDistributedLogsUtil {
 
+  String POSTGRESQL_VERSION = "12";
+
+  static String getPostgresVersion() {
+    return StackGresComponent.POSTGRESQL.findVersion(POSTGRESQL_VERSION);
+  }
+
+  static String getPostgresMajorVersion() {
+    return StackGresComponent.POSTGRESQL.findMajorVersion(POSTGRESQL_VERSION);
+  }
+
+  static String getPostgresBuildMajorVersion() {
+    return StackGresComponent.POSTGRESQL.findBuildMajorVersion(POSTGRESQL_VERSION);
+  }
+
   static StackGresCluster getStackGresClusterForDistributedLogs(
       StackGresDistributedLogs distributedLogs) {
     final StackGresCluster distributedLogsCluster = new StackGresCluster();
@@ -38,8 +52,7 @@ public interface StackGresDistributedLogsUtil {
     distributedLogsCluster.getMetadata().setUid(
         distributedLogs.getMetadata().getUid());
     final StackGresClusterSpec spec = new StackGresClusterSpec();
-    spec.setPostgresVersion(StackGresComponent.POSTGRESQL.findVersion(
-        StackGresComponent.LATEST));
+    spec.setPostgresVersion(getPostgresVersion());
     spec.setInstances(1);
     final StackGresClusterPod pod = new StackGresClusterPod();
     final StackGresPodPersistentVolume persistentVolume = new StackGresPodPersistentVolume();

@@ -3,6 +3,7 @@ title: postgres_exporter
 weight: 2
 url: monitoring/metrics/postgres_exporter
 description: Contains details about the metrics collected by the postgres_exporter.
+showToc: true
 ---
 
 The next tables contains details about the metrics collected by the postgres_exporter.

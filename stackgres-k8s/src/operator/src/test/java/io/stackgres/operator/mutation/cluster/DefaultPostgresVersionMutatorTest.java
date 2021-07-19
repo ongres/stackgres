@@ -70,7 +70,7 @@ class DefaultPostgresVersionMutatorTest {
     JsonNode newConfig = jp.apply(crJson);
 
     String actualPostgresVersion = newConfig.get("spec").get("postgresVersion").asText();
-    assertEquals(StackGresComponent.POSTGRESQL.findVersion("12"), actualPostgresVersion);
+    assertEquals(StackGresComponent.POSTGRESQL.findLatestVersion(), actualPostgresVersion);
 
   }
 
@@ -87,7 +87,7 @@ class DefaultPostgresVersionMutatorTest {
     JsonNode newConfig = jp.apply(crJson);
 
     String actualPostgresVersion = newConfig.get("spec").get("postgresVersion").asText();
-    assertEquals(StackGresComponent.POSTGRESQL.findVersion("12"), actualPostgresVersion);
+    assertEquals(StackGresComponent.POSTGRESQL.findLatestVersion(), actualPostgresVersion);
 
   }
 

@@ -3,6 +3,7 @@ title: Building your own StackGres operator containers
 weight: 3
 url: developer/stackgres/build/operator/own
 description: Details about how to build the container images.
+showToc: true
 ---
 
 Build stackgres images are fairly simple. You can build in two forms:

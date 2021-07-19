@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,6 +57,13 @@ class StackGresVersionTest {
         () -> StackGresVersion.getClusterStackGresVersion(cluster));
 
     assertEquals("Invalid StackGres version 0.1", ex.getMessage());
+  }
+
+  @Test
+  void givenACurrentVersion_shouldNotFail() {
+    setStackGresClusterVersion(StackGresProperty.OPERATOR_VERSION.getString());
+
+    StackGresVersion.getClusterStackGresVersion(cluster);
   }
 
   private void setStackGresClusterVersion(String configVersion) {

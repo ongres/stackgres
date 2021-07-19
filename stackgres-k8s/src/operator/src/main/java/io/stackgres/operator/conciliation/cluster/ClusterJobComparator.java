@@ -5,25 +5,17 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
-import java.util.Arrays;
 import java.util.regex.Pattern;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.zjsonpatch.JsonDiff;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import io.stackgres.operator.conciliation.comparator.StackGresAbstractComparator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @ReconciliationScope(value = StackGresCluster.class, kind = "Job")
 @ApplicationScoped
 public class ClusterJobComparator extends StackGresAbstractComparator {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(ClusterJobComparator.class);
 
   private static final IgnorePatch[] IGNORE_PATCH_PATTERNS = {
       new SimpleIgnorePatch("/spec/template/metadata/labels/controller-uid",
@@ -88,34 +80,12 @@ public class ClusterJobComparator extends StackGresAbstractComparator {
           .compile("/metadata/ownerReferences/\\d+/apiVersion"),
           "replace"
       ),
+      new SimpleIgnorePatch("/metadata/managedFields", "add")
   };
 
   @Override
   protected IgnorePatch[] getPatchPattersToIgnore() {
     return IGNORE_PATCH_PATTERNS;
-  }
-
-  @Override
-  public boolean isResourceContentEqual(HasMetadata required, HasMetadata deployed) {
-
-    final JsonNode source = PATCH_MAPPER.valueToTree(required);
-    final JsonNode target = PATCH_MAPPER.valueToTree(deployed);
-    JsonNode diff = JsonDiff.asJson(source, target);
-
-    int ignore = countPatchesToIgnore(diff);
-
-    final int actualDifferences = diff.size() - ignore;
-    if (LOGGER.isDebugEnabled() && actualDifferences != 0) {
-      for (JsonNode jsonPatch : diff) {
-        JsonPatch patch = new JsonPatch(jsonPatch);
-        if (Arrays.stream(getPatchPattersToIgnore())
-            .noneMatch(patchPattern -> patchPattern.matches(patch))) {
-          LOGGER.debug("Job diff {}", jsonPatch.toPrettyString());
-        }
-      }
-    }
-
-    return actualDifferences == 0;
   }
 
 }

@@ -8,6 +8,7 @@ package io.stackgres.common;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection(targets = {
+    io.fabric8.kubernetes.api.model.Pod.class,
     io.fabric8.kubernetes.api.model.Status.class,
 })
 public class ReflectionConfiguration {

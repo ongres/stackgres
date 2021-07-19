@@ -11,65 +11,170 @@ e2e_test_install() {
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_PATRONI_IMAGE##*-pg}"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
   PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION" | grep '/patroni\(-ext\)\?:' | grep "[-]pg$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION-" | tail -n 1)"
+
   k8s_unnamespaced_cleanup
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
-  install_operator_previous_version
+
+  load_component_images_from \
+    "$E2E_COMPONENTS_REGISTRY" \
+    "$E2E_COMPONENTS_PATH" \
+    "$STACKGRES_PREVIOUS_VERSION"
+
+  install_prometheus_operator
+  install_operator_previous_version \
+    --set grafana.autoEmbed=true \
+    --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
+  install_minio
+
+  DISTRIBUTED_LOGS_NAME=distributedlogs
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \
     --set instanceProfiles[0].name=size-xs \
     --set instanceProfiles[0].cpu=250m \
     --set instanceProfiles[0].memory=512Mi \
-    --set-string configurations.postgresconfig.postgresql\.conf.max_connections=100
+    --set-string configurations.backupconfig.baseBackups.cronSchedule='0 5 31 2 *' \
+    --set-string cluster.configurations.sgBackupConfig=backupconf \
+    --set configurations.backupconfig.create=true \
+    --set-string configurations.postgresconfig.postgresql\.conf.max_connections=100 \
+    --set distributedLogs.enabled=true \
+    --set distributedLogs.create=true \
+    --set-string cluster.distributedLogs.sgDistributedLogs="$DISTRIBUTED_LOGS_NAME" \
+    --set-string distributedLogs.persistentVolume.size=128Mi
 
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
     "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
-    --set-string cluster.postgresVersion=latest
+    --set-string cluster.postgresVersion=latest \
+    --set prometheusAutobind=true \
+    --set backupconfig.create=true \
+    --set backupconfig.retention=2 \
+    --set-string cluster.configurations.sgBackupConfig=backupconf \
+    --set distributedLogs.enabled=true \
+    --set distributedLogs.create=false \
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
 
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
     "$CLUSTER_NAME-2" "$CLUSTER_NAMESPACE" 2 \
     --set configurations.create=false --set instanceProfiles=false \
-    --set-string cluster.postgresVersion=latest 
-    
+    --set-string cluster.postgresVersion=latest \
+    --set prometheusAutobind=true \
+    --set backupconfig.create=true \
+    --set backupconfig.retention=2 \
+    --set-string cluster.configurations.sgBackupConfig=backupconf \
+    --set distributedLogs.enabled=true \
+    --set distributedLogs.create=false \
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
     "$CLUSTER_NAME-3" "$CLUSTER_NAMESPACE" 3 \
     --set configurations.create=false --set instanceProfiles=false \
-    --set-string cluster.postgresVersion=latest
+    --set-string cluster.postgresVersion=latest \
+    --set prometheusAutobind=true \
+    --set backupconfig.create=true \
+    --set backupconfig.retention=2 \
+    --set-string cluster.configurations.sgBackupConfig=backupconf \
+    --set distributedLogs.enabled=true \
+    --set distributedLogs.create=false \
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 7
+  wait_pods_running "$CLUSTER_NAMESPACE" 1 "$CLUSTER_NAME-1-[0-9]\+"
+
+  BACKUP_NAME="$CLUSTER_NAME-backup-1"
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/$(kubectl get crd sgbackups.stackgres.io --template '{{ (index .spec.versions 0).name }}')
+kind: SGBackup
+metadata:
+  namespace: "$CLUSTER_NAMESPACE"
+  name: "$BACKUP_NAME"
+spec:
+  sgCluster: "$CLUSTER_NAME-1"
+  managedLifecycle: false
+EOF
+  
+  wait_until is_backup_phase "Completed"
+
+  BACKUP_UID="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --template='{{ .metadata.uid }}')"
+
+  remove_cluster "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE"
+  create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
+    "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1 \
+    --set configurations.create=false --set instanceProfiles=false \
+    --set-string cluster.postgresVersion=latest \
+    --set prometheusAutobind=true \
+    --set backupconfig.create=true \
+    --set backupconfig.retention=2 \
+    --set-string cluster.configurations.sgBackupConfig=backupconf \
+    --set-string cluster.initialData.restore.fromBackup.uid="$BACKUP_UID" \
+    --set distributedLogs.enabled=true \
+    --set distributedLogs.create=false \
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 9
+
+  wait_cluster "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE"
+  wait_cluster "$CLUSTER_NAME-2" "$CLUSTER_NAMESPACE"
+  wait_cluster "$CLUSTER_NAME-3" "$CLUSTER_NAMESPACE"
+  wait_cluster "$DISTRIBUTED_LOGS_NAME" "$CLUSTER_NAMESPACE"
 
   generate_mock_data "$CLUSTER_NAME-1"
-  check_mock_data_samehost "$CLUSTER_NAME-1"
   generate_mock_data "$CLUSTER_NAME-2"
-  check_mock_data "$CLUSTER_NAME-2"
   generate_mock_data "$CLUSTER_NAME-3"
-  check_mock_data "$CLUSTER_NAME-3"
+
+  CLUSTER_CRD="sgclusters.stackgres.io"
+}
+
+
+is_backup_phase() {
+  [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.status.process.status}')" = "$1" ]
 }
 
 e2e_test_uninstall() {
+  uninstall_prometheus_operator
   delete_operator_only
   install_operator_only
   wait_pods_running "$OPERATOR_NAMESPACE" 2
 }
 
 e2e_test() {
+  run_test "Check clusters before operator upgrade" check_before_operator_upgrade
   run_test "Check that operator can be upgraded to newer version" check_operator_upgrade
-  run_test "Check that cluster with 1 node after upgrade" check_cluster_1
-  run_test "Check that cluster with 2 node after upgrade" check_cluster_2
-  run_test "Check that cluster with 3 node after upgrade" check_cluster_3
-  run_test "Check that cluster with 1 node can be restarted after upgrade with reduced impact" check_cluster_1_restart
-  run_test "Check that cluster with 2 node can be restarted after upgrade with reduced impact" check_cluster_2_restart
-  run_test "Check that cluster with 3 node can be restarted after upgrade with in-place restart" check_cluster_3_restart
+  run_test "Check that distributedlogs node can be security upgraded after operator upgrade" check_distributedlogs_security_upgrade
+  run_test "Check that cluster with 1 node can be security upgraded after operator upgrade with reduced impact" check_cluster_1_security_upgrade
+  run_test "Check that cluster with 2 node can be security upgraded after operator upgrade with reduced impact" check_cluster_2_security_upgrade
+  run_test "Check that cluster with 3 node can be security upgraded after operator upgrade with in-place" check_cluster_3_security_upgrade
   run_test "Checking that metrics are exported for cluster with 1 node" check_metrics "$CLUSTER_NAME-1"
   run_test "Checking that metrics are exported for cluster with 2 node" check_metrics "$CLUSTER_NAME-2"
   run_test "Checking that metrics are exported for cluster with 3 node" check_metrics "$CLUSTER_NAME-3"
-  run_test "Check that the conversion webhook is configured" check_conversion_webhook_configured
+  run_test "Check that the conversion webhooks are configured" check_conversion_webhooks_configured
+}
+
+check_before_operator_upgrade() {
+  check_mock_data_samehost "$CLUSTER_NAME-1"
+  check_mock_data "$CLUSTER_NAME-2"
+  check_mock_data "$CLUSTER_NAME-3"
+
+  local RESOURCE
+  for RESOURCE in \
+    "sgcluster/$CLUSTER_NAME-1" \
+    "sgcluster/$CLUSTER_NAME-2" \
+    "sgcluster/$CLUSTER_NAME-3" \
+    "sgdistributedlogs/$DISTRIBUTED_LOGS_NAME"
+  do
+    if ! kubectl wait -n "$CLUSTER_NAMESPACE" "$RESOURCE" --for condition=PendingRestart --timeout 0
+    then
+      echo "SUCCESS. $RESOURCE is not pending restart after creation"
+    else
+      echo "FAIL. $RESOURCE is pending restart after creation"
+      return 1
+    fi
+  done
 }
 
 check_operator_upgrade() {
@@ -104,7 +209,9 @@ check_operator_upgrade() {
     return 1
   fi
 
-  upgrade_operator --reset-values
+  upgrade_operator --reset-values \
+    --set grafana.autoEmbed=true \
+    --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"
 
   POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
@@ -136,39 +243,44 @@ check_operator_upgrade() {
   fi
 }
 
+check_distributedlogs_security_upgrade() {
+  local CLUSTER_CRD="sgdistributedlogs.stackgres.io"
+  local CLUSTER_NAME="$DISTRIBUTED_LOGS_NAME"
 
-check_cluster_1() {
-  check_sts_is_not_altered "$CLUSTER_NAME-1"
-  check_mock_data_samehost "$CLUSTER_NAME-1"
+  check_cluster_before_security_upgrade "$DISTRIBUTED_LOGS_NAME"
+
+  kubectl annotate sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" \
+    --overwrite "stackgres.io/operatorVersion=$(get_installed_operator_version)"
+  kubectl delete sts -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 1 "$DISTRIBUTED_LOGS_NAME-[0-9]\+"
+  wait_cluster "$DISTRIBUTED_LOGS_NAME" "$CLUSTER_NAMESPACE"
+
+  check_cluster_after_security_upgrade "$DISTRIBUTED_LOGS_NAME"
 }
 
-check_cluster_2() {  
-  check_sts_is_not_altered "$CLUSTER_NAME-2"
-  check_mock_data_samehost "$CLUSTER_NAME-2"
+check_cluster_1_security_upgrade() {
+  check_cluster_security_upgrade "$CLUSTER_NAME-1" "ReducedImpact"
 }
 
-check_cluster_3() {  
-  check_sts_is_not_altered "$CLUSTER_NAME-3"
-  check_mock_data_samehost "$CLUSTER_NAME-3"
+check_cluster_2_security_upgrade() {
+  check_cluster_security_upgrade "$CLUSTER_NAME-2" "ReducedImpact"
 }
 
-check_cluster_1_restart() {
-  check_cluster_restart "$CLUSTER_NAME-1" "ReducedImpact"
+check_cluster_3_security_upgrade() {
+  check_cluster_security_upgrade "$CLUSTER_NAME-3" "InPlace"
 }
 
-check_cluster_2_restart() {
-  check_cluster_restart "$CLUSTER_NAME-2" "ReducedImpact"
-}
-
-check_cluster_3_restart() {
-  check_cluster_restart "$CLUSTER_NAME-3" "InPlace"
-}
-
-check_cluster_restart() {
-  local CLUSTER_NAME="$1"  
+check_cluster_security_upgrade() {
+  local CLUSTER_NAME="$1"
   local METHOD="$2"
+  shift 2
 
-    cat << EOF | kubectl create -f -
+  check_cluster_before_security_upgrade
+
+  check_mock_data_samehost "$CLUSTER_NAME"
+
+  cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
@@ -184,9 +296,58 @@ EOF
   if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$CLUSTER_NAME" \
     --for condition=Completed
   then
-    echo "SUCCESS. security upgrade completed."
+    echo "SUCCESS. Cluster $CLUSTER_NAME security upgrade completed."
   else
-    echo "FAILED. security upgrade failed."
+    echo "FAILED. Cluster $CLUSTER_NAME security upgrade failed."
+    return 1
+  fi
+
+  check_cluster_after_security_upgrade
+
+  check_mock_data_samehost "$CLUSTER_NAME"
+}
+
+check_cluster_before_security_upgrade() {
+  if wait_until eval 'kubectl wait "$CLUSTER_CRD" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --for condition=PendingRestart --timeout 0'
+  then
+    echo "SUCCESS. Cluster $CLUSTER_NAME is pending restart after operator upgrade"
+  else
+    echo "FAIL. Cluster $CLUSTER_NAME is not pending restart after operator upgrade"
+    return 1
+  fi
+
+  check_sts_is_not_altered "$CLUSTER_NAME"
+
+  local POD
+  local PODS
+  PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true" -o name \
+    | cut -d / -f 2)"
+  for POD in $PODS
+  do
+    POD_PATRONI_IMAGE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" \
+      --template '{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}' \
+       | grep '/patroni\(-ext\)\?:')"
+    if [ "$POD_PATRONI_IMAGE" = "$PREVIOUS_PATRONI_IMAGE" ]
+    then
+      echo "SUCCESS. Pod $POD is using the previous patroni image"
+    else
+      echo "FAILURE. Pod $POD is not using the previous patroni image"
+      echo
+      echo "Previous patroni image is $PREVIOUS_PATRONI_IMAGE"
+      echo
+      echo "Used patroni image is $POD_PATRONI_IMAGE"
+      return 1
+    fi
+  done
+}
+
+check_cluster_after_security_upgrade() {
+  if wait_until eval '! kubectl wait "$CLUSTER_CRD" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --for condition=PendingRestart --timeout 0'
+  then
+    echo "SUCCESS. Cluster $CLUSTER_NAME is not pending restart after security upgrade"
+  else
+    echo "FAIL. Cluster $CLUSTER_NAME is pending restart after security upgrade"
     return 1
   fi
 
@@ -201,7 +362,7 @@ EOF
   do
     if [ "$POD_CONTROLLER_REVISION_HASH" != "$STS_UPDATE_REVISION" ]
     then
-      echo "FAILURE. Cluster restart did not updated sucesfully some pods"
+      echo "FAILURE. Cluster $CLUSTER_NAME security upgrade did not updated sucesfully some pods"
       return 1
     fi
   done
@@ -227,26 +388,25 @@ EOF
     fi
   done
 
-  check_mock_data_samehost "$CLUSTER_NAME"
-
   local PRIMARY_SERVICE_TYPE="$(kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-primary" \
     --template '{{ .spec.type }}')"
   if [ "$PRIMARY_SERVICE_TYPE" = "ExternalName" ]
   then
-    echo "SUCCESS. Primary service is of type ExternalName"
+    echo "SUCCESS. Cluster $CLUSTER_NAME primary service is of type ExternalName"
   else
-    echo "FAILURE. Primary service is not of type ExternalName"
+    echo "FAILURE. Cluster $CLUSTER_NAME primary service is not of type ExternalName"
     return 1
   fi
- 
 }
 
-check_conversion_webhook_configured(){
-
+check_conversion_webhooks_configured(){
   CONVERSTION_STRATEGY=$(kubectl get crd sgclusters.stackgres.io -o jsonpath='{.spec.conversion.strategy}')
 
   assert_string_equal "Webhook" "$CONVERSTION_STRATEGY"
 
+  CONVERSTION_STRATEGY=$(kubectl get crd sgdistributedlogs.stackgres.io -o jsonpath='{.spec.conversion.strategy}')
+
+  assert_string_equal "Webhook" "$CONVERSTION_STRATEGY"
 }
 
 check_sts_is_not_altered() {
@@ -254,12 +414,11 @@ check_sts_is_not_altered() {
 
   local STS_PATRONI_IMAGE=$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER" -o jsonpath='{.spec.template.spec.containers[0].image}')
 
-  if assert_string_equal "$STS_PATRONI_IMAGE" "$PREVIOUS_PATRONI_IMAGE"
+  if assert_string_equal "$PREVIOUS_PATRONI_IMAGE" "$STS_PATRONI_IMAGE"
   then
-    echo "SUCCESS. StatefulSet is not being altered on operator upgrade"
+    echo "SUCCESS. StatefulSet $TARGET_CLUSTER is not being altered on operator upgrade"
   else 
-    echo "FAIL. StatefulSet is being altered on operator upgrade"
+    echo "FAIL. StatefulSet $TARGET_CLUSTER is being altered on operator upgrade"
     return 1
   fi
-
 }

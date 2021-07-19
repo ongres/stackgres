@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.comparator;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 
 public interface ResourceComparator {
@@ -16,5 +17,7 @@ public interface ResourceComparator {
   }
 
   boolean isResourceContentEqual(HasMetadata required, HasMetadata deployed);
+
+  ArrayNode getJsonDiff(HasMetadata required, HasMetadata deployed);
 
 }

@@ -138,6 +138,11 @@ h1, h2, h3, h4, h5, h6 {
     cursor: pointer;
 }
 
+.btn[disabled] {
+    filter: grayscale(1);
+    cursor: not-allowed;
+}
+
 .form button:hover, .form button:focus, .btn:hover, .btn:focus, button:hover {
     background: var(--lblue);
     border-color: var(--lblue);
@@ -730,7 +735,7 @@ aside {
     width: calc(100% - 350px);
     display: block;
     min-height: 100vh;
-    padding: 60px 40px 40px 40px;
+    padding: 60px 40px 0 40px;
 }
 
 .cta {
@@ -1579,7 +1584,7 @@ footer .tooltip p {
     text-transform: uppercase;
 }
 
-#notifications .message {
+.message {
     border-top: 1px solid var(--borderColor);
     position: relative;
     max-width: 320px;
@@ -1895,18 +1900,11 @@ ul.tabs {
     color: var(--blue);
 }
 
-.tabs a.router-link-active {
+.tabs a.router-link-exact-active {
     color: var(--blue);
     border-bottom-color: var(--blue);
     font-weight: bold;
 }
-
-/* .title {
-    color: var(--blue);
-    padding-top: 12px;
-    font-size: 1.1rem;
-    text-transform: uppercase;
-} */
 
 .subtitle {
     font-weight: 300;
@@ -2440,6 +2438,7 @@ form .warning {
     border-radius: 6px;
     margin-bottom: 20px;
     display: inline-block;
+    line-height: 1.1;
     width: 100%;
 }
 
@@ -2765,7 +2764,11 @@ fieldset {
 }
 
 .form .alert {
-    border-color: #ff8873;
+    border-color: var(--orange);
+}
+
+.alert a {
+    color: var(--orange);
 }
 
 span.req {
@@ -4412,18 +4415,10 @@ ul.options ul.options {
 
 /* Backups YAML */
 
-tr.base:hover td:first-child::before {
-    content: " ";
-    width: 3px;
-    border: 1px solid var(--blue);
-    display: inline-block;
-    position: absolute;
-    top: 21px;
-    left: 10px;
-}
 table.backups td.timestamp, table.backups tr.details > td{
     position: relative;
 }
+
 tr.details:not(.Failed).open > td:first-child:before {
     width: 3px;
     content: " ";
@@ -4514,6 +4509,8 @@ table.profiles td.inlineList svg:hover path, table.backupConfig td.usedOn svg:ho
     max-width: 320px;
     padding: 15px 0;
     width: 280px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
 }
 
 
@@ -4805,6 +4802,14 @@ table.backupConfig tr.details.open td:first-of-type {
 
 #contentTooltip .info.warning span.close {
     color: var(--orange);
+}
+
+.warning ul {
+    padding-left: 20px;
+}
+
+.warning li {
+    margin: 10px 0;
 }
 
 /*Help Tooltips*/

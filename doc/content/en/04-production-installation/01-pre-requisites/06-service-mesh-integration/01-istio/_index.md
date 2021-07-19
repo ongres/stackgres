@@ -4,6 +4,7 @@ weight: 1
 url: install/prerequisites/services-mesh-integration/istio
 description: |
   Details about how to work in a k8s cluster with Istio
+showToc: true
 ---
 
 StackGres already has an implementation of Envoy, the sidecar injected by Istio (istio-proxy) it's not compatible at the moment.

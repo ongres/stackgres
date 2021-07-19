@@ -113,6 +113,22 @@ public class DbOpsSecurityUpgradeJob implements JobFactory {
                     .withFieldPath("metadata.name")
                     .endFieldRef()
                     .endValueFrom()
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("APP_OPTS")
+                    .withValue(System.getenv("APP_OPTS"))
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("JAVA_OPTS")
+                    .withValue(System.getenv("JAVA_OPTS"))
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("DEBUG_CLUSTER_CONTROLLER")
+                    .withValue(System.getenv("DEBUG_JOBS"))
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("DEBUG_CLUSTER_CONTROLLER_SUSPEND")
+                    .withValue(System.getenv("DEBUG_JOBS_SUSPEND"))
                     .build())
             .build())
         .endSpec()

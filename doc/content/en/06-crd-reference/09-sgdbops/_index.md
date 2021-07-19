@@ -3,6 +3,7 @@ title: SGDbOps
 weight: 9
 url: reference/crd/sgdbops
 description: Details about SGDbOps configurations
+showToc: true
 ---
 
 The database operations CR represent an operation that is performed on a cluster.

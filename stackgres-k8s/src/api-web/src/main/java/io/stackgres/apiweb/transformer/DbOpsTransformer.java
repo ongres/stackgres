@@ -211,6 +211,7 @@ public class DbOpsTransformer
         new StackGresDbOpsRestart();
     transformation.setMethod(source.getMethod());
     transformation.setRestartPrimaryFirst(source.getRestartPrimaryFirst());
+    transformation.setOnlyPendingRestart(source.getOnlyPendingRestart());
     return transformation;
   }
 
@@ -361,6 +362,7 @@ public class DbOpsTransformer
         new DbOpsRestart();
     transformation.setMethod(source.getMethod());
     transformation.setRestartPrimaryFirst(source.getRestartPrimaryFirst());
+    transformation.setOnlyPendingRestart(source.getOnlyPendingRestart());
     return transformation;
   }
 

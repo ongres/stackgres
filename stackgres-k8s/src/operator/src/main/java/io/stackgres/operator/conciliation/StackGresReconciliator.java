@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClientException;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.resource.CustomResourceScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +22,8 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger("io.stackgres.reconciliator");
 
-  private static final String STACKGRES_IO_RECONCILIATION = "stackgres.io/reconciliation-pause";
+  private static final String STACKGRES_IO_RECONCILIATION = StackGresContext
+      .RECONCILIATION_PAUSE_KEY;
 
   private CustomResourceScanner<T> clusterScanner;
 
@@ -70,9 +72,9 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
                 handlerDelegator.delete(resource);
               });
           if (result.getDeletions().size() == 0 && result.getPatches().size() == 0) {
-            onConfigCreated(cluster);
+            onConfigCreated(cluster, result);
           } else {
-            onConfigUpdated(cluster);
+            onConfigUpdated(cluster, result);
           }
         } else {
           LOGGER.info("Cluster " + clusterId + " it's up to date");
@@ -105,9 +107,9 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
 
   public abstract void onPostReconciliation(T config);
 
-  public abstract void onConfigCreated(T context);
+  public abstract void onConfigCreated(T context, ReconciliationResult result);
 
-  public abstract void onConfigUpdated(T context);
+  public abstract void onConfigUpdated(T context, ReconciliationResult result);
 
   public abstract void onError(Exception e, T context);
 

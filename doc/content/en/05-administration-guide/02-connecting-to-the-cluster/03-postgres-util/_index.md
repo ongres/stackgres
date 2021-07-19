@@ -3,6 +3,7 @@ title: Local connection with the postgres-util sidecar
 weight: 3
 url: administration/cluster/connection/pgutil
 description: Describes how to connect on the cluster using kubectl and the postgres-util sidecar container.
+showToc: true
 ---
 
 Local Connection to the database has to be through the `postgres-utils` sidecar. This sidecar has all PostgreSQL binaries that are not present in the main container called `patroni` like the `psql` command.

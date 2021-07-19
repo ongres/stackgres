@@ -8,6 +8,7 @@ package io.stackgres.jobs.dbops.lock;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -17,6 +18,7 @@ import io.stackgres.common.resource.CustomResourceScheduler;
 import org.jetbrains.annotations.NotNull;
 
 @Mock
+@ApplicationScoped
 public class FakeClusterScheduler implements CustomResourceScheduler<StackGresCluster> {
 
   private final MockKubeDb kubeDb;

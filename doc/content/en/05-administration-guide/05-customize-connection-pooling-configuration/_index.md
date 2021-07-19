@@ -3,6 +3,7 @@ title: Customize Connection Pooling Configuration
 weight: 5
 url: administration/cluster/pool
 description: Details about how to update the pooling configuration.
+showToc: true
 ---
 
 If you happen to be reading this, it's because you are aware of your application characteristics and needs for scaling connections on a production environment.

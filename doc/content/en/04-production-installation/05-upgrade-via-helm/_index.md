@@ -3,6 +3,7 @@ title: "Upgrade via Helm"
 weight: 5
 url: install/helm/upgrade
 description: Details about how to use helm to upgrade the operator.
+showToc: true
 ---
 
 ## Upgrade Operator

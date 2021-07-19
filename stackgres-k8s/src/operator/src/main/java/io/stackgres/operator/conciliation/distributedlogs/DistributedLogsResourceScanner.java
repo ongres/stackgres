@@ -39,7 +39,7 @@ public class DistributedLogsResourceScanner
     try (KubernetesClient client = clientFactory.create()) {
 
       final String namespace = config.getMetadata().getNamespace();
-      List<HasMetadata> resources = STACKGRES_CLUSTER_RESOURCE_OPERATIONS.values()
+      List<HasMetadata> resources = STACKGRES_CLUSTER_IN_NAMESPACE_RESOURCE_OPERATIONS.values()
           .stream()
           .flatMap(resourceOperationGetter -> resourceOperationGetter.apply(client)
               .inNamespace(namespace)

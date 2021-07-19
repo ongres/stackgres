@@ -3,6 +3,7 @@ title: Patroni Management
 weight: 16
 url: administration/patroni/management
 description: Details about how to use patroni to handle the database replicas and primary nodes.
+showToc: true
 ---
 
 Once you hace a StackGres cluster installed you'll have a Full HA PostgreSQL configuration and depending of the size of your cluster you´ll have something like this:
