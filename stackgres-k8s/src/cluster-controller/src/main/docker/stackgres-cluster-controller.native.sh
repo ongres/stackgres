@@ -1,11 +1,10 @@
 #!/bin/sh
 
-APP_OPTS="${APP_OPTS:-"-Dquarkus.http.host=0.0.0.0 -Dquarkus.http.port=8080 -Dquarkus.http.ssl-port=8443 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"}"
 if [ "$DEBUG_CLUSTER_CONTROLLER" = true ]
 then
   set -x
-  APP_OPTS="$APP_OPTS -agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=$([ "$DEBUG_CLUSTER_CONTROLLER_SUSPEND" = true ] && echo y || echo n)"
 fi
+APP_OPTS="${APP_OPTS:-"-Dquarkus.http.host=0.0.0.0 -Dquarkus.http.port=8080 -Dquarkus.http.ssl-port=8443 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"}"
 if [ -n "$CLUSTER_CONTROLLER_LOG_LEVEL" ]
 then
   APP_OPTS="$APP_OPTS -Dquarkus.log.level=$CLUSTER_CONTROLLER_LOG_LEVEL"
