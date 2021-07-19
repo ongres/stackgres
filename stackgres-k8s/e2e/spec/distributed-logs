@@ -177,7 +177,7 @@ has_cluster_joined_distributedlogs() {
   RESPONSE="$(run_query -c "$CLUSTER_NAME$1" -x psql -k postgres \
     -h "$CLUSTER_NAME$1"-primary -p 5432 -q "SELECT 'distributed-logs-joined'")"
   [ "$RESPONSE" = "distributed-logs-joined" ] \
-    && get_logs_count_with_text "distributed-logs-joined" "$1" | jq 'map(select(.role != null)) | length > 0' | grep -q "^true$"
+    && get_logs_entries_with_text "distributed-logs-joined" "$1" | jq 'map(select(.role != null)) | length > 0' | grep -q "^true$"
 }
 
 check_distributed_logs_query_endpoint() {
