@@ -216,6 +216,7 @@ class PostgresVersionValidatorTest {
         .readFromJson("cluster_allow_requests/invalid_creation_pg_version.json",
             StackGresClusterReview.class);
     review.getRequest().getObject().getSpec().setPostgresVersion(secondPgMajorVersion);
+    postgresConfig.getSpec().setPostgresVersion(firstPgMajorVersion);
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     String postgresProfile = spec.getConfiguration().getPostgresConfig();

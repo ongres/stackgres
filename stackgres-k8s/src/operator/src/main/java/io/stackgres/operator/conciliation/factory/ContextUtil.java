@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
@@ -96,12 +97,9 @@ public class ContextUtil {
 
     return ImmutablePostgresContainerContext.builder()
         .from(context)
-        .postgresMajorVersion(StackGresComponent.POSTGRESQL
-            .findMajorVersion(StackGresComponent.LATEST))
-        .postgresVersion(StackGresComponent.POSTGRESQL
-            .findVersion(StackGresComponent.LATEST))
-        .imageBuildMajorVersion(StackGresComponent.POSTGRESQL
-            .findBuildMajorVersion(StackGresComponent.LATEST))
+        .postgresMajorVersion(StackGresDistributedLogsUtil.getPostgresMajorVersion())
+        .postgresVersion(StackGresDistributedLogsUtil.getPostgresVersion())
+        .imageBuildMajorVersion(StackGresDistributedLogsUtil.getPostgresBuildMajorVersion())
         .addAllInstalledExtensions(installedExtensions)
         .build();
   }

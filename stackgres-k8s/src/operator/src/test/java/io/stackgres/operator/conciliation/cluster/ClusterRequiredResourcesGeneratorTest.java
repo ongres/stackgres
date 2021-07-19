@@ -26,6 +26,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupList;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
@@ -88,10 +89,12 @@ class ClusterRequiredResourcesGeneratorTest {
   void setUp() {
     cluster = JsonUtil
         .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    cluster.getSpec().setPostgresVersion(StackGresComponent.POSTGRESQL.findLatestVersion());
     final String namespace = cluster.getMetadata().getNamespace();
     backupConfig = JsonUtil.readFromJson("backup_config/default.json", StackGresBackupConfig.class);
     setNamespace(backupConfig);
     postgresConfig = JsonUtil.readFromJson("postgres_config/default_postgres.json", StackGresPostgresConfig.class);
+    postgresConfig.getSpec().setPostgresVersion(StackGresComponent.POSTGRESQL.findLatestMajorVersion());
     setNamespace(postgresConfig);
     poolingConfig = JsonUtil.readFromJson("pooling_config/default.json", StackGresPoolingConfig.class);
     setNamespace(poolingConfig);
