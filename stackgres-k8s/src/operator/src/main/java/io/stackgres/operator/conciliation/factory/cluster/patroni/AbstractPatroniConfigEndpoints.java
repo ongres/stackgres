@@ -67,12 +67,12 @@ public abstract class AbstractPatroniConfigEndpoints
   public Map<String, String> getPostgresConfigValues(StackGresClusterContext context) {
     StackGresPostgresConfig pgConfig = context.getPostgresConfig();
 
-    Map<String, String> params = getParemters(context, pgConfig);
+    Map<String, String> params = getParameters(context, pgConfig);
 
     return params;
   }
 
-  protected abstract Map<String, String> getParemters(StackGresClusterContext context,
+  protected abstract Map<String, String> getParameters(StackGresClusterContext context,
       StackGresPostgresConfig pgConfig);
 
   private String configName(StackGresClusterContext context) {

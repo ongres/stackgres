@@ -45,7 +45,7 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
   }
 
   @Override
-  protected Map<String, String> getParemters(StackGresClusterContext context,
+  protected Map<String, String> getParameters(StackGresClusterContext context,
       StackGresPostgresConfig pgConfig) {
     Map<String, String> params = Optional.ofNullable(pgConfig.getStatus())
         .map(StackGresPostgresConfigStatus::getDefaultParameters)
