@@ -6,7 +6,7 @@
   },
   "spec": {
     "pgBouncer": {
-      "pgbouncer.ini": "default_pool_size=200\nmax_client_conn=100\npool_mode='transaction'"
+      "pgbouncer.ini": "[pgbouncer]\ndefault_pool_size=200\nmax_client_conn=100\npool_mode='transaction'\n[databases]\n\"foo db\" = pool_mode=statement  dbname =  'bardb' pool_size=40\n[users]\nusr1=pool_mode=session"
     }
   }
 }

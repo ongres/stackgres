@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -17,7 +15,6 @@ import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
-import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
@@ -31,6 +28,7 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -48,14 +46,10 @@ import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContai
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class AbstractPgPooling
     implements ContainerFactory<StackGresClusterContainerContext>,
     VolumeFactory<StackGresClusterContext> {
-
-  private static final Logger LOG = LoggerFactory.getLogger(AbstractPgPooling.class);
 
   private static final String NAME = "pgbouncer";
 
@@ -158,7 +152,7 @@ public abstract class AbstractPgPooling
         .sorted(Map.Entry.comparingByKey())
         .map(entry -> {
           final String params = Seq.of("pool_mode", "max_user_connections")
-              .map(param -> mapValues(param, entry.getValue()))
+              .map(param -> StackGresUtil.mapMethodParameterValues(param, entry.getValue()))
               .filter(Optional::isPresent)
               .map(Optional::get)
               .reduce((first, second) -> first + " " + second)
@@ -178,7 +172,7 @@ public abstract class AbstractPgPooling
         .map(entry -> {
           final String params = Seq.of("dbname", "pool_size", "reserve_pool", "pool_mode",
               "max_db_connections", "client_encoding", "datestyle", "timezone")
-              .map(param -> mapValues(param, entry.getValue()))
+              .map(param -> StackGresUtil.mapMethodParameterValues(param, entry.getValue()))
               .concat(Optional.of("port=" + EnvoyUtil.PG_PORT))
               .filter(Optional::isPresent)
               .map(Optional::get)
@@ -190,34 +184,6 @@ public abstract class AbstractPgPooling
     return !databases.isEmpty()
         ? "[databases]\n" + databasesSection + "\n\n"
         : "[databases]\n" + "* = port=" + EnvoyUtil.PG_PORT + "\n\n";
-  }
-
-  /**
-   * This maps a parameter in lower_underscore format to the getMethod and invoke the get of the
-   * object method. A parameter like pool_mode is executed in the object like getPoolMode() and the
-   * result is returned in the format Optional[pool_mode=session].
-   *
-   * @param param name in lower_underscore case format
-   * @param values Bean to map param name to method.
-   * @return Optional with the param name and the value from the execution.
-   */
-  @NotNull
-  Optional<String> mapValues(@NotNull String param, @NotNull Object values) {
-    String methodName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, "get_" + param);
-    for (Method method : values.getClass().getMethods()) {
-      if (method.getName().equals(methodName)) {
-        try {
-          Object invoke = method.invoke(values, (Object[]) null);
-          LOG.debug("invoke {}::{}, result: {}", values.getClass().getSimpleName(),
-              methodName, invoke);
-          return Optional.ofNullable(invoke).map(val -> param + "=" + val.toString());
-        } catch (IllegalAccessException | IllegalArgumentException
-            | InvocationTargetException ignore) {
-          // ignore
-        }
-      }
-    }
-    return Optional.empty();
   }
 
   @Override
