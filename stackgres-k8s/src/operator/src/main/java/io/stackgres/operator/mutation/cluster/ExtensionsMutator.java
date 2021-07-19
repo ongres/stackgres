@@ -11,6 +11,7 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.AddOperation;
@@ -18,7 +19,6 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.github.fge.jsonpatch.ReplaceOperation;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
@@ -33,24 +33,33 @@ public class ExtensionsMutator
     extends AbstractExtensionsMutator<StackGresCluster, StackGresClusterReview>
     implements ClusterMutator {
 
-  @Inject
-  public ExtensionsMutator(
-      ClusterExtensionMetadataManager extensionMetadataManager) {
-    super(extensionMetadataManager);
-  }
+  private final ClusterExtensionMetadataManager extensionMetadataManager;
+  private final ObjectMapper objectMapper;
 
-  public ExtensionsMutator() {
-    super(null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
+  @Inject
+  public ExtensionsMutator(ClusterExtensionMetadataManager extensionMetadataManager,
+      ObjectMapper objectMapper) {
+    super();
+    this.extensionMetadataManager = extensionMetadataManager;
+    this.objectMapper = objectMapper;
   }
 
   @Override
-  protected List<StackGresClusterInstalledExtension> getToInstallExtensions(
+  protected ClusterExtensionMetadataManager getExtensionMetadataManager() {
+    return extensionMetadataManager;
+  }
+
+  @Override
+  protected ObjectMapper getObjectMapper() {
+    return objectMapper;
+  }
+
+  @Override
+  protected Optional<List<StackGresClusterInstalledExtension>> getToInstallExtensions(
       StackGresCluster cluster) {
     return Optional.of(cluster)
         .map(StackGresCluster::getStatus)
-        .map(StackGresClusterStatus::getPostgresExtensions)
-        .orElse(ImmutableList.of());
+        .map(StackGresClusterStatus::getPostgresExtensions);
   }
 
   @Override

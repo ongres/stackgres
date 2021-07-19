@@ -29,7 +29,7 @@ import org.skyscreamer.jsonassert.JSONCompareMode;
 
 public class JsonUtil {
 
-  private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+  public static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
   private JsonUtil() {
     JSON_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

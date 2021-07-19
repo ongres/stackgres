@@ -57,7 +57,7 @@ class ExtensionsMutatorTest {
     review = JsonUtil
         .readFromJson("distributedlogs_allow_request/create.json", StackGresDistributedLogsReview.class);
 
-    mutator = new ExtensionsMutator(extensionMetadataManager);
+    mutator = new ExtensionsMutator(extensionMetadataManager, JsonUtil.JSON_MAPPER);
 
     defaultExtensions = Seq.of(
         "plpgsql",
@@ -100,8 +100,8 @@ class ExtensionsMutatorTest {
   void clusterWithoutExtensionsAndState_shouldCreateTheStateWithDefaultExtensions() {
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    assertEquals(36, operations.size());
-    assertEquals(36, operations.stream().filter(o -> o instanceof AddOperation).count());
+    assertEquals(1, operations.size());
+    assertEquals(1, operations.stream().filter(o -> o instanceof AddOperation).count());
   }
 
   private StackGresClusterInstalledExtension getDefaultExtension(String name) {

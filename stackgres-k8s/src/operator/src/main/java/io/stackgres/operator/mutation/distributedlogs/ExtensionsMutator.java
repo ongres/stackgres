@@ -11,8 +11,8 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
@@ -28,24 +28,33 @@ public class ExtensionsMutator
     extends AbstractExtensionsMutator<StackGresDistributedLogs, StackGresDistributedLogsReview>
     implements DistributedLogsMutator {
 
-  @Inject
-  public ExtensionsMutator(
-      ClusterExtensionMetadataManager extensionMetadataManager) {
-    super(extensionMetadataManager);
-  }
+  private final ClusterExtensionMetadataManager extensionMetadataManager;
+  private final ObjectMapper objectMapper;
 
-  public ExtensionsMutator() {
-    super(null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
+  @Inject
+  public ExtensionsMutator(ClusterExtensionMetadataManager extensionMetadataManager,
+      ObjectMapper objectMapper) {
+    super();
+    this.extensionMetadataManager = extensionMetadataManager;
+    this.objectMapper = objectMapper;
   }
 
   @Override
-  protected List<StackGresClusterInstalledExtension> getToInstallExtensions(
+  protected ClusterExtensionMetadataManager getExtensionMetadataManager() {
+    return extensionMetadataManager;
+  }
+
+  @Override
+  protected ObjectMapper getObjectMapper() {
+    return objectMapper;
+  }
+
+  @Override
+  protected Optional<List<StackGresClusterInstalledExtension>> getToInstallExtensions(
       StackGresDistributedLogs distributedLogs) {
     return Optional.of(distributedLogs)
         .map(StackGresDistributedLogs::getStatus)
-        .map(StackGresDistributedLogsStatus::getPostgresExtensions)
-        .orElse(ImmutableList.of());
+        .map(StackGresDistributedLogsStatus::getPostgresExtensions);
   }
 
   @Override

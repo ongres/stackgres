@@ -17,7 +17,6 @@ import java.util.List;
 
 import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
-import com.github.fge.jsonpatch.RemoveOperation;
 import com.github.fge.jsonpatch.ReplaceOperation;
 import com.google.common.collect.ImmutableList;
 import io.stackgres.common.OperatorProperty;
@@ -60,7 +59,7 @@ class ExtensionsMutatorTest {
     review = JsonUtil
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
-    mutator = new ExtensionsMutator(extensionMetadataManager);
+    mutator = new ExtensionsMutator(extensionMetadataManager, JsonUtil.JSON_MAPPER);
 
     defaultExtensions = Seq.of(
         "plpgsql",
@@ -105,12 +104,12 @@ class ExtensionsMutatorTest {
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    assertEquals(30, operations.size());
-    assertEquals(30, operations.stream().filter(o -> o instanceof AddOperation).count());
+    assertEquals(2, operations.size());
+    assertEquals(2, operations.stream().filter(o -> o instanceof AddOperation).count());
   }
 
   @Test
-  void clusterWithAnExtension_shouldSetTheVersionAndAddItInToInstallPostgresExtensions() throws Exception {
+  void clusterWithAnExtension_shouldSetTheVersionAndToInstallPostgresExtensions() throws Exception {
     StackGresClusterExtension extension = getExtension();
     review.getRequest().getObject().getSpec().setPostgresExtensions(
         ImmutableList.of(extension));
@@ -124,8 +123,9 @@ class ExtensionsMutatorTest {
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    assertEquals(8, operations.size());
-    assertEquals(8, operations.stream().filter(o -> o instanceof AddOperation).count());
+    assertEquals(2, operations.size());
+    assertEquals(1, operations.stream().filter(o -> o instanceof AddOperation).count());
+    assertEquals(1, operations.stream().filter(o -> o instanceof AddOperation).count());
   }
 
   @Test
@@ -151,7 +151,7 @@ class ExtensionsMutatorTest {
   }
 
   @Test
-  void clusterWithAnExtensionAlreadyInstalledAndANewDifferntExtension_shouldAddItInToInstallPostgresExtensions() throws Exception {
+  void clusterWithAnExtensionAlreadyInstalledAndANewDifferntExtension_shouldAddToInstallPostgresExtensions() throws Exception {
     final StackGresClusterInstalledExtension installedTestExtension = getInstalledExtension();
     installedTestExtension.setName("test");
     final StackGresClusterExtension testExtension = getExtension();
@@ -180,12 +180,11 @@ class ExtensionsMutatorTest {
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    assertEquals(7, operations.size());
-    assertEquals(7, operations.stream().filter(o -> o instanceof AddOperation).count());
+    assertEquals(1, operations.size());
   }
 
   @Test
-  void clusterWithAnExtensionAlreadyInstalledButRemoved_shouldRemoveItInToInstallPostgresExtensions() throws Exception {
+  void clusterWithAnExtensionAlreadyInstalledButRemoved_shouldReplaceToInstallPostgresExtensions() throws Exception {
     final StackGresClusterInstalledExtension installedExtension = getInstalledExtension();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
@@ -199,11 +198,11 @@ class ExtensionsMutatorTest {
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
     assertEquals(1, operations.size());
-    assertEquals(1, operations.stream().filter(o -> o instanceof RemoveOperation).count());
+    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
   }
 
   @Test
-  void clusterWithAnExtensionAlreadyInstalledAndADifferntExtension_shouldReplaceItInToInstallPostgresExtensions() throws Exception {
+  void clusterWithAnExtensionAlreadyInstalledAndADifferntExtension_shouldReplaceToInstallPostgresExtensions() throws Exception {
     final StackGresClusterInstalledExtension installedExtension = getInstalledExtension();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
@@ -223,12 +222,12 @@ class ExtensionsMutatorTest {
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    assertEquals(5, operations.size());
-    assertEquals(5, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
+    assertEquals(1, operations.size());
+    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
   }
 
   @Test
-  void clusterWithTwoExtensionAlreadyInstalledAndADifferntExtension_shouldRemoveOneAndReplaceAnotherItInToInstallPostgresExtensions() throws Exception {
+  void clusterWithTwoExtensionAlreadyInstalledAndADifferntExtension_shouldReplaceToInstallPostgresExtensions() throws Exception {
     final StackGresClusterInstalledExtension installedExtension = getInstalledExtension();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
@@ -252,13 +251,12 @@ class ExtensionsMutatorTest {
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    assertEquals(6, operations.size());
-    assertEquals(5, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
-    assertEquals(1, operations.stream().filter(o -> o instanceof RemoveOperation).count());
+    assertEquals(1, operations.size());
+    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
   }
 
   @Test
-  void clusterWithAnExtensionAlreadyInstalledAndADifferntExtensionWithExtraMounts_shouldReplaceItInToInstallPostgresExtensions() throws Exception {
+  void clusterWithAnExtensionAlreadyInstalledAndADifferntExtensionWithExtraMounts_shouldReplaceToInstallPostgresExtensions() throws Exception {
     final StackGresClusterInstalledExtension installedExtension = getInstalledExtension();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
@@ -280,13 +278,12 @@ class ExtensionsMutatorTest {
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    assertEquals(6, operations.size());
-    assertEquals(5, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
-    assertEquals(1, operations.stream().filter(o -> o instanceof AddOperation).count());
+    assertEquals(1, operations.size());
+    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
   }
 
   @Test
-  void clusterWithAnExtensionAlreadyInstalledWithExtraMountsAndADifferntExtension_shouldReplaceItInToInstallPostgresExtensions() throws Exception {
+  void clusterWithAnExtensionAlreadyInstalledWithExtraMountsAndADifferntExtension_shouldReplaceToInstallPostgresExtensions() throws Exception {
     final StackGresClusterInstalledExtension installedExtension = getInstalledExtension();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
@@ -308,13 +305,12 @@ class ExtensionsMutatorTest {
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    assertEquals(6, operations.size());
-    assertEquals(5, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
-    assertEquals(1, operations.stream().filter(o -> o instanceof RemoveOperation).count());
+    assertEquals(1, operations.size());
+    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
   }
 
   @Test
-  void clusterWithAnExtensionAlreadyInstalledWithExtraMountsAndADifferntExtensionExtraMounts_shouldReplaceItInToInstallPostgresExtensions() throws Exception {
+  void clusterWithAnExtensionAlreadyInstalledWithExtraMountsAndADifferntExtensionExtraMounts_shouldReplaceToInstallPostgresExtensions() throws Exception {
     final StackGresClusterInstalledExtension installedExtension = getInstalledExtension();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
@@ -337,12 +333,12 @@ class ExtensionsMutatorTest {
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    assertEquals(6, operations.size());
-    assertEquals(6, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
+    assertEquals(1, operations.size());
+    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
   }
 
   @Test
-  void clusterWithAnExtensionAlreadyInstalledWithoutBuildAndADifferntExtension_shouldReplaceItInToInstallPostgresExtensions() throws Exception {
+  void clusterWithAnExtensionAlreadyInstalledWithoutBuildAndADifferntExtension_shouldReplaceToInstallPostgresExtensions() throws Exception {
     final StackGresClusterInstalledExtension installedExtension = getInstalledExtension();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
@@ -364,13 +360,12 @@ class ExtensionsMutatorTest {
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    assertEquals(5, operations.size());
-    assertEquals(4, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
-    assertEquals(1, operations.stream().filter(o -> o instanceof AddOperation).count());
+    assertEquals(1, operations.size());
+    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
   }
 
   @Test
-  void clusterWithAnExtensionAlreadyInstalledAndADifferntExtensionWithoutBuild_shouldReplaceItInToInstallPostgresExtensions() throws Exception {
+  void clusterWithAnExtensionAlreadyInstalledAndADifferntExtensionWithoutBuild_shouldReplaceToInstallPostgresExtensions() throws Exception {
     final StackGresClusterInstalledExtension installedExtension = getInstalledExtension();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
@@ -392,9 +387,8 @@ class ExtensionsMutatorTest {
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    assertEquals(5, operations.size());
-    assertEquals(4, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
-    assertEquals(1, operations.stream().filter(o -> o instanceof RemoveOperation).count());
+    assertEquals(1, operations.size());
+    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
   }
 
   private StackGresClusterExtension getExtension() {
