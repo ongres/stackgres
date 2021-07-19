@@ -124,7 +124,7 @@ assert_sts_node_affinity_match_property(){
       TEMPLATE="{{ (index $STS_NODE_AFFINITY_PATH.values 0) }}"        
       ;;
     *)
-      TEMPLATE="{{ "$STS_NODE_AFFINITY_PATH"."$PROPERTY" }}"          
+      TEMPLATE="{{ $STS_NODE_AFFINITY_PATH.$PROPERTY }}"          
       ;;
   esac
   echo "Waiting for sts with node affinity "$CLUSTER_NAMESPACE" "$CLUSTER_NAME""
@@ -158,7 +158,7 @@ assert_sgcluster_node_affinity_required_match_property(){
       TEMPLATE="{{ (index "$SGCLUSTER_NODE_AFFINITY_PATH".values 0) }}"        
       ;;
     *)
-      TEMPLATE="{{ "$SGCLUSTER_NODE_AFFINITY_PATH"."$PROPERTY" }}"          
+      TEMPLATE="{{ $SGCLUSTER_NODE_AFFINITY_PATH.$PROPERTY }}"          
       ;;
   esac
 
