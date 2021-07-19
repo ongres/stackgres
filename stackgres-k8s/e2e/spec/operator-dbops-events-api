@@ -87,7 +87,7 @@ check_dbops_events() {
     return 1
   fi
 
-  if run_curl -r "stackgres/sgdbops/events/$CLUSTER_NAMESPACE/$CLUSTER_NAME" \
+  if run_curl -r "stackgres/sgdbops/events/$CLUSTER_NAMESPACE/$DBOPS_MINOR_VERSION_UPGRADE_NAME" \
     | jq -r "any(.metadata.namespace == \"$CLUSTER_NAMESPACE\" and .involvedObject.kind == \"Pod\")" \
     | grep -q "^true$"
   then
