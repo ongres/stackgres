@@ -47,6 +47,8 @@ e2e_test() {
 
   run_test "Check that pgpooling deletions with the API are reflected in the API" test_api_delete_pgpooling_is_invible
 
+  run_test "Check that pgpooling updates with kubectl are reflected in the API" test_full_pgpooling_is_visible_in_api
+
   run_test "Deletion protected resources should not be deleted" test_dependency_api_error
 
   run_test "User with wrong credentials should not be authenticated" test_authentication_api_error
@@ -229,13 +231,67 @@ test_api_updated_pgpooling_is_visible() {
   update_pgpooling_parameter_with_api 'max_client_conn' '"400"'
 
   if get_pgpooling_from_api | jq '.spec.pgBouncer["pgbouncer.ini"]' -r \
-    | grep -q 'max_client_conn=400'
+    | grep -q 'max_client_conn = 400'
   then
     echo "Pooling config updates are being reflected in the api"
   else
     echo "Pooling config updates aren't being reflected in the api"
     return 1
   fi
+}
+
+test_full_pgpooling_is_visible_in_api() {
+    cat << EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1
+kind: SGPoolingConfig
+metadata:
+  name: "$PGPOOLING"
+  namespace: "$CLUSTER_NAMESPACE"
+spec:
+  pgBouncer:
+    pgbouncer.ini:
+      max_client_conn: '2000'
+      default_pool_size: '50'
+    databases:
+      foodb:
+        max_db_connections: 2000
+        pool_size: 20
+        dbname: 'bardb'
+        reserve_pool: 5
+        datestyle: ISO
+    users:
+      user1:
+        pool_mode: transaction
+        max_user_connections: 50
+      user2:
+        pool_mode: session
+        max_user_connections: 100
+EOF
+
+  ACTUAL=$(get_pgpooling_from_api | jq '.spec.pgBouncer["pgbouncer.ini"]' -r)
+  EXPECTED="[databases]
+foodb = dbname=bardb pool_size=20 reserve_pool=5 max_db_connections=2000 datestyle=ISO
+
+[users]
+user1 = pool_mode=transaction max_user_connections=50
+user2 = pool_mode=session max_user_connections=100
+
+[pgbouncer]
+admin_users = postgres
+application_name_add_host = 1
+auth_query = SELECT usename, passwd FROM pg_shadow WHERE usename=\$1
+auth_type = md5
+auth_user = authenticator
+default_pool_size = 50
+ignore_startup_parameters = extra_float_digits
+listen_addr = 127.0.0.1
+max_client_conn = 2000
+max_db_connections = 0
+max_user_connections = 0
+pool_mode = session
+stats_users = postgres"
+
+  assert_string_equal "$ACTUAL" "$EXPECTED"
 }
 
 delete_pgpooling_with_api() {
