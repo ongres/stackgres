@@ -5,6 +5,7 @@ import store from './store'
 import moment from 'moment'
 import page from 'v-page';
 
+
 Vue.config.productionTip = false
 
 // Include jQuery
@@ -19,6 +20,10 @@ Vue.use(page, {
 // Include Prettycron
 var prettyCron = require('prettycron');
 
+// Include ApexCharts
+import VueApexCharts from 'vue-apexcharts'
+Vue.use(VueApexCharts)
+Vue.component('apexchart', VueApexCharts)
 
 /* Resize Columns */
 Vue.directive('columns-resizable', {
