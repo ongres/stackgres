@@ -63,7 +63,7 @@ class BlocklistValidatorTest {
         PgConfigReview.class);
 
     StackGresPostgresConfig pgConfig = review.getRequest().getObject();
-    String[] blacklistedProperties = addBlocklistProperties(pgConfig);
+    String[] blocklistedProperties = addBlocklistProperties(pgConfig);
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
@@ -71,7 +71,7 @@ class BlocklistValidatorTest {
 
     String errorMessage = ex.getResult().getMessage();
     assertEquals("Invalid postgres configuration, properties: "
-        + String.join(", ", blacklistedProperties)
+        + String.join(", ", blocklistedProperties)
         + " cannot be settled", errorMessage);
   }
 
@@ -82,7 +82,7 @@ class BlocklistValidatorTest {
         PgConfigReview.class);
 
     StackGresPostgresConfig pgConfig = review.getRequest().getObject();
-    String[] blacklistedProperties = addBlocklistProperties(pgConfig);
+    String[] blocklistedProperties = addBlocklistProperties(pgConfig);
 
     assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
@@ -94,26 +94,26 @@ class BlocklistValidatorTest {
 
     String errorMessage = ex.getResult().getMessage();
     assertEquals("Invalid postgres configuration, properties: "
-        + String.join(", ", blacklistedProperties)
+        + String.join(", ", blocklistedProperties)
         + " cannot be settled", errorMessage);
 
   }
 
   private String[] addBlocklistProperties(StackGresPostgresConfig pgConfig) {
     Random r = new Random();
-    int howManyBlacklistPropertiesToAdd = r.nextInt(BLOCKLISTED_PROPERTIES.length) + 1;
+    int howManyblocklistPropertiesToAdd = r.nextInt(BLOCKLISTED_PROPERTIES.length) + 1;
 
-    Set<String> blacklistProperties = new HashSet<>();
+    Set<String> blocklistProperties = new HashSet<>();
 
     do {
       String randomProperty = BLOCKLISTED_PROPERTIES[r.nextInt(BLOCKLISTED_PROPERTIES.length)];
-      blacklistProperties.add(randomProperty);
-    } while (blacklistProperties.size() == howManyBlacklistPropertiesToAdd);
+      blocklistProperties.add(randomProperty);
+    } while (blocklistProperties.size() == howManyblocklistPropertiesToAdd);
 
-    blacklistProperties.forEach((b) -> pgConfig
+    blocklistProperties.forEach((b) -> pgConfig
         .getSpec().getPostgresqlConf().put(b, "I'm being naughty"));
 
-    return blacklistProperties.toArray(new String[0]);
+    return blocklistProperties.toArray(new String[0]);
   }
 
 }

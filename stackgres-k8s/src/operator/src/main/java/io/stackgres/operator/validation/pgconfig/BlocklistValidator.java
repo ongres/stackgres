@@ -32,13 +32,13 @@ public class BlocklistValidator implements PgConfigValidator {
       Map<String, String> confProperties = review.getRequest()
           .getObject().getSpec().getPostgresqlConf();
 
-      String[] blacklistedProperties = confProperties.keySet().stream()
+      String[] blocklistedProperties = confProperties.keySet().stream()
           .filter(BLOCKLIST::contains).toArray(String[]::new);
-      int blacklistCount = blacklistedProperties.length;
+      int blocklistCount = blocklistedProperties.length;
 
-      if (blacklistCount > 0) {
+      if (blocklistCount > 0) {
         throw new ValidationFailed("Invalid postgres configuration, properties: "
-            + String.join(", ", blacklistedProperties) + " cannot be settled");
+            + String.join(", ", blocklistedProperties) + " cannot be settled");
       }
 
     }
