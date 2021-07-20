@@ -14,6 +14,8 @@ import CreateLogsServer from '../components/forms/CreateLogsServer.vue'
 import CreateDbOps from '../components/forms/CreateDbOps.vue'
 
 // Main Components
+import GlobalDashboard from '../components/GlobalDashboard.vue'
+import NamespaceOverview from '../components/NamespaceOverview.vue'
 import ClusterOverview from '../components/ClusterOverview.vue'
 import ClusterInfo from '../components/ClusterInfo.vue'
 import ClusterStatus from '../components/ClusterStatus.vue'
@@ -170,16 +172,24 @@ const routes = [
   },
   { 
     path: '/', 
-    component: ClusterOverview,
-    name: 'BaseUrl',
+    component: GlobalDashboard,
+    name: 'GlobalDashboard',
     meta: {
       conditionalRoute: false
     },
   },
   { 
     path: '/index.html', 
-    component: ClusterOverview,
-    name: 'BaseUrlIndex',
+    component: GlobalDashboard,
+    name: 'GlobalDashboardIndex',
+    meta: {
+      conditionalRoute: false
+    },
+  },
+  {
+    path: '/:namespace',
+    component: NamespaceOverview,
+    name: 'NamespaceOverview',
     meta: {
       conditionalRoute: false
     },
@@ -853,41 +863,9 @@ router.beforeResolve((to, from, next) => {
 
   }
 
-  // Redirect to default namespace overview if in base url
-  if(to.name.includes('BaseUrl')) {
-    router.push('/default/sgclusters')
-    store.commit('setCurrentNamespace', 'default');
-    store.commit('setCurrentPath', {
-      namespace: 'default',
-      name: '',
-      component: 'ClusterOverview'
-    })
-  } else {
+  if(to.name !== 'NotFound')
+    store.commit('notFound',false)
 
-    // Setup currentPath for sidebar use
-    store.commit('setCurrentPath', {
-      namespace: to.params.hasOwnProperty('namespace') ? to.params.namespace : '',
-      name: to.params.hasOwnProperty('name') ? to.params.name : '',
-      component: to.name.length ? to.name : ''
-    })
-
-    if(to.name !== 'NotFound')
-      store.commit('notFound',false)
-  }
-
-  // If entering a Cluster, setup as current
-  if (to.name.includes('Cluster')) {
-
-    let cluster = store.state.clusters.find(c => ( (to.params.name == c.name) && (to.params.namespace == c.data.metadata.namespace) ) );
-    
-    if ( typeof cluster !== "undefined" ) { 
-      store.commit('setCurrentCluster', cluster);
-    }
-
-    $('.clu li.current').removeClass('current');
-	  $('li.cluster-'+store.state.currentNamespace+'-'+store.state.currentCluster.name).addClass('current');
-    
-  }
 
   if (to.matched.some(record => record.meta.conditionalRoute)) { 
       if (store.state.currentCluster == {} && ( from.path.includes("profiles") || from.path.includes("configurations") ) && (to.path != ('/admin/configuration/'+to.params.name)) ) { 
@@ -899,7 +877,6 @@ router.beforeResolve((to, from, next) => {
       next() // make sure to always call next()! 
   } 
 
-  
 })
 
 export default router;

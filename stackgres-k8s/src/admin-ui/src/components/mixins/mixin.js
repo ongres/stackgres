@@ -1264,6 +1264,13 @@ export const mixin = {
       });
       $(window).resize()
 
+      // Setup currentPath for sidebar use
+      store.commit('setCurrentPath', {
+        namespace: vc.$route.params.hasOwnProperty('namespace') ? vc.$route.params.namespace : '',
+        name: vc.$route.params.hasOwnProperty('name') ? vc.$route.params.name : '',
+        component: vc.$route.name.length ? vc.$route.name : ''
+      })
+
     },
 
     updated: function(){
