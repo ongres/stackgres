@@ -15,10 +15,10 @@ import javax.enterprise.context.ApplicationScoped;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerStatus;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
-import io.stackgres.common.crd.sgpooling.pgbouncer.StackGresPoolingConfigPgBouncer;
-import io.stackgres.common.crd.sgpooling.pgbouncer.StackGresPoolingConfigPgBouncerStatus;
 import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.mutation.DefaultStateMutator;
 

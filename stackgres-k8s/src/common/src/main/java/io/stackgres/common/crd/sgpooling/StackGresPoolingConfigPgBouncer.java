@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.common.crd.sgpooling.pgbouncer;
+package io.stackgres.common.crd.sgpooling;
 
 import java.util.Map;
 import java.util.Objects;
@@ -28,11 +28,11 @@ public class StackGresPoolingConfigPgBouncer {
 
   @JsonProperty("databases")
   @Valid
-  private Map<String, StackGresPoolingConfigPgBouncerDatabases> databases;
+  private Map<String, Map<String, String>> databases;
 
   @JsonProperty("users")
   @Valid
-  private Map<String, StackGresPoolingConfigPgBouncerUsers> users;
+  private Map<String, Map<String, String>> users;
 
   public Map<String, String> getParameters() {
     return parameters;
@@ -42,19 +42,19 @@ public class StackGresPoolingConfigPgBouncer {
     this.parameters = parameters;
   }
 
-  public Map<String, StackGresPoolingConfigPgBouncerDatabases> getDatabases() {
+  public Map<String, Map<String, String>> getDatabases() {
     return databases;
   }
 
-  public void setDatabases(Map<String, StackGresPoolingConfigPgBouncerDatabases> databases) {
+  public void setDatabases(Map<String, Map<String, String>> databases) {
     this.databases = databases;
   }
 
-  public Map<String, StackGresPoolingConfigPgBouncerUsers> getUsers() {
+  public Map<String, Map<String, String>> getUsers() {
     return users;
   }
 
-  public void setUsers(Map<String, StackGresPoolingConfigPgBouncerUsers> users) {
+  public void setUsers(Map<String, Map<String, String>> users) {
     this.users = users;
   }
 

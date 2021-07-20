@@ -8,8 +8,8 @@ package io.stackgres.operator.initialization;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
-import io.stackgres.common.crd.sgpooling.pgbouncer.StackGresPoolingConfigPgBouncer;
 
 @ApplicationScoped
 public class DefaultPoolingFactory
