@@ -8,33 +8,29 @@ package io.stackgres.apiweb.transformer;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import com.google.common.base.CaseFormat;
 import io.stackgres.apiweb.dto.pooling.PgBouncerIniParameter;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigDto;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigPgBouncer;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigPgBouncerStatus;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigSpec;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigStatus;
-import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
-import io.stackgres.common.crd.sgpooling.pgbouncer.StackGresPoolingConfigPgBouncer;
-import io.stackgres.common.crd.sgpooling.pgbouncer.StackGresPoolingConfigPgBouncerDatabases;
-import io.stackgres.common.crd.sgpooling.pgbouncer.StackGresPoolingConfigPgBouncerUsers;
 import org.apache.commons.configuration2.INIConfiguration;
 import org.apache.commons.configuration2.SubnodeConfiguration;
 import org.apache.commons.configuration2.ex.ConfigurationException;
@@ -94,7 +90,7 @@ public class PoolingConfigTransformer
                 .collect(Collectors.joining("\n"));
             iniConfiguration.read(new StringReader(cleanup));
           } catch (ConfigurationException | IOException ignore) {
-            // ignore for now
+            // ignore
           }
         });
 
@@ -117,13 +113,12 @@ public class PoolingConfigTransformer
               if (transformation.getPgBouncer().getDatabases() == null) {
                 transformation.getPgBouncer().setDatabases(new HashMap<>());
               }
-              var databases = new StackGresPoolingConfigPgBouncerDatabases();
+              var databases = new HashMap<String, String>();
               Matcher matcher = PARAMETER_PATTERN.matcher(value);
               while (matcher.find()) {
-                final String keyItem = matcher.group(1);
-                final String valueItem = matcher.group(2);
-
-                mapValues(databases, keyItem, valueItem);
+                String keyItem = matcher.group(1);
+                String valueItem = matcher.group(2);
+                databases.put(keyItem, valueItem);
               }
               transformation.getPgBouncer().getDatabases()
                   .put(key, databases);
@@ -132,13 +127,12 @@ public class PoolingConfigTransformer
               if (transformation.getPgBouncer().getUsers() == null) {
                 transformation.getPgBouncer().setUsers(new HashMap<>());
               }
-              var users = new StackGresPoolingConfigPgBouncerUsers();
+              var users = new HashMap<String, String>();
               Matcher matcher = PARAMETER_PATTERN.matcher(value);
               while (matcher.find()) {
                 final String keyItem = matcher.group(1);
                 final String valueItem = matcher.group(2);
-
-                mapValues(users, keyItem, valueItem);
+                users.put(keyItem, valueItem);
               }
               transformation.getPgBouncer().getUsers()
                   .put(key, users);
@@ -150,57 +144,17 @@ public class PoolingConfigTransformer
     return transformation;
   }
 
-  private void mapValues(Object clazzObj, String param, String value) {
-    String methodName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, "set_" + param);
-    for (Method method : clazzObj.getClass().getMethods()) {
-      if (method.getName().equals(methodName)) {
-        String parameter = value.replace("'", "");
-        try {
-          if (Integer.class.equals(method.getParameterTypes()[0])) {
-            method.invoke(clazzObj, Integer.valueOf(parameter));
-          } else {
-            method.invoke(clazzObj, parameter);
-          }
-        } catch (IllegalAccessException | IllegalArgumentException
-            | InvocationTargetException ignore) {
-          // ignore
-        }
-      }
-    }
-  }
-
   private PoolingConfigSpec getResourceSpec(StackGresPoolingConfigSpec source) {
     PoolingConfigSpec transformation = new PoolingConfigSpec();
     transformation.setPgBouncer(new PoolingConfigPgBouncer());
 
     INIConfiguration ini = new INIConfiguration();
     if (source.getPgBouncer().getDatabases() != null) {
-      source.getPgBouncer().getDatabases().entrySet().stream()
-          .sorted(Map.Entry.comparingByKey())
-          .forEach(entry -> {
-            final String params = Seq.of("dbname", "pool_size", "reserve_pool", "pool_mode",
-                "max_db_connections", "client_encoding", "datestyle", "timezone")
-                .map(param -> StackGresUtil.mapMethodParameterValues(param, entry.getValue()))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .reduce((first, second) -> first + " " + second)
-                .orElse("");
-            ini.addProperty("databases." + entry.getKey(), params);
-          });
+      addPropertiesToIni(source.getPgBouncer().getDatabases().entrySet(), ini, "databases");
     }
 
     if (source.getPgBouncer().getUsers() != null) {
-      source.getPgBouncer().getUsers().entrySet().stream()
-          .sorted(Map.Entry.comparingByKey())
-          .forEach(entry -> {
-            final String params = Seq.of("pool_mode", "max_user_connections")
-                .map(param -> StackGresUtil.mapMethodParameterValues(param, entry.getValue()))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .reduce((first, second) -> first + " " + second)
-                .orElse("");
-            ini.addProperty("users." + entry.getKey(), params);
-          });
+      addPropertiesToIni(source.getPgBouncer().getUsers().entrySet(), ini, "users");
     }
 
     if (source.getPgBouncer().getParameters() != null) {
@@ -220,6 +174,17 @@ public class PoolingConfigTransformer
 
     transformation.getPgBouncer().setParameters(stringWriter.toString());
     return transformation;
+  }
+
+  private void addPropertiesToIni(Set<Entry<String, Map<String, String>>> source,
+      INIConfiguration target, String section) {
+    source.stream().sorted(Map.Entry.comparingByKey())
+        .forEach(entry -> {
+          String params = entry.getValue().entrySet().stream()
+              .map(e -> e.getKey() + "=" + e.getValue())
+              .collect(Collectors.joining(" "));
+          target.addProperty(section + "." + entry.getKey(), params);
+        });
   }
 
   private PoolingConfigStatus getResourceStatus(List<String> clusters,

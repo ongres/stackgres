@@ -28,15 +28,12 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
-import io.stackgres.common.crd.sgpooling.pgbouncer.StackGresPoolingConfigPgBouncer;
-import io.stackgres.common.crd.sgpooling.pgbouncer.StackGresPoolingConfigPgBouncerDatabases;
-import io.stackgres.common.crd.sgpooling.pgbouncer.StackGresPoolingConfigPgBouncerUsers;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
@@ -45,7 +42,6 @@ import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import org.jetbrains.annotations.NotNull;
-import org.jooq.lambda.Seq;
 
 public abstract class AbstractPgPooling
     implements ContainerFactory<StackGresClusterContainerContext>,
@@ -147,43 +143,25 @@ public abstract class AbstractPgPooling
     return "[pgbouncer]\n" + pgBouncerConfig + "\n";
   }
 
-  private String getUserSection(Map<String, StackGresPoolingConfigPgBouncerUsers> users) {
-    final String usersSection = users.entrySet().stream()
-        .sorted(Map.Entry.comparingByKey())
-        .map(entry -> {
-          final String params = Seq.of("pool_mode", "max_user_connections")
-              .map(param -> StackGresUtil.mapMethodParameterValues(param, entry.getValue()))
-              .filter(Optional::isPresent)
-              .map(Optional::get)
-              .reduce((first, second) -> first + " " + second)
-              .orElse("");
-          return entry.getKey() + " = " + params;
-        })
-        .collect(Collectors.joining("\n"));
+  private String getUserSection(Map<String, Map<String, String>> users) {
     return !users.isEmpty()
-        ? "[users]\n" + usersSection + "\n\n"
+        ? "[users]\n" + getSections(users) + "\n\n"
         : "";
   }
 
-  private String getDatabaseSection(
-      Map<String, StackGresPoolingConfigPgBouncerDatabases> databases) {
-    final String databasesSection = databases.entrySet().stream()
-        .sorted(Map.Entry.comparingByKey())
-        .map(entry -> {
-          final String params = Seq.of("dbname", "pool_size", "reserve_pool", "pool_mode",
-              "max_db_connections", "client_encoding", "datestyle", "timezone")
-              .map(param -> StackGresUtil.mapMethodParameterValues(param, entry.getValue()))
-              .concat(Optional.of("port=" + EnvoyUtil.PG_PORT))
-              .filter(Optional::isPresent)
-              .map(Optional::get)
-              .reduce((first, second) -> first + " " + second)
-              .orElse("");
-          return entry.getKey() + " = " + params;
-        })
-        .collect(Collectors.joining("\n"));
+  private String getDatabaseSection(Map<String, Map<String, String>> databases) {
     return !databases.isEmpty()
-        ? "[databases]\n" + databasesSection + "\n\n"
+        ? "[databases]\n" + getSections(databases) + "\n\n"
         : "[databases]\n" + "* = port=" + EnvoyUtil.PG_PORT + "\n\n";
+  }
+
+  private String getSections(Map<String, Map<String, String>> sections) {
+    return sections.entrySet().stream()
+        .sorted(Map.Entry.comparingByKey())
+        .map(entry -> entry.getKey() + " = " + entry.getValue().entrySet().stream()
+            .map(e -> e.getKey() + "=" + e.getValue())
+            .collect(Collectors.joining(" ")))
+        .collect(Collectors.joining("\n"));
   }
 
   @Override
