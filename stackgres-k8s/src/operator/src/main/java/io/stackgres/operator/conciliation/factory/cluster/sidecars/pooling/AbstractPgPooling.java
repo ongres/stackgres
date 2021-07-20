@@ -104,7 +104,7 @@ public abstract class AbstractPgPooling
         .map(StackGresPoolingConfigSpec::getPgBouncer)
         .map(StackGresPoolingConfigPgBouncer::getPgbouncerConf)
         .orElseGet(HashMap::new);
-    // Blacklist removal
+    // Blocklist removal
     for (String bl : Blocklist.getBlocklistParameters()) {
       newParams.remove(bl);
     }

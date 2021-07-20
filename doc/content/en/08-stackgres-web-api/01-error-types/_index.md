@@ -4,7 +4,7 @@ weight: 1
 url: api/responses/error
 aliases: 
   - /07-developer-documentation/01-error-types
-description: Details about the Error Codes, PostgreSQL Denylist settings, and forbidden actions.
+description: Details about the Error Codes, PostgreSQL Blocklist settings, and forbidden actions.
 showToc: true
 ---
 
@@ -25,7 +25,7 @@ That means that all of error messages follows the following structure:
 
 | Type | Summary |
 | ---- | ----------- |
-| [postgres-blacklist](#postgres-blacklist) | The postgres configuration that is trying to be created or update contains blacklisted parameters |
+| [postgres-blocklist](#postgres-blocklist) | The postgres configuration that is trying to be created or update contains blocklisted parameters |
 | [postgres-major-version-mismatch](#postgres-major-version-mismatch) | The postgres configuration that you are using is targeted to a different major version that the one that your cluster has. |
 | [invalid-configuration-reference](#invalid-configuration-reference) | The StackGres cluster you are trying to create or update holds a reference to a custom resource that don't exists  |
 | [default-configuration](#default-configuration) | An attempt to update or delete a default configuration has been detected |
@@ -36,11 +36,11 @@ That means that all of error messages follows the following structure:
 | [constraint-violation](#constraint-violation) | One of the properties of the CR that you are creating or updating violates its syntactic rules. |
 | [forbidden-authorization](#forbidden-authorization) | You don't have the permisions to access the Kubernetes resource based on the RBAC rules. |
 
-## Postgres Denylist
+## Postgres Blocklist
 
 Some postgres configuration properties are managed automatically by StackGres, therefore you cannot include them.
 
-The blacklisted configuration properties are:
+The blocklisted configuration properties are:
 
 | Parameters            |
 | --------------------- |
