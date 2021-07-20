@@ -1,8 +1,8 @@
 <template>
   <div id="app">
 		<NavBar></NavBar>
-		<SideBar></SideBar>
-		<router-view id="main" :key="$route.path"></router-view>
+		<SideBar v-if="($route.name != 'GlobalDashboard')"></SideBar>
+		<router-view id="main" :key="$route.path" :class="($route.name == 'GlobalDashboard') ? 'noSidebar' : ''"></router-view>
 		<div id="contentTooltip">
 			<div class="close"></div>
 			<div class="info">
@@ -30,5 +30,10 @@
 
 </script>
 
-<style>
-</style>
+<style scoped>
+  #main.noSidebar {
+    margin: 0 auto;
+    float: none;
+    width: 100%;
+  }
+</style>>

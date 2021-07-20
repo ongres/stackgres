@@ -288,12 +288,20 @@ svg.background circle {
     display: none;
 }
 
+.invisible {
+    opacity: 0;
+}
+
 .notValid {
     border-color: red !important;
 }
 
 .padLeft {
     padding-left: 20px;
+}
+
+.pad {
+    padding: 20px;
 }
 
 .firstLetter:first-letter {
@@ -319,6 +327,10 @@ svg.background circle {
     padding-top: 40px;
     width: 100%;
     display: block;
+}
+
+.fRight {
+    float: right;
 }
 
 /* Log in */
@@ -1202,13 +1214,13 @@ ul.zg-ul-select.active li.active:hover {
     margin-right: 8px;
 }*/
 
-#side svg, .breadcrumbs svg {
+#side svg, .breadcrumbs svg, .card .crdName svg {
     fill: var(--blue);
     width: 20px;
     margin-right: 10px;
 }
 
-#side .set svg {
+#side .set svg, .card .crdName svg {
     height: 15px;
     margin-top: 16px;
     width: auto;
@@ -3007,7 +3019,7 @@ table.resizable td:not(:last-child) {
     min-width: 80px;
 }
 
-table.resizable > thead > th {
+table.resizable > thead > th, .card thead {
     position: sticky;
     top: 0;
     z-index: 1;
@@ -3016,7 +3028,7 @@ table.resizable > thead > th {
     border-top: 0;
 }
 
-table.resizable > thead th:before, table.resizable > thead th:after {
+table.resizable > thead th:before, table.resizable > thead th:after, .card thead:after {
     content: ' ';
     display: block;
     height: 1px;
@@ -3445,7 +3457,7 @@ table.clusterConfig a:hover svg, td.usedOn a:hover svg path{
     fill: var(--lblue) !important;
 }
 
-table.clusterConfig svg, td.usedOn svg, tr.controlData svg, .connectionInfo svg {
+table.clusterConfig svg, td.usedOn svg, tr.controlData svg, .connectionInfo svg, .card .actions svg {
     fill: var(--blue);
     width: 15px;
     display: inline-block;
@@ -5012,3 +5024,99 @@ a.disabled {
 .helpTooltip.alert svg {
     width: 13px;
 }
+
+/* Dashboards */
+.overview {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.card {
+    border: 1px solid var(--borderColor);
+    border-radius: 10px;
+    width: 30%;
+    height: 250px;
+    max-height: 250px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-bottom: 4%;
+}
+
+.card:not(:nth-child(3n+0)):not(:last-child) {
+    margin-right: 5%;
+}
+
+.card a {
+    color: var(--textColor);
+    display: block;
+}
+
+.card th {
+    height: 50px;
+}
+
+.card table {
+    margin-bottom: 0;
+    border-collapse: collapse;
+}
+
+.card thead:after {
+    top: 50px;
+}
+
+.card th {
+    padding-left: 15px;
+}
+
+.card td {
+    padding-left: 0;
+}
+
+.card .crdName svg, .card .crdName span {
+    margin-top: 0;
+    vertical-align: middle;
+}
+
+.card tbody {
+    border: none;
+}
+
+.card .icon {
+    width: 50px;
+    padding: 5px 0 0 10px;
+}
+
+.card tbody .icon svg {
+    transform: rotate(-45deg);
+}
+
+.card  thead:hover .icon, .card tr:hover .icon {
+    opacity: 1;
+}
+
+.card .icon a:hover svg path {
+    fill: var(--baseLightColor);
+}
+
+
+i.length {
+    background: var(--inputBg);
+    display: inline-block;
+    width: 17px;
+    text-align: center;
+    height: 17px;
+    line-height: 16px;
+    font-style: normal;
+    border-radius: 100%;
+    font-size: 75%;
+    border: 1px solid var(--borderColor);
+    margin-left: 5px;
+    position: absolute;
+}
+
+.darkmode i.length {
+    border-color: var(--inputBg);
+    background: var(--borderColor);
+}
+

@@ -12,7 +12,7 @@
 		<ul id="ns-select" tabindex="0" class="set namespaces">
 			<template v-for="namespace in namespaces">
 				<li :class="{'active':(namespace == currentPath.namespace)}">
-					<router-link :to="'/' + namespace + '/sgclusters'" class="item namespace" :class="(namespace == currentPath.namespace) ? 'router-link-exact-active' : ''" :title="namespace">{{ namespace }}</router-link>
+					<router-link :to="'/' + namespace" class="item namespace" :class="(namespace == currentPath.namespace) ? 'router-link-exact-active' : ''" :title="namespace">{{ namespace }}</router-link>
 				</li>
 			</template>
 		</ul>
