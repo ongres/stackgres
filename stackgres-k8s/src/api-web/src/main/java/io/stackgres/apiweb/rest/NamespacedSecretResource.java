@@ -9,15 +9,13 @@ import java.util.List;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 
 import io.quarkus.security.Authenticated;
-import io.stackgres.apiweb.dto.configmap.ConfigMapDto;
+import io.stackgres.apiweb.dto.secret.SecretDto;
+import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.common.resource.ResourceScanner;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -25,16 +23,14 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
-@Path("/stackgres/configmaps")
+@Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/secrets")
 @RequestScoped
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
-public class ConfigMapResource {
+public class NamespacedSecretResource {
 
-  private ResourceScanner<ConfigMapDto> scanner;
+  private final ResourceScanner<SecretDto> scanner;
 
   @Inject
-  public ConfigMapResource(ResourceScanner<ConfigMapDto> scanner) {
+  public NamespacedSecretResource(ResourceScanner<SecretDto> scanner) {
     this.scanner = scanner;
   }
 
@@ -43,14 +39,12 @@ public class ConfigMapResource {
           @ApiResponse(responseCode = "200", description = "OK",
               content = { @Content(
                   mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(implementation = ConfigMapDto.class))) })
+                  array = @ArraySchema(schema = @Schema(implementation = SecretDto.class))) })
       })
   @CommonApiResponses
-  @Path("/{namespace}")
-  @GET
   @Authenticated
-  public List<ConfigMapDto> list(@PathParam("namespace") String namespace) {
+  @GET
+  public List<SecretDto> list(@PathParam("namespace") String namespace) {
     return scanner.findResourcesInNamespace(namespace);
   }
-
 }

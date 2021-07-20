@@ -67,7 +67,7 @@ e2e_test() {
 }
 
 check_cluster_events() {
-  if run_curl -r "stackgres/sgcluster/events/$CLUSTER_NAMESPACE/$CLUSTER_NAME" \
+  if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/events" \
     | jq -r "any(.metadata.namespace == \"$CLUSTER_NAMESPACE\" and .involvedObject.kind == \"SGDbOps\" and .involvedObject.name == \"$DBOPS_MINOR_VERSION_UPGRADE_NAME\")" \
     | grep -q "^true$"
   then
@@ -77,7 +77,7 @@ check_cluster_events() {
     return 1
   fi
 
-  if run_curl -r "stackgres/sgcluster/events/$CLUSTER_NAMESPACE/$CLUSTER_NAME" \
+  if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/events" \
     | jq -r "any(.metadata.namespace == \"$CLUSTER_NAMESPACE\" and .involvedObject.kind == \"StatefulSet\" and .involvedObject.name == \"$CLUSTER_NAME\")" \
     | grep -q "^true$"
   then
@@ -87,7 +87,7 @@ check_cluster_events() {
     return 1
   fi
 
-  if run_curl -r "stackgres/sgcluster/events/$CLUSTER_NAMESPACE/$CLUSTER_NAME" \
+  if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/events" \
     | jq -r "any(.metadata.namespace == \"$CLUSTER_NAMESPACE\" and .involvedObject.kind == \"Pod\" and .involvedObject.name == \"$CLUSTER_NAME-0\")" \
     | grep -q "^true$"
   then
@@ -101,7 +101,7 @@ check_cluster_events() {
 test_authentication_api_error() {
   local HTTP_STATUS
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster/events" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/events" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 }

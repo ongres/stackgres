@@ -1,5 +1,5 @@
 paths:
-  /stackgres/configmaps/{namespace}:
+  /stackgres/namespaces/{namespace}/configmaps:
     get:
       tags:
       - misc
@@ -38,7 +38,7 @@ paths:
                 description: The URL to connect to the kubernetes cluster
       security:
       - JWT: []
-  /stackgres/namespace:
+  /stackgres/namespaces:
     get:
       tags:
       - misc
@@ -59,7 +59,7 @@ paths:
                     A namespace
       security:
       - JWT: []
-  /stackgres/secrets/{namespace}:
+  /stackgres/namespaces/{namespace}/secrets:
     get:
       tags:
       - misc
@@ -79,7 +79,7 @@ paths:
           type: string
       security:
       - JWT: []
-  /stackgres/storageclass:
+  /stackgres/storageclasses:
     get:
       tags:
       - misc

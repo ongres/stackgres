@@ -172,35 +172,35 @@
                     if(this.editMode) {
                         const res = axios
                         .put(
-                            '/stackgres/sgpoolconfig/', 
+                            '/stackgres/sgpoolconfigs', 
                             config 
                         )
                         .then(function (response) {
-                            vc.notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message','sgpoolconfig');
+                            vc.notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message','sgpoolconfigs');
 
                             vc.fetchAPI('sgpoolconfig');
                             router.push('/' + config.metadata.namespace + '/sgpoolconfig/' + config.metadata.name);
                         })
                         .catch(function (error) {
                             console.log(error.response);
-                            vc.notify(error.response.data,'error','sgpoolconfig');
+                            vc.notify(error.response.data,'error','sgpoolconfigs');
                         });
 
                     } else {
                         const res = axios
                         .post(
-                            '/stackgres/sgpoolconfig/', 
+                            '/stackgres/sgpoolconfigs', 
                             config 
                         )
                         .then(function (response) {
-                            vc.notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','sgpoolconfig');
+                            vc.notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','sgpoolconfigs');
 
                             vc.fetchAPI('sgpoolconfig');
                             router.push('/' + config.metadata.namespace + '/sgpoolconfigs');
                         })
                         .catch(function (error) {
                             console.log(error.response);
-                            vc.notify(error.response.data,'error','sgpoolconfig');
+                            vc.notify(error.response.data,'error','sgpoolconfigs');
                         });
                     }
                 }

@@ -55,7 +55,7 @@ spec:
       size: '128Mi'
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
-    disableClusterPodAntiAffinity: true  
+    disableClusterPodAntiAffinity: true
 EOF
 
   wait_until check_sts_annotation "$POD_RANDOM_VALUE"
@@ -88,7 +88,7 @@ spec:
       size: '128Mi'
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
-    disableClusterPodAntiAffinity: true  
+    disableClusterPodAntiAffinity: true
 EOF
 
   POD_ANNOTATION=other-test-annotation \
@@ -179,11 +179,11 @@ assert_http_status_succcess(){
   else
     echo "FAIL. Request not sucessful"
     return 1
-  fi 
+  fi
 }
 
 create_cluster_with_api(){
-  HTTP_STATUS="$(run_curl -r "stackgres/sgcluster" -d "$LOG_PATH/stackgres-cluster.json" -e '-X POST -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgclusters" -d "$LOG_PATH/stackgres-cluster.json" -e '-X POST -w %{http_code} -o /dev/null')"
   assert_http_status_succcess "$HTTP_STATUS"
 }
 
@@ -205,7 +205,7 @@ spec:
         $NODE_LABEL_KEY: $NODE_LABEL_VALUE
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
-    disableClusterPodAntiAffinity: true  
+    disableClusterPodAntiAffinity: true
 EOF
 
   local POD_RANDOM_VALUE="$(ramdom_string)"
@@ -255,10 +255,10 @@ spec:
         $NODE_LABEL_KEY: $NODE_LABEL_VALUE
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
-    disableClusterPodAntiAffinity: true  
+    disableClusterPodAntiAffinity: true
 EOF
-  local POD_ANNOTATION_VALUE=$(run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | jq '.spec.metadata.annotations.pods["test-annotation"]' -r)
-  local SERVICE_ANNOTATION_VALUE=$(run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | jq '.spec.metadata.annotations.services["service-annotation"]' -r)
+  local POD_ANNOTATION_VALUE=$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.spec.metadata.annotations.pods["test-annotation"]' -r)
+  local SERVICE_ANNOTATION_VALUE=$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.spec.metadata.annotations.services["service-annotation"]' -r)
 
   assert_string_equal "$POD_RANDOM_VALUE" "$POD_ANNOTATION_VALUE"
   assert_string_equal "$SERVICE_RANDOM_VALUE" "$SERVICE_ANNOTATION_VALUE"

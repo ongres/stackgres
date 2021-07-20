@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.rest;
+package io.stackgres.apiweb.rest.utils;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

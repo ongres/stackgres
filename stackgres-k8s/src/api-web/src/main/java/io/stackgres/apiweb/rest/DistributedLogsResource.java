@@ -10,10 +10,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsDto;
@@ -26,12 +23,11 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
-@Path("/stackgres/sgdistributedlogs")
+@Path("sgdistributedlogs")
 @RequestScoped
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
+@Authenticated
 public class DistributedLogsResource
-    extends AbstractDependencyRestService<DistributedLogsDto, StackGresDistributedLogs> {
+    extends AbstractRestServiceDependency<DistributedLogsDto, StackGresDistributedLogs> {
 
   @Override
   public boolean belongsToCluster(StackGresDistributedLogs resource, StackGresCluster cluster) {
@@ -50,8 +46,6 @@ public class DistributedLogsResource
                   array = @ArraySchema(
                       schema = @Schema(implementation = DistributedLogsDto.class))) })
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
   public List<DistributedLogsDto> list() {
     return super.list();
@@ -59,24 +53,8 @@ public class DistributedLogsResource
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = DistributedLogsDto.class)) })
-      })
-  @CommonApiResponses
-  @Authenticated
-  @Override
-  public DistributedLogsDto get(String namespace, String name) {
-    return super.get(namespace, name);
-  }
-
-  @Operation(
-      responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
   public void create(DistributedLogsDto resource) {
     super.create(resource);
@@ -86,8 +64,6 @@ public class DistributedLogsResource
       responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
   public void delete(DistributedLogsDto resource) {
     super.delete(resource);
@@ -97,8 +73,6 @@ public class DistributedLogsResource
       responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
   public void update(DistributedLogsDto resource) {
     super.update(resource);

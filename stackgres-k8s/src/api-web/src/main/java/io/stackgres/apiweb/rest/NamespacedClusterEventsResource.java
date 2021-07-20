@@ -13,17 +13,16 @@ import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.event.EventDto;
 import io.stackgres.apiweb.dto.event.ObjectReference;
+import io.stackgres.apiweb.rest.utils.CommonApiResponses;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.resource.CustomResourceScanner;
@@ -36,41 +35,45 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.jooq.lambda.Seq;
 
-@Path("/stackgres/sgcluster/events")
+@Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgclusters")
 @RequestScoped
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
-public class ClusterEventsResource {
+@Authenticated
+public class NamespacedClusterEventsResource {
 
   private final ResourceScanner<EventDto> scanner;
   private final CustomResourceScanner<StackGresDbOps> dbOpsScanner;
 
   @Inject
-  public ClusterEventsResource(ResourceScanner<EventDto> scanner,
+  public NamespacedClusterEventsResource(ResourceScanner<EventDto> scanner,
       CustomResourceScanner<StackGresDbOps> dbOpsScanner) {
     this.scanner = scanner;
     this.dbOpsScanner = dbOpsScanner;
   }
 
+  public NamespacedClusterEventsResource() {
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
+    this.scanner = null;
+    this.dbOpsScanner = null;
+  }
+
   @Operation(
       responses = {
           @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
+              content = {@Content(
                   mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(implementation = EventDto.class))) })
+                  array = @ArraySchema(schema = @Schema(implementation = EventDto.class)))})
       })
   @CommonApiResponses
-  @Path("/{namespace}/{name}")
   @GET
-  @Authenticated
+  @Path("{name}/events")
   public List<EventDto> list(@PathParam("namespace") String namespace,
       @PathParam("name") String name) {
     Map<String, List<ObjectMeta>> relatedResources = new HashMap<>();
     relatedResources.put(StackGresDbOps.KIND,
         Seq.seq(dbOpsScanner.getResources(namespace))
-        .filter(dbOps -> dbOps.getSpec().getSgCluster().equals(name))
-        .map(StackGresDbOps::getMetadata)
-        .toList());
+            .filter(dbOps -> dbOps.getSpec().getSgCluster().equals(name))
+            .map(StackGresDbOps::getMetadata)
+            .toList());
     return Seq.seq(scanner.findResourcesInNamespace(namespace))
         .filter(event -> isClusterEvent(event, namespace, name, relatedResources))
         .sorted(this::orderByLastTimestamp)
@@ -91,11 +94,11 @@ public class ClusterEventsResource {
             && involvedObject.getName().matches(ResourceUtil.getNameWithIndexPattern(name)))
         || (involvedObject.getNamespace().equals(namespace)
             && Optional.ofNullable(relatedResources.get(involvedObject.getKind()))
-            .stream().flatMap(relatedResource -> relatedResource.stream())
-            .anyMatch(relatedResource -> relatedResource.getNamespace()
-                .equals(involvedObject.getNamespace())
-                && relatedResource.getName().equals(involvedObject.getName())
-                && relatedResource.getUid().equals(involvedObject.getUid())));
+                .stream().flatMap(relatedResource -> relatedResource.stream())
+                .anyMatch(relatedResource -> relatedResource.getNamespace()
+                    .equals(involvedObject.getNamespace())
+                    && relatedResource.getName().equals(involvedObject.getName())
+                    && relatedResource.getUid().equals(involvedObject.getUid())));
   }
 
   private int orderByLastTimestamp(EventDto e1, EventDto e2) {

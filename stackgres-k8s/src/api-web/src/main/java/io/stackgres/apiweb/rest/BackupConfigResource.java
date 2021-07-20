@@ -12,10 +12,7 @@ import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -37,12 +34,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 
-@Path("/stackgres/sgbackupconfig")
+@Path("sgbackupconfigs")
 @RequestScoped
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
+@Authenticated
 public class BackupConfigResource extends
-    AbstractDependencyRestService<BackupConfigDto, StackGresBackupConfig> {
+    AbstractRestServiceDependency<BackupConfigDto, StackGresBackupConfig> {
 
   @Inject
   ResourceFinder<Secret> secretFinder;
@@ -67,8 +63,6 @@ public class BackupConfigResource extends
                   mediaType = "application/json",
                   array = @ArraySchema(schema = @Schema(implementation = BackupConfigDto.class))) })
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
   public List<BackupConfigDto> list() {
     return Seq.seq(super.list())
@@ -78,26 +72,8 @@ public class BackupConfigResource extends
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = BackupConfigDto.class)) })
-      })
-  @CommonApiResponses
-  @Authenticated
-  @Override
-  public BackupConfigDto get(String namespace, String name) {
-    return Optional.of(super.get(namespace, name))
-        .map(this::setSecrets)
-        .get();
-  }
-
-  @Operation(
-      responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
   public void create(BackupConfigDto resource) {
     setSecretKeySelectors(resource);
@@ -110,8 +86,6 @@ public class BackupConfigResource extends
       responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
   public void delete(BackupConfigDto resource) {
     setSecretKeySelectors(resource);
@@ -123,8 +97,6 @@ public class BackupConfigResource extends
       responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
   public void update(BackupConfigDto resource) {
     setSecretKeySelectors(resource);
@@ -132,7 +104,7 @@ public class BackupConfigResource extends
     super.update(resource);
   }
 
-  private BackupConfigDto setSecrets(BackupConfigDto resource) {
+  BackupConfigDto setSecrets(BackupConfigDto resource) {
     final String namespace = resource.getMetadata().getNamespace();
     util.extractSecretInfo(resource)
         .filter(t -> t.v2.v3 != null)

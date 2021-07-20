@@ -181,40 +181,34 @@
                     if(this.editMode) {
                         const res = axios
                         .put(
-                            '/stackgres/sgpgconfig/', 
+                            '/stackgres/sgpgconfigs', 
                             config 
                         )
                         .then(function (response) {
-                            vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message', 'sgpgconfig');
+                            vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message', 'sgpgconfigs');
 
                             vc.fetchAPI('sgpgconfig');
                             router.push('/' + config.metadata.namespace + '/sgpgconfig/' + config.metadata.name);
                         })
                         .catch(function (error) {
                             console.log(error.response);
-                            vc.notify(error.response.data,'error', 'sgpgconfig');
+                            vc.notify(error.response.data,'error', 'sgpgconfigs');
                         });
                     } else {
                         const res = axios
                         .post(
-                            '/stackgres/sgpgconfig/', 
+                            '/stackgres/sgpgconfigs', 
                             config 
                         )
                         .then(function (response) {
-                            vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message', 'sgpgconfig');
+                            vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message', 'sgpgconfigs');
             
                             vc.fetchAPI('sgpgconfig');
-                            router.push('/' + config.metadata.namespace + '/sgpgconfigs');
-                            
-                            /* store.commit('updatePGConfig', { 
-                                name: config.metadata.name,
-                                data: config
-                            }); */
-                    
+                            router.push('/' + config.metadata.namespace + '/sgpgconfigs');                    
                         })
                         .catch(function (error) {
                             console.log(error.response);
-                            vc.notify(error.response.data,'error', 'sgpgconfig');
+                            vc.notify(error.response.data,'error', 'sgpgconfigs');
                         });
                     }
                 }

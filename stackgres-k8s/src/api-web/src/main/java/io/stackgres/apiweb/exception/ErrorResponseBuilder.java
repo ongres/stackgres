@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.rest;
+package io.stackgres.apiweb.exception;
 
 public class ErrorResponseBuilder {
   private String type;

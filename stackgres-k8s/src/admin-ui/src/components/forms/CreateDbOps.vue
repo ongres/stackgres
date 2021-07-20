@@ -770,7 +770,7 @@
 
                     axios
                     .post(
-                        '/stackgres/sgdbops/', 
+                        '/stackgres/sgdbops', 
                         dbOps 
                     )
                     .then(function (response) {

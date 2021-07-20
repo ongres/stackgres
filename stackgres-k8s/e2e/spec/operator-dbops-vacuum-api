@@ -41,7 +41,7 @@ EOF
   DBOPS_VACUUM_CR="$(kubectl get sgdbops.stackgres.io -n "$CLUSTER_NAMESPACE" "$DBOPS_VACUUM_NAME" -o json \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation)
       | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)')"
-  
+
   echo_raw "$DBOPS_VACUUM_CR" > "$LOG_PATH/dbops-vacuum-cr.json"
 
   DBOPS_VACUUM=$(cat "$LOG_PATH/dbops-vacuum-cr.json" \
@@ -80,11 +80,11 @@ check_dbops_vacuum_in_list() {
 }
 
 get_dbops_vacuum_http_status() {
-  run_curl -r "stackgres/sgdbops/$CLUSTER_NAMESPACE/$DBOPS_VACUUM_NAME" -e "-LI -o /dev/null -w %{http_code}"
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgdbops/$DBOPS_VACUUM_NAME" -e "-LI -o /dev/null -w %{http_code}"
 }
 
 get_dbops_vacuum_pod_count() {
-  run_curl -r "stackgres/sgdbops/$CLUSTER_NAMESPACE/$DBOPS_VACUUM_NAME" | jq '.pods | length'
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgdbops/$DBOPS_VACUUM_NAME" | jq '.pods | length'
 }
 
 check_dbops_vacuum_directly() {
@@ -106,7 +106,7 @@ remove_dbops_vacuum_cr_if_exists() {
   if kubectl get sgdbops.stackgres.io -n "$CLUSTER_NAMESPACE" "$DBOPS_VACUUM_NAME"
   then
     kubectl delete sgdbops.stackgres.io -n "$CLUSTER_NAMESPACE" "$DBOPS_VACUUM_NAME"
-    
+
     wait_until eval '! kubectl get sgdbops.stackgres.io -n "$CLUSTER_NAMESPACE" "$DBOPS_VACUUM_NAME"'
   fi
 }
@@ -127,7 +127,7 @@ check_dbops_vacuum_removed() {
     return 0
   fi
 
-  HTTP_STATUS="$(run_curl -r "stackgres/sgdbops/$CLUSTER_NAMESPACE/$DBOPS_VACUUM_NAME" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgdbops/$DBOPS_VACUUM_NAME" -e "-LI -o /dev/null -w %{http_code}")"
 
   if [ "$HTTP_STATUS" -eq "404" ]
   then
@@ -239,7 +239,7 @@ test_authentication_api_error() {
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgdbops/$CLUSTER_NAMESPACE/$DBOPS_VACUUM_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgdbops/$DBOPS_VACUUM_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 

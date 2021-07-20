@@ -113,8 +113,9 @@ import org.mockito.stubbing.Answer;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class ClusterResourceTest
-    extends AbstractCustomResourceTest<ClusterDto, StackGresCluster, ClusterResource> {
+class ClusterResourceMockedTest extends
+    AbstractCustomResourceTest<ClusterDto, StackGresCluster,
+    ClusterResource, NamespacedClusterResource> {
 
   @Mock
   ManagedExecutor managedExecutor;
@@ -231,7 +232,8 @@ class ClusterResourceTest
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
 
-    ClusterStatsDto dto = service.stats(getResourceNamespace(), getResourceName());
+    ClusterStatsDto dto =
+        getClusterStatsResource().stats(getResourceNamespace(), getResourceName());
 
     checkStatsDto(dto);
   }
@@ -464,14 +466,8 @@ class ClusterResourceTest
 
   @Override
   protected ClusterResource getService() {
-
     ClusterTransformer clusterTransformer = getTransformer();
     final ClusterLabelFactory labelFactory = new ClusterLabelFactory(new ClusterLabelMapper());
-    final ClusterDtoFinder dtoFinder = new ClusterDtoFinder();
-    dtoFinder.setClusterFinder(finder);
-    dtoFinder.setPodFinder(podFinder);
-    dtoFinder.setClusterTransformer(clusterTransformer);
-    dtoFinder.setLabelFactory(labelFactory);
 
     final ClusterDtoScanner dtoScanner = new ClusterDtoScanner();
     dtoScanner.setClusterScanner(scanner);
@@ -492,10 +488,48 @@ class ClusterResourceTest
 
     return new ClusterResource(
         dtoScanner,
-        dtoFinder,
-        statsDtoFinder,
-        distributedLogsFetcher, secretTransactionHandler, configMapTransactionHandler,
+        secretTransactionHandler, configMapTransactionHandler,
         secretFinder, configMapFinder, serviceFinder);
+  }
+
+  @Override
+  protected NamespacedClusterResource getNamespacedService() {
+    ClusterTransformer clusterTransformer = getTransformer();
+    final ClusterLabelFactory labelFactory = new ClusterLabelFactory(new ClusterLabelMapper());
+    final ClusterDtoFinder dtoFinder = new ClusterDtoFinder();
+    dtoFinder.setClusterFinder(finder);
+    dtoFinder.setPodFinder(podFinder);
+    dtoFinder.setClusterTransformer(clusterTransformer);
+    dtoFinder.setLabelFactory(labelFactory);
+    return new NamespacedClusterResource(dtoFinder, getService());
+  }
+
+  private NamespacedClusterStatsResource getClusterStatsResource() {
+    final ClusterLabelFactory labelFactory = new ClusterLabelFactory(new ClusterLabelMapper());
+    final ClusterStatsTransformer clusterStatsTransformer = new ClusterStatsTransformer(
+        new ClusterPodTransformer());
+    final ClusterStatsDtoFinder statsDtoFinder = new ClusterStatsDtoFinder();
+    statsDtoFinder.setClusterFinder(finder);
+    statsDtoFinder.setPodFinder(podFinder);
+    statsDtoFinder.setPodExecutor(podExecutor);
+    statsDtoFinder.setPersistentVolumeClaimFinder(persistentVolumeClaimFinder);
+    statsDtoFinder.setClusterLabelFactory(labelFactory);
+    statsDtoFinder.setClusterStatsTransformer(clusterStatsTransformer);
+    statsDtoFinder.setManagedExecutor(managedExecutor);
+
+    return new NamespacedClusterStatsResource(statsDtoFinder);
+  }
+
+  private NamespacedClusterLogsResource getClusterLogsResource() {
+    ClusterTransformer clusterTransformer = getTransformer();
+    final ClusterLabelFactory labelFactory = new ClusterLabelFactory(new ClusterLabelMapper());
+    final ClusterDtoFinder dtoFinder = new ClusterDtoFinder();
+    dtoFinder.setClusterFinder(finder);
+    dtoFinder.setPodFinder(podFinder);
+    dtoFinder.setClusterTransformer(clusterTransformer);
+    dtoFinder.setLabelFactory(labelFactory);
+
+    return new NamespacedClusterLogsResource(dtoFinder, distributedLogsFetcher);
   }
 
   @Override
@@ -991,11 +1025,11 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals( 50,parameters.getRecords());
-        assertEquals( Optional.empty(),parameters.getFromTimeAndIndex());
-        assertEquals( Optional.empty(),parameters.getToTimeAndIndex());
-        assertEquals( ImmutableMap.of(),parameters.getFilters());
-        assertEquals( Optional.empty(),parameters.getFullTextSearchQuery());
+        assertEquals(50, parameters.getRecords());
+        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
+        assertEquals(ImmutableMap.of(), parameters.getFilters());
+        assertEquals(Optional.empty(), parameters.getFullTextSearchQuery());
         assertFalse(parameters.isSortAsc());
         assertFalse(parameters.isFromInclusive());
 
@@ -1016,7 +1050,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -1034,11 +1069,11 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals( 1,parameters.getRecords());
-        assertEquals( Optional.empty(),parameters.getFromTimeAndIndex());
-        assertEquals( Optional.empty(),parameters.getToTimeAndIndex());
-        assertEquals( ImmutableMap.of(),parameters.getFilters());
-        assertEquals( Optional.empty(),parameters.getFullTextSearchQuery());
+        assertEquals(1, parameters.getRecords());
+        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
+        assertEquals(ImmutableMap.of(), parameters.getFilters());
+        assertEquals(Optional.empty(), parameters.getFullTextSearchQuery());
         assertFalse(parameters.isSortAsc());
         assertFalse(parameters.isFromInclusive());
 
@@ -1059,7 +1094,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -1086,7 +1122,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     assertThrows(BadRequestException.class,
-        () -> service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        () -> getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records,
+            from, to, sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive));
   }
 
@@ -1102,10 +1139,10 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(50,parameters.getRecords());
+        assertEquals(50, parameters.getRecords());
         assertEquals(Optional.of(Tuple.tuple(Instant.EPOCH, 0)), parameters.getFromTimeAndIndex());
         assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
-        assertEquals(ImmutableMap.of(),parameters.getFilters());
+        assertEquals(ImmutableMap.of(), parameters.getFilters());
         assertEquals(Optional.empty(), parameters.getFullTextSearchQuery());
         assertFalse(parameters.isSortAsc());
         assertFalse(parameters.isFromInclusive());
@@ -1127,7 +1164,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -1170,7 +1208,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -1197,7 +1236,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     assertThrows(BadRequestException.class,
-        () -> service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        () -> getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records,
+            from, to, sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive));
   }
 
@@ -1222,7 +1262,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     assertThrows(BadRequestException.class,
-        () -> service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        () -> getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records,
+            from, to, sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive));
   }
 
@@ -1264,7 +1305,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -1307,7 +1349,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -1334,7 +1377,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     assertThrows(BadRequestException.class,
-        () -> service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        () -> getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records,
+            from, to, sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive));
   }
 
@@ -1359,7 +1403,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     assertThrows(BadRequestException.class,
-        () -> service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        () -> getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records,
+            from, to, sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive));
   }
 
@@ -1384,7 +1429,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     assertThrows(BadRequestException.class,
-        () -> service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        () -> getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records,
+            from, to, sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive));
   }
 
@@ -1425,7 +1471,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -1468,7 +1515,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -1495,7 +1543,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     assertThrows(BadRequestException.class,
-        () -> service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        () -> getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records,
+            from, to, sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive));
   }
 
@@ -1537,7 +1586,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -1581,7 +1631,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -1624,7 +1675,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -1667,7 +1719,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -1710,7 +1763,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -1753,7 +1807,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -1796,7 +1851,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -1817,7 +1873,8 @@ class ClusterResourceTest
         assertEquals(50, parameters.getRecords());
         assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
         assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
-        assertEquals(ImmutableMap.of("databaseName", List.of("test", "demo")), parameters.getFilters());
+        assertEquals(ImmutableMap.of("databaseName", List.of("test", "demo")),
+            parameters.getFilters());
         assertEquals(Optional.empty(), parameters.getFullTextSearchQuery());
         assertFalse(parameters.isSortAsc());
         assertFalse(parameters.isFromInclusive());
@@ -1839,7 +1896,8 @@ class ClusterResourceTest
     List<String> databaseName = List.of("test", "demo");
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -1882,7 +1940,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -1925,7 +1984,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -1968,7 +2028,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -2011,7 +2072,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -2054,7 +2116,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -2097,7 +2160,8 @@ class ClusterResourceTest
     List<String> databaseName = List.of("");
     Boolean fromInclusive = null;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -2140,7 +2204,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = true;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);
@@ -2158,11 +2223,11 @@ class ClusterResourceTest
 
         assertNotNull(parameters);
         checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals( 50,parameters.getRecords());
-        assertEquals( Optional.empty(),parameters.getFromTimeAndIndex());
-        assertEquals( Optional.empty(),parameters.getToTimeAndIndex());
-        assertEquals( ImmutableMap.of(),parameters.getFilters());
-        assertEquals( Optional.empty(),parameters.getFullTextSearchQuery());
+        assertEquals(50, parameters.getRecords());
+        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
+        assertEquals(ImmutableMap.of(), parameters.getFilters());
+        assertEquals(Optional.empty(), parameters.getFullTextSearchQuery());
         assertFalse(parameters.isSortAsc());
         assertFalse(parameters.isFromInclusive());
 
@@ -2183,7 +2248,8 @@ class ClusterResourceTest
     List<String> databaseName = null;
     Boolean fromInclusive = false;
     List<ClusterLogEntryDto> logs =
-        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+        getClusterLogsResource().logs(getResourceNamespace(), getResourceName(), records, from, to,
+            sort, text,
             logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
 
     assertIterableEquals(logList, logs);

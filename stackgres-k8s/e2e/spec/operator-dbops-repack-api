@@ -41,7 +41,7 @@ EOF
   DBOPS_REPACK_CR="$(kubectl get sgdbops.stackgres.io -n "$CLUSTER_NAMESPACE" "$DBOPS_REPACK_NAME" -o json \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation)
       | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)')"
-  
+
   echo_raw "$DBOPS_REPACK_CR" > "$LOG_PATH/dbops-repack-cr.json"
 
   DBOPS_REPACK=$(cat "$LOG_PATH/dbops-repack-cr.json" \
@@ -80,11 +80,11 @@ check_dbops_repack_in_list() {
 }
 
 get_dbops_repack_http_status() {
-  run_curl -r "stackgres/sgdbops/$CLUSTER_NAMESPACE/$DBOPS_REPACK_NAME" -e "-LI -o /dev/null -w %{http_code}"
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgdbops/$DBOPS_REPACK_NAME" -e "-LI -o /dev/null -w %{http_code}"
 }
 
 get_dbops_repack_pod_count() {
-  run_curl -r "stackgres/sgdbops/$CLUSTER_NAMESPACE/$DBOPS_REPACK_NAME" | jq '.pods | length'
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgdbops/$DBOPS_REPACK_NAME" | jq '.pods | length'
 }
 
 check_dbops_repack_directly() {
@@ -106,7 +106,7 @@ remove_dbops_repack_cr_if_exists() {
   if kubectl get sgdbops.stackgres.io -n "$CLUSTER_NAMESPACE" "$DBOPS_REPACK_NAME"
   then
     kubectl delete sgdbops.stackgres.io -n "$CLUSTER_NAMESPACE" "$DBOPS_REPACK_NAME"
-    
+
     wait_until eval '! kubectl get sgdbops.stackgres.io -n "$CLUSTER_NAMESPACE" "$DBOPS_REPACK_NAME"'
   fi
 }
@@ -127,7 +127,7 @@ check_dbops_repack_removed() {
     return 0
   fi
 
-  HTTP_STATUS="$(run_curl -r "stackgres/sgdbops/$CLUSTER_NAMESPACE/$DBOPS_REPACK_NAME" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgdbops/$DBOPS_REPACK_NAME" -e "-LI -o /dev/null -w %{http_code}")"
 
   if [ "$HTTP_STATUS" -eq "404" ]
   then
@@ -235,11 +235,11 @@ check_error_response_2() {
 test_authentication_api_error() {
   local HTTP_STATUS
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgdbops"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgdbops" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgdbops/$CLUSTER_NAMESPACE/$DBOPS_REPACK_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgdbops/$DBOPS_REPACK_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 

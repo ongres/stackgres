@@ -240,40 +240,40 @@ check_cluster_pod_count() {
   ACTUAL_INSTANCES="$(get_all_cluster_pod_count)"
   if [ "$ACTUAL_INSTANCES" -eq "$EXPECTED_INSTANCES" ]
   then
-    echo "SUCCESS. The number of instances returned by stackgres/sgcluster is $EXPECTED_INSTANCES"
+    echo "SUCCESS. The number of instances returned by stackgres/sgclusters is $EXPECTED_INSTANCES"
   else
-    echo "FAIL. The number of instances returned by stackgres/sgcluster is $ACTUAL_INSTANCES"
+    echo "FAIL. The number of instances returned by stackgres/sgclusters is $ACTUAL_INSTANCES"
     return 1
   fi
 
   ACTUAL_INSTANCES="$(get_cluster_pod_count)"
   if [ "$ACTUAL_INSTANCES" -eq "$EXPECTED_INSTANCES" ]
   then
-    echo "SUCCESS. The number of instances returned by stackgres/sgcluster/<namespace>/<name> is $EXPECTED_INSTANCES"
+    echo "SUCCESS. The number of instances returned by stackgres/<namespace>/sgcluster/<name> is $EXPECTED_INSTANCES"
   else
-    echo "FAIL. The number of instances returned by stackgres/sgcluster/<namespace>/<name> is $ACTUAL_INSTANCES"
+    echo "FAIL. The number of instances returned by stackgres/<namespace>/sgcluster/<name> is $ACTUAL_INSTANCES"
     return 1
   fi
 
   ACTUAL_INSTANCES="$(get_cluster_stats_pod_count)"
   if [ "$ACTUAL_INSTANCES" -eq "$EXPECTED_INSTANCES" ]
   then
-    echo "SUCCESS. The number of instances returned by stackgres/sgcluster/stats/<namespace>/<name> is $EXPECTED_INSTANCES"
+    echo "SUCCESS. The number of instances returned by stackgres/<namespace>/sgcluster/<name>/stats is $EXPECTED_INSTANCES"
   else
-    echo "FAIL. The number of instances returned by stackgres/sgcluster/stats/<namespace>/<name> is $ACTUAL_INSTANCES"
+    echo "FAIL. The number of instances returned by stackgres/<namespace>/sgcluster/<name>/stats is $ACTUAL_INSTANCES"
     return 1
   fi
 }
 
 get_all_cluster_pod_count() {
-  run_curl -r "stackgres/sgcluster" \
+  run_curl -r "stackgres/sgclusters" \
     | jq ".[]|select(.metadata.namespace == \"$CLUSTER_NAMESPACE\" and .metadata.name == \"$CLUSTER_NAME\")|.pods | length"
 }
 
 get_cluster_pod_count() {
-  run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | jq '.pods | length'
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.pods | length'
 }
 
 get_cluster_stats_pod_count() {
-  run_curl -r "stackgres/sgcluster/stats/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | jq '.pods | length'
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/stats" | jq '.pods | length'
 }

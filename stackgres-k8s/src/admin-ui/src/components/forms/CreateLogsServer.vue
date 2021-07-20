@@ -432,7 +432,7 @@
                             cluster 
                         )
                         .then(function (response) {
-                            vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgcluster');
+                            vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgdistributedlogs');
 
                             vc.fetchAPI('sgdistributedlogs');
                             router.push('/' + cluster.metadata.namespace + '/sgdistributedlog/' + cluster.metadata.name);
@@ -449,7 +449,7 @@
                             cluster 
                         )
                         .then(function (response) {
-                            vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgcluster');
+                            vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgdistributedlogs');
 
                             vc.fetchAPI('sgdistributedlogs');
                             router.push('/' + cluster.metadata.namespace + '/sgdistributedlogs')

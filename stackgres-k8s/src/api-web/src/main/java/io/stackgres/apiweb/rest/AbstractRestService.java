@@ -13,19 +13,21 @@ import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 
 import io.fabric8.kubernetes.client.CustomResource;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.ResourceDto;
+import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.apiweb.transformer.ResourceTransformer;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
+import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 
-public abstract class AbstractRestService<T extends ResourceDto, R extends CustomResource<?, ?>>
+@Authenticated
+public abstract class AbstractRestService
+    <T extends ResourceDto, R extends CustomResource<?, ?>>
     implements ResourceRestService<T> {
 
   @Inject
@@ -41,12 +43,13 @@ public abstract class AbstractRestService<T extends ResourceDto, R extends Custo
   ResourceTransformer<T, R> transformer;
 
   /**
-   * Looks for all resources of type <code>{R}</code> that are installed in the kubernetes cluster.
+   * Looks for all resources of type {@code <R>} that are installed in the kubernetes cluster.
+   *
    * @return a list with the installed resources
-   * @throws RuntimeException if no custom resource of type <code>{R}</code> is defined
+   * @throws RuntimeException if no custom resource of type {@code <R>} is defined
    */
   @GET
-  @Authenticated
+  @CommonApiResponses
   @Override
   public List<T> list() {
     return Seq.seq(scanner.getResources())
@@ -55,71 +58,42 @@ public abstract class AbstractRestService<T extends ResourceDto, R extends Custo
   }
 
   /**
-   * Look for a specific resource based on it's namespace and name.
-   * @param namespace the namespace in which the resource is located
-   * @param name the resource name
-   * @return the founded resource
-   * @throws NotFoundException if no resource is found
-   */
-  @Path("/{namespace}/{name}")
-  @GET
-  @Authenticated
-  @Override
-  public T get(@PathParam("namespace") String namespace, @PathParam("name") String name) {
-    return finder.findByNameAndNamespace(name, namespace)
-        .map(transformer::toDto)
-        .orElseThrow(NotFoundException::new);
-  }
-
-  /**
-   * Creates a resource of type <code>{R}</code>.
+   * Creates a resource of type {@code <R>}.
+   *
    * @param resource the resource to create
    */
   @POST
-  @Authenticated
+  @CommonApiResponses
   @Override
-  public void create(T resource) {
+  public void create(@NotNull T resource) {
     scheduler.create(transformer.toCustomResource(resource, null));
   }
 
   /**
-   * Deletes a custom resource of type <code>{R}</code>.
+   * Deletes a custom resource of type {@code <R>}.
+   *
    * @param resource the resource to delete
    */
   @DELETE
-  @Authenticated
+  @CommonApiResponses
   @Override
-  public void delete(T resource) {
+  public void delete(@NotNull T resource) {
     scheduler.delete(transformer.toCustomResource(resource, null));
   }
 
   /**
-   * Updates a custom resource of type <code>{R}</code>.
+   * Updates a custom resource of type {@code <R>}.
+   *
    * @param resource the resource to delete
    */
   @PUT
-  @Authenticated
+  @CommonApiResponses
   @Override
-  public void update(T resource) {
+  public void update(@NotNull T resource) {
     scheduler.update(transformer.toCustomResource(resource,
         finder.findByNameAndNamespace(
             resource.getMetadata().getName(), resource.getMetadata().getNamespace())
-        .orElseThrow(NotFoundException::new)));
+            .orElseThrow(NotFoundException::new)));
   }
 
-  public CustomResourceScanner<R> getScanner() {
-    return scanner;
-  }
-
-  public CustomResourceFinder<R> getFinder() {
-    return finder;
-  }
-
-  public CustomResourceScheduler<R> getScheduler() {
-    return scheduler;
-  }
-
-  public ResourceTransformer<T, R> getTransformer() {
-    return transformer;
-  }
 }

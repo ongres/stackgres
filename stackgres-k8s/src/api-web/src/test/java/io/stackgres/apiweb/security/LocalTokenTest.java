@@ -10,11 +10,9 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import io.stackgres.apiweb.config.WebApiProperty;
-import io.stackgres.apiweb.rest.LocalLoginResource;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -24,7 +22,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-@TestHTTPEndpoint(LocalLoginResource.class)
 class LocalTokenTest {
 
   @Inject
@@ -105,7 +102,7 @@ class LocalTokenTest {
         .contentType(ContentType.JSON)
         .body(up)
         .when()
-        .post("/login")
+        .post("/stackgres/auth/login")
         .then()
         .statusCode(200)
         .body("access_token", Matchers.startsWith("eyJ"),
@@ -124,7 +121,7 @@ class LocalTokenTest {
         .contentType(ContentType.JSON)
         .body(up)
         .when()
-        .post("/login")
+        .post("/stackgres/auth/login")
         .then()
         .statusCode(200)
         .body("access_token", Matchers.startsWith("eyJ"),
@@ -143,7 +140,7 @@ class LocalTokenTest {
         .contentType(ContentType.JSON)
         .body(up)
         .when()
-        .post("/login")
+        .post("/stackgres/auth/login")
         .then()
         .statusCode(403);
   }
@@ -159,7 +156,7 @@ class LocalTokenTest {
         .contentType(ContentType.JSON)
         .body(up)
         .when()
-        .post("/login")
+        .post("/stackgres/auth/login")
         .then()
         .statusCode(403);
   }

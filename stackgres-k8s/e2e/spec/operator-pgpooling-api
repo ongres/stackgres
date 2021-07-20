@@ -10,15 +10,15 @@ e2e_test_install() {
 
   DEFAULT_PGPOOLING_CR=$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGPOOLING"  -o json \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' )
- 
+
   echo_raw "$DEFAULT_PGPOOLING_CR" > "$LOG_PATH/default-pgpooling-cr.json"
-    
+
   DEFAULT_PGPOOLING=$(echo "$DEFAULT_PGPOOLING_CR" \
     | jq 'del(.apiVersion) | del(.kind)' \
     | jq '.spec.pgBouncer."pgbouncer.ini" = (.spec.pgBouncer."pgbouncer.ini"|to_entries|map(.key + "=" + .value)|join("\n"))' )
-  
+
   echo_raw "$DEFAULT_PGPOOLING" > "$LOG_PATH/default-pgpooling.json"
-  
+
   kubectl delete sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGPOOLING"
 }
 
@@ -75,7 +75,7 @@ delete_pgpooling_only() {
 check_pgpooling_in_list() {
   create_pgpooling
 
-  if run_curl -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" \
+  if run_curl -r "stackgres/sgpoolconfigs" -n "$CLUSTER_NAMESPACE" \
     | jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$PGPOOLING\") | .metadata.name" \
     | grep -q "^$PGPOOLING$"
   then
@@ -88,7 +88,7 @@ check_pgpooling_in_list() {
 }
 
 get_pgpooling_status() {
-  run_curl -r "stackgres/sgpoolconfig/$CLUSTER_NAMESPACE/$PGPOOLING" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}"
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgpoolconfigs/$PGPOOLING" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}"
 }
 
 check_pgpooling_directly() {
@@ -111,13 +111,13 @@ check_pgpooling_directly() {
 check_pgpooling_removed_from_list() {
   delete_pgpooling_only
 
-  if run_curl -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" \
+  if run_curl -r "stackgres/sgpoolconfigs" -n "$CLUSTER_NAMESPACE" \
     | jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$PGPOOLING\") | .metadata.name" \
     | grep -q "^$PGPOOLING$"
   then
     echo "Pooling config $PGPOOLING wasn't removed from cache"
     return 1
-  else 
+  else
     echo "Pooling config $PGPOOLING was removed from cache"
     return 0
   fi
@@ -128,7 +128,7 @@ check_pgpooling_deletion_directly() {
 
   delete_pgpooling_only
 
-  HTTP_STATUS="$(run_curl -r "stackgres/sgpoolconfig/$CLUSTER_NAMESPACE/$PGPOOLING" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgpoolconfigs/$PGPOOLING" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   if [ "$HTTP_STATUS" -eq "404" ]
   then
@@ -140,21 +140,21 @@ check_pgpooling_deletion_directly() {
   fi
 }
 
-create_pgpooling_with_api() { 
+create_pgpooling_with_api() {
   echo "Creating pgpooling $PGPOOLING with the operator API"
 
   delete_pgpooling_only
 
   local HTTP_STATUS
 
-  HTTP_STATUS="$(run_curl -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X POST -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgpoolconfigs" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X POST -w %{http_code} -o /dev/null')"
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
     echo "Request acknowledged by the operator"
   else
     local ERROR_RESPONSE
-    ERROR_RESPONSE="$(run_curl -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X POST')"
+    ERROR_RESPONSE="$(run_curl -r "stackgres/sgpoolconfigs" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X POST')"
 
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
@@ -189,14 +189,14 @@ update_pgpooling_parameter_with_api() {
 
   echo_raw "$UPDATED_PGPOOLING" > "$LOG_PATH/updated-pgpooling.json"
 
-  HTTP_STATUS="$(run_curl -r "stackgres/sgpoolconfig" -d "$LOG_PATH/updated-pgpooling.json" -e '-X PUT -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgpoolconfigs" -d "$LOG_PATH/updated-pgpooling.json" -e '-X PUT -w %{http_code} -o /dev/null')"
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
     echo "Request acknowledged by the operator"
   else
     local ERROR_RESPONSE
-    ERROR_RESPONSE="$(run_curl -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/updated-pgpooling.json" -e '-X PUT')"
+    ERROR_RESPONSE="$(run_curl -r "stackgres/sgpoolconfigs" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/updated-pgpooling.json" -e '-X PUT')"
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
   fi
@@ -222,7 +222,7 @@ test_update_pgpooling_with_api() {
 }
 
 get_pgpooling_from_api() {
-  run_curl -r "stackgres/sgpoolconfig/$CLUSTER_NAMESPACE/$PGPOOLING" -n "$CLUSTER_NAMESPACE"
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgpoolconfigs/$PGPOOLING" -n "$CLUSTER_NAMESPACE"
 }
 
 test_api_updated_pgpooling_is_visible() {
@@ -241,7 +241,7 @@ test_api_updated_pgpooling_is_visible() {
 delete_pgpooling_with_api() {
   local HTTP_STATUS
 
-  HTTP_STATUS="$(run_curl -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE"  -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgpoolconfigs" -n "$CLUSTER_NAMESPACE"  -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
@@ -249,7 +249,7 @@ delete_pgpooling_with_api() {
 
   else
     local ERROR_RESPONSE
-    ERROR_RESPONSE="$(run_curl -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X PUT')"
+    ERROR_RESPONSE="$(run_curl -r "stackgres/sgpoolconfigs" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X PUT')"
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
   fi
@@ -292,11 +292,11 @@ test_dependency_api_error(){
 
   local HTTP_STATUS
 
-  HTTP_STATUS=$(run_curl -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE -w %{http_code} -o /dev/null')
+  HTTP_STATUS=$(run_curl -r "stackgres/sgpoolconfigs" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE -w %{http_code} -o /dev/null')
 
-  assert_string_equal "409" "$HTTP_STATUS" 
+  assert_string_equal "409" "$HTTP_STATUS"
 
-  ERROR_RESPONSE=$(run_curl -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE')
+  ERROR_RESPONSE=$(run_curl -r "stackgres/sgpoolconfigs" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE')
 
   EXPECTED_ERROR_TYPE="forbidden-configuration-deletion"
   EXPECTED_ERROR_TITLE="Forbidden configuration deletion"
@@ -310,23 +310,23 @@ test_dependency_api_error(){
 test_authentication_api_error() {
   local HTTP_STATUS
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgpoolconfig"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgpoolconfigs"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgpoolconfig/$CLUSTER_NAMESPACE/$PGPOOLING" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgpoolconfigs/$PGPOOLING" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X POST -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgpoolconfigs" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X POST -w %{http_code} -o /dev/null')"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X PUT -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgpoolconfigs" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X PUT -w %{http_code} -o /dev/null')"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgpoolconfigs" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
 
   check_authentication_error
 }

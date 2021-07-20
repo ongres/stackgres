@@ -24,7 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class PostgresConfigResourceTest
     extends AbstractDependencyCustomResourceTest<PostgresConfigDto, StackGresPostgresConfig,
-      PostgresConfigResource> {
+      PostgresConfigResource, NamespacedPostgresConfigResource> {
 
   @Override
   protected CustomResourceList<StackGresPostgresConfig> getCustomResourceList() {
@@ -44,6 +44,11 @@ class PostgresConfigResourceTest
   @Override
   protected PostgresConfigResource getService() {
     return new PostgresConfigResource();
+  }
+
+  @Override
+  protected NamespacedPostgresConfigResource getNamespacedService() {
+    return new NamespacedPostgresConfigResource();
   }
 
   @Override

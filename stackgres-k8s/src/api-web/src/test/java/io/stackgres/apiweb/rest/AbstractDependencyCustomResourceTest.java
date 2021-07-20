@@ -29,8 +29,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.stubbing.Answer;
 
-abstract class AbstractDependencyCustomResourceTest<T extends ResourceDto, R extends CustomResource<?, ?>,
-    S extends AbstractDependencyRestService<T, R>> {
+abstract class AbstractDependencyCustomResourceTest
+    <T extends ResourceDto, R extends CustomResource<?, ?>,
+    S extends AbstractRestServiceDependency<T, R>,
+    N extends AbstractNamespacedRestServiceDependency<T, R>> {
 
   @Mock
   protected CustomResourceScanner<R> scanner;
@@ -48,6 +50,7 @@ abstract class AbstractDependencyCustomResourceTest<T extends ResourceDto, R ext
   protected T resourceDto;
   protected StackGresClusterList clusters;
   protected S service;
+  protected N namespacedService;
   protected AbstractDependencyResourceTransformer<T, R> transformer;
 
   @BeforeEach
@@ -63,6 +66,10 @@ abstract class AbstractDependencyCustomResourceTest<T extends ResourceDto, R ext
     service.scanner = scanner;
     service.finder = finder;
     service.transformer = transformer;
+    namespacedService = getNamespacedService();
+    namespacedService.finder = finder;
+    namespacedService.clusterScanner = clusterScanner;
+    namespacedService.transformer = transformer;
   }
 
   @Test
@@ -82,7 +89,7 @@ abstract class AbstractDependencyCustomResourceTest<T extends ResourceDto, R ext
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
 
-    T dto = service.get(getResourceNamespace(), getResourceName());
+    T dto = namespacedService.get(getResourceNamespace(), getResourceName());
 
     checkDto(dto);
   }
@@ -141,6 +148,8 @@ abstract class AbstractDependencyCustomResourceTest<T extends ResourceDto, R ext
   protected abstract AbstractDependencyResourceTransformer<T, R> getTransformer();
 
   protected abstract S getService();
+
+  protected abstract N getNamespacedService();
 
   protected abstract String getResourceNamespace();
 

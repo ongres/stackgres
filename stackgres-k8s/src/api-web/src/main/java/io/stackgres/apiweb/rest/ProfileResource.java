@@ -9,10 +9,7 @@ import java.util.List;
 import java.util.Objects;
 
 import javax.enterprise.context.RequestScoped;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.profile.ProfileDto;
@@ -24,12 +21,11 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
-@Path("/stackgres/sginstanceprofile")
+@Path("sginstanceprofiles")
 @RequestScoped
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
+@Authenticated
 public class ProfileResource
-    extends AbstractDependencyRestService<ProfileDto, StackGresProfile> {
+    extends AbstractRestServiceDependency<ProfileDto, StackGresProfile> {
 
   @Override
   public boolean belongsToCluster(StackGresProfile resource, StackGresCluster cluster) {
@@ -47,8 +43,6 @@ public class ProfileResource
                   array = @ArraySchema(
                       schema = @Schema(implementation = ProfileDto.class)))})
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
   public List<ProfileDto> list() {
     return super.list();
@@ -56,24 +50,8 @@ public class ProfileResource
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = {@Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = ProfileDto.class))})
-      })
-  @CommonApiResponses
-  @Authenticated
-  @Override
-  public ProfileDto get(String namespace, String name) {
-    return super.get(namespace, name);
-  }
-
-  @Operation(
-      responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
   public void create(ProfileDto resource) {
     super.create(resource);
@@ -83,8 +61,6 @@ public class ProfileResource
       responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
   public void delete(ProfileDto resource) {
     super.delete(resource);
@@ -94,8 +70,6 @@ public class ProfileResource
       responses = {
           @ApiResponse(responseCode = "200", description = "OK")
       })
-  @CommonApiResponses
-  @Authenticated
   @Override
   public void update(ProfileDto resource) {
     super.update(resource);

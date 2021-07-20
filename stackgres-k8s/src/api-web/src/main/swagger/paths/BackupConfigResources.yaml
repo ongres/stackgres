@@ -1,5 +1,5 @@
 paths:
-  /stackgres/sgbackupconfig:
+  /stackgres/sgbackupconfigs:
     get:
       tags:
       - sgbackupconfig
@@ -22,9 +22,9 @@ paths:
          If values are provided referenced secrets are created/patched or a secret named as
          the sgbackupconfig with `-secrets` suffix is created/patched if no secret is
          referenced.
-        
+
         ### RBAC permissions required
-        
+
         * sgbackupconfigs patch
         * secrets get, create, patch
       security:
@@ -38,9 +38,9 @@ paths:
          If values are provided referenced secrets are created/patched or a secret named as
          the sgbackupconfig with `-secrets` suffix is created/patched if no secret is
          referenced.
-        
+
         ### RBAC permissions required
-        
+
         * sgbackupconfigs create
         * secrets get, create, patch
       security:
@@ -53,15 +53,15 @@ paths:
         Delete a sgbackupconfig.
          If a secret named as the sgbackupconfig with `-secrets` suffix is found, it will be
          deleted also.
-        
-        
+
+
         ### RBAC permissions required
-        
+
         * sgbackupconfigs delete
         * secrets get, delete
       security:
       - JWT: []
-  /stackgres/sgbackupconfig/{namespace}/{name}:
+  /stackgres/namespaces/{namespace}/sgbackupconfigs/{name}:
     get:
       tags:
       - sgbackupconfig

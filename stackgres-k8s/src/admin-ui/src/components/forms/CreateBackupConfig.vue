@@ -668,28 +668,28 @@
                         
                         const res = axios
                         .put(
-                            '/stackgres/sgbackupconfig/', 
+                            '/stackgres/sgbackupconfigs', 
                             config 
                         )
                         .then(function (response) {
-                            vc.notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message','sgbackupconfig');
+                            vc.notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message','sgbackupconfigs');
 
                             vc.fetchAPI('sgbackupconfig');
                             router.push('/' + config.metadata.namespace + '/sgbackupconfig/' + config.metadata.name);
                         })
                         .catch(function (error) {
                             console.log(error.response);
-                            vc.notify(error.response.data,'error','sgbackupconfig');
+                            vc.notify(error.response.data,'error','sgbackupconfigs');
                         });
 
                     } else {
                         const res = axios
                         .post(
-                            '/stackgres/sgbackupconfig/', 
+                            '/stackgres/sgbackupconfigs', 
                             config 
                         )
                         .then(function (response) {
-                            vc.notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','sgbackupconfig');
+                            vc.notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','sgbackupconfigs');
 
                             vc.fetchAPI('sgbackupconfig');
                             router.push('/' + config.metadata.namespace + '/sgbackupconfigs');
@@ -697,7 +697,7 @@
                         })
                         .catch(function (error) {
                             console.log(error.response);
-                            vc.notify(error.response.data,'error','sgbackupconfig');
+                            vc.notify(error.response.data,'error','sgbackupconfigs');
                         });
                     }
 

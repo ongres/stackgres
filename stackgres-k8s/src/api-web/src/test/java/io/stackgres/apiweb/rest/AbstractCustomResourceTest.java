@@ -28,8 +28,10 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-public abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends CustomResource<?, ?>,
-    S extends AbstractRestService<T, R>> {
+public abstract class AbstractCustomResourceTest
+    <T extends ResourceDto, R extends CustomResource<?, ?>,
+    S extends AbstractRestService<T, R>,
+    N extends AbstractNamespacedRestService<T, R>> {
 
   @Mock
   protected CustomResourceScanner<R> scanner;
@@ -43,6 +45,7 @@ public abstract class AbstractCustomResourceTest<T extends ResourceDto, R extend
   protected CustomResourceList<R> customResources;
   protected T dto;
   protected S service;
+  protected N namespacedService;
   protected AbstractResourceTransformer<T, R> transformer;
 
   @BeforeEach
@@ -56,6 +59,9 @@ public abstract class AbstractCustomResourceTest<T extends ResourceDto, R extend
     service.scanner = scanner;
     service.scheduler = scheduler;
     service.transformer = transformer;
+    namespacedService = getNamespacedService();
+    namespacedService.finder = finder;
+    namespacedService.transformer = transformer;
   }
 
   @Test
@@ -76,7 +82,7 @@ public abstract class AbstractCustomResourceTest<T extends ResourceDto, R extend
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
 
-    T dto = service.get(getResourceNamespace(), getResourceName());
+    T dto = namespacedService.get(getResourceNamespace(), getResourceName());
 
     checkDto(dto, customResources.getItems().get(0));
   }
@@ -136,6 +142,7 @@ public abstract class AbstractCustomResourceTest<T extends ResourceDto, R extend
   protected abstract AbstractResourceTransformer<T, R> getTransformer();
 
   protected abstract S getService();
+  protected abstract N getNamespacedService();
 
   protected abstract String getResourceNamespace();
 

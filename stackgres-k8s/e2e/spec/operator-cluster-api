@@ -9,7 +9,7 @@ e2e_test_install() {
 
   OPERATOR_CLUSTER_CR=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' )
-  
+
   echo_raw "$OPERATOR_CLUSTER_CR" > "$LOG_PATH/stackgres-cluster-cr.json"
 
   OPERATOR_CLUSTER=$(cat "$LOG_PATH/stackgres-cluster-cr.json" \
@@ -39,9 +39,9 @@ e2e_test() {
   run_test "Check cluster is updated with the API are reflected in the API" test_api_updated_cluster_is_visible
 
   run_test "Check cluster is deleted with the API are reflected in the API" test_api_delete_cluster_is_visible
-  
+
   run_test "Check that when cluster is deleted with the API generated resources are also deleted" test_api_deleted_cluster_deletes_generated_resources
-  
+
   run_test "Constraint violations should be detected" test_constraint_violation_api_error
 
   run_test "User with wrong credentials should not be authenticated" test_authentication_api_error
@@ -49,14 +49,14 @@ e2e_test() {
   run_test "Create cluster with inline scripts" check_create_cluster_with_inline_script
 
   run_test "Create cluster with node selectors" check_create_cluster_node_selectors_script
-  
+
   run_test "Create cluster with secret and configmap scripts" check_create_cluster_with_secret_and_configmap_script
 
   run_test "Failed cluster creation should delete all created secrets and configmaps" check_failed_cluster_creation_with_secret_and_configmap_script
 }
 
 check_cluster_in_list() {
-  if run_curl -r "stackgres/sgcluster" \
+  if run_curl -r "stackgres/sgclusters" \
     | jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\" and .metadata.name == \"$CLUSTER_NAME\") | .metadata.name" \
     | grep -q "^$CLUSTER_NAME$"
   then
@@ -69,15 +69,15 @@ check_cluster_in_list() {
 }
 
 get_cluster_http_status() {
-  run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}"
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}"
 }
 
 get_cluster_stats_http_status() {
-  run_curl -r "stackgres/sgcluster/stats/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}"
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/stats" -e "-LI -o /dev/null -w %{http_code}"
 }
 
 get_cluster_pod_count() {
-  run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | jq '.pods | length'
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.pods | length'
 }
 
 check_cluster_directly() {
@@ -109,7 +109,7 @@ test_cluster_stats_are_loaded() {
   fi
 
   local STATUS_RESPONSE
-  STATUS_RESPONSE=$(run_curl -r "stackgres/sgcluster/stats/$CLUSTER_NAMESPACE/$CLUSTER_NAME")
+  STATUS_RESPONSE=$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/stats")
 
   if [ "$(echo_raw "$STATUS_RESPONSE" \
     | jq 'select(.cpuFound != null and .memoryUsed != null and .diskUsed != null and .averageLoad1m != null)' \
@@ -213,7 +213,7 @@ remove_cluster_cr_if_exists() {
   if kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
   then
     kubectl delete sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
-    
+
     wait_until eval '! kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"'
   fi
 }
@@ -223,7 +223,7 @@ check_cluster_removed() {
 
   remove_cluster_cr_if_exists
 
-  if run_curl -r "stackgres/sgcluster" \
+  if run_curl -r "stackgres/sgclusters" \
     | jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\" and .metadata.name == \"$CLUSTER_NAME\") | .metadata.name" \
     | grep -q "^$CLUSTER_NAME$"
   then
@@ -234,7 +234,7 @@ check_cluster_removed() {
     return 0
   fi
 
-  HTTP_STATUS="$(run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}")"
 
   if [ "$HTTP_STATUS" -eq "404" ]
   then
@@ -251,14 +251,14 @@ create_cluster_with_api() {
 
   remove_cluster_cr_if_exists
 
-  HTTP_STATUS="$(run_curl -r "stackgres/sgcluster" -d "$LOG_PATH/stackgres-cluster.json" -e '-X POST -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgclusters" -d "$LOG_PATH/stackgres-cluster.json" -e '-X POST -w %{http_code} -o /dev/null')"
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
     echo "Request acknowledged by the operator"
     return 0
   else
-    ERROR_RESPONSE="$(run_curl -r "stackgres/sgcluster" -d "$LOG_PATH/stackgres-cluster.json" -e '-X POST')"
+    ERROR_RESPONSE="$(run_curl -r "stackgres/sgclusters" -d "$LOG_PATH/stackgres-cluster.json" -e '-X POST')"
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
   fi
@@ -284,17 +284,17 @@ update_cluster_parameter_with_api() {
   UPDATED_STACKGRES_CLUSTER=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
     | jq ".spec[\"$1\"] = $2" )
-  
+
   echo_raw "$UPDATED_STACKGRES_CLUSTER" > "$LOG_PATH/updated-stackgres-cluster.json"
 
-  HTTP_STATUS="$(run_curl -r "stackgres/sgcluster" -d "$LOG_PATH/updated-stackgres-cluster.json" -e '-X PUT -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgclusters" -d "$LOG_PATH/updated-stackgres-cluster.json" -e '-X PUT -w %{http_code} -o /dev/null')"
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
     echo "Request acknowledged by the operator"
     return 0
   else
-    ERROR_RESPONSE="$(run_curl -r "stackgres/sgcluster" -d "$LOG_PATH/updated-stackgres-cluster.json" -e '-X PUT')"
+    ERROR_RESPONSE="$(run_curl -r "stackgres/sgclusters" -d "$LOG_PATH/updated-stackgres-cluster.json" -e '-X PUT')"
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
   fi
@@ -312,7 +312,7 @@ test_api_updated_cluster_is_visible() {
     return 1
   fi
 
-  if run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | jq '.spec.instances' -r \
+  if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.spec.instances' -r \
     | grep -q "^2$"
   then
     echo "Cluster updates are being reflected in the api"
@@ -325,14 +325,14 @@ test_api_updated_cluster_is_visible() {
 delete_cluster_with_api() {
   local HTTP_STATUS
 
-  HTTP_STATUS="$(run_curl -r "stackgres/sgcluster" -d "$LOG_PATH/stackgres-cluster.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgclusters" -d "$LOG_PATH/stackgres-cluster.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
     echo "Request acknowledged by the operator"
     return 0
   else
-    ERROR_RESPONSE="$(run_curl -r "stackgres/sgcluster" -d "$LOG_PATH/stackgres-cluster.json" -e '-X PUT')"
+    ERROR_RESPONSE="$(run_curl -r "stackgres/sgclusters" -d "$LOG_PATH/stackgres-cluster.json" -e '-X PUT')"
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
   fi
@@ -368,14 +368,14 @@ test_constraint_violation_api_error() {
   INVALID_PGCONFIG=$(cat "$LOG_PATH/stackgres-cluster.json" | jq '.spec.instances = -1' )
 
   echo "$INVALID_PGCONFIG" > "$LOG_PATH/invalid-cluster.json"
-  
+
   local HTTP_STATUS
 
-  HTTP_STATUS="$(run_curl -r "stackgres/sgcluster" -n "$CLUSTER_NAMESPACE"  -d "$LOG_PATH/invalid-cluster.json" -e '-X POST -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgclusters" -n "$CLUSTER_NAMESPACE"  -d "$LOG_PATH/invalid-cluster.json" -e '-X POST -w %{http_code} -o /dev/null')"
 
   assert_string_equal "422" "$HTTP_STATUS"
 
-  ERROR_RESPONSE="$(run_curl -r "stackgres/sgcluster" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-cluster.json" -e '-X POST')"
+  ERROR_RESPONSE="$(run_curl -r "stackgres/sgclusters" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-cluster.json" -e '-X POST')"
 
   EXPECTED_ERROR_TYPE="constraint-violation"
   EXPECTED_ERROR_TITLE="do not comply with the syntactic rules"
@@ -388,31 +388,31 @@ test_constraint_violation_api_error() {
 test_authentication_api_error() {
   local HTTP_STATUS
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgclusters"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster/stats/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/stats" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-cluster.json" -e '-X POST -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgclusters" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-cluster.json" -e '-X POST -w %{http_code} -o /dev/null')"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-cluster.json" -e '-X PUT -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgclusters" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-cluster.json" -e '-X PUT -w %{http_code} -o /dev/null')"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-cluster.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgclusters" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-cluster.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
 
   check_authentication_error
 }
@@ -430,7 +430,7 @@ check_authentication_error() {
 
 check_create_cluster_with_inline_script() {
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
-  
+
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
 
   OPERATOR_CLUSTER_CR=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
@@ -440,18 +440,18 @@ check_create_cluster_with_inline_script() {
     | jq '.spec.initialData.scripts[0].script = "CREATE DATABASE test"' \
     | jq '.spec.initialData.scripts[1].name = "table"' \
     | jq '.spec.initialData.scripts[1].database = "test"' \
-    | jq '.spec.initialData.scripts[1].script = "CREATE TABLE fibonacci(num integer)"') 
+    | jq '.spec.initialData.scripts[1].script = "CREATE TABLE fibonacci(num integer)"')
 
   echo_raw "$OPERATOR_CLUSTER_CR" > "$LOG_PATH/stackgres-cluster.json"
 
   create_cluster_with_api
-  
+
   wait_pods_running "$CLUSTER_NAMESPACE" 4
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   insert_mock_data
 
-  check_mock_data 
+  check_mock_data
 }
 
 check_create_cluster_node_selectors_script() {
@@ -465,14 +465,14 @@ check_create_cluster_node_selectors_script() {
   OPERATOR_CLUSTER_CR=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
     | jq '.spec.pods.scheduling={}' | jq '.spec.pods.scheduling.nodeSelector={}' \
-    | jq '.spec.pods.scheduling.nodeSelector["'"$NODE_LABEL_KEY"'"] = "'"$NODE_LABEL_VALUE"'"') 
+    | jq '.spec.pods.scheduling.nodeSelector["'"$NODE_LABEL_KEY"'"] = "'"$NODE_LABEL_VALUE"'"')
 
   echo_raw "$OPERATOR_CLUSTER_CR" > "$LOG_PATH/stackgres-cluster.json"
 
   create_cluster_with_api
-  
+
   ACTUAL_NODE_VALUE=$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    -o jsonpath='{.spec.pods.scheduling.nodeSelector.'"$NODE_LABEL_KEY"'}') 
+    -o jsonpath='{.spec.pods.scheduling.nodeSelector.'"$NODE_LABEL_KEY"'}')
 
   assert_string_equal "$NODE_LABEL_VALUE" "$ACTUAL_NODE_VALUE"
 
@@ -499,7 +499,7 @@ check_create_cluster_with_secret_and_configmap_script() {
     | jq '.spec.initialData.scripts[1].scriptFrom.configMapScript = "CREATE TABLE fibonacci(num integer)"' \
     | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef = {}' \
     | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef.name = "table-script"' \
-    | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef.key = "script"') 
+    | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef.key = "script"')
 
   echo_raw "$OPERATOR_CLUSTER_CR" > "$LOG_PATH/stackgres-cluster.json"
 
@@ -539,13 +539,13 @@ check_failed_cluster_creation_with_secret_and_configmap_script() {
     | jq '.spec.initialData.scripts[1].scriptFrom.configMapScript = "CREATE TABLE fibonacci(num integer)"' \
     | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef = {}' \
     | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef.name = "table-script"' \
-    | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef.key = "script"') 
+    | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef.key = "script"')
 
   echo_raw "$OPERATOR_CLUSTER_CR" > "$LOG_PATH/invalid-cluster.json"
 
   remove_cluster_cr_if_exists
 
-  run_curl -r "stackgres/sgcluster" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-cluster.json" -e '-X POST' > /dev/null
+  run_curl -r "stackgres/sgclusters" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-cluster.json" -e '-X POST' > /dev/null
 
   if wait_until eval '! kubectl get secrets -n "$CLUSTER_NAMESPACE" "init-script"'
   then
@@ -554,7 +554,7 @@ check_failed_cluster_creation_with_secret_and_configmap_script() {
     echo "FAIL. Failed cluster creation is not deleting all created secrets"
     return 1
   fi
-  
+
   if wait_until eval '! kubectl get configmaps -n "$CLUSTER_NAMESPACE" "table-script"'
   then
     echo "Success. Failed cluster creation is deleting all created configmaps"

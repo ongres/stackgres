@@ -7,7 +7,7 @@
 					Stack<strong>Gres</strong>
 					<span id="sgVersion">v{{ sgVersion }}</span>
 				</h1>
-			</router-link>		
+			</router-link>
 		</div>
 
 		<div class="right">
@@ -55,7 +55,7 @@
 						<span class="warning" style="display:none">The {{ deleteItem.kind }} name does not match the name of the element requested to be deleted.</span>
 						<a @click="confirmDelete(confirmDeleteName)">DELETE ITEM</a> <a @click="cancelDelete()">CANCEL</a>
 					</form>
-					
+
 				</div>
 			</div>
 
@@ -65,7 +65,7 @@
 						<h2>Welcome to StackGres!</h2>
 					</div>
 					<p>To continue, please Log in.</p>
-					
+
 					<label for="loginUser">
 						Username <span class="req">*</span>
 					</label>
@@ -83,7 +83,7 @@
 					<span class="warning" style="display:none">
 						Wrong username or password. Please try again!
 					</span>
-					
+
 					<hr/>
 					<button @click="login">Login</button>
 				</form>
@@ -91,8 +91,8 @@
 
 			<div id="clone" :class="clone.hasOwnProperty('name') ? 'show' : ''">
 				<form class="form">
-					<div class="header">
-						<h2>Clone {{ clone.kind }}</h2>
+					<div class="header" v-if="clone.hasOwnProperty('kind')">
+						<h2>Clone {{ (clone.kind == 'SGDistributedLogs') ? clone.kind : clone.kind.slice(0, -1) }}</h2>
 					</div>
 					<label for="cloneNamespace">Namespace <span class="req">*</span></label>
 					<select @change="setCloneNamespace" id="cloneNamespace">
@@ -102,11 +102,11 @@
 					<label for="cloneName">Name <span class="req">*</span></label>
 					<input @keyup="setCloneName" id="cloneName" autocomplete="off">
 
-					<span class="warning" v-if="nameCollision">
-						There's already a <strong>{{ clone.kind }}</strong> with the same name on the specified namespace. Please specify a different name or choose another namespace
+					<span class="warning" v-if="clone.hasOwnProperty('kind') && nameCollision">
+						There's already a <strong>{{ (clone.kind == 'SGDistributedLogs') ? clone.kind : clone.kind.slice(0, -1) }}</strong> with the same name on the specified namespace. Please specify a different name or choose another namespace
 					</span>
 
-					<span class="warning" v-if="clone.kind == 'SGCluster'">
+					<span class="warning" v-if="clone.kind == 'SGClusters'">
 						This action will create a new cluster with the same configuration as the source cluster. Please note that:
 						<ul>
 							<li>The cluster will be created as soon as this configuration is copied</li>
@@ -135,7 +135,7 @@
 				</a>
 			</div>-->
 		</div>
-		
+
 		<div id="helpTooltip" class="hideOnClick"><vue-markdown :source=tooltipsText :breaks=false></vue-markdown></div>
 		<div id="notFound" v-if="loggedIn && notFound">
             <h1>Not Found</h1>
@@ -170,7 +170,7 @@
 				loginPasswordType: 'password',
 			}
 		},
-		
+
 		computed: {
 
 			namespaces () {
@@ -224,30 +224,30 @@
 				let collision = {};
 
 				switch(store.state.cloneCRD.kind) {
-					case 'SGCluster':
+					case 'SGClusters':
 						collision = store.state.clusters.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
 						break;
-					
-					case 'SGBackupConfig':
+
+					case 'SGBackupConfigs':
 						collision = store.state.backupConfig.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
 						break;
-			
-					case 'SGBackup':
+
+					case 'SGBackups':
 						collision = store.state.backups.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
 						break;
-					
-					case 'SGInstanceProfile':
+
+					case 'SGInstanceProfiles':
 						collision = store.state.profiles.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
 						break;
-					
-					case 'SGPoolingConfig':
+
+					case 'SGPoolingConfigs':
 						collision = store.state.poolConfig.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
 						break;
-					
-					case 'SGPostgresConfig':
+
+					case 'SGPostgresConfigs':
 						collision = store.state.pgConfig.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
 						break;
-					
+
 					case 'SGDistributedLogs':
 						collision = store.state.logsClusters.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
 						break;
@@ -258,19 +258,19 @@
 
 			missingCRDs() {
 				let missingCRDs = [];
-				
+
 				if(typeof store.state.cloneCRD.data != 'undefined') {
 					let cloneCRD = store.state.cloneCRD.data;
 					let cloneKind = store.state.cloneCRD.kind;
 					let targetNamespace = cloneCRD.metadata.namespace;
-					
 
-					if (cloneKind == 'SGCluster') {
-						
-						let profile = store.state.profiles.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.sgInstanceProfile))					
+
+					if (cloneKind == 'SGClusters') {
+
+						let profile = store.state.profiles.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.sgInstanceProfile))
 						if (typeof profile == 'undefined')
 							missingCRDs.push({kind: 'SGInstanceProfile', name: cloneCRD.spec.sgInstanceProfile})
-						
+
 						let pgconfig = store.state.pgConfig.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.configurations.sgPostgresConfig))
 						if (typeof pgconfig == 'undefined')
 							missingCRDs.push({kind: 'SGPostgresConfig', name: cloneCRD.spec.configurations.sgPostgresConfig})
@@ -278,7 +278,7 @@
 						let poolconfig = store.state.poolConfig.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.configurations.sgPoolingConfig))
 						if (typeof poolconfig == 'undefined')
 							missingCRDs.push({kind: 'SGPoolingConfig', name: cloneCRD.spec.configurations.sgPoolingConfig})
-						
+
 						if (cloneCRD.spec.configurations.hasOwnProperty('sgBackupConfig')) {
 							let backupconfig = store.state.backupConfig.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.configurations.sgBackupConfig))
 							if (typeof backupconfig == 'undefined')
@@ -300,15 +300,15 @@
 				axios
 				.post('/stackgres/auth/login',{
 					username: this.loginUser,
-					password: this.loginPassword	
+					password: this.loginPassword
 				})
 				.then( function(response){
 					store.commit('setLoginToken', response.data.access_token);
 					$('#signup').fadeOut();
 					document.cookie = "sgToken="+response.data.access_token+"; Path=/; SameSite=Strict;";
 					vc.fetchAPI();
-					
-					let ns = vc.$route.params.hasOwnProperty('namespace') ? vc.$route.params.namespace : 'default' 
+
+					let ns = vc.$route.params.hasOwnProperty('namespace') ? vc.$route.params.namespace : 'default'
 					store.commit('setCurrentNamespace', ns);
 					router.push('/' + ns + '/sgclusters');
 					store.commit('setCurrentPath', {
@@ -316,7 +316,7 @@
 						name: '',
 						component: 'ClusterOverview'
 					})
-					
+
 				}
 				).catch(function(err) {
 					$('#login .warning').fadeIn();
@@ -334,7 +334,7 @@
 			},
 
 			showPassword: function() {
-				
+
 				if(this.loginPasswordType == 'text') {
 					this.loginPasswordType = 'password';
 					$('#showPassword').removeClass('active');
@@ -357,28 +357,28 @@
 				$('#cloneNamespace').val(this.$route.params.namespace)
 			},
 
-			cloneCRD: function() {	
+			cloneCRD: function() {
 				const vc = this
 				let cloneCRD = store.state.cloneCRD.data;
 				let cloneKind = store.state.cloneCRD.kind;
 
-				if(cloneKind == 'SGPoolingConfig')
-					cloneKind = 'sgpoolconfig'
-				else if (cloneKind == 'SGPostgresConfig')
-					cloneKind = 'sgpgconfig'
-				else if ( (cloneKind == 'SGCluster') && vc.hasProp(cloneCRD.spec, 'distributedLogs.sgDistributedLogs') && !cloneCRD.spec.distributedLogs.sgDistributedLogs.includes('.') )
+				if(cloneKind == 'SGPoolingConfigs')
+					cloneKind = 'sgpoolconfigs'
+				else if (cloneKind == 'SGPostgresConfigs')
+					cloneKind = 'sgpgconfigs'
+				else if ( (cloneKind == 'SGClusters') && vc.hasProp(cloneCRD.spec, 'distributedLogs.sgDistributedLogs') && !cloneCRD.spec.distributedLogs.sgDistributedLogs.includes('.') )
 					cloneCRD.spec.distributedLogs.sgDistributedLogs = vc.$route.params.namespace + '.' + cloneCRD.spec.distributedLogs.sgDistributedLogs;
 
 				if (!vc.missingCRDs.length) {
 					const res = axios
 					.post(
-						'/stackgres/' + cloneKind.toLowerCase(), 
-						cloneCRD 
+						'/stackgres/' + cloneKind.toLowerCase(),
+						cloneCRD
 					)
 					.then(function (response) {
-						vc.notify(cloneKind+' <strong>"'+cloneCRD.metadata.name+'"</strong> cloned successfully', 'message', cloneKind.toLowerCase());
+						vc.notify('Resource <strong>"'+store.state.cloneCRD.data.metadata.name+'"</strong> cloned successfully', 'message', store.state.cloneCRD.kind.toLowerCase());
 						vc.fetchAPI(cloneKind.toLowerCase());
-						vc.cancelClone();		
+						vc.cancelClone();
 					})
 					.catch(function (error) {
 						console.log(error.response);
@@ -386,7 +386,7 @@
 						vc.notify(error.response.data,'error',cloneKind.toLowerCase());
 
 					});
-				} 
+				}
 			},
 
 			flushToken: function() {
@@ -402,15 +402,15 @@
 			},
 
 			confirmDelete: function( confirmName ) {
-  
+
 				const vc = this;
 				const item = store.state.deleteItem;
-		
-				if(confirmName == item.name) { 
+
+				if(confirmName == item.name) {
 					$("#delete .warning").fadeOut();
 
 					const res = axios
-					.delete('/stackgres/' + item.kind, 
+					.delete('/stackgres/' + item.kind,
 					{
 						data: {
 							"metadata": {
@@ -420,19 +420,19 @@
 						}
 					})
 					.then(function (response) {
-						
+
 						store.commit("setDeleteItem", {
 							kind: '',
 							namespace: '',
 							name: '',
 							redirect: ''
 						});
-						
-						vc.notify('<span class="capitalize">'+item.kind+'</span> <strong>'+item.name+'</strong> deleted successfully', 'message', item.kind);
-						
+
+						vc.notify('Resource <strong>'+item.name+'</strong> deleted successfully', 'message', item.kind);
+
 						if( (typeof item.redirect !== 'undefined') && item.redirect.length)
 							router.push(item.redirect);
-						
+
 						$("#delete").removeClass("active");
 						vc.confirmDeleteName = '';
 					})
@@ -444,7 +444,7 @@
 				} else {
 					$("#delete .warning").fadeIn();
 				}
-					
+
 			},
 
 			toggleTimezone() {
@@ -459,7 +459,7 @@
 
 			fetch('/admin/info/sg-info.json')
 			.then(response => response.json())
-			.then(data => 
+			.then(data =>
 				vc.sgVersion = data.version
 			);
 
