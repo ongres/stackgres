@@ -15,9 +15,10 @@ import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsContainerContext;
@@ -64,8 +65,8 @@ public class ContextUtil {
         });
 
     final List<StackGresClusterInstalledExtension> installedExtensions = Optional
-        .ofNullable(cluster.getStatus())
-        .map(StackGresClusterStatus::getPostgresExtensions)
+        .ofNullable(cluster.getSpec())
+        .map(StackGresClusterSpec::getToInstallPostgresExtensions)
         .stream()
         .flatMap(Collection::stream)
         .collect(Collectors.toUnmodifiableList());
@@ -81,8 +82,8 @@ public class ContextUtil {
     StackGresDistributedLogs distributedLogs = context.getDistributedLogsContext().getSource();
 
     List<StackGresClusterInstalledExtension> installedExtensions = Optional
-        .ofNullable(distributedLogs.getStatus())
-        .map(StackGresDistributedLogsStatus::getPostgresExtensions)
+        .ofNullable(distributedLogs.getSpec())
+        .map(StackGresDistributedLogsSpec::getToInstallPostgresExtensions)
         .stream()
         .flatMap(Collection::stream)
         .collect(Collectors.toUnmodifiableList());

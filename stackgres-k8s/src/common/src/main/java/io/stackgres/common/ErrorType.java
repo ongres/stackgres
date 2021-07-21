@@ -29,7 +29,9 @@ public enum ErrorType {
   INVALID_STORAGE_CLASS("invalid-storage-class",
       "Invalid storage class"),
   INVALID_SECRET("invalid-secret",
-      "Invalid secret");
+      "Invalid secret"),
+  MISSING_EXTENSION("missing-extension",
+      "Missing extension");
 
   private String uri;
   private String title;

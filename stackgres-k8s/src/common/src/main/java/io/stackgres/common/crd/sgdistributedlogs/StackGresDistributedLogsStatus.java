@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 
 @JsonDeserialize
@@ -31,10 +30,6 @@ public class StackGresDistributedLogsStatus implements KubernetesResource {
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @Valid
   private List<StackGresDistributedLogsCondition> conditions = new ArrayList<>();
-
-  @JsonProperty("postgresExtensions")
-  @Valid
-  private List<StackGresClusterInstalledExtension> postgresExtensions;
 
   @JsonProperty("podStatuses")
   @Valid
@@ -57,15 +52,6 @@ public class StackGresDistributedLogsStatus implements KubernetesResource {
 
   public void setConditions(List<StackGresDistributedLogsCondition> conditions) {
     this.conditions = conditions;
-  }
-
-  public List<StackGresClusterInstalledExtension> getPostgresExtensions() {
-    return postgresExtensions;
-  }
-
-  public void setPostgresExtensions(
-      List<StackGresClusterInstalledExtension> postgresExtensions) {
-    this.postgresExtensions = postgresExtensions;
   }
 
   public List<StackGresClusterPodStatus> getPodStatuses() {
@@ -102,8 +88,7 @@ public class StackGresDistributedLogsStatus implements KubernetesResource {
 
   @Override
   public int hashCode() {
-    return Objects.hash(conditions, connectedClusters, databases, fluentdConfigHash, podStatuses,
-        postgresExtensions);
+    return Objects.hash(conditions, connectedClusters, databases, fluentdConfigHash, podStatuses);
   }
 
   @Override
@@ -119,8 +104,7 @@ public class StackGresDistributedLogsStatus implements KubernetesResource {
         && Objects.equals(connectedClusters, other.connectedClusters)
         && Objects.equals(databases, other.databases)
         && Objects.equals(fluentdConfigHash, other.fluentdConfigHash)
-        && Objects.equals(podStatuses, other.podStatuses)
-        && Objects.equals(postgresExtensions, other.postgresExtensions);
+        && Objects.equals(podStatuses, other.podStatuses);
   }
 
   @Override

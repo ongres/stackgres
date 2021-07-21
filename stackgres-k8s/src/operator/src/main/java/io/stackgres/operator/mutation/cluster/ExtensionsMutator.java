@@ -19,14 +19,15 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.github.fge.jsonpatch.ReplaceOperation;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.mutation.AbstractExtensionsMutator;
 import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
+import org.jooq.lambda.Seq;
 
 @ApplicationScoped
 public class ExtensionsMutator
@@ -58,8 +59,8 @@ public class ExtensionsMutator
   protected Optional<List<StackGresClusterInstalledExtension>> getToInstallExtensions(
       StackGresCluster cluster) {
     return Optional.of(cluster)
-        .map(StackGresCluster::getStatus)
-        .map(StackGresClusterStatus::getPostgresExtensions);
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getToInstallPostgresExtensions);
   }
 
   @Override
@@ -76,17 +77,19 @@ public class ExtensionsMutator
   }
 
   @Override
-  protected ImmutableList<StackGresClusterExtension> getDefaultExtensions(
+  protected ImmutableList<StackGresClusterInstalledExtension> getDefaultExtensions(
       StackGresCluster cluster) {
-    return ImmutableList.of(
-        getExtension(cluster, "plpgsql"),
-        getExtension(cluster, "pg_stat_statements"),
-        getExtension(cluster, "dblink"),
-        getExtension(cluster, "plpython3u"));
+    return Seq.seq(StackGresUtil.getDefaultClusterExtensions())
+        .map(t -> t.v2
+        .map(version -> getExtension(cluster, t.v1, version))
+            .orElseGet(() -> getExtension(cluster, t.v1)))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(ImmutableList.toImmutableList());
   }
 
   @Override
-  protected void onExtension(Builder<JsonPatchOperation> operations,
+  protected void onExtensionToInstall(Builder<JsonPatchOperation> operations,
       StackGresClusterExtension extension, int index,
       StackGresClusterInstalledExtension installedExtension) {
     final JsonPointer extensionVersionPointer =

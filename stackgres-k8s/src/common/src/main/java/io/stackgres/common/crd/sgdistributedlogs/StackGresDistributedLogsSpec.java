@@ -5,6 +5,7 @@
 
 package io.stackgres.common.crd.sgdistributedlogs;
 
+import java.util.List;
 import java.util.Objects;
 
 import javax.validation.Valid;
@@ -16,6 +17,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -40,6 +42,10 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
   @JsonProperty("metadata")
   @Valid
   private StackGresDistributedLogsSpecMetadata metadata;
+
+  @JsonProperty("toInstallPostgresExtensions")
+  @Valid
+  private List<StackGresClusterInstalledExtension> toInstallPostgresExtensions;
 
   public StackGresDistributedLogsPersistentVolume getPersistentVolume() {
     return persistentVolume;
@@ -74,9 +80,19 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
     this.metadata = metadata;
   }
 
+  public List<StackGresClusterInstalledExtension> getToInstallPostgresExtensions() {
+    return toInstallPostgresExtensions;
+  }
+
+  public void setToInstallPostgresExtensions(
+      List<StackGresClusterInstalledExtension> toInstallPostgresExtensions) {
+    this.toInstallPostgresExtensions = toInstallPostgresExtensions;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(metadata, nonProduction, persistentVolume, scheduling);
+    return Objects.hash(metadata, nonProduction, persistentVolume, scheduling,
+        toInstallPostgresExtensions);
   }
 
   @Override
@@ -91,7 +107,8 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
     return Objects.equals(metadata, other.metadata)
         && Objects.equals(nonProduction, other.nonProduction)
         && Objects.equals(persistentVolume, other.persistentVolume)
-        && Objects.equals(scheduling, other.scheduling);
+        && Objects.equals(scheduling, other.scheduling)
+        && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);
   }
 
   @Override

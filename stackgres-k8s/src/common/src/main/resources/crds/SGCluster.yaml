@@ -591,33 +591,9 @@ spec:
                         type: string
                         description: The repository base URL from where to obtain the extension to deploy. If not specified https://stackgres.io/downloads/postgres/extensions will be used by default (or the value specified during operator deployment).
                     required: ["name"]
-              required: ["instances", "postgresVersion", "pods"]
-            status:
-              type: object
-              properties:
-                conditions:
+                toInstallPostgresExtensions:
                   type: array
-                  items:
-                    type: object
-                    properties:
-                      lastTransitionTime:
-                        description: Last time the condition transitioned from one status to another.
-                        type: string
-                      message:
-                        description: A human readable message indicating details about the transition.
-                        type: string
-                      reason:
-                        description: The reason for the condition's last transition.
-                        type: string
-                      status:
-                        description: Status of the condition, one of True, False, Unknown.
-                        type: string
-                      type:
-                        description: Type of deployment condition.
-                        type: string
-                postgresExtensions:
-                  type: array
-                  description: The list of Postgres extensions to install.
+                  description: The list of Postgres extensions to install. This section is fille by the operator.
                   items:
                     type: object
                     properties:
@@ -646,6 +622,30 @@ spec:
                           type: string
                           description: The extra mount of the installed extension.
                     required: ["name", "publisher", "version", "repository", "postgresVersion"]
+              required: ["instances", "postgresVersion", "pods"]
+            status:
+              type: object
+              properties:
+                conditions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      lastTransitionTime:
+                        description: Last time the condition transitioned from one status to another.
+                        type: string
+                      message:
+                        description: A human readable message indicating details about the transition.
+                        type: string
+                      reason:
+                        description: The reason for the condition's last transition.
+                        type: string
+                      status:
+                        description: Status of the condition, one of True, False, Unknown.
+                        type: string
+                      type:
+                        description: Type of deployment condition.
+                        type: string
                 podStatuses:
                   type: array
                   description: The list of pod statuses.

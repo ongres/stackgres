@@ -14,14 +14,16 @@ import javax.inject.Inject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import io.stackgres.common.StackGresDistributedLogsUtil;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.mutation.AbstractExtensionsMutator;
 import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
+import org.jooq.lambda.Seq;
 
 @ApplicationScoped
 public class ExtensionsMutator
@@ -53,8 +55,8 @@ public class ExtensionsMutator
   protected Optional<List<StackGresClusterInstalledExtension>> getToInstallExtensions(
       StackGresDistributedLogs distributedLogs) {
     return Optional.of(distributedLogs)
-        .map(StackGresDistributedLogs::getStatus)
-        .map(StackGresDistributedLogsStatus::getPostgresExtensions);
+        .map(StackGresDistributedLogs::getSpec)
+        .map(StackGresDistributedLogsSpec::getToInstallPostgresExtensions);
   }
 
   @Override
@@ -69,14 +71,15 @@ public class ExtensionsMutator
   }
 
   @Override
-  protected ImmutableList<StackGresClusterExtension> getDefaultExtensions(
+  protected ImmutableList<StackGresClusterInstalledExtension> getDefaultExtensions(
       StackGresCluster cluster) {
-    return ImmutableList.of(
-        getExtension(cluster, "plpgsql"),
-        getExtension(cluster, "pg_stat_statements"),
-        getExtension(cluster, "dblink"),
-        getExtension(cluster, "plpython3u"),
-        getExtension(cluster, "timescaledb", "1.7.4"));
+    return Seq.seq(StackGresUtil.getDefaultDistributedLogsExtensions())
+        .map(t -> t.v2
+        .map(version -> getExtension(cluster, t.v1, version))
+            .orElseGet(() -> getExtension(cluster, t.v1)))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(ImmutableList.toImmutableList());
   }
 
 }

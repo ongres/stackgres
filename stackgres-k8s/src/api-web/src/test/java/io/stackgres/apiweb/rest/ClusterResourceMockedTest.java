@@ -144,7 +144,6 @@ class ClusterResourceMockedTest extends
 
   private Service servicePrimary;
   private Service serviceReplicas;
-  private Secret secret;
   private ConfigMap configMap;
   private PodList podList;
   private List<ClusterLogEntryDto> logList;

@@ -30,10 +30,6 @@ public class StackGresClusterStatus implements KubernetesResource {
   @Valid
   private List<StackGresClusterCondition> conditions = new ArrayList<>();
 
-  @JsonProperty("postgresExtensions")
-  @Valid
-  private List<StackGresClusterInstalledExtension> postgresExtensions;
-
   @JsonProperty("podStatuses")
   @Valid
   private List<StackGresClusterPodStatus> podStatuses;
@@ -48,15 +44,6 @@ public class StackGresClusterStatus implements KubernetesResource {
 
   public void setConditions(List<StackGresClusterCondition> conditions) {
     this.conditions = conditions;
-  }
-
-  public List<StackGresClusterInstalledExtension> getPostgresExtensions() {
-    return postgresExtensions;
-  }
-
-  public void setPostgresExtensions(
-      List<StackGresClusterInstalledExtension> postgresExtensions) {
-    this.postgresExtensions = postgresExtensions;
   }
 
   public List<StackGresClusterPodStatus> getPodStatuses() {
@@ -77,7 +64,7 @@ public class StackGresClusterStatus implements KubernetesResource {
 
   @Override
   public int hashCode() {
-    return Objects.hash(conditions, dbOps, podStatuses, postgresExtensions);
+    return Objects.hash(conditions, dbOps, podStatuses);
   }
 
   @Override
@@ -90,8 +77,7 @@ public class StackGresClusterStatus implements KubernetesResource {
     }
     StackGresClusterStatus other = (StackGresClusterStatus) obj;
     return Objects.equals(conditions, other.conditions) && Objects.equals(dbOps, other.dbOps)
-        && Objects.equals(podStatuses, other.podStatuses)
-        && Objects.equals(postgresExtensions, other.postgresExtensions);
+        && Objects.equals(podStatuses, other.podStatuses);
   }
 
   @Override

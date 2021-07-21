@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 import javax.enterprise.inject.spi.CDI;
 import javax.xml.bind.DatatypeConverter;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -38,23 +40,24 @@ import io.stackgres.common.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 
-public class StackGresUtil {
+public interface StackGresUtil {
 
-  public static final String DATA_SUFFIX = "-data";
-  public static final String BACKUP_SUFFIX = "-backup";
+  String DATA_SUFFIX = "-data";
+  String BACKUP_SUFFIX = "-backup";
+  String DNS_SERVICE = "svc.cluster.local";
 
-  private static final String DNS_SERVICE = "svc.cluster.local";
-
-  public static String statefulSetDataPersistentVolumeName(ClusterContext cluster) {
+  static String statefulSetDataPersistentVolumeName(ClusterContext cluster) {
     return ResourceUtil.resourceName(cluster.getCluster().getMetadata().getName() + DATA_SUFFIX);
   }
 
-  public static String statefulSetDataPersistentVolumeName(CustomResource<?, ?> cluster) {
+  static String statefulSetDataPersistentVolumeName(CustomResource<?, ?> cluster) {
     return ResourceUtil.resourceName(cluster.getMetadata().getName() + DATA_SUFFIX);
   }
 
-  public static String statefulSetBackupPersistentVolumeName(StackGresCluster cluster) {
+  static String statefulSetBackupPersistentVolumeName(StackGresCluster cluster) {
     return ResourceUtil.resourceName(cluster.getMetadata().getName() + BACKUP_SUFFIX);
   }
 
@@ -66,7 +69,7 @@ public class StackGresUtil {
    * is in another namespace then the relativeId will contain a '.' character that separate
    * namespace and name (`&lt;namespace&gt;.&lt;name&gt;`).
    */
-  public static String getNamespaceFromRelativeId(String relativeId, String namespace) {
+  static String getNamespaceFromRelativeId(String relativeId, String namespace) {
     final int slashIndex = relativeId.indexOf('.');
     return slashIndex >= 0
         ? relativeId.substring(0, slashIndex)
@@ -81,7 +84,7 @@ public class StackGresUtil {
    * is in another namespace then the relativeId will contain a '.' character that separate
    * namespace and name (`&lt;namespace&gt;.&lt;name&gt;`).
    */
-  public static String getNameFromRelativeId(String relativeId) {
+  static String getNameFromRelativeId(String relativeId) {
     final int slashIndex = relativeId.indexOf('.');
     return slashIndex >= 0
         ? relativeId.substring(slashIndex + 1)
@@ -97,7 +100,7 @@ public class StackGresUtil {
    * is in another namespace then the relativeId will contain a '.' character that separate
    * namespace and name (`&lt;namespace&gt;.&lt;name&gt;`).
    */
-  public static String getRelativeId(
+  static String getRelativeId(
       String name, String namespace, String relativeNamespace) {
     if (namespace.equals(relativeNamespace)) {
       return name;
@@ -108,14 +111,14 @@ public class StackGresUtil {
   /**
    * Return true when labels match a patroni primary pod, false otherwise.
    */
-  public static boolean isPrimary(Map<String, String> labels) {
+  static boolean isPrimary(Map<String, String> labels) {
     return Objects.equals(labels.get(StackGresContext.ROLE_KEY), StackGresContext.PRIMARY_ROLE);
   }
 
   /**
    * Return true when labels match a patroni primary pod that is also disruptible, false otherwise.
    */
-  public static boolean isNonDisruptiblePrimary(Map<String, String> labels) {
+  static boolean isNonDisruptiblePrimary(Map<String, String> labels) {
     return isPrimary(labels)
         && Objects.equals(labels.get(StackGresContext.DISRUPTIBLE_KEY),
             StackGresContext.WRONG_VALUE);
@@ -124,7 +127,7 @@ public class StackGresUtil {
   /**
    * Extract the index of a cluster stateful set pod.
    */
-  public static Integer extractPodIndex(StackGresCluster cluster, ObjectMeta podMetadata) {
+  static Integer extractPodIndex(StackGresCluster cluster, ObjectMeta podMetadata) {
     Matcher matcher = Pattern.compile(ResourceUtil.getNameWithIndexPattern(
         cluster.getMetadata().getName())).matcher(podMetadata.getName());
     if (matcher.find()) {
@@ -138,7 +141,7 @@ public class StackGresUtil {
   /**
    * Calculate MD5 hash of all exisitng values ordered by key.
    */
-  public static Map<String, String> addMd5Sum(Map<String, String> data) {
+  static Map<String, String> addMd5Sum(Map<String, String> data) {
     MessageDigest messageDigest = Unchecked
         .supplier(() -> MessageDigest.getInstance("MD5")).get();
     messageDigest.update(data.entrySet().stream()
@@ -156,7 +159,7 @@ public class StackGresUtil {
   /**
    * Calculate MD5 hash of all files ordered by path.
    */
-  public static String getMd5Sum(Path... paths) {
+  static String getMd5Sum(Path... paths) {
     MessageDigest messageDigest = Unchecked
         .supplier(() -> MessageDigest.getInstance("MD5")).get();
     Seq.of(paths)
@@ -170,7 +173,7 @@ public class StackGresUtil {
   /**
    * If a string URL host part starts with "www." removes it, then return the host part of the URL.
    */
-  public static String getHostFromUrl(String url) throws URISyntaxException {
+  static String getHostFromUrl(String url) throws URISyntaxException {
     URI uri = new URI(url);
     String domain = uri.getHost();
     return domain.startsWith("www.") ? domain.substring(4) : domain;
@@ -179,7 +182,7 @@ public class StackGresUtil {
   /**
    * Return the port of an Web URL.
    */
-  public static int getPortFromUrl(String url) throws MalformedURLException {
+  static int getPortFromUrl(String url) throws MalformedURLException {
     URL parsedUrl = new URL(url);
     int port = parsedUrl.getPort();
     if (port == -1) {
@@ -200,7 +203,7 @@ public class StackGresUtil {
    * @return the loaded file
    * @throws IOException if cannot load the properties file
    */
-  public static Properties loadProperties(@NotNull String path) throws IOException {
+  static Properties loadProperties(@NotNull String path) throws IOException {
     try (InputStream is = ClassLoader.getSystemResourceAsStream(path)) {
       if (is != null) {
         Properties props = new Properties();
@@ -213,7 +216,7 @@ public class StackGresUtil {
   }
 
   @NotNull
-  public static String toPrettyYaml(Object pojoObject) {
+  static String toPrettyYaml(Object pojoObject) {
     try {
       try {
         return CDI.current().select(YamlMapperProvider.class).get()
@@ -236,7 +239,7 @@ public class StackGresUtil {
    * @throws IllegalStateException if the service is invalid.
    */
   @NotNull
-  public static String getServiceDnsName(@NotNull Service service) {
+  static String getServiceDnsName(@NotNull Service service) {
     String serviceDns = null;
     ServiceStatus status = service.getStatus();
     if (status != null && "LoadBalancer".equals(service.getSpec().getType())) {
@@ -258,6 +261,22 @@ public class StackGresUtil {
           + '.' + DNS_SERVICE;
     }
     return serviceDns;
+  }
+
+  static ImmutableList<Tuple2<String, Optional<String>>> getDefaultClusterExtensions() {
+    return Seq.of(
+        Tuple.tuple("plpgsql"),
+        Tuple.tuple("pg_stat_statements"),
+        Tuple.tuple("dblink"),
+        Tuple.tuple("plpython3u"))
+        .map(t -> t.concat(Optional.<String>empty()))
+        .collect(ImmutableList.toImmutableList());
+  }
+
+  static ImmutableList<Tuple2<String, Optional<String>>> getDefaultDistributedLogsExtensions() {
+    return Seq.seq(getDefaultClusterExtensions())
+        .append(Tuple.tuple("timescaledb", Optional.of("1.7.4")))
+        .collect(ImmutableList.toImmutableList());
   }
 
 }
