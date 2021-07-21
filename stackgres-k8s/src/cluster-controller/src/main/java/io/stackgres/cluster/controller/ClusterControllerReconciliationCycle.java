@@ -29,7 +29,7 @@ import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operatorframework.reconciliation.ReconciliationCycle;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
@@ -163,8 +163,8 @@ public class ClusterControllerReconciliationCycle
       StackGresCluster cluster) {
     return ImmutableStackGresClusterContext.builder()
         .cluster(cluster)
-        .extensions(Optional.ofNullable(cluster.getStatus())
-            .map(StackGresClusterStatus::getPostgresExtensions)
+        .extensions(Optional.ofNullable(cluster.getSpec())
+            .map(StackGresClusterSpec::getToInstallPostgresExtensions)
             .orElse(ImmutableList.of()))
         .labels(labelFactory.clusterLabels(cluster))
         .build();

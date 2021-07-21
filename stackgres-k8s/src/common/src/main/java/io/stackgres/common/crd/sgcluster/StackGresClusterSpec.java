@@ -61,6 +61,10 @@ public class StackGresClusterSpec implements KubernetesResource {
   @Valid
   private List<StackGresClusterExtension> postgresExtensions;
 
+  @JsonProperty("toInstallPostgresExtensions")
+  @Valid
+  private List<StackGresClusterInstalledExtension> toInstallPostgresExtensions;
+
   @JsonProperty("prometheusAutobind")
   private Boolean prometheusAutobind;
 
@@ -144,6 +148,15 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.postgresExtensions = postgresExtensions;
   }
 
+  public List<StackGresClusterInstalledExtension> getToInstallPostgresExtensions() {
+    return toInstallPostgresExtensions;
+  }
+
+  public void setToInstallPostgresExtensions(
+      List<StackGresClusterInstalledExtension> toInstallPostgresExtensions) {
+    this.toInstallPostgresExtensions = toInstallPostgresExtensions;
+  }
+
   public Boolean getPrometheusAutobind() {
     return prometheusAutobind;
   }
@@ -187,8 +200,8 @@ public class StackGresClusterSpec implements KubernetesResource {
   @Override
   public int hashCode() {
     return Objects.hash(configuration, distributedLogs, initData, instances, metadata,
-        nonProduction, pod, postgresExtensions, postgresServices, postgresVersion,
-        prometheusAutobind, resourceProfile, postgres);
+        nonProduction, pod, postgres, postgresExtensions, postgresServices, postgresVersion,
+        prometheusAutobind, resourceProfile, toInstallPostgresExtensions);
   }
 
   @Override
@@ -205,12 +218,13 @@ public class StackGresClusterSpec implements KubernetesResource {
         && Objects.equals(initData, other.initData) && instances == other.instances
         && Objects.equals(metadata, other.metadata)
         && Objects.equals(nonProduction, other.nonProduction) && Objects.equals(pod, other.pod)
+        && Objects.equals(postgres, other.postgres)
         && Objects.equals(postgresExtensions, other.postgresExtensions)
         && Objects.equals(postgresServices, other.postgresServices)
         && Objects.equals(postgresVersion, other.postgresVersion)
         && Objects.equals(prometheusAutobind, other.prometheusAutobind)
         && Objects.equals(resourceProfile, other.resourceProfile)
-        && Objects.equals(postgres, other.postgres);
+        && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);
   }
 
   @Override

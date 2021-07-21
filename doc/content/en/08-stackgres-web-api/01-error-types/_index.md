@@ -35,6 +35,8 @@ That means that all of error messages follows the following structure:
 | [invalid-storage-class](#invalid-storage-class) | You are trying to create a cluster using a storage class that doesn't exists |
 | [constraint-violation](#constraint-violation) | One of the properties of the CR that you are creating or updating violates its syntactic rules. |
 | [forbidden-authorization](#forbidden-authorization) | You don't have the permisions to access the Kubernetes resource based on the RBAC rules. |
+| [invalid-secret](#invalid-secret) | You are trying to create a cluster using a secret that doesn't exists |
+| [missing-extension](#missing-extension) | Any of the default or configured extensions can not be found in extensions repository |
 
 ## Postgres Blocklist
 
@@ -295,3 +297,13 @@ The REST API uses the RBAC Authorization from Kubernetes, so you should define c
 
 This error means that you either don't have access to the corresponding resource or that your permisions
  are not set correctly.
+
+## Invalid Secret
+
+If you specify a secret in the cluster creation, that secret have to already exsits.
+
+If it doesn't you will get an error.
+
+## Missing Extension
+
+If you specify an extension than can not be found in any repository you will get an error.

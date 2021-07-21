@@ -504,6 +504,10 @@ public class ClusterTransformer
         .flatMap(List::stream)
         .map(this::getResourceExtension)
         .collect(ImmutableList.toImmutableList()));
+    if (source.getToInstallPostgresExtensions() != null) {
+      transformation.setToInstallPostgresExtensions(source.getToInstallPostgresExtensions().stream()
+          .map(this::getClusterInstalledExtension).collect(ImmutableList.toImmutableList()));
+    }
 
     return transformation;
   }
@@ -584,10 +588,6 @@ public class ClusterTransformer
     }
 
     transformation.setDbOps(getDbOpsStatus(source.getDbOps()));
-    if (source.getPostgresExtensions() != null) {
-      transformation.setPostgresExtension(source.getPostgresExtensions().stream()
-          .map(this::getClusterInstalledExtension).collect(ImmutableList.toImmutableList()));
-    }
 
     return transformation;
   }

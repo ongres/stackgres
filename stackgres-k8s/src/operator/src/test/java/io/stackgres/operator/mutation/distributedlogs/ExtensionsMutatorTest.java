@@ -21,7 +21,6 @@ import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
@@ -87,9 +86,8 @@ class ExtensionsMutatorTest {
 
   @Test
   void clusterWithoutExtensions_shouldNotDoAnything() {
-    review.getRequest().getObject().setStatus(new StackGresDistributedLogsStatus());
-    review.getRequest().getObject().getStatus().setPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getPostgresExtensions().addAll(defaultExtensions);
+    review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getToInstallPostgresExtensions().addAll(defaultExtensions);
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 

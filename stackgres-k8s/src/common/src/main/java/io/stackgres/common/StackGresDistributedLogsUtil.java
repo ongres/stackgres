@@ -19,13 +19,11 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
-import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpecMetadata;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import org.jooq.lambda.Unchecked;
 
 public interface StackGresDistributedLogsUtil {
@@ -103,12 +101,11 @@ public interface StackGresDistributedLogsUtil {
         });
     metadata.setAnnotations(annotations);
     spec.setMetadata(metadata);
-    distributedLogsCluster.setSpec(spec);
-    distributedLogsCluster.setStatus(new StackGresClusterStatus());
-    distributedLogsCluster.getStatus().setPostgresExtensions(
-        Optional.ofNullable(distributedLogs.getStatus())
-        .map(StackGresDistributedLogsStatus::getPostgresExtensions)
+    spec.setToInstallPostgresExtensions(
+        Optional.ofNullable(distributedLogs.getSpec())
+        .map(StackGresDistributedLogsSpec::getToInstallPostgresExtensions)
         .orElse(null));
+    distributedLogsCluster.setSpec(spec);
     return distributedLogsCluster;
   }
 

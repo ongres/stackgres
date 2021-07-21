@@ -26,7 +26,7 @@ import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.distributedlogs.common.DistributedLogsControllerEventReason;
 import io.stackgres.distributedlogs.common.ImmutableStackGresDistributedLogsContext;
@@ -170,8 +170,8 @@ public class DistributedLogsControllerReconciliationCycle
     return ImmutableStackGresDistributedLogsContext.builder()
         .distributedLogs(distributedLogs)
         .cluster(cluster)
-        .extensions(Optional.ofNullable(distributedLogs.getStatus())
-            .map(StackGresDistributedLogsStatus::getPostgresExtensions)
+        .extensions(Optional.ofNullable(distributedLogs.getSpec())
+            .map(StackGresDistributedLogsSpec::getToInstallPostgresExtensions)
             .orElse(ImmutableList.of()))
         .labels(labelFactory.clusterLabels(distributedLogs))
         .build();

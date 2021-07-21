@@ -150,6 +150,10 @@ public class DistributedLogsTransformer
             targetAnnotations.setServices(sourceAnnotations.getServices());
           }
         });
+    if (source.getToInstallPostgresExtensions() != null) {
+      transformation.setToInstallPostgresExtensions(source.getToInstallPostgresExtensions().stream()
+          .map(this::getClusterInstalledExtension).collect(ImmutableList.toImmutableList()));
+    }
 
     return transformation;
   }
@@ -187,11 +191,6 @@ public class DistributedLogsTransformer
       transformation.setConditions(sourceConditions.stream()
           .map(this::getResourceCondition)
           .collect(ImmutableList.toImmutableList()));
-    }
-
-    if (source.getPostgresExtensions() != null) {
-      transformation.setPostgresExtensions(source.getPostgresExtensions().stream()
-          .map(this::getClusterInstalledExtension).collect(ImmutableList.toImmutableList()));
     }
 
     return transformation;

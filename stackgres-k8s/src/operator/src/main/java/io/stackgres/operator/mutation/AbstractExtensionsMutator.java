@@ -28,7 +28,6 @@ import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
 import org.jooq.lambda.Seq;
-import org.jooq.lambda.Unchecked;
 
 public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
     R extends AdmissionReview<T>> implements JsonPatchMutator<R> {
@@ -36,9 +35,8 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
   protected static final ObjectNode EMPTY_OBJECT = FACTORY.objectNode();
 
   static final JsonPointer CONFIG_POINTER = JsonPointer.of("spec");
-  static final JsonPointer STATUS_POINTER = JsonPointer.of("status");
   static final JsonPointer TO_INSTALL_EXTENSIONS_POINTER =
-      STATUS_POINTER.append("postgresExtensions");
+      CONFIG_POINTER.append("toInstallPostgresExtensions");
 
   protected abstract ClusterExtensionMetadataManager getExtensionMetadataManager();
 
@@ -61,18 +59,22 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
   private ImmutableList<JsonPatchOperation> mutateExtensions(T customResource) {
     final ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
     final StackGresCluster cluster = getCluster(customResource);
-    final List<StackGresClusterExtension> allExtensions =
-        getExtensionsWithDefaults(customResource);
+    List<StackGresClusterExtension> extensions = getExtensions(customResource);
+    List<StackGresClusterInstalledExtension> missingDefaultExtensions = Seq.seq(
+        getDefaultExtensions(getCluster(customResource)))
+        .filter(defaultExtension -> extensions.stream()
+            .noneMatch(extension -> extension.getName()
+                .equals(defaultExtension.getName())))
+        .collect(ImmutableList.toImmutableList());
     final List<StackGresClusterInstalledExtension> toInstallExtensions =
-        Seq.seq(allExtensions)
-        .map(Unchecked.function(extension -> getToInstallExtension(cluster, extension)))
+        Seq.seq(extensions)
+        .map(extension -> getToInstallExtension(cluster, extension))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .append(missingDefaultExtensions)
         .collect(ImmutableList.toImmutableList());
     final ArrayNode toInstallExtensionsNode = getObjectMapper().valueToTree(toInstallExtensions);
-    if (customResource.getStatus() == null) {
-      operations.add(new AddOperation(STATUS_POINTER, EMPTY_OBJECT));
-      operations.add(new AddOperation(TO_INSTALL_EXTENSIONS_POINTER,
-          toInstallExtensionsNode));
-    } else if (getToInstallExtensions(customResource).orElse(null) == null) {
+    if (getToInstallExtensions(customResource).orElse(null) == null) {
       operations.add(new AddOperation(TO_INSTALL_EXTENSIONS_POINTER,
           toInstallExtensionsNode));
     } else if (getToInstallExtensions(customResource)
@@ -82,17 +84,14 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
       operations.add(new ReplaceOperation(TO_INSTALL_EXTENSIONS_POINTER,
           toInstallExtensionsNode));
     }
-    Seq.seq(allExtensions)
+    Seq.seq(extensions)
         .zipWithIndex()
-        .forEach(Unchecked.consumer(extension -> {
-          final StackGresClusterInstalledExtension installedExtension =
-              toInstallExtensions.stream()
-              .filter(toInstallExtension -> toInstallExtension.getName()
-                  .equals(extension.v1.getName()))
-              .findFirst()
-              .get();
-          onExtension(operations, extension.v1, extension.v2.intValue(), installedExtension);
-        }));
+        .forEach(extension -> toInstallExtensions.stream()
+            .filter(toInstallExtension -> toInstallExtension.getName()
+                .equals(extension.v1.getName()))
+            .findFirst()
+            .ifPresent(installedExtension -> onExtensionToInstall(
+                operations, extension.v1, extension.v2.intValue(), installedExtension)));
     return operations.build();
   }
 
@@ -108,31 +107,18 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
   protected abstract Optional<List<StackGresClusterInstalledExtension>> getToInstallExtensions(
       T customResource);
 
-  private List<StackGresClusterExtension> getExtensionsWithDefaults(T customResource) {
-    List<StackGresClusterExtension> extensions = getExtensions(customResource);
-    List<StackGresClusterExtension> missingDefaultExtensions = Seq.seq(
-        getDefaultExtensions(getCluster(customResource)))
-        .filter(defaultExtension -> extensions.stream()
-            .noneMatch(extension -> extension.getName()
-                .equals(defaultExtension.getName())))
-        .collect(ImmutableList.toImmutableList());
-    return Seq.seq(extensions)
-        .append(missingDefaultExtensions)
-        .collect(ImmutableList.toImmutableList());
-  }
-
   protected abstract StackGresCluster getCluster(T customResource);
 
   protected abstract List<StackGresClusterExtension> getExtensions(T customResource);
 
-  protected abstract List<StackGresClusterExtension> getDefaultExtensions(StackGresCluster cluster);
+  protected abstract List<StackGresClusterInstalledExtension> getDefaultExtensions(
+      StackGresCluster cluster);
 
-  protected void onExtension(ImmutableList.Builder<JsonPatchOperation> operations,
+  protected void onExtensionToInstall(ImmutableList.Builder<JsonPatchOperation> operations,
       final StackGresClusterExtension extension, final int index,
       final StackGresClusterInstalledExtension installedExtension) {
     final JsonPointer extensionVersionPointer =
-        CONFIG_POINTER.append("postgresExtensions")
-        .append(index).append("version");
+        TO_INSTALL_EXTENSIONS_POINTER.append(index).append("version");
     final TextNode extensionVersion = new TextNode(installedExtension.getVersion());
     if (extension.getVersion() == null) {
       operations.add(new AddOperation(extensionVersionPointer, extensionVersion));
@@ -141,32 +127,42 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
     }
   }
 
-  protected StackGresClusterExtension getExtension(StackGresCluster cluster, String extensionName) {
+  protected Optional<StackGresClusterInstalledExtension> getExtension(StackGresCluster cluster,
+      String extensionName) {
     StackGresClusterExtension extension = new StackGresClusterExtension();
     extension.setName(extensionName);
-    extension.setVersion(Unchecked.supplier(
-        () -> getExtensionMetadataManager().getExtensionCandidateAnyVersion(
-            cluster, extension)).get().getVersion().getVersion());
-    return extension;
+    try {
+      StackGresExtensionMetadata extensionMetadata = getExtensionMetadataManager()
+          .getExtensionCandidateAnyVersion(cluster, extension);
+      return Optional.of(ExtensionUtil.getInstalledExtension(extension, extensionMetadata));
+    } catch (Exception ex) {
+      return Optional.empty();
+    }
   }
 
-  protected StackGresClusterExtension getExtension(StackGresCluster cluster, String extensionName,
-      String extensionVersion) {
+  protected Optional<StackGresClusterInstalledExtension> getExtension(StackGresCluster cluster,
+      String extensionName, String extensionVersion) {
     StackGresClusterExtension extension = new StackGresClusterExtension();
     extension.setName(extensionName);
     extension.setVersion(extensionVersion);
-    extension.setVersion(Unchecked.supplier(
-        () -> getExtensionMetadataManager().getExtensionCandidateSameMajorBuild(
-            cluster, extension)).get().getVersion().getVersion());
-    return extension;
+    try {
+      StackGresExtensionMetadata extensionMetadata = getExtensionMetadataManager()
+          .getExtensionCandidateSameMajorBuild(cluster, extension);
+      return Optional.of(ExtensionUtil.getInstalledExtension(extension, extensionMetadata));
+    } catch (Exception ex) {
+      return Optional.empty();
+    }
   }
 
-  private StackGresClusterInstalledExtension getToInstallExtension(StackGresCluster cluster,
-      StackGresClusterExtension extension) throws Exception {
-    final StackGresExtensionMetadata extensionMetadata =
-        getExtensionMetadataManager().getExtensionCandidateSameMajorBuild(
-            cluster, extension);
-    return ExtensionUtil.getInstalledExtension(extension, extensionMetadata);
+  private Optional<StackGresClusterInstalledExtension> getToInstallExtension(
+      StackGresCluster cluster, StackGresClusterExtension extension) {
+    try {
+      StackGresExtensionMetadata extensionMetadata = getExtensionMetadataManager()
+          .getExtensionCandidateSameMajorBuild(cluster, extension);
+      return Optional.of(ExtensionUtil.getInstalledExtension(extension, extensionMetadata));
+    } catch (Exception ex) {
+      return Optional.empty();
+    }
   }
 
 }

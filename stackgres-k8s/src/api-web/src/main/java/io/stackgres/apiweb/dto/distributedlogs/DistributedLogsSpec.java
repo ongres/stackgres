@@ -5,19 +5,19 @@
 
 package io.stackgres.apiweb.dto.distributedlogs;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.apiweb.dto.cluster.ClusterInstalledExtension;
 import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class DistributedLogsSpec implements KubernetesResource {
-
-  private static final long serialVersionUID = 1L;
+public class DistributedLogsSpec {
 
   @JsonProperty("persistentVolume")
   private DistributedLogsPersistentVolume persistentVolume;
@@ -30,6 +30,9 @@ public class DistributedLogsSpec implements KubernetesResource {
 
   @JsonProperty("metadata")
   private DistributedLogsSpecMetadata metadata;
+
+  @JsonProperty("toInstallPostgresExtensions")
+  private List<ClusterInstalledExtension> toInstallPostgresExtensions;
 
   public DistributedLogsPersistentVolume getPersistentVolume() {
     return persistentVolume;
@@ -62,6 +65,15 @@ public class DistributedLogsSpec implements KubernetesResource {
 
   public void setMetadata(DistributedLogsSpecMetadata metadata) {
     this.metadata = metadata;
+  }
+
+  public List<ClusterInstalledExtension> getToInstallPostgresExtensions() {
+    return toInstallPostgresExtensions;
+  }
+
+  public void setToInstallPostgresExtensions(
+      List<ClusterInstalledExtension> toInstallPostgresExtensions) {
+    this.toInstallPostgresExtensions = toInstallPostgresExtensions;
   }
 
   @Override
