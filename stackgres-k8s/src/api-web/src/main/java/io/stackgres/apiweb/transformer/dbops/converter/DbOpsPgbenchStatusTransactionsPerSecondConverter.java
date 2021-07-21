@@ -5,6 +5,7 @@
 
 package io.stackgres.apiweb.transformer.dbops.converter;
 
+import io.stackgres.apiweb.dto.dbops.DbOpsPgbenchStatusMeasure;
 import io.stackgres.apiweb.dto.dbops.DbOpsPgbenchStatusTransactionsPerSecond;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbenchStatusTransactionsPerSecond;
 
@@ -12,8 +13,17 @@ public class DbOpsPgbenchStatusTransactionsPerSecondConverter {
 
   public DbOpsPgbenchStatusTransactionsPerSecond from(
       StackGresDbOpsPgbenchStatusTransactionsPerSecond source) {
-    // TODO Auto-generated method stub
-    return null;
+    if (source == null) {
+      return null;
+    }
+    DbOpsPgbenchStatusMeasure excludingConnections = new DbOpsPgbenchStatusMeasure(
+        source.getExcludingConnectionsEstablishing().getValue(),
+        source.getExcludingConnectionsEstablishing().getUnit());
+    DbOpsPgbenchStatusMeasure includingConnections = new DbOpsPgbenchStatusMeasure(
+        source.getIncludingConnectionsEstablishing().getValue(),
+        source.getIncludingConnectionsEstablishing().getUnit());
+    return new DbOpsPgbenchStatusTransactionsPerSecond(
+        excludingConnections, includingConnections);
   }
 
 }

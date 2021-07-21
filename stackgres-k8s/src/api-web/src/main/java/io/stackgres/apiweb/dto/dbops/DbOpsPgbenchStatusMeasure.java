@@ -27,6 +27,13 @@ public class DbOpsPgbenchStatusMeasure {
     return value;
   }
 
+  public DbOpsPgbenchStatusMeasure() { }
+
+  public DbOpsPgbenchStatusMeasure(BigDecimal value, String unit) {
+    this.value = value;
+    this.unit = unit;
+  }
+
   public void setValue(BigDecimal value) {
     this.value = value;
   }

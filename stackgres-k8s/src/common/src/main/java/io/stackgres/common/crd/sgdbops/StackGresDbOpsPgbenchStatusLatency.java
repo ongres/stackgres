@@ -27,9 +27,25 @@ public class StackGresDbOpsPgbenchStatusLatency implements KubernetesResource {
   @JsonProperty("standardDeviation")
   private StackGresDbOpsPgbenchStatusMeasure standardDeviation;
 
+  public StackGresDbOpsPgbenchStatusMeasure getAverage() {
+    return average;
+  }
+
+  public void setAverage(StackGresDbOpsPgbenchStatusMeasure average) {
+    this.average = average;
+  }
+
+  public StackGresDbOpsPgbenchStatusMeasure getStandardDeviation() {
+    return standardDeviation;
+  }
+
+  public void setStandardDeviation(StackGresDbOpsPgbenchStatusMeasure standardDeviation) {
+    this.standardDeviation = standardDeviation;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(average, standardDeviation);
+    return Objects.hash(getAverage(), getStandardDeviation());
   }
 
   @Override
@@ -46,8 +62,8 @@ public class StackGresDbOpsPgbenchStatusLatency implements KubernetesResource {
       return false;
     }
     StackGresDbOpsPgbenchStatusLatency other = (StackGresDbOpsPgbenchStatusLatency) obj;
-    return Objects.equals(average, other.average)
-        && Objects.equals(standardDeviation, other.standardDeviation);
+    return Objects.equals(getAverage(), other.getAverage())
+        && Objects.equals(getStandardDeviation(), other.getStandardDeviation());
   }
 
 }

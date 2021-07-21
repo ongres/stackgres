@@ -446,24 +446,11 @@ public class DbOpsTransformer
     DbOpsPgbenchStatus transformation = new DbOpsPgbenchStatus();
     transformation.setScaleFactor(source.getScaleFactor());
     transformation.setTransactionsProcessed(source.getTransactionsProcessed());
-    transformation.setLatency(getResourcePgbenchStatusLatency(source.getLatency()));
-    transformation.setTransactionsPerSecond(getResourcePgbenchStatusTransactionsPerSecond(
-        source.getTransactionsPerSecond()));
+    transformation.setLatency(new DbOpsPgbenchStatusLatencyConverter()
+        .from(source.getLatency()));
+    transformation.setTransactionsPerSecond(new DbOpsPgbenchStatusTransactionsPerSecondConverter()
+        .from(source.getTransactionsPerSecond()));
     return transformation;
-  }
-
-  private DbOpsPgbenchStatusTransactionsPerSecond getResourcePgbenchStatusTransactionsPerSecond(
-      StackGresDbOpsPgbenchStatusTransactionsPerSecond source) {
-    DbOpsPgbenchStatusTransactionsPerSecondConverter converter =
-        new DbOpsPgbenchStatusTransactionsPerSecondConverter();
-    return converter.from(source);
-  }
-
-  private DbOpsPgbenchStatusLatency getResourcePgbenchStatusLatency(
-      StackGresDbOpsPgbenchStatusLatency source) {
-    DbOpsPgbenchStatusLatencyConverter converter =
-        new DbOpsPgbenchStatusLatencyConverter();
-    return converter.from(source);
   }
 
   private DbOpsMajorVersionUpgradeStatus getResourceMajorVersionUpgradeStatus(

@@ -26,6 +26,15 @@ public class DbOpsPgbenchStatusTransactionsPerSecond {
     return excludingConnectionsEstablishing;
   }
 
+  public DbOpsPgbenchStatusTransactionsPerSecond() { }
+
+  public DbOpsPgbenchStatusTransactionsPerSecond(
+      DbOpsPgbenchStatusMeasure excludingConnectionsEstablishing,
+      DbOpsPgbenchStatusMeasure includingConnectionsEstablishing) {
+    this.excludingConnectionsEstablishing = excludingConnectionsEstablishing;
+    this.includingConnectionsEstablishing = includingConnectionsEstablishing;
+  }
+
   public void setExcludingConnectionsEstablishing(DbOpsPgbenchStatusMeasure
       excludingConnectionsEstablishing) {
     this.excludingConnectionsEstablishing = excludingConnectionsEstablishing;

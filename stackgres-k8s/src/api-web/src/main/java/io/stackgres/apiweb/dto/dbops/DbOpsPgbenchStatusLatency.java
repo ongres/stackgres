@@ -22,6 +22,14 @@ public class DbOpsPgbenchStatusLatency {
   @JsonProperty("standardDeviation")
   private DbOpsPgbenchStatusMeasure standardDeviation;
 
+  public DbOpsPgbenchStatusLatency() { }
+
+  public DbOpsPgbenchStatusLatency(DbOpsPgbenchStatusMeasure average,
+      DbOpsPgbenchStatusMeasure standardDeviation) {
+    this.average = average;
+    this.standardDeviation = standardDeviation;
+  }
+
   public DbOpsPgbenchStatusMeasure getAverage() {
     return average;
   }

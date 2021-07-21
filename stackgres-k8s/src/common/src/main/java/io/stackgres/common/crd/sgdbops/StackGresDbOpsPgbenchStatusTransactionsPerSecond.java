@@ -27,9 +27,36 @@ public class StackGresDbOpsPgbenchStatusTransactionsPerSecond implements Kuberne
   @JsonProperty("includingConnectionsEstablishing")
   private StackGresDbOpsPgbenchStatusMeasure includingConnectionsEstablishing;
 
+  public StackGresDbOpsPgbenchStatusTransactionsPerSecond() { }
+
+  public StackGresDbOpsPgbenchStatusTransactionsPerSecond(
+      StackGresDbOpsPgbenchStatusMeasure excludingConnectionsEstablishing,
+      StackGresDbOpsPgbenchStatusMeasure includingConnectionsEstablishing) {
+    this.excludingConnectionsEstablishing = excludingConnectionsEstablishing;
+    this.includingConnectionsEstablishing = includingConnectionsEstablishing;
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(excludingConnectionsEstablishing, includingConnectionsEstablishing);
+  }
+
+  public StackGresDbOpsPgbenchStatusMeasure getExcludingConnectionsEstablishing() {
+    return excludingConnectionsEstablishing;
+  }
+
+  public void setExcludingConnectionsEstablishing(
+      StackGresDbOpsPgbenchStatusMeasure excludingConnectionsEstablishing) {
+    this.excludingConnectionsEstablishing = excludingConnectionsEstablishing;
+  }
+
+  public StackGresDbOpsPgbenchStatusMeasure getIncludingConnectionsEstablishing() {
+    return includingConnectionsEstablishing;
+  }
+
+  public void setIncludingConnectionsEstablishing(
+      StackGresDbOpsPgbenchStatusMeasure includingConnectionsEstablishing) {
+    this.includingConnectionsEstablishing = includingConnectionsEstablishing;
   }
 
   @Override
@@ -47,9 +74,9 @@ public class StackGresDbOpsPgbenchStatusTransactionsPerSecond implements Kuberne
     }
     StackGresDbOpsPgbenchStatusTransactionsPerSecond other =
         (StackGresDbOpsPgbenchStatusTransactionsPerSecond) obj;
-    return Objects.equals(excludingConnectionsEstablishing,
-        other.excludingConnectionsEstablishing)
-        && Objects.equals(includingConnectionsEstablishing,
-        other.includingConnectionsEstablishing);
+    return Objects.equals(getExcludingConnectionsEstablishing(),
+        other.getExcludingConnectionsEstablishing())
+        && Objects.equals(getIncludingConnectionsEstablishing(),
+        other.getIncludingConnectionsEstablishing());
   }
 }

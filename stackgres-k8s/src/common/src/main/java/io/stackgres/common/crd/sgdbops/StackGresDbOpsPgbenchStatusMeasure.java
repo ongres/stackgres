@@ -30,6 +30,11 @@ public class StackGresDbOpsPgbenchStatusMeasure implements KubernetesResource {
     return value;
   }
 
+  public StackGresDbOpsPgbenchStatusMeasure(BigDecimal value, String unit) {
+    this.value = value;
+    this.unit = unit;
+  }
+
   public void setValue(BigDecimal value) {
     this.value = value;
   }
