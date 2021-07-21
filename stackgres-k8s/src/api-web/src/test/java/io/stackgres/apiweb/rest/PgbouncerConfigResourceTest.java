@@ -9,8 +9,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigDto;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
@@ -89,11 +89,11 @@ class PgbouncerConfigResourceTest
     assertEquals("pool_mode", resource.getStatus().getPgBouncer().getPgbouncerConf().get(2).getParameter());
     assertEquals("'transaction'", resource.getStatus().getPgBouncer().getPgbouncerConf().get(2).getValue());
     assertNotNull(resource.getStatus().getPgBouncer().getDefaultParameters());
-    assertIterableEquals(ImmutableList.of(
+    assertIterableEquals(ImmutableSet.of(
         "default_pool_size",
         "max_client_conn",
         "pool_mode"),
-        resource.getStatus().getPgBouncer().getDefaultParameters());
+        resource.getStatus().getPgBouncer().getDefaultParameters().keySet());
   }
 
   @Override

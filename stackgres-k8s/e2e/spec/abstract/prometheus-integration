@@ -30,9 +30,9 @@ check_grafana_secret() {
 
   if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "https://stackgres-restapi.$OPERATOR_NAMESPACE/grafana" -o /dev/null --fail
   then
-    echo "Success. Grafana URL can be retrieved"
+    echo "SUCCESS. Grafana URL can be retrieved"
   else
-    echo "Fail. Grafana URL can not be retrieved"
+    echo "FAIL. Grafana URL can not be retrieved"
     return 1
   fi
 }
@@ -121,9 +121,9 @@ check_envoy_service_monitor() {
 check_grafana_embedded() {
   if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "https://stackgres-restapi.$OPERATOR_NAMESPACE/grafana" -o /dev/null --fail
   then
-    echo "Success. Grafana URL can be retrieved"
+    echo "SUCCESS. Grafana URL can be retrieved"
   else
-    echo "Fail. Grafana URL can not be retrieved"
+    echo "FAIL. Grafana URL can not be retrieved"
     return 1
   fi
 
@@ -131,17 +131,17 @@ check_grafana_embedded() {
 
   if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "$GRAFANA_URL" -o /dev/null --fail
   then
-    echo "Success. Grafana URL $GRAFANA_URL is accessible"
+    echo "SUCCESS. Grafana URL $GRAFANA_URL is accessible"
   else
-    echo "Fail. Grafana URL $GRAFANA_URL is not accessible"
+    echo "FAIL. Grafana URL $GRAFANA_URL is not accessible"
     return 1
   fi
 
   if wait_until eval 'kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "$GRAFANA_URL" --fail | grep -q "<grafana-app "'
   then
-    echo "Success. Grafana URL $GRAFANA_URL is returning grafana Web"
+    echo "SUCCESS. Grafana URL $GRAFANA_URL is returning grafana Web"
   else
-    echo "Fail. Grafana URL $GRAFANA_URL is not returning grafana Web"
+    echo "FAIL. Grafana URL $GRAFANA_URL is not returning grafana Web"
     kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "$GRAFANA_URL" --fail
     return 1
   fi
@@ -158,9 +158,9 @@ check_grafana_embedded() {
 
   if wait_until eval '[ "$(get_grafana_embedded)" != "true" ]'
   then
-    echo "Success. Grafana is not marked as embedded"
+    echo "SUCCESS. Grafana is not marked as embedded"
   else
-    echo "Fail. Grafana is marked as embedded"
+    echo "FAIL. Grafana is marked as embedded"
     return 1
   fi
 
@@ -170,9 +170,9 @@ check_grafana_embedded() {
 
   if wait_until eval '[ "$(get_grafana_embedded)" = "true" ]'
   then
-    echo "Success. Grafana is embedded"
+    echo "SUCCESS. Grafana is embedded"
   else
-    echo "Fail. Grafana is not embedded"
+    echo "FAIL. Grafana is not embedded"
     return 1
   fi
 }

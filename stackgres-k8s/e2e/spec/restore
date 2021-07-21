@@ -233,13 +233,13 @@ assert_default_value(){
   then
     if [ "$ACTUAL_VALUE" = "$EXPECTED_VALUE" ]
     then
-      echo "Success. Default value for field $FIELD is the expected"
+      echo "SUCCESS. Default value for field $FIELD is the expected"
     else
-      echo "Fail. Default value is not the expected. Expected: $EXPECTED_VALUE. Actual: $ACTUAL_VALUE"
+      echo "FAIL. Default value is not the expected. Expected: $EXPECTED_VALUE. Actual: $ACTUAL_VALUE"
       return 1
     fi
   else
-    echo "Fail. Default value for field $FIELD not found"
+    echo "FAIL. Default value for field $FIELD not found"
     return 1
   fi
     

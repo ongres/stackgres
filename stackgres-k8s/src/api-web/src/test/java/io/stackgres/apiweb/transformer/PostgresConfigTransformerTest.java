@@ -256,7 +256,7 @@ class PostgresConfigTransformerTest {
     source.getSpec().setPostgresVersion("11");
     source.getSpec().setPostgresqlConf(ImmutableMap.of());
     source.setStatus(new StackGresPostgresConfigStatus());
-    source.getStatus().setDefaultParameters(ImmutableList.of());
+    source.getStatus().setDefaultParameters(ImmutableMap.of());
     return source;
   }
 

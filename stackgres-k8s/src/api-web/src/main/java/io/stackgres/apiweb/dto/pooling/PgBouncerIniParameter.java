@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.pooling;
 
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -19,11 +17,9 @@ import io.stackgres.common.StackGresUtil;
 public class PgBouncerIniParameter {
 
   @JsonProperty("parameter")
-  @NotNull(message = "parameter is required")
   private String parameter;
 
   @JsonProperty("value")
-  @NotNull(message = "value is required")
   private String value;
 
   public String getParameter() {

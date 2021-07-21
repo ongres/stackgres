@@ -87,9 +87,9 @@ public abstract class DefaultStateMutatorTest<R extends CustomResource<?, ?>, T 
 
     JsonNode targetNode = getConfJson(newConfig);
 
-    JsonNode defaultTarget = mapper.createArrayNode()
-        .addAll(Seq.seq(getConfigParameters(factory.buildResource()))
-            .map(Tuple2::v1).map(TextNode::new).toList());
+    JsonNode defaultTarget = mapper.createObjectNode()
+        .setAll(Seq.seq(getConfigParameters(factory.buildResource()))
+            .map(t -> t.map2(TextNode::new)).toMap(Tuple2::v1, Tuple2::v2));
 
     assertEquals(defaultTarget, targetNode);
 

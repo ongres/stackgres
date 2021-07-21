@@ -549,7 +549,7 @@ check_failed_cluster_creation_with_secret_and_configmap_script() {
 
   if wait_until eval '! kubectl get secrets -n "$CLUSTER_NAMESPACE" "init-script"'
   then
-    echo "Success. Failed cluster creation is deleting all created secrets"
+    echo "SUCCESS. Failed cluster creation is deleting all created secrets"
   else
     echo "FAIL. Failed cluster creation is not deleting all created secrets"
     return 1
@@ -557,7 +557,7 @@ check_failed_cluster_creation_with_secret_and_configmap_script() {
 
   if wait_until eval '! kubectl get configmaps -n "$CLUSTER_NAMESPACE" "table-script"'
   then
-    echo "Success. Failed cluster creation is deleting all created configmaps"
+    echo "SUCCESS. Failed cluster creation is deleting all created configmaps"
   else
     echo "FAIL. Failed cluster creation is not deleting all created configmaps"
     return 1

@@ -83,7 +83,7 @@ EOF
 
   wait_until is_backup_phase "Completed"
 
-  echo "Success. Backup completed"
+  echo "SUCCESS. Backup completed"
 }
 
 compare_backup_with_backupconf(){
@@ -121,7 +121,7 @@ EOF
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
 
-  echo "Success. Cluster restored from backup $BACKUP_NAME"
+  echo "SUCCESS. Cluster restored from backup $BACKUP_NAME"
 }
 
 check_restored_data() {

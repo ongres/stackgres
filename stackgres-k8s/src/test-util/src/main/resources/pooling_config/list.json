@@ -24,11 +24,11 @@
       },
       "status": {
         "pgBouncer": {
-          "defaultParameters": [
-            "default_pool_size",
-            "max_client_conn",
-            "pool_mode"
-          ]
+          "defaultParameters": {
+            "default_pool_size": "100",
+            "max_client_conn": "100",
+            "pool_mode": "'session'"
+          }
         }
       }
     }

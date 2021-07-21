@@ -6,9 +6,7 @@
 package io.stackgres.apiweb.dto.pgconfig;
 
 import java.util.List;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -22,17 +20,13 @@ import io.stackgres.common.StackGresUtil;
 public class PostgresConfigStatus {
 
   @JsonProperty("clusters")
-  @NotNull(message = "clusters is required")
   private List<String> clusters;
 
   @JsonProperty("postgresql.conf")
-  @NotNull(message = "postgresql.conf is required")
-  @Valid
   private List<PostgresqlConfParameter> postgresqlConf;
 
   @JsonProperty("defaultParameters")
-  @NotNull(message = "defaultParameters is required")
-  private List<String> defaultParameters;
+  private Map<String, String> defaultParameters;
 
   public List<String> getClusters() {
     return clusters;
@@ -50,11 +44,11 @@ public class PostgresConfigStatus {
     this.postgresqlConf = postgresqlConf;
   }
 
-  public List<String> getDefaultParameters() {
+  public Map<String, String> getDefaultParameters() {
     return defaultParameters;
   }
 
-  public void setDefaultParameters(List<String> defaultParameters) {
+  public void setDefaultParameters(Map<String, String> defaultParameters) {
     this.defaultParameters = defaultParameters;
   }
 

@@ -5,7 +5,6 @@
 
 package io.stackgres.apiweb.dto.pooling;
 
-import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -16,10 +15,8 @@ import io.stackgres.common.StackGresUtil;
 public class PoolingConfigDto extends ResourceDto {
 
   @NotNull(message = "The specification of pgbouncer config is required")
-  @Valid
   private PoolingConfigSpec spec;
 
-  @Valid
   private PoolingConfigStatus status;
 
   public PoolingConfigSpec getSpec() {

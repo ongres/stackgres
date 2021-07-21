@@ -13,7 +13,7 @@ import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
@@ -29,7 +29,7 @@ public abstract class DefaultStateMutator
     <R extends CustomResource<?, ?>, T extends AdmissionReview<R>>
     implements JsonPatchMutator<T> {
 
-  protected static final ObjectMapper mapper = new ObjectMapper();
+  protected static final ObjectMapper MAPPER = new ObjectMapper();
 
   private DefaultCustomResourceFactory<R> factory;
 
@@ -41,23 +41,17 @@ public abstract class DefaultStateMutator
   }
 
   public JsonNode getTargetNode(R resource) {
-    JsonNode resourceNode = mapper.valueToTree(resource);
+    JsonNode resourceNode = MAPPER.valueToTree(resource);
     return resourceNode;
   }
 
   protected List<JsonPatchOperation> mutate(JsonPointer basePointer,
       R incomingResource) {
-
-    Map<String, String> parameters = getParametersNode(incomingResource);
     Map<String, String> defaultParameters = getParametersNode(defaultResource);
-    ArrayNode defaultsListNode = mapper.createArrayNode()
-        .addAll(Seq.seq(defaultParameters)
-            .filter(defaultParameter -> Seq.seq(parameters)
-                .noneMatch(parameter -> parameter.v1.equals(defaultParameter.v1)
-                    && !parameter.v2.equals(defaultParameter.v2)))
-            .map(Tuple2::v1)
-            .map(TextNode::new)
-            .toList());
+    ObjectNode defaultsListNode = MAPPER.createObjectNode()
+        .setAll(Seq.seq(defaultParameters)
+            .map(t -> t.map2(TextNode::new))
+            .toMap(Tuple2::v1, Tuple2::v2));
 
     JsonNode incomingNode = getTargetNode(incomingResource);
 

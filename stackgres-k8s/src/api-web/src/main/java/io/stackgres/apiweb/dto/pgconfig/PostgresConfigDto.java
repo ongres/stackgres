@@ -5,9 +5,6 @@
 
 package io.stackgres.apiweb.dto.pgconfig;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.ResourceDto;
 import io.stackgres.common.StackGresUtil;
@@ -15,11 +12,8 @@ import io.stackgres.common.StackGresUtil;
 @RegisterForReflection
 public class PostgresConfigDto extends ResourceDto {
 
-  @NotNull(message = "The specification of postgres config is required")
-  @Valid
   private PostgresConfigSpec spec;
 
-  @Valid
   private PostgresConfigStatus status;
 
   public PostgresConfigSpec getSpec() {

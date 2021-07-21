@@ -30,10 +30,11 @@ import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.Blocklist;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.DefaultValues;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,7 +50,7 @@ class PatroniConfigEndpointsTest {
       new ClusterLabelMapper());
   @Mock
   private StackGresClusterContext context;
-  private PatroniConfigEndpoints generator;
+  private AbstractPatroniConfigEndpoints generator;
   private StackGresCluster cluster;
   private StackGresBackupConfig backupConfig;
   private StackGresPostgresConfig postgresConfig;
@@ -64,6 +65,8 @@ class PatroniConfigEndpointsTest {
         .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
     backupConfig = JsonUtil.readFromJson("backup_config/default.json", StackGresBackupConfig.class);
     postgresConfig = JsonUtil.readFromJson("postgres_config/default_postgres.json", StackGresPostgresConfig.class);
+    postgresConfig.setStatus(new StackGresPostgresConfigStatus());
+    postgresConfig.getStatus().setDefaultParameters(PostgresDefaultValues.getDefaultValues());
 
     lenient().when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
     lenient().when(context.getPostgresConfig()).thenReturn(postgresConfig);
@@ -113,7 +116,7 @@ class PatroniConfigEndpointsTest {
     when(context.getBackupConfig()).thenReturn(Optional.empty());
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
 
-    Map<String, String> defValues = DefaultValues.getDefaultValues();
+    Map<String, String> defValues = PostgresDefaultValues.getDefaultValues();
 
     defValues.forEach((key, value) -> {
       postgresConfig.getSpec().getPostgresqlConf().put(key, StringUtil.generateRandom());
@@ -145,11 +148,11 @@ class PatroniConfigEndpointsTest {
     Endpoints endpoints = generateEndpoint();
 
     final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();
-    assertTrue(annotations.containsKey(PatroniConfigEndpoints.PATRONI_CONFIG_KEY));
+    assertTrue(annotations.containsKey(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY));
 
     PatroniConfig patroniConfig = MAPPER
-        .readValue(annotations.get(PatroniConfigEndpoints.PATRONI_CONFIG_KEY), PatroniConfig.class);
-    DefaultValues.getDefaultValues().forEach((key, value) ->
+        .readValue(annotations.get(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY), PatroniConfig.class);
+    PostgresDefaultValues.getDefaultValues().forEach((key, value) ->
         assertTrue(patroniConfig.getPostgresql().getParameters().containsKey(key)));
     assertEquals(30, patroniConfig.getTtl());
     assertEquals(10, patroniConfig.getLoopWait());

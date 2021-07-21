@@ -75,20 +75,20 @@ EOF
 
   if [ "$CREATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
   then
-    echo "Success. Defaults fields filled"
+    echo "SUCCESS. Defaults fields filled"
   else
-    echo "Fail. Default fields not filled"
+    echo "FAIL. Default fields not filled"
     return 1
   fi
 
-  local CREATED_DEFAULTS_PARAMETERS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.status.defaultParameters | sort')"
+  local CREATED_DEFAULTS_PARAMETERS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.status.defaultParameters | keys | sort')"
   local DEFAULTS_PARAMETERS="$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | keys | sort')"
 
   if [ "$CREATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
   then
-    echo "Success. Defaults parameters filled"
+    echo "SUCCESS. Defaults parameters filled"
   else
-    echo "Fail. Default parameters not filled"
+    echo "FAIL. Default parameters not filled"
     return 1
   fi
 
@@ -96,10 +96,10 @@ EOF
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
-    echo "Fail. Default annotations not filled"
+    echo "FAIL. Default annotations not filled"
     return 1
   else
-    echo "Success. Defaults annotations filled"
+    echo "SUCCESS. Defaults annotations filled"
   fi
 }
 
@@ -126,20 +126,20 @@ EOF
 
   if [ "$UPDATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
   then
-    echo "Success. Defaults fields filled"
+    echo "SUCCESS. Defaults fields filled"
   else
-    echo "Fail. Default fields not filled"
+    echo "FAIL. Default fields not filled"
     return 1
   fi
 
-  local UPDATED_DEFAULTS_PARAMETERS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.status.defaultParameters | sort')"
+  local UPDATED_DEFAULTS_PARAMETERS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.status.defaultParameters | keys | sort')"
   local DEFAULTS_PARAMETERS="$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | keys | sort')"
 
   if [ "$UPDATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
   then
-    echo "Success. Defaults parameters filled"
+    echo "SUCCESS. Defaults parameters filled"
   else
-    echo "Fail. Default parameters not filled"
+    echo "FAIL. Default parameters not filled"
     return 1
   fi
 
@@ -147,10 +147,10 @@ EOF
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
-    echo "Fail. Default annotations not filled"
+    echo "FAIL. Default annotations not filled"
     return 1
   else
-    echo "Success. Defaults annotations filled"
+    echo "SUCCESS. Defaults annotations filled"
   fi
 }
 
@@ -173,20 +173,20 @@ EOF
 
   if [ "$CREATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
   then
-    echo "Success. Defaults fields filled"
+    echo "SUCCESS. Defaults fields filled"
   else
-    echo "Fail. Default fields not filled"
+    echo "FAIL. Default fields not filled"
     return 1
   fi
 
-  local CREATED_DEFAULTS_PARAMETERS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.status.pgBouncer.defaultParameters | sort')"
+  local CREATED_DEFAULTS_PARAMETERS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.status.pgBouncer.defaultParameters | keys | sort')"
   local DEFAULTS_PARAMETERS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"] | keys | sort')"
 
   if [ "$CREATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
   then
-    echo "Success. Defaults parameters filled"
+    echo "SUCCESS. Defaults parameters filled"
   else
-    echo "Fail. Default parameters not filled"
+    echo "FAIL. Default parameters not filled"
     return 1
   fi
 
@@ -194,10 +194,10 @@ EOF
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
-    echo "Fail. Default annotations not filled"
+    echo "FAIL. Default annotations not filled"
     return 1
   else
-    echo "Success. Defaults annotations filled"
+    echo "SUCCESS. Defaults annotations filled"
   fi
 }
 
@@ -222,20 +222,20 @@ EOF
 
   if [ "$UPDATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
   then
-    echo "Success. Defaults fields filled"
+    echo "SUCCESS. Defaults fields filled"
   else
-    echo "Fail. Default fields not filled"
+    echo "FAIL. Default fields not filled"
     return 1
   fi
 
-  local UPDATED_DEFAULTS_PARAMETERS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.status.pgBouncer.defaultParameters | sort')"
+  local UPDATED_DEFAULTS_PARAMETERS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.status.pgBouncer.defaultParameters | keys | sort')"
   local DEFAULTS_PARAMETERS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"] | keys | sort')"
 
   if [ "$UPDATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
   then
-    echo "Success. Defaults parameters filled"
+    echo "SUCCESS. Defaults parameters filled"
   else
-    echo "Fail. Default parameters not filled"
+    echo "FAIL. Default parameters not filled"
     return 1
   fi
 
@@ -243,10 +243,10 @@ EOF
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
-    echo "Fail. Default annotations not filled"
+    echo "FAIL. Default annotations not filled"
     return 1
   else
-    echo "Success. Defaults annotations filled"
+    echo "SUCCESS. Defaults annotations filled"
   fi
 }
 
@@ -268,9 +268,9 @@ EOF
 
   if [ "$CREATED_FIELDS" = "$DEFAULT_FIELDS" ]
   then
-    echo "Success. Defaults fields filled"
+    echo "SUCCESS. Defaults fields filled"
   else
-    echo "Fail. Default fields not filled"
+    echo "FAIL. Default fields not filled"
     return 1
   fi
 
@@ -278,10 +278,10 @@ EOF
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
-    echo "Fail. Default annotations not filled"
+    echo "FAIL. Default annotations not filled"
     return 1
   else
-    echo "Success. Defaults annotations filled"
+    echo "SUCCESS. Defaults annotations filled"
   fi
 }
 
@@ -306,9 +306,9 @@ EOF
 
   if [ "$UPDATED_FIELDS" = "$DEFAULT_FIELDS" ]
   then
-    echo "Success. Defaults fields filled"
+    echo "SUCCESS. Defaults fields filled"
   else
-    echo "Fail. Default fields not filled"
+    echo "FAIL. Default fields not filled"
     return 1
   fi
 
@@ -316,10 +316,10 @@ EOF
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
-    echo "Fail. Default annotations not filled"
+    echo "FAIL. Default annotations not filled"
     return 1
   else
-    echo "Success. Defaults annotations filled"
+    echo "SUCCESS. Defaults annotations filled"
   fi
 }
 
@@ -340,9 +340,9 @@ EOF
 
   if [ "$CREATED_FIELDS" = "$DEFAULT_FIELDS" ]
   then
-    echo "Success. Defaults fields filled"
+    echo "SUCCESS. Defaults fields filled"
   else
-    echo "Fail. Default fields not filled"
+    echo "FAIL. Default fields not filled"
     return 1
   fi
 
@@ -350,10 +350,10 @@ EOF
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
-    echo "Fail. Default annotations not filled"
+    echo "FAIL. Default annotations not filled"
     return 1
   else
-    echo "Success. Defaults annotations filled"
+    echo "SUCCESS. Defaults annotations filled"
   fi
 }
 
@@ -378,9 +378,9 @@ EOF
 
   if [ "$UPDATED_FIELDS" = "$DEFAULT_FIELDS" ]
   then
-    echo "Success. Defaults fields filled"
+    echo "SUCCESS. Defaults fields filled"
   else
-    echo "Fail. Default fields not filled"
+    echo "FAIL. Default fields not filled"
     return 1
   fi
 
@@ -388,10 +388,10 @@ EOF
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
-    echo "Fail. Default annotations not filled"
+    echo "FAIL. Default annotations not filled"
     return 1
   else
-    echo "Success. Defaults annotations filled"
+    echo "SUCCESS. Defaults annotations filled"
   fi
 }
 
@@ -420,9 +420,9 @@ EOF
 
   if kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGBOUNCER"
   then
-    echo "Success. Default pgbouncer was created in the cluster namespace"
+    echo "SUCCESS. Default pgbouncer was created in the cluster namespace"
   else
-    echo "Fail. Default pgbouncer was not created in the cluster namespace"
+    echo "FAIL. Default pgbouncer was not created in the cluster namespace"
     return 1
   fi
 
@@ -531,9 +531,9 @@ EOF
 
   if kubectl get sgpgconfigs.stackgres.io -n $CLUSTER_NAMESPACE $CREATED_PGCONFIG
   then
-    echo "Success. Default pgconfig was created in the cluster namespace"
+    echo "SUCCESS. Default pgconfig was created in the cluster namespace"
   else
-    echo "Fail. Default pgconfig was not created in the cluster namespace"
+    echo "FAIL. Default pgconfig was not created in the cluster namespace"
     return 1
   fi
 
@@ -542,9 +542,9 @@ EOF
 
   if [ "$CREATED_PGCONFIG_FIELDS" = "$DEFAULT_PGCONFIG_FIELDS" ]
   then
-    echo "Success. Defaults pgconfig fields were created"
+    echo "SUCCESS. Defaults pgconfig fields were created"
   else
-    echo "Fail. Default pgconfig fields not created"
+    echo "FAIL. Default pgconfig fields not created"
     return 1
   fi
 
@@ -552,9 +552,9 @@ EOF
 
   if kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PROFILE"
   then
-    echo "Success. Default profile was created in the cluster namespace"
+    echo "SUCCESS. Default profile was created in the cluster namespace"
   else
-    echo "Fail. Default profile was not created in the cluster namespace"
+    echo "FAIL. Default profile was not created in the cluster namespace"
     return 1
   fi
 
@@ -563,9 +563,9 @@ EOF
 
   if [ "$CREATED_PROFILE_FIELDS" = "$DEFAULT_PROFILE_FIELDS" ]
   then
-    echo "Success. Defaults profile fields were created"
+    echo "SUCCESS. Defaults profile fields were created"
   else
-    echo "Fail. Default profile fields were not created"
+    echo "FAIL. Default profile fields were not created"
     return 1
   fi
 
@@ -573,10 +573,10 @@ EOF
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
-    echo "Fail. Default annotations not created"
+    echo "FAIL. Default annotations not created"
     return 1
   else
-    echo "Success. Defaults annotations created"
+    echo "SUCCESS. Defaults annotations created"
   fi
 
   wait_until eval 'kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o name'
@@ -585,17 +585,17 @@ EOF
 
   if echo "$INSTALLED_CONTAINERS" | grep "prometheus-postgres-exporter" > /dev/null
   then
-    echo "Success. Promethus postgres exporter was installed"
+    echo "SUCCESS. Promethus postgres exporter was installed"
   else
-    echo "Fail. Promethus postgres exporter was not installed"
+    echo "FAIL. Promethus postgres exporter was not installed"
     return 1
   fi
 
   if echo "$INSTALLED_CONTAINERS" | grep "envoy" > /dev/null
   then
-    echo "Success. Envoy was installed"
+    echo "SUCCESS. Envoy was installed"
   else
-    echo "Fail. Envoy was not installed"
+    echo "FAIL. Envoy was not installed"
     return 1
   fi
 
@@ -634,10 +634,10 @@ EOF
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
-    echo "Fail. Default annotations not created"
+    echo "FAIL. Default annotations not created"
     return 1
   else
-    echo "Success. Defaults annotations created"
+    echo "SUCCESS. Defaults annotations created"
   fi
 
   wait_until eval 'kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o name'
@@ -646,17 +646,17 @@ EOF
 
   if echo "$INSTALLED_CONTAINERS" | grep "prometheus-postgres-exporter" > /dev/null
   then
-    echo "Success. Promethus postgres exporter was installed"
+    echo "SUCCESS. Promethus postgres exporter was installed"
   else
-    echo "Fail. Promethus postgres exporter was not installed"
+    echo "FAIL. Promethus postgres exporter was not installed"
     return 1
   fi
 
   if echo "$INSTALLED_CONTAINERS" | grep "envoy" > /dev/null
   then
-    echo "Success. Envoy was installed"
+    echo "SUCCESS. Envoy was installed"
   else
-    echo "Fail. Envoy was not installed"
+    echo "FAIL. Envoy was not installed"
     return 1
   fi
 
@@ -691,9 +691,9 @@ EOF
 
   if kubectl get sgclusters.stackgres.io -n "$OPERATOR_NAMESPACE" "$CLUSTER_NAME"
   then
-    echo "Good. cluster was created on the operator namespace "
+    echo "SUCCESS. cluster was created on the operator namespace "
   else
-    echo "Fail. cluster was not created on the operator namespace "
+    echo "FAIL. cluster was not created on the operator namespace "
     return 1
   fi
 
@@ -725,9 +725,9 @@ EOF
 
   if kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
   then
-    echo "Good. cluster was created with previous postgres version"
+    echo "SUCCESS. cluster was created with previous postgres version"
   else
-    echo "Fail. cluster was not created with previous postgres version"
+    echo "FAIL. cluster was not created with previous postgres version"
     return 1
   fi
 
@@ -752,10 +752,10 @@ EOF
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
-    echo "Fail. Default annotations not created"
+    echo "FAIL. Default annotations not created"
     return 1
   else
-    echo "Success. Defaults annotations created"
+    echo "SUCCESS. Defaults annotations created"
   fi
 }
 
@@ -770,10 +770,10 @@ update_empty_distributedlogs() {
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
-    echo "Fail. Default annotations not created"
+    echo "FAIL. Default annotations not created"
     return 1
   else
-    echo "Success. Defaults annotations created"
+    echo "SUCCESS. Defaults annotations created"
   fi
 
   kubectl delete sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME"
@@ -795,9 +795,9 @@ EOF
 
   if kubectl get sgdistributedlogs.stackgres.io -n "$OPERATOR_NAMESPACE" "$DISTRIBUTEDLOGS_NAME"
   then
-    echo "Good. distributed logs was created on the operator namespace"
+    echo "SUCCESS. distributed logs was created on the operator namespace"
   else
-    echo "Fail. distributed logs was not created on the operator namespace"
+    echo "FAIL. distributed logs was not created on the operator namespace"
     return 1
   fi
 

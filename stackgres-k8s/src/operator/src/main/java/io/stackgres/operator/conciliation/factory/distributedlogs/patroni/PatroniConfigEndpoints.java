@@ -25,7 +25,7 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.DefaultValues;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
@@ -75,7 +75,7 @@ public class PatroniConfigEndpoints
 
   @NotNull
   public Map<String, String> getPostgresConfigValues(DistributedLogsContext context) {
-    Map<String, String> params = new HashMap<>(DefaultValues.getDefaultValues());
+    Map<String, String> params = new HashMap<>(PostgresDefaultValues.getDefaultValues());
 
     params.put("archive_command", "/bin/true");
     params.put("dynamic_library_path", "$libdir:/opt/stackgres/lib");
