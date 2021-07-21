@@ -270,11 +270,11 @@ EOF
 
   ACTUAL=$(get_pgpooling_from_api | jq '.spec.pgBouncer["pgbouncer.ini"]' -r)
   EXPECTED="[databases]
-foodb = dbname=bardb pool_size=20 reserve_pool=5 max_db_connections=2000 datestyle=ISO
+foodb = datestyle=ISO dbname=bardb max_db_connections=2000 pool_size=20 reserve_pool=5
 
 [users]
-user1 = pool_mode=transaction max_user_connections=50
-user2 = pool_mode=session max_user_connections=100
+user1 = max_user_connections=50 pool_mode=transaction
+user2 = max_user_connections=100 pool_mode=session
 
 [pgbouncer]
 admin_users = postgres
