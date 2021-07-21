@@ -21,6 +21,8 @@ import io.stackgres.apiweb.dto.dbops.DbOpsMinorVersionUpgrade;
 import io.stackgres.apiweb.dto.dbops.DbOpsMinorVersionUpgradeStatus;
 import io.stackgres.apiweb.dto.dbops.DbOpsPgbench;
 import io.stackgres.apiweb.dto.dbops.DbOpsPgbenchStatus;
+import io.stackgres.apiweb.dto.dbops.DbOpsPgbenchStatusLatency;
+import io.stackgres.apiweb.dto.dbops.DbOpsPgbenchStatusTransactionsPerSecond;
 import io.stackgres.apiweb.dto.dbops.DbOpsRepack;
 import io.stackgres.apiweb.dto.dbops.DbOpsRepackConfig;
 import io.stackgres.apiweb.dto.dbops.DbOpsRepackDatabase;
@@ -33,6 +35,8 @@ import io.stackgres.apiweb.dto.dbops.DbOpsStatus;
 import io.stackgres.apiweb.dto.dbops.DbOpsVacuum;
 import io.stackgres.apiweb.dto.dbops.DbOpsVacuumConfig;
 import io.stackgres.apiweb.dto.dbops.DbOpsVacuumDatabase;
+import io.stackgres.apiweb.transformer.dbops.converter.DbOpsPgbenchStatusLatencyConverter;
+import io.stackgres.apiweb.transformer.dbops.converter.DbOpsPgbenchStatusTransactionsPerSecondConverter;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmark;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmarkStatus;
@@ -43,6 +47,8 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsMinorVersionUpgrade;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsMinorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbench;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbenchStatus;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbenchStatusLatency;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbenchStatusTransactionsPerSecond;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsRepack;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsRepackConfig;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsRepackDatabase;
@@ -440,13 +446,24 @@ public class DbOpsTransformer
     DbOpsPgbenchStatus transformation = new DbOpsPgbenchStatus();
     transformation.setScaleFactor(source.getScaleFactor());
     transformation.setTransactionsProcessed(source.getTransactionsProcessed());
-    transformation.setLatencyAverage(source.getLatencyAverage());
-    transformation.setLatencyStddev(source.getLatencyStddev());
-    transformation.setTpsIncludingConnectionsEstablishing(
-        source.getTpsIncludingConnectionsEstablishing());
-    transformation.setTpsExcludingConnectionsEstablishing(
-        source.getTpsExcludingConnectionsEstablishing());
+    transformation.setLatency(getResourcePgbenchStatusLatency(source.getLatency()));
+    transformation.setTransactionsPerSecond(getResourcePgbenchStatusTransactionsPerSecond(
+        source.getTransactionsPerSecond()));
     return transformation;
+  }
+
+  private DbOpsPgbenchStatusTransactionsPerSecond getResourcePgbenchStatusTransactionsPerSecond(
+      StackGresDbOpsPgbenchStatusTransactionsPerSecond source) {
+    DbOpsPgbenchStatusTransactionsPerSecondConverter converter =
+        new DbOpsPgbenchStatusTransactionsPerSecondConverter();
+    return converter.from(source);
+  }
+
+  private DbOpsPgbenchStatusLatency getResourcePgbenchStatusLatency(
+      StackGresDbOpsPgbenchStatusLatency source) {
+    DbOpsPgbenchStatusLatencyConverter converter =
+        new DbOpsPgbenchStatusLatencyConverter();
+    return converter.from(source);
   }
 
   private DbOpsMajorVersionUpgradeStatus getResourceMajorVersionUpgradeStatus(

@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.dto.dbops;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -24,17 +25,11 @@ public class DbOpsPgbenchStatus {
   @JsonProperty("transactionsProcessed")
   private Integer transactionsProcessed;
 
-  @JsonProperty("latencyAverage")
-  private BigDecimal latencyAverage;
+  @JsonProperty("latency")
+  private DbOpsPgbenchStatusLatency latency;
 
-  @JsonProperty("latencyStddev")
-  private BigDecimal latencyStddev;
-
-  @JsonProperty("tpsIncludingConnectionsEstablishing")
-  private BigDecimal tpsIncludingConnectionsEstablishing;
-
-  @JsonProperty("tpsExcludingConnectionsEstablishing")
-  private BigDecimal tpsExcludingConnectionsEstablishing;
+  @JsonProperty("transactionsPerSecond")
+  private DbOpsPgbenchStatusTransactionsPerSecond transactionsPerSecond;
 
   public BigDecimal getScaleFactor() {
     return scaleFactor;
@@ -52,38 +47,21 @@ public class DbOpsPgbenchStatus {
     this.transactionsProcessed = transactionsProcessed;
   }
 
-  public BigDecimal getLatencyAverage() {
-    return latencyAverage;
+  public DbOpsPgbenchStatusLatency getLatency() {
+    return latency;
   }
 
-  public void setLatencyAverage(BigDecimal latencyAverage) {
-    this.latencyAverage = latencyAverage;
+  public void setLatency(DbOpsPgbenchStatusLatency latency) {
+    this.latency = latency;
   }
 
-  public BigDecimal getLatencyStddev() {
-    return latencyStddev;
+  public DbOpsPgbenchStatusTransactionsPerSecond getTransactionsPerSecond() {
+    return transactionsPerSecond;
   }
 
-  public void setLatencyStddev(BigDecimal latencyStddev) {
-    this.latencyStddev = latencyStddev;
-  }
-
-  public BigDecimal getTpsIncludingConnectionsEstablishing() {
-    return tpsIncludingConnectionsEstablishing;
-  }
-
-  public void setTpsIncludingConnectionsEstablishing(
-      BigDecimal tpsIncludingConnectionsEstablishing) {
-    this.tpsIncludingConnectionsEstablishing = tpsIncludingConnectionsEstablishing;
-  }
-
-  public BigDecimal getTpsExcludingConnectionsEstablishing() {
-    return tpsExcludingConnectionsEstablishing;
-  }
-
-  public void setTpsExcludingConnectionsEstablishing(
-      BigDecimal tpsExcludingConnectionsEstablishing) {
-    this.tpsExcludingConnectionsEstablishing = tpsExcludingConnectionsEstablishing;
+  public void setTransactionsPerSecond(DbOpsPgbenchStatusTransactionsPerSecond
+      transactionsPerSecond) {
+    this.transactionsPerSecond = transactionsPerSecond;
   }
 
   @Override

@@ -28,17 +28,11 @@ public class StackGresDbOpsPgbenchStatus implements KubernetesResource {
   @JsonProperty("transactionsProcessed")
   private Integer transactionsProcessed;
 
-  @JsonProperty("latencyAverage")
-  private BigDecimal latencyAverage;
+  @JsonProperty("latency")
+  private StackGresDbOpsPgbenchStatusLatency latency;
 
-  @JsonProperty("latencyStddev")
-  private BigDecimal latencyStddev;
-
-  @JsonProperty("tpsIncludingConnectionsEstablishing")
-  private BigDecimal tpsIncludingConnectionsEstablishing;
-
-  @JsonProperty("tpsExcludingConnectionsEstablishing")
-  private BigDecimal tpsExcludingConnectionsEstablishing;
+  @JsonProperty("transactionsPerSecond")
+  private StackGresDbOpsPgbenchStatusTransactionsPerSecond transactionsPerSecond;
 
   public BigDecimal getScaleFactor() {
     return scaleFactor;
@@ -56,45 +50,12 @@ public class StackGresDbOpsPgbenchStatus implements KubernetesResource {
     this.transactionsProcessed = transactionsProcessed;
   }
 
-  public BigDecimal getLatencyAverage() {
-    return latencyAverage;
+  public StackGresDbOpsPgbenchStatusLatency getLatency() {
+    return latency;
   }
 
-  public void setLatencyAverage(BigDecimal latencyAverage) {
-    this.latencyAverage = latencyAverage;
-  }
-
-  public BigDecimal getLatencyStddev() {
-    return latencyStddev;
-  }
-
-  public void setLatencyStddev(BigDecimal latencyStddev) {
-    this.latencyStddev = latencyStddev;
-  }
-
-  public BigDecimal getTpsIncludingConnectionsEstablishing() {
-    return tpsIncludingConnectionsEstablishing;
-  }
-
-  public void setTpsIncludingConnectionsEstablishing(
-      BigDecimal tpsIncludingConnectionsEstablishing) {
-    this.tpsIncludingConnectionsEstablishing = tpsIncludingConnectionsEstablishing;
-  }
-
-  public BigDecimal getTpsExcludingConnectionsEstablishing() {
-    return tpsExcludingConnectionsEstablishing;
-  }
-
-  public void setTpsExcludingConnectionsEstablishing(
-      BigDecimal tpsExcludingConnectionsEstablishing) {
-    this.tpsExcludingConnectionsEstablishing = tpsExcludingConnectionsEstablishing;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(latencyAverage, latencyStddev, scaleFactor,
-        tpsExcludingConnectionsEstablishing, tpsIncludingConnectionsEstablishing,
-        transactionsProcessed);
+  public StackGresDbOpsPgbenchStatusTransactionsPerSecond getTransactionsPerSecond() {
+    return transactionsPerSecond;
   }
 
   @Override
@@ -106,14 +67,16 @@ public class StackGresDbOpsPgbenchStatus implements KubernetesResource {
       return false;
     }
     StackGresDbOpsPgbenchStatus other = (StackGresDbOpsPgbenchStatus) obj;
-    return Objects.equals(latencyAverage, other.latencyAverage)
-        && Objects.equals(latencyStddev, other.latencyStddev)
+    return Objects.equals(latency, other.latency)
         && Objects.equals(scaleFactor, other.scaleFactor)
-        && Objects.equals(tpsExcludingConnectionsEstablishing,
-            other.tpsExcludingConnectionsEstablishing)
-        && Objects.equals(tpsIncludingConnectionsEstablishing,
-            other.tpsIncludingConnectionsEstablishing)
+        && Objects.equals(transactionsPerSecond,
+            other.transactionsPerSecond)
         && Objects.equals(transactionsProcessed, other.transactionsProcessed);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(latency, transactionsPerSecond);
   }
 
   @Override
