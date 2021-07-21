@@ -9,9 +9,6 @@ import static io.restassured.RestAssured.given;
 
 import javax.inject.Inject;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
@@ -32,9 +29,6 @@ class PgBouncerConfigResourceQuarkusTest implements AuthenticatedResourceTest {
 
   @Inject
   KubernetesClientFactory factory;
-
-  @Inject
-  ObjectMapper mapper;
 
   private StackGresPoolingConfig resource;
 
