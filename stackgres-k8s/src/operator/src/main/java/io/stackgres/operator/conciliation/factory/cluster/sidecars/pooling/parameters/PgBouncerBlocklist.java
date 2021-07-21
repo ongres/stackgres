@@ -13,7 +13,7 @@ import java.util.Properties;
 
 import com.google.common.collect.ImmutableList;
 
-public class Blocklist {
+public class PgBouncerBlocklist {
 
   private static final List<String> BLOCKLIST;
 
@@ -24,11 +24,11 @@ public class Blocklist {
         .collect(ImmutableList.toImmutableList());
   }
 
-  private Blocklist() {}
+  private PgBouncerBlocklist() {}
 
   private static Properties readResource() {
     Properties properties = new Properties();
-    try (InputStream is = Blocklist.class.getResourceAsStream(
+    try (InputStream is = PgBouncerBlocklist.class.getResourceAsStream(
         "/pgbouncer-blocklist.properties")) {
       if (is == null) {
         throw new IOException("Couldn't read pgbouncer-blocklist.properties");
