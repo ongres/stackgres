@@ -5,12 +5,9 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -24,6 +21,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
+import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresComponent;
@@ -32,8 +30,6 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
@@ -48,6 +44,12 @@ public abstract class AbstractPgPooling
     VolumeFactory<StackGresClusterContext> {
 
   private static final String NAME = "pgbouncer";
+
+  protected static final Map<String, String> DEFAULT_PARAMETERS = ImmutableMap
+      .<String, String>builder()
+      .put("listen_port", Integer.toString(EnvoyUtil.PG_POOL_PORT))
+      .put("unix_socket_dir", ClusterStatefulSetPath.PG_RUN_PATH.path())
+      .build();
 
   private final LabelFactory<StackGresCluster> labelFactory;
 
@@ -93,27 +95,7 @@ public abstract class AbstractPgPooling
   public @NotNull HasMetadata buildSource(@NotNull StackGresClusterContext context) {
     final StackGresCluster sgCluster = context.getSource();
 
-    Optional<StackGresPoolingConfigPgBouncer> pgbouncerConfig = context.getPoolingConfig()
-        .map(StackGresPoolingConfig::getSpec)
-        .map(StackGresPoolingConfigSpec::getPgBouncer);
-
-    var parameters = pgbouncerConfig
-        .map(StackGresPoolingConfigPgBouncer::getParameters)
-        .orElseGet(HashMap::new);
-
-    var databases = pgbouncerConfig
-        .map(StackGresPoolingConfigPgBouncer::getDatabases)
-        .orElseGet(HashMap::new);
-
-    var users = pgbouncerConfig
-        .map(StackGresPoolingConfigPgBouncer::getUsers)
-        .orElseGet(HashMap::new);
-
-    String configFile = ""
-        + getDatabaseSection(databases)
-        + getUserSection(users)
-        + getPgBouncerSection(parameters);
-
+    String configFile = getConfigFile(context.getPoolingConfig());
     Map<String, String> data = ImmutableMap.of("pgbouncer.ini", configFile);
 
     String namespace = sgCluster.getMetadata().getNamespace();
@@ -127,41 +109,6 @@ public abstract class AbstractPgPooling
         .endMetadata()
         .withData(data)
         .build();
-  }
-
-  private String getPgBouncerSection(Map<String, String> params) {
-    // Blocklist removal
-    Blocklist.getBlocklistParameters().forEach(bl -> params.remove(bl));
-
-    var parameters = new LinkedHashMap<>(DefaultValues.getDefaultValues());
-    parameters.putAll(params);
-
-    String pgBouncerConfig = parameters.entrySet().stream()
-        .map(entry -> entry.getKey() + " = " + entry.getValue())
-        .collect(Collectors.joining("\n"));
-
-    return "[pgbouncer]\n" + pgBouncerConfig + "\n";
-  }
-
-  private String getUserSection(Map<String, Map<String, String>> users) {
-    return !users.isEmpty()
-        ? "[users]\n" + getSections(users) + "\n\n"
-        : "";
-  }
-
-  private String getDatabaseSection(Map<String, Map<String, String>> databases) {
-    return !databases.isEmpty()
-        ? "[databases]\n" + getSections(databases) + "\n\n"
-        : "[databases]\n" + "* = port=" + EnvoyUtil.PG_PORT + "\n\n";
-  }
-
-  private String getSections(Map<String, Map<String, String>> sections) {
-    return sections.entrySet().stream()
-        .sorted(Map.Entry.comparingByKey())
-        .map(entry -> entry.getKey() + " = " + entry.getValue().entrySet().stream()
-            .map(e -> e.getKey() + "=" + e.getValue())
-            .collect(Collectors.joining(" ")))
-        .collect(Collectors.joining("\n"));
   }
 
   @Override
@@ -186,5 +133,7 @@ public abstract class AbstractPgPooling
   }
 
   protected abstract List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context);
+
+  protected abstract String getConfigFile(Optional<StackGresPoolingConfig> pgbouncerConfig);
 
 }

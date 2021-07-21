@@ -10,26 +10,21 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.Properties;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMap;
-import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.EnvoyUtil;
 
 public class PgBouncerDefaultValues {
 
   private static final Map<String, String> DEFAULTS;
 
   static {
-    Map<String, String> params = Map.of(
-        "listen_port", Integer.toString(EnvoyUtil.PG_POOL_PORT),
-        "unix_socket_dir", ClusterStatefulSetPath.PG_RUN_PATH.path());
-
-    DEFAULTS = Stream.concat(params.entrySet().stream(), readResource().entrySet().stream())
-        .filter(e -> !e.getKey().toString().isEmpty())
-        .sorted((o1, o2) -> o1.getKey().toString().compareTo(o2.getKey().toString()))
-        .collect(ImmutableMap.toImmutableMap(
-            e -> e.getKey().toString(), e -> e.getValue().toString()));
+    DEFAULTS = ImmutableMap.<String, String>builder()
+        .putAll(readResource().entrySet().stream()
+            .filter(e -> !e.getKey().toString().isEmpty())
+            .collect(Collectors.toMap(
+                e -> e.getKey().toString(), e -> e.getValue().toString())))
+        .build();
   }
 
   private PgBouncerDefaultValues() {}
