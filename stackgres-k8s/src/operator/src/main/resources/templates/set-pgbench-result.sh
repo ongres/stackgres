@@ -28,10 +28,26 @@ set_completed() {
       "pgbench": {
         "scaleFactor": $SCALE_FACTOR,
         "transactionsProcessed": $TRANSACTION_PROCESSED,
-        "latencyAverage": $LATENCY_AVERAGE,
-        "latencyStddev": $LATENCY_STDDEV,
-        "tpsIncludingConnectionsEstablishing": $TPS_INCLUDING_CONNECTIONS_ESTABLISHING,
-        "tpsExcludingConnectionsEstablishing": $TPS_EXCLUDING_CONNECTIONS_ESTABLISHING
+        "latency": {
+          "average": {
+            "value": $LATENCY_AVERAGE,
+            "unit": "ms"
+          },
+          "standardDeviation": {
+            "value": $LATENCY_STDDEV,
+            "unit": "ms"
+          }
+        },
+        "transactionsPerSecond": {
+          "includingConnectionsEstablishing": {
+            "value": $TPS_INCLUDING_CONNECTIONS_ESTABLISHING,
+            "unit": "tps"
+          },
+          "excludingConnectionsEstablishing": {
+            "value": $TPS_EXCLUDING_CONNECTIONS_ESTABLISHING,
+            "unit": "tps"
+          }
+        }
       }
     }
   }
@@ -44,3 +60,5 @@ format_measure() {
   read INPUT
   LC_NUMERIC="en_US.UTF-8" printf '%.2f' $INPUT
 }
+
+set_completed
