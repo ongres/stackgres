@@ -43,7 +43,7 @@ class DbOpsSecurityUpgradeValidatorTest {
     validator = new DbOpsSecurityUpgradeValidator(clusterFinder);
 
     cluster = getDefaultCluster();
-    cluster.getSpec().setPostgresVersion(StackGresComponent.POSTGRESQL.findVersion(
+    cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL.findVersion(
         StackGresComponent.POSTGRESQL.getOrderedMajorVersions().findLast().get()));
   }
 
@@ -67,7 +67,7 @@ class DbOpsSecurityUpgradeValidatorTest {
 
     String sgcluster = review.getRequest().getObject().getSpec().getSgCluster();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
-    cluster.getSpec().setPostgresVersion("11.11");
+    cluster.getSpec().getPostgres().setVersion("11.11");
     when(clusterFinder.findByNameAndNamespace(sgcluster, namespace))
         .thenReturn(Optional.of(cluster));
 

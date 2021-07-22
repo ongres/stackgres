@@ -1,0 +1,85 @@
+{
+  "kind": "SGCluster",
+  "apiVersion": "stackgres.io/v1",
+  "metadata": {
+    "creationTimestamp": "2019-09-27T09:09:34Z",
+    "generation": 1,
+    "name": "stackgres",
+    "namespace": "default",
+    "uid": "6fe0edf5-8a6d-43b7-99bd-131e2efeab66"
+  },
+  "spec": {
+    "instances": 1,
+    "postgres": {
+      "version": "11.5",
+      "extensions": [{
+        "name": "test",
+        "publisher": "test",
+        "version": "test",
+        "repository": "test"
+      }],
+      "ssl": false
+    },
+    "sgInstanceProfile": "size-xs",
+    "initialData": {
+      "restore": {
+        "fromBackup": {
+          "uid": "d7e660a9-377c-11ea-b04b-0242ac110004"
+        }
+      }
+    },
+    "configurations": {
+      "sgPostgresConfig": "postgresconf",
+      "sgPoolingConfig": "pgbouncerconf",
+      "sgBackupConfig": "backupconf"
+    },
+    "pods":{
+      "persistentVolume": {
+        "size": "5Gi",
+        "storageClass": "standard"
+      },
+      "disableConnectionPooling": false,
+      "disableMetricsExporter": false,
+      "disablePostgresUtil": false,
+      "metadata": {
+        "labels": {
+          "customLabel" : "customLabelValue"
+        }
+      }
+    },
+    "prometheusAutobind": "true",
+    "distributedLogs": {
+      "sgDistributedLogs": "distributedlogs"
+    },
+    "postgresServices": {
+      "primary": {
+        "enabled": true,
+        "type": "ClusterIP",
+        "annotations": {
+          "customAnnotation" : "customValue"
+        }
+      },
+      "replicas": {
+        "enabled": true,
+        "type": "ClusterIP",
+        "annotations": {
+          "customAnnotation" : "customValue"
+        }
+      }
+    },
+    "metadata": {
+      "annotations": {
+        "allResources": {
+          "allResourcesCustomAnnotation": "allResourcesCustomValue"
+        },
+        "pods" : {
+          "podsCustomAnnotations": "podsCustomValue"
+        },
+        "services": {
+          "servicesCustomAnnotation": "servicesCustomValue"
+        }
+      }
+    }
+  },
+  "status": null
+}

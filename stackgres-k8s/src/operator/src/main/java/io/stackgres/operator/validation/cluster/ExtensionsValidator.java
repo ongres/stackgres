@@ -12,6 +12,7 @@ import javax.inject.Singleton;
 
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.validation.AbstractExtensionsValidator;
@@ -25,7 +26,8 @@ public class ExtensionsValidator extends AbstractExtensionsValidator<StackGresCl
   protected Optional<List<StackGresClusterExtension>> getPostgresExtensions(
       StackGresClusterReview review) {
     return Optional.ofNullable(review.getRequest().getObject().getSpec())
-        .map(StackGresClusterSpec::getPostgresExtensions);
+        .map(StackGresClusterSpec::getPostgres)
+        .map(StackGresClusterPostgres::getExtensions);
   }
 
   @Override

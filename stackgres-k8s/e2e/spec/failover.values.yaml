@@ -5,7 +5,8 @@ configurations:
   backupconfig:
     create: false
 cluster:
-  postgresVersion: latest
+  postgres:
+    version: latest
   pods:
     persistentVolume:
       size: 128Mi

@@ -192,8 +192,8 @@ public interface ExtensionUtil {
 
   static String getDescription(StackGresCluster cluster,
       StackGresClusterExtension extension) {
-    final String pgMajorVersion =
-        StackGresComponent.POSTGRESQL.findMajorVersion(cluster.getSpec().getPostgresVersion());
+    final String pgMajorVersion = StackGresComponent.POSTGRESQL.findMajorVersion(
+        cluster.getSpec().getPostgres().getVersion());
     return getDescription(pgMajorVersion, extension);
   }
 

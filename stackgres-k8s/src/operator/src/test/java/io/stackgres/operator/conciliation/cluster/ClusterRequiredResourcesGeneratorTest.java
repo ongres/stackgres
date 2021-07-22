@@ -94,7 +94,7 @@ class ClusterRequiredResourcesGeneratorTest {
   void setUp() {
     cluster = JsonUtil
         .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
-    cluster.getSpec().setPostgresVersion(StackGresComponent.POSTGRESQL.findLatestVersion());
+    cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL.findLatestVersion());
     final String namespace = cluster.getMetadata().getNamespace();
     backupConfig = JsonUtil.readFromJson("backup_config/default.json", StackGresBackupConfig.class);
     setNamespace(backupConfig);

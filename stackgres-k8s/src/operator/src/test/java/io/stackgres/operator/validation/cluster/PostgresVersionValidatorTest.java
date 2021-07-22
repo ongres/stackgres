@@ -128,7 +128,7 @@ class PostgresVersionValidatorTest {
         .thenReturn(Optional.of(postgresConfig));
 
     final String randomVersion = getRandomPostgresVersion();
-    spec.setPostgresVersion(randomVersion);
+    spec.getPostgres().setVersion(randomVersion);
     postgresConfig.getSpec().setPostgresVersion(getMajorPostgresVersion(randomVersion));
 
     validator.validate(review);
@@ -142,7 +142,7 @@ class PostgresVersionValidatorTest {
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
-    spec.setPostgresVersion(getMajorPostgresVersion(getRandomPostgresVersion()));
+    spec.getPostgres().setVersion(getMajorPostgresVersion(getRandomPostgresVersion()));
     String postgresProfile = spec.getConfiguration().getPostgresConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -151,7 +151,7 @@ class PostgresVersionValidatorTest {
         .thenReturn(Optional.of(postgresConfig));
 
     final String randomVersion = getRandomPostgresVersion();
-    spec.setPostgresVersion(randomVersion);
+    spec.getPostgres().setVersion(randomVersion);
     postgresConfig.getSpec().setPostgresVersion(getMajorPostgresVersion(randomVersion));
 
     validator.validate(review);
@@ -165,7 +165,7 @@ class PostgresVersionValidatorTest {
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
-    spec.setPostgresVersion(StackGresComponent.LATEST);
+    spec.getPostgres().setVersion(StackGresComponent.LATEST);
     String postgresProfile = spec.getConfiguration().getPostgresConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -174,7 +174,7 @@ class PostgresVersionValidatorTest {
         .thenReturn(Optional.of(postgresConfig));
 
     final String randomVersion = getRandomPostgresVersion();
-    spec.setPostgresVersion(randomVersion);
+    spec.getPostgres().setVersion(randomVersion);
     postgresConfig.getSpec().setPostgresVersion(getMajorPostgresVersion(randomVersion));
 
     validator.validate(review);
@@ -194,7 +194,7 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("postgresVersion must be provided",
+    assertEquals("postgres version must be provided",
         resultMessage);
 
     verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
@@ -205,7 +205,7 @@ class PostgresVersionValidatorTest {
     final StackGresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/invalid_creation_pg_version.json",
             StackGresClusterReview.class);
-    review.getRequest().getObject().getSpec().setPostgresVersion(secondPgMajorVersion);
+    review.getRequest().getObject().getSpec().getPostgres().setVersion(secondPgMajorVersion);
     postgresConfig.getSpec().setPostgresVersion(firstPgMajorVersion);
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
@@ -222,7 +222,7 @@ class PostgresVersionValidatorTest {
     String resultMessage = exception.getResult().getMessage();
 
     assertEquals(
-        "Invalid postgresVersion, must be " + firstPgMajorVersion
+        "Invalid postgres version, must be " + firstPgMajorVersion
             + " to use sgPostgresConfig postgresconf",
         resultMessage);
 
@@ -242,7 +242,7 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("postgresVersion must be provided",
+    assertEquals("postgres version must be provided",
         resultMessage);
 
     verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
@@ -255,7 +255,7 @@ class PostgresVersionValidatorTest {
             StackGresClusterReview.class);
 
     String postgresVersion = getRandomInvalidPostgresVersion();
-    review.getRequest().getObject().getSpec().setPostgresVersion(postgresVersion);
+    review.getRequest().getObject().getSpec().getPostgres().setVersion(postgresVersion);
 
     ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
@@ -263,7 +263,7 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertTrue(resultMessage.contains("Unsupported postgresVersion " + postgresVersion));
+    assertTrue(resultMessage.contains("Unsupported postgres version " + postgresVersion));
 
     verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
   }
@@ -274,8 +274,8 @@ class PostgresVersionValidatorTest {
         .readFromJson("cluster_allow_requests/major_postgres_version_update.json",
             StackGresClusterReview.class);
 
-    review.getRequest().getObject().getSpec().setPostgresVersion(firstPgMajorVersion);
-    review.getRequest().getOldObject().getSpec().setPostgresVersion(secondPgMajorVersion);
+    review.getRequest().getObject().getSpec().getPostgres().setVersion(firstPgMajorVersion);
+    review.getRequest().getOldObject().getSpec().getPostgres().setVersion(secondPgMajorVersion);
     validator.validate(review);
   }
 
@@ -285,15 +285,15 @@ class PostgresVersionValidatorTest {
         .readFromJson("cluster_allow_requests/wrong_major_postgres_version_update.json",
             StackGresClusterReview.class);
 
-    review.getRequest().getObject().getSpec().setPostgresVersion(secondPgMajorVersion);
-    review.getRequest().getOldObject().getSpec().setPostgresVersion(firstPgMajorVersion);
+    review.getRequest().getObject().getSpec().getPostgres().setVersion(secondPgMajorVersion);
+    review.getRequest().getOldObject().getSpec().getPostgres().setVersion(firstPgMajorVersion);
     ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
     });
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("postgresVersion can not be changed to a previous major version", resultMessage);
+    assertEquals("postgres version can not be changed to a previous major version", resultMessage);
   }
 
   @Test
@@ -302,8 +302,8 @@ class PostgresVersionValidatorTest {
         .readFromJson("cluster_allow_requests/minor_postgres_version_update.json",
             StackGresClusterReview.class);
 
-    review.getRequest().getObject().getSpec().setPostgresVersion(firstPgMinorVersion);
-    review.getRequest().getOldObject().getSpec().setPostgresVersion(secondPgMinorVersion);
+    review.getRequest().getObject().getSpec().getPostgres().setVersion(firstPgMinorVersion);
+    review.getRequest().getOldObject().getSpec().getPostgres().setVersion(secondPgMinorVersion);
     validator.validate(review);
   }
 
@@ -311,7 +311,7 @@ class PostgresVersionValidatorTest {
   void givenInvalidPostgresConfigReference_shouldFail() {
     final StackGresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
-    review.getRequest().getObject().getSpec().setPostgresVersion(firstPgMajorVersion);
+    review.getRequest().getObject().getSpec().getPostgres().setVersion(firstPgMajorVersion);
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     String postgresProfile = spec.getConfiguration().getPostgresConfig();
@@ -379,7 +379,7 @@ class PostgresVersionValidatorTest {
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     String postgresProfile = spec.getConfiguration().getPostgresConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
-    review.getRequest().getObject().getSpec().setPostgresVersion(getRandomPostgresVersion());
+    review.getRequest().getObject().getSpec().getPostgres().setVersion(getRandomPostgresVersion());
 
     when(configFinder.findByNameAndNamespace(eq(postgresProfile), eq(namespace)))
         .thenReturn(Optional.empty());

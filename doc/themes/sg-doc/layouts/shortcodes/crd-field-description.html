@@ -30,24 +30,24 @@
 {{- range $index,$param := $params -}}
   {{- if gt $index 0 -}}
     {{- if not ($scratch.Get "CrdField") }}
-    {{ errorf "Path %s was not found in CRD data/crds/%s.yaml" ($scratch.Get "CrdPath") (index $params 0) }}
+      {{ errorf "Path %s was not found in CRD data/crds/%s.yaml" ($scratch.Get "CrdPath") (index $params 0) }}
     {{- end }}
     {{- if ($scratch.Get "CrdField").properties }}
-    {{- if not (reflect.IsMap ($scratch.Get "CrdField").properties) }}
-    {{ errorf "Path %s.properties is not a map in data/crds/%s.yaml" ($scratch.Get "CrdPath") (index $params 0) }}
-    {{- end }}
-    {{- if not (index ($scratch.Get "CrdField").properties (replace $param "·" ".")) }}
-    {{ errorf "Path %s.properties.%s was not found in CRD data/crds/%s.yaml" ($scratch.Get "CrdPath") (replace $param "·" ".") (index $params 0) }}
-    {{- end }}
-    {{- $scratch.Set "CrdField" (index ($scratch.Get "CrdField").properties (replace $param "·" ".")) -}}
-    {{- $scratch.Set "CrdPath" (printf "%s.%s.%s" ($scratch.Get "CrdPath") "properties" (replace $param "·" ".")) -}}
+      {{- if not (reflect.IsMap ($scratch.Get "CrdField").properties) }}
+        {{ errorf "Path %s.properties is not a map in data/crds/%s.yaml" ($scratch.Get "CrdPath") (index $params 0) }}
+      {{- end }}
+      {{- if not (index ($scratch.Get "CrdField").properties (replace $param "·" ".")) }}
+        {{ errorf "Path %s.properties.%s was not found in CRD data/crds/%s.yaml" ($scratch.Get "CrdPath") (replace $param "·" ".") (index $params 0) }}
+      {{- end }}
+      {{- $scratch.Set "CrdField" (index ($scratch.Get "CrdField").properties (replace $param "·" ".")) -}}
+      {{- $scratch.Set "CrdPath" (printf "%s.%s.%s" ($scratch.Get "CrdPath") "properties" (replace $param "·" ".")) -}}
     {{- else }}
-    {{- if (index ($scratch.Get "CrdField") (replace $param "·" ".")) }}
-    {{- $scratch.Set "CrdField" (index ($scratch.Get "CrdField") (replace $param "·" ".")) -}}
-    {{- $scratch.Set "CrdPath" (printf "%s.%s" ($scratch.Get "CrdPath") (replace $param "·" ".")) -}}
-    {{- else }}
-    {{ errorf "Field properies or %s under path %s was not found in CRD data/crds/%s.yaml" (replace $param "·" ".") ($scratch.Get "CrdPath") (index $params 0) }}
-    {{- end }}
+      {{- if (index ($scratch.Get "CrdField") (replace $param "·" ".")) }}
+      {{- $scratch.Set "CrdField" (index ($scratch.Get "CrdField") (replace $param "·" ".")) -}}
+      {{- $scratch.Set "CrdPath" (printf "%s.%s" ($scratch.Get "CrdPath") (replace $param "·" ".")) -}}
+      {{- else }}
+      {{ errorf "Field properties or %s under path %s was not found in CRD data/crds/%s.yaml" (replace $param "·" ".") ($scratch.Get "CrdPath") (index $params 0) }}
+      {{- end }}
     {{- end }}
   {{- end -}}
 {{- end -}}

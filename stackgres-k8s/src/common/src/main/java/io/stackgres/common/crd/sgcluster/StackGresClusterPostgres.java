@@ -5,9 +5,11 @@
 
 package io.stackgres.common.crd.sgcluster;
 
+import java.util.List;
 import java.util.Objects;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -20,9 +22,25 @@ import io.stackgres.common.StackGresUtil;
 @RegisterForReflection
 public class StackGresClusterPostgres {
 
+  @JsonProperty("version")
+  @NotBlank(message = "PostgreSQL version is required")
+  private String version;
+
   @JsonProperty("ssl")
   @Valid
   private StackGresClusterSsl ssl;
+
+  @JsonProperty("extensions")
+  @Valid
+  private List<StackGresClusterExtension> extensions;
+
+  public String getVersion() {
+    return version;
+  }
+
+  public void setVersion(String version) {
+    this.version = version;
+  }
 
   public StackGresClusterSsl getSsl() {
     return ssl;
@@ -32,9 +50,17 @@ public class StackGresClusterPostgres {
     this.ssl = ssl;
   }
 
+  public List<StackGresClusterExtension> getExtensions() {
+    return extensions;
+  }
+
+  public void setExtensions(List<StackGresClusterExtension> extensions) {
+    this.extensions = extensions;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(ssl);
+    return Objects.hash(extensions, ssl, version);
   }
 
   @Override
@@ -46,7 +72,8 @@ public class StackGresClusterPostgres {
       return false;
     }
     StackGresClusterPostgres other = (StackGresClusterPostgres) obj;
-    return Objects.equals(ssl, other.ssl);
+    return Objects.equals(extensions, other.extensions) && Objects.equals(ssl, other.ssl)
+        && Objects.equals(version, other.version);
   }
 
   public String toString() {

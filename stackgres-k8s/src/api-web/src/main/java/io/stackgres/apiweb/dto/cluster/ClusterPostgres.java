@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -16,8 +18,30 @@ import io.stackgres.common.StackGresUtil;
 @RegisterForReflection
 public class ClusterPostgres {
 
+  @JsonProperty("version")
+  private String version;
+
+  @JsonProperty("extensions")
+  private List<ClusterExtension> extensions;
+
   @JsonProperty("ssl")
   private ClusterSsl ssl;
+
+  public String getVersion() {
+    return version;
+  }
+
+  public void setVersion(String version) {
+    this.version = version;
+  }
+
+  public List<ClusterExtension> getExtensions() {
+    return extensions;
+  }
+
+  public void setExtensions(List<ClusterExtension> extensions) {
+    this.extensions = extensions;
+  }
 
   public ClusterSsl getSsl() {
     return ssl;

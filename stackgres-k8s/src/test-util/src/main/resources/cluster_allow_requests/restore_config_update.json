@@ -48,7 +48,9 @@
       },
       "spec": {
         "instances": 1,
-        "postgresVersion": "11.4",
+        "postgres": {
+          "version": "11.4"
+        },
         "sgInstanceProfile": "size-xs",
         "initialData": {
           "restore": {
@@ -86,7 +88,9 @@
       },
       "spec": {
         "instances": 1,
-        "postgresVersion": "11.3",
+        "postgres": {
+          "version": "11.3"
+        },
         "configurations": {
           "sgPostgresConfig": "postgresconf",
           "sgPoolingConfig": "pgbouncerconf",

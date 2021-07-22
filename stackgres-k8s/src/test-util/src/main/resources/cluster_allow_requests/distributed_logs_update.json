@@ -48,7 +48,9 @@
       },
       "spec": {
         "instances": 1,
-        "postgresVersion": "11.5",
+        "postgres": {
+          "version": "11.5"
+        },
         "sgInstanceProfile": "size-xs",
         "initialData": {
           "restore": {
@@ -89,7 +91,9 @@
       },
       "spec": {
         "instances": 1,
-        "postgresVersion": "11.5",
+        "postgres": {
+          "version": "11.5"
+        },
         "sgInstanceProfile": "size-xs",
         "initialData": {
           "restore": {

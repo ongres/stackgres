@@ -1,6 +1,6 @@
 {
   "kind": "SGCluster",
-  "apiVersion": "stackgres.io/v1",
+  "apiVersion": "stackgres.io/v1beta1",
   "metadata": {
     "creationTimestamp": "2019-09-27T09:09:34Z",
     "generation": 1,
@@ -14,9 +14,7 @@
     "sgInstanceProfile": "size-xs",
     "initialData": {
       "restore": {
-        "fromBackup": {
-          "uid": "d7e660a9-377c-11ea-b04b-0242ac110004"
-        }
+        "fromBackup": "d7e660a9-377c-11ea-b04b-0242ac110004"
       }
     },
     "configurations": {

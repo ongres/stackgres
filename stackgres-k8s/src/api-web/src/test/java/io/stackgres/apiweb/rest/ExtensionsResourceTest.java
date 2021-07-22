@@ -23,6 +23,7 @@ import io.stackgres.apiweb.transformer.ExtensionsTransformer;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.extension.ExtensionUtil;
 import io.stackgres.common.extension.StackGresExtension;
@@ -188,7 +189,8 @@ class ExtensionsResourceTest {
       StackGresClusterExtension clusterExtension) {
     StackGresCluster cluster = new StackGresCluster();
     cluster.setSpec(new StackGresClusterSpec());
-    cluster.getSpec().setPostgresVersion(postgresVersion);
+    cluster.getSpec().setPostgres(new StackGresClusterPostgres());
+    cluster.getSpec().getPostgres().setVersion(postgresVersion);
     return new StackGresExtensionIndexAnyVersion(cluster, clusterExtension);
   }
 

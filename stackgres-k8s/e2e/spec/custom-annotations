@@ -43,7 +43,8 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1
-  postgresVersion: 'latest'
+  postgres:
+    version: 'latest'
   metadata:
     annotations:
       pods:
@@ -74,7 +75,8 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1
-  postgresVersion: 'latest'
+  postgres:
+    version: 'latest'
   metadata:
     annotations:
       pods:
@@ -196,7 +198,8 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 2
-  postgresVersion: 'latest'
+  postgres:
+    version: 'latest'
   pods:
     persistentVolume:
       size: '128Mi'
@@ -240,7 +243,8 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 2
-  postgresVersion: 'latest'
+  postgres:
+    version: 'latest'
   metadata:
     annotations:
       pods:

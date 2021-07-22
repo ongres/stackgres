@@ -85,7 +85,8 @@ metadata:
   namespace: ongres-db
 spec:
   instances: 1
-  postgresVersion: '12'
+  postgres:
+    version: '12'
   sgInstanceProfile: 'size-s'
   pods:
     persistentVolume:

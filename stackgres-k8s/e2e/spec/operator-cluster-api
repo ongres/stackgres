@@ -613,7 +613,7 @@ check_failed_cluster_creation_with_secret_and_configmap_script() {
 }
 
 check_extension_validation() {
-  INVALID_CLUSTER="$(cat "$LOG_PATH/dummy-cluster.json" | jq '.spec.postgresExtensions = [{name: "non-existing-extension"}]')"
+  INVALID_CLUSTER="$(cat "$LOG_PATH/dummy-cluster.json" | jq '.spec.postgres.extensions = [{name: "non-existing-extension"}]')"
 
   echo "$INVALID_CLUSTER" > "$LOG_PATH/invalid-extension-cluster.json"
 

@@ -50,7 +50,7 @@ class DefaultPostgresVersionMutatorTest {
   @Test
   void clusterWithFinalPostgresVersion_shouldNotDoAnything() {
 
-    review.getRequest().getObject().getSpec().setPostgresVersion("12.3");
+    review.getRequest().getObject().getSpec().getPostgres().setVersion("12.3");
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
 
@@ -60,7 +60,7 @@ class DefaultPostgresVersionMutatorTest {
   @Test
   void clusteWithNoPostgresVersion_shouldSetFinalValue() throws JsonPatchException {
 
-    review.getRequest().getObject().getSpec().setPostgresVersion(null);
+    review.getRequest().getObject().getSpec().getPostgres().setVersion(null);
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
 
@@ -69,7 +69,7 @@ class DefaultPostgresVersionMutatorTest {
     JsonPatch jp = new JsonPatch(operations);
     JsonNode newConfig = jp.apply(crJson);
 
-    String actualPostgresVersion = newConfig.get("spec").get("postgresVersion").asText();
+    String actualPostgresVersion = newConfig.get("spec").get("postgres").get("version").asText();
     assertEquals(StackGresComponent.POSTGRESQL.findLatestVersion(), actualPostgresVersion);
 
   }
@@ -77,7 +77,7 @@ class DefaultPostgresVersionMutatorTest {
   @Test
   void clusteWithLatestPostgresVersion_shouldSetFinalValue() throws JsonPatchException {
 
-    review.getRequest().getObject().getSpec().setPostgresVersion(StackGresComponent.LATEST);
+    review.getRequest().getObject().getSpec().getPostgres().setVersion(StackGresComponent.LATEST);
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
 
@@ -86,7 +86,7 @@ class DefaultPostgresVersionMutatorTest {
     JsonPatch jp = new JsonPatch(operations);
     JsonNode newConfig = jp.apply(crJson);
 
-    String actualPostgresVersion = newConfig.get("spec").get("postgresVersion").asText();
+    String actualPostgresVersion = newConfig.get("spec").get("postgres").get("version").asText();
     assertEquals(StackGresComponent.POSTGRESQL.findLatestVersion(), actualPostgresVersion);
 
   }
@@ -94,7 +94,7 @@ class DefaultPostgresVersionMutatorTest {
   @Test
   void clusteWithMajorPostgresVersion_shouldSetFinalValue() throws JsonPatchException {
 
-    review.getRequest().getObject().getSpec().setPostgresVersion("12");
+    review.getRequest().getObject().getSpec().getPostgres().setVersion("12");
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
 
@@ -103,7 +103,7 @@ class DefaultPostgresVersionMutatorTest {
     JsonPatch jp = new JsonPatch(operations);
     JsonNode newConfig = jp.apply(crJson);
 
-    String actualPostgresVersion = newConfig.get("spec").get("postgresVersion").asText();
+    String actualPostgresVersion = newConfig.get("spec").get("postgres").get("version").asText();
     assertEquals(StackGresComponent.POSTGRESQL.findVersion("12"), actualPostgresVersion);
 
   }

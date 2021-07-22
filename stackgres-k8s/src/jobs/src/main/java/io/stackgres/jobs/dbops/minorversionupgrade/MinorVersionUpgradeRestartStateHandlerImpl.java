@@ -44,7 +44,7 @@ public class MinorVersionUpgradeRestartStateHandlerImpl extends AbstractRestartS
   }
 
   private Uni<String> getTargetPostgresVersion(StackGresCluster cluster) {
-    return Uni.createFrom().item(cluster.getSpec().getPostgresVersion());
+    return Uni.createFrom().item(cluster.getSpec().getPostgres().getVersion());
   }
 
   private Uni<String> getSourcePostgresVersion(StackGresCluster cluster) {

@@ -74,7 +74,14 @@ create_or_replace_cluster_for_version() {
   CLUSTER_HELM_URL="$(get_cluster_helm_url "$VERSION")"
 
   local TRANSFORMER="dont_transform"
-  if [ "$(get_version_as_number "$VERSION")" -lt "$(get_version_as_number 1.0.0-alpha2)" ]
+  if [ "$(get_version_as_number "$VERSION")" -lt "$(get_version_as_number 1.0.0-alpha3)" \
+      -a "$(get_version_as_number "$VERSION")" -ge "$(get_version_as_number 1.0.0-alpha2)" ]
+  then
+    TRANSFORMER="transform_pre_1_0_0_alpha3_post_1_0_0_alpha2"
+  elif [ "$(get_version_as_number "$VERSION")" -lt "$(get_version_as_number 1.0.0-alpha3)" ]
+  then
+    TRANSFORMER="transform_pre_1_0_0_alpha3"
+  elif [ "$(get_version_as_number "$VERSION")" -lt "$(get_version_as_number 1.0.0-alpha2)" ]
   then
     TRANSFORMER="transform_pre_1_0_0_alpha2"
   fi
@@ -85,7 +92,32 @@ create_or_replace_cluster_for_version() {
         --reuse-values --set cluster.instances=$INSTANCES -f $SPEC_VALUES_FILE "$@")"
   else
     create_namespace_if_not_exists "$NAMESPACE"
-    eval "$(transform_params "$TRANSFORMER" helm install "$RELEASE" "$CLUSTER_HELM_URL" --namespace "$NAMESPACE" --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@")"
+    eval "$(transform_params "$TRANSFORMER" helm install "$RELEASE" "$CLUSTER_HELM_URL" \
+        --namespace "$NAMESPACE" --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@")"
+  fi
+}
+
+transform_pre_1_0_0_alpha3_post_1_0_0_alpha2() {
+  if [ "${1%=*}" = 'cluster.postgres.version' ]
+  then
+    printf '%s=%s' 'cluster.postgresVersion' "${1#*=}"
+  elif printf '%s' '${1%=*}' | grep -q '^cluster.postgres.extensions' ]
+  then
+    printf "%s=%s" "$(printf '%s' "${1%=*}" \
+      | sed 's/^cluster\.postgres\.extensions/cluster.postgresExtensions/')"
+  fi
+}
+
+transform_pre_1_0_0_alpha3() {
+  if [ "${1%=*}" = 'cluster.postgres.version' ]
+  then
+    printf '%s=%s' 'cluster.postgresVersion' "${1#*=}"
+  elif printf '%s' '${1%=*}' | grep -q '^cluster.postgres.extensions' ]
+  then
+    printf "%s=%s" "$(printf '%s' "${1%=*}" \
+      | sed 's/^cluster\.postgres\.extensions/cluster.postgresExtensions/')"
+  else
+    transform_pre_1_0_0_alpha2 "$1"
   fi
 }
 
@@ -94,10 +126,9 @@ transform_pre_1_0_0_alpha2() {
   then
     printf "%s=%s" "cluster.initialData.restore.fromBackup" "${1#*=}"
   else
-    printf "%s" "$1"
+    dont_transform "$1"
   fi
 }
-
 dont_transform() {
   printf "%s" "$1"
 }

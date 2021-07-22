@@ -5,9 +5,29 @@ metadata:
   name: {{ .Release.Name }}
 spec:
   instances: {{ .Values.cluster.instances }}
-  postgresVersion: '{{ .Values.cluster.postgresVersion }}'
-  {{- if .Values.cluster.postgres }}
   postgres:
+    version: '{{ .Values.cluster.postgres.version }}'
+    {{- if not .Values.cluster.postgres.extensions }}
+    extensions: []
+    {{- else }}
+    {{- if eq (len .Values.cluster.postgres.extensions) 0 }}
+    extensions: []
+    {{- else }}
+    extensions:
+    {{- range .Values.cluster.postgres.extensions }}
+      - name: "{{ .name }}"
+        {{- if .publisher }}
+        publisher: "{{ .publisher }}"
+        {{- end }}
+        {{- if .version }}
+        version: "{{ .version }}"
+        {{- end }}
+        {{- if .repository }}
+        repository: "{{ .repository }}"
+        {{- end }}
+    {{- end }}
+    {{- end }}
+    {{- end }}
     {{- if .Values.cluster.postgres.ssl }}
     ssl:
       enabled: {{ .Values.cluster.postgres.ssl.enabled }}
@@ -22,7 +42,6 @@ spec:
         key: {{ .Values.cluster.postgres.ssl.privateKeySecretKeySelector.key }}
       {{- end }}
     {{- end }}
-  {{- end }}
   configurations: 
     sgPostgresConfig: '{{ .Values.cluster.configurations.sgPostgresConfig }}'
     sgPoolingConfig: '{{ .Values.cluster.configurations.sgPoolingConfig }}'
@@ -224,27 +243,6 @@ spec:
     {{- end }}
   {{- end }}
   prometheusAutobind: {{ .Values.cluster.prometheusAutobind }}
-  {{- if not .Values.cluster.postgresExtensions }}
-  postgresExtensions: []
-  {{- else }}
-  {{- if eq (len .Values.cluster.postgresExtensions) 0 }}
-  postgresExtensions: []
-  {{- else }}
-  postgresExtensions:
-  {{- range .Values.cluster.postgresExtensions }}
-    - name: "{{ .name }}"
-      {{- if .publisher }}
-      publisher: "{{ .publisher }}"
-      {{- end }}
-      {{- if .version }}
-      version: "{{ .version }}"
-      {{- end }}
-      {{- if .repository }}
-      repository: "{{ .repository }}"
-      {{- end }}
-  {{- end }}
-  {{- end }}
-  {{- end }}
   {{- if .Values.nonProductionOptions }}
   nonProductionOptions:
   {{- if not .Values.nonProductionOptions.disableClusterPodAntiAffinity }}

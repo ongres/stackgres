@@ -31,8 +31,8 @@ public class ConvertFromBackupPostVersion1 implements Converter {
             .ifPresent(restore -> {
               String backupUid = restore.get("fromBackup").asText();
               ObjectNode fromBackup = node.objectNode();
-              restore.set("fromBackup", fromBackup);
               fromBackup.put("uid", backupUid);
+              restore.set("fromBackup", fromBackup);
             });
       }
     } else {

@@ -405,7 +405,8 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1
-  postgresVersion: 'latest'
+  postgres:
+    version: 'latest'
   pods:
     persistentVolume:
       size: '5Gi'
@@ -436,7 +437,8 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1
-  postgresVersion: 'latest'
+  postgres:
+    version: 'latest'
   pods:
     persistentVolume:
       size: '5Gi'
@@ -470,7 +472,8 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1
-  postgresVersion: 'latest'
+  postgres:
+    version: 'latest'
   pods:
     persistentVolume:
       size: '512Mi'
@@ -516,7 +519,8 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1
-  postgresVersion: 'latest'
+  postgres:
+    version: 'latest'
   pods:
     persistentVolume:
       size: '512Mi'
@@ -614,7 +618,8 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1
-  postgresVersion: 'latest'
+  postgres:
+    version: 'latest'
   pods:
     persistentVolume:
       size: '512Mi'
@@ -675,7 +680,8 @@ metadata:
   namespace: $OPERATOR_NAMESPACE
 spec:
   instances: 1
-  postgresVersion: 'latest'
+  postgres:
+    version: 'latest'
   pods:
     persistentVolume:
       size: '512Mi'
@@ -709,7 +715,8 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1
-  postgresVersion: '13'
+  postgres:
+    version: '13'
   pods:
     persistentVolume:
       size: '128Mi'

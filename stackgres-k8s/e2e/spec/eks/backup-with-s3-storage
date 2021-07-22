@@ -127,7 +127,8 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 2
-  postgresVersion: '12.3'
+  postgres:
+    version: 'latest'
   sgInstanceProfile: size-xs
   pods:
     persistentVolume:

@@ -16,7 +16,7 @@ import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
@@ -29,17 +29,17 @@ public class DefaultPostgresVersionMutator implements ClusterMutator {
 
   @PostConstruct
   public void init() throws NoSuchFieldException {
-    String postgresVersionJson = ClusterMutator.getJsonMappingField("postgresVersion",
-        StackGresClusterSpec.class);
+    String postgresVersionJson = ClusterMutator.getJsonMappingField("version",
+        StackGresClusterPostgres.class);
 
-    postgresVersionPointer = ClusterMutator.CLUSTER_CONFIG_POINTER
+    postgresVersionPointer = ClusterMutator.CLUSTER_CONFIG_POINTER.append("postgres")
         .append(postgresVersionJson);
   }
 
   @Override
   public List<JsonPatchOperation> mutate(StackGresClusterReview review) {
     final String postgresVersion = review.getRequest().getObject().getSpec()
-        .getPostgresVersion();
+        .getPostgres().getVersion();
 
     if (review.getRequest().getOperation() == Operation.CREATE
         || review.getRequest().getOperation() == Operation.UPDATE) {

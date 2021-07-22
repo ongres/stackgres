@@ -91,7 +91,7 @@ public abstract class DbOpsJob implements JobFactory {
     return StackGresComponent.PATRONI.findImageName(
         StackGresComponent.LATEST,
         ImmutableMap.of(StackGresComponent.POSTGRESQL,
-            context.getSource().getSpec().getPostgresVersion()));
+            context.getSource().getSpec().getPostgres().getVersion()));
   }
 
   protected abstract ClusterStatefulSetPath getRunScript();

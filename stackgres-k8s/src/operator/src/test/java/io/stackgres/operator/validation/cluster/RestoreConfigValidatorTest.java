@@ -64,7 +64,7 @@ class RestoreConfigValidatorTest {
   void givenAValidCreation_shouldPass() throws ValidationFailed {
 
     final StackGresClusterReview review = getCreationReview();
-    review.getRequest().getObject().getSpec().setPostgresVersion(firstPgMajorVersion);
+    review.getRequest().getObject().getSpec().getPostgres().setVersion(firstPgMajorVersion);
 
     StackGresBackupList backupList = JsonUtil
         .readFromJson("backup/list.json", StackGresBackupList.class);
@@ -101,7 +101,7 @@ class RestoreConfigValidatorTest {
   void givenACreationWithBackupFromDifferentPgVersion_shouldFail() {
 
     final StackGresClusterReview review = getCreationReview();
-    review.getRequest().getObject().getSpec().setPostgresVersion(secondPgMajorVersion);
+    review.getRequest().getObject().getSpec().getPostgres().setVersion(secondPgMajorVersion);
     String stackgresBackup = review.getRequest()
         .getObject().getSpec().getInitData().getRestore().getFromBackup().getUid();
 

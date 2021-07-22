@@ -109,7 +109,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
     return ImmutableMap.of(
         StackGresContext.POSTGRES_VERSION_KEY,
         StackGresComponent.POSTGRESQL.findVersion(
-            context.getClusterContext().getCluster().getSpec().getPostgresVersion()),
+            context.getClusterContext().getCluster().getSpec().getPostgres().getVersion()),
         StackGresContext.PATRONI_VERSION_KEY,
         StackGresComponent.PATRONI.findLatestVersion());
   }
@@ -120,7 +120,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
     final StackGresCluster cluster = clusterContext.getSource();
 
     final String patroniImageName = String.format(IMAGE_NAME,
-        cluster.getSpec().getPostgresVersion());
+        cluster.getSpec().getPostgres().getVersion());
 
     ResourceRequirements podResources = requirementsFactory
         .createResource(clusterContext);

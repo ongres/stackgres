@@ -52,7 +52,7 @@ public class ContextUtil {
               .oldPostgresVersion(sourceVersion);
         })
         .orElseGet(() -> {
-          final String postgresVersion = cluster.getSpec().getPostgresVersion();
+          final String postgresVersion = cluster.getSpec().getPostgres().getVersion();
           final String majorVersion = StackGresComponent.POSTGRESQL
               .findMajorVersion(postgresVersion);
           final String buildMajorVersion = StackGresComponent.POSTGRESQL

@@ -25,7 +25,8 @@ spec:
     annotations:
       pods:
         sidecar.istio.io/inject: 'false'
-  postgresVersion: '12.3'
+  postgres:
+    version: '12.3'
   instances: 3
 ```
 

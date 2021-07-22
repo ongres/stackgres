@@ -12,10 +12,10 @@ metadata:
     app.kubernetes.io/managed-by: "Helm"
   {{- end }}
 spec:
-  {{- if eq .Values.cluster.postgresVersion "latest" }}
+  {{- if eq .Values.cluster.postgres.version "latest" }}
   postgresVersion: "13"
   {{- else }}
-  postgresVersion: "{{ index (.Values.cluster.postgresVersion | splitList ".") 0 }}"
+  postgresVersion: "{{ index (.Values.cluster.postgres.version | splitList ".") 0 }}"
   {{- end }}
   {{- with (index .Values.configurations.postgresconfig "postgresql.conf") }}
   postgresql.conf:

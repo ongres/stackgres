@@ -53,7 +53,8 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1
-  postgresVersion: 'latest'
+  postgres:
+    version: 'latest'
   configurations:
     sgPoolingConfig: $PGCBOUNCER
   sgInstanceProfile: 'size-xs'

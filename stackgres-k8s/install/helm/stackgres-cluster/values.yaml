@@ -6,9 +6,14 @@ cluster:
   restartReducedImpact: true
   restartPrimaryFirst: false
   restartTimeout: 300
-  postgresVersion: '13'
   instances: 1
   postgres:
+    version: '13'
+    #extensions:
+    #  - name: timescaledb      # The extension name
+    #    publisher: com.ongres  # Optional. The extension publisher
+    #    version: "1.7.1"       # Optional. The extension version or channel
+    #    repository: https://extensions.stackgres.io/postgres/repository # Optional. The extension repository
     ssl:
       enabled: false
       # certificateSecretKeySelector:
@@ -99,11 +104,6 @@ cluster:
   #        name: stackgres-sqls-scripts
   #        key: create-stackgres-schema.sql
   prometheusAutobind: true
-  #postgresExtensions:
-  #  - name: timescaledb      # The extension name
-  #    publisher: com.ongres  # Optional. The extension publisher
-  #    version: "1.7.1"       # Optional. The extension version or channel
-  #    repository: https://extensions.stackgres.io/postgres/repository # Optional. The extension repository
 
 instanceProfiles:
   - name: size-xs

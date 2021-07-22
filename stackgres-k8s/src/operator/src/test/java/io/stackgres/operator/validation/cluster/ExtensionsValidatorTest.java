@@ -52,7 +52,7 @@ class ExtensionsValidatorTest {
   @Test
   void givenAValidCreation_shouldPass() throws ValidationFailed {
     final StackGresClusterReview review = getCreationReview();
-    review.getRequest().getObject().getSpec().setPostgresExtensions(null);
+    review.getRequest().getObject().getSpec().getPostgres().setExtensions(null);
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
         .addAll(defaultExtensions);
@@ -62,7 +62,7 @@ class ExtensionsValidatorTest {
   @Test
   void givenAnUpdate_shouldPass() throws ValidationFailed {
     final StackGresClusterReview review = getUpdateReview();
-    review.getRequest().getObject().getSpec().setPostgresExtensions(null);
+    review.getRequest().getObject().getSpec().getPostgres().setExtensions(null);
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
         .addAll(defaultExtensions);
@@ -72,7 +72,7 @@ class ExtensionsValidatorTest {
   @Test
   void givenACreationWithMissingExtensions_shouldFail() {
     final StackGresClusterReview review = getCreationReview();
-    review.getRequest().getObject().getSpec().setPostgresExtensions(null);
+    review.getRequest().getObject().getSpec().getPostgres().setExtensions(null);
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
         ErrorType.MISSING_EXTENSION,

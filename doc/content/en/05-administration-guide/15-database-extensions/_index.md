@@ -20,9 +20,10 @@ metadata:
   # ...
 spec:
   # ..
-  postgresExtensions:
-  - name: postgis
-  - name: timescaledb
+  postgres:
+    extensions:
+    - name: postgis
+    - name: timescaledb
 ```
 
 After adding an extension this way it will be downloaded and will become available:
