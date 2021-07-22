@@ -6,15 +6,15 @@ set_completed() {
   TRANSACTION_PROCESSED="$(grep '^\s*number of transactions actually processed: ' "$SHARED_PATH/$KEBAB_OP_NAME.out" \
     | sed 's/\s\+//g' | cut -d : -f 2 | cut -d / -f 1 | grep -v '^$' || echo null)"
   LATENCY_AVERAGE="$(grep '^\s*latency average = ' "$SHARED_PATH/$KEBAB_OP_NAME.out" \
-    | sed 's/\s\+//g' | cut -d = -f 2 | sed 's/[^0-9.]\+$//' | grep -v '^$' || echo null)"
+    | sed 's/\s\+//g' | cut -d = -f 2 | sed 's/[^0-9.]\+$//' | grep -v '^$' | format_measure || echo null)"
   LATENCY_STDDEV="$(grep '^\s*latency stddev = ' "$SHARED_PATH/$KEBAB_OP_NAME.out" \
-    | sed 's/\s\+//g' | cut -d = -f 2 | sed 's/[^0-9.]\+$//' | grep -v '^$' || echo null)"
+    | sed 's/\s\+//g' | cut -d = -f 2 | sed 's/[^0-9.]\+$//' | grep -v '^$' | format_measure || echo null)"
   TPS_INCLUDING_CONNECTIONS_ESTABLISHING="$(grep '^\s*tps = ' "$SHARED_PATH/$KEBAB_OP_NAME.out" \
     | grep '(including connections establishing)$' | sed 's/\s\+//g' | cut -d = -f 2 | cut -d '(' -f 1 \
-    | grep -v '^$' || echo null)"
+    | grep -v '^$' | format_measure || echo null)"
   TPS_EXCLUDING_CONNECTIONS_ESTABLISHING="$(grep '^\s*tps = ' "$SHARED_PATH/$KEBAB_OP_NAME.out" \
     | grep '(excluding connections establishing)$' | sed 's/\s\+//g' | cut -d = -f 2 | cut -d '(' -f 1 \
-    | grep -v '^$' || echo null)"
+    | grep -v '^$' | format_measure || echo null)"
   kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=json \
     -p "$(cat << EOF
 [
@@ -38,4 +38,9 @@ set_completed() {
 ]
 EOF
     )"
+}
+
+format_measure() {
+  read INPUT
+  LC_NUMERIC="en_US.UTF-8" printf '%.2f' $INPUT
 }
