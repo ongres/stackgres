@@ -395,30 +395,70 @@ spec:
                             The lantency results of the pgbench benchmark
                           properties:
                             average:
-                              type: number
-                              nullable: true
+                              type: object
                               description: |
-                                Average latency of transactions.
+                                Average latency of transactions
+                              properties:
+                                value: 
+                                  type: number
+                                  nullable: true
+                                  description: |
+                                    The latency average value
+                                unit: 
+                                  type: string
+                                  nullable: false
+                                  description: |
+                                    The latency measure unit represented by milliseconds
                             standardDeviation:
                               type: number
-                              nullable: true
                               description: |
-                                Stdandard deviation latency of transactions.
+                                The latency stdandard deviation of transactions.
+                              properties:
+                                value: 
+                                  type: number
+                                  nullable: true
+                                  description: |
+                                    The latency standard deviation value
+                                unit: 
+                                  type: string
+                                  nullable: false
+                                  description: |
+                                    The latency measure unit represented by milliseconds
                         transactionsPerSecond:
                           type: object
                           description: |
                             All the transactions per second results of the pgbench benchmark
                           properties:
                             includingConnectionsEstablishing:
-                              type: number
-                              nullable: true
+                              type: object
                               description: |
                                 Number of transaction per second including connection establishing.
+                              properties:
+                                value: 
+                                  type: number
+                                  nullable: true
+                                  description: |
+                                    The tps including connections establishing value
+                                unit: 
+                                  type: string
+                                  nullable: false
+                                  description: |
+                                    Transaction Per Second (tps) measure
                             excludingConnectionsEstablishing:
                               type: number
-                              nullable: true
                               description: |
                                 Number of transaction per second excluding connection establishing.
+                              properties:
+                                value: 
+                                  type: number
+                                  nullable: true
+                                  description: |
+                                    The tps excluding connections establishing value
+                                unit: 
+                                  type: string
+                                  nullable: false
+                                  description: |
+                                    Transaction Per Second (tps) measure
                 majorVersionUpgrade:
                   type: object
                   description: |
