@@ -7,10 +7,10 @@ package io.stackgres.operator.validation.backup;
 
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupSpec;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -26,7 +26,7 @@ class BackupConstraintValidationTest extends ConstraintValidationTest<BackupRevi
   @Override
   protected BackupReview getValidReview() {
     return JsonUtil.readFromJson("backup_allow_request/create.json",
-          BackupReview.class);
+        BackupReview.class);
   }
 
   @Override
@@ -39,22 +39,17 @@ class BackupConstraintValidationTest extends ConstraintValidationTest<BackupRevi
 
   @Test
   void nullSpec_shouldFail() {
-
     final BackupReview backupReview = getInvalidReview();
 
     checkNotNullErrorCause(StackGresBackup.class, "spec", backupReview);
-
   }
 
   @Test
-  void nullClusterName_shouldFail(){
-
+  void nullClusterName_shouldFail() {
     final BackupReview backupReview = getValidReview();
-
     backupReview.getRequest().getObject().getSpec().setSgCluster(null);
 
     checkNotNullErrorCause(StackGresBackupSpec.class, "spec.sgCluster", backupReview);
-
   }
 
 }

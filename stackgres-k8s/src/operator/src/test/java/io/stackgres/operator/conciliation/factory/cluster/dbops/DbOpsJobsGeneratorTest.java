@@ -41,7 +41,6 @@ class DbOpsJobsGeneratorTest {
 
   StackGresDbOps dbOps;
 
-
   @BeforeEach
   void setUp() {
     cluster = JsonUtil.readFromJson("stackgres_cluster/default.json",
@@ -59,7 +58,6 @@ class DbOpsJobsGeneratorTest {
 
   @Test
   void givenAContextWithASingleDbOpsWithoutRunAt_itShouldGenerateAJob() {
-
     StackGresClusterContext context = ImmutableStackGresClusterContext.builder()
         .source(cluster)
         .postgresConfig(clusterPgConfig)
@@ -78,7 +76,6 @@ class DbOpsJobsGeneratorTest {
 
   @Test
   void givenAContextWithNoDbOps_itShouldNotGenerateAJob() {
-
     StackGresClusterContext context = ImmutableStackGresClusterContext.builder()
         .source(cluster)
         .postgresConfig(clusterPgConfig)
@@ -94,7 +91,6 @@ class DbOpsJobsGeneratorTest {
 
   @Test
   void givenAContextWithADbOpsWithAPastRunAt_shouldGenerateAJob() {
-
     StackGresClusterContext context = ImmutableStackGresClusterContext.builder()
         .source(cluster)
         .postgresConfig(clusterPgConfig)
@@ -113,7 +109,6 @@ class DbOpsJobsGeneratorTest {
 
   @Test
   void givenAContextWithADbOpsWithAFutureRunAt_shouldNotGenerateAJob() {
-
     StackGresClusterContext context = ImmutableStackGresClusterContext.builder()
         .source(cluster)
         .postgresConfig(clusterPgConfig)
@@ -128,6 +123,5 @@ class DbOpsJobsGeneratorTest {
         .collect(Collectors.toUnmodifiableList());
 
     assertEquals(0, generatedResources.size());
-
   }
 }

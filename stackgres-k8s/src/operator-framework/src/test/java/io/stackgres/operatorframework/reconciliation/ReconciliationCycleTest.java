@@ -43,11 +43,12 @@ class ReconciliationCycleTest {
   private ResourceHandlerSelector<ResourceHandlerContext> handlerSelector;
 
   @Mock
-  private ReconciliationCycle<ResourceHandlerContext, CustomResource<?,?>, ResourceHandlerSelector<ResourceHandlerContext>> mockReconciliationCycle;
+  private ReconciliationCycle<ResourceHandlerContext, CustomResource<?, ?>,
+      ResourceHandlerSelector<ResourceHandlerContext>> mockReconciliationCycle;
 
   private ReconciliationCycle<?, ?, ?> reconciliationCycle;
 
-  private CustomResource<?,?> resource;
+  private CustomResource<?, ?> resource;
 
   @Mock
   private ResourceHandlerContext context;
@@ -79,8 +80,8 @@ class ReconciliationCycleTest {
     when(mockReconciliationCycle.getExistingContextResources())
         .thenReturn(ImmutableList.of(resource, resource));
     when(reconciliator.reconcile(any(), any()))
-      .thenThrow(RuntimeException.class)
-      .thenReturn(new ReconciliationResult<>());
+        .thenThrow(RuntimeException.class)
+        .thenReturn(new ReconciliationResult<>());
     ReconciliationCycleResult<?> result = reconciliationCycle.reconciliationCycle();
     Assertions.assertFalse(result.success());
     Assertions.assertEquals(Optional.empty(), result.getException());
@@ -88,7 +89,9 @@ class ReconciliationCycleTest {
     verify(reconciliator, times(2)).reconcile(any(), any());
   }
 
-  class TestReconciliationCycle extends ReconciliationCycle<ResourceHandlerContext, CustomResource<?,?>, ResourceHandlerSelector<ResourceHandlerContext>> {
+  class TestReconciliationCycle extends
+      ReconciliationCycle<ResourceHandlerContext, CustomResource<?, ?>,
+      ResourceHandlerSelector<ResourceHandlerContext>> {
 
     public TestReconciliationCycle(Supplier<KubernetesClient> clientSupplier,
         Reconciliator<ResourceHandlerContext> reconciliator,
@@ -111,7 +114,8 @@ class ReconciliationCycleTest {
     protected ResourceHandlerContext getContextWithExistingResourcesOnly(
         ResourceHandlerContext context,
         ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResourcesOnly) {
-      return mockReconciliationCycle.getContextWithExistingResourcesOnly(context, existingResourcesOnly);
+      return mockReconciliationCycle.getContextWithExistingResourcesOnly(context,
+          existingResourcesOnly);
     }
 
     @Override
@@ -124,7 +128,8 @@ class ReconciliationCycleTest {
         ResourceHandlerContext context,
         ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources,
         ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources) {
-      return mockReconciliationCycle.getContextWithExistingAndRequiredResources(context, requiredResources, existingResources);
+      return mockReconciliationCycle.getContextWithExistingAndRequiredResources(context,
+          requiredResources, existingResources);
     }
 
     @Override

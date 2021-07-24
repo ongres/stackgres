@@ -6,18 +6,20 @@
 package io.stackgres.operator.validation.backupconfig;
 
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.validation.AbstractDefaultConfigKeeper;
 import io.stackgres.operator.validation.DefaultKeeperTest;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DefaultBackupConfigKeeperTest extends DefaultKeeperTest<StackGresBackupConfig, BackupConfigReview> {
+class DefaultBackupConfigKeeperTest
+    extends DefaultKeeperTest<StackGresBackupConfig, BackupConfigReview> {
 
   @Override
-  protected AbstractDefaultConfigKeeper<StackGresBackupConfig, BackupConfigReview> getValidatorInstance() {
+  protected AbstractDefaultConfigKeeper<StackGresBackupConfig, BackupConfigReview>
+      getValidatorInstance() {
     return new DefaultBackupConfigKeeper();
   }
 

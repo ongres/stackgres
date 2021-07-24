@@ -6,9 +6,7 @@
 package io.stackgres.apiweb.rest;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -32,7 +30,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.jooq.lambda.Seq;
-import org.jooq.lambda.tuple.Tuple;
 
 @Path("sgbackupconfigs")
 @RequestScoped

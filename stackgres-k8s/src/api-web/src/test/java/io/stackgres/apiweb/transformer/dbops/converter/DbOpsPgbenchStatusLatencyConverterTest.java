@@ -26,21 +26,21 @@ class DbOpsPgbenchStatusLatencyConverterTest {
   }
 
   @Test
-  void shouldConvertFromSGDbOpsPgbenchStatusLatency_ToDbOpsPgbenchStatusLatency() {
+  void shouldConvertFromSgDbOpsPgbenchStatusLatency_ToDbOpsPgbenchStatusLatency() {
     DbOpsPgbenchStatusLatency dto = converter.from(sgDbOpsPgbenchStatus);
-    
+
     assertEquals(dto.getAverage().getValue(),
         sgDbOpsPgbenchStatus.getAverage().getValue());
     assertEquals(dto.getAverage().getUnit(),
         sgDbOpsPgbenchStatus.getAverage().getUnit());
-    assertEquals(dto.getStandardDeviation().getValue(), 
+    assertEquals(dto.getStandardDeviation().getValue(),
         sgDbOpsPgbenchStatus.getStandardDeviation().getValue());
     assertEquals(dto.getStandardDeviation().getUnit(),
         sgDbOpsPgbenchStatus.getStandardDeviation().getUnit());
   }
-  
+
   @Test
-  void shouldReturnNull_whenSGDbOpsPgbenchStatusLatencyIsNull() {
+  void shouldReturnNull_whenSgDbOpsPgbenchStatusLatencyIsNull() {
     assertNull(converter.from(null));
   }
 

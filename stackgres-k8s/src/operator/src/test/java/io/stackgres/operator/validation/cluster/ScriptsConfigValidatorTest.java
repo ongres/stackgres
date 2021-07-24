@@ -53,27 +53,24 @@ class ScriptsConfigValidatorTest {
 
   @Test
   void givenAValidCreation_shouldPass() throws ValidationFailed {
-
     final StackGresClusterReview review = getCreationReview();
 
     prepareForScript(review, "test", "CREATE DATABASE test;");
 
     validator.validate(review);
-
   }
 
   @Test
   void givenAnUpdate_shouldFail() {
-
     final StackGresClusterReview review = getUpdateReview();
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
         "Cannot update cluster's scripts configuration");
-
   }
 
   @Test
-  void givenACreationUsingScriptFromSecret_shouldValidateSecretKeyReference() throws ValidationFailed {
+  void givenACreationUsingScriptFromSecret_shouldValidateSecretKeyReference()
+      throws ValidationFailed {
     final StackGresClusterReview review = getCreationReview();
 
     String randomSecretKey = StringUtil.generateRandom();
@@ -97,7 +94,6 @@ class ScriptsConfigValidatorTest {
     final List<StackGresClusterScriptEntry> scripts = cluster.getSpec().getInitData().getScripts();
     verify(secretFinder, times(scripts.size()))
         .findByNameAndNamespace(randomSecretName, namespace);
-
   }
 
   @Test
@@ -119,7 +115,6 @@ class ScriptsConfigValidatorTest {
         "Referenced Secret " + randomSecretName + " does not exists in namespace " + namespace);
 
     verify(secretFinder).findByNameAndNamespace(randomSecretName, namespace);
-
   }
 
   @Test
@@ -142,17 +137,16 @@ class ScriptsConfigValidatorTest {
             .withData(ImmutableMap.of())
             .build()));
 
-
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
         ErrorType.INVALID_CR_REFERENCE,
         "Key " + randomSecretKey + " does not exists in Secret " + randomSecretName);
 
     verify(secretFinder).findByNameAndNamespace(randomSecretName, namespace);
-
   }
 
   @Test
-  void givenACreationUsingScriptsFromPlainConfigMap_shouldValidateConfigMapReference() throws ValidationFailed {
+  void givenACreationUsingScriptsFromPlainConfigMap_shouldValidateConfigMapReference()
+      throws ValidationFailed {
 
     final StackGresClusterReview review = getCreationReview();
 
@@ -181,8 +175,8 @@ class ScriptsConfigValidatorTest {
   }
 
   @Test
-  void givenACreationUsingScriptsFromBinaryConfigMap_shouldValidateConfigMapReference() throws ValidationFailed {
-
+  void givenACreationUsingScriptsFromBinaryConfigMap_shouldValidateConfigMapReference()
+      throws ValidationFailed {
     final StackGresClusterReview review = getCreationReview();
 
     String randomConfigMapName = StringUtil.generateRandom();
@@ -211,7 +205,6 @@ class ScriptsConfigValidatorTest {
 
   @Test
   void givenACreationUsingScriptsFromNonexistentConfigMap_shouldFail() throws ValidationFailed {
-
     final StackGresClusterReview review = getCreationReview();
 
     String randomConfigMapName = StringUtil.generateRandom();
@@ -227,7 +220,8 @@ class ScriptsConfigValidatorTest {
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
         ErrorType.INVALID_CR_REFERENCE,
-        "Referenced ConfigMap " + randomConfigMapName + " does not exists in namespace " + namespace);
+        "Referenced ConfigMap " + randomConfigMapName + " does not exists in namespace "
+            + namespace);
 
     verify(configMapFinder)
         .findByNameAndNamespace(randomConfigMapName, namespace);
@@ -235,7 +229,6 @@ class ScriptsConfigValidatorTest {
 
   @Test
   void givenACreationUsingScriptsFromNonexistentConfigMapKey_shouldFail() throws ValidationFailed {
-
     final StackGresClusterReview review = getCreationReview();
 
     String randomConfigMapName = StringUtil.generateRandom();

@@ -26,16 +26,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 @DockerExtension({
-  @DockerContainer(
-      alias = "k8s",
-      extendedBy = K8sConfiguration.class,
-      whenReuse = WhenReuse.ALWAYS,
-      stopIfChanged = true)
+    @DockerContainer(
+        alias = "k8s",
+        extendedBy = K8sConfiguration.class,
+        whenReuse = WhenReuse.ALWAYS,
+        stopIfChanged = true)
 })
 @EnabledIfEnvironmentVariable(named = "ENABLE_IT", matches = "true")
 public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
 
-  private final String CLUSTER_NAME = "stackgres";
+  private static final String CLUSTER_NAME = "stackgres";
 
   @Test
   public void createClusterTest(@ContainerParam("k8s") Container k8s) throws Exception {
@@ -50,8 +50,6 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
     ItHelper.deleteStackGresCluster(k8s, namespace, CLUSTER_NAME);
     checkStackGresEvent(k8s, ClusterEventReason.CLUSTER_DELETED, Service.class);
     checkStackGresClusterDeletion(k8s);
-
-
   }
 
   private void checkStackGresEvent(Container k8s, EventReason eventReason,
@@ -104,7 +102,8 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
               + CLUSTER_NAME + "-" + instance + " -c postgres-util --"
               + " sh -c \"PGPASSWORD=$(kubectl get secret " + CLUSTER_NAME + " -n " + namespace
               + " -o yaml | grep superuser-password | cut -d ':' -f 2 | tr -d ' ' | base64 -d)"
-              + " psql -t -A -U postgres -d postgres -p " + EnvoyUtil.PG_ENTRY_PORT + " -h localhost"
+              + " psql -t -A -U postgres -d postgres -p " + EnvoyUtil.PG_ENTRY_PORT
+              + " -h localhost"
               + " -c 'SELECT 1'\"")),
           s -> s.anyMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
           s -> Assertions.fail(
@@ -130,17 +129,18 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
   private void checkStackGresBackups(Container k8s)
       throws InterruptedException, Exception {
     String currentWalFileName = k8s.execute("sh", "-l", "-c",
-        "kubectl exec -t -n " + namespace + " "+ CLUSTER_NAME + "-" + 0
-        + " -c postgres-util -- sh -c \"psql -t -A -U postgres -p " + EnvoyUtil.PG_PORT
-        + " -c 'SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r'\"")
+        "kubectl exec -t -n " + namespace + " " + CLUSTER_NAME + "-" + 0
+            + " -c postgres-util -- sh -c \"psql -t -A -U postgres -p " + EnvoyUtil.PG_PORT
+            + " -c 'SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r'\"")
         .filter(ItHelper.EXCLUDE_TTY_WARNING)
         .findFirst()
         .get();
     ItHelper.waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
-        "kubectl exec -t -n " + namespace + " "+ CLUSTER_NAME + "-" + 0
-        + " -c postgres-util -- sh -c \"psql -t -A -U postgres -p " + EnvoyUtil.PG_PORT
-        + " -c 'SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r'\"")),
-        s -> s.anyMatch(newWalFileName -> newWalFileName.equals(currentWalFileName)), 60, ChronoUnit.SECONDS,
+        "kubectl exec -t -n " + namespace + " " + CLUSTER_NAME + "-" + 0
+            + " -c postgres-util -- sh -c \"psql -t -A -U postgres -p " + EnvoyUtil.PG_PORT
+            + " -c 'SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r'\"")),
+        s -> s.anyMatch(newWalFileName -> newWalFileName.equals(currentWalFileName)), 60,
+        ChronoUnit.SECONDS,
         s -> Assertions.fail(
             "Timeout while waiting switch of wal file " + currentWalFileName + ":\n"
                 + s.collect(Collectors.joining("\n"))));

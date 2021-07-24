@@ -10,17 +10,17 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 
 public class StackGresClusterSpecFixture {
 
-	private StackGresClusterPod pod;
+  private StackGresClusterPod pod;
 
-	public StackGresClusterSpec build() {
-		StackGresClusterSpec spec = new StackGresClusterSpec();
-		spec.setPod(this.pod);
-		return spec;
-	}
+  public StackGresClusterSpec build() {
+    StackGresClusterSpec spec = new StackGresClusterSpec();
+    spec.setPod(this.pod);
+    return spec;
+  }
 
-	public StackGresClusterSpecFixture withPod(StackGresClusterPod pod) {
-		this.pod = pod;
-		return this;
-	}
+  public StackGresClusterSpecFixture withPod(StackGresClusterPod pod) {
+    this.pod = pod;
+    return this;
+  }
 
 }

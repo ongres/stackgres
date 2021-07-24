@@ -18,7 +18,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class PgBouncerDefaultStateMutatorTest extends DefaultStateMutatorTest<StackGresPoolingConfig, PoolingReview> {
+class PgBouncerDefaultStateMutatorTest
+    extends DefaultStateMutatorTest<StackGresPoolingConfig, PoolingReview> {
 
   @Override
   protected DefaultStateMutator<StackGresPoolingConfig, PoolingReview> getMutatorInstance() {
@@ -59,6 +60,5 @@ class PgBouncerDefaultStateMutatorTest extends DefaultStateMutatorTest<StackGres
   protected Map<String, String> getConfigParameters(StackGresPoolingConfig resource) {
     return resource.getSpec().getPgBouncer().getPgbouncerConf();
   }
-
 
 }

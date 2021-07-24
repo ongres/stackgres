@@ -9,14 +9,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
-import java.util.Optional;
-
-import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.dto.backupconfig.BackupConfigDto;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
@@ -24,7 +18,6 @@ import io.stackgres.apiweb.transformer.BackupConfigTransformer;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigList;
 import io.stackgres.common.resource.ResourceFinder;
-import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,9 +27,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class BackupConfigResourceTest
-    extends
-    AbstractDependencyCustomResourceTest<BackupConfigDto, StackGresBackupConfig, BackupConfigResource, NamespacedBackupConfigResource> {
+class BackupConfigResourceTest extends AbstractDependencyCustomResourceTest
+      <BackupConfigDto, StackGresBackupConfig,
+      BackupConfigResource, NamespacedBackupConfigResource> {
 
   @Mock
   private ResourceFinder<Secret> secretFinder;
@@ -63,7 +56,8 @@ class BackupConfigResourceTest
   }
 
   @Override
-  protected AbstractDependencyResourceTransformer<BackupConfigDto, StackGresBackupConfig> getTransformer() {
+  protected AbstractDependencyResourceTransformer<BackupConfigDto, StackGresBackupConfig>
+      getTransformer() {
     return new BackupConfigTransformer();
   }
 
@@ -141,12 +135,18 @@ class BackupConfigResourceTest
     assertNull(resource.getSpec().getStorage().getS3());
     assertNotNull(resource.getSpec().getStorage().getS3Compatible());
     assertNotNull(resource.getSpec().getStorage().getS3Compatible().getCredentials());
-    assertNotNull(resource.getSpec().getStorage().getS3Compatible().getCredentials().getSecretKeySelectors().getAccessKeyId());
-    assertEquals("minio", resource.getSpec().getStorage().getS3Compatible().getCredentials().getSecretKeySelectors().getAccessKeyId().getName());
-    assertEquals("accesskey", resource.getSpec().getStorage().getS3Compatible().getCredentials().getSecretKeySelectors().getAccessKeyId().getKey());
-    assertNotNull(resource.getSpec().getStorage().getS3Compatible().getCredentials().getSecretKeySelectors().getSecretAccessKey());
-    assertEquals("minio", resource.getSpec().getStorage().getS3Compatible().getCredentials().getSecretKeySelectors().getSecretAccessKey().getName());
-    assertEquals("secretkey", resource.getSpec().getStorage().getS3Compatible().getCredentials().getSecretKeySelectors().getSecretAccessKey().getKey());
+    assertNotNull(resource.getSpec().getStorage().getS3Compatible().getCredentials()
+        .getSecretKeySelectors().getAccessKeyId());
+    assertEquals("minio", resource.getSpec().getStorage().getS3Compatible().getCredentials()
+        .getSecretKeySelectors().getAccessKeyId().getName());
+    assertEquals("accesskey", resource.getSpec().getStorage().getS3Compatible().getCredentials()
+        .getSecretKeySelectors().getAccessKeyId().getKey());
+    assertNotNull(resource.getSpec().getStorage().getS3Compatible().getCredentials()
+        .getSecretKeySelectors().getSecretAccessKey());
+    assertEquals("minio", resource.getSpec().getStorage().getS3Compatible().getCredentials()
+        .getSecretKeySelectors().getSecretAccessKey().getName());
+    assertEquals("secretkey", resource.getSpec().getStorage().getS3Compatible().getCredentials()
+        .getSecretKeySelectors().getSecretAccessKey().getKey());
     assertEquals("http://minio.stackgres.svc:9000",
         resource.getSpec().getStorage().getS3Compatible().getEndpoint());
     assertEquals("stackgres", resource.getSpec().getStorage().getS3Compatible().getBucket());

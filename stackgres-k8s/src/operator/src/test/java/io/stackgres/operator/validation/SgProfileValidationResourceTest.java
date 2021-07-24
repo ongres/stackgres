@@ -5,10 +5,9 @@
 
 package io.stackgres.operator.validation;
 
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,36 +19,31 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @RunWith(MockitoJUnitRunner.class)
 class SgProfileValidationResourceTest extends ValidationResourceTest<SgProfileReview> {
 
-    @BeforeEach
-    public void setUp() {
-        final SgProfileValidationResource resource = new SgProfileValidationResource();
-        resource.setPipeline(pipeline);
-        this.resource = resource;
+  @BeforeEach
+  public void setUp() {
+    final SgProfileValidationResource resource = new SgProfileValidationResource();
+    resource.setPipeline(pipeline);
+    this.resource = resource;
 
-        review = JsonUtil
-                .readFromJson("sgprofile_allow_request/create.json", SgProfileReview.class);
+    review = JsonUtil
+        .readFromJson("sgprofile_allow_request/create.json", SgProfileReview.class);
 
-        deleteReview = JsonUtil
-                .readFromJson("sgprofile_allow_request/delete.json", SgProfileReview.class);
-    }
+    deleteReview = JsonUtil
+        .readFromJson("sgprofile_allow_request/delete.json", SgProfileReview.class);
+  }
 
-    @Test
-    void givenAnValidAdmissionReview_itShouldReturnASuccessfulResponse() throws ValidationFailed {
+  @Test
+  void givenAnValidAdmissionReview_itShouldReturnASuccessfulResponse() throws ValidationFailed {
+    super.givenAnValidAdmissionReview_itShouldReturnASuccessfulResponse();
+  }
 
-        super.givenAnValidAdmissionReview_itShouldReturnASuccessfulResponse();
+  @Test
+  void givenAnInvalidAdmissionReview_itShouldReturnAFailedResponse() throws ValidationFailed {
+    super.givenAnInvalidAdmissionReview_itShouldReturnAFailedResponse();
+  }
 
-    }
-
-    @Test
-    void givenAnInvalidAdmissionReview_itShouldReturnAFailedResponse() throws ValidationFailed {
-
-        super.givenAnInvalidAdmissionReview_itShouldReturnAFailedResponse();
-
-    }
-
-    @Test
-    void givenAnDeletionReview_itShouldNotFail() throws ValidationFailed {
-        super.givenAnDeletionReview_itShouldNotFail();
-
-    }
+  @Test
+  void givenAnDeletionReview_itShouldNotFail() throws ValidationFailed {
+    super.givenAnDeletionReview_itShouldNotFail();
+  }
 }

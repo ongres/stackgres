@@ -77,14 +77,14 @@ class ClusterWatcherTest {
                     .port(5432)
                     .host(pod.getMetadata().getName())
                     .state(MemberState.RUNNING)
-                    .role(StackGresContext.PRIMARY_ROLE.equals(pod.getMetadata().getLabels().get(StackGresContext.ROLE_KEY))
-                        ? MemberRole.LEADER : MemberRole.REPlICA)
+                    .role(StackGresContext.PRIMARY_ROLE
+                        .equals(pod.getMetadata().getLabels().get(StackGresContext.ROLE_KEY))
+                            ? MemberRole.LEADER
+                            : MemberRole.REPlICA)
                     .lag(0)
                     .timeline(1)
                     .build())
-                .collect(Collectors.toUnmodifiableList())
-        )
-    );
+                .collect(Collectors.toUnmodifiableList())));
 
     clusterWatcher.waitUntilIsReady(clusterName, namespace)
         .await().atMost(Duration.ofSeconds(1));
@@ -107,14 +107,14 @@ class ClusterWatcherTest {
                     .port(5432)
                     .host(pod.getMetadata().getName())
                     .state(MemberState.RUNNING)
-                    .role(StackGresContext.PRIMARY_ROLE.equals(pod.getMetadata().getLabels().get(StackGresContext.ROLE_KEY))
-                        ? MemberRole.LEADER : MemberRole.REPlICA)
+                    .role(StackGresContext.PRIMARY_ROLE
+                        .equals(pod.getMetadata().getLabels().get(StackGresContext.ROLE_KEY))
+                            ? MemberRole.LEADER
+                            : MemberRole.REPlICA)
                     .lag(0)
                     .timeline(1)
                     .build())
-                .collect(Collectors.toUnmodifiableList())
-        )
-    );
+                .collect(Collectors.toUnmodifiableList())));
 
     assertThrows(TimeoutException.class,
         () -> clusterWatcher.waitUntilIsReady(clusterName, namespace)
@@ -136,14 +136,14 @@ class ClusterWatcherTest {
                     .port(5432)
                     .host(pod.getMetadata().getName())
                     .state(MemberState.STOPPED)
-                    .role(StackGresContext.PRIMARY_ROLE.equals(pod.getMetadata().getLabels().get(StackGresContext.ROLE_KEY))
-                        ? MemberRole.LEADER : MemberRole.REPlICA)
+                    .role(StackGresContext.PRIMARY_ROLE
+                        .equals(pod.getMetadata().getLabels().get(StackGresContext.ROLE_KEY))
+                            ? MemberRole.LEADER
+                            : MemberRole.REPlICA)
                     .lag(0)
                     .timeline(1)
                     .build())
-                .collect(Collectors.toUnmodifiableList())
-        )
-    );
+                .collect(Collectors.toUnmodifiableList())));
 
     assertThrows(TimeoutException.class,
         () -> clusterWatcher.waitUntilIsReady(clusterName, namespace)
@@ -151,7 +151,8 @@ class ClusterWatcherTest {
   }
 
   @Test
-  void givenAClusterThatLaterBecameReady_shouldPass() throws InterruptedException, ExecutionException {
+  void givenAClusterThatLaterBecameReady_shouldPass()
+      throws InterruptedException, ExecutionException {
     podTestUtil.preparePods(cluster, 1, 2);
 
     when(patroniApiHandler.getClusterMembers(clusterName, namespace)).thenReturn(
@@ -165,14 +166,14 @@ class ClusterWatcherTest {
                     .port(5432)
                     .host(pod.getMetadata().getName())
                     .state(MemberState.RUNNING)
-                    .role(StackGresContext.PRIMARY_ROLE.equals(pod.getMetadata().getLabels().get(StackGresContext.ROLE_KEY))
-                        ? MemberRole.LEADER : MemberRole.REPlICA)
+                    .role(StackGresContext.PRIMARY_ROLE
+                        .equals(pod.getMetadata().getLabels().get(StackGresContext.ROLE_KEY))
+                            ? MemberRole.LEADER
+                            : MemberRole.REPlICA)
                     .lag(0)
                     .timeline(1)
                     .build())
-                .collect(Collectors.toUnmodifiableList())
-        )
-    );
+                .collect(Collectors.toUnmodifiableList())));
 
     CompletableFuture<StackGresCluster> clusterReady = new CompletableFuture<>();
 

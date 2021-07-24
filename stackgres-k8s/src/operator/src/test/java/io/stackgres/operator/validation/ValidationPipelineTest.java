@@ -38,20 +38,16 @@ public abstract class ValidationPipelineTest<R extends CustomResource<?, ?>,
   @Test
   void constraintViolations_shouldBeDetected() {
     T review = getConstraintViolatingReview();
-
     ValidationUtils
         .assertErrorType(ErrorType.CONSTRAINT_VIOLATION, () -> getPipeline().validate(review));
-
   }
 
   @Test
   void updatesWithNoChanges_shouldBeValidated() throws ValidationFailed {
-
     T review = getConstraintViolatingReview();
     review.getRequest().setOperation(Operation.UPDATE);
     review.getRequest().setOldObject(getConstraintViolatingReview().getRequest().getObject());
     getPipeline().validate(review);
-
   }
 
 }

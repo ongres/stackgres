@@ -16,20 +16,20 @@ import io.stackgres.testutil.KubernetesServerSupplier;
 
 @Mock
 @ApplicationScoped
-public class MockKubernetesClientFactory  implements KubernetesClientFactory {
+public class MockKubernetesClientFactory implements KubernetesClientFactory {
 
   private final KubernetesServerSupplier serverSupplier = new KubernetesServerSupplier();
 
   @PostConstruct
-  public void setup() throws Exception {
-  }
+  public void setup() throws Exception {}
+
   @Override
   public KubernetesClient create() {
     return serverSupplier.get().getClient();
   }
 
   @PreDestroy
-  public void cleanUp(){
+  public void cleanUp() {
     if (serverSupplier.wasRetrieved()) {
       serverSupplier.get().after();
     }

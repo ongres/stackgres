@@ -33,7 +33,8 @@ public class MockKubeDb {
   private static final String PENDING_FAILURES = "pendingFailures";
 
   private final Map<Tuple2<Class<?>, String>, CustomResource<?, ?>> customResourceMap;
-  private final Map<Tuple2<Class<?>, String>, List<Consumer<CustomResource<?, ?>>>> customResourceWatchers;
+  private final Map<Tuple2<Class<?>, String>, List<Consumer<CustomResource<?, ?>>>>
+      customResourceWatchers;
 
   public MockKubeDb() {
     this.customResourceMap = new HashMap<>();
@@ -54,13 +55,15 @@ public class MockKubeDb {
     return Tuple.tuple(customResourceClass, String.format(KEY_FORMAT, namespace, name));
   }
 
-  private <T extends CustomResource<?, ?>> T getCustomResource(T customResource, Class<T> customResourceClass) {
+  private <T extends CustomResource<?, ?>> T getCustomResource(T customResource,
+      Class<T> customResourceClass) {
     var key = getResourceKey(customResource.getMetadata().getName(),
         customResource.getMetadata().getNamespace(), customResourceClass);
     return customResourceClass.cast(customResourceMap.get(key));
   }
 
-  private <T extends CustomResource<?, ?>> T getCustomResource(String name, String namespace, Class<T> customResourceClass) {
+  private <T extends CustomResource<?, ?>> T getCustomResource(String name, String namespace,
+      Class<T> customResourceClass) {
     var key = getResourceKey(name, namespace, customResourceClass);
     return customResourceClass.cast(customResourceMap.get(key));
   }
@@ -78,11 +81,13 @@ public class MockKubeDb {
     }
   }
 
-  private <T extends CustomResource<?, ?>> T copyCustomResource(String name, String namespace, Class<T> customResourceClass) {
+  private <T extends CustomResource<?, ?>> T copyCustomResource(String name, String namespace,
+      Class<T> customResourceClass) {
     return copy(getCustomResource(name, namespace, customResourceClass), customResourceClass);
   }
 
-  private <T extends CustomResource<?, ?>> T addOrReplaceCustomResource(T customResource, Class<T> customResourceClass) {
+  private <T extends CustomResource<?, ?>> T addOrReplaceCustomResource(T customResource,
+      Class<T> customResourceClass) {
     final T storedCustomResource = getCustomResource(customResource, customResourceClass);
     final T customResourceCopy = copy(customResource, customResourceClass);
     var customResourceKey = getResourceKey(customResource, customResourceClass);
@@ -101,7 +106,8 @@ public class MockKubeDb {
         int updatedVersion = Integer.parseInt(oldVersion) + 1;
         customResourceCopy.getMetadata().setResourceVersion(Integer.toString(updatedVersion));
       } else {
-        throw new IllegalArgumentException(customResourceClass.getSimpleName() + " override with data loss");
+        throw new IllegalArgumentException(
+            customResourceClass.getSimpleName() + " override with data loss");
       }
     } else {
       customResourceCopy.getMetadata().setResourceVersion("1");
@@ -127,12 +133,21 @@ public class MockKubeDb {
         .accept(customResourceClass.cast(customResource)));
   }
 
-  private <T extends CustomResource<?, ?>> void delete(T customResource, Class<T> customResourceClass) {
+  private <T extends CustomResource<?, ?>> void delete(T customResource,
+      Class<T> customResourceClass) {
     var customResourceKey = getResourceKey(customResource, customResourceClass);
     var deleted = customResourceMap.remove(customResourceKey);
     if (customResourceWatchers.containsKey(customResourceKey)) {
       customResourceWatchers.get(customResourceKey).forEach(consumer -> consumer.accept(deleted));
     }
+  }
+
+  public void delete(StackGresCluster cluster) {
+    delete(cluster, StackGresCluster.class);
+  }
+
+  public void delete(StackGresDbOps dbOps) {
+    delete(dbOps, StackGresDbOps.class);
   }
 
   public StackGresCluster getCluster(String name, String namespace) {
@@ -147,10 +162,6 @@ public class MockKubeDb {
     watchCustomResource(name, namespace, consumer, StackGresCluster.class);
   }
 
-  public void delete(StackGresCluster cluster) {
-    delete(cluster, StackGresCluster.class);
-  }
-
   public StackGresDbOps getDbOps(String name, String namespace) {
     return copyCustomResource(name, namespace, StackGresDbOps.class);
   }
@@ -163,16 +174,12 @@ public class MockKubeDb {
     watchCustomResource(name, namespace, consumer, StackGresDbOps.class);
   }
 
-  public void delete(StackGresDbOps dbOps) {
-    delete(dbOps, StackGresDbOps.class);
-  }
-
   public void introduceReplaceFailures(int i, StackGresCluster cluster) {
     StackGresCluster storedCluster = getCustomResource(cluster, StackGresCluster.class);
     int pendingFailures =
         Optional.ofNullable((Integer) storedCluster
             .getMetadata().getAdditionalProperties().get(PENDING_FAILURES))
-        .orElse(0) + 1;
+            .orElse(0) + 1;
     storedCluster.getMetadata().getAdditionalProperties().put(PENDING_FAILURES, pendingFailures);
   }
 

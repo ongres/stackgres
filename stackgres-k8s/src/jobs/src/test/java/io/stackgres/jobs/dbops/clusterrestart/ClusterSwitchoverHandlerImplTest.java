@@ -34,7 +34,6 @@ class ClusterSwitchoverHandlerImplTest {
   @InjectMock
   PatroniApiHandlerImpl patroniApiHandler;
 
-
   @Test
   void switchover_shouldScanTheMembersBeforeDoASwitchOver() {
 
@@ -64,8 +63,7 @@ class ClusterSwitchoverHandlerImplTest {
     when(patroniApiHandler.getClusterMembers(TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME))
         .thenReturn(Uni.createFrom().item(List.of(
             leader,
-            replica)
-        ));
+            replica)));
 
     when(patroniApiHandler.performSwitchover(leader, replica))
         .thenReturn(Uni.createFrom().voidItem());
@@ -78,7 +76,6 @@ class ClusterSwitchoverHandlerImplTest {
     order.verify(patroniApiHandler).getClusterMembers(TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME);
     order.verify(patroniApiHandler).performSwitchover(any(), any());
   }
-
 
   @Test
   void switchover_shouldPickTheRunningReplicaWithLeastAmountOfLag() {
@@ -174,8 +171,7 @@ class ClusterSwitchoverHandlerImplTest {
                 .apiUrl("http://127.0.0.1:8008/patroni")
                 .port(7433)
                 .timeline(1)
-                .build()
-        )));
+                .build())));
 
     switchoverHandler.performSwitchover("member-0", TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME)
         .await().indefinitely();
@@ -209,11 +205,11 @@ class ClusterSwitchoverHandlerImplTest {
                 .host("127.0.0.2")
                 .apiUrl("http://127.0.0.4:8008/patroni")
                 .port(7433)
-                .build()
-        )));
+                .build())));
 
     assertThrows(FailoverException.class,
-        () -> switchoverHandler.performSwitchover("member-0", TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME)
+        () -> switchoverHandler
+            .performSwitchover("member-0", TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME)
             .await().indefinitely());
 
     verify(patroniApiHandler).getClusterMembers(any(), any());
@@ -221,7 +217,7 @@ class ClusterSwitchoverHandlerImplTest {
   }
 
   @Test
-  void ifTheLeaderNameDoesNotMatch_switchoverShouldBeSkipped(){
+  void ifTheLeaderNameDoesNotMatch_switchoverShouldBeSkipped() {
 
     final ClusterMember leader = ImmutableClusterMember.builder()
         .name("member-0")
@@ -249,8 +245,7 @@ class ClusterSwitchoverHandlerImplTest {
     when(patroniApiHandler.getClusterMembers(TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME))
         .thenReturn(Uni.createFrom().item(List.of(
             leader,
-            replica)
-        ));
+            replica)));
 
     when(patroniApiHandler.performSwitchover(leader, replica))
         .thenReturn(Uni.createFrom().voidItem());

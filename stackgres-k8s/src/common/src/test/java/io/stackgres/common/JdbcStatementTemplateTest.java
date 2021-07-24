@@ -21,7 +21,8 @@ class JdbcStatementTemplateTest {
 
     assertEquals("SELECT 1", template.getStatement());
     assertThrows(IllegalArgumentException.class, () -> template.getIndexes("test"));
-    assertThrows(IllegalArgumentException.class, () -> template.getStatement(ImmutableMap.of("test", "value")));
+    assertThrows(IllegalArgumentException.class,
+        () -> template.getStatement(ImmutableMap.of("test", "value")));
   }
 
   @Test
@@ -30,7 +31,8 @@ class JdbcStatementTemplateTest {
 
     assertEquals("SELECT ?", template.getStatement());
     assertIterableEquals(ImmutableList.of(1), template.getIndexes("test"));
-    assertThrows(IllegalArgumentException.class, () -> template.getStatement(ImmutableMap.of("test", "value")));
+    assertThrows(IllegalArgumentException.class,
+        () -> template.getStatement(ImmutableMap.of("test", "value")));
   }
 
   @Test
@@ -49,12 +51,14 @@ class JdbcStatementTemplateTest {
   }
 
   @Test
-  void templateWithSpecialCharactersAndParameter_shouldRenderWithCharactersUnescapedAndPlaceholders() {
-    JdbcStatementTemplate template = new JdbcStatementTemplate("SELECT \\${test}, \\, \\\\, ${test}");
+  void templateWithSpecialCharactersAndParameter_shouldRenderWithCharsUnescapedAndPlaceholders() {
+    JdbcStatementTemplate template =
+        new JdbcStatementTemplate("SELECT \\${test}, \\, \\\\, ${test}");
 
     assertEquals("SELECT ${test}, \\, \\, ?", template.getStatement());
     assertIterableEquals(ImmutableList.of(1), template.getIndexes("test"));
-    assertThrows(IllegalArgumentException.class, () -> template.getStatement(ImmutableMap.of("test", "value")));
+    assertThrows(IllegalArgumentException.class,
+        () -> template.getStatement(ImmutableMap.of("test", "value")));
   }
 
   @Test
@@ -64,8 +68,10 @@ class JdbcStatementTemplateTest {
     assertEquals("SELECT ?, ?", template.getStatement());
     assertIterableEquals(ImmutableList.of(1), template.getIndexes("test1"));
     assertIterableEquals(ImmutableList.of(2), template.getIndexes("test2"));
-    assertThrows(IllegalArgumentException.class, () -> template.getStatement(ImmutableMap.of("test1", "value")));
-    assertThrows(IllegalArgumentException.class, () -> template.getStatement(ImmutableMap.of("test2", "value")));
+    assertThrows(IllegalArgumentException.class,
+        () -> template.getStatement(ImmutableMap.of("test1", "value")));
+    assertThrows(IllegalArgumentException.class,
+        () -> template.getStatement(ImmutableMap.of("test2", "value")));
   }
 
   @Test
@@ -74,7 +80,8 @@ class JdbcStatementTemplateTest {
 
     assertEquals("SELECT ?, ?", template.getStatement());
     assertIterableEquals(ImmutableList.of(1, 2), template.getIndexes("test"));
-    assertThrows(IllegalArgumentException.class, () -> template.getStatement(ImmutableMap.of("test", "value")));
+    assertThrows(IllegalArgumentException.class,
+        () -> template.getStatement(ImmutableMap.of("test", "value")));
   }
 
 }

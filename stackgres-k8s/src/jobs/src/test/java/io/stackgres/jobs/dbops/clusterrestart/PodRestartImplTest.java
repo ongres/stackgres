@@ -79,7 +79,7 @@ class PodRestartImplTest {
             .build()));
 
     podRestart.restartPod(pod).await().indefinitely();
-    
+
     InOrder inOrder = Mockito.inOrder(podWriter, podWatcher);
     inOrder.verify(podWriter).delete(pod);
     inOrder.verify(podWatcher).waitUntilIsReplaced(pod);
@@ -122,18 +122,18 @@ class PodRestartImplTest {
   void ifPodDeletionsFails_waitUntilIsCreatedShouldNotBeCalled() {
     doThrow(new RuntimeException())
         .when(podWriter).delete(pod);
-    
+
     try {
       podRestart.restartPod(pod).await().indefinitely();
       fail("Exception on delete should be raised");
-    } catch (Exception e){
+    } catch (Exception e) {
       verify(podWriter).delete(pod);
       verify(podWatcher, never()).waitUntilIsReplaced(any());
       verify(podWatcher, never()).waitUntilIsReady(anyString(), anyString());
-    }    
+    }
   }
 
-   @Test
+  @Test
   void ifReadinessWaitFailed_idShouldThrownAnException() {
 
     String podName = pod.getMetadata().getName();
@@ -142,10 +142,10 @@ class PodRestartImplTest {
     doNothing().when(podWriter)
         .delete(pod);
 
-     when(podWatcher.waitUntilIsRemoved(podName, podNamespace))
-         .thenReturn(Uni.createFrom().voidItem());
+    when(podWatcher.waitUntilIsRemoved(podName, podNamespace))
+        .thenReturn(Uni.createFrom().voidItem());
 
-     when(podWatcher.waitUntilIsReady(podName, podNamespace))
+    when(podWatcher.waitUntilIsReady(podName, podNamespace))
         .thenReturn(Uni.createFrom().failure(() -> {
           throw new RuntimeException();
         }));
@@ -153,7 +153,7 @@ class PodRestartImplTest {
     try {
       podRestart.restartPod(pod).await().indefinitely();
       fail("Exceptions raised during wait until create should be raised");
-    } catch (Exception e){
+    } catch (Exception e) {
       verify(podWriter).delete(pod);
       verify(podWatcher).waitUntilIsReplaced(any());
       verify(podWatcher).waitUntilIsReady(anyString(), anyString());

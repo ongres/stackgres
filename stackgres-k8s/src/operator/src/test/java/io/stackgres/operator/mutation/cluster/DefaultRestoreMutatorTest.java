@@ -82,7 +82,8 @@ class DefaultRestoreMutatorTest {
   }
 
   @Test
-  void clusteRestorerWithNoDownloadDiskConcurrency_shouldSetDefaultValue() throws JsonPatchException {
+  void clusteRestorerWithNoDownloadDiskConcurrency_shouldSetDefaultValue()
+      throws JsonPatchException {
 
     StackGresClusterRestore restore = new StackGresClusterRestore();
     restore.setDownloadDiskConcurrency(null);

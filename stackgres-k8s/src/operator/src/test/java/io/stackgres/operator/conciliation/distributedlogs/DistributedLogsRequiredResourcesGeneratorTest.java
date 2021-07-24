@@ -140,7 +140,7 @@ class DistributedLogsRequiredResourcesGeneratorTest {
   }
 
   @Test
-  void givenADistributedLogsIn095Version_shouldGenerateAStsCompatibleWithThatVersion() {
+  void givenADistributedLogsIn095_shouldGenerateAStsCompatibleWithThatVersion() {
 
     StackGresDistributedLogs distributedLogs095 = get095Cluster();
 
@@ -153,8 +153,8 @@ class DistributedLogsRequiredResourcesGeneratorTest {
 
     /*
      * Sorting volumes and volume mounts since it has no effect on the stability of the containers,
-     * but it could throw false failures if unsorted
-//     */
+     * but it could throw false failures if unsorted //
+     */
     sortVolumes(deployedS);
     sortVolumes(generatedSts);
 
@@ -163,24 +163,26 @@ class DistributedLogsRequiredResourcesGeneratorTest {
   }
 
   @Test
-  void givenADistributedLogsIn095Version_shouldGenerateAPatroniConfigMapCompatibleWithThatVersion() {
+  void givenADistributedLogsIn095_shouldGenerateAPatroniConfigMapCompatibleWithThatVersion() {
     StackGresDistributedLogs distributedLogs = get095Cluster();
 
     ConfigMap expectedPatroniConfigMap = get095PatroniConfigMap(distributedLogs);
 
     ConfigMap generatedConfigMap = generator.getRequiredResources(distributedLogs)
         .stream().filter(r -> r.getKind().equals("ConfigMap"))
-        .filter(r -> r.getMetadata().getName().equals(expectedPatroniConfigMap.getMetadata().getName()))
+        .filter(
+            r -> r.getMetadata().getName().equals(expectedPatroniConfigMap.getMetadata().getName()))
         .map(r -> (ConfigMap) r)
         .findFirst().orElseThrow();
 
     assertTrue(configMapComparator.isTheSameResource(generatedConfigMap, expectedPatroniConfigMap));
-    assertTrue(configMapComparator.isResourceContentEqual(generatedConfigMap, expectedPatroniConfigMap));
+    assertTrue(
+        configMapComparator.isResourceContentEqual(generatedConfigMap, expectedPatroniConfigMap));
 
   }
 
   @Test
-  void givenADistributedLogsIn095Version_shouldGenerateAInitTemplateConfigmapCompatibleWithThatVersion() {
+  void givenADistributedLogsIn095_shouldGenerateAInitTemplateConfigmapCompatibleWithThatVersion() {
 
     StackGresDistributedLogs distributedLogs = get095Cluster();
     ConfigMap expectedConfigMap = get095InitTemplateConfigMap(distributedLogs);
@@ -197,7 +199,7 @@ class DistributedLogsRequiredResourcesGeneratorTest {
   }
 
   @Test
-  void givenADistributedLogsIn095Version_shouldGenerateATemplatesConfigmapCompatibleWithThatVersion() {
+  void givenADistributedLogsIn095_shouldGenerateATemplatesConfigmapCompatibleWithThatVersion() {
 
     StackGresDistributedLogs distributedLogs = get095Cluster();
     ConfigMap expectedConfigMap = get095TemplatesConfigMap(distributedLogs);
@@ -213,7 +215,7 @@ class DistributedLogsRequiredResourcesGeneratorTest {
   }
 
   @Test
-  void givenADistributedLogsIn095Version_shouldGenerateAFluentdConfigmapCompatibleWithThatVersion() {
+  void givenADistributedLogsIn095_shouldGenerateAFluentdConfigmapCompatibleWithThatVersion() {
     StackGresDistributedLogs distributedLogs = get095Cluster();
     ConfigMap expectedConfigMap = get095FluentdConfigMap(distributedLogs);
 
@@ -228,7 +230,7 @@ class DistributedLogsRequiredResourcesGeneratorTest {
   }
 
   private void fix095OwnerReference(HasMetadata resource,
-                                    StackGresDistributedLogs distributedLogs095) {
+      StackGresDistributedLogs distributedLogs095) {
     resource.getMetadata().getOwnerReferences().forEach(or -> {
       or.setUid(distributedLogs095.getMetadata().getUid());
       or.setName(distributedLogs095.getMetadata().getName());
@@ -288,7 +290,8 @@ class DistributedLogsRequiredResourcesGeneratorTest {
         .forEach(configMapEnvSource -> configMapEnvSource.setName(distributedLogsName));
 
     final List<Container> containers = sts.getSpec().getTemplate().getSpec().getContainers();
-    final List<Container> initContainers = sts.getSpec().getTemplate().getSpec().getInitContainers();
+    final List<Container> initContainers =
+        sts.getSpec().getTemplate().getSpec().getInitContainers();
     var allContainers = Stream.concat(containers.stream(), initContainers.stream());
     allContainers.forEach(container -> container.getVolumeMounts().stream()
         .filter(volumeMount -> volumeMount.getName().startsWith("distributedlogs"))
@@ -306,8 +309,7 @@ class DistributedLogsRequiredResourcesGeneratorTest {
             .withName(distributedLogsName)
             .withUid(uid)
             .withController(true)
-            .build()
-    );
+            .build());
     sts.getMetadata().setOwnerReferences(ownerReferences);
     sts.getSpec().setServiceName(distributedLogsName);
     sts.getSpec().getTemplate().getSpec().setServiceAccount(distributedLogsName + "-patroni");
@@ -337,7 +339,6 @@ class DistributedLogsRequiredResourcesGeneratorTest {
       vct.getMetadata().setNamespace(namespace);
       vct.getMetadata().setOwnerReferences(ownerReferences);
     });
-
 
     return sts;
   }
@@ -374,7 +375,8 @@ class DistributedLogsRequiredResourcesGeneratorTest {
   }
 
   private ConfigMap get095FluentdConfigMap(StackGresDistributedLogs distributedLogs095) {
-    final ConfigMap configMap = sanitizeConfigMap("configmap/0.9.5-distributedlogs-fluentd.json", distributedLogs095);
+    final ConfigMap configMap =
+        sanitizeConfigMap("configmap/0.9.5-distributedlogs-fluentd.json", distributedLogs095);
     String[] oldDatabases = configMap.getData().get("databases").split("\n");
     String[] newDatabases = connectedClusters.stream().map(CustomResource::getMetadata)
         .map(m -> m.getNamespace() + "_" + m.getName())
@@ -405,7 +407,6 @@ class DistributedLogsRequiredResourcesGeneratorTest {
 
     return configMap;
   }
-
 
   private ConfigMap sanitizeConfigMap(String resource, StackGresDistributedLogs distributedLogs) {
 

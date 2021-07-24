@@ -11,7 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class SgPostgresConfigConversionResourceTest extends ConversionResourceTest<StackGresPostgresConfig> {
+class SgPostgresConfigConversionResourceTest
+    extends ConversionResourceTest<StackGresPostgresConfig> {
 
   @Override
   protected StackGresPostgresConfig getCustomResource() {

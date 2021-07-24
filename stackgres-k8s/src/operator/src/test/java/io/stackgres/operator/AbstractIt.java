@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractIt {
 
-  protected final static Logger LOGGER = LoggerFactory.getLogger("It");
+  protected static final Logger LOGGER = LoggerFactory.getLogger("It");
 
   protected ExecutorService executor;
 

@@ -60,11 +60,11 @@ class PatroniConfigEndpointsTest {
     generator = new PatroniConfigEndpoints(
         MAPPER, labelFactory);
 
-
     cluster = JsonUtil
         .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
     backupConfig = JsonUtil.readFromJson("backup_config/default.json", StackGresBackupConfig.class);
-    postgresConfig = JsonUtil.readFromJson("postgres_config/default_postgres.json", StackGresPostgresConfig.class);
+    postgresConfig = JsonUtil.readFromJson("postgres_config/default_postgres.json",
+        StackGresPostgresConfig.class);
     postgresConfig.setStatus(new StackGresPostgresConfigStatus());
     postgresConfig.getStatus().setDefaultParameters(PostgresDefaultValues.getDefaultValues());
 
@@ -76,7 +76,6 @@ class PatroniConfigEndpointsTest {
   void getPostgresConfigValues_shouldConfigureBackupParametersIfArePresent() {
     when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
-
 
     Map<String, String> pgParams = generator.getPostgresConfigValues(context);
 
@@ -95,7 +94,6 @@ class PatroniConfigEndpointsTest {
 
     assertTrue(pgParams.containsKey("archive_command"));
     assertEquals("/bin/true", pgParams.get("archive_command"));
-
   }
 
   @Test
@@ -135,31 +133,28 @@ class PatroniConfigEndpointsTest {
 
   @Test
   void generateResource_shouldSetLabelsFromLabelFactory() {
-
     Endpoints endpoints = generateEndpoint();
-
     assertEquals(labelFactory.patroniClusterLabels(cluster), endpoints.getMetadata().getLabels());
-
   }
 
   @Test
-  void generatedEndpoint_shouldBeAnnotatedWithPatroniKeyAndAValidPostgresConfig() throws JsonProcessingException {
-
+  void generatedEndpoint_shouldBeAnnotatedWithPatroniKeyAndAValidPostgresConfig()
+      throws JsonProcessingException {
     Endpoints endpoints = generateEndpoint();
 
     final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();
     assertTrue(annotations.containsKey(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY));
 
     PatroniConfig patroniConfig = MAPPER
-        .readValue(annotations.get(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY), PatroniConfig.class);
-    PostgresDefaultValues.getDefaultValues().forEach((key, value) ->
-        assertTrue(patroniConfig.getPostgresql().getParameters().containsKey(key)));
+        .readValue(annotations.get(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY),
+            PatroniConfig.class);
+    PostgresDefaultValues.getDefaultValues().forEach(
+        (key, value) -> assertTrue(patroniConfig.getPostgresql().getParameters().containsKey(key)));
     assertEquals(30, patroniConfig.getTtl());
     assertEquals(10, patroniConfig.getLoopWait());
     assertEquals(10, patroniConfig.getRetryTimeout());
     assertTrue(patroniConfig.getPostgresql().getUsePgRewind());
     assertNull(patroniConfig.getPostgresql().getUseSlots());
-
   }
 
   private Endpoints generateEndpoint() {

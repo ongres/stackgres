@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.dbops;
 
 import java.math.BigDecimal;
-import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -59,8 +58,8 @@ public class DbOpsPgbenchStatus {
     return transactionsPerSecond;
   }
 
-  public void setTransactionsPerSecond(DbOpsPgbenchStatusTransactionsPerSecond
-      transactionsPerSecond) {
+  public void setTransactionsPerSecond(
+      DbOpsPgbenchStatusTransactionsPerSecond transactionsPerSecond) {
     this.transactionsPerSecond = transactionsPerSecond;
   }
 

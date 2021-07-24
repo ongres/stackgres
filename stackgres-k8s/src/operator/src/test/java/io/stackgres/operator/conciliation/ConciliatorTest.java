@@ -152,14 +152,13 @@ public abstract class ConciliatorTest<T extends CustomResource<?, ?>> {
     assertEquals(0, result.getDeletions().size());
     assertEquals(0, result.getCreations().size());
     assertEquals(KubernetessMockResourceGenerationUtil
-            .buildResources("test", "test").size(),
+        .buildResources("test", "test").size(),
         result.getPatches().size());
 
   }
 
   @Test
   void conciliation_shouldDetectStatefulSetChanges() {
-
     final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
         .buildResources("test", "test");
     final List<HasMetadata> deployedResources = deepCopy(requiredResources);
@@ -175,8 +174,6 @@ public abstract class ConciliatorTest<T extends CustomResource<?, ?>> {
     assertEquals(0, result.getDeletions().size());
     assertEquals(0, result.getCreations().size());
     assertEquals(1, result.getPatches().size());
-
-
   }
 
   @Test
@@ -188,8 +185,7 @@ public abstract class ConciliatorTest<T extends CustomResource<?, ?>> {
 
     deployedResources.stream().findAny()
         .orElseThrow().getMetadata().setAnnotations(Map.of(
-        StackGresContext.RECONCILIATION_PAUSE_KEY, Boolean.TRUE.toString()
-    ));
+            StackGresContext.RECONCILIATION_PAUSE_KEY, Boolean.TRUE.toString()));
 
     Conciliator<T> conciliator = buildConciliator(requiredResources, deployedResources);
 
@@ -214,15 +210,13 @@ public abstract class ConciliatorTest<T extends CustomResource<?, ?>> {
     int indexToRemove = new Random().nextInt(requiredResources.size() / 2 - 1);
     deployedResources.get(indexToRemove).getMetadata().setAnnotations(Map.of(
         StackGresContext.RECONCILIATION_PAUSE_KEY,
-        Boolean.TRUE.toString()
-        ));
+        Boolean.TRUE.toString()));
 
     int indexToChangeFalsePause = new Random().nextInt(requiredResources.size() / 2)
         + requiredResources.size() / 2 + 1;
     deployedResources.get(indexToChangeFalsePause).getMetadata().setAnnotations(Map.of(
         StackGresContext.RECONCILIATION_PAUSE_KEY,
-        Boolean.FALSE.toString()
-    ));
+        Boolean.FALSE.toString()));
 
     requiredResources.remove(indexToRemove);
 

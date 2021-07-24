@@ -7,11 +7,11 @@ package io.stackgres.operator.validation.pgconfig;
 
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

@@ -10,17 +10,17 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 
 public class StackGresClusterPodSchedulingFixture {
 
-	private NodeAffinity nodeAffinity;
+  private NodeAffinity nodeAffinity;
 
-	public StackGresClusterPodSchedulingFixture withNodeAffinity(NodeAffinity nodeAffinity) {
-		this.nodeAffinity = nodeAffinity;
-		return this;
-	}
+  public StackGresClusterPodSchedulingFixture withNodeAffinity(NodeAffinity nodeAffinity) {
+    this.nodeAffinity = nodeAffinity;
+    return this;
+  }
 
-	public StackGresClusterPodScheduling build() {
-		StackGresClusterPodScheduling scheduling = new StackGresClusterPodScheduling();
-		scheduling.setNodeAffinity(nodeAffinity);
-		return scheduling;
-	}
+  public StackGresClusterPodScheduling build() {
+    StackGresClusterPodScheduling scheduling = new StackGresClusterPodScheduling();
+    scheduling.setNodeAffinity(nodeAffinity);
+    return scheduling;
+  }
 
 }

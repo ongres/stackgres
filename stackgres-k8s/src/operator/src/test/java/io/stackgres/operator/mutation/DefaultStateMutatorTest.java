@@ -23,10 +23,12 @@ import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-public abstract class DefaultStateMutatorTest<R extends CustomResource<?, ?>, T extends AdmissionReview<R>> {
+public abstract class DefaultStateMutatorTest
+      <R extends CustomResource<?, ?>, T extends AdmissionReview<R>> {
 
   protected static final ObjectMapper mapper = new ObjectMapper();
 
@@ -52,7 +54,7 @@ public abstract class DefaultStateMutatorTest<R extends CustomResource<?, ?>, T 
   protected abstract R getDefaultResource();
 
   @Test
-  public void givenAnEmptyConf_itShouldReturnAPatchForEveryMissingParentAndOneForDefaultsProperty() {
+  public void givenEmptyConf_itShouldReturnAPatchForEveryMissingParentAndOneForDefaultsProperty() {
 
     T review = getEmptyReview();
 
@@ -63,7 +65,9 @@ public abstract class DefaultStateMutatorTest<R extends CustomResource<?, ?>, T 
   }
 
   @Test
-  public void givenAConfWithAllDefaultsValuesSettled_itShouldReturnAPatchForEveryMissingParentAndOneForDefaultsProperty() {
+  @DisplayName("Given a Configuration With All Defaults Values Settled it should Return Patch For "
+      + "Every Missing Parent And One For Defaults Property")
+  public void givenConfDefaultsValues_shouldReturnPatchMissingParentAndOneForDefaultsProperty() {
 
     T review = getDefaultReview();
 

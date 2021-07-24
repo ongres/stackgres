@@ -5,19 +5,18 @@
 
 package io.stackgres.operator.mutation;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.when;
+
 import java.util.Optional;
 
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
-
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.when;
 
 public abstract class MutationResourceTest<T extends AdmissionReview<?>> {
 

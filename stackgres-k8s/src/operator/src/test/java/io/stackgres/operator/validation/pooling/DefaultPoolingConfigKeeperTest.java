@@ -5,20 +5,21 @@
 
 package io.stackgres.operator.validation.pooling;
 
-import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.validation.AbstractDefaultConfigKeeper;
 import io.stackgres.operator.validation.DefaultKeeperTest;
-
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DefaultPoolingConfigKeeperTest extends DefaultKeeperTest<StackGresPoolingConfig, PoolingReview> {
+class DefaultPoolingConfigKeeperTest
+    extends DefaultKeeperTest<StackGresPoolingConfig, PoolingReview> {
 
   @Override
-  protected AbstractDefaultConfigKeeper<StackGresPoolingConfig, PoolingReview> getValidatorInstance() {
+  protected AbstractDefaultConfigKeeper<StackGresPoolingConfig, PoolingReview>
+      getValidatorInstance() {
     return new DefaultPoolingConfigKeeper();
   }
 

@@ -16,51 +16,49 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
 class PoolingDependenciesValidatorTest
-        extends DependenciesValidatorTest<PoolingReview, PoolingDependenciesValidator> {
+    extends DependenciesValidatorTest<PoolingReview, PoolingDependenciesValidator> {
 
+  @Override
+  protected DependenciesValidator<PoolingReview> setUpValidation() {
+    return new PoolingDependenciesValidator();
+  }
 
-    @Override
-    protected DependenciesValidator<PoolingReview> setUpValidation() {
-        return new PoolingDependenciesValidator();
-    }
+  @Override
+  protected PoolingReview getReview_givenAReviewCreation_itShouldDoNothing() {
+    return JsonUtil.readFromJson("pooling_allow_request/create.json",
+        PoolingReview.class);
+  }
 
-    @Override
-    protected PoolingReview getReview_givenAReviewCreation_itShouldDoNothing() {
-      return JsonUtil.readFromJson("pooling_allow_request/create.json",
-          PoolingReview.class);
-    }
+  @Override
+  protected PoolingReview getReview_givenAReviewUpdate_itShouldDoNothing() {
+    return JsonUtil.readFromJson("pooling_allow_request/update.json",
+        PoolingReview.class);
+  }
 
-    @Override
-    protected PoolingReview getReview_givenAReviewUpdate_itShouldDoNothing() {
-      return JsonUtil.readFromJson("pooling_allow_request/update.json",
-          PoolingReview.class);
-    }
+  @Override
+  protected PoolingReview getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt() {
+    return JsonUtil.readFromJson("pooling_allow_request/delete.json",
+        PoolingReview.class);
+  }
 
-    @Override
-    protected PoolingReview getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt() {
-      return JsonUtil.readFromJson("pooling_allow_request/delete.json",
-          PoolingReview.class);
-    }
+  @Override
+  protected PoolingReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt()
+      throws ValidationFailed {
+    return JsonUtil.readFromJson("pooling_allow_request/delete.json",
+        PoolingReview.class);
+  }
 
-    @Override
-    protected PoolingReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt()
-        throws ValidationFailed {
-      return JsonUtil.readFromJson("pooling_allow_request/delete.json",
-          PoolingReview.class);
-    }
+  @Override
+  protected PoolingReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterExists() {
+    return JsonUtil.readFromJson("pooling_allow_request/delete.json",
+        PoolingReview.class);
+  }
 
-    @Override
-    protected PoolingReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterExists() {
-      return JsonUtil.readFromJson("pooling_allow_request/delete.json",
-          PoolingReview.class);
-    }
-
-    @Override
-    protected void makeClusterNotDependant(StackGresCluster cluster) {
-      cluster.getSpec().getConfiguration().setConnectionPoolingConfig(null);
-    }
+  @Override
+  protected void makeClusterNotDependant(StackGresCluster cluster) {
+    cluster.getSpec().getConfiguration().setConnectionPoolingConfig(null);
+  }
 }

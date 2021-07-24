@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package io.stackgres.apiweb.security;
 
@@ -31,7 +35,7 @@ class LocalTokenTest {
 
   @BeforeEach
   void setupSecret() {
-    Secret demo_user = new SecretBuilder()
+    Secret demoUser = new SecretBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
         .withName("demo-user")
@@ -44,7 +48,7 @@ class LocalTokenTest {
             StackGresContext.REST_PASSWORD_KEY,
             ResourceUtil.encodeSecret(TokenUtils.sha256("apiuserdemo123"))))
         .build();
-    Secret demo_user_no_labels = new SecretBuilder()
+    Secret demoUserNoLabels = new SecretBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
         .withName("demo-user-no-labels")
@@ -56,7 +60,7 @@ class LocalTokenTest {
             StackGresContext.REST_PASSWORD_KEY,
             ResourceUtil.encodeSecret(TokenUtils.sha256("apiuser-nolabeldemo123"))))
         .build();
-    Secret demo_user_no_apiuser = new SecretBuilder()
+    Secret demoUserNoApiUser = new SecretBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
         .withName("demo-user-no-apiuser")
@@ -71,11 +75,11 @@ class LocalTokenTest {
 
     try (KubernetesClient client = factory.create()) {
       client.secrets().inNamespace(namespace)
-          .createOrReplace(demo_user);
+          .createOrReplace(demoUser);
       client.secrets().inNamespace(namespace)
-          .createOrReplace(demo_user_no_labels);
+          .createOrReplace(demoUserNoLabels);
       client.secrets().inNamespace(namespace)
-          .createOrReplace(demo_user_no_apiuser);
+          .createOrReplace(demoUserNoApiUser);
     }
   }
 

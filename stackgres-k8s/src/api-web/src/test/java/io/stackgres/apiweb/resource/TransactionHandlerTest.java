@@ -36,7 +36,6 @@ public abstract class TransactionHandlerTest<R extends HasMetadata> {
 
   protected abstract R getResource();
 
-
   @BeforeEach
   void setUp() {
     transactionHandler = getInstance();

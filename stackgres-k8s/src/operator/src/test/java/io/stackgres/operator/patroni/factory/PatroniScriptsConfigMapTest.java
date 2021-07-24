@@ -13,7 +13,8 @@ class PatroniScriptsConfigMapTest {
 
   @Test
   void encodeDatabaseTest() {
-    assertEquals("\\\\\\h\\\\.\\h\\h\\\\\\\\\\h\\h.\\h", PatroniScriptsConfigMap.encodeDatabase("\\/\\.//\\\\//./"));
+    assertEquals("\\\\\\h\\\\.\\h\\h\\\\\\\\\\h\\h.\\h",
+        PatroniScriptsConfigMap.encodeDatabase("\\/\\.//\\\\//./"));
   }
 
 }

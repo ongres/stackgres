@@ -17,7 +17,8 @@ import org.junit.jupiter.api.Test;
 
 class DistributedStatefulSetComparatorTest {
 
-  private final DistributedLogsStatefulSetComparator comparator = new DistributedLogsStatefulSetComparator();
+  private final DistributedLogsStatefulSetComparator comparator =
+      new DistributedLogsStatefulSetComparator();
 
   private StatefulSet required;
   private StatefulSet deployed;

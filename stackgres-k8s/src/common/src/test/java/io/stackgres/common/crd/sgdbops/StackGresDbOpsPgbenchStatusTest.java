@@ -1,6 +1,11 @@
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 package io.stackgres.common.crd.sgdbops;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.stackgres.common.fixture.StackGresDbOpsPgbenchStatusFixture;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,35 +25,35 @@ class StackGresDbOpsPgbenchStatusTest {
   void setup() {
     this.status = new StackGresDbOpsPgbenchStatusFixture().build();
   }
-  
+
   @Test
   void shouldStackGresPgbenchStatus_hasLatencyAverage() {
     StackGresDbOpsPgbenchStatusMeasure latencyAverage = status.getLatency().getAverage();
-    assertEquals(LATENCY_AVERAGE_VALUE,latencyAverage.getValue().doubleValue());
-    assertEquals(LATENCY_UNIT,latencyAverage.getUnit());
+    assertEquals(LATENCY_AVERAGE_VALUE, latencyAverage.getValue().doubleValue());
+    assertEquals(LATENCY_UNIT, latencyAverage.getUnit());
   }
-  
+
   @Test
   void shouldStackGresPgbenchStatus_hasLatencyStandartDeviation() {
     StackGresDbOpsPgbenchStatusMeasure latencyStdDev = status.getLatency().getStandardDeviation();
-    assertEquals(LATENCY_STD_DEV,latencyStdDev.getValue().doubleValue());
-    assertEquals(LATENCY_UNIT,latencyStdDev.getUnit());
+    assertEquals(LATENCY_STD_DEV, latencyStdDev.getValue().doubleValue());
+    assertEquals(LATENCY_UNIT, latencyStdDev.getUnit());
   }
-  
+
   @Test
-  void shouldStackGresPgbenchStatus_hasTPSIncludingConnections() {
+  void shouldStackGresPgbenchStatus_hasTpsIncludingConnections() {
     StackGresDbOpsPgbenchStatusMeasure tpsIncludingConn = status.getTransactionsPerSecond()
         .getIncludingConnectionsEstablishing();
-    assertEquals(TPS_INCLUDING_CONN,tpsIncludingConn.getValue().doubleValue());
-    assertEquals(TPS_MEASURE_UNIT,tpsIncludingConn.getUnit());
+    assertEquals(TPS_INCLUDING_CONN, tpsIncludingConn.getValue().doubleValue());
+    assertEquals(TPS_MEASURE_UNIT, tpsIncludingConn.getUnit());
   }
-  
+
   @Test
-  void shouldStackGresPgbenchStatus_hasTPSExcludingConnections() {
+  void shouldStackGresPgbenchStatus_hasTpsExcludingConnections() {
     StackGresDbOpsPgbenchStatusMeasure tpsExcludingConn = status.getTransactionsPerSecond()
         .getExcludingConnectionsEstablishing();
-    assertEquals(TPS_EXCLUDING_CONN,tpsExcludingConn.getValue().doubleValue());
-    assertEquals(TPS_MEASURE_UNIT,tpsExcludingConn.getUnit());
+    assertEquals(TPS_EXCLUDING_CONN, tpsExcludingConn.getValue().doubleValue());
+    assertEquals(TPS_MEASURE_UNIT, tpsExcludingConn.getUnit());
   }
 
 }

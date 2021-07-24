@@ -98,7 +98,8 @@ class PatroniApiMetadataFinderImplTest {
         .password(getExpectedPassword())
         .build();
 
-    PatroniApiMetadata patroniApiMetadata = patroniApiFinder.findPatroniRestApi(clusterName, namespace);
+    PatroniApiMetadata patroniApiMetadata =
+        patroniApiFinder.findPatroniRestApi(clusterName, namespace);
     assertEquals(expectedPatroniApiMetadata, patroniApiMetadata);
   }
 
@@ -113,16 +114,16 @@ class PatroniApiMetadataFinderImplTest {
   @Test
   void givenAnInvalidClusterState_shouldFailToFindPort() {
     clientProvider.withNewClient(client -> {
-      var pService = client.services()
+      var service = client.services()
           .inNamespace(namespace)
           .withName(patroniService.getMetadata().getName())
           .get();
-      pService.getSpec().setPorts(List.of(new ServicePortBuilder()
+      service.getSpec().setPorts(List.of(new ServicePortBuilder()
           .withName("nopatroni")
           .withPort(80)
           .build()));
       client.services().inNamespace(namespace).withName(patroniService.getMetadata().getName())
-          .replace(pService);
+          .replace(service);
       return null;
     });
 

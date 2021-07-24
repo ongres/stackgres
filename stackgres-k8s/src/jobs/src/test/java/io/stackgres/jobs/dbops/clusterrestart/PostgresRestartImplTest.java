@@ -66,9 +66,7 @@ class PostgresRestartImplTest {
             .port(7433)
             .timeline(1)
             .lag(0)
-            .build()
-    );
-
+            .build());
 
     when(patroniApiHandler.getClusterMembers(clusterName, namespace))
         .thenReturn(Uni.createFrom().item(clusterMembers));
@@ -76,20 +74,16 @@ class PostgresRestartImplTest {
 
   @Test
   void restartPostgres_shouldNotFail() {
-
     postgresRestart.restartPostgres(memberName, clusterName, namespace)
         .await()
         .atMost(Duration.ofMillis(50));
-
   }
 
   @Test
   void givenANonExistentMember_shouldFail() {
-
     assertThrows(Exception.class, () -> postgresRestart
         .restartPostgres(StringUtils.getRandomString(), clusterName, namespace)
         .await()
         .atMost(Duration.ofMillis(50)));
-
   }
 }

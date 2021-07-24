@@ -5,7 +5,6 @@
 
 package io.stackgres.apiweb.rest;
 
-
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
@@ -52,7 +51,8 @@ class ResourcesSerializationTest {
     getRestMethods()
         .filter(t -> !t.v2.getReturnType().equals(Void.TYPE))
         .forEach(t -> {
-          Class<?> returnType = TypeToken.of(t.v1).resolveType(t.v2.getGenericReturnType()).getRawType();
+          Class<?> returnType =
+              TypeToken.of(t.v1).resolveType(t.v2.getGenericReturnType()).getRawType();
           if (returnType.getPackage().getName().startsWith("io.stackgres.")) {
             assertNotNull(returnType.getAnnotation(RegisterForReflection.class), "class "
                 + returnType.getName() + " must be annotated with register for reflection");
@@ -70,15 +70,16 @@ class ResourcesSerializationTest {
           Class<?> returnType = t.v2.getReturnType();
 
           if (Collection.class.isAssignableFrom(returnType)) {
-            Arrays.stream(((ParameterizedType) t.v2.getGenericReturnType()).getActualTypeArguments())
+            Arrays
+                .stream(((ParameterizedType) t.v2.getGenericReturnType()).getActualTypeArguments())
                 .forEach(gt -> {
                   if (gt instanceof Class
                       && ((Class<?>) gt).getName().startsWith("io.stackgres.")) {
-                    Class<?> gType = (Class<?>) gt;
-                    assertNotNull(gType.getAnnotation(RegisterForReflection.class), "class "
-                        + gType.getName() + " must be annotated with register for reflection");
+                    Class<?> type = (Class<?>) gt;
+                    assertNotNull(type.getAnnotation(RegisterForReflection.class), "class "
+                        + type.getName() + " must be annotated with register for reflection");
                   }
-            });
+                });
           }
 
         });
@@ -99,7 +100,7 @@ class ResourcesSerializationTest {
   }
 
   @Test
-  void errorResponse_mustBeAnnotatedWithRegisterForReflection(){
+  void errorResponse_mustBeAnnotatedWithRegisterForReflection() {
     GenericExceptionMapper genericExceptionMapper = new GenericExceptionMapper();
     Response response = genericExceptionMapper.toResponse(new RuntimeException());
 
@@ -107,7 +108,6 @@ class ResourcesSerializationTest {
     assertNotNull(entityClazz.getAnnotation(RegisterForReflection.class), "class "
         + entityClazz.getName() + " must be annotated with register for reflection");
   }
-
 
   static Stream<Tuple2<Class<?>, Method>> getRestMethods() {
     return getClassesInStackGres()

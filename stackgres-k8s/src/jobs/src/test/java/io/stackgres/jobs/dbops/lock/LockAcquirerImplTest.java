@@ -7,7 +7,11 @@ package io.stackgres.jobs.dbops.lock;
 
 import static io.stackgres.jobs.dbops.lock.LockAcquirer.LOCK_POD;
 import static io.stackgres.jobs.dbops.lock.LockAcquirer.LOCK_TIMESTAMP;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -248,6 +252,7 @@ class LockAcquirerImplTest {
     try {
       Thread.sleep(seconds * 1000L);
     } catch (InterruptedException ignored) {
+      // ignored
     }
   }
 

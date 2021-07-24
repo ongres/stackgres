@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 package io.stackgres.apiweb.transformer.dbops.converter;
 
 import static org.junit.Assert.assertNull;
@@ -21,14 +26,14 @@ class DbOpsPgbenchStatusTransactionsPerSecondConverterTest {
   }
 
   @Test
-  void shouldReturnNull_whenSGDbOpsPgbenchStatusStandartDeviationIsNull() {
+  void shouldReturnNull_whenSgDbOpsPgbenchStatusStandartDeviationIsNull() {
     assertNull(converter.from(null));
   }
 
   @Test
-  void shouldConvertfromSGDbOpsPgbenchTransactionPerSecond_toDbOpsPgbenchStatusTransactionsPerSecond() {
+  void shouldConvertSgDbOpsPgbenchTransactionPerSec_toDbOpsPgbenchStatusTransactionsPerSec() {
     DbOpsPgbenchStatusTransactionsPerSecond dto = converter.from(source);
-    
+
     assertEquals(dto.getExcludingConnectionsEstablishing().getValue(),
         source.getExcludingConnectionsEstablishing().getValue());
     assertEquals(dto.getExcludingConnectionsEstablishing().getUnit(),

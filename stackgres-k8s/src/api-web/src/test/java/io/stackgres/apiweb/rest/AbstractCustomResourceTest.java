@@ -25,13 +25,11 @@ import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 public abstract class AbstractCustomResourceTest
-    <T extends ResourceDto, R extends CustomResource<?, ?>,
-    S extends AbstractRestService<T, R>,
-    N extends AbstractNamespacedRestService<T, R>> {
+      <T extends ResourceDto, R extends CustomResource<?, ?>,
+      S extends AbstractRestService<T, R>, N extends AbstractNamespacedRestService<T, R>> {
 
   @Mock
   protected CustomResourceScanner<R> scanner;
@@ -136,6 +134,7 @@ public abstract class AbstractCustomResourceTest
   protected abstract AbstractResourceTransformer<T, R> getTransformer();
 
   protected abstract S getService();
+
   protected abstract N getNamespacedService();
 
   protected abstract String getResourceNamespace();

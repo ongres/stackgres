@@ -15,11 +15,11 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,7 +40,7 @@ class BackupConfigValidatorTest {
   private StackGresBackupConfig backupConfig;
 
   @BeforeEach
-  void setUp(){
+  void setUp() {
     validator = new BackupConfigValidator(configFinder);
 
     backupConfig = JsonUtil.readFromJson("backup_config/default.json", StackGresBackupConfig.class);
@@ -53,7 +53,8 @@ class BackupConfigValidatorTest {
     final StackGresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
-    String backupConfig = review.getRequest().getObject().getSpec().getConfiguration().getBackupConfig();
+    String backupConfig =
+        review.getRequest().getObject().getSpec().getConfiguration().getBackupConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
     when(configFinder.findByNameAndNamespace(backupConfig, namespace))
         .thenReturn(Optional.of(this.backupConfig));
@@ -70,7 +71,8 @@ class BackupConfigValidatorTest {
     final StackGresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
-    String backupConfig = review.getRequest().getObject().getSpec().getConfiguration().getBackupConfig();
+    String backupConfig =
+        review.getRequest().getObject().getSpec().getConfiguration().getBackupConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(backupConfig, namespace))
@@ -90,9 +92,11 @@ class BackupConfigValidatorTest {
   void giveAnAttemptToUpdateToAnUnknownBackupConfig_shouldFail() {
 
     final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/backup_config_update.json", StackGresClusterReview.class);
+        .readFromJson("cluster_allow_requests/backup_config_update.json",
+            StackGresClusterReview.class);
 
-    String backupConfig = review.getRequest().getObject().getSpec().getConfiguration().getBackupConfig();
+    String backupConfig =
+        review.getRequest().getObject().getSpec().getConfiguration().getBackupConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
@@ -116,9 +120,11 @@ class BackupConfigValidatorTest {
   void giveAnAttemptToUpdateToAnKnownBackup_shouldNotFail() throws ValidationFailed {
 
     final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/backup_config_update.json", StackGresClusterReview.class);
+        .readFromJson("cluster_allow_requests/backup_config_update.json",
+            StackGresClusterReview.class);
 
-    String backupConfig = review.getRequest().getObject().getSpec().getConfiguration().getBackupConfig();
+    String backupConfig =
+        review.getRequest().getObject().getSpec().getConfiguration().getBackupConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
@@ -135,10 +141,12 @@ class BackupConfigValidatorTest {
   void giveAnAttemptToDelete_shouldNotFail() throws ValidationFailed {
 
     final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/backup_config_update.json", StackGresClusterReview.class);
+        .readFromJson("cluster_allow_requests/backup_config_update.json",
+            StackGresClusterReview.class);
     review.getRequest().setOperation(Operation.DELETE);
 
-    String backupConfig = review.getRequest().getObject().getSpec().getConfiguration().getBackupConfig();
+    String backupConfig =
+        review.getRequest().getObject().getSpec().getConfiguration().getBackupConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 

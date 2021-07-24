@@ -15,11 +15,11 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,10 +40,11 @@ class PoolingValidatorTest {
   private StackGresPoolingConfig pgbouncerConfig;
 
   @BeforeEach
-  void setUp(){
+  void setUp() {
     validator = new PoolingConfigValidator(configFinder);
 
-    pgbouncerConfig = JsonUtil.readFromJson("pooling_config/default.json", StackGresPoolingConfig.class);
+    pgbouncerConfig =
+        JsonUtil.readFromJson("pooling_config/default.json", StackGresPoolingConfig.class);
 
   }
 
@@ -53,7 +54,8 @@ class PoolingValidatorTest {
     final StackGresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
-    String poolingConfig = review.getRequest().getObject().getSpec().getConfiguration().getConnectionPoolingConfig();
+    String poolingConfig =
+        review.getRequest().getObject().getSpec().getConfiguration().getConnectionPoolingConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
     when(configFinder.findByNameAndNamespace(poolingConfig, namespace))
         .thenReturn(Optional.of(pgbouncerConfig));
@@ -70,7 +72,8 @@ class PoolingValidatorTest {
     final StackGresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
-    String poolingConfig = review.getRequest().getObject().getSpec().getConfiguration().getConnectionPoolingConfig();
+    String poolingConfig =
+        review.getRequest().getObject().getSpec().getConfiguration().getConnectionPoolingConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(poolingConfig, namespace))
@@ -90,9 +93,11 @@ class PoolingValidatorTest {
   void giveAnAttemptToUpdateToAnUnknownPoolingConfig_shouldFail() {
 
     final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/connectionpooling_config_update.json", StackGresClusterReview.class);
+        .readFromJson("cluster_allow_requests/connectionpooling_config_update.json",
+            StackGresClusterReview.class);
 
-    String poolingConfig = review.getRequest().getObject().getSpec().getConfiguration().getConnectionPoolingConfig();
+    String poolingConfig =
+        review.getRequest().getObject().getSpec().getConfiguration().getConnectionPoolingConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
@@ -116,9 +121,11 @@ class PoolingValidatorTest {
   void giveAnAttemptToUpdateToAnKnownPooling_shouldNotFail() throws ValidationFailed {
 
     final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/connectionpooling_config_update.json", StackGresClusterReview.class);
+        .readFromJson("cluster_allow_requests/connectionpooling_config_update.json",
+            StackGresClusterReview.class);
 
-    String poolingConfig = review.getRequest().getObject().getSpec().getConfiguration().getConnectionPoolingConfig();
+    String poolingConfig =
+        review.getRequest().getObject().getSpec().getConfiguration().getConnectionPoolingConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
@@ -135,10 +142,12 @@ class PoolingValidatorTest {
   void giveAnAttemptToDelete_shouldNotFail() throws ValidationFailed {
 
     final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/connectionpooling_config_update.json", StackGresClusterReview.class);
+        .readFromJson("cluster_allow_requests/connectionpooling_config_update.json",
+            StackGresClusterReview.class);
     review.getRequest().setOperation(Operation.DELETE);
 
-    String poolingConfig = review.getRequest().getObject().getSpec().getConfiguration().getConnectionPoolingConfig();
+    String poolingConfig =
+        review.getRequest().getObject().getSpec().getConfiguration().getConnectionPoolingConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 

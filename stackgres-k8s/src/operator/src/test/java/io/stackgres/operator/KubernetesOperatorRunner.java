@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 package io.stackgres.operator;
 
 import java.io.IOException;
@@ -6,14 +11,13 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 import com.ongres.junit.docker.Container;
-
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class KubernetesOperatorRunner implements OperatorRunner {
 
-  private final static Logger LOGGER = LoggerFactory.getLogger(KubernetesOperatorRunner.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(KubernetesOperatorRunner.class);
 
   private final CompletableFuture<Void> future = new CompletableFuture<Void>();
 
@@ -51,7 +55,8 @@ public class KubernetesOperatorRunner implements OperatorRunner {
                 + "    PODS=$PODS:$POD:\n"
                 + "    echo $POD\n"
                 + " done)"
-                + " | xargs -r -n 1 kubectl logs -n " + namespace + " -c stackgres-operator -f || true")
+                + " | xargs -r -n 1 kubectl logs -n " + namespace
+                + " -c stackgres-operator -f || true")
             .filter(ItHelper.EXCLUDE_TTY_WARNING)
             .forEach(line -> LOGGER.info(line));
       } catch (Exception ex) {

@@ -49,7 +49,8 @@ class ClusterAnnotationDecoratorTest {
         .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
 
     final ObjectMeta metadata = defaultCluster.getMetadata();
-    metadata.getAnnotations().put(StackGresContext.VERSION_KEY, StackGresProperty.OPERATOR_VERSION.getString());
+    metadata.getAnnotations().put(StackGresContext.VERSION_KEY,
+        StackGresProperty.OPERATOR_VERSION.getString());
     resources = KubernetessMockResourceGenerationUtil
         .buildResources(metadata.getName(), metadata.getNamespace());
   }
@@ -151,8 +152,7 @@ class ClusterAnnotationDecoratorTest {
         .filter(r -> r.getMetadata().getName().endsWith(PatroniUtil.READ_WRITE_SERVICE))
         .forEach(resource -> checkResourceAnnotations(resource,
             new Tuple2<>(primaryAnnotationKey, primaryAnnotationValue),
-            new Tuple2<>(serviceAnnotationKey, serviceAnnotationValue)
-        ));
+            new Tuple2<>(serviceAnnotationKey, serviceAnnotationValue)));
 
   }
 
@@ -180,8 +180,7 @@ class ClusterAnnotationDecoratorTest {
         .filter(r -> r.getMetadata().getName().endsWith(PatroniUtil.READ_ONLY_SERVICE))
         .forEach(resource -> checkResourceAnnotations(resource,
             new Tuple2<>(replicaAnnotationKey, replicaAnnotationValue),
-            new Tuple2<>(serviceAnnotationKey, serviceAnnotationValue)
-        ));
+            new Tuple2<>(serviceAnnotationKey, serviceAnnotationValue)));
 
   }
 
@@ -233,8 +232,8 @@ class ClusterAnnotationDecoratorTest {
 
     resources.stream()
         .filter(r -> r.getKind().equals("Pod"))
-        .forEach(resource ->
-            assertFalse(resource.getMetadata().getAnnotations().containsKey(serviceAnnotationKey)));
+        .forEach(resource -> assertFalse(
+            resource.getMetadata().getAnnotations().containsKey(serviceAnnotationKey)));
 
   }
 
@@ -336,28 +335,15 @@ class ClusterAnnotationDecoratorTest {
   }
 
   @SafeVarargs
-  private final void checkResourceAnnotations(HasMetadata resource,
-                                              Tuple2<String, String>... annotations) {
-
-    Map<String, String> resourceAnnotation = Optional.ofNullable(resource.getMetadata())
-        .map(ObjectMeta::getAnnotations)
-        .orElse(ImmutableMap.of());
-
-    Arrays.asList(annotations).forEach(annotation -> {
-      assertTrue(resourceAnnotation.containsKey(annotation.v1));
-      assertEquals(annotation.v2, resourceAnnotation.get(annotation.v1));
-    });
-
-  }
-
-  @SafeVarargs
   private final void checkVersionableResourceAnnotations(HasMetadata resource,
-                                                         Tuple2<String, String>... annotations) {
+      Tuple2<String, String>... annotations) {
 
-    ImmutableList<Tuple2<String, String>> expectedAnnotations = ImmutableList.<Tuple2<String, String>>builder()
-        .add(annotations)
-        .add(new Tuple2<>(StackGresContext.VERSION_KEY, StackGresProperty.OPERATOR_VERSION.getString()))
-        .build();
+    ImmutableList<Tuple2<String, String>> expectedAnnotations =
+        ImmutableList.<Tuple2<String, String>>builder()
+            .add(annotations)
+            .add(new Tuple2<>(StackGresContext.VERSION_KEY,
+                StackGresProperty.OPERATOR_VERSION.getString()))
+            .build();
 
     assertEquals(expectedAnnotations.size(), Optional.ofNullable(resource.getMetadata())
         .map(ObjectMeta::getAnnotations)
@@ -376,8 +362,23 @@ class ClusterAnnotationDecoratorTest {
   }
 
   @SafeVarargs
+  private final void checkResourceAnnotations(HasMetadata resource,
+      Tuple2<String, String>... annotations) {
+
+    Map<String, String> resourceAnnotation = Optional.ofNullable(resource.getMetadata())
+        .map(ObjectMeta::getAnnotations)
+        .orElse(ImmutableMap.of());
+
+    Arrays.asList(annotations).forEach(annotation -> {
+      assertTrue(resourceAnnotation.containsKey(annotation.v1));
+      assertEquals(annotation.v2, resourceAnnotation.get(annotation.v1));
+    });
+
+  }
+
+  @SafeVarargs
   private final void checkResourceAnnotations(PodTemplateSpec resource,
-                                              Tuple2<String, String>... annotations) {
+      Tuple2<String, String>... annotations) {
 
     Map<String, String> resourceAnnotation = Optional.ofNullable(resource.getMetadata())
         .map(ObjectMeta::getAnnotations)
@@ -392,7 +393,7 @@ class ClusterAnnotationDecoratorTest {
 
   @SafeVarargs
   private final void checkResourceAnnotations(JobTemplateSpec resource,
-                                              Tuple2<String, String>... annotations) {
+      Tuple2<String, String>... annotations) {
 
     Map<String, String> resourceAnnotation = Optional.ofNullable(resource.getMetadata())
         .map(ObjectMeta::getAnnotations)

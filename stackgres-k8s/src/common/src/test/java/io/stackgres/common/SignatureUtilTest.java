@@ -16,20 +16,26 @@ class SignatureUtilTest {
 
   @Test
   void givedGoodSignature_shouldPassVerification() throws Exception {
-    try (InputStream signatureInputStream = SignatureUtilTest.class.getResourceAsStream("/test.sha256");
+    try (
+        InputStream signatureInputStream =
+            SignatureUtilTest.class.getResourceAsStream("/test.sha256");
         InputStream contentInputStream = SignatureUtilTest.class.getResourceAsStream("/test")) {
       Assertions.assertTrue(SignatureUtil.verify(
-          Resources.toString(SignatureUtilTest.class.getResource("/test.pub"), StandardCharsets.UTF_8),
+          Resources.toString(SignatureUtilTest.class.getResource("/test.pub"),
+              StandardCharsets.UTF_8),
           signatureInputStream, contentInputStream));
     }
   }
 
   @Test
   void givedWrongPublicKey_shouldNotPassVerification() throws Exception {
-    try (InputStream signatureInputStream = SignatureUtilTest.class.getResourceAsStream("/test.sha256");
+    try (
+        InputStream signatureInputStream =
+            SignatureUtilTest.class.getResourceAsStream("/test.sha256");
         InputStream contentInputStream = SignatureUtilTest.class.getResourceAsStream("/test")) {
       Assertions.assertFalse(SignatureUtil.verify(
-          Resources.toString(SignatureUtilTest.class.getResource("/test-wrong.pub"), StandardCharsets.UTF_8),
+          Resources.toString(SignatureUtilTest.class.getResource("/test-wrong.pub"),
+              StandardCharsets.UTF_8),
           signatureInputStream, contentInputStream));
     }
   }

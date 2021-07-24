@@ -26,7 +26,6 @@ class ConvertDefaultParametersPostVersion1Test {
   protected ObjectNode version1beta1PgConfig;
 
   ObjectNode getVersion1Resource() {
-    ObjectNode resource = JsonUtil.readFromJsonAsJson("pooling_config/version1.json");
     ObjectNode status = MAPPER.createObjectNode();
     ObjectNode pgBouncer = MAPPER.createObjectNode();
     ObjectNode defaultParameters = MAPPER.createObjectNode();
@@ -34,6 +33,7 @@ class ConvertDefaultParametersPostVersion1Test {
         .forEach(defaultParameters::put);
     pgBouncer.set("defaultParameters", defaultParameters);
     status.set("pgBouncer", pgBouncer);
+    ObjectNode resource = JsonUtil.readFromJsonAsJson("pooling_config/version1.json");
     resource.set("status", status);
     return resource;
   }

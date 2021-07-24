@@ -18,47 +18,50 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
-class DistributedLogsDependenciesValidatorTest
-        extends DependenciesValidatorTest<StackGresDistributedLogsReview, DistributedLogsDependenciesValidator> {
+class DistributedLogsDependenciesValidatorTest extends DependenciesValidatorTest
+        <StackGresDistributedLogsReview, DistributedLogsDependenciesValidator> {
 
-    @Override
-    protected DependenciesValidator<StackGresDistributedLogsReview> setUpValidation() {
-        return new DistributedLogsDependenciesValidator();
-    }
+  @Override
+  protected DependenciesValidator<StackGresDistributedLogsReview> setUpValidation() {
+    return new DistributedLogsDependenciesValidator();
+  }
 
-    @Override
-    protected StackGresDistributedLogsReview getReview_givenAReviewCreation_itShouldDoNothing() {
-      return JsonUtil.readFromJson("distributedlogs_allow_request/create.json",
-          StackGresDistributedLogsReview.class);
-    }
+  @Override
+  protected StackGresDistributedLogsReview getReview_givenAReviewCreation_itShouldDoNothing() {
+    return JsonUtil.readFromJson("distributedlogs_allow_request/create.json",
+        StackGresDistributedLogsReview.class);
+  }
 
-    @Override
-    protected StackGresDistributedLogsReview getReview_givenAReviewUpdate_itShouldDoNothing() {
-      return JsonUtil.readFromJson("distributedlogs_allow_request/update.json",
-          StackGresDistributedLogsReview.class);
-    }
+  @Override
+  protected StackGresDistributedLogsReview getReview_givenAReviewUpdate_itShouldDoNothing() {
+    return JsonUtil.readFromJson("distributedlogs_allow_request/update.json",
+        StackGresDistributedLogsReview.class);
+  }
 
-    @Override
-    protected StackGresDistributedLogsReview getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt() {
-      return JsonUtil.readFromJson("distributedlogs_allow_request/delete.json",
-          StackGresDistributedLogsReview.class);
-    }
+  @Override
+  protected StackGresDistributedLogsReview
+      getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt() {
+    return JsonUtil.readFromJson("distributedlogs_allow_request/delete.json",
+        StackGresDistributedLogsReview.class);
+  }
 
-    @Override
-    protected StackGresDistributedLogsReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt()
-        throws ValidationFailed {
-      return JsonUtil.readFromJson("distributedlogs_allow_request/delete.json",
-          StackGresDistributedLogsReview.class);
-    }
+  @Override
+  protected StackGresDistributedLogsReview
+      getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt()
+      throws ValidationFailed {
+    return JsonUtil.readFromJson("distributedlogs_allow_request/delete.json",
+        StackGresDistributedLogsReview.class);
+  }
 
-    @Override
-    protected StackGresDistributedLogsReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterExists() {
-      return JsonUtil.readFromJson("distributedlogs_allow_request/delete.json",
-          StackGresDistributedLogsReview.class);
-    }
+  @Override
+  protected StackGresDistributedLogsReview
+      getReview_givenAReviewDelete_itShouldNotFailIfNoClusterExists() {
+    return JsonUtil.readFromJson("distributedlogs_allow_request/delete.json",
+        StackGresDistributedLogsReview.class);
+  }
 
-    @Override
-    protected void makeClusterNotDependant(StackGresCluster cluster) {
-      cluster.getSpec().setDistributedLogs(null);
-    }
+  @Override
+  protected void makeClusterNotDependant(StackGresCluster cluster) {
+    cluster.getSpec().setDistributedLogs(null);
+  }
 }

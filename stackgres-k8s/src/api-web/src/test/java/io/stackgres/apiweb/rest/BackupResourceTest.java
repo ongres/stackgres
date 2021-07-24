@@ -22,9 +22,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class BackupResourceTest
-    extends
-    AbstractCustomResourceTest<BackupDto, StackGresBackup, BackupResource, NamespacedBackupResource> {
+class BackupResourceTest extends AbstractCustomResourceTest
+      <BackupDto, StackGresBackup, BackupResource, NamespacedBackupResource> {
 
   @Override
   protected CustomResourceList<StackGresBackup> getCustomResourceList() {
