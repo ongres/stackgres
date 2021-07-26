@@ -410,7 +410,7 @@ spec:
                                   description: |
                                     The latency measure unit represented by milliseconds
                             standardDeviation:
-                              type: number
+                              type: object
                               description: |
                                 The latency stdandard deviation of transactions.
                               properties:
