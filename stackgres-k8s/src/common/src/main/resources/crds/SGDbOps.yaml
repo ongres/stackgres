@@ -439,7 +439,7 @@ spec:
                                   nullable: true
                                   description: |
                                     The tps including connections establishing value
-                                unit: 
+                                unit:
                                   type: string
                                   nullable: false
                                   description: |
