@@ -154,14 +154,14 @@
 						</table>
 					</div>
 					<div class="paramDetails" v-if="conf.data.status['postgresql.conf'].length">
-						<template v-if="conf.data.status.defaultParameters.length != conf.data.status['postgresql.conf'].length">
+						<template v-if="Object.keys(conf.data.status.defaultParameters).length != conf.data.status['postgresql.conf'].length">
 							<h2>
 								Parameters
 								<span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.spec.postgresql.conf')"></span>
 							</h2>
 							<table>
 								<tbody>
-									<tr v-for="param in conf.data.status['postgresql.conf']" v-if="!conf.data.status.defaultParameters.includes(param.parameter)">
+									<tr v-for="param in conf.data.status['postgresql.conf']" v-if="!conf.data.status.defaultParameters.hasOwnProperty(param.parameter)">
 										<td class="label hasTooltip">
 											<span>{{ param.parameter }}</span>
 											<a v-if="(typeof param.documentationLink !== 'undefined')" :href="param.documentationLink" target="_blank" :title="'Read documentation about ' + param.parameter">
@@ -179,14 +179,14 @@
 							</table>
 						</template>
 
-						<template v-if="conf.data.status.defaultParameters.length">
+						<template v-if="Object.keys(conf.data.status.defaultParameters).length">
 							<h2>
 								Default Parameters
 								<span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.status.defaultParameters')"></span>
 							</h2>
 							<table class="defaultParams">
 								<tbody>
-									<tr v-for="param in conf.data.status['postgresql.conf']" v-if="conf.data.status.defaultParameters.includes(param.parameter)">
+									<tr v-for="param in conf.data.status['postgresql.conf']" v-if="conf.data.status.defaultParameters.hasOwnProperty(param.parameter)">
 										<td class="label hasTooltip">
 											<span>{{ param.parameter }}</span>
 											<a v-if="(typeof param.documentationLink !== 'undefined')" :href="param.documentationLink" target="_blank" :title="'Read documentation about ' + param.parameter">

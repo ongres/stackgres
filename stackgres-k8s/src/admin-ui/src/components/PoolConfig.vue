@@ -28,7 +28,7 @@
 							<router-link v-if="iCan('patch','sgpoolconfigs',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgpoolconfig/' + conf.name + '/edit'" title="Edit Configuration">
 								Edit Configuration
 							</router-link>
-							<a v-if="iCan('create','sgpoolconfigs',$route.params.namespace)" @click="cloneCRD('SGPoolingConfig', $route.params.namespace, conf.name)" class="cloneCRD" title="Clone Configuration">
+							<a v-if="iCan('create','sgpoolconfigs',$route.params.namespace)" @click="cloneCRD('SGPoolingConfigs', $route.params.namespace, conf.name)" class="cloneCRD" title="Clone Configuration">
 								Clone Configuration
 							</a>
 							<a v-if="iCan('delete','sgpoolconfigs',$route.params.namespace)" @click="deleteCRD('sgpoolconfigs',$route.params.namespace, conf.name, '/' + $route.params.namespace + '/sgpoolconfigs')" title="Delete Configuration" :class="conf.data.status.clusters.length ? 'disabled' : ''">
@@ -135,14 +135,14 @@
 						</table>
 					</div>
 					<div class="paramDetails" v-if="conf.data.spec.pgBouncer['pgbouncer.ini'].length">
-						<template v-if="conf.data.status.pgBouncer['pgbouncer.ini'].length != conf.data.status.pgBouncer.defaultParameters.length">
+						<template v-if="conf.data.status.pgBouncer['pgbouncer.ini'].length != Object.keys(conf.data.status.pgBouncer.defaultParameters).length">
 							<h2>
 								Parameters
 								<span class="helpTooltip" :data-tooltip="getTooltip('sgpoolingconfig.spec.pgBouncer.pgbouncer.ini')"></span>
 							</h2>
 							<table>
 								<tbody>
-									<tr v-for="param in conf.data.status.pgBouncer['pgbouncer.ini']" v-if="!conf.data.status.pgBouncer.defaultParameters.includes(param.parameter)">
+									<tr v-for="param in conf.data.status.pgBouncer['pgbouncer.ini']" v-if="!conf.data.status.pgBouncer.defaultParameters.hasOwnProperty(param.parameter)">
 										<td class="label hasTooltip">
 											<span>{{ param.parameter }}</span>
 										</td>
@@ -154,14 +154,14 @@
 							</table>
 						</template>
 
-						<template v-if="conf.data.status.pgBouncer.defaultParameters.length">
+						<template v-if="Object.keys(conf.data.status.pgBouncer.defaultParameters).length">
 							<h2>
 								Default Parameters
 								<span class="helpTooltip" :data-tooltip="getTooltip('sgpoolingconfig.status.pgBouncer.defaultParameters')"></span>
 							</h2>
 							<table class="defaultParams">
 								<tbody>
-									<tr v-for="param in conf.data.status.pgBouncer['pgbouncer.ini']" v-if="conf.data.status.pgBouncer.defaultParameters.includes(param.parameter)">
+									<tr v-for="param in conf.data.status.pgBouncer['pgbouncer.ini']" v-if="conf.data.status.pgBouncer.defaultParameters.hasOwnProperty(param.parameter)">
 										<td class="label hasTooltip">
 											<span>{{ param.parameter }}</span>
 										</td>
