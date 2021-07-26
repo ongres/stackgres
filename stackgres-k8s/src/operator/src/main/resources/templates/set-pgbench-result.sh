@@ -60,5 +60,3 @@ format_measure() {
   read INPUT
   LC_NUMERIC="en_US.UTF-8" printf '%.2f' $INPUT
 }
-
-set_completed
