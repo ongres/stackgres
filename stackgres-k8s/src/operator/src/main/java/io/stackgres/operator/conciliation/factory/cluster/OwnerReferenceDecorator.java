@@ -22,8 +22,7 @@ import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
-public class OwnerReferenceDecorator implements
-    Decorator<StackGresCluster> {
+public class OwnerReferenceDecorator implements Decorator<StackGresCluster> {
 
   @Override
   public void decorate(StackGresCluster cluster,
