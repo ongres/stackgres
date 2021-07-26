@@ -161,7 +161,7 @@ check_pgbench() {
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
-    --template '{{ .status.benchmark.pgbench.latency.average.unit }}' | grep '[0-9]\+\(\.[0-9]\+\)\?')" \
+    --template '{{ .status.benchmark.pgbench.latency.average.unit }}')" \
     = "ms" ]
   then
     echo "SUCCESS. pgbench returned the average latency unit"
@@ -180,7 +180,7 @@ check_pgbench() {
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
-    --template '{{ .status.benchmark.pgbench.latency.standardDeviation.unit}}' | grep '[0-9]\+\(\.[0-9]\+\)\?')" \
+    --template '{{ .status.benchmark.pgbench.latency.standardDeviation.unit}}')" \
     = "ms" ]
   then
     echo "SUCCESS. pgbench returned the latency standard deviation unit."
@@ -198,21 +198,32 @@ check_pgbench() {
     return 1
   fi
 
-  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
-    --template '{{ .status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing.value }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+    --template '{{ .status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing.unit }}')" \
+    = "ms" ]
   then
-    echo "SUCCESS. pgbench returned the tps including connections establishing."
+    echo "SUCCESS. pgbench returned the tps including connections establishing unit."
   else
-    echo "FAILED. pgbench did not returned the tps including connections establishing."
+    echo "FAILED. pgbench did not returned the tps including connections establishing unit."
     return 1
   fi
 
   if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
-    --template '{{ .status.benchmark.pgbench.tpsExcludingConnectionsEstablishing }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
+    --template '{{ .status.benchmark.pgbench.transactionsPerSecond.excludingConnectionsEstablishing.value }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
   then
     echo "SUCCESS. pgbench returned the tps excluding connections establishing."
   else
     echo "FAILED. pgbench did not returned the tps excluding connections establishing."
+    return 1
+  fi
+
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+    --template '{{ .status.benchmark.pgbench.transactionsPerSecond.excludingConnectionsEstablishing.unit }}')" \
+    = "ms" ]
+  then
+    echo "SUCCESS. pgbench returned the tps excluding connections establishing unit."
+  else
+    echo "FAILED. pgbench did not returned the tps excluding connections establishing unit."
     return 1
   fi
 
