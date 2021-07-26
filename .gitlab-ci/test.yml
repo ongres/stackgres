@@ -18,7 +18,7 @@ unit tests:
         - stackgres-k8s/src/*/target/surefire-reports/TEST-*.xml
 
 shell unit tests:
-  image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:13.0
+  image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:14.0
   stage: test
   tags:
     - stackgres-runner
@@ -45,7 +45,7 @@ shell unit tests:
         - stackgres-k8s/src/operator/target/shell/shell-unit-tests-junit-report-*.xml
 
 swagger validations:
-  image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:13.0
+  image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:14.0
   stage: test
   tags:
     - stackgres-runner
@@ -60,7 +60,7 @@ swagger validations:
 
 .e2e tests:
   stage: test
-  image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:13.0
+  image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:14.0
   tags:
     - stackgres-runner
   dependencies:
