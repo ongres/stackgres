@@ -445,7 +445,7 @@ spec:
                                   description: |
                                     Transaction Per Second (tps) measure
                             excludingConnectionsEstablishing:
-                              type: number
+                              type: object
                               description: |
                                 Number of transaction per second excluding connection establishing.
                               properties:
