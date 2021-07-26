@@ -431,6 +431,7 @@
                 backupAzurePath: '',
                 backupAzureAccount: '',
                 backupAzureAccessKey: '',
+                secretKeySelectors: {}
             }
                 
         },
@@ -513,8 +514,9 @@
                                 vm.backupS3Bucket = config.data.spec.storage.s3.bucket;
                                 vm.backupS3Path =  (typeof config.data.spec.storage.s3.path !== 'undefined') ? config.data.spec.storage.s3.path : '';
                                 vm.backupS3Region =  (typeof config.data.spec.storage.s3.region !== 'undefined') ? config.data.spec.storage.s3.region : '';
-                                vm.backupS3AccessKeyId = vm.hasProp(config, 'data.spec.storage.s3.awsCredentials.accessKeyId') ? config.data.spec.storage.s3.awsCredentials.accessKeyId : '';
-                                vm.backupS3SecretAccessKey = vm.hasProp(config, 'data.spec.storage.s3.awsCredentials.secretAccessKey') ? config.data.spec.storage.s3.awsCredentials.secretAccessKey : '';
+                                vm.backupS3AccessKeyId = vm.hasProp(config, 'data.spec.storage.s3.awsCredentials.secretKeySelectors') ? '******' : '';
+                                vm.backupS3SecretAccessKey = vm.hasProp(config, 'data.spec.storage.s3.awsCredentials.secretKeySelectors') ? '******' : '';
+                                vm.secretKeySelectors = vm.hasProp(config, 'data.spec.storage.s3.awsCredentials.secretKeySelectors') ? config.data.spec.storage.s3.awsCredentials.secretKeySelectors : {};
                                 vm.backupS3StorageClass = (typeof config.data.spec.storage.s3.storageClass !== 'undefined') ? config.data.spec.storage.s3.storageClass : '';
                             }
                             
@@ -524,8 +526,9 @@
                                 vm.backupS3CompatiblePath = (typeof config.data.spec.storage.s3Compatible.path !== 'undefined') ? config.data.spec.storage.s3Compatible.path : '';
                                 vm.backupS3CompatibleEndpoint = (typeof config.data.spec.storage.s3Compatible.endpoint !== 'undefined') ? config.data.spec.storage.s3Compatible.endpoint : '';
                                 vm.backupS3CompatibleRegion = (typeof config.data.spec.storage.s3Compatible.region !== 'undefined') ? config.data.spec.storage.s3Compatible.region : '';
-                                vm.backupS3CompatibleAccessKeyId = vm.hasProp(config, 'data.spec.storage.s3Compatible.awsCredentials.accessKeyId') ? config.data.spec.storage.s3Compatible.awsCredentials.accessKeyId : '';
-                                vm.backupS3CompatibleSecretAccessKey = vm.hasProp(config, 'data.spec.storage.s3Compatible.awsCredentials.secretAccessKey') ? config.data.spec.storage.s3Compatible.awsCredentials.secretAccessKey : '';
+                                vm.backupS3CompatibleAccessKeyId = vm.hasProp(config, 'data.spec.storage.s3Compatible.awsCredentials.secretKeySelectors') ? '******' : '';
+                                vm.backupS3CompatibleSecretAccessKey = vm.hasProp(config, 'data.spec.storage.s3Compatible.awsCredentials.secretKeySelectors') ? '******' : '';
+                                vm.secretKeySelectors = vm.hasProp(config, 'data.spec.storage.s3Compatible.awsCredentials.secretKeySelectors') ? config.data.spec.storage.s3Compatible.awsCredentials.secretKeySelectors : {};
                                 vm.backupS3CompatibleStorageClass = (typeof config.data.spec.storage.s3Compatible.storageClass !== 'undefined') ? config.data.spec.storage.s3Compatible.storageClass : '';
                                 vm.backupS3CompatibleEnablePathStyleAddressing = config.data.spec.storage.s3Compatible.enablePathStyleAddressing;
                             }
@@ -535,15 +538,17 @@
                                 vm.backupGCSBucket = config.data.spec.storage.gcs.bucket;
                                 vm.backupGCSPath = (typeof config.data.spec.storage.gcs.path !== 'undefined') ? config.data.spec.storage.gcs.path : '';
                                 vm.fetchGCSCredentials = vm.hasProp(config, 'data.spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService') ? config.data.spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService : false ;
-                                vm.backupGCSServiceAccountJSON = vm.hasProp(config, 'data.spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON') ? config.data.spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON : '';
+                                vm.backupGCSServiceAccountJSON = vm.hasProp(config, 'data.spec.storage.gcs.gcpCredentials.secretKeySelectors') ? '******' : '';
+                                vm.secretKeySelectors = vm.hasProp(config, 'data.spec.storage.gcs.gcpCredentials.secretKeySelectors') ? config.data.spec.storage.gcs.gcpCredentials.secretKeySelectors : {};
                             }
                             
                             //azure
                             if(config.data.spec.storage.type === 'azureBlob') {
                                 vm.backupAzureBucket = config.data.spec.storage.azureBlob.bucket;
                                 vm.backupAzurePath = (typeof config.data.spec.storage.azureBlob.path !== 'undefined') ? config.data.spec.storage.azureBlob.path : '';
-                                vm.backupAzureAccount = config.data.spec.storage.azureBlob.azureCredentials.storageAccount;
-                                vm.backupAzureAccessKey = config.data.spec.storage.azureBlob.azureCredentials.accessKey;
+                                vm.backupAzureAccount = vm.hasProp(config, 'data.spec.storage.azureBlob.azureCredentials.secretKeySelectors') ? '******' : '';
+                                vm.backupAzureAccessKey = vm.hasProp(config, 'data.spec.storage.azureBlob.azureCredentials.secretKeySelectors') ? '******' : '';
+                                vm.secretKeySelectors = vm.hasProp(config, 'data.spec.storage.azureBlob.azureCredentials.secretKeySelectors') ? config.data.spec.storage.azureBlob.azureCredentials.secretKeySelectors : {};
                             }
         
                             conf = config;
@@ -589,8 +594,9 @@
                                 ...( ((typeof this.backupS3Region !== 'undefined') && this.backupS3Region.length ) && ( {"region": this.backupS3Region }) ),
                                 ...( ((typeof this.backupS3StorageClass !== 'undefined') && this.backupS3StorageClass.length ) && ( {"storageClass": this.backupS3StorageClass }) ),
                                 "awsCredentials": {
-                                    "accessKeyId": this.backupS3AccessKeyId,
-                                    "secretAccessKey": this.backupS3SecretAccessKey
+                                    ...( ( (this.editMode && (this.backupS3AccessKeyId != '******')) || (!this.editMode) ) && ( { "accessKeyId": this.backupS3AccessKeyId }) ),
+                                    ...( ( (this.editMode && (this.backupS3SecretAccessKey != '******')) || (!this.editMode) ) && ( { "secretAccessKey": this.backupS3SecretAccessKey}) ),
+                                    ...( ( this.editMode && (this.backupS3AccessKeyId == '******') && (this.backupS3SecretAccessKey == '******') ) && ( { "secretKeySelectors": this.secretKeySelectors } ) )
                                 }
                             };
                             storage['type'] = 's3';
@@ -605,8 +611,9 @@
                                 ...( ((typeof this.backupS3CompatibleRegion !== 'undefined') && this.backupS3CompatibleRegion.length ) && ( {"region": this.backupS3CompatibleRegion }) ),
                                 ...( ((typeof this.backupS3CompatibleStorageClass !== 'undefined') && this.backupS3CompatibleStorageClass.length ) && ( {"storageClass": this.backupS3CompatibleStorageClass }) ),
                                 "awsCredentials": {
-                                    "accessKeyId": this.backupS3CompatibleAccessKeyId,
-                                    "secretAccessKey": this.backupS3CompatibleSecretAccessKey
+                                    ...( ( (this.editMode && (this.backupS3CompatibleAccessKeyId != '******')) || (!this.editMode)) && ( { "accessKeyId": this.backupS3CompatibleAccessKeyId }) ),
+                                    ...( ( (this.editMode && (this.backupS3CompatibleSecretAccessKey != '******')) || (!this.editMode)) && ( { "secretAccessKey": this.backupS3CompatibleSecretAccessKey}) ),
+                                    ...( (this.editMode && (this.backupS3CompatibleAccessKeyId == '******') && (this.backupS3CompatibleSecretAccessKey == '******') ) && ( { "secretKeySelectors": this.secretKeySelectors } ) )
                                 },
                             };
                             storage['type'] = 's3Compatible';
@@ -621,7 +628,12 @@
                                         "fetchCredentialsFromMetadataService": true
                                     }),
                                     ...( !this.fetchGCSCredentials && {
-                                        "serviceAccountJSON": this.backupGCSServiceAccountJSON
+                                        ...( ( (this.editMode && (this.backupGCSServiceAccountJSON != '******') ) || (!this.editMode)) && {
+                                            "serviceAccountJSON": this.backupGCSServiceAccountJSON
+                                        } ),
+                                        ...( (this.editMode && (this.backupGCSServiceAccountJSON == '******') ) && {
+                                            "secretKeySelectors": this.secretKeySelectors
+                                        } )
                                     })
                                 },                            
                             }
@@ -633,8 +645,9 @@
                                 "bucket": this.backupAzureBucket,
                                 ...( ((typeof this.backupAzurePath !== 'undefined') && this.backupAzurePath.length ) && ( {"path": this.backupAzurePath }) ),
                                 "azureCredentials": {
-                                    "storageAccount": this.backupAzureAccount,
-                                    "accessKey": this.backupAzureAccessKey
+                                    ...( ( (this.editMode && (this.backupAzureAccount != '******')) || (!this.editMode) ) && ( { "storageAccount": this.backupAzureAccount}) ),
+                                    ...( ( (this.editMode && (this.backupAzureAccessKey != '******')) || (!this.editMode) ) && ( { "accessKey": this.backupAzureAccessKey}) ),
+                                    ...( (this.editMode && (this.backupAzureAccessKey == '******') && (this.backupAzureAccount == '******') ) && ( { "secretKeySelectors": this.secretKeySelectors } ) )
                                 }
                             }
                             storage['type'] = 'azureBlob';

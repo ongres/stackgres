@@ -140,9 +140,6 @@ class ClusterResourceMockedTest extends
   private ResourceFinder<ConfigMap> configMapFinder;
 
   @Mock
-  private ResourceFinder<Secret> secretFinder;
-
-  @Mock
   private ResourceFinder<Service> serviceFinder;
 
   private ExecutorService executorService;
@@ -176,14 +173,6 @@ class ClusterResourceMockedTest extends
         .withNewStatus().withNewLoadBalancer().addNewIngress()
         .withHostname("f4611c56942064ed5a468d8ce0a894ec.us-east-1.elb.amazonaws.com")
         .endIngress().endLoadBalancer().endStatus()
-        .build();
-    secret = new SecretBuilder()
-        .withNewMetadata()
-        .withNamespace(getResourceNamespace())
-        .withName("script")
-        .endMetadata()
-        .withData(ImmutableMap.of(
-            "script", ResourceUtil.encodeSecret("CREATE USER test WITH PASSWORD 'test'")))
         .build();
     configMap = new ConfigMapBuilder()
         .withNewMetadata()
@@ -392,8 +381,6 @@ class ClusterResourceMockedTest extends
     when(serviceFinder.findByNameAndNamespace(eq(PatroniUtil.readOnlyName(getResourceName())),
         anyString()))
             .thenReturn(Optional.of(serviceReplicas));
-    when(secretFinder.findByNameAndNamespace(anyString(), anyString()))
-        .thenReturn(Optional.of(secret));
     when(configMapFinder.findByNameAndNamespace(anyString(), anyString()))
         .thenReturn(Optional.of(configMap));
     when(podFinder.findResourcesWithLabels(any())).thenReturn(podList.getItems());
@@ -489,7 +476,7 @@ class ClusterResourceMockedTest extends
     return new ClusterResource(
         dtoScanner,
         secretTransactionHandler, configMapTransactionHandler,
-        secretFinder, configMapFinder, serviceFinder);
+        configMapFinder, serviceFinder);
   }
 
   @Override
@@ -657,9 +644,6 @@ class ClusterResourceMockedTest extends
                         dtoScriptFrom.getSecretKeyRef().getKey());
                     assertEquals(resourceScriptFrom.getSecretKeyRef().getName(),
                         dtoScriptFrom.getSecretKeyRef().getName());
-                    assertEquals(ResourceUtil.decodeSecret(secret.getData().get(
-                        resourceScriptFrom.getSecretKeyRef().getKey())),
-                        dtoScriptFrom.getSecretScript());
                   } else {
                     assertNull(dtoScriptFrom.getSecretKeyRef());
                   }
@@ -1018,23 +1002,20 @@ class ClusterResourceMockedTest extends
     clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
-    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
-      @Override
-      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
-        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+    doAnswer((Answer<List<ClusterLogEntryDto>>) invocation -> {
+      DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
-        assertNotNull(parameters);
-        checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(50, parameters.getRecords());
-        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
-        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
-        assertEquals(ImmutableMap.of(), parameters.getFilters());
-        assertEquals(Optional.empty(), parameters.getFullTextSearchQuery());
-        assertFalse(parameters.isSortAsc());
-        assertFalse(parameters.isFromInclusive());
+      assertNotNull(parameters);
+      checkDto(parameters.getCluster(), customResources.getItems().get(0));
+      assertEquals( 50,parameters.getRecords());
+      assertEquals( Optional.empty(),parameters.getFromTimeAndIndex());
+      assertEquals( Optional.empty(),parameters.getToTimeAndIndex());
+      assertEquals( ImmutableMap.of(),parameters.getFilters());
+      assertEquals( Optional.empty(),parameters.getFullTextSearchQuery());
+      assertFalse(parameters.isSortAsc());
+      assertFalse(parameters.isFromInclusive());
 
-        return logList;
-      }
+      return logList;
     }).when(distributedLogsFetcher).logs(any());
 
     Integer records = null;
@@ -1062,23 +1043,20 @@ class ClusterResourceMockedTest extends
     clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
-    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
-      @Override
-      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
-        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+    doAnswer((Answer<List<ClusterLogEntryDto>>) invocation -> {
+      DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
-        assertNotNull(parameters);
-        checkDto(parameters.getCluster(), customResources.getItems().get(0));
-        assertEquals(1, parameters.getRecords());
-        assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
-        assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
-        assertEquals(ImmutableMap.of(), parameters.getFilters());
-        assertEquals(Optional.empty(), parameters.getFullTextSearchQuery());
-        assertFalse(parameters.isSortAsc());
-        assertFalse(parameters.isFromInclusive());
+      assertNotNull(parameters);
+      checkDto(parameters.getCluster(), customResources.getItems().get(0));
+      assertEquals( 1,parameters.getRecords());
+      assertEquals( Optional.empty(),parameters.getFromTimeAndIndex());
+      assertEquals( Optional.empty(),parameters.getToTimeAndIndex());
+      assertEquals( ImmutableMap.of(),parameters.getFilters());
+      assertEquals( Optional.empty(),parameters.getFullTextSearchQuery());
+      assertFalse(parameters.isSortAsc());
+      assertFalse(parameters.isFromInclusive());
 
-        return logList;
-      }
+      return logList;
     }).when(distributedLogsFetcher).logs(any());
 
     Integer records = 1;

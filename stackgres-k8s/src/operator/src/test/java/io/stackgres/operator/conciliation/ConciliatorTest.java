@@ -218,7 +218,7 @@ public abstract class ConciliatorTest<T extends CustomResource<?, ?>> {
         ));
 
     int indexToChangeFalsePause = new Random().nextInt(requiredResources.size() / 2)
-        + requiredResources.size() / 2 - 1;
+        + requiredResources.size() / 2 + 1;
     deployedResources.get(indexToChangeFalsePause).getMetadata().setAnnotations(Map.of(
         StackGresContext.RECONCILIATION_PAUSE_KEY,
         Boolean.FALSE.toString()

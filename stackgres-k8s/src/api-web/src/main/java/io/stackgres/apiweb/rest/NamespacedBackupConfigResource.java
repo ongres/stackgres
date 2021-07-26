@@ -52,9 +52,7 @@ public class NamespacedBackupConfigResource
       })
   @Override
   public BackupConfigDto get(String namespace, String name) {
-    return Optional.of(super.get(namespace, name))
-        .map(backupConfigResource::setSecrets)
-        .get();
+    return super.get(namespace, name);
   }
 
 }

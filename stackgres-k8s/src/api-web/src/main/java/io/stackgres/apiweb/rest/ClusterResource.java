@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.rest;
 
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +63,6 @@ public class ClusterResource
   private final CustomResourceScanner<ClusterDto> clusterScanner;
   private final ResourceTransactionHandler<Secret> secretTransactionHandler;
   private final ResourceTransactionHandler<ConfigMap> configMapTransactionHandler;
-  private final ResourceFinder<Secret> secretFinder;
   private final ResourceFinder<ConfigMap> configMapFinder;
   private final ResourceFinder<Service> serviceFinder;
 
@@ -71,13 +71,11 @@ public class ClusterResource
       CustomResourceScanner<ClusterDto> clusterScanner,
       ResourceTransactionHandler<Secret> secretTransactionHandler,
       ResourceTransactionHandler<ConfigMap> configMapTransactionHandler,
-      ResourceFinder<Secret> secretFinder,
       ResourceFinder<ConfigMap> configMapFinder,
       ResourceFinder<Service> serviceFinder) {
     this.clusterScanner = clusterScanner;
     this.secretTransactionHandler = secretTransactionHandler;
     this.configMapTransactionHandler = configMapTransactionHandler;
-    this.secretFinder = secretFinder;
     this.configMapFinder = configMapFinder;
     this.serviceFinder = serviceFinder;
   }
@@ -87,7 +85,6 @@ public class ClusterResource
     this.clusterScanner = null;
     this.secretTransactionHandler = null;
     this.configMapTransactionHandler = null;
-    this.secretFinder = null;
     this.configMapFinder = null;
     this.serviceFinder = null;
   }
@@ -102,7 +99,6 @@ public class ClusterResource
   @Override
   public List<ClusterDto> list() {
     return Seq.seq(clusterScanner.getResources())
-        .map(this::setSecrets)
         .map(this::setConfigMaps)
         .map(this::setInfo)
         .toList();
@@ -161,33 +157,6 @@ public class ClusterResource
     return resource;
   }
 
-  ClusterDto setSecrets(ClusterDto resource) {
-    final String namespace = resource.getMetadata().getNamespace();
-    Seq.of(Optional.ofNullable(resource.getSpec())
-        .map(ClusterSpec::getInitData)
-        .map(ClusterInitData::getScripts))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .flatMap(scripts -> scripts.stream())
-        .zipWithIndex()
-        .filter(t -> t.v1.getScriptFrom() != null
-            && t.v1.getScriptFrom().getSecretKeyRef() != null)
-        .map(script -> extractSecretInfo(resource, script))
-        .filter(t -> t.v2.v3 != null)
-        .grouped(t -> t.v2.v3.getName())
-        .flatMap(t -> {
-          Optional<Map<String, String>> secrets = secretFinder
-              .findByNameAndNamespace(t.v1, namespace)
-              .map(Secret::getData);
-          return secrets
-              .map(s -> t.v2.map(tt -> Tuple.tuple(
-                  ResourceUtil.decodeSecret(s.get(tt.v2.v3.getKey())), tt.v2.v2)))
-              .orElse(Seq.empty());
-        })
-        .forEach(t -> t.v2.accept(t.v1));
-    return resource;
-  }
-
   ClusterDto setConfigMaps(ClusterDto resource) {
     final String namespace = resource.getMetadata().getNamespace();
     Seq.of(Optional.ofNullable(resource.getSpec())
@@ -195,7 +164,7 @@ public class ClusterResource
         .map(ClusterInitData::getScripts))
         .filter(Optional::isPresent)
         .map(Optional::get)
-        .flatMap(scripts -> scripts.stream())
+        .flatMap(Collection::stream)
         .zipWithIndex()
         .filter(t -> t.v1.getScriptFrom() != null
             && t.v1.getScriptFrom().getConfigMapKeyRef() != null)
@@ -314,20 +283,6 @@ public class ClusterResource
               }
             }).collect(Collectors.toCollection(ArrayDeque::new)))
         .orElse(new ArrayDeque<>());
-  }
-
-  private Tuple2<String, Tuple4<String, Consumer<String>, SecretKeySelector,
-      Consumer<SecretKeySelector>>> extractSecretInfo(
-      ClusterDto resource, Tuple2<ClusterScriptEntry, Long> script) {
-    return Tuple.<String, Tuple4<String, Consumer<String>, SecretKeySelector,
-        Consumer<SecretKeySelector>>>tuple(
-        scriptResourceName(resource, script),
-        Tuple.<String, Consumer<String>, SecretKeySelector,
-            Consumer<SecretKeySelector>>tuple(
-            script.v1.getScriptFrom().getSecretScript(),
-            script.v1.getScriptFrom()::setSecretScript,
-            script.v1.getScriptFrom().getSecretKeyRef(),
-            script.v1.getScriptFrom()::setSecretKeyRef));
   }
 
   private Tuple2<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector,
