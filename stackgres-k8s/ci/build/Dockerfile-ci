@@ -8,7 +8,7 @@
 ###
 FROM docker.io/docker:20.10
 
-RUN wget -q -O /bin/kubectl https://dl.k8s.io/release/release/v1.21.3/bin/linux/amd64/kubectl
+RUN wget -q -O /bin/kubectl https://dl.k8s.io/release/v1.21.3/bin/linux/amd64/kubectl
 RUN chmod a+x /bin/kubectl
 RUN wget -q -O /bin/kind https://github.com/kubernetes-sigs/kind/releases/download/v0.11.1/kind-$(uname)-amd64
 RUN chmod a+x /bin/kind
