@@ -200,7 +200,7 @@ check_pgbench() {
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
     --template '{{ .status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing.unit }}')" \
-    = "ms" ]
+    = "tps" ]
   then
     echo "SUCCESS. pgbench returned the tps including connections establishing unit."
   else
@@ -219,7 +219,7 @@ check_pgbench() {
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
     --template '{{ .status.benchmark.pgbench.transactionsPerSecond.excludingConnectionsEstablishing.unit }}')" \
-    = "ms" ]
+    = "tps" ]
   then
     echo "SUCCESS. pgbench returned the tps excluding connections establishing unit."
   else
