@@ -3,7 +3,7 @@
 #
 # Build the image with:
 #
-# docker build -f stackgres-k8s/src/operator/src/test/docker/Dockerfile.it -t stackgres/it:14.0 .
+# docker build -f stackgres-k8s/src/operator/src/test/docker/Dockerfile.it -t registry.gitlab.com/ongresinc/stackgres/ci:1.4 .
 #
 ###
 FROM docker.io/docker:19.03
