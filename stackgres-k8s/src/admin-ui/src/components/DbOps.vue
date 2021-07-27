@@ -734,7 +734,7 @@
                                         Operation Started
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.opStarted')"></span>
                                     </td>
-                                    <td class="timestamp" colspan="2">
+                                    <td class="timestamp" colspan="3">
                                         <span class='date'>
                                             {{ op.data.status.opStarted | formatTimestamp('date') }}
                                         </span>
@@ -749,7 +749,7 @@
                                         Operation Retries
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.opRetries')"></span>
                                     </td>
-                                    <td colspan="2">
+                                    <td colspan="3">
                                         {{ op.data.status.opRetries }}
                                     </td>
                                 </tr>
@@ -767,7 +767,7 @@
                                             Scale Factor
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.scaleFactor')"></span>
                                         </td>
-                                        <td>
+                                        <td colspan="2" class="textRight">
                                             {{ op.data.status.benchmark.pgbench.scaleFactor }}
                                         </td>
                                     </tr>
@@ -776,46 +776,56 @@
                                             Transactions Processed
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.transactionsProcessed')"></span>
                                         </td>
-                                        <td>
+                                        <td colspan="2" class="textRight">
                                             {{ op.data.status.benchmark.pgbench.transactionsProcessed }}
                                         </td>
                                     </tr>
-                                    <tr v-if="op.data.status.benchmark.pgbench.hasOwnProperty('latencyAverage')">
-                                        <td class="label">
-                                            Latency Average
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.latencyAverage')"></span>
-                                        </td>
-                                        <td>
-                                            {{ op.data.status.benchmark.pgbench.latencyAverage }}
-                                        </td>
-                                    </tr>
-                                    <tr v-if="op.data.status.benchmark.pgbench.hasOwnProperty('latencyStddev')">
-                                        <td class="label">
-                                            Latency Stddev
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.latencyStddev')"></span>
-                                        </td>
-                                        <td>
-                                            {{ op.data.status.benchmark.pgbench.latencyStddev }}
-                                        </td>
-                                    </tr>
-                                    <tr v-if="op.data.status.benchmark.pgbench.hasOwnProperty('tpsIncludingConnectionsEstablishing')">
-                                        <td class="label">
-                                            Tps Including Connections Establishing
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.tpsIncludingConnectionsEstablishing')"></span>
-                                        </td>
-                                        <td>
-                                            {{ op.data.status.benchmark.pgbench.tpsIncludingConnectionsEstablishing }}
-                                        </td>
-                                    </tr>
-                                    <tr v-if="op.data.status.benchmark.pgbench.hasOwnProperty('tpsExcludingConnectionsEstablishing')">
-                                        <td class="label">
-                                            Tps Excluding Connections Establishing
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.tpsExcludingConnectionsEstablishing')"></span>
-                                        </td>
-                                        <td>
-                                            {{ op.data.status.benchmark.pgbench.tpsExcludingConnectionsEstablishing }}
-                                        </td>
-                                    </tr>
+                                    <template v-if="( op.data.status.benchmark.pgbench.hasOwnProperty('latencyAverage') && op.data.status.benchmark.pgbench.hasOwnProperty('latencyStddev') )">
+                                        <tr>
+                                            <td class="label" rowspan="2">
+                                                Latency
+                                            </td>
+                                            <td class="label">
+                                                Average
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.latencyAverage')"></span>
+                                            </td>
+                                            <td class="textRight">
+                                                {{ op.data.status.benchmark.pgbench.latencyAverage }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="label">
+                                                Standard Deviation
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.latencyStddev')"></span>
+                                            </td>
+                                            <td class="textRight">
+                                                {{ op.data.status.benchmark.pgbench.latencyStddev }}
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <template v-if="(op.data.status.benchmark.pgbench.hasOwnProperty('tpsIncludingConnectionsEstablishing') && op.data.status.benchmark.pgbench.hasOwnProperty('tpsExcludingConnectionsEstablishing'))">
+                                        <tr>
+                                            <td class="label" rowspan="2">
+                                                Transactions per Second
+                                            </td>
+                                            <td class="label">
+                                                Including Connections Establishing
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.tpsIncludingConnectionsEstablishing')"></span>
+                                            </td>
+                                            <td class="textRight">
+                                                {{ op.data.status.benchmark.pgbench.tpsIncludingConnectionsEstablishing }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="label">
+                                                Excluding Connections Establishing
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.tpsExcludingConnectionsEstablishing')"></span>
+                                            </td>
+                                            <td class="textRight">
+                                                {{ op.data.status.benchmark.pgbench.tpsExcludingConnectionsEstablishing }}
+                                            </td>
+                                        </tr>
+                                    </template>
                                 </template>
 
                                 <template v-else-if="op.data.status.hasOwnProperty(op.data.spec.op)">
