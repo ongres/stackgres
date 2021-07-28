@@ -156,9 +156,50 @@ ___
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
 | scaleFactor                                |          |           | numeric  |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.scaleFactor >}} |
 | transactionsProcessed                      |          |           | integer  |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.transactionsProcessed >}} |
-| latencyAverage                             |          |           | numeric  |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.latencyAverage >}} |
-| tpsIncludingConnectionsEstablishing        |          |           | numeric  |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.tpsIncludingConnectionsEstablishing >}} |
-| tpsExcludingConnectionsEstablishing        |          |           | numeric  |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.tpsExcludingConnectionsEstablishing >}} |
+| [latency](#pgbench-status-latency)                                    |          |           | object   |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.latency >}} |
+| [transactionsPerSecond](#pgbench-status-tps) |          |           | object   |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.transactionsPerSecond >}} |
+
+## Pgbench Status Latency
+
+| Property                                   | Required | Updatable | Type     | Default                      | Description |
+|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
+| [average](#pgbench-status-latency-average)                                    |          |           | object   |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.latency.average >}} |
+| [standartDeviation](#pgbench-status-latency-standard-deviation)                          |          |           | object   |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.latency.standardDeviation >}} |
+
+## Pgbench Status Latency Average
+
+| Property                                   | Required | Updatable | Type     | Default                      | Description |
+|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
+| value                                      |          |           | number   |        0.00                  | {{< crd-field-description SGDbOps.status.benchmark.pgbench.latency.average.value >}} |
+| unit                                       |          |           | string   |        ms                    | {{< crd-field-description SGDbOps.status.benchmark.pgbench.latency.average.unit >}} |
+
+## Pgbench Status Latency Standard Deviation
+
+| Property                                   | Required | Updatable | Type     | Default                      | Description |
+|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
+| value                                      |          |           | number   |        0.00                  | {{< crd-field-description SGDbOps.status.benchmark.pgbench.latency.standardDeviation.value >}} |
+| unit                                       |          |           | string   |        ms                    | {{< crd-field-description SGDbOps.status.benchmark.pgbench.latency.standardDeviation.unit >}} |
+
+## Pgbench Status TPS
+
+| Property                                   | Required | Updatable | Type     | Default                      | Description |
+|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
+| [includingConnectionsEstablishing](#pgbench-status-tps-including-connections-establishing)                                    |          |           | object   |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing >}} |
+| [excludingConnectionsEstablishing](#pgbench-status-tps-excluding-connections-establishing)                                    |          |           | object   |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.transactionsPerSecond.excludingConnectionsEstablishing >}} |
+
+## Pgbench Status TPS Including Connections Establishing
+
+| Property                                   | Required | Updatable | Type     | Default                      | Description |
+|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
+| value                                      |          |           | number   |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing.value >}} |
+| unit                                       |          |           | string   |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing.unit >}} |
+
+## Pgbench Status TPS Excluding Connections Establishing
+
+| Property                                   | Required | Updatable | Type     | Default                      | Description |
+|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
+| value                                      |          |           | number   |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.transactionsPerSecond.excludingConnectionsEstablishing.value >}} |
+| unit                                       |          |           | string   |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.transactionsPerSecond.excludingConnectionsEstablishing.unit >}} |
 
 ## Major Version Upgrade Status
 

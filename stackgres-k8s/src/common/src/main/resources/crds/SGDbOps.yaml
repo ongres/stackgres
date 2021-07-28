@@ -389,26 +389,76 @@ spec:
                           nullable: true
                           description: |
                             The number of transaction processed.
-                        latencyAverage:
-                          type: number
-                          nullable: true
+                        latency:
+                          type: object
                           description: |
-                            Average latency of transactions.
-                        latencyStddev:
-                          type: number
-                          nullable: true
+                            The lantency results of the pgbench benchmark
+                          properties:
+                            average:
+                              type: object
+                              description: |
+                                Average latency of transactions
+                              properties:
+                                value: 
+                                  type: number
+                                  nullable: true
+                                  description: |
+                                    The latency average value
+                                unit: 
+                                  type: string
+                                  nullable: false
+                                  description: |
+                                    The latency measure unit represented by milliseconds
+                            standardDeviation:
+                              type: object
+                              description: |
+                                The latency stdandard deviation of transactions.
+                              properties:
+                                value: 
+                                  type: number
+                                  nullable: true
+                                  description: |
+                                    The latency standard deviation value
+                                unit: 
+                                  type: string
+                                  nullable: false
+                                  description: |
+                                    The latency measure unit represented by milliseconds
+                        transactionsPerSecond:
+                          type: object
                           description: |
-                            Stdandard deviation latency of transactions.
-                        tpsIncludingConnectionsEstablishing:
-                          type: number
-                          nullable: true
-                          description: |
-                            Number of transaction per second including connection establishing.
-                        tpsExcludingConnectionsEstablishing:
-                          type: number
-                          nullable: true
-                          description: |
-                            Number of transaction per second excluding connection establishing.
+                            All the transactions per second results of the pgbench benchmark
+                          properties:
+                            includingConnectionsEstablishing:
+                              type: object
+                              description: |
+                                Number of transaction per second including connection establishing.
+                              properties:
+                                value: 
+                                  type: number
+                                  nullable: true
+                                  description: |
+                                    The tps including connections establishing value
+                                unit:
+                                  type: string
+                                  nullable: false
+                                  description: |
+                                    Transaction Per Second (tps) measure
+                            excludingConnectionsEstablishing:
+                              type: object
+                              description: |
+                                Number of transaction per second excluding connection establishing.
+                              properties:
+                                value: 
+                                  type: number
+                                  nullable: true
+                                  description: |
+                                    The tps excluding connections establishing value
+                                unit: 
+                                  type: string
+                                  nullable: false
+                                  description: |
+                                    Transaction Per Second (tps) measure
                 majorVersionUpgrade:
                   type: object
                   description: |
