@@ -756,7 +756,7 @@
 
                                 <template v-if="op.data.spec.op === 'benchmark' && op.data.status.hasOwnProperty('benchmark')">
                                     <tr v-if="op.data.status.benchmark.hasOwnProperty('pgbench')">
-                                        <td class="label" :rowspan="Object.keys(op.data.status.benchmark.pgbench).length + 1">
+                                        <td class="label" :rowspan="Object.keys(op.data.status.benchmark.pgbench).length + 3">
                                             PgBench
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench')"></span>
                                         </td>
@@ -780,49 +780,51 @@
                                             {{ op.data.status.benchmark.pgbench.transactionsProcessed }}
                                         </td>
                                     </tr>
-                                    <template v-if="( op.data.status.benchmark.pgbench.hasOwnProperty('latencyAverage') && op.data.status.benchmark.pgbench.hasOwnProperty('latencyStddev') )">
+                                    <template v-if="( hasProp(op, 'data.status.benchmark.pgbench.latency.average.value') && hasProp(op, 'data.status.benchmark.pgbench.latency.standardDeviation.value') )">
                                         <tr>
                                             <td class="label" rowspan="2">
                                                 Latency
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.latency')"></span>
                                             </td>
                                             <td class="label">
                                                 Average
-                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.latencyAverage')"></span>
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.latency.average')"></span>
                                             </td>
                                             <td class="textRight">
-                                                {{ op.data.status.benchmark.pgbench.latencyAverage }}
+                                                {{ op.data.status.benchmark.pgbench.latency.average.value }} {{ op.data.status.benchmark.pgbench.latency.average.unit }}
                                             </td>
                                         </tr>
                                         <tr>
                                             <td class="label">
                                                 Standard Deviation
-                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.latencyStddev')"></span>
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.latency.standardDeviation')"></span>
                                             </td>
                                             <td class="textRight">
-                                                {{ op.data.status.benchmark.pgbench.latencyStddev }}
+                                                {{ op.data.status.benchmark.pgbench.latency.standardDeviation.value }} {{ op.data.status.benchmark.pgbench.latency.standardDeviation.unit }}
                                             </td>
                                         </tr>
                                     </template>
-                                    <template v-if="(op.data.status.benchmark.pgbench.hasOwnProperty('tpsIncludingConnectionsEstablishing') && op.data.status.benchmark.pgbench.hasOwnProperty('tpsExcludingConnectionsEstablishing'))">
+                                    <template v-if="( hasProp(op, 'data.status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing.value') && hasProp(op, 'data.status.benchmark.pgbench.transactionsPerSecond.excludingConnectionsEstablishing.value') )">
                                         <tr>
                                             <td class="label" rowspan="2">
                                                 Transactions per Second
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.transactionsPerSecond')"></span>
                                             </td>
                                             <td class="label">
                                                 Including Connections Establishing
-                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.tpsIncludingConnectionsEstablishing')"></span>
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing')"></span>
                                             </td>
                                             <td class="textRight">
-                                                {{ op.data.status.benchmark.pgbench.tpsIncludingConnectionsEstablishing }}
+                                                {{ op.data.status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing.value }} {{ op.data.status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing.unit }}
                                             </td>
                                         </tr>
                                         <tr>
                                             <td class="label">
                                                 Excluding Connections Establishing
-                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.tpsExcludingConnectionsEstablishing')"></span>
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.transactionsPerSecond.excludingConnectionsEstablishing')"></span>
                                             </td>
                                             <td class="textRight">
-                                                {{ op.data.status.benchmark.pgbench.tpsExcludingConnectionsEstablishing }}
+                                                {{ op.data.status.benchmark.pgbench.transactionsPerSecond.excludingConnectionsEstablishing.value }} {{ op.data.status.benchmark.pgbench.transactionsPerSecond.excludingConnectionsEstablishing.unit }}
                                             </td>
                                         </tr>
                                     </template>
