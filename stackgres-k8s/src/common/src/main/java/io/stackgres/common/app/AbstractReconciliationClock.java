@@ -9,7 +9,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public abstract class AbstractReconciliationClock implements ReconciliationClock {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractReconciliationClock.class);
 
   private final ScheduledExecutorService scheduledExecutorService =
       Executors.newScheduledThreadPool(1, r -> new Thread(r, "ReconciliationShceduler"));
@@ -17,10 +22,26 @@ public abstract class AbstractReconciliationClock implements ReconciliationClock
   @Override
   public void start() {
     scheduledExecutorService.scheduleAtFixedRate(
-        this::reconcile, 0, 10, TimeUnit.SECONDS);
+        this::safeReconcile, 0, getPeriod(), getTimeUnit());
+  }
+
+  private void safeReconcile() {
+    try {
+      reconcile();
+    } catch (Exception ex) {
+      LOGGER.error("Error occurred during scheduled reconciliation.", ex);
+    }
   }
 
   protected abstract void reconcile();
+
+  protected int getPeriod() {
+    return 10;
+  }
+
+  protected TimeUnit getTimeUnit() {
+    return TimeUnit.SECONDS;
+  }
 
   @Override
   public void stop() {
