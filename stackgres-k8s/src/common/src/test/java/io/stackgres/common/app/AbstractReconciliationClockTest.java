@@ -5,9 +5,15 @@
 
 package io.stackgres.common.app;
 
+<<<<<<< HEAD
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
+=======
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doThrow;
+>>>>>>> cc90bd1dc (fix: Scheduled reconciliation stop working)
 
 import java.util.concurrent.TimeUnit;
 
