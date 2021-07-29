@@ -14,7 +14,7 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.KubernetesClientFactory;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.DeployedResourcesScanner;
 import io.stackgres.operator.conciliation.ReconciliationOperations;
@@ -25,11 +25,11 @@ public class DistributedLogsResourceScanner
     ReconciliationOperations {
 
   private final KubernetesClientFactory clientFactory;
-  private final LabelFactory<StackGresDistributedLogs> labelFactory;
+  private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
   @Inject
   public DistributedLogsResourceScanner(KubernetesClientFactory clientFactory,
-                                        LabelFactory<StackGresDistributedLogs> labelFactory) {
+      LabelFactoryForCluster<StackGresDistributedLogs> labelFactory) {
     this.clientFactory = clientFactory;
     this.labelFactory = labelFactory;
   }
@@ -39,11 +39,11 @@ public class DistributedLogsResourceScanner
     try (KubernetesClient client = clientFactory.create()) {
 
       final String namespace = config.getMetadata().getNamespace();
-      List<HasMetadata> resources = STACKGRES_CLUSTER_IN_NAMESPACE_RESOURCE_OPERATIONS.values()
+      List<HasMetadata> resources = IN_NAMESPACE_RESOURCE_OPERATIONS.values()
           .stream()
           .flatMap(resourceOperationGetter -> resourceOperationGetter.apply(client)
               .inNamespace(namespace)
-              .withLabels(labelFactory.genericClusterLabels(config))
+              .withLabels(labelFactory.genericLabels(config))
               .list()
               .getItems()
               .stream())

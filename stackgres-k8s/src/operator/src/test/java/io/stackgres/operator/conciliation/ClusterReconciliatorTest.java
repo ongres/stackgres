@@ -75,8 +75,8 @@ class ClusterReconciliatorTest {
   @BeforeEach
   void setUp() {
     reconciliator = new ClusterReconciliator();
-    reconciliator.setClusterScanner(clusterScanner);
-    reconciliator.setClusterConciliator(clusterConciliator);
+    reconciliator.setScanner(clusterScanner);
+    reconciliator.setConciliator(clusterConciliator);
     reconciliator.setHandlerDelegator(handlerDelegator);
     reconciliator.setEventController(eventController);
     reconciliator.setStatusManager(statusManager);

@@ -18,7 +18,7 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.smallrye.mutiny.Uni;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -37,7 +37,7 @@ public class ClusterInstanceManagerImpl implements ClusterInstanceManager {
   CustomResourceScheduler<StackGresCluster> resourceScheduler;
 
   @Inject
-  LabelFactory<StackGresCluster> labelFactory;
+  LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Inject
   Watcher<Pod> podWatcher;

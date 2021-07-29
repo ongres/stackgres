@@ -27,7 +27,7 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.EnvoyUtil;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackgresClusterContainers;
@@ -71,11 +71,11 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
 
   private final YamlMapperProvider yamlMapperProvider;
 
-  private final LabelFactory<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Inject
   public AbstractEnvoy(YamlMapperProvider yamlMapperProvider,
-                       LabelFactory<StackGresCluster> labelFactory) {
+                       LabelFactoryForCluster<StackGresCluster> labelFactory) {
     this.yamlMapperProvider = yamlMapperProvider;
     this.labelFactory = labelFactory;
   }

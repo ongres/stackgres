@@ -13,18 +13,18 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.StackGresClusterContext;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 
 @ApplicationScoped
 public class DefaultClusterResourceHandler
     extends AbstractClusterResourceHandler {
 
-  private final LabelFactory<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Inject
   public DefaultClusterResourceHandler(
-      LabelFactory<StackGresCluster> labelFactory) {
+      LabelFactoryForCluster<StackGresCluster> labelFactory) {
     this.labelFactory = labelFactory;
   }
 

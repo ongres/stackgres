@@ -14,7 +14,7 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.transformer.ClusterTransformer;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.PodFinder;
@@ -25,7 +25,7 @@ public class ClusterDtoFinder implements CustomResourceFinder<ClusterDto> {
   private CustomResourceFinder<StackGresCluster> clusterFinder;
   private PodFinder podFinder;
   private ClusterTransformer clusterTransformer;
-  private LabelFactory<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Override
   public Optional<ClusterDto> findByNameAndNamespace(String name, String namespace) {
@@ -56,7 +56,7 @@ public class ClusterDtoFinder implements CustomResourceFinder<ClusterDto> {
   }
 
   @Inject
-  public void setLabelFactory(LabelFactory<StackGresCluster> labelFactory) {
+  public void setLabelFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
     this.labelFactory = labelFactory;
   }
 }

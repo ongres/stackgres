@@ -74,7 +74,7 @@ public class ClusterRequiredResourcesGenerator
 
   private final CustomResourceScanner<StackGresDbOps> dbOpsScanner;
 
-  private final DecoratorDiscoverer<StackGresCluster> decoratorDiscoverer;
+  private final DecoratorDiscoverer<StackGresClusterContext> decoratorDiscoverer;
 
   private final CustomResourceScanner<PrometheusConfig> prometheusScanner;
 
@@ -90,7 +90,7 @@ public class ClusterRequiredResourcesGenerator
       CustomResourceScanner<StackGresBackup> backupScanner,
       ResourceFinder<Secret> secretFinder,
       CustomResourceScanner<StackGresDbOps> dbOpsScanner,
-      DecoratorDiscoverer<StackGresCluster> decoratorDiscoverer,
+      DecoratorDiscoverer<StackGresClusterContext> decoratorDiscoverer,
       CustomResourceScanner<PrometheusConfig> prometheusScanner,
       OperatorPropertyContext operatorContext) {
     this.generators = generators;
@@ -199,9 +199,10 @@ public class ClusterRequiredResourcesGenerator
         .stream().flatMap(generator -> generator.generateResource(context))
         .collect(Collectors.toUnmodifiableList());
 
-    List<Decorator<StackGresCluster>> decorators = decoratorDiscoverer.discoverDecorator(config);
+    List<Decorator<StackGresClusterContext>> decorators =
+        decoratorDiscoverer.discoverDecorator(context);
 
-    decorators.forEach(decorator -> decorator.decorate(config, resources));
+    decorators.forEach(decorator -> decorator.decorate(context, resources));
 
     return resources;
   }

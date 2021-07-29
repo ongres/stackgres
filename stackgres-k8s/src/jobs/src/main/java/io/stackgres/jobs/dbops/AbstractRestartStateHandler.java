@@ -25,7 +25,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.ClusterPendingRestartUtil;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.ClusterDbOpsRestartStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -63,7 +63,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
   CustomResourceFinder<StackGresCluster> clusterFinder;
 
   @Inject
-  LabelFactory<StackGresCluster> labelFactory;
+  LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Inject
   ResourceFinder<StatefulSet> statefulSetFinder;

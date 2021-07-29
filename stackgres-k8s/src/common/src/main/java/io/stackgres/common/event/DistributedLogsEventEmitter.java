@@ -8,17 +8,9 @@ package io.stackgres.common.event;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.operatorframework.resource.EventReason;
 
 @ApplicationScoped
 @EventEmitterType(StackGresDistributedLogs.class)
 public class DistributedLogsEventEmitter extends AbstractEventEmitter<StackGresDistributedLogs> {
-
-  @Override
-  public void sendEvent(EventReason reason, String message, StackGresDistributedLogs context) {
-
-    emitEvent(reason, message, context);
-
-  }
 
 }

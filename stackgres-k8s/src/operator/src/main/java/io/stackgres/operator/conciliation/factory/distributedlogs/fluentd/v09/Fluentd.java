@@ -36,7 +36,7 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.FluentdUtil;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.distributedlogs.PatroniTableFields;
@@ -44,7 +44,7 @@ import io.stackgres.common.distributedlogs.PostgresTableFields;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
-import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
@@ -63,8 +63,8 @@ import org.jooq.lambda.Seq;
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
 @RunningContainer(order = 2)
 public class Fluentd implements ContainerFactory<DistributedLogsContainerContext>,
-    ResourceGenerator<DistributedLogsContext>,
-    VolumeFactory<DistributedLogsContext> {
+    ResourceGenerator<StackGresDistributedLogsContext>,
+    VolumeFactory<StackGresDistributedLogsContext> {
 
   static final String PATRONI_TABLE_FIELDS = Stream.of(PatroniTableFields.values())
       .map(PatroniTableFields::getFieldName)
@@ -75,7 +75,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
   private static final String IMAGE_NAME = "docker.io/ongres/fluentd:v1.9.3-build-6.0";
   private VolumeMountsProvider<ContainerContext> containerLocalOverrideMounts;
   private VolumeMountsProvider<ContainerContext> postgresSocket;
-  private LabelFactory<StackGresDistributedLogs> labelFactory;
+  private LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
   // list of log_patroni table fields
   @Override
@@ -183,7 +183,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
   }
 
   @Override
-  public @NotNull Stream<VolumePair> buildVolumes(DistributedLogsContext context) {
+  public @NotNull Stream<VolumePair> buildVolumes(StackGresDistributedLogsContext context) {
     return Stream.of(
         ImmutableVolumePair.builder()
             .volume(buildVolume(context))
@@ -192,7 +192,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
     );
   }
 
-  public @NotNull Volume buildVolume(DistributedLogsContext context) {
+  public @NotNull Volume buildVolume(StackGresDistributedLogsContext context) {
     return new VolumeBuilder()
         .withName(StatefulSetDynamicVolumes.FLUENTD_CONFIG.getVolumeName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
@@ -203,7 +203,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
         .build();
   }
 
-  public @NotNull HasMetadata buildSource(DistributedLogsContext context) {
+  public @NotNull HasMetadata buildSource(StackGresDistributedLogsContext context) {
     final StackGresDistributedLogs cluster = context.getSource();
     final String namespace = cluster.getMetadata().getNamespace();
 
@@ -229,7 +229,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
   }
 
   @Override
-  public Stream<HasMetadata> generateResource(DistributedLogsContext context) {
+  public Stream<HasMetadata> generateResource(StackGresDistributedLogsContext context) {
     final StackGresDistributedLogs cluster = context.getSource();
     final String namespace = cluster.getMetadata().getNamespace();
 
@@ -256,7 +256,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
     return Seq.of(service);
   }
 
-  private String getFluentdConfig(final DistributedLogsContext distributedLogsContext) {
+  private String getFluentdConfig(final StackGresDistributedLogsContext distributedLogsContext) {
     return ""
         + "<system>\n"
         + "  workers " + (1 + distributedLogsContext.getConnectedClusters().size()) + "\n"
@@ -349,7 +349,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
   }
 
   @Inject
-  public void setLabelFactory(LabelFactory<StackGresDistributedLogs> labelFactory) {
+  public void setLabelFactory(LabelFactoryForCluster<StackGresDistributedLogs> labelFactory) {
     this.labelFactory = labelFactory;
   }
 

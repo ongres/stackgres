@@ -18,7 +18,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterContext;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
 public class TemplatesConfigMap extends AbstractPatroniTemplatesConfigMap<StackGresClusterContext> {
 
-  private LabelFactory<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   public static String name(ClusterContext context) {
     final String clusterName = context.getCluster().getMetadata().getName();
@@ -89,7 +89,7 @@ public class TemplatesConfigMap extends AbstractPatroniTemplatesConfigMap<StackG
   }
 
   @Inject
-  public void setLabelFactory(LabelFactory<StackGresCluster> labelFactory) {
+  public void setLabelFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
     this.labelFactory = labelFactory;
   }
 }

@@ -22,7 +22,7 @@ import io.stackgres.common.ClusterPendingRestartUtil;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
 import io.stackgres.common.KubernetesClientFactory;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
@@ -40,12 +40,12 @@ public class ClusterStatusManager
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ClusterStatusManager.class);
 
-  private final LabelFactory<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   private final KubernetesClientFactory clientFactory;
 
   @Inject
-  public ClusterStatusManager(LabelFactory<StackGresCluster> labelFactory,
+  public ClusterStatusManager(LabelFactoryForCluster<StackGresCluster> labelFactory,
                               KubernetesClientFactory clientFactory) {
     this.labelFactory = labelFactory;
     this.clientFactory = clientFactory;
@@ -105,7 +105,7 @@ public class ClusterStatusManager
   private Optional<StatefulSet> getClusterStatefulSet(StackGresCluster cluster) {
     try (KubernetesClient client = clientFactory.create()) {
       return client.apps().statefulSets().inNamespace(cluster.getMetadata().getNamespace())
-          .withLabels(labelFactory.genericClusterLabels(cluster))
+          .withLabels(labelFactory.genericLabels(cluster))
           .list()
           .getItems().stream()
           .filter(sts -> sts.getMetadata().getOwnerReferences()

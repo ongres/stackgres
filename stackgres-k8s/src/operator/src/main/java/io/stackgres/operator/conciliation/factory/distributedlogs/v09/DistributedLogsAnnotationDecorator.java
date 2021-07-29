@@ -16,9 +16,9 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.distributedlogs.AbstractDistributedLogsAnnotationDecorator;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 public class DistributedLogsAnnotationDecorator extends AbstractDistributedLogsAnnotationDecorator {
 
   @Override
-  protected void decorateSts(@NotNull StackGresDistributedLogs cluster,
+  protected void decorateSts(@NotNull StackGresDistributedLogsContext context,
                              @NotNull HasMetadata resource) {
     StatefulSet statefulSet = (StatefulSet) resource;
     Map<String, String> podTemplateAnnotations = Optional.ofNullable(statefulSet.getSpec())
@@ -36,7 +36,7 @@ public class DistributedLogsAnnotationDecorator extends AbstractDistributedLogsA
         .map(ObjectMeta::getAnnotations)
         .orElse(new HashMap<>());
 
-    podTemplateAnnotations.putAll(getPodAnnotations(cluster));
+    podTemplateAnnotations.putAll(getPodAnnotations(context));
     Optional.ofNullable(statefulSet.getSpec())
         .map(StatefulSetSpec::getTemplate)
         .ifPresent(template -> {
@@ -49,6 +49,6 @@ public class DistributedLogsAnnotationDecorator extends AbstractDistributedLogsA
 
     Optional.ofNullable(statefulSet.getSpec())
         .map(StatefulSetSpec::getVolumeClaimTemplates)
-        .ifPresent(cvt -> decorate(cluster, cvt));
+        .ifPresent(cvt -> decorate(context, cvt));
   }
 }

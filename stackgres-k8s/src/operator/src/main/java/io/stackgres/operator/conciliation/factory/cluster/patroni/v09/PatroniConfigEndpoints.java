@@ -17,7 +17,7 @@ import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterStatefulSetEnvVars;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -35,7 +35,7 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
 
   @Inject
   public PatroniConfigEndpoints(JsonMapper objectMapper,
-      LabelFactory<StackGresCluster> labelFactory) {
+      LabelFactoryForCluster<StackGresCluster> labelFactory) {
     super(objectMapper, labelFactory);
   }
 

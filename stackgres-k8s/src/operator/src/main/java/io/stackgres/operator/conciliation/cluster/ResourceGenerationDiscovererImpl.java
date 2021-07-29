@@ -31,7 +31,6 @@ public class ResourceGenerationDiscovererImpl
   @Override
   public List<ResourceGenerator<StackGresClusterContext>> getResourceGenerators(
       StackGresClusterContext context) {
-    StackGresVersion version = StackGresVersion.getClusterStackGresVersion(context.getSource());
-    return resourceHub.get(version);
+    return resourceHub.get(context.getVersion());
   }
 }

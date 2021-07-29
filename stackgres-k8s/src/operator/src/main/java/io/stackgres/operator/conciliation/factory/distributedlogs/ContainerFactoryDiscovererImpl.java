@@ -12,10 +12,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.ContainerFactoryDiscoverer;
 import io.stackgres.operator.conciliation.ResourceDiscoverer;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 
@@ -43,9 +41,8 @@ public class ContainerFactoryDiscovererImpl
   @Override
   public List<ContainerFactory<DistributedLogsContainerContext>> discoverContainers(
       DistributedLogsContainerContext context) {
-    final StackGresDistributedLogs cluster = context.getDistributedLogsContext().getSource();
-    StackGresVersion version = StackGresVersion.getClusterStackGresVersion(cluster);
-    return resourceHub.get(version).stream()
+    return resourceHub.get(context.getDistributedLogsContext().getVersion())
+        .stream()
         .filter(f -> f.isActivated(context))
         .collect(Collectors.toUnmodifiableList());
   }

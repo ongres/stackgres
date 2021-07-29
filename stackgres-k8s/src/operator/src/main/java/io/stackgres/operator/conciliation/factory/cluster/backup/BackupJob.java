@@ -28,7 +28,7 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
@@ -66,13 +66,13 @@ public class BackupJob
   private final ClusterEnvironmentVariablesFactoryDiscoverer<StackGresClusterContext>
       clusterEnvVarFactoryDiscoverer;
 
-  private final LabelFactory<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
   private final ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory;
 
   @Inject
   public BackupJob(ClusterEnvironmentVariablesFactoryDiscoverer<StackGresClusterContext>
                        clusterEnvVarFactoryDiscoverer,
-                   LabelFactory<StackGresCluster> labelFactory,
+                   LabelFactoryForCluster<StackGresCluster> labelFactory,
                    ResourceFactory<StackGresClusterContext,
                        PodSecurityContext> podSecurityFactory) {
     super();

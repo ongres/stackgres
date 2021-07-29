@@ -16,11 +16,11 @@ import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
-import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.AbstractPatroniTemplatesConfigMap;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumePair;
@@ -30,17 +30,17 @@ import org.jetbrains.annotations.NotNull;
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
 public class PatroniTemplatesConfigMap
-    extends AbstractPatroniTemplatesConfigMap<DistributedLogsContext> {
+    extends AbstractPatroniTemplatesConfigMap<StackGresDistributedLogsContext> {
 
-  private LabelFactory<StackGresDistributedLogs> labelFactory;
+  private LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
-  private static String name(DistributedLogsContext context) {
+  private static String name(StackGresDistributedLogsContext context) {
     final String clusterName = context.getSource().getMetadata().getName();
     return StatefulSetDynamicVolumes.SCRIPT_TEMPLATES.getResourceName(clusterName);
   }
 
   @Override
-  public @NotNull Stream<VolumePair> buildVolumes(DistributedLogsContext context) {
+  public @NotNull Stream<VolumePair> buildVolumes(StackGresDistributedLogsContext context) {
     return Stream.of(
         ImmutableVolumePair.builder()
             .volume(buildVolume(context))
@@ -49,7 +49,7 @@ public class PatroniTemplatesConfigMap
     );
   }
 
-  public @NotNull Volume buildVolume(DistributedLogsContext context) {
+  public @NotNull Volume buildVolume(StackGresDistributedLogsContext context) {
     return new VolumeBuilder()
         .withName(StatefulSetDynamicVolumes.SCRIPT_TEMPLATES.getVolumeName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
@@ -60,7 +60,7 @@ public class PatroniTemplatesConfigMap
         .build();
   }
 
-  public @NotNull HasMetadata buildSource(DistributedLogsContext context) {
+  public @NotNull HasMetadata buildSource(StackGresDistributedLogsContext context) {
 
     Map<String, String> data = getPatroniTemplates();
 
@@ -77,7 +77,7 @@ public class PatroniTemplatesConfigMap
   }
 
   @Inject
-  public void setLabelFactory(LabelFactory<StackGresDistributedLogs> labelFactory) {
+  public void setLabelFactory(LabelFactoryForCluster<StackGresDistributedLogs> labelFactory) {
     this.labelFactory = labelFactory;
   }
 }

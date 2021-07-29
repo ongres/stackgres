@@ -8,7 +8,7 @@ package io.stackgres.common;
 public interface StackGresContext {
 
   String APP_KEY = "app";
-  String APP_NAME = "StackGresCluster";
+  String CLUSTER_APP_NAME = "StackGresCluster";
   String CLUSTER_NAME_KEY = "cluster-name";
   String CLUSTER_UID_KEY = "cluster-uid";
   String CLUSTER_NAMESPACE_KEY = "cluster-namespace";
@@ -36,6 +36,10 @@ public interface StackGresContext {
   String DISTRIBUTED_LOGS_CLUSTER_UID_KEY = "distributed-logs-uid";
   String DISTRIBUTED_LOGS_CLUSTER_KEY = "distributed-logs-cluster";
   String DISTRIBUTED_LOGS_BACKUP_KEY = "distributed-logs-backup";
+  String DBOPS_APP_NAME = "StackGresDbOps";
+  String DBOPS_NAME_KEY = "dbops-name";
+  String DBOPS_UID_KEY = "dbops-uid";
+  String DBOPS_NAMESPACE_KEY = "dbops-namespace";
 
   String STACKGRES_KEY_PREFIX = "stackgres.io/";
   String VERSION_KEY = STACKGRES_KEY_PREFIX + "operatorVersion";

@@ -19,7 +19,8 @@ import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.ClusterContext;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
@@ -42,30 +43,30 @@ public class PatroniServices implements
 
   public static final int PATRONI_SERVICE_PORT = 8008;
 
-  private LabelFactory<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
-  public static String name(StackGresClusterContext clusterContext) {
-    String name = clusterContext.getSource().getMetadata().getName();
+  public static String name(ClusterContext clusterContext) {
+    String name = clusterContext.getCluster().getMetadata().getName();
     return PatroniUtil.name(name);
   }
 
-  public static String restName(StackGresClusterContext clusterContext) {
-    String name = clusterContext.getSource().getMetadata().getName();
+  public static String restName(ClusterContext clusterContext) {
+    String name = clusterContext.getCluster().getMetadata().getName();
     return PatroniUtil.name(name + "-rest");
   }
 
-  public static String readWriteName(StackGresClusterContext clusterContext) {
-    String name = clusterContext.getSource().getMetadata().getName();
+  public static String readWriteName(ClusterContext clusterContext) {
+    String name = clusterContext.getCluster().getMetadata().getName();
     return PatroniUtil.readWriteName(name);
   }
 
-  public static String readOnlyName(StackGresClusterContext clusterContext) {
-    String name = clusterContext.getSource().getMetadata().getName();
+  public static String readOnlyName(ClusterContext clusterContext) {
+    String name = clusterContext.getCluster().getMetadata().getName();
     return PatroniUtil.readOnlyName(name);
   }
 
-  public String configName(StackGresClusterContext clusterContext) {
-    final StackGresCluster cluster = clusterContext.getSource();
+  public String configName(ClusterContext clusterContext) {
+    final StackGresCluster cluster = clusterContext.getCluster();
     final String scope = labelFactory.clusterScope(cluster);
     return ResourceUtil.resourceName(
         scope + PatroniUtil.CONFIG_SERVICE);
@@ -263,7 +264,7 @@ public class PatroniServices implements
   }
 
   @Inject
-  public void setLabelFactory(LabelFactory<StackGresCluster> labelFactory) {
+  public void setLabelFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
     this.labelFactory = labelFactory;
   }
 }

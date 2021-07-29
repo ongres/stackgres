@@ -18,11 +18,11 @@ import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
-import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
@@ -32,13 +32,13 @@ import org.jooq.lambda.Unchecked;
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
 public class PatroniInitScriptConfigMap implements
-    VolumeFactory<DistributedLogsContext> {
+    VolumeFactory<StackGresDistributedLogsContext> {
 
   private static final String VOLUME_NAME_FORMAT = "%s-00000-distributed-logs-template-template1";
-  private final LabelFactory<StackGresDistributedLogs> labelFactory;
+  private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
   @Inject
-  public PatroniInitScriptConfigMap(LabelFactory<StackGresDistributedLogs> labelFactory) {
+  public PatroniInitScriptConfigMap(LabelFactoryForCluster<StackGresDistributedLogs> labelFactory) {
     this.labelFactory = labelFactory;
   }
 
@@ -48,7 +48,7 @@ public class PatroniInitScriptConfigMap implements
   }
 
   @Override
-  public @NotNull Stream<VolumePair> buildVolumes(DistributedLogsContext context) {
+  public @NotNull Stream<VolumePair> buildVolumes(StackGresDistributedLogsContext context) {
     return Stream.of(
         ImmutableVolumePair.builder()
             .volume(buildVolume(context))
@@ -57,7 +57,7 @@ public class PatroniInitScriptConfigMap implements
     );
   }
 
-  public @NotNull Volume buildVolume(DistributedLogsContext context) {
+  public @NotNull Volume buildVolume(StackGresDistributedLogsContext context) {
     return
         new VolumeBuilder()
             .withName(name(context.getSource()))
@@ -69,7 +69,7 @@ public class PatroniInitScriptConfigMap implements
             .build();
   }
 
-  public @NotNull HasMetadata buildSource(DistributedLogsContext context) {
+  public @NotNull HasMetadata buildSource(StackGresDistributedLogsContext context) {
     final StackGresDistributedLogs cluster = context.getSource();
 
     String data = Unchecked.supplier(() -> Resources

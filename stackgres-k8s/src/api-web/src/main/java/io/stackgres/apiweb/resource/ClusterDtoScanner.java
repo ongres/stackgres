@@ -15,7 +15,7 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.transformer.ClusterTransformer;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceScanner;
@@ -28,7 +28,7 @@ public class ClusterDtoScanner implements CustomResourceScanner<ClusterDto> {
   private CustomResourceScanner<StackGresCluster> clusterScanner;
   private PodFinder podFinder;
   private ClusterTransformer clusterTransformer;
-  private LabelFactory<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Override
   public List<ClusterDto> getResources() {
@@ -102,7 +102,7 @@ public class ClusterDtoScanner implements CustomResourceScanner<ClusterDto> {
   }
 
   @Inject
-  public void setLabelFactory(LabelFactory<StackGresCluster> labelFactory) {
+  public void setLabelFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
     this.labelFactory = labelFactory;
   }
 }

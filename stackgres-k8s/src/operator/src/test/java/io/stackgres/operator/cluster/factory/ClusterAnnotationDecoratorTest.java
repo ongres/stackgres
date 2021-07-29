@@ -8,6 +8,7 @@ package io.stackgres.operator.cluster.factory;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Map;
@@ -26,14 +27,22 @@ import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
+import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterAnnotationDecorator;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class ClusterAnnotationDecoratorTest {
 
   private final ClusterAnnotationDecorator annotationDecorator = new ClusterAnnotationDecorator();
+
+  @Mock
+  private StackGresClusterContext context;
 
   private StackGresCluster defaultCluster;
 
@@ -43,6 +52,8 @@ class ClusterAnnotationDecoratorTest {
   void setUp() {
     defaultCluster = JsonUtil
         .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+
+    when(context.getSource()).thenReturn(defaultCluster);
 
     final ObjectMeta metadata = defaultCluster.getMetadata();
     metadata.getAnnotations().put(StackGresContext.VERSION_KEY,
@@ -63,7 +74,7 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(Map.of(randomAnnotationKey, randomAnnotationValue));
 
-    annotationDecorator.decorate(defaultCluster, resources);
+    annotationDecorator.decorate(context, resources);
 
     resources.forEach(resource -> checkResourceAnnotations(resource,
         Map.of(randomAnnotationKey, randomAnnotationValue)));
@@ -87,7 +98,7 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setServices(Map.of(serviceAnnotationKey, serviceAnnotationValue));
 
-    annotationDecorator.decorate(defaultCluster, resources);
+    annotationDecorator.decorate(context, resources);
 
     Map<String, String> expected = Map.of(allResourceAnnotationKey, allResourceAnnotationValue,
         serviceAnnotationKey, serviceAnnotationValue);
@@ -114,7 +125,7 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setClusterPods(Map.of(podAnnotationKey, podAnnotationValue));
 
-    annotationDecorator.decorate(defaultCluster, resources);
+    annotationDecorator.decorate(context, resources);
 
     resources.stream()
         .filter(r -> r.getKind().equals("Service"))
@@ -143,7 +154,7 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setServices(Map.of(serviceAnnotationKey, serviceAnnotationValue));
 
-    annotationDecorator.decorate(defaultCluster, resources);
+    annotationDecorator.decorate(context, resources);
 
     Map<String, String> expected = Map.of(primaryAnnotationKey, primaryAnnotationValue,
         serviceAnnotationKey, serviceAnnotationValue);
@@ -173,7 +184,7 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setServices(Map.of(serviceAnnotationKey, serviceAnnotationValue));
 
-    annotationDecorator.decorate(defaultCluster, resources);
+    annotationDecorator.decorate(context, resources);
 
     Map<String, String> expected = Map.of(replicaAnnotationKey, replicaAnnotationValue,
         serviceAnnotationKey, serviceAnnotationValue);
@@ -201,7 +212,7 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setClusterPods(Map.of(podAnnotationKey, podAnnotationValue));
 
-    annotationDecorator.decorate(defaultCluster, resources);
+    annotationDecorator.decorate(context, resources);
 
     Map<String, String> expected = Map.of(allResourceAnnotationKey, allResourceAnnotationValue,
         podAnnotationKey, podAnnotationValue);
@@ -228,7 +239,7 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setServices(ImmutableMap.of(serviceAnnotationKey, serviceAnnotationValue));
 
-    annotationDecorator.decorate(defaultCluster, resources);
+    annotationDecorator.decorate(context, resources);
 
     resources.stream()
         .filter(r -> r.getKind().equals("Pod"))
@@ -253,7 +264,7 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setClusterPods(Map.of(podAnnotationKey, podAnnotationValue));
 
-    annotationDecorator.decorate(defaultCluster, resources);
+    annotationDecorator.decorate(context, resources);
 
     Map<String, String> expectedSts = Map.of(allResourceAnnotationKey, allResourceAnnotationValue);
     Map<String, String> expectedPod = Map.of(allResourceAnnotationKey, allResourceAnnotationValue,
@@ -271,7 +282,7 @@ class ClusterAnnotationDecoratorTest {
 
   @Test
   void clusterOperatorVersion_shouldBePresentInStatefulSetPodTemplates() {
-    annotationDecorator.decorate(defaultCluster, resources);
+    annotationDecorator.decorate(context, resources);
 
     Map<String, String> expected = Map.of(StackGresContext.VERSION_KEY, defaultCluster
         .getMetadata().getAnnotations().get(StackGresContext.VERSION_KEY));
@@ -295,7 +306,7 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(ImmutableMap.of(allResourceAnnotationKey, allResourceAnnotationValue));
 
-    annotationDecorator.decorate(defaultCluster, resources);
+    annotationDecorator.decorate(context, resources);
 
     Map<String, String> expected = Map.of(allResourceAnnotationKey, allResourceAnnotationValue);
 
@@ -320,7 +331,7 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(ImmutableMap.of(allResourceAnnotationKey, allResourceAnnotationValue));
 
-    annotationDecorator.decorate(defaultCluster, resources);
+    annotationDecorator.decorate(context, resources);
 
     Map<String, String> expected = Map.of(allResourceAnnotationKey, allResourceAnnotationValue);
 

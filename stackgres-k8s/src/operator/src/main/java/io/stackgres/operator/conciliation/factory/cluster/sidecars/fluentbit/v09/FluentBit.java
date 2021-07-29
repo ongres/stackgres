@@ -23,7 +23,7 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.FluentdUtil;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.Sidecar;
@@ -55,7 +55,7 @@ public class FluentBit extends AbstractFluentBit {
 
   @Inject
   public FluentBit(
-      LabelFactory<StackGresCluster> labelFactory,
+      LabelFactoryForCluster<StackGresCluster> labelFactory,
       ClusterEnvironmentVariablesFactoryDiscoverer<StackGresClusterContext>
           clusterEnvVarFactoryDiscoverer,
       @ProviderName(VolumeMountProviderName.CONTAINER_LOCAL_OVERRIDE)
@@ -156,7 +156,7 @@ public class FluentBit extends AbstractFluentBit {
         + "    Regex       ^[^.]+\\.[^.]+\\.[^.]+\\."
         + "(?<namespace_name>[^.]+)\\.(?<pod_name>[^.]+)$\n"
         + "\n";
-    final String clusterNamespace = labelFactory.clusterNamespace(cluster);
+    final String clusterNamespace = cluster.getMetadata().getNamespace();
     String fluentBitConfigFile = ""
         + "[SERVICE]\n"
         + "    Parsers_File      /etc/fluent-bit/parsers.conf\n"

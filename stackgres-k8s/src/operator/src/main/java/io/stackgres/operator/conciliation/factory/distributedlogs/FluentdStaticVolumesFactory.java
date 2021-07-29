@@ -11,7 +11,7 @@ import javax.inject.Singleton;
 
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
-import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.StaticVolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import org.jetbrains.annotations.NotNull;
@@ -19,10 +19,10 @@ import org.jetbrains.annotations.NotNull;
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
 public class FluentdStaticVolumesFactory
-    implements StaticVolumeFactory<DistributedLogsContext> {
+    implements StaticVolumeFactory<StackGresDistributedLogsContext> {
 
   @Override
-  public @NotNull Stream<VolumePair> buildVolumes(DistributedLogsContext context) {
+  public @NotNull Stream<VolumePair> buildVolumes(StackGresDistributedLogsContext context) {
     return Stream.of(
         emptyDir(FluentdStaticVolume.FLUENTD.getVolumeName()),
         emptyDir(FluentdStaticVolume.FLUENTD_BUFFER.getVolumeName()),

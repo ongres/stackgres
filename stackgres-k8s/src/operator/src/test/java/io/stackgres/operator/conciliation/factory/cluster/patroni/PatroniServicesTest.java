@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Service;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -38,7 +38,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PatroniServicesTest {
 
   @Mock
-  private LabelFactory<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Mock
   private io.stackgres.operator.conciliation.cluster.StackGresClusterContext context;
@@ -62,6 +62,9 @@ class PatroniServicesTest {
         .thenReturn(ImmutableMap.of());
 
     when(context.getSource())
+        .thenReturn(defaultCluster);
+
+    when(context.getCluster())
         .thenReturn(defaultCluster);
   }
 

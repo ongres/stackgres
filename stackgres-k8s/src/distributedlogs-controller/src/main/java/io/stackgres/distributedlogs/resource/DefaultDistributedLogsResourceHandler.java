@@ -12,7 +12,7 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.distributedlogs.common.StackGresDistributedLogsContext;
 
@@ -20,11 +20,11 @@ import io.stackgres.distributedlogs.common.StackGresDistributedLogsContext;
 public class DefaultDistributedLogsResourceHandler
     extends AbstractDistributedLogsResourceHandler {
 
-  private final LabelFactory<StackGresDistributedLogs> labelFactory;
+  private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
   @Inject
   public DefaultDistributedLogsResourceHandler(
-      LabelFactory<StackGresDistributedLogs> labelFactory) {
+      LabelFactoryForCluster<StackGresDistributedLogs> labelFactory) {
     this.labelFactory = labelFactory;
   }
 

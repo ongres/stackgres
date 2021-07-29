@@ -20,11 +20,11 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract class AnnotationDecorator<T> implements Decorator<T> {
 
-  protected abstract @NotNull Map<String, String> getAllResourcesAnnotations(@NotNull T cluster);
+  protected abstract @NotNull Map<String, String> getAllResourcesAnnotations(@NotNull T context);
 
-  protected abstract @NotNull Map<String, String> getServiceAnnotations(@NotNull T cluster);
+  protected abstract @NotNull Map<String, String> getServiceAnnotations(@NotNull T context);
 
-  protected abstract @NotNull Map<String, String> getPodAnnotations(@NotNull T cluster);
+  protected abstract @NotNull Map<String, String> getPodAnnotations(@NotNull T context);
 
   protected @NotNull Map<String, BiConsumer<T, HasMetadata>> getCustomDecorators() {
     return Map.of(
@@ -33,21 +33,16 @@ public abstract class AnnotationDecorator<T> implements Decorator<T> {
         "StatefulSet", this::decorateSts);
   }
 
-  protected void decorateService(@NotNull T cluster, @NotNull HasMetadata service) {
-
-    decorateResource(service, getServiceAnnotations(cluster));
-
+  protected void decorateService(@NotNull T context, @NotNull HasMetadata service) {
+    decorateResource(service, getServiceAnnotations(context));
   }
 
   // TODO review if we need this
-  protected void decoratePod(@NotNull T cluster, @NotNull HasMetadata pod) {
-
-    decorateResource(pod, getPodAnnotations(cluster));
-
+  protected void decoratePod(@NotNull T context, @NotNull HasMetadata pod) {
+    decorateResource(pod, getPodAnnotations(context));
   }
 
-  protected void decorateSts(@NotNull T cluster, @NotNull HasMetadata resource) {
-
+  protected void decorateSts(@NotNull T context, @NotNull HasMetadata resource) {
     StatefulSet sts = (StatefulSet) resource;
 
     Map<String, String> podTemplateAnnotations = Optional.ofNullable(sts.getSpec())
@@ -56,7 +51,7 @@ public abstract class AnnotationDecorator<T> implements Decorator<T> {
         .map(ObjectMeta::getAnnotations)
         .orElse(new HashMap<>());
 
-    Map<String, String> podAnnotations = getPodAnnotations(cluster);
+    Map<String, String> podAnnotations = getPodAnnotations(context);
     podTemplateAnnotations.putAll(podAnnotations);
 
     Optional.ofNullable(sts.getSpec())
@@ -71,15 +66,13 @@ public abstract class AnnotationDecorator<T> implements Decorator<T> {
 
     Optional.ofNullable(sts.getSpec())
         .map(StatefulSetSpec::getVolumeClaimTemplates)
-        .ifPresent(cvt -> decorate(cluster, cvt));
+        .ifPresent(cvt -> decorate(context, cvt));
 
-    decorateResource(resource, getAllResourcesAnnotations(cluster));
-
+    decorateResource(resource, getAllResourcesAnnotations(context));
   }
 
   protected void decorateResource(@NotNull HasMetadata resource,
       @NotNull Map<String, String> customAnnotations) {
-
     var metadata = Objects.requireNonNull(resource.getMetadata());
 
     Map<String, String> resourceAnnotations = Optional.of(metadata)
@@ -91,22 +84,19 @@ public abstract class AnnotationDecorator<T> implements Decorator<T> {
     resource.getMetadata().setAnnotations(resourceAnnotations);
   }
 
-  protected void defaultDecorator(@NotNull T cluster, @NotNull HasMetadata resources) {
-
-    decorateResource(resources, getAllResourcesAnnotations(cluster));
-
+  protected void defaultDecorator(@NotNull T context, @NotNull HasMetadata resources) {
+    decorateResource(resources, getAllResourcesAnnotations(context));
   }
 
   @Override
-  public void decorate(T cluster, Iterable<? extends HasMetadata> resources) {
-
+  public void decorate(T context, Iterable<? extends HasMetadata> resources) {
     var decoratorMap = getCustomDecorators();
 
     resources.forEach(resource -> {
       String kind = resource.getKind();
       var decorator = decoratorMap.getOrDefault(kind, this::defaultDecorator);
-      decorator.accept(cluster, resource);
+      decorator.accept(context, resource);
     });
-
   }
+
 }

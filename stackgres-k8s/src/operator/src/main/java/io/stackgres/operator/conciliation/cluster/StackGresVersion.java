@@ -6,8 +6,10 @@
 package io.stackgres.operator.conciliation.cluster;
 
 import java.util.Arrays;
-import java.util.Map;
+import java.util.Optional;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.StackGresContext;
 
@@ -35,11 +37,14 @@ public enum StackGresVersion {
     this.version = version;
   }
 
-  public static <T extends CustomResource<?, ?>> StackGresVersion getClusterStackGresVersion(
-      T cluster) {
-    final Map<String, String> annotations = cluster.getMetadata().getAnnotations();
-    return parseVersion(annotations.get(StackGresContext.VERSION_KEY));
-
+  public static <T extends CustomResource<?, ?>> StackGresVersion getStackGresVersion(
+      HasMetadata resource) {
+    return parseVersion(Optional.of(resource)
+        .map(HasMetadata::getMetadata)
+        .map(ObjectMeta::getAnnotations)
+        .map(annotations -> annotations.get(StackGresContext.VERSION_KEY))
+        .orElseThrow(() -> new IllegalArgumentException(
+            "Could not find required annotation " + StackGresContext.VERSION_KEY)));
   }
 
   private static StackGresVersion parseVersion(String clusterVersion) {
@@ -48,7 +53,7 @@ public enum StackGresVersion {
         .filter(historyVersion -> historyVersion.version.equals(version))
         .findFirst()
         .orElseThrow(
-            () -> new IllegalArgumentException("Invalid StackGres version " + version));
+            () -> new IllegalArgumentException("Invalid version " + version));
   }
 
   private static String sanitizeVersion(String version) {

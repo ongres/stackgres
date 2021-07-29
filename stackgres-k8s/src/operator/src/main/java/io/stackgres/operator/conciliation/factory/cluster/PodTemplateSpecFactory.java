@@ -31,7 +31,7 @@ import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.TolerationBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -58,7 +58,7 @@ public class PodTemplateSpecFactory
 
   private final ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityContext;
 
-  private final LabelFactory<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   private final ContainerFactoryDiscoverer<StackGresClusterContainerContext>
       containerFactoryDiscoverer;
@@ -69,7 +69,7 @@ public class PodTemplateSpecFactory
   @Inject
   public PodTemplateSpecFactory(
       ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityContext,
-      LabelFactory<StackGresCluster> labelFactory,
+      LabelFactoryForCluster<StackGresCluster> labelFactory,
       ContainerFactoryDiscoverer<StackGresClusterContainerContext> containerFactoryDiscoverer,
       InitContainerFactoryDiscover<StackGresClusterContainerContext>
           initContainerFactoryDiscoverer) {
@@ -141,7 +141,7 @@ public class PodTemplateSpecFactory
                             .withMatchExpressions(new LabelSelectorRequirementBuilder()
                                 .withKey(StackGresContext.APP_KEY)
                                 .withOperator("In")
-                                .withValues(labelFactory.getLabelMapper().appName())
+                                .withValues(labelFactory.labelMapper().appName())
                                 .build(),
                                 new LabelSelectorRequirementBuilder()
                                     .withKey("cluster")

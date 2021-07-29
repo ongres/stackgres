@@ -19,9 +19,11 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.client.internal.PatchUtils;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.LabelFactoryForDbOps;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.jobs.app.KubernetesClientProvider;
 import io.stackgres.testutil.StringUtils;
 
@@ -32,7 +34,10 @@ public class PodTestUtil {
   private static final String JOB_NAME_FORMAT = "%s-%s-%d-%s";
 
   @Inject
-  LabelFactory<StackGresCluster> labelFactory;
+  LabelFactoryForCluster<StackGresCluster> labelFactory;
+
+  @Inject
+  LabelFactoryForDbOps<StackGresDbOps> dbOpsLabelFactory;
 
   @Inject
   KubernetesClientProvider clientFactory;
@@ -93,7 +98,9 @@ public class PodTestUtil {
   public Pod buildJobPod(StackGresCluster cluster, int index) {
     String namespace = cluster.getMetadata().getNamespace();
     String clusterName = cluster.getMetadata().getName();
-    final Map<String, String> labels = labelFactory.dbOpsPodLabels(cluster);
+    StackGresDbOps dbOps = new StackGresDbOps();
+    dbOps.setMetadata(cluster.getMetadata());
+    final Map<String, String> labels = dbOpsLabelFactory.dbOpsPodLabels(dbOps);
     return new PodBuilder()
         .withNewMetadata()
         .withName(String.format(JOB_NAME_FORMAT, clusterName, clusterName, index,

@@ -62,4 +62,5 @@ public class ClusterHandlerDelegator implements HandlerDelegator<StackGresCluste
       return instance.get();
     }
   }
+
 }

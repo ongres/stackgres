@@ -19,7 +19,7 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
-import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.FactoryName;
@@ -39,14 +39,14 @@ public class ScriptsSetUp implements ContainerFactory<DistributedLogsContainerCo
 
   private final VolumeMountsProvider<ContainerContext> containerLocalOverrideMounts;
 
-  private final ResourceFactory<DistributedLogsContext, List<EnvVar>> commonEnvVarFactory;
+  private final ResourceFactory<StackGresDistributedLogsContext, List<EnvVar>> commonEnvVarFactory;
 
   @Inject
   public ScriptsSetUp(
       @ProviderName(CONTAINER_LOCAL_OVERRIDE)
           VolumeMountsProvider<ContainerContext> containerLocalOverrideMounts,
       @FactoryName(DistributedLogsEnvVarFactories.V09_COMMON_ENV_VAR_FACTORY)
-          ResourceFactory<DistributedLogsContext, List<EnvVar>> commonEnvVarFactory) {
+          ResourceFactory<StackGresDistributedLogsContext, List<EnvVar>> commonEnvVarFactory) {
     this.containerLocalOverrideMounts = containerLocalOverrideMounts;
     this.commonEnvVarFactory = commonEnvVarFactory;
   }

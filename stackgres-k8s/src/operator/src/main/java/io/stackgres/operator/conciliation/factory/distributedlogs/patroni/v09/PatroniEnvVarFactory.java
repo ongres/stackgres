@@ -13,7 +13,7 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.stackgres.common.EnvoyUtil;
-import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.FactoryName;
 import io.stackgres.operator.conciliation.factory.PatroniEnvironmentVariablesFactory;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
@@ -22,13 +22,13 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.patroni.Distri
 @ApplicationScoped
 @FactoryName(DistributedLogsEnvVarFactories.V09_PATRONI_ENV_VAR_FACTORY)
 public class PatroniEnvVarFactory
-    extends PatroniEnvironmentVariablesFactory<DistributedLogsContext> {
+    extends PatroniEnvironmentVariablesFactory<StackGresDistributedLogsContext> {
 
   @FactoryName(DistributedLogsEnvVarFactories.V09_COMMON_ENV_VAR_FACTORY)
-  ResourceFactory<DistributedLogsContext, List<EnvVar>> commonEnvVarFactory;
+  ResourceFactory<StackGresDistributedLogsContext, List<EnvVar>> commonEnvVarFactory;
 
   @Override
-  public List<EnvVar> createResource(DistributedLogsContext context) {
+  public List<EnvVar> createResource(StackGresDistributedLogsContext context) {
     return ImmutableList.<EnvVar>builder()
         .addAll(commonEnvVarFactory.createResource(context))
         .add(new EnvVarBuilder()

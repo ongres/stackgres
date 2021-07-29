@@ -15,24 +15,22 @@ import javax.inject.Inject;
 import io.stackgres.operator.conciliation.ResourceDiscoverer;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.ResourceGenerator;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 
 @ApplicationScoped
 public class ResourceGenerationDiscovererImpl
-    extends ResourceDiscoverer<ResourceGenerator<DistributedLogsContext>>
-    implements ResourceGenerationDiscoverer<DistributedLogsContext> {
+    extends ResourceDiscoverer<ResourceGenerator<StackGresDistributedLogsContext>>
+    implements ResourceGenerationDiscoverer<StackGresDistributedLogsContext> {
 
   @Inject
   public ResourceGenerationDiscovererImpl(
       @Any
-          Instance<ResourceGenerator<DistributedLogsContext>> instance) {
+          Instance<ResourceGenerator<StackGresDistributedLogsContext>> instance) {
     init(instance);
   }
 
   @Override
-  public List<ResourceGenerator<DistributedLogsContext>> getResourceGenerators(
-      DistributedLogsContext context) {
-    StackGresVersion version = StackGresVersion.getClusterStackGresVersion(context.getSource());
-    return resourceHub.get(version);
+  public List<ResourceGenerator<StackGresDistributedLogsContext>> getResourceGenerators(
+      StackGresDistributedLogsContext context) {
+    return resourceHub.get(context.getVersion());
   }
 }

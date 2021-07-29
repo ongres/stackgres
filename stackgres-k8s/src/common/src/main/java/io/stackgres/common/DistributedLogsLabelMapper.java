@@ -10,7 +10,7 @@ import javax.enterprise.context.ApplicationScoped;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 
 @ApplicationScoped
-public class DistributedLogsLabelMapper implements LabelMapper<StackGresDistributedLogs> {
+public class DistributedLogsLabelMapper implements LabelMapperForCluster<StackGresDistributedLogs> {
 
   @Override
   public String appName() {
@@ -18,17 +18,17 @@ public class DistributedLogsLabelMapper implements LabelMapper<StackGresDistribu
   }
 
   @Override
-  public String clusterNameKey() {
+  public String resourceNameKey() {
     return StackGresContext.DISTRIBUTED_LOGS_CLUSTER_NAME_KEY;
   }
 
   @Override
-  public String clusterNamespaceKey() {
+  public String resourceNamespaceKey() {
     return StackGresContext.DISTRIBUTED_LOGS_CLUSTER_NAMESPACE_KEY;
   }
 
   @Override
-  public String clusterUidKey() {
+  public String resourceUidKey() {
     return StackGresContext.DISTRIBUTED_LOGS_CLUSTER_UID_KEY;
   }
 

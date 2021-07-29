@@ -34,6 +34,7 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileList;
 import io.stackgres.operator.conciliation.cluster.ClusterReconciliator;
+import io.stackgres.operator.conciliation.dbops.DbOpsReconciliator;
 import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsReconciliator;
 import io.stackgres.operator.controller.ResourceWatcherFactory;
 import io.stackgres.operatorframework.resource.WatcherMonitor;
@@ -47,16 +48,18 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
   private final KubernetesClientFactory kubeClient;
   private final ClusterReconciliator clusterReconciliationCycle;
   private final DistributedLogsReconciliator distributedLogsReconciliatorCycle;
+  private final DbOpsReconciliator dbOpsReconciliationCycle;
   private final ResourceWatcherFactory watcherFactory;
 
   @Inject
   public OperatorWatchersHandlerImpl(KubernetesClientFactory kubeClient,
-                                     ClusterReconciliator clusterReconciliationCycle,
-                                     DistributedLogsReconciliator distributedLogsReconciliatorCycle,
-                                     ResourceWatcherFactory watcherFactory) {
+      ClusterReconciliator clusterReconciliationCycle,
+      DistributedLogsReconciliator distributedLogsReconciliatorCycle,
+      DbOpsReconciliator dbOpsReconciliationCycle, ResourceWatcherFactory watcherFactory) {
     this.kubeClient = kubeClient;
     this.clusterReconciliationCycle = clusterReconciliationCycle;
     this.distributedLogsReconciliatorCycle = distributedLogsReconciliatorCycle;
+    this.dbOpsReconciliationCycle = dbOpsReconciliationCycle;
     this.watcherFactory = watcherFactory;
   }
 
@@ -96,7 +99,7 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
     monitors.add(createWatcher(
         StackGresDbOps.class,
         StackGresDbOpsList.class,
-        reconcileCluster()));
+        reconcileDbOps()));
 
     monitors.add(createWatcher(
         StackGresDistributedLogs.class,
@@ -122,6 +125,10 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
 
   private Consumer<Action> reconcileDistributedLogs() {
     return action -> distributedLogsReconciliatorCycle.reconcile();
+  }
+
+  private Consumer<Action> reconcileDbOps() {
+    return action -> dbOpsReconciliationCycle.reconcile();
   }
 
   @Override

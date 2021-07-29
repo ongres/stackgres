@@ -5,9 +5,14 @@
 
 package io.stackgres.common.event;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.operatorframework.resource.EventReason;
 
-public interface EventEmitter<T> {
+public interface EventEmitter<T extends HasMetadata> {
 
+  /**
+   * Send an event related to a resource.
+   */
   void sendEvent(EventReason reason, String message, T involvedObject);
+
 }

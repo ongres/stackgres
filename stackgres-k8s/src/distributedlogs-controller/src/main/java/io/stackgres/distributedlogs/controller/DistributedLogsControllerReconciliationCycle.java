@@ -22,7 +22,7 @@ import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.KubernetesClientFactory;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -45,7 +45,7 @@ public class DistributedLogsControllerReconciliationCycle
 
   private final DistributedLogsControllerPropertyContext propertyContext;
   private final EventController eventController;
-  private final LabelFactory<StackGresDistributedLogs> labelFactory;
+  private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
   private final CustomResourceFinder<StackGresDistributedLogs> distributedLogsFinder;
 
   @Dependent
@@ -55,7 +55,7 @@ public class DistributedLogsControllerReconciliationCycle
     @Inject DistributedLogsResourceHandlerSelector handlerSelector;
     @Inject DistributedLogsControllerPropertyContext propertyContext;
     @Inject EventController eventController;
-    @Inject LabelFactory<StackGresDistributedLogs> labelFactory;
+    @Inject LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
     @Inject CustomResourceFinder<StackGresDistributedLogs> distributedLogsFinder;
   }
 

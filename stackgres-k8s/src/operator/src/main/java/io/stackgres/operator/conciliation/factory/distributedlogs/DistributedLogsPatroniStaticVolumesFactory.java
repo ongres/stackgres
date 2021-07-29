@@ -9,11 +9,11 @@ import javax.inject.Singleton;
 
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
-import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolumesFactory;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
 public class DistributedLogsPatroniStaticVolumesFactory
-    extends PatroniStaticVolumesFactory<DistributedLogsContext> {
+    extends PatroniStaticVolumesFactory<StackGresDistributedLogsContext> {
 }

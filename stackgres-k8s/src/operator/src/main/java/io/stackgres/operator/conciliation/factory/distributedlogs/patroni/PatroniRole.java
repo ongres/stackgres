@@ -21,7 +21,7 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBindingBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
@@ -34,18 +34,18 @@ import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
-import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
 public class PatroniRole implements
-    ResourceGenerator<DistributedLogsContext> {
+    ResourceGenerator<StackGresDistributedLogsContext> {
   public static final String SUFFIX = "-patroni";
 
-  private LabelFactory<StackGresDistributedLogs> labelFactory;
+  private LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
-  public static String roleName(DistributedLogsContext clusterContext) {
+  public static String roleName(StackGresDistributedLogsContext clusterContext) {
     return roleName(clusterContext.getSource().getMetadata().getName());
   }
 
@@ -54,7 +54,7 @@ public class PatroniRole implements
   }
 
   @Override
-  public Stream<HasMetadata> generateResource(DistributedLogsContext context) {
+  public Stream<HasMetadata> generateResource(StackGresDistributedLogsContext context) {
     return Stream.of(
         createServiceAccount(context),
         createRole(context),
@@ -64,7 +64,7 @@ public class PatroniRole implements
   /**
    * Create the ServiceAccount for patroni associated to the cluster.
    */
-  private ServiceAccount createServiceAccount(DistributedLogsContext context) {
+  private ServiceAccount createServiceAccount(StackGresDistributedLogsContext context) {
     final StackGresDistributedLogs cluster = context.getSource();
     final Map<String, String> labels = labelFactory
         .clusterLabels(cluster);
@@ -83,7 +83,7 @@ public class PatroniRole implements
   /**
    * Create the Role for patroni associated to the cluster.
    */
-  private Role createRole(DistributedLogsContext context) {
+  private Role createRole(StackGresDistributedLogsContext context) {
     final StackGresDistributedLogs cluster = context.getSource();
     final Map<String, String> labels = labelFactory
         .clusterLabels(cluster);
@@ -169,7 +169,7 @@ public class PatroniRole implements
   /**
    * Create the RoleBinding for patroni associated to the cluster.
    */
-  private RoleBinding createRoleBinding(DistributedLogsContext context) {
+  private RoleBinding createRoleBinding(StackGresDistributedLogsContext context) {
     final StackGresDistributedLogs cluster = context.getSource();
     final Map<String, String> labels = labelFactory
         .clusterLabels(cluster);
@@ -193,7 +193,7 @@ public class PatroniRole implements
   }
 
   @Inject
-  public void setLabelFactory(LabelFactory<StackGresDistributedLogs> labelFactory) {
+  public void setLabelFactory(LabelFactoryForCluster<StackGresDistributedLogs> labelFactory) {
     this.labelFactory = labelFactory;
   }
 }

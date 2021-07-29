@@ -16,7 +16,7 @@ import javax.inject.Singleton;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
@@ -30,7 +30,7 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 public class PatroniSecret implements
     ResourceGenerator<StackGresClusterContext>, StackGresRandomPasswordKeys {
 
-  private LabelFactory<StackGresCluster> factoryFactory;
+  private LabelFactoryForCluster<StackGresCluster> factoryFactory;
 
   public static String name(StackGresClusterContext clusterContext) {
     return ResourceUtil.resourceName(clusterContext.getSource().getMetadata().getName());
@@ -82,7 +82,7 @@ public class PatroniSecret implements
   }
 
   @Inject
-  public void setFactoryFactory(LabelFactory<StackGresCluster> factoryFactory) {
+  public void setFactoryFactory(LabelFactoryForCluster<StackGresCluster> factoryFactory) {
     this.factoryFactory = factoryFactory;
   }
 

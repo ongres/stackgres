@@ -6,29 +6,26 @@
 package io.stackgres.operator.app;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Any;
+import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import io.stackgres.common.app.AbstractReconciliationClock;
-import io.stackgres.operator.conciliation.cluster.ClusterReconciliator;
-import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsReconciliator;
+import io.stackgres.operator.conciliation.StackGresReconciliator;
 
 @ApplicationScoped
 public class ReconciliationClockImpl extends AbstractReconciliationClock {
 
-  private final ClusterReconciliator clusterReconciliationCycle;
-  private final DistributedLogsReconciliator distributedLogsReconciliator;
+  private final Instance<StackGresReconciliator<?>> reconciliators;
 
   @Inject
-  public ReconciliationClockImpl(ClusterReconciliator clusterReconciliationCycle,
-                                 DistributedLogsReconciliator distributedLogsConciliator) {
-    this.clusterReconciliationCycle = clusterReconciliationCycle;
-    this.distributedLogsReconciliator = distributedLogsConciliator;
+  public ReconciliationClockImpl(@Any Instance<StackGresReconciliator<?>> reconciliators) {
+    this.reconciliators = reconciliators;
   }
 
   @Override
   protected void reconcile() {
-    clusterReconciliationCycle.reconcile();
-    distributedLogsReconciliator.reconcile();
+    reconciliators.forEach(StackGresReconciliator::reconcile);
   }
 
 }

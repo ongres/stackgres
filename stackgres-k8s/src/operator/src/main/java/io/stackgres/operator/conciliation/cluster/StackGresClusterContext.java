@@ -31,8 +31,15 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
     ClusterContext {
 
   @Override
+  @Value.Derived
   default StackGresCluster getCluster() {
     return getSource();
+  }
+
+  @Override
+  @Value.Derived
+  default StackGresVersion getVersion() {
+    return StackGresVersion.getStackGresVersion(getSource());
   }
 
   Optional<StackGresBackupConfig> getBackupConfig();

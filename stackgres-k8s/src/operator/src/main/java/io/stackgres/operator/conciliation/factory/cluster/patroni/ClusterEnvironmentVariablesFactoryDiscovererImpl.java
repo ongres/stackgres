@@ -15,7 +15,6 @@ import javax.inject.Inject;
 
 import io.stackgres.operator.conciliation.ResourceDiscoverer;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 
 @ApplicationScoped
 public class ClusterEnvironmentVariablesFactoryDiscovererImpl
@@ -32,8 +31,7 @@ public class ClusterEnvironmentVariablesFactoryDiscovererImpl
   @Override
   public List<ClusterEnvironmentVariablesFactory<StackGresClusterContext>> discoverFactories(
       StackGresClusterContext context) {
-    StackGresVersion version = StackGresVersion.getClusterStackGresVersion(context.getSource());
-    return resourceHub.get(version).stream()
+    return resourceHub.get(context.getVersion()).stream()
         .collect(Collectors.toUnmodifiableList());
   }
 }

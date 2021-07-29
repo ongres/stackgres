@@ -23,7 +23,7 @@ import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.conciliation.ComparisonDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import org.apache.commons.compress.utils.Lists;
@@ -32,10 +32,9 @@ import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 import org.jooq.lambda.tuple.Tuple3;
 
-public class PatchResumer {
+public class PatchResumer<T extends CustomResource<?, ?>> {
 
   static final List<String> ORDERED_RESOURCE_KINDS = ImmutableList.of(
-      StackGresCluster.KIND,
       HasMetadata.getKind(StatefulSet.class),
       HasMetadata.getKind(Pod.class),
       HasMetadata.getKind(Service.class),
@@ -59,18 +58,18 @@ public class PatchResumer {
     this.resourceComparator = resourceComparator;
   }
 
-  public String resourceChanged(StackGresCluster cluster, ReconciliationResult result) {
+  public String resourceChanged(T customResource, ReconciliationResult result) {
     var created = Seq.seq(result.getCreations())
-        .sorted(this::compareResourceByKind)
+        .sorted((v1, v2) -> compareResourceByKind(v1, v2, customResource))
         .map(r -> Tuple.tuple("+" + r.getKind() + ":" + r.getMetadata().getName(), "created"));
     var deleted = Seq.seq(result.getDeletions())
-        .sorted(this::compareResourceByKind)
+        .sorted((v1, v2) -> compareResourceByKind(v1, v2, customResource))
         .map(r -> Tuple.tuple("-" + r.getKind() + ":" + r.getMetadata().getName(), "deleted"));
     var patched = Seq.seq(result.getPatches())
         .flatMap(t -> Seq.seq(resourceComparator.getJsonDiff(t.v1, t.v2))
             .map(patch -> Tuple.tuple(t.v2, patch)))
-        .map(t -> resumeResourcePatch(t.v1, t.v2, cluster))
-        .sorted((t1, t2) -> compareResourceByKind(t1.v1, t2.v1))
+        .map(t -> resumeResourcePatch(t.v1, t.v2, customResource))
+        .sorted((t1, t2) -> compareResourceByKind(t1.v1, t2.v1, customResource))
         .map(t -> Tuple.tuple(
             t.v1.getKind() + ":" + t.v1.getMetadata().getName()
             + " (" + t.v2 + ")", "patched"));
@@ -119,7 +118,19 @@ public class PatchResumer {
     }
   }
 
-  private int compareResourceByKind(HasMetadata leftResource, HasMetadata rightResource) {
+  private int compareResourceByKind(HasMetadata leftResource, HasMetadata rightResource,
+      T customResource) {
+    if (leftResource.getKind().equals(customResource.getKind())
+        || rightResource.getKind().equals(customResource.getKind())) {
+      if (leftResource.getKind().equals(rightResource.getKind())) {
+        return 0;
+      }
+      if (leftResource.getKind().equals(customResource.getKind())) {
+        return -1;
+      } else {
+        return 1;
+      }
+    }
     Optional<Integer> leftResourceOrder =
         Optional.of(ORDERED_RESOURCE_KINDS.indexOf(leftResource.getKind()))
         .filter(i -> i >= 0);
@@ -138,26 +149,13 @@ public class PatchResumer {
     return leftResource.getKind().compareTo(rightResource.getKind());
   }
 
-  private Tuple2<HasMetadata, String> resumeResourcePatch(HasMetadata resource,
-      JsonNode patch, StackGresCluster cluster) {
-    if (resource.getKind().equals(HasMetadata.getKind(StatefulSet.class))
-        && patch.get("op").asText().equals("replace")
-        && patch.get("path").asText().equals("/spec/replicas")) {
-      int replicas = ((StatefulSet) resource).getSpec().getReplicas();
-      if (cluster.getSpec().getInstances() != replicas) {
-        return Tuple.tuple(resource, "Instances have been updated to "
-            + ((StatefulSet) resource).getSpec().getReplicas()
-            + " (cluster instances are now " + cluster.getSpec().getInstances() + ")");
-      } else {
-        return Tuple.tuple(resource, "Instances have been updated to "
-          + replicas);
-      }
-    }
+  protected Tuple2<HasMetadata, String> resumeResourcePatch(HasMetadata resource,
+      JsonNode patch, T customResource) {
     return Tuple.tuple(resource, resumeFieldPatch(patch,
         resource.getKind().equals(HasMetadata.getKind(Secret.class))));
   }
 
-  private String resumeFieldPatch(JsonNode patch, boolean secret) {
+  protected String resumeFieldPatch(JsonNode patch, boolean secret) {
     String op = patch.get("op").asText();
     if (op.equals("add") || op.equals("replace")) {
       final String prefix;

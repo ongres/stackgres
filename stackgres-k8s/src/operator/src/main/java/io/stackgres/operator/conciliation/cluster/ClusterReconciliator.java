@@ -28,7 +28,7 @@ import io.stackgres.common.event.EventEmitterType;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
-import io.stackgres.operator.common.PatchResumer;
+import io.stackgres.operator.common.ClusterPatchResumer;
 import io.stackgres.operator.conciliation.ComparisonDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StackGresReconciliator;
@@ -53,7 +53,7 @@ public class ClusterReconciliator
 
   private CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
 
-  private PatchResumer patchResumer;
+  private ClusterPatchResumer patchResumer;
 
   @Override
   public void onPreReconciliation(StackGresCluster config) {
@@ -171,6 +171,6 @@ public class ClusterReconciliator
 
   @Inject
   public void setResourceComparator(ComparisonDelegator<StackGresCluster> resourceComparator) {
-    this.patchResumer = new PatchResumer(resourceComparator);
+    this.patchResumer = new ClusterPatchResumer(resourceComparator);
   }
 }

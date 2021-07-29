@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.EnvoyUtil;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
@@ -50,7 +50,7 @@ public class PgBouncerPooling extends AbstractPgPooling {
   private final VolumeMountsProvider<ContainerContext> postgresSocket;
 
   @Inject
-  protected PgBouncerPooling(LabelFactory<StackGresCluster> labelFactory,
+  protected PgBouncerPooling(LabelFactoryForCluster<StackGresCluster> labelFactory,
       @ProviderName(CONTAINER_USER_OVERRIDE)
         VolumeMountsProvider<ContainerContext> containerUserOverrideMounts,
       @ProviderName(POSTGRES_SOCKET)

@@ -14,7 +14,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.VolumeMount;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.Sidecar;
@@ -39,7 +39,7 @@ public class Envoy extends AbstractEnvoy {
 
   @Inject
   public Envoy(YamlMapperProvider yamlMapperProvider,
-               LabelFactory<StackGresCluster> labelFactory,
+               LabelFactoryForCluster<StackGresCluster> labelFactory,
                @ProviderName(CONTAINER_LOCAL_OVERRIDE)
                      VolumeMountsProvider<ContainerContext> containerLocalOverrideMounts) {
     super(yamlMapperProvider, labelFactory);

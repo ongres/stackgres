@@ -16,40 +16,40 @@ import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServiceType;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
-import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
 public class PatroniServices implements
-    ResourceGenerator<DistributedLogsContext> {
+    ResourceGenerator<StackGresDistributedLogsContext> {
 
-  private LabelFactory<StackGresDistributedLogs> labelFactory;
+  private LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
-  public static String name(DistributedLogsContext clusterContext) {
+  public static String name(StackGresDistributedLogsContext clusterContext) {
     String name = clusterContext.getSource().getMetadata().getName();
     return PatroniUtil.name(name);
   }
 
-  public static String readWriteName(DistributedLogsContext clusterContext) {
+  public static String readWriteName(StackGresDistributedLogsContext clusterContext) {
     String name = clusterContext.getSource().getMetadata().getName();
     return PatroniUtil.readWriteName(name);
   }
 
-  public static String readOnlyName(DistributedLogsContext clusterContext) {
+  public static String readOnlyName(StackGresDistributedLogsContext clusterContext) {
     String name = clusterContext.getSource().getMetadata().getName();
     return ResourceUtil.resourceName(name + PatroniUtil.READ_ONLY_SERVICE);
   }
 
-  public String configName(DistributedLogsContext clusterContext) {
+  public String configName(StackGresDistributedLogsContext clusterContext) {
     final StackGresDistributedLogs cluster = clusterContext.getSource();
     final String scope = labelFactory.clusterScope(cluster);
     return ResourceUtil.resourceName(
@@ -60,7 +60,7 @@ public class PatroniServices implements
    * Create the Services associated with the cluster.
    */
   @Override
-  public Stream<HasMetadata> generateResource(DistributedLogsContext context) {
+  public Stream<HasMetadata> generateResource(StackGresDistributedLogsContext context) {
     final StackGresDistributedLogs cluster = context.getSource();
     final String namespace = cluster.getMetadata().getNamespace();
 
@@ -90,7 +90,7 @@ public class PatroniServices implements
         .build();
   }
 
-  private Service createPatroniService(DistributedLogsContext context) {
+  private Service createPatroniService(StackGresDistributedLogsContext context) {
     StackGresDistributedLogs cluster = context.getSource();
 
     final Map<String, String> primaryLabels = labelFactory.patroniPrimaryLabels(cluster);
@@ -119,7 +119,7 @@ public class PatroniServices implements
         .build();
   }
 
-  private Service createPrimaryService(DistributedLogsContext context) {
+  private Service createPrimaryService(StackGresDistributedLogsContext context) {
 
     StackGresDistributedLogs cluster = context.getSource();
 
@@ -139,7 +139,7 @@ public class PatroniServices implements
         .build();
   }
 
-  private Service createReplicaService(DistributedLogsContext context) {
+  private Service createReplicaService(StackGresDistributedLogsContext context) {
 
     StackGresDistributedLogs cluster = context.getSource();
 
@@ -174,7 +174,7 @@ public class PatroniServices implements
   }
 
   @Inject
-  public void setLabelFactory(LabelFactory<StackGresDistributedLogs> labelFactory) {
+  public void setLabelFactory(LabelFactoryForCluster<StackGresDistributedLogs> labelFactory) {
     this.labelFactory = labelFactory;
   }
 }

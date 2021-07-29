@@ -16,23 +16,23 @@ import javax.inject.Singleton;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.StackGresRandomPasswordKeys;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
-import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
 public class PatroniSecret implements
-    ResourceGenerator<DistributedLogsContext>, StackGresRandomPasswordKeys {
+    ResourceGenerator<StackGresDistributedLogsContext>, StackGresRandomPasswordKeys {
 
-  private LabelFactory<StackGresDistributedLogs> factoryFactory;
+  private LabelFactoryForCluster<StackGresDistributedLogs> factoryFactory;
 
-  public static String name(DistributedLogsContext clusterContext) {
+  public static String name(StackGresDistributedLogsContext clusterContext) {
     return ResourceUtil.resourceName(clusterContext.getSource().getMetadata().getName());
   }
 
@@ -44,7 +44,7 @@ public class PatroniSecret implements
    * Create the Secret for patroni associated to the cluster.
    */
   @Override
-  public Stream<HasMetadata> generateResource(DistributedLogsContext context) {
+  public Stream<HasMetadata> generateResource(StackGresDistributedLogsContext context) {
     final StackGresDistributedLogs cluster = context.getSource();
     final String name = cluster.getMetadata().getName();
     final String namespace = cluster.getMetadata().getNamespace();
@@ -78,7 +78,7 @@ public class PatroniSecret implements
   }
 
   @Inject
-  public void setFactoryFactory(LabelFactory<StackGresDistributedLogs> factoryFactory) {
+  public void setFactoryFactory(LabelFactoryForCluster<StackGresDistributedLogs> factoryFactory) {
     this.factoryFactory = factoryFactory;
   }
 

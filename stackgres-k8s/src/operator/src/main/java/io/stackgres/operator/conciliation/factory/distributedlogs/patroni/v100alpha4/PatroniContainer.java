@@ -38,7 +38,7 @@ import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
-import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ContextUtil;
@@ -62,7 +62,7 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
 
   private static final String IMAGE_NAME = "docker.io/ongres/patroni:v1.6.5-pg12.6-build-6.2";
 
-  private final ResourceFactory<DistributedLogsContext, List<EnvVar>> envVarFactory;
+  private final ResourceFactory<StackGresDistributedLogsContext, List<EnvVar>> envVarFactory;
 
   private final VolumeMountsProvider<ContainerContext> postgresSocket;
   private final VolumeMountsProvider<PostgresContainerContext> postgresExtensions;
@@ -71,7 +71,7 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
   @Inject
   public PatroniContainer(
       @FactoryName(DistributedLogsEnvVarFactories.LATEST_PATRONI_ENV_VAR_FACTORY)
-          ResourceFactory<DistributedLogsContext, List<EnvVar>> envVarFactory,
+          ResourceFactory<StackGresDistributedLogsContext, List<EnvVar>> envVarFactory,
       @ProviderName(POSTGRES_SOCKET)
           VolumeMountsProvider<ContainerContext> postgresSocket,
       @ProviderName(POSTGRES_EXTENSIONS)
@@ -86,8 +86,8 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
 
   @Override
   public Container getContainer(DistributedLogsContainerContext context) {
-    final DistributedLogsContext distributedLogsContext = context.getDistributedLogsContext();
-    final StackGresDistributedLogs cluster = distributedLogsContext.getSource();
+    final StackGresDistributedLogs cluster =
+        context.getDistributedLogsContext().getSource();
 
     final String startScript = "/start-patroni.sh";
     return new ContainerBuilder()

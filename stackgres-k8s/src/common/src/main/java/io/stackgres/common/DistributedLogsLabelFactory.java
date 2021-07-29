@@ -11,17 +11,18 @@ import javax.inject.Inject;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 
 @ApplicationScoped
-public class DistributedLogsLabelFactory extends AbstractLabelFactory<StackGresDistributedLogs> {
+public class DistributedLogsLabelFactory
+    extends AbstractLabelFactoryForCluster<StackGresDistributedLogs> {
 
-  private final LabelMapper<StackGresDistributedLogs> labelMapper;
+  private final LabelMapperForCluster<StackGresDistributedLogs> labelMapper;
 
   @Inject
-  public DistributedLogsLabelFactory(LabelMapper<StackGresDistributedLogs> labelMapper) {
+  public DistributedLogsLabelFactory(LabelMapperForCluster<StackGresDistributedLogs> labelMapper) {
     this.labelMapper = labelMapper;
   }
 
   @Override
-  public LabelMapper<StackGresDistributedLogs> getLabelMapper() {
+  public LabelMapperForCluster<StackGresDistributedLogs> labelMapper() {
     return labelMapper;
   }
 

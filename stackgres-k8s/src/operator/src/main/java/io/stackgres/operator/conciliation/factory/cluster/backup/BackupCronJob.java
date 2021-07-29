@@ -27,7 +27,7 @@ import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1beta1.JobTemplateSpecBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
@@ -38,7 +38,7 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
+import io.stackgres.operator.cluster.factory.ClusterEnvironmentVariables;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -56,16 +56,16 @@ public class BackupCronJob
 
   private static final Logger BACKUP_LOGGER = LoggerFactory.getLogger("io.stackgres.backup");
 
-  private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;
+  private final ClusterEnvironmentVariables clusterStatefulSetEnvironmentVariables;
 
-  private final LabelFactory<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   private final ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory;
 
   @Inject
   public BackupCronJob(
-      ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables,
-      LabelFactory<StackGresCluster> labelFactory,
+      ClusterEnvironmentVariables clusterStatefulSetEnvironmentVariables,
+      LabelFactoryForCluster<StackGresCluster> labelFactory,
       ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory) {
     super();
     this.clusterStatefulSetEnvironmentVariables = clusterStatefulSetEnvironmentVariables;

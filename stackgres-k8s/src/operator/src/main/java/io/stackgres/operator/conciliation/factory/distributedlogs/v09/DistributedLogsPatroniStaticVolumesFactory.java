@@ -11,7 +11,7 @@ import javax.inject.Singleton;
 
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
-import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolumesFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.v09.PatroniStaticVolume;
@@ -20,10 +20,10 @@ import org.jetbrains.annotations.NotNull;
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
 public class DistributedLogsPatroniStaticVolumesFactory
-    extends PatroniStaticVolumesFactory<DistributedLogsContext> {
+    extends PatroniStaticVolumesFactory<StackGresDistributedLogsContext> {
 
   @Override
-  public @NotNull Stream<VolumePair> buildVolumes(DistributedLogsContext context) {
+  public @NotNull Stream<VolumePair> buildVolumes(StackGresDistributedLogsContext context) {
     return Stream.of(
         inMemoryDir(PatroniStaticVolume.POSTGRES_SOCKET.getVolumeName()),
         inMemoryDir(PatroniStaticVolume.DSHM.getVolumeName()),
