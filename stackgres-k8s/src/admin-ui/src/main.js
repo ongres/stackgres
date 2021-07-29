@@ -645,6 +645,11 @@ $(document).ready(function(){
       $('.hideOnClick.show').removeClass('show').fadeOut()
       $('.helpTooltip.show, [data-tooltip].show').removeClass('show')
     }
+
+    if(!$target.parents('ul.select').length && $('ul.select').hasClass('active')) {
+      $('ul.select.active').removeClass('active')
+    }
+    
   });
 
   $(window).on('scroll', function(){
