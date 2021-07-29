@@ -34,16 +34,16 @@ class RestoreConfigValidatorTest {
 
   private static final String firstPgMajorVersion =
       StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
-      .get(0).get();
+          .get(0).get();
 
   private static final String secondPgMajorVersion =
       StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
-      .get(1).get();
+          .get(1).get();
 
-  private static final String firstPgMajorVersionNumber = 
+  private static final String firstPgMajorVersionNumber =
       Seq.of(StackGresComponent.POSTGRESQL.findVersion(firstPgMajorVersion)
-      .split("\\.")).map(Integer::valueOf).append(1)
-      .map(number -> String.format("%02d", number)).toString();
+          .split("\\.")).map(Integer::valueOf).append(1)
+          .map(number -> String.format("%02d", number)).toString();
 
   @Mock
   private CustomResourceScanner<StackGresBackup> scanner;

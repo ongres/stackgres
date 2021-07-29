@@ -20,7 +20,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 class StackGresUtilTest {
 
   @Test
-  void getHostname_shouldReturnTheHostnameOfAURL() throws URISyntaxException {
+  void getHostname_shouldReturnTheHostnameOfaUrl() throws URISyntaxException {
 
     String url = "http://stackgres-cluster-minio.database.svc.cluster.local:9000";
 
@@ -45,7 +45,7 @@ class StackGresUtilTest {
   }
 
   @Test
-  void getPort_shouldReturn443IfNoPortIsSpecifiedAndIsHTTPS() throws MalformedURLException {
+  void getPort_shouldReturn443IfNoPortIsSpecifiedAndIsHttps() throws MalformedURLException {
     String url = "https://stackgres-bucket.s3.amazonaws.com/";
     int port = StackGresUtil.getPortFromUrl(url);
     assertEquals(443, port);

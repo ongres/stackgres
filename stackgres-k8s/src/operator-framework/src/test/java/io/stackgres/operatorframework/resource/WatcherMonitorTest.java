@@ -37,7 +37,7 @@ class WatcherMonitorTest {
       return () -> {
       };
     }, () -> giveUpCalled.set(true))) {
-      for (int i = 0; i < WatcherMonitor.MAX_RETRIES - 1; i++){
+      for (int i = 0; i < WatcherMonitor.MAX_RETRIES - 1; i++) {
         exceptionsToThrow.add(new RuntimeException());
       }
       watcherListener.get().watcherError(new WatcherException(""));
@@ -80,7 +80,7 @@ class WatcherMonitorTest {
 
     AtomicReference<WatcherListener<Pod>> watcherListener = new AtomicReference<>();
 
-    try(WatcherMonitor<Pod> monitor = new WatcherMonitor<>(wl -> {
+    try (WatcherMonitor<Pod> monitor = new WatcherMonitor<>(wl -> {
       RuntimeException exceptionToThrow = exceptionsToThrow.poll();
       if (exceptionToThrow != null) {
         throw exceptionToThrow;
@@ -89,12 +89,12 @@ class WatcherMonitorTest {
       return () -> {
       };
     }, () -> giveUpCalled.set(true))) {
-      for (int i = 0; i < WatcherMonitor.MAX_RETRIES - 2; i++){
+      for (int i = 0; i < WatcherMonitor.MAX_RETRIES - 2; i++) {
         exceptionsToThrow.add(new RuntimeException());
       }
       watcherListener.get().watcherError(new WatcherException(""));
 
-      for (int i = 0; i < WatcherMonitor.MAX_RETRIES - 2; i++){
+      for (int i = 0; i < WatcherMonitor.MAX_RETRIES - 2; i++) {
         exceptionsToThrow.add(new RuntimeException());
       }
       watcherListener.get().watcherError(new WatcherException(""));

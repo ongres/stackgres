@@ -82,9 +82,9 @@ class PatroniSecretTest {
     final Map<String, String> existentData = existentSecret.getData();
     assertNotEquals(existentData.get(SUPERUSER_PASSWORD_KEY), data.get(SUPERUSER_PASSWORD_KEY));
     assertNotEquals(existentData.get(REPLICATION_PASSWORD_KEY), data.get(REPLICATION_PASSWORD_KEY));
-    assertNotEquals(existentData.get(AUTHENTICATOR_PASSWORD_KEY), data.get(AUTHENTICATOR_PASSWORD_KEY));
+    assertNotEquals(existentData.get(AUTHENTICATOR_PASSWORD_KEY),
+        data.get(AUTHENTICATOR_PASSWORD_KEY));
 
   }
-
 
 }

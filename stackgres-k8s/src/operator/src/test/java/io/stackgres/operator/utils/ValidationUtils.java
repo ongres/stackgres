@@ -40,7 +40,7 @@ public class ValidationUtils {
   }
 
   public static void assertValidationFailed(Executable executable, ErrorType errorType,
-                                            String message) {
+      String message) {
     ValidationFailed validation = assertThrows(ValidationFailed.class, executable);
     assertEquals(message, validation.getResult().getMessage());
     assertEquals(400, validation.getResult().getCode());
@@ -66,10 +66,11 @@ public class ValidationUtils {
   }
 
   public static void checkErrorCause(Status status, String field, String message, String reason) {
-    checkErrorCause(status, new String[] { field }, message, reason);
+    checkErrorCause(status, new String[] {field}, message, reason);
   }
 
-  public static void checkErrorCause(Status status, String[] fields, String message, String reason) {
+  public static void checkErrorCause(Status status, String[] fields, String message,
+      String reason) {
     final StatusDetails details = status.getDetails();
     assertNotNull(details);
     assertEquals(fields.length, details.getCauses().size());
@@ -110,12 +111,13 @@ public class ValidationUtils {
 
   }
 
-  public static String getConstraintMessage(Class<?> from, String fieldOrMethod, Class<? extends Annotation> constraint) {
+  public static String getConstraintMessage(Class<?> from, String fieldOrMethod,
+      Class<? extends Annotation> constraint) {
     try {
       Annotation annotation;
       AssertionFailedError ex = new AssertionFailedError(
           constraint.getName() + " for field / method " + fieldOrMethod
-          + " is not valid constraint annotation");
+              + " is not valid constraint annotation");
       while (true) {
         try {
           annotation = from.getDeclaredField(fieldOrMethod).getAnnotation(constraint);
@@ -139,7 +141,8 @@ public class ValidationUtils {
 
       return (String) messageMethod.invoke(annotation);
     } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-      throw new AssertionFailedError(constraint.getName() + " is not valid constraint annotation", e);
+      throw new AssertionFailedError(constraint.getName() + " is not valid constraint annotation",
+          e);
     }
   }
 }

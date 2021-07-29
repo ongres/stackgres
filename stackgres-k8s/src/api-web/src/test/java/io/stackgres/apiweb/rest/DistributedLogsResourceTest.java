@@ -37,7 +37,8 @@ class DistributedLogsResourceTest
   }
 
   @Override
-  protected AbstractDependencyResourceTransformer<DistributedLogsDto, StackGresDistributedLogs> getTransformer() {
+  protected AbstractDependencyResourceTransformer<DistributedLogsDto, StackGresDistributedLogs>
+      getTransformer() {
     return new DistributedLogsTransformer();
   }
 

@@ -86,7 +86,7 @@ public abstract class ConstraintValidationTest<T extends AdmissionReview<?>> {
 
   protected abstract T getInvalidReview();
 
-  protected void checkNotNullErrorCause(Class<?> outerClass, String fieldPath, T review){
+  protected void checkNotNullErrorCause(Class<?> outerClass, String fieldPath, T review) {
 
     String lastField = getLastField(fieldPath);
 
@@ -99,7 +99,7 @@ public abstract class ConstraintValidationTest<T extends AdmissionReview<?>> {
 
   }
 
-  protected void checkNotEmptyErrorCause(Class<?> outerClass, String fieldPath, T review){
+  protected void checkNotEmptyErrorCause(Class<?> outerClass, String fieldPath, T review) {
 
     String lastField = getLastField(fieldPath);
 
@@ -113,17 +113,17 @@ public abstract class ConstraintValidationTest<T extends AdmissionReview<?>> {
   }
 
   protected void checkErrorCause(Class<?> outerClass, String fieldPath, T review,
-                                 Class<? extends Annotation> constraint){
+      Class<? extends Annotation> constraint) {
     checkErrorCause(outerClass, fieldPath, fieldPath, review, constraint);
   }
 
   protected void checkErrorCause(Class<?> outerClass, String fieldPath, String validationPath,
-      T review, Class<? extends Annotation> constraint){
-    checkErrorCause(outerClass, new String[] { fieldPath }, validationPath, review, constraint);
+      T review, Class<? extends Annotation> constraint) {
+    checkErrorCause(outerClass, new String[] {fieldPath}, validationPath, review, constraint);
   }
 
   protected void checkErrorCause(Class<?> outerClass, String[] fieldPaths, String validationPath,
-      T review, Class<? extends Annotation> constraint){
+      T review, Class<? extends Annotation> constraint) {
 
     String lastField = getLastField(validationPath);
 

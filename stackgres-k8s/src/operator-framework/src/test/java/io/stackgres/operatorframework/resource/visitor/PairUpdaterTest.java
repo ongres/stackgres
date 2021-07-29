@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 package io.stackgres.operatorframework.resource.visitor;
 
 import java.util.ArrayList;
@@ -171,12 +176,15 @@ public class PairUpdaterTest {
     pod.setSpec(new PodSpec());
     pod.getSpec().setAffinity(new Affinity());
     pod.getSpec().getAffinity().setNodeAffinity(new NodeAffinity());
-    pod.getSpec().getAffinity().getNodeAffinity().setPreferredDuringSchedulingIgnoredDuringExecution(
-        Lists.newArrayList(new PreferredSchedulingTerm()));
-    pod.getSpec().getAffinity().getNodeAffinity().getPreferredDuringSchedulingIgnoredDuringExecution()
-      .get(0).setPreference(new NodeSelectorTerm());
-    pod.getSpec().getAffinity().getNodeAffinity().getPreferredDuringSchedulingIgnoredDuringExecution()
-      .get(0).getPreference().setMatchFields(Lists.newArrayList(new NodeSelectorRequirement()));
+    pod.getSpec().getAffinity().getNodeAffinity()
+        .setPreferredDuringSchedulingIgnoredDuringExecution(
+            Lists.newArrayList(new PreferredSchedulingTerm()));
+    pod.getSpec().getAffinity().getNodeAffinity()
+        .getPreferredDuringSchedulingIgnoredDuringExecution()
+        .get(0).setPreference(new NodeSelectorTerm());
+    pod.getSpec().getAffinity().getNodeAffinity()
+        .getPreferredDuringSchedulingIgnoredDuringExecution()
+        .get(0).getPreference().setMatchFields(Lists.newArrayList(new NodeSelectorRequirement()));
     getPodNodeSelectorRequirement(pod).setValues(values);
     return pod;
   }
@@ -206,7 +214,8 @@ public class PairUpdaterTest {
     leftMeta.setMetadata(new ObjectMeta());
     ConfigMap rightMeta = new ConfigMap();
     rightMeta.setMetadata(new ObjectMeta());
-    rightMeta.getMetadata().setOwnerReferences(Lists.newArrayList(new OwnerReference(), new OwnerReference()));
+    rightMeta.getMetadata()
+        .setOwnerReferences(Lists.newArrayList(new OwnerReference(), new OwnerReference()));
     rightMeta.getMetadata().getOwnerReferences().get(0).setName("1");
     rightMeta.getMetadata().getOwnerReferences().get(1).setName("2");
     ResourcePairVisitor.update(leftMeta, rightMeta);
@@ -234,7 +243,8 @@ public class PairUpdaterTest {
   public void testUpdateSomeOwnerReferencesWithNullOverwritten() {
     ConfigMap leftMeta = new ConfigMap();
     leftMeta.setMetadata(new ObjectMeta());
-    leftMeta.getMetadata().setOwnerReferences(Lists.newArrayList(new OwnerReference(), new OwnerReference()));
+    leftMeta.getMetadata()
+        .setOwnerReferences(Lists.newArrayList(new OwnerReference(), new OwnerReference()));
     leftMeta.getMetadata().getOwnerReferences().get(0).setName("1");
     leftMeta.getMetadata().getOwnerReferences().get(1).setName("2");
     ConfigMap rightMeta = new ConfigMap();
@@ -249,7 +259,8 @@ public class PairUpdaterTest {
   public void testUpdateSomeOwnerReferencesWithEmptyOverwritten() {
     ConfigMap leftMeta = new ConfigMap();
     leftMeta.setMetadata(new ObjectMeta());
-    leftMeta.getMetadata().setOwnerReferences(Lists.newArrayList(new OwnerReference(), new OwnerReference()));
+    leftMeta.getMetadata()
+        .setOwnerReferences(Lists.newArrayList(new OwnerReference(), new OwnerReference()));
     leftMeta.getMetadata().getOwnerReferences().get(0).setName("1");
     leftMeta.getMetadata().getOwnerReferences().get(1).setName("2");
     ConfigMap rightMeta = new ConfigMap();
@@ -265,7 +276,8 @@ public class PairUpdaterTest {
   public void testUpdateSomeOwnerReferencesOverwritten() {
     ConfigMap leftMeta = new ConfigMap();
     leftMeta.setMetadata(new ObjectMeta());
-    leftMeta.getMetadata().setOwnerReferences(Lists.newArrayList(new OwnerReference(), new OwnerReference()));
+    leftMeta.getMetadata()
+        .setOwnerReferences(Lists.newArrayList(new OwnerReference(), new OwnerReference()));
     leftMeta.getMetadata().getOwnerReferences().get(0).setName("1");
     leftMeta.getMetadata().getOwnerReferences().get(1).setName("2");
     ConfigMap rightMeta = new ConfigMap();
@@ -283,12 +295,14 @@ public class PairUpdaterTest {
   public void testUpdateSomeOwnerReferencesFullyOverwritten() {
     ConfigMap leftMeta = new ConfigMap();
     leftMeta.setMetadata(new ObjectMeta());
-    leftMeta.getMetadata().setOwnerReferences(Lists.newArrayList(new OwnerReference(), new OwnerReference()));
+    leftMeta.getMetadata()
+        .setOwnerReferences(Lists.newArrayList(new OwnerReference(), new OwnerReference()));
     leftMeta.getMetadata().getOwnerReferences().get(0).setName("1");
     leftMeta.getMetadata().getOwnerReferences().get(1).setName("2");
     ConfigMap rightMeta = new ConfigMap();
     rightMeta.setMetadata(new ObjectMeta());
-    rightMeta.getMetadata().setOwnerReferences(Lists.newArrayList(new OwnerReference(), new OwnerReference(), new OwnerReference()));
+    rightMeta.getMetadata().setOwnerReferences(
+        Lists.newArrayList(new OwnerReference(), new OwnerReference(), new OwnerReference()));
     rightMeta.getMetadata().getOwnerReferences().get(0).setName("1");
     rightMeta.getMetadata().getOwnerReferences().get(1).setName("2");
     rightMeta.getMetadata().getOwnerReferences().get(2).setName("3");

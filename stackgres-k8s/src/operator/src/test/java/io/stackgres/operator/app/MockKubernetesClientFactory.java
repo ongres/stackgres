@@ -31,12 +31,11 @@ import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 @Mock
 @ApplicationScoped
 public class MockKubernetesClientFactory implements KubernetesClientFactory {
 
-  private final static Logger LOGGER = LoggerFactory.getLogger(MockKubernetesClientFactory.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MockKubernetesClientFactory.class);
 
   private final KubernetesServerSupplier serverSupplier = new KubernetesServerSupplier();
 
@@ -68,10 +67,10 @@ public class MockKubernetesClientFactory implements KubernetesClientFactory {
       String[] auth = this.auth.get();
       return new DefaultKubernetesClient(
           new ConfigBuilder()
-          .withNamespace(OperatorProperty.OPERATOR_NAMESPACE.getString())
-          .withCaCertData(auth[0])
-          .withOauthToken(auth[1])
-          .build());
+              .withNamespace(OperatorProperty.OPERATOR_NAMESPACE.getString())
+              .withCaCertData(auth[0])
+              .withOauthToken(auth[1])
+              .build());
     }
     return serverSupplier.get().getClient();
   }
@@ -101,19 +100,19 @@ public class MockKubernetesClientFactory implements KubernetesClientFactory {
         .collect(Collectors.toList());
     auth.set(new String[] {
         operatorSecret.stream()
-        .filter(line -> line.startsWith("  ca.crt: "))
-        .map(line -> line.substring("  ca.crt: ".length()))
-        .findAny().get(),
+            .filter(line -> line.startsWith("  ca.crt: "))
+            .map(line -> line.substring("  ca.crt: ".length()))
+            .findAny().get(),
         operatorSecret.stream()
-        .filter(line -> line.startsWith("  token: "))
-        .map(line -> line.substring("  token: ".length()))
-        .map(secret -> new String(Base64.getDecoder().decode(secret), StandardCharsets.UTF_8))
-        .findAny().get()
+            .filter(line -> line.startsWith("  token: "))
+            .map(line -> line.substring("  token: ".length()))
+            .map(secret -> new String(Base64.getDecoder().decode(secret), StandardCharsets.UTF_8))
+            .findAny().get()
     });
   }
 
   @PreDestroy
-  public void cleanUp(){
+  public void cleanUp() {
     if (serverSupplier.wasRetrieved()) {
       serverSupplier.get().after();
     }

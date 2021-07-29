@@ -55,7 +55,8 @@ public class FullTextSearchQueryTest {
 
   @Test
   public void exactTermWithSpacesQueryTest() {
-    assertEquals(Optional.of("test1 <-> test2"), fromGoogleLikeQuery("   \"   test1       test2   \"   "));
+    assertEquals(Optional.of("test1 <-> test2"),
+        fromGoogleLikeQuery("   \"   test1       test2   \"   "));
   }
 
   @Test

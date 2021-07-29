@@ -80,8 +80,8 @@
     <kubernetes-client.version>5.4.1</kubernetes-client.version>
     <jool.version>0.9.14</jool.version>
     <immutables.version>2.8.8</immutables.version>
-    <checkstyle.version>8.43</checkstyle.version>
-    <spotbugs.version>4.2.3</spotbugs.version>
+    <checkstyle.version>8.44</checkstyle.version>
+    <spotbugs.version>4.3.0</spotbugs.version>
     <pmd.version>6.35.0</pmd.version>
     <docker-junit-extension.version>1.2.15</docker-junit-extension.version>
     <jersey.version>2.32</jersey.version>
@@ -439,7 +439,7 @@
             <consoleOutput>true</consoleOutput>
             <linkXRef>false</linkXRef>
             <includeResources>false</includeResources>
-            <includeTestSourceDirectory>false</includeTestSourceDirectory>
+            <includeTestSourceDirectory>true</includeTestSourceDirectory>
             <includeTestResources>false</includeTestResources>
           </configuration>
         </plugin>

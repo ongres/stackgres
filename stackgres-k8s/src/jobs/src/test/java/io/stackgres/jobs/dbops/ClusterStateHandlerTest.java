@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 package io.stackgres.jobs.dbops;
 
 import static io.stackgres.jobs.dbops.clusterrestart.PodTestUtil.assertPodEquals;
@@ -24,8 +29,8 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.Multi;
-import io.stackgres.common.StackGresContext;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.ClusterDbOpsRestartStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsRestartStatus;
@@ -69,7 +74,7 @@ public abstract class ClusterStateHandlerTest {
   public StackGresCluster cluster;
 
   protected static void assertEqualsRestartState(ClusterRestartState expected,
-                                               ClusterRestartState actual) {
+      ClusterRestartState actual) {
     assertEquals(expected.getClusterName(), actual.getClusterName());
     assertEquals(expected.getNamespace(), actual.getNamespace());
 
@@ -273,7 +278,7 @@ public abstract class ClusterStateHandlerTest {
   }
 
   protected abstract void initializeClusterStatus(StackGresCluster cluster,
-                                                  List<Pod> pods);
+      List<Pod> pods);
 
   @Test
   void buildRestartState_shouldNotFail() {
@@ -316,7 +321,6 @@ public abstract class ClusterStateHandlerTest {
 
     assertEqualsRestartState(expectedClusterState, clusterRestartState);
   }
-
 
   @Test
   void givenACleanCluster_shouldUpdateTheOpStatus() {

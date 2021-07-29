@@ -1,5 +1,9 @@
-package io.stackgres.operator;
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
+package io.stackgres.operator;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -45,7 +49,8 @@ class ResourcesSerializationTest {
     getRestMethods()
         .filter(t -> !t.v2.getReturnType().equals(Void.TYPE))
         .forEach(t -> {
-          Class<?> returnType = TypeToken.of(t.v1).resolveType(t.v2.getGenericReturnType()).getRawType();
+          Class<?> returnType =
+              TypeToken.of(t.v1).resolveType(t.v2.getGenericReturnType()).getRawType();
           if (returnType.getPackage().getName().startsWith("io.stackgres.")) {
             assertNotNull(returnType.getAnnotation(RegisterForReflection.class), "class "
                 + returnType.getName() + " must be annotated with register for reflection");
@@ -56,24 +61,23 @@ class ResourcesSerializationTest {
 
   @Test
   void parametersOfGenericReturnTypesOfRestResponses_mustBeAnnotatedWithRegisterForReflection() {
-
     getRestMethods()
         .filter(t -> !t.v2.getReturnType().equals(Void.TYPE))
         .forEach(t -> {
           Class<?> returnType = t.v2.getReturnType();
 
           if (Collection.class.isAssignableFrom(returnType)) {
-            Arrays.stream(((ParameterizedType) t.v2.getGenericReturnType()).getActualTypeArguments())
+            Arrays
+                .stream(((ParameterizedType) t.v2.getGenericReturnType()).getActualTypeArguments())
                 .forEach(gt -> {
                   if (gt instanceof Class
                       && ((Class<?>) gt).getName().startsWith("io.stackgres.")) {
-                    Class<?> gType = (Class<?>) gt;
-                    assertNotNull(gType.getAnnotation(RegisterForReflection.class), "class "
-                        + gType.getName() + " must be annotated with register for reflection");
+                    Class<?> type = (Class<?>) gt;
+                    assertNotNull(type.getAnnotation(RegisterForReflection.class), "class "
+                        + type.getName() + " must be annotated with register for reflection");
                   }
-            });
+                });
           }
-
         });
   }
 

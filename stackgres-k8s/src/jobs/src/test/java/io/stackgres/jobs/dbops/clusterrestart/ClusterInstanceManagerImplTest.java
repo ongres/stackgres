@@ -253,7 +253,6 @@ class ClusterInstanceManagerImplTest {
     podTestUtil.preparePods(cluster, 0);
     Pod podToDelete = podTestUtil.buildPrimaryPod(cluster, 0);
 
-
     final int initialInstances = cluster.getSpec().getInstances();
     String podName = podToDelete.getMetadata().getName();
 
@@ -370,7 +369,6 @@ class ClusterInstanceManagerImplTest {
         .withNewClient(client -> client.pods()
             .inNamespace(namespace)
             .createOrReplace(newPod)));
-
   }
 
   private void configurePodDeleted(Pod podToDelete) {
@@ -400,7 +398,8 @@ class ClusterInstanceManagerImplTest {
                   .list().getItems()
                   .stream()
                   .map(Pod::getMetadata)
-                  .map(ObjectMeta::getName)).collect(Collectors.toUnmodifiableList()));
+                  .map(ObjectMeta::getName))
+              .collect(Collectors.toUnmodifiableList()));
         }
       }
       return Uni.createFrom().item(pod);

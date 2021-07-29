@@ -1,9 +1,6 @@
 /*
- *
- *  * Copyright (C) 2019 OnGres, Inc.
- *  * SPDX-License-Identifier: AGPL-3.0-or-later
- *
- *
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 package io.stackgres.operator.validation;
@@ -45,6 +42,8 @@ import org.junit.jupiter.api.Test;
 @Disabled(value = "io.quarkus/quarkus-rest-client dependency break this test")
 class ClusterValidationResourceTest extends JerseyTest {
 
+  private static final ObjectMapper mapper = new ObjectMapper();
+
   @BeforeEach
   @Override
   public void setUp() throws Exception {
@@ -60,27 +59,20 @@ class ClusterValidationResourceTest extends JerseyTest {
   @Override
   protected Application configure() {
     return new ResourceConfig(ClusterValidationResource.class)
-        .register(new AbstractBinder(){
+        .register(new AbstractBinder() {
+          @Override
+          protected void configure() {
+            ClusterValidationPipeline pipeline = new ClusterValidationPipeline();
+            pipeline.setValidators(getValidators());
 
-      @Override
-      protected void configure() {
-
-        ClusterValidationPipeline pipeline = new ClusterValidationPipeline();
-        pipeline.setValidators(getValidators());
-
-        bind(pipeline).to(ClusterValidationPipeline.class).in(Singleton.class);
-
-      }
-    });
+            bind(pipeline).to(ClusterValidationPipeline.class).in(Singleton.class);
+          }
+        });
   }
 
-
-
-  private static final ObjectMapper mapper = new ObjectMapper();
-
-  static String getFileAsString(String resource){
-    try (InputStream is = ClassLoader.getSystemResourceAsStream(resource)){
-      if (is == null){
+  static String getFileAsString(String resource) {
+    try (InputStream is = ClassLoader.getSystemResourceAsStream(resource)) {
+      if (is == null) {
         throw new IllegalArgumentException("resource " + resource + " not found");
       }
       return IOUtils.toString(is, StandardCharsets.UTF_8);
@@ -91,61 +83,57 @@ class ClusterValidationResourceTest extends JerseyTest {
 
   @Test
   void givenValidAllowedRequest_thenReturnedStatusShouldBe200() {
-
     String requestBody = getFileAsString("cluster_allow_requests/valid_creation.json");
 
-    Response response = target("/stackgres/validation/sgcluster").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
+    Response response = target("/stackgres/validation/sgcluster")
+        .request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
     assertEquals(200, response.getStatus());
-
   }
 
   @Test
   void givenValidAllowedRequest_thenResponseShouldNotContainStatusProperty() throws IOException {
-
     String requestBody = getFileAsString("cluster_allow_requests/valid_creation.json");
 
-    Response response = target("/stackgres/validation/sgcluster").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
+    Response response = target("/stackgres/validation/sgcluster")
+        .request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
     String rawContent = response.readEntity(String.class);
 
     JsonNode admissionResponse = mapper.readTree(rawContent).get("response");
 
     assertFalse(admissionResponse.has("status"));
-
   }
 
   @Test
   void givenValidAllowedRequest_thenAdmissionShouldBeAllowed() {
-
     String requestBody = getFileAsString("cluster_allow_requests/valid_creation.json");
 
-    Response response = target("/stackgres/validation/sgcluster").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
+    Response response = target("/stackgres/validation/sgcluster")
+        .request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
     AdmissionReviewResponse admissionResponse = response.readEntity(AdmissionReviewResponse.class);
 
     assertTrue(admissionResponse.getResponse().isAllowed());
-
   }
 
   @Test
   void givenValidAllowedRequest_thenResponseUidShouldMatchRequestUid() throws IOException {
-
     String requestBody = getFileAsString("cluster_allow_requests/valid_creation.json");
 
     JsonNode admissionRequest = mapper.readTree(requestBody);
 
     UUID requestUid = UUID.fromString(admissionRequest.get("request").get("uid").asText());
 
-    Response response = target("/stackgres/validation/sgcluster").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
+    Response response = target("/stackgres/validation/sgcluster")
+        .request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
     AdmissionReviewResponse admissionResponse = response.readEntity(AdmissionReviewResponse.class);
 
     assertEquals(requestUid, admissionResponse.getResponse().getUid());
-
   }
 
-  private static Instance<ClusterValidator> getValidators(){
+  private static Instance<ClusterValidator> getValidators() {
     return new Instance<ClusterValidator>() {
       @Override
       public Instance<ClusterValidator> select(Annotation... annotations) {
@@ -153,15 +141,16 @@ class ClusterValidationResourceTest extends JerseyTest {
       }
 
       @Override
-      public <U extends ClusterValidator> Instance<U> select(Class<U> aClass, Annotation... annotations) {
+      public <U extends ClusterValidator> Instance<U> select(Class<U> clazz,
+          Annotation... annotations) {
         return null;
       }
 
       @Override
-      public <U extends ClusterValidator> Instance<U> select(javax.enterprise.util.TypeLiteral<U> typeLiteral, Annotation... annotations) {
+      public <U extends ClusterValidator> Instance<U> select(
+          javax.enterprise.util.TypeLiteral<U> typeLiteral, Annotation... annotations) {
         return null;
       }
-
 
       @Override
       public boolean isUnsatisfied() {
@@ -174,9 +163,7 @@ class ClusterValidationResourceTest extends JerseyTest {
       }
 
       @Override
-      public void destroy(ClusterValidator validator) {
-
-      }
+      public void destroy(ClusterValidator validator) {}
 
       @Override
       public Iterator<ClusterValidator> iterator() {

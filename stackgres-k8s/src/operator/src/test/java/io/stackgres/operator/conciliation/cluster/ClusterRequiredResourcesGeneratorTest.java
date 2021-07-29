@@ -98,17 +98,22 @@ class ClusterRequiredResourcesGeneratorTest {
     final String namespace = cluster.getMetadata().getNamespace();
     backupConfig = JsonUtil.readFromJson("backup_config/default.json", StackGresBackupConfig.class);
     setNamespace(backupConfig);
-    postgresConfig = JsonUtil.readFromJson("postgres_config/default_postgres.json", StackGresPostgresConfig.class);
-    postgresConfig.getSpec().setPostgresVersion(StackGresComponent.POSTGRESQL.findLatestMajorVersion());
+    postgresConfig = JsonUtil.readFromJson("postgres_config/default_postgres.json",
+        StackGresPostgresConfig.class);
+    postgresConfig.getSpec()
+        .setPostgresVersion(StackGresComponent.POSTGRESQL.findLatestMajorVersion());
     setNamespace(postgresConfig);
     postgresConfig.setStatus(new StackGresPostgresConfigStatus());
     postgresConfig.getStatus().setDefaultParameters(PostgresDefaultValues.getDefaultValues());
-    poolingConfig = JsonUtil.readFromJson("pooling_config/default.json", StackGresPoolingConfig.class);
+    poolingConfig =
+        JsonUtil.readFromJson("pooling_config/default.json", StackGresPoolingConfig.class);
     setNamespace(poolingConfig);
     poolingConfig.setStatus(new StackGresPoolingConfigStatus());
     poolingConfig.getStatus().setPgBouncer(new StackGresPoolingConfigPgBouncerStatus());
-    poolingConfig.getStatus().getPgBouncer().setDefaultParameters(PgBouncerDefaultValues.getDefaultValues());
-    instanceProfile = JsonUtil.readFromJson("stackgres_profiles/size-s.json", StackGresProfile.class);
+    poolingConfig.getStatus().getPgBouncer()
+        .setDefaultParameters(PgBouncerDefaultValues.getDefaultValues());
+    instanceProfile =
+        JsonUtil.readFromJson("stackgres_profiles/size-s.json", StackGresProfile.class);
     instanceProfile.getMetadata().setNamespace(namespace);
     setNamespace(instanceProfile);
     backups = JsonUtil.readFromJson("backup/list.json", StackGresBackupList.class).getItems();
@@ -116,7 +121,7 @@ class ClusterRequiredResourcesGeneratorTest {
     minioSecret = JsonUtil.readFromJson("secret/minio.json", Secret.class);
   }
 
-  private void setNamespace(HasMetadata resource){
+  private void setNamespace(HasMetadata resource) {
     resource.getMetadata().setNamespace(cluster.getMetadata().getNamespace());
   }
 
@@ -175,7 +180,7 @@ class ClusterRequiredResourcesGeneratorTest {
     resources.forEach(resource -> {
       assertNotNull(resource.getMetadata().getOwnerReferences(),
           "Resource " + resource.getMetadata().getName() + " doesn't owner references");
-      if (resource.getMetadata().getOwnerReferences().size() == 0){
+      if (resource.getMetadata().getOwnerReferences().size() == 0) {
         fail("Resource " + resource.getMetadata().getName() + " doesn't have any owner");
       }
     });
@@ -281,8 +286,10 @@ class ClusterRequiredResourcesGeneratorTest {
   @Test
   void givenAClusterInvalidRestoreData_getRequiredResourcesShouldNotScanForBackups() {
 
-    cluster.getSpec().getInitData().getRestore().setFromBackup(new StackGresClusterRestoreFromBackup());
-    cluster.getSpec().getInitData().getRestore().getFromBackup().setUid(UUID.randomUUID().toString());
+    cluster.getSpec().getInitData().getRestore()
+        .setFromBackup(new StackGresClusterRestoreFromBackup());
+    cluster.getSpec().getInitData().getRestore().getFromBackup()
+        .setUid(UUID.randomUUID().toString());
 
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterName = metadata.getName();
@@ -302,7 +309,8 @@ class ClusterRequiredResourcesGeneratorTest {
         .thenReturn(Optional.of(instanceProfile));
     when(backupScanner.getResources()).thenReturn(backups);
 
-    assertException("SGCluster " + clusterNamespace + "/" + clusterName + " have an invalid restore backup Uid");
+    assertException("SGCluster " + clusterNamespace + "/" + clusterName
+        + " have an invalid restore backup Uid");
 
     verify(backupConfigFinder).findByNameAndNamespace(backupConfigName, clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
@@ -334,11 +342,12 @@ class ClusterRequiredResourcesGeneratorTest {
     when(postgresConfigFinder.findByNameAndNamespace(postgresConfigName, clusterNamespace))
         .thenReturn(Optional.empty());
 
-    assertException("SGCluster " + clusterNamespace + "/" + clusterName + " have a non existent SGPostgresConfig " + postgresConfigName);
+    assertException("SGCluster " + clusterNamespace + "/" + clusterName
+        + " have a non existent SGPostgresConfig " + postgresConfigName);
 
     verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
     verify(profileConfigFinder, never()).findByNameAndNamespace(any(), any());
-    verify(backupConfigFinder,never()).findByNameAndNamespace(any(), any());
+    verify(backupConfigFinder, never()).findByNameAndNamespace(any(), any());
     verify(poolingConfigFinder, never()).findByNameAndNamespace(any(), any());
     verify(backupScanner, never()).getResources();
 
@@ -454,8 +463,7 @@ class ClusterRequiredResourcesGeneratorTest {
 
     when(prometheusScanner.findResources()).thenReturn(Optional.of(
         JsonUtil.readFromJson("prometheus/prometheus_list.json", PrometheusConfigList.class)
-            .getItems()
-    ));
+            .getItems()));
 
     List<HasMetadata> generatedResources = generator.getRequiredResources(cluster);
 
@@ -492,9 +500,8 @@ class ClusterRequiredResourcesGeneratorTest {
     when(prometheusScanner.findResources()).thenReturn(Optional.of(
         JsonUtil.readFromJson("prometheus/prometheus_list.json", PrometheusConfigList.class)
             .getItems()
-        .stream().peek(pc -> pc.getSpec().setServiceMonitorSelector(null))
-        .collect(Collectors.toUnmodifiableList())
-    ));
+            .stream().peek(pc -> pc.getSpec().setServiceMonitorSelector(null))
+            .collect(Collectors.toUnmodifiableList())));
 
     List<HasMetadata> generatedResources = generator.getRequiredResources(cluster);
 
@@ -516,8 +523,9 @@ class ClusterRequiredResourcesGeneratorTest {
         .thenReturn(Optional.of(this.backupConfig));
   }
 
-  private void assertException(String message){
-    var ex = assertThrows(IllegalArgumentException.class, () -> generator.getRequiredResources(cluster));
+  private void assertException(String message) {
+    var ex =
+        assertThrows(IllegalArgumentException.class, () -> generator.getRequiredResources(cluster));
     assertEquals(message, ex.getMessage());
   }
 

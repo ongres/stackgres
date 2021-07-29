@@ -96,18 +96,18 @@ class DbOpLauncherImplTest {
     Pod primary = new Pod();
     return Uni.createFrom().item(
         ImmutableClusterRestartState.builder()
-        .namespace(dbOps.getMetadata().getNamespace())
-        .dbOpsName(dbOps.getMetadata().getName())
-        .dbOpsOperation(dbOps.getSpec().getOp())
-        .clusterName(dbOps.getSpec().getSgCluster())
-        .isOnlyPendingRestart(false)
-        .isSwitchoverInitiated(false)
-        .restartMethod("InPlace")
-        .primaryInstance(primary)
-        .initialInstances(ImmutableList.of(primary))
-        .totalInstances(ImmutableList.of(primary))
-        .podRestartReasonsMap(ImmutableMap.of(primary, RestartReasons.of()))
-        .build());
+            .namespace(dbOps.getMetadata().getNamespace())
+            .dbOpsName(dbOps.getMetadata().getName())
+            .dbOpsOperation(dbOps.getSpec().getOp())
+            .clusterName(dbOps.getSpec().getSgCluster())
+            .isOnlyPendingRestart(false)
+            .isSwitchoverInitiated(false)
+            .restartMethod("InPlace")
+            .primaryInstance(primary)
+            .initialInstances(ImmutableList.of(primary))
+            .totalInstances(ImmutableList.of(primary))
+            .podRestartReasonsMap(ImmutableMap.of(primary, RestartReasons.of()))
+            .build());
   }
 
   @Test
@@ -120,12 +120,13 @@ class DbOpLauncherImplTest {
   }
 
   @Test
-  void launchJob_shouldAcquireTheLockBeforeExecutingTheJob(){
+  void launchJob_shouldAcquireTheLockBeforeExecutingTheJob() {
     doAnswer((Answer<Void>) invocationOnMock -> null)
         .when(lockAcquirer).lockRun(any(LockRequest.class), any());
 
     dbOpLauncher.launchDbOp(randomDbOpsName, namespace);
-    verify(securityUpgradeJob, never()).runJob(any(StackGresDbOps.class), any(StackGresCluster.class));
+    verify(securityUpgradeJob, never()).runJob(any(StackGresDbOps.class),
+        any(StackGresCluster.class));
 
   }
 
@@ -137,7 +138,6 @@ class DbOpLauncherImplTest {
 
     assertThrows(RuntimeException.class, () -> dbOpLauncher.launchDbOp(randomDbOpsName, namespace));
   }
-
 
   @Test
   void givenAValidDbOps_shouldUpdateItsStatusInformation() {
@@ -163,7 +163,7 @@ class DbOpLauncherImplTest {
   }
 
   @Test
-  void givenANonExistentDbOps_shouldThrowIAE() {
+  void givenANonExistentDbOps_shouldThrowIllegalArgumentException() {
     when(securityUpgradeJob.runJob(any(), any()))
         .thenAnswer(invocation -> getClusterRestartStateUni());
     assertThrows(IllegalArgumentException.class, () -> dbOpLauncher
@@ -171,7 +171,7 @@ class DbOpLauncherImplTest {
   }
 
   @Test
-  void givenAInvalidOp_shouldThrowIEE() {
+  void givenAInvalidOp_shouldThrowIllegalStateException() {
     when(securityUpgradeJob.runJob(any(), any()))
         .thenAnswer(invocation -> getClusterRestartStateUni());
     dbOps.getSpec().setOp(StringUtils.getRandomString());
@@ -196,14 +196,11 @@ class DbOpLauncherImplTest {
     assertNotNull(conditions);
     assertEquals(3, conditions.size());
     assertTrue(() -> conditions.stream()
-        .anyMatch(DbOpsStatusCondition.DB_OPS_RUNNING::isCondition)
-    );
+        .anyMatch(DbOpsStatusCondition.DB_OPS_RUNNING::isCondition));
     assertTrue(() -> conditions.stream()
-        .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED::isCondition)
-    );
+        .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED::isCondition));
     assertTrue(() -> conditions.stream()
-        .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_FAILED::isCondition)
-    );
+        .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_FAILED::isCondition));
   }
 
   @Test
@@ -218,14 +215,11 @@ class DbOpLauncherImplTest {
     assertNotNull(conditions);
     assertEquals(3, conditions.size());
     assertTrue(() -> conditions.stream()
-        .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_RUNNING::isCondition)
-    );
+        .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_RUNNING::isCondition));
     assertTrue(() -> conditions.stream()
-        .anyMatch(DbOpsStatusCondition.DB_OPS_COMPLETED::isCondition)
-    );
+        .anyMatch(DbOpsStatusCondition.DB_OPS_COMPLETED::isCondition));
     assertTrue(() -> conditions.stream()
-        .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_FAILED::isCondition)
-    );
+        .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_FAILED::isCondition));
   }
 
   @Test
@@ -240,14 +234,11 @@ class DbOpLauncherImplTest {
     assertNotNull(conditions);
     assertEquals(3, conditions.size());
     assertTrue(() -> conditions.stream()
-        .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_RUNNING::isCondition)
-    );
+        .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_RUNNING::isCondition));
     assertTrue(() -> conditions.stream()
-        .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED::isCondition)
-    );
+        .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED::isCondition));
     assertTrue(() -> conditions.stream()
-        .anyMatch(DbOpsStatusCondition.DB_OPS_FAILED::isCondition)
-    );
+        .anyMatch(DbOpsStatusCondition.DB_OPS_FAILED::isCondition));
   }
 
 }

@@ -8,17 +8,17 @@ package io.stackgres.operator.mutation.pgbouncer;
 import java.util.HashMap;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class PgBouncerDefaultValuesMutatorTest extends DefaultValuesMutatorTest<StackGresPoolingConfig, PoolingReview> {
+class PgBouncerDefaultValuesMutatorTest
+    extends DefaultValuesMutatorTest<StackGresPoolingConfig, PoolingReview> {
 
   @Override
   protected DefaultValuesMutator<StackGresPoolingConfig, PoolingReview> getMutatorInstance() {
@@ -49,6 +49,5 @@ class PgBouncerDefaultValuesMutatorTest extends DefaultValuesMutatorTest<StackGr
   protected JsonNode getConfJson(JsonNode crJson) {
     return crJson.get("spec").get("pgBouncer").get("pgbouncer.ini");
   }
-
 
 }

@@ -8,9 +8,9 @@ package io.stackgres.operator.validation.backupconfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 
 class StorageValidatorTest {

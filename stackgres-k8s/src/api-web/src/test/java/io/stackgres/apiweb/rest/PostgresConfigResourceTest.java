@@ -22,8 +22,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class PostgresConfigResourceTest
-    extends AbstractDependencyCustomResourceTest<PostgresConfigDto, StackGresPostgresConfig,
+class PostgresConfigResourceTest extends AbstractDependencyCustomResourceTest
+      <PostgresConfigDto, StackGresPostgresConfig,
       PostgresConfigResource, NamespacedPostgresConfigResource> {
 
   @Override
@@ -37,7 +37,8 @@ class PostgresConfigResourceTest
   }
 
   @Override
-  protected AbstractDependencyResourceTransformer<PostgresConfigDto, StackGresPostgresConfig> getTransformer() {
+  protected AbstractDependencyResourceTransformer<PostgresConfigDto, StackGresPostgresConfig>
+      getTransformer() {
     return new PostgresConfigTransformer();
   }
 
@@ -83,11 +84,13 @@ class PostgresConfigResourceTest
     assertEquals("stackgres", resource.getStatus().getClusters().get(0));
     assertNotNull(resource.getStatus().getPostgresqlConf());
     assertEquals(5, resource.getStatus().getPostgresqlConf().size());
-    assertEquals("password_encryption", resource.getStatus().getPostgresqlConf().get(0).getParameter());
+    assertEquals("password_encryption",
+        resource.getStatus().getPostgresqlConf().get(0).getParameter());
     assertEquals("scram-sha-256", resource.getStatus().getPostgresqlConf().get(0).getValue());
     assertEquals("https://postgresqlco.nf/en/doc/param/password_encryption/12/",
         resource.getStatus().getPostgresqlConf().get(0).getDocumentationLink());
-    assertEquals("random_page_cost", resource.getStatus().getPostgresqlConf().get(1).getParameter());
+    assertEquals("random_page_cost",
+        resource.getStatus().getPostgresqlConf().get(1).getParameter());
     assertEquals("1.5", resource.getStatus().getPostgresqlConf().get(1).getValue());
     assertEquals("https://postgresqlco.nf/en/doc/param/random_page_cost/12/",
         resource.getStatus().getPostgresqlConf().get(1).getDocumentationLink());
@@ -99,7 +102,8 @@ class PostgresConfigResourceTest
     assertEquals("10", resource.getStatus().getPostgresqlConf().get(3).getValue());
     assertEquals("https://postgresqlco.nf/en/doc/param/max_wal_senders/12/",
         resource.getStatus().getPostgresqlConf().get(3).getDocumentationLink());
-    assertEquals("pg_stat_statements.max", resource.getStatus().getPostgresqlConf().get(4).getParameter());
+    assertEquals("pg_stat_statements.max",
+        resource.getStatus().getPostgresqlConf().get(4).getParameter());
     assertEquals("10000", resource.getStatus().getPostgresqlConf().get(4).getValue());
     assertNull(resource.getStatus().getPostgresqlConf().get(4).getDocumentationLink());
   }
@@ -119,6 +123,6 @@ class PostgresConfigResourceTest
         "max_wal_senders", "10",
         "pg_stat_statements.max", "10000"),
         resource.getSpec().getPostgresqlConf());
- }
+  }
 
 }

@@ -27,6 +27,7 @@ import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -54,14 +55,14 @@ class DistributedLogsConciliatorTest extends ConciliatorTest<StackGresDistribute
 
   @Override
   protected Conciliator<StackGresDistributedLogs> buildConciliator(List<HasMetadata> required,
-                                                                   List<HasMetadata> deployed) {
-
+      List<HasMetadata> deployed) {
     when(requiredResourceGenerator.getRequiredResources(distributedLogs))
         .thenReturn(required);
     when(deployedResourcesScanner.getDeployedResources(distributedLogs))
         .thenReturn(deployed);
 
-    final DistributedLogsConciliator clusterConciliator = new DistributedLogsConciliator(statusManager);
+    final DistributedLogsConciliator clusterConciliator =
+        new DistributedLogsConciliator(statusManager);
     clusterConciliator.setRequiredResourceGenerator(requiredResourceGenerator);
     clusterConciliator.setDeployedResourcesScanner(deployedResourcesScanner);
     clusterConciliator.setResourceComparator(resourceComparator);
@@ -74,8 +75,9 @@ class DistributedLogsConciliatorTest extends ConciliatorTest<StackGresDistribute
   }
 
   @Test
-  void conciliation_shouldIgnoreDeletionsOnResourcesMarkedWithReconciliationPauseUntilRestartAnnotationIfTheClusterIsPendingToRestart() {
-
+  @DisplayName("Conciliation Should Ignore Deletions On Resources Marked With Reconciliation "
+      + "Pause Until Restart Annotation If The Cluster Is Pending To Restart")
+  void shouldIgnoreDeletionsMarkedWithPauseUntilRestartAnnotationIfTheClusterIsPendingToRestart() {
     final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
         .buildResources("test", "test");
 
@@ -84,8 +86,7 @@ class DistributedLogsConciliatorTest extends ConciliatorTest<StackGresDistribute
     int indexToRemove = new Random().nextInt(requiredResources.size());
     deployedResources.get(indexToRemove).getMetadata().setAnnotations(Map.of(
         StackGresContext.RECONCILIATION_PAUSE_UNTIL_RESTART_KEY,
-        Boolean.TRUE.toString()
-    ));
+        Boolean.TRUE.toString()));
 
     requiredResources.remove(indexToRemove);
 
@@ -100,12 +101,12 @@ class DistributedLogsConciliatorTest extends ConciliatorTest<StackGresDistribute
     assertEquals(0, result.getDeletions().size());
 
     assertTrue(result.isUpToDate());
-
   }
 
   @Test
-  void conciliation_shouldNotIgnoreDeletionsOnResourcesMarkedWithReconciliationPauseUntilRestartAnnotationIfTheClusterIsNotPendingToRestart() {
-
+  @DisplayName("Conciliation Should Not Ignore Deletions On Resources Marked With Reconciliation "
+      + "Pause Until Restart Annotation If The Cluster Is Not Pending To Restart")
+  void shouldNotIgnoreDeletionsMarkedPauseUntilRestartAnnotationClusterIsNotPendingToRestart() {
     final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
         .buildResources("test", "test");
 
@@ -114,8 +115,7 @@ class DistributedLogsConciliatorTest extends ConciliatorTest<StackGresDistribute
     int indexToRemove = new Random().nextInt(requiredResources.size());
     deployedResources.get(indexToRemove).getMetadata().setAnnotations(Map.of(
         StackGresContext.RECONCILIATION_PAUSE_UNTIL_RESTART_KEY,
-        Boolean.TRUE.toString()
-    ));
+        Boolean.TRUE.toString()));
 
     requiredResources.remove(indexToRemove);
 
@@ -129,22 +129,22 @@ class DistributedLogsConciliatorTest extends ConciliatorTest<StackGresDistribute
     assertEquals(1, result.getDeletions().size());
 
     assertFalse(result.isUpToDate());
-
   }
 
   @Test
-  void conciliation_shouldIgnoreChangesOnResourcesMarkedWithReconciliationPauseUntilRestartAnnotationIfTheClusterIsPendingToRestart() {
-
+  @DisplayName("Conciliation Should Ignore Changes On Resources Marked With Reconciliation "
+      + "Pause Until Restart Annotation If The Cluster Is Pending To Restart")
+  void shouldIgnoreChangesMarkedPauseUntilRestartAnnotationIfClusterIsPendingToRestart() {
     final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
         .buildResources("test", "test");
     final List<HasMetadata> deployedResources = deepCopy(requiredResources);
 
     deployedResources.stream().findAny()
         .orElseThrow().getMetadata().setAnnotations(Map.of(
-        StackGresContext.RECONCILIATION_PAUSE_UNTIL_RESTART_KEY, Boolean.TRUE.toString()
-    ));
+            StackGresContext.RECONCILIATION_PAUSE_UNTIL_RESTART_KEY, Boolean.TRUE.toString()));
 
-    Conciliator<StackGresDistributedLogs> conciliator = buildConciliator(requiredResources, deployedResources);
+    Conciliator<StackGresDistributedLogs> conciliator =
+        buildConciliator(requiredResources, deployedResources);
 
     reset(statusManager);
     when(statusManager.isPendingRestart(distributedLogs))
@@ -155,22 +155,22 @@ class DistributedLogsConciliatorTest extends ConciliatorTest<StackGresDistribute
     assertEquals(0, result.getPatches().size());
 
     assertTrue(result.isUpToDate());
-
   }
 
   @Test
-  void conciliation_shouldNotIgnoreChangesOnResourcesMarkedWithReconciliationPauseUntilRestartAnnotationIfTheClusterIsNotPendingToRestart() {
-
+  @DisplayName("Conciliation Should Not Ignore Changes On Resources Marked With Reconciliation "
+      + "Pause Until Restart Annotation If The Cluster Is Not Pending To Restart")
+  void shouldNotIgnoreChangesMarkedPauseUntilRestartAnnotationIfClusterIsNotPendingToRestart() {
     final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
         .buildResources("test", "test");
     final List<HasMetadata> deployedResources = deepCopy(requiredResources);
 
     deployedResources.stream().findAny()
         .orElseThrow().getMetadata().setAnnotations(Map.of(
-        StackGresContext.RECONCILIATION_PAUSE_UNTIL_RESTART_KEY, Boolean.TRUE.toString()
-    ));
+            StackGresContext.RECONCILIATION_PAUSE_UNTIL_RESTART_KEY, Boolean.TRUE.toString()));
 
-    Conciliator<StackGresDistributedLogs> conciliator = buildConciliator(requiredResources, deployedResources);
+    Conciliator<StackGresDistributedLogs> conciliator =
+        buildConciliator(requiredResources, deployedResources);
 
     when(statusManager.isPendingRestart(distributedLogs))
         .thenReturn(false);
@@ -180,6 +180,5 @@ class DistributedLogsConciliatorTest extends ConciliatorTest<StackGresDistribute
     assertEquals(1, result.getPatches().size());
 
     assertFalse(result.isUpToDate());
-
   }
 }

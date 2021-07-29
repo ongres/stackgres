@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2019 OnGres, Inc.
- * SPDX-License-Identifier, AGPL-3.0-or-later
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 package io.stackgres.operator.conciliation;
@@ -38,16 +38,13 @@ class ClusterEndpointComparatorTest {
 
   @Test
   void generatedResourceAndRequiredResource_shouldHaveNoDifference() {
-
     var isContentEqual = comparator.isResourceContentEqual(required, deployed);
 
     assertTrue(isContentEqual);
   }
 
-
   @Test
   void isEndpointIsExactlyTheSame_itShouldReturnTrue() {
-
     var isSameContent = comparator.isResourceContentEqual(
         new EndpointsBuilder()
             .withNewMetadata()
@@ -69,7 +66,6 @@ class ClusterEndpointComparatorTest {
 
   @Test
   void isInitializeNotSet_itShouldIgnoreTheDifference() {
-
     var isSameContent = comparator.isResourceContentEqual(
         new EndpointsBuilder()
             .withNewMetadata()
@@ -129,8 +125,7 @@ class ClusterEndpointComparatorTest {
                 "optime", "50372080",
                 "renewTime", "2021-01-15T23,54,37.395964+00,00",
                 "transitions", "0",
-                "ttl", "30"
-            ))
+                "ttl", "30"))
             .endMetadata()
             .build());
 

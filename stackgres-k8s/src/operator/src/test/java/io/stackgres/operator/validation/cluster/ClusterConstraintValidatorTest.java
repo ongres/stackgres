@@ -27,11 +27,11 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -115,7 +115,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .add(new StackGresClusterScriptEntry());
 
     checkErrorCause(StackGresClusterScriptEntry.class,
-        new String[]{"spec.initData.scripts[0].script",
+        new String[] {"spec.initData.scripts[0].script",
             "spec.initData.scripts[0].scriptFrom"},
         "isScriptMutuallyExclusiveAndRequired", review, AssertTrue.class);
   }
@@ -139,7 +139,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .getConfigMapKeyRef().setKey("test");
 
     checkErrorCause(StackGresClusterScriptEntry.class,
-        new String[]{"spec.initData.scripts[0].script",
+        new String[] {"spec.initData.scripts[0].script",
             "spec.initData.scripts[0].scriptFrom"},
         "isScriptMutuallyExclusiveAndRequired", review, AssertTrue.class);
   }
@@ -149,12 +149,14 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
     review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().add(new StackGresClusterScriptEntry());
+    review.getRequest().getObject().getSpec().getInitData().getScripts()
+        .add(new StackGresClusterScriptEntry());
     review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).setDatabase("");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).setScript("SELECT 1");
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
+        .setScript("SELECT 1");
 
     checkErrorCause(StackGresClusterScriptEntry.class,
-        new String[]{"spec.initData.scripts[0].database"},
+        new String[] {"spec.initData.scripts[0].database"},
         "isDatabaseNameNonEmpty", review, AssertTrue.class);
   }
 
@@ -207,7 +209,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .setScriptFrom(new StackGresClusterScriptFrom());
 
     checkErrorCause(StackGresClusterScriptFrom.class,
-        new String[]{"spec.initData.scripts[0].scriptFrom.secretKeyRef",
+        new String[] {"spec.initData.scripts[0].scriptFrom.secretKeyRef",
             "spec.initData.scripts[0].scriptFrom.configMapKeyRef"},
         "isSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndRequired",
         review, AssertTrue.class);
@@ -236,7 +238,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .getSecretKeyRef().setKey("test");
 
     checkErrorCause(StackGresClusterScriptFrom.class,
-        new String[]{"spec.initData.scripts[0].scriptFrom.secretKeyRef",
+        new String[] {"spec.initData.scripts[0].scriptFrom.secretKeyRef",
             "spec.initData.scripts[0].scriptFrom.configMapKeyRef"},
         "isSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndRequired",
         review, AssertTrue.class);
@@ -395,7 +397,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .setKey("");
 
     checkErrorCause(Toleration.class,
-        new String[]{"spec.pod.scheduling.tolerations[0].key",
+        new String[] {"spec.pod.scheduling.tolerations[0].key",
             "spec.pod.scheduling.tolerations[0].operator"},
         "isOperatorExistsWhenKeyIsEmpty", review,
         AssertTrue.class);
@@ -485,8 +487,9 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     review.getRequest().getObject().getSpec().setPostgres(new StackGresClusterPostgres());
     review.getRequest().getObject().getSpec().getPostgres().setSsl(new StackGresClusterSsl());
     review.getRequest().getObject().getSpec().getPostgres().getSsl().setEnabled(true);
-    review.getRequest().getObject().getSpec().getPostgres().getSsl().setCertificateSecretKeySelector(
-        new SecretKeySelector("test", "test"));
+    review.getRequest().getObject().getSpec().getPostgres().getSsl()
+        .setCertificateSecretKeySelector(
+            new SecretKeySelector("test", "test"));
 
     checkErrorCause(StackGresClusterSsl.class,
         "spec.postgres.ssl.privateKeySecretKeySelector",
@@ -499,8 +502,9 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     review.getRequest().getObject().getSpec().setPostgres(new StackGresClusterPostgres());
     review.getRequest().getObject().getSpec().getPostgres().setSsl(new StackGresClusterSsl());
     review.getRequest().getObject().getSpec().getPostgres().getSsl().setEnabled(true);
-    review.getRequest().getObject().getSpec().getPostgres().getSsl().setCertificateSecretKeySelector(
-        new SecretKeySelector("test", null));
+    review.getRequest().getObject().getSpec().getPostgres().getSsl()
+        .setCertificateSecretKeySelector(
+            new SecretKeySelector("test", null));
     review.getRequest().getObject().getSpec().getPostgres().getSsl().setPrivateKeySecretKeySelector(
         new SecretKeySelector("test", "test"));
 
@@ -515,8 +519,9 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     review.getRequest().getObject().getSpec().setPostgres(new StackGresClusterPostgres());
     review.getRequest().getObject().getSpec().getPostgres().setSsl(new StackGresClusterSsl());
     review.getRequest().getObject().getSpec().getPostgres().getSsl().setEnabled(true);
-    review.getRequest().getObject().getSpec().getPostgres().getSsl().setCertificateSecretKeySelector(
-        new SecretKeySelector("test", "test"));
+    review.getRequest().getObject().getSpec().getPostgres().getSsl()
+        .setCertificateSecretKeySelector(
+            new SecretKeySelector("test", "test"));
     review.getRequest().getObject().getSpec().getPostgres().getSsl().setPrivateKeySecretKeySelector(
         new SecretKeySelector("test", null));
 

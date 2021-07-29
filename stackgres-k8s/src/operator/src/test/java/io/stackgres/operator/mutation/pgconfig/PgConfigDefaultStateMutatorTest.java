@@ -45,7 +45,8 @@ class PgConfigDefaultStateMutatorTest
 
   @Override
   protected StackGresPostgresConfig getDefaultResource() {
-    return JsonUtil.readFromJson("postgres_config/default_postgres.json", StackGresPostgresConfig.class);
+    return JsonUtil.readFromJson("postgres_config/default_postgres.json",
+        StackGresPostgresConfig.class);
   }
 
   @Override

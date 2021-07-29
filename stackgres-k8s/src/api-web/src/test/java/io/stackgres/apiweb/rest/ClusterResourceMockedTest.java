@@ -42,7 +42,6 @@ import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.client.CustomResourceList;
@@ -94,7 +93,6 @@ import io.stackgres.common.resource.PersistentVolumeClaimFinder;
 import io.stackgres.common.resource.PodExecutor;
 import io.stackgres.common.resource.PodFinder;
 import io.stackgres.common.resource.ResourceFinder;
-import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.testutil.JsonUtil;
 import org.eclipse.microprofile.context.ManagedExecutor;
 import org.jooq.lambda.Seq;
@@ -1007,11 +1005,11 @@ class ClusterResourceMockedTest extends
 
       assertNotNull(parameters);
       checkDto(parameters.getCluster(), customResources.getItems().get(0));
-      assertEquals( 50,parameters.getRecords());
-      assertEquals( Optional.empty(),parameters.getFromTimeAndIndex());
-      assertEquals( Optional.empty(),parameters.getToTimeAndIndex());
-      assertEquals( ImmutableMap.of(),parameters.getFilters());
-      assertEquals( Optional.empty(),parameters.getFullTextSearchQuery());
+      assertEquals(50, parameters.getRecords());
+      assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+      assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
+      assertEquals(ImmutableMap.of(), parameters.getFilters());
+      assertEquals(Optional.empty(), parameters.getFullTextSearchQuery());
       assertFalse(parameters.isSortAsc());
       assertFalse(parameters.isFromInclusive());
 
@@ -1048,11 +1046,11 @@ class ClusterResourceMockedTest extends
 
       assertNotNull(parameters);
       checkDto(parameters.getCluster(), customResources.getItems().get(0));
-      assertEquals( 1,parameters.getRecords());
-      assertEquals( Optional.empty(),parameters.getFromTimeAndIndex());
-      assertEquals( Optional.empty(),parameters.getToTimeAndIndex());
-      assertEquals( ImmutableMap.of(),parameters.getFilters());
-      assertEquals( Optional.empty(),parameters.getFullTextSearchQuery());
+      assertEquals(1, parameters.getRecords());
+      assertEquals(Optional.empty(), parameters.getFromTimeAndIndex());
+      assertEquals(Optional.empty(), parameters.getToTimeAndIndex());
+      assertEquals(ImmutableMap.of(), parameters.getFilters());
+      assertEquals(Optional.empty(), parameters.getFullTextSearchQuery());
       assertFalse(parameters.isSortAsc());
       assertFalse(parameters.isFromInclusive());
 

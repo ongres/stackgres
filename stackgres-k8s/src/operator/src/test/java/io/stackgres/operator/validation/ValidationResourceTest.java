@@ -22,53 +22,53 @@ import org.mockito.Mock;
 
 public abstract class ValidationResourceTest<T extends AdmissionReview<?>> {
 
-    @Mock
-    protected ValidationPipeline<T> pipeline;
+  @Mock
+  protected ValidationPipeline<T> pipeline;
 
-    protected ValidationResource<T> resource;
+  protected ValidationResource<T> resource;
 
-    protected T review;
+  protected T review;
 
-    protected T deleteReview;
+  protected T deleteReview;
 
-    @Test
-    void givenAnValidAdmissionReview_itShouldReturnASuccessfulResponse() throws ValidationFailed {
+  @Test
+  void givenAnValidAdmissionReview_itShouldReturnASuccessfulResponse() throws ValidationFailed {
 
-        doNothing().when(pipeline).validate(review);
+    doNothing().when(pipeline).validate(review);
 
-        AdmissionReviewResponse response = resource.validate(review);
+    AdmissionReviewResponse response = resource.validate(review);
 
-        assertTrue(response.getResponse().isAllowed());
+    assertTrue(response.getResponse().isAllowed());
 
-        verify(pipeline).validate(review);
+    verify(pipeline).validate(review);
 
-    }
+  }
 
-    @Test
-    void givenAnInvalidAdmissionReview_itShouldReturnAFailedResponse() throws ValidationFailed {
+  @Test
+  void givenAnInvalidAdmissionReview_itShouldReturnAFailedResponse() throws ValidationFailed {
 
-        doThrow(new ValidationFailed("validation failed")).when(pipeline).validate(review);
+    doThrow(new ValidationFailed("validation failed")).when(pipeline).validate(review);
 
-        AdmissionReviewResponse response = resource.validate(review);
+    AdmissionReviewResponse response = resource.validate(review);
 
-        assertFalse(response.getResponse().isAllowed());
+    assertFalse(response.getResponse().isAllowed());
 
-        assertEquals("validation failed", response.getResponse().getStatus().getMessage());
+    assertEquals("validation failed", response.getResponse().getStatus().getMessage());
 
-        verify(pipeline).validate(review);
+    verify(pipeline).validate(review);
 
-    }
+  }
 
-    @Test
-    void givenAnDeletionReview_itShouldNotFail() throws ValidationFailed {
+  @Test
+  void givenAnDeletionReview_itShouldNotFail() throws ValidationFailed {
 
-        doNothing().when(pipeline).validate(deleteReview);
+    doNothing().when(pipeline).validate(deleteReview);
 
-        AdmissionReviewResponse response = resource.validate(deleteReview);
+    AdmissionReviewResponse response = resource.validate(deleteReview);
 
-        assertTrue(response.getResponse().isAllowed());
+    assertTrue(response.getResponse().isAllowed());
 
-        verify(pipeline).validate(deleteReview);
+    verify(pipeline).validate(deleteReview);
 
-    }
+  }
 }

@@ -38,6 +38,7 @@ import io.stackgres.operator.conciliation.cluster.ClusterStatefulSetReconciliati
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -68,7 +69,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
   @BeforeEach
   void setUp() {
-    handler = new ClusterStatefulSetReconciliationHandler(statefulSetWriter, podScanner, podWriter, statefulSetFinder);
+    handler = new ClusterStatefulSetReconciliationHandler(statefulSetWriter, podScanner, podWriter,
+        statefulSetFinder);
     requiredStatefulSet = JsonUtil
         .readFromJson("statefulset/required.json", StatefulSet.class);
 
@@ -76,8 +78,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
         .readFromJson("statefulset/deployed.json", StatefulSet.class);
     lenient().when(statefulSetFinder.findByNameAndNamespace(
         requiredStatefulSet.getMetadata().getName(),
-        requiredStatefulSet.getMetadata().getNamespace())
-    ).thenReturn(Optional.of(deployedStatefulSet));
+        requiredStatefulSet.getMetadata().getNamespace()))
+        .thenReturn(Optional.of(deployedStatefulSet));
   }
 
   @Test
@@ -104,7 +106,9 @@ class ClusterStatefulSetReconciliationHandlerTest {
   }
 
   @Test
-  void scalingDownStatefulSetWithoutNonDisruptablePods_shouldResultInTheSameNumberOfDesiredReplicas() {
+  @DisplayName("Scaling Down StatefulSet Without Non Disputable Pods should Result In The Same "
+      + "Number Of Desired Replicas")
+  void scaleDownStatefulSetWithoutNonDisruptablePods_shouldResultInSameNumberOfDesiredReplicas() {
 
     final int desiredReplicas = setUpDownscale(0, 0, MasterPosition.FIRST);
 
@@ -119,7 +123,9 @@ class ClusterStatefulSetReconciliationHandlerTest {
   }
 
   @Test
-  void scalingUpStatefulSetWithoutNonDisputablePods_shouldResultInTheSameNumberOfDesiredReplicas() {
+  @DisplayName("Scaling Up StatefulSet Without Non Disputable Pods should Result In The Same "
+      + "Number Of Desired Replicas")
+  void scaleUpWithoutNonDisputablePods_shouldResultInTheSameNumberOfDesiredReplicas() {
 
     final int desiredReplicas = setUpUpscale(0, 0, MasterPosition.FIRST);
 
@@ -133,8 +139,9 @@ class ClusterStatefulSetReconciliationHandlerTest {
   }
 
   @Test
-  void scalingDownStatefulSetWithNonDisruptablePods_shouldResultInTheNumberOfDesiredReplicasMinusTheDisruptablePods() {
-
+  @DisplayName("Scaling Down StatefulSet With Non Disruptable Pods Should Result In The Number Of "
+      + "Desired Replicas Minus The Disruptable Pods")
+  void scalingDown_NumberOfDesiredReplicasMinusTheDisruptablePods() {
     final int desiredReplicas = setUpDownscale(1, 0, MasterPosition.FIRST);
 
     StatefulSet sts = (StatefulSet) handler.replace(requiredStatefulSet);
@@ -148,7 +155,9 @@ class ClusterStatefulSetReconciliationHandlerTest {
   }
 
   @Test
-  void scalingUpStatefulSetWithNonDisputablePodsWithIndexBiggerThanReplicasCount_shouldResultInTheSameNumberOfDesiredReplicasMinusTheDisruptablePods() {
+  @DisplayName("Scaling Up StatefulSet With Non Disputable Pods With Index Bigger Than Replicas "
+      + "Count should Result In The Same Number Of Desired Replicas Minus The Disruptable Pods")
+  void scaleUpWithIndexBiggerThanReplicasCount_NumberOfDesiredReplicasMinusTheDisruptablePods() {
 
     final int desiredReplicas = setUpUpscale(1, 1, MasterPosition.FIRST);
 
@@ -162,7 +171,9 @@ class ClusterStatefulSetReconciliationHandlerTest {
   }
 
   @Test
-  void scalingUpStatefulSetWithNonDisputablePodsWithIndexLowerThanReplicasCount_shouldResultInTheSameNumberOfDesiredReplicasAndFixDisruptableLabel() {
+  @DisplayName("Scaling Up StatefulSet With NonDisputable Pods With Index Lower Than Replicas "
+      + "Count should Result In The Same Number Of Desired Replicas And Fix Disruptable Label")
+  void scaleUpWithIndexLowerThanReplicasCount_DesiredReplicasAndFixDisruptableLabel() {
 
     final int desiredReplicas = setUpUpscale(1, -1, MasterPosition.FIRST_NONDISRUPTABLE);
 
@@ -189,7 +200,10 @@ class ClusterStatefulSetReconciliationHandlerTest {
   }
 
   @Test
-  void scalingDownStatefulSetWithoutNonDisputablePodsAndMasterNodeAboutToBeDisrupt_shouldResultInTheNumberOfDesiredReplicasMinusOneAndMakeTheMasterNodeNonDisruptable() {
+  @DisplayName("Scaling Down StatefulSet Without Non Disputable Pods And Master Node About "
+      + "To Be Disrupt should Result In The Number Of Desired Replicas Minus One And Make "
+      + "The Master Node Non Disruptable")
+  void scaleDownPods_shouldResultDesiredReplicasMinusOneTheMasterNodeNonDisruptable() {
 
     final int desiredReplicas = setUpDownscale(0, 0, MasterPosition.LAST_DISRUPTABLE);
 
@@ -215,11 +229,13 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     verify(podScanner).findByLabelsAndNamespace(anyString(), anyMap());
     verify(statefulSetWriter).update(any(StatefulSet.class));
-
   }
 
   @Test
-  void scalingDownStatefulSetWithNonDisputablePodsAndMasterNodeNonDisruptible_shouldResultInTheNumberOfDesiredReplicasMinusTheDisruptablePods() {
+  @DisplayName("Scaling Down StatefulSet With Non Disputable Pods And Master Node Non "
+      + "Disruptible About To Be Disrupt should Result In The Number Of Desired Replicas "
+      + "Minus The Disruptable Pods")
+  void scaleDownNonDisputablePodsMasterNodeNonDisruptible_DesiredReplicasMinusDisruptablePods() {
 
     final int desiredReplicas = setUpDownscale(1, 0, MasterPosition.FIRST_NONDISRUPTABLE);
 
@@ -233,7 +249,10 @@ class ClusterStatefulSetReconciliationHandlerTest {
   }
 
   @Test
-  void scalingDownStatefulSetWithNonDisputablePodsAndMasterNodeNonDisruptibleAndDistanceBiggerThan0_shouldResultInTheNumberOfDesiredReplicasMinusTheDisruptablePods() {
+  @DisplayName("Scaling Down StatefulSet With Non Disputable Pods And Master Node Non "
+      + "Disruptible And Distance Bigger Than 0 should Result In The Number Of Desired Replicas "
+      + "Minus The Disruptable Pods")
+  void scaleDownNonDisputPodsMasterNodeNonDisrupDistBig0_DesiredReplicasMinusTheDisruptablePods() {
 
     final int desiredReplicas = setUpDownscale(1, 1, MasterPosition.FIRST_NONDISRUPTABLE);
 
@@ -248,11 +267,9 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
   @Test
   void delete_shouldNotFail() {
-
     doNothing().when(statefulSetWriter).delete(requiredStatefulSet);
 
     handler.delete(requiredStatefulSet);
-
   }
 
   @Test
@@ -316,9 +333,11 @@ class ClusterStatefulSetReconciliationHandlerTest {
     deployedStatefulSet.getSpec().getVolumeClaimTemplates().forEach(vct -> vct.getMetadata()
         .setAnnotations(deployedAnnotations));
 
-    ArgumentCaptor<StatefulSet> patchedStatefulSetCaptor = ArgumentCaptor.forClass(StatefulSet.class);
+    ArgumentCaptor<StatefulSet> patchedStatefulSetCaptor =
+        ArgumentCaptor.forClass(StatefulSet.class);
 
-    when(statefulSetWriter.update(patchedStatefulSetCaptor.capture())).thenReturn(requiredStatefulSet);
+    when(statefulSetWriter.update(patchedStatefulSetCaptor.capture()))
+        .thenReturn(requiredStatefulSet);
 
     handler.replace(requiredStatefulSet);
 
@@ -373,7 +392,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
     return desiredReplicas;
   }
 
-  private int getMasterIndex(int desiredReplicas, int distuptiblePods, MasterPosition masterPosition) {
+  private int getMasterIndex(int desiredReplicas, int distuptiblePods,
+      MasterPosition masterPosition) {
     int masterIndex = 0;
 
     switch (masterPosition) {
@@ -420,7 +440,6 @@ class ClusterStatefulSetReconciliationHandlerTest {
           .build());
     }
 
-
     for (int i = startPodIndex + distance; i < endPodIndex + distance; i++) {
       listBuilder.add(new PodBuilder()
           .withNewMetadata()
@@ -438,7 +457,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     when(podScanner
         .findByLabelsAndNamespace(requiredStatefulSetMetadata.getNamespace(), commonPodLables))
-        .thenReturn(listBuilder.build());
+            .thenReturn(listBuilder.build());
   }
 
   private enum MasterPosition {

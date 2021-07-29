@@ -60,16 +60,14 @@ class MinorVersionUpgradeRestartStateHandlerImplTest extends ClusterStateHandler
                     .serverVersion(110005)
                     .patroniVersion("1.6.5")
                     .patroniScope(clusterName)
-                .build(),
+                    .build(),
                 ImmutablePatroniInformation.builder()
                     .state(MemberState.RUNNING)
                     .role(MemberRole.REPlICA)
                     .serverVersion(110005)
                     .patroniVersion("1.6.5")
                     .patroniScope(clusterName)
-                    .build()
-            )
-        ));
+                    .build())));
   }
 
   @Override
@@ -97,14 +95,12 @@ class MinorVersionUpgradeRestartStateHandlerImplTest extends ClusterStateHandler
     minorVersionUpgradeStatus.setInitialInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
-            .collect(Collectors.toList())
-    );
+            .collect(Collectors.toList()));
     minorVersionUpgradeStatus.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
     minorVersionUpgradeStatus.setPendingToRestartInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
-            .collect(Collectors.toList())
-    );
+            .collect(Collectors.toList()));
     minorVersionUpgradeStatus.setSwitchoverInitiated(Boolean.FALSE.toString());
 
     dbOps.getStatus().setMinorVersionUpgrade(minorVersionUpgradeStatus);
@@ -121,8 +117,7 @@ class MinorVersionUpgradeRestartStateHandlerImplTest extends ClusterStateHandler
     minorVersionUpgrade.setInitialInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
-            .collect(Collectors.toList())
-    );
+            .collect(Collectors.toList()));
     minorVersionUpgrade.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
     minorVersionUpgrade.setSourcePostgresVersion("11.6");
     minorVersionUpgrade.setTargetPostgresVersion(cluster.getSpec().getPostgresVersion());
@@ -137,6 +132,7 @@ class MinorVersionUpgradeRestartStateHandlerImplTest extends ClusterStateHandler
     super.verifyClusterInitializedStatus(pods, cluster);
     var restartStatus = cluster.getStatus().getDbOps().getMinorVersionUpgrade();
     assertEquals(cluster.getSpec().getPostgresVersion(), restartStatus.getTargetPostgresVersion());
-    assertEquals("11.5", cluster.getStatus().getDbOps().getMinorVersionUpgrade().getSourcePostgresVersion());
+    assertEquals("11.5",
+        cluster.getStatus().getDbOps().getMinorVersionUpgrade().getSourcePostgresVersion());
   }
 }

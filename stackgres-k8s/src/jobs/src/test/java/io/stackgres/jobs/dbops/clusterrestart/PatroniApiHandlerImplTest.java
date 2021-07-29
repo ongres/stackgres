@@ -72,8 +72,6 @@ class PatroniApiHandlerImplTest {
     };
     AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
 
-    VertxTestContext testContext = new VertxTestContext();
-
     Router router = Router.router(vertx);
 
     router.route(HttpMethod.GET, "/cluster")
@@ -109,6 +107,7 @@ class PatroniApiHandlerImplTest {
               .end();
         });
 
+    VertxTestContext testContext = new VertxTestContext();
     mockServer = vertx.createHttpServer().requestHandler(router)
         .listen(0, ar -> {
           testContext.succeeding();
@@ -116,7 +115,6 @@ class PatroniApiHandlerImplTest {
         });
 
     assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
-
   }
 
   private String getClustersResponse() {
@@ -149,7 +147,6 @@ class PatroniApiHandlerImplTest {
             .password(password)
             .build());
   }
-
 
   @Test
   void givenValidCredentials_shouldRetrieveClusterMembers() {
@@ -238,7 +235,7 @@ class PatroniApiHandlerImplTest {
         .name("leader-member")
         .state(MemberState.RUNNING)
         .role(MemberRole.LEADER)
-        .apiUrl("http://127.0.0.1:"+ mockServer.actualPort() + "/patroni")
+        .apiUrl("http://127.0.0.1:" + mockServer.actualPort() + "/patroni")
         .build();
 
     patroniApiHandler.restartPostgres(leader)
@@ -258,7 +255,7 @@ class PatroniApiHandlerImplTest {
         .name("leader-member")
         .state(MemberState.RUNNING)
         .role(MemberRole.LEADER)
-        .apiUrl("http://127.0.0.1:"+ mockServer.actualPort() + "/patroni")
+        .apiUrl("http://127.0.0.1:" + mockServer.actualPort() + "/patroni")
         .build();
 
     assertThrows(RuntimeException.class, () -> patroniApiHandler.restartPostgres(leader)

@@ -86,7 +86,7 @@ class SecretComparatorTest {
   }
 
   @Test
-  void givenEqualStringData_shouldReturnTrue(){
+  void givenEqualStringData_shouldReturnTrue() {
     final String randomString = StringUtil.generateRandom();
     boolean isTheSameContent = comparator.isResourceContentEqual(
         new SecretBuilder()

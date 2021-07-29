@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.rest;
 
 import java.util.Objects;
-import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;

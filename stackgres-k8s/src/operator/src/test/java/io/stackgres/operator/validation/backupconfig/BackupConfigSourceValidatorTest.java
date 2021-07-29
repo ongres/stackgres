@@ -54,14 +54,15 @@ class BackupConfigSourceValidatorTest {
   private Secret secret;
 
   @BeforeEach
-  void setUp(){
+  void setUp() {
     validator = new BackupConfigStorageValidator(secretFinder);
 
     secret = JsonUtil.readFromJson("secret/secret.json", Secret.class);
   }
 
   @Test
-  void givenExistentSecretsAndKeysForS3StorageCredentialsOnCreation_shouldNotFail() throws ValidationFailed {
+  void givenExistentSecretsAndKeysForS3StorageCredentialsOnCreation_shouldNotFail()
+      throws ValidationFailed {
     final BackupConfigReview review = getEmptyReview();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -72,13 +73,14 @@ class BackupConfigSourceValidatorTest {
     setS3Credentials(review, accessKeyIdName, accessKeyIdKey, secretAccessKeyName,
         secretAccessKeyKey);
     when(secretFinder.findByNameAndNamespace(accessKeyIdName, namespace))
-    .thenReturn(Optional.of(new SecretBuilder(secret)
-        .withData(ImmutableMap.of(accessKeyIdKey, ResourceUtil.encodeSecret("accessKeyId")))
-        .build()));
+        .thenReturn(Optional.of(new SecretBuilder(secret)
+            .withData(ImmutableMap.of(accessKeyIdKey, ResourceUtil.encodeSecret("accessKeyId")))
+            .build()));
     when(secretFinder.findByNameAndNamespace(secretAccessKeyName, namespace))
-    .thenReturn(Optional.of(new SecretBuilder(secret)
-        .withData(ImmutableMap.of(secretAccessKeyKey, ResourceUtil.encodeSecret("secretAccessKey")))
-        .build()));
+        .thenReturn(Optional.of(new SecretBuilder(secret)
+            .withData(
+                ImmutableMap.of(secretAccessKeyKey, ResourceUtil.encodeSecret("secretAccessKey")))
+            .build()));
 
     validator.validate(review);
 
@@ -87,7 +89,8 @@ class BackupConfigSourceValidatorTest {
   }
 
   @Test
-  void givenNonExistentAccessKeyIdSecretForS3StorageCredentialsOnCreation_shouldFail() throws ValidationFailed {
+  void givenNonExistentAccessKeyIdSecretForS3StorageCredentialsOnCreation_shouldFail()
+      throws ValidationFailed {
     final BackupConfigReview review = getEmptyReview();
 
     String accessKeyIdName = "secret1";
@@ -106,7 +109,8 @@ class BackupConfigSourceValidatorTest {
   }
 
   @Test
-  void givenNonExistentSecretAccessKeySecretForS3StorageCredentialsOnCreation_shouldFail() throws ValidationFailed {
+  void givenNonExistentSecretAccessKeySecretForS3StorageCredentialsOnCreation_shouldFail()
+      throws ValidationFailed {
     final BackupConfigReview review = getEmptyReview();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -117,9 +121,9 @@ class BackupConfigSourceValidatorTest {
     setS3Credentials(review, accessKeyIdName, accessKeyIdKey, secretAccessKeyName,
         secretAccessKeyKey);
     when(secretFinder.findByNameAndNamespace(accessKeyIdName, namespace))
-    .thenReturn(Optional.of(new SecretBuilder(secret)
-        .withData(ImmutableMap.of(accessKeyIdKey, ResourceUtil.encodeSecret("accessKeyId")))
-        .build()));
+        .thenReturn(Optional.of(new SecretBuilder(secret)
+            .withData(ImmutableMap.of(accessKeyIdKey, ResourceUtil.encodeSecret("accessKeyId")))
+            .build()));
 
     ValidationFailed ex = ValidationUtils.assertErrorType(ErrorType.INVALID_SECRET,
         () -> validator.validate(review));
@@ -131,7 +135,8 @@ class BackupConfigSourceValidatorTest {
   }
 
   @Test
-  void givenNonExistentAccessKeyIdKeyForS3StorageCredentialsOnCreation_shouldFail() throws ValidationFailed {
+  void givenNonExistentAccessKeyIdKeyForS3StorageCredentialsOnCreation_shouldFail()
+      throws ValidationFailed {
     final BackupConfigReview review = getEmptyReview();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -142,9 +147,10 @@ class BackupConfigSourceValidatorTest {
     setS3Credentials(review, accessKeyIdName, accessKeyIdKey, secretAccessKeyName,
         secretAccessKeyKey);
     when(secretFinder.findByNameAndNamespace(accessKeyIdName, namespace))
-    .thenReturn(Optional.of(new SecretBuilder(secret)
-        .withData(ImmutableMap.of(accessKeyIdKey + "-wrong", ResourceUtil.encodeSecret("accessKeyId")))
-        .build()));
+        .thenReturn(Optional.of(new SecretBuilder(secret)
+            .withData(ImmutableMap.of(accessKeyIdKey + "-wrong",
+                ResourceUtil.encodeSecret("accessKeyId")))
+            .build()));
 
     ValidationFailed ex = ValidationUtils.assertErrorType(ErrorType.INVALID_SECRET,
         () -> validator.validate(review));
@@ -157,7 +163,8 @@ class BackupConfigSourceValidatorTest {
   }
 
   @Test
-  void givenNonExistentSecretAccessKeyKeyForS3StorageCredentialsKeyOnCreation_shouldFail() throws ValidationFailed {
+  void givenNonExistentSecretAccessKeyKeyForS3StorageCredentialsKeyOnCreation_shouldFail()
+      throws ValidationFailed {
     final BackupConfigReview review = getEmptyReview();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -168,13 +175,14 @@ class BackupConfigSourceValidatorTest {
     setS3Credentials(review, accessKeyIdName, accessKeyIdKey, secretAccessKeyName,
         secretAccessKeyKey);
     when(secretFinder.findByNameAndNamespace(accessKeyIdName, namespace))
-    .thenReturn(Optional.of(new SecretBuilder(secret)
-        .withData(ImmutableMap.of(accessKeyIdKey, ResourceUtil.encodeSecret("accessKeyId")))
-        .build()));
+        .thenReturn(Optional.of(new SecretBuilder(secret)
+            .withData(ImmutableMap.of(accessKeyIdKey, ResourceUtil.encodeSecret("accessKeyId")))
+            .build()));
     when(secretFinder.findByNameAndNamespace(secretAccessKeyName, namespace))
-    .thenReturn(Optional.of(new SecretBuilder(secret)
-        .withData(ImmutableMap.of(secretAccessKeyKey + "-wrong", ResourceUtil.encodeSecret("secretAccessKey")))
-        .build()));
+        .thenReturn(Optional.of(new SecretBuilder(secret)
+            .withData(ImmutableMap.of(secretAccessKeyKey + "-wrong",
+                ResourceUtil.encodeSecret("secretAccessKey")))
+            .build()));
 
     ValidationFailed ex = ValidationUtils.assertErrorType(ErrorType.INVALID_SECRET,
         () -> validator.validate(review));
@@ -195,13 +203,16 @@ class BackupConfigSourceValidatorTest {
     storage.setS3(new AwsS3Storage());
     storage.getS3().setAwsCredentials(new AwsCredentials());
     storage.getS3().getAwsCredentials().setSecretKeySelectors(new AwsSecretKeySelector());
-    AwsSecretKeySelector awsSecretKeySelector = storage.getS3().getAwsCredentials().getSecretKeySelectors();
+    AwsSecretKeySelector awsSecretKeySelector =
+        storage.getS3().getAwsCredentials().getSecretKeySelectors();
     awsSecretKeySelector.setAccessKeyId(new SecretKeySelector(accessKeyIdKey, accessKeyIdName));
-    awsSecretKeySelector.setSecretAccessKey(new SecretKeySelector(secretAccessKeyKey, secretAccessKeyName));
+    awsSecretKeySelector
+        .setSecretAccessKey(new SecretKeySelector(secretAccessKeyKey, secretAccessKeyName));
   }
 
   @Test
-  void givenExistentSecretsAndKeysForS3CompatibleStorageCredentialsOnCreation_shouldNotFail() throws ValidationFailed {
+  void givenExistentSecretsAndKeysForS3CompatibleStorageCredentialsOnCreation_shouldNotFail()
+      throws ValidationFailed {
     final BackupConfigReview review = getEmptyReview();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -212,13 +223,14 @@ class BackupConfigSourceValidatorTest {
     setS3CompatibleCredentials(review, accessKeyIdName, accessKeyIdKey, secretAccessKeyName,
         secretAccessKeyKey);
     when(secretFinder.findByNameAndNamespace(accessKeyIdName, namespace))
-    .thenReturn(Optional.of(new SecretBuilder(secret)
-        .withData(ImmutableMap.of(accessKeyIdKey, ResourceUtil.encodeSecret("accessKeyId")))
-        .build()));
+        .thenReturn(Optional.of(new SecretBuilder(secret)
+            .withData(ImmutableMap.of(accessKeyIdKey, ResourceUtil.encodeSecret("accessKeyId")))
+            .build()));
     when(secretFinder.findByNameAndNamespace(secretAccessKeyName, namespace))
-    .thenReturn(Optional.of(new SecretBuilder(secret)
-        .withData(ImmutableMap.of(secretAccessKeyKey, ResourceUtil.encodeSecret("secretAccessKey")))
-        .build()));
+        .thenReturn(Optional.of(new SecretBuilder(secret)
+            .withData(
+                ImmutableMap.of(secretAccessKeyKey, ResourceUtil.encodeSecret("secretAccessKey")))
+            .build()));
 
     validator.validate(review);
 
@@ -227,7 +239,8 @@ class BackupConfigSourceValidatorTest {
   }
 
   @Test
-  void givenNonExistentAccessKeyIdSecretForS3CompatibleStorageCredentialsOnCreation_shouldFail() throws ValidationFailed {
+  void givenNonExistentAccessKeyIdSecretForS3CompatibleStorageCredentialsOnCreation_shouldFail()
+      throws ValidationFailed {
     final BackupConfigReview review = getEmptyReview();
 
     String accessKeyIdName = "secret1";
@@ -246,7 +259,8 @@ class BackupConfigSourceValidatorTest {
   }
 
   @Test
-  void givenNonExistentSecretAccessKeySecretForS3CompatibleStorageCredentialsOnCreation_shouldFail() throws ValidationFailed {
+  void givenNonExistentSecretAccessKeySecretForS3CompatibleStorageCredentialsOnCreation_shouldFail()
+      throws ValidationFailed {
     final BackupConfigReview review = getEmptyReview();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -257,9 +271,9 @@ class BackupConfigSourceValidatorTest {
     setS3CompatibleCredentials(review, accessKeyIdName, accessKeyIdKey, secretAccessKeyName,
         secretAccessKeyKey);
     when(secretFinder.findByNameAndNamespace(accessKeyIdName, namespace))
-    .thenReturn(Optional.of(new SecretBuilder(secret)
-        .withData(ImmutableMap.of(accessKeyIdKey, ResourceUtil.encodeSecret("accessKeyId")))
-        .build()));
+        .thenReturn(Optional.of(new SecretBuilder(secret)
+            .withData(ImmutableMap.of(accessKeyIdKey, ResourceUtil.encodeSecret("accessKeyId")))
+            .build()));
 
     ValidationFailed ex = ValidationUtils.assertErrorType(ErrorType.INVALID_SECRET,
         () -> validator.validate(review));
@@ -271,7 +285,8 @@ class BackupConfigSourceValidatorTest {
   }
 
   @Test
-  void givenNonExistentAccessKeyIdKeyForS3CompatibleStorageCredentialsOnCreation_shouldFail() throws ValidationFailed {
+  void givenNonExistentAccessKeyIdKeyForS3CompatibleStorageCredentialsOnCreation_shouldFail()
+      throws ValidationFailed {
     final BackupConfigReview review = getEmptyReview();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -282,9 +297,10 @@ class BackupConfigSourceValidatorTest {
     setS3CompatibleCredentials(review, accessKeyIdName, accessKeyIdKey, secretAccessKeyName,
         secretAccessKeyKey);
     when(secretFinder.findByNameAndNamespace(accessKeyIdName, namespace))
-    .thenReturn(Optional.of(new SecretBuilder(secret)
-        .withData(ImmutableMap.of(accessKeyIdKey + "-wrong", ResourceUtil.encodeSecret("accessKeyId")))
-        .build()));
+        .thenReturn(Optional.of(new SecretBuilder(secret)
+            .withData(ImmutableMap.of(accessKeyIdKey + "-wrong",
+                ResourceUtil.encodeSecret("accessKeyId")))
+            .build()));
 
     ValidationFailed ex = ValidationUtils.assertErrorType(ErrorType.INVALID_SECRET,
         () -> validator.validate(review));
@@ -297,7 +313,8 @@ class BackupConfigSourceValidatorTest {
   }
 
   @Test
-  void givenNonExistentSecretAccessKeyKeyForS3CompatibleStorageCredentialsKeyOnCreation_shouldFail() throws ValidationFailed {
+  void givenNonExistentSecretAccessKeyKeyForS3CompatibleStorageCredentialsKeyOnCreation_shouldFail()
+      throws ValidationFailed {
     final BackupConfigReview review = getEmptyReview();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -308,13 +325,14 @@ class BackupConfigSourceValidatorTest {
     setS3CompatibleCredentials(review, accessKeyIdName, accessKeyIdKey, secretAccessKeyName,
         secretAccessKeyKey);
     when(secretFinder.findByNameAndNamespace(accessKeyIdName, namespace))
-    .thenReturn(Optional.of(new SecretBuilder(secret)
-        .withData(ImmutableMap.of(accessKeyIdKey, ResourceUtil.encodeSecret("accessKeyId")))
-        .build()));
+        .thenReturn(Optional.of(new SecretBuilder(secret)
+            .withData(ImmutableMap.of(accessKeyIdKey, ResourceUtil.encodeSecret("accessKeyId")))
+            .build()));
     when(secretFinder.findByNameAndNamespace(secretAccessKeyName, namespace))
-    .thenReturn(Optional.of(new SecretBuilder(secret)
-        .withData(ImmutableMap.of(secretAccessKeyKey + "-wrong", ResourceUtil.encodeSecret("secretAccessKey")))
-        .build()));
+        .thenReturn(Optional.of(new SecretBuilder(secret)
+            .withData(ImmutableMap.of(secretAccessKeyKey + "-wrong",
+                ResourceUtil.encodeSecret("secretAccessKey")))
+            .build()));
 
     ValidationFailed ex = ValidationUtils.assertErrorType(ErrorType.INVALID_SECRET,
         () -> validator.validate(review));
@@ -335,13 +353,16 @@ class BackupConfigSourceValidatorTest {
     storage.setS3Compatible(new AwsS3CompatibleStorage());
     storage.getS3Compatible().setAwsCredentials(new AwsCredentials());
     storage.getS3Compatible().getAwsCredentials().setSecretKeySelectors(new AwsSecretKeySelector());
-    AwsSecretKeySelector awsSecretKeySelector = storage.getS3Compatible().getAwsCredentials().getSecretKeySelectors();
+    AwsSecretKeySelector awsSecretKeySelector =
+        storage.getS3Compatible().getAwsCredentials().getSecretKeySelectors();
     awsSecretKeySelector.setAccessKeyId(new SecretKeySelector(accessKeyIdKey, accessKeyIdName));
-    awsSecretKeySelector.setSecretAccessKey(new SecretKeySelector(secretAccessKeyKey, secretAccessKeyName));
+    awsSecretKeySelector
+        .setSecretAccessKey(new SecretKeySelector(secretAccessKeyKey, secretAccessKeyName));
   }
 
   @Test
-  void givenExistentSecretsAndKeysForAzureBlobStorageCredentialsOnCreation_shouldNotFail() throws ValidationFailed {
+  void givenExistentSecretsAndKeysForAzureBlobStorageCredentialsOnCreation_shouldNotFail()
+      throws ValidationFailed {
     final BackupConfigReview review = getEmptyReview();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -351,13 +372,13 @@ class BackupConfigSourceValidatorTest {
     String accessKeyKey = "key2";
     setAzureBlobCredentials(review, accountName, accountKey, accessKeyName, accessKeyKey);
     when(secretFinder.findByNameAndNamespace(accountName, namespace))
-    .thenReturn(Optional.of(new SecretBuilder(secret)
-        .withData(ImmutableMap.of(accountKey, ResourceUtil.encodeSecret("account")))
-        .build()));
+        .thenReturn(Optional.of(new SecretBuilder(secret)
+            .withData(ImmutableMap.of(accountKey, ResourceUtil.encodeSecret("account")))
+            .build()));
     when(secretFinder.findByNameAndNamespace(accessKeyName, namespace))
-    .thenReturn(Optional.of(new SecretBuilder(secret)
-        .withData(ImmutableMap.of(accessKeyKey, ResourceUtil.encodeSecret("accessKey")))
-        .build()));
+        .thenReturn(Optional.of(new SecretBuilder(secret)
+            .withData(ImmutableMap.of(accessKeyKey, ResourceUtil.encodeSecret("accessKey")))
+            .build()));
 
     validator.validate(review);
 
@@ -366,7 +387,8 @@ class BackupConfigSourceValidatorTest {
   }
 
   @Test
-  void givenNonExistentAccountSecretForAzureBlobStorageCredentialsOnCreation_shouldFail() throws ValidationFailed {
+  void givenNonExistentAccountSecretForAzureBlobStorageCredentialsOnCreation_shouldFail()
+      throws ValidationFailed {
     final BackupConfigReview review = getEmptyReview();
 
     String accountName = "secret1";
@@ -385,7 +407,8 @@ class BackupConfigSourceValidatorTest {
   }
 
   @Test
-  void givenNonExistentSecretAccountSecretForAzureBlobStorageCredentialsOnCreation_shouldFail() throws ValidationFailed {
+  void givenNonExistentSecretAccountSecretForAzureBlobStorageCredentialsOnCreation_shouldFail()
+      throws ValidationFailed {
     final BackupConfigReview review = getEmptyReview();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -396,9 +419,9 @@ class BackupConfigSourceValidatorTest {
     setAzureBlobCredentials(review, accountName, accountKey, accessKeyName,
         accessKeyKey);
     when(secretFinder.findByNameAndNamespace(accountName, namespace))
-    .thenReturn(Optional.of(new SecretBuilder(secret)
-        .withData(ImmutableMap.of(accountKey, ResourceUtil.encodeSecret("account")))
-        .build()));
+        .thenReturn(Optional.of(new SecretBuilder(secret)
+            .withData(ImmutableMap.of(accountKey, ResourceUtil.encodeSecret("account")))
+            .build()));
 
     ValidationFailed ex = ValidationUtils.assertErrorType(ErrorType.INVALID_SECRET,
         () -> validator.validate(review));
@@ -410,7 +433,8 @@ class BackupConfigSourceValidatorTest {
   }
 
   @Test
-  void givenNonExistentAccountKeyForAzureBlobStorageCredentialsOnCreation_shouldFail() throws ValidationFailed {
+  void givenNonExistentAccountKeyForAzureBlobStorageCredentialsOnCreation_shouldFail()
+      throws ValidationFailed {
     final BackupConfigReview review = getEmptyReview();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -421,9 +445,9 @@ class BackupConfigSourceValidatorTest {
     setAzureBlobCredentials(review, accountName, accountKey, accessKeyName,
         accessKeyKey);
     when(secretFinder.findByNameAndNamespace(accountName, namespace))
-    .thenReturn(Optional.of(new SecretBuilder(secret)
-        .withData(ImmutableMap.of(accountKey + "-wrong", ResourceUtil.encodeSecret("account")))
-        .build()));
+        .thenReturn(Optional.of(new SecretBuilder(secret)
+            .withData(ImmutableMap.of(accountKey + "-wrong", ResourceUtil.encodeSecret("account")))
+            .build()));
 
     ValidationFailed ex = ValidationUtils.assertErrorType(ErrorType.INVALID_SECRET,
         () -> validator.validate(review));
@@ -436,7 +460,8 @@ class BackupConfigSourceValidatorTest {
   }
 
   @Test
-  void givenNonExistentAccessKeyKeyForAzureBlobStorageCredentialsKeyOnCreation_shouldFail() throws ValidationFailed {
+  void givenNonExistentAccessKeyKeyForAzureBlobStorageCredentialsKeyOnCreation_shouldFail()
+      throws ValidationFailed {
     final BackupConfigReview review = getEmptyReview();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -447,13 +472,14 @@ class BackupConfigSourceValidatorTest {
     setAzureBlobCredentials(review, accountName, accountKey, accessKeyName,
         accessKeyKey);
     when(secretFinder.findByNameAndNamespace(accountName, namespace))
-    .thenReturn(Optional.of(new SecretBuilder(secret)
-        .withData(ImmutableMap.of(accountKey, ResourceUtil.encodeSecret("account")))
-        .build()));
+        .thenReturn(Optional.of(new SecretBuilder(secret)
+            .withData(ImmutableMap.of(accountKey, ResourceUtil.encodeSecret("account")))
+            .build()));
     when(secretFinder.findByNameAndNamespace(accessKeyName, namespace))
-    .thenReturn(Optional.of(new SecretBuilder(secret)
-        .withData(ImmutableMap.of(accessKeyKey + "-wrong", ResourceUtil.encodeSecret("accessKey")))
-        .build()));
+        .thenReturn(Optional.of(new SecretBuilder(secret)
+            .withData(
+                ImmutableMap.of(accessKeyKey + "-wrong", ResourceUtil.encodeSecret("accessKey")))
+            .build()));
 
     ValidationFailed ex = ValidationUtils.assertErrorType(ErrorType.INVALID_SECRET,
         () -> validator.validate(review));
@@ -473,14 +499,17 @@ class BackupConfigSourceValidatorTest {
     storage.setType("azureblob");
     storage.setAzureBlob(new AzureBlobStorage());
     storage.getAzureBlob().setAzureCredentials(new AzureBlobStorageCredentials());
-    storage.getAzureBlob().getAzureCredentials().setSecretKeySelectors(new AzureBlobSecretKeySelector());
-    AzureBlobSecretKeySelector azureBlobSecretKeySelector = storage.getAzureBlob().getAzureCredentials().getSecretKeySelectors();
+    storage.getAzureBlob().getAzureCredentials()
+        .setSecretKeySelectors(new AzureBlobSecretKeySelector());
+    AzureBlobSecretKeySelector azureBlobSecretKeySelector =
+        storage.getAzureBlob().getAzureCredentials().getSecretKeySelectors();
     azureBlobSecretKeySelector.setAccount(new SecretKeySelector(accountKey, accountName));
     azureBlobSecretKeySelector.setAccessKey(new SecretKeySelector(accessKeyKey, accessKeyName));
   }
 
   @Test
-  void givenExistentSecretsAndKeysForGcsStorageCredentialsOnCreation_shouldNotFail() throws ValidationFailed {
+  void givenExistentSecretsAndKeysForGcsStorageCredentialsOnCreation_shouldNotFail()
+      throws ValidationFailed {
     final BackupConfigReview review = getEmptyReview();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -488,9 +517,10 @@ class BackupConfigSourceValidatorTest {
     String serviceAccountJsonKeyKey = "key1";
     setGcsCredentials(review, serviceAccountJsonKeyName, serviceAccountJsonKeyKey);
     when(secretFinder.findByNameAndNamespace(serviceAccountJsonKeyName, namespace))
-    .thenReturn(Optional.of(new SecretBuilder(secret)
-        .withData(ImmutableMap.of(serviceAccountJsonKeyKey, ResourceUtil.encodeSecret("serviceAccountJsonKey")))
-        .build()));
+        .thenReturn(Optional.of(new SecretBuilder(secret)
+            .withData(ImmutableMap.of(serviceAccountJsonKeyKey,
+                ResourceUtil.encodeSecret("serviceAccountJsonKey")))
+            .build()));
 
     validator.validate(review);
 
@@ -498,7 +528,8 @@ class BackupConfigSourceValidatorTest {
   }
 
   @Test
-  void givenNonExistentServiceAccountJsonKeySecretForGcsStorageCredentialsOnCreation_shouldFail() throws ValidationFailed {
+  void givenNonExistentServiceAccountJsonKeySecretForGcsStorageCredentialsOnCreation_shouldFail()
+      throws ValidationFailed {
     final BackupConfigReview review = getEmptyReview();
 
     String serviceAccountJsonKeyName = "secret1";
@@ -514,7 +545,8 @@ class BackupConfigSourceValidatorTest {
   }
 
   @Test
-  void givenNonExistentServiceAccountJsonKeyKeyForGcsStorageCredentialsOnCreation_shouldFail() throws ValidationFailed {
+  void givenNonExistentServiceAccountJsonKeyKeyForGcsStorageCredentialsOnCreation_shouldFail()
+      throws ValidationFailed {
     final BackupConfigReview review = getEmptyReview();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -522,9 +554,10 @@ class BackupConfigSourceValidatorTest {
     String serviceAccountJsonKeyKey = "key1";
     setGcsCredentials(review, serviceAccountJsonKeyName, serviceAccountJsonKeyKey);
     when(secretFinder.findByNameAndNamespace(serviceAccountJsonKeyName, namespace))
-    .thenReturn(Optional.of(new SecretBuilder(secret)
-        .withData(ImmutableMap.of(serviceAccountJsonKeyKey + "-wrong", ResourceUtil.encodeSecret("serviceAccountJsonKey")))
-        .build()));
+        .thenReturn(Optional.of(new SecretBuilder(secret)
+            .withData(ImmutableMap.of(serviceAccountJsonKeyKey + "-wrong",
+                ResourceUtil.encodeSecret("serviceAccountJsonKey")))
+            .build()));
 
     ValidationFailed ex = ValidationUtils.assertErrorType(ErrorType.INVALID_SECRET,
         () -> validator.validate(review));
@@ -543,8 +576,10 @@ class BackupConfigSourceValidatorTest {
     storage.setGcs(new GoogleCloudStorage());
     storage.getGcs().setCredentials(new GoogleCloudCredentials());
     storage.getGcs().getCredentials().setSecretKeySelectors(new GoogleCloudSecretKeySelector());
-    GoogleCloudSecretKeySelector awsSecretKeySelector = storage.getGcs().getCredentials().getSecretKeySelectors();
-    awsSecretKeySelector.setServiceAccountJsonKey(new SecretKeySelector(serviceAccountJsonKeyKey, serviceAccountJsonKeyName));
+    GoogleCloudSecretKeySelector awsSecretKeySelector =
+        storage.getGcs().getCredentials().getSecretKeySelectors();
+    awsSecretKeySelector.setServiceAccountJsonKey(
+        new SecretKeySelector(serviceAccountJsonKeyKey, serviceAccountJsonKeyName));
   }
 
   private BackupConfigReview getEmptyReview() {

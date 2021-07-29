@@ -7,12 +7,12 @@ package io.stackgres.operator.validation.pooling;
 
 import java.util.HashMap;
 
-import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -41,33 +41,25 @@ class PoolingConstraintValidatorTest extends ConstraintValidationTest<PoolingRev
 
   @Test
   void nullSpec_shouldFail() {
-
     PoolingReview review = getInvalidReview();
-
     checkNotNullErrorCause(StackGresPoolingConfig.class, "spec", review);
-
   }
 
   @Test
   void nullPgBouncerConf_shouldFail() {
-
     PoolingReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPgBouncer().setPgbouncerConf(null);
 
     checkNotEmptyErrorCause(StackGresPoolingConfigPgBouncer.class,
         "spec.pgBouncer.pgbouncerConf", review);
-
   }
-
 
   @Test
   void emptyPgBouncerConf_shouldFail() {
-
     PoolingReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPgBouncer().setPgbouncerConf(new HashMap<>());
 
     checkNotEmptyErrorCause(StackGresPoolingConfigPgBouncer.class,
         "spec.pgBouncer.pgbouncerConf", review);
-
   }
 }

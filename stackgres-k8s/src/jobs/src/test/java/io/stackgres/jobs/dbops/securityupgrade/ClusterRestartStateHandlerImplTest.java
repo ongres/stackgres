@@ -51,18 +51,17 @@ class ClusterRestartStateHandlerImplTest extends ClusterStateHandlerTest {
   }
 
   public void initializeDbOpsStatus(StackGresDbOps dbOps, List<Pod> pods) {
-    final StackGresDbOpsSecurityUpgradeStatus securityUpgrade = new StackGresDbOpsSecurityUpgradeStatus();
+    final StackGresDbOpsSecurityUpgradeStatus securityUpgrade =
+        new StackGresDbOpsSecurityUpgradeStatus();
     securityUpgrade.setInitialInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
-            .collect(Collectors.toList())
-    );
+            .collect(Collectors.toList()));
     securityUpgrade.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
     securityUpgrade.setPendingToRestartInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
-            .collect(Collectors.toList())
-    );
+            .collect(Collectors.toList()));
     securityUpgrade.setSwitchoverInitiated(Boolean.FALSE.toString());
 
     dbOps.getStatus().setSecurityUpgrade(securityUpgrade);
@@ -73,12 +72,12 @@ class ClusterRestartStateHandlerImplTest extends ClusterStateHandlerTest {
 
     final StackGresClusterStatus status = new StackGresClusterStatus();
     final StackGresClusterDbOpsStatus dbOps = new StackGresClusterDbOpsStatus();
-    final StackGresClusterDbOpsSecurityUpgradeStatus securityUpgrade = new StackGresClusterDbOpsSecurityUpgradeStatus();
+    final StackGresClusterDbOpsSecurityUpgradeStatus securityUpgrade =
+        new StackGresClusterDbOpsSecurityUpgradeStatus();
     securityUpgrade.setInitialInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
-            .collect(Collectors.toList())
-    );
+            .collect(Collectors.toList()));
     securityUpgrade.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
     dbOps.setSecurityUpgrade(securityUpgrade);
     status.setDbOps(dbOps);

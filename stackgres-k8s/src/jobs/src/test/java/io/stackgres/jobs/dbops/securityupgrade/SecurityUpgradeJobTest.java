@@ -79,7 +79,8 @@ class SecurityUpgradeJobTest {
     when(statefulSetReader.findByNameAndNamespace(clusterName, clusterNamespace))
         .thenReturn(Optional.of(oldStatefulSet));
 
-    dbOps = JsonUtil.readFromJson("stackgres_dbops/dbops_securityupgrade.json", StackGresDbOps.class);
+    dbOps =
+        JsonUtil.readFromJson("stackgres_dbops/dbops_securityupgrade.json", StackGresDbOps.class);
     dbOps.getMetadata().setNamespace(clusterNamespace);
     dbOps.getMetadata().setName(clusterName);
     dbOps.getSpec().setSgCluster(clusterName);

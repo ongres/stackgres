@@ -7,7 +7,10 @@ package io.stackgres.operator.initialization;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -71,14 +74,12 @@ public abstract class InitializerTest<T extends CustomResource<?, ?>> {
 
   @Test
   void givenNoResourceCreated_itShouldCreateANewOne() {
-
     T defaultCustomResource = configureDefaultCR();
 
     when(resourceScanner.getResources(resourceNamespace))
         .thenReturn(new ArrayList<>());
 
     when(resourceFactory.buildResource()).thenReturn(defaultCustomResource);
-
 
     doReturn(defaultCustomResource).when(customResourceScheduler).create(defaultCustomResource);
 
@@ -87,7 +88,6 @@ public abstract class InitializerTest<T extends CustomResource<?, ?>> {
     verify(resourceScanner).getResources(anyString());
     verify(resourceFactory).buildResource();
     verify(customResourceScheduler).create(defaultCustomResource);
-
   }
 
   @Test

@@ -1,7 +1,6 @@
 /*
  * Copyright (C) 2019 OnGres, Inc.
  * SPDX-License-Identifier: AGPL-3.0-or-later
- *
  */
 
 package io.stackgres.operator.validation.cluster;
@@ -17,11 +16,11 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,13 +38,13 @@ class ProfileReferenceValidatorTest {
   @Mock
   private AbstractCustomResourceFinder<StackGresProfile> profileFinder;
 
-  private StackGresProfile xsProfile;
+  private StackGresProfile profileSizeXs;
 
   @BeforeEach
   void setUp() throws Exception {
     validator = new ProfileReferenceValidator(profileFinder);
 
-    xsProfile = JsonUtil.readFromJson("stackgres_profiles/size-xs.json",
+    profileSizeXs = JsonUtil.readFromJson("stackgres_profiles/size-xs.json",
         StackGresProfile.class);
 
   }
@@ -60,7 +59,7 @@ class ProfileReferenceValidatorTest {
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
-        .thenReturn(Optional.of(xsProfile));
+        .thenReturn(Optional.of(profileSizeXs));
 
     validator.validate(review);
 
@@ -95,7 +94,8 @@ class ProfileReferenceValidatorTest {
   void giveAnAttemptToUpdateToAnUnknownProfile_shouldFail() {
 
     final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/profile_config_update.json", StackGresClusterReview.class);
+        .readFromJson("cluster_allow_requests/profile_config_update.json",
+            StackGresClusterReview.class);
 
     String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -120,16 +120,17 @@ class ProfileReferenceValidatorTest {
   void giveAnAttemptToUpdateToAnKnownProfile_shouldNotFail() throws ValidationFailed {
 
     final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/profile_config_update.json", StackGresClusterReview.class);
+        .readFromJson("cluster_allow_requests/profile_config_update.json",
+            StackGresClusterReview.class);
 
     String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
-    StackGresProfile sProfile = JsonUtil.readFromJson("stackgres_profiles/size-s.json",
+    StackGresProfile profileSizeS = JsonUtil.readFromJson("stackgres_profiles/size-s.json",
         StackGresProfile.class);
 
     when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
-        .thenReturn(Optional.of(sProfile));
+        .thenReturn(Optional.of(profileSizeS));
 
     validator.validate(review);
 
@@ -141,7 +142,8 @@ class ProfileReferenceValidatorTest {
   void giveAnAttemptToDelete_shouldNotFail() throws ValidationFailed {
 
     final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/profile_config_update.json", StackGresClusterReview.class);
+        .readFromJson("cluster_allow_requests/profile_config_update.json",
+            StackGresClusterReview.class);
     review.getRequest().setOperation(Operation.DELETE);
 
     validator.validate(review);
@@ -149,7 +151,5 @@ class ProfileReferenceValidatorTest {
     verify(profileFinder, never()).findByNameAndNamespace(anyString(), anyString());
 
   }
-
-
 
 }

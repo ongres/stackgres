@@ -23,8 +23,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.stubbing.Answer;
 
-public abstract class DefaultKeeperTest<R extends CustomResource<?, ?>,
-    T extends AdmissionReview<R>> {
+public abstract class DefaultKeeperTest
+    <R extends CustomResource<?, ?>, T extends AdmissionReview<R>> {
 
   @Mock
   private DefaultCustomResourceFactory<R> factory;
@@ -38,8 +38,8 @@ public abstract class DefaultKeeperTest<R extends CustomResource<?, ?>,
   void setUp() {
     validator = getValidatorInstance();
     when(factories.stream())
-        .thenAnswer((Answer<Stream<DefaultCustomResourceFactory<R>>>) invocationOnMock
-            -> Stream.of(factory));
+        .thenAnswer((Answer<Stream<DefaultCustomResourceFactory<R>>>) invocationOnMock -> Stream
+            .of(factory));
     validator.setFactories(factories);
 
   }
@@ -60,7 +60,8 @@ public abstract class DefaultKeeperTest<R extends CustomResource<?, ?>,
     T sample = getCreationSample();
     R defaultResource = getDefault();
 
-    defaultResource.getMetadata().setNamespace(sample.getRequest().getObject().getMetadata().getNamespace());
+    defaultResource.getMetadata()
+        .setNamespace(sample.getRequest().getObject().getMetadata().getNamespace());
     defaultResource.getMetadata().setName(sample.getRequest().getObject().getMetadata().getName());
 
     when(factory.buildResource()).thenReturn(defaultResource);
@@ -71,12 +72,14 @@ public abstract class DefaultKeeperTest<R extends CustomResource<?, ?>,
   }
 
   @Test
-  void givenAnUpdateSampleToAnotherResourceInTheSameNamespace_ItShouldNotFail() throws ValidationFailed {
+  void givenAnUpdateSampleToAnotherResourceInTheSameNamespace_ItShouldNotFail()
+      throws ValidationFailed {
 
     T sample = getUpdateSample();
     R defaultResource = getDefault();
 
-    defaultResource.getMetadata().setNamespace(sample.getRequest().getObject().getMetadata().getNamespace());
+    defaultResource.getMetadata()
+        .setNamespace(sample.getRequest().getObject().getMetadata().getNamespace());
     defaultResource.getMetadata().setName(StringUtil.generateRandom());
 
     when(factory.buildResource()).thenReturn(defaultResource);
@@ -87,7 +90,8 @@ public abstract class DefaultKeeperTest<R extends CustomResource<?, ?>,
   }
 
   @Test
-  void givenAnUpdateSampleToAnotherResourceWithTheSameNameInAnotherNamespace_ItShouldNotFail() throws ValidationFailed {
+  void givenAnUpdateSampleToAnotherResourceWithTheSameNameInAnotherNamespace_ItShouldNotFail()
+      throws ValidationFailed {
 
     T sample = getUpdateSample();
     R defaultResource = getDefault();
@@ -108,7 +112,8 @@ public abstract class DefaultKeeperTest<R extends CustomResource<?, ?>,
     T sample = getUpdateSample();
     R defaultResource = getDefault();
 
-    defaultResource.getMetadata().setNamespace(sample.getRequest().getObject().getMetadata().getNamespace());
+    defaultResource.getMetadata()
+        .setNamespace(sample.getRequest().getObject().getMetadata().getNamespace());
     defaultResource.getMetadata().setName(sample.getRequest().getObject().getMetadata().getName());
 
     when(factory.buildResource()).thenReturn(defaultResource);
@@ -119,7 +124,8 @@ public abstract class DefaultKeeperTest<R extends CustomResource<?, ?>,
   }
 
   @Test
-  void givenAnDeleteSampleToAnotherResourceInTheSameNamespace_ItShouldNotFail() throws ValidationFailed {
+  void givenAnDeleteSampleToAnotherResourceInTheSameNamespace_ItShouldNotFail()
+      throws ValidationFailed {
 
     T sample = getDeleteSample();
     R defaultResource = getDefault();
@@ -134,7 +140,8 @@ public abstract class DefaultKeeperTest<R extends CustomResource<?, ?>,
   }
 
   @Test
-  void givenAnDeleteSampleToAnotherResourceWithTheSameNameInAnotherNamespace_ItShouldNotFail() throws ValidationFailed {
+  void givenAnDeleteSampleToAnotherResourceWithTheSameNameInAnotherNamespace_ItShouldNotFail()
+      throws ValidationFailed {
 
     T sample = getDeleteSample();
     R defaultResource = getDefault();

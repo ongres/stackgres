@@ -41,9 +41,8 @@ class PodWatcherTest {
   void setUp() {
     namespace = StringUtils.getRandomNamespace();
     podName = StringUtils.getRandomClusterName();
-    clientFactory.withNewClient(client ->
-        client.namespaces().withName(namespace).create(
-            new NamespaceBuilder().withNewMetadata().withName(namespace).endMetadata().build()));
+    clientFactory.withNewClient(client -> client.namespaces().withName(namespace).create(
+        new NamespaceBuilder().withNewMetadata().withName(namespace).endMetadata().build()));
   }
 
   @Test

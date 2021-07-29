@@ -8,11 +8,11 @@ package io.stackgres.operator.mutation.pgconfig;
 import java.util.HashMap;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -44,7 +44,8 @@ class PgConfigDefaultValuesMutatorTest
 
   @Override
   protected StackGresPostgresConfig getDefaultResource() {
-    return JsonUtil.readFromJson("postgres_config/default_postgres.json", StackGresPostgresConfig.class);
+    return JsonUtil.readFromJson("postgres_config/default_postgres.json",
+        StackGresPostgresConfig.class);
   }
 
   @Override

@@ -23,9 +23,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class PgbouncerConfigResourceTest
-    extends AbstractDependencyCustomResourceTest<PoolingConfigDto, StackGresPoolingConfig,
-    ConnectionPoolingConfigResource, NamespacedConnectionPoolingConfigResource> {
+class PgbouncerConfigResourceTest extends AbstractDependencyCustomResourceTest
+      <PoolingConfigDto, StackGresPoolingConfig,
+      ConnectionPoolingConfigResource, NamespacedConnectionPoolingConfigResource> {
 
   @Override
   protected CustomResourceList<StackGresPoolingConfig> getCustomResourceList() {
@@ -38,7 +38,8 @@ class PgbouncerConfigResourceTest
   }
 
   @Override
-  protected AbstractDependencyResourceTransformer<PoolingConfigDto, StackGresPoolingConfig> getTransformer() {
+  protected AbstractDependencyResourceTransformer<PoolingConfigDto, StackGresPoolingConfig>
+      getTransformer() {
     return new PoolingConfigTransformer();
   }
 
@@ -70,7 +71,7 @@ class PgbouncerConfigResourceTest
     assertEquals("ceaa793f-2d97-48b7-91e4-8086b22f1c4c", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
     assertEquals(Seq.of(
-        "default_pool_size=200", 
+        "default_pool_size=200",
         "max_client_conn=100",
         "pool_mode='transaction'")
         .toString("\n"),
@@ -82,12 +83,16 @@ class PgbouncerConfigResourceTest
     assertNotNull(resource.getStatus().getPgBouncer());
     assertNotNull(resource.getStatus().getPgBouncer().getPgbouncerConf());
     assertEquals(3, resource.getStatus().getPgBouncer().getPgbouncerConf().size());
-    assertEquals("default_pool_size", resource.getStatus().getPgBouncer().getPgbouncerConf().get(0).getParameter());
+    assertEquals("default_pool_size",
+        resource.getStatus().getPgBouncer().getPgbouncerConf().get(0).getParameter());
     assertEquals("200", resource.getStatus().getPgBouncer().getPgbouncerConf().get(0).getValue());
-    assertEquals("max_client_conn", resource.getStatus().getPgBouncer().getPgbouncerConf().get(1).getParameter());
+    assertEquals("max_client_conn",
+        resource.getStatus().getPgBouncer().getPgbouncerConf().get(1).getParameter());
     assertEquals("100", resource.getStatus().getPgBouncer().getPgbouncerConf().get(1).getValue());
-    assertEquals("pool_mode", resource.getStatus().getPgBouncer().getPgbouncerConf().get(2).getParameter());
-    assertEquals("'transaction'", resource.getStatus().getPgBouncer().getPgbouncerConf().get(2).getValue());
+    assertEquals("pool_mode",
+        resource.getStatus().getPgBouncer().getPgbouncerConf().get(2).getParameter());
+    assertEquals("'transaction'",
+        resource.getStatus().getPgBouncer().getPgbouncerConf().get(2).getValue());
     assertNotNull(resource.getStatus().getPgBouncer().getDefaultParameters());
     assertIterableEquals(ImmutableSet.of(
         "default_pool_size",
@@ -104,7 +109,7 @@ class PgbouncerConfigResourceTest
     assertEquals("ceaa793f-2d97-48b7-91e4-8086b22f1c4c", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
     assertEquals(ImmutableMap.of(
-        "default_pool_size", "200", 
+        "default_pool_size", "200",
         "max_client_conn", "100",
         "pool_mode", "'transaction'"),
         resource.getSpec().getPgBouncer().getPgbouncerConf());

@@ -5,14 +5,15 @@
 
 package io.stackgres.operator.mutation;
 
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DistributedLogsMutationResourceTest extends MutationResourceTest<StackGresDistributedLogsReview>{
+class DistributedLogsMutationResourceTest
+    extends MutationResourceTest<StackGresDistributedLogsReview> {
 
   @BeforeEach
   void setUp() {
@@ -21,7 +22,8 @@ class DistributedLogsMutationResourceTest extends MutationResourceTest<StackGres
     this.resource = resource;
 
     review = JsonUtil
-        .readFromJson("distributedlogs_allow_request/create.json", StackGresDistributedLogsReview.class);
+        .readFromJson("distributedlogs_allow_request/create.json",
+            StackGresDistributedLogsReview.class);
   }
 
 }

@@ -5,6 +5,9 @@
 
 package io.stackgres.operator.mutation;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
+
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -16,16 +19,12 @@ import com.google.common.collect.Streams;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
-
-public abstract class DefaultValuesMutatorTest<R extends CustomResource<?, ?>,
-    T extends AdmissionReview<R>> {
+public abstract class DefaultValuesMutatorTest
+      <R extends CustomResource<?, ?>, T extends AdmissionReview<R>> {
 
   protected static final ObjectMapper mapper = new ObjectMapper();
 
@@ -95,6 +94,5 @@ public abstract class DefaultValuesMutatorTest<R extends CustomResource<?, ?>,
   }
 
   protected abstract JsonNode getConfJson(JsonNode crJson);
-
 
 }

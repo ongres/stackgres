@@ -27,14 +27,11 @@ class KubernetesExceptionMapperTest {
 
   @BeforeEach
   void setUp() {
-
     mapper = new KubernetesExceptionMapper(new Kubernetes12StatusParser());
-
   }
 
   @Test
   void webHookErrorResponses_shouldBeParsed() {
-
     final String errorTypeUri = ErrorType.getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION);
     final String message = "StackGresProfile has invalid properties";
     final String field = "spec.memory";
@@ -57,30 +54,26 @@ class KubernetesExceptionMapperTest {
     Assertions.assertEquals(ErrorType.CONSTRAINT_VIOLATION.getTitle(), errorResponse.getTitle());
     Assertions.assertEquals(detail, errorResponse.getDetail());
     Assertions.assertEquals(field, errorResponse.getFields()[0]);
-
   }
 
   @Test
   void kubernetesValidations_shouldBeParsed() {
-
     Status status = JsonUtil.readFromJson("kube_status/status-1.13.12.json", Status.class);
 
     Response response = mapper.toResponse(new KubernetesClientException("error", 422, status));
 
     ErrorResponse errorResponse = (ErrorResponse) response.getEntity();
 
-    Assertions.assertEquals(ErrorType.getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION), errorResponse.getType());
+    Assertions.assertEquals(ErrorType.getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION),
+        errorResponse.getType());
     Assertions.assertEquals(ErrorType.CONSTRAINT_VIOLATION.getTitle(), errorResponse.getTitle());
     Assertions.assertEquals("spec.memory in body should match '^[0-9]+(\\\\.[0-9]+)?(Mi|Gi)$'",
         errorResponse.getDetail());
     Assertions.assertEquals("spec.memory", errorResponse.getFields()[0]);
-
   }
 
   @Test
   void kubernetes16Validations_shouldBeParsed() {
-
-
     mapper.setStatusParser(new Kubernetes16StatusParser());
 
     Status status = JsonUtil.readFromJson("kube_status/status-1.16.4.json", Status.class);
@@ -89,11 +82,11 @@ class KubernetesExceptionMapperTest {
 
     ErrorResponse errorResponse = (ErrorResponse) response.getEntity();
 
-    Assertions.assertEquals(ErrorType.getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION), errorResponse.getType());
+    Assertions.assertEquals(ErrorType.getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION),
+        errorResponse.getType());
     Assertions.assertEquals(ErrorType.CONSTRAINT_VIOLATION.getTitle(), errorResponse.getTitle());
     Assertions.assertEquals("spec.memory in body should match '^[0-9]+(\\\\.[0-9]+)?(Mi|Gi)$'",
         errorResponse.getDetail());
     Assertions.assertEquals("spec.memory", errorResponse.getFields()[0]);
-
   }
 }

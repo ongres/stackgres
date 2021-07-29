@@ -16,7 +16,8 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 @QuarkusTest
 @EnabledIfEnvironmentVariable(named = "QUARKUS_PROFILE", matches = "test")
-public class BackupValidationPipelineTest extends ValidationPipelineTest<StackGresBackup, BackupReview> {
+public class BackupValidationPipelineTest
+    extends ValidationPipelineTest<StackGresBackup, BackupReview> {
 
   @Inject
   public BackupValidationPipeline pipeline;

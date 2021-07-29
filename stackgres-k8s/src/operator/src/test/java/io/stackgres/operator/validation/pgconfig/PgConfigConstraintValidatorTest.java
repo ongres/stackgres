@@ -9,17 +9,16 @@ import java.util.HashMap;
 
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class PgConfigConstraintValidatorTest extends ConstraintValidationTest<PgConfigReview> {
-
 
   @Override
   protected ConstraintValidator<PgConfigReview> buildValidator() {
@@ -34,8 +33,9 @@ class PgConfigConstraintValidatorTest extends ConstraintValidationTest<PgConfigR
 
   @Override
   protected PgConfigReview getInvalidReview() {
-    final PgConfigReview review = JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig_update.json",
-        PgConfigReview.class);
+    final PgConfigReview review =
+        JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig_update.json",
+            PgConfigReview.class);
     review.getRequest().getObject().setSpec(null);
     return review;
   }
@@ -50,11 +50,9 @@ class PgConfigConstraintValidatorTest extends ConstraintValidationTest<PgConfigR
 
   @Test
   void emptyPosgrestConf_shouldFail() {
-
     PgConfigReview review = getValidReview();
     review.getRequest().getObject().getSpec().setPostgresqlConf(new HashMap<>());
 
     checkNotEmptyErrorCause(StackGresPostgresConfigSpec.class, "spec.postgresqlConf", review);
-
   }
 }

@@ -123,7 +123,7 @@ class CrdMatchTest {
   }
 
   @Test
-  void CustomResourcesYamlDefinitionsPlural_ShouldMatchWithPluralInJavaDefinition()
+  void customResourcesYamlDefinitionsPlural_ShouldMatchWithPluralInJavaDefinition()
       throws IOException {
     withEveryYaml(crdTree -> {
       JsonNode crdNames = crdTree.get("spec").get("names");
@@ -138,7 +138,7 @@ class CrdMatchTest {
   }
 
   @Test
-  void CustomResourcesYamlMetadataName_ShouldMatchWithNameInJavaDefinition() throws IOException {
+  void customResourcesYamlMetadataName_ShouldMatchWithNameInJavaDefinition() throws IOException {
     withEveryYaml(crdTree -> {
       JsonNode metadataName = crdTree.get("metadata").get("name");
       CustomResourceDefinition definition = getDefinition(crdTree);
@@ -151,7 +151,7 @@ class CrdMatchTest {
   }
 
   @Test
-  void CustomResourcesYamlNamespaced_ShouldMatchWithNamespacedInJavaDefinition()
+  void customResourcesYamlNamespaced_ShouldMatchWithNamespacedInJavaDefinition()
       throws IOException {
     withEveryYaml(crdTree -> {
       JsonNode metadataName = crdTree.get("spec").get("scope");

@@ -42,7 +42,7 @@ public class MockKubernetesClientFactory implements KubernetesClientFactory {
   }
 
   @PreDestroy
-  public void cleanUp(){
+  public void cleanUp() {
     if (serverSupplier.wasRetrieved()) {
       serverSupplier.get().after();
     }

@@ -89,4 +89,8 @@
   <Match>
     <Bug pattern="DMI_RANDOM_USED_ONLY_ONCE" />
   </Match>
+
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2,MS_EXPOSE_REP,MS_EXPOSE_REP2"/>
+  </Match>
 </FindBugsFilter>

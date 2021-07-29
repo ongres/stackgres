@@ -108,7 +108,8 @@ class ClusterPatroniEnvVarFactoryTest {
     assertNotNull(envVar.getValueFrom().getSecretKeyRef());
     assertNotNull(envVar.getValueFrom().getSecretKeyRef().getName());
     assertNotNull(envVar.getValueFrom().getSecretKeyRef().getKey());
-    assertEquals(cluster.getMetadata().getName(), envVar.getValueFrom().getSecretKeyRef().getName());
+    assertEquals(cluster.getMetadata().getName(),
+        envVar.getValueFrom().getSecretKeyRef().getName());
     assertEquals(expectedKey, envVar.getValueFrom().getSecretKeyRef().getKey());
   }
 

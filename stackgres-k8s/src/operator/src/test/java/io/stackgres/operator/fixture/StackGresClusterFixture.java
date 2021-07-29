@@ -10,24 +10,24 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 
 public class StackGresClusterFixture {
 
-	private NodeAffinity nodeAffinity;
+  private NodeAffinity nodeAffinity;
 
-	public StackGresClusterFixture withNodeAffinity(NodeAffinity nodeAffinity) {
-		this.nodeAffinity = nodeAffinity;
-		return this;
-	}
+  public StackGresClusterFixture withNodeAffinity(NodeAffinity nodeAffinity) {
+    this.nodeAffinity = nodeAffinity;
+    return this;
+  }
 
-	public StackGresCluster build() {
-		StackGresCluster cluster = new StackGresCluster();
-		cluster.setSpec(new StackGresClusterSpecFixture()
-				.withPod(new StackGresClusterPodFixture()
-						.withScheduling(new StackGresClusterPodSchedulingFixture()
-								.withNodeAffinity(nodeAffinity)
-								.build())
-						.build())
-				.build());
-		return cluster;
-	}
+  public StackGresCluster build() {
+    StackGresCluster cluster = new StackGresCluster();
+    cluster.setSpec(new StackGresClusterSpecFixture()
+        .withPod(new StackGresClusterPodFixture()
+            .withScheduling(new StackGresClusterPodSchedulingFixture()
+                .withNodeAffinity(nodeAffinity)
+                .build())
+            .build())
+        .build());
+    return cluster;
+  }
 
   public StackGresCluster empty() {
     return new StackGresCluster();

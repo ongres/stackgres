@@ -20,32 +20,32 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 @DockerExtension({
-  @DockerContainer(
-      alias = "k8s",
-      extendedBy = K8sConfiguration.class,
-      whenReuse = WhenReuse.ALWAYS,
-      stopIfChanged = true)
+    @DockerContainer(
+        alias = "k8s",
+        extendedBy = K8sConfiguration.class,
+        whenReuse = WhenReuse.ALWAYS,
+        stopIfChanged = true)
 })
 @DisabledIfEnvironmentVariable(named = "DISABLE_E2E", matches = "true")
 public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
 
   private static final Optional<String> E2E_TEST = Optional.ofNullable(
       Optional.ofNullable(System.getenv("E2E_TEST"))
-      .orElse(System.getProperty("e2e.test")));
+          .orElse(System.getProperty("e2e.test")));
 
   private static final Optional<Boolean> E2E_HANG = Optional.ofNullable(
       Optional.ofNullable(System.getenv("E2E_HANG"))
-      .orElse(System.getProperty("e2e.hang")))
+          .orElse(System.getProperty("e2e.hang")))
       .map(Boolean::valueOf);
 
   private static final Optional<Boolean> E2E_REPEAT_ON_ERROR = Optional.ofNullable(
       Optional.ofNullable(System.getenv("E2E_REPEAT_ON_ERROR"))
-      .orElse(System.getProperty("e2e.repeatOnError")))
+          .orElse(System.getProperty("e2e.repeatOnError")))
       .map(Boolean::valueOf);
 
   private static final String E2E_SHELL = Optional.ofNullable(
       Optional.ofNullable(System.getenv("E2E_SHELL"))
-      .orElse(System.getProperty("e2e.shell")))
+          .orElse(System.getProperty("e2e.shell")))
       .orElse("sh");
 
   @Test
@@ -59,9 +59,10 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
                   + "cd /resources/e2e\n"
                   + "rm -Rf /resources/e2e/target\n"
                   + ItHelper.E2E_ENVVARS + "\n"
-                  + "export DOCKER_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
+                  + "export DOCKER_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\""
+                  + "|cut -d '/' -f 2)\"\n"
                   + "export " + ItHelper.E2E_ENV_VAR_NAME + "="
-                      + "\"" + ItHelper.E2E_ENV + "$(echo \"$DOCKER_NAME\" | sed 's/^k8s//')\"\n"
+                  + "\"" + ItHelper.E2E_ENV + "$(echo \"$DOCKER_NAME\" | sed 's/^k8s//')\"\n"
                   + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
                   + "export K8S_REUSE=true\n"
                   + "export K8S_FROM_DIND=true\n"
@@ -76,19 +77,23 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
                   + "export UI_TESTS_RESOURCES_PATH=/resources/admin-ui\n"
                   + (ItHelper.OPERATOR_IN_KUBERNETES
                       ? ""
-                      : "export E2E_OPERATOR_OPTS=\"" + ItHelper.getOperatorExtraOptions(k8s, operatorPort) + "\"\n")
+                      : "export E2E_OPERATOR_OPTS=\""
+                          + ItHelper.getOperatorExtraOptions(k8s, operatorPort) + "\"\n")
                   + "  sh e2e store_operator_values\n"
-                  + (E2E_TEST.map(e2eTests -> "if ! " + E2E_SHELL + " " + (ItHelper.E2E_DEBUG ? "-x" : "")
-                  + " run-test.sh " + e2eTests + "\n"
-                  + "then\n"
-                  + "  sh e2e show_failed_logs\n"
-                  + "  exit 1\n"
-                  + "fi\n").orElseGet(() -> "if ! " + E2E_SHELL + " " + (ItHelper.E2E_DEBUG ? "-x" : "")
-                  + " run-all-tests.sh\n"
-                  + "then\n"
-                  + "  " + E2E_SHELL + " e2e show_failed_logs\n"
-                  + "  exit 1\n"
-                  + "fi\n"))).getBytes(StandardCharsets.UTF_8)), "/run-e2e-from-it.sh");
+                  + (E2E_TEST
+                      .map(e2eTests -> "if ! " + E2E_SHELL + " " + (ItHelper.E2E_DEBUG ? "-x" : "")
+                          + " run-test.sh " + e2eTests + "\n"
+                          + "then\n"
+                          + "  sh e2e show_failed_logs\n"
+                          + "  exit 1\n"
+                          + "fi\n")
+                      .orElseGet(() -> "if ! " + E2E_SHELL + " " + (ItHelper.E2E_DEBUG ? "-x" : "")
+                          + " run-all-tests.sh\n"
+                          + "then\n"
+                          + "  " + E2E_SHELL + " e2e show_failed_logs\n"
+                          + "  exit 1\n"
+                          + "fi\n"))).getBytes(StandardCharsets.UTF_8)),
+              "/run-e2e-from-it.sh");
           k8s.execute("sh", "-e" + (ItHelper.E2E_DEBUG ? "x" : ""), "/run-e2e-from-it.sh")
               .filter(ItHelper.EXCLUDE_TTY_WARNING)
               .forEach(LOGGER::info);
@@ -112,7 +117,7 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
       }
     }
     if (E2E_HANG.orElse(false)) {
-      while(true) {
+      while (true) {
         Thread.sleep(3600);
       }
     }

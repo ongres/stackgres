@@ -16,6 +16,7 @@ public class MockPostgresConfigFinder implements CustomResourceFinder<StackGresP
 
   @Override
   public Optional<StackGresPostgresConfig> findByNameAndNamespace(String name, String namespace) {
-    return Optional.of(JsonUtil.readFromJson("postgres_config/default_postgres.json", StackGresPostgresConfig.class));
+    return Optional.of(JsonUtil.readFromJson("postgres_config/default_postgres.json",
+        StackGresPostgresConfig.class));
   }
 }

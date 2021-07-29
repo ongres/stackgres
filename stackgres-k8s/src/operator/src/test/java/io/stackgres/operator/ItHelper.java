@@ -45,12 +45,14 @@ import org.slf4j.LoggerFactory;
 
 public class ItHelper {
 
-  private final static Logger LOGGER = LoggerFactory.getLogger("ItHelper");
+  private static final Logger LOGGER = LoggerFactory.getLogger("ItHelper");
 
-  public final static boolean OPERATOR_IN_KUBERNETES = Boolean.parseBoolean(System.getenv("OPERATOR_IN_KUBERNETES"));
-  public final static String IMAGE_TAG = Optional.ofNullable(System.getenv("IMAGE_TAG"))
+  public static final boolean OPERATOR_IN_KUBERNETES =
+      Boolean.parseBoolean(System.getenv("OPERATOR_IN_KUBERNETES"));
+  public static final String IMAGE_TAG = Optional.ofNullable(System.getenv("IMAGE_TAG"))
       .orElse("development-jvm");
-  public final static Predicate<String> EXCLUDE_TTY_WARNING = line -> !line.equals("stdin: is not a tty");
+  public static final Predicate<String> EXCLUDE_TTY_WARNING =
+      line -> !line.equals("stdin: is not a tty");
 
   public static final String E2E_ENV = Optional.ofNullable(System.getenv("E2E_ENV"))
       .orElse("kind");
@@ -65,7 +67,7 @@ public class ItHelper {
 
   public static final boolean E2E_DEBUG = Optional.ofNullable(
       Optional.ofNullable(System.getenv("E2E_DEBUG"))
-      .orElse(System.getProperty("e2e.debug")))
+          .orElse(System.getProperty("e2e.debug")))
       .map(Boolean::valueOf)
       .orElse(false);
 
@@ -96,7 +98,7 @@ public class ItHelper {
             + "  echo 'Timeout while trying to kill unwanted processes'\n"
             + "  exit 1\n"
             + "fi\n")
-      .forEach(LOGGER::info);
+        .forEach(LOGGER::info);
   }
 
   /**
@@ -130,11 +132,12 @@ public class ItHelper {
         .orElse(true)) {
       LOGGER.info("Reusing " + E2E_ENV);
       k8s.copyIn(new ByteArrayInputStream(
-              ("cd /resources/e2e\n"
+          ("cd /resources/e2e\n"
               + E2E_ENVVARS + "\n"
-              + "export DOCKER_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
+              + "export DOCKER_NAME=\"$(docker inspect -f '{{.Name}}' "
+              + "\"$(hostname)\"|cut -d '/' -f 2)\"\n"
               + "export " + E2E_ENV_VAR_NAME + "="
-                  + "\"" + E2E_ENV + "$(echo \"$DOCKER_NAME\" | sed 's/^k8s//')\"\n"
+              + "\"" + E2E_ENV + "$(echo \"$DOCKER_NAME\" | sed 's/^k8s//')\"\n"
               + "export K8S_FROM_DIND=true\n"
               + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
               + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
@@ -152,11 +155,13 @@ public class ItHelper {
               + "cp -v /resources/e2e/target/server-pub.pem /resources/certs\n"
               + "cp -v /resources/e2e/target/server.crt /resources/certs\n"
               + (OPERATOR_IN_KUBERNETES
-                  ? "sh " + (E2E_DEBUG ? "-x" : "") + " e2e load_operator_k8s\n" : "")
+                  ? "sh " + (E2E_DEBUG ? "-x" : "") + " e2e load_operator_k8s\n"
+                  : "")
               + (OPERATOR_IN_KUBERNETES ? ""
                   : "sh " + (E2E_DEBUG ? "-x" : "")
-                  + " e2e load_certificate_k8s /resources/e2e/target/server.crt\n"))
-              .getBytes(StandardCharsets.UTF_8)), "/reuse-k8s.sh");
+                      + " e2e load_certificate_k8s /resources/e2e/target/server.crt\n"))
+                          .getBytes(StandardCharsets.UTF_8)),
+          "/reuse-k8s.sh");
       k8s.execute("sh", "-e", "/reuse-k8s.sh")
           .filter(ItHelper.EXCLUDE_TTY_WARNING)
           .forEach(LOGGER::info);
@@ -172,23 +177,26 @@ public class ItHelper {
     LOGGER.info("Restarting " + E2E_ENV);
     k8s.copyIn(new ByteArrayInputStream(
         ("cd /resources/e2e\n"
-        + E2E_ENVVARS + "\n"
-        + "export DOCKER_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
-        + "export " + E2E_ENV_VAR_NAME + "="
+            + E2E_ENVVARS + "\n"
+            + "export DOCKER_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\""
+            + "|cut -d '/' -f 2)\"\n"
+            + "export " + E2E_ENV_VAR_NAME + "="
             + "\"" + E2E_ENV + "$(echo \"$DOCKER_NAME\" | sed 's/^k8s//')\"\n"
-        + "export K8S_FROM_DIND=true\n"
-        + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
-        + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
-        + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
-        + "export UI_TESTS_RESOURCES_PATH=/resources/admin-ui\n"
-        + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e reset_k8s\n"
-        + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e setup_helm\n"
-        + (OPERATOR_IN_KUBERNETES
-            ? "sh " + (E2E_DEBUG ? "-x" : "") + " e2e load_operator_k8s\n" : "")
-        + (OPERATOR_IN_KUBERNETES ? ""
-            : "sh " + (E2E_DEBUG ? "-x" : "")
-            + " e2e load_certificate_k8s /resources/certs/server.crt\n"))
-        .getBytes(StandardCharsets.UTF_8)), "/restart-k8s.sh");
+            + "export K8S_FROM_DIND=true\n"
+            + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
+            + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
+            + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
+            + "export UI_TESTS_RESOURCES_PATH=/resources/admin-ui\n"
+            + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e reset_k8s\n"
+            + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e setup_helm\n"
+            + (OPERATOR_IN_KUBERNETES
+                ? "sh " + (E2E_DEBUG ? "-x" : "") + " e2e load_operator_k8s\n"
+                : "")
+            + (OPERATOR_IN_KUBERNETES ? ""
+                : "sh " + (E2E_DEBUG ? "-x" : "")
+                    + " e2e load_certificate_k8s /resources/certs/server.crt\n"))
+                        .getBytes(StandardCharsets.UTF_8)),
+        "/restart-k8s.sh");
     k8s.execute("sh", "-e", "/restart-k8s.sh")
         .filter(ItHelper.EXCLUDE_TTY_WARNING)
         .forEach(LOGGER::info);
@@ -245,8 +253,7 @@ public class ItHelper {
             + "END=\"$(($(date +%s)+10))\";"
             + "until kubectl get service -n " + namespace + " " + exposedServiceName
             + " -o jsonpath='{ .spec.ports[?(@.port==" + port + ")].nodePort }';"
-            + " do [ \"$(date +%s)\" -lt \"$END\" ]; sleep 1; done;"
-            )
+            + " do [ \"$(date +%s)\" -lt \"$END\" ]; sleep 1; done;")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(LOGGER::info);
     return getKubernetesMasterIp(k8s) + ":" + k8s.execute("sh", "-l", "-c",
@@ -264,11 +271,12 @@ public class ItHelper {
     if (OPERATOR_IN_KUBERNETES) {
       final String jvmSuffix = "-jvm";
       String adminUiImageTag = IMAGE_TAG.endsWith(jvmSuffix)
-          ? IMAGE_TAG.substring(0, IMAGE_TAG.length() - jvmSuffix.length()) : IMAGE_TAG;
+          ? IMAGE_TAG.substring(0, IMAGE_TAG.length() - jvmSuffix.length())
+          : IMAGE_TAG;
       LOGGER.info("Installing stackgres-operator helm chart");
       k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace + " || true")
-        .filter(EXCLUDE_TTY_WARNING)
-        .forEach(LOGGER::info);
+          .filter(EXCLUDE_TTY_WARNING)
+          .forEach(LOGGER::info);
       k8s.execute("sh", "-l", "-c" + (E2E_DEBUG ? "x" : ""), "helm upgrade --install"
           + " stackgres-operator"
           + " --namespace " + namespace
@@ -282,32 +290,32 @@ public class ItHelper {
           + " --set-string adminui.image.name=stackgres/admin-ui"
           + " --set-string adminui.image.tag=" + adminUiImageTag
           + " --set-string adminui.image.pullPolicy=Never")
-        .filter(EXCLUDE_TTY_WARNING)
-        .forEach(LOGGER::info);
+          .filter(EXCLUDE_TTY_WARNING)
+          .forEach(LOGGER::info);
       k8s.execute("sh", "-l", "-c",
           "OPERATOR_NAMESPACE='" + namespace + "' sh " + (E2E_DEBUG ? "-x" : "")
-          + " /resources/e2e/e2e store_operator_values\n")
-        .filter(EXCLUDE_TTY_WARNING)
-        .forEach(LOGGER::info);
+              + " /resources/e2e/e2e store_operator_values\n")
+          .filter(EXCLUDE_TTY_WARNING)
+          .forEach(LOGGER::info);
       return;
     }
 
     LOGGER.info("Installing stackgres-operator helm chart without operator container");
     k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace + " || true")
-      .filter(EXCLUDE_TTY_WARNING)
-      .forEach(LOGGER::info);
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(LOGGER::info);
     k8s.execute("sh", "-l", "-c", "helm upgrade --install"
         + " stackgres-operator"
         + " --namespace " + namespace
         + " /resources/stackgres-operator"
         + getOperatorExtraOptions(k8s, port))
-      .filter(EXCLUDE_TTY_WARNING)
-      .forEach(LOGGER::info);
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(LOGGER::info);
     k8s.execute("sh", "-l", "-c",
         "OPERATOR_NAMESPACE='" + namespace + "' sh " + (E2E_DEBUG ? "-x" : "")
-        + " /resources/e2e/e2e store_operator_values\n")
-      .filter(EXCLUDE_TTY_WARNING)
-      .forEach(LOGGER::info);
+            + " /resources/e2e/e2e store_operator_values\n")
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(LOGGER::info);
   }
 
   public static String getOperatorExtraOptions(Container k8s, int port) throws Exception {
@@ -331,19 +339,20 @@ public class ItHelper {
         + "CONTAINER_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
         + "ENV_NAME=\"" + E2E_ENV + "$(echo \"$CONTAINER_NAME\" | sed 's/^k8s//')\"\n"
         + "NETWORK_NAME=\"$(docker inspect \"$ENV_NAME-control-plane\""
-        + " -f '{{ range $key, $value := .NetworkSettings.Networks }}{{ printf \"%s\\n\" $key }}{{ end }}'"
+        + " -f '{{ range $key, $value := .NetworkSettings.Networks }}{{ printf \"%s\\n\" $key }}"
+        + "{{ end }}'"
         + " | head -n 1)\"\n"
         + "docker network inspect \"$NETWORK_NAME\" -f '{{ (index .IPAM.Config 0).Gateway }}'")
-    .filter(EXCLUDE_TTY_WARNING)
-    .collect(Collectors.joining());
+        .filter(EXCLUDE_TTY_WARNING)
+        .collect(Collectors.joining());
   }
 
   public static String getKubernetesMasterIp(Container k8s)
       throws DockerException, InterruptedException, IOException {
     return k8s.execute("sh", "-l", "-c",
         "kubectl cluster-info|grep 'Kubernetes master' | cut -d / -f  3 | cut -d : -f 1")
-    .filter(EXCLUDE_TTY_WARNING)
-    .collect(Collectors.joining());
+        .filter(EXCLUDE_TTY_WARNING)
+        .collect(Collectors.joining());
   }
 
   /**
@@ -358,8 +367,8 @@ public class ItHelper {
         .forEach(LOGGER::info);
     LOGGER.info("Installing stackgres-cluster helm chart for configs");
     k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace)
-      .filter(EXCLUDE_TTY_WARNING)
-      .forEach(LOGGER::info);
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(LOGGER::info);
     k8s.execute("sh", "-l", "-c", "helm install"
         + " stackgres-cluster-configs"
         + " --namespace " + namespace
@@ -368,8 +377,8 @@ public class ItHelper {
         + " --set cluster.create=false"
         + " --set configurations.backupconfig.baseBackups.retention=5"
         + " --set-string configurations.backupconfig.baseBackups.cronSchedule='*/1 * * * *'")
-      .filter(EXCLUDE_TTY_WARNING)
-      .forEach(LOGGER::info);
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(LOGGER::info);
   }
 
   /**
@@ -391,8 +400,8 @@ public class ItHelper {
         + " --set-string cluster.name=" + name
         + " --set cluster.instances=" + instances
         + " --set-string cluster.pods.persistentVolume.size=128Mi")
-      .filter(EXCLUDE_TTY_WARNING)
-      .forEach(LOGGER::info);
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(LOGGER::info);
   }
 
   /**
@@ -411,18 +420,19 @@ public class ItHelper {
         + " --set cluster.instances=" + instances
         + " --set-string cluster.pods.persistentVolume.size=128Mi"
         + " --reuse-values")
-      .filter(EXCLUDE_TTY_WARNING)
-      .forEach(LOGGER::info);
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(LOGGER::info);
   }
 
   /**
    * It helper method.
    */
-  public static void deleteStackGresCluster(Container k8s, String namespace, String name) throws Exception {
+  public static void deleteStackGresCluster(Container k8s, String namespace, String name)
+      throws Exception {
     LOGGER.info("Delete stackgres-cluster helm chart for cluster with name " + name);
     k8s.execute("sh", "-l", "-c", "helm delete " + name + " --namespace " + namespace)
-      .filter(EXCLUDE_TTY_WARNING)
-      .forEach(LOGGER::info);
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(LOGGER::info);
   }
 
   /**
@@ -469,7 +479,8 @@ public class ItHelper {
   /**
    * It helper method.
    */
-  public static void waitUntilKubernetesOperatorIsReady(Container k8s, String namespace) throws Exception {
+  public static void waitUntilKubernetesOperatorIsReady(Container k8s, String namespace)
+      throws Exception {
     waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
         "kubectl get pod -n " + namespace + " -l app=stackgres-operator -o name"
             + " | xargs -r kubectl describe -n " + namespace)),
@@ -481,9 +492,8 @@ public class ItHelper {
   }
 
   /**
-   * IT helper method.
-   * Code has been copied and adapted from {@code QuarkusTestExtension} to allow start/stop
-   * quarkus application inside a test.
+   * IT helper method. Code has been copied and adapted from {@code QuarkusTestExtension} to allow
+   * start/stop quarkus application inside a test.
    */
   public static OperatorRunner createOperator(Container k8s, String namespace, int port,
       int sslPort, Executor executor) throws Exception {
@@ -491,7 +501,7 @@ public class ItHelper {
       return new KubernetesOperatorRunner(k8s, namespace, executor);
     }
 
-    //return new LocalOperatorRunner(k8s, namespace, ItHelper.class, port, sslPort);
+    // return new LocalOperatorRunner(k8s, namespace, ItHelper.class, port, sslPort);
     throw new Exception();
   }
 
@@ -520,7 +530,6 @@ public class ItHelper {
     }
   }
 
-  private ItHelper() {
-  }
+  private ItHelper() {}
 
 }

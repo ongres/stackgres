@@ -9,15 +9,16 @@ import javax.inject.Inject;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operator.validation.ValidationPipelineTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 @QuarkusTest
 @EnabledIfEnvironmentVariable(named = "QUARKUS_PROFILE", matches = "test")
-public class SgProfileValidationPipelineTest extends ValidationPipelineTest<StackGresProfile, SgProfileReview> {
+public class SgProfileValidationPipelineTest
+    extends ValidationPipelineTest<StackGresProfile, SgProfileReview> {
 
   @Inject
   public SgProfileValidationPipeline pipeline;
@@ -25,9 +26,7 @@ public class SgProfileValidationPipelineTest extends ValidationPipelineTest<Stac
   @Override
   public SgProfileReview getConstraintViolatingReview() {
     SgProfileReview review = getValidReview();
-
     review.getRequest().getObject().getSpec().setMemory("");
-
     return review;
   }
 

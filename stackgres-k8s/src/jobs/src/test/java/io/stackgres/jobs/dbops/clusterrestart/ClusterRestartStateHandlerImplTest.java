@@ -57,14 +57,12 @@ class ClusterRestartStateHandlerImplTest extends ClusterStateHandlerTest {
     restartStatus.setInitialInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
-            .collect(Collectors.toList())
-    );
+            .collect(Collectors.toList()));
     restartStatus.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
     restartStatus.setPendingToRestartInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
-            .collect(Collectors.toList())
-    );
+            .collect(Collectors.toList()));
     restartStatus.setSwitchoverInitiated(Boolean.FALSE.toString());
 
     dbOps.getStatus().setRestart(restartStatus);
@@ -72,15 +70,14 @@ class ClusterRestartStateHandlerImplTest extends ClusterStateHandlerTest {
 
   @Override
   protected void initializeClusterStatus(StackGresCluster cluster, List<Pod> pods) {
-
     final StackGresClusterStatus status = new StackGresClusterStatus();
     final StackGresClusterDbOpsStatus dbOps = new StackGresClusterDbOpsStatus();
-    final StackGresClusterDbOpsRestartStatus restartStatus = new StackGresClusterDbOpsRestartStatus();
+    final StackGresClusterDbOpsRestartStatus restartStatus =
+        new StackGresClusterDbOpsRestartStatus();
     restartStatus.setInitialInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
-            .collect(Collectors.toList())
-    );
+            .collect(Collectors.toList()));
     restartStatus.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
     dbOps.setRestart(restartStatus);
     status.setDbOps(dbOps);

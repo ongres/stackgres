@@ -17,8 +17,7 @@ class ConfigMapTransactionHandlerTest extends TransactionHandlerTest<ConfigMap> 
 
   @Override
   protected ResourceTransactionHandler<ConfigMap> getInstance() {
-    ConfigMapTransactionHandler configMapTransactionHandler
-        = new ConfigMapTransactionHandler();
+    ConfigMapTransactionHandler configMapTransactionHandler = new ConfigMapTransactionHandler();
     configMapTransactionHandler.setWriter(writer);
     return configMapTransactionHandler;
   }

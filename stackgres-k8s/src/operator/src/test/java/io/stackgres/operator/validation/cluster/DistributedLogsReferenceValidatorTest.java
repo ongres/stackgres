@@ -1,7 +1,6 @@
 /*
  * Copyright (C) 2019 OnGres, Inc.
  * SPDX-License-Identifier: AGPL-3.0-or-later
- *
  */
 
 package io.stackgres.operator.validation.cluster;
@@ -17,11 +16,11 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,7 +55,8 @@ class DistributedLogsReferenceValidatorTest {
     final StackGresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
-    String distributedLogsName = review.getRequest().getObject().getSpec().getDistributedLogs().getDistributedLogs();
+    String distributedLogsName =
+        review.getRequest().getObject().getSpec().getDistributedLogs().getDistributedLogs();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(distributedLogsFinder.findByNameAndNamespace(distributedLogsName, namespace))
@@ -74,7 +74,8 @@ class DistributedLogsReferenceValidatorTest {
     final StackGresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
-    String distributedLogsName = review.getRequest().getObject().getSpec().getDistributedLogs().getDistributedLogs();
+    String distributedLogsName =
+        review.getRequest().getObject().getSpec().getDistributedLogs().getDistributedLogs();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(distributedLogsFinder.findByNameAndNamespace(distributedLogsName, namespace))
@@ -95,9 +96,11 @@ class DistributedLogsReferenceValidatorTest {
   void giveAnAttemptToUpdateToAnUnknownProfile_shouldFail() {
 
     final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/distributed_logs_update.json", StackGresClusterReview.class);
+        .readFromJson("cluster_allow_requests/distributed_logs_update.json",
+            StackGresClusterReview.class);
 
-    String distributedLogsName = review.getRequest().getObject().getSpec().getDistributedLogs().getDistributedLogs();
+    String distributedLogsName =
+        review.getRequest().getObject().getSpec().getDistributedLogs().getDistributedLogs();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(distributedLogsFinder.findByNameAndNamespace(distributedLogsName, namespace))
@@ -119,9 +122,11 @@ class DistributedLogsReferenceValidatorTest {
   void giveAnAttemptToUpdateToAnKnownProfile_shouldNotFail() throws ValidationFailed {
 
     final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/distributed_logs_update.json", StackGresClusterReview.class);
+        .readFromJson("cluster_allow_requests/distributed_logs_update.json",
+            StackGresClusterReview.class);
 
-    String distributedLogsName = review.getRequest().getObject().getSpec().getDistributedLogs().getDistributedLogs();
+    String distributedLogsName =
+        review.getRequest().getObject().getSpec().getDistributedLogs().getDistributedLogs();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     StackGresDistributedLogs distributedLogs = JsonUtil.readFromJson("distributedlogs/default.json",
@@ -140,7 +145,8 @@ class DistributedLogsReferenceValidatorTest {
   void giveAnAttemptToDelete_shouldNotFail() throws ValidationFailed {
 
     final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/distributed_logs_update.json", StackGresClusterReview.class);
+        .readFromJson("cluster_allow_requests/distributed_logs_update.json",
+            StackGresClusterReview.class);
     review.getRequest().setOperation(Operation.DELETE);
 
     validator.validate(review);
@@ -148,7 +154,5 @@ class DistributedLogsReferenceValidatorTest {
     verify(distributedLogsFinder, never()).findByNameAndNamespace(anyString(), anyString());
 
   }
-
-
 
 }

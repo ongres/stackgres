@@ -26,7 +26,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-public abstract class DependenciesValidatorTest<T extends AdmissionReview<?>, V extends DependenciesValidator<T>> {
+public abstract class DependenciesValidatorTest
+    <T extends AdmissionReview<?>, V extends DependenciesValidator<T>> {
 
   protected DependenciesValidator<T> validator;
 
@@ -80,12 +81,12 @@ public abstract class DependenciesValidatorTest<T extends AdmissionReview<?>, V 
         () -> validator.validate(review));
 
     assertEquals("Can't delete "
-            + review.getRequest().getResource().getResource()
-            + "." + review.getRequest().getKind().getGroup()
-            + " " + review.getRequest().getName() + " because the "
-            + CustomResource.getCRDName(StackGresCluster.class) + " "
-            + clusterList.getItems().get(0).getMetadata().getName() + " depends on it"
-        , ex.getResult().getMessage());
+        + review.getRequest().getResource().getResource()
+        + "." + review.getRequest().getKind().getGroup()
+        + " " + review.getRequest().getName() + " because the "
+        + CustomResource.getCRDName(StackGresCluster.class) + " "
+        + clusterList.getItems().get(0).getMetadata().getName() + " depends on it",
+        ex.getResult().getMessage());
   }
 
   protected abstract T getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt();
@@ -110,7 +111,8 @@ public abstract class DependenciesValidatorTest<T extends AdmissionReview<?>, V 
     verify(clusterScanner).findResources(review.getRequest().getNamespace());
   }
 
-  protected abstract T getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt() throws ValidationFailed;
+  protected abstract T getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt()
+      throws ValidationFailed;
 
   protected abstract void makeClusterNotDependant(StackGresCluster cluster);
 

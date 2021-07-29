@@ -285,6 +285,7 @@ class ServiceComparatorTest {
 
     var afterServiceHash = service.hashCode();
 
-    assertEquals(serviceHash, afterServiceHash, "Parameters of the comparator should not be altered");
+    assertEquals(serviceHash, afterServiceHash,
+        "Parameters of the comparator should not be altered");
   }
 }

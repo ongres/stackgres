@@ -39,7 +39,7 @@ class DbOpsSecurityUpgradeValidatorTest {
   private StackGresCluster cluster;
 
   @BeforeEach
-  void setUp(){
+  void setUp() {
     validator = new DbOpsSecurityUpgradeValidator(clusterFinder);
 
     cluster = getDefaultCluster();

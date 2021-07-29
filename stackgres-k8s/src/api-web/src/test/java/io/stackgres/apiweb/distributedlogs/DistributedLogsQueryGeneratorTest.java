@@ -253,7 +253,8 @@ class DistributedLogsQueryGeneratorTest {
             .isFromInclusive(false)
             .filters(DistributedLogsQueryGenerator.FILTER_CONVERSION_MAP.keySet()
                 .stream()
-                .collect(ImmutableMap.toImmutableMap(filter -> filter, filter -> ImmutableList.of(""))))
+                .collect(
+                    ImmutableMap.toImmutableMap(filter -> filter, filter -> ImmutableList.of(""))))
             .build()));
   }
 
@@ -271,7 +272,8 @@ class DistributedLogsQueryGeneratorTest {
 
   private String generateQuery(DistributedLogsQueryParameters parameters) {
     DSLContext context = new DefaultDSLContext(SQLDialect.POSTGRES);
-    return new DistributedLogsQueryGenerator(context, parameters).generateQuery().getSQL(ParamType.INLINED);
+    return new DistributedLogsQueryGenerator(context, parameters).generateQuery()
+        .getSQL(ParamType.INLINED);
   }
 
 }

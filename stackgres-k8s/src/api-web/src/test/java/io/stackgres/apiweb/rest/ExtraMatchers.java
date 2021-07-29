@@ -20,7 +20,7 @@ class ExtraMatchers implements AuthenticatedResourceTest {
 
     Matcher<?> matcher = Matchers.equalTo(value);
     while (iterator.hasPrevious()) {
-        matcher = Matchers.hasEntry(Matchers.equalTo(iterator.previous()), matcher);
+      matcher = Matchers.hasEntry(Matchers.equalTo(iterator.previous()), matcher);
     }
     return matcher;
   }

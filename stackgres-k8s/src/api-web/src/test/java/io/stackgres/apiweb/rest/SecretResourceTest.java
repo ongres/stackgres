@@ -28,7 +28,7 @@ class SecretResourceTest implements AuthenticatedResourceTest {
 
   @BeforeEach
   void setUp() {
-    try(KubernetesClient client = factory.create()){
+    try (KubernetesClient client = factory.create()) {
       client.secrets().inNamespace("test").delete();
     }
   }
