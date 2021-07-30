@@ -5,7 +5,7 @@ url: reference/crd/sgpoolingconfig
 description: Details about SGPoolingConfig configurations
 ---
 
-The connection pooling CR represent the configuration of PgBouncer.
+The Custom Resource for connection pooling represent the configuration of PgBouncer.
 
 ___
 
@@ -29,13 +29,18 @@ ___
 | Property      | Required | Updatable | Type    | Default   | Description |
 |:--------------|----------|-----------|:--------|:----------|:------------|
 | pgbouncer.ini |          | ✓         | object  | see below | {{< crd-field-description "SGPoolingConfig.spec.pgBouncer.pgbouncer\.ini" >}} |
+| databases     |          | ✓         | object  |           | {{< crd-field-description "SGPoolingConfig.spec.pgBouncer.databases" >}} |
+| users         |          | ✓         | object  |           | {{< crd-field-description "SGPoolingConfig.spec.pgBouncer.users" >}} |
 
 
 Default value of `pgbouncer.ini` property:
 
 ```yaml
 pool_mode: session
-max_client_conn: "1000"
+max_client_conn: 1000
+default_pool_size: 1000
+max_db_connections: 0
+max_user_connections: 0
 ```
 
 Example:
@@ -49,6 +54,20 @@ spec:
   pgbouncer.ini:
     pool_mode: 'transaction'
     max_client_conn: '2000'
+  databases:
+    foodb:
+      max_db_connections: 2000
+      pool_size: 20
+      dbname: 'bardb'
+      reserve_pool: 5
+      datestyle: ISO
+  users:
+    user1:
+      pool_mode: transaction
+      max_user_connections: 50
+    user2:
+      pool_mode: session
+      max_user_connections: 100
 ```
 
 To guarantee a functional pgbouncer configuration most of the parameters specified in
