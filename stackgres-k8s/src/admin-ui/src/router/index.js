@@ -19,7 +19,8 @@ import NamespaceOverview from '../components/NamespaceOverview.vue'
 import ClusterOverview from '../components/ClusterOverview.vue'
 import ClusterInfo from '../components/ClusterInfo.vue'
 import ClusterStatus from '../components/ClusterStatus.vue'
-import Logs from '../components/ClusterLogs.vue'
+import ClusterLogs from '../components/ClusterLogs.vue'
+import ClusterEvents from '../components/ClusterEvents.vue'
 import Backups from '../components/Backups.vue'
 import PgConfig from '../components/PgConfig.vue'
 import PoolConfig from '../components/PoolConfig.vue'
@@ -228,8 +229,24 @@ const routes = [
   },
   { 
     path: '/:namespace/sgcluster/:name/logs', 
-    component: Logs,
+    component: ClusterLogs,
     name: 'ClusterLogs',
+    meta: {
+      conditionalRoute: false
+    },
+  },
+  { 
+    path: '/:namespace/sgcluster/:name/events', 
+    component: ClusterEvents,
+    name: 'ClusterEvents',
+    meta: {
+      conditionalRoute: false
+    },
+  },
+  { 
+    path: '/:namespace/sgcluster/:name/event/:uid', 
+    component: ClusterEvents,
+    name: 'SingleClusterEvents',
     meta: {
       conditionalRoute: false
     },
