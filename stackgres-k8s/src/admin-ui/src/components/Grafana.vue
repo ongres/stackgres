@@ -46,17 +46,30 @@
 					</li>
 				</ul>
 
-				<ul class="selector" v-if="grafanaUrl.length && cluster.data.pods.length">
-					<li><strong>Select a node:</strong></li>
-					<li v-for="pod in cluster.data.pods">
-						<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name + '/monitor/' + pod.ip">{{ pod.name }}</router-link>
-					</li>
-				</ul>
+				<template v-if="cluster.data.pods.length && grafanaUrl.length">
+					<ul id="timeRange" class="select">
+						<li :class="!timeRange.length ? 'selected' : ''">
+							<strong>Choose time range</strong>
+						</li>
+						<li v-for="time in timeRangeOptions" :class="(timeRange == time.range) ? 'selected' : ''">
+							<a :name="time.range" @click="timeRange = time.range">{{ time.label }}</a>
+						</li>
+					</ul>
+
+					<ul class="select">
+						<li :class="!$route.params.hasOwnProperty('pod') ? 'selected' : ''">
+							<strong>Choose node</strong>
+						</li>
+						<li v-for="pod in cluster.data.pods" :class="( ($route.params.hasOwnProperty('pod') && ($route.params.pod == pod.ip)) ? 'selected' : '')">
+							<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name + '/monitor/' + pod.ip">{{ pod.name }}</router-link>
+						</li>
+					</ul>
+				</template>
 			</header>
 
 			<div class="content grafana">
 				<template v-if="cluster.data.pods.length">
-					<iframe v-if="grafanaUrl.length" :src="($route.params.hasOwnProperty('pod') && $route.params.pod.length) ? grafanaUrl+$route.params.pod : grafanaUrl+cluster.data.pods[0].ip" id="grafana"></iframe>
+					<iframe v-if="grafanaUrl.length" :src="(($route.params.hasOwnProperty('pod') && $route.params.pod.length) ? grafanaUrl+$route.params.pod : grafanaUrl+cluster.data.pods[0].ip) + timeRange" id="grafana"></iframe>
 				</template>
 				<div v-else class="no-data">
 					No pods yet available
@@ -79,7 +92,41 @@
 		data: function() {
 
 			return {
-				grafanaUrl: ''
+				grafanaUrl: '',
+				timeRange: '',
+				timeRangeOptions: [
+					{ label: 'Last 5 minutes', range: '&from=now-5m&to=now' },
+					{ label: 'Last 15 minutes', range: '&from=now-15m&to=now' },
+					{ label: 'Last 30 minutes', range: '&from=now-30m&to=now' },
+					{ label: 'Last 1 hour', range: '&from=now-1h&to=now' },
+					{ label: 'Last 3 hours', range: '&from=now-3h&to=now' },
+					{ label: 'Last 6 hours', range: '&from=now-6h&to=now' },
+					{ label: 'Last 12 hours', range: '&from=now-12h&to=now' },
+					{ label: 'Last 24 hours', range: '&from=now-24h&to=now' },
+					{ label: 'Last 2 days', range: '&from=now-2d&to=now' },
+					{ label: 'Last 7 days', range: '&from=now-7d&to=now' },
+					{ label: 'Last 30 days', range: '&from=now-30d&to=now' },
+					{ label: 'Last 90 days', range: '&from=now-90d&to=now' },
+					{ label: 'Last 6 months', range: '&from=now-6M&to=now' },
+					{ label: 'Last 1 year', range: '&from=now-1y&to=now' },
+					{ label: 'Last 3 years', range: '&from=now-3y&to=now' },
+					{ label: 'Last 5 years', range: '&from=now-5y&to=now' },
+					{ label: 'Yesterday', range: '&from=now-1d%2Fd&to=now-1d%2Fd' },
+					{ label: 'Day before yesterday', range: '&from=now-2d%2Fd&to=now-2d%2Fd' },
+					{ label: 'This day last week', range: '&from=now-7d%2Fd&to=now-7d%2Fd' },
+					{ label: 'Day before yesterday', range: '&from=now-2d%2Fd&to=now-2d%2Fd' },
+					{ label: 'Previous week', range: '&from=now-1w%2Fw&to=now-1w%2Fw' },
+					{ label: 'Previous month', range: '&from=now-1M%2FM&to=now-1M%2FM' },
+					{ label: 'Previous year', range: '&from=now-1y%2Fy&to=now-1y%2Fy' },
+					{ label: 'Today', range: '&from=now%2Fd&to=now%2Fd' },
+					{ label: 'Today so far', range: '&from=now%2Fd&to=now' },
+					{ label: 'This week', range: '&from=now%2Fw&to=now%2Fw' },
+					{ label: 'This week so far', range: '&from=now%2Fw&to=now' },
+					{ label: 'This month', range: '&from=now%2FM&to=now%2FM' },
+					{ label: 'This month so far', range: '&from=now%2FM&to=now' },
+					{ label: 'This year', range: '&from=now%2Fy&to=now%2Fy' },
+					{ label: 'This year so far', range: '&from=now%2Fy&to=now' }
+				]
 			}
 		},
 		
@@ -106,7 +153,7 @@
 
 				if(!data.startsWith('<!DOCTYPE html>')) { // Check "/grafana" isn't just returning web console's HTML content
 					url = data;
-					url += (url.includes('?') ? '&' : '?') + 'theme='+vc.theme+'&kiosk&var-instance=';
+					url += (url.includes('?') ? '&' : '?') + 'theme=' + vc.theme + vc.timeRange + '&kiosk&var-instance=';
 
 					$.get(url)
 					.done(function(data, textStatus, jqXHR) {
@@ -142,3 +189,46 @@
 		}
 	}
 </script>
+
+<style scoped>
+	header ul.select {
+		position: absolute;
+		right: 0;
+		top: 102px;
+		background-position-x: 90%;
+		width: 160px;
+	}
+
+	header ul.select.active {
+		background-color: var(--bgColor) !important;
+	}
+
+	ul.select li.selected {
+		padding: 0;
+	}
+
+	ul.select.active li.selected a {
+		background: var(--borderColor);
+	}
+
+	ul.select.active li:first-child {
+		border-bottom: 1px solid var(--blue);
+	}
+
+	ul.select.active li.selected {
+		border: 0;
+	}
+
+	ul.select:not(.active) a:hover {
+		background: transparent;
+	}
+
+	ul#timeRange {
+		right: 170px;
+	}
+
+	ul#timeRange.active {
+	    max-height: 40vh;
+		overflow-y: auto;
+	}	
+</style>
