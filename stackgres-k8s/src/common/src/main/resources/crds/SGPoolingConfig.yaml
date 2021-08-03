@@ -40,8 +40,7 @@ spec:
                   properties:
                     pgbouncer.ini:
                       type: object
-                      additionalProperties:
-                        type: string
+                      additionalProperties: true
                       description: |
                         The `pgbouncer.ini` parameters the configuration contains, represented as an object where the keys are valid names for the `pgbouncer.ini` configuration file parameters.
 
@@ -50,23 +49,7 @@ spec:
                       type: object
                       additionalProperties:
                         type: object
-                        properties:
-                          dbname:
-                            type: string
-                          pool_size:
-                            type: integer
-                          reserve_pool:
-                            type: integer
-                          pool_mode:
-                            type: string
-                          max_db_connections:
-                            type: integer
-                          client_encoding:
-                            type: string
-                          datestyle:
-                            type: string
-                          timezone:
-                            type: string
+                        additionalProperties: true
                       description: |
                         The `pgbouncer.ini` (Section [databases]) parameters the configuration contains, represented as an object where the keys are valid names for the `pgbouncer.ini` configuration file parameters.
 
@@ -75,11 +58,7 @@ spec:
                       type: object
                       additionalProperties:
                         type: object
-                        properties:
-                          pool_mode:
-                            type: string
-                          max_user_connections:
-                            type: integer
+                        additionalProperties: true
                       description: |
                         The `pgbouncer.ini` (Section [users]) parameters the configuration contains, represented as an object where the keys are valid names for the `pgbouncer.ini` configuration file parameters.
 

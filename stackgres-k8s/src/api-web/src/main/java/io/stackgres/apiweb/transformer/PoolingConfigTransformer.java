@@ -89,8 +89,8 @@ public class PoolingConfigTransformer
                 })
                 .collect(Collectors.joining("\n"));
             iniConfiguration.read(new StringReader(cleanup));
-          } catch (ConfigurationException | IOException ignore) {
-            // ignore
+          } catch (ConfigurationException | IOException cause) {
+            throw new RuntimeException("Could not read INI configuration", cause);
           }
         });
 
@@ -149,16 +149,17 @@ public class PoolingConfigTransformer
     transformation.setPgBouncer(new PoolingConfigPgBouncer());
 
     INIConfiguration ini = new INIConfiguration();
-    if (source.getPgBouncer().getDatabases() != null) {
+    StackGresPoolingConfigPgBouncer pgBouncer = source.getPgBouncer();
+    if (pgBouncer.getDatabases() != null) {
       addPropertiesToIni(source.getPgBouncer().getDatabases().entrySet(), ini, "databases");
     }
 
-    if (source.getPgBouncer().getUsers() != null) {
-      addPropertiesToIni(source.getPgBouncer().getUsers().entrySet(), ini, "users");
+    if (pgBouncer.getUsers() != null) {
+      addPropertiesToIni(pgBouncer.getUsers().entrySet(), ini, "users");
     }
 
-    if (source.getPgBouncer().getParameters() != null) {
-      source.getPgBouncer().getParameters().entrySet().stream()
+    if (pgBouncer.getParameters() != null) {
+      pgBouncer.getParameters().entrySet().stream()
           .sorted(Map.Entry.comparingByKey())
           .forEach(entry -> {
             ini.addProperty("pgbouncer." + entry.getKey(), entry.getValue());
@@ -168,8 +169,8 @@ public class PoolingConfigTransformer
     StringWriter stringWriter = new StringWriter();
     try {
       ini.write(stringWriter);
-    } catch (ConfigurationException | IOException ignore) {
-      // ignore
+    } catch (ConfigurationException | IOException cause) {
+      throw new RuntimeException("Could not write INI configuration", cause);
     }
 
     transformation.getPgBouncer().setParameters(stringWriter.toString());
