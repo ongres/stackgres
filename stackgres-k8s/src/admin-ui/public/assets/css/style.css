@@ -640,7 +640,7 @@ form#login .warning {
     background: transparent !important;
 }
 
-.darkmode .clusterInfo tr, .darkmode .podStatus tr, .darkmode .clusterConfig tr {
+.darkmode .clusterConfig tr {
     background: #1e1e1e;
 }
 
@@ -652,17 +652,9 @@ form#login .warning {
     border-bottom: 1px solid #333333;
 }
 
-.darkmode table.backupConfig tr:nth-child(4n-2), .darkmode table.backupConfig tr:nth-child(4n-2) + tr.details, .darkmode table.podStatus tr:nth-child(4n-2) {
-    background: #171717;
-}
-
 .darkmode table.backupConfig tr.base.open {
     border-top: 1px solid #333333;
 }
-
-/*.darkmode table.backupConfig tr.details.open, .darkmode table.backupConfig tr.base.open {
-    border: 1px solid #333333;
-}*/
 
 .darkmode #delete .tooltip  h3 {
     border-bottom: 1px solid #333333;
@@ -3357,10 +3349,6 @@ table.clusterInfo{
     width: 20%;
 }
 
-.clusterInfo tr, .podStatus tr {
-    background: #fafafa;
-}
-
 td.tag span:not(.helpTooltip) {
     text-transform: capitalize;
     padding: 3px 9px;
@@ -3370,6 +3358,10 @@ td.tag span:not(.helpTooltip) {
     display: inline-block;
     text-align: center;
     font-weight: 600;
+}
+
+table.podStatus tr:nth-child(even) {
+    background: transparent;
 }
 
 .podStatus .primary span, .pr span, .role.pr span {
@@ -3468,25 +3460,6 @@ table.clusterConfig svg, td.usedOn svg, tr.controlData svg, .connectionInfo svg,
 table.backups .details > td {
     vertical-align: top;
 }
-
-table.backupConfig tr.base:first-of-type {
-    border-top: 1px solid #f0f0f1;
-}
-
-table.backupConfig  {
-    border-bottom: 1px solid #f0f0f1;
-}
-
-table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + tr.details, table.podStatus tr:nth-child(even) {
-    background: #fff;
-}
-
-/* table.backupConfig tr.base.open {
-    border-top: 1px solid #f0f0f1;
-} */
-
-/*table.backups tr.details td:first-of-type table:first-of-type tbody {
-    border: 1px solid;*/
 
 /* Table Filters */
 .toolbar {
