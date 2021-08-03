@@ -489,6 +489,15 @@
                                         {{ op.data.spec.restart.method }}
                                     </td>
                                 </tr>
+                                 <tr v-if="op.data.spec.restart.hasOwnProperty('onlyPendingRestart')">
+                                    <td class="label">
+                                        Restart Pending Pods Only
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.restart.onlyPendingRestart')"></span> 
+                                    </td>
+                                    <td>
+                                        {{ op.data.spec.restart.onlyPendingRestart }}
+                                    </td>
+                                </tr>
                             </tbody>
                         </template>
 
