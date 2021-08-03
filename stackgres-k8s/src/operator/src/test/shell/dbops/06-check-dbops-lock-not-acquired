@@ -5,7 +5,6 @@
 shell_unit_test() {
   EXCLUSIVE_OP=true
   LOCK_SLEEP=0
-  date +%s > "$TEST_TARGET_PATH/lock_timestamp"
   ! (shell_unit_test_dbops)
   check_dbops_result
 }
@@ -20,12 +19,7 @@ kubectl_mock_overwrite() {
   mokked
   case "$*" in
     ("get $CLUSTER_CRD_NAME "*)
-    echo '
-      LOCK_POD=test
-      LOCK_TIMESTAMP='"$(cat "$TEST_TARGET_PATH/lock_timestamp")"'
-      RESOURCE_VERSION=test
-      '
-    echo 0 > "$TEST_TARGET_PATH/lock_timestamp"
+    return 1
     ;;
     *)
     not_mokked

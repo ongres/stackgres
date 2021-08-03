@@ -5,6 +5,7 @@
 shell_unit_test() {
   TIMEOUT=0
   ! (shell_unit_test_dbops)
+  check_dbops_result
 }
 
 run_op() {

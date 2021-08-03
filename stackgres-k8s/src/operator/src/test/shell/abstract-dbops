@@ -36,3 +36,21 @@ shell_unit_test_dbops() {
 
   . "$PROJECT_PATH/src/main/resources/templates/set-dbops-result.sh"
 }
+
+check_dbops_result() {
+  if ! grep -q '^EXIT_CODE=[0-9]\+$' "$SHARED_PATH/$KEBAB_OP_NAME.out"
+  then
+    echo "DbOps terminated without setting EXIT_CODE"
+    return 1
+  fi
+  if ! grep -q '^TIMED_OUT=\(true\|false\)$' "$SHARED_PATH/$KEBAB_OP_NAME.out"
+  then
+    echo "DbOps terminated without setting TIMED_OUT"
+    return 1
+  fi
+  if ! grep -q '^LOCK_LOST=\(true\|false\)$' "$SHARED_PATH/$KEBAB_OP_NAME.out"
+  then
+    echo "DbOps terminated without setting LOCK_LOST"
+    return 1
+  fi
+}

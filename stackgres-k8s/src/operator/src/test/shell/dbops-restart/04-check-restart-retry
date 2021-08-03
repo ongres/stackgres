@@ -7,6 +7,7 @@ REDUCED_IMPACT=true
 
 shell_unit_test() {
   shell_unit_test_dbops_restart
+  check_dbops_result
 }
 
 mock kubectl kubectl_mock_overwrite

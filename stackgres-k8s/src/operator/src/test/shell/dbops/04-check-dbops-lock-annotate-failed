@@ -7,6 +7,7 @@ shell_unit_test() {
   LOCK_SLEEP=0
   echo 0 > "$TEST_TARGET_PATH/lock_annotation_count"
   shell_unit_test_dbops
+  check_dbops_result
 }
 
 run_op() {
