@@ -61,25 +61,14 @@
                                 <a @click="setVersion('latest')" data-val="latest" class="active">Latest</a>
                             </li>
 
-                            <li>
-                                <strong>Postgres 12</strong>
+                            <li v-for="version in Object.keys(postgresVersionsList).reverse()">
+                                <strong>Postgres {{ version }}</strong>
                                 <ul>
                                     <li>
-                                        <a @click="setVersion('12')" data-val="12">Postgres 12 (Latest)</a>
+                                        <a @click="setVersion(version)" :data-val="version">Postgres {{ version }} (Latest)</a>
                                     </li>
-                                    <li v-for="version in postgresVersionsList" v-if="version.includes('12')">
-                                        <a @click="setVersion(version)" :data-val="version">Postgres {{ version }}</a>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <strong>Postgres 11</strong>
-                                <ul>
-                                    <li>
-                                        <a @click="setVersion('11')" data-val="11">Postgres 11 (Latest)</a>
-                                    </li>
-                                    <li v-for="version in postgresVersionsList" v-if="version.includes('11')">
-                                        <a @click="setVersion(version)" :data-val="version">Postgres {{ version }}</a>
+                                    <li v-for="minorVersion in postgresVersionsList[version]">
+                                        <a @click="setVersion(minorVersion)" :data-val="minorVersion">Postgres {{ minorVersion }}</a>
                                     </li>
                                 </ul>
                             </li>
@@ -1159,7 +1148,7 @@
 
                 if( vc.postgresVersion !== version.substring(0,2) ) {
                     axios
-                    .get('/stackgres/extensions/' + ( (version == 'latest') ? 'latest' : version.substring(0,2) ))
+                    .get('/stackgres/extensions/' + ( (version == 'latest') ? 'latest' : version.split('.')[0] ))
                     .then(function (response) {
                         vc.extensionsList = vc.sortExtensions(response.data.extensions)
                     })
