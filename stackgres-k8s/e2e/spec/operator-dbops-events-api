@@ -67,7 +67,7 @@ e2e_test() {
 }
 
 check_dbops_events() {
-  if run_curl -r "stackgres/sgdbops/events/$CLUSTER_NAMESPACE/$DBOPS_MINOR_VERSION_UPGRADE_NAME" \
+  if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgdbops/$DBOPS_MINOR_VERSION_UPGRADE_NAME/events" \
     | jq -r "any(.metadata.namespace == \"$CLUSTER_NAMESPACE\" and .involvedObject.kind == \"SGDbOps\" and .involvedObject.name == \"$DBOPS_MINOR_VERSION_UPGRADE_NAME\")" \
     | grep -q "^true$"
   then
@@ -77,7 +77,7 @@ check_dbops_events() {
     return 1
   fi
 
-  if run_curl -r "stackgres/sgdbops/events/$CLUSTER_NAMESPACE/$DBOPS_MINOR_VERSION_UPGRADE_NAME" \
+  if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgdbops/$DBOPS_MINOR_VERSION_UPGRADE_NAME/events" \
     | jq -r "any(.metadata.namespace == \"$CLUSTER_NAMESPACE\" and .involvedObject.kind == \"Job\")" \
     | grep -q "^true$"
   then
@@ -87,7 +87,7 @@ check_dbops_events() {
     return 1
   fi
 
-  if run_curl -r "stackgres/sgdbops/events/$CLUSTER_NAMESPACE/$DBOPS_MINOR_VERSION_UPGRADE_NAME" \
+  if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgdbops/$DBOPS_MINOR_VERSION_UPGRADE_NAME/events" \
     | jq -r "any(.metadata.namespace == \"$CLUSTER_NAMESPACE\" and .involvedObject.kind == \"Pod\")" \
     | grep -q "^true$"
   then

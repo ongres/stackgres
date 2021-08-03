@@ -71,7 +71,6 @@ public class PatroniTemplatesConfigMap
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(name(cluster))
         .withLabels(labelFactory.clusterLabels(cluster))
-        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .withData(data)
         .build();

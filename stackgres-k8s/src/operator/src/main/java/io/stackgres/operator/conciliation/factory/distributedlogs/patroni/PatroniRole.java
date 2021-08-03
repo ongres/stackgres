@@ -76,7 +76,6 @@ public class PatroniRole implements
         .withName(serviceAccountName)
         .withNamespace(serviceAccountNamespace)
         .withLabels(labels)
-        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .build();
   }
@@ -93,7 +92,6 @@ public class PatroniRole implements
         .withName(roleName(context))
         .withNamespace(cluster.getMetadata().getNamespace())
         .withLabels(labels)
-        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups("")
@@ -180,7 +178,6 @@ public class PatroniRole implements
         .withName(roleName(context))
         .withNamespace(cluster.getMetadata().getNamespace())
         .withLabels(labels)
-        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .withSubjects(new SubjectBuilder()
             .withKind("ServiceAccount")

@@ -46,7 +46,7 @@ class DbOpsEventResourceTest implements AuthenticatedResourceTest {
     given()
         .when()
         .header(AUTHENTICATION_HEADER)
-        .get("/stackgres/sgdbops/events/test-namespace/test")
+        .get("/stackgres/namespaces/test-namespace/sgdbops/test/events")
         .then().statusCode(200)
         .body("", Matchers.hasSize(0));
   }
@@ -55,7 +55,7 @@ class DbOpsEventResourceTest implements AuthenticatedResourceTest {
   void ifEventsAreCreated_itShouldReturnThenInAnArray() {
     try (KubernetesClient client = factory.create()) {
       Job testJob = client.batch().v1().jobs().inNamespace("test-namespace")
-      .create(new JobBuilder()
+          .create(new JobBuilder()
           .withNewMetadata()
           .withNamespace("test-namespace")
           .withName("test-job")
@@ -68,7 +68,7 @@ class DbOpsEventResourceTest implements AuthenticatedResourceTest {
           .endMetadata()
           .build());
       Pod testPod = client.pods().inNamespace("test-namespace")
-      .create(new PodBuilder()
+          .create(new PodBuilder()
           .withNewMetadata()
           .withNamespace("test-namespace")
           .withName("test-pod")
@@ -81,7 +81,7 @@ class DbOpsEventResourceTest implements AuthenticatedResourceTest {
           .endMetadata()
           .build());
       client.v1().events().inNamespace("test-namespace")
-      .create(new EventBuilder()
+          .create(new EventBuilder()
           .withNewMetadata()
           .withNamespace("test-namespace")
           .withName("test.1")
@@ -97,7 +97,7 @@ class DbOpsEventResourceTest implements AuthenticatedResourceTest {
               .build())
           .build());
       client.v1().events().inNamespace("test-namespace")
-      .create(new EventBuilder()
+          .create(new EventBuilder()
           .withNewMetadata()
           .withNamespace("test-namespace")
           .withName("test.2")
@@ -113,7 +113,7 @@ class DbOpsEventResourceTest implements AuthenticatedResourceTest {
               .build())
           .build());
       client.v1().events().inNamespace("test-namespace")
-      .create(new EventBuilder()
+          .create(new EventBuilder()
           .withNewMetadata()
           .withNamespace("test-namespace")
           .withName("test.3")
@@ -129,7 +129,7 @@ class DbOpsEventResourceTest implements AuthenticatedResourceTest {
               .build())
           .build());
       client.v1().events().inNamespace("test-namespace")
-      .create(new EventBuilder()
+          .create(new EventBuilder()
           .withNewMetadata()
           .withNamespace("test-namespace")
           .withName("test.4")
@@ -149,7 +149,7 @@ class DbOpsEventResourceTest implements AuthenticatedResourceTest {
     given()
         .when()
         .header(AUTHENTICATION_HEADER)
-        .get("/stackgres/sgdbops/events/test-namespace/test")
+        .get("/stackgres/namespaces/test-namespace/sgdbops/test/events")
         .then().statusCode(200)
         .body("", Matchers.hasSize(4))
         .body("[0].metadata.name", Matchers.equalTo("test.4"))

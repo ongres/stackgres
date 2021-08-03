@@ -223,7 +223,6 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
         .withNamespace(namespace)
         .withName(FluentdUtil.configName(cluster))
         .withLabels(clusterLabels)
-        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .withData(data)
         .build();
@@ -241,7 +240,6 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
         .withNamespace(namespace)
         .withName(FluentdUtil.serviceName(cluster))
         .withLabels(labels)
-        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .withNewSpec()
         .withSelector(labels)
