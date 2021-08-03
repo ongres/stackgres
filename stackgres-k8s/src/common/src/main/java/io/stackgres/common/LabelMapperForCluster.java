@@ -19,10 +19,6 @@ public interface LabelMapperForCluster<T extends CustomResource<?, ?>>
     return StackGresContext.DISRUPTIBLE_KEY;
   }
 
-  default String backupKey() {
-    return StackGresContext.BACKUP_KEY;
-  }
-
   default String scheduledBackupKey() {
     return StackGresContext.SCHEDULED_BACKUP_KEY;
   }

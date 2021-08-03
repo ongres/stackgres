@@ -13,25 +13,26 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
+import io.stackgres.common.ClusterContext;
 import io.stackgres.operator.conciliation.ResourceDiscoverer;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 
 @ApplicationScoped
 public class ClusterEnvironmentVariablesFactoryDiscovererImpl
-    extends ResourceDiscoverer<ClusterEnvironmentVariablesFactory<StackGresClusterContext>>
-    implements ClusterEnvironmentVariablesFactoryDiscoverer<StackGresClusterContext> {
+    extends ResourceDiscoverer<ClusterEnvironmentVariablesFactory<ClusterContext>>
+    implements ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext> {
 
   @Inject
   public ClusterEnvironmentVariablesFactoryDiscovererImpl(
-      @Any
-          Instance<ClusterEnvironmentVariablesFactory<StackGresClusterContext>> instance) {
+      @Any Instance<ClusterEnvironmentVariablesFactory<ClusterContext>> instance) {
     init(instance);
   }
 
   @Override
-  public List<ClusterEnvironmentVariablesFactory<StackGresClusterContext>> discoverFactories(
-      StackGresClusterContext context) {
-    return resourceHub.get(context.getVersion()).stream()
+  public List<ClusterEnvironmentVariablesFactory<ClusterContext>> discoverFactories(
+      ClusterContext context) {
+    StackGresVersion clusterVersion = StackGresVersion.getStackGresVersion(context.getCluster());
+    return resourceHub.get(clusterVersion).stream()
         .collect(Collectors.toUnmodifiableList());
   }
 }

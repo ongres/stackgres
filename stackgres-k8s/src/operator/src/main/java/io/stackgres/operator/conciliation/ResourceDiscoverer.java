@@ -33,7 +33,6 @@ public abstract class ResourceDiscoverer<T> {
         StackGresVersion version = StackGresVersion.values()[ordinal];
         resourceHub.get(version).add(f);
       }
-
     });
   }
 

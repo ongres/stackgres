@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBindingBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
+import io.stackgres.common.ClusterContext;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
@@ -45,8 +46,8 @@ public class PatroniRoleGenerator implements
 
   private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
-  public static String roleName(StackGresClusterContext clusterContext) {
-    return roleName(clusterContext.getSource().getMetadata().getName());
+  public static String roleName(ClusterContext clusterContext) {
+    return roleName(clusterContext.getCluster().getMetadata().getName());
   }
 
   public static String roleName(String clusterName) {

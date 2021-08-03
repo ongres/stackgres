@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -33,12 +34,12 @@ import org.jetbrains.annotations.NotNull;
 @InitContainer(order = 0)
 public class UserSetUp implements ContainerFactory<StackGresClusterContainerContext> {
 
-  private final ClusterEnvironmentVariablesFactoryDiscoverer<StackGresClusterContext>
+  private final ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext>
       clusterEnvVarFactoryDiscoverer;
 
   @Inject
   public UserSetUp(
-      ClusterEnvironmentVariablesFactoryDiscoverer<StackGresClusterContext>
+      ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext>
           clusterEnvVarFactoryDiscoverer) {
     this.clusterEnvVarFactoryDiscoverer = clusterEnvVarFactoryDiscoverer;
   }
@@ -71,7 +72,7 @@ public class UserSetUp implements ContainerFactory<StackGresClusterContainerCont
   private List<EnvVar> getClusterEnvVars(StackGresClusterContext context) {
     List<EnvVar> clusterEnvVars = new ArrayList<>();
 
-    List<ClusterEnvironmentVariablesFactory<StackGresClusterContext>> clusterEnvVarFactories =
+    List<ClusterEnvironmentVariablesFactory<ClusterContext>> clusterEnvVarFactories =
         clusterEnvVarFactoryDiscoverer.discoverFactories(context);
 
     clusterEnvVarFactories.forEach(envVarFactory ->

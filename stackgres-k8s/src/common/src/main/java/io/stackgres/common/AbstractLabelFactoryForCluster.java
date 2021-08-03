@@ -54,14 +54,6 @@ public abstract class AbstractLabelFactoryForCluster<T extends CustomResource<?,
   }
 
   @Override
-  public Map<String, String> backupPodLabels(T resource) {
-    return ImmutableMap.of(labelMapper().appKey(), labelMapper().appName(),
-        labelMapper().resourceUidKey(), labelValue(resourceUid(resource)),
-        labelMapper().resourceNameKey(), labelValue(resourceName(resource)),
-        labelMapper().backupKey(), StackGresContext.RIGHT_VALUE);
-  }
-
-  @Override
   public Map<String, String> scheduledBackupPodLabels(T resource) {
     return ImmutableMap.of(labelMapper().appKey(), labelMapper().appName(),
         labelMapper().resourceUidKey(), labelValue(resourceUid(resource)),

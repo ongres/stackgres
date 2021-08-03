@@ -11,18 +11,18 @@ import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.stackgres.common.ClusterContext;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactory;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
 public class ClusterStatefulSetEnvironmentVariables
-    implements ClusterEnvironmentVariablesFactory<StackGresClusterContext> {
+    implements ClusterEnvironmentVariablesFactory<ClusterContext> {
 
   @Override
-  public List<EnvVar> buildEnvironmentVariables(StackGresClusterContext context) {
+  public List<EnvVar> buildEnvironmentVariables(ClusterContext context) {
     return List.of(
         new EnvVarBuilder()
             .withName("ETC_PASSWD_PATH")

@@ -17,9 +17,9 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
-public class DbOpsUtil {
+public interface DbOpsUtil {
 
-  public static boolean isMaxRetriesReached(StackGresDbOps dbOps) {
+  static boolean isMaxRetriesReached(StackGresDbOps dbOps) {
     return Optional.of(dbOps)
         .map(StackGresDbOps::getStatus)
         .map(StackGresDbOpsStatus::getOpRetries)
@@ -29,7 +29,7 @@ public class DbOpsUtil {
         .orElse(0);
   }
 
-  public static boolean isFailed(StackGresDbOps dbOps) {
+  static boolean isFailed(StackGresDbOps dbOps) {
     return Optional.of(dbOps)
         .map(StackGresDbOps::getStatus)
         .map(StackGresDbOpsStatus::getConditions)
@@ -40,12 +40,11 @@ public class DbOpsUtil {
             DbOpsStatusCondition.Status.TRUE::isCondition));
   }
 
-  public static String jobName(StackGresDbOps dbOps) {
-
+  static String jobName(StackGresDbOps dbOps) {
     return jobName(dbOps, getOperation(dbOps));
   }
 
-  public static String jobName(StackGresDbOps dbOps, String operation) {
+  static String jobName(StackGresDbOps dbOps, String operation) {
     String name = dbOps.getMetadata().getName();
     UUID uid = UUID.fromString(dbOps.getMetadata().getUid());
     return ResourceUtil.resourceName(name + "-" + operation + "-"
@@ -53,7 +52,7 @@ public class DbOpsUtil {
         + "-" + getCurrentRetry(dbOps));
   }
 
-  public static String getTimeout(StackGresDbOps dbOps) {
+  static String getTimeout(StackGresDbOps dbOps) {
     return Optional.of(dbOps)
         .map(StackGresDbOps::getSpec)
         .map(StackGresDbOpsSpec::getTimeout)
@@ -67,7 +66,7 @@ public class DbOpsUtil {
     return dbOps.getSpec().getOp();
   }
 
-  public static Integer getCurrentRetry(StackGresDbOps dbOps) {
+  static Integer getCurrentRetry(StackGresDbOps dbOps) {
     return Optional.of(dbOps)
         .map(StackGresDbOps::getStatus)
         .map(StackGresDbOpsStatus::getOpRetries)

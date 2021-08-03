@@ -40,6 +40,10 @@ public interface StackGresContext {
   String DBOPS_NAME_KEY = "dbops-name";
   String DBOPS_UID_KEY = "dbops-uid";
   String DBOPS_NAMESPACE_KEY = "dbops-namespace";
+  String BACKUP_APP_NAME = "StackGresBackup";
+  String BACKUP_NAME_KEY = "backup-name";
+  String BACKUP_UID_KEY = "backup-uid";
+  String BACKUP_NAMESPACE_KEY = "backup-namespace";
 
   String STACKGRES_KEY_PREFIX = "stackgres.io/";
   String VERSION_KEY = STACKGRES_KEY_PREFIX + "operatorVersion";

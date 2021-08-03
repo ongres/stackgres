@@ -23,8 +23,6 @@ public interface LabelFactoryForCluster<T extends CustomResource<?, ?>>
 
   Map<String, String> statefulSetPodLabels(T resource);
 
-  Map<String, String> backupPodLabels(T resource);
-
   Map<String, String> scheduledBackupPodLabels(T resource);
 
   Map<String, String> anyPatroniClusterLabels();

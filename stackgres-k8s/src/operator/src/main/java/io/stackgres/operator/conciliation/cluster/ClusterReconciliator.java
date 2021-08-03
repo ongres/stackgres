@@ -5,28 +5,15 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
-import java.util.List;
-import java.util.Optional;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.stackgres.common.crd.sgbackup.BackupEventReason;
-import io.stackgres.common.crd.sgbackup.BackupPhase;
-import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
-import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.ClusterEventReason;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.event.EventEmitterType;
-import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.ClusterPatchResumer;
 import io.stackgres.operator.conciliation.ComparisonDelegator;
@@ -43,53 +30,12 @@ public class ClusterReconciliator
 
   private EventEmitter<StackGresCluster> eventController;
 
-  private EventEmitter<StackGresBackup> backupEventEmitter;
-
   private CustomResourceScheduler<StackGresCluster> clusterScheduler;
-
-  private CustomResourceScanner<StackGresBackup> backupScanner;
-
-  private CustomResourceScheduler<StackGresBackup> backupScheduler;
-
-  private CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
 
   private ClusterPatchResumer patchResumer;
 
   @Override
   public void onPreReconciliation(StackGresCluster config) {
-    String namespace = config.getMetadata().getNamespace();
-
-    List<StackGresBackup> backups = backupScanner.getResources(namespace);
-
-    backups.stream().filter(backup -> Optional.ofNullable(backup.getStatus())
-            .map(StackGresBackupStatus::getProcess)
-            .map(StackGresBackupProcess::getStatus).isEmpty())
-        .forEach(this::initBackup);
-
-    if (!backups.isEmpty() && getBackupConfig(config).isEmpty()) {
-      backups.forEach(backup -> {
-        backupEventEmitter.sendEvent(BackupEventReason.BACKUP_CONFIG_ERROR,
-            "Missing " + StackGresBackupConfig.KIND + " for cluster "
-                + config.getMetadata().getNamespace() + "."
-                + config.getMetadata().getName() + " ", backup);
-      });
-    }
-
-  }
-
-  private void initBackup(StackGresBackup backup) {
-    backup.setStatus(new StackGresBackupStatus());
-    backup.getStatus().setProcess(new StackGresBackupProcess());
-    backup.getStatus().getProcess().setStatus(BackupPhase.PENDING.label());
-    backupScheduler.update(backup);
-  }
-
-  private Optional<StackGresBackupConfig> getBackupConfig(StackGresCluster cluster) {
-    return Optional.ofNullable(cluster.getSpec())
-        .map(StackGresClusterSpec::getConfiguration)
-        .map(StackGresClusterConfiguration::getBackupConfig)
-        .flatMap(backupConfigName -> backupConfigFinder
-            .findByNameAndNamespace(backupConfigName, cluster.getMetadata().getNamespace()));
   }
 
   @Override
@@ -144,29 +90,6 @@ public class ClusterReconciliator
   @Inject
   public void setClusterScheduler(CustomResourceScheduler<StackGresCluster> clusterScheduler) {
     this.clusterScheduler = clusterScheduler;
-  }
-
-  @Inject
-  public void setBackupScanner(CustomResourceScanner<StackGresBackup> backupScanner) {
-    this.backupScanner = backupScanner;
-  }
-
-  @Inject
-  public void setBackupScheduler(CustomResourceScheduler<StackGresBackup> backupScheduler) {
-    this.backupScheduler = backupScheduler;
-  }
-
-  @Inject
-  public void setBackupConfigFinder(
-      CustomResourceFinder<StackGresBackupConfig> backupConfigFinder) {
-    this.backupConfigFinder = backupConfigFinder;
-  }
-
-  @Inject
-  public void setBackupEventEmitter(
-      @EventEmitterType(StackGresBackup.class)
-          EventEmitter<StackGresBackup> backupEventEmitter) {
-    this.backupEventEmitter = backupEventEmitter;
   }
 
   @Inject

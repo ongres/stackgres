@@ -15,7 +15,6 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
-import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
@@ -52,13 +51,9 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
 
   Optional<StackGresBackup> getRestoreBackup();
 
-  List<StackGresBackup> getBackups();
-
   List<StackGresClusterScriptEntry> getInternalScripts();
 
   Optional<Prometheus> getPrometheus();
-
-  List<StackGresDbOps> getDbOps();
 
   Optional<Secret> getDatabaseCredentials();
 

@@ -99,7 +99,7 @@ public class DbOpsMajorVersionUpgradeJob extends DbOpsJob {
                 .build(),
             new EnvVarBuilder()
                 .withName("CLUSTER_NAME")
-                .withValue(context.getSource().getMetadata().getName())
+                .withValue(context.getSource().getSpec().getSgCluster())
                 .build(),
             new EnvVarBuilder()
                 .withName("POD_NAME")

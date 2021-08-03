@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.dbops;
+package io.stackgres.operator.conciliation.backup;
 
 import java.util.List;
 import java.util.Map;
@@ -19,33 +19,30 @@ import javax.inject.Inject;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
-import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
-import io.fabric8.kubernetes.api.model.rbac.Role;
-import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
-import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.operator.conciliation.DeployedResourceDecorator;
 import io.stackgres.operator.conciliation.DeployedResourcesScanner;
 import io.stackgres.operator.conciliation.ReconciliationOperations;
 import io.stackgres.operator.conciliation.ReconciliationScopeLiteral;
 
 @ApplicationScoped
-public class DbOpsDeployedResourceScanner implements DeployedResourcesScanner<StackGresDbOps>,
+public class BackupDeployedResourceScanner implements DeployedResourcesScanner<StackGresBackup>,
     ReconciliationOperations {
 
   private final KubernetesClientFactory clientFactory;
-  private final LabelFactory<StackGresDbOps> labelFactory;
+  private final LabelFactory<StackGresBackup> labelFactory;
   private final Instance<DeployedResourceDecorator> decorators;
 
   @Inject
-  public DbOpsDeployedResourceScanner(
+  public BackupDeployedResourceScanner(
       KubernetesClientFactory clientFactory,
-      LabelFactory<StackGresDbOps> labelFactory,
+      LabelFactory<StackGresBackup> labelFactory,
       @Any Instance<DeployedResourceDecorator> decorators) {
     this.clientFactory = clientFactory;
     this.labelFactory = labelFactory;
@@ -53,7 +50,7 @@ public class DbOpsDeployedResourceScanner implements DeployedResourcesScanner<St
   }
 
   @Override
-  public List<HasMetadata> getDeployedResources(StackGresDbOps config) {
+  public List<HasMetadata> getDeployedResources(StackGresBackup config) {
     try (KubernetesClient client = clientFactory.create()) {
       final Map<String, String> genericLabels = labelFactory.genericLabels(config);
 
@@ -70,14 +67,14 @@ public class DbOpsDeployedResourceScanner implements DeployedResourcesScanner<St
       List<HasMetadata> deployedResources = inNamespace
           .filter(resource -> resource.getMetadata().getOwnerReferences()
               .stream().anyMatch(ownerReference -> ownerReference.getKind()
-                  .equals(StackGresDbOps.KIND)
+                  .equals(StackGresBackup.KIND)
                   && ownerReference.getName().equals(config.getMetadata().getName())
                   && ownerReference.getUid().equals(config.getMetadata().getUid())))
           .collect(Collectors.toUnmodifiableList());
 
       deployedResources.forEach(resource -> {
         Instance<DeployedResourceDecorator> decorator = decorators
-            .select(new ReconciliationScopeLiteral(StackGresDbOps.class, resource.getKind()));
+            .select(new ReconciliationScopeLiteral(StackGresBackup.class, resource.getKind()));
         if (decorator.isResolvable()) {
           decorator.get().decorate(resource);
         }
@@ -100,9 +97,6 @@ public class DbOpsDeployedResourceScanner implements DeployedResourcesScanner<St
           MixedOperation<? extends HasMetadata,
               ? extends KubernetesResourceList<? extends HasMetadata>,
               ? extends Resource<? extends HasMetadata>>>>builder()
-          .put(ServiceAccount.class, KubernetesClient::serviceAccounts)
-          .put(Role.class, client -> client.rbac().roles())
-          .put(RoleBinding.class, client -> client.rbac().roleBindings())
           .put(Job.class, client -> client.batch().v1().jobs())
           .build();
 

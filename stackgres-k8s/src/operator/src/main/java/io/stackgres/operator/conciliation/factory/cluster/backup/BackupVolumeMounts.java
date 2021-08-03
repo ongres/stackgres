@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster;
+package io.stackgres.operator.conciliation.factory.cluster.backup;
 
 import java.util.List;
 
@@ -17,6 +17,7 @@ import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
+import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 
 @ApplicationScoped
 @ProviderName(VolumeMountProviderName.BACKUP)

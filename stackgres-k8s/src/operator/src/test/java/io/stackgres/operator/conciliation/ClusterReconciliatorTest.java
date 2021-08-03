@@ -6,10 +6,8 @@
 package io.stackgres.operator.conciliation;
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -22,12 +20,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
 import io.stackgres.common.event.EventEmitter;
-import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.cluster.factory.KubernetessMockResourceGenerationUtil;
@@ -61,14 +56,6 @@ class ClusterReconciliatorTest {
   EventEmitter<StackGresCluster> eventController;
   @Mock
   CustomResourceScheduler<StackGresCluster> clusterScheduler;
-  @Mock
-  CustomResourceScanner<StackGresBackup> backupScanner;
-  @Mock
-  CustomResourceScheduler<StackGresBackup> backupScheduler;
-  @Mock
-  CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
-  @Mock
-  EventEmitter<StackGresBackup> backupEventEmitter;
 
   private ClusterReconciliator reconciliator;
 
@@ -81,11 +68,6 @@ class ClusterReconciliatorTest {
     reconciliator.setEventController(eventController);
     reconciliator.setStatusManager(statusManager);
     reconciliator.setClusterScheduler(clusterScheduler);
-    reconciliator.setBackupConfigFinder(backupConfigFinder);
-    reconciliator.setBackupScanner(backupScanner);
-    reconciliator.setBackupScheduler(backupScheduler);
-    reconciliator.setBackupEventEmitter(backupEventEmitter);
-    lenient().when(backupScanner.getResources(anyString())).thenReturn(List.of());
   }
 
   @Test

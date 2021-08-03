@@ -48,7 +48,6 @@ public class DistributedLogsReconciliator extends StackGresReconciliator<StackGr
 
     statusManager.refreshCondition(config);
     distributedLogsScheduler.updateStatus(config);
-
   }
 
   private void refreshConnectedClusters(StackGresDistributedLogs config) {
@@ -104,7 +103,6 @@ public class DistributedLogsReconciliator extends StackGresReconciliator<StackGr
         }).getMessage();
     eventController.sendEvent(DistributedLogsEventReason.DISTRIBUTED_LOGS_CONFIG_ERROR,
         message + ": " + ex.getMessage(), context);
-
   }
 
   @Inject

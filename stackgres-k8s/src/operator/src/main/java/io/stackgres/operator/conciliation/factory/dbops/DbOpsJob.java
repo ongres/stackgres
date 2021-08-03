@@ -46,18 +46,18 @@ public abstract class DbOpsJob implements JobFactory {
   private static final Pattern UPPERCASE_PATTERN = Pattern.compile("(\\p{javaUpperCase})");
 
   private final ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory;
-  private final DbOpsEnvironmentVariables dbOpsEnvironmentVariables;
+  private final DbOpsEnvironmentVariables clusterEnvironmentVariables;
   private final ImmutableMap<DbOpsStatusCondition, String> conditions;
   protected final LabelFactoryForCluster<StackGresCluster> labelFactory;
   protected final LabelFactoryForDbOps<StackGresDbOps> dbOpsLabelFactory;
 
   @Inject
   public DbOpsJob(ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory,
-      DbOpsEnvironmentVariables dbOpsEnvironmentVariables,
+      DbOpsEnvironmentVariables clusterEnvironmentVariables,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
       LabelFactoryForDbOps<StackGresDbOps> dbOpsLabelFactory, JsonMapper jsonMapper) {
     this.podSecurityFactory = podSecurityFactory;
-    this.dbOpsEnvironmentVariables = dbOpsEnvironmentVariables;
+    this.clusterEnvironmentVariables = clusterEnvironmentVariables;
     this.labelFactory = labelFactory;
     this.dbOpsLabelFactory = dbOpsLabelFactory;
     this.conditions = Optional.ofNullable(jsonMapper)
@@ -141,7 +141,7 @@ public abstract class DbOpsJob implements JobFactory {
             .withImage(getSetResultImage())
             .withImagePullPolicy("IfNotPresent")
             .withEnv(ImmutableList.<EnvVar>builder()
-                .addAll(dbOpsEnvironmentVariables.listResources(context))
+                .addAll(clusterEnvironmentVariables.listResources(context))
                 .add(
                     new EnvVarBuilder()
                         .withName("OP_NAME")
@@ -204,7 +204,7 @@ public abstract class DbOpsJob implements JobFactory {
                 .withImage(getRunImage(context))
                 .withImagePullPolicy("IfNotPresent")
                 .withEnv(ImmutableList.<EnvVar>builder()
-                    .addAll(dbOpsEnvironmentVariables
+                    .addAll(clusterEnvironmentVariables
                         .listResources(context))
                     .add(
                         new EnvVarBuilder()
@@ -270,7 +270,7 @@ public abstract class DbOpsJob implements JobFactory {
                 .withImage(StackGresComponent.KUBECTL.findLatestImageName())
                 .withImagePullPolicy("IfNotPresent")
                 .withEnv(ImmutableList.<EnvVar>builder()
-                    .addAll(dbOpsEnvironmentVariables
+                    .addAll(clusterEnvironmentVariables
                         .listResources(context))
                     .add(
                         new EnvVarBuilder()
