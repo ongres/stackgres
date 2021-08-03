@@ -6,6 +6,7 @@ e2e_test_install() {
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
   PGCBOUNCER="pgbouncer"
+
   cat <<EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1
 kind: SGInstanceProfile
@@ -16,6 +17,7 @@ spec:
   cpu: '500m'
   memory: '512Mi'
 EOF
+
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
 kind: SGPoolingConfig
@@ -29,18 +31,18 @@ spec:
       default_pool_size: '50'
     databases:
       foodb:
-        max_db_connections: 2000
+        max_db_connections: 1000
         pool_size: 20
         dbname: 'bardb'
         reserve_pool: 5
-        datestyle: ISO
+        datestyle: 'ISO'
     users:
       user1:
         pool_mode: transaction
         max_user_connections: 50
       user2:
         pool_mode: session
-        max_user_connections: 100
+        max_user_connections: '100'
 EOF
 
   cat << EOF | kubectl create -f -
@@ -90,7 +92,8 @@ check_pgbouncer_default_pool_size(){
 
 check_pgbouncer_database(){
   check_pgbouncer_data "foodb" "dbname=bardb"
-  check_pgbouncer_data "foodb" "max_db_connections=200"
+  check_pgbouncer_data "foodb" "max_db_connections=1000"
+  check_pgbouncer_data "foodb" "reserve_pool=5"
   check_pgbouncer_data "foodb" "datestyle=ISO"
 }
 
