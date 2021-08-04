@@ -553,7 +553,7 @@
                 }],
                 restart: {
                     method: 'InPlace',
-                    onlyPendingRestart: true
+                    onlyPendingRestart: false
                 },
                 minorVersionUpgrade: {
                     method: 'InPlace'
