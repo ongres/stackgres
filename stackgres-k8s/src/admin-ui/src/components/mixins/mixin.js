@@ -499,8 +499,20 @@ export const mixin = {
           axios
           .get('/stackgres/version/postgresql')
           .then( function(response){
+
+            let postgresVersions = {};
+
+            response.data.postgresql.forEach(function(version) {
+              let major = version.split('.')[0];
+              
+              if(!postgresVersions.hasOwnProperty(major)) {
+                postgresVersions[major] = [];
+              }
+              
+              postgresVersions[major].push(version);
+            })
   
-            store.commit('setPostgresVersions', response.data.postgresql);
+            store.commit('setPostgresVersions', postgresVersions);
   
           }).catch(function(err) {
             console.log(err);
@@ -513,10 +525,8 @@ export const mixin = {
           store.commit('setReady',true)
   
         setTimeout(function(){
-          //$("#loader").fadeOut(500);
           $("#reload").removeClass("active");
           this.init = true;
-          //$("#loader").hide();  
         }, 2000);
 
       },
