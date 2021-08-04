@@ -49,7 +49,8 @@ export default new Vuex.Store({
       name: '',
       redirect: ''
     },
-    confirmDeleteName: ''
+    confirmDeleteName: '',
+    restartCluster: {},
   },
 
   mutations: {
@@ -343,6 +344,14 @@ export default new Vuex.Store({
       state.timezone = (state.timezone == 'local') ? 'utc' : 'local';
       document.cookie = "sgTimezone=" + state.timezone + "; Path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=Strict;";
     },
+
+    setRestartCluster (state, cluster) {
+      if( cluster.namespace.length && cluster.name.length ) {
+        state.restartCluster = cluster;
+      } else {
+        state.restartCluster = {};
+      }
+    }
     
   }
 });

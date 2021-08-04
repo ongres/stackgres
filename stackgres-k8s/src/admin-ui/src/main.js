@@ -331,6 +331,9 @@ $(document).ready(function(){
     if($('#clone.show').length && !$(e.target).parents().addBack().is('.cloneCRD'))
       store.commit('setCloneCRD', {});
 
+    if($('#restartCluster').length && !$(e.target).parents().addBack().is('.restartCluster'))
+      store.commit('setRestartCluster', {namespace: '', name: ''})
+
   });
   
   $("#clone").click(function(e){

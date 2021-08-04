@@ -4498,12 +4498,12 @@ table.profiles td.inlineList svg:hover path, table.backupConfig td.usedOn svg:ho
 
 /*Clone*/
 
-#nav #clone {
+#nav #clone, #restartCluster {
     display: none;
     position: fixed;
-    background: #fff;
+    background: var(--bgColor);
     padding: 10px 20px;
-    border: 1px solid var(--gray1);
+    border: 1px solid var(--borderColor);
     border-radius: 10px;
     box-shadow: 0 0px 20px rgba(0,0,0,.05);
     margin-left: 70px;

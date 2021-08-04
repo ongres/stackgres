@@ -521,16 +521,20 @@ export const mixin = {
 
       },
   
-      setContentTooltip( el, warning = false ) {
-
+      setContentTooltip( el = '', warning = false ) {
         if(warning) {
           $('#contentTooltip .info').addClass('warning')
         } else {
           $('#contentTooltip .info').removeClass('warning');
         }
 
-        $('#contentTooltip .info .content').html($(el).html());
-        $('#contentTooltip').addClass('show');
+        if(el.length) {
+          $('#contentTooltip .info .content').html($(el).html());
+          $('#contentTooltip').addClass('show');
+        } else {
+          $('#contentTooltip .info .content').html('');
+          $('#contentTooltip').removeClass('show');
+        }
       },
   
       helpTooltip(kind, field) {
@@ -1243,6 +1247,10 @@ export const mixin = {
         vc.pagination.start = pInfo.pageSize * (pInfo.pageNumber-1);
         vc.pagination.end = vc.pagination.start + pInfo.pageSize;
         
+      },
+
+      setRestartCluster(namespace = '', name = '') {
+        store.commit('setRestartCluster', {namespace: namespace, name: name})
       }
 
     },
