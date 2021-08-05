@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
@@ -17,38 +16,38 @@ import io.stackgres.common.StackGresUtil;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackGresClusterPodMetadata {
+public class StackGresClusterSpecLabels {
 
-  @JsonProperty("labels")
-  private Map<String, String> labels;
+  private Map<String, String> clusterPods;
 
-  public Map<String, String> getLabels() {
-    return labels;
+  public Map<String, String> getClusterPods() {
+    return clusterPods;
   }
 
-  public void setLabels(Map<String, String> labels) {
-    this.labels = labels;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    StackGresClusterPodMetadata that = (StackGresClusterPodMetadata) o;
-    return Objects.equals(labels, that.labels);
+  public void setClusterPods(Map<String, String> clusterPods) {
+    this.clusterPods = clusterPods;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(labels);
+    return Objects.hash(clusterPods);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof StackGresClusterSpecLabels)) {
+      return false;
+    }
+    StackGresClusterSpecLabels other = (StackGresClusterSpecLabels) obj;
+    return Objects.equals(clusterPods, other.clusterPods);
   }
 
   @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
   }
+
 }

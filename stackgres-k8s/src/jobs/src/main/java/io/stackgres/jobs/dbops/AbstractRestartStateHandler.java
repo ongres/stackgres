@@ -153,6 +153,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
           restartStatus.getRestartedInstances().add(podName);
           break;
         default:
+          break;
       }
 
       setDbOpRestartStatus(dbOps, restartStatus);

@@ -103,12 +103,6 @@ spec:
       {{- if .Values.cluster.postgresServices.primary.type }}
       type:  {{ .Values.cluster.postgresServices.primary.type }}
       {{- end }}
-      {{- if .Values.cluster.postgresServices.primary.annotations }}
-      annotations:
-        {{- range $annot, $value := .Values.cluster.postgresServices.primary.annotations }}
-        {{ $annot }}: {{ $value }}
-        {{- end }}
-      {{- end }}
     {{- end }}    
     {{- if .Values.cluster.postgresServices.replicas }}
     replicas:
@@ -134,9 +128,9 @@ spec:
         {{ $annot }}: {{ $value }}
         {{- end }}
       {{- end }}
-      {{- if .Values.cluster.metadata.annotations.pods }}
-      pods:
-        {{- range $annot, $value := .Values.cluster.metadata.annotations.pods }}
+      {{- if .Values.cluster.metadata.annotations.clusterPods }}
+      clusterPods:
+        {{- range $annot, $value := .Values.cluster.metadata.annotations.clusterPods }}
         {{ $annot }}: {{ $value }}
         {{- end }}
       {{- end }}
@@ -146,18 +140,30 @@ spec:
         {{ $annot }}: {{ $value }}
         {{- end }}
       {{- end }}
+      {{- if .Values.cluster.metadata.annotations.primaryService }}
+      primaryService:
+        {{- range $annot, $value := .Values.cluster.metadata.annotations.primaryService }}
+        {{ $annot }}: {{ $value }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.cluster.metadata.annotations.replicasService }}
+      replicasService:
+        {{- range $annot, $value := .Values.cluster.metadata.annotations.replicasService }}
+        {{ $annot }}: {{ $value }}
+        {{- end }}
+      {{- end }}
     {{- end }}
-  {{- end }}
-  pods:
-    {{- if .Values.cluster.pods.metadata }}
-    metadata:
-      {{- if .Values.cluster.pods.metadata.labels }}
-      labels:
-        {{- range $label, $value := .Values.cluster.pods.metadata.labels }}
+    {{- if .Values.cluster.metadata.labels }}
+    labels:
+      {{- if .Values.cluster.metadata.labels.clusterPods }}
+      clusterPods:
+        {{- range $label, $value := .Values.cluster.metadata.labels.clusterPods }}
         {{ $label }}: {{ $value }}
         {{- end }}  
       {{- end }}
     {{- end }} 
+  {{- end }}
+  pods:
     persistentVolume:
       size: '{{ .Values.cluster.pods.persistentVolume.size }}'
       {{- if .Values.cluster.pods.persistentVolume.storageClass }}

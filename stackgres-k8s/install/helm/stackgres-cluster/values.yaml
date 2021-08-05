@@ -34,9 +34,16 @@ cluster:
   #   annotations:
   #     allResources:
   #       key: value
-  #     pods:
+  #     clusterPods:
   #       key: value
   #     services:
+  #       key: value
+  #     primaryService:
+  #       key: value
+  #     replicasService:
+  #       key: value
+  #   labels:
+  #     clusterPods:
   #       key: value
   pods:
     persistentVolume:

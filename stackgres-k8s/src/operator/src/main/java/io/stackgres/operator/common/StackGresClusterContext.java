@@ -20,10 +20,10 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
@@ -31,6 +31,7 @@ import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.patroni.factory.PatroniScriptsConfigMap;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
+import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
 import org.jooq.lambda.tuple.Tuple4;
@@ -39,6 +40,7 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext,
 
   public abstract OperatorPropertyContext getOperatorContext();
 
+  @Override
   public abstract StackGresCluster getCluster();
 
   public abstract Optional<StackGresPostgresConfig> getPostgresConfig();
@@ -112,7 +114,7 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext,
    */
   @SuppressWarnings("unchecked")
   public <C, S extends StackGresClusterSidecarResourceFactory<C>>
-      Optional<C> getSidecarConfig(S sidecar) {
+      Optional<C> getSidecarConfig(@NotNull S sidecar) {
     for (SidecarEntry<?> entry : getSidecars()) {
       if (entry.getSidecar() == sidecar) {
         return entry.getConfig().map(config -> (C) config);
@@ -122,13 +124,13 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext,
         + " not found in cluster configuration");
   }
 
-  public Map<String, String> posCustomLabels() {
+  public Map<String, String> podsCustomLabels() {
     return Optional.ofNullable(getCluster())
         .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getPod)
-        .map(StackGresClusterPod::getMetadata)
-        .map(StackGresClusterPodMetadata::getLabels)
-        .orElse(ImmutableMap.of());
+        .map(StackGresClusterSpec::getMetadata)
+        .map(StackGresClusterSpecMetadata::getLabels)
+        .map(StackGresClusterSpecLabels::getClusterPods)
+        .orElse(Map.of());
   }
 
   public Seq<Tuple4<StackGresClusterScriptEntry, Long, String, Long>> getIndexedScripts() {

@@ -56,9 +56,6 @@ spec:
   postgres:
     version: 'latest'
   pods:
-    metadata:
-      labels:
-        test-label: '$RANDOM_VALUE'
     persistentVolume:
       size: '128Mi'
     scheduling:
@@ -67,6 +64,10 @@ spec:
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
+  metadata:
+    labels:
+      clusterPods:
+        test-label: '$RANDOM_VALUE'
 EOF
 
   wait_until check_label "$RANDOM_VALUE"
@@ -78,7 +79,7 @@ helm_custom_labels(){
   local RANDOM_VALUE=$(ramdom_string)
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
-    --set cluster.pods.metadata.labels.test-label="$RANDOM_VALUE"
+    --set cluster.metadata.labels.clusterPods.test-label="$RANDOM_VALUE"
 
   wait_until check_label "$RANDOM_VALUE"
 
@@ -92,7 +93,7 @@ get_cluster_json() {
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation)' \
     | jq 'del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
     | jq 'del(.apiVersion) | del(.kind)' \
-    | jq ".spec.pods.metadata.labels[\"test-label\"]=\"$LABEL_VALUE\"" )
+    | jq ".spec.metadata.labels.clusterPods[\"test-label\"]=\"$LABEL_VALUE\"" )
   echo "$CLUSTER_JSON"
 }
 
@@ -163,9 +164,6 @@ spec:
   postgres:
     version: 'latest'
   pods:
-    metadata:
-      labels:
-        test-label: '$RANDOM_VALUE'
     persistentVolume:
       size: '128Mi'
     scheduling:
@@ -174,9 +172,14 @@ spec:
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
+  metadata:
+    labels:
+      clusterPods:
+        test-label: '$RANDOM_VALUE'
 EOF
 
-  local LABEL_VALUE=$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.spec.pods.metadata.labels["test-label"]' -r)
+  local LABEL_VALUE=$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.spec.metadata.labels.clusterPods["test-label"]' -r)
 
+run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME"
   assert_string_equal "$RANDOM_VALUE" "$LABEL_VALUE"
 }

@@ -19,9 +19,13 @@ public class ClusterSpecAnnotations {
 
   private Map<String, String> allResources;
 
-  private Map<String, String> pods;
+  private Map<String, String> clusterPods;
 
   private Map<String, String> services;
+
+  private Map<String, String> primaryService;
+
+  private Map<String, String> replicasService;
 
   public Map<String, String> getAllResources() {
     return allResources;
@@ -31,12 +35,12 @@ public class ClusterSpecAnnotations {
     this.allResources = allResources;
   }
 
-  public Map<String, String> getPods() {
-    return pods;
+  public Map<String, String> getClusterPods() {
+    return clusterPods;
   }
 
-  public void setPods(Map<String, String> pods) {
-    this.pods = pods;
+  public void setClusterPods(Map<String, String> pods) {
+    this.clusterPods = pods;
   }
 
   public Map<String, String> getServices() {
@@ -45,6 +49,22 @@ public class ClusterSpecAnnotations {
 
   public void setServices(Map<String, String> services) {
     this.services = services;
+  }
+
+  public Map<String, String> getPrimaryService() {
+    return primaryService;
+  }
+
+  public void setPrimaryService(Map<String, String> primaryService) {
+    this.primaryService = primaryService;
+  }
+
+  public Map<String, String> getReplicasService() {
+    return replicasService;
+  }
+
+  public void setReplicasService(Map<String, String> resplicasService) {
+    this.replicasService = resplicasService;
   }
 
   @Override

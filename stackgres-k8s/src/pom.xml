@@ -304,6 +304,7 @@
           <compilerArgs>
             <arg>-Xlint:all</arg>
             <arg>-Xlint:-processing</arg> <!-- Ignore warning: No processor claimed any of these annotations -->
+            <!-- <arg>-XDstringConcat=inline</arg> -->
           </compilerArgs>
           <showDeprecation>true</showDeprecation>
           <showWarnings>true</showWarnings>

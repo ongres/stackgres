@@ -28,9 +28,6 @@ public class ClusterPod {
   @JsonProperty("disablePostgresUtil")
   private Boolean disablePostgresUtil;
 
-  @JsonProperty("metadata")
-  private ClusterPodMetadata metadata;
-
   @JsonProperty("scheduling")
   private ClusterPodScheduling scheduling;
 
@@ -64,14 +61,6 @@ public class ClusterPod {
 
   public void setDisablePostgresUtil(Boolean disablePostgresUtil) {
     this.disablePostgresUtil = disablePostgresUtil;
-  }
-
-  public ClusterPodMetadata getMetadata() {
-    return metadata;
-  }
-
-  public void setMetadata(ClusterPodMetadata metadata) {
-    this.metadata = metadata;
   }
 
   public ClusterPodScheduling getScheduling() {

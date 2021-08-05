@@ -20,9 +20,13 @@ public class StackGresClusterSpecAnnotations {
 
   private Map<String, String> allResources;
 
-  private Map<String, String> pods;
+  private Map<String, String> clusterPods;
 
   private Map<String, String> services;
+
+  private Map<String, String> primaryService;
+
+  private Map<String, String> replicasService;
 
   public Map<String, String> getAllResources() {
     return allResources;
@@ -32,12 +36,12 @@ public class StackGresClusterSpecAnnotations {
     this.allResources = allResources;
   }
 
-  public Map<String, String> getPods() {
-    return pods;
+  public Map<String, String> getClusterPods() {
+    return clusterPods;
   }
 
-  public void setPods(Map<String, String> pods) {
-    this.pods = pods;
+  public void setClusterPods(Map<String, String> clusterPods) {
+    this.clusterPods = clusterPods;
   }
 
   public Map<String, String> getServices() {
@@ -46,6 +50,27 @@ public class StackGresClusterSpecAnnotations {
 
   public void setServices(Map<String, String> services) {
     this.services = services;
+  }
+
+  public Map<String, String> getPrimaryService() {
+    return primaryService;
+  }
+
+  public void setPrimaryService(Map<String, String> primaryService) {
+    this.primaryService = primaryService;
+  }
+
+  public Map<String, String> getReplicasService() {
+    return replicasService;
+  }
+
+  public void setReplicasService(Map<String, String> replicasService) {
+    this.replicasService = replicasService;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(allResources, clusterPods, primaryService, replicasService, services);
   }
 
   @Override
@@ -57,13 +82,11 @@ public class StackGresClusterSpecAnnotations {
       return false;
     }
     StackGresClusterSpecAnnotations other = (StackGresClusterSpecAnnotations) obj;
-    return Objects.equals(allResources, other.allResources) && Objects.equals(pods, other.pods)
+    return Objects.equals(allResources, other.allResources)
+        && Objects.equals(clusterPods, other.clusterPods)
+        && Objects.equals(primaryService, other.primaryService)
+        && Objects.equals(replicasService, other.replicasService)
         && Objects.equals(services, other.services);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(allResources, pods, services);
   }
 
   @Override

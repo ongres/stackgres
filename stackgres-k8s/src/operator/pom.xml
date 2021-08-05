@@ -4,8 +4,7 @@
   ~ SPDX-License-Identifier: AGPL-3.0-or-later
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
@@ -102,6 +101,16 @@
     <dependency>
       <groupId>org.reflections</groupId>
       <artifactId>reflections</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.truth</groupId>
+      <artifactId>truth</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.truth.extensions</groupId>
+      <artifactId>truth-java8-extension</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -422,8 +431,10 @@
                           <arg>-exc</arg>
                           <arg>
                             OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME:-"stackgres/operator:development-jvm"}"
-                            CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
-                            kind load docker-image --name "$CONTAINER_NAME" "$OPERATOR_IMAGE_NAME" || true
+                            CONTAINER_NAME="$(docker
+                            inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
+                            kind load docker-image --name
+                            "$CONTAINER_NAME" "$OPERATOR_IMAGE_NAME" || true
                           </arg>
                         </entrypoint>
                         <wait>
@@ -483,8 +494,10 @@
                           <arg>-exc</arg>
                           <arg>
                             OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME:-"stackgres/operator:development"}"
-                            CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
-                            kind load docker-image --name "$CONTAINER_NAME" "$OPERATOR_IMAGE_NAME" || true
+                            CONTAINER_NAME="$(docker
+                            inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
+                            kind load docker-image --name
+                            "$CONTAINER_NAME" "$OPERATOR_IMAGE_NAME" || true
                           </arg>
                         </entrypoint>
                         <wait>

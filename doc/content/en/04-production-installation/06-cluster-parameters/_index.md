@@ -89,10 +89,8 @@ You can specify following parameters values:
 |:----------|:------------|:--------|
 | `cluster.postgresServices.primary.enabled` | {{< crd-field-description SGCluster.spec.postgresServices.primary.enabled >}} | true |
 | `cluster.postgresServices.primary.type` | {{< crd-field-description SGCluster.spec.postgresServices.primary.type >}} | ClusterIP |
-| `cluster.postgresServices.primary.annotations` | {{< crd-field-description SGCluster.spec.postgresServices.primary.annotations >}} | |
 | `cluster.postgresServices.replicas.enabled` | {{< crd-field-description SGCluster.spec.postgresServices.replicas.enabled >}} | true |
 | `cluster.postgresServices.replicas.type` | {{< crd-field-description SGCluster.spec.postgresServices.replicas.type >}} | ClusterIP |
-| `cluster.postgresServices.replicas.annotations` | {{< crd-field-description SGCluster.spec.postgresServices.replicas.annotations >}} | |
 
 ### Pods
 
@@ -103,7 +101,6 @@ You can specify following parameters values:
 | `cluster.pods.disableConnectionPooling` | {{< crd-field-description SGCluster.spec.pods.disableConnectionPooling >}} | false |
 | `cluster.pods.disableMetricsExporter` | {{< crd-field-description SGCluster.spec.pods.disableMetricsExporter >}} | false |
 | `cluster.pods.disablePostgresUtil` | {{< crd-field-description SGCluster.spec.pods.disablePostgresUtil >}} | false |
-| `cluster.pods.metadata.labels` | {{< crd-field-description SGCluster.spec.pods.metadata.labels >}} | |
 | `cluster.pods.scheduling.nodeSelector` | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeSelector >}} | |
 | `cluster.pods.scheduling.nodeAffinity` | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeAffinity >}} | |
 
@@ -112,8 +109,12 @@ You can specify following parameters values:
 | Parameter | Description | Default |
 |:----------|:------------|:--------|
 | `cluster.metadata.annotations.allResources` | {{< crd-field-description SGCluster.spec.metadata.annotations.allResources >}} | |
-| `cluster.metadata.annotations.pods` | {{< crd-field-description SGCluster.spec.metadata.annotations.pods >}} |  |
-| `cluster.metadata.annotations.services` | {{< crd-field-description SGCluster.spec.metadata.annotations.services >}} | false |
+| `cluster.metadata.annotations.clusterPods` | {{< crd-field-description SGCluster.spec.metadata.annotations.clusterPods >}} | |
+| `cluster.metadata.annotations.services` | {{< crd-field-description SGCluster.spec.metadata.annotations.services >}} | |
+| `cluster.metadata.annotations.primaryService` | {{< crd-field-description SGCluster.spec.metadata.annotations.primaryService >}} | |
+| `cluster.metadata.annotations.replicasService` | {{< crd-field-description SGCluster.spec.metadata.annotations.replicasService >}} | |
+| `cluster.metadata.labels.clusterPods` | {{< crd-field-description SGCluster.spec.metadata.labels.clusterPods >}} |  |
+
 
 ### Instance profiles
 

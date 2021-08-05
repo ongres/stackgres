@@ -136,6 +136,7 @@ Holds custom metadata information for StackGres generated resources to have.
 | Property                      | Required | Updatable | Type     | Default        | Description |
 |:------------------------------|----------|-----------|:---------|:---------------|:------------|
 | [annotations](#annotations)   |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.metadata.annotations >}} |
+| [labels](#labels)             |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.metadata.labels >}} |
 
 ### Annotations
 
@@ -144,8 +145,10 @@ Holds custom annotations for StackGres generated resources to have.
 | Property                      | Required | Updatable | Type     | Default        | Description |
 |:------------------------------|----------|-----------|:---------|:---------------|:------------|
 | allResources                  |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.metadata.annotations.allResources >}} |
-| pods                          |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.metadata.annotations.pods >}} |
+| clusterPods                   |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.metadata.annotations.clusterPods >}} |
 | services                      |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.metadata.annotations.services >}} |
+| primaryService               |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.metadata.annotations.primaryService >}} |
+| replicasService              |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.metadata.annotations.replicasService >}} |
 
 ```yaml
 apiVersion: stackgres.io/v1
@@ -155,8 +158,32 @@ metadata:
 spec:
   metadata:
     annotations:
-      pods:
+      clusterPods:
         customAnnotations: customAnnotationValue
+      primaryService:
+        customAnnotations: customAnnotationValue
+      replicasService:
+        customAnnotations: customAnnotationValue
+```
+
+### Labels
+
+Holds custom labels for StackGres generated resources to have.
+
+| Property                      | Required | Updatable | Type     | Default        | Description |
+|:------------------------------|----------|-----------|:---------|:---------------|:------------|
+| clusterPods                   |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.metadata.labels.clusterPods >}} |
+
+```yaml
+apiVersion: stackgres.io/v1
+kind: SGCluster
+metadata:
+  name: stackgres
+spec:
+  metadata:
+    labels:
+      clusterPods:
+        customLabel: customLabelValue
 ```
 
 ## Postgres Services
@@ -174,7 +201,6 @@ Specifies the service configuration for the cluster:
 |:--------------------------------|----------|-----------|:---------|:----------|:----------------------------------------------------------------------------|
 | enabled                         |          | ✓         | boolean  | true      | {{< crd-field-description SGCluster.spec.postgresServices.primary.enabled >}}  |
 | type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.primary.type >}}  |
-| annotations                     |          | ✓         | object   |           | {{< crd-field-description SGCluster.spec.postgresServices.primary.annotations >}}  |
 
 ### Replicas service type
 
@@ -182,7 +208,6 @@ Specifies the service configuration for the cluster:
 |:--------------------------------|----------|-----------|:---------|:----------|:----------------------------------------------------------------------------|
 | enabled                         |          | ✓         | boolean  | true      | {{< crd-field-description SGCluster.spec.postgresServices.replicas.enabled >}}  |
 | type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.replicas.type >}}  |
-| annotations                     |          | ✓         | object   |           | {{< crd-field-description SGCluster.spec.postgresServices.replicas.annotations >}}  |
 
 ## Pods
 
@@ -194,7 +219,6 @@ Cluster's pod configuration
 | disableConnectionPooling               |          | ✓         | boolean  | false                               | {{< crd-field-description SGCluster.spec.pods.disableConnectionPooling >}} |
 | disableMetricsExporter                 |          | ✓         | boolean  | false                               | {{< crd-field-description SGCluster.spec.pods.disableMetricsExporter >}} |
 | disablePostgresUtil                    |          | ✓         | boolean  | false                               | {{< crd-field-description SGCluster.spec.pods.disablePostgresUtil >}} |
-| [metadata](#pods-metadata)             |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.pods.metadata >}} |
 | [scheduling](#scheduling)              |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.pods.scheduling >}} |
 
 ### Sidecar containers
@@ -245,26 +269,6 @@ spec:
     persistentVolume:
       size: '5Gi'
       storageClass: default
-```
-
-### Pods metadata
-
-Holds custom metadata information for StackGres pods to have.
-
-| Property     | Required | Updatable | Type     | Default          | Description |
-|:-------------|----------|-----------|:---------|:-----------------|:------------|
-| labels       |          | ✓         | string   |                  | {{< crd-field-description SGCluster.spec.pods.metadata.labels >}} |
-
-```yaml
-apiVersion: stackgres.io/v1
-kind: SGCluster
-metadata:
-  name: stackgres 
-spec:
-  pods:
-    metadata:
-      labels:
-        customLabel: customLabelValue
 ```
 
 ### Scheduling

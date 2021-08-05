@@ -42,29 +42,39 @@
           },
           "disableConnectionPooling": false,
           "disableMetricsExporter": false,
-          "disablePostgresUtil": false,
-          "metadata": {
-            "labels": {
-              "customLabel" : "customLabelValue"
-            }
-          }
+          "disablePostgresUtil": false
         },
         "postgresServices": {
           "primary": {
             "enabled": true,
-            "type": "ClusterIP",
-            "annotations": {
-              "customAnnotation" : "customValue"
-            }
+            "type": "ClusterIP"
           },
           "replicas": {
             "enabled": true,
-            "type": "ClusterIP",
-            "annotations": {
-              "customAnnotation" : "customValue"
-            }
+            "type": "ClusterIP"
           }
-        }
+        },
+		    "metadata": {
+		      "annotations": {
+		        "allResources": {
+		          "allResourcesCustomAnnotation": "allResourcesCustomValue"
+		        },
+		        "clusterPods" : {
+		          "podsCustomAnnotations": "podsCustomValue"
+		        },
+		        "primaryService": {
+		          "servicesCustomAnnotation": "servicesCustomValue"
+		        },
+		        "replicasService": {
+		          "servicesCustomAnnotation": "servicesCustomValue"
+		        }
+		      },
+		      "labels": {
+		        "clusterPods": {
+		          "customLabel" : "customLabelValue"
+		        }
+		      }
+		    }
       }
     }, {
       "apiVersion": "stackgres.io/v1",
@@ -121,29 +131,39 @@
           },
           "disableConnectionPooling": false,
           "disableMetricsExporter": false,
-          "disablePostgresUtil": false,
-          "metadata": {
-            "labels": {
-              "customLabel" : "customLabelValue"
-            }
-          }
+          "disablePostgresUtil": false
         },
         "postgresServices": {
           "primary": {
             "enabled": true,
-            "type": "ClusterIP",
-            "annotations": {
-              "customAnnotation" : "customValue"
-            }
+            "type": "ClusterIP"
           },
           "replicas": {
             "enabled": true,
-            "type": "ClusterIP",
-            "annotations": {
-              "customAnnotation" : "customValue"
-            }
+            "type": "ClusterIP"
           }
-        }
+        },
+		    "metadata": {
+		      "annotations": {
+		        "allResources": {
+		          "allResourcesCustomAnnotation": "allResourcesCustomValue"
+		        },
+		        "clusterPods" : {
+		          "podsCustomAnnotations": "podsCustomValue"
+		        },
+		        "primaryService": {
+		          "servicesCustomAnnotation": "servicesCustomValue"
+		        },
+		        "replicasService": {
+		          "servicesCustomAnnotation": "servicesCustomValue"
+		        }
+		      },
+		      "labels": {
+		        "clusterPods": {
+		          "customLabel" : "customLabelValue"
+		        }
+		      }
+		    }
       }
     }
   ],

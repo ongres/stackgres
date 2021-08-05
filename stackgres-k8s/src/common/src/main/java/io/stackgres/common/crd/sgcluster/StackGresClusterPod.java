@@ -35,10 +35,6 @@ public class StackGresClusterPod {
   @JsonProperty("disablePostgresUtil")
   private Boolean disablePostgresUtil;
 
-  @JsonProperty("metadata")
-  @Valid
-  private StackGresClusterPodMetadata metadata;
-
   @Valid
   private StackGresClusterPodScheduling scheduling;
 
@@ -74,14 +70,6 @@ public class StackGresClusterPod {
     this.disablePostgresUtil = disablePostgresUtil;
   }
 
-  public StackGresClusterPodMetadata getMetadata() {
-    return metadata;
-  }
-
-  public void setMetadata(StackGresClusterPodMetadata metadata) {
-    this.metadata = metadata;
-  }
-
   public StackGresClusterPodScheduling getScheduling() {
     return scheduling;
   }
@@ -93,7 +81,7 @@ public class StackGresClusterPod {
   @Override
   public int hashCode() {
     return Objects.hash(disableConnectionPooling, disableMetricsExporter, disablePostgresUtil,
-        metadata, persistentVolume, scheduling);
+        persistentVolume, scheduling);
   }
 
   @Override
@@ -108,7 +96,6 @@ public class StackGresClusterPod {
     return Objects.equals(disableConnectionPooling, other.disableConnectionPooling)
         && Objects.equals(disableMetricsExporter, other.disableMetricsExporter)
         && Objects.equals(disablePostgresUtil, other.disablePostgresUtil)
-        && Objects.equals(metadata, other.metadata)
         && Objects.equals(persistentVolume, other.persistentVolume)
         && Objects.equals(scheduling, other.scheduling);
   }

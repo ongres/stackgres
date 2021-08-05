@@ -8,7 +8,6 @@ package io.stackgres.apiweb.dto.cluster;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
@@ -16,17 +15,16 @@ import io.stackgres.common.StackGresUtil;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class ClusterPodMetadata {
+public class ClusterSpecLabels {
 
-  @JsonProperty("labels")
-  private Map<String, String> labels;
+  private Map<String, String> clusterPods;
 
-  public Map<String, String> getLabels() {
-    return labels;
+  public Map<String, String> getClusterPods() {
+    return clusterPods;
   }
 
-  public void setLabels(Map<String, String> labels) {
-    this.labels = labels;
+  public void setClusterPods(Map<String, String> clusterPods) {
+    this.clusterPods = clusterPods;
   }
 
   @Override

@@ -37,9 +37,10 @@ import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.operator.conciliation.ContainerFactoryDiscoverer;
 import io.stackgres.operator.conciliation.InitContainerFactoryDiscover;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -120,7 +121,7 @@ public class PodTemplateSpecFactory
 
     StackGresCluster cluster = context.getClusterContext().getSource();
     final Map<String, String> podLabels = labelFactory.statefulSetPodLabels(cluster);
-    final Map<String, String> customPodLabels = posCustomLabels(cluster);
+    final Map<String, String> customPodLabels = podsCustomLabels(cluster);
 
     var podTemplate = new PodTemplateSpecBuilder()
         .withMetadata(new ObjectMetaBuilder()
@@ -138,10 +139,10 @@ public class PodTemplateSpecFactory
                     new PodAffinityTermBuilder()
                         .withLabelSelector(new LabelSelectorBuilder()
                             .withMatchExpressions(new LabelSelectorRequirementBuilder()
-                                    .withKey(StackGresContext.APP_KEY)
-                                    .withOperator("In")
-                                    .withValues(labelFactory.getLabelMapper().appName())
-                                    .build(),
+                                .withKey(StackGresContext.APP_KEY)
+                                .withOperator("In")
+                                .withValues(labelFactory.getLabelMapper().appName())
+                                .build(),
                                 new LabelSelectorRequirementBuilder()
                                     .withKey("cluster")
                                     .withOperator("In")
@@ -202,12 +203,12 @@ public class PodTemplateSpecFactory
     return cluster.getSpec().getPod().getScheduling().getNodeAffinity();
   }
 
-  public Map<String, String> posCustomLabels(StackGresCluster cluster) {
+  public Map<String, String> podsCustomLabels(StackGresCluster cluster) {
     return Optional.ofNullable(cluster)
-      .map(StackGresCluster::getSpec)
-      .map(StackGresClusterSpec::getPod)
-      .map(StackGresClusterPod::getMetadata)
-      .map(StackGresClusterPodMetadata::getLabels)
-      .orElse(ImmutableMap.of());
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getMetadata)
+        .map(StackGresClusterSpecMetadata::getLabels)
+        .map(StackGresClusterSpecLabels::getClusterPods)
+        .orElse(Map.of());
   }
 }

@@ -39,7 +39,7 @@ public abstract class AnnotationDecorator<T> implements Decorator<T> {
 
   }
 
-  //TODO review if we need this
+  // TODO review if we need this
   protected void decoratePod(@NotNull T cluster, @NotNull HasMetadata pod) {
 
     decorateResource(pod, getPodAnnotations(cluster));
@@ -78,7 +78,7 @@ public abstract class AnnotationDecorator<T> implements Decorator<T> {
   }
 
   protected void decorateResource(@NotNull HasMetadata resource,
-                                  @NotNull Map<String, String> customAnnotations) {
+      @NotNull Map<String, String> customAnnotations) {
 
     var metadata = Objects.requireNonNull(resource.getMetadata());
 

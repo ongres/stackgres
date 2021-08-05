@@ -17,12 +17,22 @@ public class ClusterSpecMetadata {
 
   private ClusterSpecAnnotations annotations;
 
+  private ClusterSpecLabels labels;
+
   public ClusterSpecAnnotations getAnnotations() {
     return annotations;
   }
 
   public void setAnnotations(ClusterSpecAnnotations annotations) {
     this.annotations = annotations;
+  }
+
+  public ClusterSpecLabels getLabels() {
+    return labels;
+  }
+
+  public void setLabels(ClusterSpecLabels labels) {
+    this.labels = labels;
   }
 
   @Override
