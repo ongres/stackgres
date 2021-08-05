@@ -8,20 +8,20 @@ package io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.para
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 public class PgBouncerBlocklist {
 
-  private static final List<String> BLOCKLIST;
+  private static final Set<String> BLOCKLIST;
 
   static {
     BLOCKLIST = readResource().entrySet().stream()
         .filter(e -> !e.getKey().toString().isEmpty())
         .map(e -> e.getKey().toString())
-        .collect(ImmutableList.toImmutableList());
+        .collect(ImmutableSet.toImmutableSet());
   }
 
   private PgBouncerBlocklist() {}
@@ -40,7 +40,7 @@ public class PgBouncerBlocklist {
     return properties;
   }
 
-  public static List<String> getBlocklistParameters() {
+  public static Set<String> getBlocklistParameters() {
     return BLOCKLIST;
   }
 
