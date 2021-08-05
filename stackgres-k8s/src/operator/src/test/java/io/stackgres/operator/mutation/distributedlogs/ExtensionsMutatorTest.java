@@ -53,8 +53,8 @@ class ExtensionsMutatorTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    review = JsonUtil
-        .readFromJson("distributedlogs_allow_request/create.json", StackGresDistributedLogsReview.class);
+    review = JsonUtil.readFromJson("distributedlogs_allow_request/create.json",
+        StackGresDistributedLogsReview.class);
 
     mutator = new ExtensionsMutator(extensionMetadataManager, JsonUtil.JSON_MAPPER);
 
@@ -87,7 +87,8 @@ class ExtensionsMutatorTest {
   @Test
   void clusterWithoutExtensions_shouldNotDoAnything() {
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getToInstallPostgresExtensions().addAll(defaultExtensions);
+    review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
+        .addAll(defaultExtensions);
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
@@ -103,7 +104,8 @@ class ExtensionsMutatorTest {
   }
 
   private StackGresClusterInstalledExtension getDefaultExtension(String name) {
-    final StackGresClusterInstalledExtension installedExtension = new StackGresClusterInstalledExtension();
+    final StackGresClusterInstalledExtension installedExtension =
+        new StackGresClusterInstalledExtension();
     installedExtension.setName(name);
     installedExtension.setPublisher("com.ongres");
     installedExtension.setRepository(OperatorProperty.EXTENSIONS_REPOSITORY_URLS.getString());
