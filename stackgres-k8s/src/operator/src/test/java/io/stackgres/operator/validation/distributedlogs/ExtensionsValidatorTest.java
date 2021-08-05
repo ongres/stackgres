@@ -53,7 +53,8 @@ class ExtensionsValidatorTest {
   void givenAValidCreation_shouldPass() throws ValidationFailed {
     final StackGresDistributedLogsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getToInstallPostgresExtensions().addAll(defaultExtensions);
+    review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
+        .addAll(defaultExtensions);
     validator.validate(review);
   }
 
@@ -61,7 +62,8 @@ class ExtensionsValidatorTest {
   void givenAnUpdate_shouldPass() throws ValidationFailed {
     final StackGresDistributedLogsReview review = getUpdateReview();
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getToInstallPostgresExtensions().addAll(defaultExtensions);
+    review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
+        .addAll(defaultExtensions);
     validator.validate(review);
   }
 
@@ -87,7 +89,8 @@ class ExtensionsValidatorTest {
   }
 
   private StackGresClusterInstalledExtension getDefaultExtension(String name) {
-    final StackGresClusterInstalledExtension installedExtension = new StackGresClusterInstalledExtension();
+    final StackGresClusterInstalledExtension installedExtension =
+        new StackGresClusterInstalledExtension();
     installedExtension.setName(name);
     installedExtension.setPublisher("com.ongres");
     installedExtension.setRepository(OperatorProperty.EXTENSIONS_REPOSITORY_URLS.getString());
