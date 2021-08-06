@@ -601,13 +601,13 @@
 								Name
 								<span class="helpTooltip"  :data-tooltip="getTooltip('sgextensions.extensions.name')"></span>
 							</th>
-							<th colspan="2">
-								Description
-								<span class="helpTooltip"  :data-tooltip="getTooltip('sgextensions.extensions.description')"></span>
-							</th>
 							<th class="textRight">
 								Version
 								<span class="helpTooltip"  :data-tooltip="getTooltip('sgextensions.extensions.versions')"></span>
+							</th>
+							<th colspan="2">
+								Description
+								<span class="helpTooltip"  :data-tooltip="getTooltip('sgextensions.extensions.description')"></span>
 							</th>
 						</thead>
 						<tbody>
@@ -619,11 +619,11 @@
 											<svg xmlns="http://www.w3.org/2000/svg" width="15.001" height="12.751" viewBox="0 0 15.001 12.751"><g fill="#ffffff" transform="translate(167.001 -31.5) rotate(90)"><path d="M37.875,168.688a.752.752,0,0,1-.53-.219l-5.625-5.626a.75.75,0,0,1,0-1.061l2.813-2.813a.75.75,0,0,1,1.06,1.061l-2.283,2.282,4.566,4.566,4.566-4.566-2.283-2.282a.75.75,0,0,1,1.06-1.061l2.813,2.813a.75.75,0,0,1,0,1.061l-5.625,5.626A.752.752,0,0,1,37.875,168.688Z" transform="translate(0 -1.687)"/><path d="M42.156,155.033l-2.813-2.813a.752.752,0,0,0-1.061,0l-2.813,2.813a.75.75,0,1,0,1.06,1.061l1.533-1.534v5.3a.75.75,0,1,0,1.5,0v-5.3l1.533,1.534a.75.75,0,1,0,1.06-1.061Z" transform="translate(-0.937 0)"/></g></svg>
 										</a>
 									</td>
-									<td class="firstLetter" colspan="2">
-										{{ extInfo.abstract }}
-									</td>
 									<td class="textRight">
 										{{ ext.version }}
+									</td>
+									<td class="firstLetter" colspan="2">
+										{{ extInfo.abstract }}
 									</td>
 								</template>
 							</tr>
