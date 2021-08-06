@@ -42,5 +42,6 @@ include:
   - local: .gitlab-ci/native-build.yml
   - local: .gitlab-ci/image-build.yml
   - local: .gitlab-ci/test.yml
+  - local: .gitlab-ci/e2e-test.yml
   - local: .gitlab-ci/check-release.yml
   - local: .gitlab-ci/deploy.yml
