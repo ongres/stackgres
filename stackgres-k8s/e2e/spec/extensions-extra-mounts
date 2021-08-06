@@ -1,0 +1,43 @@
+#!/bin/sh
+
+e2e_test_install() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
+    --set-string 'cluster.postgresExtensions[0].name=postgis'
+
+  wait_pods_running "$CLUSTER_NAMESPACE" "2"
+}
+
+e2e_test() {
+  run_test "Check extension with extra mounts is installed and available after booting" check_extension_with_extra_mounts_installed_after_booting
+}
+
+check_extension_with_extra_mounts_installed_after_booting() {
+  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+    | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[]
+      | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[]
+      | select(.name == \"postgis\" and .requiresRestart != true) | length" \
+    | jq -s "length")" = 2 ]
+  then
+    echo "SUCCESS. postgis was installed"
+  else
+    echo "FAIL. postgis was not installed"
+    return 1
+  fi
+
+  try_function run_query -i 0 -q 'CREATE EXTENSION postgis;'
+  if "$RESULT"
+  then
+    echo "SUCCESS. postgis was created"
+  else
+    echo "FAIL. postgis was not created"
+    return 1
+  fi
+  try_function run_query -i 0 -q 'DROP EXTENSION postgis;'
+  if "$RESULT"
+  then
+    echo "SUCCESS. postgis was dropped"
+  else
+    echo "FAIL. postgis was not dropped"
+    return 1
+  fi
+}

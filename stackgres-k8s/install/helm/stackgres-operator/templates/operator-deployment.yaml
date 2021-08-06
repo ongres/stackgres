@@ -61,6 +61,10 @@ spec:
           - name: APP_OPTS
             value: '{{ range .Values.developer.extraOpts }}{{ . }} {{ end }}'
           {{- end }}
+          {{- if .Values.developer.extraOpts }}
+          - name: JAVA_OPTS
+            value: '{{ range .Values.developer.extraOpts }}{{ . }} {{ end }}'
+          {{- end }}
           {{- if .Values.developer.enableJvmDebug }}
           - name: DEBUG_OPERATOR
             value: "{{ .Values.developer.enableJvmDebug }}"

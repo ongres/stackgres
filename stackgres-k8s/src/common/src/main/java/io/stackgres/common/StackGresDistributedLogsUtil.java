@@ -101,6 +101,10 @@ public interface StackGresDistributedLogsUtil {
         });
     metadata.setAnnotations(annotations);
     spec.setMetadata(metadata);
+    spec.setToInstallPostgresExtensions(
+        Optional.ofNullable(distributedLogs.getSpec())
+        .map(StackGresDistributedLogsSpec::getToInstallPostgresExtensions)
+        .orElse(null));
     distributedLogsCluster.setSpec(spec);
     return distributedLogsCluster;
   }

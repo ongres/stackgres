@@ -22,6 +22,8 @@ spec:
       - name: volume-size
         type: string
         jsonPath: .spec.persistentVolume.size
+      subresources:
+        status: { }
       schema:
         openAPIV3Schema:
           type: object
@@ -122,6 +124,37 @@ spec:
                           description: Annotations to attach to services created or managed by StackGres.
                           additionalProperties:
                             type: string
+                toInstallPostgresExtensions:
+                  type: array
+                  description: The list of Postgres extensions to install.
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: The name of the extension to install.
+                      publisher:
+                        type: string
+                        description: The id of the publisher of the extension to install.
+                      version:
+                        type: string
+                        description: The version of the extension to install.
+                      repository:
+                        type: string
+                        description: The repository base URL from where the extension will be installed from.
+                      postgresVersion:
+                        type: string
+                        description: The postgres major version of the extension to install.
+                      build:
+                        type: string
+                        description: The build version of the extension to install.
+                      extraMounts:
+                        type: array
+                        description: The extra mounts of the extension to install.
+                        items:
+                          type: string
+                          description: The extra mount of the installed extension.
+                    required: ["name", "publisher", "version", "repository", "postgresVersion"]
                 nonProductionOptions:
                   type: object
                   properties:
@@ -232,5 +265,3 @@ spec:
                 fluentdConfigHash:
                   type: string
                   description: The hash of the configuration file that is used by fluentd
-      subresources:
-        status: { }

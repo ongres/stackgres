@@ -18,7 +18,7 @@ webhooks:
       - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
-        resources: ["sgclusters"]
+        resources: ["sgclusters", "sgclusters/*"]
     failurePolicy: Fail
     clientConfig:
       service:
@@ -120,7 +120,7 @@ webhooks:
       - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
-        resources: ["sgdistributedlogs"]
+        resources: ["sgdistributedlogs", "sgdistributedlogs/*"]
     failurePolicy: Fail
     clientConfig:
       service:

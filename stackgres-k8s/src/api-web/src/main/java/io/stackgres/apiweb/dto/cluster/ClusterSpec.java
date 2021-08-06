@@ -42,6 +42,9 @@ public class ClusterSpec {
   @JsonProperty("postgresExtensions")
   private List<ClusterExtension> postgresExtensions;
 
+  @JsonProperty("toInstallPostgresExtensions")
+  private List<ClusterInstalledExtension> toInstallPostgresExtensions;
+
   @JsonProperty("pods")
   private ClusterPod pods;
 
@@ -143,6 +146,15 @@ public class ClusterSpec {
 
   public void setPostgresExtensions(List<ClusterExtension> postgresExtensions) {
     this.postgresExtensions = postgresExtensions;
+  }
+
+  public List<ClusterInstalledExtension> getToInstallPostgresExtensions() {
+    return toInstallPostgresExtensions;
+  }
+
+  public void setToInstallPostgresExtensions(
+      List<ClusterInstalledExtension> toInstallPostgresExtensions) {
+    this.toInstallPostgresExtensions = toInstallPostgresExtensions;
   }
 
   public ClusterPostgresServices getPostgresServices() {

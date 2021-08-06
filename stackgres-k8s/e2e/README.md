@@ -48,20 +48,31 @@ mvn clean verify -P native,build-image-native,integration -Dit.test=StackGresOpe
 
 Some environment variables allow to control how e2e test behave:
 
-* `E2E_ENV`: This set the environment to script to use in order to setup the kubernetes cluster.
-* `E2E_TIMEOUT`: Some operation wait on pods to be running or terminated. This environment variable controls the timeout in seconds of those operations (default: 3 minutes).
-* `E2E_PARALLELISM`: The number of test to run in parallel with `run-all-tests.sh` (default: 8).
-* `K8S_VERSION`: This set the kubernetes cluster version to setup (default: 1.12).
 * `IMAGE_TAG`: The tag of the operator image to use in the e2e test (default: development-jvm).
-* `E2E_DEBUG_OPERATOR`: Enable operator debug (you must rebuild the operator image for this to work).
-* `E2E_DEBUG_OPERATOR_SUSPEND`: Suspend operator JVM Enable operator debug (you must rebuild the operator image for this to work).
-* `K8S_REUSE`: Kubernetes cluster setup can be very expensive in terms of time. Set this environment variable to true to reuse a kubernetes cluster if already exists.
-* `E2E_REUSE_OPERATOR_PODS`: To avoid recreating the operator set this environment variable to true to reuse an installed operator if already exists.
-* `E2E_BUILD_IMAGES`: To avoid rebuilding the operator set this environment variable to false.
+* `EXTENSIONS_REPOSITORY_URL`: Allow to set a different URL for extensions repository.
+* `E2E_ENV`: This set the environment to script to use in order to setup the kubernetes cluster (default: kind).
+* `E2E_TIMEOUT`: Some operation wait on pods to be running or terminated. This environment variable controls the timeout in seconds of those operations (default: 3 minutes).
+* `E2E_PARALLELISM`: The number of test to run in parallel with `run-all-tests.sh` (default: `getconf _NPROCESSORS_ONLN`).
+* `E2E_BUILD_IMAGES`: To avoid rebuilding the operator set this environment variable to false (default: true).
+* `E2E_FORCE_IMAGE_PULL`: To force operator and components image pull from registries before tests starts.
+* `E2E_OPERATOR_REGISTRY`: The operator images repository to pull images from and rename to required images.
+* `E2E_OPERATOR_REGISTRY_PATH`: The operator images path to use to pull images from and rename to required images.
+* `E2E_COMPONENTS_REGISTRY`: The components images repository to pull images from and rename to required images.
+* `E2E_COMPONENTS_REGISTRY_PATH`: The components images path to use to pull images from and rename to required images.
+* `E2E_REUSE_OPERATOR_PODS`: To avoid recreating the operator set this environment variable to true to reuse an installed operator if already exists (default: true).
+* `E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR`: To avoid installing the previous version of the operator and perform an upgrade set this to true (default: false).
+* `E2E_OPERATOR_OPTS`: To pass extra parameters to the operator helm chart use this variable.
+* `E2E_DISABLE_LOGS`: To diable logs of pods set this variable to true (default: false).
+* `E2E_DISABLE_CACHE`: To disable the use of local docker as a cache for images set this variable to true (default: false).
+* `K8S_VERSION`: This set the kubernetes cluster version to setup (default: 1.16.15).
+* `K8S_REUSE`: Kubernetes cluster setup can be very expensive in terms of time. Set this environment variable to true to reuse a kubernetes cluster if already exists (default: false).
+* `K8S_EXTRA_PORT`: Allow to define a port to expose in the kind docker container with following format: `<node port>:<local port>:<local listening address>:<port protocol>`.
+* `K8S_USE_INTERNAL_REPOSITORY`: Allow to bypass local docker repository and pull images directly to internal Kubernetes repository (only if `$E2E_ENV` support it).
+* `KIND_CONTAINERD_CACHE_PATH`: Allow to set a local path to use as containerd's repository for kind environment. Doing so will allow to re-use the repository among restart of kind even with different versions.
 * `K8S_FROM_DIND`: Set to true to use docker internal IPs for kubernetes configuration to access the kind cluster
  (some systems like macos or windows will not work with this but it is useful to run e2e in docker).
-* `SKIP_SPEC_INSTALL`: Set this to true to skip call of function `e2e_test_install`.
-* `SKIP_SPEC_UNINSTALL`: Set this to true to skip call of function `e2e_test_uninstall`.
+* `SKIP_SPEC_INSTALL`: Set this to true to skip call of function `e2e_test_install` (default: false).
+* `SKIP_SPEC_UNINSTALL`: Set this to true to skip call of function `e2e_test_uninstall` (default: false).
 
 
 ### Kind

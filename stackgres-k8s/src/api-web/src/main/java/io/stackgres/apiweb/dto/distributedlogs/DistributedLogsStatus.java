@@ -5,9 +5,8 @@
 
 package io.stackgres.apiweb.dto.distributedlogs;
 
+import java.util.ArrayList;
 import java.util.List;
-
-import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -20,9 +19,19 @@ import io.stackgres.common.StackGresUtil;
 @RegisterForReflection
 public class DistributedLogsStatus {
 
+  @JsonProperty("conditions")
+  private List<DistributedLogsCondition> conditions = new ArrayList<>();
+
   @JsonProperty("clusters")
-  @NotNull(message = "clusters is required")
   private List<String> clusters;
+
+  public List<DistributedLogsCondition> getConditions() {
+    return conditions;
+  }
+
+  public void setConditions(List<DistributedLogsCondition> conditions) {
+    this.conditions = conditions;
+  }
 
   public List<String> getClusters() {
     return clusters;

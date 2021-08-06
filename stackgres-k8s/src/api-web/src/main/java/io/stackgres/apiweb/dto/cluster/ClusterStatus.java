@@ -29,16 +29,16 @@ public class ClusterStatus {
     return conditions;
   }
 
-  public void setConditions(List<ClusterCondition> conditions) {
-    this.conditions = conditions;
-  }
-
   public ClusterDbOpsStatus getDbOps() {
     return dbOps;
   }
 
   public void setDbOps(ClusterDbOpsStatus dbOps) {
     this.dbOps = dbOps;
+  }
+
+  public void setConditions(List<ClusterCondition> conditions) {
+    this.conditions = conditions;
   }
 
   @Override

@@ -10,6 +10,9 @@ import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import com.google.common.collect.ImmutableList;
+import io.stackgres.apiweb.dto.cluster.ClusterInstalledExtension;
+import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsCondition;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsDto;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsNonProduction;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsPersistentVolume;
@@ -18,12 +21,15 @@ import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsSpec;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsSpecAnnotations;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsSpecMetadata;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsStatus;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPersistentVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPodScheduling;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpecAnnotations;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpecMetadata;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 
 @ApplicationScoped
 public class DistributedLogsTransformer
@@ -47,7 +53,7 @@ public class DistributedLogsTransformer
     DistributedLogsDto transformation = new DistributedLogsDto();
     transformation.setMetadata(getResourceMetadata(source));
     transformation.setSpec(getResourceSpec(source.getSpec()));
-    transformation.setStatus(getResourceStatus(clusters));
+    transformation.setStatus(getResourceStatus(source.getStatus(), clusters));
     return transformation;
   }
 
@@ -144,13 +150,11 @@ public class DistributedLogsTransformer
             targetAnnotations.setServices(sourceAnnotations.getServices());
           }
         });
+    if (source.getToInstallPostgresExtensions() != null) {
+      transformation.setToInstallPostgresExtensions(source.getToInstallPostgresExtensions().stream()
+          .map(this::getClusterInstalledExtension).collect(ImmutableList.toImmutableList()));
+    }
 
-    return transformation;
-  }
-
-  private DistributedLogsStatus getResourceStatus(List<String> clusters) {
-    DistributedLogsStatus transformation = new DistributedLogsStatus();
-    transformation.setClusters(clusters);
     return transformation;
   }
 
@@ -169,6 +173,53 @@ public class DistributedLogsTransformer
     }
     DistributedLogsNonProduction transformation = new DistributedLogsNonProduction();
     transformation.setDisableClusterPodAntiAffinity(source.getDisableClusterPodAntiAffinity());
+    return transformation;
+  }
+
+  private DistributedLogsStatus getResourceStatus(StackGresDistributedLogsStatus source,
+      List<String> clusters) {
+    DistributedLogsStatus transformation = new DistributedLogsStatus();
+    transformation.setClusters(clusters);
+
+    if (source == null) {
+      return transformation;
+    }
+
+    final List<StackGresDistributedLogsCondition> sourceConditions = source.getConditions();
+
+    if (sourceConditions != null) {
+      transformation.setConditions(sourceConditions.stream()
+          .map(this::getResourceCondition)
+          .collect(ImmutableList.toImmutableList()));
+    }
+
+    return transformation;
+  }
+
+  private DistributedLogsCondition getResourceCondition(
+      StackGresDistributedLogsCondition source) {
+    DistributedLogsCondition transformation = new DistributedLogsCondition();
+    transformation.setType(source.getType());
+    transformation.setStatus(source.getStatus());
+    transformation.setReason(source.getReason());
+    transformation.setLastTransitionTime(source.getLastTransitionTime());
+    transformation.setMessage(source.getMessage());
+    return transformation;
+  }
+
+  private ClusterInstalledExtension getClusterInstalledExtension(
+      StackGresClusterInstalledExtension source) {
+    if (source == null) {
+      return null;
+    }
+    ClusterInstalledExtension transformation = new ClusterInstalledExtension();
+    transformation.setName(source.getName());
+    transformation.setPublisher(source.getPublisher());
+    transformation.setRepository(source.getRepository());
+    transformation.setVersion(source.getVersion());
+    transformation.setPostgresVersion(source.getPostgresVersion());
+    transformation.setBuild(source.getBuild());
+    transformation.setExtraMounts(source.getExtraMounts());
     return transformation;
   }
 

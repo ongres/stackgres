@@ -64,7 +64,7 @@ public class StackGresClusterStatus implements KubernetesResource {
 
   @Override
   public int hashCode() {
-    return Objects.hash(conditions, podStatuses, dbOps);
+    return Objects.hash(conditions, dbOps, podStatuses);
   }
 
   @Override
@@ -76,9 +76,8 @@ public class StackGresClusterStatus implements KubernetesResource {
       return false;
     }
     StackGresClusterStatus other = (StackGresClusterStatus) obj;
-    return Objects.equals(conditions, other.conditions)
-        && Objects.equals(podStatuses, other.podStatuses)
-        && Objects.equals(dbOps, other.dbOps);
+    return Objects.equals(conditions, other.conditions) && Objects.equals(dbOps, other.dbOps)
+        && Objects.equals(podStatuses, other.podStatuses);
   }
 
   @Override

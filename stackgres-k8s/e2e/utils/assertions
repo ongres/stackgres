@@ -14,7 +14,6 @@ assert_string_contains() {
 }
 
 assert_string_equal(){
-
   EXPECTED="$1"
   ACTUAL="$2"
 
@@ -25,11 +24,9 @@ assert_string_equal(){
     echo "FAIL. $ACTUAL is not equal to $EXPECTED"
     return 1
   fi
-
 }
 
 assert_string_not_equal(){
-
   EXPECTED="$1"
   ACTUAL="$2"
 
@@ -40,7 +37,6 @@ assert_string_not_equal(){
   else
     echo "SUCCESS. $ACTUAL is not equal to $EXPECTED"
   fi
-
 }
 
 assert_greater_than(){

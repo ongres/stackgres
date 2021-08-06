@@ -5,7 +5,6 @@
 
 package io.stackgres.cluster.controller;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -30,12 +29,10 @@ import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operatorframework.reconciliation.ReconciliationCycle;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
-import org.jooq.lambda.Seq;
-import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -48,7 +45,6 @@ public class ClusterControllerReconciliationCycle
   private final EventController eventController;
   private final LabelFactory<StackGresCluster> labelFactory;
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
-  private final ClusterExtensionMetadataManager clusterExtensionMetadataManager;
 
   @Dependent
   public static class Parameters {
@@ -59,7 +55,6 @@ public class ClusterControllerReconciliationCycle
     @Inject EventController eventController;
     @Inject LabelFactory<StackGresCluster> labelFactory;
     @Inject CustomResourceFinder<StackGresCluster> clusterFinder;
-    @Inject ClusterExtensionMetadataManager clusterExtensionMetadataManager;
   }
 
   /**
@@ -74,7 +69,6 @@ public class ClusterControllerReconciliationCycle
     this.eventController = parameters.eventController;
     this.labelFactory = parameters.labelFactory;
     this.clusterFinder = parameters.clusterFinder;
-    this.clusterExtensionMetadataManager = parameters.clusterExtensionMetadataManager;
   }
 
   public ClusterControllerReconciliationCycle() {
@@ -84,7 +78,6 @@ public class ClusterControllerReconciliationCycle
     this.eventController = null;
     this.labelFactory = null;
     this.clusterFinder = null;
-    this.clusterExtensionMetadataManager = null;
   }
 
   public static ClusterControllerReconciliationCycle create(Consumer<Parameters> consumer) {
@@ -168,36 +161,13 @@ public class ClusterControllerReconciliationCycle
   @Override
   protected StackGresClusterContext getContextFromResource(
       StackGresCluster cluster) {
-    Optional<List<StackGresClusterExtension>> extensions =
-        Optional.ofNullable(cluster.getSpec().getPostgresExtensions());
-
     return ImmutableStackGresClusterContext.builder()
         .cluster(cluster)
-        .extensions(Seq.seq(extensions.stream())
-            .flatMap(List::stream)
-            .append(Seq.seq(getDefaultExtensions(cluster))
-                .filter(defaultExtension -> extensions.stream()
-                    .flatMap(List::stream)
-                    .noneMatch(extension -> extension.getName()
-                        .equals(defaultExtension.getName())))))
+        .extensions(Optional.ofNullable(cluster.getSpec())
+            .map(StackGresClusterSpec::getToInstallPostgresExtensions)
+            .orElse(ImmutableList.of()))
         .labels(labelFactory.clusterLabels(cluster))
         .build();
   }
 
-  private ImmutableList<StackGresClusterExtension> getDefaultExtensions(StackGresCluster cluster) {
-    return ImmutableList.of(
-        getExtension(cluster, "plpgsql"),
-        getExtension(cluster, "pg_stat_statements"),
-        getExtension(cluster, "dblink"),
-        getExtension(cluster, "plpython3u"));
-  }
-
-  private StackGresClusterExtension getExtension(StackGresCluster cluster, String extensionName) {
-    StackGresClusterExtension extension = new StackGresClusterExtension();
-    extension.setName(extensionName);
-    extension.setVersion(Unchecked.supplier(
-        () -> clusterExtensionMetadataManager.getExtensionCandidateAnyVersion(
-            cluster, extension)).get().getVersion().getVersion());
-    return extension;
-  }
 }

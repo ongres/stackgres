@@ -7,7 +7,7 @@ package io.stackgres.cluster.common;
 
 import com.google.common.collect.ImmutableList;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.extension.ExtensionReconciliatorContext;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import org.immutables.value.Value.Immutable;
@@ -20,6 +20,6 @@ public abstract class StackGresClusterContext
   public abstract StackGresCluster getCluster();
 
   @Override
-  public abstract ImmutableList<StackGresClusterExtension> getExtensions();
+  public abstract ImmutableList<StackGresClusterInstalledExtension> getExtensions();
 
 }

@@ -7,7 +7,7 @@ package io.stackgres.distributedlogs.common;
 
 import com.google.common.collect.ImmutableList;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.extension.ExtensionReconciliatorContext;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
@@ -23,6 +23,6 @@ public abstract class StackGresDistributedLogsContext
   public abstract StackGresDistributedLogs getDistributedLogs();
 
   @Override
-  public abstract ImmutableList<StackGresClusterExtension> getExtensions();
+  public abstract ImmutableList<StackGresClusterInstalledExtension> getExtensions();
 
 }

@@ -1,4 +1,3 @@
-
 backup:684
 backupconf-removal:16
 connectivity:254
@@ -51,3 +50,16 @@ service-conf:14
 sql-scripts:311
 switchover-and-backup:424
 ui:46
+cluster-api-info:15
+dbops-major-version-upgrade-link-an-clone:433
+dbops-minor-version-upgrade:767
+dbops-security-upgrade:1586
+extensions:1303
+extensions-extra-mounts:400
+operator:785
+operator-cluster-events-api:17
+operator-demo:769
+prometheus-integration-default:858
+prometheus-no-service-monitor:489
+ssl:135
+
