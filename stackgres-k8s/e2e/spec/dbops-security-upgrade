@@ -16,10 +16,13 @@ e2e_test_install() {
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
 
-  load_component_images_from \
-    "$E2E_COMPONENTS_REGISTRY" \
-    "$E2E_COMPONENTS_PATH" \
-    "$STACKGRES_PREVIOUS_VERSION"
+  if [ "$E2E_DISABLE_CACHE" != "true" ]
+  then
+    load_component_images_from \
+      "$E2E_COMPONENTS_REGISTRY" \
+      "$E2E_COMPONENTS_PATH" \
+      "$STACKGRES_PREVIOUS_VERSION"
+  fi
 
   install_prometheus_operator
   install_operator_previous_version \
