@@ -6,15 +6,20 @@
 package io.stackgres.operator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
@@ -67,6 +72,20 @@ class CrdMatchTest {
     }
   }
 
+  private static CustomResourceDefinition getDefinition(JsonNode crdTree) {
+    String declaredKind = crdTree.get("spec").get("names").get("kind").asText();
+    return Optional.ofNullable(definitionsByKind.get(declaredKind))
+        .orElseThrow(() -> new AssertionFailedError("CustomResourceDefinition "
+            + declaredKind + " does not exists. Available kinds: " + definitionsByKind.keySet()));
+  }
+
+  private static Class<? extends CustomResource> getCustomResourceClass(JsonNode crdTree) {
+    String declaredKind = crdTree.get("spec").get("names").get("kind").asText();
+    return Optional.ofNullable(classByKind.get(declaredKind))
+        .orElseThrow(() -> new AssertionFailedError("CustomResourceDefinition "
+            + declaredKind + " does not exists. Available kinds: " + definitionsByKind.keySet()));
+  }
+
   @Test
   void apiVersion_ShouldMatchConfiguredVersion() throws IOException {
     withEveryYaml(crdTree -> {
@@ -75,10 +94,22 @@ class CrdMatchTest {
 
       JsonNode crdInstallVersions = crdTree.get("spec").get("versions");
       String group = crdTree.get("spec").get("group").asText();
-      for (JsonNode crdInstallVersion : crdInstallVersions) {
-        String version = crdInstallVersion.get("name").asText();
-        assertEquals(group + "/" + version, apiVersion, "Kind : " + HasMetadata.getKind(clazz));
-      }
+
+      var matchingSchema = StreamSupport.stream(
+              Spliterators.spliteratorUnknownSize(
+                  crdInstallVersions.elements(),
+                  Spliterator.ORDERED
+              ),
+              false)
+          .filter(crdInstallVersion -> {
+                String version = crdInstallVersion.get("name").asText();
+                return Objects.equals(group + "/" + version, apiVersion);
+              }
+          )
+          .findAny();
+
+      assertTrue(matchingSchema.isPresent(), "Kind : " + HasMetadata.getKind(clazz));
+
     });
   }
 
@@ -86,13 +117,23 @@ class CrdMatchTest {
   void crdVersion_ShouldMatchConfiguredVersion() throws IOException {
     withEveryYaml(crdTree -> {
       JsonNode crdInstallVersions = crdTree.get("spec").get("versions");
-      Class<? extends CustomResource> clazz = getCustomResourceClass(crdTree);
-      for (JsonNode crdInstallVersion : crdInstallVersions) {
-        assertEquals(CRD_VERSION, crdInstallVersion.get("name").asText());
+      crdInstallVersions.elements();
 
-        String version = HasMetadata.getVersion(clazz);
-        assertEquals(CRD_VERSION, version, "Kind : " + HasMetadata.getKind(clazz));
-      }
+      Class<? extends CustomResource> clazz = getCustomResourceClass(crdTree);
+
+      boolean isThereASchemaThatMatches = StreamSupport.stream(
+              Spliterators.spliteratorUnknownSize(
+                  crdInstallVersions.elements(),
+                  Spliterator.ORDERED
+              ),
+              false)
+          .anyMatch(crdInstallVersion ->
+              Objects.equals(CRD_VERSION, crdInstallVersion.get("name").asText())
+                  && Objects.equals(CRD_VERSION, HasMetadata.getVersion(clazz))
+          );
+
+      assertTrue(isThereASchemaThatMatches,
+          "At least one schema should have the version " + CRD_VERSION);
     });
   }
 
@@ -158,20 +199,6 @@ class CrdMatchTest {
       CustomResourceDefinition definition = getDefinition(crdTree);
       assertEquals(metadataName.asText(), definition.getSpec().getScope());
     });
-  }
-
-  private static CustomResourceDefinition getDefinition(JsonNode crdTree) {
-    String declaredKind = crdTree.get("spec").get("names").get("kind").asText();
-    return Optional.ofNullable(definitionsByKind.get(declaredKind))
-        .orElseThrow(() -> new AssertionFailedError("CustomResourceDefinition "
-            + declaredKind + " does not exists. Available kinds: " + definitionsByKind.keySet()));
-  }
-
-  private static Class<? extends CustomResource> getCustomResourceClass(JsonNode crdTree) {
-    String declaredKind = crdTree.get("spec").get("names").get("kind").asText();
-    return Optional.ofNullable(classByKind.get(declaredKind))
-        .orElseThrow(() -> new AssertionFailedError("CustomResourceDefinition "
-            + declaredKind + " does not exists. Available kinds: " + definitionsByKind.keySet()));
   }
 
 }
