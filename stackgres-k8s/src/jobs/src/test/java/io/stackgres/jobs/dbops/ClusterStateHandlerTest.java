@@ -8,6 +8,7 @@ package io.stackgres.jobs.dbops;
 import static io.stackgres.jobs.dbops.clusterrestart.PodTestUtil.assertPodEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -375,7 +376,8 @@ public abstract class ClusterStateHandlerTest {
     final var restartStatus = getRestartStatus(dbOps);
 
     assertTrue(restartStatus.getPendingToRestartInstances().isEmpty());
-    assertEquals(Boolean.TRUE.toString(), restartStatus.getSwitchoverInitiated());
+    assertNotNull(restartStatus.getSwitchoverInitiated());
+    Instant.parse(restartStatus.getSwitchoverInitiated());
     assertEquals(pods.size() + 1, restartStatus.getRestartedInstances().size());
     assertEquals(pods.size(), restartStatus.getInitialInstances().size());
     assertTrue(() -> restartStatus.getFailure() == null

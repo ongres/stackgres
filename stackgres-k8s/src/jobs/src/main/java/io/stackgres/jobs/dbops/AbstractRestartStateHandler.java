@@ -8,6 +8,7 @@ package io.stackgres.jobs.dbops;
 import static io.stackgres.jobs.dbops.clusterrestart.ClusterRestartImpl.REDUCED_IMPACT_METHOD;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -132,7 +133,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
 
       switch (event.getEventType()) {
         case SWITCHOVER:
-          restartStatus.setSwitchoverInitiated(Boolean.TRUE.toString());
+          restartStatus.setSwitchoverInitiated(Instant.now().toString());
           break;
         case POD_RESTART:
           List<String> pendingInstances = restartStatus.getPendingToRestartInstances();
