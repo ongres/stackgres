@@ -11,6 +11,6 @@ import org.jetbrains.annotations.NotNull;
 
 public interface VolumeFactory<T> {
 
-  @NotNull Stream<VolumePair> buildVolumes(T context);
+  @NotNull Stream<VolumePair> buildVolumes(@NotNull T context);
 
 }

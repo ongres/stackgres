@@ -9,6 +9,7 @@ import javax.enterprise.context.ApplicationScoped;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator.Feature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.quarkus.arc.Unremovable;
 
@@ -22,6 +23,7 @@ public class YamlMapperProvider {
     YAMLMapper yamlMapper = new YAMLMapper();
     yamlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     yamlMapper.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
+    yamlMapper.disable(Feature.WRITE_DOC_START_MARKER);
     return yamlMapper;
   }
 

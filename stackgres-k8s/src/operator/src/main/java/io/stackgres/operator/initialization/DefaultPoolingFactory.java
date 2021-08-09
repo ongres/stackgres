@@ -27,7 +27,7 @@ public class DefaultPoolingFactory
     StackGresPoolingConfigSpec spec = new StackGresPoolingConfigSpec();
     final StackGresPoolingConfigPgBouncer pgBouncer = new StackGresPoolingConfigPgBouncer();
     spec.setPgBouncer(pgBouncer);
-    pgBouncer.setPgbouncerConf(getDefaultValues());
+    pgBouncer.setParameters(getDefaultValues());
     config.setSpec(spec);
 
     return config;

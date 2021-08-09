@@ -3,15 +3,16 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling;
+package io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.v09;
 
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
+import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_LOCAL_OVERRIDE;
 import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_SOCKET;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -19,6 +20,7 @@ import javax.inject.Singleton;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
@@ -35,47 +37,66 @@ import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
-import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.Blocklist;
+import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.AbstractPgPooling;
+import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerBlocklist;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerDefaultValues;
 
 @Sidecar("connection-pooling")
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
-@RunningContainer(order = 4)
-public class PgPooling extends AbstractPgPooling {
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
+@RunningContainer(order = 5)
+public class PgBouncerPooling extends AbstractPgPooling {
 
   private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
   private final VolumeMountsProvider<ContainerContext> postgresSocket;
 
   @Inject
-  protected PgPooling(LabelFactory<StackGresCluster> labelFactory,
-                      @ProviderName(CONTAINER_USER_OVERRIDE)
-                          VolumeMountsProvider<ContainerContext> containerUserOverrideMounts,
-                      @ProviderName(POSTGRES_SOCKET)
-                          VolumeMountsProvider<ContainerContext> postgresSocket) {
+  protected PgBouncerPooling(LabelFactory<StackGresCluster> labelFactory,
+      @ProviderName(CONTAINER_LOCAL_OVERRIDE)
+        VolumeMountsProvider<ContainerContext> containerUserOverrideMounts,
+      @ProviderName(POSTGRES_SOCKET)
+        VolumeMountsProvider<ContainerContext> postgresSocket) {
     super(labelFactory);
     this.containerUserOverrideMounts = containerUserOverrideMounts;
     this.postgresSocket = postgresSocket;
   }
 
   @Override
-  protected Map<String, String> getParameters(Optional<StackGresPoolingConfig> pgbouncerConfig) {
-    Map<String, String> newParams = pgbouncerConfig.map(StackGresPoolingConfig::getSpec)
+  protected String getImageName() {
+    return "docker.io/ongres/pgbouncer:v1.13.0-build-6.0";
+  }
+
+  @Override
+  protected String getConfigFile(Optional<StackGresPoolingConfig> poolingConfig) {
+    var newParams = poolingConfig
+        .map(StackGresPoolingConfig::getSpec)
         .map(StackGresPoolingConfigSpec::getPgBouncer)
-        .map(StackGresPoolingConfigPgBouncer::getPgbouncerConf)
+        .map(StackGresPoolingConfigPgBouncer::getParameters)
         .orElseGet(HashMap::new);
-    for (String bl : Blocklist.getBlocklistParameters()) {
-      newParams.remove(bl);
-    }
-    Map<String, String> params = pgbouncerConfig.map(StackGresPoolingConfig::getStatus)
+
+    // Blocklist removal
+    PgBouncerBlocklist.getBlocklistParameters().forEach(bl -> newParams.remove(bl));
+
+    Map<String, String> parameters = poolingConfig
+        .map(StackGresPoolingConfig::getStatus)
         .map(StackGresPoolingConfigStatus::getPgBouncer)
         .map(StackGresPoolingConfigPgBouncerStatus::getDefaultParameters)
         .map(HashMap::new)
         .orElseGet(() -> new HashMap<>(PgBouncerDefaultValues.getDefaultValues()));
-    for (Map.Entry<String, String> entry : newParams.entrySet()) {
-      params.put(entry.getKey(), entry.getValue());
-    }
-    return params;
+
+    parameters.putAll(DEFAULT_PARAMETERS);
+    parameters.putAll(newParams);
+
+    String pgBouncerConfig = parameters.entrySet().stream()
+        .map(entry -> entry.getKey() + " = " + entry.getValue())
+        .collect(Collectors.joining("\n"));
+
+    return "[databases]\n"
+        + " * = port = " + EnvoyUtil.PG_PORT + "\n"
+        + "\n"
+        + "[pgbouncer]\n"
+        + pgBouncerConfig
+        + "\n";
   }
 
   @Override

@@ -13,6 +13,8 @@ public enum ErrorType {
       "Some fields do not comply with the syntactic rules"),
   PG_CONFIG_BLOCKLIST("postgres-blocklist",
       "The postgres configuration contains blocklisted parameters"),
+  POOL_CONFIG_BLOCKLIST("pooling-blocklist",
+      "The pgbouncer configuration contains blocklisted parameters"),
   PG_VERSION_MISMATCH("postgres-major-version-mismatch", "Postgres versions doesn't match"),
   INVALID_CR_REFERENCE("invalid-configuration-reference",
       "Invalid configuration reference"),

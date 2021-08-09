@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.mutation.pgbouncer;
 
-import java.util.HashMap;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
@@ -29,7 +29,7 @@ class PgBouncerDefaultValuesMutatorTest
   protected PoolingReview getEmptyReview() {
     PoolingReview review = JsonUtil
         .readFromJson("pooling_allow_request/create.json", PoolingReview.class);
-    review.getRequest().getObject().getSpec().getPgBouncer().setPgbouncerConf(new HashMap<>());
+    review.getRequest().getObject().getSpec().getPgBouncer().setParameters(Map.of());
     return review;
   }
 

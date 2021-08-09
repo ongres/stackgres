@@ -33,6 +33,9 @@ public class PgBouncerDefaultValues {
     Properties properties = new Properties();
     try (InputStream is = PgBouncerDefaultValues.class.getResourceAsStream(
         "/pgbouncer-default-values.properties")) {
+      if (is == null) {
+        throw new IOException("Couldn't read pgbouncer-default-values.properties");
+      }
       properties.load(is);
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);

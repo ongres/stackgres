@@ -8,31 +8,31 @@ package io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.para
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.util.List;
 import java.util.Properties;
-import java.util.stream.Collectors;
+import java.util.Set;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
-public class Blocklist {
+public class PgBouncerBlocklist {
 
-  private static final List<String> BLOCKLIST;
+  private static final Set<String> BLOCKLIST;
 
   static {
-    BLOCKLIST = ImmutableList.<String>builder()
-        .addAll(readResource().entrySet().stream()
-            .filter(e -> !e.getKey().toString().isEmpty())
-            .map(e -> e.getKey().toString())
-            .collect(Collectors.toList()))
-        .build();
+    BLOCKLIST = readResource().entrySet().stream()
+        .filter(e -> !e.getKey().toString().isEmpty())
+        .map(e -> e.getKey().toString())
+        .collect(ImmutableSet.toImmutableSet());
   }
 
-  private Blocklist() {}
+  private PgBouncerBlocklist() {}
 
   private static Properties readResource() {
     Properties properties = new Properties();
-    try (InputStream is = Blocklist.class.getResourceAsStream(
+    try (InputStream is = PgBouncerBlocklist.class.getResourceAsStream(
         "/pgbouncer-blocklist.properties")) {
+      if (is == null) {
+        throw new IOException("Couldn't read pgbouncer-blocklist.properties");
+      }
       properties.load(is);
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
@@ -40,7 +40,7 @@ public class Blocklist {
     return properties;
   }
 
-  public static List<String> getBlocklistParameters() {
+  public static Set<String> getBlocklistParameters() {
     return BLOCKLIST;
   }
 

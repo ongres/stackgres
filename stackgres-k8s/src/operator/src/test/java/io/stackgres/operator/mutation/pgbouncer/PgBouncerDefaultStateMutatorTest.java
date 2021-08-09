@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.mutation.pgbouncer;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -30,7 +29,7 @@ class PgBouncerDefaultStateMutatorTest
   protected PoolingReview getEmptyReview() {
     PoolingReview review = JsonUtil
         .readFromJson("pooling_allow_request/create.json", PoolingReview.class);
-    review.getRequest().getObject().getSpec().getPgBouncer().setPgbouncerConf(new HashMap<>());
+    review.getRequest().getObject().getSpec().getPgBouncer().setParameters(Map.of());
     return review;
   }
 
@@ -58,7 +57,7 @@ class PgBouncerDefaultStateMutatorTest
 
   @Override
   protected Map<String, String> getConfigParameters(StackGresPoolingConfig resource) {
-    return resource.getSpec().getPgBouncer().getPgbouncerConf();
+    return resource.getSpec().getPgBouncer().getParameters();
   }
 
 }

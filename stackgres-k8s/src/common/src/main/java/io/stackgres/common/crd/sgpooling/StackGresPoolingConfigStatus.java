@@ -41,15 +41,15 @@ public class StackGresPoolingConfigStatus implements KubernetesResource {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof StackGresPoolingConfigStatus)) {
       return false;
     }
-    StackGresPoolingConfigStatus that = (StackGresPoolingConfigStatus) o;
-    return Objects.equals(pgBouncer, that.pgBouncer);
+    StackGresPoolingConfigStatus other = (StackGresPoolingConfigStatus) obj;
+    return Objects.equals(pgBouncer, other.pgBouncer);
   }
 
   @Override

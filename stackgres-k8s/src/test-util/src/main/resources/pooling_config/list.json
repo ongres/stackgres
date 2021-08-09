@@ -10,7 +10,7 @@
         "name": "pgbouncerconf",
         "namespace": "stackgres",
         "resourceVersion": "214286",
-        "selfLink": "/apis/stackgres.io/v1/namespaces/default/sgpoolconfigs/pgbouncerconf",
+        "selfLink": "/apis/stackgres.io/v1/namespaces/stackgres/sgpoolconfigs/pgbouncerconf",
         "uid": "ceaa793f-2d97-48b7-91e4-8086b22f1c4c"
       },
       "spec": {
@@ -19,7 +19,26 @@
             "default_pool_size": "200",
             "max_client_conn": "100",
             "pool_mode": "'transaction'"
-          }
+          },
+		  "databases": {
+			"foodb": {
+				"dbname": "bardb",
+				"pool_size": "10"
+			},
+			"sgdb": {
+				"pool_mode": "statement",
+				"max_db_connections": "1000"
+			}
+	      },
+		  "users": {
+			"user1": {
+				"max_user_connections": "30"
+			},
+			"user2": {
+				"pool_mode": "session",
+				"max_user_connections": "100"
+			}
+	      }
         }
       },
       "status": {

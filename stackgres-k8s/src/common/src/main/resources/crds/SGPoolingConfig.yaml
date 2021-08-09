@@ -40,12 +40,29 @@ spec:
                   properties:
                     pgbouncer.ini:
                       type: object
-                      additionalProperties:
-                        type: string
+                      additionalProperties: true
                       description: |
                         The `pgbouncer.ini` parameters the configuration contains, represented as an object where the keys are valid names for the `pgbouncer.ini` configuration file parameters.
 
-                        Check [pgbouncer configuration](https://www.pgbouncer.org/config.html) for more information about supported parameters.
+                        Check [pgbouncer configuration](https://www.pgbouncer.org/config.html#generic-settings) for more information about supported parameters.
+                    databases:
+                      type: object
+                      additionalProperties:
+                        type: object
+                        additionalProperties: true
+                      description: |
+                        The `pgbouncer.ini` (Section [databases]) parameters the configuration contains, represented as an object where the keys are valid names for the `pgbouncer.ini` configuration file parameters.
+
+                        Check [pgbouncer configuration](https://www.pgbouncer.org/config.html#section-databases) for more information about supported parameters.
+                    users:
+                      type: object
+                      additionalProperties:
+                        type: object
+                        additionalProperties: true
+                      description: |
+                        The `pgbouncer.ini` (Section [users]) parameters the configuration contains, represented as an object where the keys are valid names for the `pgbouncer.ini` configuration file parameters.
+
+                        Check [pgbouncer configuration](https://www.pgbouncer.org/config.html#section-users) for more information about supported parameters.
             status:
               type: object
               properties:

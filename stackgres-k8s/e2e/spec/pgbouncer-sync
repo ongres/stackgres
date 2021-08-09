@@ -6,6 +6,7 @@ e2e_test_install() {
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
   PGCBOUNCER="pgbouncer"
+
   cat <<EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1
 kind: SGInstanceProfile
@@ -16,6 +17,7 @@ spec:
   cpu: '500m'
   memory: '512Mi'
 EOF
+
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
 kind: SGPoolingConfig
@@ -27,6 +29,20 @@ spec:
     pgbouncer.ini:
       max_client_conn: '2000'
       default_pool_size: '50'
+    databases:
+      foodb:
+        max_db_connections: 1000
+        pool_size: 20
+        dbname: 'bardb'
+        reserve_pool: 5
+        datestyle: 'ISO'
+    users:
+      user1:
+        pool_mode: transaction
+        max_user_connections: 50
+      user2:
+        pool_mode: session
+        max_user_connections: '100'
 EOF
 
   cat << EOF | kubectl create -f -
@@ -43,7 +59,7 @@ spec:
   sgInstanceProfile: 'size-xs'
   pods:
     persistentVolume:
-      size: '128Mi'
+      size: '32Mi'
     scheduling:
       nodeSelector:
         $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
@@ -58,26 +74,69 @@ e2e_test() {
   run_test "max_client_conn should appear in pgbouncer configmap only once" check_pgbouncer_max_client_conn
 
   run_test "default_pool_size should appear in pgbouncer configmap only once" check_pgbouncer_default_pool_size
+
+  run_test "databases section should appear in pgbouncer configmap" check_pgbouncer_database
+
+  run_test "users section should appear in pgbouncer configmap" check_pgbouncer_users
+
+  run_test "default parameters should appear in pgbouncer configmap" check_pgbouncer_defaults
 }
 
 check_pgbouncer_max_client_conn(){
-  check_parameter_count "max_db_connections"
+  check_parameter_count "max_db_connections" 2
 }
 
 check_pgbouncer_default_pool_size(){
-  check_parameter_count "default_pool_size"
+  check_parameter_count "default_pool_size" 1
+}
+
+check_pgbouncer_database(){
+  check_pgbouncer_data "foodb" "dbname=bardb"
+  check_pgbouncer_data "foodb" "max_db_connections=1000"
+  check_pgbouncer_data "foodb" "reserve_pool=5"
+  check_pgbouncer_data "foodb" "datestyle=ISO"
+}
+
+check_pgbouncer_users(){
+  check_pgbouncer_data "user1" "pool_mode=transaction"
+  check_pgbouncer_data "user1" "max_user_connections=50"
+  check_pgbouncer_data "user2" "pool_mode=session"
+  check_pgbouncer_data "user2" "max_user_connections=100"
+}
+
+check_pgbouncer_defaults(){
+  check_pgbouncer_data "auth_user" "authenticator"
+  check_pgbouncer_data "auth_type" "md5"
+  check_pgbouncer_data "ignore_startup_parameters" "extra_float_digits"
+  check_pgbouncer_data "application_name_add_host" "1"
+  check_pgbouncer_data "listen_port" "6432"
+  check_pgbouncer_data "unix_socket_dir" "/var/run/postgresql"
+}
+
+check_pgbouncer_data(){
+  get_pgbouncer_configmap | grep "$1 = " | grep "$2"
+  if [ $? -eq 0 ]; then
+    echo "SUCCESS. $2 is appearing for the $1"
+  else
+    echo "FAIL. $2 is not appearing"
+    return 1
+  fi
 }
 
 check_parameter_count(){
   PARAM=$1
-  PARAM_COUNT=$(kubectl get configmaps -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-connection-pooling-config" -o json \
-    | jq '.data["pgbouncer.ini"]' -r | grep -c "$PARAM")
+  COUNT=$2
+  PARAM_COUNT=$(get_pgbouncer_configmap | grep -c "$PARAM")
 
-  if assert_string_equal "1" "$PARAM_COUNT"
+  if assert_string_equal "$COUNT" "$PARAM_COUNT"
   then
-    echo "SUCCESS. $PARAM is appearing only once"
+    echo "SUCCESS. $PARAM is appearing only $COUNT time(s)"
   else
     echo "FAIL. $PARAM is appearing more than once"
     return 1
   fi
+}
+
+get_pgbouncer_configmap() {
+  kubectl get cm -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-connection-pooling-config" -o json | jq -r '.data."pgbouncer.ini"'
 }

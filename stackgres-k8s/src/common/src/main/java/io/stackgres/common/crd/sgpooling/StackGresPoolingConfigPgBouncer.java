@@ -8,6 +8,7 @@ package io.stackgres.common.crd.sgpooling;
 import java.util.Map;
 import java.util.Objects;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -23,19 +24,43 @@ public class StackGresPoolingConfigPgBouncer {
 
   @JsonProperty("pgbouncer.ini")
   @NotEmpty(message = "pgbouncer.ini should not be empty")
-  private Map<String, String> pgbouncerConf;
+  private Map<String, String> parameters;
 
-  public Map<String, String> getPgbouncerConf() {
-    return pgbouncerConf;
+  @JsonProperty("databases")
+  @Valid
+  private Map<String, Map<String, String>> databases;
+
+  @JsonProperty("users")
+  @Valid
+  private Map<String, Map<String, String>> users;
+
+  public Map<String, String> getParameters() {
+    return parameters;
   }
 
-  public void setPgbouncerConf(Map<String, String> pgbouncerConf) {
-    this.pgbouncerConf = pgbouncerConf;
+  public void setParameters(Map<String, String> parameters) {
+    this.parameters = parameters;
+  }
+
+  public Map<String, Map<String, String>> getDatabases() {
+    return databases;
+  }
+
+  public void setDatabases(Map<String, Map<String, String>> databases) {
+    this.databases = databases;
+  }
+
+  public Map<String, Map<String, String>> getUsers() {
+    return users;
+  }
+
+  public void setUsers(Map<String, Map<String, String>> users) {
+    this.users = users;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(pgbouncerConf);
+    return Objects.hash(databases, parameters, users);
   }
 
   @Override
@@ -47,7 +72,9 @@ public class StackGresPoolingConfigPgBouncer {
       return false;
     }
     StackGresPoolingConfigPgBouncer other = (StackGresPoolingConfigPgBouncer) obj;
-    return Objects.equals(pgbouncerConf, other.pgbouncerConf);
+    return Objects.equals(databases, other.databases)
+        && Objects.equals(parameters, other.parameters)
+        && Objects.equals(users, other.users);
   }
 
   @Override

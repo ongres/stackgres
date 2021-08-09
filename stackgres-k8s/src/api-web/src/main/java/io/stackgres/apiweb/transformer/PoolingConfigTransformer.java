@@ -5,14 +5,22 @@
 
 package io.stackgres.apiweb.transformer;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import com.google.common.collect.ImmutableMap;
 import io.stackgres.apiweb.dto.pooling.PgBouncerIniParameter;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigDto;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigPgBouncer;
@@ -23,6 +31,9 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
+import org.apache.commons.configuration2.INIConfiguration;
+import org.apache.commons.configuration2.SubnodeConfiguration;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple3;
 
@@ -31,7 +42,7 @@ public class PoolingConfigTransformer
     extends AbstractDependencyResourceTransformer<PoolingConfigDto, StackGresPoolingConfig> {
 
   private static final Pattern PARAMETER_PATTERN = Pattern.compile(
-      "^\\s*([^\\s=]+)\\s*=\\s*(:?'([^']+)'|([^ ]+))\\s*$");
+      "([^\\s=]+)\\s*=\\s*(:?'([^']+)'|[^ ]+)");
 
   @Override
   public StackGresPoolingConfig toCustomResource(PoolingConfigDto source,
@@ -57,35 +68,124 @@ public class PoolingConfigTransformer
       return null;
     }
     StackGresPoolingConfigSpec transformation = new StackGresPoolingConfigSpec();
-    Optional.ofNullable(source)
-        .map(PoolingConfigSpec::getPgBouncer)
-        .map(PoolingConfigPgBouncer::getPgbouncerConf)
-        .ifPresent(pgbouncerConf -> {
-          transformation.setPgBouncer(new StackGresPoolingConfigPgBouncer());
-          transformation.getPgBouncer().setPgbouncerConf(Seq.of(pgbouncerConf.split("\n"))
-              .map(line -> line.replaceAll("#.*$", ""))
-              .skipUntil(line -> !pgbouncerConf.contains("[pgbouncer]")
-                  || line.matches("^\\s*\\[pgbouncer\\]\\s*$"))
-              .limitUntil(line -> line.matches("^\\s*\\[.*$"))
-              .map(PARAMETER_PATTERN::matcher)
-              .filter(Matcher::matches)
-              .collect(ImmutableMap.toImmutableMap(
-                  matcher -> matcher.group(1),
-                  matcher -> matcher.group(2) != null
-                      ? matcher.group(2) : matcher.group(3))));
+    transformation.setPgBouncer(new StackGresPoolingConfigPgBouncer());
 
+    Optional<PoolingConfigPgBouncer> pgbouncer =
+        Optional.of(source).map(PoolingConfigSpec::getPgBouncer);
+
+    INIConfiguration iniConfiguration = new INIConfiguration();
+    pgbouncer.map(PoolingConfigPgBouncer::getParameters)
+        .ifPresent(ini -> {
+          try {
+            String cleanup = ini.lines()
+                .filter(p -> !p.startsWith("%include"))
+                .map(m -> {
+                  if (m.indexOf('=') != -1) {
+                    int indexOfEquals = m.indexOf('=');
+                    return m.substring(0, indexOfEquals) + " = \""
+                        + m.substring(indexOfEquals + 1, m.length()) + "\"";
+                  }
+                  return m;
+                })
+                .collect(Collectors.joining("\n"));
+            iniConfiguration.read(new StringReader(cleanup));
+          } catch (ConfigurationException | IOException cause) {
+            throw new RuntimeException("Could not read INI configuration", cause);
+          }
         });
+
+    for (String sectionName : iniConfiguration.getSections()) {
+      SubnodeConfiguration section = iniConfiguration.getSection(sectionName);
+      if (section != null) {
+        Iterator<String> keys = section.getKeys();
+        while (keys.hasNext()) {
+          String key = keys.next();
+          String value = section.getString(key);
+          if (value != null) {
+            if ("pgbouncer".equals(sectionName) || sectionName == null) {
+              if (transformation.getPgBouncer().getParameters() == null) {
+                transformation.getPgBouncer().setParameters(new HashMap<>());
+              }
+              transformation.getPgBouncer()
+                  .getParameters().put(key, value);
+            }
+            if ("databases".equals(sectionName)) {
+              if (transformation.getPgBouncer().getDatabases() == null) {
+                transformation.getPgBouncer().setDatabases(new HashMap<>());
+              }
+              var databases = new HashMap<String, String>();
+              Matcher matcher = PARAMETER_PATTERN.matcher(value);
+              while (matcher.find()) {
+                String keyItem = matcher.group(1);
+                String valueItem = matcher.group(2);
+                databases.put(keyItem, valueItem);
+              }
+              transformation.getPgBouncer().getDatabases()
+                  .put(key, databases);
+            }
+            if ("users".equals(sectionName)) {
+              if (transformation.getPgBouncer().getUsers() == null) {
+                transformation.getPgBouncer().setUsers(new HashMap<>());
+              }
+              var users = new HashMap<String, String>();
+              Matcher matcher = PARAMETER_PATTERN.matcher(value);
+              while (matcher.find()) {
+                final String keyItem = matcher.group(1);
+                final String valueItem = matcher.group(2);
+                users.put(keyItem, valueItem);
+              }
+              transformation.getPgBouncer().getUsers()
+                  .put(key, users);
+            }
+          }
+        }
+      }
+    }
     return transformation;
   }
 
   private PoolingConfigSpec getResourceSpec(StackGresPoolingConfigSpec source) {
     PoolingConfigSpec transformation = new PoolingConfigSpec();
     transformation.setPgBouncer(new PoolingConfigPgBouncer());
-    transformation.getPgBouncer().setPgbouncerConf(
-        Seq.seq(source.getPgBouncer().getPgbouncerConf().entrySet())
-            .map(e -> e.getKey() + "=" + e.getValue())
-            .toString("\n"));
+
+    INIConfiguration ini = new INIConfiguration();
+    StackGresPoolingConfigPgBouncer pgBouncer = source.getPgBouncer();
+    if (pgBouncer.getDatabases() != null) {
+      addPropertiesToIni(source.getPgBouncer().getDatabases().entrySet(), ini, "databases");
+    }
+
+    if (pgBouncer.getUsers() != null) {
+      addPropertiesToIni(pgBouncer.getUsers().entrySet(), ini, "users");
+    }
+
+    if (pgBouncer.getParameters() != null) {
+      pgBouncer.getParameters().entrySet().stream()
+          .sorted(Map.Entry.comparingByKey())
+          .forEach(entry -> {
+            ini.addProperty("pgbouncer." + entry.getKey(), entry.getValue());
+          });
+    }
+
+    StringWriter stringWriter = new StringWriter();
+    try {
+      ini.write(stringWriter);
+    } catch (ConfigurationException | IOException cause) {
+      throw new RuntimeException("Could not write INI configuration", cause);
+    }
+
+    transformation.getPgBouncer().setParameters(stringWriter.toString());
     return transformation;
+  }
+
+  private void addPropertiesToIni(Set<Entry<String, Map<String, String>>> source,
+      INIConfiguration target, String section) {
+    source.stream().sorted(Map.Entry.comparingByKey())
+        .forEach(entry -> {
+          String params = entry.getValue().entrySet().stream()
+              .map(e -> e.getKey() + "=" + e.getValue())
+              .collect(Collectors.joining(" "));
+          target.addProperty(section + "." + entry.getKey(), params);
+        });
   }
 
   private PoolingConfigStatus getResourceStatus(List<String> clusters,
@@ -93,13 +193,13 @@ public class PoolingConfigTransformer
     PoolingConfigStatus transformation = new PoolingConfigStatus();
     transformation.setClusters(clusters);
     transformation.setPgBouncer(new PoolingConfigPgBouncerStatus());
-    transformation.getPgBouncer().setPgbouncerConf(
-        Seq.seq(sourceSpec.getPgBouncer().getPgbouncerConf())
-          .map(t -> t.concat(new PgBouncerIniParameter()))
-          .peek(t -> t.v3.setParameter(t.v1))
-          .peek(t -> t.v3.setValue(t.v2))
-          .map(Tuple3::v3)
-          .toList());
+    transformation.getPgBouncer().setParameters(
+        Seq.seq(sourceSpec.getPgBouncer().getParameters())
+            .map(t -> t.concat(new PgBouncerIniParameter()))
+            .peek(t -> t.v3.setParameter(t.v1))
+            .peek(t -> t.v3.setValue(t.v2))
+            .map(Tuple3::v3)
+            .toList());
     if (source != null && source.getPgBouncer() != null) {
       transformation.getPgBouncer().setDefaultParameters(
           source.getPgBouncer().getDefaultParameters());

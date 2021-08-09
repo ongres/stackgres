@@ -17,14 +17,14 @@ import io.stackgres.common.StackGresUtil;
 public class PoolingConfigPgBouncer {
 
   @JsonProperty("pgbouncer.ini")
-  private String pgbouncerConf;
+  private String parameters;
 
-  public String getPgbouncerConf() {
-    return pgbouncerConf;
+  public String getParameters() {
+    return parameters;
   }
 
-  public void setPgbouncerConf(String pgbouncerConf) {
-    this.pgbouncerConf = pgbouncerConf;
+  public void setParameters(String parameters) {
+    this.parameters = parameters;
   }
 
   @Override
