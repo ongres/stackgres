@@ -121,13 +121,13 @@ public class ClusterRestartImpl implements ClusterRestart {
         restartChain = waitForClusterToBeHealthy(clusterRestartState, restartChain);
       }
 
-      if (!clusterRestartState.isSwitchoverInitiated()
+      if (!clusterRestartState.isSwitchoverFinalized()
           && clusterRestartState.hasToBeRestarted(primaryInstance)) {
         restartChain = restartChain
             .onItem()
             .invoke(() -> em.emit(ImmutableRestartEvent.builder()
                 .pod(primaryInstance)
-                .eventType(RestartEventType.SWITCHOVER)
+                .eventType(RestartEventType.SWITCHOVER_INITIATED)
                 .build()))
             .onItem()
             .invoke(() -> LOGGER.info("Performing Switchover over cluster {}", clusterName))
@@ -135,7 +135,12 @@ public class ClusterRestartImpl implements ClusterRestart {
                 switchoverHandler.performSwitchover(
                     clusterRestartState.getPrimaryInstance().getMetadata().getName(),
                     clusterName, clusterRestartState.getNamespace())
-            );
+            )
+            .onItem()
+            .invoke(() -> em.emit(ImmutableRestartEvent.builder()
+                .pod(primaryInstance)
+                .eventType(RestartEventType.SWITCHOVER_FINALIZED)
+                .build()));
 
         restartChain = waitForClusterToBeHealthy(clusterRestartState, restartChain);
       }

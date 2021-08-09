@@ -33,6 +33,9 @@ public class DbOpsSecurityUpgradeStatus {
   @JsonProperty("switchoverInitiated")
   private String switchoverInitiated;
 
+  @JsonProperty("switchoverFinalized")
+  private String switchoverFinalized;
+
   @JsonProperty("failure")
   private String failure;
 
@@ -74,6 +77,14 @@ public class DbOpsSecurityUpgradeStatus {
 
   public void setSwitchoverInitiated(String switchoverInitiated) {
     this.switchoverInitiated = switchoverInitiated;
+  }
+
+  public String getSwitchoverFinalized() {
+    return switchoverFinalized;
+  }
+
+  public void setSwitchoverFinalized(String switchoverFinalized) {
+    this.switchoverFinalized = switchoverFinalized;
   }
 
   public String getFailure() {

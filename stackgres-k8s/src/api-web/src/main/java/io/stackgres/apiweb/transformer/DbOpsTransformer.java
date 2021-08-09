@@ -474,6 +474,7 @@ public class DbOpsTransformer
     transformation.setPendingToRestartInstances(source.getPendingToRestartInstances());
     transformation.setRestartedInstances(source.getRestartedInstances());
     transformation.setSwitchoverInitiated(source.getSwitchoverInitiated());
+    transformation.setSwitchoverFinalized(source.getSwitchoverFinalized());
     transformation.setFailure(source.getFailure());
     return transformation;
   }
@@ -489,6 +490,7 @@ public class DbOpsTransformer
     transformation.setPendingToRestartInstances(source.getPendingToRestartInstances());
     transformation.setRestartedInstances(source.getRestartedInstances());
     transformation.setSwitchoverInitiated(source.getSwitchoverInitiated());
+    transformation.setSwitchoverFinalized(source.getSwitchoverFinalized());
     transformation.setFailure(source.getFailure());
     return transformation;
   }
@@ -504,6 +506,7 @@ public class DbOpsTransformer
     transformation.setPendingToRestartInstances(source.getPendingToRestartInstances());
     transformation.setRestartedInstances(source.getRestartedInstances());
     transformation.setSwitchoverInitiated(source.getSwitchoverInitiated());
+    transformation.setSwitchoverFinalized(source.getSwitchoverFinalized());
     transformation.setFailure(source.getFailure());
     return transformation;
   }

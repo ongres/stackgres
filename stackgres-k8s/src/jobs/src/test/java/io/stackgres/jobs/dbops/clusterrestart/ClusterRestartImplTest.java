@@ -131,6 +131,7 @@ class ClusterRestartImplTest {
             replica1, RestartReasons.of(),
             replica2, RestartReasons.of()))
         .isSwitchoverInitiated(false)
+        .isSwitchoverFinalized(false)
         .build();
 
     when(podRestart.restartPod(any(Pod.class))).thenAnswer(invocationOnMock -> {
@@ -161,9 +162,16 @@ class ClusterRestartImplTest {
         "it should not create a pod in InPlace restart");
 
     assertEquals(1,
-        events.stream().filter(event -> event.getEventType() == RestartEventType.SWITCHOVER)
-            .count(),
-        "it should perform a switchover");
+        events.stream()
+          .filter(event -> event.getEventType() == RestartEventType.SWITCHOVER_INITIATED)
+          .count(),
+        "it should initiate a switchover");
+
+    assertEquals(1,
+        events.stream()
+          .filter(event -> event.getEventType() == RestartEventType.SWITCHOVER_FINALIZED)
+          .count(),
+        "it should finalize a switchover");
 
     assertEquals(1,
         events.stream().filter(event -> event.getEventType() == RestartEventType.POSTGRES_RESTART)
@@ -210,6 +218,7 @@ class ClusterRestartImplTest {
             replica1, RestartReasons.of(),
             replica2, RestartReasons.of()))
         .isSwitchoverInitiated(false)
+        .isSwitchoverFinalized(false)
         .build();
 
     when(podRestart.restartPod(any(Pod.class))).thenAnswer(invocationOnMock -> {
@@ -238,9 +247,16 @@ class ClusterRestartImplTest {
         "it should not create a pod in InPlace restart");
 
     assertEquals(1,
-        events.stream().filter(event -> event.getEventType() == RestartEventType.SWITCHOVER)
-            .count(),
-        "it should perform a switchover");
+        events.stream()
+          .filter(event -> event.getEventType() == RestartEventType.SWITCHOVER_INITIATED)
+          .count(),
+        "it should initiate a switchover");
+
+    assertEquals(1,
+        events.stream()
+          .filter(event -> event.getEventType() == RestartEventType.SWITCHOVER_FINALIZED)
+          .count(),
+        "it should finalize a switchover");
 
     assertEquals(0,
         events.stream().filter(event -> event.getEventType() == RestartEventType.POSTGRES_RESTART)
@@ -283,6 +299,7 @@ class ClusterRestartImplTest {
             replica1, RestartReasons.of(RestartReason.PATRONI),
             replica2, RestartReasons.of()))
         .isSwitchoverInitiated(false)
+        .isSwitchoverFinalized(false)
         .build();
 
     when(podRestart.restartPod(any(Pod.class))).thenAnswer(invocationOnMock -> {
@@ -306,9 +323,16 @@ class ClusterRestartImplTest {
         "it should not create a pod in InPlace restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType() == RestartEventType.SWITCHOVER)
-            .count(),
-        "it should not perform a switchover");
+        events.stream()
+          .filter(event -> event.getEventType() == RestartEventType.SWITCHOVER_INITIATED)
+          .count(),
+        "it should not initiate a switchover");
+
+    assertEquals(0,
+        events.stream()
+          .filter(event -> event.getEventType() == RestartEventType.SWITCHOVER_FINALIZED)
+          .count(),
+        "it should not finalize a switchover");
 
     final InOrder order = inOrder(podRestart, postgresRestart, switchoverHandler, clusterWatcher);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
@@ -342,6 +366,7 @@ class ClusterRestartImplTest {
             replica1, RestartReasons.of(),
             replica2, RestartReasons.of()))
         .isSwitchoverInitiated(false)
+        .isSwitchoverFinalized(false)
         .build();
 
     when(podRestart.restartPod(any(Pod.class))).thenAnswer(invocationOnMock -> {
@@ -372,9 +397,16 @@ class ClusterRestartImplTest {
         "it should not create a pod in InPlace restart");
 
     assertEquals(1,
-        events.stream().filter(event -> event.getEventType() == RestartEventType.SWITCHOVER)
-            .count(),
-        "it should perform a switchover");
+        events.stream()
+          .filter(event -> event.getEventType() == RestartEventType.SWITCHOVER_INITIATED)
+          .count(),
+        "it should initiate a switchover");
+
+    assertEquals(1,
+        events.stream()
+          .filter(event -> event.getEventType() == RestartEventType.SWITCHOVER_FINALIZED)
+          .count(),
+        "it should finalize a switchover");
 
     final InOrder order = inOrder(podRestart, postgresRestart, switchoverHandler, clusterWatcher);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
@@ -412,6 +444,7 @@ class ClusterRestartImplTest {
             replica1, RestartReasons.of(),
             replica2, RestartReasons.of()))
         .isSwitchoverInitiated(false)
+        .isSwitchoverFinalized(false)
         .build();
 
     when(podRestart.restartPod(any(Pod.class))).thenAnswer(invocationOnMock -> {
@@ -440,9 +473,16 @@ class ClusterRestartImplTest {
         "it should not create a pod in InPlace restart");
 
     assertEquals(1,
-        events.stream().filter(event -> event.getEventType() == RestartEventType.SWITCHOVER)
-            .count(),
-        "it should perform a switchover");
+        events.stream()
+          .filter(event -> event.getEventType() == RestartEventType.SWITCHOVER_INITIATED)
+          .count(),
+        "it should initiate a switchover");
+
+    assertEquals(1,
+        events.stream()
+          .filter(event -> event.getEventType() == RestartEventType.SWITCHOVER_FINALIZED)
+          .count(),
+        "it should finalize a switchover");
 
     assertEquals(0,
         events.stream().filter(event -> event.getEventType() == RestartEventType.POSTGRES_RESTART)
@@ -483,6 +523,7 @@ class ClusterRestartImplTest {
             replica1, RestartReasons.of(),
             replica2, RestartReasons.of()))
         .isSwitchoverInitiated(true)
+        .isSwitchoverFinalized(true)
         .build();
 
     when(podRestart.restartPod(any(Pod.class))).thenAnswer(invocationOnMock -> {
@@ -507,9 +548,17 @@ class ClusterRestartImplTest {
         "it should not create a pod in InPlace restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType() == RestartEventType.SWITCHOVER)
-            .count(),
-        "it should not perform a switchover");
+        events.stream()
+          .filter(event -> event.getEventType() == RestartEventType.SWITCHOVER_INITIATED)
+          .count(),
+        "it should not initiate a switchover");
+
+    assertEquals(0,
+        events.stream()
+          .filter(event -> event.getEventType() == RestartEventType.SWITCHOVER_FINALIZED)
+          .count(),
+        "it should not finalize a switchover");
+
     assertEquals(0,
         events.stream().filter(event -> event.getEventType() == RestartEventType.POSTGRES_RESTART)
             .count(),
@@ -551,6 +600,7 @@ class ClusterRestartImplTest {
             replica1, RestartReasons.of(),
             replica2, RestartReasons.of()))
         .isSwitchoverInitiated(false)
+        .isSwitchoverFinalized(false)
         .build();
 
     when(instanceManager.increaseClusterInstances(CLUSTER_NAME, NAMESPACE))
@@ -588,9 +638,17 @@ class ClusterRestartImplTest {
         "it should send an event for every pod created");
 
     assertEquals(1,
-        events.stream().filter(event -> event.getEventType() == RestartEventType.SWITCHOVER)
-            .count(),
-        "it should perform a switchover");
+        events.stream()
+          .filter(event -> event.getEventType() == RestartEventType.SWITCHOVER_INITIATED)
+          .count(),
+        "it should initiate a switchover");
+
+    assertEquals(1,
+        events.stream()
+          .filter(event -> event.getEventType() == RestartEventType.SWITCHOVER_FINALIZED)
+          .count(),
+        "it should finalize a switchover");
+
     assertEquals(1,
         events.stream().filter(event -> event.getEventType() == RestartEventType.POSTGRES_RESTART)
             .count(),
@@ -641,6 +699,7 @@ class ClusterRestartImplTest {
             replica2, RestartReasons.of(),
             additionalPod, RestartReasons.of()))
         .isSwitchoverInitiated(false)
+        .isSwitchoverFinalized(false)
         .build();
 
     when(podRestart.restartPod(any(Pod.class))).thenAnswer(invocationOnMock -> {
@@ -672,9 +731,16 @@ class ClusterRestartImplTest {
         "it should not create a pod in InPlace restart");
 
     assertEquals(1,
-        events.stream().filter(event -> event.getEventType() == RestartEventType.SWITCHOVER)
-            .count(),
-        "it should perform a switchover");
+        events.stream()
+          .filter(event -> event.getEventType() == RestartEventType.SWITCHOVER_INITIATED)
+          .count(),
+        "it should initiate a switchover");
+
+    assertEquals(1,
+        events.stream()
+          .filter(event -> event.getEventType() == RestartEventType.SWITCHOVER_FINALIZED)
+          .count(),
+        "it should finalize a switchover");
 
     assertEquals(0,
         events.stream().filter(event -> event.getEventType() == RestartEventType.POSTGRES_RESTART)
@@ -722,6 +788,7 @@ class ClusterRestartImplTest {
             replica2, RestartReasons.of(),
             additionalPod, RestartReasons.of()))
         .isSwitchoverInitiated(true)
+        .isSwitchoverFinalized(true)
         .build();
 
     when(podRestart.restartPod(any(Pod.class))).thenAnswer(invocationOnMock -> {
@@ -746,9 +813,17 @@ class ClusterRestartImplTest {
         "it should not create a pod in InPlace restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType() == RestartEventType.SWITCHOVER)
-            .count(),
-        "it should not perform a switchover");
+        events.stream()
+          .filter(event -> event.getEventType() == RestartEventType.SWITCHOVER_INITIATED)
+          .count(),
+        "it should not initiate a switchover");
+
+    assertEquals(0,
+        events.stream()
+          .filter(event -> event.getEventType() == RestartEventType.SWITCHOVER_FINALIZED)
+          .count(),
+        "it should not finalize a switchover");
+
     assertEquals(0,
         events.stream().filter(event -> event.getEventType() == RestartEventType.POSTGRES_RESTART)
             .count(),
@@ -788,6 +863,7 @@ class ClusterRestartImplTest {
             replica1, RestartReasons.of(),
             replica2, RestartReasons.of()))
         .isSwitchoverInitiated(true)
+        .isSwitchoverFinalized(true)
         .build();
 
     when(podRestart.restartPod(any(Pod.class))).thenAnswer(invocationOnMock -> {
@@ -811,9 +887,16 @@ class ClusterRestartImplTest {
         "it should not create a pod in InPlace restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType() == RestartEventType.SWITCHOVER)
-            .count(),
-        "it should not perform a switchover");
+        events.stream()
+          .filter(event -> event.getEventType() == RestartEventType.SWITCHOVER_INITIATED)
+          .count(),
+        "it should not initiate a switchover");
+
+    assertEquals(0,
+        events.stream()
+          .filter(event -> event.getEventType() == RestartEventType.SWITCHOVER_FINALIZED)
+          .count(),
+        "it should not finalize a switchover");
 
     assertEquals(0,
         events.stream().filter(event -> event.getEventType() == RestartEventType.POSTGRES_RESTART)

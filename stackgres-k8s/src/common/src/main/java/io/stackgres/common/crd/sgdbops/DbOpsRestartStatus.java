@@ -33,6 +33,9 @@ public class DbOpsRestartStatus {
   @JsonProperty("switchoverInitiated")
   private String switchoverInitiated;
 
+  @JsonProperty("switchoverFinalized")
+  private String switchoverFinalized;
+
   @JsonProperty("failure")
   private String failure;
 
@@ -76,6 +79,14 @@ public class DbOpsRestartStatus {
     this.switchoverInitiated = switchoverInitiated;
   }
 
+  public String getSwitchoverFinalized() {
+    return switchoverFinalized;
+  }
+
+  public void setSwitchoverFinalized(String switchoverFinalized) {
+    this.switchoverFinalized = switchoverFinalized;
+  }
+
   public String getFailure() {
     return failure;
   }
@@ -85,25 +96,26 @@ public class DbOpsRestartStatus {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof DbOpsRestartStatus)) {
       return false;
     }
-    DbOpsRestartStatus that = (DbOpsRestartStatus) o;
-    return Objects.equals(primaryInstance, that.primaryInstance)
-        && Objects.equals(initialInstances, that.initialInstances)
-        && Objects.equals(pendingToRestartInstances, that.pendingToRestartInstances)
-        && Objects.equals(restartedInstances, that.restartedInstances)
-        && Objects.equals(switchoverInitiated, that.switchoverInitiated)
-        && Objects.equals(failure, that.failure);
+    DbOpsRestartStatus other = (DbOpsRestartStatus) obj;
+    return Objects.equals(failure, other.failure)
+        && Objects.equals(initialInstances, other.initialInstances)
+        && Objects.equals(pendingToRestartInstances, other.pendingToRestartInstances)
+        && Objects.equals(primaryInstance, other.primaryInstance)
+        && Objects.equals(restartedInstances, other.restartedInstances)
+        && Objects.equals(switchoverFinalized, other.switchoverFinalized)
+        && Objects.equals(switchoverInitiated, other.switchoverInitiated);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(primaryInstance, initialInstances, pendingToRestartInstances,
-        restartedInstances, switchoverInitiated, failure);
+    return Objects.hash(failure, initialInstances, pendingToRestartInstances, primaryInstance,
+        restartedInstances, switchoverFinalized, switchoverInitiated);
   }
 }

@@ -132,8 +132,11 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
       var podName = event.getPod().getMetadata().getName();
 
       switch (event.getEventType()) {
-        case SWITCHOVER:
+        case SWITCHOVER_INITIATED:
           restartStatus.setSwitchoverInitiated(Instant.now().toString());
+          break;
+        case SWITCHOVER_FINALIZED:
+          restartStatus.setSwitchoverFinalized(Instant.now().toString());
           break;
         case POD_RESTART:
           List<String> pendingInstances = restartStatus.getPendingToRestartInstances();
@@ -252,7 +255,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
       case POD_CREATED:
         LOGGER.info("Pod {} created", event.getPod().getMetadata().getName());
         break;
-      case SWITCHOVER:
+      case SWITCHOVER_INITIATED:
         LOGGER.info("Switchover of cluster {} performed", clusterName);
         break;
       case POSTGRES_RESTART:
@@ -313,7 +316,8 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
         .restartMethod(method)
         .isOnlyPendingRestart(onlyPendingRestart)
         .primaryInstance(getPrimaryInstance(clusterPods))
-        .isSwitchoverInitiated(Boolean.parseBoolean(restartStatus.getSwitchoverInitiated()))
+        .isSwitchoverInitiated(restartStatus.getSwitchoverInitiated() != null)
+        .isSwitchoverFinalized(restartStatus.getSwitchoverFinalized() != null)
         .initialInstances(initialInstances)
         .restartedInstances(restartedInstances)
         .totalInstances(clusterPods)
