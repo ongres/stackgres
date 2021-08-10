@@ -16,11 +16,13 @@ import javax.validation.ValidatorFactory;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Status;
 import io.stackgres.common.ErrorType;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -78,6 +80,25 @@ public abstract class ConstraintValidationTest<T extends AdmissionReview<?>> {
 
     assertEquals(errorTypeDocumentationUri, status.getReason());
 
+  }
+
+  @Test
+  void oversizedClusterName_shouldThrowValidationFailedException() throws ValidationFailed {
+
+    T oversizedClusterNamespaceReview = getOversizedClusterNamespaceReview();
+    ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
+      validator.validate(oversizedClusterNamespaceReview);
+    });
+
+    assertNotNull(ex.getResult());
+    assertEquals("Valid name must be 53 characters or less", ex.getMessage().toString());
+  }
+
+  private T getOversizedClusterNamespaceReview() {
+    T oversizedClusterNamespaceReview = getValidReview();
+    HasMetadata metadata = (HasMetadata) oversizedClusterNamespaceReview.getRequest().getObject();
+    metadata.getMetadata().setName(StringUtils.getOversizedResourceName());
+    return oversizedClusterNamespaceReview;
   }
 
   protected abstract ConstraintValidator<T> buildValidator();
