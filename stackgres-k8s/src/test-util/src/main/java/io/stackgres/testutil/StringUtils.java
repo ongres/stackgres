@@ -12,6 +12,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class StringUtils {
 
+  private static final int OVERSIZED_LIMIT_NAME = 64;
+
   public static String getRandomString() {
 
     return getRandomString(new Random().nextInt(128) + 1);
@@ -53,5 +55,12 @@ public class StringUtils {
       return clusterName.substring(0, 52);
     }
     return clusterName;
+  }
+
+  @NotNull
+  public static String getOversizedResourceName() {
+    String resourceName = sanitize(getRandomString(OVERSIZED_LIMIT_NAME));
+    resourceName = resourceName.replaceAll("^\\d", "a");
+    return resourceName;
   }
 }

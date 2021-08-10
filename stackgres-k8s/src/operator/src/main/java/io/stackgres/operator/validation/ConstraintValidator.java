@@ -21,7 +21,6 @@ import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.fabric8.kubernetes.api.model.StatusDetails;
 import io.fabric8.kubernetes.api.model.StatusDetailsBuilder;
 import io.stackgres.common.ErrorType;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
@@ -31,8 +30,8 @@ import org.jooq.lambda.Seq;
 
 public abstract class ConstraintValidator<T extends AdmissionReview<?>> implements Validator<T> {
 
+  private static final String NAME_CONSTRAINT_MESSAGE = "Valid name must be 53 characters or less";
   private javax.validation.Validator constraintValidator;
-
   private String constraintViolationDocumentationUri;
 
   @PostConstruct
@@ -44,48 +43,66 @@ public abstract class ConstraintValidator<T extends AdmissionReview<?>> implemen
   @Override
   public void validate(T review) throws ValidationFailed {
     final HasMetadata target = review.getRequest().getObject();
+    if (target == null) {
+      return;
+    }
 
-    if (target != null) {
-      if (StackGresCluster.KIND.equals(target.getKind())) {
-        try {
-          // Names must not be longer than valid labels.
-          Preconditions.checkArgument(target.getMetadata().getName().length() <= 53,
-              "Valid name must be 53 characters or less");
-          ResourceUtil.resourceName(target.getMetadata().getName());
-        } catch (IllegalArgumentException e) {
-          throw new ValidationFailed(e.getMessage());
-        }
-      }
+    validateResourceNameSizeConstraint(target);
 
-      Set<ConstraintViolation<Object>> violations = constraintValidator.validate(target);
-      if (!violations.isEmpty()) {
-        StatusDetailsBuilder detailsBuilder = new StatusDetailsBuilder();
+    Set<ConstraintViolation<Object>> violations = constraintValidator.validate(target);
+    if (!violations.isEmpty()) {
+      buildValidationFailed(target, violations);
+    }
+  }
 
-        violations.forEach(violation -> {
-          final List<String> fields = getOffendingFields(violation);
-          final String reason = violation
-              .getConstraintDescriptor()
-              .getAnnotation().annotationType()
-              .getName();
-          fields.forEach(field -> detailsBuilder
-              .addNewCause(field, violation.getMessage(), reason));
-        });
-        if (violations.stream().map(this::getOffendingFields)
-            .flatMap(List::stream).count() == 1) {
-          violations.forEach(violation -> detailsBuilder
-              .withName(getOffendingFields(violation).get(0)));
-        }
-        StatusDetails details = detailsBuilder.build();
-        Status status = new StatusBuilder()
-            .withCode(422)
-            .withMessage(target.getKind() + " has invalid properties. "
-                + details.getCauses().get(0).getMessage())
-            .withKind(target.getKind())
-            .withReason(constraintViolationDocumentationUri)
-            .withDetails(details)
-            .build();
-        throw new ValidationFailed(status);
-      }
+  private void buildValidationFailed(final HasMetadata target,
+      Set<ConstraintViolation<Object>> violations) throws ValidationFailed {
+    StatusDetailsBuilder detailsBuilder = new StatusDetailsBuilder();
+
+    violations.forEach(violation -> {
+      final List<String> fields = getOffendingFields(violation);
+      final String reason = violation
+          .getConstraintDescriptor()
+          .getAnnotation().annotationType()
+          .getName();
+      fields.forEach(field -> detailsBuilder
+          .addNewCause(field, violation.getMessage(), reason));
+    });
+
+    if (violations.stream().map(this::getOffendingFields)
+        .flatMap(List::stream).count() == 1) {
+      violations.forEach(violation -> detailsBuilder
+          .withName(getOffendingFields(violation).get(0)));
+    }
+
+    StatusDetails details = detailsBuilder.build();
+    Status status = new StatusBuilder()
+        .withCode(422)
+        .withMessage(target.getKind() + " has invalid properties. "
+            + details.getCauses().get(0).getMessage())
+        .withKind(target.getKind())
+        .withReason(constraintViolationDocumentationUri)
+        .withDetails(details)
+        .build();
+    throw new ValidationFailed(status);
+  }
+
+  /**
+   * Names must not be longer than valid labels. Follows documentation
+   * https://kubernetes.io/docs/concepts/overview/working-with-objects/labels
+   *
+   * @param target HashMetadata
+   * @throws ValidationFailed Validation message regarding name convention
+   */
+  private void validateResourceNameSizeConstraint(final HasMetadata target)
+      throws ValidationFailed {
+
+    try {
+      Preconditions.checkArgument(target.getMetadata().getName().length() <= 53,
+          NAME_CONSTRAINT_MESSAGE);
+      ResourceUtil.resourceName(target.getMetadata().getName());
+    } catch (IllegalArgumentException e) {
+      throw new ValidationFailed(e.getMessage());
     }
   }
 
