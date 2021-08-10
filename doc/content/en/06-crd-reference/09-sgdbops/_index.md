@@ -219,7 +219,8 @@ ___
 | initialInstances                           |          |           | array    |                              | {{< crd-field-description SGDbOps.status.restart.initialInstances >}} |
 | pendingToRestartInstances                  |          |           | array    |                              | {{< crd-field-description SGDbOps.status.restart.pendingToRestartInstances >}} |
 | restartedInstances                         |          |           | array    |                              | {{< crd-field-description SGDbOps.status.restart.restartedInstances >}} |
-| switchoverInitiated                        |          |           | boolean  |                              | {{< crd-field-description SGDbOps.status.restart.switchoverInitiated >}} |
+| switchoverInitiated                        |          |           | string   |                              | {{< crd-field-description SGDbOps.status.restart.switchoverInitiated >}} |
+| switchoverFinalized                        |          |           | string   |                              | {{< crd-field-description SGDbOps.status.restart.switchoverFinalized >}} |
 | failure                                    |          |           | string   |                              | {{< crd-field-description SGDbOps.status.restart.failure >}} |
 
 ## Minor Version Upgrade Status
@@ -230,7 +231,8 @@ ___
 | initialInstances                           |          |           | array    |                              | {{< crd-field-description SGDbOps.status.minorVersionUpgrade.initialInstances >}} |
 | pendingToRestartInstances                  |          |           | array    |                              | {{< crd-field-description SGDbOps.status.minorVersionUpgrade.pendingToRestartInstances >}} |
 | restartedInstances                         |          |           | array    |                              | {{< crd-field-description SGDbOps.status.minorVersionUpgrade.restartedInstances >}} |
-| switchoverInitiated                        |          |           | boolean  |                              | {{< crd-field-description SGDbOps.status.minorVersionUpgrade.switchoverInitiated >}} |
+| switchoverInitiated                        |          |           | string   |                              | {{< crd-field-description SGDbOps.status.minorVersionUpgrade.switchoverInitiated >}} |
+| switchoverFinalized                        |          |           | string   |                              | {{< crd-field-description SGDbOps.status.minorVersionUpgrade.switchoverFinalized >}} |
 | failure                                    |          |           | string   |                              | {{< crd-field-description SGDbOps.status.minorVersionUpgrade.failure >}} |
 
 ## Security Upgrade Status
@@ -241,7 +243,8 @@ ___
 | initialInstances                           |          |           | array    |                              | {{< crd-field-description SGDbOps.status.securityUpgrade.initialInstances >}} |
 | pendingToRestartInstances                  |          |           | array    |                              | {{< crd-field-description SGDbOps.status.securityUpgrade.pendingToRestartInstances >}} |
 | restartedInstances                         |          |           | array    |                              | {{< crd-field-description SGDbOps.status.securityUpgrade.restartedInstances >}} |
-| switchoverInitiated                        |          |           | boolean  |                              | {{< crd-field-description SGDbOps.status.securityUpgrade.switchoverInitiated >}} |
+| switchoverInitiated                        |          |           | string   |                              | {{< crd-field-description SGDbOps.status.securityUpgrade.switchoverInitiated >}} |
+| switchoverFinalized                        |          |           | string   |                              | {{< crd-field-description SGDbOps.status.securityUpgrade.switchoverFinalized >}} |
 | failure                                    |          |           | string   |                              | {{< crd-field-description SGDbOps.status.securityUpgrade.failure >}} |
 
 Example:

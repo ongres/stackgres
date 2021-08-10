@@ -7,7 +7,7 @@ package io.stackgres.jobs.dbops;
 
 import static io.stackgres.jobs.dbops.clusterrestart.PodTestUtil.assertPodEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -195,7 +195,7 @@ public abstract class ClusterStateHandlerTest {
 
     assertNull(initializedSecurityUpgradeStatus.getFailure());
 
-    assertFalse(Boolean.parseBoolean(initializedSecurityUpgradeStatus.getSwitchoverInitiated()));
+    assertNull(initializedSecurityUpgradeStatus.getSwitchoverInitiated());
 
     assertEquals(dbOps, storedDbOps, "It should store the DBOps status changes");
   }
@@ -306,6 +306,7 @@ public abstract class ClusterStateHandlerTest {
         .isOnlyPendingRestart(false)
         .restartMethod(dbOps.getSpec().getSecurityUpgrade().getMethod())
         .isSwitchoverInitiated(Boolean.FALSE)
+        .isSwitchoverFinalized(Boolean.FALSE)
         .primaryInstance(primaryPod)
         .addInitialInstances(primaryPod, replica1Pod)
         .addRestartedInstances(replica1Pod)
@@ -350,7 +351,11 @@ public abstract class ClusterStateHandlerTest {
                     .pod(pods.get(2))
                     .build(),
                 ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.SWITCHOVER)
+                    .eventType(RestartEventType.SWITCHOVER_INITIATED)
+                    .pod(pods.get(0))
+                    .build(),
+                ImmutableRestartEvent.builder()
+                    .eventType(RestartEventType.SWITCHOVER_FINALIZED)
                     .pod(pods.get(0))
                     .build(),
                 ImmutableRestartEvent.builder()
@@ -375,7 +380,10 @@ public abstract class ClusterStateHandlerTest {
     final var restartStatus = getRestartStatus(dbOps);
 
     assertTrue(restartStatus.getPendingToRestartInstances().isEmpty());
-    assertEquals(Boolean.TRUE.toString(), restartStatus.getSwitchoverInitiated());
+    assertNotNull(restartStatus.getSwitchoverInitiated());
+    Instant.parse(restartStatus.getSwitchoverInitiated());
+    assertNotNull(restartStatus.getSwitchoverFinalized());
+    Instant.parse(restartStatus.getSwitchoverFinalized());
     assertEquals(pods.size() + 1, restartStatus.getRestartedInstances().size());
     assertEquals(pods.size(), restartStatus.getInitialInstances().size());
     assertTrue(() -> restartStatus.getFailure() == null

@@ -32,6 +32,8 @@ public interface ClusterRestartState {
 
   boolean isSwitchoverInitiated();
 
+  boolean isSwitchoverFinalized();
+
   List<Pod> getInitialInstances();
 
   List<Pod> getTotalInstances();

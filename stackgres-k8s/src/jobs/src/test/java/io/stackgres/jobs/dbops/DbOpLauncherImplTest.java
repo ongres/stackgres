@@ -102,6 +102,7 @@ class DbOpLauncherImplTest {
             .clusterName(dbOps.getSpec().getSgCluster())
             .isOnlyPendingRestart(false)
             .isSwitchoverInitiated(false)
+            .isSwitchoverFinalized(false)
             .restartMethod("InPlace")
             .primaryInstance(primary)
             .initialInstances(ImmutableList.of(primary))

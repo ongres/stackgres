@@ -520,7 +520,11 @@ spec:
                     switchoverInitiated:
                       type: string
                       description: |
-                        An ISO 8601 date indicating if and when the switchover took place
+                        An ISO 8601 date indicating if and when the switchover initiated
+                    switchoverFinalized:
+                      type: string
+                      description: |
+                        An ISO 8601 date indicating if and when the switchover finalized
                     failure:
                       type: string
                       description: |
@@ -555,7 +559,11 @@ spec:
                     switchoverInitiated:
                       type: string
                       description: |
-                        An ISO 8601 date indicating if and when the switchover took place
+                        An ISO 8601 date indicating if and when the switchover initiated
+                    switchoverFinalized:
+                      type: string
+                      description: |
+                        An ISO 8601 date indicating if and when the switchover finalized
                     failure:
                       type: string
                       description: |
@@ -590,7 +598,11 @@ spec:
                     switchoverInitiated:
                       type: string
                       description: |
-                        An ISO 8601 date indicating if and when the switchover took place
+                        An ISO 8601 date indicating if and when the switchover initiated
+                    switchoverFinalized:
+                      type: string
+                      description: |
+                        An ISO 8601 date indicating if and when the switchover finalized
                     failure:
                       type: string
                       description: |
