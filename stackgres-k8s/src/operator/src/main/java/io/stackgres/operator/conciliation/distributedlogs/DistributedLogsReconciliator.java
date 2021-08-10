@@ -9,9 +9,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.quarkus.runtime.ShutdownEvent;
+import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsEventReason;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -35,6 +38,19 @@ public class DistributedLogsReconciliator extends StackGresReconciliator<StackGr
   private StatusManager<StackGresDistributedLogs, StackGresDistributedLogsCondition> statusManager;
 
   private EventEmitter<StackGresDistributedLogs> eventController;
+
+  void onStart(@Observes StartupEvent ev) {
+    start();
+  }
+
+  void onStop(@Observes ShutdownEvent ev) {
+    stop();
+  }
+
+  @Override
+  protected String getReconciliationName() {
+    return StackGresDistributedLogs.KIND;
+  }
 
   @Override
   public void onPreReconciliation(StackGresDistributedLogs config) {

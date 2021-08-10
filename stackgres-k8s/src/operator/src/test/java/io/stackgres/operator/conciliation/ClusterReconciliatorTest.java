@@ -103,7 +103,7 @@ class ClusterReconciliatorTest {
             Collections.emptyList(),
             Collections.emptyList()));
 
-    reconciliator.reconcile();
+    reconciliator.reconciliationCycle();
 
     verify(clusterScanner).getResources();
     verify(clusterConciliator).evalReconciliationState(cluster);
@@ -128,7 +128,7 @@ class ClusterReconciliatorTest {
             patches,
             Collections.emptyList()));
 
-    reconciliator.reconcile();
+    reconciliator.reconciliationCycle();
 
     verify(clusterScanner).getResources();
     verify(clusterConciliator).evalReconciliationState(cluster);
@@ -150,7 +150,7 @@ class ClusterReconciliatorTest {
             Collections.emptyList(),
             deletions));
 
-    reconciliator.reconcile();
+    reconciliator.reconciliationCycle();
 
     verify(clusterScanner).getResources();
     verify(clusterConciliator).evalReconciliationState(cluster);
@@ -175,7 +175,7 @@ class ClusterReconciliatorTest {
     var pool = ForkJoinPool.commonPool();
     long start = System.currentTimeMillis();
     for (int i = 0; i < concurrentExecutions; i++) {
-      pool.execute(() -> reconciliator.reconcile());
+      pool.execute(() -> reconciliator.reconciliationCycle());
     }
 
     pool.awaitTermination(delay * concurrentExecutions, TimeUnit.SECONDS);

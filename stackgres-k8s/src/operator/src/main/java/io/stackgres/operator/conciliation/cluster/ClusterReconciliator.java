@@ -9,8 +9,11 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import io.quarkus.runtime.ShutdownEvent;
+import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.crd.sgbackup.BackupEventReason;
 import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
@@ -53,6 +56,19 @@ public class ClusterReconciliator
   private CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
 
   private PatchResumer patchResumer;
+
+  void onStart(@Observes StartupEvent ev) {
+    start();
+  }
+
+  void onStop(@Observes ShutdownEvent ev) {
+    stop();
+  }
+
+  @Override
+  protected String getReconciliationName() {
+    return StackGresCluster.KIND;
+  }
 
   @Override
   public void onPreReconciliation(StackGresCluster config) {
