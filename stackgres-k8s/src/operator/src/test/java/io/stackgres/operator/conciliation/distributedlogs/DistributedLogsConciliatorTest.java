@@ -55,7 +55,7 @@ class DistributedLogsConciliatorTest extends ConciliatorTest<StackGresDistribute
 
   @Override
   protected Conciliator<StackGresDistributedLogs> buildConciliator(List<HasMetadata> required,
-      List<HasMetadata> deployed) {
+                                                                   List<HasMetadata> deployed) {
     when(requiredResourceGenerator.getRequiredResources(distributedLogs))
         .thenReturn(required);
     when(deployedResourcesScanner.getDeployedResources(distributedLogs))

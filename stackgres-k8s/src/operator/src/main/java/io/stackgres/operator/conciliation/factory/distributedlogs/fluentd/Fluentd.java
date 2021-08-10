@@ -103,6 +103,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
             + "exec /usr/local/bin/fluentd -c /etc/fluentd/fluentd.conf\n")
         .withPorts(
             new ContainerPortBuilder()
+                .withProtocol("TCP")
                 .withName(FluentdUtil.FORWARD_PORT_NAME)
                 .withContainerPort(FluentdUtil.FORWARD_PORT).build())
         .withLivenessProbe(new ProbeBuilder()

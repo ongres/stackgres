@@ -7,16 +7,15 @@ package io.stackgres.operator.app;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.KubernetesClientFactory;
+import io.stackgres.common.StackGresKubernetesClient;
+import io.stackgres.common.StackGresKubernetesClientFactory;
 
 @ApplicationScoped
-public class KubernetesClientProvider implements KubernetesClientFactory {
+public class KubernetesClientProvider implements StackGresKubernetesClientFactory {
 
   @Override
-  public KubernetesClient create() {
-    return new DefaultKubernetesClient();
+  public StackGresKubernetesClient create() {
+    return new StackGresKubernetesClient();
   }
 
 }

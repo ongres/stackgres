@@ -82,6 +82,7 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
                 .withSelector(defaultLabels)
                 .withPorts(new ServicePortBuilder()
                     .withName(POSTGRES_EXPORTER_CONTAINER_NAME)
+                    .withProtocol("TCP")
                     .withPort(9187)
                     .build())
                 .build())

@@ -11,6 +11,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operatorframework.resource.EventReason;
 
 @ApplicationScoped
+@EventEmitterType(StackGresCluster.class)
 public class ClusterEventEmitter extends AbstractEventEmitter<StackGresCluster> {
 
   @Override

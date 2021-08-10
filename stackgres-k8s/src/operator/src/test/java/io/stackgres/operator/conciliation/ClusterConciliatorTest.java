@@ -52,7 +52,7 @@ class ClusterConciliatorTest extends ConciliatorTest<StackGresCluster> {
 
   @Override
   protected Conciliator<StackGresCluster> buildConciliator(List<HasMetadata> required,
-      List<HasMetadata> deployed) {
+                                                           List<HasMetadata> deployed) {
 
     when(requiredResourceGenerator.getRequiredResources(cluster))
         .thenReturn(required);

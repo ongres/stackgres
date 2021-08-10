@@ -99,9 +99,7 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
         .withPorts(
             new ContainerPortBuilder()
                 .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
-                .withContainerPort(EnvoyUtil.PG_PORT).build(),
-            new ContainerPortBuilder()
-                .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
+                .withProtocol("TCP")
                 .withContainerPort(EnvoyUtil.PG_PORT).build(),
             new ContainerPortBuilder()
                 .withName(PATRONI_RESTAPI_PORT_NAME)

@@ -104,7 +104,7 @@ public class DistributedLogsClusterReconciliatorTest {
   void testReconciliationWithNonReadyPatroni_isSkipped() throws Exception {
     when(propertyContext.getString(
         same(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_CONTROLLER_POD_NAME)))
-            .thenReturn("stackgres-0");
+        .thenReturn("stackgres-0");
     StackGresDistributedLogsContext distributedLogsContext = getDistributedLogsContext();
     Pod.class.cast(distributedLogsContext.getExistingResources().get(0).v1)
         .getStatus().getContainerStatuses().get(0).setReady(false);
@@ -119,7 +119,7 @@ public class DistributedLogsClusterReconciliatorTest {
   void testReconciliationWithEmptyStatus_isPerformed() throws Exception {
     when(propertyContext.getString(
         same(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_CONTROLLER_POD_NAME)))
-            .thenReturn("stackgres-0");
+        .thenReturn("stackgres-0");
     StackGresDistributedLogsContext distributedLogsContext = getDistributedLogsContext();
     Assertions.assertTrue(reconciliator.reconcile(null, distributedLogsContext).result().get());
     verify(databaseReconciliator, times(1)).existsDatabase(any(), any());
@@ -132,7 +132,7 @@ public class DistributedLogsClusterReconciliatorTest {
   void testReconciliationWithDatabaseCreated_isPerformedWithoutDatabaseCreation() throws Exception {
     when(propertyContext.getString(
         same(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_CONTROLLER_POD_NAME)))
-            .thenReturn("stackgres-0");
+        .thenReturn("stackgres-0");
     when(databaseReconciliator.existsDatabase(any(), any()))
         .thenReturn(true);
     StackGresDistributedLogsContext distributedLogsContext = getDistributedLogsContext();
@@ -148,7 +148,7 @@ public class DistributedLogsClusterReconciliatorTest {
 
     when(propertyContext.getString(
         same(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_CONTROLLER_POD_NAME)))
-            .thenReturn("stackgres-0");
+        .thenReturn("stackgres-0");
     StackGresDistributedLogsContext distributedLogsContext = getDistributedLogsContext();
     StackGresDistributedLogsStatusDatabase databaseStatus =
         new StackGresDistributedLogsStatusDatabase();
@@ -167,7 +167,7 @@ public class DistributedLogsClusterReconciliatorTest {
       throws Exception {
     when(propertyContext.getString(
         same(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_CONTROLLER_POD_NAME)))
-            .thenReturn("stackgres-0");
+        .thenReturn("stackgres-0");
     StackGresDistributedLogsContext distributedLogsContext = getDistributedLogsContext();
     StackGresDistributedLogsStatusDatabase databaseStatus =
         new StackGresDistributedLogsStatusDatabase();
@@ -186,7 +186,7 @@ public class DistributedLogsClusterReconciliatorTest {
   void testReconciliationWithoutRetention_isPerformed() throws Exception {
     when(propertyContext.getString(
         same(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_CONTROLLER_POD_NAME)))
-            .thenReturn("stackgres-0");
+        .thenReturn("stackgres-0");
     StackGresDistributedLogsContext distributedLogsContext = getDistributedLogsContext();
     distributedLogsContext.getDistributedLogs()
         .getStatus().getConnectedClusters().get(0).getConfig().setRetention(null);

@@ -24,6 +24,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.event.EventEmitter;
+import io.stackgres.common.event.EventEmitterType;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -61,8 +62,8 @@ public class ClusterReconciliator
     List<StackGresBackup> backups = backupScanner.getResources(namespace);
 
     backups.stream().filter(backup -> Optional.ofNullable(backup.getStatus())
-        .map(StackGresBackupStatus::getProcess)
-        .map(StackGresBackupProcess::getStatus).isEmpty())
+            .map(StackGresBackupStatus::getProcess)
+            .map(StackGresBackupProcess::getStatus).isEmpty())
         .forEach(this::initBackup);
 
     if (!backups.isEmpty() && getBackupConfig(config).isEmpty()) {
@@ -134,7 +135,9 @@ public class ClusterReconciliator
   }
 
   @Inject
-  public void setEventController(EventEmitter<StackGresCluster> eventController) {
+  public void setEventController(
+      @EventEmitterType(StackGresCluster.class)
+          EventEmitter<StackGresCluster> eventController) {
     this.eventController = eventController;
   }
 
@@ -160,7 +163,9 @@ public class ClusterReconciliator
   }
 
   @Inject
-  public void setBackupEventEmitter(EventEmitter<StackGresBackup> backupEventEmitter) {
+  public void setBackupEventEmitter(
+      @EventEmitterType(StackGresBackup.class)
+          EventEmitter<StackGresBackup> backupEventEmitter) {
     this.backupEventEmitter = backupEventEmitter;
   }
 
