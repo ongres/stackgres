@@ -6,8 +6,11 @@
 package io.stackgres.operator.conciliation.dbops;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import io.quarkus.runtime.ShutdownEvent;
+import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.crd.sgcluster.DbOpsEventReason;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.event.EventEmitter;
@@ -24,6 +27,19 @@ public class DbOpsReconciliator
   private EventEmitter<StackGresDbOps> eventController;
 
   private PatchResumer<StackGresDbOps> patchResumer;
+
+  @Override
+  protected String getReconciliationName() {
+    return StackGresDbOps.KIND;
+  }
+
+  void onStart(@Observes StartupEvent ev) {
+    start();
+  }
+
+  void onStop(@Observes ShutdownEvent ev) {
+    stop();
+  }
 
   @Override
   public void onPreReconciliation(StackGresDbOps config) {

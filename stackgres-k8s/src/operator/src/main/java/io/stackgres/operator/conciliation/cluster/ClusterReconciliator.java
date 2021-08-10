@@ -6,8 +6,11 @@
 package io.stackgres.operator.conciliation.cluster;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import io.quarkus.runtime.ShutdownEvent;
+import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.crd.sgcluster.ClusterEventReason;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -33,6 +36,19 @@ public class ClusterReconciliator
   private CustomResourceScheduler<StackGresCluster> clusterScheduler;
 
   private ClusterPatchResumer patchResumer;
+
+  @Override
+  protected String getReconciliationName() {
+    return StackGresCluster.KIND;
+  }
+
+  void onStart(@Observes StartupEvent ev) {
+    start();
+  }
+
+  void onStop(@Observes ShutdownEvent ev) {
+    stop();
+  }
 
   @Override
   public void onPreReconciliation(StackGresCluster config) {

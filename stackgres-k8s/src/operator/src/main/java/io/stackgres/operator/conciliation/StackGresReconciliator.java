@@ -6,10 +6,15 @@
 package io.stackgres.operator.conciliation;
 
 import java.util.Optional;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClientException;
@@ -20,7 +25,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(
+  protected static final Logger LOGGER = LoggerFactory.getLogger(
       StackGresReconciliator.class.getPackage().getName());
 
   private static final String STACKGRES_IO_RECONCILIATION = StackGresContext
@@ -32,7 +37,55 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
 
   private HandlerDelegator<T> handlerDelegator;
 
-  public synchronized void reconcile() {
+  private final ExecutorService executorService;
+  private final ArrayBlockingQueue<Boolean> arrayBlockingQueue = new ArrayBlockingQueue<>(1);
+
+  private final CompletableFuture<Void> stopped = new CompletableFuture<>();
+  private boolean close = false;
+
+  public StackGresReconciliator() {
+    this.executorService = Executors.newSingleThreadExecutor(
+        r -> new Thread(r, getReconciliationName() + "-ReconciliationLoop"));
+  }
+
+  protected void start() {
+    executorService.execute(this::reconciliationLoop);
+  }
+
+  protected void stop() {
+    close = true;
+    reconcile();
+    executorService.shutdown();
+    reconcile();
+    stopped.join();
+  }
+
+  protected abstract String getReconciliationName();
+
+  @SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED_BAD_PRACTICE",
+      justification = "We do not care if queue is already filled")
+  public void reconcile() {
+    arrayBlockingQueue.offer(Boolean.TRUE);
+  }
+
+  private void reconciliationLoop() {
+    LOGGER.info("{} reconciliation loop started", getReconciliationName());
+    while (true) {
+      try {
+        arrayBlockingQueue.take();
+        if (close) {
+          break;
+        }
+        reconciliationCycle();
+      } catch (Exception ex) {
+        LOGGER.error("{} reconciliation loop was interrupted", getReconciliationName(), ex);
+      }
+    }
+    LOGGER.info("{} reconciliation loop stopped", getReconciliationName());
+    stopped.complete(null);
+  }
+
+  public synchronized void reconciliationCycle() {
     getExistentSources().forEach(customResource -> {
       final ObjectMeta metadata = customResource.getMetadata();
       final String customResourceId = customResource.getKind()
