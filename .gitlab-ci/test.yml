@@ -5,9 +5,14 @@ unit tests:
     # skipped due to but in quarkus junit extension initialization
     # QUARKUS_PROFILE: "test"
   tags:
-    - stackgres-runner
-    - stackgres-quarkus-test-runner
+    - stackgres-runner-v2
     - stackgres-maven-runner
+    - stackgres-quarkus-test-runner
+  variables:
+    KUBERNETES_MEMORY_REQUEST: 512Gi
+    KUBERNETES_MEMORY_LIMIT: 512Gi
+    KUBERNETES_CPU_REQUEST: 1
+    KUBERNETES_CPU_LIMIT: 1
   script:
     - 'mvn $MAVEN_CLI_OPTS clean verify'
   artifacts:
@@ -21,7 +26,12 @@ shell unit tests:
   image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:14.0
   stage: test
   tags:
-    - stackgres-runner
+    - stackgres-runner-v2
+  variables:
+    KUBERNETES_MEMORY_REQUEST: 512Gi
+    KUBERNETES_MEMORY_LIMIT: 512Gi
+    KUBERNETES_CPU_REQUEST: 1
+    KUBERNETES_CPU_LIMIT: 1
   script:
     - |
       set +e
@@ -48,7 +58,12 @@ swagger validations:
   image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:14.0
   stage: test
   tags:
-    - stackgres-runner
+    - stackgres-runner-v2
+  variables:
+    KUBERNETES_MEMORY_REQUEST: 512Gi
+    KUBERNETES_MEMORY_LIMIT: 512Gi
+    KUBERNETES_CPU_REQUEST: 1
+    KUBERNETES_CPU_LIMIT: 1
   script:
     - |
       yajsv -s stackgres-k8s/src/api-web/src/main/swagger/schema.json stackgres-k8s/src/api-web/target/swagger-merged.json
@@ -62,13 +77,17 @@ swagger validations:
   stage: test
   image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:14.0
   tags:
-    - stackgres-runner
+    - stackgres-runner-v2
   dependencies:
     - build helm packages
     - build helm templates
   variables:
     IMAGE_TAG_SUFFIX: ""
     E2E_SUFFIX: ""
+    KUBERNETES_MEMORY_REQUEST: 8Gi
+    KUBERNETES_MEMORY_LIMIT: 8Gi
+    KUBERNETES_CPU_REQUEST: 8
+    KUBERNETES_CPU_LIMIT: 8
   timeout: 12 hour
   script:
     - set -e
@@ -80,7 +99,7 @@ swagger validations:
     - export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}$IMAGE_TAG_SUFFIX"
     - export KIND_NAME="kind$SUFFIX"
     - export K8S_REUSE="${K8S_REUSE:-true}"
-    - export K8S_FROM_DIND=true
+    - export K8S_FROM_MICROK8S=true
     - export E2E_BUILD_IMAGES=false
     - export E2E_WAIT_OPERATOR=false
     - export E2E_PULLED_IMAGES_PATH="/tmp/pulled-images$SUFFIX"

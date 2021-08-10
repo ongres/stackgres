@@ -3,9 +3,14 @@ enforce release:
   image: docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11
   stage: check-release
   tags:
-    - stackgres-runner
+    - stackgres-runner-v2
   dependencies:
     - build
+  variables:
+    KUBERNETES_MEMORY_REQUEST: 512Gi
+    KUBERNETES_MEMORY_LIMIT: 512Gi
+    KUBERNETES_CPU_REQUEST: 1
+    KUBERNETES_CPU_LIMIT: 1
   script:
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -Dmaven.test.skip=true -Dquarkus.build.skip=true"
     - 'mvn $MAVEN_CLI_OPTS enforcer:enforce@enforce-no-snapshots'

@@ -23,22 +23,38 @@ update_k8s_config() {
   mkdir -p "$HOME/.kube"
   if [ "$K8S_FROM_DIND" = true ]
   then
-    if docker network ls --format '{{ .Name }}' | grep -q '^kind$'
+    if ! docker network ls --format '{{ .Name }}' | grep -q '^kind$'
     then
-      local CONTAINER_NAME="$(docker ps --format '{{ .Names }}' | grep "^$(hostname)")"
-      if [ -z "$CONTAINER_NAME" ]
-      then
-        CONTAINER_NAME="$(docker ps --format '{{ .ID }}' | grep "^$(hostname)")"
-      fi
-      docker inspect "$CONTAINER_NAME" \
-        -f '{{ range $key,$value := .NetworkSettings.Networks }}{{ printf "%s\n" $key }}{{ end }}' \
-        | grep -q '^kind$' \
-        || docker network connect kind "$CONTAINER_NAME"
+      echo "Missing kind network! Is kind correct version and configured correctly?"
+      return 1
     fi
+    local CONTAINER_NAME="$(docker ps --format '{{ .Names }}' | grep "^$(hostname)" || true)"
+    if [ -z "$CONTAINER_NAME" ]
+    then
+      CONTAINER_NAME="$(docker ps --format '{{ .ID }}' | grep "^$(hostname)")"
+    fi
+    docker inspect "$CONTAINER_NAME" \
+      -f '{{ range $key,$value := .NetworkSettings.Networks }}{{ printf "%s\n" $key }}{{ end }}' \
+      | grep -q '^kind$' \
+      || docker network connect kind "$CONTAINER_NAME"
     local KIND_CONTROL_PLANE_IP="$(docker inspect "$KIND_NAME-control-plane" \
       -f '{{ .NetworkSettings.Networks.kind.IPAddress }}')"
     kind get kubeconfig --name "$KIND_NAME" --internal \
       | sed "s/$KIND_NAME-control-plane/$KIND_CONTROL_PLANE_IP/" \
+      > "$HOME/.kube/config-$KIND_NAME"
+  elif [ "$K8S_FROM_MICROK8S" = true ]
+  then
+    if ! docker network ls --format '{{ .Name }}' | grep -q '^kind$'
+    then
+      echo "Missing kind network! Is kind correct version and configured correctly?"
+      return 1
+    fi
+    local KIND_CONTROL_PLANE_INTERFACE_IP="$(docker inspect "$KIND_NAME-control-plane" \
+      -f '{{ .NetworkSettings.Networks.kind.IPAddress }}' | cut -d . -f 1-3).1"
+    local KIND_CONTROL_PLANE_PORT="$(docker inspect "$KIND_NAME-control-plane" \
+      -f '{{ (index (index .HostConfig.PortBindings "6443/tcp") 0).HostPort }}')"
+    kind get kubeconfig --name "$KIND_NAME" --internal \
+      | sed "s/$KIND_NAME-control-plane:6443/$KIND_CONTROL_PLANE_INTERFACE_IP:$KIND_CONTROL_PLANE_PORT/" \
       > "$HOME/.kube/config-$KIND_NAME"
   else
     kind get kubeconfig --name "$KIND_NAME" \

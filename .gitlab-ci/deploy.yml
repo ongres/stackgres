@@ -3,9 +3,13 @@
   image: quay.io/buildah/stable:v1.20.1
   stage: deploy
   tags:
-    - stackgres-runner
+    - stackgres-runner-v2
   variables:
     IMAGE_TAG_SUFFIX: ""
+    KUBERNETES_MEMORY_REQUEST: 512Gi
+    KUBERNETES_MEMORY_LIMIT: 512Gi
+    KUBERNETES_CPU_REQUEST: 1
+    KUBERNETES_CPU_LIMIT: 1
   script:
     - set -e
     - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
@@ -138,6 +142,11 @@ pages:
     url: https://ongresinc.gitlab.io/stackgres/
   dependencies:
     - build documentation
+  variables:
+    KUBERNETES_MEMORY_REQUEST: 512Gi
+    KUBERNETES_MEMORY_LIMIT: 512Gi
+    KUBERNETES_CPU_REQUEST: 1
+    KUBERNETES_CPU_LIMIT: 1
   script:
   - tar cC doc public | tar x
   - find public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"

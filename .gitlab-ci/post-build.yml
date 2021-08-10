@@ -1,8 +1,15 @@
 build ui:
   image: node:13.7.0
   stage: post-build
+  tags:
+    - stackgres-runner-v2
   dependencies:
     - build
+  variables:
+    KUBERNETES_MEMORY_REQUEST: 512Gi
+    KUBERNETES_MEMORY_LIMIT: 512Gi
+    KUBERNETES_CPU_REQUEST: 1
+    KUBERNETES_CPU_LIMIT: 1
   script:
   - cd stackgres-k8s/src/admin-ui
   - npm install
@@ -19,8 +26,15 @@ build documentation:
     name: klakegg/hugo:0.81.0-ubuntu
     entrypoint: [ "" ]
   stage: post-build
+  tags:
+    - stackgres-runner-v2
   dependencies:
     - build
+  variables:
+    KUBERNETES_MEMORY_REQUEST: 512Gi
+    KUBERNETES_MEMORY_LIMIT: 512Gi
+    KUBERNETES_CPU_REQUEST: 1
+    KUBERNETES_CPU_LIMIT: 1
   script:
   - sh -x doc/build.sh
   - |
@@ -59,6 +73,13 @@ build documentation:
 build helm packages:
   image: dtzar/helm-kubectl:3.3.1
   stage: post-build
+  tags:
+    - stackgres-runner-v2
+  variables:
+    KUBERNETES_MEMORY_REQUEST: 512Gi
+    KUBERNETES_MEMORY_LIMIT: 512Gi
+    KUBERNETES_CPU_REQUEST: 1
+    KUBERNETES_CPU_LIMIT: 1
   script:
   - sh -x stackgres-k8s/install/helm/build-helm-packages.sh
   - |
@@ -76,6 +97,13 @@ build helm packages:
 build helm templates:
   image: dtzar/helm-kubectl:3.3.1
   stage: post-build
+  tags:
+    - stackgres-runner-v2
+  variables:
+    KUBERNETES_MEMORY_REQUEST: 512Gi
+    KUBERNETES_MEMORY_LIMIT: 512Gi
+    KUBERNETES_CPU_REQUEST: 1
+    KUBERNETES_CPU_LIMIT: 1
   script:
   - sh -x stackgres-k8s/install/helm/build-helm-templates.sh
   - |

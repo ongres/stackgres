@@ -2,8 +2,14 @@ build:
   image: docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11
   stage: build
   tags:
-    - stackgres-runner
+    - stackgres-runner-v2
     - stackgres-maven-runner
+    - stackgres-quarkus-test-runner
+  variables:
+    KUBERNETES_MEMORY_REQUEST: 512Gi
+    KUBERNETES_MEMORY_LIMIT: 512Gi
+    KUBERNETES_CPU_REQUEST: 1
+    KUBERNETES_CPU_LIMIT: 1
   script:
     - 'microdnf install python3-pip jq'
     - 'pip3 install yamllint yq'
@@ -21,4 +27,3 @@ build:
     reports:
       junit:
         - stackgres-k8s/src/*/target/surefire-reports/TEST-*.xml
-

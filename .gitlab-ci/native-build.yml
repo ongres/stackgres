@@ -3,7 +3,7 @@
   image: docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11
   stage: native build
   tags:
-    - stackgres-runner
+    - stackgres-runner-v2
     - stackgres-native-build-runner
   dependencies:
     - build
@@ -11,6 +11,10 @@
     NATIVE_IMAGE_EXTRA_PREFIX: ""
     MAVEN_EXTRA_ARGS: ""
     QUARKUS_NATIVE_NATIVE_IMAGE_XMX: 18g
+    KUBERNETES_MEMORY_REQUEST: 18Gi
+    KUBERNETES_MEMORY_LIMIT: 18Gi
+    KUBERNETES_CPU_REQUEST: 8
+    KUBERNETES_CPU_LIMIT: 8
   timeout: 12 hour
   script:
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
