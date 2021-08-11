@@ -11,6 +11,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.operatorframework.resource.EventReason;
 
 @ApplicationScoped
+@EventEmitterType(StackGresBackup.class)
 public class BackupEventEmitter extends AbstractEventEmitter<StackGresBackup> {
 
   @Override

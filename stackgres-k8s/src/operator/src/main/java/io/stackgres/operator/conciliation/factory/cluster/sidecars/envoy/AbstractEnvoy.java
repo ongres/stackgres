@@ -110,8 +110,12 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
         )
         .addAllToVolumeMounts(getVolumeMounts(context))
         .withPorts(
-            new ContainerPortBuilder().withContainerPort(EnvoyUtil.PG_ENTRY_PORT).build(),
-            new ContainerPortBuilder().withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT).build())
+            new ContainerPortBuilder()
+                .withProtocol("TCP")
+                .withContainerPort(EnvoyUtil.PG_ENTRY_PORT).build(),
+            new ContainerPortBuilder()
+                .withProtocol("TCP")
+                .withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT).build())
         .withCommand("/usr/local/bin/envoy")
         .withArgs(Seq.of("-c", "/etc/envoy/default_envoy.yaml",
             "--bootstrap-version", "2")

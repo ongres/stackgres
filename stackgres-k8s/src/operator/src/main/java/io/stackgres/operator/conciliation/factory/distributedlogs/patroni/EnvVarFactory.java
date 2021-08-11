@@ -26,7 +26,6 @@ public class EnvVarFactory extends PatroniEnvironmentVariablesFactory<Distribute
   public List<EnvVar> createResource(DistributedLogsContext context) {
 
     return ImmutableList.<EnvVar>builder()
-        .addAll(PatroniEnvPaths.getEnvVars())
         .addAll(DistributedLogsCommonEnvVars.getEnvVars())
         .add(new EnvVarBuilder()
             .withName("PATRONI_RESTAPI_LISTEN")

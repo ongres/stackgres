@@ -246,7 +246,7 @@
             "name" : "pgport",
             "protocol" : "TCP"
           }, {
-            "containerPort" : 5432,
+            "containerPort" : 7433,
             "name" : "pgreplication",
             "protocol" : "TCP"
           }, {

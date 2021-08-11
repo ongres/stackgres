@@ -165,9 +165,11 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
         .withPorts(
             new ContainerPortBuilder()
                 .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
+                .withProtocol("TCP")
                 .withContainerPort(EnvoyUtil.PG_ENTRY_PORT).build(),
             new ContainerPortBuilder()
                 .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
+                .withProtocol("TCP")
                 .withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT).build(),
             new ContainerPortBuilder()
                 .withName(PATRONI_RESTAPI_PORT_NAME)

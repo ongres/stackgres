@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation;
 
+import static io.stackgres.common.resource.ResourceWriter.STACKGRES_FIELD_MANAGER;
+
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -13,29 +15,48 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.stackgres.common.KubernetesClientFactory;
+import io.fabric8.kubernetes.client.dsl.base.PatchContext;
+import io.stackgres.common.StackGresKubernetesClientFactory;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractReconciliationHandler implements ReconciliationHandler,
     ReconciliationOperations {
 
-  private KubernetesClientFactory clientFactory;
+  private static final Logger LOGGER = LoggerFactory.getLogger("io.stackgres.reconciliator");
+
+  private StackGresKubernetesClientFactory clientFactory;
 
   @Override
   public HasMetadata create(HasMetadata resource) {
-    return clientFactory.withNewClient(client -> getResourceOperation(client, resource)
-        .inNamespace(resource.getMetadata().getNamespace())
-        .create(resource));
+    try (var client = clientFactory.create()) {
+      return client.serverSideApply(new PatchContext.Builder()
+          .withFieldManager(STACKGRES_FIELD_MANAGER)
+          .withForce(true)
+          .build(), resource);
+    }
   }
 
   @Override
   public HasMetadata patch(HasMetadata resource, HasMetadata oldResource) {
-    return clientFactory.withNewClient(client -> getResourceOperation(client, resource)
-        .inNamespace(resource.getMetadata().getNamespace())
-        .withName(resource.getMetadata().getName())
-        .patch(resource));
+    try (var client = clientFactory.create()) {
+      try {
+        return client.serverSideApply(new PatchContext.Builder()
+            .withFieldManager(STACKGRES_FIELD_MANAGER)
+            .withForce(true)
+            .build(), resource);
+      } catch (KubernetesClientException ex) {
+        LOGGER.warn("Server side apply failed, switching back to JSON merge", ex);
+        return getResourceOperation(client, resource)
+            .inNamespace(resource.getMetadata().getNamespace())
+            .withName(resource.getMetadata().getName())
+            .patch(resource);
+      }
+    }
   }
 
   @Override
@@ -71,7 +92,7 @@ public abstract class AbstractReconciliationHandler implements ReconciliationHan
   }
 
   @Inject
-  public void setClientFactory(KubernetesClientFactory clientFactory) {
+  public void setClientFactory(StackGresKubernetesClientFactory clientFactory) {
     this.clientFactory = clientFactory;
   }
 }

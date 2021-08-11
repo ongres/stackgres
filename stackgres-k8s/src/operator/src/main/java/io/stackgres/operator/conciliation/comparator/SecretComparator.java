@@ -17,7 +17,7 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 public class SecretComparator extends StackGresAbstractComparator {
 
   private static final IgnorePatch[] IGNORE_PATCH_PATTERNS = {
-      new StackGresAbstractComparator.SimpleIgnorePatch("/managedFields",
+      new StackGresAbstractComparator.SimpleIgnorePatch("/metadata/managedFields",
           "add"),
   };
 

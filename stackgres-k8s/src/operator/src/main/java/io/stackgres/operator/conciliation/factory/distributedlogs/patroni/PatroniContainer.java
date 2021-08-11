@@ -102,10 +102,12 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
         .withPorts(
             new ContainerPortBuilder()
                 .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
+                .withProtocol("TCP")
                 .withContainerPort(EnvoyUtil.PG_PORT).build(),
             new ContainerPortBuilder()
                 .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
-                .withContainerPort(EnvoyUtil.PG_PORT).build(),
+                .withProtocol("TCP")
+                .withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT).build(),
             new ContainerPortBuilder()
                 .withName(PATRONI_RESTAPI_PORT_NAME)
                 .withProtocol("TCP")
@@ -180,10 +182,16 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
   }
 
   public List<EnvVar> getEnvVar(DistributedLogsContainerContext context) {
+
+    final List<EnvVar> localBinMountsEnvVars = localBinMounts.getDerivedEnvVars(context);
+    final List<EnvVar> postgresExtensionsEnvVars = postgresExtensions
+        .getDerivedEnvVars(ContextUtil.toPostgresContext(context));
+    final List<EnvVar> resource = envVarFactory
+        .createResource(context.getDistributedLogsContext());
     return ImmutableList.<EnvVar>builder()
-        .addAll(localBinMounts.getDerivedEnvVars(context))
-        .addAll(postgresExtensions.getDerivedEnvVars(ContextUtil.toPostgresContext(context)))
-        .addAll(envVarFactory.createResource(context.getDistributedLogsContext()))
+        .addAll(localBinMountsEnvVars)
+        .addAll(postgresExtensionsEnvVars)
+        .addAll(resource)
         .add(new EnvVarBuilder()
                 .withName("PATRONI_CONFIG_PATH")
                 .withValue("/etc/patroni")

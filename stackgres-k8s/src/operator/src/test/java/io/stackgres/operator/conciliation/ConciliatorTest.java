@@ -152,7 +152,7 @@ public abstract class ConciliatorTest<T extends CustomResource<?, ?>> {
     assertEquals(0, result.getDeletions().size());
     assertEquals(0, result.getCreations().size());
     assertEquals(KubernetessMockResourceGenerationUtil
-        .buildResources("test", "test").size(),
+            .buildResources("test", "test").size(),
         result.getPatches().size());
 
   }

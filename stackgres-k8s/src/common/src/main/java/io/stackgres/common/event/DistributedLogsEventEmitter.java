@@ -11,6 +11,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operatorframework.resource.EventReason;
 
 @ApplicationScoped
+@EventEmitterType(StackGresDistributedLogs.class)
 public class DistributedLogsEventEmitter extends AbstractEventEmitter<StackGresDistributedLogs> {
 
   @Override

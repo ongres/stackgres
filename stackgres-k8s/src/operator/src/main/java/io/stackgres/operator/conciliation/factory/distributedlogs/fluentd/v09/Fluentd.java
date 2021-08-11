@@ -152,6 +152,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
             + "done\n")
         .withPorts(
             new ContainerPortBuilder()
+                .withProtocol("TCP")
                 .withName(FluentdUtil.FORWARD_PORT_NAME)
                 .withContainerPort(FluentdUtil.FORWARD_PORT).build())
         .withLivenessProbe(new ProbeBuilder()

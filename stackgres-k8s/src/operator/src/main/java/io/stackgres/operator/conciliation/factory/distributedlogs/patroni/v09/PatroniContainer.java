@@ -94,11 +94,13 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
         .withEnv(getEnvVars(context))
         .withPorts(
             new ContainerPortBuilder()
+                .withProtocol("TCP")
                 .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
                 .withContainerPort(EnvoyUtil.PG_PORT).build(),
             new ContainerPortBuilder()
+                .withProtocol("TCP")
                 .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
-                .withContainerPort(EnvoyUtil.PG_PORT).build(),
+                .withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT).build(),
             new ContainerPortBuilder()
                 .withName(PATRONI_RESTAPI_PORT_NAME)
                 .withProtocol("TCP")

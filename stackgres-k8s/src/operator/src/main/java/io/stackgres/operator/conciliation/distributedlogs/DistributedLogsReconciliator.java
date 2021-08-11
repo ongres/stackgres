@@ -19,6 +19,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsConditi
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatusCluster;
 import io.stackgres.common.event.EventEmitter;
+import io.stackgres.common.event.EventEmitterType;
 import io.stackgres.common.resource.DistributedLogsScheduler;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StackGresReconciliator;
@@ -71,7 +72,7 @@ public class DistributedLogsReconciliator extends StackGresReconciliator<StackGr
 
   @Override
   public void onConfigCreated(StackGresDistributedLogs distributedLogs,
-      ReconciliationResult result) {
+                              ReconciliationResult result) {
     final ObjectMeta metadata = distributedLogs.getMetadata();
     eventController.sendEvent(DistributedLogsEventReason.DISTRIBUTED_LOGS_CREATED,
         "StackGres Centralized Logging " + metadata.getNamespace() + "."
@@ -84,7 +85,7 @@ public class DistributedLogsReconciliator extends StackGresReconciliator<StackGr
 
   @Override
   public void onConfigUpdated(StackGresDistributedLogs distributedLogs,
-      ReconciliationResult result) {
+                              ReconciliationResult result) {
     final ObjectMeta metadata = distributedLogs.getMetadata();
     eventController.sendEvent(DistributedLogsEventReason.DISTRIBUTED_LOGS_UPDATED,
         "StackGres Centralized Logging " + metadata.getNamespace() + "."
@@ -123,7 +124,9 @@ public class DistributedLogsReconciliator extends StackGresReconciliator<StackGr
   }
 
   @Inject
-  public void setEventController(EventEmitter<StackGresDistributedLogs> eventController) {
+  public void setEventController(
+      @EventEmitterType(StackGresDistributedLogs.class)
+      EventEmitter<StackGresDistributedLogs> eventController) {
     this.eventController = eventController;
   }
 }

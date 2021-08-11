@@ -11,7 +11,8 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.stackgres.common.KubernetesClientFactory;
+import io.fabric8.kubernetes.client.dsl.base.PatchContext;
+import io.stackgres.common.StackGresKubernetesClientFactory;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorList;
@@ -19,28 +20,31 @@ import io.stackgres.operator.customresource.prometheus.ServiceMonitorList;
 @ApplicationScoped
 public class ServiceMonitorWriter implements ResourceWriter<ServiceMonitor> {
 
-  private final KubernetesClientFactory clientFactory;
+  private final StackGresKubernetesClientFactory clientFactory;
 
   @Inject
-  public ServiceMonitorWriter(KubernetesClientFactory clientFactory) {
+  public ServiceMonitorWriter(StackGresKubernetesClientFactory clientFactory) {
     this.clientFactory = clientFactory;
   }
 
   @Override
   public ServiceMonitor create(ServiceMonitor resource) {
 
-    return clientFactory.withNewClient(this::getServiceMonitorClient)
-            .inNamespace(resource.getMetadata().getNamespace())
-            .create(resource);
+    return clientFactory.create().serverSideApply(new PatchContext.Builder()
+        .withFieldManager(STACKGRES_FIELD_MANAGER)
+        .withForce(true)
+        .build(),
+        resource);
 
   }
 
   @Override
   public ServiceMonitor update(ServiceMonitor resource) {
-    return clientFactory.withNewClient(this::getServiceMonitorClient)
-        .inNamespace(resource.getMetadata().getNamespace())
-        .withName(resource.getMetadata().getName())
-        .patch(resource);
+    return clientFactory.create().serverSideApply(new PatchContext.Builder()
+            .withFieldManager(STACKGRES_FIELD_MANAGER)
+            .withForce(true)
+            .build(),
+        resource);
   }
 
   @Override

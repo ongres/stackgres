@@ -129,6 +129,7 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
                     + ", namespace=" + cluster.getMetadata().getNamespace())
                 .build())
         .withPorts(new ContainerPortBuilder()
+            .withProtocol("TCP")
             .withContainerPort(9187)
             .build())
         .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
