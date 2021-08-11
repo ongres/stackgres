@@ -71,7 +71,7 @@ public class ResourceUtil {
    */
   public static String resourceName(String name, int size) {
     Preconditions.checkArgument(name.length() <= size,
-        String.format("Valid name must be %d characters or less",size));
+        String.format("Valid name must be %d characters or less", size));
     Preconditions.checkArgument(DNS_LABEL_NAME.matcher(name).matches(),
         "Name must consist of lower case alphanumeric "
             + "characters or '-', start with an alphabetic character, "
@@ -82,10 +82,10 @@ public class ResourceUtil {
   public static String resourceName(String name) {
     return resourceName(name, 63);
   }
-  
+
   /**
    * Prudent name has a maximum of 53 chars due label limitation naming(max of 63 chars).
-   * The prudent size limit is 53. prudent size = label limit size(63) - 10 chars. 
+   * The prudent size limit is 53. prudent size = label limit size(63) - 10 chars.
    * @param name The name to be validated
    * @return validated resource name
    */
