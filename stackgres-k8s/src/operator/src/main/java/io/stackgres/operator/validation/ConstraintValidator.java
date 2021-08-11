@@ -47,7 +47,7 @@ public abstract class ConstraintValidator<T extends AdmissionReview<?>> implemen
       return;
     }
 
-    validateResourceNameSizeConstraint(target);
+    validateNamingSizeConstraints(target);
 
     Set<ConstraintViolation<Object>> violations = constraintValidator.validate(target);
     if (!violations.isEmpty()) {
@@ -94,13 +94,21 @@ public abstract class ConstraintValidator<T extends AdmissionReview<?>> implemen
    * @param target HashMetadata
    * @throws ValidationFailed Validation message regarding name convention
    */
-  private void validateResourceNameSizeConstraint(final HasMetadata target)
+  private void validateNamingSizeConstraints(final HasMetadata target)
       throws ValidationFailed {
 
     try {
       Preconditions.checkArgument(target.getMetadata().getName().length() <= 53,
           NAME_CONSTRAINT_MESSAGE);
       ResourceUtil.resourceName(target.getMetadata().getName());
+    } catch (IllegalArgumentException e) {
+      throw new ValidationFailed(e.getMessage());
+    }
+    
+    try {
+      for (String labelKey : target.getMetadata().getLabels().keySet()) {
+        ResourceUtil.labelValue(target.getMetadata().getLabels().get(labelKey));
+      }
     } catch (IllegalArgumentException e) {
       throw new ValidationFailed(e.getMessage());
     }

@@ -116,7 +116,7 @@ public class ResourceUtil {
           "Not a valid label value");
     }
     Preconditions.checkArgument(name.length() <= 63,
-        "Valid name must be 63 characters or less");
+        "Valid name or label must be 63 characters or less");
     return name;
   }
 
