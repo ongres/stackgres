@@ -592,7 +592,8 @@
 				</div>
 				
 				<div class="postgresExtensions" v-if="hasProp(cluster, 'data.spec.postgresExtensions') && cluster.data.spec.postgresExtensions.length">
-					<h2>Postgres Extensions <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresExtensions')"></span></h2>
+					<h2>Postgres Extensions Deployed/To Be Deployed <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresExtensions')"></span></h2>
+					<span class="warning">The extension(s) are installed into the StackGres Postgres container. To start using them, you need to execute an appropriate <code>CREATE EXTENSION</code> command in the database(s) where you want to use the extension(s). Note that depending on each extension's requisites you may also need to add configuration to the cluster's <code>SGPostgresConfig</code> configuration, like adding the extension to <code>shared_preload_libraries</code> or adding extension-specific configuration parameters.</span>
 
 					<table class="clusterConfig">
 						<thead style="display: table-header-group">
@@ -600,33 +601,29 @@
 								Name
 								<span class="helpTooltip"  :data-tooltip="getTooltip('sgextensions.extensions.name')"></span>
 							</th>
-							<th>
-								Description
-								<span class="helpTooltip"  :data-tooltip="getTooltip('sgextensions.extensions.description')"></span>
-							</th>
-							<th>
+							<th class="textRight">
 								Version
 								<span class="helpTooltip"  :data-tooltip="getTooltip('sgextensions.extensions.versions')"></span>
 							</th>
-							<th>
-								Link
-								<span class="helpTooltip"  :data-tooltip="getTooltip('sgextensions.extensions.url')"></span>
+							<th colspan="2">
+								Description
+								<span class="helpTooltip"  :data-tooltip="getTooltip('sgextensions.extensions.description')"></span>
 							</th>
 						</thead>
 						<tbody>
 							<tr v-for="ext in sortExtensions(cluster.data.spec.postgresExtensions, cluster.data.spec.postgresVersion)">
 								<template v-for="extInfo in extensionsList" v-if="ext.name == extInfo.name">
 									<td class="label">
-										{{ ext.name }}
+										<a v-if="extInfo.hasOwnProperty('url') && extInfo.url" :href="extInfo.url" target="_blank" class="newTab" :title="extInfo.url">
+											{{ ext.name }}
+											<svg xmlns="http://www.w3.org/2000/svg" width="15.001" height="12.751" viewBox="0 0 15.001 12.751"><g fill="#ffffff" transform="translate(167.001 -31.5) rotate(90)"><path d="M37.875,168.688a.752.752,0,0,1-.53-.219l-5.625-5.626a.75.75,0,0,1,0-1.061l2.813-2.813a.75.75,0,0,1,1.06,1.061l-2.283,2.282,4.566,4.566,4.566-4.566-2.283-2.282a.75.75,0,0,1,1.06-1.061l2.813,2.813a.75.75,0,0,1,0,1.061l-5.625,5.626A.752.752,0,0,1,37.875,168.688Z" transform="translate(0 -1.687)"/><path d="M42.156,155.033l-2.813-2.813a.752.752,0,0,0-1.061,0l-2.813,2.813a.75.75,0,1,0,1.06,1.061l1.533-1.534v5.3a.75.75,0,1,0,1.5,0v-5.3l1.533,1.534a.75.75,0,1,0,1.06-1.061Z" transform="translate(-0.937 0)"/></g></svg>
+										</a>
 									</td>
-									<td class="firstLetter">
-										{{ extInfo.abstract }}
-									</td>
-									<td>
+									<td class="textRight">
 										{{ ext.version }}
 									</td>
-									<td>
-										<a v-if="extInfo.hasOwnProperty('url') && extInfo.url" :href="extInfo.url" target="_blank" class="trimText" :title="extInfo.url">{{ extInfo.url }}</a>
+									<td class="firstLetter" colspan="2">
+										{{ extInfo.abstract }}
 									</td>
 								</template>
 							</tr>
@@ -759,12 +756,24 @@
 		padding-left: 10px;
 	}
 
-	.trimText {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		display: block;
-		max-width: 250px;
+	.newTab svg {
+		float: initial;
+		width: 12px;
+    	top: 1px;
+	}
+
+	.newTab:hover svg g {
+		fill: var(--blue)
+	}
+
+	.warning {
+		background: rgba(0,173,181,.05);
+		border: 1px solid var(--blue);
+		padding: 20px;
+		border-radius: 6px;
+		display: inline-block;
+		line-height: 1.1;
 		width: 100%;
 	}
+
 </style>
