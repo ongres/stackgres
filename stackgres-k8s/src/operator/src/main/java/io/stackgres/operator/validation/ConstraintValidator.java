@@ -13,7 +13,6 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.validation.ConstraintViolation;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Status;
@@ -30,7 +29,6 @@ import org.jooq.lambda.Seq;
 
 public abstract class ConstraintValidator<T extends AdmissionReview<?>> implements Validator<T> {
 
-  private static final String NAME_CONSTRAINT_MESSAGE = "Valid name must be 53 characters or less";
   private javax.validation.Validator constraintValidator;
   private String constraintViolationDocumentationUri;
 
@@ -97,18 +95,29 @@ public abstract class ConstraintValidator<T extends AdmissionReview<?>> implemen
   private void validateNamingSizeConstraints(final HasMetadata target)
       throws ValidationFailed {
 
-    try {
-      Preconditions.checkArgument(target.getMetadata().getName().length() <= 53,
-          NAME_CONSTRAINT_MESSAGE);
-      ResourceUtil.resourceName(target.getMetadata().getName());
-    } catch (IllegalArgumentException e) {
-      throw new ValidationFailed(e.getMessage());
+    checkOperationNameSizeLimit(target);
+    checkLabelSizeLimit(target);
+  }
+
+  private void checkLabelSizeLimit(final HasMetadata target) throws ValidationFailed {
+
+    boolean hasNoLabels = target.getMetadata().getLabels() == null;
+    if (hasNoLabels) {
+      return;
     }
-    
+
     try {
       for (String labelKey : target.getMetadata().getLabels().keySet()) {
         ResourceUtil.labelValue(target.getMetadata().getLabels().get(labelKey));
       }
+    } catch (IllegalArgumentException e) {
+      throw new ValidationFailed(e.getMessage());
+    }
+  }
+
+  private void checkOperationNameSizeLimit(final HasMetadata target) throws ValidationFailed {
+    try {
+      ResourceUtil.prudentSizeResourceName(target.getMetadata().getName());
     } catch (IllegalArgumentException e) {
       throw new ValidationFailed(e.getMessage());
     }

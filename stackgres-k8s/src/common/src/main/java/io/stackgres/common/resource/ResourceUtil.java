@@ -62,14 +62,35 @@ public class ResourceUtil {
         .anyMatch(name::equals);
   }
 
-  public static String resourceName(String name) {
-    Preconditions.checkArgument(name.length() <= 63,
-        "Valid name must be 63 characters or less");
+  /**
+   * Resource names must not be longer than valid labels.
+   * https://kubernetes.io/docs/concepts/overview/working-with-objects/labels
+   * @param name of the resource to be validated
+   * @param size required max size
+   * @return validated resource name
+   */
+  public static String resourceName(String name, int size) {
+    Preconditions.checkArgument(name.length() <= size,
+        String.format("Valid name must be %d characters or less",size));
     Preconditions.checkArgument(DNS_LABEL_NAME.matcher(name).matches(),
         "Name must consist of lower case alphanumeric "
             + "characters or '-', start with an alphabetic character, "
             + "and end with an alphanumeric character");
     return name;
+  }
+
+  public static String resourceName(String name) {
+    return resourceName(name, 63);
+  }
+  
+  /**
+   * Prudent name has a maximum of 53 chars due label limitation naming(max of 63 chars).
+   * The prudent size limit is 53. prudent size = label limit size(63) - 10 chars. 
+   * @param name The name to be validated
+   * @return validated resource name
+   */
+  public static String prudentSizeResourceName(String name) {
+    return resourceName(name, 53);
   }
 
   public static String containerName(String name) {
