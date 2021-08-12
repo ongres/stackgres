@@ -107,9 +107,9 @@
 						<tr>
 							<td class="label">
 								Postgres Version
-								<span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresVersion')"></span>
+								<span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgres.version')"></span>
 							</td>
-							<td colspan="3">{{ cluster.data.spec.postgresVersion }}</td>
+							<td colspan="3">{{ cluster.data.spec.postgres.version }}</td>
 						</tr>
 						<tr>
 							<td class="label">
@@ -591,8 +591,8 @@
 					</table>
 				</div>
 				
-				<div class="postgresExtensions" v-if="hasProp(cluster, 'data.spec.postgresExtensions') && cluster.data.spec.postgresExtensions.length">
-					<h2>Postgres Extensions Deployed/To Be Deployed <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresExtensions')"></span></h2>
+				<div class="postgresExtensions" v-if="hasProp(cluster, 'data.spec.postgres.extensions') && cluster.data.spec.postgres.extensions.length">
+					<h2>Postgres Extensions Deployed/To Be Deployed <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgres.extensions')"></span></h2>
 					<span class="warning">The extension(s) are installed into the StackGres Postgres container. To start using them, you need to execute an appropriate <code>CREATE EXTENSION</code> command in the database(s) where you want to use the extension(s). Note that depending on each extension's requisites you may also need to add configuration to the cluster's <code>SGPostgresConfig</code> configuration, like adding the extension to <code>shared_preload_libraries</code> or adding extension-specific configuration parameters.</span>
 
 					<table class="clusterConfig">
@@ -611,7 +611,7 @@
 							</th>
 						</thead>
 						<tbody>
-							<tr v-for="ext in sortExtensions(cluster.data.spec.postgresExtensions, cluster.data.spec.postgresVersion)">
+							<tr v-for="ext in sortExtensions(cluster.data.spec.postgres.extensions, cluster.data.spec.postgres.version)">
 								<template v-for="extInfo in extensionsList" v-if="ext.name == extInfo.name">
 									<td class="label">
 										<a v-if="extInfo.hasOwnProperty('url') && extInfo.url" :href="extInfo.url" target="_blank" class="newTab" :title="extInfo.url">
