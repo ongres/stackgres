@@ -71,7 +71,7 @@ public class ResourceUtil {
    */
   public static String resourceName(String name, int size) {
     Preconditions.checkArgument(name.length() <= size,
-        String.format("Valid name must be %d characters or less", size));
+        String.format("Valid name or label must be %d characters or less", size));
     Preconditions.checkArgument(DNS_LABEL_NAME.matcher(name).matches(),
         "Name must consist of lower case alphanumeric "
             + "characters or '-', start with an alphabetic character, "

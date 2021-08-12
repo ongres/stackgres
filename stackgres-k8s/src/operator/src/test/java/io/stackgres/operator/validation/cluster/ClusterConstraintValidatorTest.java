@@ -5,9 +5,6 @@
 
 package io.stackgres.operator.validation.cluster;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
@@ -33,8 +30,6 @@ import io.stackgres.operator.validation.ConstraintValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresClusterReview> {
 
@@ -437,34 +432,6 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
 
     checkErrorCause(Toleration.class, "spec.pod.scheduling.tolerations[0].effect",
         "isEffectValid", review, AssertTrue.class);
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"hardcover-lady-somebody-arrives-specialty-risk-stocking-nodes-"
-      + "fisheries-introduces-5",
-      "suzuki-stroke-rail-remix-suite-flux-diploma-slip-airfare-extremely-1",
-      "mozilla-rose-types-border-biome-upright-weak-promote-monday-1234"})
-  void invalidLongNames_shouldFail(String name) {
-    StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getMetadata().setName(name);
-
-    ValidationFailed message =
-        assertThrows(ValidationFailed.class, () -> validator.validate(review));
-    assertEquals("Valid name must be 53 characters or less", message.getMessage());
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"stackgres.io/", "*9stackgres", "1143", "1143a", "-1143a", ".demo",
-      "123-primary", "123-primary", "primary*", "stackgres-demo_1"})
-  void invalidNames_shouldFail(String name) {
-    StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getMetadata().setName(name);
-
-    ValidationFailed message =
-        assertThrows(ValidationFailed.class, () -> validator.validate(review));
-    assertEquals("Name must consist of lower case alphanumeric "
-        + "characters or '-', start with an alphabetic character, "
-        + "and end with an alphanumeric character", message.getMessage());
   }
 
   @Test

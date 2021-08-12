@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.validation;
 
+import static io.stackgres.common.StackGresContext.APP_NAME;
+import static io.stackgres.testutil.StringUtils.getOversizedResourceName;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -16,15 +18,16 @@ import javax.validation.ValidatorFactory;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
+import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Status;
 import io.stackgres.common.ErrorType;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public abstract class ConstraintValidationTest<T extends AdmissionReview<?>> {
 
@@ -85,19 +88,52 @@ public abstract class ConstraintValidationTest<T extends AdmissionReview<?>> {
   @Test
   void oversizedClusterName_shouldThrowValidationFailedException() throws ValidationFailed {
 
-    T oversizedClusterNamespaceReview = getOversizedClusterNamespaceReview();
+    T oversizedClusterNamespaceReview = getOversizedOperationNameReview();
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
       validator.validate(oversizedClusterNamespaceReview);
     });
 
     assertNotNull(ex.getResult());
-    assertEquals("Valid name must be 53 characters or less", ex.getMessage().toString());
+    assertEquals("Valid name or label must be 53 characters or less", ex.getMessage().toString());
   }
 
-  private T getOversizedClusterNamespaceReview() {
+  @Test
+  void oversizedLabel_shouldThrowValidationFailedException() throws ValidationFailed {
+
+    T oversizedClusterNamespaceReview = getOversizedLabelReview();
+    ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
+      validator.validate(oversizedClusterNamespaceReview);
+    });
+
+    assertNotNull(ex.getResult());
+    assertEquals("Valid name or label must be 63 characters or less", ex.getMessage().toString());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"stackgres.io/", "*9stackgres", "1143", "1143a", "-1143a", ".demo",
+      "123-primary", "123-primary", "primary*", "stackgres-demo_1"})
+  void invalidNames_shouldFail(String name) {
+    T review = getValidReview();
+    review.getRequest().getObject().getMetadata().setName(name);
+
+    ValidationFailed message =
+        assertThrows(ValidationFailed.class, () -> validator.validate(review));
+    assertEquals("Name must consist of lower case alphanumeric "
+        + "characters or '-', start with an alphabetic character, "
+        + "and end with an alphanumeric character", message.getMessage());
+  }
+
+  protected T getOversizedOperationNameReview() {
     T oversizedClusterNamespaceReview = getValidReview();
-    HasMetadata metadata = (HasMetadata) oversizedClusterNamespaceReview.getRequest().getObject();
-    metadata.getMetadata().setName(StringUtils.getOversizedResourceName());
+    oversizedClusterNamespaceReview.getRequest().getObject().getMetadata()
+        .setName(getOversizedResourceName());
+    return oversizedClusterNamespaceReview;
+  }
+
+  protected T getOversizedLabelReview() {
+    T oversizedClusterNamespaceReview = getValidReview();
+    oversizedClusterNamespaceReview.getRequest().getObject().getMetadata()
+        .setLabels(ImmutableMap.of(APP_NAME, getOversizedResourceName()));
     return oversizedClusterNamespaceReview;
   }
 

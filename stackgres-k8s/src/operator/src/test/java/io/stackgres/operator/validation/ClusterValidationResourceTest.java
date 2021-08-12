@@ -90,6 +90,16 @@ class ClusterValidationResourceTest extends JerseyTest {
 
     assertEquals(200, response.getStatus());
   }
+  
+  @Test
+  void foo() {
+    String requestBody = getFileAsString("cluster_allow_requests/valid_creation.json");
+
+    Response response = target("/stackgres/validation/sgcluster")
+        .request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
+
+    assertEquals(200, response.getStatus());
+  }
 
   @Test
   void givenValidAllowedRequest_thenResponseShouldNotContainStatusProperty() throws IOException {
