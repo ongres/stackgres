@@ -18,7 +18,7 @@ showToc: true
 | Postgres Exporter | 0.9.0 |
 | Envoy | 1.17.1 |
 | Fluent-Bit | 1.8.1 |
-| Fluentd | 1.12.1 |
+| Fluentd | 1.13.2 |
 
 ### Additional extensions included on StackGres
 
