@@ -57,7 +57,7 @@ check_latest_timescaledb_version_is_installed() {
       | select(.name == \"timescaledb\" and .version == \"$TIMESCALE_VERSION\") | length" \
     | jq -s "length")" = 1 ]'
   then
-    echo "SUCESS. Latest version of timescaledb ($TIMESCALE_VERSION) was installed"
+    echo "SUCCESS. Latest version of timescaledb ($TIMESCALE_VERSION) was installed"
   else
     echo "FAIL. Latest version of timescaledb ($TIMESCALE_VERSION) was not installed"
     return 1
@@ -69,10 +69,10 @@ default_annotations(){
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
-    echo "Fail. Default annotations not created"
+    echo "FAIL. Default annotations not created"
     return 1
   else
-    echo "Success. Defaults annotations created"
+    echo "SUCCESS. Defaults annotations created"
   fi
 }
 
