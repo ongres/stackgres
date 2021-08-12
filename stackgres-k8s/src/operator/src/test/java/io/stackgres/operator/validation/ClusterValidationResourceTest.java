@@ -90,7 +90,7 @@ class ClusterValidationResourceTest extends JerseyTest {
 
     assertEquals(200, response.getStatus());
   }
-  
+
   @Test
   void foo() {
     String requestBody = getFileAsString("cluster_allow_requests/valid_creation.json");
