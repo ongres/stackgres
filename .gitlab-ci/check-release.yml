@@ -9,6 +9,10 @@ enforce release:
   script:
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -Dmaven.test.skip=true -Dquarkus.build.skip=true"
     - 'mvn $MAVEN_CLI_OPTS enforcer:enforce@enforce-no-snapshots'
+  retry:
+    max: 2
+    when: [ unknown_failure, api_failure, stuck_or_timeout_failure, runner_system_failure, runner_unsupported,
+     stale_schedule, job_execution_timeout, archived_failure, unmet_prerequisites, scheduler_failure, data_integrity_failure ] 
   only:
     variables:
       - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/

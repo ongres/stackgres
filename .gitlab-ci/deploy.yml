@@ -17,6 +17,7 @@
     - export IMAGE_PUSH_NAME="docker.io/$IMAGE_NAME:$IMAGE_PUSH_TAG"
     - buildah pull "$IMAGE_PULL_NAME"
     - buildah push --format=docker --authfile "$REGISTRY_AUTH_FILE" "$IMAGE_PULL_NAME" "docker://$IMAGE_PUSH_NAME"
+  retry: 2
   only:
     variables:
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
@@ -141,6 +142,7 @@ pages:
   script:
   - tar cC doc public | tar x
   - find public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
+  retry: 2
   artifacts:
     paths:
     - public
