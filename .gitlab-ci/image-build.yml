@@ -17,6 +17,7 @@ build operator jvm image:
       flock /tmp/stackgres-operator-build-jvm-image \
         sh -xe operator/src/main/docker/build-image-jvm.sh
     - docker push "$TARGET_OPERATOR_IMAGE_NAME"
+  retry: 2
 
 build restapi jvm image:
   image: docker:20.10.6
@@ -36,6 +37,7 @@ build restapi jvm image:
       flock /tmp/stackgres-restapi-build-jvm-image \
         sh -xe api-web/src/main/docker/build-image-jvm.sh
     - docker push "$TARGET_RESTAPI_IMAGE_NAME"
+  retry: 2
 
 build jobs jvm image:
   image: docker:20.10.6
@@ -55,6 +57,7 @@ build jobs jvm image:
       flock /tmp/stackgres-jobs-build-jvm-image \
         sh -xe jobs/src/main/docker/build-image-jvm.sh
     - docker push "$TARGET_JOBS_IMAGE_NAME"
+  retry: 2
 
 build cluster-controller jvm image:
   image: docker:20.10.6
@@ -74,6 +77,7 @@ build cluster-controller jvm image:
       flock /tmp/stackgres-cluster-controller-build-jvm-image \
         sh -xe cluster-controller/src/main/docker/build-image-jvm.sh
     - docker push "$TARGET_CLUSTER_CONTROLLER_IMAGE_NAME"
+  retry: 2
 
 build distributedlogs-controller jvm image:
   image: docker:20.10.6
@@ -93,6 +97,7 @@ build distributedlogs-controller jvm image:
       flock /tmp/stackgres-distributedlogs-controller-build-jvm-image \
         sh -xe distributedlogs-controller/src/main/docker/build-image-jvm.sh
     - docker push "$TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
+  retry: 2
 
 build operator native image:
   image: docker:20.10.6
@@ -112,6 +117,7 @@ build operator native image:
       flock /tmp/stackgres-operator-build-native-image \
         sh -xe operator/src/main/docker/build-image-native.sh
     - docker push "$TARGET_OPERATOR_IMAGE_NAME"
+  retry: 2
   only:
     variables:
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
@@ -138,6 +144,7 @@ build restapi native image:
       flock /tmp/stackgres-restapi-build-native-image \
         sh -xe api-web/src/main/docker/build-image-native.sh
     - docker push "$TARGET_RESTAPI_IMAGE_NAME"
+  retry: 2
   only:
     variables:
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
@@ -164,6 +171,7 @@ build jobs native image:
       flock /tmp/stackgres-jobs-build-native-image \
         sh -xe jobs/src/main/docker/build-image-native.sh
     - docker push "$TARGET_JOBS_IMAGE_NAME"
+  retry: 2
   only:
     variables:
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
@@ -190,6 +198,7 @@ build cluster-controller native image:
       flock /tmp/stackgres-cluster-controller-build-native-image \
         sh -xe cluster-controller/src/main/docker/build-image-native.sh
     - docker push "$TARGET_CLUSTER_CONTROLLER_IMAGE_NAME"
+  retry: 2
   only:
     variables:
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
@@ -216,6 +225,7 @@ build distributedlogs-controller native image:
       flock /tmp/stackgres-distributedlogs-controller-build-native-image \
         sh -xe distributedlogs-controller/src/main/docker/build-image-native.sh
     - docker push "$TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
+  retry: 2
   only:
     variables:
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
@@ -242,6 +252,7 @@ build admin-ui image:
       flock /tmp/stackgres-adminui-build-image \
         sh -xe admin-ui/docker/build.sh
     - docker push "$TARGET_ADMINUI_IMAGE_NAME"
+  retry: 2
 
 build test image:
   image: docker:20.10.6
@@ -270,3 +281,4 @@ build test image:
       echo ...done
       EOF
     - flock /tmp/stackgres-build-it-image sh -xe build-test-image.sh
+  retry: 2
