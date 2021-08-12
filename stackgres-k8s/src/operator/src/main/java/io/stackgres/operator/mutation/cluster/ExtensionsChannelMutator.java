@@ -29,9 +29,13 @@ import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class ExtensionsChannelMutator implements ClusterMutator {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ExtensionsChannelMutator.class);
 
   private final ClusterExtensionMetadataManager extensionMetadataManager;
 
@@ -60,9 +64,16 @@ public class ExtensionsChannelMutator implements ClusterMutator {
                   final JsonPointer extensionVersionPointer =
                       CLUSTER_CONFIG_POINTER.append("postgres").append("extensions")
                       .append(extension.v2.intValue()).append("version");
-                  final StackGresExtensionMetadata extensionMetadata =
-                      extensionMetadataManager.getExtensionCandidateSameMajorBuild(
-                          cluster, extension.v1);
+                  final StackGresExtensionMetadata extensionMetadata;
+                  try {
+                    extensionMetadata =
+                        extensionMetadataManager.getExtensionCandidateSameMajorBuild(
+                            cluster, extension.v1);
+                  } catch (Exception ex) {
+                    LOGGER.warn("Unable to retrieve candidate with same major build for extension",
+                        ex);
+                    return;
+                  }
                   final StackGresClusterInstalledExtension installedExtension =
                       ExtensionUtil.getInstalledExtension(extension.v1, extensionMetadata);
                   final TextNode extensionVersion = new TextNode(installedExtension.getVersion());

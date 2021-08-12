@@ -21,7 +21,7 @@ e2e_test_install() {
   NODE_LABEL_VALUE=$(ramdom_string)
 
   DUMMY_OPERATOR_CLUSTER=$(cat "$LOG_PATH/stackgres-cluster.json" \
-    | jq ".spec.pods.scheduling={nodeSelector:{$NODE_LABEL_KEY: \"$NODE_LABEL_VALUE\"}}" )
+    | jq ".spec.pods.scheduling={nodeSelector:{\"$NODE_LABEL_KEY\": \"$NODE_LABEL_VALUE\"}}" )
 
   echo_raw "$DUMMY_OPERATOR_CLUSTER" > "$LOG_PATH/dummy-cluster.json"
 

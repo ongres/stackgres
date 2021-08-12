@@ -28,9 +28,13 @@ import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
 import org.jooq.lambda.Seq;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
     R extends AdmissionReview<T>> implements JsonPatchMutator<R> {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractExtensionsMutator.class);
 
   protected static final ObjectNode EMPTY_OBJECT = FACTORY.objectNode();
 
@@ -136,6 +140,7 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
           .getExtensionCandidateAnyVersion(cluster, extension);
       return Optional.of(ExtensionUtil.getInstalledExtension(extension, extensionMetadata));
     } catch (Exception ex) {
+      LOGGER.warn("Unable to retrieve any candidate for extension", ex);
       return Optional.empty();
     }
   }
@@ -150,6 +155,7 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
           .getExtensionCandidateSameMajorBuild(cluster, extension);
       return Optional.of(ExtensionUtil.getInstalledExtension(extension, extensionMetadata));
     } catch (Exception ex) {
+      LOGGER.warn("Unable to retrieve candidate with same major build for extension", ex);
       return Optional.empty();
     }
   }
@@ -161,6 +167,7 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
           .getExtensionCandidateSameMajorBuild(cluster, extension);
       return Optional.of(ExtensionUtil.getInstalledExtension(extension, extensionMetadata));
     } catch (Exception ex) {
+      LOGGER.warn("Unable to retrieve candidate with same major build for extension", ex);
       return Optional.empty();
     }
   }

@@ -19,7 +19,8 @@ metadata:
   namespace: demo
   name: cluster
 spec:
-  postgresVersion: '12.3'
+  postgres:
+    version: '12.3'
   instances: 3
   sgInstanceProfile: 'size-small'
   pods:
