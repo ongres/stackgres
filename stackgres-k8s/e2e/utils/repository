@@ -189,10 +189,25 @@ load_failed_images_pull_from_local_repository() {
 }
 
 docker_pull() {
-  docker pull -q "$1"
+  local IMAGE_NAME="$1"
+  local ORIGINAL_IMAGE_NAME=""
+  if printf '%s' "$E2E_IMAGE_TAG_MAP" | tr ' ' '\n' | grep -q "^${1##*:}:"
+  then
+    ORIGINAL_IMAGE_NAME="$IMAGE_NAME"
+    IMAGE_NAME="${ORIGINAL_IMAGE_NAME%:*}:$(
+      printf '%s' "$E2E_IMAGE_TAG_MAP" | tr ' ' '\n' | grep "^${1##*:}:" \
+        | head -n 1 | cut -d : -f 2
+      )"
+    echo "Using $IMAGE_NAME as $ORIGINAL_IMAGE_NAME"
+  fi
+  docker pull -q "$IMAGE_NAME"
   if [ "$K8S_USE_INTERNAL_REPOSITORY" = true ]
   then
-    pull_image_k8s "$1"
+    pull_image_k8s "$IMAGE_NAME"
+  fi
+  if [ -n "$ORIGINAL_IMAGE_NAME" ]
+  then
+    docker_tag "$IMAGE_NAME" "$ORIGINAL_IMAGE_NAME"
   fi
 }
 

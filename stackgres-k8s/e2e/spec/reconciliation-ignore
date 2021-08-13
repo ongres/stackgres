@@ -83,7 +83,7 @@ ignore_sgcluster_patch(){
     echo "FAIL. SGCluster is not being ignored"
     return 1
   else
-    echo "Sucess. SGCluster is being ignored"
+    echo "SUCCESS. SGCluster is being ignored"
   fi
   
 }
@@ -141,7 +141,7 @@ ignore_sgdistributedlogs_patch(){
     echo "FAIL. Distributed logs is not being ignored"
     return 1
   else
-    echo "Sucess. Distributed logs is being ignored"
+    echo "SUCCESS. Distributed logs is being ignored"
   fi
 }
 
