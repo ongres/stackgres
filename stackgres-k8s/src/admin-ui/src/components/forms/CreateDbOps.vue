@@ -1,5 +1,5 @@
 <template>
-    <form id="create-dbops" class="noSubmit" v-if="loggedIn && isReady" @submit.prevent="createDbOps()">
+    <form id="create-dbops" class="noSubmit" v-if="loggedIn && isReady && !notFound" @submit.prevent="createDbOps()">
         <header>
             <ul class="breadcrumbs">
                 <li class="namespace">

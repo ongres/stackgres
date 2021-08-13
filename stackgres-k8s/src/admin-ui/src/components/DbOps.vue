@@ -1,5 +1,5 @@
 <template>
-    <div id="dbops" v-if="loggedIn && isReady">
+    <div id="dbops" v-if="loggedIn && isReady && !notFound">
         <header>
             <ul class="breadcrumbs">
                 <li class="namespace">
