@@ -30,7 +30,6 @@ import io.stackgres.apiweb.dto.cluster.ClusterNonProduction;
 import io.stackgres.apiweb.dto.cluster.ClusterPod;
 import io.stackgres.apiweb.dto.cluster.ClusterPodMetadata;
 import io.stackgres.apiweb.dto.cluster.ClusterPodPersistentVolume;
-import io.stackgres.apiweb.dto.cluster.ClusterPodScheduling;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgres;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgresService;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgresServices;
@@ -44,6 +43,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterSpecAnnotations;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
 import io.stackgres.apiweb.dto.cluster.ClusterSsl;
 import io.stackgres.apiweb.dto.cluster.ClusterStatus;
+import io.stackgres.apiweb.transformer.converter.cluster.ClusterPodSchedulingConverter;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -56,7 +56,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodMetadata;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
@@ -261,11 +260,7 @@ public class ClusterTransformer
 
     targetPod.setScheduling(Optional.ofNullable(source.getPods().getScheduling())
         .map(sourceScheduling -> {
-          StackGresClusterPodScheduling targetScheduling = new StackGresClusterPodScheduling();
-          targetScheduling.setNodeSelector(sourceScheduling.getNodeSelector());
-          targetScheduling.setTolerations(sourceScheduling.getTolerations());
-          targetScheduling.setNodeAffinity(sourceScheduling.getNodeAffinity());
-          return targetScheduling;
+          return new ClusterPodSchedulingConverter().to(sourceScheduling);
         }).orElse(null));
     transformation.setDistributedLogs(
         getCustomResourceDistributedLogs(source.getDistributedLogs()));
@@ -491,10 +486,7 @@ public class ClusterTransformer
 
     targetPod.setScheduling(Optional.ofNullable(sourcePod.getScheduling())
         .map(sourcePodScheduling -> {
-          ClusterPodScheduling podScheduling = new ClusterPodScheduling();
-          podScheduling.setNodeSelector(sourcePodScheduling.getNodeSelector());
-          podScheduling.setTolerations(sourcePodScheduling.getTolerations());
-          return podScheduling;
+          return new ClusterPodSchedulingConverter().from(sourcePodScheduling);
         }).orElse(null));
 
     transformation.setDistributedLogs(
