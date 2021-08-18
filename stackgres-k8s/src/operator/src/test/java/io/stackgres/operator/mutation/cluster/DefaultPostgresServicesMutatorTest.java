@@ -17,8 +17,8 @@ import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import com.github.fge.jsonpatch.JsonPatchOperation;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.testutil.JsonUtil;
@@ -46,8 +46,8 @@ class DefaultPostgresServicesMutatorTest {
 
   @Test
   void clusterWithPostgresService_shouldSetNothing() {
-    StackGresClusterPostgresService primary = new StackGresClusterPostgresService();
-    StackGresClusterPostgresService replica = new StackGresClusterPostgresService();
+    StackGresPostgresService primary = new StackGresPostgresService();
+    StackGresPostgresService replica = new StackGresPostgresService();
     primary.setEnabled(Boolean.TRUE);
     replica.setEnabled(Boolean.FALSE);
     primary.setType("LoadBalancing");
@@ -65,8 +65,8 @@ class DefaultPostgresServicesMutatorTest {
 
   @Test
   void clusterWithPostgresServiceNoType_shouldSetClusterIP() {
-    StackGresClusterPostgresService primary = new StackGresClusterPostgresService();
-    StackGresClusterPostgresService replica = new StackGresClusterPostgresService();
+    StackGresPostgresService primary = new StackGresPostgresService();
+    StackGresPostgresService replica = new StackGresPostgresService();
     primary.setEnabled(Boolean.TRUE);
     replica.setEnabled(Boolean.FALSE);
 
@@ -98,7 +98,7 @@ class DefaultPostgresServicesMutatorTest {
 
   @Test
   void clusterWithPostgresServiceNoPrimary_shouldSetValue() {
-    StackGresClusterPostgresService replica = new StackGresClusterPostgresService();
+    StackGresPostgresService replica = new StackGresPostgresService();
     replica.setEnabled(Boolean.FALSE);
     replica.setType("LoadBalancing");
 
@@ -114,7 +114,7 @@ class DefaultPostgresServicesMutatorTest {
 
   @Test
   void clusterWithPostgresServiceNoReplicas_shouldSetValue() {
-    StackGresClusterPostgresService primary = new StackGresClusterPostgresService();
+    StackGresPostgresService primary = new StackGresPostgresService();
     primary.setEnabled(Boolean.FALSE);
     primary.setType("LoadBalancing");
 
@@ -130,7 +130,7 @@ class DefaultPostgresServicesMutatorTest {
 
   @Test
   void clusterWithPostgresServiceNoEnabled_shouldSetValue() {
-    StackGresClusterPostgresService primary = new StackGresClusterPostgresService();
+    StackGresPostgresService primary = new StackGresPostgresService();
     primary.setType("LoadBalancing");
 
     setPostgresServices(primary, null);
@@ -143,8 +143,8 @@ class DefaultPostgresServicesMutatorTest {
     assertEquals("ClusterIP", pgServices.getReplicas().getType());
   }
 
-  private void setPostgresServices(StackGresClusterPostgresService primary,
-      StackGresClusterPostgresService replica) {
+  private void setPostgresServices(StackGresPostgresService primary,
+      StackGresPostgresService replica) {
     StackGresClusterPostgresServices postgresServices = new StackGresClusterPostgresServices();
     postgresServices.setPrimary(primary);
     postgresServices.setReplicas(replica);

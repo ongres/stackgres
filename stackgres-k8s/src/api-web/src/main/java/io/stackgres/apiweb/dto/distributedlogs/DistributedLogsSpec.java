@@ -22,6 +22,9 @@ public class DistributedLogsSpec {
   @JsonProperty("persistentVolume")
   private DistributedLogsPersistentVolume persistentVolume;
 
+  @JsonProperty("postgresServices")
+  private DistributedLogsPostgresServices postgresServices;
+
   @JsonProperty("nonProductionOptions")
   private DistributedLogsNonProduction nonProduction;
 
@@ -74,6 +77,14 @@ public class DistributedLogsSpec {
   public void setToInstallPostgresExtensions(
       List<ClusterInstalledExtension> toInstallPostgresExtensions) {
     this.toInstallPostgresExtensions = toInstallPostgresExtensions;
+  }
+  
+  public DistributedLogsPostgresServices getPostgresServices() {
+    return postgresServices;
+  }
+
+  public void setPostgresServices(DistributedLogsPostgresServices postgresServices) {
+    this.postgresServices = postgresServices;
   }
 
   @Override
