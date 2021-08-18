@@ -21,9 +21,9 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StringUtil;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServiceType;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
@@ -133,7 +133,7 @@ class PatroniServicesTest {
 
     Service primaryService = getPrimaryService(services);
 
-    assertEquals(StackGresClusterPostgresServiceType.EXTERNAL_NAME.toString(),
+    assertEquals(StackGresPostgresServiceType.EXTERNAL_NAME.toString(),
         primaryService.getSpec().getType());
   }
 
@@ -146,19 +146,19 @@ class PatroniServicesTest {
 
     Service primaryService = getPatroniService(services);
 
-    assertEquals(StackGresClusterPostgresServiceType.CLUSTER_IP.toString(),
+    assertEquals(StackGresPostgresServiceType.CLUSTER_IP.toString(),
         primaryService.getSpec().getType());
   }
 
   @Test
   void ifPatroniServiceTypeIsLoadBalancer_serviceTypeShouldBeLoadBalancer() {
-    enablePrimaryService(StackGresClusterPostgresServiceType.LOAD_BALANCER);
+    enablePrimaryService(StackGresPostgresServiceType.LOAD_BALANCER);
 
     Stream<HasMetadata> services = patroniServices.generateResource(context);
 
     Service primaryService = getPatroniService(services);
 
-    assertEquals(StackGresClusterPostgresServiceType.LOAD_BALANCER.toString(),
+    assertEquals(StackGresPostgresServiceType.LOAD_BALANCER.toString(),
         primaryService.getSpec().getType());
   }
 
@@ -216,19 +216,18 @@ class PatroniServicesTest {
 
     Service replicaService = getReplicaService(services);
 
-    assertEquals(StackGresClusterPostgresServiceType.CLUSTER_IP.toString(),
+    assertEquals(StackGresPostgresServiceType.CLUSTER_IP.toString(),
         replicaService.getSpec().getType());
   }
 
   @Test
   void ifReplicaServiceTypeIsLoadBalancer_serviceTypeShouldBeLoadBalancer() {
-    enableReplicaService(StackGresClusterPostgresServiceType.LOAD_BALANCER);
-
+    enableReplicaService(StackGresPostgresServiceType.LOAD_BALANCER);
     Stream<HasMetadata> services = patroniServices.generateResource(context);
 
     Service replicaService = getReplicaService(services);
 
-    assertEquals(StackGresClusterPostgresServiceType.LOAD_BALANCER.toString(),
+    assertEquals(StackGresPostgresServiceType.LOAD_BALANCER.toString(),
         replicaService.getSpec().getType());
   }
 
@@ -249,15 +248,15 @@ class PatroniServicesTest {
 
   private void enablePrimaryService(boolean enabled) {
     StackGresClusterPostgresServices postgresServices = new StackGresClusterPostgresServices();
-    StackGresClusterPostgresService primaryService = new StackGresClusterPostgresService();
+    StackGresPostgresService primaryService = new StackGresPostgresService();
     primaryService.setEnabled(enabled);
     postgresServices.setPrimary(primaryService);
     defaultCluster.getSpec().setPostgresServices(postgresServices);
   }
 
-  private void enablePrimaryService(StackGresClusterPostgresServiceType type) {
+  private void enablePrimaryService(StackGresPostgresServiceType type) {
     enablePrimaryService(true);
-    final StackGresClusterPostgresService primary = defaultCluster
+    final StackGresPostgresService primary = defaultCluster
         .getSpec()
         .getPostgresServices()
         .getPrimary();
@@ -277,15 +276,15 @@ class PatroniServicesTest {
 
   private void enableReplicaService(boolean enabled) {
     StackGresClusterPostgresServices postgresServices = new StackGresClusterPostgresServices();
-    StackGresClusterPostgresService replicaService = new StackGresClusterPostgresService();
+    StackGresPostgresService replicaService = new StackGresPostgresService();
     replicaService.setEnabled(enabled);
     postgresServices.setReplicas(replicaService);
     defaultCluster.getSpec().setPostgresServices(postgresServices);
   }
 
-  private void enableReplicaService(StackGresClusterPostgresServiceType type) {
+  private void enableReplicaService(StackGresPostgresServiceType type) {
     enableReplicaService(true);
-    final StackGresClusterPostgresService primary = defaultCluster
+    final StackGresPostgresService primary = defaultCluster
         .getSpec()
         .getPostgresServices()
         .getReplicas();

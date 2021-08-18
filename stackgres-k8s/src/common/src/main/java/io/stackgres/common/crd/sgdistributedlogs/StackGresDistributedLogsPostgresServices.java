@@ -3,18 +3,16 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.dto.cluster;
+package io.stackgres.common.crd.sgdistributedlogs;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.apiweb.app.postgres.service.PostgresServices;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class ClusterPostgresServices extends PostgresServices {
-
-  private static final long serialVersionUID = 1L;
+public class StackGresDistributedLogsPostgresServices extends StackGresPostgresServices {
 
 }
