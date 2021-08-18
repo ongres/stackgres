@@ -3,8 +3,8 @@ e2e_exclusive_lock() {
   true
 }
 
-
 e2e_test_install() {
+  CLUSTER_NAME="prom-integration-def"
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
 
