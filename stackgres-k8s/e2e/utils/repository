@@ -191,13 +191,21 @@ load_failed_images_pull_from_local_repository() {
 docker_pull() {
   local IMAGE_NAME="$1"
   local ORIGINAL_IMAGE_NAME=""
-  if printf '%s' "$E2E_IMAGE_TAG_MAP" | tr ' ' '\n' | grep -q "^${1##*:}:"
+  local IMAGE_MAP="$(printf '%s' "$E2E_IMAGE_MAP" | tr ' ' '\n' \
+    | while read IMAGE_MAP
+      do
+        if printf '%s' "$IMAGE_NAME" | grep -q "${IMAGE_MAP%=*}" \
+          && printf '%s' "$IMAGE_NAME" | sed "s=$IMAGE_MAP=" > /dev/null
+        then
+          printf '%s' "$IMAGE_MAP"
+          break
+        fi
+      done
+    )"
+  if [ -n "$IMAGE_MAP" ]
   then
     ORIGINAL_IMAGE_NAME="$IMAGE_NAME"
-    IMAGE_NAME="${ORIGINAL_IMAGE_NAME%:*}:$(
-      printf '%s' "$E2E_IMAGE_TAG_MAP" | tr ' ' '\n' | grep "^${1##*:}:" \
-        | head -n 1 | cut -d : -f 2
-      )"
+    IMAGE_NAME="$(printf '%s' "$IMAGE_NAME" | sed "s=$IMAGE_MAP=")"
     echo "Using $IMAGE_NAME as $ORIGINAL_IMAGE_NAME"
   fi
   docker pull -q "$IMAGE_NAME"
