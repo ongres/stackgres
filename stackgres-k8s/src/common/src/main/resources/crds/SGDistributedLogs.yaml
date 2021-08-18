@@ -56,6 +56,40 @@ spec:
                       type: string
                       description: |
                         Name of an existing StorageClass in the Kubernetes cluster, used to create the PersistentVolumes for the instances of the cluster.
+                postgresServices:
+                  type: object
+                  nullable: true
+                  description: Kubernetes [services](https://kubernetes.io/docs/concepts/services-networking/service/) created or managed by StackGres.
+                  properties:
+                    primary:
+                      type: object
+                      description: Configuration for the `-primary` service. It provides a stable connection (regardless of primary failures or switchovers) to the read-write Postgres server of the cluster.
+                      properties:
+                        type:
+                          type: string
+                          enum: ["ClusterIP", "LoadBalancer", "NodePort"]
+                          description: Specifies the type of Kubernetes service(`ClusterIP`, `LoadBalancer`, `NodePort`)
+                        annotations:
+                          type: object
+                          additionalProperties:
+                            type: string
+                          description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) passed to the `-primary` service.
+                    replicas:
+                      type: object
+                      description: Configuration for the `-replicas` service. It provides a stable connection (regardless of replica node failures) to any read-only Postgres server of the cluster. Read-only servers are load-balanced via this service.
+                      properties:
+                        enabled:
+                          type: boolean
+                          description: Specify if the `-replicas` service should be created or not.
+                        type:
+                          type: string
+                          enum: ["ClusterIP", "LoadBalancer", "NodePort"]
+                          description: Specifies the type of Kubernetes service(`ClusterIP`, `LoadBalancer`, `NodePort`).
+                        annotations:
+                          type: object
+                          additionalProperties:
+                            type: string
+                          description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) passed to the `-replicas` service.                
                 scheduling:
                   type: object
                   description: Pod custom scheduling configuration.

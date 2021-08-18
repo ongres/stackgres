@@ -35,13 +35,16 @@ public class StackGresDistributedLogsPodScheduling {
   private List<Toleration> tolerations;
 
   @ReferencedField("nodeSelector")
-  interface NodeSelector extends FieldReference { }
+  interface NodeSelector extends FieldReference {
+  }
 
   @ReferencedField("nodeAffinity")
-  interface NodeAffinityField extends FieldReference { }
+  interface NodeAffinityField extends FieldReference {
+  }
 
   @ReferencedField("tolerations")
-  interface TolerationField extends FieldReference { }
+  interface TolerationField extends FieldReference {
+  }
 
   @JsonIgnore
   @AssertTrue(message = "nodeSelector can not be empty.",

@@ -18,7 +18,7 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.PatroniUtil;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServiceType;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
@@ -114,7 +114,7 @@ public class PatroniServices implements
                 .withPort(PatroniUtil.REPLICATION_SERVICE_PORT)
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME))
                 .build())
-        .withType(StackGresClusterPostgresServiceType.CLUSTER_IP.toString())
+        .withType(StackGresPostgresServiceType.CLUSTER_IP.toString())
         .endSpec()
         .build();
   }
@@ -168,7 +168,11 @@ public class PatroniServices implements
                 .withPort(PatroniUtil.REPLICATION_SERVICE_PORT)
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME))
                 .build())
+<<<<<<< HEAD
         .withType(StackGresClusterPostgresServiceType.CLUSTER_IP.toString())
+=======
+        .withType(StackGresPostgresServiceType.CLUSTER_IP.type())
+>>>>>>> 31874c466 (feat: Added postgres services to the distributed logs CRD)
         .endSpec()
         .build();
   }
