@@ -19,7 +19,7 @@ reset_cluster() {
   wait_until eval '[ "$(kubectl get pvc -n "$CLUSTER_NAMESPACE" --template "{{ .items | len }}")" = 0 ]'
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
-    --set-string cluster.postgresVersion="$E2E_MINOR_SOURCE_POSTGRES_VERSION"
+    --set-string cluster.postgres.version="$E2E_MINOR_SOURCE_POSTGRES_VERSION"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 3
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"

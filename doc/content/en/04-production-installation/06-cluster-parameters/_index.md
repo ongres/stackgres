@@ -61,7 +61,16 @@ You can specify following parameters values:
 | Parameter | Description | Default |
 |:----------|:------------|:--------|
 | `cluster.create` | {{< description stackgres-cluster.cluster.create >}} | true |
-| `cluster.postgresVersion` | {{< crd-field-description SGCluster.spec.postgresVersion >}} | 12.2 |
+| `cluster.postgres.version` | {{< crd-field-description SGCluster.spec.postgres.version >}} | latest |
+| `cluster.postgres.extensions.<index>.name` | {{< crd-field-description SGCluster.spec.postgres.extensions.items.name >}} | |
+| `cluster.postgres.extensions.<index>.publisher` | {{< crd-field-description SGCluster.spec.postgres.extensions.items.publisher >}} | |
+| `cluster.postgres.extensions.<index>.repository` | {{< crd-field-description SGCluster.spec.postgres.extensions.items.repository >}} | |
+| `cluster.postgres.extensions.<index>.version` | {{< crd-field-description SGCluster.spec.postgres.extensions.items.version >}} | |
+| `cluster.postgres.ssl.enabled` | {{< crd-field-description SGCluster.spec.postgres.ssl.enabled >}} | false |
+| `cluster.postgres.ssl.certificateSecretKeySelector.name` | {{< crd-field-description SGCluster.spec.postgres.ssl.certificateSecretKeySelector.name >}} |
+| `cluster.postgres.ssl.certificateSecretKeySelector.key` | {{< crd-field-description SGCluster.spec.postgres.ssl.certificateSecretKeySelector.key >}} |
+| `cluster.postgres.ssl.secretKeyRef.name` | {{< crd-field-description SGCluster.spec.postgres.ssl.certificateSecretKeySelector.name >}} |
+| `cluster.postgres.ssl.secretKeyRef.key` | {{< crd-field-description SGCluster.spec.postgres.ssl.certificateSecretKeySelector.key >}} |
 | `cluster.instances` | {{< crd-field-description SGCluster.spec.instances >}} | 1 |
 | `cluster.sgInstanceProfile` | {{< crd-field-description SGCluster.spec.sgInstanceProfile >}} | size-xs |
 | `cluster.configurations.sgPostgresConfig` | {{< crd-field-description SGCluster.spec.configurations.sgPostgresConfig >}} | postgresconfig |

@@ -542,7 +542,7 @@ class ClusterResourceMockedTest extends
     if (resourceSpec != null) {
       assertNotNull(dtoSpec);
       assertEquals(resourceSpec.getInstances(), dtoSpec.getInstances());
-      assertEquals(resourceSpec.getPostgresVersion(), dtoSpec.getPostgresVersion());
+      assertEquals(resourceSpec.getPostgres().getVersion(), dtoSpec.getPostgres().getVersion());
       assertEquals(resourceSpec.getPrometheusAutobind(), dtoSpec.getPrometheusAutobind());
       assertEquals(resourceSpec.getResourceProfile(), dtoSpec.getSgInstanceProfile());
 
@@ -741,7 +741,7 @@ class ClusterResourceMockedTest extends
       assertNotNull(resourceSpec);
       assertEquals(dtoSpec.getPrometheusAutobind(), resourceSpec.getPrometheusAutobind());
       assertEquals(dtoSpec.getInstances(), resourceSpec.getInstances());
-      assertEquals(dtoSpec.getPostgresVersion(), resourceSpec.getPostgresVersion());
+      assertEquals(dtoSpec.getPostgres().getVersion(), resourceSpec.getPostgres().getVersion());
       assertEquals(dtoSpec.getSgInstanceProfile(), resourceSpec.getResourceProfile());
 
       final ClusterConfiguration dtoSpecConfigurations = dtoSpec.getConfigurations();

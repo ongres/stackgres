@@ -36,6 +36,7 @@ e2e_test_install() {
   DISTRIBUTED_LOGS_NAME=distributedlogs
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \
+    --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
     --set instanceProfiles[0].name=size-xs \
     --set instanceProfiles[0].cpu=250m \
     --set instanceProfiles[0].memory=512Mi \
@@ -51,7 +52,7 @@ e2e_test_install() {
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
     "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
-    --set-string cluster.postgresVersion=latest \
+    --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
     --set prometheusAutobind=true \
     --set backupconfig.create=true \
     --set backupconfig.retention=2 \
@@ -63,7 +64,7 @@ e2e_test_install() {
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
     "$CLUSTER_NAME-2" "$CLUSTER_NAMESPACE" 2 \
     --set configurations.create=false --set instanceProfiles=false \
-    --set-string cluster.postgresVersion=latest \
+    --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
     --set prometheusAutobind=true \
     --set backupconfig.create=true \
     --set backupconfig.retention=2 \
@@ -75,7 +76,7 @@ e2e_test_install() {
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
     "$CLUSTER_NAME-3" "$CLUSTER_NAMESPACE" 3 \
     --set configurations.create=false --set instanceProfiles=false \
-    --set-string cluster.postgresVersion=latest \
+    --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
     --set prometheusAutobind=true \
     --set backupconfig.create=true \
     --set backupconfig.retention=2 \
@@ -109,7 +110,7 @@ EOF
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
     "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
-    --set-string cluster.postgresVersion=latest \
+    --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
     --set prometheusAutobind=true \
     --set backupconfig.create=true \
     --set backupconfig.retention=2 \

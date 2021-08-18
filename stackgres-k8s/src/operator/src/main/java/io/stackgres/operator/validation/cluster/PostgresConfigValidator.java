@@ -59,14 +59,14 @@ public class PostgresConfigValidator implements ClusterValidator {
       return;
     }
 
-    String givenPgVersion = cluster.getSpec().getPostgresVersion();
+    String givenPgVersion = cluster.getSpec().getPostgres().getVersion();
     String pgConfig = cluster.getSpec().getConfiguration().getPostgresConfig();
 
-    checkIfProvided(givenPgVersion, "postgresVersion");
+    checkIfProvided(givenPgVersion, "postgres version");
     checkIfProvided(pgConfig, "sgPostgresConfig");
 
     if (givenPgVersion != null && !isPostgresVersionSupported(givenPgVersion)) {
-      final String message = "Unsupported postgresVersion " + givenPgVersion
+      final String message = "Unsupported postgres version " + givenPgVersion
           + ".  Supported postgres versions are: "
           + StackGresComponent.POSTGRESQL.getOrderedVersions().toString(", ");
       fail(errorPostgresMismatchUri, message);
@@ -94,7 +94,7 @@ public class PostgresConfigValidator implements ClusterValidator {
             .map(Tuple2::v2)
             .findAny()
             .get();
-        String oldPgVersion = oldCluster.getSpec().getPostgresVersion();
+        String oldPgVersion = oldCluster.getSpec().getPostgres().getVersion();
         String oldMajorVersion = StackGresComponent.POSTGRESQL.findMajorVersion(oldPgVersion);
         long oldMajorVersionIndex = StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
             .zipWithIndex()
@@ -105,7 +105,7 @@ public class PostgresConfigValidator implements ClusterValidator {
 
         if (givenMajorVersionIndex > oldMajorVersionIndex) {
           fail(errorForbiddenUpdateUri,
-              "postgresVersion can not be changed to a previous major version");
+              "postgres version can not be changed to a previous major version");
         }
 
         break;
@@ -125,7 +125,7 @@ public class PostgresConfigValidator implements ClusterValidator {
       String pgVersion = postgresConfig.getSpec().getPostgresVersion();
 
       if (!pgVersion.equals(givenMajorVersion)) {
-        final String message = "Invalid postgresVersion, must be "
+        final String message = "Invalid postgres version, must be "
             + pgVersion + " to use sgPostgresConfig " + pgConfig;
         fail(errorPostgresMismatchUri, message);
       }

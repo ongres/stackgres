@@ -76,10 +76,10 @@ public abstract class ExtensionManager {
                 .getExtensionCandidateSameMajorBuild(context.getCluster(), extension)
                 .getVersion().getVersion())), installedExtension.getVersion())
         && Objects.equals(StackGresComponent.POSTGRESQL.findMajorVersion(
-            context.getCluster().getSpec().getPostgresVersion()),
+            context.getCluster().getSpec().getPostgres().getVersion()),
             installedExtension.getPostgresVersion())
         && Objects.equals(StackGresComponent.POSTGRESQL.findBuildMajorVersion(
-            context.getCluster().getSpec().getPostgresVersion()),
+            context.getCluster().getSpec().getPostgres().getVersion()),
             ExtensionUtil.getMajorBuildOrNull(installedExtension.getBuild()));
   }
 

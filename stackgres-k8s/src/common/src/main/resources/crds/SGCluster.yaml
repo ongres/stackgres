@@ -19,7 +19,7 @@ spec:
       additionalPrinterColumns:
       - name: version
         type: string
-        jsonPath: .spec.postgresVersion
+        jsonPath: .spec.postgres.version
       - name: instances
         type: integer
         jsonPath: .spec.instances 
@@ -65,6 +65,41 @@ spec:
                   description: |
                     This section allow to configure Postgres features
                   properties:
+                    version:
+                      type: string
+                      description: |
+                        Postgres version used on the cluster. It is either of:
+                        *  The string 'latest', which automatically sets the latest major.minor Postgres version.
+                        *  A major version, like '12' or '11', which sets that major version and the latest minor version.
+                        *  A specific major.minor version, like '12.2'.
+                    extensions:
+                      type: array
+                      description: |
+                        StackGres support deploy of extensions at runtime by simply adding an entry to this array. A deployed extension still
+                        requires the creation in a database using the [`CREATE EXTENSION`](https://www.postgresql.org/docs/current/sql-createextension.html)
+                        statement. After an extension is deployed correctly it will be present until removed and the cluster restarted.
+                        
+                        A cluster restart is required for:
+                        * Extensions that requires to add an entry to [`shared_preload_libraries`](https://postgresqlco.nf/en/doc/param/shared_preload_libraries/) configuration parameter.
+                        * Upgrading extensions that overwrite any file that is not the extension''s control file or extension''s script file.
+                        * Removing extensions. Until the cluster is not restarted a removed extension will still be available.
+                        * Install of extensions that require extra mount. After installed the cluster will require to be restarted.
+                      items:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            description: The name of the extension to deploy.
+                          publisher:
+                            type: string
+                            description: The id of the publisher of the extension to deploy. If not specified `com.ongres` will be used by default.
+                          version:
+                            type: string
+                            description: The version of the extension to deploy. If not specified version of `stable` channel will be used by default.
+                          repository:
+                            type: string
+                            description: The repository base URL from where to obtain the extension to deploy. If not specified https://stackgres.io/downloads/postgres/extensions will be used by default (or the value specified during operator deployment).
+                        required: ["name"]
                     ssl:
                       type: object
                       description: |
@@ -104,13 +139,7 @@ spec:
                               description: |
                                 The key of Secret that contains the private key for SSL connections
                           required: [ "name", "key" ]
-                postgresVersion:
-                  type: string
-                  description: |
-                    Postgres version used on the cluster. It is either of:
-                    *  The string 'latest', which automatically sets the latest major.minor Postgres version.
-                    *  A major version, like '12' or '11', which sets that major version and the latest minor version.
-                    *  A specific major.minor version, like '12.2'.
+                  required: [ "version" ]
                 instances:
                   type: integer
                   minimum: 1
@@ -563,34 +592,6 @@ spec:
                          the retention window previously specified. If no retention window was previously specified it is considered
                          to be of 7 days. This means that if previous retention window is of `7 days` new retention configuration will
                          apply after UTC timestamp calculated with: `SELECT date_trunc('days', now() at time zone 'UTC') - INTERVAL '7 days'`.
-                postgresExtensions:
-                  type: array
-                  description: |
-                    StackGres support deploy of extensions at runtime by simply adding an entry to this array. A deployed extension still
-                    requires the creation in a database using the [`CREATE EXTENSION`](https://www.postgresql.org/docs/current/sql-createextension.html)
-                    statement. After an extension is deployed correctly it will be present until removed and the cluster restarted.
-                    
-                    A cluster restart is required for:
-                    * Extensions that requires to add an entry to [`shared_preload_libraries`](https://postgresqlco.nf/en/doc/param/shared_preload_libraries/) configuration parameter.
-                    * Upgrading extensions that overwrite any file that is not the extension''s control file or extension''s script file.
-                    * Removing extensions. Until the cluster is not restarted a removed extension will still be available.
-                    * Install of extensions that require extra mount. After installed the cluster will require to be restarted.
-                  items:
-                    type: object
-                    properties:
-                      name:
-                        type: string
-                        description: The name of the extension to deploy.
-                      publisher:
-                        type: string
-                        description: The id of the publisher of the extension to deploy. If not specified `com.ongres` will be used by default.
-                      version:
-                        type: string
-                        description: The version of the extension to deploy. If not specified version of `stable` channel will be used by default.
-                      repository:
-                        type: string
-                        description: The repository base URL from where to obtain the extension to deploy. If not specified https://stackgres.io/downloads/postgres/extensions will be used by default (or the value specified during operator deployment).
-                    required: ["name"]
                 toInstallPostgresExtensions:
                   type: array
                   description: The list of Postgres extensions to install. This section is fille by the operator.
@@ -622,7 +623,7 @@ spec:
                           type: string
                           description: The extra mount of the installed extension.
                     required: ["name", "publisher", "version", "repository", "postgresVersion"]
-              required: ["instances", "postgresVersion", "pods"]
+              required: ["instances", "postgres", "pods"]
             status:
               type: object
               properties:

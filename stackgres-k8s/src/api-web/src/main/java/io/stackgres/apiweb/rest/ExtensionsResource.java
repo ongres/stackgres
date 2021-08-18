@@ -18,6 +18,7 @@ import io.stackgres.apiweb.dto.extension.ExtensionsDto;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.apiweb.transformer.ExtensionsTransformer;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -59,7 +60,8 @@ public class ExtensionsResource {
   public ExtensionsDto get(@PathParam("postgresVersion") String postgresVersion) {
     StackGresCluster cluster = new StackGresCluster();
     cluster.setSpec(new StackGresClusterSpec());
-    cluster.getSpec().setPostgresVersion(postgresVersion);
+    cluster.getSpec().setPostgres(new StackGresClusterPostgres());
+    cluster.getSpec().getPostgres().setVersion(postgresVersion);
     return Optional.of(Unchecked.supplier(() -> clusterExtensionMetadataManager
             .getExtensions()).get())
         .map(extensionMetadataList -> extensionsTransformer.toDto(extensionMetadataList, cluster))

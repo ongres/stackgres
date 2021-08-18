@@ -48,9 +48,8 @@
       },
       "spec": {
         "instances": 1,
-        "postgresVersion": "11.4",
-        "sgInstanceProfile": "size-xs",
         "postgres": {
+          "version": "11.4",
           "ssl": {
             "enabled": true,
             "certificateSecretKeySelector": {
@@ -63,6 +62,7 @@
             }
           }
         },
+        "sgInstanceProfile": "size-xs",
         "configurations": {
           "sgPostgresConfig": "postgresconf",
           "sgPoolingConfig": "pgbouncerconf",
@@ -92,14 +92,8 @@
       },
       "spec": {
         "instances": 1,
-        "postgresVersion": "11.3",
-        "configurations": {
-          "sgPostgresConfig": "postgresconf",
-          "sgPoolingConfig": "pgbouncerconf",
-          "sgBackupConfig": "backupconf"
-        },
-        "sgInstanceProfile": "size-xs",
         "postgres": {
+          "version": "11.3",
           "ssl": {
             "enabled": true,
             "certificateSecretKeySelector": {
@@ -112,6 +106,12 @@
             }
           }
         },
+        "configurations": {
+          "sgPostgresConfig": "postgresconf",
+          "sgPoolingConfig": "pgbouncerconf",
+          "sgBackupConfig": "backupconf"
+        },
+        "sgInstanceProfile": "size-xs",
         "pods":{
           "persistentVolume": {
             "size": "5Gi",

@@ -162,7 +162,7 @@ public class ExtensionManagerTest {
         .readFromJson("stackgres_cluster/list.json",
             StackGresClusterList.class)
         .getItems().get(0);
-    cluster.getSpec().setPostgresVersion(POSTGRES_VERSION);
+    cluster.getSpec().getPostgres().setVersion(POSTGRES_VERSION);
     return cluster;
   }
 

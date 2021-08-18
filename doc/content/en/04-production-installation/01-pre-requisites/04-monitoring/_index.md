@@ -223,7 +223,8 @@ metadata:
   name: simple
 spec:
   instances: 2
-  postgresVersion: 'latest'
+  postgres:
+    version: 'latest'
   pods:
     persistentVolume:
       size: '5Gi'

@@ -24,22 +24,26 @@ public class ConvertFromBackupPostVersion1 implements Converter {
   public ObjectNode convert(long originalVersion, long desiredVersion, ObjectNode node) {
     if (desiredVersion >= VERSION_1) {
       if (originalVersion < VERSION_1) {
-        Optional.ofNullable(node.get("spec").get("initialData"))
+        Optional.ofNullable(node.get("spec"))
+            .map(spec -> spec.get("initialData"))
             .map(initialData -> initialData.get("restore"))
+            .map(ObjectNode.class::cast)
             .ifPresent(restore -> {
               String backupUid = restore.get("fromBackup").asText();
               ObjectNode fromBackup = node.objectNode();
-              ((ObjectNode) restore).set("fromBackup", fromBackup);
               fromBackup.put("uid", backupUid);
+              restore.set("fromBackup", fromBackup);
             });
       }
     } else {
       if (originalVersion >= VERSION_1) {
-        Optional.ofNullable(node.get("spec").get("initialData"))
+        Optional.ofNullable(node.get("spec"))
+            .map(spec -> spec.get("initialData"))
             .map(initialData -> initialData.get("restore"))
+            .map(ObjectNode.class::cast)
             .ifPresent(restore -> {
               String backupUid = restore.get("fromBackup").get("uid").asText();
-              ((ObjectNode) restore).put("fromBackup", backupUid);
+              restore.put("fromBackup", backupUid);
             });
       }
     }

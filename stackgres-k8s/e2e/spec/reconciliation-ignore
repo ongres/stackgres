@@ -47,7 +47,8 @@ metadata:
     $RECONCILIATION_IGNORE_ANNOTATION: "true"
 spec:
   instances: 1
-  postgresVersion: 'latest'
+  postgres:
+    version: 'latest'
   pods:
     persistentVolume:
       size: '128Mi'

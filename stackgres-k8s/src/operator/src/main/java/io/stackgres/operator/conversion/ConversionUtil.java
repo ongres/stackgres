@@ -31,7 +31,14 @@ public interface ConversionUtil {
    *  extract the API version as a number (see {@link #apiVersionAsNumber(String)}).
    */
   static long apiVersionAsNumberOf(ObjectNode node) {
-    return apiVersionAsNumber(node.get("apiVersion").asText());
+    return apiVersionAsNumber(apiVersion(node));
+  }
+
+  /**
+   * Extract `.apiVersion` field from a Kubernetes resource object
+   */
+  static String apiVersion(ObjectNode node) {
+    return node.get("apiVersion").asText();
   }
 
   /**

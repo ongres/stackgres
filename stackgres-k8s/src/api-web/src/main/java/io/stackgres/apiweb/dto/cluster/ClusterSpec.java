@@ -18,14 +18,11 @@ import io.stackgres.common.StackGresUtil;
 @RegisterForReflection
 public class ClusterSpec {
 
-  @JsonProperty("instances")
-  private int instances;
-
-  @JsonProperty("postgresVersion")
-  private String postgresVersion;
-
   @JsonProperty("postgres")
   private ClusterPostgres postgres;
+
+  @JsonProperty("instances")
+  private int instances;
 
   @JsonProperty("configurations")
   private ClusterConfiguration configurations;
@@ -38,9 +35,6 @@ public class ClusterSpec {
 
   @JsonProperty("distributedLogs")
   private ClusterDistributedLogs distributedLogs;
-
-  @JsonProperty("postgresExtensions")
-  private List<ClusterExtension> postgresExtensions;
 
   @JsonProperty("toInstallPostgresExtensions")
   private List<ClusterInstalledExtension> toInstallPostgresExtensions;
@@ -60,28 +54,20 @@ public class ClusterSpec {
   @JsonProperty("metadata")
   private ClusterSpecMetadata metadata;
 
-  public int getInstances() {
-    return instances;
-  }
-
-  public void setInstances(int instances) {
-    this.instances = instances;
-  }
-
-  public String getPostgresVersion() {
-    return postgresVersion;
-  }
-
-  public void setPostgresVersion(String postgresVersion) {
-    this.postgresVersion = postgresVersion;
-  }
-
   public ClusterPostgres getPostgres() {
     return postgres;
   }
 
   public void setPostgres(ClusterPostgres postgres) {
     this.postgres = postgres;
+  }
+
+  public int getInstances() {
+    return instances;
+  }
+
+  public void setInstances(int instances) {
+    this.instances = instances;
   }
 
   public ClusterConfiguration getConfigurations() {
@@ -138,14 +124,6 @@ public class ClusterSpec {
 
   public void setDistributedLogs(ClusterDistributedLogs distributedLogs) {
     this.distributedLogs = distributedLogs;
-  }
-
-  public List<ClusterExtension> getPostgresExtensions() {
-    return postgresExtensions;
-  }
-
-  public void setPostgresExtensions(List<ClusterExtension> postgresExtensions) {
-    this.postgresExtensions = postgresExtensions;
   }
 
   public List<ClusterInstalledExtension> getToInstallPostgresExtensions() {

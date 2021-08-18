@@ -78,7 +78,9 @@ Supose that we are trying to create a StackGres cluster with the following json.
   },
   "spec": {
     "instances": 1,
-    "postgresVersion": "11.6",
+    "postgres": {
+      "version": "11.6"
+    },
     "pods": {
       "persistentVolume": {
         "size": "5Gi",
@@ -149,7 +151,9 @@ payload:
   },
   "spec": {
     "instances": 1,
-    "postgresVersion": "12.1",
+    "postgres": {
+      "version": "12.1"
+    },
     "pods": {
       "persistentVolume": {
         "size": "5Gi",
@@ -179,14 +183,14 @@ After a StackGres cluster is created some of it's properties cannot be updated.
 
 These properties are:
 
-* postgresVersion
+* version
 * size
 * configurations
 * storageClass
 * pods
 * restore
 
-If you try to update any of these properties, you will receive a error of this type.
+If you try to update any of these properties, you will receive an error of this type.
 
 ## Invalid Storage Class
 
@@ -244,11 +248,12 @@ In order to use that postgres configuration, your StackGres cluster should have 
   },
   "spec": {
     "instances": 1,
-    "postgresVersion": "12.1",
+    "postgres": {
+      "version": "12.1"
+    },
     "pods": {
       "persistentVolume": {
-        "size": "5Gi",
-
+        "size": "5Gi"
       }
     },
     "sgPostgresConfig": "postgresconf"
@@ -256,10 +261,10 @@ In order to use that postgres configuration, your StackGres cluster should have 
 }
 ```
 
-Notice that the cluster postgresVersion says 12.1. Therefore, you will be able to install a cluster like the above.
+Notice that the cluster version says 12.1. Therefore, you will be able to install a cluster like the above.
 
 Also if instead of using the above payload, you try to create a cluster with the following request
- (notice the postgresVersion change):
+ (notice the version change):
 ```
 uri: /stackgres/cluster
 method: POST
@@ -272,11 +277,12 @@ payload:
   },
   "spec": {
     "instances": 1,
-    "postgresVersion": "12.1",
+    "postgres": {
+      "version": "12.1"
+    },
     "pods": {
       "persistentVolume": {
-        "size": "5Gi",
-
+        "size": "5Gi"
       }
     },
     "sgPostgresConfig": "postgresconf"

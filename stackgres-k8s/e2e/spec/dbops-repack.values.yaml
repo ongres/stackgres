@@ -14,7 +14,8 @@ cluster:
   initialData:
     scripts:
       - script: 'CREATE EXTENSION pg_repack'
-  postgresExtensions:
-    - name: pg_repack
+  postgres:
+    extensions:
+      - name: pg_repack
 nonProductionOptions:
   disableClusterPodAntiAffinity: true

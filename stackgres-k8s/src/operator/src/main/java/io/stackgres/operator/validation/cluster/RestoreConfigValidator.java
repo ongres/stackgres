@@ -87,7 +87,8 @@ public class RestoreConfigValidator implements ClusterValidator {
 
         String backupMajorVersion = RestoreConfigValidator.getMajorVersion(backup);
 
-        String givenPgVersion = review.getRequest().getObject().getSpec().getPostgresVersion();
+        String givenPgVersion = review.getRequest().getObject().getSpec()
+            .getPostgres().getVersion();
         String givenMajorVersion = StackGresComponent.POSTGRESQL.findMajorVersion(givenPgVersion);
 
         if (!backupMajorVersion.equals(givenMajorVersion)) {

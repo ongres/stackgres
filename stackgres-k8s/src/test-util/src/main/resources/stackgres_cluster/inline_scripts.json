@@ -4,7 +4,9 @@
     "namespace":"stackgres"
   },
   "spec":{
-    "postgresVersion":"latest",
+    "postgres": {
+      "version":"latest"
+    },
     "instances":"1",
     "pods":{
       "persistentVolume":{

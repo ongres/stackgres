@@ -23,6 +23,7 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.mutation.AbstractExtensionsMutator;
@@ -72,7 +73,8 @@ public class ExtensionsMutator
   protected List<StackGresClusterExtension> getExtensions(StackGresCluster cluster) {
     return Optional.of(cluster)
         .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getPostgresExtensions)
+        .map(StackGresClusterSpec::getPostgres)
+        .map(StackGresClusterPostgres::getExtensions)
         .orElse(ImmutableList.of());
   }
 
@@ -93,7 +95,7 @@ public class ExtensionsMutator
       StackGresClusterExtension extension, int index,
       StackGresClusterInstalledExtension installedExtension) {
     final JsonPointer extensionVersionPointer =
-        CLUSTER_CONFIG_POINTER.append("postgresExtensions")
+        CLUSTER_CONFIG_POINTER.append("postgres").append("extensions")
         .append(index).append("version");
     final TextNode extensionVersion = new TextNode(installedExtension.getVersion());
     if (extension.getVersion() == null) {

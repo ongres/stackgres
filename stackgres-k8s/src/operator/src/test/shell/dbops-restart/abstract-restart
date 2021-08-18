@@ -65,7 +65,9 @@ kubectl_mock() {
           },
           "spec": {
               "instances": 2,
-              "postgresVersion": "12.6",
+              "postgres": {
+                "version": "12.6"
+              },
               "sgInstanceProfile": "size-xs"
           },
           "status": {

@@ -48,7 +48,9 @@
       },
       "spec": {
         "instances": 1,
-        "postgresVersion": "",
+        "postgres": {
+          "version": ""
+        },
         "sgInstanceProfile": "size-xs",
         "configurations": {
           "sgPostgresConfig": "postgresconf",

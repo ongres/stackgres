@@ -26,12 +26,12 @@ public class StackGresExtensionIndexAnyVersion {
     this.name = extension.getName();
     this.publisher = extension.getPublisherOrDefault();
     this.postgresVersion = StackGresComponent.POSTGRESQL.findMajorVersion(
-        cluster.getSpec().getPostgresVersion());
+        cluster.getSpec().getPostgres().getVersion());
     this.postgresExactVersion = StackGresComponent.POSTGRESQL.findVersion(
-        cluster.getSpec().getPostgresVersion());
+        cluster.getSpec().getPostgres().getVersion());
     this.fromIndex = false;
     this.build = StackGresComponent.POSTGRESQL.findBuildMajorVersion(
-        cluster.getSpec().getPostgresVersion());
+        cluster.getSpec().getPostgres().getVersion());
     this.arch = ExtensionUtil.ARCH_X86_64;
     this.os = ExtensionUtil.OS_LINUX;
   }

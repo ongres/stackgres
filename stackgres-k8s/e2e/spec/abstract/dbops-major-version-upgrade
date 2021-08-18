@@ -20,8 +20,8 @@ reset_cluster() {
   wait_until eval '[ "$(kubectl get pvc -n "$CLUSTER_NAMESPACE" --template "{{ .items | len }}")" = 0 ]'
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
-    --set-string cluster.postgresVersion="$E2E_SOURCE_POSTGRES_VERSION" \
-    --set-string cluster.postgresExtensions[0].name=postgis
+    --set-string cluster.postgres.version="$E2E_SOURCE_POSTGRES_VERSION" \
+    --set-string cluster.postgres.extensions[0].name=postgis
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
 
@@ -42,7 +42,7 @@ EOF
     --set instanceProfiles=null \
     --set cluster.configurations.sgPostgresConfig=postgresconf-for-major-version-upgrade \
     --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-major-version-upgrade \
-    --set-string cluster.postgresVersion="$E2E_TARGET_POSTGRES_VERSION"
+    --set-string cluster.postgres.version="$E2E_TARGET_POSTGRES_VERSION"
 
   generate_mock_data "$CLUSTER_NAME"
   check_mock_data_samehost "$CLUSTER_NAME"
@@ -51,7 +51,7 @@ EOF
   kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
     -p "$(cat << EOF
 [
-  {"op":"replace","path":"/spec/postgresVersion","value":"$E2E_TARGET_POSTGRES_VERSION"},
+  {"op":"replace","path":"/spec/postgres/version","value":"$E2E_TARGET_POSTGRES_VERSION"},
   {"op":"replace","path":"/spec/configurations/sgPostgresConfig","value":"postgresconf-for-major-version-upgrade"}
 ]
 EOF

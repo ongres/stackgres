@@ -15,6 +15,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
@@ -52,7 +53,8 @@ public interface StackGresDistributedLogsUtil {
     distributedLogsCluster.getMetadata().setUid(
         distributedLogs.getMetadata().getUid());
     final StackGresClusterSpec spec = new StackGresClusterSpec();
-    spec.setPostgresVersion(getPostgresVersion());
+    spec.setPostgres(new StackGresClusterPostgres());
+    spec.getPostgres().setVersion(getPostgresVersion());
     spec.setInstances(1);
     final StackGresClusterPod pod = new StackGresClusterPod();
     final StackGresPodPersistentVolume persistentVolume = new StackGresPodPersistentVolume();

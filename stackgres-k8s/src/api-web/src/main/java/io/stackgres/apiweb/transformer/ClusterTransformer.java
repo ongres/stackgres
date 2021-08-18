@@ -140,18 +140,22 @@ public class ClusterTransformer
     }
     StackGresClusterSpec transformation = new StackGresClusterSpec();
 
-    final ClusterPostgres sourceClusterPostgres = source.getPostgres();
-    if (sourceClusterPostgres != null) {
-      transformation.setPostgres(new StackGresClusterPostgres());
-      final ClusterSsl sourceClusterSsl = source.getPostgres().getSsl();
-      if (sourceClusterSsl != null) {
-        transformation.getPostgres().setSsl(new StackGresClusterSsl());
-        transformation.getPostgres().getSsl().setEnabled(sourceClusterSsl.getEnabled());
-        transformation.getPostgres().getSsl().setCertificateSecretKeySelector(
-            sourceClusterSsl.getCertificateSecretKeySelector());
-        transformation.getPostgres().getSsl().setPrivateKeySecretKeySelector(
-            sourceClusterSsl.getPrivateKeySecretKeySelector());
-      }
+    transformation.setPostgres(new StackGresClusterPostgres());
+    transformation.getPostgres().setVersion(source.getPostgres().getVersion());
+    transformation.getPostgres().setExtensions(Optional.ofNullable(
+        source.getPostgres().getExtensions())
+        .stream()
+        .flatMap(List::stream)
+        .map(this::getCustomResourceExtension)
+        .collect(ImmutableList.toImmutableList()));
+    final ClusterSsl sourceClusterSsl = source.getPostgres().getSsl();
+    if (sourceClusterSsl != null) {
+      transformation.getPostgres().setSsl(new StackGresClusterSsl());
+      transformation.getPostgres().getSsl().setEnabled(sourceClusterSsl.getEnabled());
+      transformation.getPostgres().getSsl().setCertificateSecretKeySelector(
+          sourceClusterSsl.getCertificateSecretKeySelector());
+      transformation.getPostgres().getSsl().setPrivateKeySecretKeySelector(
+          sourceClusterSsl.getPrivateKeySecretKeySelector());
     }
 
     final ClusterConfiguration sourceClusterConfiguration = source.getConfigurations();
@@ -168,7 +172,6 @@ public class ClusterTransformer
     transformation.setInstances(source.getInstances());
     transformation.setNonProduction(
         getCustomResourceNonProduction(source.getNonProduction()));
-    transformation.setPostgresVersion(source.getPostgresVersion());
     transformation.setPrometheusAutobind(source.getPrometheusAutobind());
     transformation.setResourceProfile(source.getSgInstanceProfile());
 
@@ -264,11 +267,6 @@ public class ClusterTransformer
         }).orElse(null));
     transformation.setDistributedLogs(
         getCustomResourceDistributedLogs(source.getDistributedLogs()));
-    transformation.setPostgresExtensions(Optional.ofNullable(source.getPostgresExtensions())
-        .stream()
-        .flatMap(List::stream)
-        .map(this::getCustomResourceExtension)
-        .collect(ImmutableList.toImmutableList()));
 
     return transformation;
   }
@@ -360,18 +358,22 @@ public class ClusterTransformer
     }
     ClusterSpec transformation = new ClusterSpec();
 
-    final StackGresClusterPostgres sourceClusterPostgres = source.getPostgres();
-    if (sourceClusterPostgres != null) {
-      transformation.setPostgres(new ClusterPostgres());
-      final StackGresClusterSsl sourceClusterSsl = source.getPostgres().getSsl();
-      if (sourceClusterSsl != null) {
-        transformation.getPostgres().setSsl(new ClusterSsl());
-        transformation.getPostgres().getSsl().setEnabled(sourceClusterSsl.getEnabled());
-        transformation.getPostgres().getSsl().setCertificateSecretKeySelector(
-            sourceClusterSsl.getCertificateSecretKeySelector());
-        transformation.getPostgres().getSsl().setPrivateKeySecretKeySelector(
-            sourceClusterSsl.getPrivateKeySecretKeySelector());
-      }
+    transformation.setPostgres(new ClusterPostgres());
+    transformation.getPostgres().setVersion(source.getPostgres().getVersion());
+    transformation.getPostgres().setExtensions(Optional.ofNullable(
+        source.getPostgres().getExtensions())
+        .stream()
+        .flatMap(List::stream)
+        .map(this::getResourceExtension)
+        .collect(ImmutableList.toImmutableList()));
+    final StackGresClusterSsl sourceClusterSsl = source.getPostgres().getSsl();
+    if (sourceClusterSsl != null) {
+      transformation.getPostgres().setSsl(new ClusterSsl());
+      transformation.getPostgres().getSsl().setEnabled(sourceClusterSsl.getEnabled());
+      transformation.getPostgres().getSsl().setCertificateSecretKeySelector(
+          sourceClusterSsl.getCertificateSecretKeySelector());
+      transformation.getPostgres().getSsl().setPrivateKeySecretKeySelector(
+          sourceClusterSsl.getPrivateKeySecretKeySelector());
     }
 
     transformation.setConfigurations(new ClusterConfiguration());
@@ -384,7 +386,6 @@ public class ClusterTransformer
         getResourceNonProduction(source.getNonProduction()));
     transformation.getConfigurations().setSgPostgresConfig(
         source.getConfiguration().getPostgresConfig());
-    transformation.setPostgresVersion(source.getPostgresVersion());
     transformation.setPrometheusAutobind(source.getPrometheusAutobind());
     transformation.setSgInstanceProfile(source.getResourceProfile());
 
@@ -491,11 +492,6 @@ public class ClusterTransformer
 
     transformation.setDistributedLogs(
         getResourceDistributedLogs(source.getDistributedLogs()));
-    transformation.setPostgresExtensions(Optional.ofNullable(source.getPostgresExtensions())
-        .stream()
-        .flatMap(List::stream)
-        .map(this::getResourceExtension)
-        .collect(ImmutableList.toImmutableList()));
     if (source.getToInstallPostgresExtensions() != null) {
       transformation.setToInstallPostgresExtensions(source.getToInstallPostgresExtensions().stream()
           .map(this::getClusterInstalledExtension).collect(ImmutableList.toImmutableList()));

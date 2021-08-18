@@ -49,6 +49,7 @@
       "spec": {
         "instances": 1,
         "sgInstanceProfile": "size-xs",
+        "postgres": {},
         "configurations": {
           "sgPostgresConfig": "postgresconf",
           "sgPoolingConfig": "pgbouncerconf"

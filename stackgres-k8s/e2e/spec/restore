@@ -169,7 +169,8 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1
-  postgresVersion: '$ALTERNATIVE_PG_VERSION'
+  postgres:
+    version: '$ALTERNATIVE_PG_VERSION'
   pods:
     persistentVolume:
       size: '512Mi'
@@ -211,7 +212,8 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1
-  postgresVersion: 'latest'
+  postgres:
+    version: 'latest'
   pods:
     persistentVolume:
       size: '128Mi'

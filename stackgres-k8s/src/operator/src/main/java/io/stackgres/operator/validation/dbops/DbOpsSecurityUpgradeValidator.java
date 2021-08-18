@@ -13,6 +13,7 @@ import javax.inject.Singleton;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -42,7 +43,8 @@ public class DbOpsSecurityUpgradeValidator implements DbOpsValidator {
           Optional<String> postgresVersion = clusterFinder.findByNameAndNamespace(
               dbOps.getSpec().getSgCluster(), dbOps.getMetadata().getNamespace())
               .map(StackGresCluster::getSpec)
-              .map(StackGresClusterSpec::getPostgresVersion);
+              .map(StackGresClusterSpec::getPostgres)
+              .map(StackGresClusterPostgres::getVersion);
           if (postgresVersion.map(version -> StackGresComponent.POSTGRESQL.getOrderedVersions()
               .noneMatch(version::equals))
               .orElse(false)) {

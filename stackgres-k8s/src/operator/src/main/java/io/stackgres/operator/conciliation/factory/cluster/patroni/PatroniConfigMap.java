@@ -95,7 +95,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
   public @NotNull HasMetadata buildSource(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getSource();
     final String pgVersion = StackGresComponent.POSTGRESQL.findVersion(
-        cluster.getSpec().getPostgresVersion());
+        cluster.getSpec().getPostgres().getVersion());
 
     final String patroniLabels;
     final Map<String, String> value = labelFactory

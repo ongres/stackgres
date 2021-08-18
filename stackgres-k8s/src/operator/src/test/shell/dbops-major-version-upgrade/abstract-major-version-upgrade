@@ -55,7 +55,7 @@ kubectl_mock() {
     ;;
     ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ if .status.dbOps }}{{ if .status.dbOps.$OP_NAME }}true{{ end }}{{ end }}")
     ;;
-    ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ .spec.postgresVersion }}")
+    ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ .spec.postgres.version }}")
     printf '%s' "12.4"
     ;;
     ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME -o json")
@@ -68,7 +68,9 @@ kubectl_mock() {
               },
               "spec": {
                   "instances": 2,
-                  "postgresVersion": "12.6",
+                  "postgres": {
+                    "version": "12.6"
+                  },
                   "sgInstanceProfile": "size-xs"
               },
               "status": {

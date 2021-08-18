@@ -30,7 +30,7 @@ public abstract class AbstractPostgresUtil
     return ImmutableMap.of(
         StackGresContext.POSTGRES_VERSION_KEY,
         StackGresComponent.POSTGRESQL.findVersion(
-            context.getClusterContext().getCluster().getSpec().getPostgresVersion()));
+            context.getClusterContext().getCluster().getSpec().getPostgres().getVersion()));
   }
 
   @Inject

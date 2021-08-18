@@ -17,6 +17,7 @@ import javax.inject.Inject;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -54,7 +55,8 @@ public class DefaultPostgresDelegator implements ClusterMutator {
     return Optional.ofNullable(review.getRequest())
         .map(AdmissionRequest::getObject)
         .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getPostgresVersion)
+        .map(StackGresClusterSpec::getPostgres)
+        .map(StackGresClusterPostgres::getVersion)
         .map(StackGresComponent.POSTGRESQL::findMajorVersion)
         .map(factoryMap::get)
         .map(factory -> {

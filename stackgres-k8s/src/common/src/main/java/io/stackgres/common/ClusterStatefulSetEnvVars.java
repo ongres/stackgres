@@ -12,13 +12,13 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 
 public enum ClusterStatefulSetEnvVars {
-  POSTGRES_VERSION(context -> context.getSpec().getPostgresVersion()),
+  POSTGRES_VERSION(context -> context.getSpec().getPostgres().getVersion()),
   POSTGRES_MAJOR_VERSION(context -> StackGresComponent.POSTGRESQL.findMajorVersion(
-      context.getSpec().getPostgresVersion())),
+      context.getSpec().getPostgres().getVersion())),
   BUILD_VERSION(context -> StackGresComponent.POSTGRESQL.findBuildVersion(
-      context.getSpec().getPostgresVersion())),
+      context.getSpec().getPostgres().getVersion())),
   BUILD_MAJOR_VERSION(context -> StackGresComponent.POSTGRESQL.findBuildMajorVersion(
-      context.getSpec().getPostgresVersion())),
+      context.getSpec().getPostgres().getVersion())),
   PATRONI_ENV("patroni"),
   BACKUP_ENV("backup"),
   RESTORE_ENV("restore"),

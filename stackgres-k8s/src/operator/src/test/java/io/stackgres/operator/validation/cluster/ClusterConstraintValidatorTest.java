@@ -21,7 +21,6 @@ import io.stackgres.common.crd.Toleration;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -470,7 +469,6 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   @Test
   void sslCertificateSecretNull_shouldFail() {
     StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setPostgres(new StackGresClusterPostgres());
     review.getRequest().getObject().getSpec().getPostgres().setSsl(new StackGresClusterSsl());
     review.getRequest().getObject().getSpec().getPostgres().getSsl().setEnabled(true);
     review.getRequest().getObject().getSpec().getPostgres().getSsl().setPrivateKeySecretKeySelector(
@@ -484,7 +482,6 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   @Test
   void sslPrivateKeySecretNull_shouldFail() {
     StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setPostgres(new StackGresClusterPostgres());
     review.getRequest().getObject().getSpec().getPostgres().setSsl(new StackGresClusterSsl());
     review.getRequest().getObject().getSpec().getPostgres().getSsl().setEnabled(true);
     review.getRequest().getObject().getSpec().getPostgres().getSsl()
@@ -499,7 +496,6 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   @Test
   void sslCertificateSecretWithEmptyName_shouldFail() {
     StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setPostgres(new StackGresClusterPostgres());
     review.getRequest().getObject().getSpec().getPostgres().setSsl(new StackGresClusterSsl());
     review.getRequest().getObject().getSpec().getPostgres().getSsl().setEnabled(true);
     review.getRequest().getObject().getSpec().getPostgres().getSsl()
@@ -516,7 +512,6 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   @Test
   void sslPrivateKeySecretWithEmptyName_shouldFail() {
     StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setPostgres(new StackGresClusterPostgres());
     review.getRequest().getObject().getSpec().getPostgres().setSsl(new StackGresClusterSsl());
     review.getRequest().getObject().getSpec().getPostgres().getSsl().setEnabled(true);
     review.getRequest().getObject().getSpec().getPostgres().getSsl()

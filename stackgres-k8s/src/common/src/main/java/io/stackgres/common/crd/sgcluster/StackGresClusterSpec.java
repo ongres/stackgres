@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Objects;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
@@ -27,13 +26,14 @@ public class StackGresClusterSpec implements KubernetesResource {
 
   private static final long serialVersionUID = -5276087851826599719L;
 
+  @JsonProperty("postgres")
+  @NotNull(message = "postgres is required")
+  @Valid
+  private StackGresClusterPostgres postgres;
+
   @JsonProperty("instances")
   @Positive(message = "You need at least 1 instance in the cluster")
   private int instances;
-
-  @JsonProperty("postgresVersion")
-  @NotBlank(message = "PostgreSQL version is required")
-  private String postgresVersion;
 
   @JsonProperty("configurations")
   @NotNull(message = "cluster configuration cannot be null")
@@ -57,10 +57,6 @@ public class StackGresClusterSpec implements KubernetesResource {
   @Valid
   private StackGresClusterDistributedLogs distributedLogs;
 
-  @JsonProperty("postgresExtensions")
-  @Valid
-  private List<StackGresClusterExtension> postgresExtensions;
-
   @JsonProperty("toInstallPostgresExtensions")
   @Valid
   private List<StackGresClusterInstalledExtension> toInstallPostgresExtensions;
@@ -80,9 +76,13 @@ public class StackGresClusterSpec implements KubernetesResource {
   @Valid
   private StackGresClusterSpecMetadata metadata;
 
-  @JsonProperty("postgres")
-  @Valid
-  private StackGresClusterPostgres postgres;
+  public StackGresClusterPostgres getPostgres() {
+    return postgres;
+  }
+
+  public void setPostgres(StackGresClusterPostgres postgres) {
+    this.postgres = postgres;
+  }
 
   public int getInstances() {
     return instances;
@@ -90,14 +90,6 @@ public class StackGresClusterSpec implements KubernetesResource {
 
   public void setInstances(int instances) {
     this.instances = instances;
-  }
-
-  public String getPostgresVersion() {
-    return postgresVersion;
-  }
-
-  public void setPostgresVersion(String postgresVersion) {
-    this.postgresVersion = postgresVersion;
   }
 
   public StackGresClusterConfiguration getConfiguration() {
@@ -138,14 +130,6 @@ public class StackGresClusterSpec implements KubernetesResource {
 
   public void setDistributedLogs(StackGresClusterDistributedLogs distributedLogs) {
     this.distributedLogs = distributedLogs;
-  }
-
-  public List<StackGresClusterExtension> getPostgresExtensions() {
-    return postgresExtensions;
-  }
-
-  public void setPostgresExtensions(List<StackGresClusterExtension> postgresExtensions) {
-    this.postgresExtensions = postgresExtensions;
   }
 
   public List<StackGresClusterInstalledExtension> getToInstallPostgresExtensions() {
@@ -189,19 +173,11 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.metadata = metadata;
   }
 
-  public StackGresClusterPostgres getPostgres() {
-    return postgres;
-  }
-
-  public void setPostgres(StackGresClusterPostgres postgres) {
-    this.postgres = postgres;
-  }
-
   @Override
   public int hashCode() {
     return Objects.hash(configuration, distributedLogs, initData, instances, metadata,
-        nonProduction, pod, postgres, postgresExtensions, postgresServices, postgresVersion,
-        prometheusAutobind, resourceProfile, toInstallPostgresExtensions);
+        nonProduction, pod, postgres, postgresServices, prometheusAutobind,
+        resourceProfile, toInstallPostgresExtensions);
   }
 
   @Override
@@ -219,9 +195,7 @@ public class StackGresClusterSpec implements KubernetesResource {
         && Objects.equals(metadata, other.metadata)
         && Objects.equals(nonProduction, other.nonProduction) && Objects.equals(pod, other.pod)
         && Objects.equals(postgres, other.postgres)
-        && Objects.equals(postgresExtensions, other.postgresExtensions)
         && Objects.equals(postgresServices, other.postgresServices)
-        && Objects.equals(postgresVersion, other.postgresVersion)
         && Objects.equals(prometheusAutobind, other.prometheusAutobind)
         && Objects.equals(resourceProfile, other.resourceProfile)
         && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);

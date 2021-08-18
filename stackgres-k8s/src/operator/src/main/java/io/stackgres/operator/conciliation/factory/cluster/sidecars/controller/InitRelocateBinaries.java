@@ -54,7 +54,7 @@ public class InitRelocateBinaries implements ContainerFactory<StackGresClusterCo
     final String patroniImageName = StackGresComponent.PATRONI.findImageName(
         StackGresComponent.LATEST,
         ImmutableMap.of(StackGresComponent.POSTGRESQL,
-            clusterContext.getCluster().getSpec().getPostgresVersion()));
+            clusterContext.getCluster().getSpec().getPostgres().getVersion()));
     return new ContainerBuilder()
         .withName("relocate-binaries")
         .withImage(patroniImageName)
