@@ -26,12 +26,10 @@ import io.fabric8.kubernetes.client.internal.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ResourceUtil {
+public interface ResourceUtil {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ResourceUtil.class);
-  private static final String INDEX_PATTERN = "^.*-([0-9]+)$";
-
-  private ResourceUtil() {}
+  Logger LOGGER = LoggerFactory.getLogger(ResourceUtil.class);
+  String INDEX_PATTERN = "^.*-([0-9]+)$";
 
   /**
    * Filter metadata of resources to find if the name match in the provided list.
@@ -40,31 +38,31 @@ public class ResourceUtil {
    * @param name to check for match in the list
    * @return true if the name exists in the list
    */
-  public static boolean exists(List<? extends HasMetadata> list, String name) {
+  static boolean exists(List<? extends HasMetadata> list, String name) {
     return list.stream()
         .map(HasMetadata::getMetadata)
         .map(ObjectMeta::getName)
         .anyMatch(name::equals);
   }
 
-  public static String resourceName(String name) {
+  static String resourceName(String name) {
     Preconditions.checkArgument(name.length() <= 253);
     return name;
   }
 
-  public static String sanitizedResourceName(String name) {
+  static String sanitizedResourceName(String name) {
     return name
         .toLowerCase(Locale.US)
         .replaceAll("[^a-z0-9-]+", "-")
         .replaceAll("(^-+|-+$)", "");
   }
 
-  public static String volumeName(String name) {
+  static String volumeName(String name) {
     Preconditions.checkArgument(name.length() <= 63);
     return name;
   }
 
-  public static String cutVolumeName(String name) {
+  static String cutVolumeName(String name) {
     if (name.length() <= 63) {
       return name;
     }
@@ -75,30 +73,30 @@ public class ResourceUtil {
     return cutName;
   }
 
-  public static String containerName(String name) {
+  static String containerName(String name) {
     Preconditions.checkArgument(name.length() <= 63);
     return name;
   }
 
-  public static String labelKey(String name) {
+  static String labelKey(String name) {
     Preconditions.checkArgument(name.length() <= 63);
     return name;
   }
 
-  public static String labelValue(String name) {
+  static String labelValue(String name) {
     Preconditions.checkArgument(name.length() <= 63);
     return name;
   }
 
-  public static String getIndexPattern() {
+  static String getIndexPattern() {
     return INDEX_PATTERN;
   }
 
-  public static String getNameWithIndexPattern(String name) {
+  static String getNameWithIndexPattern(String name) {
     return "^" + Pattern.quote(name) + "-([0-9]+)$";
   }
 
-  public static String getNameWithHashPattern(String name) {
+  static String getNameWithHashPattern(String name) {
     return "^" + Pattern.quote(name) + "-([a-z0-9]+){10}-([a-z0-9]+){5}$";
   }
 
@@ -109,7 +107,7 @@ public class ResourceUtil {
    * @param crdName Name of the CDR to lookup.
    * @return the CustomResourceDefinition model.
    */
-  public static Optional<CustomResourceDefinition> getCustomResource(KubernetesClient client,
+  static Optional<CustomResourceDefinition> getCustomResource(KubernetesClient client,
       String crdName) {
     return Optional.ofNullable(client.apiextensions().v1().customResourceDefinitions()
         .withName(crdName).get());
@@ -120,7 +118,7 @@ public class ResourceUtil {
    *
    * @param resource KubernetesResource that has metadata
    */
-  public static void logAsYaml(HasMetadata resource) {
+  static void logAsYaml(HasMetadata resource) {
     if (LOGGER.isDebugEnabled()) {
       try {
         LOGGER.debug("{}: {}", resource.getClass().getSimpleName(),
@@ -134,7 +132,7 @@ public class ResourceUtil {
   /**
    * Get the object reference of any resource.
    */
-  public static ObjectReference getObjectReference(HasMetadata resource) {
+  static ObjectReference getObjectReference(HasMetadata resource) {
     return new ObjectReferenceBuilder()
         .withApiVersion(resource.getApiVersion())
         .withKind(resource.getKind())
@@ -148,7 +146,7 @@ public class ResourceUtil {
   /**
    * Get the owner reference of any resource.
    */
-  public static OwnerReference getOwnerReference(HasMetadata resource) {
+  static OwnerReference getOwnerReference(HasMetadata resource) {
     return new OwnerReferenceBuilder()
         .withApiVersion(resource.getApiVersion())
         .withKind(resource.getKind())
@@ -158,13 +156,20 @@ public class ResourceUtil {
         .build();
   }
 
-  public static String encodeSecret(String string) {
+  static String encodeSecret(String string) {
     return Base64.getEncoder().encodeToString(string.getBytes(StandardCharsets.UTF_8));
   }
 
-  public static String dencodeSecret(String string) {
+  static String dencodeSecret(String string) {
     return new String(Base64.getDecoder().decode(string.getBytes(StandardCharsets.UTF_8)),
         StandardCharsets.UTF_8);
   }
 
+  static boolean isServiceAccountUsername(String username) {
+    return username.startsWith("system:serviceaccount:") && username.split(":").length == 4;
+  }
+
+  static String getServiceAccountFromUsername(String username) {
+    return username.split(":")[3];
+  }
 }

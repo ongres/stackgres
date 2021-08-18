@@ -5,8 +5,8 @@
 
 package io.stackgres.jobs.dbops.lock;
 
-import static io.stackgres.jobs.dbops.lock.LockAcquirer.LOCK_POD;
-import static io.stackgres.jobs.dbops.lock.LockAcquirer.LOCK_TIMESTAMP;
+import static io.stackgres.common.StackGresContext.LOCK_POD_KEY;
+import static io.stackgres.common.StackGresContext.LOCK_TIMESTAMP_KEY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -46,10 +46,11 @@ class LockAcquirerImplTest {
   private static LockRequest buildLockRequest(StackGresCluster cluster) {
 
     return ImmutableLockRequest.builder()
+        .serviceAccount(StringUtils.getRandomString())
         .podName(StringUtils.getRandomString())
         .namespace(cluster.getMetadata().getNamespace())
         .lockResourceName(cluster.getMetadata().getName())
-        .lockTimeout(30)
+        .timeout(30)
         .pollInterval(1)
         .build();
 
@@ -84,9 +85,9 @@ class LockAcquirerImplTest {
           .getCluster(clusterName, clusterNamespace);
       final Map<String, String> annotations = storedCluster
           .getMetadata().getAnnotations();
-      assertNotNull(annotations.get(LOCK_POD));
-      assertEquals(lockRequest.getPodName(), annotations.get(LOCK_POD));
-      assertNotNull(annotations.get(LOCK_TIMESTAMP));
+      assertNotNull(annotations.get(LOCK_POD_KEY));
+      assertEquals(lockRequest.getPodName(), annotations.get(LOCK_POD_KEY));
+      assertNotNull(annotations.get(LOCK_TIMESTAMP_KEY));
       assertEquals(lockedCluster, storedCluster);
       taskRunned.set(true);
     });
@@ -103,8 +104,8 @@ class LockAcquirerImplTest {
     runTaskSuccessfully();
 
     StackGresCluster lastPatch = kubeDb.getCluster(clusterName, clusterNamespace);
-    assertNull(lastPatch.getMetadata().getAnnotations().get(LOCK_POD));
-    assertNull(lastPatch.getMetadata().getAnnotations().get(LOCK_TIMESTAMP));
+    assertNull(lastPatch.getMetadata().getAnnotations().get(LOCK_POD_KEY));
+    assertNull(lastPatch.getMetadata().getAnnotations().get(LOCK_TIMESTAMP_KEY));
 
   }
 
@@ -120,10 +121,10 @@ class LockAcquirerImplTest {
       taskRunned.set(true);
       StackGresCluster lastPatch = kubeDb.getCluster(clusterName, clusterNamespace);
       final Map<String, String> annotations = lastPatch.getMetadata().getAnnotations();
-      assertNotNull(annotations.get(LOCK_POD));
-      assertNotNull(annotations.get(LOCK_TIMESTAMP));
+      assertNotNull(annotations.get(LOCK_POD_KEY));
+      assertNotNull(annotations.get(LOCK_TIMESTAMP_KEY));
       assertTrue(() -> {
-        long finalTimestamp = Long.parseLong(annotations.get(LOCK_TIMESTAMP));
+        long finalTimestamp = Long.parseLong(annotations.get(LOCK_TIMESTAMP_KEY));
         return finalTimestamp > lockTimestamp;
       });
     });
@@ -154,7 +155,7 @@ class LockAcquirerImplTest {
   void givenATimedoutLockedCluster_itShouldOverrideTheLock() {
 
     final long lockTimestamp =
-        (System.currentTimeMillis() / 1000) - lockRequest.getLockTimeout() + 1;
+        (System.currentTimeMillis() / 1000) - lockRequest.getTimeout() + 1;
     prepareLockedCluster(lockRequest.getLockResourceName(), lockTimestamp);
 
     AtomicBoolean taskRan = asycRunTaskSuccessfully();
@@ -178,7 +179,7 @@ class LockAcquirerImplTest {
     sleep(lockRequest.getPollInterval() + 1);
 
     long lockTimestamp = Long.parseLong(kubeDb.getCluster(clusterName, clusterNamespace)
-        .getMetadata().getAnnotations().get(LOCK_TIMESTAMP));
+        .getMetadata().getAnnotations().get(LOCK_TIMESTAMP_KEY));
 
     long currentTimestamp = System.currentTimeMillis() / 1000;
 
@@ -192,8 +193,8 @@ class LockAcquirerImplTest {
 
   private void removeLock() {
     var cluster = kubeDb.getCluster(clusterName, clusterNamespace);
-    cluster.getMetadata().getAnnotations().remove(LOCK_POD);
-    cluster.getMetadata().getAnnotations().remove(LOCK_TIMESTAMP);
+    cluster.getMetadata().getAnnotations().remove(LOCK_POD_KEY);
+    cluster.getMetadata().getAnnotations().remove(LOCK_TIMESTAMP_KEY);
     kubeDb.addOrReplaceCluster(cluster);
   }
 
@@ -203,7 +204,7 @@ class LockAcquirerImplTest {
     lockAcquirer.lockRun(lockRequest, (cluster) -> {
       StackGresCluster lastPatch = kubeDb.getCluster(clusterName, clusterNamespace);
       final Map<String, String> annotations = lastPatch.getMetadata().getAnnotations();
-      assertEquals(lockRequest.getPodName(), annotations.get(LOCK_POD));
+      assertEquals(lockRequest.getPodName(), annotations.get(LOCK_POD_KEY));
       taskRan.set(true);
     });
 
@@ -223,8 +224,9 @@ class LockAcquirerImplTest {
       }
       StackGresCluster lastPatch = kubeDb.getCluster(clusterName, clusterNamespace);
       final Map<String, String> annotations = lastPatch.getMetadata().getAnnotations();
-      assertEquals(lockRequest.getPodName(), annotations.get(LOCK_POD), "Task ran without Lock!!");
-      assertNotNull(annotations.get(LOCK_TIMESTAMP));
+      assertEquals(lockRequest.getPodName(), annotations.get(LOCK_POD_KEY),
+          "Task ran without Lock!!");
+      assertNotNull(annotations.get(LOCK_TIMESTAMP_KEY));
       taskRan.set(true);
     }));
 
@@ -234,16 +236,16 @@ class LockAcquirerImplTest {
   private void prepareUnlockedCLuster() {
     cluster.setStatus(null);
     final Map<String, String> annotations = cluster.getMetadata().getAnnotations();
-    annotations.remove(LOCK_POD);
-    annotations.remove(LOCK_TIMESTAMP);
+    annotations.remove(LOCK_POD_KEY);
+    annotations.remove(LOCK_TIMESTAMP_KEY);
     kubeDb.addOrReplaceCluster(cluster);
   }
 
   private void prepareLockedCluster(String lockPod, Long lockTimestamp) {
     cluster.setStatus(null);
     final Map<String, String> annotations = cluster.getMetadata().getAnnotations();
-    annotations.put(LOCK_POD, lockPod);
-    annotations.put(LOCK_TIMESTAMP, Long.toString(lockTimestamp));
+    annotations.put(LOCK_POD_KEY, lockPod);
+    annotations.put(LOCK_TIMESTAMP_KEY, Long.toString(lockTimestamp));
     kubeDb.addOrReplaceCluster(cluster);
 
   }

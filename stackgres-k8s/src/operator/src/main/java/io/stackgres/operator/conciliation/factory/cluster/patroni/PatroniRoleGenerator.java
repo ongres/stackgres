@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
@@ -36,22 +37,16 @@ import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
 public class PatroniRoleGenerator implements
     ResourceGenerator<StackGresClusterContext> {
-  public static final String SUFFIX = "-patroni";
 
   private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   public static String roleName(ClusterContext clusterContext) {
-    return roleName(clusterContext.getCluster().getMetadata().getName());
-  }
-
-  public static String roleName(String clusterName) {
-    return ResourceUtil.resourceName(clusterName + SUFFIX);
+    return PatroniUtil.roleName(clusterContext.getCluster());
   }
 
   @Override

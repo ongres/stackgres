@@ -60,6 +60,27 @@ EOF
 
 check_major_version_upgrade() {
   if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "major-version-upgrade" \
+    --for condition=Running
+  then
+    echo "SUCCESS. major version upgrade running."
+  else
+    echo "FAILED. major version upgrade not running."
+    return 1
+  fi
+
+  wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --template "{{ if .metadata.annotations.lockTimestamp }}true{{ end }}")" = true ]'
+  if kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
+    -p '[{"op":"replace","path":"/spec/metadata","value":{}}]' \
+    >/dev/null 2>&1
+  then
+    echo "FAILED. Cluster has been updated while locked."
+    return 1
+  else
+    echo "SUCCESS. Cluster has not been updated while locked."
+  fi
+
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "major-version-upgrade" \
     --for condition=Completed
   then
     echo "SUCCESS. major version upgrade completed."

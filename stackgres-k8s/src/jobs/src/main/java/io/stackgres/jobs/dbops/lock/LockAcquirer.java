@@ -11,8 +11,6 @@ import io.fabric8.kubernetes.client.CustomResource;
 
 public interface LockAcquirer<T extends CustomResource<?, ?>> {
 
-  String LOCK_POD = "lockPod";
-  String LOCK_TIMESTAMP = "lockTimestamp";
-
   void lockRun(LockRequest target, Consumer<T> tasks);
+
 }

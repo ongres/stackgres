@@ -20,7 +20,9 @@ public enum OperatorProperty implements StackGresPropertyReader {
   USE_ARBITRARY_USER("stackgres.useArbitraryUser"),
   EXTENSIONS_REPOSITORY_URLS(
       "stackgres.extensionsRepositoryUrls"),
-  CONFLICT_SLEEP_SECONDS("stackgres.conflictSleepSeconds");
+  CONFLICT_SLEEP_SECONDS("stackgres.conflictSleepSeconds"),
+  LOCK_POLL_INTERVAL("stackgres.lockPollInterval"),
+  LOCK_TIMEOUT("stackgres.lockTimeout");
 
   private static final Properties APPLICATION_PROPERTIES =
       Unchecked.supplier(() -> StackGresPropertyReader

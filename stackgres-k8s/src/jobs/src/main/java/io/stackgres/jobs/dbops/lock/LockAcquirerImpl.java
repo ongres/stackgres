@@ -6,8 +6,6 @@
 package io.stackgres.jobs.dbops.lock;
 
 import java.time.Duration;
-import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -16,8 +14,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.smallrye.mutiny.Uni;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -45,9 +43,10 @@ public class LockAcquirerImpl implements LockAcquirer<StackGresCluster> {
     String clusterId = targetCluster.getMetadata().getNamespace()
         + "/" + targetCluster.getMetadata().getName();
     LOGGER.info("Acquiring lock for cluster {}", clusterId);
-    if (isLocked(targetCluster, target) && !isLockedByMe(targetCluster, target)) {
+    if (StackGresUtil.isLocked(targetCluster, target.getTimeout())
+        && !StackGresUtil.isLockedByMe(targetCluster, target.getPodName())) {
       LOGGER.info("Locked cluster {}, waiting for release", clusterId);
-      while (isLocked(targetCluster, target)) {
+      while (StackGresUtil.isLocked(targetCluster, target.getTimeout())) {
         try {
           Thread.sleep(target.getPollInterval() * 1000L);
           targetCluster = getCluster(target);
@@ -75,8 +74,7 @@ public class LockAcquirerImpl implements LockAcquirer<StackGresCluster> {
     } finally {
       lockFuture.cancel(true);
       Uni.createFrom().item(() -> getCluster(target))
-          .invoke(cluster -> cluster.getMetadata().getAnnotations().remove(LOCK_POD))
-          .invoke(cluster -> cluster.getMetadata().getAnnotations().remove(LOCK_TIMESTAMP))
+          .invoke(StackGresUtil::resetLock)
           .invoke(clusterScheduler::update)
           .onFailure()
           .retry()
@@ -92,42 +90,20 @@ public class LockAcquirerImpl implements LockAcquirer<StackGresCluster> {
         .orElseThrow();
   }
 
-  private String getLockTimestamp() {
-    return Long.toString(System.currentTimeMillis() / 1000);
+  private long getLockTimestamp() {
+    return System.currentTimeMillis() / 1000;
+  }
+
+  private StackGresCluster lock(LockRequest target) {
+    var targetCluster = getCluster(target);
+    return lock(target, targetCluster);
   }
 
   private StackGresCluster lock(LockRequest target, StackGresCluster targetCluster) {
-    final Map<String, String> annotations = targetCluster.getMetadata().getAnnotations();
-
-    annotations.put(LOCK_POD, target.getPodName());
-    annotations.put(LOCK_TIMESTAMP, getLockTimestamp());
-    return clusterScheduler.update(targetCluster);
-
+    StackGresUtil.setLock(targetCluster, target.getServiceAccount(), target.getPodName(),
+        getLockTimestamp());
+    clusterScheduler.update(targetCluster);
+    return targetCluster;
   }
 
-  private void lock(LockRequest target) {
-    var targetCluster = getCluster(target);
-    lock(target, targetCluster);
-  }
-
-  private boolean isLocked(StackGresCluster cluster, LockRequest lockRequest) {
-    long currentTimeSeconds = System.currentTimeMillis() / 1000;
-    long timedOutLock = currentTimeSeconds - lockRequest.getLockTimeout();
-    return Optional.ofNullable(cluster.getMetadata())
-        .map(ObjectMeta::getAnnotations)
-        .filter(annotation ->
-            annotation.containsKey(LOCK_POD) && annotation.containsKey(LOCK_TIMESTAMP))
-        .map(annotations -> Long.parseLong(annotations.get(LOCK_TIMESTAMP)))
-        .map(lockTimestamp -> lockTimestamp > timedOutLock)
-        .orElse(false);
-  }
-
-  private boolean isLockedByMe(StackGresCluster cluster, LockRequest lockRequest) {
-    return Optional.ofNullable(cluster.getMetadata())
-        .map(ObjectMeta::getAnnotations)
-        .filter(annotation ->
-            annotation.containsKey(LOCK_POD) && annotation.containsKey(LOCK_TIMESTAMP))
-        .map(annotation -> annotation.get(LOCK_POD).equals(lockRequest.getPodName()))
-        .orElse(false);
-  }
 }

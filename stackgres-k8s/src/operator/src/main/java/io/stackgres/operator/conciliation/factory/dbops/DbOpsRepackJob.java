@@ -18,6 +18,7 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.LabelFactoryForDbOps;
@@ -48,6 +49,11 @@ public class DbOpsRepackJob extends DbOpsJob {
       JsonMapper jsonMapper) {
     super(podSecurityFactory, clusterStatefulSetEnvironmentVariables, labelFactory,
         dbOpsLabelFactory, jsonMapper);
+  }
+
+  public DbOpsRepackJob() {
+    super(null, null, null, null, null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Override

@@ -298,6 +298,27 @@ spec:
 EOF
 
   if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$CLUSTER_NAME" \
+    --for condition=Running
+  then
+    echo "SUCCESS. Cluster $CLUSTER_NAME security upgrade running."
+  else
+    echo "FAILED. Cluster $CLUSTER_NAME security upgrade not running."
+    return 1
+  fi
+
+  wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --template "{{ if .metadata.annotations.lockTimestamp }}true{{ end }}")" = true ]'
+  if kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
+    -p '[{"op":"replace","path":"/spec/metadata","value":{}}]' \
+    >/dev/null 2>&1
+  then
+    echo "FAILED. Cluster has been updated while locked."
+    return 1
+  else
+    echo "SUCCESS. Cluster has not been updated while locked."
+  fi
+
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$CLUSTER_NAME" \
     --for condition=Completed
   then
     echo "SUCCESS. Cluster $CLUSTER_NAME security upgrade completed."

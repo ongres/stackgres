@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.dbops;
+package io.stackgres.common;
 
 import java.time.Duration;
 import java.util.List;
@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.google.common.base.Predicates;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
@@ -18,6 +19,16 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 public interface DbOpsUtil {
+
+  String SUFFIX = "-dbops";
+
+  static String roleName(StackGresCluster cluster) {
+    return roleName(cluster.getMetadata().getName());
+  }
+
+  static String roleName(String clusterName) {
+    return ResourceUtil.resourceName(clusterName + SUFFIX);
+  }
 
   static boolean isMaxRetriesReached(StackGresDbOps dbOps) {
     return Optional.of(dbOps)
