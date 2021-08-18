@@ -29,6 +29,7 @@ ___
 | Property                                        | Required | Updatable | Type     | Default | Description |
 |:------------------------------------------------|----------|-----------|:---------|:--------|:------------|
 | [persistentVolume](#persistent-volume)          | ✓        |           | string   |         | {{< crd-field-description SGDistributedLogs.spec.persistentVolume >}} |
+| [postgresServices](#postgres-services)          |          | ✓         | object   |         | {{< crd-field-description SGDistributedLogs.spec.postgresServices >}} |
 | [scheduling](#scheduling)                       |          | ✓         | object   |         | {{< crd-field-description SGDistributedLogs.spec.scheduling >}} |
 | [metadata](#metadata)                           |          | ✓         | object   |         | {{< crd-field-description SGDistributedLogs.spec.metadata >}} |
 | [nonProductionOptions](#non-production-options) |          | ✓         | array    |         | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions >}} |
@@ -39,6 +40,44 @@ ___
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
 | size                                       | ✓        |           | string   |                              | {{< crd-field-description SGDistributedLogs.spec.persistentVolume.size >}} |
 | storageClass                               | ✓        |           | string   | default storage class        | {{< crd-field-description SGDistributedLogs.spec.persistentVolume.storageClass >}} |
+
+## Postgres Services
+
+| Property                            | Required | Updatable | Type     | Default                              | Description                                                            |
+|:------------------------------------|----------|-----------|:---------|:-------------------------------------|:-----------------------------------------------------------------------|
+| [primary](#primary-service-type)    |          | ✓         | object   | [primary](#primary-service-type)   | {{< crd-field-description SGDistributedLogs.spec.postgresServices.primary >}}  |
+| [replicas](#replicas-service-type)  |          | ✓         | object   | [replicas](#replicas-service-type) | {{< crd-field-description SGDistributedLogs.spec.postgresServices.replicas >}} |
+
+### Primary service type
+
+| Property                        | Required | Updatable | Type     | Default   | Description                                                                 |
+|:--------------------------------|----------|-----------|:---------|:----------|:----------------------------------------------------------------------------|
+| type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGDistributedLogs.spec.postgresServices.primary.type >}}  |
+| annotations                     |          | ✓         | object   |           | {{< crd-field-description SGDistributedLogs.spec.postgresServices.primary.annotations >}}  |
+
+### Replicas service type
+
+| Property                        | Required | Updatable | Type     | Default   | Description                                                                 |
+|:--------------------------------|----------|-----------|:---------|:----------|:----------------------------------------------------------------------------|
+| enabled                         |          | ✓         | boolean  | true      | {{< crd-field-description SGDistributedLogs.spec.postgresServices.replicas.enabled >}}  |
+| type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGDistributedLogs.spec.postgresServices.replicas.type >}}  |
+| annotations                     |          | ✓         | object   |           | {{< crd-field-description SGDistributedLogs.spec.postgresServices.replicas.annotations >}}  |
+
+Example:
+
+```yaml
+apiVersion: stackgres.io/v1
+kind: SGDistributedLogs
+metadata:
+  name: stackgres
+spec:
+  postgresServices:
+    primary:
+      type: ClusterIP
+    replicas:
+      enabled: true
+      type: ClusterIP
+```
 
 ### Scheduling
 
@@ -79,7 +118,7 @@ Holds custom annotations for StackGres generated resources to have.
 | services                      |          | ✓         | object   |                | {{< crd-field-description SGDistributedLogs.spec.metadata.annotations.services >}} |
 
 ```yaml
-apiVersion: stackgres.io/v1beta1
+apiVersion: stackgres.io/v1
 kind: SGDistributedLogs
 metadata:
   name: stackgres

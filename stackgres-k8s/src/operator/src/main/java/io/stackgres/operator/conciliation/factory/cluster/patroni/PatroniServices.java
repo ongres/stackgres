@@ -22,9 +22,9 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServiceType;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
@@ -92,7 +92,7 @@ public class PatroniServices implements
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPostgresServices)
         .map(StackGresClusterPostgresServices::getPrimary)
-        .map(StackGresClusterPostgresService::getEnabled)
+        .map(StackGresPostgresService::getEnabled)
         .orElse(true);
 
     if (isPrimaryServiceEnabled) {
@@ -106,7 +106,7 @@ public class PatroniServices implements
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPostgresServices)
         .map(StackGresClusterPostgresServices::getReplicas)
-        .map(StackGresClusterPostgresService::getEnabled)
+        .map(StackGresPostgresService::getEnabled)
         .orElse(true);
 
     if (isReplicaServiceEnabled) {
@@ -118,7 +118,7 @@ public class PatroniServices implements
   }
 
   private Service createConfigService(String namespace, String serviceName,
-                                      Map<String, String> labels) {
+      Map<String, String> labels) {
     return new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
@@ -151,7 +151,7 @@ public class PatroniServices implements
                 .withTargetPort(new IntOrString(PATRONI_RESTAPI_PORT_NAME))
                 .build())
         .withSelector(labelFactory.patroniClusterLabels(cluster))
-        .withType(StackGresClusterPostgresServiceType.CLUSTER_IP.toString())
+        .withType(StackGresPostgresServiceType.CLUSTER_IP.toString())
         .endSpec()
         .build();
   }
@@ -171,8 +171,8 @@ public class PatroniServices implements
     String serviceType = Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getPostgresServices)
         .map(StackGresClusterPostgresServices::getPrimary)
-        .map(StackGresClusterPostgresService::getType)
-        .orElse(StackGresClusterPostgresServiceType.CLUSTER_IP.toString());
+        .map(StackGresPostgresService::getType)
+        .orElse(StackGresPostgresServiceType.CLUSTER_IP.toString());
 
     return new ServiceBuilder()
         .withNewMetadata()
@@ -234,8 +234,8 @@ public class PatroniServices implements
     String serviceType = Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getPostgresServices)
         .map(StackGresClusterPostgresServices::getReplicas)
-        .map(StackGresClusterPostgresService::getType)
-        .orElse(StackGresClusterPostgresServiceType.CLUSTER_IP.toString());
+        .map(StackGresPostgresService::getType)
+        .orElse(StackGresPostgresServiceType.CLUSTER_IP.toString());
 
     return new ServiceBuilder()
         .withNewMetadata()
@@ -247,11 +247,11 @@ public class PatroniServices implements
         .withNewSpec()
         .withSelector(replicaLabels)
         .withPorts(new ServicePortBuilder()
-                .withProtocol("TCP")
-                .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
-                .withPort(PatroniUtil.POSTGRES_SERVICE_PORT)
-                .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_PORT_NAME))
-                .build(),
+            .withProtocol("TCP")
+            .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
+            .withPort(PatroniUtil.POSTGRES_SERVICE_PORT)
+            .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_PORT_NAME))
+            .build(),
             new ServicePortBuilder()
                 .withProtocol("TCP")
                 .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)

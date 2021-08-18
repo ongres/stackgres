@@ -15,8 +15,8 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServiceType;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.StackGresClusterReview;
@@ -53,7 +53,7 @@ public class DefaultPostgresServicesMutator implements ClusterMutator {
           }
           if (postgresServices.getPrimary().getType() == null) {
             postgresServices.getPrimary()
-                .setType(StackGresClusterPostgresServiceType.CLUSTER_IP.toString());
+                .setType(StackGresPostgresServiceType.CLUSTER_IP.toString());
           }
         } else {
           postgresServices.setPrimary(createNewPostgresService());
@@ -65,7 +65,7 @@ public class DefaultPostgresServicesMutator implements ClusterMutator {
           }
           if (postgresServices.getReplicas().getType() == null) {
             postgresServices.getReplicas()
-                .setType(StackGresClusterPostgresServiceType.CLUSTER_IP.toString());
+                .setType(StackGresPostgresServiceType.CLUSTER_IP.toString());
           }
         } else {
           postgresServices.setReplicas(createNewPostgresService());
@@ -92,10 +92,10 @@ public class DefaultPostgresServicesMutator implements ClusterMutator {
     return ImmutableList.of();
   }
 
-  private StackGresClusterPostgresService createNewPostgresService() {
-    StackGresClusterPostgresService service = new StackGresClusterPostgresService();
+  private StackGresPostgresService createNewPostgresService() {
+    StackGresPostgresService service = new StackGresPostgresService();
     service.setEnabled(Boolean.TRUE);
-    service.setType(StackGresClusterPostgresServiceType.CLUSTER_IP.toString());
+    service.setType(StackGresPostgresServiceType.CLUSTER_IP.toString());
     return service;
   }
 
