@@ -5,6 +5,9 @@
 
 package io.stackgres.jobs.dbops;
 
+import static io.stackgres.jobs.app.JobsProperty.DBOPS_LOCK_POLL_INTERVAL;
+import static io.stackgres.jobs.app.JobsProperty.DBOPS_LOCK_TIMEOUT;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -83,14 +86,15 @@ public class DbOpLauncherImpl implements DbOpLauncher {
       final StackGresDbOps initializedDbOps = dbOpsScheduler.update(dbOps);
 
       try {
-        final int pollInterval = Integer.parseInt(JobsProperty.DBOPS_POLL_INTERVAL.getString());
-        final int lockTimeout = Integer.parseInt(JobsProperty.DBOPS_LOCK_TIMEOUT.getString());
+        final int lockPollInterval = Integer.parseInt(DBOPS_LOCK_POLL_INTERVAL.getString());
+        final int timeout = Integer.parseInt(DBOPS_LOCK_TIMEOUT.getString());
 
         LockRequest lockRequest = ImmutableLockRequest.builder()
             .namespace(initializedDbOps.getMetadata().getNamespace())
+            .serviceAccount(JobsProperty.SERVICE_ACCOUNT.getString())
             .podName(JobsProperty.POD_NAME.getString())
-            .pollInterval(pollInterval)
-            .lockTimeout(lockTimeout)
+            .pollInterval(lockPollInterval)
+            .timeout(timeout)
             .lockResourceName(initializedDbOps.getSpec().getSgCluster())
             .build();
 

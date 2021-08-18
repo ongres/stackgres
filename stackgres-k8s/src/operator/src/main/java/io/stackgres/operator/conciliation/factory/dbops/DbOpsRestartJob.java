@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.dbops;
 
-import static io.stackgres.operator.conciliation.factory.dbops.DbOpsUtil.jobName;
+import static io.stackgres.common.DbOpsUtil.jobName;
 
 import java.util.Map;
 
@@ -108,6 +108,14 @@ public class DbOpsRestartJob implements JobFactory {
                     .withValue(dbOps.getMetadata().getName())
                     .build(),
                 new EnvVarBuilder()
+                    .withName("SERVICE_ACCOUNT")
+                    .withNewValueFrom()
+                    .withNewFieldRef()
+                    .withFieldPath("spec.serviceAccountName")
+                    .endFieldRef()
+                    .endValueFrom()
+                    .build(),
+                new EnvVarBuilder()
                     .withName("POD_NAME")
                     .withNewValueFrom()
                     .withNewFieldRef()
@@ -124,12 +132,20 @@ public class DbOpsRestartJob implements JobFactory {
                     .withValue(System.getenv("JAVA_OPTS"))
                     .build(),
                 new EnvVarBuilder()
-                    .withName("DEBUG_CLUSTER_CONTROLLER")
-                    .withValue(System.getenv("DEBUG_JOBS"))
+                    .withName("DEBUG_JOBS")
+                    .withValue(System.getenv("DEBUG_OPERATOR"))
                     .build(),
                 new EnvVarBuilder()
-                    .withName("DEBUG_CLUSTER_CONTROLLER_SUSPEND")
-                    .withValue(System.getenv("DEBUG_JOBS_SUSPEND"))
+                    .withName("DEBUG_JOBS_SUSPEND")
+                    .withValue(System.getenv("DEBUG_OPERATOR_SUSPEND"))
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("DBOPS_LOCK_TIMEOUT")
+                    .withValue(OperatorProperty.LOCK_TIMEOUT.getString())
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("DBOPS_LOCK_POLL_INTERVAL")
+                    .withValue(OperatorProperty.LOCK_POLL_INTERVAL.getString())
                     .build())
             .build())
         .endSpec()

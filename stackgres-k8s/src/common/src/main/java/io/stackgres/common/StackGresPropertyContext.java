@@ -17,6 +17,10 @@ public interface StackGresPropertyContext<T extends StackGresPropertyReader> {
     return propertyGetter.getString();
   }
 
+  default int getInt(T propertyGetter) {
+    return propertyGetter.getInt();
+  }
+
   default String[] getStringArray(T propertyGetter) {
     return propertyGetter.getStringArray();
   }

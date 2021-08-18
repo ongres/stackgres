@@ -236,7 +236,18 @@ public class BackupJob
                         .withName("PATRONI_CONTAINER_NAME")
                         .withValue(StackgresClusterContainers.PATRONI)
                         .build(),
-                    new EnvVarBuilder().withName("POD_NAME")
+                    new EnvVarBuilder()
+                        .withName("SERVICE_ACCOUNT")
+                        .withValueFrom(
+                            new EnvVarSourceBuilder()
+                                .withFieldRef(
+                                    new ObjectFieldSelectorBuilder()
+                                        .withFieldPath("spec.serviceAccountName")
+                                        .build())
+                                .build())
+                        .build(),
+                    new EnvVarBuilder()
+                        .withName("POD_NAME")
                         .withValueFrom(
                             new EnvVarSourceBuilder()
                                 .withFieldRef(

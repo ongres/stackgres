@@ -10,13 +10,15 @@ import org.immutables.value.Value;
 @Value.Immutable
 public interface LockRequest {
 
+  String getServiceAccount();
+
   String getPodName();
 
   String getNamespace();
 
   String getLockResourceName();
 
-  int getLockTimeout();
+  int getTimeout();
 
   int getPollInterval();
 }

@@ -4,6 +4,7 @@ CLUSTER_CRD_NAME=sgcluster
 CRD_GROUP=stackgres.io
 CLUSTER_NAMESPACE=test
 CLUSTER_NAME=test
+SERVICE_ACCOUNT=test
 POD_NAME=test
 CLUSTER_POD_LABELS=app=StackGresCluster,cluster-uid=test,cluster-namespace=test,cluster-name=test
 CLUSTER_PRIMARY_POD_LABELS=app=StackGresCluster,cluster-uid=test,cluster-namespace=test,cluster-name=test,role=primary

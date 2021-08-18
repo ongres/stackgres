@@ -21,9 +21,11 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.LabelFactoryForDbOps;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.CommonDefinition;
@@ -50,6 +52,11 @@ public class DbOpsMajorVersionUpgradeJob extends DbOpsJob {
       JsonMapper jsonMapper) {
     super(podSecurityFactory, clusterStatefulSetEnvironmentVariables, labelFactory,
         dbOpsLabelFactory, jsonMapper);
+  }
+
+  public DbOpsMajorVersionUpgradeJob() {
+    super(null, null, null, null, null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Override
@@ -102,6 +109,12 @@ public class DbOpsMajorVersionUpgradeJob extends DbOpsJob {
                 .withValue(context.getSource().getSpec().getSgCluster())
                 .build(),
             new EnvVarBuilder()
+                .withName("SERVICE_ACCOUNT")
+                .withValueFrom(new EnvVarSourceBuilder()
+                    .withFieldRef(new ObjectFieldSelector("v1", "spec.serviceAccountName"))
+                    .build())
+                .build(),
+            new EnvVarBuilder()
                 .withName("POD_NAME")
                 .withValueFrom(new EnvVarSourceBuilder()
                     .withFieldRef(new ObjectFieldSelector("v1", "metadata.name"))
@@ -138,6 +151,14 @@ public class DbOpsMajorVersionUpgradeJob extends DbOpsJob {
             new EnvVarBuilder()
                 .withName("MAJOR_VERSION_UPGRADE_CONTAINER_NAME")
                 .withValue(StackgresClusterContainers.MAJOR_VERSION_UPGRADE)
+                .build(),
+                new EnvVarBuilder()
+                .withName("LOCK_TIMEOUT")
+                .withValue(OperatorProperty.LOCK_TIMEOUT.getString())
+                .build(),
+            new EnvVarBuilder()
+                .withName("LOCK_SLEEP")
+                .withValue(OperatorProperty.LOCK_POLL_INTERVAL.getString())
                 .build())
         .build();
   }

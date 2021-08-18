@@ -20,8 +20,9 @@ public enum JobsProperty implements StackGresPropertyReader {
   CONVERSION_WEBHOOKS("stackgres.conversionWebhooks"),
   DATABASE_OPERATION_JOB("stackgres.databaseOperationJob"),
   DATABASE_OPERATION_CR_NAME("stackgres.databaseOperationCrName"),
+  SERVICE_ACCOUNT("stackgres.dbops.serviceAccount"),
   POD_NAME("stackgres.dbops.podName"),
-  DBOPS_POLL_INTERVAL("stackgres.dbops.pollInterval"),
+  DBOPS_LOCK_POLL_INTERVAL("stackgres.dbops.lockPollInterval"),
   DBOPS_LOCK_TIMEOUT("stackgres.dbops.lockTimeout");
 
   private static final Properties APPLICATION_PROPERTIES =
