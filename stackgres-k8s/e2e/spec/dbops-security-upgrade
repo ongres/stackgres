@@ -7,6 +7,7 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_install() {
+  CLUSTER_NAME="dbops-sec-upgrade"
   PREVIOUS_PATRONI_IMAGE="$(get_component_images "$STACKGRES_PREVIOUS_VERSION" | grep '/patroni\(-ext\)\?:' | tail -n 1)"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_PATRONI_IMAGE##*-pg}"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
