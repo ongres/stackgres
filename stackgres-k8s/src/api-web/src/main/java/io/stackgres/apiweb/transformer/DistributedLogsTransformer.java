@@ -23,7 +23,6 @@ import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsSpecMetadata;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsStatus;
 import io.stackgres.apiweb.transformer.distributedlogs.DistributedLogsPostgresServicesConverter;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
-import io.stackgres.apiweb.transformer.distributedlogs.DistributedLogsPostgresServicesConverter;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPersistentVolume;
