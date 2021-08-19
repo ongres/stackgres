@@ -215,13 +215,10 @@ pre {
     font-weight: normal;
 }
 
-<<<<<<< HEAD
-=======
 .small {
     font-size: 90%;
 }
 
->>>>>>> feat(ui): support cluster initialization scripts using ConfigMaps and SecretKeySelectors
 .no-border {
     border: 0 !important;
 }
@@ -4829,6 +4826,7 @@ thead:not(.sort) th:not(.label) .helpTooltip {
 
 td.label .helpTooltip {
     float: right;
+    margin-left: 10px;
 }
 
 .helpTooltip:hover, .helpTooltip.show {

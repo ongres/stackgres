@@ -55,13 +55,13 @@
 							</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.metadata.name')"></span>
 						</th>
-						<th class="sorted asc memory hasTooltip">
+						<th class="sorted asc memory hasTooltip textRight">
 							<span @click="sort('data.spec.memory', 'memory')" title="RAM">
 								RAM
 							</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.memory')"></span>
 						</th>
-						<th class="asc cpu hasTooltip">
+						<th class="asc cpu hasTooltip textRight">
 							<span @click="sort('data.spec.cpu', 'cpu')" title="CPU">
 								CPU
 							</span>
@@ -91,12 +91,12 @@
 												</router-link>
 											</span>
 										</td>
-										<td class="memory fontZero">
+										<td class="memory fontZero textRight">
 											<router-link :to="'/' + $route.params.namespace + '/sginstanceprofile/' + conf.name" class="noColor">
 												{{ conf.data.spec.memory }}
 											</router-link>
 										</td>
-										<td class="cpu fontZero">
+										<td class="cpu fontZero textRight">
 											<router-link :to="'/' + $route.params.namespace + '/sginstanceprofile/' + conf.name" class="noColor">
 												{{ conf.data.spec.cpu }}
 											</router-link>
@@ -135,11 +135,11 @@
 							</tr>
 							<tr>
 								<td class="label">RAM <span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.memory')"></span></td>
-								<td>{{ conf.data.spec.memory }}</td>
+								<td class="textRight">{{ conf.data.spec.memory }}</td>
 							</tr>
 							<tr>
 								<td class="label">CPU <span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.cpu')"></span></td>
-								<td>{{ conf.data.spec.cpu }}</td>
+								<td class="textRight">{{ conf.data.spec.cpu }}</td>
 							</tr>
 							<tr v-if="conf.data.status.clusters.length">
 								<td class="label">Used on <span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.status.clusters')"></span></td>
