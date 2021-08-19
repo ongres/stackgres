@@ -33,12 +33,12 @@ public class DbOpsSecurityUpgradeJob implements JobFactory {
 
   public static final String IMAGE_NAME = "docker.io/stackgres/jobs:%s";
 
-  private final LabelFactoryForDbOps<StackGresDbOps> dbOpsLabelFactory;
+  private final LabelFactoryForDbOps dbOpsLabelFactory;
   private final ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory;
 
   @Inject
   public DbOpsSecurityUpgradeJob(
-      LabelFactoryForDbOps<StackGresDbOps> dbOpsLabelFactory,
+      LabelFactoryForDbOps dbOpsLabelFactory,
       ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory) {
     this.dbOpsLabelFactory = dbOpsLabelFactory;
     this.podSecurityFactory = podSecurityFactory;

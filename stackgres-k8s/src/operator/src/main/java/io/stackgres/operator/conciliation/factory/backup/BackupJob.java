@@ -68,7 +68,7 @@ public class BackupJob
   private final ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext>
       clusterEnvVarFactoryDiscoverer;
 
-  private final LabelFactoryForBackup<StackGresBackup> labelFactory;
+  private final LabelFactoryForBackup labelFactory;
   private final LabelFactoryForCluster<StackGresCluster> labelFactoryForCluster;
   private final ResourceFactory<StackGresBackupContext, PodSecurityContext> podSecurityFactory;
 
@@ -76,7 +76,7 @@ public class BackupJob
   public BackupJob(
       ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext>
         clusterEnvVarFactoryDiscoverer,
-      LabelFactoryForBackup<StackGresBackup> labelFactory,
+      LabelFactoryForBackup labelFactory,
       LabelFactoryForCluster<StackGresCluster> labelFactoryForCluster,
       ResourceFactory<StackGresBackupContext,
       PodSecurityContext> podSecurityFactory) {

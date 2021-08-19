@@ -7,10 +7,8 @@ package io.stackgres.common;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.common.crd.sgbackup.StackGresBackup;
-
 @ApplicationScoped
-public class BackupLabelMapper implements LabelMapperForBackup<StackGresBackup> {
+public class BackupLabelMapper implements LabelMapperForBackup {
 
   @Override
   public String appName() {

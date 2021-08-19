@@ -5,13 +5,9 @@
 
 package io.stackgres.common;
 
-import java.util.List;
 import java.util.Map;
 
-import com.google.common.collect.ImmutableList;
-import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.common.resource.ResourceUtil;
 
 public interface LabelFactory<T extends CustomResource<?, ?>> {
 
@@ -29,10 +25,6 @@ public interface LabelFactory<T extends CustomResource<?, ?>> {
 
   default String resourceUid(T resource) {
     return resource.getMetadata().getUid();
-  }
-
-  default List<OwnerReference> ownerReferences(T resource) {
-    return ImmutableList.of(ResourceUtil.getOwnerReference(resource));
   }
 
 }

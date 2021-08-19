@@ -7,13 +7,13 @@ package io.stackgres.common;
 
 import java.util.Map;
 
-import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 
-public interface LabelFactoryForDbOps<T extends CustomResource<?, ?>>
-    extends LabelFactory<T> {
+public interface LabelFactoryForDbOps
+    extends LabelFactory<StackGresDbOps> {
 
-  Map<String, String> dbOpsPodLabels(T resource);
+  Map<String, String> dbOpsPodLabels(StackGresDbOps resource);
 
-  LabelMapperForDbOps<T> labelMapper();
+  LabelMapperForDbOps labelMapper();
 
 }

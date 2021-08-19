@@ -10,13 +10,13 @@ import static io.stackgres.common.resource.ResourceUtil.labelValue;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
-import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 
-public abstract class AbstractLabelFactoryForDbOps<T extends CustomResource<?, ?>>
-    extends AbstractLabelFactory<T> implements LabelFactoryForDbOps<T> {
+public abstract class AbstractLabelFactoryForDbOps
+    extends AbstractLabelFactory<StackGresDbOps> implements LabelFactoryForDbOps {
 
   @Override
-  public Map<String, String> dbOpsPodLabels(T resource) {
+  public Map<String, String> dbOpsPodLabels(StackGresDbOps resource) {
     return ImmutableMap.of(labelMapper().appKey(), labelMapper().appName(),
         labelMapper().resourceUidKey(), labelValue(resourceUid(resource)),
         labelMapper().resourceNameKey(), labelValue(resourceName(resource)),

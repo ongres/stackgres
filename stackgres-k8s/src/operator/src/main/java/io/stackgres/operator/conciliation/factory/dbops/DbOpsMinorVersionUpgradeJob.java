@@ -34,11 +34,11 @@ public class DbOpsMinorVersionUpgradeJob implements JobFactory {
   public static final String IMAGE_NAME = "docker.io/stackgres/jobs:%s";
 
   private final ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory;
-  private final LabelFactoryForDbOps<StackGresDbOps> dbOpsLabelFactory;
+  private final LabelFactoryForDbOps dbOpsLabelFactory;
 
   @Inject
   public DbOpsMinorVersionUpgradeJob(
-      LabelFactoryForDbOps<StackGresDbOps> dbOpsLabelFactory,
+      LabelFactoryForDbOps dbOpsLabelFactory,
       ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory) {
     this.dbOpsLabelFactory = dbOpsLabelFactory;
     this.podSecurityFactory = podSecurityFactory;

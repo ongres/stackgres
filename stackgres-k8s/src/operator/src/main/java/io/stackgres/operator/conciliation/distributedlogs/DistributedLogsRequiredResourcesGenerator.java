@@ -16,7 +16,6 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.resource.ResourceFinder;
-import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.factory.DecoratorDiscoverer;
@@ -52,7 +51,6 @@ public class DistributedLogsRequiredResourcesGenerator
     StackGresDistributedLogsContext context = ImmutableStackGresDistributedLogsContext.builder()
         .source(config)
         .addAllConnectedClusters(getConnectedClusters(config))
-        .ownerReferences(List.of(ResourceUtil.getOwnerReference(config)))
         .databaseCredentials(secretFinder.findByNameAndNamespace(distributedLogsName, namespace))
         .build();
 

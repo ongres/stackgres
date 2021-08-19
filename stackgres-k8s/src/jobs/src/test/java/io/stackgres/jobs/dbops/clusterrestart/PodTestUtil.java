@@ -37,7 +37,7 @@ public class PodTestUtil {
   LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Inject
-  LabelFactoryForDbOps<StackGresDbOps> dbOpsLabelFactory;
+  LabelFactoryForDbOps dbOpsLabelFactory;
 
   @Inject
   KubernetesClientProvider clientFactory;

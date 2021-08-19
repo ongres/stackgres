@@ -8,7 +8,6 @@ package io.stackgres.operator.conciliation.distributedlogs;
 import java.util.List;
 import java.util.Optional;
 
-import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -19,8 +18,6 @@ import org.immutables.value.Value;
 @Value.Immutable
 public interface StackGresDistributedLogsContext
     extends GenerationContext<StackGresDistributedLogs> {
-
-  List<OwnerReference> getOwnerReferences();
 
   List<StackGresCluster> getConnectedClusters();
 

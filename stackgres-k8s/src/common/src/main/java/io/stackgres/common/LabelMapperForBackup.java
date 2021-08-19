@@ -5,10 +5,10 @@
 
 package io.stackgres.common;
 
-import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
 
-public interface LabelMapperForBackup<T extends CustomResource<?, ?>>
-    extends LabelMapper<T> {
+public interface LabelMapperForBackup
+    extends LabelMapper<StackGresBackup> {
 
   default String backupKey() {
     return StackGresContext.BACKUP_KEY;

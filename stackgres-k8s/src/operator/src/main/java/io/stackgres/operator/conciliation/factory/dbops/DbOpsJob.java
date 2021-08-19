@@ -49,13 +49,13 @@ public abstract class DbOpsJob implements JobFactory {
   private final DbOpsEnvironmentVariables clusterEnvironmentVariables;
   private final ImmutableMap<DbOpsStatusCondition, String> conditions;
   protected final LabelFactoryForCluster<StackGresCluster> labelFactory;
-  protected final LabelFactoryForDbOps<StackGresDbOps> dbOpsLabelFactory;
+  protected final LabelFactoryForDbOps dbOpsLabelFactory;
 
   @Inject
   public DbOpsJob(ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory,
       DbOpsEnvironmentVariables clusterEnvironmentVariables,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
-      LabelFactoryForDbOps<StackGresDbOps> dbOpsLabelFactory, JsonMapper jsonMapper) {
+      LabelFactoryForDbOps dbOpsLabelFactory, JsonMapper jsonMapper) {
     this.podSecurityFactory = podSecurityFactory;
     this.clusterEnvironmentVariables = clusterEnvironmentVariables;
     this.labelFactory = labelFactory;

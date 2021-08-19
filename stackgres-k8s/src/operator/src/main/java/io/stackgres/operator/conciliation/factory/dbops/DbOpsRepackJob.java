@@ -44,7 +44,7 @@ public class DbOpsRepackJob extends DbOpsJob {
       ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory,
       DbOpsEnvironmentVariables clusterStatefulSetEnvironmentVariables,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
-      LabelFactoryForDbOps<StackGresDbOps> dbOpsLabelFactory,
+      LabelFactoryForDbOps dbOpsLabelFactory,
       JsonMapper jsonMapper) {
     super(podSecurityFactory, clusterStatefulSetEnvironmentVariables, labelFactory,
         dbOpsLabelFactory, jsonMapper);

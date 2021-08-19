@@ -8,20 +8,18 @@ package io.stackgres.common;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.stackgres.common.crd.sgbackup.StackGresBackup;
-
 @ApplicationScoped
-public class BackupLabelFactory extends AbstractLabelFactoryForBackup<StackGresBackup> {
+public class BackupLabelFactory extends AbstractLabelFactoryForBackup {
 
-  private final LabelMapperForBackup<StackGresBackup> labelMapper;
+  private final LabelMapperForBackup labelMapper;
 
   @Inject
-  public BackupLabelFactory(LabelMapperForBackup<StackGresBackup> labelMapper) {
+  public BackupLabelFactory(LabelMapperForBackup labelMapper) {
     this.labelMapper = labelMapper;
   }
 
   @Override
-  public LabelMapperForBackup<StackGresBackup> labelMapper() {
+  public LabelMapperForBackup labelMapper() {
     return labelMapper;
   }
 

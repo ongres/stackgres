@@ -7,10 +7,8 @@ package io.stackgres.common;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-
 @ApplicationScoped
-public class DbOpsLabelMapper implements LabelMapperForDbOps<StackGresDbOps> {
+public class DbOpsLabelMapper implements LabelMapperForDbOps {
 
   @Override
   public String appName() {

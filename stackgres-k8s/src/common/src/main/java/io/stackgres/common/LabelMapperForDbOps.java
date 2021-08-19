@@ -5,10 +5,10 @@
 
 package io.stackgres.common;
 
-import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 
-public interface LabelMapperForDbOps<T extends CustomResource<?, ?>>
-    extends LabelMapper<T> {
+public interface LabelMapperForDbOps
+    extends LabelMapper<StackGresDbOps> {
 
   default String dbOpsKey() {
     return StackGresContext.DB_OPS_KEY;

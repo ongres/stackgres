@@ -8,20 +8,18 @@ package io.stackgres.common;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-
 @ApplicationScoped
-public class DbOpsLabelFactory extends AbstractLabelFactoryForDbOps<StackGresDbOps> {
+public class DbOpsLabelFactory extends AbstractLabelFactoryForDbOps {
 
-  private final LabelMapperForDbOps<StackGresDbOps> labelMapper;
+  private final LabelMapperForDbOps labelMapper;
 
   @Inject
-  public DbOpsLabelFactory(LabelMapperForDbOps<StackGresDbOps> labelMapper) {
+  public DbOpsLabelFactory(LabelMapperForDbOps labelMapper) {
     this.labelMapper = labelMapper;
   }
 
   @Override
-  public LabelMapperForDbOps<StackGresDbOps> labelMapper() {
+  public LabelMapperForDbOps labelMapper() {
     return labelMapper;
   }
 

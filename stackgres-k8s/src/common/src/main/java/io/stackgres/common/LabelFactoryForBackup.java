@@ -7,13 +7,13 @@ package io.stackgres.common;
 
 import java.util.Map;
 
-import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
 
-public interface LabelFactoryForBackup<T extends CustomResource<?, ?>>
-    extends LabelFactory<T> {
+public interface LabelFactoryForBackup
+    extends LabelFactory<StackGresBackup> {
 
-  Map<String, String> backupPodLabels(T resource);
+  Map<String, String> backupPodLabels(StackGresBackup resource);
 
-  LabelMapperForBackup<T> labelMapper();
+  LabelMapperForBackup labelMapper();
 
 }
