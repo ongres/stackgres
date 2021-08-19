@@ -278,6 +278,10 @@ svg.background circle {
     border-color: #444444;
 }
 
+.hTable {
+    width: auto;
+}
+
 /* Pagination Styling */
 .v-pagination>ul>li>a {
     font-size: inherit;
@@ -438,6 +442,7 @@ td.label[rowspan] {
 /* CRD Details */
 table.crdDetails {
     margin-bottom: 40px;
+    width: auto;
 }
 
 table.crdDetails td, table.crdDetails th, .paramDetails td, .paramDetails th {
@@ -462,6 +467,7 @@ table.crdDetails td a:hover {
     float: none;
     position: relative;
     top: 2px;
+    margin: 0 10px;
 }
 
 .configurationDetails + .paramDetails, .crdDetails + .crdDetails {

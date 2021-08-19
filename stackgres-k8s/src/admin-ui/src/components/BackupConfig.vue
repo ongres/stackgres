@@ -55,7 +55,7 @@
 							</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.metadata.name')"></span>
 						</th>
-						<th class="desc retention hasTooltip">
+						<th class="desc retention hasTooltip textRight">
 							<span @click="sort('data.spec.baseBackups.retention')" title="Retention">Retention</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.retention')"></span>
 						</th>
@@ -67,7 +67,7 @@
 							<span @click="sort('data.spec.baseBackups.compression')" title="Compression Method">Compression Method</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.compression')"></span>
 						</th>
-						<th class="desc uploadDiskConcurrency hasTooltip">
+						<th class="desc uploadDiskConcurrency hasTooltip textRight">
 							<span @click="sort('data.spec.baseBackups.performance.uploadDiskConcurrency')" title="Upload Disk Concurrency">Upload Disk Concurrency</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.performance.uploadDiskConcurrency')"></span>
 						</th>
@@ -98,7 +98,7 @@
 												</router-link>
 											</span>
 										</td>
-										<td class="fontZero">
+										<td class="fontZero textRight">
 											<template v-if="(typeof conf.data.spec.baseBackups.retention !== 'undefined')">
 												<router-link :to="'/' + $route.params.namespace + '/sgbackupconfig/' + conf.name" class="noColor">
 													{{ conf.data.spec.baseBackups.retention }}
@@ -121,7 +121,7 @@
 												</router-link>
 											</template>
 										</td>
-										<td class="fontZero">
+										<td class="fontZero textRight">
 											<template v-if="( (typeof conf.data.spec.baseBackups.performance !== 'undefined') && (typeof conf.data.spec.baseBackups.performance.uploadDiskConcurrency !== 'undefined') )">
 												<router-link :to="'/' + $route.params.namespace + '/sgbackupconfig/' + conf.name" class="noColor">
 													{{ conf.data.spec.baseBackups.performance.uploadDiskConcurrency }}
@@ -174,7 +174,7 @@
 										Retention
 										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.retention')"></span>
 									</td>
-									<td>
+									<td class="textRight">
 										{{ conf.data.spec.baseBackups.retention }}
 									</td>
 								</tr>
@@ -201,7 +201,7 @@
 										Max Network Bandwitdh
 										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.maxNetworkBandwitdh')"></span>
 									</td>
-									<td>
+									<td class="textRight">
 										{{ conf.data.spec.baseBackups.performance.maxNetworkBandwitdh }}
 									</td>
 								</tr>
@@ -210,7 +210,7 @@
 										Max Disk Bandwitdh
 										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.performance.maxDiskBandwitdh')"></span>
 									</td>
-									<td>
+									<td class="textRight">
 										{{ conf.data.spec.baseBackups.performance.maxDiskBandwitdh }}
 									</td>
 								</tr>
@@ -219,7 +219,7 @@
 										Upload Disk Concurrency
 										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.performance.uploadDiskConcurrency')"></span>
 									</td>
-									<td>
+									<td class="textRight">
 										{{ conf.data.spec.baseBackups.performance.uploadDiskConcurrency }}
 									</td>
 								</tr>

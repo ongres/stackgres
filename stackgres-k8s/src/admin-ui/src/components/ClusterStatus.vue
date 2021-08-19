@@ -111,19 +111,19 @@
 							Total CPU 
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.pods.cpuRequested').slice(0, -2) + ' (' + (cluster.status.hasOwnProperty('cpuPsiAvg60') ? getTooltip('sgcluster.pods.cpuPsiAvg60') : getTooltip('sgcluster.pods.averageLoad1m')) + ')'"></span>
 						</th>
-						<th>
+						<th class="textRight">
 							Total Memory
 							<span class="helpTooltip" :data-tooltip="cluster.status.hasOwnProperty('memoryPsiAvg60') ? getTooltip('sgcluster.pods.memoryPsiAvg60') : getTooltip('sgcluster.pods.memoryRequested')"></span>
 						</th>
-						<th>
+						<th class="textRight">
 							Primary Node Disk
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.pods.diskUsed').slice(0, -2) + ' / ' + getTooltip('sgcluster.spec.pods.persistentVolume.size') + (cluster.status.hasOwnProperty('diskPsiAvg60') ? ' (' + getTooltip('sgcluster.pods.diskPsiAvg60') + ')' : '')"></span>
 						</th>
-						<th>
+						<th class="textRight">
 							Total Allocated Disk
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgclusterstats.diskRequested')"></span>
 						</th>
-						<th>
+						<th class="textRight">
 							Instances
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.podsReady').slice(0, -2) + ' / ' + getTooltip('sgcluster.spec.instances')"></span>
 						</th>
@@ -136,7 +136,7 @@
 									(avg. load {{ cluster.status.hasOwnProperty('cpuPsiAvg60') ? cluster.status.cpuPsiAvg60 : cluster.status.averageLoad1m }})
 								</template>
 							</td>
-							<td>
+							<td class="textRight">
 								{{ cluster.status.hasOwnProperty('memoryPsiAvg60') ? cluster.status.memoryPsiAvg60 : cluster.status.memoryRequested}}
 							</td>
 							<td class="flex-center">
@@ -157,8 +157,8 @@
 									-
 								</template>
 							</td>
-							<td>{{ cluster.status.hasOwnProperty('diskRequested') ? cluster.status.diskRequested : '-' }}</td>
-							<td>{{ cluster.data.podsReady }} / {{ cluster.data.spec.instances }}</td>
+							<td class="textRight">{{ cluster.status.hasOwnProperty('diskRequested') ? cluster.status.diskRequested : '-' }}</td>
+							<td class="textRight">{{ cluster.data.podsReady }} / {{ cluster.data.spec.instances }}</td>
 						</tr>
 					</tbody>
 				</table>
@@ -182,15 +182,15 @@
 							CPU
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.pods.cpuRequested').slice(0, -2) + ' (' + (cluster.status.hasOwnProperty('cpuPsiAvg60') ? getTooltip('sgcluster.pods.cpuPsiAvg60') : getTooltip('sgcluster.pods.averageLoad1m')) + ')'"></span>
 						</th>
-						<th>
+						<th class="textRight">
 							Memory
 							<span class="helpTooltip" :data-tooltip="cluster.status.hasOwnProperty('memoryPsiAvg60') ? getTooltip('sgcluster.pods.memoryPsiAvg60') : getTooltip('sgcluster.pods.memoryRequested')"></span>
 						</th>
-						<th>
+						<th class="textRight">
 							Disk
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.pods.diskUsed').slice(0, -2) + ' / ' + getTooltip('sgcluster.pods.diskRequested') + (cluster.status.hasOwnProperty('diskPsiAvg60') ? ' (' + getTooltip('sgcluster.pods.diskPsiAvg60') + ')' : '')"></span>
 						</th>
-						<th>
+						<th class="textRight">
 							Containers
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.pods.containersReady').slice(0, -2) + ' / ' + getTooltip('sgcluster.pods.containers')"></span>
 						</th>
@@ -216,7 +216,7 @@
 									</template>
 								</template>
 							</td>
-							<td>
+							<td class="textRight">
 								{{ pod.hasOwnProperty('memoryPsiAvg60') ? pod.memoryPsiAvg60 : pod.memoryRequested }}
 								
 								<template v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
@@ -225,10 +225,10 @@
 									</template>
 								</template>
 							</td>
-							<td>
+							<td class="textRight">
 							<template v-if="pod.hasOwnProperty('diskUsed')">{{ pod.diskUsed }}</template><template v-else>-</template> / {{ pod.diskRequested }} <span v-if="pod.hasOwnProperty('diskPsiAvg60')">(psi avg. {{ pod.diskPsiAvg60 }})</span>
 							</td>
-							<td>{{ pod.containersReady }} / {{ pod.containers }}</td>
+							<td class="textRight">{{ pod.containersReady }} / {{ pod.containers }}</td>
 						</tr>
 					</tbody>
 				</table>
@@ -365,5 +365,9 @@
 		transform: translateX(15px);
 		background-size: contain;
 		filter: hue-rotate(35deg);
+	}
+
+	.flex-center {
+		justify-content: flex-end;
 	}
 </style>	
