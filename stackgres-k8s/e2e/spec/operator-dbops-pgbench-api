@@ -1,6 +1,7 @@
 #!/bin/sh
 
 e2e_test_install() {
+  CLUSTER_NAME="api-dbops-pgbench"
   NODE_LABEL_KEY=$(ramdom_string)
   NODE_LABEL_VALUE=$(ramdom_string)
 
