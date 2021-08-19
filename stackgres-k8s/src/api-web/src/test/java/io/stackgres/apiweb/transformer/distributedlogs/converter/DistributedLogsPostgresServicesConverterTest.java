@@ -36,7 +36,6 @@ class DistributedLogsPostgresServicesConverterTest {
 
     assertEquals(sgPgPrimary.getEnabled(), dlPgPrimary.getEnabled());
     assertEquals(sgPgPrimary.getType(), dlPgPrimary.getType());
-    assertEquals(sgPgPrimary.getAnnotations().size(), dlPgPrimary.getAnnotations().size());
     assertNull(pgServicesConverted.getReplicas());
   }
 
@@ -50,7 +49,6 @@ class DistributedLogsPostgresServicesConverterTest {
 
     assertEquals(sgPgReplicas.getEnabled(), dlPgReplicas.getEnabled());
     assertEquals(sgPgReplicas.getType(), dlPgReplicas.getType());
-    assertEquals(sgPgReplicas.getAnnotations().size(), dlPgReplicas.getAnnotations().size());
     assertNull(pgServicesConverted.getPrimary());
   }
 

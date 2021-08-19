@@ -31,9 +31,7 @@ public class DistributedLogsPostgresServicesConverter implements
 
     if (sgPostgresService != null) {
       postgresService =
-          new EnabledPostgresService(
-              sgPostgresService.getType(),
-              sgPostgresService.getAnnotations());
+          new EnabledPostgresService(sgPostgresService.getType());
     }
     return postgresService;
   }
