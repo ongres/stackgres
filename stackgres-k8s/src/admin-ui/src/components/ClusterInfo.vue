@@ -373,6 +373,154 @@
 							</template>
 						</tbody>
 					</table>
+
+					<template v-if="hasProp(cluster, 'data.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution')">
+						<h2>
+							Node Affinity:<br/>
+							<span class="normal">Required during scheduling ignored during execution </span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution')"></span>
+						</h2>
+
+						<table class="clusterConfig">
+							<thead>
+								<th></th>
+								<th></th>
+								<th></th>
+								<th></th>
+							</thead>
+							<tbody>
+								<template v-for="(term, i) in cluster.data.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms">
+									<tr>
+										<td class="label" :rowspan="term.matchExpressions.length + term.matchFields.length + 1">
+											Term #{{ i + 1 }} <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items')"></span>
+										</td>
+									</tr>
+									<tr v-for="(exp, j) in term.matchExpressions">
+										<td v-if="!j" class="label" :rowspan="term.matchExpressions.length">
+											Match Expressions <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions')"></span>
+										</td>
+										<td class="label">
+											Expression #{{ j + 1 }} <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items')"></span>
+										</td>
+										<td>
+											<ul class="affinity">
+												<li>
+													<strong>Key <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.key')"></span></strong>
+													<span>{{ exp.key }}</span>
+												</li>
+												<li>
+													<strong>Operator <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.operator')"></span></strong>
+													<span>{{ affinityOperator(exp.operator) }}</span>
+												</li>
+												<li v-if="exp.hasOwnProperty('values')">
+													<strong>Value{{ (exp.values.length > 1) ? 's' : '' }} <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.values')"></span></strong>
+													<span>{{ exp.values.join(', ')}}</span>
+												</li>
+											</ul>
+										</td>
+									</tr>
+									<tr v-for="(field, j) in term.matchFields">
+										<td v-if="!j" class="label" :rowspan="term.matchFields.length">
+											Match Fields <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields')"></span>
+										</td>
+										<td class="label">
+											Field #{{ j + 1 }}  <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items')"></span>
+										</td>
+										<td>
+											<ul class="affinity">
+												<li>
+													<strong>Key <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.key')"></span></strong>
+													<span>{{ field.key }}</span>
+												</li>
+												<li>
+													<strong>Operator <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.operator')"></span></strong>
+													<span>{{ affinityOperator(field.operator) }}</span>
+												</li>
+												<li v-if="field.hasOwnProperty('values')">
+													<strong>Value{{ (field.values.length > 1) ? 's' : '' }} <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.values')"></span></strong>
+													<span>{{ field.values.join(', ')}}</span>
+												</li>
+											</ul>
+										</td>
+									</tr>
+								</template>
+							</tbody>
+						</table>
+					</template>
+
+					<template v-if="hasProp(cluster, 'data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution')">
+						<h2>
+							Node Affinity:<br/>
+							<span class="normal">Preferred during scheduling ignored during execution </span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution')"></span>
+						</h2>
+
+						<table class="clusterConfig">
+							<thead>
+								<th></th>
+								<th></th>
+								<th></th>
+								<th></th>
+							</thead>
+							<tbody>
+								<template v-for="(term, i) in cluster.data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution">
+									<tr>
+										<td class="label" :rowspan="term.preference.matchExpressions.length + term.preference.matchFields.length + 1">
+											Term #{{ i + 1 }} <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference')"></span>
+										</td>
+									</tr>
+									<tr v-for="(exp, j) in term.preference.matchExpressions">
+										<td v-if="!j" class="label" :rowspan="term.preference.matchExpressions.length">
+											Match Expressions <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions')"></span>
+										</td>
+										<td class="label">
+											Expression #{{ j + 1 }} <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items')"></span>
+										</td>
+										<td>
+											<ul class="affinity">
+												<li>
+													<strong>Key <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.key')"></span></strong>
+													<span>{{ exp.key }}</span>
+												</li>
+												<li>
+													<strong>Operator <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.operator')"></span></strong>
+													<span>{{ affinityOperator(exp.operator) }}</span>
+												</li>
+												<li v-if="exp.hasOwnProperty('values')">
+													<strong>Value{{ (exp.values.length > 1) ? 's' : '' }} <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.values')"></span></strong>
+													<span>{{ exp.values.join(', ')}}</span>
+												</li>
+											</ul>
+										</td>
+									</tr>
+									<tr v-for="(field, j) in term.preference.matchFields">
+										<td v-if="!j" class="label" :rowspan="term.preference.matchFields.length">
+											Match Fields <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields')"></span>
+										</td>
+										<td class="label">
+											Field #{{ j + 1 }} <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items')"></span>
+										</td>
+										<td>
+											<ul class="affinity">
+												<li>
+													<strong>Key <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.key')"></span></strong>
+													<span>{{ field.key }}</span>
+												</li>
+												<li>
+													<strong>Operator <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.operator')"></span></strong>
+													<span>{{ affinityOperator(field.operator) }}</span>
+												</li>
+												<li v-if="field.hasOwnProperty('values')">
+													<strong>Value{{ (field.values.length > 1) ? 's' : '' }} <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.values')"></span></strong>
+													<span>{{ field.values.join(', ')}}</span>
+												</li>
+											</ul>
+										</td>
+									</tr>
+								</template>
+							</tbody>
+						</table>
+					</template>
 				</div>
 
 				<div class="scripts" v-if="hasProp(cluster, 'data.spec.initialData.scripts') && (cluster.data.spec.initialData.scripts.length != cluster.data.spec.initialData.scripts.filter(s => hasProp(s, 'scriptFrom.secretKeyRef')).length )">
@@ -735,6 +883,28 @@
 				} else {
 					return false;
 				}
+
+			},
+
+			affinityOperator(op) {
+
+				switch(op) {
+
+					case 'NotIn':
+						op = 'Not In';
+						break;
+					case 'DoesNotExists':
+						op = 'Does Not Exists';
+						break;
+					case 'Gt':
+						op = 'Greather Than';
+						break;
+					case 'Lt':
+						op = 'Less Than';
+						break;
+				}
+
+				return op;
 
 			}
 
