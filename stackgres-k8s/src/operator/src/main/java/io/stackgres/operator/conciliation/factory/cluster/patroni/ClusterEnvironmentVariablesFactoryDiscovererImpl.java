@@ -14,8 +14,8 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import io.stackgres.common.ClusterContext;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.ResourceDiscoverer;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 
 @ApplicationScoped
 public class ClusterEnvironmentVariablesFactoryDiscovererImpl

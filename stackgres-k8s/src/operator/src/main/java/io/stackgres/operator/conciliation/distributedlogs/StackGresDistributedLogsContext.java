@@ -12,8 +12,8 @@ import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.GenerationContext;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import org.immutables.value.Value;
 
 @Value.Immutable

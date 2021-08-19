@@ -43,10 +43,10 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.backup.StackGresBackupContext;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactory;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactoryDiscoverer;
@@ -95,7 +95,7 @@ public class BackupJob
 
   @Override
   public Stream<HasMetadata> generateResource(StackGresBackupContext context) {
-    return context.getBackupConfig()
+    return Optional.of(context.getBackupConfig())
         .map(backupConfig -> context)
         .filter(c -> !Optional.ofNullable(context.getSource().getStatus())
             .map(StackGresBackupStatus::getProcess)
@@ -112,7 +112,7 @@ public class BackupJob
 
   private HasMetadata createBackupJob(StackGresBackupContext context) {
     StackGresBackup backup = context.getSource();
-    StackGresBackupConfig backupConfig = context.getBackupConfig().get();
+    StackGresBackupConfig backupConfig = context.getBackupConfig();
     String namespace = backup.getMetadata().getNamespace();
     String name = backup.getMetadata().getName();
     String cluster = backup.getSpec().getSgCluster();

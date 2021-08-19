@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.cluster;
+package io.stackgres.operator.conciliation.dbops;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,25 +18,24 @@ import org.junit.jupiter.api.Test;
 
 class StackGresVersionTest {
 
-  private StackGresCluster cluster;
+  private StackGresDbOps dbOps;
 
   @BeforeEach
   void setUp() {
-    cluster = JsonUtil
-        .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    dbOps = JsonUtil
+        .readFromJson("stackgres_dbops/dbops_restart.json", StackGresDbOps.class);
   }
 
   @Test
   void givenStackGresValidVersion_shouldNotFail() {
-
-    StackGresVersion.getStackGresVersion(cluster);
+    StackGresVersion.getStackGresVersion(dbOps);
   }
 
   @Test
   void givenAValidVersion_shouldReturnTheCorrectStackGresVersion() {
     setStackGresClusterVersion("1.0");
 
-    var version = StackGresVersion.getStackGresVersion(cluster);
+    var version = StackGresVersion.getStackGresVersion(dbOps);
 
     assertEquals(StackGresVersion.V10, version);
   }
@@ -45,7 +44,7 @@ class StackGresVersionTest {
   void givenASnapshotVersion_shouldReturnTheCorrectStackGresVersion() {
     setStackGresClusterVersion("1.0-SNAPSHOT");
 
-    var version = StackGresVersion.getStackGresVersion(cluster);
+    var version = StackGresVersion.getStackGresVersion(dbOps);
 
     assertEquals(StackGresVersion.V10, version);
   }
@@ -55,7 +54,7 @@ class StackGresVersionTest {
     setStackGresClusterVersion("0.1-SNAPSHOT");
 
     IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-        () -> StackGresVersion.getStackGresVersion(cluster));
+        () -> StackGresVersion.getStackGresVersion(dbOps));
 
     assertEquals("Invalid version 0.1", ex.getMessage());
   }
@@ -64,10 +63,10 @@ class StackGresVersionTest {
   void givenACurrentVersion_shouldNotFail() {
     setStackGresClusterVersion(StackGresProperty.OPERATOR_VERSION.getString());
 
-    StackGresVersion.getStackGresVersion(cluster);
+    StackGresVersion.getStackGresVersion(dbOps);
   }
 
   private void setStackGresClusterVersion(String configVersion) {
-    cluster.getMetadata().getAnnotations().put(StackGresContext.VERSION_KEY, configVersion);
+    dbOps.getMetadata().getAnnotations().put(StackGresContext.VERSION_KEY, configVersion);
   }
 }

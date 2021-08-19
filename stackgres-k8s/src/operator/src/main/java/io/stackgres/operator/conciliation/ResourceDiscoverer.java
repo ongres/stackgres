@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 import javax.enterprise.inject.Instance;
 
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
+import io.stackgres.operator.common.StackGresVersion;
 
 public abstract class ResourceDiscoverer<T> {
 

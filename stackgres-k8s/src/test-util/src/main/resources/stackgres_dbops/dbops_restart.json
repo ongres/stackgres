@@ -2,6 +2,9 @@
   "kind": "SGDbOps",
   "apiVersion": "stackgres.io/v1",
   "metadata": {
+    "annotations": {
+      "stackgres.io/operatorVersion": "1.0"
+    },
     "creationTimestamp": "2019-09-27T09:09:34Z",
     "generation": 1,
     "name": "stackgres",

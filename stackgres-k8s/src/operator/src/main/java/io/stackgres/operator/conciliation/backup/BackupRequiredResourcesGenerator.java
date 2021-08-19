@@ -67,12 +67,20 @@ public class BackupRequiredResourcesGenerator
         .findByNameAndNamespace(spec.getSgCluster(), dbOpsNamespace)
         .orElseThrow(() -> new IllegalArgumentException(
             "SGBackup " + dbOpsNamespace + "/" + dbOpsName
-                + " have a non existent SGCluster " + spec.getSgCluster()));
-    final Optional<StackGresBackupConfig> backupConfig = Optional.of(cluster.getSpec())
+                + " target a non existent SGCluster " + spec.getSgCluster()));
+    final StackGresBackupConfig backupConfig = Optional.of(cluster.getSpec())
         .map(StackGresClusterSpec::getConfiguration)
         .map(StackGresClusterConfiguration::getBackupConfig)
-        .flatMap(backupConfigName -> backupConfigFinder
-            .findByNameAndNamespace(backupConfigName, dbOpsNamespace));
+        .map(backupConfigName -> backupConfigFinder
+            .findByNameAndNamespace(backupConfigName, dbOpsNamespace)
+            .orElseThrow(() -> new IllegalArgumentException(
+                "SGBackup " + dbOpsNamespace + "/" + dbOpsName
+                    + " target SGCluster " + spec.getSgCluster()
+                    + " with a non existent SGBackupConfig " + backupConfigName)))
+        .orElseThrow(() -> new IllegalArgumentException(
+            "SGBackup " + dbOpsNamespace + "/" + dbOpsName
+                + " target SGCluster " + spec.getSgCluster()
+                + " without a SGBackupConfig"));
 
     StackGresBackupContext context = ImmutableStackGresBackupContext.builder()
         .source(config)

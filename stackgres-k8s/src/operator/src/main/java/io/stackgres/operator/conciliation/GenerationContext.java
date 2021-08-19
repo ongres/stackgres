@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.conciliation;
 
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
+import io.stackgres.operator.common.StackGresVersion;
 
 public interface GenerationContext<T> {
 

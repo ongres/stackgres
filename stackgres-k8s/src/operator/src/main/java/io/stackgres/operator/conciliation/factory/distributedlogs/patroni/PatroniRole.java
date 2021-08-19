@@ -31,9 +31,9 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 

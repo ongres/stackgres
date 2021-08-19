@@ -31,8 +31,8 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsMajorVersionUpgrade;
 import io.stackgres.operator.cluster.factory.DbOpsEnvironmentVariables;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 

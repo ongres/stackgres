@@ -25,9 +25,35 @@ check_cluster_reset() {
   generate_mock_data
   check_mock_data
 
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: vacuum
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: vacuum
+EOF
+
+  kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "vacuum" \
+    --for condition=Completed
+
+  VACUUM_JOB_UID="$(kubectl get job -n "$CLUSTER_NAMESPACE" -l app=StackGresDbOps \
+    --template '{{ range .items }}{{ printf "%s" .metadata.uid }}{{ end }}')"
+
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+
+  if [ "$VACUUM_JOB_UID" = "$(kubectl get job -n "$CLUSTER_NAMESPACE" -l app=StackGresDbOps \
+    --template '{{ range .items }}{{ printf "%s" .metadata.uid }}{{ end }}')" ]
+  then
+    echo "SUCCESS. DbOps was not re-created"
+  else
+    echo "FAIL. DbOps was re-created"
+    return 1
+  fi
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"

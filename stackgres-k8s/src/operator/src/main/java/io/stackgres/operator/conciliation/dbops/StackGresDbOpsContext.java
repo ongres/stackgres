@@ -8,8 +8,8 @@ package io.stackgres.operator.conciliation.dbops;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.GenerationContext;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import org.immutables.value.Value;
 
 @Value.Immutable

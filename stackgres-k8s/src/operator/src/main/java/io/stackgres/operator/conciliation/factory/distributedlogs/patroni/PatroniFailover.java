@@ -14,9 +14,9 @@ import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 
 @Singleton

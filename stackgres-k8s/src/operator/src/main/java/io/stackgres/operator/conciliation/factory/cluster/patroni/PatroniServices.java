@@ -29,10 +29,10 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 

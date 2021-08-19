@@ -15,9 +15,9 @@ import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.Decorator;
 
 @Singleton

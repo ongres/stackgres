@@ -5,14 +5,12 @@
 
 package io.stackgres.operator.conciliation.backup;
 
-import java.util.Optional;
-
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.GenerationContext;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import org.immutables.value.Value;
 
 @Value.Immutable
@@ -20,7 +18,7 @@ public interface StackGresBackupContext extends GenerationContext<StackGresBacku
 
   StackGresCluster getCluster();
 
-  Optional<StackGresBackupConfig> getBackupConfig();
+  StackGresBackupConfig getBackupConfig();
 
   @Override
   @Value.Derived

@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.cluster;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
@@ -183,6 +184,14 @@ class ClusterRequiredResourcesGeneratorTest {
       if (resource.getMetadata().getOwnerReferences().size() == 0) {
         fail("Resource " + resource.getMetadata().getName() + " doesn't have any owner");
       }
+      assertTrue(resource.getMetadata().getOwnerReferences().stream().anyMatch(ownerReference
+          -> ownerReference.getApiVersion().equals(HasMetadata.getApiVersion(
+              StackGresCluster.class))
+          && ownerReference.getKind().equals(HasMetadata.getKind(StackGresCluster.class))
+          && ownerReference.getName().equals(cluster.getMetadata().getName())
+          && ownerReference.getUid().equals(cluster.getMetadata().getUid())
+          && Optional.ofNullable(ownerReference.getBlockOwnerDeletion()).orElse(Boolean.FALSE)
+          .equals(Boolean.FALSE)));
     });
 
     verify(backupConfigFinder).findByNameAndNamespace(backupConfigName, clusterNamespace);
