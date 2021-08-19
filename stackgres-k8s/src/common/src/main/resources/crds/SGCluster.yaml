@@ -163,16 +163,35 @@ spec:
                           description: Annotations to attach to any resource created or managed by StackGres.
                           additionalProperties:
                             type: string
-                        pods:
+                        clusterPods:
                           type: object
                           description: Annotations to attach to pods created or managed by StackGres.
                           additionalProperties:
                             type: string
                         services:
                           type: object
-                          description: Annotations to attach to services created or managed by StackGres.
+                          description: Annotations to attach to all services created or managed by StackGres.
                           additionalProperties:
                             type: string
+                        primaryService:
+                          type: object
+                          description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) passed to the `-primary` service.
+                          additionalProperties:
+                            type: string
+                        replicasService:
+                          type: object
+                          description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) passed to the `-replicas` service.
+                          additionalProperties:
+                            type: string
+                    labels:
+                      type: object
+                      description: Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) to be passed to resources created and managed by StackGres.
+                      properties:
+                        clusterPods:
+                          type: object
+                          description: Labels to attach to pods created or managed by StackGres.
+                          additionalProperties:
+                            type: string 
                 postgresServices:
                   type: object
                   description: Kubernetes [services](https://kubernetes.io/docs/concepts/services-networking/service/) created or managed by StackGres.
@@ -188,11 +207,6 @@ spec:
                           type: string
                           enum: ["ClusterIP", "LoadBalancer", "NodePort"]
                           description: Specifies the type of Kubernetes service.
-                        annotations:
-                          type: object
-                          additionalProperties:
-                            type: string
-                          description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) passed to the `-primary` service.
                     replicas:
                       type: object
                       description: Configuration for the `-replicas` service. It provides a stable connection (regardless of replica node failures) to any read-only Postgres server of the cluster. Read-only servers are load-balanced via this service.
@@ -204,11 +218,6 @@ spec:
                           type: string
                           enum: ["ClusterIP", "LoadBalancer", "NodePort"]
                           description: Specifies the type of Kubernetes service.
-                        annotations:
-                          type: object
-                          additionalProperties:
-                            type: string
-                          description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) passed to the `-replicas` service.
                 pods:
                   type: object
                   description: Cluster pod's configuration.
@@ -236,15 +245,6 @@ spec:
                     disablePostgresUtil:
                       type: boolean
                       description: If set to `true`, avoids creating the `postgres-util` sidecar. This sidecar contains usual Postgres administration utilities *that are not present in the main (`patroni`) container*, like `psql`. Only disable if you know what you are doing.
-                    metadata:
-                      type: object
-                      description: Pod custom metadata information.
-                      properties:
-                        labels:
-                          type: object
-                          additionalProperties:
-                            type: string
-                          description: Additional labels for StackGres Pods.
                     scheduling:
                       type: object
                       description: Pod custom scheduling configuration.

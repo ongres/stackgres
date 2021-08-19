@@ -116,7 +116,7 @@ public class PatroniServices implements
                 .withPort(PatroniUtil.REPLICATION_SERVICE_PORT)
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME))
                 .build())
-        .withType(StackGresClusterPostgresServiceType.CLUSTER_IP.type())
+        .withType(StackGresClusterPostgresServiceType.CLUSTER_IP.toString())
         .endSpec()
         .build();
   }
@@ -171,7 +171,7 @@ public class PatroniServices implements
                 .withPort(PatroniUtil.REPLICATION_SERVICE_PORT)
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME))
                 .build())
-        .withType(StackGresClusterPostgresServiceType.CLUSTER_IP.type())
+        .withType(StackGresClusterPostgresServiceType.CLUSTER_IP.toString())
         .endSpec()
         .build();
   }

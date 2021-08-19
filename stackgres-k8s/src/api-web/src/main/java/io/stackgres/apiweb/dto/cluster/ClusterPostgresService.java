@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -20,8 +18,6 @@ public class ClusterPostgresService {
   private Boolean enabled;
 
   private String type;
-
-  private Map<String, String> annotations;
 
   public Boolean getEnabled() {
     return enabled;
@@ -37,14 +33,6 @@ public class ClusterPostgresService {
 
   public void setType(String type) {
     this.type = type;
-  }
-
-  public Map<String, String> getAnnotations() {
-    return annotations;
-  }
-
-  public void setAnnotations(Map<String, String> annotations) {
-    this.annotations = annotations;
   }
 
   @Override

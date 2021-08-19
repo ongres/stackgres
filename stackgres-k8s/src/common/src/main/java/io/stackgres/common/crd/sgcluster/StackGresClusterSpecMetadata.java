@@ -7,10 +7,7 @@ package io.stackgres.common.crd.sgcluster;
 
 import java.util.Objects;
 
-import javax.validation.Valid;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
@@ -20,12 +17,20 @@ import io.stackgres.common.StackGresUtil;
 @RegisterForReflection
 public class StackGresClusterSpecMetadata {
 
-  @JsonProperty("annotations")
-  @Valid
   private StackGresClusterSpecAnnotations annotations;
+
+  private StackGresClusterSpecLabels labels;
 
   public StackGresClusterSpecAnnotations getAnnotations() {
     return annotations;
+  }
+
+  public StackGresClusterSpecLabels getLabels() {
+    return labels;
+  }
+
+  public void setLabels(StackGresClusterSpecLabels labels) {
+    this.labels = labels;
   }
 
   public void setAnnotations(StackGresClusterSpecAnnotations annotations) {
@@ -34,19 +39,20 @@ public class StackGresClusterSpecMetadata {
 
   @Override
   public int hashCode() {
-    return Objects.hash(annotations);
+    return Objects.hash(annotations, labels);
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof StackGresClusterSpecMetadata)) {
       return false;
     }
-    StackGresClusterSpecMetadata that = (StackGresClusterSpecMetadata) o;
-    return Objects.equals(annotations, that.annotations);
+    StackGresClusterSpecMetadata other = (StackGresClusterSpecMetadata) obj;
+    return Objects.equals(annotations, other.annotations)
+        && Objects.equals(labels, other.labels);
   }
 
   @Override

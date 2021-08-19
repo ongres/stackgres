@@ -56,8 +56,8 @@ services_annotations(){
     --set "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
     --set cluster.postgresServices.primary.enabled="true" \
     --set cluster.postgresServices.replicas.enabled="true" \
-    --set cluster.postgresServices.primary.annotations.primary-annotation="$PRIMARY_RANDOM_VALUE" \
-    --set cluster.postgresServices.replicas.annotations.replica-annotation="$REPLICA_RANDOM_VALUE"
+    --set cluster.metadata.annotations.primaryService.primary-annotation="$PRIMARY_RANDOM_VALUE" \
+    --set cluster.metadata.annotations.replicasService.replica-annotation="$REPLICA_RANDOM_VALUE"
 
   SERVICE_ANNOTATION="primary-annotation"
   wait_until check_service_annotation "" "$PRIMARY_RANDOM_VALUE"

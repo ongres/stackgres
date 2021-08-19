@@ -23,8 +23,6 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
@@ -62,10 +60,10 @@ public class AbstractClusterAnnotationDecorator extends AnnotationDecorator<Stac
       @NotNull StackGresCluster cluster) {
 
     Map<String, String> primaryServiceAnnotations = Optional.ofNullable(cluster.getSpec())
-        .map(StackGresClusterSpec::getPostgresServices)
-        .map(StackGresClusterPostgresServices::getPrimary)
-        .map(StackGresClusterPostgresService::getAnnotations)
-        .orElse(ImmutableMap.of());
+        .map(StackGresClusterSpec::getMetadata)
+        .map(StackGresClusterSpecMetadata::getAnnotations)
+        .map(StackGresClusterSpecAnnotations::getPrimaryService)
+        .orElse(Map.of());
 
     return ImmutableMap.<String, String>builder()
         .putAll(getServiceAnnotations(cluster))
@@ -73,14 +71,14 @@ public class AbstractClusterAnnotationDecorator extends AnnotationDecorator<Stac
         .build();
   }
 
-  protected @NotNull Map<String, String> getReplicaServiceAnnotations(
+  protected @NotNull Map<String, String> getReplicasServiceAnnotations(
       @NotNull StackGresCluster cluster) {
 
     Map<String, String> replicaServiceAnnotations = Optional.ofNullable(cluster.getSpec())
-        .map(StackGresClusterSpec::getPostgresServices)
-        .map(StackGresClusterPostgresServices::getReplicas)
-        .map(StackGresClusterPostgresService::getAnnotations)
-        .orElse(ImmutableMap.of());
+        .map(StackGresClusterSpec::getMetadata)
+        .map(StackGresClusterSpecMetadata::getAnnotations)
+        .map(StackGresClusterSpecAnnotations::getReplicasService)
+        .orElse(Map.of());
 
     return ImmutableMap.<String, String>builder()
         .putAll(getServiceAnnotations(cluster))
@@ -97,7 +95,7 @@ public class AbstractClusterAnnotationDecorator extends AnnotationDecorator<Stac
     if (serviceName.endsWith(PatroniUtil.READ_WRITE_SERVICE)) {
       customServiceAnnotations = getPrimaryServiceAnnotations(cluster);
     } else if (serviceName.endsWith(PatroniUtil.READ_ONLY_SERVICE)) {
-      customServiceAnnotations = getReplicaServiceAnnotations(cluster);
+      customServiceAnnotations = getReplicasServiceAnnotations(cluster);
     } else {
       customServiceAnnotations = getServiceAnnotations(cluster);
     }
@@ -112,7 +110,7 @@ public class AbstractClusterAnnotationDecorator extends AnnotationDecorator<Stac
     Map<String, String> podSpecificAnnotations = Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getMetadata)
         .map(StackGresClusterSpecMetadata::getAnnotations)
-        .map(StackGresClusterSpecAnnotations::getPods)
+        .map(StackGresClusterSpecAnnotations::getClusterPods)
         .orElse(Map.of());
 
     final Map<String, String> clusterAnnotations = cluster.getMetadata().getAnnotations();
@@ -128,7 +126,7 @@ public class AbstractClusterAnnotationDecorator extends AnnotationDecorator<Stac
     Map<String, String> podSpecificAnnotations = Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getMetadata)
         .map(StackGresClusterSpecMetadata::getAnnotations)
-        .map(StackGresClusterSpecAnnotations::getPods)
+        .map(StackGresClusterSpecAnnotations::getClusterPods)
         .orElse(Map.of());
     return ImmutableMap.<String, String>builder()
         .putAll(getAllResourcesAnnotations(cluster))
@@ -212,4 +210,5 @@ public class AbstractClusterAnnotationDecorator extends AnnotationDecorator<Stac
         .put("CronJob", this::decorateCronJob)
         .build();
   }
+
 }

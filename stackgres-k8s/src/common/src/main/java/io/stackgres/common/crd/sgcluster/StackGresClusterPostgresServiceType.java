@@ -20,10 +20,6 @@ public enum StackGresClusterPostgresServiceType {
     this.type = type;
   }
 
-  public String type() {
-    return type;
-  }
-
   @Override
   public @NotNull String toString() {
     return type;

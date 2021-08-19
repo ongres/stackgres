@@ -5,7 +5,6 @@
 
 package io.stackgres.common.crd.sgcluster;
 
-import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -25,8 +24,6 @@ public class StackGresClusterPostgresService {
       message = "type must be one of ClusterIP, LoadBalancer, NodePort or ExternalName")
   private String type;
 
-  private Map<String, String> annotations;
-
   public Boolean getEnabled() {
     return enabled;
   }
@@ -43,17 +40,9 @@ public class StackGresClusterPostgresService {
     this.type = type;
   }
 
-  public Map<String, String> getAnnotations() {
-    return annotations;
-  }
-
-  public void setAnnotations(Map<String, String> annotations) {
-    this.annotations = annotations;
-  }
-
   @Override
   public int hashCode() {
-    return Objects.hash(enabled, type, annotations);
+    return Objects.hash(enabled, type);
   }
 
   @Override
@@ -65,7 +54,7 @@ public class StackGresClusterPostgresService {
       return false;
     }
     StackGresClusterPostgresService other = (StackGresClusterPostgresService) obj;
-    return Objects.equals(annotations, other.annotations) && Objects.equals(enabled, other.enabled)
+    return Objects.equals(enabled, other.enabled)
         && Objects.equals(type, other.type);
   }
 

@@ -22,7 +22,7 @@
       "sgPoolingConfig": "pgbouncerconf",
       "sgBackupConfig": "backupconf"
     },
-    "pods":{
+    "pods": {
       "persistentVolume": {
         "size": "5Gi",
         "storageClass": "standard"
@@ -30,11 +30,6 @@
       "disableConnectionPooling": false,
       "disableMetricsExporter": false,
       "disablePostgresUtil": false,
-      "metadata": {
-        "labels": {
-          "customLabel" : "customLabelValue"
-        }
-      },
       "scheduling": {
         "nodeSelector": {
           "diskType": "hdd"
@@ -48,17 +43,11 @@
     "postgresServices": {
       "primary": {
         "enabled": true,
-        "type": "ClusterIP",
-        "annotations": {
-          "customAnnotation" : "customValue"
-        }
+        "type": "ClusterIP"
       },
       "replicas": {
         "enabled": true,
-        "type": "ClusterIP",
-        "annotations": {
-          "customAnnotation" : "customValue"
-        }
+        "type": "ClusterIP"
       }
     },
     "metadata": {
@@ -66,11 +55,22 @@
         "allResources": {
           "allResourcesCustomAnnotation": "allResourcesCustomValue"
         },
-        "pods" : {
+        "clusterPods": {
           "podsCustomAnnotations": "podsCustomValue"
         },
         "services": {
           "servicesCustomAnnotation": "servicesCustomValue"
+        },
+        "primaryService": {
+          "customAnnotation": "customValue"
+        },
+        "replicasService": {
+          "customAnnotation": "customValue"
+        }
+      },
+      "labels": {
+        "clusterPods": {
+          "customLabel": "customLabelValue"
         }
       }
     }

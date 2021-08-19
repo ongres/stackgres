@@ -14,7 +14,6 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.Service;
@@ -27,6 +26,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServiceType;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -149,7 +150,7 @@ public class PatroniServices implements
                 .withTargetPort(new IntOrString(PATRONI_RESTAPI_PORT_NAME))
                 .build())
         .withSelector(labelFactory.patroniClusterLabels(cluster))
-        .withType(StackGresClusterPostgresServiceType.CLUSTER_IP.type())
+        .withType(StackGresClusterPostgresServiceType.CLUSTER_IP.toString())
         .endSpec()
         .build();
   }
@@ -161,16 +162,16 @@ public class PatroniServices implements
     final Map<String, String> primaryLabels = labelFactory.patroniPrimaryLabels(cluster);
 
     Map<String, String> annotations = Optional.ofNullable(cluster.getSpec())
-        .map(StackGresClusterSpec::getPostgresServices)
-        .map(StackGresClusterPostgresServices::getPrimary)
-        .map(StackGresClusterPostgresService::getAnnotations)
-        .orElse(ImmutableMap.of());
+        .map(StackGresClusterSpec::getMetadata)
+        .map(StackGresClusterSpecMetadata::getAnnotations)
+        .map(StackGresClusterSpecAnnotations::getPrimaryService)
+        .orElse(Map.of());
 
     String serviceType = Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getPostgresServices)
         .map(StackGresClusterPostgresServices::getPrimary)
         .map(StackGresClusterPostgresService::getType)
-        .orElse(StackGresClusterPostgresServiceType.CLUSTER_IP.type());
+        .orElse(StackGresClusterPostgresServiceType.CLUSTER_IP.toString());
 
     return new ServiceBuilder()
         .withNewMetadata()
@@ -224,16 +225,16 @@ public class PatroniServices implements
     final Map<String, String> replicaLabels = labelFactory.patroniReplicaLabels(cluster);
 
     Map<String, String> annotations = Optional.ofNullable(cluster.getSpec())
-        .map(StackGresClusterSpec::getPostgresServices)
-        .map(StackGresClusterPostgresServices::getReplicas)
-        .map(StackGresClusterPostgresService::getAnnotations)
-        .orElse(ImmutableMap.of());
+        .map(StackGresClusterSpec::getMetadata)
+        .map(StackGresClusterSpecMetadata::getAnnotations)
+        .map(StackGresClusterSpecAnnotations::getReplicasService)
+        .orElse(Map.of());
 
     String serviceType = Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getPostgresServices)
         .map(StackGresClusterPostgresServices::getReplicas)
         .map(StackGresClusterPostgresService::getType)
-        .orElse(StackGresClusterPostgresServiceType.CLUSTER_IP.type());
+        .orElse(StackGresClusterPostgresServiceType.CLUSTER_IP.toString());
 
     return new ServiceBuilder()
         .withNewMetadata()

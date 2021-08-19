@@ -36,12 +36,7 @@
       },
       "disableConnectionPooling": false,
       "disableMetricsExporter": false,
-      "disablePostgresUtil": false,
-      "metadata": {
-        "labels": {
-          "customLabel" : "customLabelValue"
-        }
-      }
+      "disablePostgresUtil": false
     },
     "prometheusAutobind": "true",
     "distributedLogs": {
@@ -50,17 +45,11 @@
     "postgresServices": {
       "primary": {
         "enabled": true,
-        "type": "ClusterIP",
-        "annotations": {
-          "customAnnotation" : "customValue"
-        }
+        "type": "ClusterIP"
       },
       "replicas": {
         "enabled": true,
-        "type": "ClusterIP",
-        "annotations": {
-          "customAnnotation" : "customValue"
-        }
+        "type": "ClusterIP"
       }
     },
     "metadata": {
@@ -68,11 +57,19 @@
         "allResources": {
           "allResourcesCustomAnnotation": "allResourcesCustomValue"
         },
-        "pods" : {
+        "clusterPods" : {
           "podsCustomAnnotations": "podsCustomValue"
         },
-        "services": {
+        "primaryService": {
           "servicesCustomAnnotation": "servicesCustomValue"
+        },
+        "replicasService": {
+          "servicesCustomAnnotation": "servicesCustomValue"
+        }
+      },
+      "labels": {
+        "clusterPods": {
+          "customLabel" : "customLabelValue"
         }
       }
     }

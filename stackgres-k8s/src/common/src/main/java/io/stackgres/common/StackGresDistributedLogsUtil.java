@@ -98,8 +98,9 @@ public interface StackGresDistributedLogsUtil {
         .map(StackGresDistributedLogsSpecMetadata::getAnnotations)
         .ifPresent(distributedLogsAnnotations -> {
           annotations.setAllResources(distributedLogsAnnotations.getAllResources());
-          annotations.setPods(distributedLogsAnnotations.getPods());
-          annotations.setServices(distributedLogsAnnotations.getServices());
+          annotations.setClusterPods(distributedLogsAnnotations.getPods());
+          annotations.setPrimaryService(distributedLogsAnnotations.getServices());
+          annotations.setReplicasService(distributedLogsAnnotations.getServices());
         });
     metadata.setAnnotations(annotations);
     spec.setMetadata(metadata);

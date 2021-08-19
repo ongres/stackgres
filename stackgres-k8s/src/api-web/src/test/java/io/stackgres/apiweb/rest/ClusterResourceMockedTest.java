@@ -55,13 +55,14 @@ import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterInitData;
 import io.stackgres.apiweb.dto.cluster.ClusterLogEntryDto;
 import io.stackgres.apiweb.dto.cluster.ClusterPod;
-import io.stackgres.apiweb.dto.cluster.ClusterPodMetadata;
 import io.stackgres.apiweb.dto.cluster.ClusterPodPersistentVolume;
 import io.stackgres.apiweb.dto.cluster.ClusterPodScheduling;
 import io.stackgres.apiweb.dto.cluster.ClusterRestore;
 import io.stackgres.apiweb.dto.cluster.ClusterScriptEntry;
 import io.stackgres.apiweb.dto.cluster.ClusterScriptFrom;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
+import io.stackgres.apiweb.dto.cluster.ClusterSpecLabels;
+import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
 import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
 import io.stackgres.apiweb.resource.ClusterDtoFinder;
 import io.stackgres.apiweb.resource.ClusterDtoScanner;
@@ -82,12 +83,13 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.resource.PersistentVolumeClaimFinder;
 import io.stackgres.common.resource.PodExecutor;
@@ -581,12 +583,12 @@ class ClusterResourceMockedTest extends
           assertNull(resourcePV);
         }
 
-        if (resourcePod.getMetadata() != null) {
-          assertNotNull(dtoSpecPods.getMetadata());
-          assertEquals(resourcePod.getMetadata().getLabels(),
-              dtoSpecPods.getMetadata().getLabels());
+        if (resourceSpec.getMetadata() != null) {
+          assertNotNull(dtoSpec.getMetadata());
+          assertEquals(resourceSpec.getMetadata().getLabels().getClusterPods(),
+              dtoSpec.getMetadata().getLabels().getClusterPods());
         } else {
-          assertNull(dtoSpecPods.getMetadata());
+          assertNull(dtoSpec.getMetadata());
         }
 
         if (resourcePod.getScheduling() != null) {
@@ -782,14 +784,19 @@ class ClusterResourceMockedTest extends
           assertNull(resourcePV);
         }
 
-        final StackGresClusterPodMetadata resourcePodMetadata = resourceSpecPod
-            .getMetadata();
-        final ClusterPodMetadata dtoPodsMetadata = dtoSpecPods.getMetadata();
-        if (dtoPodsMetadata != null) {
-          assertNotNull(resourcePodMetadata);
-          assertEquals(dtoPodsMetadata.getLabels(), resourcePodMetadata.getLabels());
+        final StackGresClusterSpecLabels resourceMetadataLabels =
+            Optional.ofNullable(resourceSpec.getMetadata())
+                .map(StackGresClusterSpecMetadata::getLabels)
+                .orElse(null);
+        final ClusterSpecLabels dtoMetadataLabels =
+            Optional.ofNullable(dtoSpec.getMetadata())
+                .map(ClusterSpecMetadata::getLabels)
+                .orElse(null);
+        if (dtoMetadataLabels != null) {
+          assertNotNull(resourceMetadataLabels);
+          assertEquals(dtoMetadataLabels.getClusterPods(), resourceMetadataLabels.getClusterPods());
         } else {
-          assertNull(resourcePodMetadata);
+          assertNull(resourceMetadataLabels);
         }
 
         final ClusterPodScheduling podScheduling = dtoSpecPods.getScheduling();

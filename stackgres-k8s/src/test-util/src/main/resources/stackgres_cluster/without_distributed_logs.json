@@ -34,14 +34,16 @@
         "size": "5Gi",
         "storageClass": "standard"
       },
-      "metadata": {
-        "labels": {
-          "customLabel": "customLabelValue"
-        }
-      },
       "disableConnectionPooling": false,
       "disableMetricsExporter": false,
       "disablePostgresUtil": false
+    },
+    "metadata": {
+      "labels": {
+        "clusterPods": {
+          "customLabel": "customLabelValue"
+        }
+      }
     }
   }
 }

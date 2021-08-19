@@ -28,7 +28,6 @@ import io.stackgres.apiweb.dto.cluster.ClusterInitData;
 import io.stackgres.apiweb.dto.cluster.ClusterInstalledExtension;
 import io.stackgres.apiweb.dto.cluster.ClusterNonProduction;
 import io.stackgres.apiweb.dto.cluster.ClusterPod;
-import io.stackgres.apiweb.dto.cluster.ClusterPodMetadata;
 import io.stackgres.apiweb.dto.cluster.ClusterPodPersistentVolume;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgres;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgresService;
@@ -40,6 +39,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterScriptEntry;
 import io.stackgres.apiweb.dto.cluster.ClusterScriptFrom;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecAnnotations;
+import io.stackgres.apiweb.dto.cluster.ClusterSpecLabels;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
 import io.stackgres.apiweb.dto.cluster.ClusterSsl;
 import io.stackgres.apiweb.dto.cluster.ClusterStatus;
@@ -55,7 +55,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
@@ -66,6 +65,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
@@ -175,6 +175,27 @@ public class ClusterTransformer
     transformation.setPrometheusAutobind(source.getPrometheusAutobind());
     transformation.setResourceProfile(source.getSgInstanceProfile());
 
+    final ClusterSpecMetadata specMetadata = source.getMetadata();
+    if (specMetadata != null) {
+      transformation.setMetadata(new StackGresClusterSpecMetadata());
+      final ClusterSpecAnnotations sourceAnnotations = specMetadata.getAnnotations();
+      if (sourceAnnotations != null) {
+        StackGresClusterSpecAnnotations targetAnnotations = new StackGresClusterSpecAnnotations();
+        targetAnnotations.setAllResources(sourceAnnotations.getAllResources());
+        targetAnnotations.setClusterPods(sourceAnnotations.getClusterPods());
+        targetAnnotations.setServices(sourceAnnotations.getServices());
+        targetAnnotations.setPrimaryService(sourceAnnotations.getPrimaryService());
+        targetAnnotations.setReplicasService(sourceAnnotations.getReplicasService());
+        transformation.getMetadata().setAnnotations(targetAnnotations);
+      }
+      final ClusterSpecLabels sourceLabels = specMetadata.getLabels();
+      if (sourceLabels != null) {
+        StackGresClusterSpecLabels targetLabels = new StackGresClusterSpecLabels();
+        targetLabels.setClusterPods(sourceLabels.getClusterPods());
+        transformation.getMetadata().setLabels(targetLabels);
+      }
+    }
+
     final ClusterPostgresServices sourcePostgresServices = source.getPostgresServices();
     if (sourcePostgresServices != null) {
       transformation.setPostgresServices(new StackGresClusterPostgresServices());
@@ -186,7 +207,6 @@ public class ClusterTransformer
         targetPostgresService.setPrimary(new StackGresClusterPostgresService());
         final StackGresClusterPostgresService targetPrimaryService = targetPostgresService
             .getPrimary();
-        targetPrimaryService.setAnnotations(sourcePrimaryService.getAnnotations());
         targetPrimaryService.setType(sourcePrimaryService.getType());
         targetPrimaryService.setEnabled(sourcePrimaryService.getEnabled());
       }
@@ -196,7 +216,6 @@ public class ClusterTransformer
         targetPostgresService.setReplicas(new StackGresClusterPostgresService());
         final StackGresClusterPostgresService targetReplicaService = targetPostgresService
             .getReplicas();
-        targetReplicaService.setAnnotations(sourceReplicaService.getAnnotations());
         targetReplicaService.setEnabled(sourceReplicaService.getEnabled());
         targetReplicaService.setType(sourceReplicaService.getType());
       }
@@ -219,26 +238,6 @@ public class ClusterTransformer
 
     }
 
-    Optional.ofNullable(source.getMetadata())
-        .map(ClusterSpecMetadata::getAnnotations)
-        .ifPresent(sourceAnnotations -> {
-          transformation.setMetadata(new StackGresClusterSpecMetadata());
-
-          final StackGresClusterSpecAnnotations targetAnnotations
-              = new StackGresClusterSpecAnnotations();
-          transformation.getMetadata().setAnnotations(targetAnnotations);
-
-          if (sourceAnnotations.getAllResources() != null) {
-            targetAnnotations.setAllResources(sourceAnnotations.getAllResources());
-          }
-          if (sourceAnnotations.getPods() != null) {
-            targetAnnotations.setPods(sourceAnnotations.getPods());
-          }
-          if (sourceAnnotations.getServices() != null) {
-            targetAnnotations.setServices(sourceAnnotations.getServices());
-          }
-        });
-
     final StackGresClusterPod targetPod = new StackGresClusterPod();
     transformation.setPod(targetPod);
     targetPod.setPersistentVolume(new StackGresPodPersistentVolume());
@@ -253,13 +252,6 @@ public class ClusterTransformer
         .setDisableMetricsExporter(source.getPods().getDisableMetricsExporter());
     targetPod
         .setDisablePostgresUtil(source.getPods().getDisablePostgresUtil());
-
-    targetPod.setMetadata(Optional.ofNullable(source.getPods().getMetadata())
-        .map(sourcePodMetadata -> {
-          StackGresClusterPodMetadata targetMetadata = new StackGresClusterPodMetadata();
-          targetMetadata.setLabels(sourcePodMetadata.getLabels());
-          return targetMetadata;
-        }).orElse(null));
 
     targetPod.setScheduling(Optional.ofNullable(source.getPods().getScheduling())
         .map(sourceScheduling -> {
@@ -432,6 +424,27 @@ public class ClusterTransformer
     targetPod
         .setDisablePostgresUtil(sourcePod.getDisablePostgresUtil());
 
+    final StackGresClusterSpecMetadata specMetadata = source.getMetadata();
+    if (specMetadata != null) {
+      transformation.setMetadata(new ClusterSpecMetadata());
+      final StackGresClusterSpecAnnotations sourceAnnotations = specMetadata.getAnnotations();
+      if (specMetadata.getAnnotations() != null) {
+        ClusterSpecAnnotations targetAnnotations = new ClusterSpecAnnotations();
+        targetAnnotations.setAllResources(sourceAnnotations.getAllResources());
+        targetAnnotations.setClusterPods(sourceAnnotations.getClusterPods());
+        targetAnnotations.setServices(sourceAnnotations.getServices());
+        targetAnnotations.setPrimaryService(sourceAnnotations.getPrimaryService());
+        targetAnnotations.setReplicasService(sourceAnnotations.getReplicasService());
+        transformation.getMetadata().setAnnotations(targetAnnotations);
+      }
+      final StackGresClusterSpecLabels sourceLabels = specMetadata.getLabels();
+      if (sourceLabels != null) {
+        ClusterSpecLabels targetLabels = new ClusterSpecLabels();
+        targetLabels.setClusterPods(sourceLabels.getClusterPods());
+        transformation.getMetadata().setLabels(targetLabels);
+      }
+    }
+
     final StackGresClusterPostgresServices sourcePostgresServices = source.getPostgresServices();
     if (sourcePostgresServices != null) {
       transformation.setPostgresServices(new ClusterPostgresServices());
@@ -442,48 +455,18 @@ public class ClusterTransformer
           .getPrimary();
       if (sourcePrimaryService != null) {
         targetPostgresService.setPrimary(new ClusterPostgresService());
-        final ClusterPostgresService targetPrimaryService = targetPostgresService
-            .getPrimary();
-        targetPrimaryService.setAnnotations(sourcePrimaryService.getAnnotations());
-        targetPrimaryService.setType(sourcePrimaryService.getType());
-        targetPrimaryService.setEnabled(sourcePrimaryService.getEnabled());
+        targetPostgresService.getPrimary().setType(sourcePrimaryService.getType());
+        targetPostgresService.getPrimary().setEnabled(sourcePrimaryService.getEnabled());
       }
 
       final StackGresClusterPostgresService sourceReplicaService = sourcePostgresServices
           .getReplicas();
       if (sourceReplicaService != null) {
         targetPostgresService.setReplicas(new ClusterPostgresService());
-        final ClusterPostgresService targetReplicaService = targetPostgresService.getReplicas();
-        targetReplicaService.setAnnotations(sourceReplicaService.getAnnotations());
-        targetReplicaService.setEnabled(sourceReplicaService.getEnabled());
-        targetReplicaService.setType(sourceReplicaService.getType());
+        targetPostgresService.getReplicas().setEnabled(sourceReplicaService.getEnabled());
+        targetPostgresService.getReplicas().setType(sourceReplicaService.getType());
       }
     }
-
-    Optional.ofNullable(source.getMetadata())
-        .map(StackGresClusterSpecMetadata::getAnnotations)
-        .ifPresent(sourceAnnotations -> {
-          final ClusterSpecMetadata clusterSpecMetadata = new ClusterSpecMetadata();
-          final ClusterSpecAnnotations targetAnnotations = new ClusterSpecAnnotations();
-          clusterSpecMetadata.setAnnotations(targetAnnotations);
-          transformation.setMetadata(clusterSpecMetadata);
-
-          if (sourceAnnotations.getAllResources() != null) {
-            targetAnnotations.setAllResources(sourceAnnotations.getAllResources());
-          }
-          if (sourceAnnotations.getPods() != null) {
-            targetAnnotations.setPods(sourceAnnotations.getPods());
-          }
-          if (sourceAnnotations.getServices() != null) {
-            targetAnnotations.setServices(sourceAnnotations.getServices());
-          }
-        });
-
-    targetPod.setMetadata(Optional.ofNullable(sourcePod.getMetadata()).map(sourcePodMetadata -> {
-      ClusterPodMetadata clusterPodMetadata = new ClusterPodMetadata();
-      clusterPodMetadata.setLabels(sourcePodMetadata.getLabels());
-      return clusterPodMetadata;
-    }).orElse(null));
 
     targetPod.setScheduling(Optional.ofNullable(sourcePod.getScheduling())
         .map(sourcePodScheduling -> {
