@@ -357,7 +357,7 @@
                                     <fieldset v-for="(script, index) in initScripts">
                                         <div class="header">
                                             <h3>Script #{{ index+1 }} <template v-if="script.hasOwnProperty('name')">–</template> <span class="scriptTitle">{{ script.name }}</span></h3>
-                                            <a class="addRow" @click="spliceArray('initScripts', index)" v-if="!editMode">Delete</a>
+                                            <a class="addRow" @click="spliceArray(initScripts, index)" v-if="!editMode">Delete</a>
                                         </div>    
                                         <div class="row">
                                             <label for="spec.initialData.scripts.name">Name</label>
@@ -421,6 +421,30 @@
                             <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgresServices.primary.type')">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
                             </a>
+
+                            <fieldset>
+                                <div class="header">
+                                    <h3 for="spec.postgresServices.primary.annotations">Annotations</h3>
+                                    <a class="addRow" @click="pushAnnotation('postgresServicesPrimaryAnnotations')">Add Annotation</a>
+                                    
+                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgresServices.primary.annotations')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                    </a>
+                                </div>
+                                <div class="annotation repeater" v-if="postgresServicesPrimaryAnnotations.length">
+                                    <div class="row" v-for="(field, index) in postgresServicesPrimaryAnnotations">
+                                        <label>Annotation</label>
+                                        <input class="annotation" v-model="field.annotation" autocomplete="off">
+
+                                        <span class="eqSign"></span>
+
+                                        <label>Value</label>
+                                        <input class="annotationValue" v-model="field.value" autocomplete="off">
+
+                                        <a class="addRow" @click="spliceArray(postgresServicesPrimaryAnnotations, index)">Delete</a>
+                                    </div>
+                                </div>
+                            </fieldset>
                         </fieldset>
 
                         <fieldset class="postgresServicesReplicas">
@@ -446,6 +470,30 @@
                             <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgresServices.replicas.type')">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
                             </a>
+
+                            <fieldset>
+                                <div class="header">
+                                    <h3 for="spec.postgresServices.replicas.annotations">Annotations</h3>
+                                    <a class="addRow" @click="pushAnnotation('postgresServicesReplicasAnnotations')">Add Annotation</a>
+                                    
+                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgresServices.replicas.annotations')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                    </a>
+                                </div>
+                                <div class="annotation repeater" v-if="postgresServicesReplicasAnnotations.length">
+                                    <div class="row" v-for="(field, index) in postgresServicesReplicasAnnotations">
+                                        <label>Annotation</label>
+                                        <input class="annotation" v-model="field.annotation" autocomplete="off">
+
+                                        <span class="eqSign"></span>
+
+                                        <label>Value</label>
+                                        <input class="annotationValue" v-model="field.value" autocomplete="off">
+
+                                        <a class="addRow" @click="spliceArray(postgresServicesReplicasAnnotations, index)">Delete</a>
+                                    </div>
+                                </div>
+                            </fieldset>
                         </fieldset>
                     </div>
                 </fieldset>
@@ -476,7 +524,7 @@
                                     <label>Value</label>
                                     <input class="labelValue" v-model="field.value" autocomplete="off">
 
-                                    <a class="addRow" @click="spliceArray('podsMetadata', index)">Delete</a>
+                                    <a class="addRow" @click="spliceArray(podsMetadata, index)">Delete</a>
                                 </div>
                             </div>
                         </fieldset>
@@ -599,7 +647,7 @@
                                         <label>Value</label>
                                         <input class="annotationValue" v-model="field.value" autocomplete="off">
 
-                                        <a class="addRow" @click="spliceArray('annotationsAll', index)">Delete</a>
+                                        <a class="addRow" @click="spliceArray(annotationsAll, index)">Delete</a>
                                     </div>
                                 </div>
                             </fieldset>
@@ -623,7 +671,7 @@
                                         <label>Value</label>
                                         <input class="annotationValue" v-model="field.value" autocomplete="off">
 
-                                        <a class="addRow" @click="spliceArray('annotationsPods', index)">Delete</a>
+                                        <a class="addRow" @click="spliceArray(annotationsPods, index)">Delete</a>
                                     </div>
                                 </div>
                             </fieldset>
@@ -646,7 +694,7 @@
                                         <label>Value</label>
                                         <input class="annotationValue" v-model="field.value" autocomplete="off">
 
-                                        <a class="addRow" @click="spliceArray('annotationsServices', index)">Delete</a>
+                                        <a class="addRow" @click="spliceArray(annotationsServices, index)">Delete</a>
                                     </div>
                                 </div>
                             </fieldset>
@@ -699,6 +747,293 @@
                                 </div>
                             </fieldset>
                         </fieldset>
+                    </div>
+                </fieldset>
+                <fieldset class="accordion podsMetadata" id="podsScheduling">
+                    <div class="header" @click="toggleAccordion('#podsScheduling')">
+                        <h3>Pods Scheduling</h3>
+                        <button type="button" class="toggleFields textBtn">Expand</button>
+                    </div>
+                    <div class="fields">
+                        
+                        <div class="section">
+                            <div class="header">
+                                <h3 for="spec.pods.scheduling.nodeSelector">Node Selectors</h3>
+                                <a class="addRow" @click="pushLabel('nodeSelector')">Add Node Selector</a>
+                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeSelector')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                </a> 
+                            </div>
+                    
+                            <div class="scheduling repeater" v-if="nodeSelector.length">
+                                <div class="row" v-for="(field, index) in nodeSelector">
+                                    <label>Key</label>
+                                    <input class="label" v-model="field.label" autocomplete="off">
+
+                                    <span class="eqSign"></span>
+
+                                    <label>Value</label>
+                                    <input class="labelValue" v-model="field.value" autocomplete="off">
+                                    
+                                    <a class="addRow" @click="spliceArray(nodeSelector, index)">Delete</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="header">
+                                <h3 for="spec.pods.scheduling.tolerations">Node Tolerations</h3>
+                                <a class="addRow" @click="pushToleration()">Add Toleration</a>
+                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                </a> 
+                            </div>
+                    
+                            <div class="scheduling repeater" v-if="tolerations.length">
+                                <fieldset>
+                                    <div class="section" v-for="(field, index) in tolerations">
+                                        <div class="header">
+                                            <h3 for="spec.pods.scheduling.tolerations">Toleration #{{ index+1 }}</h3>
+                                            <a class="addRow del" @click="spliceArray(tolerations, index)">Delete</a>
+                                        </div>
+                                        <label for="spec.pods.scheduling.tolerations.key">Key</label>
+                                        <input v-model="field.key" autocomplete="off">
+                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations.key')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                        </a>
+
+                                        <label for="spec.pods.scheduling.tolerations.operator">Operator</label>
+                                        <select v-model="field.operator" @change="(field.operator == 'Exists') ? (field.value = null) : null">
+                                            <option>Equal</option>
+                                            <option>Exists</option>
+                                        </select>
+                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations.operator')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                        </a>
+
+                                        <label for="spec.pods.scheduling.tolerations.value">Value</label>
+                                        <input v-model="field.value" :disabled="(field.operator == 'Exists')" :title="(field.operator == 'Exists') ? 'When the selected operator is Exists, this value must be empty' : ''" autocomplete="off">
+                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations.value')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                        </a>
+
+                                        <label for="spec.pods.scheduling.tolerations.effect">Effect</label>
+                                        <select v-model="field.effect">
+                                            <option :value="nullVal">MatchAll</option>
+                                            <option>NoSchedule</option>
+                                            <option>PreferNoSchedule</option>
+                                            <option>NoExecute</option>
+                                        </select>
+                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations.effect')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                        </a>
+
+                                        <label for="spec.pods.scheduling.tolerations.tolerationSeconds">Toleration Seconds</label>
+                                        <input type="number" min="0" v-model="field.tolerationSeconds">
+                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations.tolerationSeconds')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                        </a>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>
+
+                        <div class="section">                        
+                            <div class="header">
+                                <h3 for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution">Node Affinity: <br><span class="normal">Required During Scheduling Ignored During Execution</span></h3>
+                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                </a> 
+                            </div>
+
+                            <div class="scheduling repeater">
+                                <fieldset>
+                                    <div class="header">
+                                        <h3 for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms">Node Selector Terms</h3>
+                                        <a class="addRow" @click="addRequiredAffinityTerm()">Add New</a>
+                                    </div>
+                                    <fieldset v-if="requiredAffinity.length">
+                                        <div class="section" v-for="(requiredAffinityTerm, termIndex) in requiredAffinity">
+                                            <div class="header">
+                                                <h3>Term #{{ termIndex + 1 }}</h3>
+                                                <a class="addRow" @click="spliceArray(requiredAffinity, termIndex)">Delete</a>
+                                            </div>
+                                            <fieldset>
+                                                <div class="header">
+                                                    <h3>Match Expressions</h3>
+                                                    <a class="addRow" @click="addNodeSelectorRequirement(requiredAffinityTerm.matchExpressions)">Add Expression</a>
+                                                </div>
+                                                <fieldset v-if="requiredAffinityTerm.matchExpressions.length">
+                                                    <div class="section" v-for="(expression, expIndex) in requiredAffinityTerm.matchExpressions">
+                                                        <div class="header">
+                                                            <h3>Match Expression #{{ expIndex + 1 }}</h3>
+                                                            <a class="addRow" @click="spliceArray(requiredAffinityTerm.matchExpressions, expIndex)">Delete</a>
+                                                        </div>
+                                                        
+                                                        <label>Key</label>
+                                                        <input v-model="expression.key" autocomplete="off" placeholder="Type a key...">
+
+                                                        <label>Operator</label>
+                                                        <select v-model="expression.operator" :required="expression.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(expression.operator) ? delete expression.values : ( !expression.hasOwnProperty('values') && (expression['values'] = ['']) ) )">
+                                                            <option value="" selected>Select an operator</option>
+                                                            <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
+                                                        </select>
+
+                                                        <div class="section" v-if="!['Exists', 'DoesNotExists'].includes(expression.operator)">
+                                                            <div class="header">
+                                                                <h3>Values</h3>
+                                                                <a class="addRow" @click="expression.values.push('')" v-if="!['Gt', 'Lt'].includes(expression.operator)">Add Value</a>
+                                                            </div>
+                                                            <div class="row affinityValues" v-for="(value, valIndex) in expression.values">
+                                                                <label>Value #{{ valIndex + 1 }}</label>
+                                                                <input v-model="expression.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="expression.key.length > 0" :type="['Gt', 'Lt'].includes(expression.operator) && 'number'">
+                                                                <a class="addRow" @click="spliceArray(expression.values, valIndex)" v-if="expression.values.length > 1">Delete</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </fieldset>
+                                            </fieldset>
+                                            <fieldset>
+                                                <div class="header">
+                                                    <h3>Match Fields</h3>
+                                                    <a class="addRow" @click="addNodeSelectorRequirement(requiredAffinityTerm.matchFields)">Add Field</a>
+                                                </div>
+                                                <fieldset v-if="requiredAffinityTerm.matchFields.length">
+                                                    <div class="section" v-for="(field, fieldIndex) in requiredAffinityTerm.matchFields">
+                                                        <div class="header">
+                                                            <h3>Match Field #{{ fieldIndex + 1 }}</h3>
+                                                            <a class="addRow" @click="spliceArray(requiredAffinityTerm.matchFields, fieldIndex)">Delete</a>
+                                                        </div>
+                                                        
+                                                        <label>Key</label>
+                                                        <input v-model="field.key" autocomplete="off" placeholder="Type a key...">
+
+                                                        <label>Operator</label>
+                                                        <select v-model="field.operator" :required="field.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(field.operator) ? delete field.values : ( !field.hasOwnProperty('values') && (field['values'] = ['']) ) )">
+                                                            <option value="" selected>Select an operator</option>
+                                                            <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
+                                                        </select>
+
+                                                        <div class="section" v-if="!['Exists', 'DoesNotExists'].includes(field.operator)">
+                                                            <div class="header">
+                                                                <h3>Values</h3>
+                                                                <a class="addRow" @click="field.values.push('')" v-if="!['Gt', 'Lt'].includes(field.operator)">Add Value</a>
+                                                            </div>
+                                                            <div class="row affinityValues" v-for="(value, valIndex) in field.values">
+                                                                <label>Value #{{ valIndex + 1 }}</label>
+                                                                <input v-model="field.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="field.key.length > 0" :type="['Gt', 'Lt'].includes(field.operator) && 'number'">
+                                                                <a class="addRow" @click="spliceArray(field.values, valIndex)" v-if="field.values.length > 1">Delete</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </fieldset>
+                                            </fieldset>
+                                        </div>
+                                    </fieldset>
+                                </fieldset>
+                            </div>
+                        </div>
+                        
+                        <div class="section">                        
+                            <div class="header">
+                                <h3 for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution">Node Affinity: <br><span class="normal">Preferred During Scheduling Ignored During Execution</span></h3>
+                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                </a> 
+                            </div>
+
+                            <div class="scheduling repeater">
+                                <fieldset>
+                                    <div class="header">
+                                        <h3 for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms">Node Selector Terms</h3>
+                                        <a class="addRow" @click="addPreferredAffinityTerm()">Add New</a>
+                                    </div>
+                                    <fieldset v-if="preferredAffinity.length">
+                                        <div class="section" v-for="(preferredAffinityTerm, termIndex) in preferredAffinity">
+                                            <div class="header">
+                                                <h3>Term #{{ termIndex + 1 }}</h3>
+                                                <a class="addRow" @click="spliceArray(preferredAffinity, termIndex)">Delete</a>
+                                            </div>
+                                            <fieldset>
+                                                <div class="header">
+                                                    <h3>Match Expressions</h3>
+                                                    <a class="addRow" @click="addNodeSelectorRequirement(preferredAffinityTerm.preference.matchExpressions)">Add Expression</a>
+                                                </div>
+                                                <fieldset v-if="preferredAffinityTerm.preference.matchExpressions.length">
+                                                    <div class="section" v-for="(expression, expIndex) in preferredAffinityTerm.preference.matchExpressions">
+                                                        <div class="header">
+                                                            <h3>Match Expression #{{ expIndex + 1 }}</h3>
+                                                            <a class="addRow" @click="spliceArray(preferredAffinityTerm.preference.matchExpressions, expIndex)">Delete</a>
+                                                        </div>
+                                                        
+                                                        <label>Key</label>
+                                                        <input v-model="expression.key" autocomplete="off" placeholder="Type a key...">
+
+                                                        <label>Operator</label>
+                                                        <select v-model="expression.operator" :required="expression.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(expression.operator) ? delete expression.values : ( !expression.hasOwnProperty('values') && (expression['values'] = ['']) ) )">
+                                                            <option value="" selected>Select an operator</option>
+                                                            <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
+                                                        </select>
+
+                                                        <div class="section" v-if="!['Exists', 'DoesNotExists'].includes(expression.operator)">
+                                                            <div class="header">
+                                                                <h3>Values</h3>
+                                                                <a class="addRow" @click="expression.values.push('')" v-if="!['Gt', 'Lt'].includes(expression.operator)">Add Value</a>
+                                                            </div>
+                                                            <div class="row affinityValues" v-for="(value, valIndex) in expression.values">
+                                                                <label>Value #{{ valIndex + 1 }}</label>
+                                                                <input v-model="expression.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="expression.key.length > 0" :type="['Gt', 'Lt'].includes(expression.operator) && 'number'">
+                                                                <a class="addRow" @click="spliceArray(expression.values, valIndex)" v-if="expression.values.length > 1">Delete</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </fieldset>
+                                            </fieldset>
+                                            <fieldset>
+                                                <div class="header">
+                                                    <h3>Match Fields</h3>
+                                                    <a class="addRow" @click="addNodeSelectorRequirement(preferredAffinityTerm.preference.matchFields)">Add Field</a>
+                                                </div>
+                                                <fieldset v-if="preferredAffinityTerm.preference.matchFields.length">
+                                                    <div class="section" v-for="(field, fieldIndex) in preferredAffinityTerm.preference.matchFields">
+                                                        <div class="header">
+                                                            <h3>Match Field #{{ fieldIndex + 1 }}</h3>
+                                                            <a class="addRow" @click="spliceArray(preferredAffinityTerm.preference.matchFields, fieldIndex)">Delete</a>
+                                                        </div>
+                                                        
+                                                        <label>Key</label>
+                                                        <input v-model="field.key" autocomplete="off" placeholder="Type a key...">
+
+                                                        <label>Operator</label>
+                                                        <select v-model="field.operator" :required="field.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(field.operator) ? delete field.values : ( !field.hasOwnProperty('values') && (field['values'] = ['']) ) )">
+                                                            <option value="" selected>Select an operator</option>
+                                                            <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
+                                                        </select>
+
+                                                        <div class="section" v-if="!['Exists', 'DoesNotExists'].includes(field.operator)">
+                                                            <div class="header">
+                                                                <h3>Values</h3>
+                                                                <a class="addRow" @click="field.values.push('')" v-if="!['Gt', 'Lt'].includes(field.operator)">Add Value</a>
+                                                            </div>
+                                                            <div class="row affinityValues" v-for="(value, valIndex) in field.values">
+                                                                <label>Value #{{ valIndex + 1 }}</label>
+                                                                <input v-model="field.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="field.key.length > 0" :type="['Gt', 'Lt'].includes(field.operator) && 'number'">
+                                                                <a class="addRow" @click="spliceArray(field.values, valIndex)" v-if="field.values.length > 1">Delete</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </fieldset>
+                                            </fieldset>
+
+                                            <label>Weight</label>
+                                            <input v-model="preferredAffinityTerm.weight" autocomplete="off" type="number" min="1" max="100">
+                                        </div>
+                                    </fieldset>
+                                </fieldset>
+                            </div>
+                        </div>
+
+                        <span class="warning" v-if="editMode">Please, be aware that any changes made to the <code>Pods Scheduling</code> will require a <a href="https://stackgres.io/doc/latest/install/restart/" target="_blank">restart operation</a> on every instance of the cluster</span>                       
                     </div>
                 </fieldset>
             </template>
@@ -792,6 +1127,37 @@
                     name: '',
                     version: ''
                 },
+                affinityOperators: [
+                    { label: 'In', value: 'In' },
+                    { label: 'Not In', value: 'NotIn' },
+                    { label: 'Exists', value: 'Exists' },
+                    { label: 'Does Not Exists', value: 'DoesNotExists' },
+                    { label: 'Greater Than', value: 'Gt' },
+                    { label: 'Less Than', value: 'Lt' },
+                ],
+                requiredAffinity: [
+                    {   
+                        matchExpressions: [
+                            { key: '', operator: '', values: [ '' ] }
+                        ],
+                        matchFields: [
+                            { key: '', operator: '', values: [ '' ] }
+                        ]
+                    }
+                ],
+                preferredAffinity: [
+                    {
+                        preference: {
+                            matchExpressions: [
+                                { key: '', operator: '', values: [ '' ] }
+                            ],
+                            matchFields: [
+                                { key: '', operator: '', values: [ '' ] }
+                            ]
+                        },
+                        weight:  1
+                    }
+                ]
             }
 
         },
@@ -946,7 +1312,7 @@
             },
 
             spliceArray: function( prop, index ) {
-                this[prop].splice( index, 1 )
+                prop.splice( index, 1 )
             },
 
             cleanupScripts: function() {
@@ -978,7 +1344,7 @@
                 this.tolerations.push({ key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null })
             },
 
-            createCluster: function(e) {
+            createCluster: function() {
                 const vc = this;
 
                 let isValid = true;
@@ -986,7 +1352,9 @@
                 $('input:required, select:required').each(function() {
                     if ($(this).val() === '') {
                         isValid = false;
-                        return false;
+                        $(this).addClass("notValid");
+                    } else if ($(this).hasClass('error')) {
+                        $(this).removeClass("notValid");
                     }
                         
                 });
@@ -1011,10 +1379,27 @@
                                 "disableConnectionPooling": !this.connPooling,
                                 "disableMetricsExporter": !this.metricsExporter,
                                 "disablePostgresUtil": !this.postgresUtil,
-                                ...( ( this.hasNodeSelectors() || this.hasTolerations() ) && ({
+                                ...(!$.isEmptyObject(this.parseProps(this.podsMetadata, 'label')) && ({
+                                    "metadata": {
+                                        "labels": this.parseProps(this.podsMetadata, 'label')
+                                    }
+                                }) ),
+                                ...( ( this.hasNodeSelectors() || this.hasTolerations() || this.hasNodeAffinity(this.requiredAffinity) || this.hasNodeAffinity(this.preferredAffinity) ) && ({
                                     "scheduling": {
                                         ...(this.hasNodeSelectors() && ({"nodeSelector": this.parseProps(this.nodeSelector, 'label')})),
-                                        ...(this.hasTolerations() && ({"tolerations": this.tolerations}))
+                                        ...(this.hasTolerations() && ({"tolerations": this.tolerations})),
+                                        ...(this.hasNodeAffinity(this.requiredAffinity) || this.hasNodeAffinity(this.preferredAffinity) ) && {
+                                            "nodeAffinity": {
+                                                ...(this.hasNodeAffinity(this.requiredAffinity) && {
+                                                    "requiredDuringSchedulingIgnoredDuringExecution": {
+                                                        "nodeSelectorTerms": this.requiredAffinity
+                                                    },
+                                                }),
+                                                ...(this.hasNodeAffinity(this.preferredAffinity) && {
+                                                    "preferredDuringSchedulingIgnoredDuringExecution": this.preferredAffinity
+                                                })
+                                            }
+                                        }
                                     }
                                 }) )                    
                             },
@@ -1382,7 +1767,96 @@
                 }, function(start, end, label) {
                     vc.pitr = (store.state.timezone == 'local') ? start.utc().format() : ( start.format('YYYY-MM-DDTHH:mm:ss') + 'Z' )
                 });
-            }
+            },
+
+            addNodeSelectorRequirement(affinity) {
+                affinity.push({ key: '', operator: '', values: [ '' ] })
+            },
+
+            addRequiredAffinityTerm() {
+                const vc = this;
+                vc.requiredAffinity.push({
+                    matchExpressions: [
+                        { key: '', operator: '', values: [ '' ] }
+                    ],
+                    matchFields: [
+                        { key: '', operator: '', values: [ '' ] }
+                    ]
+                })
+            },
+            
+            addPreferredAffinityTerm() {
+                const vc = this;
+                vc.preferredAffinity.push({
+                    preference: {
+                        matchExpressions: [
+                            { key: '', operator: '', values: [ '' ] }
+                        ],
+                        matchFields: [
+                            { key: '', operator: '', values: [ '' ] }
+                        ]
+                    },
+                    weight: 1
+                })
+            },
+
+            hasNodeAffinity (affinity) {
+                let aff = Array.from(affinity);
+                
+                aff.forEach(function(a, affIndex) {
+
+                    let item = a.hasOwnProperty('preference') ? a.preference : a;
+                    
+                    if(item.hasOwnProperty('matchExpressions')) {
+                        item.matchExpressions.forEach(function(exp, expIndex) {
+                            if(!exp.key.length || !exp.operator.length || (exp.hasOwnProperty('values') && (exp.values == ['']) ) ) {
+                                if(affinity[affIndex].hasOwnProperty('preference')) {
+                                    affinity[affIndex].preference.matchExpressions.splice( expIndex, 1 );
+                                } else {
+                                    affinity[affIndex].matchExpressions.splice( expIndex, 1 );  
+                                }
+                            }
+                        });
+
+                        if(affinity[affIndex].hasOwnProperty('preference') && !affinity[affIndex].preference.matchExpressions.length) {
+                            delete affinity[affIndex].preference.matchExpressions;
+                        } else if(!affinity[affIndex].hasOwnProperty('preference') && !affinity[affIndex].matchExpressions.length) {
+                            delete affinity[affIndex].matchExpressions;
+                        }
+                    }
+
+                    if(item.hasOwnProperty('matchFields')) {
+                        item.matchFields.forEach(function(exp, expIndex) {
+                            if(!exp.key.length || !exp.operator.length || (exp.hasOwnProperty('values') && (exp.values == ['']) ) ) {
+                                if(affinity[affIndex].hasOwnProperty('preference')) {
+                                    affinity[affIndex].preference.matchFields.splice( expIndex, 1 );
+                                } else {
+                                    affinity[affIndex].matchFields.splice( expIndex, 1 );  
+                                }
+                            }
+                        });
+
+                        if(affinity[affIndex].hasOwnProperty('preference') && !affinity[affIndex].preference.matchFields.length) {
+                            delete affinity[affIndex].preference.matchFields;
+                        } else if(!affinity[affIndex].hasOwnProperty('preference') && !affinity[affIndex].matchFields.length) {
+                            delete affinity[affIndex].matchFields;
+                        }
+                    }
+
+                    if(affinity[affIndex].hasOwnProperty('preference')) {
+                        if(!affinity[affIndex].preference.hasOwnProperty('matchExpressions') && !affinity[affIndex].preference.hasOwnProperty('matchFields')) {
+                            affinity.splice( affIndex, 1 );
+                        }
+                    } else {
+                        if(!affinity[affIndex].hasOwnProperty('matchExpressions') && !affinity[affIndex].hasOwnProperty('matchFields')) {
+                            affinity.splice( affIndex, 1 );
+                        }
+                    }
+
+                });
+
+                return (affinity.length > 0);
+            },
 
         },
 
@@ -1681,5 +2155,9 @@
     ul.select li.selected {
         position: sticky;
         top: 0;
+    }
+
+    .affinityValues a.addRow {
+        transform: translateY(-75px);
     }
 </style>
