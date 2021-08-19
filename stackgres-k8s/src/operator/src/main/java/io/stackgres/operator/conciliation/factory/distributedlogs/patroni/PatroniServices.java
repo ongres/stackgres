@@ -168,11 +168,7 @@ public class PatroniServices implements
                 .withPort(PatroniUtil.REPLICATION_SERVICE_PORT)
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME))
                 .build())
-<<<<<<< HEAD
-        .withType(StackGresClusterPostgresServiceType.CLUSTER_IP.toString())
-=======
-        .withType(StackGresPostgresServiceType.CLUSTER_IP.type())
->>>>>>> 31874c466 (feat: Added postgres services to the distributed logs CRD)
+        .withType(StackGresPostgresServiceType.CLUSTER_IP.toString())
         .endSpec()
         .build();
   }
