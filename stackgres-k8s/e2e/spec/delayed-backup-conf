@@ -5,6 +5,9 @@ e2e_test_install_pods() {
   echo 1
 }
 
+e2e_test_install() {
+  CLUSTER_NAME="delayed-bkp-conf"
+}
 
 e2e_test() {
   run_test "add backup configuration manually" add_backup_manually

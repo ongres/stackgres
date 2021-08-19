@@ -403,7 +403,7 @@ create_empty_cluster_with_default_pgbouncer() {
 apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
-  name: $CLUSTER_NAME-bouncer
+  name: $CLUSTER_NAME-pgbouncer
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1
