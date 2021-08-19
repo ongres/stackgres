@@ -5,6 +5,9 @@
 
 package io.stackgres.jobs.app;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.PreDestroy;
@@ -21,23 +24,28 @@ public class KubernetesClientProvider implements KubernetesClientFactory {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(KubernetesClientProvider.class);
 
-  private static final MetricsHolder metricsHolder = new MetricsHolder();
+  private static final MetricsHolder METRICS_HOLDER = new MetricsHolder();
+
+  private final KubernetesClient targetKubernetesClient = new DefaultKubernetesClient();
+
+  private final KubernetesClientInvocationHandler invocationHandler
+      = new KubernetesClientInvocationHandler(targetKubernetesClient);
+
+  private final KubernetesClient clientProxy = (KubernetesClient) Proxy.newProxyInstance(
+      KubernetesClientProvider.class.getClassLoader(),
+      new Class[]{KubernetesClient.class},
+      invocationHandler
+  );
 
   @Override
   public KubernetesClient create() {
-    if (LOGGER.isDebugEnabled()) {
-      metricsHolder.newConnection();
-      DebugKubernetesClient client = new DebugKubernetesClient();
-      client.setMetricsHolder(metricsHolder);
-      return client;
-    } else {
-      return new DefaultKubernetesClient();
-    }
+    return clientProxy;
   }
 
   @PreDestroy
   public void preDestroy() {
-    LOGGER.debug("Connections open on application stop {}", metricsHolder.openConnections.get());
+    LOGGER.debug("Connections open on application stop {}", METRICS_HOLDER.openConnections.get());
+    targetKubernetesClient.close();
   }
 
   private static class MetricsHolder {
@@ -60,18 +68,37 @@ public class KubernetesClientProvider implements KubernetesClientFactory {
     }
   }
 
-  private static class DebugKubernetesClient extends DefaultKubernetesClient {
+  private static class KubernetesClientInvocationHandler implements InvocationHandler {
 
-    private MetricsHolder metricsHolder;
+    private final KubernetesClient kubernetesClient;
 
-    public void setMetricsHolder(MetricsHolder metricsHolder) {
-      this.metricsHolder = metricsHolder;
+    public KubernetesClientInvocationHandler(KubernetesClient kubernetesClient) {
+      this.kubernetesClient = kubernetesClient;
     }
 
     @Override
-    public void close() {
-      metricsHolder.closeConnection();
-      super.close();
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+
+      if (method.getName().equals("close")) {
+        return null;
+      }
+
+      if (LOGGER.isDebugEnabled()) {
+        METRICS_HOLDER.newConnection();
+      }
+      try {
+        return method.invoke(kubernetesClient, args);
+      } catch (Exception ex) {
+        if (ex.getCause() != null) {
+          throw ex.getCause();
+        } else {
+          throw ex;
+        }
+      } finally {
+        if (LOGGER.isDebugEnabled()) {
+          METRICS_HOLDER.closeConnection();
+        }
+      }
     }
   }
 

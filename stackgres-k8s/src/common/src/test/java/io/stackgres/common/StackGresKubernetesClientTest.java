@@ -10,8 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
@@ -25,9 +23,6 @@ import org.junit.jupiter.api.Test;
 @WithKubernetesTestServer
 class StackGresKubernetesClientTest {
 
-  @Inject
-  StackGresKubernetesClientFactory clientFactory;
-
   String randomFieldManager = StringUtils.getRandomString(6);
   String randomNamespace = StringUtils.getRandomNamespace();
   String randomName = StringUtils.getRandomClusterName();
@@ -35,7 +30,8 @@ class StackGresKubernetesClientTest {
   @Test
   void givenARole_ShouldProduceAValidUrl() throws MalformedURLException {
 
-    final StackGresKubernetesClient stackGresKubernetesClient = clientFactory.create();
+    final StackGresDefaultKubernetesClient stackGresKubernetesClient
+        = new StackGresDefaultKubernetesClient();
     var actual = stackGresKubernetesClient.getResourceUrl(new PatchContext.Builder()
             .withFieldManager(randomFieldManager).withForce(true).build(),
         new RoleBuilder()
@@ -57,7 +53,8 @@ class StackGresKubernetesClientTest {
   @Test
   void givenACronJob_ShouldProduceAValidUrl() throws MalformedURLException {
 
-    final StackGresKubernetesClient stackGresKubernetesClient = clientFactory.create();
+    final StackGresDefaultKubernetesClient stackGresKubernetesClient
+        = new StackGresDefaultKubernetesClient();
     var actual = stackGresKubernetesClient.getResourceUrl(new PatchContext.Builder()
             .withFieldManager(randomFieldManager).withForce(true).build(),
         new CronJobBuilder()
@@ -79,7 +76,8 @@ class StackGresKubernetesClientTest {
   @Test
   void givenAService_shouldProduceAValidUrl() throws MalformedURLException {
 
-    final StackGresKubernetesClient stackGresKubernetesClient = clientFactory.create();
+    final StackGresDefaultKubernetesClient stackGresKubernetesClient
+        = new StackGresDefaultKubernetesClient();
 
     var actual = stackGresKubernetesClient.getResourceUrl(new PatchContext.Builder()
             .withFieldManager(randomFieldManager).withForce(true).build(),

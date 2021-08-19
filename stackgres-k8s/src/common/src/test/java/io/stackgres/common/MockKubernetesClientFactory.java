@@ -14,6 +14,6 @@ public class MockKubernetesClientFactory {
 
   @Produces
   StackGresKubernetesClientFactory buildClientFactory() {
-    return StackGresKubernetesClient::new;
+    return StackGresDefaultKubernetesClient::new;
   }
 }
