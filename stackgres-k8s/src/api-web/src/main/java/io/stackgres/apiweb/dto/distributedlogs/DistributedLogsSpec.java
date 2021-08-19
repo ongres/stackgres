@@ -78,7 +78,7 @@ public class DistributedLogsSpec {
       List<ClusterInstalledExtension> toInstallPostgresExtensions) {
     this.toInstallPostgresExtensions = toInstallPostgresExtensions;
   }
-  
+
   public DistributedLogsPostgresServices getPostgresServices() {
     return postgresServices;
   }

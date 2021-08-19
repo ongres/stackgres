@@ -7,8 +7,6 @@ package io.stackgres.apiweb.app.postgres.service;
 
 import static java.lang.Boolean.TRUE;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class EnabledPostgresService extends PostgresService {
@@ -17,9 +15,8 @@ public class EnabledPostgresService extends PostgresService {
 
   public EnabledPostgresService() {}
 
-  public EnabledPostgresService(String type,
-      Map<String, String> annotations) {
-    super(TRUE, type, annotations);
+  public EnabledPostgresService(String type) {
+    super(TRUE, type);
   }
 
   @JsonIgnore

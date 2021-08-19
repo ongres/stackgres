@@ -22,14 +22,11 @@ public class PostgresService implements KubernetesResource {
 
   private String type;
 
-  private Map<String, String> annotations;
-
   public PostgresService() {}
 
-  public PostgresService(Boolean enabled, String type, Map<String, String> annotations) {
+  public PostgresService(Boolean enabled, String type) {
     this.enabled = enabled;
     this.type = type;
-    this.annotations = annotations;
   }
 
   public Boolean getEnabled() {
