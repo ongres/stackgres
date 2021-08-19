@@ -3,9 +3,7 @@
 e2e_test_install() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
 
-  deploy_curl_pod "$CLUSTER_NAMESPACE"
-
-  wait_pods_running "$CLUSTER_NAMESPACE" 2
+  wait_pods_running "$CLUSTER_NAMESPACE" 1
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
