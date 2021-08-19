@@ -53,7 +53,7 @@ public class StackGresPostgresService {
     if (!(obj instanceof StackGresPostgresService)) {
       return false;
     }
-    StackGresClusterPostgresService other = (StackGresClusterPostgresService) obj;
+    StackGresPostgresService other = (StackGresPostgresService) obj;
     return Objects.equals(enabled, other.enabled)
         && Objects.equals(type, other.type);
   }
