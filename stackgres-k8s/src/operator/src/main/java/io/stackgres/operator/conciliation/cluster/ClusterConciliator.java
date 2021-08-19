@@ -39,6 +39,7 @@ public class ClusterConciliator extends Conciliator<StackGresCluster> {
               .isResourceReconciliationNotPausedUntilRestart(tuple.v2))
           .collect(Collectors.toUnmodifiableList()));
     }
+
     return reconciliationResult;
   }
 }

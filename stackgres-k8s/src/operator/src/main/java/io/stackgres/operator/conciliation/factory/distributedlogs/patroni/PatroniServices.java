@@ -67,7 +67,7 @@ public class PatroniServices implements
     final Map<String, String> clusterLabels = labelFactory.clusterLabels(cluster);
 
     Service config = createConfigService(namespace, configName(context),
-        clusterLabels, context);
+        clusterLabels);
 
     Service patroni = createPatroniService(context);
     Service primary = createPrimaryService(context);
@@ -77,14 +77,12 @@ public class PatroniServices implements
   }
 
   private Service createConfigService(String namespace, String serviceName,
-                                      Map<String, String> labels,
-                                      DistributedLogsContext context) {
+                                      Map<String, String> labels) {
     return new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(serviceName)
         .withLabels(labels)
-        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .withNewSpec()
         .withClusterIP("None")
@@ -155,7 +153,6 @@ public class PatroniServices implements
         .withNamespace(namespace)
         .withName(serviceName)
         .withLabels(replicaLabels)
-        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .withNewSpec()
         .withSelector(replicaLabels)

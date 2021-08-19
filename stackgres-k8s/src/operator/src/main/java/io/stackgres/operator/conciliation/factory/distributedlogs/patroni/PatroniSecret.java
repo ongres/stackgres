@@ -70,7 +70,6 @@ public class PatroniSecret implements
         .withNamespace(namespace)
         .withName(name)
         .withLabels(labels)
-        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .withType("Opaque")
         .withData(data)

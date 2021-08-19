@@ -27,14 +27,23 @@ public class OwnerReferenceDecorator implements Decorator<StackGresDistributedLo
   public void decorate(StackGresDistributedLogs cluster,
                        Iterable<? extends HasMetadata> resources) {
     List<OwnerReference> ownerReferences = getOwnerReferences(cluster);
-    resources.forEach(resource -> {
-      resource.getMetadata().setOwnerReferences(ownerReferences);
-      if (resource.getKind().equals("StatefulSet")) {
-        StatefulSet sts = (StatefulSet) resource;
-        sts.getSpec().getVolumeClaimTemplates().forEach(vct ->
-            vct.getMetadata().setOwnerReferences(ownerReferences));
-      }
-    });
+    resources
+        .forEach(resource -> {
+          if (!resource.getMetadata().getOwnerReferences().isEmpty()) {
+            resource.getMetadata().getOwnerReferences().stream()
+                .filter(ownerReference -> ownerReference.getApiVersion().equals(
+                    CommonDefinition.GROUP + "/" + CommonDefinition.VERSION))
+                .forEach(ownerReference -> ownerReference.setApiVersion(
+                    CommonDefinition.GROUP + "/v1beta1"));
+          } else {
+            resource.getMetadata().setOwnerReferences(ownerReferences);
+            if (resource.getKind().equals("StatefulSet")) {
+              StatefulSet sts = (StatefulSet) resource;
+              sts.getSpec().getVolumeClaimTemplates()
+                  .forEach(vct -> vct.getMetadata().setOwnerReferences(ownerReferences));
+            }
+          }
+        });
   }
 
   private List<OwnerReference> getOwnerReferences(StackGresDistributedLogs resource) {
@@ -46,4 +55,5 @@ public class OwnerReferenceDecorator implements Decorator<StackGresDistributedLo
         .withController(true)
         .build());
   }
+
 }

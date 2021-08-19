@@ -5,9 +5,9 @@
 
 package io.stackgres.operator.conciliation;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
@@ -30,14 +30,16 @@ public class Conciliator<T extends CustomResource<?, ?>> {
 
     var creations = requiredResources.stream()
         .filter(requiredResource -> deployedResources.stream()
-            .noneMatch(deployedResource -> isTheSameResource(requiredResource, deployedResource)));
+            .noneMatch(deployedResource -> isTheSameResource(requiredResource, deployedResource)))
+        .collect(Collectors.toUnmodifiableList());
 
     var deletions = deployedResources.stream()
         .filter(deployedResource -> requiredResources.stream()
             .noneMatch(requiredResource -> isTheSameResource(deployedResource, requiredResource)))
-        .filter(ReconciliationUtil::isResourceReconciliationNotPaused);
+        .filter(ReconciliationUtil::isResourceReconciliationNotPaused)
+        .collect(Collectors.toUnmodifiableList());
 
-    Stream<Tuple2<HasMetadata, HasMetadata>> patches = requiredResources.stream()
+    List<Tuple2<HasMetadata, HasMetadata>> patches = requiredResources.stream()
         .map(requiredResource -> {
           Optional<HasMetadata> deployedResource = deployedResources.stream()
               .filter(dr -> isTheSameResource(requiredResource, dr))
@@ -46,12 +48,12 @@ public class Conciliator<T extends CustomResource<?, ?>> {
         }).filter(resourceTuple -> resourceTuple.v2.isPresent())
         .map(rt -> rt.map2(Optional::get))
         .filter(tuple -> ReconciliationUtil.isResourceReconciliationNotPaused(tuple.v2))
-        .filter(resourceTuple -> !isResourceContentEqual(resourceTuple.v1, resourceTuple.v2));
+        .filter(resourceTuple -> !isResourceContentEqual(resourceTuple.v1, resourceTuple.v2))
+        .collect(Collectors.toUnmodifiableList());
 
-    return new ReconciliationResult(creations.collect(Collectors.toUnmodifiableList()),
-        patches.collect(Collectors.toUnmodifiableList()),
-        deletions.collect(Collectors.toUnmodifiableList()));
-
+    return new ReconciliationResult(creations,
+        patches,
+        deletions);
   }
 
   protected boolean isResourceContentEqual(HasMetadata r1, HasMetadata r2) {

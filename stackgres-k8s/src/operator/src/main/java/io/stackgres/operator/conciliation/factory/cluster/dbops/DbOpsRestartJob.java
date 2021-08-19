@@ -12,6 +12,7 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
@@ -22,6 +23,7 @@ import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresVersion;
@@ -54,6 +56,7 @@ public class DbOpsRestartJob implements JobFactory {
         .withNamespace(namespace)
         .withName(jobName(dbOps, "restart"))
         .withLabels(labels)
+        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(dbOps)))
         .endMetadata()
         .withNewSpec()
         .withBackoffLimit(0)

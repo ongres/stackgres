@@ -68,7 +68,6 @@ public class PatroniConfigEndpoints
         .withName(configName(context))
         .withLabels(labels)
         .withAnnotations(ImmutableMap.of(PATRONI_CONFIG_KEY, patroniConfigJson))
-        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .build());
   }

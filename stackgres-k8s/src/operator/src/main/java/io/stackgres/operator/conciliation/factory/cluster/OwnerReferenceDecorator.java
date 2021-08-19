@@ -22,8 +22,7 @@ import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
-public class OwnerReferenceDecoratorImpl implements
-    Decorator<StackGresCluster> {
+public class OwnerReferenceDecorator implements Decorator<StackGresCluster> {
 
   @Override
   public void decorate(StackGresCluster cluster,
@@ -34,6 +33,7 @@ public class OwnerReferenceDecoratorImpl implements
         .filter(resource -> Objects.equals(
             resource.getMetadata().getNamespace(),
             cluster.getMetadata().getNamespace()))
+        .filter(resource -> resource.getMetadata().getOwnerReferences().isEmpty())
         .forEach(resource -> {
           resource.getMetadata().setOwnerReferences(ownerReferences);
           if (resource.getKind().equals("StatefulSet")) {

@@ -130,6 +130,7 @@ public class BackupJob
               .withNamespace(namespace)
               .withName(backupJobName(backup))
               .withLabels(labels)
+              .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(backup)))
               .endMetadata()
               .withNewSpec()
               .withBackoffLimit(3)

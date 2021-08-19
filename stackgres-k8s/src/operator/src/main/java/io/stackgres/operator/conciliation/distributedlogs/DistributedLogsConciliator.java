@@ -39,6 +39,7 @@ public class DistributedLogsConciliator extends Conciliator<StackGresDistributed
               .isResourceReconciliationNotPausedUntilRestart(tuple.v2))
           .collect(Collectors.toUnmodifiableList()));
     }
+
     return reconciliationResult;
   }
 }

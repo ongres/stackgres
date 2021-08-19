@@ -31,6 +31,7 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
@@ -118,6 +119,7 @@ public abstract class DbOpsJob implements JobFactory {
         .withNamespace(namespace)
         .withName(jobName(dbOps))
         .withLabels(labels)
+        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(dbOps)))
         .endMetadata()
         .withNewSpec()
         .withBackoffLimit(0)

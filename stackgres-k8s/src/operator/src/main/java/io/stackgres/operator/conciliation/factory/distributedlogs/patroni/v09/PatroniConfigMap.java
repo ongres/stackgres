@@ -133,7 +133,6 @@ public class PatroniConfigMap implements VolumeFactory<DistributedLogsContext> {
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(name(context))
         .withLabels(value)
-        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(data))
         .build();

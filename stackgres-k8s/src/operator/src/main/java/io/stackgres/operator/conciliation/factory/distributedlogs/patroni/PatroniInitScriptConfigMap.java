@@ -82,7 +82,6 @@ public class PatroniInitScriptConfigMap implements
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(name(cluster))
         .withLabels(labelFactory.patroniClusterLabels(cluster))
-        .withOwnerReferences(context.getOwnerReferences())
         .endMetadata()
         .withData(ImmutableMap.of("distributed-logs-template.sql", data))
         .build();
