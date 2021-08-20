@@ -7,8 +7,12 @@ e2e_test_install() {
   CLUSTER_NAME="minor-upgrade"
 =======
   CLUSTER_NAME="dbops-minor-upgrade"
+<<<<<<< HEAD
   OPERATION_NAME="minor-ver-upgrade"
 >>>>>>> 3d9fb033f (chore: Replaced the name of cluster due constraint name)
+=======
+  OPERATION_NAME="minor-upgrade"
+>>>>>>> e88bf8326 (chore: Replaced the name of cluster due constraint name)
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
