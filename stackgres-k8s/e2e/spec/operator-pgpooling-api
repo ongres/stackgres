@@ -1,6 +1,7 @@
 #!/bin/sh
 
 e2e_test_install() {
+  CLUSTER_NAME="pgpooling-api"
   PGPOOLING=pgbouncerconf
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \

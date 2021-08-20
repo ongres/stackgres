@@ -1,6 +1,7 @@
 #!/bin/sh
 
 e2e_test_install() {
+  CLUSTER_NAME="exts-extra-mounts"
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --set-string 'cluster.postgres.extensions[0].name=postgis'
 

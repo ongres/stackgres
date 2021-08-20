@@ -3,7 +3,8 @@
 . "$SPEC_PATH/abstract/dbops-restart"
 
 e2e_test_install() {
-  CLUSTER_NAME=dbops-minor-version-upgrade
+  CLUSTER_NAME="dbops-minor-upgrade"
+  OPERATION_NAME="minor-ver-upgrade"
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
@@ -25,7 +26,7 @@ check_minor_version_upgrade_is_working() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: minor-version-upgrade
+  name: $OPERATION_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -44,7 +45,7 @@ check_minor_version_upgrade_in_place_is_working() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: minor-version-upgrade
+  name: $OPERATION_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
