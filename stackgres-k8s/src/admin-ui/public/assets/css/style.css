@@ -3499,16 +3499,6 @@ table.backups .details > td {
     vertical-align: top;
 }
 
-<<<<<<< HEAD
-=======
-/* table.backupConfig tr.base.open {
-    border-top: 1px solid #f0f0f1;
-} */
-
-/*table.backups tr.details td:first-of-type table:first-of-type tbody {
-    border: 1px solid;*/
-
->>>>>>> wip(ui): minor version upgrade dashboard
 /* Table Filters */
 .toolbar {
     font-size: 12px;
