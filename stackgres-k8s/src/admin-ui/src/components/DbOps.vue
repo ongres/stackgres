@@ -268,14 +268,26 @@
                                         <tr v-if="op.data.status.minorVersionUpgrade.hasOwnProperty('switchoverInitiated')">
                                             <td class="timestamp">
                                                 <span class='date'>
-                                                    {{ op.data.status.opStarted | formatTimestamp('date') }}
+                                                    {{ op.data.status.minorVersionUpgrade.switchoverInitiated | formatTimestamp('date') }}
                                                 </span>
                                                 <span class='time'>
-                                                    {{ op.data.status.opStarted | formatTimestamp('time') }}
+                                                    {{ op.data.status.minorVersionUpgrade.switchoverInitiated | formatTimestamp('time') }}
                                                 </span>
                                                 <span class='tzOffset'>{{ showTzOffset() }}</span>
                                             </td>
                                             <td>Switchover has been initiated</td>
+                                        </tr>
+                                        <tr v-if="op.data.status.minorVersionUpgrade.hasOwnProperty('switchoverFinalized')">
+                                            <td class="timestamp">
+                                                <span class='date'>
+                                                    {{ op.data.status.minorVersionUpgrade.switchoverFinalized | formatTimestamp('date') }}
+                                                </span>
+                                                <span class='time'>
+                                                    {{ op.data.status.minorVersionUpgrade.switchoverFinalized | formatTimestamp('time') }}
+                                                </span>
+                                                <span class='tzOffset'>{{ showTzOffset() }}</span>
+                                            </td>
+                                            <td>Switchover has finalized</td>
                                         </tr>
                                         <tr v-for="condition in op.data.status.conditions" v-if="( (condition.status == 'True') && (condition.type != 'Running') )">
                                             <td class="timestamp">
@@ -1120,9 +1132,29 @@
                                             Switchover Initiated
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.' + op.data.spec.op + '.switchoverInitiated')"></span>
                                         </td>
-                                        <td>
-                                            {{ op.data.status[op.data.spec.op].switchoverInitiated }}
-                                            
+                                        <td class="timestamp">
+                                             <span class='date'>
+                                                {{ op.data.status[op.data.spec.op].switchoverInitiated | formatTimestamp('date') }}
+                                            </span>
+                                            <span class='time'>
+                                                {{ op.data.status[op.data.spec.op].switchoverInitiated | formatTimestamp('time') }}
+                                            </span>
+                                            <span class='tzOffset'>{{ showTzOffset() }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr v-if="op.data.status[op.data.spec.op].hasOwnProperty('switchoverFinalized')">
+                                        <td class="label">
+                                            Switchover Finalized
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.' + op.data.spec.op + '.switchoverFinalized')"></span>
+                                        </td>
+                                        <td class="timestamp">
+                                             <span class='date'>
+                                                {{ op.data.status[op.data.spec.op].switchoverFinalized | formatTimestamp('date') }}
+                                            </span>
+                                            <span class='time'>
+                                                {{ op.data.status[op.data.spec.op].switchoverFinalized | formatTimestamp('time') }}
+                                            </span>
+                                            <span class='tzOffset'>{{ showTzOffset() }}</span>
                                         </td>
                                     </tr>
                                     <tr v-if="op.data.status[op.data.spec.op].hasOwnProperty('failure')">
