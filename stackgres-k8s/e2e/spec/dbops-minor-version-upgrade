@@ -3,7 +3,12 @@
 . "$SPEC_PATH/abstract/dbops-restart"
 
 e2e_test_install() {
+<<<<<<< HEAD
   CLUSTER_NAME="minor-upgrade"
+=======
+  CLUSTER_NAME="dbops-minor-upgrade"
+  OPERATION_NAME="minor-ver-upgrade"
+>>>>>>> 3d9fb033f (chore: Replaced the name of cluster due constraint name)
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
@@ -25,7 +30,11 @@ check_minor_version_upgrade_is_working() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
+<<<<<<< HEAD
   name: $CLUSTER_NAME
+=======
+  name: $OPERATION_NAME
+>>>>>>> 3d9fb033f (chore: Replaced the name of cluster due constraint name)
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
