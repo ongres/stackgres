@@ -403,20 +403,7 @@
 											Expression #{{ j + 1 }} <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items')"></span>
 										</td>
 										<td>
-											<ul class="affinity">
-												<li>
-													<strong>Key <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.key')"></span></strong>
-													<span>{{ exp.key }}</span>
-												</li>
-												<li>
-													<strong>Operator <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.operator')"></span></strong>
-													<span>{{ affinityOperator(exp.operator) }}</span>
-												</li>
-												<li v-if="exp.hasOwnProperty('values')">
-													<strong>Value{{ (exp.values.length > 1) ? 's' : '' }} <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.values')"></span></strong>
-													<span>{{ exp.values.join(', ')}}</span>
-												</li>
-											</ul>
+											<strong>{{ exp.key }}</strong> <em>{{ affinityOperator(exp.operator) }}</em> <strong>{{ exp.hasOwnProperty('values') ? exp.values.join(', ') : ''}}</strong>
 										</td>
 									</tr>
 									<tr v-for="(field, j) in term.matchFields">
@@ -427,20 +414,7 @@
 											Field #{{ j + 1 }}  <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items')"></span>
 										</td>
 										<td>
-											<ul class="affinity">
-												<li>
-													<strong>Key <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.key')"></span></strong>
-													<span>{{ field.key }}</span>
-												</li>
-												<li>
-													<strong>Operator <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.operator')"></span></strong>
-													<span>{{ affinityOperator(field.operator) }}</span>
-												</li>
-												<li v-if="field.hasOwnProperty('values')">
-													<strong>Value{{ (field.values.length > 1) ? 's' : '' }} <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.values')"></span></strong>
-													<span>{{ field.values.join(', ')}}</span>
-												</li>
-											</ul>
+											<strong>{{ field.key }}</strong> <em>{{ affinityOperator(field.operator) }}</em> <strong>{{ field.hasOwnProperty('values') ? field.values.join(', ') : ''}}</strong>
 										</td>
 									</tr>
 								</template>
@@ -465,7 +439,7 @@
 							<tbody>
 								<template v-for="(term, i) in cluster.data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution">
 									<tr>
-										<td class="label" :rowspan="term.preference.matchExpressions.length + term.preference.matchFields.length + 1">
+										<td class="label" :rowspan="term.preference.matchExpressions.length + term.preference.matchFields.length + 2">
 											Term #{{ i + 1 }} <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference')"></span>
 										</td>
 									</tr>
@@ -477,20 +451,7 @@
 											Expression #{{ j + 1 }} <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items')"></span>
 										</td>
 										<td>
-											<ul class="affinity">
-												<li>
-													<strong>Key <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.key')"></span></strong>
-													<span>{{ exp.key }}</span>
-												</li>
-												<li>
-													<strong>Operator <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.operator')"></span></strong>
-													<span>{{ affinityOperator(exp.operator) }}</span>
-												</li>
-												<li v-if="exp.hasOwnProperty('values')">
-													<strong>Value{{ (exp.values.length > 1) ? 's' : '' }} <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.values')"></span></strong>
-													<span>{{ exp.values.join(', ')}}</span>
-												</li>
-											</ul>
+											<strong>{{ exp.key }}</strong> <em>{{ affinityOperator(exp.operator) }}</em> <strong>{{ exp.hasOwnProperty('values') ? exp.values.join(', ') : ''}}</strong>
 										</td>
 									</tr>
 									<tr v-for="(field, j) in term.preference.matchFields">
@@ -501,20 +462,16 @@
 											Field #{{ j + 1 }} <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items')"></span>
 										</td>
 										<td>
-											<ul class="affinity">
-												<li>
-													<strong>Key <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.key')"></span></strong>
-													<span>{{ field.key }}</span>
-												</li>
-												<li>
-													<strong>Operator <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.operator')"></span></strong>
-													<span>{{ affinityOperator(field.operator) }}</span>
-												</li>
-												<li v-if="field.hasOwnProperty('values')">
-													<strong>Value{{ (field.values.length > 1) ? 's' : '' }} <span class="helpTooltip fRight" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.values')"></span></strong>
-													<span>{{ field.values.join(', ')}}</span>
-												</li>
-											</ul>
+											<strong>{{ field.key }}</strong> <em>{{ affinityOperator(field.operator) }}</em> <strong>{{ field.hasOwnProperty('values') ? field.values.join(', ') : ''}}</strong>
+										</td>
+									</tr>
+									<tr>
+										<td class="label">
+											Weight
+											<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.weight')"></span>
+										</td>
+										<td colspan="2">
+											{{ term.weight }}
 										</td>
 									</tr>
 								</template>
@@ -891,20 +848,20 @@
 				switch(op) {
 
 					case 'NotIn':
-						op = 'Not In';
+						op = 'not in';
 						break;
 					case 'DoesNotExists':
-						op = 'Does Not Exists';
+						op = 'does not exists';
 						break;
 					case 'Gt':
-						op = 'Greather Than';
+						op = 'greather than';
 						break;
 					case 'Lt':
-						op = 'Less Than';
+						op = 'less than';
 						break;
 				}
 
-				return op;
+				return op.toLowerCase();
 
 			}
 
@@ -974,4 +931,12 @@
 		width: 100%;
 	}
 
+	.trimText {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		display: block;
+		max-width: 250px;
+		width: 100%;
+	}
 </style>
