@@ -32,7 +32,7 @@
     "prettycron": "^0.10.0",
     "v-page": "^2.0.9",
     "vue": "^2.6.12",
-    "vue-apexcharts": "^1.6.1",
+    "vue-apexcharts": "^1.6.2",
     "vue-axios": "^3.2.4",
     "vue-markdown": "^2.2.4",
     "vue-router": "^3.2.0",
