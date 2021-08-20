@@ -1,7 +1,7 @@
 #!/bin/sh
 
 e2e_test_install() {
-  CLUSTER_NAME="api-backup"
+  CLUSTER_NAME="api-bkp"
   NODE_LABEL_KEY=$(ramdom_string)
   NODE_LABEL_VALUE=$(ramdom_string)
 
@@ -318,7 +318,7 @@ check_backup_without_config_is_pending() {
     --set configurations.create=false --set instanceProfiles=false \
     --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
 
-  local BACKUP_NAME="${CLUSTER_NAME}-pending-$(shuf -i 0-65535 -n 1)"
+  local BACKUP_NAME="${CLUSTER_NAME}-pending-$(shuf -i 0-6553 -n 1)"
 
   cat << EOF | kubectl create -f -
   apiVersion: stackgres.io/v1
