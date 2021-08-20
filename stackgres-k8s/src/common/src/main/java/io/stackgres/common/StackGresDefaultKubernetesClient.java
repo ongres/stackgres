@@ -16,6 +16,7 @@ import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
+import io.fabric8.kubernetes.client.internal.PatchUtils;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import okhttp3.Call;
 import okhttp3.MediaType;
@@ -55,7 +56,7 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
   }
 
   private <T extends HasMetadata> T apply(T intent, URL applyUrl) throws IOException {
-    String content = Serialization.jsonMapper().valueToTree(intent).toString();
+    String content = PatchUtils.patchMapper().valueToTree(intent).toString();
 
     LOGGER.trace("Performing Server Side Apply request to the endpoint: {}",
         applyUrl.toString());
