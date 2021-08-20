@@ -15,7 +15,7 @@ check_major_version_upgrade_timed_out() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: major-version-upgrade
+  name: major-upgrade
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -63,7 +63,7 @@ check_major_version_upgrade_repeat() {
   apiVersion: stackgres.io/v1
   kind: SGDbOps
   metadata:
-    name: major-version-upgrade
+    name: major-upgrade
     namespace: $CLUSTER_NAMESPACE
   spec:
     sgCluster: $CLUSTER_NAME
