@@ -12,7 +12,7 @@ e2e_test_install() {
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1
 
-  DBOPS_MINOR_VERSION_UPGRADE_NAME=minor-version-upgrade
+  DBOPS_MINOR_VERSION_UPGRADE_NAME=minor-upgrade
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
