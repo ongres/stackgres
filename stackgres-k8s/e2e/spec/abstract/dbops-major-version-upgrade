@@ -69,7 +69,7 @@ check_major_version_upgrade() {
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "cluster-name=$CLUSTER_NAME,db-ops=true" \
+    -l "dbops-name=major-version-upgrade,db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
     echo "SUCCESS. major version upgrade job was not removed after completion."

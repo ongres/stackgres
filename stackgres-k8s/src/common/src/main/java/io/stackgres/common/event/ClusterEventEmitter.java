@@ -8,15 +8,9 @@ package io.stackgres.common.event;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operatorframework.resource.EventReason;
 
 @ApplicationScoped
 @EventEmitterType(StackGresCluster.class)
 public class ClusterEventEmitter extends AbstractEventEmitter<StackGresCluster> {
 
-  @Override
-  public void sendEvent(EventReason reason, String message, StackGresCluster context) {
-
-    emitEvent(reason, message, context);
-  }
 }

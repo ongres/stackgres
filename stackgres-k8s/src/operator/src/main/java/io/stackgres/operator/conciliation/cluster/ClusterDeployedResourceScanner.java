@@ -18,7 +18,7 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.KubernetesClientFactory;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.DeployedResourceDecorator;
 import io.stackgres.operator.conciliation.DeployedResourcesScanner;
@@ -30,13 +30,13 @@ public class ClusterDeployedResourceScanner implements DeployedResourcesScanner<
     ReconciliationOperations {
 
   private final KubernetesClientFactory clientFactory;
-  private final LabelFactory<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
   private final Instance<DeployedResourceDecorator> decorators;
 
   @Inject
   public ClusterDeployedResourceScanner(
       KubernetesClientFactory clientFactory,
-      LabelFactory<StackGresCluster> labelFactory,
+      LabelFactoryForCluster<StackGresCluster> labelFactory,
       @Any Instance<DeployedResourceDecorator> decorators) {
     this.clientFactory = clientFactory;
     this.labelFactory = labelFactory;
@@ -48,9 +48,9 @@ public class ClusterDeployedResourceScanner implements DeployedResourcesScanner<
 
     try (KubernetesClient client = clientFactory.create()) {
 
-      final Map<String, String> genericClusterLabels = labelFactory.genericClusterLabels(config);
+      final Map<String, String> genericClusterLabels = labelFactory.genericLabels(config);
 
-      Stream<HasMetadata> inNamespace = STACKGRES_CLUSTER_IN_NAMESPACE_RESOURCE_OPERATIONS
+      Stream<HasMetadata> inNamespace = IN_NAMESPACE_RESOURCE_OPERATIONS
           .values()
           .stream()
           .flatMap(resourceOperationGetter -> resourceOperationGetter.apply(client)
@@ -60,7 +60,7 @@ public class ClusterDeployedResourceScanner implements DeployedResourcesScanner<
               .getItems()
               .stream());
 
-      Stream<HasMetadata> anyNamespace = STACKGRES_CLUSTER_ANY_NAMESPACE_RESOURCE_OPERATIONS
+      Stream<HasMetadata> anyNamespace = ANY_NAMESPACE_RESOURCE_OPERATIONS
           .values()
           .stream()
           .flatMap(resourceOperationGetter -> resourceOperationGetter

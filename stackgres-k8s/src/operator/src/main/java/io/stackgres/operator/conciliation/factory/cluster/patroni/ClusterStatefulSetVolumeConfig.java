@@ -15,13 +15,13 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.VolumeConfig;
 import io.stackgres.operator.common.VolumeConfig.VolumePathConfig;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterStatefulSet;
 import io.stackgres.operator.conciliation.factory.cluster.backup.BackupConfigMap;
 import io.stackgres.operator.conciliation.factory.cluster.backup.BackupSecret;
@@ -95,7 +95,7 @@ public enum ClusterStatefulSetVolumeConfig {
     this.volumeConfig = volumeConfig;
   }
 
-  public static Stream<Volume> volumes(StackGresClusterContext context) {
+  public static Stream<Volume> volumes(ClusterContext context) {
     return Seq.of(values())
         .map(ClusterStatefulSetVolumeConfig::config)
         .map(volumeConfig -> volumeConfig.volume(context))
@@ -103,7 +103,7 @@ public enum ClusterStatefulSetVolumeConfig {
         .map(Optional::get);
   }
 
-  public static Stream<Volume> allVolumes(StackGresClusterContext context) {
+  public static Stream<Volume> allVolumes(ClusterContext context) {
     return Seq.of(values())
         .map(ClusterStatefulSetVolumeConfig::config)
         .map(volumeConfig -> volumeConfig.volume(context))
@@ -115,18 +115,18 @@ public enum ClusterStatefulSetVolumeConfig {
     return volumeConfig;
   }
 
-  public static Stream<VolumeMount> volumeMounts(StackGresClusterContext context,
-                                                 ClusterStatefulSetVolumeConfig... configs) {
+  public static Stream<VolumeMount> volumeMounts(ClusterContext context,
+      ClusterStatefulSetVolumeConfig... configs) {
     return Seq.of(configs)
         .map(ClusterStatefulSetVolumeConfig::config)
         .flatMap(volumeConfig -> volumeConfig.volumeMounts(context).stream());
   }
 
-  public Collection<VolumeMount> volumeMounts(StackGresClusterContext context) {
+  public Collection<VolumeMount> volumeMounts(ClusterContext context) {
     return new ArrayList<>(volumeConfig.volumeMounts(context));
   }
 
-  public VolumeMount volumeMount(StackGresClusterContext context) {
+  public VolumeMount volumeMount(ClusterContext context) {
     return volumeConfig.volumeMounts(context)
         .stream()
         .findFirst()
@@ -134,9 +134,9 @@ public enum ClusterStatefulSetVolumeConfig {
             "Volume mount " + volumeConfig.name() + " is not available for this context"));
   }
 
-  public VolumeMount volumeMount(StackGresClusterContext context,
-                                 Function<VolumeMountBuilder,
-                                     VolumeMountBuilder> volumeMountOverride) {
+  public VolumeMount volumeMount(ClusterContext context,
+      Function<VolumeMountBuilder,
+      VolumeMountBuilder> volumeMountOverride) {
     return volumeConfig.volumeMounts(context)
         .stream()
         .map(VolumeMountBuilder::new)
@@ -147,14 +147,14 @@ public enum ClusterStatefulSetVolumeConfig {
             "Volume mount " + volumeConfig.name() + " is not available for this context"));
   }
 
-  public VolumeMount volumeMount(ClusterStatefulSetPath path, StackGresClusterContext context) {
+  public VolumeMount volumeMount(ClusterStatefulSetPath path, ClusterContext context) {
     return volumeConfig.volumeMount(path, context)
         .orElseThrow(() -> new IllegalStateException(
             "Volume mount " + volumeConfig.name() + " with path " + path.path()
                 + " and subPath " + path.subPath() + " is not available for this context"));
   }
 
-  public Volume volume(StackGresClusterContext context) {
+  public Volume volume(ClusterContext context) {
     return volumeConfig.volume(context)
         .orElseThrow(() -> new IllegalStateException(
             "Volume " + volumeConfig.name()

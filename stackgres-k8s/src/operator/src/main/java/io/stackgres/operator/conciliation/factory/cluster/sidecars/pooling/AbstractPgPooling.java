@@ -23,7 +23,7 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -51,10 +51,11 @@ public abstract class AbstractPgPooling
       .put("unix_socket_dir", ClusterStatefulSetPath.PG_RUN_PATH.path())
       .build();
 
-  private final LabelFactory<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Inject
-  protected AbstractPgPooling(LabelFactory<StackGresCluster> labelFactory) {
+  protected AbstractPgPooling(
+      LabelFactoryForCluster<StackGresCluster> labelFactory) {
     this.labelFactory = labelFactory;
   }
 

@@ -25,15 +25,15 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
 import io.stackgres.common.ImmutableStorageConfig;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StorageConfig;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPersistentVolume;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
-import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.PodTemplateFactory;
 import io.stackgres.operator.conciliation.factory.PodTemplateResult;
 import io.stackgres.operator.conciliation.factory.VolumeDiscoverer;
@@ -42,17 +42,17 @@ import io.stackgres.operator.conciliation.factory.VolumePair;
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
 public class DistributedLogsStatefulSet
-    implements ResourceGenerator<DistributedLogsContext> {
+    implements ResourceGenerator<StackGresDistributedLogsContext> {
 
   private final PodTemplateFactory<DistributedLogsContainerContext> podTemplateSpecFactory;
-  private final LabelFactory<StackGresDistributedLogs> labelFactory;
-  private final VolumeDiscoverer<DistributedLogsContext> volumeDiscoverer;
+  private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
+  private final VolumeDiscoverer<StackGresDistributedLogsContext> volumeDiscoverer;
 
   @Inject
   public DistributedLogsStatefulSet(
-      LabelFactory<StackGresDistributedLogs> labelFactory,
+      LabelFactoryForCluster<StackGresDistributedLogs> labelFactory,
       PodTemplateFactory<DistributedLogsContainerContext> podTemplateSpecFactory,
-      VolumeDiscoverer<DistributedLogsContext> volumeDiscoverer) {
+      VolumeDiscoverer<StackGresDistributedLogsContext> volumeDiscoverer) {
     this.labelFactory = labelFactory;
     this.podTemplateSpecFactory = podTemplateSpecFactory;
     this.volumeDiscoverer = volumeDiscoverer;
@@ -63,7 +63,7 @@ public class DistributedLogsStatefulSet
   }
 
   @Override
-  public Stream<HasMetadata> generateResource(DistributedLogsContext context) {
+  public Stream<HasMetadata> generateResource(StackGresDistributedLogsContext context) {
 
     final StackGresDistributedLogs cluster = context.getSource();
     final ObjectMeta metadata = cluster.getMetadata();

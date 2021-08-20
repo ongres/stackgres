@@ -14,7 +14,6 @@ import javax.inject.Inject;
 
 import io.stackgres.operator.conciliation.InitContainerFactoryDiscover;
 import io.stackgres.operator.conciliation.ResourceDiscoverer;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 
@@ -42,9 +41,7 @@ public class InitContainerFactoryDiscoverImpl
   @Override
   public List<ContainerFactory<StackGresClusterContainerContext>> discoverContainers(
       StackGresClusterContainerContext context) {
-    StackGresVersion version = StackGresVersion
-        .getClusterStackGresVersion(context.getClusterContext().getSource());
-    return resourceHub.get(version).stream()
+    return resourceHub.get(context.getClusterContext().getVersion()).stream()
         .filter(f -> f.isActivated(context))
         .collect(Collectors.toUnmodifiableList());
   }

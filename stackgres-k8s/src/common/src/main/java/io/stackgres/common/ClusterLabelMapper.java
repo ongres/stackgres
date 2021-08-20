@@ -10,34 +10,26 @@ import javax.enterprise.context.ApplicationScoped;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 
 @ApplicationScoped
-public class ClusterLabelMapper implements LabelMapper<StackGresCluster> {
+public class ClusterLabelMapper implements LabelMapperForCluster<StackGresCluster> {
 
+  @Override
   public String appName() {
-    return StackGresContext.APP_NAME;
+    return StackGresContext.CLUSTER_APP_NAME;
   }
 
-  public String clusterNameKey() {
+  @Override
+  public String resourceNameKey() {
     return StackGresContext.CLUSTER_NAME_KEY;
   }
 
-  public String clusterNamespaceKey() {
+  @Override
+  public String resourceNamespaceKey() {
     return StackGresContext.CLUSTER_NAMESPACE_KEY;
   }
 
-  public String clusterUidKey() {
+  @Override
+  public String resourceUidKey() {
     return StackGresContext.CLUSTER_UID_KEY;
-  }
-
-  public String clusterKey() {
-    return StackGresContext.CLUSTER_KEY;
-  }
-
-  public String disruptibleKey() {
-    return StackGresContext.DISRUPTIBLE_KEY;
-  }
-
-  public String backupKey() {
-    return StackGresContext.BACKUP_KEY;
   }
 
 }

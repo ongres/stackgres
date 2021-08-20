@@ -16,38 +16,38 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.common.resource.ResourceUtil;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
-import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
 public class PatroniConfigEndpoints
-    implements ResourceGenerator<DistributedLogsContext> {
+    implements ResourceGenerator<StackGresDistributedLogsContext> {
 
   public static final String PATRONI_CONFIG_KEY = "config";
 
   private final JsonMapper objectMapper;
 
-  private final LabelFactory<StackGresDistributedLogs> labelFactory;
+  private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
   @Inject
   public PatroniConfigEndpoints(
-      JsonMapper objectMapper, LabelFactory<StackGresDistributedLogs> labelFactory) {
+      JsonMapper objectMapper, LabelFactoryForCluster<StackGresDistributedLogs> labelFactory) {
     this.objectMapper = objectMapper;
     this.labelFactory = labelFactory;
   }
 
   @Override
-  public Stream<HasMetadata> generateResource(DistributedLogsContext context) {
+  public Stream<HasMetadata> generateResource(StackGresDistributedLogsContext context) {
 
     PatroniConfig patroniConf = new PatroniConfig();
     patroniConf.setTtl(30);
@@ -73,7 +73,7 @@ public class PatroniConfigEndpoints
   }
 
   @NotNull
-  public Map<String, String> getPostgresConfigValues(DistributedLogsContext context) {
+  public Map<String, String> getPostgresConfigValues(StackGresDistributedLogsContext context) {
     Map<String, String> params = new HashMap<>(PostgresDefaultValues.getDefaultValues());
 
     params.put("archive_command", "/bin/true");
@@ -88,7 +88,7 @@ public class PatroniConfigEndpoints
     return params;
   }
 
-  private String configName(DistributedLogsContext context) {
+  private String configName(StackGresDistributedLogsContext context) {
     final String scope = labelFactory.clusterScope(context.getSource());
     return ResourceUtil.resourceName(scope + PatroniUtil.CONFIG_SERVICE);
   }

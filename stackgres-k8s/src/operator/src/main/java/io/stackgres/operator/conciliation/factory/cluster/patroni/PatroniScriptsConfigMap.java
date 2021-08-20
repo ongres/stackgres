@@ -20,12 +20,12 @@ import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
@@ -44,10 +44,10 @@ public class PatroniScriptsConfigMap implements
   public static final String SCRIPT_NAME = "%05d-%s";
   public static final String SCRIPT_NAME_FOR_DATABASE = "%05d-%s.%s";
 
-  private final LabelFactory<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Inject
-  public PatroniScriptsConfigMap(LabelFactory<StackGresCluster> labelFactory) {
+  public PatroniScriptsConfigMap(LabelFactoryForCluster<StackGresCluster> labelFactory) {
     this.labelFactory = labelFactory;
   }
 

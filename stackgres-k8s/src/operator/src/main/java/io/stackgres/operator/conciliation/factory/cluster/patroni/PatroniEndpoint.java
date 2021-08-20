@@ -12,21 +12,21 @@ import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
 public class PatroniEndpoint implements ResourceGenerator<StackGresClusterContext> {
 
-  private final LabelFactory<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Inject
-  public PatroniEndpoint(LabelFactory<StackGresCluster> labelFactory) {
+  public PatroniEndpoint(LabelFactoryForCluster<StackGresCluster> labelFactory) {
     this.labelFactory = labelFactory;
   }
 

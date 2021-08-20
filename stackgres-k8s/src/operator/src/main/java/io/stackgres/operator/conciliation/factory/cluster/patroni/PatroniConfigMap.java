@@ -24,15 +24,15 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
@@ -54,7 +54,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  private LabelFactory<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   public static String name(ClusterContext clusterContext) {
     return StatefulSetDynamicVolumes.PATRONI_ENV
@@ -112,7 +112,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
     final int pgPort = EnvoyUtil.PG_ENTRY_PORT;
     Map<String, String> data = new HashMap<>();
     data.put("PATRONI_SCOPE", labelFactory.clusterScope(cluster));
-    data.put("PATRONI_KUBERNETES_SCOPE_LABEL", labelFactory.getLabelMapper().clusterScopeKey());
+    data.put("PATRONI_KUBERNETES_SCOPE_LABEL", labelFactory.labelMapper().clusterScopeKey());
     data.put("PATRONI_KUBERNETES_LABELS", patroniLabels);
     data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
     data.put("PATRONI_KUBERNETES_PORTS", getKubernetesPorts(pgPort, pgRawPort));
@@ -157,7 +157,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
   }
 
   @Inject
-  public void setLabelFactory(LabelFactory<StackGresCluster> labelFactory) {
+  public void setLabelFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
     this.labelFactory = labelFactory;
   }
 }

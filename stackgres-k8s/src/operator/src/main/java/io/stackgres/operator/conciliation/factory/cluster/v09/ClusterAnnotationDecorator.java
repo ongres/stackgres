@@ -16,9 +16,9 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
+import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.AbstractClusterAnnotationDecorator;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +27,8 @@ import org.jetbrains.annotations.NotNull;
 public class ClusterAnnotationDecorator extends AbstractClusterAnnotationDecorator {
 
   @Override
-  protected void decorateSts(@NotNull StackGresCluster cluster, @NotNull HasMetadata resource) {
+  protected void decorateSts(@NotNull StackGresClusterContext context,
+      @NotNull HasMetadata resource) {
     StatefulSet statefulSet = (StatefulSet) resource;
     Map<String, String> podTemplateAnnotations = Optional.ofNullable(statefulSet.getSpec())
         .map(StatefulSetSpec::getTemplate)
@@ -35,7 +36,7 @@ public class ClusterAnnotationDecorator extends AbstractClusterAnnotationDecorat
         .map(ObjectMeta::getAnnotations)
         .orElse(new HashMap<>());
 
-    podTemplateAnnotations.putAll(getPodAnnotations(cluster));
+    podTemplateAnnotations.putAll(getPodAnnotations(context));
     Optional.ofNullable(statefulSet.getSpec())
         .map(StatefulSetSpec::getTemplate)
         .ifPresent(template -> {
@@ -48,7 +49,7 @@ public class ClusterAnnotationDecorator extends AbstractClusterAnnotationDecorat
 
     Optional.ofNullable(statefulSet.getSpec())
         .map(StatefulSetSpec::getVolumeClaimTemplates)
-        .ifPresent(cvt -> decorate(cluster, cvt));
+        .ifPresent(cvt -> decorate(context, cvt));
   }
 
 }

@@ -39,7 +39,6 @@ public class StackGresKubernetesClient extends DefaultKubernetesClient {
   private static final String SERVER_SIDE_APPLY_GROUP_PATH_FORMAT =
       "/apis/%s/namespaces/%s/%s/%s?fieldManager=%s&force=%b";
 
-  @SuppressWarnings("unchecked")
   public <T extends HasMetadata> T serverSideApply(PatchContext patchContext, T intent) {
 
     intent.getMetadata().setManagedFields(null);
@@ -74,6 +73,7 @@ public class StackGresKubernetesClient extends DefaultKubernetesClient {
     return executeRequest(intent, call);
   }
 
+  @SuppressWarnings("unchecked")
   private <T extends HasMetadata> T executeRequest(T intent, Call call) throws IOException {
 
     Response response = null;

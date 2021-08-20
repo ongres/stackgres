@@ -13,29 +13,26 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.ResourceDiscoverer;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
+import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.Decorator;
 import io.stackgres.operator.conciliation.factory.DecoratorDiscoverer;
 
 @ApplicationScoped
 public class DecoratorDiscovererImpl
-    extends ResourceDiscoverer<Decorator<StackGresCluster>>
-    implements DecoratorDiscoverer<StackGresCluster> {
+    extends ResourceDiscoverer<Decorator<StackGresClusterContext>>
+    implements DecoratorDiscoverer<StackGresClusterContext> {
 
   @Inject
   public DecoratorDiscovererImpl(
-      @Any Instance<Decorator<StackGresCluster>> instance) {
+      @Any Instance<Decorator<StackGresClusterContext>> instance) {
     init(instance);
-
   }
 
   @Override
-  public List<Decorator<StackGresCluster>> discoverDecorator(StackGresCluster context) {
-
-    StackGresVersion version = StackGresVersion.getClusterStackGresVersion(context);
-    return resourceHub.get(version).stream()
+  public List<Decorator<StackGresClusterContext>> discoverDecorator(
+      StackGresClusterContext context) {
+    return resourceHub.get(context.getVersion()).stream()
         .collect(Collectors.toUnmodifiableList());
 
   }

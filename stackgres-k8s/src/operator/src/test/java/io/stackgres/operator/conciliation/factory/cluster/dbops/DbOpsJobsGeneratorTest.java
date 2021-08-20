@@ -17,12 +17,12 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
+import io.stackgres.operator.conciliation.dbops.ImmutableStackGresDbOpsContext;
+import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
+import io.stackgres.operator.conciliation.factory.dbops.DbOpsJobsGenerator;
 import io.stackgres.testutil.JsonUtil;
-import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -58,12 +58,9 @@ class DbOpsJobsGeneratorTest {
 
   @Test
   void givenAContextWithASingleDbOpsWithoutRunAt_itShouldGenerateAJob() {
-    StackGresClusterContext context = ImmutableStackGresClusterContext.builder()
-        .source(cluster)
-        .postgresConfig(clusterPgConfig)
-        .stackGresProfile(clusterProfile)
-        .internalScripts(Seq.of())
-        .addDbOps(dbOps)
+    StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
+        .source(dbOps)
+        .cluster(cluster)
         .build();
 
     dbOps.getSpec().setRunAt(null);
@@ -75,28 +72,10 @@ class DbOpsJobsGeneratorTest {
   }
 
   @Test
-  void givenAContextWithNoDbOps_itShouldNotGenerateAJob() {
-    StackGresClusterContext context = ImmutableStackGresClusterContext.builder()
-        .source(cluster)
-        .postgresConfig(clusterPgConfig)
-        .stackGresProfile(clusterProfile)
-        .internalScripts(Seq.of())
-        .build();
-
-    var generatedResources = dbOpsJobsGenerator.generateResource(context)
-        .collect(Collectors.toUnmodifiableList());
-
-    assertEquals(0, generatedResources.size());
-  }
-
-  @Test
   void givenAContextWithADbOpsWithAPastRunAt_shouldGenerateAJob() {
-    StackGresClusterContext context = ImmutableStackGresClusterContext.builder()
-        .source(cluster)
-        .postgresConfig(clusterPgConfig)
-        .stackGresProfile(clusterProfile)
-        .internalScripts(Seq.of())
-        .addDbOps(dbOps)
+    StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
+        .source(dbOps)
+        .cluster(cluster)
         .build();
 
     dbOps.getSpec().setRunAt(Instant.now().minusMillis(1000).toString());
@@ -109,12 +88,9 @@ class DbOpsJobsGeneratorTest {
 
   @Test
   void givenAContextWithADbOpsWithAFutureRunAt_shouldNotGenerateAJob() {
-    StackGresClusterContext context = ImmutableStackGresClusterContext.builder()
-        .source(cluster)
-        .postgresConfig(clusterPgConfig)
-        .stackGresProfile(clusterProfile)
-        .internalScripts(Seq.of())
-        .addDbOps(dbOps)
+    StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
+        .source(dbOps)
+        .cluster(cluster)
         .build();
 
     dbOps.getSpec().setRunAt(Instant.now().plusMillis(1000).toString());

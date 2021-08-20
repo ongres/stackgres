@@ -3,9 +3,7 @@
 e2e_test_install() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
 
-  deploy_curl_pod "$CLUSTER_NAMESPACE"
-
-  wait_pods_running "$CLUSTER_NAMESPACE" 2
+  wait_pods_running "$CLUSTER_NAMESPACE" 1
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
@@ -183,7 +181,7 @@ check_repack() {
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "cluster-name=$CLUSTER_NAME,db-ops=true" \
+    -l "dbops-name=repack,db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
     echo "SUCCESS. repack job was not removed after completion."
@@ -227,7 +225,7 @@ EOF
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "cluster-name=$CLUSTER_NAME,db-ops=true" \
+    -l "dbops-name=repack,db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
     echo "SUCCESS. repack job was not removed after failure."
@@ -239,7 +237,7 @@ EOF
   kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" repack
 
   if wait_until eval '[ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "cluster-name=$CLUSTER_NAME,db-ops=true" \
+    -l "dbops-name=repack,db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 0 ]'
   then
     echo "SUCCESS. repack job was removed after sgdbops was removed."

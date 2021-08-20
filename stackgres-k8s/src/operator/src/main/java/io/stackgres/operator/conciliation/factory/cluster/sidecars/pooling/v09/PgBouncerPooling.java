@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.EnvoyUtil;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
@@ -29,8 +29,8 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerStatus;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
 import io.stackgres.operator.common.Sidecar;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
@@ -51,7 +51,7 @@ public class PgBouncerPooling extends AbstractPgPooling {
   private final VolumeMountsProvider<ContainerContext> postgresSocket;
 
   @Inject
-  protected PgBouncerPooling(LabelFactory<StackGresCluster> labelFactory,
+  protected PgBouncerPooling(LabelFactoryForCluster<StackGresCluster> labelFactory,
       @ProviderName(CONTAINER_LOCAL_OVERRIDE)
         VolumeMountsProvider<ContainerContext> containerUserOverrideMounts,
       @ProviderName(POSTGRES_SOCKET)

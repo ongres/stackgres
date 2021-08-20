@@ -25,15 +25,15 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ImmutableStorageConfig;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StorageConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.PodTemplateFactory;
 import io.stackgres.operator.conciliation.factory.PodTemplateResult;
 import io.stackgres.operator.conciliation.factory.VolumeDiscoverer;
@@ -45,14 +45,14 @@ public class ClusterStatefulSet
     implements ResourceGenerator<StackGresClusterContext> {
 
   public static final String GCS_CREDENTIALS_FILE_NAME = "gcs-credentials.json";
-  private final LabelFactory<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   private final PodTemplateFactory<StackGresClusterContainerContext> podTemplateSpecFactory;
   private final VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer;
 
   @Inject
   public ClusterStatefulSet(
-      LabelFactory<StackGresCluster> labelFactory,
+      LabelFactoryForCluster<StackGresCluster> labelFactory,
       PodTemplateFactory<StackGresClusterContainerContext> podTemplateSpecFactory,
       VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer) {
     this.labelFactory = labelFactory;

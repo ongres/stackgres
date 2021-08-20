@@ -30,7 +30,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
@@ -72,9 +71,7 @@ public class ClusterRequiredResourcesGenerator
 
   private final ResourceFinder<Secret> secretFinder;
 
-  private final CustomResourceScanner<StackGresDbOps> dbOpsScanner;
-
-  private final DecoratorDiscoverer<StackGresCluster> decoratorDiscoverer;
+  private final DecoratorDiscoverer<StackGresClusterContext> decoratorDiscoverer;
 
   private final CustomResourceScanner<PrometheusConfig> prometheusScanner;
 
@@ -89,8 +86,7 @@ public class ClusterRequiredResourcesGenerator
       CustomResourceFinder<StackGresProfile> profileFinder,
       CustomResourceScanner<StackGresBackup> backupScanner,
       ResourceFinder<Secret> secretFinder,
-      CustomResourceScanner<StackGresDbOps> dbOpsScanner,
-      DecoratorDiscoverer<StackGresCluster> decoratorDiscoverer,
+      DecoratorDiscoverer<StackGresClusterContext> decoratorDiscoverer,
       CustomResourceScanner<PrometheusConfig> prometheusScanner,
       OperatorPropertyContext operatorContext) {
     this.generators = generators;
@@ -100,7 +96,6 @@ public class ClusterRequiredResourcesGenerator
     this.profileFinder = profileFinder;
     this.backupScanner = backupScanner;
     this.secretFinder = secretFinder;
-    this.dbOpsScanner = dbOpsScanner;
     this.decoratorDiscoverer = decoratorDiscoverer;
     this.prometheusScanner = prometheusScanner;
     this.operatorContext = operatorContext;
@@ -176,17 +171,13 @@ public class ClusterRequiredResourcesGenerator
       });
     }
 
-    List<StackGresBackup> backups = getBackups(config);
-
     StackGresClusterContext context = ImmutableStackGresClusterContext.builder()
         .source(config)
         .postgresConfig(clusterPgConfig)
         .stackGresProfile(clusterProfile)
         .backupConfig(backupConfig)
         .poolingConfig(clusterPooling)
-        .backups(backups)
         .restoreBackup(restoreBackup)
-        .addAllDbOps(getDbOps(config))
         .prometheus(getPrometheus(config))
         .internalScripts(List.of(getPostgresExporterInitScript()))
         .databaseCredentials(secretFinder.findByNameAndNamespace(clusterName, clusterNamespace))
@@ -199,29 +190,12 @@ public class ClusterRequiredResourcesGenerator
         .stream().flatMap(generator -> generator.generateResource(context))
         .collect(Collectors.toUnmodifiableList());
 
-    List<Decorator<StackGresCluster>> decorators = decoratorDiscoverer.discoverDecorator(config);
+    List<Decorator<StackGresClusterContext>> decorators =
+        decoratorDiscoverer.discoverDecorator(context);
 
-    decorators.forEach(decorator -> decorator.decorate(config, resources));
+    decorators.forEach(decorator -> decorator.decorate(context, resources));
 
     return resources;
-  }
-
-  private List<StackGresDbOps> getDbOps(StackGresCluster cluster) {
-    final String namespace = cluster.getMetadata().getNamespace();
-    final String name = cluster.getMetadata().getName();
-    return dbOpsScanner.getResources(namespace)
-        .stream()
-        .filter(dbOps -> dbOps.getSpec().getSgCluster().equals(name))
-        .collect(Collectors.toUnmodifiableList());
-  }
-
-  private List<StackGresBackup> getBackups(StackGresCluster cluster) {
-    final String namespace = cluster.getMetadata().getNamespace();
-    final String name = cluster.getMetadata().getName();
-    return backupScanner.getResources(namespace)
-        .stream()
-        .filter(backup -> backup.getSpec().getSgCluster().equals(name))
-        .collect(Collectors.toUnmodifiableList());
   }
 
   private StackGresClusterScriptEntry getPostgresExporterInitScript() {

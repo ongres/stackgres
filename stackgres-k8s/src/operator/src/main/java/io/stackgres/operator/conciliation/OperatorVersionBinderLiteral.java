@@ -7,7 +7,7 @@ package io.stackgres.operator.conciliation;
 
 import javax.enterprise.util.AnnotationLiteral;
 
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
+import io.stackgres.operator.common.StackGresVersion;
 
 public class OperatorVersionBinderLiteral extends AnnotationLiteral<OperatorVersionBinder>
     implements OperatorVersionBinder {

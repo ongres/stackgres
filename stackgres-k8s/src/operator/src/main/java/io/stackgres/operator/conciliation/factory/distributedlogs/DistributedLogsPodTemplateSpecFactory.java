@@ -28,7 +28,7 @@ import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.TolerationBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -37,7 +37,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPodSche
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.operator.conciliation.ContainerFactoryDiscoverer;
 import io.stackgres.operator.conciliation.InitContainerFactoryDiscover;
-import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ImmutablePodTemplateResult;
 import io.stackgres.operator.conciliation.factory.PodTemplateFactory;
@@ -50,9 +50,10 @@ import org.jooq.lambda.Seq;
 public class DistributedLogsPodTemplateSpecFactory
     implements PodTemplateFactory<DistributedLogsContainerContext> {
 
-  private final ResourceFactory<DistributedLogsContext, PodSecurityContext> podSecurityContext;
+  private final ResourceFactory<StackGresDistributedLogsContext, PodSecurityContext>
+      podSecurityContext;
 
-  private final LabelFactory<StackGresDistributedLogs> labelFactory;
+  private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
   private final ContainerFactoryDiscoverer<DistributedLogsContainerContext>
       containerFactoryDiscoverer;
@@ -62,8 +63,8 @@ public class DistributedLogsPodTemplateSpecFactory
 
   @Inject
   public DistributedLogsPodTemplateSpecFactory(
-      ResourceFactory<DistributedLogsContext, PodSecurityContext> podSecurityContext,
-      LabelFactory<StackGresDistributedLogs> labelFactory,
+      ResourceFactory<StackGresDistributedLogsContext, PodSecurityContext> podSecurityContext,
+      LabelFactoryForCluster<StackGresDistributedLogs> labelFactory,
       ContainerFactoryDiscoverer<DistributedLogsContainerContext> containerFactoryDiscoverer,
       InitContainerFactoryDiscover<DistributedLogsContainerContext> iniContainerFactoryDiscoverer) {
     this.podSecurityContext = podSecurityContext;
@@ -124,7 +125,7 @@ public class DistributedLogsPodTemplateSpecFactory
                             .withMatchExpressions(new LabelSelectorRequirementBuilder()
                                     .withKey(StackGresContext.APP_KEY)
                                     .withOperator("In")
-                                    .withValues(labelFactory.getLabelMapper().appName())
+                                    .withValues(labelFactory.labelMapper().appName())
                                     .build(),
                                 new LabelSelectorRequirementBuilder()
                                     .withKey("cluster")

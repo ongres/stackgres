@@ -1,0 +1,40 @@
+#!/bin/sh
+
+. "$TEST_SHELL_PATH/dbops/abstract-dbops"
+
+shell_unit_test() {
+  EXCLUSIVE_OP=true
+  LOCK_SLEEP=0
+  TIMEOUT=0
+  echo test > "$TEST_TARGET_PATH/lock_pod"
+  ! (shell_unit_test_dbops)
+  check_dbops_result
+}
+
+run_op() {
+  sleep 300
+}
+
+mock kubectl kubectl_mock_overwrite
+
+kubectl_mock_overwrite() {
+  mokked
+  case "$*" in
+    ("get $CLUSTER_CRD_NAME "*)
+    LOCK_POD="$(cat "$TEST_TARGET_PATH/lock_pod")"
+    echo '
+      LOCK_POD='"$LOCK_POD"'
+      LOCK_TIMESTAMP="$(date +%s)"
+      RESOURCE_VERSION=test
+      '
+    echo wrong-test > "$TEST_TARGET_PATH/lock_pod"
+    if [ "$LOCK_POD" = test ]
+    then
+      sleep 300
+    fi
+    ;;
+    *)
+    not_mokked
+    ;;
+  esac
+}

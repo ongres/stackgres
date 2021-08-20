@@ -16,7 +16,6 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.resource.ResourceFinder;
-import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.factory.DecoratorDiscoverer;
@@ -25,9 +24,9 @@ import io.stackgres.operator.conciliation.factory.DecoratorDiscoverer;
 public class DistributedLogsRequiredResourcesGenerator
     implements RequiredResourceGenerator<StackGresDistributedLogs> {
 
-  private final ResourceGenerationDiscoverer<DistributedLogsContext> generators;
+  private final ResourceGenerationDiscoverer<StackGresDistributedLogsContext> generators;
 
-  private final DecoratorDiscoverer<StackGresDistributedLogs> decoratorDiscoverer;
+  private final DecoratorDiscoverer<StackGresDistributedLogsContext> decoratorDiscoverer;
 
   private final ConnectedClustersScanner connectedClustersScanner;
 
@@ -35,8 +34,8 @@ public class DistributedLogsRequiredResourcesGenerator
 
   @Inject
   public DistributedLogsRequiredResourcesGenerator(
-      ResourceGenerationDiscoverer<DistributedLogsContext> generators,
-      DecoratorDiscoverer<StackGresDistributedLogs> decoratorDiscoverer,
+      ResourceGenerationDiscoverer<StackGresDistributedLogsContext> generators,
+      DecoratorDiscoverer<StackGresDistributedLogsContext> decoratorDiscoverer,
       ConnectedClustersScanner connectedClustersScanner,
       ResourceFinder<Secret> secretFinder) {
     this.generators = generators;
@@ -47,13 +46,11 @@ public class DistributedLogsRequiredResourcesGenerator
 
   @Override
   public List<HasMetadata> getRequiredResources(StackGresDistributedLogs config) {
-
     final String distributedLogsName = config.getMetadata().getName();
     final String namespace = config.getMetadata().getNamespace();
-    DistributedLogsContext context = ImmutableDistributedLogsContext.builder()
+    StackGresDistributedLogsContext context = ImmutableStackGresDistributedLogsContext.builder()
         .source(config)
         .addAllConnectedClusters(getConnectedClusters(config))
-        .ownerReferences(List.of(ResourceUtil.getOwnerReference(config)))
         .databaseCredentials(secretFinder.findByNameAndNamespace(distributedLogsName, namespace))
         .build();
 
@@ -61,9 +58,9 @@ public class DistributedLogsRequiredResourcesGenerator
         .stream().flatMap(generator -> generator.generateResource(context))
         .collect(Collectors.toUnmodifiableList());
 
-    var decorators = decoratorDiscoverer.discoverDecorator(config);
+    var decorators = decoratorDiscoverer.discoverDecorator(context);
 
-    decorators.forEach(decorator -> decorator.decorate(config, requiredResources));
+    decorators.forEach(decorator -> decorator.decorate(context, requiredResources));
 
     return requiredResources;
   }

@@ -8,8 +8,10 @@ package io.stackgres.operator.conciliation.cluster;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -151,8 +153,7 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
-    verify(backupScanner).getResources();
-
+    verify(backupScanner, atLeastOnce()).getResources();
   }
 
   @Test
@@ -183,14 +184,21 @@ class ClusterRequiredResourcesGeneratorTest {
       if (resource.getMetadata().getOwnerReferences().size() == 0) {
         fail("Resource " + resource.getMetadata().getName() + " doesn't have any owner");
       }
+      assertTrue(resource.getMetadata().getOwnerReferences().stream().anyMatch(ownerReference
+          -> ownerReference.getApiVersion().equals(HasMetadata.getApiVersion(
+              StackGresCluster.class))
+          && ownerReference.getKind().equals(HasMetadata.getKind(StackGresCluster.class))
+          && ownerReference.getName().equals(cluster.getMetadata().getName())
+          && ownerReference.getUid().equals(cluster.getMetadata().getUid())
+          && Optional.ofNullable(ownerReference.getBlockOwnerDeletion()).orElse(Boolean.FALSE)
+          .equals(Boolean.FALSE)));
     });
 
     verify(backupConfigFinder).findByNameAndNamespace(backupConfigName, clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
-    verify(backupScanner).getResources();
-
+    verify(backupScanner, atLeastOnce()).getResources();
   }
 
   @Test
@@ -218,8 +226,7 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
-    verify(backupScanner).getResources();
-
+    verify(backupScanner, atLeastOnce()).getResources();
   }
 
   @Test
@@ -248,8 +255,7 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
     verify(poolingConfigFinder, never()).findByNameAndNamespace(any(), any());
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
-    verify(backupScanner).getResources();
-
+    verify(backupScanner, atLeastOnce()).getResources();
   }
 
   @Test
@@ -280,7 +286,6 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupScanner, never()).getResources();
-
   }
 
   @Test
@@ -316,8 +321,7 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
-    verify(backupScanner).getResources();
-
+    verify(backupScanner, atLeastOnce()).getResources();
   }
 
   private void mockPoolingConfig(String clusterNamespace, String connectionPoolingConfig) {
@@ -350,7 +354,6 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(backupConfigFinder, never()).findByNameAndNamespace(any(), any());
     verify(poolingConfigFinder, never()).findByNameAndNamespace(any(), any());
     verify(backupScanner, never()).getResources();
-
   }
 
   @Test
@@ -375,7 +378,6 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(backupConfigFinder, never()).findByNameAndNamespace(any(), any());
     verify(poolingConfigFinder, never()).findByNameAndNamespace(any(), any());
     verify(backupScanner, never()).getResources();
-
   }
 
   @Test
@@ -405,8 +407,7 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
-    verify(backupScanner).getResources();
-
+    verify(backupScanner, atLeastOnce()).getResources();
   }
 
   @Test
@@ -436,8 +437,7 @@ class ClusterRequiredResourcesGeneratorTest {
     verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
-    verify(backupScanner).getResources();
-
+    verify(backupScanner, atLeastOnce()).getResources();
   }
 
   @Test
@@ -473,7 +473,6 @@ class ClusterRequiredResourcesGeneratorTest {
 
     assertEquals(2, serviceMonitors.size());
     verify(prometheusScanner).findResources();
-
   }
 
   @Test
@@ -510,7 +509,6 @@ class ClusterRequiredResourcesGeneratorTest {
         .collect(Collectors.toUnmodifiableList());
 
     assertEquals(2, serviceMonitors.size());
-
   }
 
   private void mockSecrets(String clusterNamespace) {

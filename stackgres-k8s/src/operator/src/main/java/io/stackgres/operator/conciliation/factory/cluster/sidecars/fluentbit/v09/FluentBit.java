@@ -21,16 +21,17 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.FluentdUtil;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.Sidecar;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
@@ -48,15 +49,15 @@ import io.stackgres.operator.conciliation.factory.v09.PatroniStaticVolume;
 @RunningContainer(order = 3)
 public class FluentBit extends AbstractFluentBit {
 
-  private final ClusterEnvironmentVariablesFactoryDiscoverer<StackGresClusterContext>
+  private final ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext>
       clusterEnvVarFactoryDiscoverer;
 
   private final VolumeMountsProvider<ContainerContext> containerLocalOverrideMounts;
 
   @Inject
   public FluentBit(
-      LabelFactory<StackGresCluster> labelFactory,
-      ClusterEnvironmentVariablesFactoryDiscoverer<StackGresClusterContext>
+      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext>
           clusterEnvVarFactoryDiscoverer,
       @ProviderName(VolumeMountProviderName.CONTAINER_LOCAL_OVERRIDE)
           VolumeMountsProvider<ContainerContext> containerLocalOverrideMounts) {
@@ -76,7 +77,7 @@ public class FluentBit extends AbstractFluentBit {
   private List<EnvVar> getClusterEnvVars(StackGresClusterContext context) {
     List<EnvVar> clusterEnvVars = new ArrayList<>();
 
-    List<ClusterEnvironmentVariablesFactory<StackGresClusterContext>> clusterEnvVarFactories =
+    List<ClusterEnvironmentVariablesFactory<ClusterContext>> clusterEnvVarFactories =
         clusterEnvVarFactoryDiscoverer.discoverFactories(context);
 
     clusterEnvVarFactories.forEach(envVarFactory ->
@@ -156,7 +157,7 @@ public class FluentBit extends AbstractFluentBit {
         + "    Regex       ^[^.]+\\.[^.]+\\.[^.]+\\."
         + "(?<namespace_name>[^.]+)\\.(?<pod_name>[^.]+)$\n"
         + "\n";
-    final String clusterNamespace = labelFactory.clusterNamespace(cluster);
+    final String clusterNamespace = cluster.getMetadata().getNamespace();
     String fluentBitConfigFile = ""
         + "[SERVICE]\n"
         + "    Parsers_File      /etc/fluent-bit/parsers.conf\n"

@@ -27,7 +27,7 @@ import io.stackgres.cluster.resource.ClusterResourceHandlerSelector;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.KubernetesClientFactory;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -43,7 +43,7 @@ public class ClusterControllerReconciliationCycle
 
   private final ClusterControllerPropertyContext propertyContext;
   private final EventController eventController;
-  private final LabelFactory<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
 
   @Dependent
@@ -53,7 +53,7 @@ public class ClusterControllerReconciliationCycle
     @Inject ClusterResourceHandlerSelector handlerSelector;
     @Inject ClusterControllerPropertyContext propertyContext;
     @Inject EventController eventController;
-    @Inject LabelFactory<StackGresCluster> labelFactory;
+    @Inject LabelFactoryForCluster<StackGresCluster> labelFactory;
     @Inject CustomResourceFinder<StackGresCluster> clusterFinder;
   }
 

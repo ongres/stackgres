@@ -22,19 +22,20 @@ import io.fabric8.kubernetes.api.model.batch.v1beta1.JobTemplateSpec;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
+import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.AnnotationDecorator;
 import org.jetbrains.annotations.NotNull;
 
-public class AbstractClusterAnnotationDecorator extends AnnotationDecorator<StackGresCluster> {
+public class AbstractClusterAnnotationDecorator
+    extends AnnotationDecorator<StackGresClusterContext> {
 
   @Override
   protected @NotNull Map<String, String> getAllResourcesAnnotations(
-      @NotNull StackGresCluster cluster) {
-    return Optional.ofNullable(cluster.getSpec())
+      @NotNull StackGresClusterContext context) {
+    return Optional.ofNullable(context.getSource().getSpec())
         .map(StackGresClusterSpec::getMetadata)
         .map(StackGresClusterSpecMetadata::getAnnotations)
         .map(StackGresClusterSpecAnnotations::getAllResources)
@@ -42,100 +43,105 @@ public class AbstractClusterAnnotationDecorator extends AnnotationDecorator<Stac
   }
 
   @Override
-  protected @NotNull Map<String, String> getServiceAnnotations(@NotNull StackGresCluster cluster) {
-
-    Map<String, String> servicesSpecificAnnotations = Optional.ofNullable(cluster.getSpec())
+  protected @NotNull Map<String, String> getServiceAnnotations(
+      @NotNull StackGresClusterContext context) {
+    Map<String, String> servicesSpecificAnnotations =
+        Optional.ofNullable(context.getSource().getSpec())
         .map(StackGresClusterSpec::getMetadata)
         .map(StackGresClusterSpecMetadata::getAnnotations)
         .map(StackGresClusterSpecAnnotations::getServices)
         .orElse(Map.of());
 
     return ImmutableMap.<String, String>builder()
-        .putAll(getAllResourcesAnnotations(cluster))
+        .putAll(getAllResourcesAnnotations(context))
         .putAll(servicesSpecificAnnotations)
         .build();
   }
 
   protected @NotNull Map<String, String> getPrimaryServiceAnnotations(
-      @NotNull StackGresCluster cluster) {
-
-    Map<String, String> primaryServiceAnnotations = Optional.ofNullable(cluster.getSpec())
+      @NotNull StackGresClusterContext context) {
+    Map<String, String> primaryServiceAnnotations =
+        Optional.ofNullable(context.getSource().getSpec())
         .map(StackGresClusterSpec::getMetadata)
         .map(StackGresClusterSpecMetadata::getAnnotations)
         .map(StackGresClusterSpecAnnotations::getPrimaryService)
         .orElse(Map.of());
 
     return ImmutableMap.<String, String>builder()
-        .putAll(getServiceAnnotations(cluster))
+        .putAll(getServiceAnnotations(context))
         .putAll(primaryServiceAnnotations)
         .build();
   }
 
   protected @NotNull Map<String, String> getReplicasServiceAnnotations(
-      @NotNull StackGresCluster cluster) {
-
-    Map<String, String> replicaServiceAnnotations = Optional.ofNullable(cluster.getSpec())
+      @NotNull StackGresClusterContext context) {
+    Map<String, String> replicaServiceAnnotations =
+        Optional.ofNullable(context.getSource().getSpec())
         .map(StackGresClusterSpec::getMetadata)
         .map(StackGresClusterSpecMetadata::getAnnotations)
         .map(StackGresClusterSpecAnnotations::getReplicasService)
         .orElse(Map.of());
 
     return ImmutableMap.<String, String>builder()
-        .putAll(getServiceAnnotations(cluster))
+        .putAll(getServiceAnnotations(context))
         .putAll(replicaServiceAnnotations)
         .build();
   }
 
   @Override
-  protected void decorateService(@NotNull StackGresCluster cluster, @NotNull HasMetadata service) {
-
+  protected void decorateService(@NotNull StackGresClusterContext context,
+      @NotNull HasMetadata service) {
     Map<String, String> customServiceAnnotations;
 
     final String serviceName = service.getMetadata().getName();
     if (serviceName.endsWith(PatroniUtil.READ_WRITE_SERVICE)) {
-      customServiceAnnotations = getPrimaryServiceAnnotations(cluster);
+      customServiceAnnotations = getPrimaryServiceAnnotations(context);
     } else if (serviceName.endsWith(PatroniUtil.READ_ONLY_SERVICE)) {
-      customServiceAnnotations = getReplicasServiceAnnotations(cluster);
+      customServiceAnnotations = getReplicasServiceAnnotations(context);
     } else {
-      customServiceAnnotations = getServiceAnnotations(cluster);
+      customServiceAnnotations = getServiceAnnotations(context);
     }
 
     decorateResource(service, customServiceAnnotations);
-
   }
 
   @Override
-  protected @NotNull Map<String, String> getPodAnnotations(@NotNull StackGresCluster cluster) {
-
-    Map<String, String> podSpecificAnnotations = Optional.ofNullable(cluster.getSpec())
+  protected @NotNull Map<String, String> getPodAnnotations(
+      @NotNull StackGresClusterContext context) {
+    Map<String, String> podSpecificAnnotations =
+        Optional.ofNullable(context.getSource().getSpec())
         .map(StackGresClusterSpec::getMetadata)
         .map(StackGresClusterSpecMetadata::getAnnotations)
         .map(StackGresClusterSpecAnnotations::getClusterPods)
         .orElse(Map.of());
 
-    final Map<String, String> clusterAnnotations = cluster.getMetadata().getAnnotations();
+    final Map<String, String> clusterAnnotations =
+        context.getSource().getMetadata().getAnnotations();
 
     return ImmutableMap.<String, String>builder()
-        .putAll(getAllResourcesAnnotations(cluster))
+        .putAll(getAllResourcesAnnotations(context))
         .putAll(podSpecificAnnotations)
         .put(StackGresContext.VERSION_KEY, clusterAnnotations.get(StackGresContext.VERSION_KEY))
         .build();
   }
 
-  protected @NotNull Map<String, String> getJobAnnotations(@NotNull StackGresCluster cluster) {
-    Map<String, String> podSpecificAnnotations = Optional.ofNullable(cluster.getSpec())
+  protected @NotNull Map<String, String> getJobAnnotations(
+      @NotNull StackGresClusterContext context) {
+    Map<String, String> podSpecificAnnotations =
+        Optional.ofNullable(context.getSource().getSpec())
         .map(StackGresClusterSpec::getMetadata)
         .map(StackGresClusterSpecMetadata::getAnnotations)
         .map(StackGresClusterSpecAnnotations::getClusterPods)
         .orElse(Map.of());
     return ImmutableMap.<String, String>builder()
-        .putAll(getAllResourcesAnnotations(cluster))
+        .putAll(getAllResourcesAnnotations(context))
         .putAll(podSpecificAnnotations)
         .put(StackGresContext.VERSION_KEY, StackGresProperty.OPERATOR_VERSION.getString())
         .build();
   }
 
-  protected void decorateJob(@NotNull StackGresCluster cluster, @NotNull HasMetadata resource) {
+  protected void decorateJob(@NotNull StackGresClusterContext context,
+      @NotNull HasMetadata resource) {
     Job job = (Job) resource;
 
     Map<String, String> jobPodTemplateAnnotations = Optional
@@ -145,7 +151,7 @@ public class AbstractClusterAnnotationDecorator extends AnnotationDecorator<Stac
         .map(ObjectMeta::getAnnotations)
         .orElse(new HashMap<>());
 
-    jobPodTemplateAnnotations.putAll(getJobAnnotations(cluster));
+    jobPodTemplateAnnotations.putAll(getJobAnnotations(context));
 
     Optional.ofNullable(job.getSpec())
         .map(JobSpec::getTemplate)
@@ -156,10 +162,11 @@ public class AbstractClusterAnnotationDecorator extends AnnotationDecorator<Stac
           podTemplateMetadata.setAnnotations(jobPodTemplateAnnotations);
           podTemplate.setMetadata(podTemplateMetadata);
         });
-    decorateResource(job, getAllResourcesAnnotations(cluster));
+    decorateResource(job, getAllResourcesAnnotations(context));
   }
 
-  protected void decorateCronJob(@NotNull StackGresCluster cluster, @NotNull HasMetadata resource) {
+  protected void decorateCronJob(@NotNull StackGresClusterContext context,
+      @NotNull HasMetadata resource) {
     CronJob cronJob = (CronJob) resource;
 
     Map<String, String> jobTemplateAnnotations = Optional.ofNullable(cronJob.getSpec())
@@ -167,7 +174,7 @@ public class AbstractClusterAnnotationDecorator extends AnnotationDecorator<Stac
         .map(JobTemplateSpec::getMetadata)
         .map(ObjectMeta::getAnnotations)
         .orElse(new HashMap<>());
-    jobTemplateAnnotations.putAll(getAllResourcesAnnotations(cluster));
+    jobTemplateAnnotations.putAll(getAllResourcesAnnotations(context));
 
     Optional.ofNullable(cronJob.getSpec())
         .map(CronJobSpec::getJobTemplate)
@@ -187,7 +194,7 @@ public class AbstractClusterAnnotationDecorator extends AnnotationDecorator<Stac
               .map(ObjectMeta::getAnnotations)
               .orElse(new HashMap<>());
 
-          cronJobPodTemplateAnnotations.putAll(getPodAnnotations(cluster));
+          cronJobPodTemplateAnnotations.putAll(getPodAnnotations(context));
 
           Optional.ofNullable(template.getSpec())
               .map(JobSpec::getTemplate)
@@ -199,12 +206,13 @@ public class AbstractClusterAnnotationDecorator extends AnnotationDecorator<Stac
                 podTemplate.setMetadata(podTemplateMetadata);
               });
         });
-    decorateResource(cronJob, getAllResourcesAnnotations(cluster));
+    decorateResource(cronJob, getAllResourcesAnnotations(context));
   }
 
   @Override
-  protected @NotNull Map<String, BiConsumer<StackGresCluster, HasMetadata>> getCustomDecorators() {
-    return ImmutableMap.<String, BiConsumer<StackGresCluster, HasMetadata>>builder()
+  protected @NotNull Map<String, BiConsumer<StackGresClusterContext, HasMetadata>>
+      getCustomDecorators() {
+    return ImmutableMap.<String, BiConsumer<StackGresClusterContext, HasMetadata>>builder()
         .putAll(super.getCustomDecorators())
         .put("Job", this::decorateJob)
         .put("CronJob", this::decorateCronJob)

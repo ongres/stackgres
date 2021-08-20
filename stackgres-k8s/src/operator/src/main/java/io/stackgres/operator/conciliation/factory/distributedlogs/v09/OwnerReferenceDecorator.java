@@ -15,18 +15,19 @@ import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.Decorator;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
-public class OwnerReferenceDecorator implements Decorator<StackGresDistributedLogs> {
+public class OwnerReferenceDecorator implements Decorator<StackGresDistributedLogsContext> {
 
   @Override
-  public void decorate(StackGresDistributedLogs cluster,
+  public void decorate(StackGresDistributedLogsContext context,
                        Iterable<? extends HasMetadata> resources) {
-    List<OwnerReference> ownerReferences = getOwnerReferences(cluster);
+    List<OwnerReference> ownerReferences = getOwnerReferences(context.getSource());
     resources
         .forEach(resource -> {
           if (!resource.getMetadata().getOwnerReferences().isEmpty()) {

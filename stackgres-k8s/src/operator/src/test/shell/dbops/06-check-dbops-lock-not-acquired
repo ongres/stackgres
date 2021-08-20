@@ -1,0 +1,28 @@
+#!/bin/sh
+
+. "$TEST_SHELL_PATH/dbops/abstract-dbops"
+
+shell_unit_test() {
+  EXCLUSIVE_OP=true
+  LOCK_SLEEP=0
+  ! (shell_unit_test_dbops)
+  check_dbops_result
+}
+
+run_op() {
+  sleep 300
+}
+
+mock kubectl kubectl_mock_overwrite
+
+kubectl_mock_overwrite() {
+  mokked
+  case "$*" in
+    ("get $CLUSTER_CRD_NAME "*)
+    return 1
+    ;;
+    *)
+    not_mokked
+    ;;
+  esac
+}

@@ -30,15 +30,15 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ContextUtil;
@@ -65,7 +65,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
   private final ResourceFactory<StackGresClusterContext, List<EnvVar>> patroniEnvironmentVariables;
 
   private final ResourceFactory<StackGresClusterContext, ResourceRequirements> requirementsFactory;
-  private final LabelFactory<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
   private final VolumeMountsProvider<ContainerContext> postgresSocket;
   private final VolumeMountsProvider<PostgresContainerContext> postgresExtensions;
   private final VolumeMountsProvider<ContainerContext> localBinMounts;
@@ -76,7 +76,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
   public Patroni(
       ResourceFactory<StackGresClusterContext, List<EnvVar>> patroniEnvironmentVariables,
       ResourceFactory<StackGresClusterContext, ResourceRequirements> requirementsFactory,
-      LabelFactory<StackGresCluster> labelFactory,
+      LabelFactoryForCluster<StackGresCluster> labelFactory,
       @ProviderName(VolumeMountProviderName.POSTGRES_SOCKET)
           VolumeMountsProvider<ContainerContext> postgresSocket,
       @ProviderName(VolumeMountProviderName.POSTGRES_EXTENSIONS)
@@ -100,7 +100,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
 
   public String postInitName(StackGresClusterContext clusterContext) {
     final StackGresCluster cluster = clusterContext.getSource();
-    final String clusterName = labelFactory.clusterName(cluster);
+    final String clusterName = labelFactory.resourceName(cluster);
     return clusterName + POST_INIT_SUFFIX;
   }
 

@@ -16,11 +16,12 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
@@ -37,14 +38,14 @@ import io.stackgres.operator.conciliation.factory.v09.PatroniStaticVolume;
 @InitContainer(order = 2)
 public class ScriptsSetUp implements ContainerFactory<StackGresClusterContainerContext> {
 
-  private final ClusterEnvironmentVariablesFactoryDiscoverer<StackGresClusterContext>
+  private final ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext>
       clusterEnvVarFactoryDiscoverer;
 
   private final VolumeMountsProvider<ContainerContext> containerLocalOverride;
 
   @Inject
   public ScriptsSetUp(
-      ClusterEnvironmentVariablesFactoryDiscoverer<StackGresClusterContext>
+      ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext>
           clusterEnvVarFactoryDiscoverer,
       @ProviderName(VolumeMountProviderName.CONTAINER_LOCAL_OVERRIDE)
           VolumeMountsProvider<ContainerContext> containerLocalOverride) {
@@ -84,7 +85,7 @@ public class ScriptsSetUp implements ContainerFactory<StackGresClusterContainerC
   private List<EnvVar> getClusterEnvVars(StackGresClusterContext context) {
     List<EnvVar> clusterEnvVars = new ArrayList<>();
 
-    List<ClusterEnvironmentVariablesFactory<StackGresClusterContext>> clusterEnvVarFactories =
+    List<ClusterEnvironmentVariablesFactory<ClusterContext>> clusterEnvVarFactories =
         clusterEnvVarFactoryDiscoverer.discoverFactories(context);
 
     clusterEnvVarFactories.forEach(envVarFactory ->

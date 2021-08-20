@@ -20,13 +20,13 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.EnvoyUtil;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
-import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
@@ -37,25 +37,25 @@ import org.slf4j.LoggerFactory;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
-public class PatroniConfigMap implements VolumeFactory<DistributedLogsContext> {
+public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsContext> {
 
   public static final int PATRONI_LOG_FILE_SIZE = 256 * 1024 * 1024;
   public static final String POSTGRES_PORT_NAME = "pgport";
   public static final String POSTGRES_REPLICATION_PORT_NAME = "pgreplication";
 
   private static final Logger PATRONI_LOGGER = LoggerFactory.getLogger("io.stackgres.patroni");
-  private final LabelFactory<StackGresDistributedLogs> labelFactory;
+  private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
   private final JsonMapper objectMapper;
 
   @Inject
-  public PatroniConfigMap(LabelFactory<StackGresDistributedLogs> labelFactory,
+  public PatroniConfigMap(LabelFactoryForCluster<StackGresDistributedLogs> labelFactory,
                           JsonMapper objectMapper) {
     this.labelFactory = labelFactory;
     this.objectMapper = objectMapper;
   }
 
-  public static String name(DistributedLogsContext clusterContext) {
+  public static String name(StackGresDistributedLogsContext clusterContext) {
     final String name = clusterContext.getSource().getMetadata().getName();
     return StatefulSetDynamicVolumes.PATRONI_ENV.getResourceName(name);
   }
@@ -72,7 +72,7 @@ public class PatroniConfigMap implements VolumeFactory<DistributedLogsContext> {
   }
 
   @Override
-  public @NotNull Stream<VolumePair> buildVolumes(DistributedLogsContext context) {
+  public @NotNull Stream<VolumePair> buildVolumes(StackGresDistributedLogsContext context) {
     return Stream.of(
         ImmutableVolumePair.builder()
             .volume(buildVolume(context))
@@ -81,7 +81,7 @@ public class PatroniConfigMap implements VolumeFactory<DistributedLogsContext> {
     );
   }
 
-  public @NotNull Volume buildVolume(DistributedLogsContext context) {
+  public @NotNull Volume buildVolume(StackGresDistributedLogsContext context) {
     return new VolumeBuilder()
         .withName(StatefulSetDynamicVolumes.PATRONI_ENV.getVolumeName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
@@ -91,7 +91,7 @@ public class PatroniConfigMap implements VolumeFactory<DistributedLogsContext> {
         .build();
   }
 
-  public @NotNull HasMetadata buildSource(DistributedLogsContext context) {
+  public @NotNull HasMetadata buildSource(StackGresDistributedLogsContext context) {
     final StackGresDistributedLogs cluster = context.getSource();
     final String pgVersion = StackGresDistributedLogsUtil.getPostgresVersion();
 
@@ -109,7 +109,7 @@ public class PatroniConfigMap implements VolumeFactory<DistributedLogsContext> {
     final int pgPort = EnvoyUtil.PG_PORT;
     Map<String, String> data = new HashMap<>();
     data.put("PATRONI_SCOPE", labelFactory.clusterScope(cluster));
-    data.put("PATRONI_KUBERNETES_SCOPE_LABEL", labelFactory.getLabelMapper().clusterScopeKey());
+    data.put("PATRONI_KUBERNETES_SCOPE_LABEL", labelFactory.labelMapper().clusterScopeKey());
     data.put("PATRONI_KUBERNETES_LABELS", patroniLabels);
     data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
     data.put("PATRONI_KUBERNETES_PORTS", getKubernetesPorts(pgPort, pgRawPort));

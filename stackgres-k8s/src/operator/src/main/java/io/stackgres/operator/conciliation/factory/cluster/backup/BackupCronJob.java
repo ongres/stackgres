@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.backup;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -26,8 +28,9 @@ import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
 import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1beta1.JobTemplateSpecBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
@@ -38,12 +41,13 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactory;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactoryDiscoverer;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniRoleGenerator;
 import org.slf4j.Logger;
@@ -56,19 +60,20 @@ public class BackupCronJob
 
   private static final Logger BACKUP_LOGGER = LoggerFactory.getLogger("io.stackgres.backup");
 
-  private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;
+  private final ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext>
+      clusterEnvVarFactoryDiscoverer;
 
-  private final LabelFactory<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   private final ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory;
 
   @Inject
   public BackupCronJob(
-      ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables,
-      LabelFactory<StackGresCluster> labelFactory,
+      ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext> clusterEnvVarFactoryDiscoverer,
+      LabelFactoryForCluster<StackGresCluster> labelFactory,
       ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory) {
     super();
-    this.clusterStatefulSetEnvironmentVariables = clusterStatefulSetEnvironmentVariables;
+    this.clusterEnvVarFactoryDiscoverer = clusterEnvVarFactoryDiscoverer;
     this.labelFactory = labelFactory;
     this.podSecurityFactory = podSecurityFactory;
   }
@@ -88,7 +93,7 @@ public class BackupCronJob
   }
 
   private CronJob createCronJob(StackGresClusterContext context,
-                                StackGresBackupConfig backupConfig) {
+      StackGresBackupConfig backupConfig) {
     String namespace = context.getSource().getMetadata().getNamespace();
     String name = context.getSource().getMetadata().getName();
     final StackGresCluster cluster = context.getSource();
@@ -133,7 +138,7 @@ public class BackupCronJob
                 .withImage(StackGresComponent.KUBECTL.findLatestImageName())
                 .withImagePullPolicy("IfNotPresent")
                 .withEnv(ImmutableList.<EnvVar>builder()
-                    .addAll(clusterStatefulSetEnvironmentVariables.listResources(context))
+                    .addAll(getClusterEnvVars(context))
                     .add(new EnvVarBuilder()
                             .withName("CLUSTER_NAMESPACE")
                             .withValue(namespace)
@@ -265,6 +270,17 @@ public class BackupCronJob
             .build())
         .endSpec()
         .build();
+  }
+
+  private List<EnvVar> getClusterEnvVars(StackGresClusterContext context) {
+    List<EnvVar> clusterEnvVars = new ArrayList<>();
+
+    List<ClusterEnvironmentVariablesFactory<ClusterContext>> clusterEnvVarFactories =
+        clusterEnvVarFactoryDiscoverer.discoverFactories(context);
+
+    clusterEnvVarFactories.forEach(envVarFactory ->
+        clusterEnvVars.addAll(envVarFactory.buildEnvironmentVariables(context)));
+    return clusterEnvVars;
   }
 
 }

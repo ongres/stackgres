@@ -27,17 +27,18 @@ import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ProviderName;
@@ -61,12 +62,12 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
 
   private static final String IMAGE_NAME = "docker.io/ongres/patroni-ext:v1.6.5-pg%s-build-6.0";
 
-  private final ClusterEnvironmentVariablesFactoryDiscoverer<StackGresClusterContext>
+  private final ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext>
       clusterEnvVarFactoryDiscoverer;
   private final ResourceFactory<StackGresClusterContext, List<EnvVar>> patroniEnvironmentVariables;
 
   private final ResourceFactory<StackGresClusterContext, ResourceRequirements> requirementsFactory;
-  private final LabelFactory<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
 
@@ -80,11 +81,11 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
 
   @Inject
   public Patroni(
-      ClusterEnvironmentVariablesFactoryDiscoverer<StackGresClusterContext>
+      ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext>
           clusterEnvVarFactoryDiscoverer,
       ResourceFactory<StackGresClusterContext, List<EnvVar>> patroniEnvironmentVariables,
       ResourceFactory<StackGresClusterContext, ResourceRequirements> requirementsFactory,
-      LabelFactory<StackGresCluster> labelFactory,
+      LabelFactoryForCluster<StackGresCluster> labelFactory,
       @ProviderName(VolumeMountProviderName.CONTAINER_LOCAL_OVERRIDE)
           VolumeMountsProvider<ContainerContext> containerLocalOverrideMounts,
       @ProviderName(VolumeMountProviderName.POSTGRES_DATA)
@@ -109,7 +110,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
 
   public String postInitName(StackGresClusterContext clusterContext) {
     final StackGresCluster cluster = clusterContext.getSource();
-    final String clusterName = labelFactory.clusterName(cluster);
+    final String clusterName = labelFactory.resourceName(cluster);
     return clusterName + POST_INIT_SUFFIX;
   }
 
@@ -191,7 +192,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
   private List<EnvVar> getClusterEnvVars(StackGresClusterContext context) {
     List<EnvVar> clusterEnvVars = new ArrayList<>();
 
-    List<ClusterEnvironmentVariablesFactory<StackGresClusterContext>> clusterEnvVarFactories =
+    List<ClusterEnvironmentVariablesFactory<ClusterContext>> clusterEnvVarFactories =
         clusterEnvVarFactoryDiscoverer.discoverFactories(context);
 
     clusterEnvVarFactories.forEach(envVarFactory ->

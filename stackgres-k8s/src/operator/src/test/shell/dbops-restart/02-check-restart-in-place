@@ -7,4 +7,5 @@ REDUCED_IMPACT=false
 
 shell_unit_test() {
   shell_unit_test_dbops_restart
+  check_dbops_result
 }

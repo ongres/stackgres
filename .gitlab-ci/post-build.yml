@@ -8,6 +8,7 @@ build ui:
   - npm install
   - npm run build
   - sh -x build.sh
+  retry: 2
   artifacts:
     expire_in: 1 week
     when: always
@@ -50,6 +51,7 @@ build documentation:
     then
       hugo -v --source doc --destination "$(pwd)/doc/public/latest" --baseURL="$DOCUMENTATION_BASE_URL/latest"
     fi
+  retry: 2
   artifacts:
     expire_in: 1 week
     when: always
@@ -67,6 +69,7 @@ build helm packages:
       cp -a "stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres"/* stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/latest
     fi
   - find stackgres-k8s/install/helm/target/public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
+  retry: 2
   artifacts:
     expire_in: 1 week
     when: always
@@ -84,6 +87,7 @@ build helm templates:
       cp -a "stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres"/* stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/latest
     fi
   - find stackgres-k8s/install/helm/target/public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
+  retry: 2
   artifacts:
     expire_in: 1 week
     when: always

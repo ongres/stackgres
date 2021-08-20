@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -29,10 +29,10 @@ public abstract class AbstractPatroniConfigEndpoints
 
   private final JsonMapper objectMapper;
 
-  private final LabelFactory<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   public AbstractPatroniConfigEndpoints(JsonMapper objectMapper,
-                                LabelFactory<StackGresCluster> labelFactory) {
+                                LabelFactoryForCluster<StackGresCluster> labelFactory) {
     this.objectMapper = objectMapper;
     this.labelFactory = labelFactory;
   }

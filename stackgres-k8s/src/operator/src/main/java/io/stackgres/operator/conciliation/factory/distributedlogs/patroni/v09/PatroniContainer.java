@@ -30,10 +30,10 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.VolumeMountProviderName;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
-import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsContext;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.FactoryName;
@@ -57,7 +57,7 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
   private final VolumeMountsProvider<ContainerContext> postgresDataMounts;
   private final VolumeMountsProvider<ContainerContext> postgresSocket;
 
-  private final ResourceFactory<DistributedLogsContext, List<EnvVar>> envVarFactory;
+  private final ResourceFactory<StackGresDistributedLogsContext, List<EnvVar>> envVarFactory;
 
   @Inject
   public PatroniContainer(
@@ -68,7 +68,7 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
       @ProviderName(VolumeMountProviderName.POSTGRES_SOCKET)
           VolumeMountsProvider<ContainerContext> postgresSocket,
       @FactoryName(V09_PATRONI_ENV_VAR_FACTORY)
-          ResourceFactory<DistributedLogsContext, List<EnvVar>> envVarFactory) {
+          ResourceFactory<StackGresDistributedLogsContext, List<EnvVar>> envVarFactory) {
     this.containerUserOverrideMounts = containerUserOverrideMounts;
     this.postgresDataMounts = postgresDataMounts;
     this.postgresSocket = postgresSocket;
@@ -77,8 +77,8 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
 
   @Override
   public Container getContainer(DistributedLogsContainerContext context) {
-    final DistributedLogsContext distributedLogsContext = context.getDistributedLogsContext();
-    final StackGresDistributedLogs cluster = distributedLogsContext.getSource();
+    final StackGresDistributedLogs distributedLogs =
+        context.getDistributedLogsContext().getSource();
     final String startScript = "/start-patroni.sh";
     return new ContainerBuilder()
         .withName(StackgresClusterContainers.PATRONI)
@@ -89,7 +89,7 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
         .withVolumeMounts(getVolumeMounts(context))
         .withEnvFrom(new EnvFromSourceBuilder()
             .withConfigMapRef(new ConfigMapEnvSourceBuilder()
-                .withName(cluster.getMetadata().getName()).build())
+                .withName(distributedLogs.getMetadata().getName()).build())
             .build())
         .withEnv(getEnvVars(context))
         .withPorts(

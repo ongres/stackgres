@@ -10,16 +10,16 @@ import java.util.Map;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 
 @ApplicationScoped
 public class LabelFactoryDelegator {
 
-  private LabelFactory<StackGresCluster> clusterLabelFactory;
+  private LabelFactoryForCluster<StackGresCluster> clusterLabelFactory;
 
-  private LabelFactory<StackGresDistributedLogs> distributedLogsLabelFactory;
+  private LabelFactoryForCluster<StackGresDistributedLogs> distributedLogsLabelFactory;
 
   public Map<String, String> patroniClusterLabels(StackGresClusterContext context) {
     if (context instanceof StackGresDistributedLogsContext) {
@@ -34,10 +34,10 @@ public class LabelFactoryDelegator {
   public Map<String, String> genericClusterLabels(StackGresClusterContext context) {
     if (context instanceof StackGresDistributedLogsContext) {
       return distributedLogsLabelFactory
-          .genericClusterLabels(((StackGresDistributedLogsContext) context).getDistributedLogs());
+          .genericLabels(((StackGresDistributedLogsContext) context).getDistributedLogs());
     } else {
       return clusterLabelFactory
-          .genericClusterLabels(context.getCluster());
+          .genericLabels(context.getCluster());
     }
   }
 
@@ -45,7 +45,7 @@ public class LabelFactoryDelegator {
     return this.genericClusterLabels(context);
   }
 
-  public LabelFactory<?> pickFactory(StackGresClusterContext context) {
+  public LabelFactoryForCluster<?> pickFactory(StackGresClusterContext context) {
     if (context instanceof StackGresDistributedLogsContext) {
       return distributedLogsLabelFactory;
     } else {
@@ -54,13 +54,13 @@ public class LabelFactoryDelegator {
   }
 
   @Inject
-  public void setClusterLabelFactory(LabelFactory<StackGresCluster> clusterLabelFactory) {
+  public void setClusterLabelFactory(LabelFactoryForCluster<StackGresCluster> clusterLabelFactory) {
     this.clusterLabelFactory = clusterLabelFactory;
   }
 
   @Inject
   public void setDistributedLogsLabelFactory(
-      LabelFactory<StackGresDistributedLogs> distributedLogsLabelFactory) {
+      LabelFactoryForCluster<StackGresDistributedLogs> distributedLogsLabelFactory) {
     this.distributedLogsLabelFactory = distributedLogsLabelFactory;
   }
 }

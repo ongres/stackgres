@@ -25,7 +25,7 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractEventEmitter<T> implements EventEmitter<T> {
+public abstract class AbstractEventEmitter<T extends HasMetadata> implements EventEmitter<T> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractEventEmitter.class);
 
@@ -33,10 +33,8 @@ public abstract class AbstractEventEmitter<T> implements EventEmitter<T> {
 
   private KubernetesClientFactory clientFactory;
 
-  /**
-   * Send an event related to a resource.
-   */
-  public void emitEvent(EventReason reason, String message, HasMetadata involvedObject) {
+  @Override
+  public void sendEvent(EventReason reason, String message, T involvedObject) {
     if (involvedObject == null) {
       LOGGER.warn("Can not send event {} ({}), involved object was null", reason, message);
       return;

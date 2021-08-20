@@ -5,7 +5,12 @@
 
 package io.stackgres.operator.conciliation;
 
+import io.stackgres.operator.common.StackGresVersion;
+
 public interface GenerationContext<T> {
 
   T getSource();
+
+  StackGresVersion getVersion();
+
 }

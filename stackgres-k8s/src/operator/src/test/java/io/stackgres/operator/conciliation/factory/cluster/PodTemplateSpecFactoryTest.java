@@ -11,7 +11,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.NodeAffinity;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.ContainerFactoryDiscoverer;
@@ -31,7 +31,7 @@ class PodTemplateSpecFactoryTest {
   private ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityContext;
 
   @Mock
-  private LabelFactory<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Mock
   private ContainerFactoryDiscoverer<StackGresClusterContainerContext> containerFactoryDiscoverer;

@@ -21,7 +21,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackgresClusterContainers;
@@ -43,11 +43,11 @@ public abstract class AbstractFluentBit implements
 
   private static final String CONFIG_SUFFIX = "-fluent-bit";
 
-  protected final LabelFactory<StackGresCluster> labelFactory;
+  protected final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Inject
   public AbstractFluentBit(
-      LabelFactory<StackGresCluster> labelFactory) {
+      LabelFactoryForCluster<StackGresCluster> labelFactory) {
     super();
     this.labelFactory = labelFactory;
   }

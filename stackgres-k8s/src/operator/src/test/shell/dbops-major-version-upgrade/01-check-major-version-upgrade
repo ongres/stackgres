@@ -8,4 +8,5 @@ CLONE=false
 
 shell_unit_test() {
   shell_unit_test_dbops_major_version_upgrade
+  check_dbops_result
 }

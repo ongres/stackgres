@@ -15,7 +15,7 @@ import javax.inject.Inject;
 import com.google.common.base.Joiner;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.smallrye.mutiny.Uni;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
@@ -28,7 +28,7 @@ public class ClusterWatcher implements Watcher<StackGresCluster> {
 
   private final PatroniApiHandler patroniApiHandler;
 
-  private final LabelFactory<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   private final ResourceScanner<Pod> podScanner;
 
@@ -36,7 +36,7 @@ public class ClusterWatcher implements Watcher<StackGresCluster> {
 
   @Inject
   public ClusterWatcher(PatroniApiHandler patroniApiHandler,
-                        LabelFactory<StackGresCluster> labelFactory,
+                        LabelFactoryForCluster<StackGresCluster> labelFactory,
                         ResourceScanner<Pod> podScanner,
                         CustomResourceFinder<StackGresCluster> clusterFinder) {
     this.patroniApiHandler = patroniApiHandler;

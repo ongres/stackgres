@@ -43,7 +43,7 @@ public interface ReconciliationOperations {
               ? extends HasMetadata,
               ? extends KubernetesResourceList<? extends HasMetadata>,
               ? extends Resource<? extends HasMetadata>>>>
-      STACKGRES_CLUSTER_IN_NAMESPACE_RESOURCE_OPERATIONS =
+      IN_NAMESPACE_RESOURCE_OPERATIONS =
       ImmutableMap.<Class<? extends HasMetadata>, Function<KubernetesClient,
           MixedOperation<? extends HasMetadata,
               ? extends KubernetesResourceList<? extends HasMetadata>,
@@ -66,7 +66,7 @@ public interface ReconciliationOperations {
       BiFunction<
           KubernetesClient,
           Map<String, String>,
-          List<HasMetadata>>> STACKGRES_CLUSTER_ANY_NAMESPACE_RESOURCE_OPERATIONS =
+          List<HasMetadata>>> ANY_NAMESPACE_RESOURCE_OPERATIONS =
       Map.of(ServiceMonitor.class, (client, labels) -> {
         final String crdName = CustomResource.getCRDName(ServiceMonitor.class);
         var resources = ImmutableList.<HasMetadata>builder();

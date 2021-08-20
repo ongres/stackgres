@@ -33,7 +33,7 @@ EOF
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "cluster-name=$CLUSTER_NAME,db-ops=true" \
+    -l "dbops-name=major-version-upgrade,db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
     echo "SUCCESS. major version upgrade job was not removed after failure."
@@ -45,7 +45,7 @@ EOF
   kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" major-version-upgrade
 
   if wait_until eval '[ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "cluster-name=$CLUSTER_NAME,db-ops=true" \
+    -l "dbops-name=major-version-upgrade,db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 0 ]'
   then
     echo "SUCCESS. major version upgrade job was removed after sgdbops was removed."

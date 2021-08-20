@@ -8,4 +8,5 @@ package io.stackgres.operator.conciliation.factory;
 public interface ResourceFactory<T, R> {
 
   R createResource(T source);
+
 }

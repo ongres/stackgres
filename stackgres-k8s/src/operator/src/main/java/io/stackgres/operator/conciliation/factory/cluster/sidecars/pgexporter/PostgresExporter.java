@@ -30,15 +30,15 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.Sidecar;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
@@ -66,7 +66,7 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
   private static final Logger POSTGRES_EXPORTER_LOGGER = LoggerFactory.getLogger(
       "io.stackgres.prometheus-postgres-exporter");
 
-  private LabelFactory<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   private VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
 
@@ -193,7 +193,7 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
   }
 
   @Inject
-  public void setLabelFactory(LabelFactory<StackGresCluster> labelFactory) {
+  public void setLabelFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
     this.labelFactory = labelFactory;
   }
 

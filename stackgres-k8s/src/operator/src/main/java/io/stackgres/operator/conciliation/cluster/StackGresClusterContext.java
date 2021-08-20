@@ -15,11 +15,11 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
-import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.common.Prometheus;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.GenerationContext;
 import io.stackgres.operator.patroni.factory.PatroniScriptsConfigMap;
 import org.immutables.value.Value;
@@ -31,8 +31,15 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
     ClusterContext {
 
   @Override
+  @Value.Derived
   default StackGresCluster getCluster() {
     return getSource();
+  }
+
+  @Override
+  @Value.Derived
+  default StackGresVersion getVersion() {
+    return StackGresVersion.getStackGresVersion(getSource());
   }
 
   Optional<StackGresBackupConfig> getBackupConfig();
@@ -45,13 +52,9 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
 
   Optional<StackGresBackup> getRestoreBackup();
 
-  List<StackGresBackup> getBackups();
-
   List<StackGresClusterScriptEntry> getInternalScripts();
 
   Optional<Prometheus> getPrometheus();
-
-  List<StackGresDbOps> getDbOps();
 
   Optional<Secret> getDatabaseCredentials();
 

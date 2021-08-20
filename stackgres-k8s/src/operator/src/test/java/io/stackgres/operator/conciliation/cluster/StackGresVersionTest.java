@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,14 +29,14 @@ class StackGresVersionTest {
   @Test
   void givenStackGresValidVersion_shouldNotFail() {
 
-    StackGresVersion.getClusterStackGresVersion(cluster);
+    StackGresVersion.getStackGresVersion(cluster);
   }
 
   @Test
   void givenAValidVersion_shouldReturnTheCorrectStackGresVersion() {
     setStackGresClusterVersion("1.0");
 
-    var version = StackGresVersion.getClusterStackGresVersion(cluster);
+    var version = StackGresVersion.getStackGresVersion(cluster);
 
     assertEquals(StackGresVersion.V10, version);
   }
@@ -44,7 +45,7 @@ class StackGresVersionTest {
   void givenASnapshotVersion_shouldReturnTheCorrectStackGresVersion() {
     setStackGresClusterVersion("1.0-SNAPSHOT");
 
-    var version = StackGresVersion.getClusterStackGresVersion(cluster);
+    var version = StackGresVersion.getStackGresVersion(cluster);
 
     assertEquals(StackGresVersion.V10, version);
   }
@@ -54,16 +55,16 @@ class StackGresVersionTest {
     setStackGresClusterVersion("0.1-SNAPSHOT");
 
     IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-        () -> StackGresVersion.getClusterStackGresVersion(cluster));
+        () -> StackGresVersion.getStackGresVersion(cluster));
 
-    assertEquals("Invalid StackGres version 0.1", ex.getMessage());
+    assertEquals("Invalid version 0.1", ex.getMessage());
   }
 
   @Test
   void givenACurrentVersion_shouldNotFail() {
     setStackGresClusterVersion(StackGresProperty.OPERATOR_VERSION.getString());
 
-    StackGresVersion.getClusterStackGresVersion(cluster);
+    StackGresVersion.getStackGresVersion(cluster);
   }
 
   private void setStackGresClusterVersion(String configVersion) {

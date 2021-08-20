@@ -18,12 +18,12 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterContext;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
@@ -35,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 public class BackupSecret
     implements VolumeFactory<StackGresClusterContext> {
 
-  private LabelFactory<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   private BackupEnvVarFactory backupEnvVarFactory;
 
@@ -87,7 +87,7 @@ public class BackupSecret
   }
 
   @Inject
-  public void setLabelFactory(LabelFactory<StackGresCluster> labelFactory) {
+  public void setLabelFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
     this.labelFactory = labelFactory;
   }
 

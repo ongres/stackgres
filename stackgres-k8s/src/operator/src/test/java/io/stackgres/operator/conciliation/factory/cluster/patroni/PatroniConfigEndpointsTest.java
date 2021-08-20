@@ -25,7 +25,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.ClusterLabelFactory;
 import io.stackgres.common.ClusterLabelMapper;
 import io.stackgres.common.ClusterStatefulSetEnvVars;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -46,7 +46,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PatroniConfigEndpointsTest {
 
   private static final JsonMapper MAPPER = new JsonMapper();
-  private final LabelFactory<StackGresCluster> labelFactory = new ClusterLabelFactory(
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory = new ClusterLabelFactory(
       new ClusterLabelMapper());
   @Mock
   private StackGresClusterContext context;

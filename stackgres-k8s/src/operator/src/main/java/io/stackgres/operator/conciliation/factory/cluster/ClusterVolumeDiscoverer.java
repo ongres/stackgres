@@ -16,7 +16,6 @@ import javax.inject.Inject;
 
 import io.stackgres.operator.conciliation.ResourceDiscoverer;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.VolumeDiscoverer;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
@@ -35,10 +34,7 @@ public class ClusterVolumeDiscoverer
   @Override
   public Map<String, VolumePair> discoverVolumes(
       StackGresClusterContext context) {
-
-    StackGresVersion version = StackGresVersion.getClusterStackGresVersion(context.getSource());
-
-    return resourceHub.get(version)
+    return resourceHub.get(context.getVersion())
         .stream().flatMap(vf -> vf.buildVolumes(context))
         .collect(Collectors.toMap(vp -> vp.getVolume().getName(), Function.identity()));
 

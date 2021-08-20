@@ -18,7 +18,7 @@ import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -26,9 +26,9 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.operator.common.Sidecar;
+import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.cluster.StackGresVersion;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.ProviderName;
@@ -47,7 +47,7 @@ public class Envoy extends AbstractEnvoy {
 
   @Inject
   public Envoy(YamlMapperProvider yamlMapperProvider,
-               LabelFactory<StackGresCluster> labelFactory,
+               LabelFactoryForCluster<StackGresCluster> labelFactory,
                @ProviderName(CONTAINER_USER_OVERRIDE)
                    VolumeMountsProvider<ContainerContext> containerUserOverrideMounts) {
     super(yamlMapperProvider, labelFactory);
