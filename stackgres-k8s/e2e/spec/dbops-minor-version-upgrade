@@ -4,7 +4,7 @@
 
 e2e_test_install() {
   CLUSTER_NAME="dbops-minor-upgrade"
-  OPERATION_NAME="minor-ver-upgrade"
+  OPERATION_NAME="minor-upgrade"
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
