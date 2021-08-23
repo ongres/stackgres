@@ -1,6 +1,7 @@
 #!/bin/sh
 
 e2e_test_install() {
+  CLUSTER_NAME="cluster-api"
   install_minio
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
