@@ -27,7 +27,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.KubernetesClientFactory;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.operator.conciliation.DeployedResourceDecorator;
 import io.stackgres.operator.conciliation.DeployedResourcesScanner;
@@ -39,13 +39,13 @@ public class DbOpsDeployedResourceScanner implements DeployedResourcesScanner<St
     ReconciliationOperations {
 
   private final KubernetesClientFactory clientFactory;
-  private final LabelFactory<StackGresDbOps> labelFactory;
+  private final LabelFactoryForDbOps labelFactory;
   private final Instance<DeployedResourceDecorator> decorators;
 
   @Inject
   public DbOpsDeployedResourceScanner(
       KubernetesClientFactory clientFactory,
-      LabelFactory<StackGresDbOps> labelFactory,
+      LabelFactoryForDbOps labelFactory,
       @Any Instance<DeployedResourceDecorator> decorators) {
     this.clientFactory = clientFactory;
     this.labelFactory = labelFactory;

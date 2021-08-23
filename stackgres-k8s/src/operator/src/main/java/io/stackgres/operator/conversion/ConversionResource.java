@@ -28,7 +28,7 @@ public interface ConversionResource {
 
     final UUID uid = request.getUid();
 
-    LOGGER.info("Converting conversion review " + uid.toString());
+    LOGGER.info("Converting conversion review {}", uid.toString());
 
     ConversionResponse response = new ConversionResponse();
     response.setUid(uid);

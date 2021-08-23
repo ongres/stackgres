@@ -14,6 +14,7 @@ public interface LabelFactoryForDbOps
 
   Map<String, String> dbOpsPodLabels(StackGresDbOps resource);
 
+  @Override
   LabelMapperForDbOps labelMapper();
 
 }

@@ -38,10 +38,9 @@ public class SgClusterConversionResource implements ConversionResource {
     LOGGER.info("SgCluster configuration conversion resource started");
   }
 
+  @Override
   @POST
   public ConversionReviewResponse convert(ConversionReview conversionReview) {
-
     return convert(pipeline, conversionReview);
-
   }
 }

@@ -5,24 +5,30 @@
 
 package io.stackgres.operator.conversion;
 
+import java.util.Optional;
+
 import javax.inject.Inject;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 @QuarkusTest
 class SgClusterConversionPipelineTest {
 
-  protected static final JsonMapper MAPPER = new JsonMapper();
+  @Inject
+  ObjectMapper mapper;
 
   @Inject
   @Conversion(StackGresCluster.KIND)
-  protected ConversionPipeline pipeline;
+  ConversionPipeline pipeline;
 
   ObjectNode getFromVersion1Resource() {
     return JsonUtil.readFromJsonAsJson("stackgres_cluster/from_version1.json");
@@ -58,6 +64,36 @@ class SgClusterConversionPipelineTest {
         pipeline.convert(
             ConversionUtil.API_VERSION_1BETA1,
             ImmutableList.of(fromVersion1Cluster)).get(0));
+  }
+
+  @ParameterizedTest
+  @CsvSource({"latest,12.6", "11,11.11", "12,12.6", "12.4,12.4"})
+  void resourceConversionVersion1beta1ToVersion1_upgradePostgresVersion_shouldNotFail(String from,
+      String to) {
+    ObjectNode fromVersion1beta1Cluster =
+        changePostgresVersion(getFromVersion1beta1Resource(), from);
+    ObjectNode toVersion1Cluster =
+        changePostgresVersion(getToVersion1Resource(), to);
+    JsonUtil.assertJsonEquals(toVersion1Cluster,
+        pipeline.convert(
+            ConversionUtil.API_VERSION_1,
+            ImmutableList.of(fromVersion1beta1Cluster)).get(0));
+  }
+
+  private ObjectNode changePostgresVersion(ObjectNode node, String postgresVersion) {
+    Optional.ofNullable(node.get("spec"))
+        .map(ObjectNode.class::cast)
+        .ifPresent(spec -> {
+          if (spec.get("postgresVersion") != null) {
+            spec.set("postgresVersion", mapper.convertValue(
+                postgresVersion, JsonNode.class));
+          } else if (spec.get("postgres") != null) {
+            ObjectNode jsonNode = (ObjectNode) spec.get("postgres");
+            jsonNode.set("version", mapper.convertValue(
+                postgresVersion, JsonNode.class));
+          }
+        });
+    return node;
   }
 
 }
