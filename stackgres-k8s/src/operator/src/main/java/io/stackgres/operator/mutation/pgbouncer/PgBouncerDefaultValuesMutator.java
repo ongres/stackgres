@@ -16,6 +16,7 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerPgbouncerIni;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
@@ -28,7 +29,7 @@ public class PgBouncerDefaultValuesMutator
   @Override
   public JsonNode getTargetNode(StackGresPoolingConfig resource) {
     return super.getTargetNode(resource)
-        .get("spec").get("pgBouncer").get("pgbouncer.ini");
+        .get("spec").get("pgBouncer").get("pgbouncer.ini").get("pgbouncer");
   }
 
   @Override
@@ -40,17 +41,25 @@ public class PgBouncerDefaultValuesMutator
     if (spec == null) {
       spec = new StackGresPoolingConfigSpec();
       pgBouncerConfig.setSpec(spec);
-      operations.add(new AddOperation(PG_BOUNCER_CONFIG_POINTER.parent().parent(),
+      operations.add(new AddOperation(PG_BOUNCER_CONFIG_POINTER.parent().parent().parent(),
           FACTORY.objectNode()));
     }
     StackGresPoolingConfigPgBouncer pgBouncer = spec.getPgBouncer();
     if (pgBouncer == null) {
       pgBouncer = new StackGresPoolingConfigPgBouncer();
       spec.setPgBouncer(pgBouncer);
+      operations.add(new AddOperation(PG_BOUNCER_CONFIG_POINTER.parent().parent(),
+          FACTORY.objectNode()));
+    }
+    var pgBouncerIni = pgBouncer.getPgbouncerIni();
+    if (pgBouncerIni == null) {
+      pgBouncerIni = new StackGresPoolingConfigPgBouncerPgbouncerIni();
+      pgBouncer.setPgbouncerIni(pgBouncerIni);
       operations.add(new AddOperation(PG_BOUNCER_CONFIG_POINTER.parent(), FACTORY.objectNode()));
     }
-    if (pgBouncer.getParameters() == null) {
-      pgBouncer.setParameters(Map.of());
+
+    if (pgBouncerIni.getParameters() == null) {
+      pgBouncerIni.setParameters(Map.of());
       operations.add(new AddOperation(PG_BOUNCER_CONFIG_POINTER, FACTORY.objectNode()));
     }
 

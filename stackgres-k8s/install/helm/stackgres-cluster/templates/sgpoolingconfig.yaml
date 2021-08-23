@@ -15,8 +15,9 @@ spec:
   pgBouncer:
     {{- with (index .Values.configurations.poolingconfig.pgBouncer "pgbouncer.ini") }}
     pgbouncer.ini:
-    {{- range $key, $value := . }}
-      {{ $key }}: '{{ $value }}'
-    {{- end }}
+      pgbouncer:
+      {{- range $key, $value := . }}
+        {{ $key }}: '{{ $value }}'
+      {{- end }}
     {{- end }}
 {{ end }}

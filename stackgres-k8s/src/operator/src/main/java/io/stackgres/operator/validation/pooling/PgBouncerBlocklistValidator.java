@@ -31,10 +31,10 @@ public class PgBouncerBlocklistValidator implements PoolingValidator {
     if (operation == Operation.CREATE || operation == Operation.UPDATE) {
 
       var databases = review.getRequest()
-          .getObject().getSpec().getPgBouncer().getDatabases();
+          .getObject().getSpec().getPgBouncer().getPgbouncerIni().getDatabases();
 
       var users = review.getRequest()
-          .getObject().getSpec().getPgBouncer().getUsers();
+          .getObject().getSpec().getPgBouncer().getPgbouncerIni().getUsers();
 
       Set<String> blocklistedProperties = new HashSet<>();
 

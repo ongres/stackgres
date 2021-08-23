@@ -29,7 +29,8 @@ public class PoolingValidationPipelineTest
   public PoolingReview getConstraintViolatingReview() {
     PoolingReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getPgBouncer().setParameters(Map.of());
+    review.getRequest().getObject().getSpec().getPgBouncer().getPgbouncerIni()
+        .setParameters(Map.of());
 
     return review;
   }
