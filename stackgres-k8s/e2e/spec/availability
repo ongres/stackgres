@@ -43,9 +43,13 @@ metadata:
   name: pgbench
   namespace: $CLUSTER_NAMESPACE
 spec:
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
   containers:
   - name: pgbench
-    image: postgres
+    image: quay.io/ongres/postgres:v13.4-build-6.5
     args:
     - sleep
     - "1000000"
@@ -53,13 +57,13 @@ spec:
       - name: PGSERVICE
         value: pgbench
       - name: PGSERVICEFILE
-        value: /root/.pg_service.conf
+        value: /var/lib/postgresql/.pg_service.conf
     volumeMounts:
     - name: workdir
-      mountPath: /root/.pgpass
+      mountPath: /var/lib/postgresql/.pgpass
       subPath: .pgpass
     - name: creds
-      mountPath: /root/.pg_service.conf
+      mountPath: /var/lib/postgresql/.pg_service.conf
       subPath: .pg_service.conf
     resources:
       requests:

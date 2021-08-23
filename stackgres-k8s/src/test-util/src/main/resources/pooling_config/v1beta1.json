@@ -1,0 +1,54 @@
+{
+    "apiVersion": "stackgres.io/v1beta1",
+    "kind": "SGPoolingConfig",
+    "metadata": {
+        "annotations": {
+            "stackgres.io/operatorVersion": "0.9.5"
+        },
+        "creationTimestamp": "2021-08-23T13:39:54Z",
+        "generation": 1,
+        "labels": {
+            "app.kubernetes.io/managed-by": "Helm"
+        },
+        "name": "pgbouncerconf",
+        "namespace": "dbops-security-upgrade-6123a4c4",
+        "resourceVersion": "217801",
+        "selfLink": "/apis/stackgres.io/v1beta1/namespaces/dbops-security-upgrade-6123a4c4/sgpoolconfigs/pgbouncerconf",
+        "uid": "7c2b7d9a-ff75-4d89-b4f0-5eeadf8901e1"
+    },
+    "spec": {
+        "pgBouncer": {
+            "pgbouncer.ini": {
+                "admin_users": "postgres",
+                "application_name_add_host": "1",
+                "auth_query": "SELECT usename, passwd FROM pg_shadow WHERE usename=$1",
+                "auth_type": "md5",
+                "auth_user": "authenticator",
+                "default_pool_size": "50",
+                "ignore_startup_parameters": "extra_float_digits",
+                "listen_addr": "127.0.0.1",
+                "max_client_conn": "200",
+                "max_db_connections": "0",
+                "max_user_connections": "0",
+                "pool_mode": "transaction",
+                "stats_users": "postgres"
+            }
+        }
+    },
+    "status": {
+        "pgBouncer": {
+            "defaultParameters": [
+                "ignore_startup_parameters",
+                "stats_users",
+                "auth_type",
+                "max_user_connections",
+                "auth_user",
+                "max_db_connections",
+                "auth_query",
+                "application_name_add_host",
+                "listen_addr",
+                "admin_users"
+            ]
+        }
+    }
+}

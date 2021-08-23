@@ -119,7 +119,7 @@ class PgbouncerConfigResourceTest extends AbstractDependencyCustomResourceTest
         "default_pool_size", "200",
         "max_client_conn", "100",
         "pool_mode", "'transaction'"),
-        resource.getSpec().getPgBouncer().getParameters());
+        resource.getSpec().getPgBouncer().getPgbouncerIni().getParameters());
   }
 
 }
