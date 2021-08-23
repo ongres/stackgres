@@ -473,7 +473,12 @@
 								<template v-if="hasProp(item, 'database')">
 									<tr>
 										<td class="label" rowspan="2">
-											Script #{{ index+1 }} <template v-if="hasProp(item, 'name')">– {{ item.name }} </template> 
+											Script #{{ index+1 }} <template v-if="hasProp(item, 'name')">– {{ item.name }} </template>
+											<template v-if="hasProp(item, 'scriptFrom.secretKeyRef')">
+												<br><span class="normal small">
+													This script has been set from a SecretKeySelector
+												</span>
+											</template>
 										</td>
 										<td class="label">
 											Database
@@ -487,14 +492,26 @@
 											Script Details 
 										</td>
 										<td colspan="2">
-											<a @click="setContentTooltip('#script-'+index)"> 
-												View Script
-												<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
-											</a>
-											<div :id="'script-'+index" class="hidden">
-												<pre v-if="item.hasOwnProperty('script')">{{ item.script }}</pre>
-												<pre v-else-if="hasProp(item, 'scriptFrom.configMapScript')">{{ item.scriptFrom.configMapScript }}</pre>
-											</div>
+											<template v-if="hasProp(item, 'scriptFrom.secretKeyRef')">
+												<a @click="setContentTooltip('#script-'+index)"> 
+													View Details
+													<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+												</a>
+												<div :id="'script-'+index" class="hidden">
+													<strong>Name</strong>: {{  item.scriptFrom.secretKeyRef.name }}<br/><br/>
+													<strong>Key</strong>: {{  item.scriptFrom.secretKeyRef.key }}
+												</div>
+											</template>
+											<template v-else>
+												<a @click="setContentTooltip('#script-'+index)"> 
+													View Script
+													<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+												</a>
+												<div :id="'script-'+index" class="hidden">
+													<pre v-if="item.hasOwnProperty('script')">{{ item.script }}</pre>
+													<pre v-else-if="hasProp(item, 'scriptFrom.configMapScript')">{{ item.scriptFrom.configMapScript }}</pre>
+												</div>
+											</template>
 										</td>
 									</tr>
 								</template>		
@@ -507,14 +524,19 @@
 											Script Details
 										</td>
 										<td colspan="2">
-											<a @click="setContentTooltip('#script-'+index)"> 
-												View Script
-												<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
-											</a>
-											<div :id="'script-'+index" class="hidden">
-												<pre v-if="item.hasOwnProperty('script')">{{ item.script }}</pre>
-												<pre v-else-if="hasProp(item, 'scriptFrom.configMapScript')">{{ item.scriptFrom.configMapScript }}</pre>
-											</div>
+											<template v-if="hasProp(item, 'scriptFrom.secretKeyRef')">
+												This script has been set from a SecretKeySelector to maintain credentials in a safe place
+											</template>
+											<template v-else>
+												<a @click="setContentTooltip('#script-'+index)"> 
+													View Script
+													<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+												</a>
+												<div :id="'script-'+index" class="hidden">
+													<pre v-if="item.hasOwnProperty('script')">{{ item.script }}</pre>
+													<pre v-else-if="hasProp(item, 'scriptFrom.configMapScript')">{{ item.scriptFrom.configMapScript }}</pre>
+												</div>
+											</template>
 										</td>
 									</tr>
 								</template>
