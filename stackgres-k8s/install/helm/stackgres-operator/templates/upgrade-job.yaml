@@ -44,14 +44,6 @@ spec:
                 do
                   OPERATOR_VERSION="$(kubectl get sgcluster -n "${CLUSTER%:*}" "${CLUSTER#*:}" \
                     --template '{{ "{{" }} index .metadata.annotations "stackgres.io/operatorVersion" {{ "}}" }}')"
-                  if echo "$OPERATOR_VERSION" | grep -q '^0\.9\(\.[012]\)\?\(-.*\)\?$'
-                  then
-                    kubectl get sgcluster -n "${CLUSTER%:*}" "${CLUSTER#*:}" -o json \
-                      | sed 's/"postgresVersion": "latest"/"postgresVersion": "12.6"/' \
-                      | sed 's/"postgresVersion": "12"/"postgresVersion": "12.6"/' \
-                      | sed 's/"postgresVersion": "11"/"postgresVersion": "11.11"/' \
-                      | kubectl patch sgcluster -n "${CLUSTER%:*}" "${CLUSTER#*:}" --type merge -p "$(cat)"
-                  fi
                   if echo "$OPERATOR_VERSION" | grep -q '^0\.9\(\.[0123]\)\?\(-.*\)\?$'
                   then
                     kubectl annotate service -n "${CLUSTER%:*}" "${CLUSTER#*:}-primary" \

@@ -11,7 +11,7 @@
   "spec": {
     "instances": 1,
     "postgres": {
-      "version": "11.5"
+      "version": "11.11"
     },
     "sgInstanceProfile": "size-xs",
     "initialData": {

@@ -24,7 +24,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.KubernetesClientFactory;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.operator.conciliation.DeployedResourceDecorator;
 import io.stackgres.operator.conciliation.DeployedResourcesScanner;
@@ -36,13 +36,13 @@ public class BackupDeployedResourceScanner implements DeployedResourcesScanner<S
     ReconciliationOperations {
 
   private final KubernetesClientFactory clientFactory;
-  private final LabelFactory<StackGresBackup> labelFactory;
+  private final LabelFactoryForBackup labelFactory;
   private final Instance<DeployedResourceDecorator> decorators;
 
   @Inject
   public BackupDeployedResourceScanner(
       KubernetesClientFactory clientFactory,
-      LabelFactory<StackGresBackup> labelFactory,
+      LabelFactoryForBackup labelFactory,
       @Any Instance<DeployedResourceDecorator> decorators) {
     this.clientFactory = clientFactory;
     this.labelFactory = labelFactory;
