@@ -5,7 +5,7 @@ export E2E_TARGET_POSTGRES_VERSION="${E2E_TARGET_POSTGRES_VERSION:-13.2}"
 export E2E_STORAGE_CLASS_REFLINK_ENABLED="${E2E_STORAGE_CLASS_REFLINK_ENABLED:-false}"
 
 e2e_test_install() {
-  CLUSTER_NAME=dbops-major-version-upgrade
+  CLUSTER_NAME=major-up
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
@@ -37,7 +37,7 @@ CREATE MATERIALIZED VIEW test AS
 EOF
     )"
 
-  create_or_replace_cluster "$CLUSTER_NAME-for-major-version-upgrade" "$CLUSTER_NAMESPACE" 1 \
+  create_or_replace_cluster "$CLUSTER_NAME-4-major-up" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \
     --set instanceProfiles=null \
     --set cluster.configurations.sgPostgresConfig=postgresconf-for-major-version-upgrade \
