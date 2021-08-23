@@ -5,7 +5,7 @@
 
 package io.stackgres.apiweb.transformer.converter;
 
-public interface DtoConverter<T extends Object, R extends Object> {
+public interface DtoConverter<T, R> {
 
   R from(T source);
 }
