@@ -5,11 +5,10 @@
 
 package io.stackgres.common.crd.sgpooling;
 
-import java.util.Map;
 import java.util.Objects;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -23,58 +22,33 @@ import io.stackgres.common.StackGresUtil;
 public class StackGresPoolingConfigPgBouncer {
 
   @JsonProperty("pgbouncer.ini")
-  @NotEmpty(message = "pgbouncer.ini should not be empty")
-  private Map<String, String> parameters;
-
-  @JsonProperty("databases")
+  @NotNull(message = "pgbouncer.ini should not be empty")
   @Valid
-  private Map<String, Map<String, String>> databases;
+  private StackGresPoolingConfigPgBouncerPgbouncerIni pgbouncerIni;
 
-  @JsonProperty("users")
-  @Valid
-  private Map<String, Map<String, String>> users;
-
-  public Map<String, String> getParameters() {
-    return parameters;
+  public StackGresPoolingConfigPgBouncerPgbouncerIni getPgbouncerIni() {
+    return pgbouncerIni;
   }
 
-  public void setParameters(Map<String, String> parameters) {
-    this.parameters = parameters;
+  public void setPgbouncerIni(StackGresPoolingConfigPgBouncerPgbouncerIni pgbouncerIni) {
+    this.pgbouncerIni = pgbouncerIni;
   }
 
-  public Map<String, Map<String, String>> getDatabases() {
-    return databases;
-  }
-
-  public void setDatabases(Map<String, Map<String, String>> databases) {
-    this.databases = databases;
-  }
-
-  public Map<String, Map<String, String>> getUsers() {
-    return users;
-  }
-
-  public void setUsers(Map<String, Map<String, String>> users) {
-    this.users = users;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StackGresPoolingConfigPgBouncer that = (StackGresPoolingConfigPgBouncer) o;
+    return Objects.equals(pgbouncerIni, that.pgbouncerIni);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(databases, parameters, users);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof StackGresPoolingConfigPgBouncer)) {
-      return false;
-    }
-    StackGresPoolingConfigPgBouncer other = (StackGresPoolingConfigPgBouncer) obj;
-    return Objects.equals(databases, other.databases)
-        && Objects.equals(parameters, other.parameters)
-        && Objects.equals(users, other.users);
+    return Objects.hash(pgbouncerIni);
   }
 
   @Override
