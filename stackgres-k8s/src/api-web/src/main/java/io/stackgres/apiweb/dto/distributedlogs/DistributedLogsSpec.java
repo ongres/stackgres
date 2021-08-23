@@ -87,14 +87,6 @@ public class DistributedLogsSpec {
     this.postgresServices = postgresServices;
   }
 
-  public DistributedLogsPostgresServices getPostgresServices() {
-    return postgresServices;
-  }
-
-  public void setPostgresServices(DistributedLogsPostgresServices postgresServices) {
-    this.postgresServices = postgresServices;
-  }
-
   @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
