@@ -18,7 +18,7 @@ e2e_test_install() {
 
   create_mock_data
 
-  BACKUP_NAME="$CLUSTER_NAME-backup-0-$(shuf -i 0-65535 -n 1)"
+  BACKUP_NAME="$CLUSTER_NAME-bkp-0-$(shuf -i 0-65535 -n 1)"
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1

@@ -1,6 +1,7 @@
 #!/bin/sh
 
 e2e_test_install() {
+  CLUSTER_NAME="dlogs"
   DISTRIBUTED_LOGS_NAME=distributedlogs
 
   TIMESCALE_VERSION="$(get_latest_version_of_extension timescaledb)"
@@ -15,7 +16,7 @@ e2e_test_install() {
 
   wait_pods_running "$CLUSTER_NAMESPACE" "1"
 
-  create_or_replace_cluster "$CLUSTER_NAME-for-distributedlogs" "$CLUSTER_NAMESPACE" "1" \
+  create_or_replace_cluster "$CLUSTER_NAME-4-dlogs" "$CLUSTER_NAMESPACE" "1" \
     --set cluster.create=false \
     --set configurations.create=false \
     --set instanceProfiles=null \
