@@ -25,6 +25,7 @@ import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerPgbouncerIni;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerStatus;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
@@ -51,10 +52,10 @@ public class PgBouncerPooling extends AbstractPgPooling {
 
   @Inject
   protected PgBouncerPooling(LabelFactoryForCluster<StackGresCluster> labelFactory,
-      @ProviderName(CONTAINER_USER_OVERRIDE)
-        VolumeMountsProvider<ContainerContext> containerUserOverrideMounts,
-      @ProviderName(POSTGRES_SOCKET)
-        VolumeMountsProvider<ContainerContext> postgresSocket) {
+                             @ProviderName(CONTAINER_USER_OVERRIDE)
+                                 VolumeMountsProvider<ContainerContext> containerUserOverrideMounts,
+                             @ProviderName(POSTGRES_SOCKET)
+                                 VolumeMountsProvider<ContainerContext> postgresSocket) {
     super(labelFactory);
     this.containerUserOverrideMounts = containerUserOverrideMounts;
     this.postgresSocket = postgresSocket;
@@ -86,11 +87,12 @@ public class PgBouncerPooling extends AbstractPgPooling {
     var newParams = poolingConfig
         .map(StackGresPoolingConfig::getSpec)
         .map(StackGresPoolingConfigSpec::getPgBouncer)
-        .map(StackGresPoolingConfigPgBouncer::getParameters)
+        .map(StackGresPoolingConfigPgBouncer::getPgbouncerIni)
+        .map(StackGresPoolingConfigPgBouncerPgbouncerIni::getParameters)
         .orElseGet(HashMap::new);
 
     // Blocklist removal
-    PgBouncerBlocklist.getBlocklistParameters().forEach(bl -> newParams.remove(bl));
+    PgBouncerBlocklist.getBlocklistParameters().forEach(newParams::remove);
 
     Map<String, String> parameters = poolingConfig
         .map(StackGresPoolingConfig::getStatus)
@@ -114,7 +116,8 @@ public class PgBouncerPooling extends AbstractPgPooling {
     var users = poolingConfig
         .map(StackGresPoolingConfig::getSpec)
         .map(StackGresPoolingConfigSpec::getPgBouncer)
-        .map(StackGresPoolingConfigPgBouncer::getUsers)
+        .map(StackGresPoolingConfigPgBouncer::getPgbouncerIni)
+        .map(StackGresPoolingConfigPgBouncerPgbouncerIni::getUsers)
         .orElseGet(HashMap::new);
 
     return !users.isEmpty()
@@ -126,7 +129,8 @@ public class PgBouncerPooling extends AbstractPgPooling {
     var databases = poolingConfig
         .map(StackGresPoolingConfig::getSpec)
         .map(StackGresPoolingConfigSpec::getPgBouncer)
-        .map(StackGresPoolingConfigPgBouncer::getDatabases)
+        .map(StackGresPoolingConfigPgBouncer::getPgbouncerIni)
+        .map(StackGresPoolingConfigPgBouncerPgbouncerIni::getDatabases)
         .orElseGet(HashMap::new);
 
     return !databases.isEmpty()

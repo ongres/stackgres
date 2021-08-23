@@ -16,7 +16,7 @@ e2e_test_install() {
 
   DEFAULT_PGPOOLING=$(echo "$DEFAULT_PGPOOLING_CR" \
     | jq 'del(.apiVersion) | del(.kind)' \
-    | jq '.spec.pgBouncer."pgbouncer.ini" = (.spec.pgBouncer."pgbouncer.ini"|to_entries|map(.key + "=" + .value)|join("\n"))' )
+    | jq '.spec.pgBouncer."pgbouncer.ini" = (.spec.pgBouncer."pgbouncer.ini".pgbouncer |to_entries|map(.key + "=" + .value)|join("\n"))' )
 
   echo_raw "$DEFAULT_PGPOOLING" > "$LOG_PATH/default-pgpooling.json"
 
@@ -187,8 +187,8 @@ update_pgpooling_parameter_with_api() {
 
   UPDATED_PGPOOLING=$(cat "$LOG_PATH/default-pgpooling-cr.json" \
     | jq 'del(.apiVersion) | del(.kind)' \
-    | jq ".spec.pgBouncer[\"pgbouncer.ini\"][\"$1\"] = $2" \
-    | jq '.spec.pgBouncer."pgbouncer.ini" = (.spec.pgBouncer."pgbouncer.ini"|to_entries|map(.key + "=" + .value)|join("\n"))' )
+    | jq ".spec.pgBouncer[\"pgbouncer.ini\"].pgbouncer[\"$1\"] = $2" \
+    | jq '.spec.pgBouncer."pgbouncer.ini" = (.spec.pgBouncer."pgbouncer.ini".pgbouncer|to_entries|map(.key + "=" + .value)|join("\n"))' )
 
   echo_raw "$UPDATED_PGPOOLING" > "$LOG_PATH/updated-pgpooling.json"
 
@@ -206,7 +206,7 @@ update_pgpooling_parameter_with_api() {
 }
 
 get_max_clien_conn(){
-  MAX_CLIENT_CONN=$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGPOOLING" -o "jsonpath={.spec.pgBouncer['pgbouncer\.ini'].max_client_conn}")
+  MAX_CLIENT_CONN=$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGPOOLING" -o "jsonpath={.spec.pgBouncer['pgbouncer\.ini'].pgbouncer.max_client_conn}")
   echo "$MAX_CLIENT_CONN"
 }
 
@@ -251,22 +251,23 @@ metadata:
 spec:
   pgBouncer:
     pgbouncer.ini:
-      max_client_conn: '2000'
-      default_pool_size: '50'
-    databases:
-      foodb:
-        max_db_connections: 2000
-        pool_size: 20
-        dbname: 'bardb'
-        reserve_pool: 5
-        datestyle: ISO
-    users:
-      user1:
-        pool_mode: transaction
-        max_user_connections: 50
-      user2:
-        pool_mode: session
-        max_user_connections: 100
+      pgbouncer:
+        max_client_conn: '2000'
+        default_pool_size: '50'
+      databases:
+        foodb:
+          max_db_connections: 2000
+          pool_size: 20
+          dbname: 'bardb'
+          reserve_pool: 5
+          datestyle: ISO
+      users:
+        user1:
+          pool_mode: transaction
+          max_user_connections: 50
+        user2:
+          pool_mode: session
+          max_user_connections: 100
 EOF
 
   ACTUAL=$(get_pgpooling_from_api | jq '.spec.pgBouncer["pgbouncer.ini"]' -r)

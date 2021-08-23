@@ -8,7 +8,7 @@ package io.stackgres.operator.validation.pooling;
 import java.util.Map;
 
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerPgbouncerIni;
 import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
@@ -48,20 +48,21 @@ class PoolingConstraintValidatorTest extends ConstraintValidationTest<PoolingRev
   @Test
   void nullPgBouncerConf_shouldFail() {
     PoolingReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getPgBouncer().setParameters(null);
+    review.getRequest().getObject().getSpec().getPgBouncer().getPgbouncerIni().setParameters(null);
 
-    checkNotEmptyErrorCause(StackGresPoolingConfigPgBouncer.class,
-        "spec.pgBouncer.parameters", review);
+    checkNotEmptyErrorCause(StackGresPoolingConfigPgBouncerPgbouncerIni.class,
+        "spec.pgBouncer.pgbouncerIni.parameters", review);
 
   }
 
   @Test
   void emptyPgBouncerConf_shouldFail() {
     PoolingReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getPgBouncer().setParameters(Map.of());
+    review.getRequest().getObject().getSpec().getPgBouncer().getPgbouncerIni()
+        .setParameters(Map.of());
 
-    checkNotEmptyErrorCause(StackGresPoolingConfigPgBouncer.class,
-        "spec.pgBouncer.parameters", review);
+    checkNotEmptyErrorCause(StackGresPoolingConfigPgBouncerPgbouncerIni.class,
+        "spec.pgBouncer.pgbouncerIni.parameters", review);
 
   }
 }

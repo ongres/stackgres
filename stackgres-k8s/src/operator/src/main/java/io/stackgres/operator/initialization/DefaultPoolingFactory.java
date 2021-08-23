@@ -9,6 +9,7 @@ import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerPgbouncerIni;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 
 @ApplicationScoped
@@ -26,8 +27,11 @@ public class DefaultPoolingFactory
 
     StackGresPoolingConfigSpec spec = new StackGresPoolingConfigSpec();
     final StackGresPoolingConfigPgBouncer pgBouncer = new StackGresPoolingConfigPgBouncer();
+    final StackGresPoolingConfigPgBouncerPgbouncerIni pgbouncerIni
+        = new StackGresPoolingConfigPgBouncerPgbouncerIni();
+    pgbouncerIni.setParameters(getDefaultValues());
+    pgBouncer.setPgbouncerIni(pgbouncerIni);
     spec.setPgBouncer(pgBouncer);
-    pgBouncer.setParameters(getDefaultValues());
     config.setSpec(spec);
 
     return config;

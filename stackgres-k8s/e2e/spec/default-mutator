@@ -166,11 +166,12 @@ metadata:
 spec:
   pgBouncer:
     pgbouncer.ini:
-      unsignificant: "true"
+      pgbouncer:
+        unsignificant: "true"
 EOF
 
-  local CREATED_FIELDS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.spec.pgBouncer["pgbouncer.ini"] | length')"
-  local DEFAULT_FIELDS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"] | length')"
+  local CREATED_FIELDS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | length')"
+  local DEFAULT_FIELDS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | length')"
 
   if [ "$CREATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
   then
@@ -181,7 +182,7 @@ EOF
   fi
 
   local CREATED_DEFAULTS_PARAMETERS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.status.pgBouncer.defaultParameters | keys | sort')"
-  local DEFAULTS_PARAMETERS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"] | keys | sort')"
+  local DEFAULTS_PARAMETERS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | keys | sort')"
 
   if [ "$CREATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
   then
@@ -214,12 +215,12 @@ spec: {}
 EOF
   local PATCH="$(kubectl get sgpoolconfig -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json \
     | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
-    | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])|.spec.pgBouncer["pgbouncer.ini"].unsignificant = "true"' \
+    | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])|.spec.pgBouncer["pgbouncer.ini"].pgbouncer.unsignificant = "true"' \
     | kubectl create -f - --dry-run=client -o yaml)"
   kubectl patch sgpoolconfig -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" --type merge -p "$PATCH"
 
-  local UPDATED_FIELDS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.spec.pgBouncer["pgbouncer.ini"] | length')"
-  local DEFAULT_FIELDS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"] | length')"
+  local UPDATED_FIELDS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | length')"
+  local DEFAULT_FIELDS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | length')"
 
   if [ "$UPDATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
   then
@@ -230,7 +231,7 @@ EOF
   fi
 
   local UPDATED_DEFAULTS_PARAMETERS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.status.pgBouncer.defaultParameters | keys | sort')"
-  local DEFAULTS_PARAMETERS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"] | keys | sort')"
+  local DEFAULTS_PARAMETERS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | keys | sort')"
 
   if [ "$UPDATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
   then
@@ -631,7 +632,7 @@ spec:
     disableClusterPodAntiAffinity: true
 EOF
   local PATCH="$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
+    | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.generation)' \
     | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])' \
     | kubectl create -f - --dry-run=client -o yaml)"
   kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type merge -p "$PATCH"

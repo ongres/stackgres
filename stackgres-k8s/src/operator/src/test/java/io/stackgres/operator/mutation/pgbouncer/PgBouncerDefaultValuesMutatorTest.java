@@ -29,7 +29,8 @@ class PgBouncerDefaultValuesMutatorTest
   protected PoolingReview getEmptyReview() {
     PoolingReview review = JsonUtil
         .readFromJson("pooling_allow_request/create.json", PoolingReview.class);
-    review.getRequest().getObject().getSpec().getPgBouncer().setParameters(Map.of());
+    review.getRequest().getObject().getSpec().getPgBouncer().getPgbouncerIni()
+        .setParameters(Map.of());
     return review;
   }
 
@@ -47,7 +48,7 @@ class PgBouncerDefaultValuesMutatorTest
 
   @Override
   protected JsonNode getConfJson(JsonNode crJson) {
-    return crJson.get("spec").get("pgBouncer").get("pgbouncer.ini");
+    return crJson.get("spec").get("pgBouncer").get("pgbouncer.ini").get("pgbouncer");
   }
 
 }

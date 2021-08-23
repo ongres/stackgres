@@ -29,18 +29,32 @@ ___
 | Property      | Required | Updatable | Type    | Default   | Description |
 |:--------------|----------|-----------|:--------|:----------|:------------|
 | pgbouncer.ini |          | ✓         | object  | see below | {{< crd-field-description "SGPoolingConfig.spec.pgBouncer.pgbouncer\.ini" >}} |
-| databases     |          | ✓         | object  |           | {{< crd-field-description "SGPoolingConfig.spec.pgBouncer.databases" >}} |
-| users         |          | ✓         | object  |           | {{< crd-field-description "SGPoolingConfig.spec.pgBouncer.users" >}} |
+
+# PgBouncer sections
+| Property      | Required | Updatable | Type    | Default   | Description |
+|:--------------|----------|-----------|:--------|:----------|:------------|
+| pgbouncer     |          | ✓         | object  | see below | {{< crd-field-description "SGPoolingConfig.spec.pgBouncer.pgbouncer\.ini.pgbouncer" >}} |
+| databases     |          | ✓         | object  |           | {{< crd-field-description "SGPoolingConfig.spec.pgBouncer.pgbouncer\.ini.databases" >}} |
+| users         |          | ✓         | object  |           | {{< crd-field-description "SGPoolingConfig.spec.pgBouncer.pgbouncer\.ini.users" >}} |
 
 
 Default value of `pgbouncer.ini` property:
 
 ```yaml
-pool_mode: session
-max_client_conn: 1000
-default_pool_size: 1000
-max_db_connections: 0
-max_user_connections: 0
+pgbouncer:
+  admin_users: "postgres",
+  application_name_add_host: "1",
+  auth_query: "SELECT usename, passwd FROM pg_shadow WHERE usename=$1",
+  auth_type: "md5",
+  auth_user: "authenticator",
+  default_pool_size: "50",
+  ignore_startup_parameters: "extra_float_digits",
+  listen_addr: "127.0.0.1",
+  max_client_conn: "200",
+  max_db_connections: "0",
+  max_user_connections: "0",
+  pool_mode: "transaction",
+  stats_users: "postgres"
 ```
 
 Example:
