@@ -217,12 +217,6 @@ distributedLogs:
     ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
     ##   GKE, AWS & OpenStack)
     #  storageClass: "-"
-  postgresServices:
-    primary:
-      type: ClusterIP
-    replicas:
-      enabled: true
-      type: ClusterIP
   # scheduling:
   #   nodeSelector:
   #     key: value

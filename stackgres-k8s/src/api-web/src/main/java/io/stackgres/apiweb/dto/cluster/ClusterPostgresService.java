@@ -3,31 +3,21 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.app.postgres.service;
+package io.stackgres.apiweb.dto.cluster;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class PostgresService implements KubernetesResource {
-
-  private static final long serialVersionUID = 1L;
+public class ClusterPostgresService {
 
   private Boolean enabled;
 
   private String type;
-
-  public PostgresService() {}
-
-  public PostgresService(Boolean enabled, String type) {
-    this.enabled = enabled;
-    this.type = type;
-  }
 
   public Boolean getEnabled() {
     return enabled;
@@ -49,4 +39,5 @@ public class PostgresService implements KubernetesResource {
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
   }
+
 }
