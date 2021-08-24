@@ -52,6 +52,9 @@ public class DbOpLauncherImpl implements DbOpLauncher {
   @Any
   Instance<DatabaseOperationJob> instance;
 
+  @Inject
+  DatabaseOperationEventEmitter databaseOperationEventEmitter;
+
   private static void setTransitionTimes(List<StackGresDbOpsCondition> conditions) {
     String currentDateTime = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
     conditions.forEach(condition -> condition.setLastTransitionTime(currentDateTime));
@@ -95,6 +98,7 @@ public class DbOpLauncherImpl implements DbOpLauncher {
 
         lockAcquirer
             .lockRun(lockRequest, (targetCluster) -> {
+              databaseOperationEventEmitter.operationStarted(dbOpName, namespace);
               final DatabaseOperationJob databaseOperationJob = jobImpl.get();
 
               Uni<ClusterRestartState> jobUni = databaseOperationJob.runJob(
@@ -105,15 +109,18 @@ public class DbOpLauncherImpl implements DbOpLauncher {
               } else {
                 jobUni.await().indefinitely();
               }
+              databaseOperationEventEmitter.operationCompleted(dbOpName, namespace);
             });
 
         LOGGER.info("Operation completed for SgDbOp {}", dbOpName);
         updateToCompletedConditions(dbOpName, namespace);
       } catch (TimeoutException timeoutEx) {
         updateToTimeoutConditions(dbOpName, namespace);
+        databaseOperationEventEmitter.operationTimedOut(dbOpName, namespace);
         throw timeoutEx;
       } catch (Exception e) {
         updateToFailedConditions(dbOpName, namespace);
+        databaseOperationEventEmitter.operationFailed(dbOpName, namespace);
         throw e;
       }
     } else if (jobImpl.isAmbiguous()) {
@@ -127,9 +134,9 @@ public class DbOpLauncherImpl implements DbOpLauncher {
   }
 
   private void updateToConditions(String dbOpName, String namespace,
-      List<StackGresDbOpsCondition> conditions) {
+                                  List<StackGresDbOpsCondition> conditions) {
     Uni.createFrom().item(() -> dbOpsFinder.findByNameAndNamespace(dbOpName, namespace)
-        .orElseThrow())
+            .orElseThrow())
         .invoke(currentDbOps -> currentDbOps.getStatus().setConditions(conditions))
         .invoke(dbOpsScheduler::update)
         .onFailure()

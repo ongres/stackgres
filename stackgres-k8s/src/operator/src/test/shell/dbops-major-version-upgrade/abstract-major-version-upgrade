@@ -95,13 +95,29 @@ kubectl_mock() {
             }'
     ;;
     ("replace --raw /apis/$CRD_GROUP/v1/namespaces/$CLUSTER_NAMESPACE/$CLUSTER_CRD_NAME/$CLUSTER_NAME/status -f"*)
-
     ;;
     ("get $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME --template={{ if .status }}true{{ else }}false{{ end }}")
     printf '%s' false
     ;;
     ("get $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME --template={{ if .status.$OP_NAME }}replace{{ else }}add{{ end }}")
     printf '%s' add
+    ;;
+    ("get "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" -o json")
+      echo '{
+        "apiVersion": "stackgres.io/v1"
+        "kind": "SGDbOps"
+        "metadata": {
+          "name": "'"$DB_OPS_NAME"'"
+          "namespace": "'"$CLUSTER_NAMESPACE"'",
+          "resourceVersion": "1",
+          "uid": "172381f8-3f37-46c9-9a29-8284a73d1e5e"
+        },
+        "spec":
+          "sgCluster": "'"$CLUSTER_NAME"'",
+          "op": "majorVersionUpgrade"
+      }'
+    ;;
+    ("create --raw /api/v1/namespaces/$CLUSTER_NAMESPACE/events -f"*)
     ;;
     ("get pods -n $CLUSTER_NAMESPACE -l $CLUSTER_POD_LABELS -o name")
     cat "$TEST_TARGET_PATH/cluster_pods"
@@ -178,6 +194,7 @@ kubectl_mock() {
     ("exec -n $CLUSTER_NAMESPACE test-"*" -c $PATRONI_CONTAINER_NAME -- psql -t -A -c SELECT CASE WHEN current_setting('data_checksums')"*)
     echo '"true"'
     ;;
+
     *)
     not_mokked
     ;;

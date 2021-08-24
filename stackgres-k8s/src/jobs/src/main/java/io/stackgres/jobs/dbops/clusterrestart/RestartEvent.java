@@ -5,13 +5,15 @@
 
 package io.stackgres.jobs.dbops.clusterrestart;
 
+import java.util.Optional;
+
 import io.fabric8.kubernetes.api.model.Pod;
 import org.immutables.value.Value;
 
 @Value.Immutable
 public interface RestartEvent {
 
-  Pod getPod();
+  Optional<Pod> getPod();
 
   RestartEventType getEventType();
 
