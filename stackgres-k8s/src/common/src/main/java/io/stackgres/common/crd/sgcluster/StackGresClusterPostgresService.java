@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.common.crd.postgres.service;
+package io.stackgres.common.crd.sgcluster;
 
 import java.util.Objects;
 
@@ -16,11 +16,11 @@ import io.stackgres.common.validation.ValidEnum;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackGresPostgresService {
+public class StackGresClusterPostgresService {
 
   private Boolean enabled;
 
-  @ValidEnum(enumClass = StackGresPostgresServiceType.class, allowNulls = true,
+  @ValidEnum(enumClass = StackGresClusterPostgresServiceType.class, allowNulls = true,
       message = "type must be one of ClusterIP, LoadBalancer, NodePort or ExternalName")
   private String type;
 
@@ -50,10 +50,10 @@ public class StackGresPostgresService {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresPostgresService)) {
+    if (!(obj instanceof StackGresClusterPostgresService)) {
       return false;
     }
-    StackGresPostgresService other = (StackGresPostgresService) obj;
+    StackGresClusterPostgresService other = (StackGresClusterPostgresService) obj;
     return Objects.equals(enabled, other.enabled)
         && Objects.equals(type, other.type);
   }

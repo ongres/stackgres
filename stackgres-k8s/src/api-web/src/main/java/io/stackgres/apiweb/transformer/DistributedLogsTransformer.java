@@ -21,7 +21,6 @@ import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsSpec;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsSpecAnnotations;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsSpecMetadata;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsStatus;
-import io.stackgres.apiweb.transformer.distributedlogs.DistributedLogsPostgresServicesConverter;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsCondition;
@@ -79,8 +78,8 @@ public class DistributedLogsTransformer
         .ifPresent(sourceAnnotations -> {
           transformation.setMetadata(new StackGresDistributedLogsSpecMetadata());
 
-          final StackGresDistributedLogsSpecAnnotations targetAnnotations =
-              new StackGresDistributedLogsSpecAnnotations();
+          final StackGresDistributedLogsSpecAnnotations targetAnnotations
+              = new StackGresDistributedLogsSpecAnnotations();
           transformation.getMetadata().setAnnotations(targetAnnotations);
 
           if (sourceAnnotations.getAllResources() != null) {
@@ -123,9 +122,6 @@ public class DistributedLogsTransformer
         getResourcePersistentVolume(source.getPersistentVolume()));
     transformation.setNonProduction(
         getResourceNonProduction(source.getNonProduction()));
-
-    transformation.setPostgresServices(
-        new DistributedLogsPostgresServicesConverter().from(source.getPostgresServices()));
 
     transformation.setScheduling(Optional.ofNullable(source.getScheduling())
         .map(sourcePodScheduling -> {

@@ -16,7 +16,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
@@ -64,7 +63,6 @@ public interface StackGresDistributedLogsUtil {
     persistentVolume.setStorageClass(
         distributedLogs.getSpec().getPersistentVolume().getStorageClass());
     pod.setPersistentVolume(persistentVolume);
-    spec.setPostgresServices(buildPostgresServices(distributedLogs.getSpec()));
     StackGresClusterPodScheduling scheduling = new StackGresClusterPodScheduling();
     Optional.of(distributedLogs)
         .map(StackGresDistributedLogs::getSpec)
@@ -80,17 +78,17 @@ public interface StackGresDistributedLogsUtil {
     script.setName("distributed-logs-template");
     script.setDatabase("template1");
     script.setScript(Unchecked.supplier(() -> Resources
-        .asCharSource(StackGresDistributedLogsUtil.class.getResource(
-            "/distributed-logs-template.sql"),
-            StandardCharsets.UTF_8)
-        .read()).get());
+          .asCharSource(StackGresDistributedLogsUtil.class.getResource(
+              "/distributed-logs-template.sql"),
+              StandardCharsets.UTF_8)
+          .read()).get());
     initData.setScripts(ImmutableList.of(script));
     spec.setInitData(initData);
     final StackGresClusterNonProduction nonProduction = new StackGresClusterNonProduction();
     nonProduction.setDisableClusterPodAntiAffinity(
         Optional.ofNullable(distributedLogs.getSpec().getNonProduction())
-            .map(StackGresDistributedLogsNonProduction::getDisableClusterPodAntiAffinity)
-            .orElse(false));
+        .map(StackGresDistributedLogsNonProduction::getDisableClusterPodAntiAffinity)
+        .orElse(false));
     spec.setNonProduction(nonProduction);
     final StackGresClusterSpecMetadata metadata = new StackGresClusterSpecMetadata();
     final StackGresClusterSpecAnnotations annotations = new StackGresClusterSpecAnnotations();
@@ -112,18 +110,6 @@ public interface StackGresDistributedLogsUtil {
         .orElse(null));
     distributedLogsCluster.setSpec(spec);
     return distributedLogsCluster;
-  }
-
-  static StackGresClusterPostgresServices buildPostgresServices(
-      StackGresDistributedLogsSpec stackGresDistributedLogsSpec) {
-    StackGresClusterPostgresServices postgresServices = new StackGresClusterPostgresServices();
-    Optional.ofNullable(stackGresDistributedLogsSpec)
-        .map(StackGresDistributedLogsSpec::getPostgresServices)
-        .ifPresent(pgServices -> {
-          postgresServices.setPrimary(pgServices.getPrimary());
-          postgresServices.setReplicas(pgServices.getReplicas());
-        });
-    return postgresServices;
   }
 
 }
