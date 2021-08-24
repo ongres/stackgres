@@ -3,7 +3,7 @@
 . "$SPEC_PATH/abstract/dbops-restart"
 
 e2e_test_install() {
-  CLUSTER_NAME=dbops-minor-version-upgrade
+  CLUSTER_NAME="minor-upgrade"
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
@@ -25,7 +25,7 @@ check_minor_version_upgrade_is_working() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: minor-version-upgrade
+  name: $CLUSTER_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -34,7 +34,7 @@ EOF
 
   check_minor_version_upgrade
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" minor-version-upgrade
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
 }
 
 check_minor_version_upgrade_in_place_is_working() {
@@ -44,7 +44,7 @@ check_minor_version_upgrade_in_place_is_working() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: minor-version-upgrade
+  name: $CLUSTER_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -55,11 +55,11 @@ EOF
 
   check_minor_version_upgrade
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" minor-version-upgrade
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
 }
 
 check_minor_version_upgrade() {
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "minor-version-upgrade" \
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops $CLUSTER_NAME \
     --for condition=Running
   then
     echo "SUCCESS. minor version upgrade running."
@@ -80,7 +80,7 @@ check_minor_version_upgrade() {
     echo "SUCCESS. Cluster has not been updated while locked."
   fi
 
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "minor-version-upgrade" \
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops $CLUSTER_NAME \
     --for condition=Completed
   then
     echo "SUCCESS. Minor version upgrade completed."
@@ -90,7 +90,7 @@ check_minor_version_upgrade() {
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "dbops-name=minor-version-upgrade,db-ops=true" \
+    -l "dbops-name=$CLUSTER_NAME,db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
     echo "SUCCESS. Minor version upgrade job was not removed after completion."
