@@ -1,6 +1,7 @@
 #!/bin/sh
 
 e2e_test_install() {
+  CLUSTER_NAME="service-conf-dl"
   NODE_LABEL_KEY="$(ramdom_string)"
   NODE_LABEL_VALUE="$(ramdom_string)"
 
@@ -102,21 +103,24 @@ distributedlogs_services_full_enabled(){
 }
 
 services_annotations(){
-  local KEY_ANNOTATION="sgdistributedlog-key"
+  local PRIMARY_KEY_ANNOTATION="primary-annotation"
+  local REPLICA_KEY_ANNOTATION="replica-annotation"
   local PRIMARY_ANNOTATION_VALUE=$(ramdom_string)
-  local REPLICA_ANNOTATION_RANDOM_VALUE=$(ramdom_string)
+  local REPLICA_ANNOTATION_VALUE=$(ramdom_string)
   
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
     --set-string cluster.distributedLogs.sgDistributedLogs=distributedlogs \
     --set distributedLogs.enabled=true \
     --set distributedLogs.postgresServices.replicas.enabled="true" \
-    --set distributedLogs.postgresServices.primary.annotations."$KEY_ANNOTATION"="$PRIMARY_ANNOTATION_VALUE" \
-    --set distributedLogs.postgresServices.replicas.annotations."$KEY_ANNOTATION"="$REPLICA_ANNOTATION_RANDOM_VALUE"
+    --set cluster.metadata.annotations.primaryService.primaryService."$PRIMARY_KEY_ANNOTATION"="$PRIMARY_ANNOTATION_VALUE" \
+    --set cluster.metadata.annotations.replicasService.replicasService."$REPLICA_KEY_ANNOTATION"="$REPLICA_ANNOTATION_VALUE"
 
-  check_distributed_logs_annotation "primary" "$KEY_ANNOTATION" "$PRIMARY_ANNOTATION_VALUE"
+  SERVICE_ANNOTATION="$PRIMARY_KEY_ANNOTATION"
+  wait_until check_service_annotation "" "$PRIMARY_RANDOM_VALUE"
 
-  check_distributed_logs_annotation "replicas" "$KEY_ANNOTATION" "$REPLICA_ANNOTATION_RANDOM_VALUE"
+  SERVICE_ANNOTATION="$REPLICA_KEY_ANNOTATION"
+  wait_until check_service_annotation "replicas" "$REPLICA_RANDOM_VALUE"    
 
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
