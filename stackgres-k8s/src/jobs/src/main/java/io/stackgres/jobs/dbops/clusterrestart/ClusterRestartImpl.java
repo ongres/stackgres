@@ -62,8 +62,14 @@ public class ClusterRestartImpl implements ClusterRestart {
       if (clusterRestartState.getRestartedInstances().isEmpty()
           && clusterRestartState.hasToBeRestarted(primaryInstance)) {
         restartChain = restartChain
-            .invoke(() -> LOGGER.info("Restarting primary node postgres of cluster {}",
-                clusterName))
+            .invoke(() -> {
+              LOGGER.info("Restarting primary node postgres of cluster {}",
+                  clusterName);
+              em.emit(ImmutableRestartEvent.builder()
+                  .pod(primaryInstance)
+                  .eventType(RestartEventType.RESTARTING_POSTGRES)
+                  .build());
+            })
             .chain(() -> postgresRestart.restartPostgres(primaryInstanceName,
                 clusterName,
                 clusterRestartState.getNamespace()))
@@ -71,7 +77,7 @@ public class ClusterRestartImpl implements ClusterRestart {
               LOGGER.info("Postgres of instance {} restarted", primaryInstanceName);
               em.emit(ImmutableRestartEvent.builder()
                   .pod(primaryInstance)
-                  .eventType(RestartEventType.POSTGRES_RESTART)
+                  .eventType(RestartEventType.POSTGRES_RESTARTED)
                   .build());
             });
         restartChain = waitForClusterToBeHealthy(clusterRestartState, restartChain);
@@ -81,17 +87,21 @@ public class ClusterRestartImpl implements ClusterRestart {
           && hasInstancesNotBeenIncreased(clusterRestartState)) {
 
         restartChain = restartChain.onItem()
-            .invoke(() -> LOGGER.info("Increasing instances of cluster {}", clusterName))
+            .invoke(() -> {
+              LOGGER.info("Increasing instances of cluster {}", clusterName);
+              em.emit(ImmutableRestartEvent.builder()
+                  .eventType(RestartEventType.INCREASING_INSTANCES)
+                  .build());
+            })
             .chain(() ->
                 clusterInstanceManager.increaseClusterInstances(
                     clusterName,
                     clusterRestartState.getNamespace())
-
             ).onItem().invoke((createdPod) -> {
               LOGGER.info("Instances of cluster {} increased", clusterName);
               em.emit(ImmutableRestartEvent.builder()
                   .pod(createdPod)
-                  .eventType(RestartEventType.POD_CREATED)
+                  .eventType(RestartEventType.INSTANCES_INCREASED)
                   .build());
             });
 
@@ -100,21 +110,27 @@ public class ClusterRestartImpl implements ClusterRestart {
 
       List<Pod> replicas = clusterRestartState.getInitialInstances().stream()
           .filter(pod -> !primaryInstance.equals(pod))
-          .filter(pod -> clusterRestartState.hasToBeRestarted(pod))
+          .filter(clusterRestartState::hasToBeRestarted)
           .collect(Collectors.toUnmodifiableList());
 
       for (Pod replica : replicas) {
         restartChain = restartChain
             .onItem()
             .invoke(() -> logPodRestartReason(replica, clusterRestartState))
-            .invoke(() -> LOGGER.info("Restarting pod {}", replica.getMetadata().getName()))
+            .invoke(() -> {
+              LOGGER.info("Restarting pod {}", replica.getMetadata().getName());
+              em.emit(ImmutableRestartEvent.builder()
+                  .pod(replica)
+                  .eventType(RestartEventType.RESTARTING_POD)
+                  .build());
+            })
             .chain(() -> podRestart.restartPod(replica))
             .onItem()
             .invoke(() -> {
               LOGGER.info("Pod {} restarted", replica.getMetadata().getName());
               em.emit(ImmutableRestartEvent.builder()
                   .pod(replica)
-                  .eventType(RestartEventType.POD_RESTART)
+                  .eventType(RestartEventType.POD_RESTARTED)
                   .build());
             });
 
@@ -148,14 +164,20 @@ public class ClusterRestartImpl implements ClusterRestart {
       if (clusterRestartState.hasToBeRestarted(primaryInstance)) {
         restartChain = restartChain.onItem()
             .invoke(() -> logPodRestartReason(primaryInstance, clusterRestartState))
-            .invoke(() -> LOGGER.info("Restarting pod {}", primaryInstanceName))
+            .invoke(() -> {
+              LOGGER.info("Restarting pod {}", primaryInstanceName);
+              em.emit(ImmutableRestartEvent.builder()
+                  .pod(primaryInstance)
+                  .eventType(RestartEventType.RESTARTING_POD)
+                  .build());
+            })
             .chain(() -> podRestart.restartPod(primaryInstance))
             .onItem()
             .invoke(() -> {
               LOGGER.info("Pod {} restarted", primaryInstanceName);
               em.emit(ImmutableRestartEvent.builder()
                   .pod(primaryInstance)
-                  .eventType(RestartEventType.POD_RESTART)
+                  .eventType(RestartEventType.POD_RESTARTED)
                   .build());
             });
 
@@ -165,11 +187,21 @@ public class ClusterRestartImpl implements ClusterRestart {
       if (isReducedImpact(clusterRestartState)
           && hasInstancesNotBeenDecreased(clusterRestartState)) {
         restartChain = restartChain.onItem()
-            .invoke(() -> LOGGER.info("Decreasing instances of cluster {}", clusterName))
+            .invoke(() -> {
+              LOGGER.info("Decreasing instances of cluster {}", clusterName);
+              em.emit(ImmutableRestartEvent.builder()
+                  .eventType(RestartEventType.DECREASING_INSTANCES)
+                  .build());
+            })
             .chain(() -> clusterInstanceManager.decreaseClusterInstances(clusterName,
                 clusterRestartState.getNamespace()))
             .onItem()
-            .invoke(() -> LOGGER.info("Instances of cluster {} decreased", clusterName));
+            .invoke(() -> {
+              LOGGER.info("Instances of cluster {} decreased", clusterName);
+              em.emit(ImmutableRestartEvent.builder()
+                  .eventType(RestartEventType.INSTANCES_DECREASED)
+                  .build());
+            });
       }
 
       restartChain.subscribe().with((x) -> em.complete());
@@ -233,7 +265,7 @@ public class ClusterRestartImpl implements ClusterRestart {
     final int initialInstances = clusterRestartState.getInitialInstances().size();
     return totalInstances > initialInstances
         || (totalInstances == initialInstances
-            && clusterRestartState.getRestartedInstances().isEmpty());
+        && clusterRestartState.getRestartedInstances().isEmpty());
   }
 
   private boolean isReducedImpact(ClusterRestartState clusterRestartState) {

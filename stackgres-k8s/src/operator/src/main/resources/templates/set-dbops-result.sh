@@ -22,6 +22,7 @@ set_completed() {
 ]
 EOF
     )"
+  create_event "DbOpCompleted" "Normal" "Database operation $OP_NAME completed"
 }
 
 set_timed_out() {
@@ -37,6 +38,8 @@ set_timed_out() {
 ]
 EOF
     )"
+
+  create_event "DbOpTimeOut" "Normal" "Database operation $OP_NAME timed out"
 }
 
 set_lock_lost() {
@@ -84,6 +87,8 @@ EOF
 EOF
       )"
   fi
+
+  create_event "DbOpFailed" "Normal" "Database operation $OP_NAME failed"
 }
 
 set_result() {

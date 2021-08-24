@@ -49,3 +49,5 @@ else
 EOF
     )"
 fi
+
+create_event "DbOpStarted" "Normal" "Database operation $OP_NAME started"

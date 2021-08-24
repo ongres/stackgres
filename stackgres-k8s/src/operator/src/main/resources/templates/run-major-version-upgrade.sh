@@ -127,6 +127,8 @@ EOF
       echo "Upscaling cluster to 2 instances"
       echo
 
+     create_event "IncreasingInstances" "Normal" "Increasing instances of $CLUSTER_CRD_NAME $CLUSTER_NAME"
+
       kubectl patch "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
         -p "$(cat << EOF
 [
@@ -141,6 +143,8 @@ EOF
       echo "Waiting instance $INSTANCE to become ready..."
 
       wait_for_instance "$TARGET_INSTANCE"
+
+      create_event "InstancesIncreased" "Normal" "Increased instances of $CLUSTER_CRD_NAME $CLUSTER_NAME"
 
       echo "done"
       echo
@@ -157,10 +161,14 @@ EOF
 
     echo "Performing switchover from primary $PRIMARY_INSTANCE to replica $TARGET_INSTANCE..."
 
+    create_event "SwitchoverInitiated" "Normal" "Switchover of $CLUSTER_CRD_NAME $CLUSTER_NAME initiated"
+
     kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" -- \
       patronictl switchover "$CLUSTER_NAME" --master "$PRIMARY_INSTANCE" --candidate "$TARGET_INSTANCE" --force \
 
     echo "done"
+
+    create_event "SwitchoverFinalized" "Normal" "Switchover of $CLUSTER_CRD_NAME $CLUSTER_NAME completed"
     echo
 
     PRIMARY_INSTANCE="$TARGET_INSTANCE"
@@ -194,6 +202,7 @@ EOF
   if [ "$INITIAL_INSTANCES_COUNT" -gt 1 ]
   then
     echo "Downscaling cluster to 1 instance"
+    create_event "DecreasingInstances" "Normal" "Decreasing instances of $CLUSTER_CRD_NAME $CLUSTER_NAME"
     echo
 
     kubectl patch "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
@@ -212,10 +221,12 @@ EOF
     done
 
     echo "done"
+    create_event "InstancesDecreased" "Normal" "Decreased instances of $CLUSTER_CRD_NAME $CLUSTER_NAME"
     echo
   fi
 
   echo "Restarting primary instance $PRIMARY_INSTANCE..."
+  create_event "RestartingPod" "Normal" "Restarting pod $PRIMARY_INSTANCE"
 
   kubectl delete pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE"
 
@@ -225,6 +236,7 @@ EOF
   echo "Waiting primary instance $PRIMARY_INSTANCE major version upgrade..."
 
   wait_for_instance "$PRIMARY_INSTANCE"
+  create_event "PodRestarted" "Normal" "Pod $PRIMARY_INSTANCE successfully restarted"
 
   CURRENT_PRIMARY_POD="$(kubectl get pods -n "$CLUSTER_NAMESPACE" -l "$CLUSTER_PRIMARY_POD_LABELS" -o name)"
   CURRENT_PRIMARY_INSTANCE="$(printf '%s' "$CURRENT_PRIMARY_POD" | cut -d / -f 2)"
@@ -242,6 +254,7 @@ EOF
   if [ "$INITIAL_INSTANCES_COUNT" -gt 1 ]
   then
     echo "Upscaling cluster to $INITIAL_INSTANCES_COUNT instances"
+    create_event "IncreasingInstances" "Normal" "Increasing instances of $CLUSTER_CRD_NAME $CLUSTER_NAME"
     echo
 
     kubectl patch "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
@@ -273,6 +286,7 @@ EOF
     done
 
     echo "Cluster upscale done"
+    create_event "InstancesIncreased" "Normal" "Increased instances of $CLUSTER_CRD_NAME $CLUSTER_NAME"
     echo
   fi
 
