@@ -59,7 +59,7 @@ EOF
 }
 
 check_major_version_upgrade() {
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "major-version-upgrade" \
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops $CLUSTER_NAME \
     --for condition=Running
   then
     echo "SUCCESS. major version upgrade running."
@@ -80,7 +80,7 @@ check_major_version_upgrade() {
     echo "SUCCESS. Cluster has not been updated while locked."
   fi
 
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "major-version-upgrade" \
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops $CLUSTER_NAME \
     --for condition=Completed
   then
     echo "SUCCESS. major version upgrade completed."
@@ -90,7 +90,7 @@ check_major_version_upgrade() {
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "dbops-name=major-version-upgrade,db-ops=true" \
+    -l "dbops-name=$CLUSTER_NAME,db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
     echo "SUCCESS. major version upgrade job was not removed after completion."

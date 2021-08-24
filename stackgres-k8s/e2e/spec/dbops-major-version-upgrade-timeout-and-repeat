@@ -15,7 +15,7 @@ check_major_version_upgrade_timed_out() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: major-version-upgrade
+  name: $CLUSTER_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -23,7 +23,7 @@ spec:
   timeout: PT1S
 EOF
 
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops major-version-upgrade \
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops $CLUSTER_NAME \
     --for condition=Failed
   then
     echo "SUCCESS. major version upgrade failed."
@@ -33,7 +33,7 @@ EOF
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "dbops-name=major-version-upgrade,db-ops=true" \
+    -l "dbops-name=$CLUSTER_NAME,db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
     echo "SUCCESS. major version upgrade job was not removed after failure."
@@ -42,10 +42,10 @@ EOF
     return 1
   fi
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" major-version-upgrade
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" $CLUSTER_NAME
 
   if wait_until eval '[ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "dbops-name=major-version-upgrade,db-ops=true" \
+    -l "dbops-name=$CLUSTER_NAME,db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 0 ]'
   then
     echo "SUCCESS. major version upgrade job was removed after sgdbops was removed."
@@ -63,7 +63,7 @@ check_major_version_upgrade_repeat() {
   apiVersion: stackgres.io/v1
   kind: SGDbOps
   metadata:
-    name: major-version-upgrade
+    name: $CLUSTER_NAME
     namespace: $CLUSTER_NAMESPACE
   spec:
     sgCluster: $CLUSTER_NAME
@@ -72,5 +72,5 @@ EOF
 
   check_major_version_upgrade
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" major-version-upgrade
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" $CLUSTER_NAME
 }
