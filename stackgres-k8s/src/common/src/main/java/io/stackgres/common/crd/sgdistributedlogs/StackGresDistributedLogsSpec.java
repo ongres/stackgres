@@ -31,10 +31,6 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
   @Valid
   private StackGresDistributedLogsPersistentVolume persistentVolume;
 
-  @JsonProperty("postgresServices")
-  @Valid
-  private StackGresDistributedLogsPostgresServices postgresServices;
-
   @JsonProperty("nonProductionOptions")
   @Valid
   private StackGresDistributedLogsNonProduction nonProduction;
@@ -93,18 +89,10 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
     this.toInstallPostgresExtensions = toInstallPostgresExtensions;
   }
 
-  public StackGresDistributedLogsPostgresServices getPostgresServices() {
-    return postgresServices;
-  }
-
-  public void setPostgresServices(StackGresDistributedLogsPostgresServices postgresServices) {
-    this.postgresServices = postgresServices;
-  }
-
   @Override
   public int hashCode() {
     return Objects.hash(metadata, nonProduction, persistentVolume, scheduling,
-        toInstallPostgresExtensions, postgresServices);
+        toInstallPostgresExtensions);
   }
 
   @Override
@@ -120,8 +108,7 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
         && Objects.equals(nonProduction, other.nonProduction)
         && Objects.equals(persistentVolume, other.persistentVolume)
         && Objects.equals(scheduling, other.scheduling)
-        && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions)
-        && Objects.equals(postgresServices, other.postgresServices);
+        && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);
   }
 
   @Override

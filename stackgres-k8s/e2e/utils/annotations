@@ -91,20 +91,3 @@ check_service_annotation(){
     return 1
   fi
 }
-
-check_distributed_logs_annotation(){
-  local SERVICE="$1"
-  local DISTRIBUTEDLOG_ANNOTATION_KEY="$2"
-  local EXPECTED_ANNOTATION_VALUE="$3"
-  
-  local ACTUAL_ANNOTATION
-  ACTUAL_ANNOTATION="$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" -o jsonpath="{.items[0].spec.postgresServices.${SERVICE}.annotations.${DISTRIBUTEDLOG_ANNOTATION_KEY}}")"
-
-  if assert_string_equal "$EXPECTED_ANNOTATION_VALUE" "$ACTUAL_ANNOTATION"
-  then 
-    echo "SUCCESS. Custom annotations were created"
-  else
-    echo "FAIL. Custom annotations did not match the expected value"
-    return 1
-  fi
-}

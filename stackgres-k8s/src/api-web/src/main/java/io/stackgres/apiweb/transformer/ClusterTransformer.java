@@ -13,7 +13,6 @@ import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Pod;
-import io.stackgres.apiweb.app.postgres.service.PostgresService;
 import io.stackgres.apiweb.config.WebApiProperty;
 import io.stackgres.apiweb.dto.cluster.ClusterCondition;
 import io.stackgres.apiweb.dto.cluster.ClusterConfiguration;
@@ -31,6 +30,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterNonProduction;
 import io.stackgres.apiweb.dto.cluster.ClusterPod;
 import io.stackgres.apiweb.dto.cluster.ClusterPodPersistentVolume;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgres;
+import io.stackgres.apiweb.dto.cluster.ClusterPostgresService;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgresServices;
 import io.stackgres.apiweb.dto.cluster.ClusterRestore;
 import io.stackgres.apiweb.dto.cluster.ClusterRestoreFromBackup;
@@ -46,7 +46,6 @@ import io.stackgres.apiweb.dto.cluster.ClusterStatus;
 import io.stackgres.apiweb.transformer.converter.cluster.ClusterPodSchedulingConverter;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.StackGresPropertyContext;
-import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
@@ -57,6 +56,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
@@ -202,19 +202,19 @@ public class ClusterTransformer
       final StackGresClusterPostgresServices targetPostgresService = transformation
           .getPostgresServices();
 
-      final PostgresService sourcePrimaryService = sourcePostgresServices.getPrimary();
+      final ClusterPostgresService sourcePrimaryService = sourcePostgresServices.getPrimary();
       if (sourcePrimaryService != null) {
-        targetPostgresService.setPrimary(new StackGresPostgresService());
-        final StackGresPostgresService targetPrimaryService = targetPostgresService
+        targetPostgresService.setPrimary(new StackGresClusterPostgresService());
+        final StackGresClusterPostgresService targetPrimaryService = targetPostgresService
             .getPrimary();
         targetPrimaryService.setType(sourcePrimaryService.getType());
         targetPrimaryService.setEnabled(sourcePrimaryService.getEnabled());
       }
 
-      final PostgresService sourceReplicaService = sourcePostgresServices.getReplicas();
+      final ClusterPostgresService sourceReplicaService = sourcePostgresServices.getReplicas();
       if (sourceReplicaService != null) {
-        targetPostgresService.setReplicas(new StackGresPostgresService());
-        final StackGresPostgresService targetReplicaService = targetPostgresService
+        targetPostgresService.setReplicas(new StackGresClusterPostgresService());
+        final StackGresClusterPostgresService targetReplicaService = targetPostgresService
             .getReplicas();
         targetReplicaService.setEnabled(sourceReplicaService.getEnabled());
         targetReplicaService.setType(sourceReplicaService.getType());
@@ -451,18 +451,18 @@ public class ClusterTransformer
       final ClusterPostgresServices targetPostgresService = transformation
           .getPostgresServices();
 
-      final StackGresPostgresService sourcePrimaryService = sourcePostgresServices
+      final StackGresClusterPostgresService sourcePrimaryService = sourcePostgresServices
           .getPrimary();
       if (sourcePrimaryService != null) {
-        targetPostgresService.setPrimary(new PostgresService());
+        targetPostgresService.setPrimary(new ClusterPostgresService());
         targetPostgresService.getPrimary().setType(sourcePrimaryService.getType());
         targetPostgresService.getPrimary().setEnabled(sourcePrimaryService.getEnabled());
       }
 
-      final StackGresPostgresService sourceReplicaService = sourcePostgresServices
+      final StackGresClusterPostgresService sourceReplicaService = sourcePostgresServices
           .getReplicas();
       if (sourceReplicaService != null) {
-        targetPostgresService.setReplicas(new PostgresService());
+        targetPostgresService.setReplicas(new ClusterPostgresService());
         targetPostgresService.getReplicas().setEnabled(sourceReplicaService.getEnabled());
         targetPostgresService.getReplicas().setType(sourceReplicaService.getType());
       }

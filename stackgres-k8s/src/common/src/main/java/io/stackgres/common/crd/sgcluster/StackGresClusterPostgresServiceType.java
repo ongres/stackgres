@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.common.crd.postgres.service;
+package io.stackgres.common.crd.sgcluster;
 
 import org.jetbrains.annotations.NotNull;
 
-public enum StackGresPostgresServiceType {
+public enum StackGresClusterPostgresServiceType {
 
   CLUSTER_IP("ClusterIP"),
   LOAD_BALANCER("LoadBalancer"),
@@ -16,7 +16,7 @@ public enum StackGresPostgresServiceType {
 
   private final @NotNull String type;
 
-  StackGresPostgresServiceType(@NotNull String type) {
+  StackGresClusterPostgresServiceType(@NotNull String type) {
     this.type = type;
   }
 
