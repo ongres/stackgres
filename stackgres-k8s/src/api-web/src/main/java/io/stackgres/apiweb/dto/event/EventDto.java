@@ -15,7 +15,6 @@ public class EventDto extends ResourceDto {
   private String type;
   private String action;
   private Integer count;
-  private String eventTime;
   private String firstTimestamp;
   private String lastTimestamp;
   private String reason;
@@ -24,8 +23,6 @@ public class EventDto extends ResourceDto {
   private ObjectReference related;
   private String reportingComponent;
   private String reportingInstance;
-  private Series series;
-  private Source source;
 
   public String getType() {
     return type;
@@ -49,14 +46,6 @@ public class EventDto extends ResourceDto {
 
   public void setCount(Integer count) {
     this.count = count;
-  }
-
-  public String getEventTime() {
-    return eventTime;
-  }
-
-  public void setEventTime(String eventTime) {
-    this.eventTime = eventTime;
   }
 
   public String getFirstTimestamp() {
@@ -121,22 +110,6 @@ public class EventDto extends ResourceDto {
 
   public void setReportingInstance(String reportingInstance) {
     this.reportingInstance = reportingInstance;
-  }
-
-  public Series getSeries() {
-    return series;
-  }
-
-  public void setSeries(Series series) {
-    this.series = series;
-  }
-
-  public Source getSource() {
-    return source;
-  }
-
-  public void setSource(Source source) {
-    this.source = source;
   }
 
   @Override
