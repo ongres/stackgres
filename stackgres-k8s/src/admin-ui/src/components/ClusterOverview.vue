@@ -23,7 +23,7 @@
 
 			<div class="content">
 				
-				<table class="clusterOverview resizable" v-if="iCan('list','sgclusters',$route.params.namespace)" v-columns-resizable>
+				<table class="clusterOverview resizable fullWidth" v-if="iCan('list','sgclusters',$route.params.namespace)" v-columns-resizable>
 					<thead class="sort">
 						<th class="sorted asc name hasTooltip">
 							<span @click="sort('data.metadata.name')" title="StackGres Cluster">StackGres Cluster</span>

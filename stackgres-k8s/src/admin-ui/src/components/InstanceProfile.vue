@@ -47,7 +47,7 @@
 
 		<div class="content">
 			<template v-if="!$route.params.hasOwnProperty('name')">
-				<table id="profiles" class="profiles pgConfig resizable" v-columns-resizable>
+				<table id="profiles" class="profiles pgConfig resizable fullWidth" v-columns-resizable>
 					<thead class="sort">
 						<th class="asc name hasTooltip">
 							<span @click="sort('data.metadata.name')" title="Name">

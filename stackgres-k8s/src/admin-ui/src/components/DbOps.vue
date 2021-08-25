@@ -95,7 +95,7 @@
                     </div> 
                 </div>
                 
-                <table id="sgdbops" class="dbops resizable" v-columns-resizable>
+                <table id="sgdbops" class="dbops resizable fullWidth" v-columns-resizable>
                     <thead class="sort">
                         <th class="asc start hasTooltip">
                             <span @click="sort('data.spec.runAt', 'timestamp')" title="Start">Start</span>

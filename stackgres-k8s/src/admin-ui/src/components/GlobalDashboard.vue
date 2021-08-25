@@ -13,7 +13,7 @@
             <div class="overview">
                 <template v-for="namespace in namespaces" v-if="hasCRDs(namespace)">
                     <div class="card namespace">
-                        <table>
+                        <table class="fullWidth">
                             <thead>
                                 <th class="crdName" colspan="2">
                                     <router-link :to="'/' + namespace" title="Namespace Overview">
