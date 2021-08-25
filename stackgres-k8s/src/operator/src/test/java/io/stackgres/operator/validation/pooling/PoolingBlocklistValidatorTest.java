@@ -35,9 +35,10 @@ class PoolingBlocklistValidatorTest {
   void givenValidConfigurationWithDatabases_shouldNotFail() {
     PoolingReview review = getCreatePoolingReview();
 
-    var pgBouncer = review.getRequest().getObject().getSpec().getPgBouncer();
-    pgBouncer.setDatabases(new HashMap<>());
-    pgBouncer.getDatabases().put("foodb", Map.of("dbname", "bardb"));
+    var pgBouncer = review.getRequest().getObject().getSpec()
+        .getPgBouncer();
+    pgBouncer.getPgbouncerIni().setDatabases(new HashMap<>());
+    pgBouncer.getPgbouncerIni().getDatabases().put("foodb", Map.of("dbname", "bardb"));
 
     assertDoesNotThrow(() -> validator.validate(review));
   }
@@ -46,9 +47,10 @@ class PoolingBlocklistValidatorTest {
   void givenValidConfigurationWithUsers_shouldNotFail() {
     PoolingReview review = getCreatePoolingReview();
 
-    var pgBouncer = review.getRequest().getObject().getSpec().getPgBouncer();
-    pgBouncer.setUsers(new HashMap<>());
-    pgBouncer.getUsers().put("user1", Map.of("max_user_connections", "100"));
+    var pgBouncer = review.getRequest().getObject().getSpec()
+        .getPgBouncer();
+    pgBouncer.getPgbouncerIni().setUsers(new HashMap<>());
+    pgBouncer.getPgbouncerIni().getUsers().put("user1", Map.of("max_user_connections", "100"));
 
     assertDoesNotThrow(() -> validator.validate(review));
   }
@@ -57,9 +59,11 @@ class PoolingBlocklistValidatorTest {
   void givenConfigurationWithDatabasesBlockedParameters_shouldFail() {
     PoolingReview review = getCreatePoolingReview();
 
-    var pgBouncer = review.getRequest().getObject().getSpec().getPgBouncer();
-    pgBouncer.setDatabases(new HashMap<>());
-    pgBouncer.getDatabases().put("foodb", Map.of("user", "user1", "host", "example.com"));
+    var pgBouncer = review.getRequest().getObject().getSpec()
+        .getPgBouncer();
+    pgBouncer.getPgbouncerIni().setDatabases(new HashMap<>());
+    pgBouncer.getPgbouncerIni().getDatabases()
+        .put("foodb", Map.of("user", "user1", "host", "example.com"));
 
     ValidationFailed assertThrows =
         assertThrows(ValidationFailed.class, () -> validator.validate(review));

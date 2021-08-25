@@ -29,7 +29,8 @@ class PgBouncerDefaultStateMutatorTest
   protected PoolingReview getEmptyReview() {
     PoolingReview review = JsonUtil
         .readFromJson("pooling_allow_request/create.json", PoolingReview.class);
-    review.getRequest().getObject().getSpec().getPgBouncer().setParameters(Map.of());
+    review.getRequest().getObject().getSpec().getPgBouncer().getPgbouncerIni()
+        .setParameters(Map.of());
     return review;
   }
 
@@ -57,7 +58,7 @@ class PgBouncerDefaultStateMutatorTest
 
   @Override
   protected Map<String, String> getConfigParameters(StackGresPoolingConfig resource) {
-    return resource.getSpec().getPgBouncer().getParameters();
+    return resource.getSpec().getPgBouncer().getPgbouncerIni().getParameters();
   }
 
 }
