@@ -3417,16 +3417,12 @@ table.clusterConfig {
     margin-bottom: 15px;
 }
 
-table.clusterConfig thead {
-    display: none;
-}
-
-table.clusterConfig th:first-child, table.clusterConfig td:first-child {
-    width: 150px;
-}
-
 table.clusterConfig tr {
     background: transparent;
+}
+
+table.clusterConfig thead th {
+    border: 1px solid var(--borderColor);
 }
 
 table.clusterConfig td {
