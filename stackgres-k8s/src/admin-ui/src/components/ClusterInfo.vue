@@ -381,17 +381,25 @@
 										<td :rowspan="(term.hasOwnProperty('matchExpressions') && term.matchExpressions.length) + (term.hasOwnProperty('matchFields') && term.matchFields.length) + 1">
 											Term #{{ i + 1 }} 
 										</td>
-									</tr>
-									<tr v-for="(exp, j) in term.matchExpressions">
-										<td v-if="!j" :rowspan="term.matchExpressions.length">
-											Expressions
+										<td :rowspan="(term.hasOwnProperty('matchExpressions') ? term.matchExpressions.length : (term.hasOwnProperty('matchFields') && term.matchFields.length))">
+											{{ term.hasOwnProperty('matchExpressions') ? 'Expressions' : 'Fields' }}
 										</td>
+										<td>
+											<template v-if="term.hasOwnProperty('matchExpressions')">
+												<strong>{{ term.matchExpressions[0].key }}</strong> <em>{{ affinityOperator(term.matchExpressions[0].operator) }}</em> <strong>{{ term.matchExpressions[0].hasOwnProperty('values') ? term.matchExpressions[0].values.join(', ') : ''}}</strong>	
+											</template>
+											<template v-else>
+												<strong>{{ term.matchFields[0].key }}</strong> <em>{{ affinityOperator(term.matchFields[0].operator) }}</em> <strong>{{ term.matchFields[0].hasOwnProperty('values') ? term.matchFields[0].values.join(', ') : ''}}</strong>	
+											</template>
+										</td>
+									</tr>
+									<tr v-for="(exp, j) in term.matchExpressions" v-if="j > 0">
 										<td>
 											<strong>{{ exp.key }}</strong> <em>{{ affinityOperator(exp.operator) }}</em> <strong>{{ exp.hasOwnProperty('values') ? exp.values.join(', ') : ''}}</strong>
 										</td>
 									</tr>
 									<tr v-for="(field, j) in term.matchFields">
-										<td v-if="!j" :rowspan="term.matchFields.length">
+										<td v-if="term.hasOwnProperty('matchExpressions') && !j" :rowspan="term.matchFields.length">
 											Fields
 										</td>
 										<td>
@@ -444,7 +452,7 @@
 										</td>
 									</tr>
 									<tr v-for="(field, j) in term.preference.matchFields">
-										<td v-if="term.preference.hasOwnProperty('matchExpressions') && !j">
+										<td v-if="term.preference.hasOwnProperty('matchExpressions') && !j" :rowspan="term.preference.matchFields.length">
 											Fields
 										</td>
 										<td>
