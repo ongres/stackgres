@@ -176,7 +176,7 @@
 							</ul>
 						</div>
 					</div>
-					<table class="backups resizable" v-columns-resizable>
+					<table class="backups resizable fullWidth" v-columns-resizable>
 						<thead class="sort">
 							<th class="sorted desc timestamp hasTooltip">
 								<span @click="sort('data.status.process.timing.stored','timestamp')" title="Timestamp">Timestamp</span>

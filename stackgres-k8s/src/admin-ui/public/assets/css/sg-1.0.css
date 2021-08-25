@@ -278,10 +278,6 @@ svg.background circle {
     border-color: #444444;
 }
 
-.hTable {
-    width: auto;
-}
-
 /* Pagination Styling */
 .v-pagination>ul>li>a {
     font-size: inherit;
@@ -484,4 +480,16 @@ table.crdDetails td a:hover {
     font-weight: bold;
     text-transform: uppercase;
     right: 0;
+}
+
+.fullWidth {
+    width: 100% !important;
+}
+
+#main table {
+    width: auto;
+}
+
+table:not(.fullWidth) td.label {
+    width: auto;
 }

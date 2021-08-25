@@ -46,7 +46,7 @@
 
 		<div class="content">
 			<template v-if="!$route.params.hasOwnProperty('name')">
-				<table id="connectionpooling" class="configurations poolConfig resizable" v-columns-resizable>
+				<table id="connectionpooling" class="configurations poolConfig resizable fullWidth" v-columns-resizable>
 					<thead class="sort">
 						<th class="sorted desc name hasTooltip">
 							<span @click="sort('data.metadata.name')" title="Name">
@@ -143,11 +143,11 @@
 							<table>
 								<tbody>
 									<tr v-for="param in conf.data.status.pgBouncer['pgbouncer.ini']" v-if="!conf.data.status.pgBouncer.defaultParameters.hasOwnProperty(param.parameter)">
-										<td class="label hasTooltip">
-											<span>{{ param.parameter }}</span>
+										<td class="label">
+											{{ param.parameter }}
 										</td>
-										<td class="paramValue hasTooltip">
-											<span>{{ param.value }}</span>
+										<td class="paramValue">
+											{{ param.value }}
 										</td>
 									</tr>
 								</tbody>
@@ -162,11 +162,11 @@
 							<table class="defaultParams">
 								<tbody>
 									<tr v-for="param in conf.data.status.pgBouncer['pgbouncer.ini']" v-if="conf.data.status.pgBouncer.defaultParameters.hasOwnProperty(param.parameter)">
-										<td class="label hasTooltip">
-											<span>{{ param.parameter }}</span>
+										<td class="label">
+											{{ param.parameter }}
 										</td>
-										<td class="paramValue hasTooltip">
-											<span>{{ param.value }}</span>
+										<td class="paramValue">
+											{{ param.value }}
 										</td>
 									</tr>
 								</tbody>

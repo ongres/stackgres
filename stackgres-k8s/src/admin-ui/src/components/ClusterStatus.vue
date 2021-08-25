@@ -105,7 +105,7 @@
 					</div>
 				</div>
 
-				<table class="clusterInfo">
+				<table class="clusterInfo fullWidth">
 					<thead>
 						<th>
 							Total CPU 
@@ -164,7 +164,7 @@
 				</table>
 
 				<h2>Pods</h2>
-				<table class="podStatus">
+				<table class="podStatus fullWidth">
 					<thead>
 						<th>
 							Pod Name

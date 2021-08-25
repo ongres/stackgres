@@ -327,7 +327,7 @@
 
 				<div class="podsMetadata" v-if="hasProp(cluster, 'data.spec.pods.metadata')">
 					<h2>Pods Metadata <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.metadata')"></span></h2>
-					<table v-if="hasProp(cluster, 'data.spec.pods.metadata.labels')" class="clusterConfig hTable">
+					<table v-if="hasProp(cluster, 'data.spec.pods.metadata.labels')" class="clusterConfig">
 						<thead>
 							<th></th>
 							<th></th>
@@ -932,7 +932,6 @@
 		width: 100%;
 	}
 
-<<<<<<< HEAD
 	.trimText {
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -941,10 +940,4 @@
 		max-width: 250px;
 		width: 100%;
 	}
-=======
-	td.tolerationSeconds {
-		text-align: right;
-	}
-
->>>>>>> fix(ui): improve readability on web console tables
 </style>

@@ -11,7 +11,7 @@
         
         <div class="overview">
             <div class="card" v-if="iCan('list','sgclusters',$route.params.namespace)">
-                <table>
+                <table class="fullWidth">
                     <thead>
                         <th class="crdName">
                             <router-link :to="'/' + $route.params.namespace + '/sgclusters/'" title="Cluster Overview">
@@ -59,7 +59,7 @@
             </div>
 
             <div class="card" v-if="iCan('list','sginstanceprofiles',$route.params.namespace)">
-                <table>
+                <table class="fullWidth">
                     <thead>
                         <th class="crdName">
                             <router-link :to="'/' + $route.params.namespace + '/sginstanceprofiles'" title="Instance Profiles List">
@@ -107,7 +107,7 @@
             </div>
 
             <div class="card" v-if="iCan('list','sgpgconfigs',$route.params.namespace)">
-                <table>
+                <table class="fullWidth">
                     <thead>
                         <th class="crdName">
                             <router-link :to="'/' + $route.params.namespace + '/sgpgconfigs'" title="Postgres Configurations List">
@@ -155,7 +155,7 @@
             </div>
 
             <div class="card" v-if="iCan('list','sgpoolconfigs',$route.params.namespace)">
-                <table>
+                <table class="fullWidth">
                     <thead>
                         <th class="crdName">
                             <router-link :to="'/' + $route.params.namespace + '/sgpoolconfigs'" title="Pooling Configurations List">
@@ -203,7 +203,7 @@
             </div>
 
             <div class="card" v-if="iCan('list','sgbackupconfigs',$route.params.namespace)">
-                <table>
+                <table class="fullWidth">
                     <thead>
                         <th class="crdName">
                             <router-link :to="'/' + $route.params.namespace + '/sgbackupconfigs'" title="Backup Configurations List">
@@ -251,7 +251,7 @@
             </div>
 
             <div class="card" v-if="iCan('list','sgdistributedlogs',$route.params.namespace)">
-                <table>
+                <table class="fullWidth">
                     <thead>
                         <th class="crdName">
                             <router-link :to="'/' + $route.params.namespace + '/sgdistributedlogs'" title="Logs Servers List">
@@ -299,7 +299,7 @@
             </div>
 
             <div class="card" v-if="iCan('list','sgbackups',$route.params.namespace)">
-                <table>
+                <table class="fullWidth">
                     <thead>
                         <th class="crdName">
                             <router-link :to="'/' + $route.params.namespace + '/sgbackups'" title="Backups List">
@@ -348,7 +348,7 @@
             </div>
 
             <div class="card dbops" v-if="iCan('list','sgdbops',$route.params.namespace)">
-                <table>
+                <table class="fullWidth">
                     <thead>
                         <th class="crdName">
                             <router-link :to="'/' + $route.params.namespace + '/sgdbops'" title="Database Operations List">
