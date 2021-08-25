@@ -489,3 +489,136 @@ table.crdDetails td a:hover {
 table:not(.fullWidth) td.label {
     width: auto;
 }
+
+/*Top Menu*/
+#topMenu {
+    display: flex;
+    float: left;
+    margin-left: -15px;
+    margin-top: -10px;
+    left: 0;
+    top: 0;
+    padding: 14px;
+    width: 50px;
+    cursor: pointer;
+}
+
+#topMenu:hover svg path {
+    fill: var(--baseColor);
+    opacity: 1;
+}
+
+.hiddenMenu {
+    margin-left: 25px;
+}
+
+.collapsed #logo {
+    margin-left: 40px;
+}
+
+.collapsed #side {
+    width: 50px;
+}
+
+.collapsed .hideCollapsed {
+    display: none !important;
+}
+.collapsed .hideCollapsed.show {
+    display: block !important;
+}
+
+.showCollapsed {
+    display: none !important;
+    font-weight: bold;
+    position: relative;
+}
+
+.showCollapsed:after {
+    content: "";
+    display: inline-block;
+    border-bottom: 1px solid var(--borderColor);
+    width: calc(100% - 50px);
+    height: 1px;
+    position: absolute;
+    bottom: 0;
+    left: 30px;
+}
+
+.collapsed .showCollapsed {
+    display: block !important;
+}
+
+.collapsed #sets > .active .active > ul > li > a, .collapsed #sets > .active > ul > li > .item, .collapsed .set.active .set > .nav-item {
+    padding-left: 40px;
+}
+
+.collapsed #side .nav-item, .collapsed #side #current-namespace {
+    padding: 15px;
+}
+
+.collapsed #side .set svg {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+}
+
+.collapsed #side .set.conf .set svg {
+    width: 20px;
+    height: 20px;
+}
+
+.collapsed #current-namespace {
+    height: 70px;
+}
+
+.collapsed #current-namespace svg {
+    margin: 0;
+    transform: scale(0.8);
+}
+
+.collapsed #ns-select {
+    position: fixed;
+    list-style: none;
+    width: 350px;
+    left: 50px;
+    z-index: 999;
+    top: 50px;
+    height: auto;
+    max-height: calc(100vh - 50px);
+    overflow: auto;
+    padding-left: 0;
+    border: 1px solid var(--borderColor);
+    border-left: none;
+    background-color: var(--bgColor);
+    box-shadow: 2px 2px 5px rgba(0,0,0,.1);
+}
+
+.collapsed #ns-select a {
+    padding-left: 40px;
+}
+
+.collapsed #ns-select.set:hover:not(.active) li:first-child > a, .collapsed #ns-select.set:hover:not(.active) li:last-child > a, .collapsed #ns-select.set:hover li > a {
+    border: none;
+}
+
+.collapsed .set:not(.conf) {
+    height: 50px;
+}
+
+.collapsed #main {
+    margin-left: 50px;
+    width: calc(100% - 50px);
+}
+
+.collapsed .set.conf.active {
+    background: none;
+}
+
+.collapsed .set:not(.conf) > ul.show, .collapsed .set.active:not(.conf) > ul.show {
+    left: 50px;
+}
+
+.collapsed #topMenu {
+    border-right: 1px solid var(--borderColor);
+    /*border-bottom: 2px solid var(--bgColor);*/
+}
