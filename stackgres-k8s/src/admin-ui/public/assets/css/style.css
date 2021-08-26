@@ -2903,9 +2903,12 @@ fieldset.podsScheduling .row a.help {
 /* Help Tooltips */
 
 #help {
+    position: fixed;
     padding-left: 75px;
-    padding-right: 45px;
+    padding-right: 5px;
+    left: 930px;
 }
+
 #help .info {
     line-height: 1.3;
 }
@@ -2924,6 +2927,21 @@ fieldset.podsScheduling .row a.help {
     display: block;
     margin-bottom: 10px;
 }
+
+#help h3.title {
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+#help .info ul {
+    padding-left: 20px;
+    margin: 10px 0;
+}
+
+textarea + a.help {
+    margin-top: -220px;
+}
+
 
 code {
     font-family: "Nunito", "Helvetica", "Arial", sans-serif;
@@ -4173,26 +4191,6 @@ td.today.available {
     margin-top: 10px !important;
     
 }
-
-/* Tooltip Styling Luis */
-#help {
-    position: fixed;
-}
-
-#help h3.title {
-    font-size: 14px;
-    margin-bottom: 10px;
-}
-
-#help .info ul {
-    padding-left: 20px;
-    margin: 10px 0;
-}
-
-textarea + a.help {
-    margin-top: -220px;
-}
-
 
 /*TABLE YAML*/
 
