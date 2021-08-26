@@ -1260,7 +1260,7 @@
                 if( op.data.hasOwnProperty('status') ) {
                     let failedOp = op.data.status.conditions.find(c => (c.status === 'True') && (c.type == 'Failed') )
 
-                    if( (typeof failedOp !== 'undefined') && (failedOp.reason == 'DbOpsTimedOut') )
+                    if( (typeof failedOp !== 'undefined') && (failedOp.reason == 'TimedOut') )
                         return 'YES (' + op.data.spec.timeout + ')'
                     else
                         return 'NO'
