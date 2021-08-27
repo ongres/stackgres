@@ -661,7 +661,7 @@ $(document).ready(function(){
   })
 
   // Remove notValid class from changed fields
-  $(document).on('change','[data-field].notValid', function(){
+  $(document).on('change','.notValid', function(){
     $(this).removeClass('notValid')
   })
 

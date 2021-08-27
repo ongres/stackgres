@@ -97,12 +97,6 @@
 					</div>
 				</div>
 				<table class="clusterConfig">
-					<thead>
-						<th></th>
-						<th></th>
-						<th></th>
-						<th></th>
-					</thead>
 					<tbody>
 						<tr>
 							<td class="label">
@@ -334,12 +328,6 @@
 				<div class="podsScheduling" v-if="hasProp(cluster, 'data.spec.pods.scheduling')">
 					<h2>Pods Scheduling <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling')"></span></h2>
 					<table class="clusterConfig">
-						<thead>
-							<th></th>
-							<th></th>
-							<th></th>
-							<th></th>
-						</thead>
 						<tbody>
 							<tr v-for="(item, index) in unparseProps(cluster.data.spec.pods.scheduling.nodeSelector)">
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.scheduling.nodeSelector).length">
@@ -373,17 +361,113 @@
 							</template>
 						</tbody>
 					</table>
+
+					<template v-if="hasProp(cluster, 'data.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution')">
+						<h2>
+							Node Affinity:<br/>
+							<span class="normal">Required during scheduling ignored during execution </span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution')"></span>
+						</h2>
+
+						<table class="clusterConfig">
+							<thead>
+								<th>Term <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items')"></span></th>
+								<th>Match <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions') + ' It can be either of type Expressions or Fields.'"></span></th>
+								<th>Requirement <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items')"></span></th>
+							</thead>
+							<tbody>
+								<template v-for="(term, i) in cluster.data.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms">
+									<tr>
+										<td :rowspan="(term.hasOwnProperty('matchExpressions') && term.matchExpressions.length) + (term.hasOwnProperty('matchFields') && term.matchFields.length) + 1">
+											Term #{{ i + 1 }} 
+										</td>
+										<td :rowspan="(term.hasOwnProperty('matchExpressions') ? term.matchExpressions.length : (term.hasOwnProperty('matchFields') && term.matchFields.length))">
+											{{ term.hasOwnProperty('matchExpressions') ? 'Expressions' : 'Fields' }}
+										</td>
+										<td>
+											<template v-if="term.hasOwnProperty('matchExpressions')">
+												<strong>{{ term.matchExpressions[0].key }}</strong> <em>{{ affinityOperator(term.matchExpressions[0].operator) }}</em> <strong>{{ term.matchExpressions[0].hasOwnProperty('values') ? term.matchExpressions[0].values.join(', ') : ''}}</strong>	
+											</template>
+											<template v-else>
+												<strong>{{ term.matchFields[0].key }}</strong> <em>{{ affinityOperator(term.matchFields[0].operator) }}</em> <strong>{{ term.matchFields[0].hasOwnProperty('values') ? term.matchFields[0].values.join(', ') : ''}}</strong>	
+											</template>
+										</td>
+									</tr>
+									<tr v-for="(exp, j) in term.matchExpressions" v-if="j > 0">
+										<td>
+											<strong>{{ exp.key }}</strong> <em>{{ affinityOperator(exp.operator) }}</em> <strong>{{ exp.hasOwnProperty('values') ? exp.values.join(', ') : ''}}</strong>
+										</td>
+									</tr>
+									<tr v-for="(field, j) in term.matchFields">
+										<td v-if="term.hasOwnProperty('matchExpressions') && !j" :rowspan="term.matchFields.length">
+											Fields
+										</td>
+										<td>
+											<strong>{{ field.key }}</strong> <em>{{ affinityOperator(field.operator) }}</em> <strong>{{ field.hasOwnProperty('values') ? field.values.join(', ') : ''}}</strong>
+										</td>
+									</tr>
+								</template>
+							</tbody>
+						</table>
+					</template>
+
+					<template v-if="hasProp(cluster, 'data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution')">
+						<h2>
+							Node Affinity:<br/>
+							<span class="normal">Preferred during scheduling ignored during execution </span>
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution')"></span>
+						</h2>
+
+						<table class="clusterConfig">
+							<thead>
+								<th>Term <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.preference.items')"></span></th>
+								<th>Weight <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.weight')"></span></th>
+								<th>Match <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions') + ' It can be either of type Expressions or Fields.'"></span></th>
+								<th>Requirement <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items')"></span></th>
+							</thead>
+							<tbody>
+								<template v-for="(term, i) in cluster.data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution">
+									<tr>
+										<td :rowspan="(term.preference.hasOwnProperty('matchExpressions') && term.preference.matchExpressions.length) + (term.preference.hasOwnProperty('matchFields') && term.preference.matchFields.length)">
+											Term #{{ i + 1 }}
+										</td>
+										<td :rowspan="(term.preference.hasOwnProperty('matchExpressions') && term.preference.matchExpressions.length) + (term.preference.hasOwnProperty('matchFields') && term.preference.matchFields.length)">
+											{{ term.weight }}
+										</td>
+										<td :rowspan="(term.preference.hasOwnProperty('matchExpressions') ? term.preference.matchExpressions.length : (term.preference.hasOwnProperty('matchFields') && term.preference.matchFields.length))">
+											{{ term.preference.hasOwnProperty('matchExpressions') ? 'Expressions' : 'Fields' }}
+										</td>
+										<td>
+											<template v-if="term.preference.hasOwnProperty('matchExpressions')">
+												<strong>{{ term.preference.matchExpressions[0].key }}</strong> <em>{{ affinityOperator(term.preference.matchExpressions[0].operator) }}</em> <strong>{{ term.preference.matchExpressions[0].hasOwnProperty('values') ? term.preference.matchExpressions[0].values.join(', ') : ''}}</strong>	
+											</template>
+											<template v-else>
+												<strong>{{ term.preference.matchFields[0].key }}</strong> <em>{{ affinityOperator(term.preference.matchFields[0].operator) }}</em> <strong>{{ term.preference.matchFields[0].hasOwnProperty('values') ? term.preference.matchFields[0].values.join(', ') : ''}}</strong>	
+											</template>
+										</td>
+									</tr>
+									<tr v-for="(exp, j) in term.preference.matchExpressions" v-if="j > 0">
+										<td>
+											<strong>{{ exp.key }}</strong> <em>{{ affinityOperator(exp.operator) }}</em> <strong>{{ exp.hasOwnProperty('values') ? exp.values.join(', ') : ''}}</strong>
+										</td>
+									</tr>
+									<tr v-for="(field, j) in term.preference.matchFields">
+										<td v-if="term.preference.hasOwnProperty('matchExpressions') && !j" :rowspan="term.preference.matchFields.length">
+											Fields
+										</td>
+										<td>
+											<strong>{{ field.key }}</strong> <em>{{ affinityOperator(field.operator) }}</em> <strong>{{ field.hasOwnProperty('values') ? field.values.join(', ') : ''}}</strong>
+										</td>
+									</tr>
+								</template>
+							</tbody>
+						</table>
+					</template>
 				</div>
 
 				<div class="scripts" v-if="hasProp(cluster, 'data.spec.initialData.scripts') && (cluster.data.spec.initialData.scripts.length != cluster.data.spec.initialData.scripts.filter(s => hasProp(s, 'scriptFrom.secretKeyRef')).length )">
 					<h2>Scripts <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts')"></span></h2>
 					<table class="clusterConfig">
-						<thead>
-							<th></th>
-							<th></th>
-							<th></th>
-							<th></th>
-						</thead>
 						<tbody>
 							<template v-for="(item, index) in cluster.data.spec.initialData.scripts">
 								<template v-if="hasProp(item, 'database')">
@@ -442,12 +526,6 @@
 				<div class="resourcesMetadata" v-if="hasProp(cluster, 'data.spec.metadata.annotations')">
 					<h2>Resources Annotations <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations')"></span></h2>
 					<table v-if="hasProp(cluster, 'data.spec.metadata.annotations.allResources')" class="clusterConfig">
-						<thead>
-							<th></th>
-							<th></th>
-							<th></th>
-							<th></th>
-						</thead>
 						<tbody>
 							<tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.allResources)">
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.allResources).length">
@@ -465,12 +543,6 @@
 					</table>
 
 					<table v-if="hasProp(cluster, 'data.spec.metadata.annotations.clusterPods')" class="clusterConfig">
-						<thead>
-							<th></th>
-							<th></th>
-							<th></th>
-							<th></th>
-						</thead>
 						<tbody>
 							<tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.clusterPods)">
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.clusterPods).length">
@@ -488,12 +560,6 @@
 					</table>
 
 					<table v-if="hasProp(cluster, 'data.spec.metadata.annotations.services')" class="clusterConfig">
-						<thead>
-							<th></th>
-							<th></th>
-							<th></th>
-							<th></th>
-						</thead>
 						<tbody>
 							<tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.services)">
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.services).length">
@@ -511,12 +577,6 @@
 					</table>
 
 					<table v-if="hasProp(cluster, 'data.spec.metadata.annotations.primaryService')" class="clusterConfig">
-						<thead>
-							<th></th>
-							<th></th>
-							<th></th>
-							<th></th>
-						</thead>
 						<tbody>
 							<tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.primaryService)">
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.primaryService).length">
@@ -534,12 +594,6 @@
 					</table>
 
 					<table v-if="hasProp(cluster, 'data.spec.metadata.annotations.replicasService')" class="clusterConfig">
-						<thead>
-							<th></th>
-							<th></th>
-							<th></th>
-							<th></th>
-						</thead>
 						<tbody>
 							<tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.replicasService)">
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.replicasService).length">
@@ -560,12 +614,6 @@
 				<div class="metadataLabels" v-if="hasProp(cluster, 'data.spec.metadata.labels')">
 					<h2>Resources Labels <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.labels')"></span></h2>
 					<table v-if="hasProp(cluster, 'data.spec.metadata.labels.clusterPods')" class="clusterConfig">
-						<thead>
-							<th></th>
-							<th></th>
-							<th></th>
-							<th></th>
-						</thead>
 						<tbody>
 							<tr v-for="(value, label, index) in cluster.data.spec.metadata.labels.clusterPods">
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.labels.clusterPods).length">
@@ -587,12 +635,6 @@
 					<h2>Postgres Services <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresServices')"></span></h2>
 
 					<table v-for="(service, serviceName) in cluster.data.spec.postgresServices" class="clusterConfig">
-						<thead>
-							<th></th>
-							<th></th>
-							<th></th>
-							<th></th>
-						</thead>
 						<tbody>
 							<tr>
 								<td class="label capitalize" rowspan="2">
@@ -624,7 +666,7 @@
 					<span class="warning">The extension(s) are installed into the StackGres Postgres container. To start using them, you need to execute an appropriate <code>CREATE EXTENSION</code> command in the database(s) where you want to use the extension(s). Note that depending on each extension's requisites you may also need to add configuration to the cluster's <code>SGPostgresConfig</code> configuration, like adding the extension to <code>shared_preload_libraries</code> or adding extension-specific configuration parameters.</span>
 
 					<table class="clusterConfig">
-						<thead style="display: table-header-group">
+						<thead>
 							<th>
 								Name
 								<span class="helpTooltip"  :data-tooltip="getTooltip('sgextensions.extensions.name')"></span>
@@ -736,6 +778,28 @@
 					return false;
 				}
 
+			},
+
+			affinityOperator(op) {
+
+				switch(op) {
+
+					case 'NotIn':
+						op = 'not in';
+						break;
+					case 'DoesNotExists':
+						op = 'does not exists';
+						break;
+					case 'Gt':
+						op = 'greather than';
+						break;
+					case 'Lt':
+						op = 'less than';
+						break;
+				}
+
+				return op.toLowerCase();
+
 			}
 
 		},
@@ -804,4 +868,12 @@
 		width: 100%;
 	}
 
+	.trimText {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		display: block;
+		max-width: 250px;
+		width: 100%;
+	}
 </style>

@@ -211,6 +211,10 @@ pre {
     text-transform: capitalize;
 }
 
+.normal {
+    font-weight: normal;
+}
+
 .no-border {
     border: 0 !important;
 }
@@ -2723,6 +2727,11 @@ fieldset {
     float: left;
 }
 
+.form .header h3 span {
+    display: inline-block;
+    margin-top: 2px;
+}
+
 .form .header label {
     display: inline-block;
     width: auto;
@@ -2803,7 +2812,7 @@ a.addRow {
     position: relative;
 }
 
-.repeater .row a.addRow {
+.repeater .eqSign ~ a.addRow {
     position: relative;
     top: -80px;
     right: 0;
@@ -2841,7 +2850,7 @@ span.eqSign:before {
     background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNSAyNSI+CjxwYXRoIGZpbGw9IiM3QTdCODUiIGQ9Ik04LjMsMTEuNmMtMC40LDAtMC43LTAuMS0wLjktMC40QzcuMSwxMSw3LDEwLjYsNywxMC4zYzAtMC40LDAuMS0wLjcsMC40LTEKCUM3LjYsOSw4LDguOSw4LjMsOC45aDguM2MwLjQsMCwwLjcsMC4xLDAuOSwwLjRjMC4zLDAuMiwwLjQsMC42LDAuNCwwLjljMCwwLjQtMC4xLDAuNy0wLjQsMWMtMC4yLDAuMy0wLjYsMC40LTAuOSwwLjRMOC4zLDExLjZ6CgkgTTguMywxNi4xYy0wLjQsMC0wLjctMC4xLTAuOS0wLjRDNy4xLDE1LjUsNywxNS4xLDcsMTQuOGMwLTAuNCwwLjEtMC43LDAuNC0xYzAuMi0wLjMsMC42LTAuNCwwLjktMC40aDguM2MwLjQsMCwwLjcsMC4xLDAuOSwwLjQKCWMwLjMsMC4yLDAuNCwwLjYsMC40LDAuOWMwLDAuNC0wLjEsMC43LTAuNCwxYy0wLjIsMC4zLTAuNiwwLjQtMC45LDAuNEg4LjN6Ii8+Cjwvc3ZnPg==);
 }
 
-.repeater .row label:last-of-type:not(.script) {
+.repeater .eqSign + label {
     display: inline;
     position: relative;
     top: -17px;
@@ -3408,16 +3417,12 @@ table.clusterConfig {
     margin-bottom: 15px;
 }
 
-table.clusterConfig thead {
-    display: none;
-}
-
-table.clusterConfig th:first-child, table.clusterConfig td:first-child {
-    width: 150px;
-}
-
 table.clusterConfig tr {
     background: transparent;
+}
+
+table.clusterConfig thead th {
+    border: 1px solid var(--borderColor);
 }
 
 table.clusterConfig td {
@@ -4934,9 +4939,15 @@ fieldset .header button {
 fieldset .section {
     width: calc(100% + 40px);
     margin-left: -20px;
-    padding: 20px 20px 0;
-    border-top: 1px solid #333333;
-    margin-top: 20px;
+    padding: 10px 20px 0;
+    border-bottom: 1px solid var(--borderColor);
+    margin-bottom: 20px;
+    display: inline-block;
+}
+
+fieldset .section:last-child {
+    border-bottom: 0;
+    margin-bottom: 0;
 }
 
 fieldset.accordion {
@@ -4961,6 +4972,23 @@ fieldset.accordion .fields {
 
 .form .header:last-child {
     border: 0;
+}
+
+.fields > fieldset {
+    border: 0;
+    border-radius: 0;
+    width: calc(100% + 40px);
+    margin-left: -20px;
+    padding-top: 10px;
+}
+
+.fields > fieldset:not(:last-of-type) {
+    border-bottom: 1px solid var(--borderColor);
+    margin-bottom: 15px;
+}
+
+.fields > fieldset:last-of-type {
+    margin-bottom: 10px;
 }
 
 /*Tables Overflow*/
