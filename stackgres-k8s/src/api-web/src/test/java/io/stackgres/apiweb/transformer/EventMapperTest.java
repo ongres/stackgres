@@ -5,11 +5,6 @@
 
 package io.stackgres.apiweb.transformer;
 
-import static io.stackgres.apiweb.dto.fixture.EventFixture.EVENT_TIME;
-import static io.stackgres.apiweb.dto.fixture.EventFixture.LAST_OBSERVED_TIME;
-import static io.stackgres.apiweb.dto.fixture.EventFixture.REPORTING_COMPOENENT_CONTENT;
-import static io.stackgres.apiweb.dto.fixture.EventFixture.SERIES_COUNT;
-import static io.stackgres.apiweb.dto.fixture.EventFixture.SOURCE_HOST;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -36,8 +31,7 @@ class EventMapperTest {
 
   @BeforeEach
   void setup() {
-    this.event = new EventFixture().withValidMetadata().withValidSource().withValidSeries()
-        .withEventTime().withValidInvolvedObject().withValidRelatedObject().build();
+    this.event = new EventFixture().build();
   }
 
   @Test
@@ -58,7 +52,15 @@ class EventMapperTest {
   void shouldReplaceLastTimestampWithLastTimestampFromSeries_onceHasNullOrEmptyValue() {
     event.setLastTimestamp(null);
     EventDto eventDto = EventMapper.map(event);
-    assertEquals(LAST_OBSERVED_TIME, eventDto.getLastTimestamp());
+    assertEquals(event.getSeries().getLastObservedTime().getTime(), eventDto.getLastTimestamp());
+  }
+
+  @Test
+  void shouldSetLastTimestampNull_onceLastTimestampAndLasObservableTimeAreNull() {
+    event.setLastTimestamp(null);
+    event.getSeries().setLastObservedTime(null);
+    EventDto eventDto = EventMapper.map(event);
+    assertNull(eventDto.getLastTimestamp());
   }
 
   @Test
@@ -72,7 +74,15 @@ class EventMapperTest {
   void shouldReplaceFirstTimestampValue_onceHasNullOrEmptyValue() {
     event.setFirstTimestamp(null);
     EventDto eventDto = EventMapper.map(event);
-    assertEquals(EVENT_TIME, eventDto.getFirstTimestamp());
+    assertEquals(event.getEventTime().getTime(), eventDto.getFirstTimestamp());
+  }
+
+  @Test
+  void shouldSetFirstTimestampAsNull_onceFirstTimestampAndEventTimeAreNull() {
+    event.setFirstTimestamp(null);
+    event.getEventTime().setTime(null);
+    EventDto eventDto = EventMapper.map(event);
+    assertNull(eventDto.getFirstTimestamp());
   }
 
   @Test
@@ -86,7 +96,15 @@ class EventMapperTest {
   void shouldReplaceEventCountValue_onceHasNullOrEmptyValue() {
     event.setCount(null);
     EventDto eventDto = EventMapper.map(event);
-    assertEquals(SERIES_COUNT, eventDto.getCount().intValue());
+    assertEquals(event.getSeries().getCount().intValue(), eventDto.getCount().intValue());
+  }
+
+  @Test
+  void shouldSetCountAsNull_onceCountAndEventAndEventSeriesAreNull() {
+    event.setCount(null);
+    event.getSeries().setCount(null);
+    EventDto eventDto = EventMapper.map(event);
+    assertNull(eventDto.getCount());
   }
 
   @Test
@@ -100,7 +118,15 @@ class EventMapperTest {
   void shouldReplaceEventReportingComponentValue_onceHasNullOrEmptyValue() {
     event.setReportingComponent(null);
     EventDto eventDto = EventMapper.map(event);
-    assertEquals(REPORTING_COMPOENENT_CONTENT, eventDto.getReportingComponent());
+    assertEquals(event.getSource().getComponent(), eventDto.getReportingComponent());
+  }
+
+  @Test
+  void shouldSetReportingComponentAsNull_onceReportingComponentAndSourceComponentAreNull() {
+    event.setReportingComponent(null);
+    event.getSource().setComponent(null);
+    EventDto eventDto = EventMapper.map(event);
+    assertNull(eventDto.getReportingComponent());
   }
 
   @Test
@@ -114,7 +140,15 @@ class EventMapperTest {
   void shouldReplaceEventReportingHostValue_onceHasNullOrEmptyValue() {
     event.setReportingInstance(null);
     EventDto eventDto = EventMapper.map(event);
-    assertEquals(SOURCE_HOST, eventDto.getReportingInstance());
+    assertEquals(event.getSource().getHost(), eventDto.getReportingInstance());
+  }
+
+  @Test
+  void shouldsetReportingInstanceAsNull_onceReportingInstanceAndSourceHostAreNull() {
+    event.setReportingInstance(null);
+    event.getSource().setHost(null);
+    EventDto eventDto = EventMapper.map(event);
+    assertNull(eventDto.getReportingInstance());
   }
 
 }

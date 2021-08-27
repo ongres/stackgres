@@ -5,10 +5,14 @@
 
 package io.stackgres.apiweb.transformer;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.Event;
+import io.fabric8.kubernetes.api.model.EventSeries;
+import io.fabric8.kubernetes.api.model.EventSource;
+import io.fabric8.kubernetes.api.model.MicroTime;
 import io.stackgres.apiweb.dto.event.EventDto;
+import org.apache.commons.lang3.StringUtils;
 
 public class EventMapper {
 
@@ -24,7 +28,6 @@ public class EventMapper {
     eventDto.setAction(event.getAction());
     eventDto.setReason(event.getReason());
     eventDto.setMessage(event.getMessage());
-    eventDto.setAction(event.getAction());
     eventDto.setCount(setupEventCount(event));
     eventDto.setFirstTimestamp(setupFirstTimestamp(event));
     eventDto.setLastTimestamp(setupLastTimestamp(event));
@@ -36,43 +39,34 @@ public class EventMapper {
   }
 
   private static String setupReportingInstance(Event event) {
-    String reportingInstance = event.getReportingInstance();
-    if (isBlank(reportingInstance) && event.getSource() != null) {
-      reportingInstance = event.getSource().getHost();
-    }
-    return reportingInstance;
+    return Optional.ofNullable(event.getReportingInstance())
+        .filter(StringUtils::isNotBlank).or(() -> Optional.ofNullable(event.getSource())
+            .map(EventSource::getHost)).orElse(null);
   }
 
   private static String setupReportingComponent(Event event) {
-    String reportingComponent = event.getReportingComponent();
-    if (isBlank(reportingComponent) && event.getSource() != null) {
-      reportingComponent = event.getSource().getComponent();
-    }
-    return reportingComponent;
+    return Optional.ofNullable(event.getReportingComponent())
+        .filter(StringUtils::isNotBlank).or(() -> Optional.ofNullable(event.getSource())
+            .map(EventSource::getComponent)).orElse(null);
   }
 
   private static Integer setupEventCount(Event event) {
-    Integer eventCount = event.getCount();
-    if (eventCount == null && event.getSeries() != null) {
-      eventCount = event.getSeries().getCount();
-    }
-    return eventCount;
+    return Optional.ofNullable(event.getCount())
+        .or(() -> Optional.ofNullable(event.getSeries())
+            .map(EventSeries::getCount)).orElse(null);
   }
 
   private static String setupFirstTimestamp(Event event) {
-    String firstTimeStamp = event.getFirstTimestamp();
-    if (isBlank(firstTimeStamp) && event.getEventTime() != null) {
-      firstTimeStamp = event.getEventTime().getTime();
-    }
-    return firstTimeStamp;
+    return Optional.ofNullable(event.getFirstTimestamp())
+        .filter(StringUtils::isNotBlank).or(() -> Optional.ofNullable(event.getEventTime())
+            .map(MicroTime::getTime)).orElse(null);
   }
 
   private static String setupLastTimestamp(Event event) {
-    String lastTimestamp = event.getLastTimestamp();
-    if (isBlank(lastTimestamp)) {
-      lastTimestamp = event.getSeries().getLastObservedTime().getTime();
-    }
-    return lastTimestamp;
+    return Optional.ofNullable(event.getLastTimestamp())
+        .filter(StringUtils::isNotBlank).or(() -> Optional.ofNullable(event.getSeries())
+            .map(EventSeries::getLastObservedTime)
+            .map(MicroTime::getTime)).orElse(null);
   }
 
 }

@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.transformer;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import io.fabric8.kubernetes.api.model.Event;
@@ -21,7 +20,7 @@ class ObjectReferenceMapperTest {
 
   @BeforeEach
   void setup() {
-    this.event = new EventFixture().withValidInvolvedObject().withValidRelatedObject().build();
+    this.event = new EventFixture().build();
   }
 
   @Test
@@ -34,8 +33,7 @@ class ObjectReferenceMapperTest {
   void shouldRetrieveAnEmptyInvolvedObject_onceEventInvolvedObjectHasNoValue() {
     event.setInvolvedObject(null);
     ObjectReference reference = ObjectReferenceMapper.map(event.getInvolvedObject());
-    assertNotNull(reference);
-    assertNull(reference.getNamespace());
+    assertNull(reference);
   }
 
   @Test
@@ -48,8 +46,7 @@ class ObjectReferenceMapperTest {
   void shouldRetrieveAnEmptyRelatedObject_onceEventInvolvedObjectHasNoValue() {
     event.setRelated(null);
     ObjectReference reference = ObjectReferenceMapper.map(event.getRelated());
-    assertNotNull(reference);
-    assertNull(reference.getNamespace());
+    assertNull(reference);
   }
 
   private void assertObjectReferenceIsSuccessfullyPopulated(

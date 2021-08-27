@@ -10,11 +10,12 @@ import io.stackgres.apiweb.dto.event.ObjectReference;
 public class ObjectReferenceMapper {
 
   public static ObjectReference map(io.fabric8.kubernetes.api.model.ObjectReference reference) {
-    ObjectReference objectReference = new ObjectReference();
 
     if (reference == null) {
-      return objectReference;
+      return null;
     }
+
+    ObjectReference objectReference = new ObjectReference();
     objectReference.setKind(reference.getKind());
     objectReference.setNamespace(reference.getNamespace());
     objectReference.setName(reference.getName());

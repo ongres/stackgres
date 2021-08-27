@@ -1,0 +1,47 @@
+{
+	"apiVersion": "v1",
+	"count": 3850,
+	"eventTime": "2021-11-22T16:43:08Z",
+	"firstTimestamp": "2021-08-25T19:44:08Z",
+	"involvedObject": {
+		"apiVersion": "v1",
+		"fieldPath": "spec.containers{pgbench}",
+		"kind": "Pod",
+		"name": "pgbench",
+		"namespace": "availability-61269d47",
+		"resourceVersion": "4655",
+		"uid": "9390d359-2904-4358-981f-2181def5c6b4"
+	},
+	"related": {
+		"apiVersion": "v1",
+		"fieldPath": "spec.containers{pgbench}",
+		"kind": "Pod",
+		"name": "pgbench",
+		"namespace": "availability-98766",
+		"resourceVersion": "5444",
+		"uid": "19d359-2976-4888-911f-0115d6f6c6b4"
+	},
+	"kind": "Event",
+	"lastTimestamp": "2021-08-26T17:03:55Z",
+	"message": "Back-off restarting failed container",
+	"metadata": {
+		"creationTimestamp": "2021-08-25T19:44:08Z",
+		"name": "pgbench.169ea431c90a99dc",
+		"namespace": "availability-61269d47",
+		"resourceVersion": "96971",
+		"selfLink": "/api/v1/namespaces/availability-61269d47/events/pgbench.169ea431c90a99dc",
+		"uid": "77527472-fa88-4545-b727-15b549dc9e92"
+	},
+	"reason": "BackOff",
+	"reportingComponent": "Reporting Compoenent Content",
+	"reportingInstance": "127.0.0.1",
+	"source": {
+		"component": "kubelet",
+		"host": "kind-control-plane"
+	},
+	"series": {
+		"lastObservedTime": "2021-11-22T16:43:08Z",
+		"count": 100
+	},
+	"type": "Warning"
+}
