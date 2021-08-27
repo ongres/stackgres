@@ -1011,10 +1011,9 @@ export const mixin = {
       getBytes (text) {
         var powers = {'Ki': 1, 'Mi': 2, 'Gi': 3, 'Ti': 4, 'Pi': 5};
         var regex = /(\d+(?:\.\d+)?)\s?(Ki|Mi|Gi|Ti|Pi)?b?/i;
-      
         var res = regex.exec(text);
-      
-        return (typeof res[2] !== 'undefined') ? (res[1] * Math.pow(1024, powers[res[2]]) ) : text;
+        
+        return ( (res !== null) && (typeof res[2] !== 'undefined') ) ? (res[1] * Math.pow(1024, powers[res[2]]) ) : text;
       },
       
       hasProp(obj, propertyPath){

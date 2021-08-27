@@ -248,6 +248,10 @@ a.no-color{
     text-align: center;
 }
 
+.alignRight {
+    text-align: right;
+}
+
 .flex-center {
     display: flex;
     align-items: center;
@@ -337,8 +341,16 @@ svg.background circle {
     display: block;
 }
 
-.fRight {
+.floatRight {
     float: right;
+}
+
+.xsPad {
+    padding: 10px;
+}
+
+.pad {
+    padding: 20px;
 }
 
 /* Log in */
