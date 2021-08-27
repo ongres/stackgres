@@ -438,6 +438,7 @@ td.label[rowspan] {
 /* CRD Details */
 table.crdDetails {
     margin-bottom: 40px;
+    width: auto;
 }
 
 table.crdDetails td, table.crdDetails th, .paramDetails td, .paramDetails th {
@@ -462,6 +463,7 @@ table.crdDetails td a:hover {
     float: none;
     position: relative;
     top: 2px;
+    margin: 0 10px;
 }
 
 .configurationDetails + .paramDetails, .crdDetails + .crdDetails {
@@ -478,4 +480,12 @@ table.crdDetails td a:hover {
     font-weight: bold;
     text-transform: uppercase;
     right: 0;
+}
+
+.fullWidth {
+    width: 100% !important;
+}
+
+table:not(.fullWidth) td.label {
+    width: auto;
 }

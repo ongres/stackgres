@@ -215,13 +215,10 @@ pre {
     font-weight: normal;
 }
 
-<<<<<<< HEAD
-=======
 .small {
     font-size: 90%;
 }
 
->>>>>>> feat(ui): support cluster initialization scripts using ConfigMaps and SecretKeySelectors
 .no-border {
     border: 0 !important;
 }
@@ -2996,7 +2993,6 @@ color: $input-color;
 
 /* Table Layout */
 table {
-    width: 100%;
     text-align: left;
 }
 
@@ -4615,7 +4611,8 @@ table.pgConfig tr.base.open td:before, table.poolConfig tr.base.open td:before {
 .paramDetails table td {
     padding: 10px;
     padding-right: 14px;
-    height: 40px;
+    min-height: 40px;
+    height: auto;
 }
 
 .paramDetails table tbody {
@@ -4829,6 +4826,7 @@ thead:not(.sort) th:not(.label) .helpTooltip {
 
 td.label .helpTooltip {
     float: right;
+    margin-left: 10px;
 }
 
 .helpTooltip:hover, .helpTooltip.show {

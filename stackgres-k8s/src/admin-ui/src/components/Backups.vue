@@ -176,7 +176,7 @@
 							</ul>
 						</div>
 					</div>
-					<table class="backups resizable" v-columns-resizable>
+					<table class="backups resizable fullWidth" v-columns-resizable>
 						<thead class="sort">
 							<th class="sorted desc timestamp hasTooltip">
 								<span @click="sort('data.status.process.timing.stored','timestamp')" title="Timestamp">Timestamp</span>
@@ -190,7 +190,7 @@
 								<span @click="sort('data.status.process.status')" title="Status">Status</span>
 								<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.status')"></span>
 							</th>
-							<th class="desc size hasTooltip">
+							<th class="desc size hasTooltip textRight">
 								<span @click="sort('data.status.backupInformation.size.uncompressed', 'memory')" title="Size uncompressed (compressed)">Size uncompressed (compressed)</span>
 								<span class="helpTooltip" data-tooltip="Size (in bytes) of the uncompressed backup (Size (in bytes) of the compressed backup)."></span>
 							</th>
@@ -253,7 +253,7 @@
 													</span>
 												</router-link>
 											</td>
-											<td class="size hasTooltip" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.backupInformation.size.uncompressed : ''">
+											<td class="size hasTooltip textRight" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.backupInformation.size.uncompressed : ''">
 												<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
 													<span>
 														<template v-if="back.data.status.process.status === 'Completed'">
@@ -379,7 +379,7 @@
 										Size uncompressed
 										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.size.uncompressed')"></span>
 									</td>
-									<td>
+									<td class="textRight">
 										{{ back.data.status.backupInformation.size.uncompressed | formatBytes }}
 									</td>
 								</tr>
@@ -388,7 +388,7 @@
 										Size compressed
 										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.size.compressed')"></span>
 									</td>
-									<td>
+									<td class="textRight">
 										{{ back.data.status.backupInformation.size.compressed | formatBytes }}
 									</td>
 								</tr>

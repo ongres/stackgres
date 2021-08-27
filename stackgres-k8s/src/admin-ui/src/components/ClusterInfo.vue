@@ -110,7 +110,7 @@
 								Instances
 								<span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.instances')"></span>
 							</td>
-							<td colspan="3">{{ cluster.data.spec.instances }}</td>
+							<td colspan="3" class="textRight">{{ cluster.data.spec.instances }}</td>
 						</tr>
 						<tr>
 							<td class="label">
@@ -140,7 +140,7 @@
 								Volume Size
 								<span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.pods.persistentVolume.size')"></span>
 							</td>
-							<td>{{ cluster.data.spec.pods.persistentVolume.size }}</td>
+							<td class="textRight">{{ cluster.data.spec.pods.persistentVolume.size }}</td>
 						</tr>
 						<tr v-if="(typeof cluster.data.spec.pods.persistentVolume.storageClass !== 'undefined')">
 							<td class="label">
@@ -168,7 +168,7 @@
 								Metrics Exporter
 								<span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.pods.disableMetricsExporter')"></span>
 							</td>
-							<td colspan="2">
+							<td colspan="3">
 								<template v-if="!cluster.data.spec.pods.disableMetricsExporter">
 									ON
 								</template>
@@ -258,7 +258,7 @@
 									Download Disk Concurrency
 									<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.downloadDiskConcurrency')"></span>
 								</td>
-								<td colspan="2">
+								<td colspan="2" class="textRight">
 									{{ cluster.data.spec.initialData.restore.downloadDiskConcurrency }}
 								</td>
 							</tr>
@@ -325,6 +325,36 @@
 					</tbody>
 				</table>
 
+				<div class="podsMetadata" v-if="hasProp(cluster, 'data.spec.pods.metadata')">
+					<h2>Pods Metadata <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.metadata')"></span></h2>
+					<table v-if="hasProp(cluster, 'data.spec.pods.metadata.labels')" class="clusterConfig">
+						<thead>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+						</thead>
+						<tbody>
+							<tr v-for="(item, index) in unparseProps(cluster.data.spec.pods.metadata.labels)">
+								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.metadata.labels).length">
+									Pods Metadata
+									<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.metadata')"></span>
+								</td>
+								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.metadata.labels).length">
+									Labels
+									<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.metadata.labels')"></span>
+								</td>
+								<td class="label">
+									{{ item.annotation }}
+								</td>
+								<td>
+									{{ item.value }}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
 				<div class="podsScheduling" v-if="hasProp(cluster, 'data.spec.pods.scheduling')">
 					<h2>Pods Scheduling <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling')"></span></h2>
 					<table class="clusterConfig">
@@ -354,7 +384,7 @@
 										{{ prop }}
 										<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.tolerations[prop]')"></span>
 									</td>
-									<td colspan="2">
+									<td colspan="2" :class="prop">
 										{{ value }}
 									</td>
 								</tr>

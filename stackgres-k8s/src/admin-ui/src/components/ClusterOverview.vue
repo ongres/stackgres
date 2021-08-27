@@ -23,34 +23,34 @@
 
 			<div class="content">
 				
-				<table class="clusterOverview resizable" v-if="iCan('list','sgclusters',$route.params.namespace)" v-columns-resizable>
+				<table class="clusterOverview resizable fullWidth" v-if="iCan('list','sgclusters',$route.params.namespace)" v-columns-resizable>
 					<thead class="sort">
 						<th class="sorted asc name hasTooltip">
 							<span @click="sort('data.metadata.name')" title="StackGres Cluster">StackGres Cluster</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.metadata.name')"></span>
 						</th>
 
-						<th class="asc instances hasTooltip">
+						<th class="asc instances hasTooltip textRight">
 							<span @click="sort('data.spec.instances')" title="Instances">Instances</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.instances')"></span>
 						</th>
 
-						<th class="asc cpu hasTooltip">
+						<th class="asc cpu hasTooltip textRight">
 							<span @click="sort('status.cpuRequested', 'cpu')" title="CPU">CPU</span>
 							<span class="helpTooltip"  :data-tooltip="getTooltip('sgprofile.spec.cpu')"></span>
 						</th>
 
-						<th class="asc memory hasTooltip">
+						<th class="asc memory hasTooltip textRight">
 							<span @click="sort('status.memoryRequested', 'memory')" title="Memory">Memory</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.memory')"></span>
 						</th>
 
-						<th class="asc disk hasTooltip">
+						<th class="asc disk hasTooltip textRight">
 							<span @click="sort('data.spec.pods.persistentVolume.size', 'memory')" title="Disk">Disk</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.persistentVolume.size')"></span>
 						</th>
 
-						<th class="notSortable hasTooltip">
+						<th class="notSortable hasTooltip textRight">
 							<span title="Health">Health</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.podsReady').slice(0, -2) + ' / ' + getTooltip('sgcluster.spec.instances')"></span>
 						</th>
@@ -82,27 +82,27 @@
 												</template>
 											</template>
 										</td>
-										<td class="instances">
+										<td class="instances textRight">
 											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" data-active=".set.clu" class="noColor">
 												{{ cluster.data.spec.instances }}
 											</router-link>
 										</td>
-										<td class="cpu">
+										<td class="cpu textRight">
 											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" data-active=".set.clu" class="noColor" v-if="hasProp(cluster,'status.cpuRequested')">
 												{{ cluster.status.cpuRequested }}
 											</router-link>
 										</td>
-										<td class="ram">
+										<td class="ram textRight">
 											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" data-active=".set.clu" class="noColor" v-if="hasProp(cluster,'status.memoryRequested')">
 												{{ cluster.status.memoryRequested.replace('.00','') }}
 											</router-link>
 										</td>
-										<td class="volumeSize">
+										<td class="volumeSize textRight">
 											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" data-active=".set.clu" class="noColor">
 												{{ cluster.data.spec.pods.persistentVolume.size }}
 											</router-link>
 										</td>
-										<td class="health">
+										<td class="health textRight">
 											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" data-active=".set.clu" class="noColor">
 												{{ cluster.data.podsReady }} / {{ cluster.data.spec.instances }}
 											</router-link>

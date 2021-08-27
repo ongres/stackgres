@@ -46,7 +46,7 @@
 
         <div class="content">
             <template v-if="!$route.params.hasOwnProperty('name')">
-                <table id="logs" class="logsCluster pgConfig resizable" v-columns-resizable>
+                <table id="logs" class="logsCluster pgConfig resizable fullWidth" v-columns-resizable>
                     <thead class="sort">
                         <th class="sorted desc name hasTooltip">
                             <span @click="sort('data.metadata.name')" title="Name">
@@ -54,7 +54,7 @@
                             </span>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.metadata.name')"></span>
                         </th>
-                        <th class="desc volumeSize hasTooltip">
+                        <th class="desc volumeSize hasTooltip textRight">
                             <span @click="sort('data.spec.persistentVolume.size', 'memory')" title="Volume Size">
                                 Volume Size
                             </span>
@@ -83,7 +83,7 @@
                                             </router-link>
                                         </span>
                                     </td>
-                                    <td class="volumeSize fontZero">
+                                    <td class="volumeSize fontZero textRight">
                                         <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.name" class="noColor">
                                             {{ cluster.data.spec.persistentVolume.size }}
                                         </router-link>
@@ -125,7 +125,7 @@
                                         Volume Size
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.persistentVolume.size')"></span>
                                     </td>
-                                    <td>{{ cluster.data.spec.persistentVolume.size }}</td>
+                                    <td class="textRight">{{ cluster.data.spec.persistentVolume.size }}</td>
                                 </tr>
                                 <tr v-if="cluster.data.spec.persistentVolume.hasOwnProperty('storageClass')">
                                     <td class="label">
@@ -235,7 +235,7 @@
                                             {{ prop }}
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.scheduling.tolerations[prop]')"></span>
                                         </td>
-                                        <td colspan="2">
+                                        <td colspan="2" :class="prop">
                                             {{ value }}
                                         </td>
                                     </tr>
@@ -299,3 +299,9 @@
         }
     }
 </script>
+
+<style scoped>
+    td.tolerationSeconds {
+		text-align: right;
+	}
+</style>

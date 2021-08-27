@@ -95,7 +95,7 @@
                     </div> 
                 </div>
                 
-                <table id="sgdbops" class="dbops resizable" v-columns-resizable>
+                <table id="sgdbops" class="dbops resizable fullWidth" v-columns-resizable>
                     <thead class="sort">
                         <th class="asc start hasTooltip">
                             <span @click="sort('data.spec.runAt', 'timestamp')" title="Start">Start</span>
@@ -278,7 +278,7 @@
                                     Max Retries
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.maxRetries')"></span>
                                 </td>
-                                <td colspan="2">
+                                <td colspan="2" class="textRight">
                                     {{ op.data.spec.hasOwnProperty('maxRetries') ? op.data.spec.maxRetries : '1' }}
                                 </td>
                             </tr>
@@ -330,7 +330,7 @@
                                         Database Size
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.benchmark.pgbench.databaseSize')"></span>
                                     </td>
-                                    <td>
+                                    <td class="textRight">
                                         {{ op.data.spec.benchmark.pgbench.databaseSize }}
                                     </td>
                                 </tr>
@@ -357,7 +357,7 @@
                                         Concurrent Clients
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.benchmark.pgbench.concurrentClients')"></span>
                                     </td>
-                                    <td>
+                                    <td class="textRight">
                                         {{ op.data.spec.benchmark.pgbench.hasOwnProperty('concurrentClients') ? op.data.spec.benchmark.pgbench.concurrentClients : '1' }}
                                     </td>
                                 </tr>
@@ -366,7 +366,7 @@
                                         Threads
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.benchmark.pgbench.threads')"></span>
                                     </td>
-                                    <td colspan="2">
+                                    <td colspan="2" class="textRight">
                                         {{ op.data.spec.benchmark.pgbench.hasOwnProperty('threads') ? op.data.spec.benchmark.pgbench.threads : '1' }}
                                     </td>
                                 </tr>
@@ -758,7 +758,7 @@
                                         Operation Retries
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.opRetries')"></span>
                                     </td>
-                                    <td colspan="3">
+                                    <td colspan="3" class="textRight">
                                         {{ op.data.status.opRetries }}
                                     </td>
                                 </tr>
