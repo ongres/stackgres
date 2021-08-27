@@ -9,6 +9,10 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import io.fabric8.kubernetes.api.model.Event;
 import io.stackgres.apiweb.dto.event.EventDto;
+<<<<<<< HEAD
+=======
+import io.stackgres.apiweb.dto.event.ObjectReference;
+>>>>>>> 6ad3672a8a146f5754e9884ac07defc94414659d
 
 public class EventMapper {
 
@@ -30,6 +34,7 @@ public class EventMapper {
     eventDto.setLastTimestamp(setupLastTimestamp(event));
     eventDto.setReportingComponent(setupReportingComponent(event));
     eventDto.setReportingInstance(setupReportingInstance(event));
+<<<<<<< HEAD
     eventDto.setInvolvedObject(ObjectReferenceMapper.map(event.getInvolvedObject()));
     eventDto.setRelated(ObjectReferenceMapper.map(event.getRelated()));
     return eventDto;
@@ -56,12 +61,68 @@ public class EventMapper {
     if (eventCount == null && event.getSeries() != null) {
       eventCount = event.getSeries().getCount();
     }
+=======
+    eventDto.setInvolvedObject(setupinvolvedObject(event));
+    eventDto.setRelated(setupRelated(event));
+    return eventDto;
+  }
+
+  private static ObjectReference setupRelated(Event event) {
+    if (event.getRelated() == null) {
+      return null;
+    }
+    return mapObjectReference(event.getRelated());
+  }
+
+  private static ObjectReference setupinvolvedObject(Event event) {
+    if (event.getInvolvedObject() == null) {
+      return null;
+    }
+    return mapObjectReference(event.getInvolvedObject());
+  }
+
+  private static ObjectReference mapObjectReference(
+      io.fabric8.kubernetes.api.model.ObjectReference reference) {
+    ObjectReference objectReference = new ObjectReference();
+    objectReference.setKind(reference.getKind());
+    objectReference.setNamespace(reference.getNamespace());
+    objectReference.setName(reference.getName());
+    objectReference.setUid(reference.getUid());
+    return objectReference;
+  }
+
+  private static String setupReportingInstance(Event event) {
+    String reportingInstance = event.getReportingInstance();
+    if (isBlank(reportingInstance) && event.getSource() != null) {
+      reportingInstance = event.getSource().getHost();
+    }
+    return reportingInstance;
+  }
+
+  private static String setupReportingComponent(Event event) {
+    String reportingComponent = event.getReportingComponent();
+    if (isBlank(reportingComponent) && event.getSource() != null) {
+      reportingComponent = event.getSource().getComponent();
+    }
+    return reportingComponent;
+  }
+
+  private static Integer setupEventCount(Event event) {
+    Integer eventCount = event.getCount();
+    if (eventCount == null && event.getSeries() != null) {
+      eventCount = event.getSeries().getCount();
+    }
+>>>>>>> 6ad3672a8a146f5754e9884ac07defc94414659d
     return eventCount;
   }
 
   private static String setupFirstTimestamp(Event event) {
     String firstTimeStamp = event.getFirstTimestamp();
     if (isBlank(firstTimeStamp) && event.getEventTime() != null) {
+<<<<<<< HEAD
+=======
+      // TODO - Convert Microtime to timestamp
+>>>>>>> 6ad3672a8a146f5754e9884ac07defc94414659d
       firstTimeStamp = event.getEventTime().getTime();
     }
     return firstTimeStamp;
@@ -70,6 +131,10 @@ public class EventMapper {
   private static String setupLastTimestamp(Event event) {
     String lastTimestamp = event.getLastTimestamp();
     if (isBlank(lastTimestamp)) {
+<<<<<<< HEAD
+=======
+      // TODO - Convert Microtime to timestamp
+>>>>>>> 6ad3672a8a146f5754e9884ac07defc94414659d
       lastTimestamp = event.getSeries().getLastObservedTime().getTime();
     }
     return lastTimestamp;
