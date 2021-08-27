@@ -21,6 +21,34 @@ spec:
     storageClass: {{ .Values.distributedLogs.persistentVolume.storageClass }}
     {{- end }}
     {{- end }}
+  {{- if .Values.distributedLogs.postgresServices }}
+  postgresServices:
+    {{- if .Values.distributedLogs.postgresServices.primary }}
+    primary:
+      {{- if .Values.distributedLogs.postgresServices.primary.type }}
+      type:  {{ .Values.distributedLogs.postgresServices.primary.type }}
+      {{- end }}
+      {{- if .Values.distributedLogs.postgresServices.primary.annotations }}
+      annotations:
+        {{- range $annot, $value := .Values.distributedLogs.postgresServices.primary.annotations }}
+        {{ $annot }}: {{ $value }}
+        {{- end }}
+      {{- end }}
+    {{- end }}    
+    {{- if .Values.distributedLogs.postgresServices.replicas }}
+    replicas:
+      enabled: {{ .Values.distributedLogs.postgresServices.replicas.enabled }}
+      {{- if .Values.distributedLogs.postgresServices.replicas.type }}
+      type:  {{ .Values.distributedLogs.postgresServices.replicas.type }}
+      {{- end }}
+      {{- if .Values.distributedLogs.postgresServices.replicas.annotations }}
+      annotations:
+        {{- range $annot, $value := .Values.distributedLogs.postgresServices.replicas.annotations }}
+        {{ $annot }}: {{ $value }}
+        {{- end }}
+      {{- end }}
+    {{- end }}    
+  {{- end }}
   {{- if .Values.distributedLogs.scheduling }}
   scheduling:
     {{- if .Values.distributedLogs.scheduling.nodeSelector }}
