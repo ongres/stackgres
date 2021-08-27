@@ -2993,7 +2993,6 @@ color: $input-color;
 
 /* Table Layout */
 table {
-    width: 100%;
     text-align: left;
 }
 
@@ -4612,7 +4611,8 @@ table.pgConfig tr.base.open td:before, table.poolConfig tr.base.open td:before {
 .paramDetails table td {
     padding: 10px;
     padding-right: 14px;
-    height: 40px;
+    min-height: 40px;
+    height: auto;
 }
 
 .paramDetails table tbody {

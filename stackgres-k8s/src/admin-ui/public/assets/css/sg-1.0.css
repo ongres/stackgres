@@ -486,10 +486,6 @@ table.crdDetails td a:hover {
     width: 100% !important;
 }
 
-#main table {
-    width: auto;
-}
-
 table:not(.fullWidth) td.label {
     width: auto;
 }
