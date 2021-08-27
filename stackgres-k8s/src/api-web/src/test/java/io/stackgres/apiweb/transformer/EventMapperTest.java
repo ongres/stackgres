@@ -11,6 +11,7 @@ import static io.stackgres.apiweb.dto.fixture.EventFixture.REPORTING_COMPOENENT_
 import static io.stackgres.apiweb.dto.fixture.EventFixture.SERIES_COUNT;
 import static io.stackgres.apiweb.dto.fixture.EventFixture.SOURCE_HOST;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import io.fabric8.kubernetes.api.model.Event;
@@ -23,7 +24,7 @@ class EventMapperTest {
 
   private static final String EVENT_INSTANCE = "10.0.2.1";
 
-  private static final String REPORTING_COMPONENT = "Reporting componenet content";
+  private static final String REPORTING_COMPONENT = "Reporting component content";
 
   private static final int EVENT_COUNT = 10;
 
@@ -37,6 +38,13 @@ class EventMapperTest {
   void setup() {
     this.event = new EventFixture().withValidMetadata().withValidSource().withValidSeries()
         .withEventTime().withValidInvolvedObject().withValidRelatedObject().build();
+  }
+
+  @Test
+  void shouldReturnAEmptyDto_onceEventObjectIsNotValid() {
+    EventDto eventDto = EventMapper.map(null);
+    assertNotNull(eventDto);
+    assertNull(eventDto.getMetadata().getNamespace());
   }
 
   @Test
@@ -107,39 +115,6 @@ class EventMapperTest {
     event.setReportingInstance(null);
     EventDto eventDto = EventMapper.map(event);
     assertEquals(SOURCE_HOST, eventDto.getReportingInstance());
-  }
-
-  @Test
-  void shouldPopulatedObjectReference_onceInvolvedObjectIsAValidValue() {
-    EventDto eventDto = EventMapper.map(event);
-    assertEquals(event.getInvolvedObject().getName(), eventDto.getInvolvedObject().getName());
-    assertEquals(event.getInvolvedObject().getKind(), eventDto.getInvolvedObject().getKind());
-    assertEquals(event.getInvolvedObject().getNamespace(),
-        eventDto.getInvolvedObject().getNamespace());
-    assertEquals(event.getInvolvedObject().getUid(), eventDto.getInvolvedObject().getUid());
-  }
-
-  @Test
-  void shouldIdentifyNullableInvolvedObject_onceEventInvolvedObjectHasNoValue() {
-    event.setInvolvedObject(null);
-    EventDto eventDto = EventMapper.map(event);
-    assertNull(eventDto.getInvolvedObject());
-  }
-
-  @Test
-  void shouldPopulateRelatedObject_onceEventRelatedisAValidValue() {
-    EventDto eventDto = EventMapper.map(event);
-    assertEquals(event.getRelated().getName(), eventDto.getRelated().getName());
-    assertEquals(event.getRelated().getKind(), eventDto.getRelated().getKind());
-    assertEquals(event.getRelated().getNamespace(), eventDto.getRelated().getNamespace());
-    assertEquals(event.getRelated().getUid(), eventDto.getRelated().getUid());
-  }
-
-  @Test
-  void shouldIdentifyNullableRelatedObject_onceEventInvolvedObjectHasNoValue() {
-    event.setRelated(null);
-    EventDto eventDto = EventMapper.map(event);
-    assertNull(eventDto.getRelated());
   }
 
 }
