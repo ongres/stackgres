@@ -9,12 +9,16 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import io.fabric8.kubernetes.api.model.Event;
 import io.stackgres.apiweb.dto.event.EventDto;
-import io.stackgres.apiweb.dto.event.ObjectReference;
 
 public class EventMapper {
 
   public static EventDto map(Event event) {
     EventDto eventDto = new EventDto();
+
+    if (event == null) {
+      return eventDto;
+    }
+
     eventDto.setMetadata(MetadataMapper.map(event.getMetadata()));
     eventDto.setType(event.getType());
     eventDto.setAction(event.getAction());
@@ -26,33 +30,9 @@ public class EventMapper {
     eventDto.setLastTimestamp(setupLastTimestamp(event));
     eventDto.setReportingComponent(setupReportingComponent(event));
     eventDto.setReportingInstance(setupReportingInstance(event));
-    eventDto.setInvolvedObject(setupinvolvedObject(event));
-    eventDto.setRelated(setupRelated(event));
+    eventDto.setInvolvedObject(ObjectReferenceMapper.map(event.getInvolvedObject()));
+    eventDto.setRelated(ObjectReferenceMapper.map(event.getRelated()));
     return eventDto;
-  }
-
-  private static ObjectReference setupRelated(Event event) {
-    if (event.getRelated() == null) {
-      return null;
-    }
-    return mapObjectReference(event.getRelated());
-  }
-
-  private static ObjectReference setupinvolvedObject(Event event) {
-    if (event.getInvolvedObject() == null) {
-      return null;
-    }
-    return mapObjectReference(event.getInvolvedObject());
-  }
-
-  private static ObjectReference mapObjectReference(
-      io.fabric8.kubernetes.api.model.ObjectReference reference) {
-    ObjectReference objectReference = new ObjectReference();
-    objectReference.setKind(reference.getKind());
-    objectReference.setNamespace(reference.getNamespace());
-    objectReference.setName(reference.getName());
-    objectReference.setUid(reference.getUid());
-    return objectReference;
   }
 
   private static String setupReportingInstance(Event event) {
@@ -82,7 +62,6 @@ public class EventMapper {
   private static String setupFirstTimestamp(Event event) {
     String firstTimeStamp = event.getFirstTimestamp();
     if (isBlank(firstTimeStamp) && event.getEventTime() != null) {
-      // TODO - Convert Microtime to timestamp
       firstTimeStamp = event.getEventTime().getTime();
     }
     return firstTimeStamp;
@@ -91,7 +70,6 @@ public class EventMapper {
   private static String setupLastTimestamp(Event event) {
     String lastTimestamp = event.getLastTimestamp();
     if (isBlank(lastTimestamp)) {
-      // TODO - Convert Microtime to timestamp
       lastTimestamp = event.getSeries().getLastObservedTime().getTime();
     }
     return lastTimestamp;
