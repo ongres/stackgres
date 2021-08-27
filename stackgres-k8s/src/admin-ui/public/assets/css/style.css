@@ -215,6 +215,13 @@ pre {
     font-weight: normal;
 }
 
+<<<<<<< HEAD
+=======
+.small {
+    font-size: 90%;
+}
+
+>>>>>>> feat(ui): support cluster initialization scripts using ConfigMaps and SecretKeySelectors
 .no-border {
     border: 0 !important;
 }
