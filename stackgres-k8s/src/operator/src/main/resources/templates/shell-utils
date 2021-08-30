@@ -122,6 +122,55 @@ date_iso8601() {
   date +%Y-%m-%dT%H:%M:%SZ --utc
 }
 
+create_event() {
+  REASON=$1
+  TYPE=$2
+  MESSAGE=$3
+  EVENT_ID=$( get_event_id )
+  EVENT_NAME="$DB_OPS_NAME.$EVENT_ID"
+  EVENT_TIMESTAMP=$( date_iso8601 )
+  COMPONENT=$OP_NAME
+
+  kubectl get "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" -o json | \
+    jq '{
+      apiVersion: "v1",
+      type: "'"$TYPE"'",
+      reason: "'"$REASON"'",
+      message: "'"$MESSAGE"'",
+      metadata: {
+        name: "'"$EVENT_NAME"'",
+        namespace: "'"$CLUSTER_NAMESPACE"'",
+        labels: .metadata.labels
+      },
+      count: 1,
+      firstTimestamp: "'"$EVENT_TIMESTAMP"'",
+      lastTimestamp: "'"$EVENT_TIMESTAMP"'",
+      source: {
+        component: "'"$COMPONENT"'"
+      },
+      involvedObject: {
+        apiVersion: .apiVersion,
+        kind: .kind,
+        namespace: .metadata.namespace,
+        name: .metadata.name,
+        resourceVersion: .metadata.resourceVersion,
+        uid: .metadata.uid
+      }
+    }' | \
+    kubectl create --raw "/api/v1/namespaces/$CLUSTER_NAMESPACE/events" -f -
+}
+get_event_id() {
+  MILLIS_SINCE_EPOCH=$( date +%s%N | cut -b1-13 )
+  RANDOM_LONG=$( get_random_long )
+  HEX_MILLIS=$( printf '%x\n' $MILLIS_SINCE_EPOCH )
+  HEX_RANDOM_LONG=$( printf '%x\n' "$RANDOM_LONG" )
+  echo "$HEX_MILLIS$HEX_RANDOM_LONG"
+}
+
+get_random_long() {
+  awk -v min=-9223372036854775808  -v max=9223372036854775808  'BEGIN{srand(); print int(min+rand()*(max-min+1))}'
+}
+
 from_date_iso8601_to_unix_timestamp() {
   [ -n "$1" ]
   date -d "$1" +%s

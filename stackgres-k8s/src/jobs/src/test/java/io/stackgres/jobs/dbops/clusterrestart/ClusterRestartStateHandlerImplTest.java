@@ -83,4 +83,5 @@ class ClusterRestartStateHandlerImplTest extends ClusterStateHandlerTest {
     status.setDbOps(dbOps);
     cluster.setStatus(status);
   }
+
 }

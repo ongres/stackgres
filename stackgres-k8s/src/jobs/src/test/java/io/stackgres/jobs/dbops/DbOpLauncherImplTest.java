@@ -11,7 +11,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,6 +46,7 @@ import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.stubbing.Answer;
 
 @QuarkusTest
@@ -61,6 +64,9 @@ class DbOpLauncherImplTest {
 
   @InjectSpy
   LockAcquirerImpl lockAcquirer;
+
+  @InjectMock
+  DatabaseOperationEventEmitterImpl databaseOperationEventEmitter;
 
   StackGresDbOps dbOps;
 
@@ -115,9 +121,14 @@ class DbOpLauncherImplTest {
   void givenAValidDbOps_shouldExecuteTheJob() {
     when(securityUpgradeJob.runJob(any(), any()))
         .thenAnswer(invocation -> getClusterRestartStateUni());
+    doNothing().when(databaseOperationEventEmitter).operationStarted(randomDbOpsName, namespace);
+    doNothing().when(databaseOperationEventEmitter).operationCompleted(randomDbOpsName, namespace);
 
     dbOpLauncher.launchDbOp(randomDbOpsName, namespace);
-    verify(securityUpgradeJob).runJob(any(StackGresDbOps.class), any(StackGresCluster.class));
+
+    final InOrder inOrder = inOrder(databaseOperationEventEmitter);
+    inOrder.verify(databaseOperationEventEmitter).operationStarted(randomDbOpsName, namespace);
+    inOrder.verify(databaseOperationEventEmitter).operationCompleted(randomDbOpsName, namespace);
   }
 
   @Test
@@ -129,6 +140,11 @@ class DbOpLauncherImplTest {
     verify(securityUpgradeJob, never()).runJob(any(StackGresDbOps.class),
         any(StackGresCluster.class));
 
+    verify(databaseOperationEventEmitter, never()).operationStarted(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationCompleted(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationFailed(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationTimedOut(randomDbOpsName, namespace);
+
   }
 
   @Test
@@ -136,8 +152,15 @@ class DbOpLauncherImplTest {
     final String errorMessage = "lock failure";
     doThrow(new RuntimeException(errorMessage))
         .when(lockAcquirer).lockRun(any(), any());
+    doNothing().when(databaseOperationEventEmitter).operationFailed(randomDbOpsName, namespace);
 
     assertThrows(RuntimeException.class, () -> dbOpLauncher.launchDbOp(randomDbOpsName, namespace));
+
+    verify(databaseOperationEventEmitter, never()).operationStarted(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationCompleted(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationTimedOut(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter).operationFailed(randomDbOpsName, namespace);
+
   }
 
   @Test
