@@ -30,12 +30,16 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
   private final String podName;
   private final ExtensionManager extensionManager;
   private final boolean skipSharedLibrariesOverwrites;
+  private final ExtensionEventEmitter extensionEventEmitter;
 
-  public ExtensionReconciliator(String podName, ExtensionManager extensionManager,
-      boolean skipSharedLibrariesOverwrites) {
+  public ExtensionReconciliator(String podName,
+                                ExtensionManager extensionManager,
+                                boolean skipSharedLibrariesOverwrites,
+                                ExtensionEventEmitter extensionEventEmitter) {
     this.podName = podName;
     this.extensionManager = extensionManager;
     this.skipSharedLibrariesOverwrites = skipSharedLibrariesOverwrites;
+    this.extensionEventEmitter = extensionEventEmitter;
   }
 
   @SuppressFBWarnings(value = "REC_CATCH_EXCEPTION",
@@ -82,6 +86,7 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
           if (extensionUninstaller.isExtensionInstalled()) {
             LOGGER.info("Removing extension {}",
                 ExtensionUtil.getDescription(installedExtension));
+            extensionEventEmitter.emitExtensionRemoved(installedExtension);
             extensionUninstaller.uninstallExtension();
           }
           installedExtensions.remove(installedExtension);
@@ -110,6 +115,7 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
             && (!skipSharedLibrariesOverwrites
                 || !extensionInstaller.isExtensionPendingOverwrite())) {
           LOGGER.info("Download extension {}", ExtensionUtil.getDescription(extension));
+          extensionEventEmitter.emitExtensionDownloading(extension);
           extensionInstaller.downloadAndExtract();
           LOGGER.info("Verify extension {}", ExtensionUtil.getDescription(extension));
           extensionInstaller.verify();
@@ -121,12 +127,14 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
               extensionInstaller.setExtensionAsPending();
             }
             if (!Optional.ofNullable(podStatus.getPendingRestart()).orElse(false)) {
+              extensionEventEmitter.emitExtensionDeployedRestart(extension);
               podStatus.setPendingRestart(true);
               clusterUpdated = true;
             }
           } else {
             LOGGER.info("Install extension {}", ExtensionUtil.getDescription(extension));
             extensionInstaller.installExtension();
+            extensionEventEmitter.emitExtensionDeployed(extension);
           }
         } else {
           if (!extensionInstaller.isLinksCreated()) {
@@ -142,6 +150,8 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
               .peek(previousInstalledExtension -> LOGGER.info("Extension upgraded from {} to {}",
                   ExtensionUtil.getDescription(previousInstalledExtension),
                   ExtensionUtil.getDescription(extension)))
+              .peek(previousInstalledExtension -> extensionEventEmitter
+                  .emitExtensionChanged(previousInstalledExtension, extension))
               .findAny()
               .ifPresent(installedExtensions::remove);
           installedExtensions.add(extension);

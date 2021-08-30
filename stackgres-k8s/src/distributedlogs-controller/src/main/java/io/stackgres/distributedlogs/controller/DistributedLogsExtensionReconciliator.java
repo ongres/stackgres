@@ -39,6 +39,7 @@ public class DistributedLogsExtensionReconciliator
     @Inject EventController eventController;
     @Inject DistributedLogsControllerPropertyContext propertyContext;
     @Inject DistributedLogsExtensionManager extensionManager;
+    @Inject ExtensionEventEmitterImpl extensionEventEmitter;
   }
 
   @Inject
@@ -47,12 +48,13 @@ public class DistributedLogsExtensionReconciliator
         DistributedLogsControllerProperty.DISTRIBUTEDLOGS_CONTROLLER_POD_NAME),
         parameters.extensionManager,
         parameters.propertyContext.getBoolean(DistributedLogsControllerProperty
-            .DISTRIBUTEDLOGS_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES));
+            .DISTRIBUTEDLOGS_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES),
+        parameters.extensionEventEmitter);
     this.eventController = parameters.eventController;
   }
 
   public DistributedLogsExtensionReconciliator() {
-    super(null, null, true);
+    super(null, null, true, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.eventController = null;
   }
