@@ -1,6 +1,6 @@
 <template>
 	<aside id="nav" class="disabled">
-		<div id="topMenu" v-if="!$route.name.includes('GlobalDashboard')">
+		<div id="topMenu" v-if="!$route.name.includes('GlobalDashboard')" @click="toggleViewMode()">
 			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><path fill="#FFF" opacity=".75" d="M0 16h24v-2.7H0V16zm0-6.7h24V6.7H0v2.6zM0 0v2.7h24V0H0z"/></svg>
 		</div>
 		<div id="logo" :class="$route.name.includes('GlobalDashboard') && 'hiddenMenu'">
@@ -494,6 +494,10 @@
 					console.log(error.response);
 					vc.notify(error.response.data,'error','sgdbops');
 				});
+			},
+
+			toggleViewMode() {
+				store.commit('toggleView');
 			}
 
 		},

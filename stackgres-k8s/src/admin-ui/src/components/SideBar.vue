@@ -256,3 +256,34 @@
 	}
 	
 </script>
+
+<style scoped>
+	.collapsed .set.backups a.nav-item:hover .hideCollapsed, .collapsed .set.dbops a.nav-item:hover .hideCollapsed {
+		display: block !important;
+		position: fixed !important;
+		transform: translateY(-16px);
+		left: 50px;
+		padding-left: 40px;
+		background: var(--bgColor);
+		padding-right: 20px;
+		border: 1px solid var(--borderColor);
+		border-left: 0;
+		border-radius: 5px;
+		border-top-left-radius: 0;
+		border-bottom-left-radius: 0;
+		width: 350px;
+		height: 50px;
+		font-weight: bold;
+		font-size: 110%;
+	}
+
+	.collapsed .set.backups .hideCollapsed:hover, .collapsed .set.dbops .hideCollapsed:hover {
+		background: #fafafa !important;
+		color: var(--baseColor) !important;
+	}
+
+	.darkmode .collapsed .set.backups .hideCollapsed:hover, .darkmode .collapsed .set.dbops .hideCollapsed:hover {
+		background: #303030 !important;
+	}
+	
+</style>

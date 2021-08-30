@@ -140,7 +140,7 @@ body, #sets h4, #sets h3, #side a.router-link-exact-active, th, .tabs a, #keywor
     color: var(--textColor);
 }
 
-#nav svg, .help svg > path {
+#nav svg, .help svg > path, #topMenu path {
     fill: var(--textColor);
 }
 
@@ -516,6 +516,10 @@ table:not(.fullWidth) td.label {
     margin-left: 40px;
 }
 
+.collapsed #logo.hiddenMenu {
+    margin-left: 25px;
+}
+
 .collapsed #side {
     width: 50px;
 }
@@ -533,7 +537,7 @@ table:not(.fullWidth) td.label {
     position: relative;
 }
 
-.showCollapsed:after {
+.showCollapsed:not(:last-child):after {
     content: "";
     display: inline-block;
     border-bottom: 1px solid var(--borderColor);
@@ -546,6 +550,10 @@ table:not(.fullWidth) td.label {
 
 .collapsed .showCollapsed {
     display: block !important;
+}
+
+.showCollapsed .router-link-exact-active.router-link-active:not(:hover) {
+    background: var(--bgColor) !important;
 }
 
 .collapsed #sets > .active .active > ul > li > a, .collapsed #sets > .active > ul > li > .item, .collapsed .set.active .set > .nav-item {
@@ -618,7 +626,28 @@ table:not(.fullWidth) td.label {
     left: 50px;
 }
 
+.collapsed .set:not(.conf) > ul.show {
+    border: 0;
+}
+
 .collapsed #topMenu {
     border-right: 1px solid var(--borderColor);
-    /*border-bottom: 2px solid var(--bgColor);*/
+}
+
+.collapsed .set:not(.conf) > a.nav-item {
+    border-bottom: 1px solid transparent;
+    border-top: 1px solid transparent;
+}
+
+.collapsed .set:not(.conf):hover > a.nav-item {
+    border-bottom: 1px solid var(--borderColor);
+    border-top: 1px solid var(--borderColor);
+}
+
+.collapsed .set.clu > a.nav-item {
+    border-top: 0 !important;
+}
+
+.collapsed .set.clu ul.show {
+    transform: translateY(-1px);
 }

@@ -171,6 +171,12 @@ if( getCookie('sgTimezone') === 'utc') {
   store.commit('toggleTimezone');
 }
 
+// Check view preferences
+if( getCookie('sgView') === 'collapsed') {
+  console.log('Switching to collapsed sidebar view');
+  store.commit('toggleView');
+}
+
 Vue.filter('prettyCRON', function (value) {
   return prettyCron.toString(value)
   
@@ -522,12 +528,12 @@ $(document).ready(function(){
 
   $(document).on("mouseover", ".collapsed #ns-set", function(){
     $("#current-namespace").addClass("open");
-    $("#ns-select").slideDown();
+    $("#ns-select").show();
   });
 
   $(document).on("mouseleave", ".collapsed #ns-set", function(){
     $("#current-namespace").removeClass("open");
-    $("#ns-select").slideUp();
+    $("#ns-select").hide();
   });
   
   $("#darkmode").click(function(){
@@ -548,10 +554,6 @@ $(document).ready(function(){
     }
 
     
-  });
-
-  $(document).on("click", "#topMenu", function(){
-    $("body").toggleClass("collapsed");
   });
 
   $(document).on("click","[data-active]", function(){
@@ -657,23 +659,6 @@ $(document).ready(function(){
       $('#contentTooltip .content').html('');
     }
   });
-
- /*  onmousemove = function (e) {
-
-    if( (window.innerWidth - e.clientX) > 420 ) {
-      $('#helpTooltip:not(.show)').css({
-        "top": e.clientY+20, 
-        "right": "auto",
-        "left": e.clientX+20
-      })
-    } else {
-      $('#helpTooltip:not(.show)').css({
-        "top": e.clientY+20, 
-        "left": "auto",
-        "right": window.innerWidth - e.clientX + 20
-      })
-    }
-  } */
 
   // Hide divs on click out
   $(document).click(function(event) { 
