@@ -14,6 +14,7 @@ public interface LabelFactoryForBackup
 
   Map<String, String> backupPodLabels(StackGresBackup resource);
 
+  @Override
   LabelMapperForBackup labelMapper();
 
 }
