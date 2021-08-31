@@ -45,7 +45,7 @@
 						<router-link id="grafana-btn" :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/monitor'" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
 					</li>
                     <li>
-						<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/events'" title="Events" class="events">Events</router-link>
+						<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/events'" title="Events" class="events router-link-exact-active">Events</router-link>
 					</li>
 				</ul>
 			</header>
@@ -58,7 +58,7 @@
                                     Last Timestamp
                                 </span>
                             </th>
-                            <th class="involvedObject hasTooltip">
+                            <th class="involvedObject hasTooltip" v-if="showInvolvedObjectsColumn">
                                 <span title="Component">
                                     Component
                                 </span>
@@ -72,7 +72,7 @@
                         <tbody>
                             <template v-if="!events.length">
                                 <tr class="no-results">
-                                    <td colspan="2">
+                                    <td colspan="999">
                                         No recent events have been recorded for this cluster
                                     </td>
                                 </tr>
@@ -97,7 +97,7 @@
 													</router-link>
 												</span>
 											</td>
-                                            <td class="involvedObject hasTooltip">
+                                            <td class="involvedObject hasTooltip" v-if="showInvolvedObjectsColumn">
                                                 <span v-if="event.involvedObject.kind != 'SGCluster'">
                                                     {{ event.involvedObject.kind }}/{{ event.involvedObject.name }}
                                                 </span>
@@ -130,9 +130,59 @@
                     <div class="configurationDetails" v-for="event in events" v-if="event.metadata.uid == $route.params.uid">
                         <table class="crdDetails">
                             <tbody>
-                                <tr v-for="(value, prop) in event" v-if="value">
-                                    <td class="label capitalize">{{ prop }}</td>
-                                    <td>{{ value }}</td>
+                                <tr>
+                                    <td class="label">Name</td>
+                                    <td>{{ event.metadata.name }}</td>
+                                </tr>
+								<tr v-if="event.hasOwnProperty('type')">
+                                    <td class="label">Type</td>
+                                    <td>{{ event.type }}</td>
+                                </tr>
+								<tr v-if="event.hasOwnProperty('firstTimestamp')">
+                                    <td class="label">First Timestamp</td>
+                                    <td class="timestamp">
+										<span class='date'>
+											{{ event.firstTimestamp | formatTimestamp('date') }}
+										</span>
+										<span class='time'>
+											{{ event.firstTimestamp | formatTimestamp('time') }}
+										</span>
+										<span class='ms'>
+											{{ event.firstTimestamp | formatTimestamp('ms') }}
+										</span>
+										<span class='tzOffset'>{{ showTzOffset() }}</span>
+									</td>
+                                </tr>
+								<tr v-if="event.hasOwnProperty('lastTimestamp')">
+                                    <td class="label">Last Timestamp</td>
+                                    <td class="timestamp">
+										<span class='date'>
+											{{ event.lastTimestamp | formatTimestamp('date') }}
+										</span>
+										<span class='time'>
+											{{ event.lastTimestamp | formatTimestamp('time') }}
+										</span>
+										<span class='ms'>
+											{{ event.lastTimestamp | formatTimestamp('ms') }}
+										</span>
+										<span class='tzOffset'>{{ showTzOffset() }}</span>
+									</td>
+                                </tr>
+								<tr v-if="event.hasOwnProperty('count')">
+                                    <td class="label">Count</td>
+                                    <td>{{ event.count }}</td>
+                                </tr>
+								<tr v-if="event.hasOwnProperty('reason')">
+                                    <td class="label">Reason</td>
+                                    <td>{{ event.reason }}</td>
+                                </tr>
+								<tr v-if="event.hasOwnProperty('reportingComponent')">
+                                    <td class="label">Reporting Component</td>
+                                    <td class="vPad">{{ event.reportingComponent }}</td>
+                                </tr>
+								<tr v-if="event.hasOwnProperty('message')">
+                                    <td class="label">Message</td>
+                                    <td>{{ event.message }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -156,7 +206,8 @@
 		data: function() {
 			return {
 				events: [],
-				eventsPooling: null
+				eventsPooling: null,
+				showInvolvedObjectsColumn: false
 			}
 		},
 
@@ -178,6 +229,7 @@
 				.get('/stackgres/namespaces/' + vc.$route.params.namespace + '/sgclusters/' + vc.$route.params.name + '/events')
 				.then( function(response) {
 					vc.events = [...response.data]
+					vc.showInvolvedObjectsColumn =  (events.filter(e => (e.involvedObject.kind != 'SGCluster') ).length > 0)
 				}).catch(function(err) {
 					console.log(err);
 					vc.checkAuthError(err);

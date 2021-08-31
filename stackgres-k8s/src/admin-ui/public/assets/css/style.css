@@ -316,6 +316,11 @@ svg.background circle {
     padding: 20px;
 }
 
+.vPad {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
 .firstLetter:first-letter {
     text-transform: uppercase;
 }
