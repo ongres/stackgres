@@ -8,6 +8,7 @@ package io.stackgres.common.crd.sgdistributedlogs;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
 
 @JsonDeserialize
@@ -15,4 +16,10 @@ import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
 @RegisterForReflection
 public class StackGresDistributedLogsPostgresServices extends StackGresPostgresServices {
 
+  public StackGresDistributedLogsPostgresServices() {}
+
+  public StackGresDistributedLogsPostgresServices(StackGresPostgresService primary,
+      StackGresPostgresService replicas) {
+    super(primary, replicas);
+  }
 }

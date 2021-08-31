@@ -5,7 +5,10 @@
 
 package io.stackgres.apiweb.transformer.distributedlogs;
 
+import java.util.Optional;
+
 import io.stackgres.apiweb.app.postgres.service.EnabledPostgresService;
+import io.stackgres.apiweb.app.postgres.service.PostgresService;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsPostgresServices;
 import io.stackgres.apiweb.transformer.converter.DtoConverter;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
@@ -16,23 +19,45 @@ public class DistributedLogsPostgresServicesConverter implements
 
   @Override
   public DistributedLogsPostgresServices from(StackGresDistributedLogsPostgresServices source) {
-    if (source == null) {
-      return null;
-    }
-
-    return new DistributedLogsPostgresServices(
-        convertToPostgreService(source.getPrimary()),
-        convertToPostgreService(source.getReplicas()));
+    return Optional.ofNullable(source)
+        .map(sgDlPgServices -> {
+          return new DistributedLogsPostgresServices(
+              convertToEnabledPostgreService(sgDlPgServices.getPrimary()),
+              convertToPostgreService(sgDlPgServices.getReplicas()));
+        }).orElse(null);
   }
 
-  private EnabledPostgresService convertToPostgreService(
-      StackGresPostgresService sgPostgresService) {
-    EnabledPostgresService postgresService = null;
+  private PostgresService convertToPostgreService(StackGresPostgresService replicas) {
+    return Optional.ofNullable(replicas)
+        .map(pgReplicas -> {
+          return new PostgresService(pgReplicas.getEnabled(), pgReplicas.getType());
+        }).orElse(null);
+  }
 
-    if (sgPostgresService != null) {
-      postgresService =
-          new EnabledPostgresService(sgPostgresService.getType());
-    }
-    return postgresService;
+  private EnabledPostgresService convertToEnabledPostgreService(
+      StackGresPostgresService sgPostgresService) {
+    return Optional.ofNullable(sgPostgresService)
+        .map(sgPgServices -> {
+          return new EnabledPostgresService(sgPgServices.getType());
+        }).orElse(null);
+  }
+
+  public StackGresDistributedLogsPostgresServices to(
+      DistributedLogsPostgresServices postgresServices) {
+    return Optional.ofNullable(postgresServices)
+        .map(pgServices -> {
+          return new StackGresDistributedLogsPostgresServices(map(pgServices.getPrimary()),
+              map(pgServices.getReplicas()));
+        }).orElse(null);
+
+  }
+
+  private StackGresPostgresService map(PostgresService postgresService) {
+    return Optional.ofNullable(postgresService)
+        .map(pgServices -> {
+          return new StackGresPostgresService(pgServices.getEnabled(),
+              pgServices.getType());
+        }).orElse(null);
+
   }
 }

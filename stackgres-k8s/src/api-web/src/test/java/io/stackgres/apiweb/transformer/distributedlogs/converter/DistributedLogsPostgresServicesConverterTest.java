@@ -5,6 +5,7 @@
 
 package io.stackgres.apiweb.transformer.distributedlogs.converter;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -23,7 +24,7 @@ class DistributedLogsPostgresServicesConverterTest {
 
   @BeforeEach
   public void setup() {
-    this.converter =  new DistributedLogsPostgresServicesConverter();
+    this.converter = new DistributedLogsPostgresServicesConverter();
   }
 
   @Test
@@ -65,5 +66,35 @@ class DistributedLogsPostgresServicesConverterTest {
   void shouldPostgresServicesNull_onceSgDistributedLogsPostgresServicesWasInvalid() {
     DistributedLogsPostgresServices pgServicesConverted = converter.from(null);
     assertNull(pgServicesConverted);
+  }
+
+  @Test
+  void shouldTranslateFromDistributedLogsPostgresServices_toSgDLogsPgServices() {
+    StackGresDistributedLogsPostgresServices postgresServices = converter
+        .to(new DistributedLogsPostgresServicesFixture().withPrimary().withReplicas().build());
+    assertNotNull(postgresServices.getPrimary());
+    assertNotNull(postgresServices.getReplicas());
+  }
+
+  @Test
+  void shouldTranslateDistributedLogsPostgresServices_toSgDLogsPgServicesWithOnlyPrimaryInstace() {
+    StackGresDistributedLogsPostgresServices postgresServices =
+        converter.to(new DistributedLogsPostgresServicesFixture().withPrimary().build());
+    assertNotNull(postgresServices.getPrimary());
+    assertNull(postgresServices.getReplicas());
+  }
+
+  @Test
+  void shouldTranslateDistributedLogsPostgresServices_toSgDLogsPgServicesWithOnlyReplicasInstace() {
+    StackGresDistributedLogsPostgresServices postgresServices =
+        converter.to(new DistributedLogsPostgresServicesFixture().withReplicas().build());
+    assertNull(postgresServices.getPrimary());
+    assertNotNull(postgresServices.getReplicas());
+  }
+
+  @Test
+  void shouldTranslateANullDistributedLogsPostgresServices_toNullSgDLogsPgServicesObject() {
+    StackGresDistributedLogsPostgresServices postgresServices = converter.to(null);
+    assertNull(postgresServices);
   }
 }

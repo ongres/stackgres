@@ -22,7 +22,13 @@
   "spec": {
     "persistentVolume": {
       "size": "128Mi"
-    }
+    },
+    "postgresServices":{
+         "primary":{
+            "enabled":true,
+            "type":"ClusterIP"
+         }
+      }
   },
   "status": {
     "conditions": [

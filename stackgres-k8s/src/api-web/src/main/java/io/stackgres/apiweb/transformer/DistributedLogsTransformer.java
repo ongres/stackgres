@@ -62,6 +62,8 @@ public class DistributedLogsTransformer
     StackGresDistributedLogsSpec transformation = new StackGresDistributedLogsSpec();
     transformation.setPersistentVolume(
         getCustomResourcePersistentVolume(source.getPersistentVolume()));
+    transformation.setPostgresServices(
+        new DistributedLogsPostgresServicesConverter().to(source.getPostgresServices()));
     transformation.setNonProduction(
         getCustomResourceNonProduction(source.getNonProduction()));
 

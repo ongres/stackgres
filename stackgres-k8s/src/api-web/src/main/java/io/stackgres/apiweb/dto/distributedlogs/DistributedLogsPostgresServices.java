@@ -26,8 +26,7 @@ public class DistributedLogsPostgresServices implements KubernetesResource {
 
   public DistributedLogsPostgresServices() {}
 
-  public DistributedLogsPostgresServices(EnabledPostgresService primary,
-      EnabledPostgresService replicas) {
+  public DistributedLogsPostgresServices(EnabledPostgresService primary, PostgresService replicas) {
     this.primary = primary;
     this.replicas = replicas;
   }
