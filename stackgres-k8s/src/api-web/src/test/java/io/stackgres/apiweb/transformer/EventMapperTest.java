@@ -5,9 +5,12 @@
 
 package io.stackgres.apiweb.transformer;
 
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+
+import java.time.LocalDate;
 
 import io.fabric8.kubernetes.api.model.Event;
 import io.stackgres.apiweb.dto.event.EventDto;
@@ -17,15 +20,15 @@ import org.junit.jupiter.api.Test;
 
 class EventMapperTest {
 
-  private static final String EVENT_INSTANCE = "10.0.2.1";
+  private static final String EVENT_INSTANCE = randomAlphabetic(10);
 
-  private static final String REPORTING_COMPONENT = "Reporting component content";
+  private static final String REPORTING_COMPONENT = randomAlphabetic(30);
 
   private static final int EVENT_COUNT = 10;
 
-  private static final String LAST_TIMESTAMP = "2021-01-01 12:22:22";
+  private static final String LAST_TIMESTAMP = LocalDate.now().toString();
 
-  private static final String FIRST_TIMESTAMP = "2021-01-01 11:22:22";
+  private static final String FIRST_TIMESTAMP = LocalDate.now().toString();
 
   private Event event;
 
