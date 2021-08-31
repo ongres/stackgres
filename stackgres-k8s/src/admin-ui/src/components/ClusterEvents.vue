@@ -229,7 +229,7 @@
 				.get('/stackgres/namespaces/' + vc.$route.params.namespace + '/sgclusters/' + vc.$route.params.name + '/events')
 				.then( function(response) {
 					vc.events = [...response.data]
-					vc.showInvolvedObjectsColumn =  (events.filter(e => (e.involvedObject.kind != 'SGCluster') ).length > 0)
+					vc.showInvolvedObjectsColumn =  (vc.events.filter(e => (e.involvedObject.kind != 'SGCluster') ).length > 0)
 				}).catch(function(err) {
 					console.log(err);
 					vc.checkAuthError(err);
