@@ -278,7 +278,7 @@
 	}
 
 	.collapsed .set.backups .hideCollapsed:hover, .collapsed .set.dbops .hideCollapsed:hover {
-		background: #fafafa !important;
+		background: var(--activeBg) !important;
 		color: var(--baseColor) !important;
 	}
 
