@@ -231,5 +231,6 @@
 	ul#timeRange.active {
 	    max-height: 40vh;
 		overflow-y: auto;
+		width: auto;
 	}	
 </style>
