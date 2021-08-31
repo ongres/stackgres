@@ -89,4 +89,22 @@ class KubernetesExceptionMapperTest {
         errorResponse.getDetail());
     Assertions.assertEquals("spec.memory", errorResponse.getFields()[0]);
   }
+
+  @Test
+  void kubernetesInvalidNameValidation_shouldBeParsed() {
+    mapper.setStatusParser(new Kubernetes16StatusParser());
+
+    Status status = JsonUtil.readFromJson("kube_status/invalid_cluster_name.json", Status.class);
+
+    Response response = mapper.toResponse(new KubernetesClientException(status));
+
+    ErrorResponse errorResponse = (ErrorResponse) response.getEntity();
+
+    Assertions.assertEquals(ErrorType.getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION),
+        errorResponse.getType());
+    Assertions.assertEquals(ErrorType.CONSTRAINT_VIOLATION.getTitle(), errorResponse.getTitle());
+    Assertions.assertEquals(status.getMessage(), errorResponse.getDetail());
+    Assertions.assertEquals(0, errorResponse.getFields().length);
+  }
+
 }
