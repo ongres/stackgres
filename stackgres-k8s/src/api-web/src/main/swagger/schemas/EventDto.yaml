@@ -29,9 +29,6 @@ schema:
       count:
         description: |
           The number of times this event has occurred.
-      eventTime:
-        description: |
-          Time when this Event was first observed.
       firstTimestamp:
         description: |
           The time at which the event was first recorded.
@@ -50,29 +47,6 @@ schema:
       reportingInstance:
         description: |
           ID of the controller instance, e.g. `kubelet-xyzf`.
-      series:
-        description: |
-          Data about the Event series this event represents or nil if it's a singleton Event.
-        properties:
-          count:
-            description: |
-              Number of occurrences in this series up to the last heartbeat time
-          lastObservedTime:
-            description: |
-              Time of the last occurrence observed
-          state:
-            description: |
-              State of this Series: Ongoing or Finished Deprecated. Planned removal for 1.18
-      source:
-        description: |
-          The component reporting this event. Should be a short machine understandable string.
-        properties:
-          component:
-            description: |
-              Component from which the event is generated.
-          host:
-            description: |
-              Node name on which the event is generated.
       involvedObject:
         description: |
           The object that this event is about.
