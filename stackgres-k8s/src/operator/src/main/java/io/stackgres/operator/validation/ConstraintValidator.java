@@ -53,7 +53,13 @@ public abstract class ConstraintValidator<T extends AdmissionReview<?>> implemen
               "Valid name must be 53 characters or less");
           ResourceUtil.resourceName(target.getMetadata().getName());
         } catch (IllegalArgumentException e) {
-          throw new ValidationFailed(e.getMessage());
+          Status status = new StatusBuilder()
+              .withCode(422)
+              .withMessage(e.getMessage())
+              .withKind(target.getKind())
+              .withReason(constraintViolationDocumentationUri)
+              .build();
+          throw new ValidationFailed(status);
         }
       }
 
