@@ -41,7 +41,7 @@
             </a>
 
             <span class="warning" v-if="nameColission && !editMode">
-                There's already a <strong>SGDistributedLogs</strong> with the same name on this namespace. Please specify a different name or create the server on another namespace
+                There's already a <strong>SGDistributedLogs</strong> with the same name on this namespace. Please specify a different name or create the server on another namespace.
             </span>
 
             <div>
@@ -331,7 +331,7 @@
                 var nameColission = false;
                 
                 store.state.logsClusters.forEach(function(item, index){
-                    if( (item.data.metadata.name == vc.$route.params.name) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
+                    if( (item.name == vc.name) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
                         nameColission = true
                 })
 
