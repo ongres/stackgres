@@ -1056,10 +1056,6 @@ ul.zg-ul-select.active li.active:hover {
     background-color: rgba(211, 211, 211, .10);
 }
 
-#ns-select, .set.active:not(.conf) {
-    border-bottom: 1px solid #f1f1f1;
-    border-top: 1px solid #f1f1f1;
-}
 
 /* .set.active:not(.conf):not(.backups):not(.logs) { 
     min-height: 100px; 
@@ -1103,6 +1099,10 @@ ul.zg-ul-select.active li.active:hover {
     margin-left: -27px;
 }
 
+.collapsed .set.active > ul > li > .item:before {
+    display: none;
+}
+
 .set > .nav-item, .set a {
     padding: 0 20px;
 }
@@ -1133,7 +1133,7 @@ ul.zg-ul-select.active li.active:hover {
     /* margin-bottom: 25px; */
 }
 
-.set:not(.active) ul {
+.set:not(.active) ul, .collapsed .set.active:not(.conf) ul {
     position: absolute;
     width: 350px;
     left: 100%;
@@ -1153,20 +1153,20 @@ ul.zg-ul-select.active li.active:hover {
 }
 
 
-.set:not(.active) > ul.show {
+.set:not(.active) > ul.show, .collapsed .set.active:not(.conf) > ul.show {
     display: block;
     position: fixed;
     left: 350px;
     z-index: 2;
     overflow: auto;
     padding-left: 0;
-    border-bottom: 1px solid var(--borderColor);
-    border-top: 1px solid var(--borderColor);
+    border: 1px solid var(--borderColor);
+    border-left: none;
     background-color: var(--bgColor);
     box-shadow: 2px 2px 5px rgba(0,0,0,.1);
 }
 
-.set:not(.active) ul.show:before {
+.set:not(.active) ul.show:before, .collapsed .set.active:not(.conf) ul.show:before {
     /*box-shadow: 2px 2px 5px rgba(0,0,0,.1);*/
     content: " ";
     position: absolute;
@@ -4728,6 +4728,11 @@ table.backupConfig tr.details.open td:first-of-type {
     align-items: center;
     opacity: 0;
     transition: opacity .2s ease-in;
+}
+
+.collapsed #contentTooltip {
+    width: calc(100vw - 50px);
+    left: 50px;
 }
 
 #contentTooltip.show {

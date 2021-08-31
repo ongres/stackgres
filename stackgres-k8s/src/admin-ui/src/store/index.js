@@ -34,6 +34,7 @@ export default new Vuex.Store({
     postgresVersions: [],
     cloneCRD: {},
     timezone: 'local',
+    view: 'normal',
     permissions: {
       allowed: {
         namespaced: [],
@@ -343,6 +344,12 @@ export default new Vuex.Store({
     toggleTimezone (state) {
       state.timezone = (state.timezone == 'local') ? 'utc' : 'local';
       document.cookie = "sgTimezone=" + state.timezone + "; Path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=Strict;";
+    },
+
+    toggleView (state) {
+      state.view = (state.view == 'normal') ? 'collapsed' : 'normal';
+      $('body').toggleClass('collapsed')
+      document.cookie = "sgView=" + state.view + "; Path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=Strict;";
     },
 
     setRestartCluster (state, cluster) {
