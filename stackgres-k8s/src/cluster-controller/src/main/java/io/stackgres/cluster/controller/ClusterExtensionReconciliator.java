@@ -20,6 +20,7 @@ import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.extension.ExtensionEventEmitter;
 import io.stackgres.common.extension.ExtensionReconciliator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +39,7 @@ public class ClusterExtensionReconciliator
     @Inject EventController eventController;
     @Inject ClusterControllerPropertyContext propertyContext;
     @Inject ClusterExtensionManager extensionManager;
+    @Inject ExtensionEventEmitter extensionEventEmitter;
   }
 
   @Inject
@@ -46,12 +48,13 @@ public class ClusterExtensionReconciliator
         ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME),
         parameters.extensionManager,
         parameters.propertyContext.getBoolean(ClusterControllerProperty
-            .CLUSTER_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES));
+            .CLUSTER_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES),
+        parameters.extensionEventEmitter);
     this.eventController = parameters.eventController;
   }
 
   public ClusterExtensionReconciliator() {
-    super(null, null, true);
+    super(null, null, true, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.eventController = null;
   }
