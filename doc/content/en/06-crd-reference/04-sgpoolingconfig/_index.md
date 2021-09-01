@@ -24,24 +24,51 @@ ___
 |:------------------------|----------|-----------|:--------|:----------|:------------|
 | [pgBouncer](#pgbouncer) |          | ✓         | object  | see below | {{< crd-field-description SGPoolingConfig.spec.pgBouncer >}} |
 
-# PgBouncer
+## PgBouncer
 
 | Property      | Required | Updatable | Type    | Default   | Description |
 |:--------------|----------|-----------|:--------|:----------|:------------|
 | pgbouncer.ini |          | ✓         | object  | see below | {{< crd-field-description "SGPoolingConfig.spec.pgBouncer.pgbouncer\.ini" >}} |
 
-# PgBouncer sections
+## pgbouncer.ini sections
+
 | Property      | Required | Updatable | Type    | Default   | Description |
 |:--------------|----------|-----------|:--------|:----------|:------------|
 | pgbouncer     |          | ✓         | object  | see below | {{< crd-field-description "SGPoolingConfig.spec.pgBouncer.pgbouncer\.ini.pgbouncer" >}} |
 | databases     |          | ✓         | object  |           | {{< crd-field-description "SGPoolingConfig.spec.pgBouncer.pgbouncer\.ini.databases" >}} |
 | users         |          | ✓         | object  |           | {{< crd-field-description "SGPoolingConfig.spec.pgBouncer.pgbouncer\.ini.users" >}} |
 
-
-Default value of `pgbouncer.ini` property:
+## Example:
 
 ```yaml
-pgbouncer:
+apiVersion: stackgres.io/v1
+kind: SGPoolingConfig
+metadata:
+  name: pgbouncerconf
+spec:
+  pgBouncer:
+    pgbouncer.ini:
+      pgbouncer:
+        max_client_conn: '2000'
+        default_pool_size: '50'
+      databases:
+        foodb:
+          max_db_connections: 1000
+          pool_size: 20
+          dbname: 'bardb'
+          reserve_pool: 5
+      users:
+        user1:
+          pool_mode: transaction
+          max_user_connections: 50
+        user2:
+          pool_mode: session
+          max_user_connections: '100'
+```
+
+### Default values of `pgbouncer.ini` property:
+
+```yaml
   admin_users: "postgres",
   application_name_add_host: "1",
   auth_query: "SELECT usename, passwd FROM pg_shadow WHERE usename=$1",
@@ -55,33 +82,6 @@ pgbouncer:
   max_user_connections: "0",
   pool_mode: "transaction",
   stats_users: "postgres"
-```
-
-Example:
-
-```yaml
-apiVersion: stackgres.io/v1
-kind: SGPoolingConfig
-metadata:
-  name: pgbouncerconf
-spec:
-  pgbouncer.ini:
-    pool_mode: 'transaction'
-    max_client_conn: '2000'
-  databases:
-    foodb:
-      max_db_connections: 2000
-      pool_size: 20
-      dbname: 'bardb'
-      reserve_pool: 5
-      datestyle: ISO
-  users:
-    user1:
-      pool_mode: transaction
-      max_user_connections: 50
-    user2:
-      pool_mode: session
-      max_user_connections: 100
 ```
 
 To guarantee a functional pgbouncer configuration most of the parameters specified in
