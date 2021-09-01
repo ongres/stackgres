@@ -21,6 +21,14 @@ public class StackGresPostgresServices {
 
   protected StackGresPostgresService replicas;
 
+  public StackGresPostgresServices() {}
+
+  public StackGresPostgresServices(StackGresPostgresService primary,
+      StackGresPostgresService replicas) {
+    this.primary = primary;
+    this.replicas = replicas;
+  }
+
   public StackGresPostgresService getPrimary() {
     return primary;
   }

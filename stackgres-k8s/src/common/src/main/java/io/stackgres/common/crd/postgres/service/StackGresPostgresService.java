@@ -24,6 +24,13 @@ public class StackGresPostgresService {
       message = "type must be one of ClusterIP, LoadBalancer, NodePort or ExternalName")
   private String type;
 
+  public StackGresPostgresService() {}
+
+  public StackGresPostgresService(Boolean enabled, String type) {
+    this.enabled = enabled;
+    this.type = type;
+  }
+
   public Boolean getEnabled() {
     return enabled;
   }
