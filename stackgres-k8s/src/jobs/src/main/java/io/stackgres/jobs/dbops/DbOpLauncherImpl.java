@@ -72,13 +72,17 @@ public class DbOpLauncherImpl implements DbOpLauncher {
     if (jobImpl.isResolvable()) {
       LOGGER.info("Initializing conditions for SgDbOps {}", dbOps.getMetadata().getName());
       var status = Optional.ofNullable(dbOps.getStatus())
-          .orElseGet(() -> {
-            final StackGresDbOpsStatus dbOpsStatus = new StackGresDbOpsStatus();
+          .or(() -> Optional.of(new StackGresDbOpsStatus()))
+          .map(dbOpsStatus -> {
             dbOpsStatus.setOpStarted(Instant.now().toString());
-            dbOpsStatus.setOpRetries(0);
+            dbOpsStatus.setOpRetries(
+                Optional.ofNullable(dbOpsStatus.getOpRetries())
+                .map(opRetries -> opRetries + 1)
+                .orElse(0));
             dbOpsStatus.setConditions(getStartingConditions());
             return dbOpsStatus;
-          });
+          })
+          .orElseThrow();
       dbOps.setStatus(status);
       final StackGresDbOps initializedDbOps = dbOpsScheduler.update(dbOps);
 
