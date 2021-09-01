@@ -446,8 +446,8 @@ table.crdDetails td, table.crdDetails th, .paramDetails td, .paramDetails th {
 }
 
 table.crdDetails td.label {
-    width: 20vw;
     font-weight: bold;
+    white-space: nowrap;
 }
 
 table.crdDetails td a {
