@@ -101,7 +101,7 @@ transform_pre_1_0_0_alpha3_post_1_0_0_alpha2() {
   if [ "${1%=*}" = 'cluster.postgres.version' ]
   then
     printf '%s=%s' 'cluster.postgresVersion' "${1#*=}"
-  elif printf '%s' '${1%=*}' | grep -q '^cluster.postgres.extensions' ]
+  elif printf '%s' '${1%=*}' | grep -q '^cluster.postgres.extensions'
   then
     printf "%s=%s" "$(printf '%s' "${1%=*}" \
       | sed 's/^cluster\.postgres\.extensions/cluster.postgresExtensions/')"
@@ -112,7 +112,7 @@ transform_pre_1_0_0_alpha3() {
   if [ "${1%=*}" = 'cluster.postgres.version' ]
   then
     printf '%s=%s' 'cluster.postgresVersion' "${1#*=}"
-  elif printf '%s' '${1%=*}' | grep -q '^cluster.postgres.extensions' ]
+  elif printf '%s' '${1%=*}' | grep -q '^cluster.postgres.extensions'
   then
     printf "%s=%s" "$(printf '%s' "${1%=*}" \
       | sed 's/^cluster\.postgres\.extensions/cluster.postgresExtensions/')"
