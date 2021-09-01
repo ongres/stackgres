@@ -265,7 +265,7 @@
                                                 The operation has started
                                             </td>
                                         </tr>
-                                        <tr v-if="op.data.status.minorVersionUpgrade.hasOwnProperty('switchoverInitiated')">
+                                        <tr v-if="hasProp(op, 'data.status.minorVersionUpgrade.switchoverInitiated')">
                                             <td class="timestamp">
                                                 <span class='date'>
                                                     {{ op.data.status.minorVersionUpgrade.switchoverInitiated | formatTimestamp('date') }}
@@ -277,7 +277,7 @@
                                             </td>
                                             <td>Switchover has been initiated</td>
                                         </tr>
-                                        <tr v-if="op.data.status.minorVersionUpgrade.hasOwnProperty('switchoverFinalized')">
+                                        <tr v-if="hasProp(op, 'data.status.minorVersionUpgrade.switchoverInitiated')">
                                             <td class="timestamp">
                                                 <span class='date'>
                                                     {{ op.data.status.minorVersionUpgrade.switchoverFinalized | formatTimestamp('date') }}
