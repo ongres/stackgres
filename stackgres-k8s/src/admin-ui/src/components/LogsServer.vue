@@ -204,12 +204,6 @@
                             <h2>Postgres Services <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresServices')"></span></h2>
 
                             <table v-for="(service, serviceName) in cluster.data.spec.postgresServices" class="clusterConfig">
-                                <thead>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                </thead>
                                 <tbody>
                                     <tr>
                                         <td class="label capitalize" rowspan="2">
