@@ -271,13 +271,13 @@
 					
 					vc.events.sort((a,b) => {
 						
-						if(moment(a).isValid && moment(b).isValid) {
+						if(moment(a.firstTimestamp).isValid && moment(b.firstTimestamp).isValid) {
 
-							if(moment(a).isBefore(moment(b)))
-								return -1;
+							if(moment(a.firstTimestamp).isBefore(moment(b.firstTimestamp)))
+								return 1;
 						
-							if(moment(a).isAfter(moment(b)))
-								return 1;  
+							if(moment(a.firstTimestamp).isAfter(moment(b.firstTimestamp)))
+								return -1;  
 
 						}
 					});
