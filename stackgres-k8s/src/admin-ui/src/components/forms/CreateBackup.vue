@@ -170,17 +170,7 @@
             createBackup: function(e) {
                 const vc = this;
 
-                let isValid = true;
-                
-                $('input:required, select:required').each(function() {
-                    if ($(this).val() === '') {
-                        isValid = false;
-                        return false;
-                    }
-                        
-                });
-
-                if(isValid) {
+                if(vc.checkRequired()) {
 
                     let backup = {
                         "metadata": {

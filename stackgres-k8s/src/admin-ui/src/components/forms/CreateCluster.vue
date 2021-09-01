@@ -1510,19 +1510,7 @@
             createCluster: function() {
                 const vc = this;
 
-                let isValid = true;
-                
-                $('input:required, select:required').each(function() {
-                    if ($(this).val() === '') {
-                        isValid = false;
-                        $(this).addClass("notValid");
-                    } else if ($(this).hasClass('error')) {
-                        $(this).removeClass("notValid");
-                    }
-                        
-                });
-
-                if(isValid) {
+                if(vc.checkRequired()) {
 
                     this.cleanupScripts()
                     
@@ -2035,19 +2023,6 @@
                 console.log(error.response);
                 vc.notify(error.response.data,'error','sgclusters');
             });
-        },
-
-        mounted: function() {
-            const vc = this
-            
-            $(document).ready(function(){
-
-                $(document).on('change, keyup','.notValid', function() {
-                    if( ($(this).val() != '') && ($(this).val() != null) )
-                        $(this).removeClass('notValid')
-                })
-                
-            })
         },
 
         beforeDestroy: function() {

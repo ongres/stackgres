@@ -1260,6 +1260,29 @@ export const mixin = {
 
       setRestartCluster(namespace = '', name = '') {
         store.commit('setRestartCluster', {namespace: namespace, name: name})
+      },
+
+      checkRequired() {
+        const vc = this;
+        let isValid = true;
+        
+        $('[required]').each(function() {
+          if ( !$(this).val() ) {
+              $(this).addClass("notValid");
+              isValid = false;
+          } else if ($(this).hasClass('error')) {
+              $(this).removeClass('notValid');
+          }
+        });
+
+        if(!isValid && ($('#notifications .message.show.title').text != 'Please fill every mandatory field in the form') ) {
+          setTimeout(function() {
+            vc.notify('Please fill every mandatory field in the form', 'message', 'general');
+          }, 100);
+        }
+
+
+        return isValid
       }
 
     },
