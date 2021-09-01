@@ -6,7 +6,6 @@
 package io.stackgres.operator.conciliation.factory.distributedlogs.patroni;
 
 import static io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType.CLUSTER_IP;
-import static io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap.PATRONI_RESTAPI_PORT_NAME;
 
 import java.util.Map;
 import java.util.Optional;
@@ -23,7 +22,6 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
-import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
@@ -47,11 +45,6 @@ public class PatroniServices implements
   public static String name(StackGresDistributedLogsContext clusterContext) {
     String name = clusterContext.getSource().getMetadata().getName();
     return PatroniUtil.name(name);
-  }
-
-  public static String restName(StackGresDistributedLogsContext clusterContext) {
-    String name = clusterContext.getSource().getMetadata().getName();
-    return PatroniUtil.name(name + "-rest");
   }
 
   public static String readWriteName(StackGresDistributedLogsContext clusterContext) {
@@ -82,10 +75,9 @@ public class PatroniServices implements
     final Map<String, String> clusterLabels = labelFactory.clusterLabels(cluster);
 
     Service config = createConfigService(namespace, configName(context), clusterLabels);
-    Service rest = createPatroniRestService(context);
     Service patroni = createPatroniService(context);
     Service primary = createPrimaryService(context);
-    Seq<HasMetadata> services = Seq.of(config, rest, patroni, primary);
+    Seq<HasMetadata> services = Seq.of(config, patroni, primary);
 
     boolean isReplicasServiceEnabled = Optional.of(cluster)
         .map(StackGresDistributedLogs::getSpec)
@@ -111,31 +103,6 @@ public class PatroniServices implements
         .endMetadata()
         .withNewSpec()
         .withClusterIP("None")
-        .endSpec()
-        .build();
-  }
-
-  private Service createPatroniRestService(StackGresDistributedLogsContext context) {
-    final StackGresDistributedLogs cluster = context.getSource();
-
-    final Map<String, String> clusterLabels = labelFactory.clusterLabels(cluster);
-
-    return new ServiceBuilder()
-        .withNewMetadata()
-        .withNamespace(cluster.getMetadata().getNamespace())
-        .withName(restName(context))
-        .withLabels(clusterLabels)
-        .endMetadata()
-        .withNewSpec()
-        .withPorts(
-            new ServicePortBuilder()
-                .withProtocol("TCP")
-                .withName(PATRONI_RESTAPI_PORT_NAME)
-                .withPort(PATRONI_SERVICE_PORT)
-                .withTargetPort(new IntOrString(PATRONI_RESTAPI_PORT_NAME))
-                .build())
-        .withSelector(labelFactory.patroniClusterLabels(cluster))
-        .withType(StackGresPostgresServiceType.CLUSTER_IP.toString())
         .endSpec()
         .build();
   }

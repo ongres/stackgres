@@ -19,6 +19,7 @@ import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServices;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
@@ -64,12 +65,12 @@ public class DefaultPostgresServicesMutator implements DistributedLogsMutator {
     return Optional.ofNullable(review.getRequest().getObject())
         .map(StackGresDistributedLogs::getSpec)
         .map(spec -> {
-          return foo(operations, spec);
+          return validatePgServices(operations, spec);
         }).orElse(operations.build());
 
   }
 
-  private ImmutableList<JsonPatchOperation> foo(
+  private ImmutableList<JsonPatchOperation> validatePgServices(
       ImmutableList.Builder<JsonPatchOperation> operations, StackGresDistributedLogsSpec spec) {
 
     return Optional.ofNullable(spec.getPostgresServices())
@@ -82,43 +83,54 @@ public class DefaultPostgresServicesMutator implements DistributedLogsMutator {
         }).orElseGet(() -> {
           StackGresDistributedLogsPostgresServices pgServices =
               new StackGresDistributedLogsPostgresServices();
-          pgServices.setPrimary(createNewPostgresService());
-          pgServices.setReplicas(createNewPostgresService());
+          pgServices.setPrimary(createPostgresServicePrimary());
+          pgServices.setReplicas(createPostgresServiceReplicas());
           JsonNode target = JSON_MAPPER.valueToTree(pgServices);
           operations.add(applyAddValue(postgresServicesPointer, target));
           return operations.build();
         });
   }
 
-  private void mapPgReplicasService(StackGresDistributedLogsPostgresServices pgServices) {
-    pgServices.setReplicas(inspectPgService(pgServices.getReplicas()));
+  private void mapPgPrimaryService(StackGresDistributedLogsPostgresServices postgresServices) {
+    if (postgresServices.getPrimary() == null) {
+      postgresServices.setPrimary(createNewPostgresService(null));
+      return;
+    }
+    postgresServices.getPrimary().setEnabled(null);
+    if (postgresServices.getPrimary().getType() == null) {
+      postgresServices.getPrimary()
+          .setType(StackGresPostgresServiceType.CLUSTER_IP.toString());
+    }
   }
 
-  private StackGresPostgresService inspectPgService(StackGresPostgresService pgService) {
-    if (pgService == null) {
-      return createNewPostgresService();
+  private void mapPgReplicasService(StackGresDistributedLogsPostgresServices postgresServices) {
+    if (postgresServices.getReplicas() == null) {
+      postgresServices.setReplicas(createPostgresServiceReplicas());
+      return;
     }
 
-    if (pgService.getEnabled() == null) {
-      pgService.setEnabled(Boolean.TRUE);
+    if (postgresServices.getReplicas().getEnabled() == null) {
+      postgresServices.getReplicas().setEnabled(Boolean.TRUE);
     }
-
-    if (pgService.getType() == null) {
-      pgService.setType(CLUSTER_IP.toString());
+    if (postgresServices.getReplicas().getType() == null) {
+      postgresServices.getReplicas()
+          .setType(StackGresPostgresServiceType.CLUSTER_IP.toString());
     }
-
-    return pgService;
   }
 
-  private void mapPgPrimaryService(StackGresDistributedLogsPostgresServices pgServices) {
-    pgServices.setPrimary(inspectPgService(pgServices.getPrimary()));
-  }
-
-  private StackGresPostgresService createNewPostgresService() {
+  private StackGresPostgresService createNewPostgresService(Boolean enabled) {
     StackGresPostgresService service = new StackGresPostgresService();
-    service.setEnabled(Boolean.TRUE);
+    service.setEnabled(enabled);
     service.setType(CLUSTER_IP.toString());
     return service;
+  }
+
+  private StackGresPostgresService createPostgresServiceReplicas() {
+    return createNewPostgresService(Boolean.TRUE);
+  }
+
+  private StackGresPostgresService createPostgresServicePrimary() {
+    return createNewPostgresService(null);
   }
 
 }

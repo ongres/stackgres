@@ -11,6 +11,7 @@ import static io.stackgres.common.crd.postgres.service.StackGresPostgresServiceT
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
 import java.util.List;
@@ -61,8 +62,7 @@ class DefaultPostgresServicesMutatorTest {
 
     StackGresDistributedLogsPostgresServices pgServicesMuted = mutate(review);
 
-    assertEquals(sgDistributedLogs.getPrimary().getEnabled(),
-        pgServicesMuted.getPrimary().getEnabled());
+    assertNull(pgServicesMuted.getPrimary().getEnabled());
     assertEquals(sgDistributedLogs.getPrimary().getType(),
         pgServicesMuted.getPrimary().getType());
     assertEquals(sgDistributedLogs.getReplicas().getEnabled(),
@@ -79,7 +79,7 @@ class DefaultPostgresServicesMutatorTest {
 
     StackGresDistributedLogsPostgresServices pgServicesMuted = mutate(review);
 
-    assertEquals(Boolean.TRUE, pgServicesMuted.getPrimary().getEnabled());
+    assertNull(pgServicesMuted.getPrimary().getEnabled());
     assertEquals(CLUSTER_IP.toString(), pgServicesMuted.getPrimary().getType());
     assertEquals(Boolean.FALSE, pgServicesMuted.getReplicas().getEnabled());
     assertEquals(CLUSTER_IP.toString(), pgServicesMuted.getReplicas().getType());
@@ -91,7 +91,7 @@ class DefaultPostgresServicesMutatorTest {
 
     StackGresDistributedLogsPostgresServices pgServicesMuted = mutate(review);
 
-    assertEquals(Boolean.TRUE, pgServicesMuted.getPrimary().getEnabled());
+    assertNull(pgServicesMuted.getPrimary().getEnabled());
     assertEquals(CLUSTER_IP.toString(), pgServicesMuted.getPrimary().getType());
     assertEquals(Boolean.TRUE, pgServicesMuted.getReplicas().getEnabled());
     assertEquals(CLUSTER_IP.toString(), pgServicesMuted.getReplicas().getType());
@@ -105,7 +105,7 @@ class DefaultPostgresServicesMutatorTest {
 
     StackGresDistributedLogsPostgresServices pgServicesMuted = mutate(review);
 
-    assertEquals(Boolean.TRUE, pgServicesMuted.getPrimary().getEnabled());
+    assertNull(pgServicesMuted.getPrimary().getEnabled());
     assertEquals(CLUSTER_IP.toString(), pgServicesMuted.getPrimary().getType());
     assertEquals(Boolean.FALSE, pgServicesMuted.getReplicas().getEnabled());
     assertEquals(LOAD_BALANCER.toString(), pgServicesMuted.getReplicas().getType());
@@ -119,7 +119,7 @@ class DefaultPostgresServicesMutatorTest {
 
     StackGresDistributedLogsPostgresServices pgServicesMuted = mutate(review);
 
-    assertEquals(Boolean.FALSE, pgServicesMuted.getPrimary().getEnabled());
+    assertNull(pgServicesMuted.getPrimary().getEnabled());
     assertEquals(LOAD_BALANCER.toString(), pgServicesMuted.getPrimary().getType());
     assertEquals(Boolean.TRUE, pgServicesMuted.getReplicas().getEnabled());
     assertEquals(CLUSTER_IP.toString(), pgServicesMuted.getReplicas().getType());
@@ -133,7 +133,7 @@ class DefaultPostgresServicesMutatorTest {
 
     StackGresDistributedLogsPostgresServices pgServicesMuted = mutate(review);
 
-    assertEquals(Boolean.TRUE, pgServicesMuted.getPrimary().getEnabled());
+    assertNull(pgServicesMuted.getPrimary().getEnabled());
     assertEquals(LOAD_BALANCER.toString(), pgServicesMuted.getPrimary().getType());
     assertEquals(Boolean.TRUE, pgServicesMuted.getReplicas().getEnabled());
     assertEquals(CLUSTER_IP.toString(), pgServicesMuted.getReplicas().getType());
@@ -147,7 +147,7 @@ class DefaultPostgresServicesMutatorTest {
 
     StackGresDistributedLogsPostgresServices pgServicesMuted = mutate(review);
 
-    assertEquals(Boolean.TRUE, pgServicesMuted.getPrimary().getEnabled());
+    assertNull(pgServicesMuted.getPrimary().getEnabled());
     assertEquals(LOAD_BALANCER.toString(), pgServicesMuted.getPrimary().getType());
     assertEquals(Boolean.TRUE, pgServicesMuted.getReplicas().getEnabled());
     assertEquals(LOAD_BALANCER.toString(), pgServicesMuted.getReplicas().getType());
