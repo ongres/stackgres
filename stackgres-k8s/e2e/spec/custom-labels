@@ -1,8 +1,8 @@
 #!/bin/sh
 
 e2e_test_install() {
-  NODE_LABEL_KEY=$(ramdom_string)
-  NODE_LABEL_VALUE=$(ramdom_string)
+  NODE_LABEL_KEY=$(random_string)
+  NODE_LABEL_VALUE=$(random_string)
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
   cat <<EOF | kubectl apply -f -
@@ -44,7 +44,7 @@ check_label(){
 }
 
 direct_custom_labels(){
-  local RANDOM_VALUE=$(ramdom_string)
+  local RANDOM_VALUE=$(random_string)
   cat <<EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1
 kind: SGCluster
@@ -76,7 +76,7 @@ EOF
 }
 
 helm_custom_labels(){
-  local RANDOM_VALUE=$(ramdom_string)
+  local RANDOM_VALUE=$(random_string)
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
     --set cluster.metadata.labels.clusterPods.test-label="$RANDOM_VALUE"
@@ -136,7 +136,7 @@ spec:
     disableClusterPodAntiAffinity: true
 EOF
 
-  RANDOM_VALUE="$(ramdom_string)"
+  RANDOM_VALUE="$(random_string)"
 
   CLUSTER_JSON="$(get_cluster_json $RANDOM_VALUE)"
 
@@ -152,7 +152,7 @@ EOF
 }
 
 get_api_custom_labels() {
-  local RANDOM_VALUE=$(ramdom_string)
+  local RANDOM_VALUE=$(random_string)
   cat <<EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1
 kind: SGCluster

@@ -5,6 +5,8 @@
 
 package io.stackgres.common;
 
+import com.google.common.collect.ImmutableMap;
+
 public interface StackGresContext {
 
   String APP_KEY = "app";
@@ -61,6 +63,18 @@ public interface StackGresContext {
       STACKGRES_KEY_PREFIX + "prometheus-postgres-exporter-version";
   String FLUENTBIT_VERSION_KEY = STACKGRES_KEY_PREFIX + "fluentbit-version";
   String FLUENTD_VERSION_KEY = STACKGRES_KEY_PREFIX + "fluentd-version";
+  ImmutableMap<String, String> ANNOTATIONS_TO_COMPONENT =
+      ImmutableMap.<String, String>builder()
+      .put(CLUSTER_CONTROLLER_VERSION_KEY, "cluster-controller")
+      .put(DISTRIBUTEDLOGS_CONTROLLER_VERSION_KEY, "distributedlogs-controller")
+      .put(POSTGRES_VERSION_KEY, "postgresql")
+      .put(PATRONI_VERSION_KEY, "patroni")
+      .put(ENVOY_VERSION_KEY, "envoy")
+      .put(PGBOUNCER_VERSION_KEY, "pgbouncer")
+      .put(PROMETHEUS_POSTGRES_EXPORTER_VERSION_KEY, "prometheus-postgres-exporter")
+      .put(FLUENTBIT_VERSION_KEY, "fluent-bit")
+      .put(FLUENTD_VERSION_KEY, "fluentd")
+      .build();
 
   String AUTH_KEY = "api.stackgres.io/auth";
   String AUTH_USER_VALUE = "user";

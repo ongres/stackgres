@@ -1,8 +1,8 @@
 #!/bin/sh
 
 e2e_test_install() {
-  NODE_LABEL_KEY=$(ramdom_string)
-  NODE_LABEL_VALUE=$(ramdom_string)
+  NODE_LABEL_KEY=$(random_string)
+  NODE_LABEL_VALUE=$(random_string)
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
@@ -49,8 +49,8 @@ services_disabled(){
 }
 
 services_annotations(){
-  local PRIMARY_RANDOM_VALUE=$(ramdom_string)
-  local REPLICA_RANDOM_VALUE=$(ramdom_string)
+  local PRIMARY_RANDOM_VALUE=$(random_string)
+  local REPLICA_RANDOM_VALUE=$(random_string)
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
