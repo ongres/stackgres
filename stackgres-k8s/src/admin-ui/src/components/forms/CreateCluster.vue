@@ -1510,19 +1510,7 @@
             createCluster: function() {
                 const vc = this;
 
-                let isValid = true;
-                
-                $('input:required, select:required').each(function() {
-                    if ($(this).val() === '') {
-                        isValid = false;
-                        $(this).addClass("notValid");
-                    } else if ($(this).hasClass('error')) {
-                        $(this).removeClass("notValid");
-                    }
-                        
-                });
-
-                if(isValid) {
+                if(vc.checkRequired()) {
 
                     this.cleanupScripts()
                     

@@ -686,14 +686,7 @@
             createDbOps () {
                 const vc = this
 
-                let isValid = true;
-                
-                $('input:required, select:required').each(function() {
-                    if ( ($(this).val() === '') || ($(this).val() === null) ) {
-                        isValid = false;
-                        $(this).addClass('notValid')
-                    }
-                })
+                let isValid = vc.checkRequired();
 
                 if(vc.op == 'benchmark') {
                 

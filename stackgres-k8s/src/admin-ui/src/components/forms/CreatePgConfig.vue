@@ -159,16 +159,8 @@
             createPGConfig: function(e) {
                 const vc = this;
 
-                let isValid = true;
+                let isValid = vc.checkRequired();
                 
-                $('input:required, select:required').each(function() {
-                    if ($(this).val() === '') {
-                        isValid = false;
-                        return false;
-                    }
-                        
-                });
-
                 if(isValid) {
                     var config = { 
                         "metadata": {

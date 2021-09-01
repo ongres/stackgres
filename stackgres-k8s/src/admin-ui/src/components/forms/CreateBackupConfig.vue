@@ -149,7 +149,7 @@
             </template>
 
             <label for="spec.storage.type">Storage Type <span class="req">*</span></label>
-            <select v-model="backupConfigStorageType" data-field="spec.storage.type">
+            <select v-model="backupConfigStorageType" data-field="spec.storage.type" required>
                 <option disabled value="">Select Storage Type</option>
                 <option value="s3">Amazon S3</option>
                 <option value="s3Compatible">Amazon S3 - API Compatible</option>
@@ -572,17 +572,7 @@
             createBackupConfig: function(e) {
                 const vc = this;
 
-                let isValid = true;
-                
-                $('input:required, select:required').each(function() {
-                    if ($(this).val() === '') {
-                        isValid = false;
-                        return false;
-                    }
-                        
-                });
-
-                if(isValid) {
+                if(vc.checkRequired()) {
                     let storage = {};
 
                     switch(this.backupConfigStorageType) {
