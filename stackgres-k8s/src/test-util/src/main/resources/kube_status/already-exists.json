@@ -1,0 +1,14 @@
+{
+  "kind": "Status",
+  "apiVersion": "v1",
+  "metadata": {},
+  "status": "Failure",
+  "message": "sgclusters.stackgres.io \"minor\" already exists",
+  "reason": "AlreadyExists",
+  "details": {
+    "name": "minor",
+    "group": "stackgres.io",
+    "kind": "sgclusters"
+  },
+  "code": 409
+}

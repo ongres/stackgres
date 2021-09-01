@@ -107,4 +107,22 @@ class KubernetesExceptionMapperTest {
     Assertions.assertEquals(0, errorResponse.getFields().length);
   }
 
+  @Test
+  void kubernetesAlreadyExists_shouldBeParsed() {
+    mapper.setStatusParser(new Kubernetes16StatusParser());
+
+    Status status = JsonUtil.readFromJson("kube_status/already-exists.json", Status.class);
+
+    Response response = mapper.toResponse(new KubernetesClientException("error", 409, status));
+
+    ErrorResponse errorResponse = (ErrorResponse) response.getEntity();
+
+    Assertions.assertEquals(ErrorType.getErrorTypeUri(ErrorType.ALREADY_EXISTS),
+        errorResponse.getType());
+    Assertions.assertEquals(ErrorType.ALREADY_EXISTS.getTitle(), errorResponse.getTitle());
+    Assertions.assertEquals("sgclusters.stackgres.io \\\"minor\\\" already exists",
+        errorResponse.getDetail());
+    Assertions.assertEquals(0, errorResponse.getFields().length);
+  }
+
 }

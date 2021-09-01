@@ -9,6 +9,8 @@ import org.jooq.lambda.Seq;
 
 public enum ErrorType {
 
+  ALREADY_EXISTS("already-exists",
+      "The resource already exists"),
   CONSTRAINT_VIOLATION("constraint-violation",
       "Some fields do not comply with the syntactic rules"),
   PG_CONFIG_BLOCKLIST("postgres-blocklist",

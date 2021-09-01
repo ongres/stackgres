@@ -28,6 +28,8 @@ public class KubernetesExceptionMapper implements ExceptionMapper<KubernetesClie
   // Status 422 not present in javax.ws.rs.core.Response.Status
   public static final int UNPROCESSABLE_ENTITY_STATUS = 422;
 
+  public static final int CONFLICT_STATUS = 409;
+
   private StatusParser statusParser;
 
   public KubernetesExceptionMapper(StatusParser statusParser) {
@@ -51,6 +53,24 @@ public class KubernetesExceptionMapper implements ExceptionMapper<KubernetesClie
   }
 
   private Response toResponse(Status status) {
+
+    if (status.getCode() == CONFLICT_STATUS) {
+      LOGGER.debug("Kubernetes responded with Conflict status. Parsing response");
+      String type = ErrorType.getErrorTypeUri(ErrorType.ALREADY_EXISTS);
+      String title = ErrorType.ALREADY_EXISTS.getTitle();
+      String detail = statusParser.parseDetails(status);
+      String[] fields = statusParser.parseFields(status);
+
+      ErrorResponse response = new ErrorResponseBuilder(type)
+          .setStatus(status.getCode())
+          .setTitle(title)
+          .setDetail(new String(JsonStringEncoder.getInstance().quoteAsString(detail)))
+          .setFields(fields)
+          .build();
+
+      return Response.status(status.getCode()).type(MediaType.APPLICATION_JSON)
+          .entity(response).build();
+    }
 
     if (status.getCode() == UNPROCESSABLE_ENTITY_STATUS) {
       LOGGER.debug("Kubernetes responded with Unprocessable entity status. Parsing response");
