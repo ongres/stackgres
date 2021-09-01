@@ -681,8 +681,10 @@ $(document).ready(function(){
   })
 
   // Remove notValid class from changed fields
-  $(document).on('change','.notValid', function(){
-    $(this).removeClass('notValid')
+  $(document).on('change keyup','.notValid', function(){
+    if( ($(this).val() != '') && ($(this).val() != null) ) {
+      $(this).removeClass('notValid');
+    }
   })
 
   $(document).on('click','.copyClipboard', function(){

@@ -803,10 +803,6 @@
                         vc.notify(error.response.data,'error','sgdbops');
                     });
 
-                } else {
-                    setTimeout(function(){
-                        vc.notify('Please fill every mandatory field on the form.', 'message', 'sgdbops')
-                    },100)
                 }
             },
 
@@ -887,11 +883,6 @@
                 $(document).on('click','.daterangepicker .cancelBtn', function() {
                     $('.datePicker').val('');
                     vc.runAt = '';
-                })
-
-                $(document).on('change, keyup','.notValid', function() {
-                    if( ($(this).val() != '') && ($(this).val() != null) )
-                        $(this).removeClass('notValid')
                 })
                 
             })

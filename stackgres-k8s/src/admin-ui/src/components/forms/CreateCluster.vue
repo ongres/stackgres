@@ -2025,19 +2025,6 @@
             });
         },
 
-        mounted: function() {
-            const vc = this
-            
-            $(document).ready(function(){
-
-                $(document).on('change, keyup','.notValid', function() {
-                    if( ($(this).val() != '') && ($(this).val() != null) )
-                        $(this).removeClass('notValid')
-                })
-                
-            })
-        },
-
         beforeDestroy: function() {
             store.commit('setTooltipsText','Click on a question mark to get help and tips about that field.');
             $('.daterangepicker').remove()

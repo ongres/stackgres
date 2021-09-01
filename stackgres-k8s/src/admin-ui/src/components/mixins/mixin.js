@@ -1275,10 +1275,10 @@ export const mixin = {
           }
         });
 
-        if(!isValid && (!$('#notifications .message.show.title').text == 'Please make sure to fill every mandatory field') ) {
+        if(!isValid && ($('#notifications .message.show.title').text != 'Please fill every mandatory field in the form') ) {
           setTimeout(function() {
-            vc.notify('Please make sure to fill every mandatory field', 'message', 'general');
-          }, 300);
+            vc.notify('Please fill every mandatory field in the form', 'message', 'general');
+          }, 100);
         }
 
 
