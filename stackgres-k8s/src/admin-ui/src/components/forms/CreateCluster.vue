@@ -390,7 +390,7 @@
                                                 <label for="spec.initialData.scripts.script" class="script">Script</label> <span class="uploadScript" v-if="!editMode">or <a @click="getScriptFile(index)" class="uploadLink">upload a file</a></span> 
                                                 <input :id="'scriptFile'+index" type="file" @change="uploadScript" class="hide">
                                             
-                                                <textarea v-model="script.script" placeholder="Type a script..." :disabled="editMode" required></textarea>
+                                                <textarea v-model="script.script" placeholder="Type a script..." :disabled="editMode"></textarea>
                                             </template>
                                             <template v-else-if="(!editMode && (scriptSource[index] == 'configMapKeyRef') )">
                                                 <div class="header">

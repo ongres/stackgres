@@ -199,6 +199,37 @@
                     </div>
 
                     <div class="configurationDetails">
+
+                        <div class="postgresServices" v-if="hasProp(cluster, 'data.spec.postgresServices') && ( hasProp(cluster, 'data.spec.postgresServices.primary') || hasProp(cluster, 'data.spec.postgresServices.replicas') )">
+                            <h2>Postgres Services <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresServices')"></span></h2>
+
+                            <table v-for="(service, serviceName) in cluster.data.spec.postgresServices" class="clusterConfig">
+                                <tbody>
+                                    <tr>
+                                        <td class="label capitalize" rowspan="2">
+                                            {{ serviceName }}
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.'+serviceName)"></span>
+                                        </td>
+                                        <td class="label">
+                                            Name
+                                        </td>
+                                        <td colspan="2">
+                                            {{ cluster.data.metadata.name }}-{{serviceName}}.{{cluster.data.metadata.namespace}}
+                                        </td>	
+                                    </tr>
+                                    <tr>
+                                        <td class="label">
+                                            Type
+                                            <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresServices.'+serviceName+'.type')"></span>
+                                        </td>
+                                        <td colspan="2">
+                                            {{ service.type }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
                         <table v-if="hasProp(cluster, 'data.spec.scheduling.nodeSelector')" class="crdDetails">
                             <thead>
                                 <th colspan="2" class="label">
