@@ -28,45 +28,46 @@ public class EventMapper {
     eventDto.setAction(event.getAction());
     eventDto.setReason(event.getReason());
     eventDto.setMessage(event.getMessage());
-    eventDto.setCount(setupEventCount(event));
-    eventDto.setFirstTimestamp(setupFirstTimestamp(event));
-    eventDto.setLastTimestamp(setupLastTimestamp(event));
-    eventDto.setReportingComponent(setupReportingComponent(event));
-    eventDto.setReportingInstance(setupReportingInstance(event));
+    eventDto.setFirstTimestamp(getFirstTimestamp(event));
+    eventDto.setLastTimestamp(getLastTimestamp(event));
+    eventDto.setCount(getEventCount(event));
+    eventDto.setReportingComponent(getReportingComponent(event));
+    eventDto.setReportingInstance(getReportingInstance(event));
     eventDto.setInvolvedObject(ObjectReferenceMapper.map(event.getInvolvedObject()));
     eventDto.setRelated(ObjectReferenceMapper.map(event.getRelated()));
     return eventDto;
   }
 
-  private static String setupReportingInstance(Event event) {
-    return Optional.ofNullable(event.getReportingInstance())
-        .filter(StringUtils::isNotBlank).or(() -> Optional.ofNullable(event.getSource())
-            .map(EventSource::getHost)).orElse(null);
+  private static String getFirstTimestamp(Event event) {
+    return Optional.ofNullable(event.getFirstTimestamp())
+        .filter(StringUtils::isNotBlank)
+        .or(() -> Optional.ofNullable(event.getEventTime())
+            .map(MicroTime::getTime))
+        .orElseGet(() -> event.getMetadata().getCreationTimestamp());
   }
 
-  private static String setupReportingComponent(Event event) {
+  private static String getLastTimestamp(Event event) {
+    return Optional.ofNullable(event.getLastTimestamp())
+        .filter(StringUtils::isNotBlank)
+        .orElseGet(() -> getFirstTimestamp(event));
+  }
+
+  private static Integer getEventCount(Event event) {
+    return Optional.ofNullable(event.getCount())
+        .or(() -> Optional.ofNullable(event.getSeries())
+            .map(EventSeries::getCount)).orElse(1);
+  }
+
+  private static String getReportingComponent(Event event) {
     return Optional.ofNullable(event.getReportingComponent())
         .filter(StringUtils::isNotBlank).or(() -> Optional.ofNullable(event.getSource())
             .map(EventSource::getComponent)).orElse(null);
   }
 
-  private static Integer setupEventCount(Event event) {
-    return Optional.ofNullable(event.getCount())
-        .or(() -> Optional.ofNullable(event.getSeries())
-            .map(EventSeries::getCount)).orElse(null);
-  }
-
-  private static String setupFirstTimestamp(Event event) {
-    return Optional.ofNullable(event.getFirstTimestamp())
-        .filter(StringUtils::isNotBlank).or(() -> Optional.ofNullable(event.getEventTime())
-            .map(MicroTime::getTime)).orElse(null);
-  }
-
-  private static String setupLastTimestamp(Event event) {
-    return Optional.ofNullable(event.getLastTimestamp())
-        .filter(StringUtils::isNotBlank).or(() -> Optional.ofNullable(event.getSeries())
-            .map(EventSeries::getLastObservedTime)
-            .map(MicroTime::getTime)).orElse(null);
+  private static String getReportingInstance(Event event) {
+    return Optional.ofNullable(event.getReportingInstance())
+        .filter(StringUtils::isNotBlank).or(() -> Optional.ofNullable(event.getSource())
+            .map(EventSource::getHost)).orElse(null);
   }
 
 }

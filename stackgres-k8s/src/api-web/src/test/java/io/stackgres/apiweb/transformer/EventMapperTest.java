@@ -52,7 +52,15 @@ class EventMapperTest {
   }
 
   @Test
+  void shouldReplaceLastTimestampWithFirstTimestamp_onceHasNullOrEmptyValue() {
+    event.setLastTimestamp(null);
+    EventDto eventDto = EventMapper.map(event);
+    assertEquals(event.getFirstTimestamp(), eventDto.getLastTimestamp());
+  }
+
+  @Test
   void shouldReplaceLastTimestampWithLastTimestampFromSeries_onceHasNullOrEmptyValue() {
+    event.setFirstTimestamp(null);
     event.setLastTimestamp(null);
     EventDto eventDto = EventMapper.map(event);
     assertEquals(event.getSeries().getLastObservedTime().getTime(), eventDto.getLastTimestamp());
@@ -63,7 +71,7 @@ class EventMapperTest {
     event.setLastTimestamp(null);
     event.getSeries().setLastObservedTime(null);
     EventDto eventDto = EventMapper.map(event);
-    assertNull(eventDto.getLastTimestamp());
+    assertEquals(event.getMetadata().getCreationTimestamp(), eventDto.getLastTimestamp());
   }
 
   @Test
@@ -85,7 +93,7 @@ class EventMapperTest {
     event.setFirstTimestamp(null);
     event.getEventTime().setTime(null);
     EventDto eventDto = EventMapper.map(event);
-    assertNull(eventDto.getFirstTimestamp());
+    assertEquals(event.getMetadata().getCreationTimestamp(), eventDto.getFirstTimestamp());
   }
 
   @Test
@@ -107,7 +115,7 @@ class EventMapperTest {
     event.setCount(null);
     event.getSeries().setCount(null);
     EventDto eventDto = EventMapper.map(event);
-    assertNull(eventDto.getCount());
+    assertEquals(Integer.valueOf(1), eventDto.getCount());
   }
 
   @Test
