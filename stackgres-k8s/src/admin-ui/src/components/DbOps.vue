@@ -277,7 +277,7 @@
                                             </td>
                                             <td>Switchover has been initiated</td>
                                         </tr>
-                                        <tr v-if="hasProp(op, 'data.status.minorVersionUpgrade.switchoverInitiated')">
+                                        <tr v-if="hasProp(op, 'data.status.minorVersionUpgrade.switchoverFinalized')">
                                             <td class="timestamp">
                                                 <span class='date'>
                                                     {{ op.data.status.minorVersionUpgrade.switchoverFinalized | formatTimestamp('date') }}
