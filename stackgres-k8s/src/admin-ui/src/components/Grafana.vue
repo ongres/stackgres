@@ -45,6 +45,9 @@
 					<li v-if="cluster.data.grafanaEmbedded">
 						<router-link id="grafana-btn" :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/monitor'" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
 					</li>
+					<li>
+						<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/events'" title="Events" class="events">Events</router-link>
+					</li>
 				</ul>
 
 				<template v-if="cluster.data.pods.length && grafanaUrl.length">
