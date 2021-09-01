@@ -43,6 +43,7 @@ import io.stackgres.jobs.dbops.lock.MockKubeDb;
 import io.stackgres.jobs.dbops.securityupgrade.SecurityUpgradeJob;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
+import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -216,6 +217,9 @@ class DbOpLauncherImplTest {
 
     StackGresDbOps captured = captor.getValue();
 
+    assertNotNull(captured.getStatus().getOpStarted());
+    assertTrue(Instant.parse(captured.getStatus().getOpStarted()).isBefore(Instant.now()));
+    assertEquals(0, captured.getStatus().getOpRetries());
     var conditions = captured.getStatus().getConditions();
     assertNotNull(conditions);
     assertEquals(3, conditions.size());
@@ -235,6 +239,9 @@ class DbOpLauncherImplTest {
     dbOpLauncher.launchDbOp(randomDbOpsName, namespace);
 
     var storedDbOp = mockKubeDb.getDbOps(randomDbOpsName, namespace);
+    assertNotNull(storedDbOp.getStatus().getOpStarted());
+    assertTrue(Instant.parse(storedDbOp.getStatus().getOpStarted()).isBefore(Instant.now()));
+    assertEquals(0, storedDbOp.getStatus().getOpRetries());
     var conditions = storedDbOp.getStatus().getConditions();
     assertNotNull(conditions);
     assertEquals(3, conditions.size());
@@ -254,6 +261,9 @@ class DbOpLauncherImplTest {
     assertThrows(RuntimeException.class, () -> dbOpLauncher.launchDbOp(randomDbOpsName, namespace));
 
     var storedDbOp = mockKubeDb.getDbOps(randomDbOpsName, namespace);
+    assertNotNull(storedDbOp.getStatus().getOpStarted());
+    assertTrue(Instant.parse(storedDbOp.getStatus().getOpStarted()).isBefore(Instant.now()));
+    assertEquals(0, storedDbOp.getStatus().getOpRetries());
     var conditions = storedDbOp.getStatus().getConditions();
     assertNotNull(conditions);
     assertEquals(3, conditions.size());
@@ -263,6 +273,44 @@ class DbOpLauncherImplTest {
         .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED::isCondition));
     assertTrue(() -> conditions.stream()
         .anyMatch(DbOpsStatusCondition.DB_OPS_FAILED::isCondition));
+  }
+
+  @Test
+  void givenAValidDbOpsRetry_shouldSetRunningConditionsBeforeExecutingTheJob() {
+    ArgumentCaptor<StackGresDbOps> captor = ArgumentCaptor.forClass(StackGresDbOps.class);
+
+    when(securityUpgradeJob.runJob(captor.capture(), any()))
+        .thenAnswer(invocation -> getClusterRestartStateUni());
+
+    Instant previousOpStarted = Instant.now();
+    dbOps.setStatus(new StackGresDbOpsStatus());
+    dbOps.getStatus().setOpStarted(previousOpStarted.toString());
+    dbOps.getStatus().setOpRetries(0);
+    dbOps.getStatus().setConditions(Seq.of(
+        DbOpsStatusCondition.DB_OPS_FALSE_RUNNING,
+        DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED,
+        DbOpsStatusCondition.DB_OPS_FAILED)
+        .map(DbOpsStatusCondition::getCondition)
+        .peek(condition -> condition.setLastTransitionTime(previousOpStarted.toString()))
+        .toList());
+    mockKubeDb.addOrReplaceDbOps(dbOps);
+
+    dbOpLauncher.launchDbOp(randomDbOpsName, namespace);
+
+    StackGresDbOps captured = captor.getValue();
+
+    assertNotNull(captured.getStatus().getOpStarted());
+    assertTrue(Instant.parse(captured.getStatus().getOpStarted()).isBefore(Instant.now()));
+    assertEquals(1, captured.getStatus().getOpRetries());
+    var conditions = captured.getStatus().getConditions();
+    assertNotNull(conditions);
+    assertEquals(3, conditions.size());
+    assertTrue(() -> conditions.stream()
+        .anyMatch(DbOpsStatusCondition.DB_OPS_RUNNING::isCondition));
+    assertTrue(() -> conditions.stream()
+        .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED::isCondition));
+    assertTrue(() -> conditions.stream()
+        .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_FAILED::isCondition));
   }
 
 }

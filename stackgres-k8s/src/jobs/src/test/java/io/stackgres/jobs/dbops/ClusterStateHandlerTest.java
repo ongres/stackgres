@@ -517,6 +517,7 @@ public abstract class ClusterStateHandlerTest {
     );
   }
 
+  @SafeVarargs
   private void verifyEventEmission(Tuple2<RestartEventType, String>... events) {
     final InOrder inOrder = inOrder(eventEmitter);
     Arrays.stream(events).forEach(event -> {
