@@ -112,6 +112,15 @@ EOF
 }
 
 check_pgbench() {
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+    --for condition=Running
+  then
+    echo "SUCCESS. benchmark running."
+  else
+    echo "FAILED. benchmark not running."
+    return 1
+  fi
+
   if kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
     --for condition=Completed
   then

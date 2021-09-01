@@ -65,4 +65,8 @@ public interface StackGresContext {
   String AUTH_KEY = "api.stackgres.io/auth";
   String AUTH_USER_VALUE = "user";
 
+  String LOCK_SERVICE_ACCOUNT_KEY = "lockServiceAccount";
+  String LOCK_POD_KEY = "lockPod";
+  String LOCK_TIMESTAMP_KEY = "lockTimestamp";
+
 }

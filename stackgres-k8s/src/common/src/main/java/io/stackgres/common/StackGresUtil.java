@@ -5,6 +5,10 @@
 
 package io.stackgres.common;
 
+import static io.stackgres.common.StackGresContext.LOCK_POD_KEY;
+import static io.stackgres.common.StackGresContext.LOCK_SERVICE_ACCOUNT_KEY;
+import static io.stackgres.common.StackGresContext.LOCK_TIMESTAMP_KEY;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -30,6 +34,7 @@ import javax.xml.bind.DatatypeConverter;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
@@ -277,6 +282,53 @@ public interface StackGresUtil {
     return Seq.seq(getDefaultClusterExtensions())
         .append(Tuple.tuple("timescaledb", Optional.of("1.7.4")))
         .collect(ImmutableList.toImmutableList());
+  }
+
+  static boolean isLocked(HasMetadata resource, int lockTimeoutMillis) {
+    long currentTimeSeconds = System.currentTimeMillis() / 1000;
+    long timedOutLock = currentTimeSeconds - lockTimeoutMillis;
+    return Optional.ofNullable(resource.getMetadata())
+        .map(ObjectMeta::getAnnotations)
+        .filter(annotation ->
+            annotation.containsKey(LOCK_POD_KEY) && annotation.containsKey(LOCK_TIMESTAMP_KEY))
+        .map(annotations -> Long.parseLong(annotations.get(LOCK_TIMESTAMP_KEY)))
+        .map(lockTimestamp -> lockTimestamp > timedOutLock)
+        .orElse(false);
+  }
+
+  static boolean isLockedByMe(HasMetadata resource, String lockPodName) {
+    return Optional.ofNullable(resource.getMetadata())
+        .map(ObjectMeta::getAnnotations)
+        .filter(annotation ->
+            annotation.containsKey(LOCK_POD_KEY) && annotation.containsKey(LOCK_TIMESTAMP_KEY))
+        .map(annotation -> annotation.get(LOCK_POD_KEY).equals(lockPodName))
+        .orElse(false);
+  }
+
+  static void setLock(HasMetadata resource, String lockServiceAccount, String lockPodName,
+      long lockTimestamp) {
+    final Map<String, String> annotations = resource.getMetadata().getAnnotations();
+
+    annotations.put(LOCK_SERVICE_ACCOUNT_KEY, lockServiceAccount);
+    annotations.put(LOCK_POD_KEY, lockPodName);
+    annotations.put(LOCK_TIMESTAMP_KEY, Long.toString(lockTimestamp));
+  }
+
+  static void resetLock(HasMetadata resource) {
+    final Map<String, String> annotations = resource.getMetadata().getAnnotations();
+
+    annotations.remove(LOCK_SERVICE_ACCOUNT_KEY);
+    annotations.remove(LOCK_POD_KEY);
+    annotations.remove(LOCK_TIMESTAMP_KEY);
+  }
+
+  static String getLockServiceAccount(HasMetadata resource) {
+    return Optional.ofNullable(resource.getMetadata())
+        .map(ObjectMeta::getAnnotations)
+        .map(annotations -> annotations.get(LOCK_SERVICE_ACCOUNT_KEY))
+        .orElseThrow(() -> new IllegalArgumentException(
+            "Resource not locked or locked and annotation "
+                + LOCK_SERVICE_ACCOUNT_KEY + " not set"));
   }
 
 }

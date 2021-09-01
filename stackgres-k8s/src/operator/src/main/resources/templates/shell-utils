@@ -27,9 +27,10 @@ maintain_lock() {
 }
 
 try_lock() {
-  if [ -z "$CLUSTER_NAMESPACE" -o -z "$POD_NAME" -o -z "$LOCK_RESOURCE" -o -z "$LOCK_RESOURCE_NAME" ]
+  if [ -z "$CLUSTER_NAMESPACE" -o -z "$POD_NAME" -o -z "$SERVICE_ACCOUNT" \
+    -o -z "$LOCK_RESOURCE" -o -z "$LOCK_RESOURCE_NAME" ]
   then
-    echo "CLUSTER_NAMESPACE, POD_NAME, LOCK_RESOURCE and LOCK_RESOURCE_NAME environmant variables must be defined"
+    echo "CLUSTER_NAMESPACE, SERVICE_ACCOUNT, POD_NAME, LOCK_RESOURCE and LOCK_RESOURCE_NAME environmant variables must be defined"
     return 1
   fi
   local AQUIRE="$1"
@@ -64,7 +65,8 @@ try_lock() {
     fi
   fi
   if ! kubectl annotate "$LOCK_RESOURCE" -n "$CLUSTER_NAMESPACE" "$LOCK_RESOURCE_NAME" \
-    --resource-version "$RESOURCE_VERSION" --overwrite "lockPod=$POD_NAME" "lockTimestamp=$CURRENT_TIMESTAMP"
+    --resource-version "$RESOURCE_VERSION" --overwrite \
+    "lockServiceAccount=$SERVICE_ACCOUNT" "lockPod=$POD_NAME" "lockTimestamp=$CURRENT_TIMESTAMP"
   then
     kubectl get "$LOCK_RESOURCE" -n "$CLUSTER_NAMESPACE" "$LOCK_RESOURCE_NAME" --template="$TEMPLATE" > /tmp/lock-resource
     . /tmp/lock-resource
@@ -85,9 +87,10 @@ try_lock() {
 }
 
 release_lock() {
-  if [ -z "$CLUSTER_NAMESPACE" -o -z "$POD_NAME" -o -z "$LOCK_RESOURCE" -o -z "$LOCK_RESOURCE_NAME" ]
+  if [ -z "$CLUSTER_NAMESPACE" -o -z "$SERVICE_ACCOUNT" -o -z "$POD_NAME" \
+    -o -z "$LOCK_RESOURCE" -o -z "$LOCK_RESOURCE_NAME" ]
   then
-    echo "CLUSTER_NAMESPACE, POD_NAME, LOCK_RESOURCE and LOCK_RESOURCE_NAME environmant variables must be defined"
+    echo "CLUSTER_NAMESPACE, SERVICE_ACCOUNT, POD_NAME, LOCK_RESOURCE and LOCK_RESOURCE_NAME environmant variables must be defined"
     return 1
   fi
   local TEMPLATE='
@@ -102,7 +105,7 @@ release_lock() {
     return 0
   fi
   if ! kubectl annotate "$LOCK_RESOURCE" -n "$CLUSTER_NAMESPACE" "$LOCK_RESOURCE_NAME" \
-    --resource-version "$RESOURCE_VERSION" --overwrite "lockPod=" "lockTimestamp=0"
+    --resource-version "$RESOURCE_VERSION" --overwrite "lockServiceAccount=" "lockPod=" "lockTimestamp=0"
   then
     kubectl get "$LOCK_RESOURCE" -n "$CLUSTER_NAMESPACE" "$LOCK_RESOURCE_NAME" --template="$TEMPLATE" > /tmp/lock-resource
     . /tmp/lock-resource

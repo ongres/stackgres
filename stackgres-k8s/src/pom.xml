@@ -65,9 +65,10 @@
     <stackgres.extensionsRepositoryUrls>https://extensions.stackgres.io/postgres/repository</stackgres.extensionsRepositoryUrls>
     <stackgres.databaseOperationJob>false</stackgres.databaseOperationJob>
     <stackgres.databaseOperationCrName>stackgres</stackgres.databaseOperationCrName>
+    <stackgres.dbops.serviceAccount>stackgres</stackgres.dbops.serviceAccount>
     <stackgres.dbops.podName>stackgres</stackgres.dbops.podName>
-    <stackgres.dbops.pollInterval>5</stackgres.dbops.pollInterval>
-    <stackgres.dbops.lockTimeout>30</stackgres.dbops.lockTimeout>
+    <stackgres.lockPollInterval>5</stackgres.lockPollInterval>
+    <stackgres.lockTimeout>60</stackgres.lockTimeout>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- Java compilation -->

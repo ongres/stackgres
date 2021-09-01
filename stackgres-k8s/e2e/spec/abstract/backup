@@ -60,11 +60,21 @@ check_automatic_backup() {
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" --all
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
       -o custom-columns="$CUSTOM_COLUMNS" \
+      | tail -n +2 | grep " Running   " | wc -l)" -gt 0 ]'
+  then
+    echo "SUCCESS. The automatic backup CR is running"
+  else
+    echo "FAIL. The automatic backup CR is not running"
+    return 1
+  fi
+
+  if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
+      -o custom-columns="$CUSTOM_COLUMNS" \
       | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | wc -l)" -gt 0 ]'
   then
-    echo "SUCCESS. The backup CR is available"
+    echo "SUCCESS. The automatic backup CR has completed"
   else
-    echo "FAIL. The backup CR is not available"
+    echo "FAIL. The automatic backup CR has failed"
     return 1
   fi
 }
@@ -156,11 +166,21 @@ check_manual_backup() {
 
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
       -o custom-columns="$CUSTOM_COLUMNS" \
+      | tail -n +2 | grep " Running   " | wc -l)" -gt 0 ]'
+  then
+    echo "SUCCESS. The manual backup CR is running"
+  else
+    echo "FAIL. The manual backup CR is not running"
+    return 1
+  fi
+
+  if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+      -o custom-columns="$CUSTOM_COLUMNS" \
       | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | wc -l)" -gt 0 ]'
   then
-    echo "SUCCESS. The created backup CR did complete"
+    echo "SUCCESS. The manual backup CR has complete"
   else
-    echo "FAIL. The created backup CR did not complete"
+    echo "FAIL. The manual backup CR has failed"
     return 1
   fi
 

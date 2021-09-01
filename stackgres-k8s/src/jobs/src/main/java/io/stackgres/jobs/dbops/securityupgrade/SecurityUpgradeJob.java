@@ -5,6 +5,7 @@
 
 package io.stackgres.jobs.dbops.securityupgrade;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
@@ -38,6 +39,9 @@ public class SecurityUpgradeJob implements DatabaseOperationJob {
   private static final Logger LOGGER = LoggerFactory.getLogger(SecurityUpgradeJob.class);
 
   @Inject
+  CustomResourceFinder<StackGresCluster> clusterFinder;
+
+  @Inject
   CustomResourceScheduler<StackGresCluster> clusterScheduler;
 
   @Inject
@@ -65,34 +69,68 @@ public class SecurityUpgradeJob implements DatabaseOperationJob {
         .chain(this::resumeReconciliation)
         .chain(() -> restartStateHandler.restartCluster(dbOps))
         .onFailure().invoke(ex -> reportFailure(dbOps, ex));
-
   }
 
-  private Uni<StackGresCluster> resumeReconciliation(StackGresCluster cluster) {
-    return Uni.createFrom().emitter(em -> {
-      removeIgnoredMark(cluster);
-      var resumedCluster = clusterScheduler.update(cluster);
-      em.complete(resumedCluster);
-    });
+  private Uni<StackGresCluster> upgradeClusterAndPauseReconciliation(
+      StackGresCluster targetCluster) {
+    return getCluster(targetCluster)
+        .map(cluster -> {
+          upgradeOperatorVersion(cluster);
+          markClusterAsIgnored(cluster);
+          return clusterScheduler.update(cluster);
+        })
+        .onFailure()
+        .retry()
+        .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))
+        .indefinitely();
   }
 
   private Uni<StackGresCluster> upgradeSts(StackGresCluster cluster) {
-    return Uni.createFrom().emitter(em -> {
+    return Uni.createFrom().<StackGresCluster>emitter(em -> {
       getSts(cluster)
           .chain(this::deleteSts)
           .subscribe().with((v) -> em.complete(cluster), em::fail);
+    })
+        .onFailure()
+        .retry()
+        .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))
+        .atMost(10);
+  }
+
+  private Uni<StackGresCluster> resumeReconciliation(StackGresCluster cluster) {
+    return Uni.createFrom().<StackGresCluster>emitter(em -> {
+      removeIgnoredMark(cluster);
+      var resumedCluster = clusterScheduler.update(cluster);
+      em.complete(resumedCluster);
+    })
+        .onFailure()
+        .retry()
+        .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))
+        .indefinitely();
+  }
+
+  private Uni<StackGresCluster> getCluster(StackGresCluster targetCluster) {
+    return Uni.createFrom().<StackGresCluster>emitter(em -> {
+      String name = targetCluster.getMetadata().getName();
+      String namespace = targetCluster.getMetadata().getNamespace();
+      Optional<StackGresCluster> cluster = clusterFinder.findByNameAndNamespace(name, namespace);
+      if (cluster.isPresent()) {
+        em.complete(cluster.get());
+      } else {
+        em.fail(new IllegalStateException("Could not find SGCluster " + name));
+      }
     });
   }
 
   private Uni<StatefulSet> getSts(StackGresCluster targetCluster) {
-    return Uni.createFrom().emitter(em -> {
+    return Uni.createFrom().<StatefulSet>emitter(em -> {
       String name = targetCluster.getMetadata().getName();
       String namespace = targetCluster.getMetadata().getNamespace();
       Optional<StatefulSet> sts = statefulSetFinder.findByNameAndNamespace(name, namespace);
       if (sts.isPresent()) {
         em.complete(sts.get());
       } else {
-        em.fail(new IllegalStateException("Could not fin StatefulSet of SGCluster " + name));
+        em.fail(new IllegalStateException("Could not find StatefulSet of SGCluster " + name));
       }
     });
   }
@@ -104,19 +142,7 @@ public class SecurityUpgradeJob implements DatabaseOperationJob {
     });
   }
 
-  private Uni<StackGresCluster> upgradeClusterAndPauseReconciliation(
-      StackGresCluster targetCluster) {
-    return Uni.createFrom().emitter(em -> {
-      upgradeOperatorVersion(targetCluster);
-      markClusterAsIgnored(targetCluster);
-
-      StackGresCluster upgradedCluster = clusterScheduler.update(targetCluster);
-      em.complete(upgradedCluster);
-    });
-  }
-
   private void reportFailure(StackGresDbOps dbOps, Throwable ex) {
-
     String message = ex.getMessage();
     String dbOpsName = dbOps.getMetadata().getName();
     String namespace = dbOps.getMetadata().getNamespace();
@@ -137,10 +163,11 @@ public class SecurityUpgradeJob implements DatabaseOperationJob {
         });
   }
 
-  private void upgradeOperatorVersion(StackGresCluster targetCluster) {
+  private StackGresCluster upgradeOperatorVersion(StackGresCluster targetCluster) {
     final Map<String, String> clusterAnnotations = targetCluster.getMetadata().getAnnotations();
     clusterAnnotations
         .put(StackGresContext.VERSION_KEY, StackGresProperty.OPERATOR_VERSION.getString());
+    return targetCluster;
   }
 
   private void markClusterAsIgnored(StackGresCluster cluster) {

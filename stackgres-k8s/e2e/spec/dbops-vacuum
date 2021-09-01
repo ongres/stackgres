@@ -146,6 +146,15 @@ EOF
 }
 
 check_vacuum() {
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "vacuum" \
+    --for condition=Running
+  then
+    echo "SUCCESS. vacuum running."
+  else
+    echo "FAILED. vacuum not running."
+    return 1
+  fi
+
   if kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "vacuum" \
     --for condition=Completed
   then

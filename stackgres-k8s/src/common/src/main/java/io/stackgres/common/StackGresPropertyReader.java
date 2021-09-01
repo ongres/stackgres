@@ -58,6 +58,19 @@ public interface StackGresPropertyReader {
 
   /**
    * Return first existing value of associated system property, environment variable or application
+   * property (in this exact sequence). Otherwise throw a {@code RuntimeException}.
+   */
+  default int getInt() {
+    return get()
+        .map(Integer::parseInt)
+        .orElseThrow(() -> new RuntimeException(
+            "Neither system property '" + getPropertyName()
+                + "', nor environment variable '" + getEnvironmentVariableName()
+                + "' are set"));
+  }
+
+  /**
+   * Return first existing value of associated system property, environment variable or application
    * property (in this exact sequence) as an array by splitting string using comma character ",".
    * If the value is empty it returns the an empty array. Otherwise throw a
    * {@code RuntimeException}.

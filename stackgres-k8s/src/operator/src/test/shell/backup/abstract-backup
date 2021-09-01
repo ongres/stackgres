@@ -3,6 +3,7 @@
 LOCAL_BIN_SHELL_UTILS_PATH="$PROJECT_PATH/src/main/resources/templates/shell-utils"
 CLUSTER_NAMESPACE=test
 CLUSTER_NAME=test
+SERVICE_ACCOUNT=test
 POD_NAME=test
 BACKUP_CRD_NAME=sgbackups.stackgres.io
 BACKUP_NAME=test
