@@ -10,49 +10,52 @@ EVAL_IN_PLACE_EOF
 }
 
 set_completed() {
-  kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=json \
+  kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=merge \
     -p "$(cat << EOF
-[
-  {"op":"replace","path":"/status/conditions","value":[
+{
+  "status": {
+    "conditions":[
       $(eval_in_place "$CONDITION_DB_OPS_FALSE_RUNNING"),
       $(eval_in_place "$CONDITION_DB_OPS_COMPLETED"),
       $(eval_in_place "$CONDITION_DB_OPS_FALSE_FAILED")
     ]
   }
-]
+}
 EOF
     )"
   create_event "DbOpCompleted" "Normal" "Database operation $OP_NAME completed"
 }
 
 set_timed_out() {
-  kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=json \
+  kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=merge \
     -p "$(cat << EOF
-[
-  {"op":"replace","path":"/status/conditions","value":[
+{
+  "status": {
+    "conditions":[
       $(eval_in_place "$CONDITION_DB_OPS_FALSE_RUNNING"),
       $(eval_in_place "$CONDITION_DB_OPS_FALSE_COMPLETED"),
       $(eval_in_place "$CONDITION_DB_OPS_TIMED_OUT")
     ]
   }
-]
+}
 EOF
     )"
 
-  create_event "DbOpTimeOut" "Normal" "Database operation $OP_NAME timed out"
+  create_event "DbOpTimeOut" "Warning" "Database operation $OP_NAME timed out"
 }
 
 set_lock_lost() {
-  kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=json \
+  kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=merge \
     -p "$(cat << EOF
-[
-  {"op":"replace","path":"/status/conditions","value":[
+{
+  "status": {
+    "conditions":[
       $(eval_in_place "$CONDITION_DB_OPS_FALSE_RUNNING"),
       $(eval_in_place "$CONDITION_DB_OPS_FALSE_COMPLETED"),
       $(eval_in_place "$CONDITION_DB_OPS_LOCK_LOST")
     ]
   }
-]
+}
 EOF
     )"
 }
@@ -60,35 +63,41 @@ EOF
 set_failed() {
   if [ -z "$FAILURE" ]
   then
-    kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=json \
+    kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=merge \
       -p "$(cat << EOF
-[
-  {"op":"replace","path":"/status/conditions","value":[
+{
+  "status": {
+    "conditions":[
       $(eval_in_place "$CONDITION_DB_OPS_FALSE_RUNNING"),
       $(eval_in_place "$CONDITION_DB_OPS_FALSE_COMPLETED"),
       $(eval_in_place "$CONDITION_DB_OPS_FAILED")
     ]
   }
-]
+}
 EOF
       )"
+
+    create_event "DbOpFailed" "Warning" "Database operation $OP_NAME failed"
   else
-    kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=json \
+    kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=merge \
       -p "$(cat << EOF
-[
-  {"op":"replace","path":"/status/conditions","value":[
+{
+  "status": {
+    "conditions":[
       $(eval_in_place "$CONDITION_DB_OPS_FALSE_RUNNING"),
       $(eval_in_place "$CONDITION_DB_OPS_FALSE_COMPLETED"),
       $(eval_in_place "$CONDITION_DB_OPS_FAILED")
-    ]
-  },
-  {"op":"add","path":"/status/$OP_NAME/failure","value":$FAILURE}
-]
+    ],
+    "$OP_NAME": {
+      "failure": $FAILURE
+    }
+  }
+}
 EOF
       )"
-  fi
 
-  create_event "DbOpFailed" "Normal" "Database operation $OP_NAME failed"
+    create_event "DbOpFailed" "Warning" "Database operation $OP_NAME failed: $FAILURE"
+  fi
 }
 
 set_result() {
