@@ -180,33 +180,34 @@
                                             </span>
                                         </router-link>                                        
                                     </td>
-                                    <td class="baseHide opName hasTooltip">
+                                    <td class="opName hasTooltip">
                                         <span>
                                             <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
                                                 {{ op.data.metadata.name }}
                                             </router-link>
                                         </span>
                                     </td>
-                                    <td class="phase center baseHide">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
-                                            <span :class="getOpStatus(op)">                                            
-                                                {{ getOpStatus(op) }}
+                                    <td class="phase center">
+                                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor" :set="opStatus = getOpStatus(op)">
+                                            <span :class="opStatus">                                            
+                                                {{opStatus }}
                                             </span>
                                         </router-link>
+                                        <span v-if="( hasProp(op, 'data.status.' + op.data.spec.op + '.failure') && (opStatus == 'Failed') )" class="helpTooltip alert" :data-tooltip="op.data.status[op.data.spec.op].failure" :title="op.data.status[op.data.spec.op].failure"></span>
                                     </td>
-                                    <td class="baseHide targetCluster hasTooltip">
+                                    <td class="targetCluster hasTooltip">
                                         <span>
                                             <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
                                                 {{ op.data.spec.sgCluster }}
                                             </router-link>
                                         </span>
                                     </td>
-                                    <td class="timestamp baseHide elapsed textRight hasTooltip">
+                                    <td class="timestamp elapsed textRight hasTooltip">
                                         <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
                                             <span class="time" v-if="op.data.hasOwnProperty('status')" v-html="getElapsedTime(op)"></span>
                                         </router-link>
                                     </td>
-                                    <td class="baseHide retries textRight">
+                                    <td class="retries textRight">
                                         <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
                                             <span>
                                                 {{ (op.data.hasOwnProperty('status') && op.data.status.hasOwnProperty('opRetries')) ? op.data.status.opRetries : '0' }}
@@ -217,7 +218,7 @@
                                             </span>
                                         </router-link>
                                     </td>
-                                    <td class="baseHide timedOut textRight">
+                                    <td class="timedOut textRight">
                                         <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
                                             {{ hasTimedOut(op) }}
                                         </router-link>
@@ -1455,10 +1456,6 @@
         background: #FF260040;
     }
 
-    tr.base.open .baseHide {
-        opacity: 0;
-    }
-
     th.actions, td.actions {
         width: 75px !important;
         min-width: 75px;
@@ -1667,6 +1664,17 @@
 
     .upgradeLog + .header {
         margin-top: 25px;
+    }
+
+    span.helpTooltip.alert, .darkmode span.helpTooltip.alert {
+        position: absolute;
+        transform: translate(-10px, 6px) scale(.7);
+        background: red !important;
+        border: 2px solid var(--rowBg);
+    }
+
+    tr:nth-child(even) span.helpTooltip.alert, .darkmode tr:nth-child(even) span.helpTooltip.alert {
+        border-color: var(--activeBg);
     }
 
     @media screen and (min-width: 2600px) {

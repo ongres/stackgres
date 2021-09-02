@@ -3255,7 +3255,7 @@ td.phase.Failed span {
 }
 
 td.phase a.noColor {
-    width: 100%;
+    width: auto;
     display: inline-block;
 }
 
