@@ -140,11 +140,12 @@ create_event_try() {
   local RESULT
 
   RESULT="$(kubectl get "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" -o json)"
+  MESSAGE="$(printf '%s' "$MESSAGE" | jq -R .)"
   RESULT="$(printf '%s' "$RESULT" | jq '{
       apiVersion: "v1",
       type: "'"$TYPE"'",
       reason: "'"$REASON"'",
-      message: "'"$MESSAGE"'",
+      message: '"$MESSAGE"',
       metadata: {
         name: "'"$EVENT_NAME"'",
         namespace: "'"$CLUSTER_NAMESPACE"'",
@@ -177,7 +178,7 @@ get_event_id() {
 }
 
 get_random_long() {
-  cat /dev/urandom | tr -dc '0-9' | head -c 16
+  cat /dev/urandom | tr -dc '0-9' | head -c 15 | sed 's/^0\+//'
 }
 
 from_date_iso8601_to_unix_timestamp() {
