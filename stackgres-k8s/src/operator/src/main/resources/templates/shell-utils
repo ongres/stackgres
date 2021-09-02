@@ -126,16 +126,21 @@ date_iso8601() {
 }
 
 create_event() {
-  REASON=$1
-  TYPE=$2
-  MESSAGE=$3
-  EVENT_ID=$( get_event_id )
-  EVENT_NAME="$DB_OPS_NAME.$EVENT_ID"
-  EVENT_TIMESTAMP=$( date_iso8601 )
-  COMPONENT=$OP_NAME
+  create_event_try "$@" || true
+}
 
-  kubectl get "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" -o json | \
-    jq '{
+create_event_try() {
+  local REASON="$1"
+  local TYPE="$2"
+  local MESSAGE="$3"
+  local EVENT_ID="$(get_event_id)"
+  local EVENT_NAME="$DB_OPS_NAME.$EVENT_ID"
+  local EVENT_TIMESTAMP="$(date_iso8601)"
+  local COMPONENT="$OP_NAME"
+  local RESULT
+
+  RESULT="$(kubectl get "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" -o json)"
+  RESULT="$(printf '%s' "$RESULT" | jq '{
       apiVersion: "v1",
       type: "'"$TYPE"'",
       reason: "'"$REASON"'",
@@ -159,19 +164,20 @@ create_event() {
         resourceVersion: .metadata.resourceVersion,
         uid: .metadata.uid
       }
-    }' | \
-    kubectl create --raw "/api/v1/namespaces/$CLUSTER_NAMESPACE/events" -f -
+    }')"
+  printf '%s' "$RESULT" | kubectl create --raw "/api/v1/namespaces/$CLUSTER_NAMESPACE/events" -f -
 }
+
 get_event_id() {
-  MILLIS_SINCE_EPOCH=$( date +%s%N | cut -b1-13 )
-  RANDOM_LONG=$( get_random_long )
-  HEX_MILLIS=$( printf '%x\n' $MILLIS_SINCE_EPOCH )
-  HEX_RANDOM_LONG=$( printf '%x\n' "$RANDOM_LONG" )
+  local MILLIS_SINCE_EPOCH="$(date +%s%N | cut -b1-13)"
+  local RANDOM_LONG="$(get_random_long)"
+  local HEX_MILLIS="$(printf '%x\n' "$MILLIS_SINCE_EPOCH")"
+  local HEX_RANDOM_LONG="$(printf '%x\n' "$RANDOM_LONG")"
   echo "$HEX_MILLIS$HEX_RANDOM_LONG"
 }
 
 get_random_long() {
-  awk -v min=-9223372036854775808  -v max=9223372036854775808  'BEGIN{srand(); print int(min+rand()*(max-min+1))}'
+  cat /dev/urandom | tr -dc '0-9' | head -c 16
 }
 
 from_date_iso8601_to_unix_timestamp() {
