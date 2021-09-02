@@ -1251,7 +1251,7 @@
                     let begin = moment(op.data.status.opStarted)
                     let finish = (lastStatus.type == 'Running') ? moment() : moment(lastStatus.lastTransitionTime);
                     let elapsed = moment.duration(finish.diff(begin));
-                    return elapsed.toString().substring(2).replace('H','h ').replace('M','m ').replace(/\..*S/,'s')
+                    return elapsed.toString().substring(2).replace('H','h ').replace('M','m ').replace(/\..*S/,'s').replace('T','')
                 } else {
                     return '-'
                 }   
