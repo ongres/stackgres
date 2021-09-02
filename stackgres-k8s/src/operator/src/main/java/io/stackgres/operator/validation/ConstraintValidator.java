@@ -57,7 +57,6 @@ public abstract class ConstraintValidator<T extends AdmissionReview<?>> implemen
               .withCode(422)
               .withMessage(e.getMessage())
               .withKind(target.getKind())
-              .withReason(constraintViolationDocumentationUri)
               .build();
           throw new ValidationFailed(status);
         }
