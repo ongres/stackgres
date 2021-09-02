@@ -36,6 +36,9 @@ public class LockValidator implements ClusterValidator {
 
   @Override
   public void validate(StackGresClusterReview review) throws ValidationFailed {
+    if (Objects.equals(review.getRequest().getSubResource(), "status")) {
+      return;
+    }
     switch (review.getRequest().getOperation()) {
       case UPDATE: {
         StackGresCluster cluster = review.getRequest().getObject();
