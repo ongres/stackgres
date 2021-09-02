@@ -3,8 +3,9 @@
 . "$SPEC_PATH/abstract/dbops-major-version-upgrade"
 
 e2e_test_install() {
-  NODE_LABEL_KEY=$(random_string)
-  NODE_LABEL_VALUE=$(random_string)
+  CLUSTER_NAME="dbops-major-up-api"
+  NODE_LABEL_KEY=$(ramdom_string)
+  NODE_LABEL_VALUE=$(ramdom_string)
 
   BACKUPCONF="backupconf"
 
@@ -28,7 +29,7 @@ e2e_test_install() {
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1
 
-  DBOPS_MAJOR_VERSION_UPGRADE_NAME=major-version-upgrade
+  DBOPS_MAJOR_VERSION_UPGRADE_NAME=major-upgrade
 
   create_or_replace_cluster "configurations-for-major-version-upgrade" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \
@@ -279,4 +280,3 @@ check_authentication_error() {
     return 1
   fi
 }
-

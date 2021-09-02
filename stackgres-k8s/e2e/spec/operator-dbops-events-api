@@ -3,8 +3,9 @@
 . "$SPEC_PATH/abstract/dbops-minor-version-upgrade"
 
 e2e_test_install() {
-  NODE_LABEL_KEY=$(random_string)
-  NODE_LABEL_VALUE=$(random_string)
+  CLUSTER_NAME=dbops-events-api
+  NODE_LABEL_KEY=$(ramdom_string)
+  NODE_LABEL_VALUE=$(ramdom_string)
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
@@ -13,7 +14,7 @@ e2e_test_install() {
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1
 
-  DBOPS_MINOR_VERSION_UPGRADE_NAME=minor-version-upgrade
+  DBOPS_MINOR_VERSION_UPGRADE_NAME=minor-upgrade
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1

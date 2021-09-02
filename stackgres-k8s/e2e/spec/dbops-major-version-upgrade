@@ -15,7 +15,7 @@ check_major_version_upgrade_is_working() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: major-version-upgrade
+  name: $DBOPS_OPERATION_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -27,7 +27,7 @@ EOF
 
   check_major_version_upgrade
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" major-version-upgrade
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_OPERATION_NAME"
 }
 
 check_major_version_upgrade_check_is_working() {
@@ -37,7 +37,7 @@ check_major_version_upgrade_check_is_working() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: major-version-upgrade
+  name: $DBOPS_OPERATION_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -50,5 +50,5 @@ EOF
 
   check_major_version_upgrade
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" major-version-upgrade
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_OPERATION_NAME"
 }
