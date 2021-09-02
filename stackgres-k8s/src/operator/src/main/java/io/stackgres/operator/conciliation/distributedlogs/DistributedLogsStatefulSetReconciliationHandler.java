@@ -5,11 +5,14 @@
 
 package io.stackgres.operator.conciliation.distributedlogs;
 
+import static io.stackgres.common.StackGresContext.ANNOTATIONS_TO_COMPONENT;
+
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -104,8 +107,12 @@ public class DistributedLogsStatefulSetReconciliationHandler implements Reconcil
   }
 
   private List<Pod> fixPodAnnotations(StatefulSet requiredSts, List<Pod> pods) {
-    var requiredPodAnnotations = requiredSts
-        .getSpec().getTemplate().getMetadata().getAnnotations();
+    var requiredPodAnnotations = Optional.ofNullable(requiredSts
+        .getSpec().getTemplate().getMetadata().getAnnotations())
+        .map(annotations -> annotations.entrySet().stream()
+            .filter(annotation -> !ANNOTATIONS_TO_COMPONENT.containsKey(annotation.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
+        .orElse(null);
 
     return pods.stream()
         .filter(pod -> !Objects.equals(requiredPodAnnotations, pod.getMetadata().getAnnotations()))

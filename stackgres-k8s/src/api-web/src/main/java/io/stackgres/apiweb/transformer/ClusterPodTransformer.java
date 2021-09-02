@@ -5,13 +5,14 @@
 
 package io.stackgres.apiweb.transformer;
 
+import static io.stackgres.common.StackGresContext.ANNOTATIONS_TO_COMPONENT;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.apiweb.dto.cluster.KubernetesPod;
@@ -19,20 +20,6 @@ import io.stackgres.common.StackGresContext;
 
 @ApplicationScoped
 public class ClusterPodTransformer {
-
-  private static final ImmutableMap<String, String> ANNOTATIONS_TO_COMPONENT =
-      ImmutableMap.<String, String>builder()
-      .put(StackGresContext.CLUSTER_CONTROLLER_VERSION_KEY, "cluster-controller")
-      .put(StackGresContext.DISTRIBUTEDLOGS_CONTROLLER_VERSION_KEY, "distributedlogs-controller")
-      .put(StackGresContext.POSTGRES_VERSION_KEY, "postgresql")
-      .put(StackGresContext.PATRONI_VERSION_KEY, "patroni")
-      .put(StackGresContext.ENVOY_VERSION_KEY, "envoy")
-      .put(StackGresContext.PGBOUNCER_VERSION_KEY, "pgbouncer")
-      .put(StackGresContext.PROMETHEUS_POSTGRES_EXPORTER_VERSION_KEY,
-          "prometheus-postgres-exporter")
-      .put(StackGresContext.FLUENTBIT_VERSION_KEY, "fluent-bit")
-      .put(StackGresContext.FLUENTD_VERSION_KEY, "fluentd")
-      .build();
 
   public KubernetesPod toResource(Pod source) {
     KubernetesPod transformation = new KubernetesPod();

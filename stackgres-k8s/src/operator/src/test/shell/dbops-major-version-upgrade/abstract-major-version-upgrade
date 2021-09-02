@@ -102,19 +102,20 @@ kubectl_mock() {
     ("get $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME --template={{ if .status.$OP_NAME }}replace{{ else }}add{{ end }}")
     printf '%s' add
     ;;
-    ("get "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" -o json")
+    ("get $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME -o json")
       echo '{
-        "apiVersion": "stackgres.io/v1"
-        "kind": "SGDbOps"
+        "apiVersion": "stackgres.io/v1",
+        "kind": "SGDbOps",
         "metadata": {
-          "name": "'"$DB_OPS_NAME"'"
+          "name": "'"$DB_OPS_NAME"'",
           "namespace": "'"$CLUSTER_NAMESPACE"'",
           "resourceVersion": "1",
           "uid": "172381f8-3f37-46c9-9a29-8284a73d1e5e"
         },
-        "spec":
+        "spec": {
           "sgCluster": "'"$CLUSTER_NAME"'",
           "op": "majorVersionUpgrade"
+        }
       }'
     ;;
     ("create --raw /api/v1/namespaces/$CLUSTER_NAMESPACE/events -f"*)
@@ -173,9 +174,9 @@ kubectl_mock() {
     echo "pod/test-1"
     ) > "$TEST_TARGET_PATH/cluster_pods"
     ;;
-    ("patch $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --type=json -p "*)
+    ("patch $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME "*)
     ;;
-    ("patch $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME --type=json -p "*)
+    ("patch $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME "*)
     ;;
     ("wait pod -n $CLUSTER_NAMESPACE test-"*" --for condition=Ready --timeout 0")
     ;;

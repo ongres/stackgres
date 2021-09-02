@@ -17,8 +17,8 @@ e2e_test_install() {
 
   echo_raw "$OPERATOR_CLUSTER" > "$LOG_PATH/stackgres-cluster.json"
 
-  NODE_LABEL_KEY=$(ramdom_string)
-  NODE_LABEL_VALUE=$(ramdom_string)
+  NODE_LABEL_KEY=$(random_string)
+  NODE_LABEL_VALUE=$(random_string)
 
   DUMMY_OPERATOR_CLUSTER=$(cat "$LOG_PATH/stackgres-cluster.json" \
     | jq ".spec.pods.scheduling={nodeSelector:{\"$NODE_LABEL_KEY\": \"$NODE_LABEL_VALUE\"}}" )
@@ -485,8 +485,8 @@ check_create_cluster_with_inline_script() {
 }
 
 check_create_cluster_node_selectors_script() {
-  NODE_LABEL_KEY=$(ramdom_string)
-  NODE_LABEL_VALUE=$(ramdom_string)
+  NODE_LABEL_KEY=$(random_string)
+  NODE_LABEL_VALUE=$(random_string)
 
   OPERATOR_CLUSTER_CR=$(cat "$LOG_PATH/stackgres-cluster.json" \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
