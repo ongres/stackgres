@@ -3,6 +3,7 @@
 . "$SPEC_PATH/abstract/backup"
 
 e2e_test_install() {
+  CLUSTER_NAME="sover-bkp"
   install_minio
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
