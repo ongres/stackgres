@@ -1,3 +1,94 @@
+# :rocket: Release 1.0.0-beta3 (2021-09-03)
+
+## :notepad_spiral: NOTES
+
+Here it comes StackGres 1.0.0-beta3!! :tada: :bottle_with_popping_cork:
+
+This release brings new features and some bugfixes. Get safe and upgrade now!
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 0.9 version or above) helm chart issue following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require to uninstall completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+## :sparkles: CHANGES
+
+* Support for Kubernetes 1.20 and 1.21
+* Support for Postgres 13 and drop of Postgres 11
+* All latest Postgres minor versions up to 13.4 and 12.8
+* Patroni 2.1.0
+* Fluentd 1.13.2
+* Fluent-bit 1.8.1
+* Support for configuring cluster service in distirbuted logs
+* Support for configuring cluster's pods node affinity
+* Enabled use of [Server Side Apply](https://kubernetes.io/docs/reference/using-api/server-side-apply/) in the operator
+* Include field `.spec.matadata.annotations.clusterPods`
+* Move `.spec.postgres{Version,Extensions}` under `.spec.postgres` section
+* Allow more customization for pgbouncer
+* Installing extensions for newly created clusters create the extra mounts without requiring restart
+* Implement `onlyPendingRestart` option for `restart` SGDbOps
+* Changed SGPostgresConfig and SGPoolConfig to write default values the `.status` section rather than `.spec`
+* Improve events message for StackGres clusters
+* Add a validation to check any update is performed if SGCluster is locked
+* Support management of SGDistributedLogs services configuration
+* Generate events in SGCluster relative to Postgres extension operations
+* Generate DbOps events for operations
+* Check upgrade is not performed on alpha or beta releases
+* Add CRD events tab on Web UI
+* Implement full condensed view on Web UI
+* Added a dashboard for minor version upgrades in the Web UI
+* Minor version upgrade dashboard for the Web UI
+* Include "Restart Now" button on clusters with a "PendingRestart" status in the Web UI
+* Allow time interval change in grafana integration in the Web UI
+* Enable initialization scripts using config maps and secrets in the Web UI
+* Improve presentation of the results of a `benchmark` SGDbOps in the Web UI
+* Improve Pods status info when the status is pending in the Web UI
+* Changed REST API paths
+* Support to retrieve events related to a SGCluster in the REST API
+* Support to retrieve events related to a SGDbOps in the REST API
+
+## :bug: FIXES
+
+* Ignoring metadata managed fields during the reconciliation cycle to avoid unwanted resource patches
+* Role value is not updated in distributed logs
+* Component versions annotations doesn't reflect accurately what is installed in a SGCluster
+* Wrong opRetries on DBOps
+* Component versions annotations doesn't reflect accurately what is installed in a SGCluster
+* Avoid unnecessary reconciliation cycle repetition
+* All existing SGDBOps are re-execute if SGCluster is recreated
+* Pods scheduling information is empty
+* Fluentd throw undefined method  for nil:NilClass
+* SGDbOps does not set correctly the `.status.<op>.switchoverInitiated` field
+* Compression of SGBackup is being lost after operator upgrade
+* Extensions mutating webhook does not behave correctly with missing extensions
+* Subresource status is not added after operator upgrade
+* Grafana integration is failing
+* Restore annotations to pause reconciliation cycle for specific resources
+* SGCluster or SGDistributedLogs the Pods are not created when tolerationSeconds is set
+* Restart SGDbOps fail due to conflict on cluster update
+* Prometheus integration does not work if the service monitor does not have matchLabels
+* Reuse the Kubernetes Client in order to minimize resource usage on the operator, jobs and controllers
+* Move tasks performed by upgrade-job.yaml to conversion webhooks
+* Improve readability in tables for Web UI
+* Postgres versions dropdown selector won't list versions properly in the Web UI
+* Cloning a cluster to a different namespace wont clone dependencies in the Web UI
+* Improve performance of logs listings on the Web UI
+* Operator fails to edit a cluster created from a backup on the Web UI
+* Other minor Web UI fixes and improvements
+* Improve REST API response when resource already exists
+* Empty fields returned by REST API when validation fails
+* REST API must not return any secret
+
+## :construction: KNOWN ISSUES
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.0.0-beta3)
+
 # :rocket: Release 1.0.0-beta2 (2021-07-09)
 
 ## :notepad_spiral: NOTES

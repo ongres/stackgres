@@ -10,8 +10,8 @@ showToc: true
 
 | Component | Versions |
 | ------ | ----------- |
-| PostgreSQL 13 | 13.2, 13.1, 13.0 |
-| PostgreSQL 12 | 12.6, 12.5, 12.4, 12.3, 12.2 and 12.1 |
+| PostgreSQL 13 | 13.4, 13.3, 13.2, 13.1, 13.0 |
+| PostgreSQL 12 | 12.8, 12.7, 12.6, 12.5, 12.4, 12.3, 12.2 and 12.1 |
 | Patroni | 2.1.0 |
 | WAL-G | 0.2.19 |
 | PgBouncer | 1.15.0 |
