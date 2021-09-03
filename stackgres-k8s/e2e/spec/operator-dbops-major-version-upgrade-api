@@ -4,8 +4,8 @@
 
 e2e_test_install() {
   CLUSTER_NAME="dbops-major-up-api"
-  NODE_LABEL_KEY=$(ramdom_string)
-  NODE_LABEL_VALUE=$(ramdom_string)
+  NODE_LABEL_KEY=$(random_string)
+  NODE_LABEL_VALUE=$(random_string)
 
   BACKUPCONF="backupconf"
 
