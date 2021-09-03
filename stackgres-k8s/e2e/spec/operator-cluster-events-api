@@ -3,6 +3,7 @@
 . "$SPEC_PATH/abstract/dbops-minor-version-upgrade"
 
 e2e_test_install() {
+  CLUSTER_NAME=cluster-events-api
   NODE_LABEL_KEY=$(random_string)
   NODE_LABEL_VALUE=$(random_string)
 
@@ -15,7 +16,7 @@ e2e_test_install() {
 
   wait_until kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" > /dev/null 2>&1
 
-  DBOPS_MINOR_VERSION_UPGRADE_NAME=minor-version-upgrade
+  DBOPS_MINOR_VERSION_UPGRADE_NAME=minor-ver-upgrade
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
