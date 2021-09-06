@@ -8,9 +8,8 @@
     {{end}}
   </div>
 
-    <div class="highlightable">
+  <div class="highlightable">
     <ul class="topics">
-
         {{if eq .Site.Params.ordersectionsby "title"}}  
           {{range .Site.Home.Sections.ByTitle}}
           {{ template "section-tree-nav" dict "sect" . "currentnode" $currentNode "showvisitedlinks" $showvisitedlinks}}
@@ -108,6 +107,7 @@
       </a>
       {{ $numberOfPages := (add (len .Pages) (len .Sections)) }}
       {{ if ne $numberOfPages 0 }}
+        <span class="toggleToc" onclick="toggleToc()"></span>
         <ul>
           {{ $currentNode.Scratch.Set "pages" .Pages }}
           {{ if .Sections}}

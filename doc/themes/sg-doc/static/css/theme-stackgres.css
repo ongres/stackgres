@@ -264,6 +264,42 @@ ul.topics li a:before {
     content: counters(list-item,'.') '.'
 }
 
+ul.topics li {
+    position: relative;
+}
+
+ul.topics .toggleToc {
+    position: absolute;
+    right: 0;
+    top: 13px;
+    border: 1px solid var(--blue);
+    display: block;
+    height: 13px;
+    width: 13px;
+    border-radius: 3px;
+    font-size: 13px;
+    line-height: 12px;
+    text-align: center;
+    color: var(--blue);
+    cursor: pointer;
+}
+
+ul.topics .parent .toggleToc {
+    right: 16px;
+}
+
+ul.topics .toggleToc:before {
+    content: "+";
+}
+
+ul.topics .parent .toggleToc:before {
+    content: "-";
+}
+
+ul.topics li li .toggleToc {
+    display: none;
+} 
+
 /* SG 1.0 Styling */
 hr {
     width: 100%;
