@@ -27,7 +27,7 @@ public class CheckOperatorValuesTest {
         Paths.get("../../install/helm/stackgres-operator/values.yaml").toFile());
     final String imageTag;
     if (StackGresProperty.OPERATOR_VERSION.getString().endsWith("-SNAPSHOT")) {
-      imageTag = "^development(-[^-]+)?-jvm$";
+      imageTag = "^main(-[^-]+)?-jvm$";
     } else {
       imageTag = "^" + Pattern.quote(StackGresProperty.OPERATOR_VERSION.getString()) + "$";
     }
