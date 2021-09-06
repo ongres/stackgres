@@ -395,7 +395,7 @@
                 }
               }
             ],
-            "image": "docker.io/stackgres/distributedlogs-controller:development",
+            "image": "docker.io/stackgres/distributedlogs-controller:main",
             "imagePullPolicy": "IfNotPresent",
             "livenessProbe": {
               "failureThreshold": 3,

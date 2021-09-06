@@ -52,7 +52,7 @@
     <stackgres.operatorName>stackgres-operator</stackgres.operatorName>
     <stackgres.operatorNamespace>stackgres</stackgres.operatorNamespace>
     <stackgres.jobNamespace>stackgres</stackgres.jobNamespace>
-    <stackgres.operatorImageVersion>development-jvm</stackgres.operatorImageVersion>
+    <stackgres.operatorImageVersion>main-jvm</stackgres.operatorImageVersion>
     <stackgres.operatorIP>localhost</stackgres.operatorIP>
     <stackgres.operatorVersion>${project.version}</stackgres.operatorVersion>
     <stackgres.documentation.uri>https://stackgres.io/doc/</stackgres.documentation.uri>

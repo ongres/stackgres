@@ -338,7 +338,7 @@
                           <arg>/bin/sh</arg>
                           <arg>-exc</arg>
                           <arg>
-                            CLUSTER_CONTROLLER_IMAGE_NAME="${CLUSTER_CONTROLLER_IMAGE_NAME:-"stackgres/cluster-controller:development-jvm"}"
+                            CLUSTER_CONTROLLER_IMAGE_NAME="${CLUSTER_CONTROLLER_IMAGE_NAME:-"stackgres/cluster-controller:main-jvm"}"
                             CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
                             kind load docker-image --name "$CONTAINER_NAME" "$CLUSTER_CONTROLLER_IMAGE_NAME" || true
                           </arg>
@@ -399,7 +399,7 @@
                           <arg>/bin/sh</arg>
                           <arg>-exc</arg>
                           <arg>
-                            CLUSTER_CONTROLLER_IMAGE_NAME="${CLUSTER_CONTROLLER_IMAGE_NAME:-"stackgres/cluster-controller:development"}"
+                            CLUSTER_CONTROLLER_IMAGE_NAME="${CLUSTER_CONTROLLER_IMAGE_NAME:-"stackgres/cluster-controller:main"}"
                             CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
                             kind load docker-image --name "$CONTAINER_NAME" "$CLUSTER_CONTROLLER_IMAGE_NAME" || true
                           </arg>

@@ -340,7 +340,7 @@
                           <arg>/bin/sh</arg>
                           <arg>-exc</arg>
                           <arg>
-                            JOBS_IMAGE_NAME="${JOBS_IMAGE_NAME:-"stackgres/jobs:development-jvm"}"
+                            JOBS_IMAGE_NAME="${JOBS_IMAGE_NAME:-"stackgres/jobs:main-jvm"}"
                             CONTAINER_NAME="$(docker inspect -f
                             '{{.Name}}'
                             "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
@@ -405,7 +405,7 @@
                           <arg>/bin/sh</arg>
                           <arg>-exc</arg>
                           <arg>
-                            JOBS_IMAGE_NAME="${JOBS_IMAGE_NAME:-"stackgres/jobs:development"}"
+                            JOBS_IMAGE_NAME="${JOBS_IMAGE_NAME:-"stackgres/jobs:main"}"
                             CONTAINER_NAME="$(docker inspect -f
                             '{{.Name}}'
                             "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
