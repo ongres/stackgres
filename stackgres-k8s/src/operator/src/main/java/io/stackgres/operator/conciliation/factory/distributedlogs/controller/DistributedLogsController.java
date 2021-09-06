@@ -70,7 +70,7 @@ public class DistributedLogsController
     return new ContainerBuilder()
         .withName(StackgresClusterContainers.DISTRIBUTEDLOGS_CONTROLLER)
         .withImage(StackGresController.DISTRIBUTEDLOGS_CONTROLLER.getImageName())
-        .withImagePullPolicy("IfNotPresent")
+        .withImagePullPolicy(getDefaultPullPolicy())
         .withLivenessProbe(new ProbeBuilder()
             .withHttpGet(new HTTPGetActionBuilder()
                 .withPath("/health/live")

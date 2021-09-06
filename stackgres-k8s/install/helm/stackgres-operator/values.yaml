@@ -1,4 +1,5 @@
 containerRegistry: docker.io
+imagePullPolicy: "IfNotPresent"
 operator:
   image:
     name: "stackgres/operator"

@@ -60,7 +60,7 @@ public class ClusterController implements ContainerFactory<StackGresClusterConta
     return new ContainerBuilder()
         .withName(StackgresClusterContainers.CLUSTER_CONTROLLER)
         .withImage(StackGresController.CLUSTER_CONTROLLER.getImageName())
-        .withImagePullPolicy("IfNotPresent")
+        .withImagePullPolicy(getDefaultPullPolicy())
         .withEnv(new EnvVarBuilder()
                 .withName(ClusterControllerProperty.CLUSTER_NAME.getEnvironmentVariableName())
                 .withValue(context
