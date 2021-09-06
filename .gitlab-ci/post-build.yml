@@ -37,7 +37,7 @@ build documentation:
       DOCUMENTATION_BASE_URL="https://stackgres.io/doc"
     else
       DOCUMENTATION_BASE_URL="https://ongresinc.gitlab.io/stackgres"
-      if [ "${CI_COMMIT_REF_NAME%%-*}" != "development" ] && [ "${CI_COMMIT_REF_NAME%%-*}" != "master" ]
+      if [ "${CI_COMMIT_REF_NAME%%-*}" != "main" ] && [ "${CI_COMMIT_REF_NAME%%-*}" != "master" ]
       then
         DOCUMENTATION_EXTRA_PATH="$CI_COMMIT_REF_NAME/"
       fi
@@ -46,7 +46,7 @@ build documentation:
   - hugo -v --source doc --destination "$(pwd)/doc/public/$DOCUMENTATION_EXTRA_PATH$STACKGRES_DOC_VERSION" --baseURL="$DOCUMENTATION_BASE_URL/$DOCUMENTATION_EXTRA_PATH$STACKGRES_DOC_VERSION"
   - |
     if ( [[ ! -z "$CI_COMMIT_TAG" && ! "$CI_COMMIT_TAG" =~ ^latest-.*$ ]] \
-        || [ "${CI_COMMIT_REF_NAME%%-*}" = "development" ] || [ "${CI_COMMIT_REF_NAME%%-*}" = "master" ] ) \
+        || [ "${CI_COMMIT_REF_NAME%%-*}" = "main" ] || [ "${CI_COMMIT_REF_NAME%%-*}" = "master" ] ) \
       && [ "$LATEST" = true ]
     then
       hugo -v --source doc --destination "$(pwd)/doc/public/latest" --baseURL="$DOCUMENTATION_BASE_URL/latest"

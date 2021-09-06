@@ -120,7 +120,7 @@ build operator native image:
   retry: 2
   only:
     variables:
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
+      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
       - $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
@@ -147,7 +147,7 @@ build restapi native image:
   retry: 2
   only:
     variables:
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
+      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
       - $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
@@ -174,7 +174,7 @@ build jobs native image:
   retry: 2
   only:
     variables:
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
+      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
       - $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
@@ -201,7 +201,7 @@ build cluster-controller native image:
   retry: 2
   only:
     variables:
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
+      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
       - $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
@@ -228,7 +228,7 @@ build distributedlogs-controller native image:
   retry: 2
   only:
     variables:
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
+      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
       - $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY

@@ -23,7 +23,7 @@ StackGres support Backups with the following storage options:
 > quick setups on local Kubernetes Cluster. Although, for production setups, StackGres Team recommends
 > emphatically to pick a Storage as a Service for this purpose.
 
-All the related configuration for the storage, is under `configurations.backupconfig.storage` section in your [Stackgres Cluster configuration file](https://gitlab.com/ongresinc/stackgres/-/blob/development/stackgres-k8s/install/helm/stackgres-cluster/values.yaml#L100-148).
+All the related configuration for the storage, is under `configurations.backupconfig.storage` section in your [Stackgres Cluster configuration file](https://gitlab.com/ongresinc/stackgres/-/blob/main/stackgres-k8s/install/helm/stackgres-cluster/values.yaml#L100-148).
 
 ```yaml
 configurations:
