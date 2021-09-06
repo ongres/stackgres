@@ -121,7 +121,7 @@ build operator native image:
   only:
     variables:
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
+      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "current"
       - $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
       - $DO_NATIVE
@@ -148,7 +148,7 @@ build restapi native image:
   only:
     variables:
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
+      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "current"
       - $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
       - $DO_NATIVE
@@ -175,7 +175,7 @@ build jobs native image:
   only:
     variables:
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
+      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "current"
       - $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
       - $DO_NATIVE
@@ -202,7 +202,7 @@ build cluster-controller native image:
   only:
     variables:
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
+      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "current"
       - $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
       - $DO_NATIVE
@@ -229,7 +229,7 @@ build distributedlogs-controller native image:
   only:
     variables:
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
+      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "current"
       - $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
       - $DO_NATIVE
