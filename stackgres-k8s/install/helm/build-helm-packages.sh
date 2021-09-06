@@ -9,7 +9,7 @@ STACKGRES_VERSION=$(grep '<artifactId>stackgres-parent</artifactId>' "../../src/
 IMAGE_TAG="${STACKGRES_VERSION}"
 if [ "${STACKGRES_VERSION##*-}" = "SNAPSHOT" ]
 then
-  IMAGE_TAG='development\(-[^-]\+\)\?-jvm'
+  IMAGE_TAG='main\(-[^-]\+\)\?-jvm'
 fi
 ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
 

@@ -342,7 +342,7 @@
                           <arg>/bin/sh</arg>
                           <arg>-exc</arg>
                           <arg>
-                            DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME:-"stackgres/distributedlogs-controller:development-jvm"}"
+                            DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME:-"stackgres/distributedlogs-controller:main-jvm"}"
                             CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
                             kind load docker-image --name "$CONTAINER_NAME" "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" || true
                           </arg>
@@ -403,7 +403,7 @@
                           <arg>/bin/sh</arg>
                           <arg>-exc</arg>
                           <arg>
-                            DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME:-"stackgres/distributedlogs-controller:development"}"
+                            DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME:-"stackgres/distributedlogs-controller:main"}"
                             CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
                             kind load docker-image --name "$CONTAINER_NAME" "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" || true
                           </arg>

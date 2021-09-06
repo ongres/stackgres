@@ -2,25 +2,25 @@ containerRegistry: docker.io
 operator:
   image:
     name: "stackgres/operator"
-    tag: "development-jvm"
+    tag: "main-jvm"
     pullPolicy: "IfNotPresent"
 restapi:
   name: stackgres-restapi
   image:
     name: "stackgres/restapi"
-    tag: "development-jvm"
+    tag: "main-jvm"
     pullPolicy: "IfNotPresent"
 jobs:
   name: stackgres-jobs
   image:
     name: "stackgres/jobs"
-    tag: "development-jvm"
+    tag: "main-jvm"
     pullPolicy: "IfNotPresent"
 adminui:
   name: stackgres-adminui
   image:
     name: "stackgres/admin-ui"
-    tag: "development"
+    tag: "main"
     pullPolicy: "IfNotPresent"
   service:
     exposeHTTP: false

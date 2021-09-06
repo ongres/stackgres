@@ -48,7 +48,7 @@ mvn clean verify -P native,build-image-native,integration -Dit.test=StackGresOpe
 
 Some environment variables allow to control how e2e test behave:
 
-* `IMAGE_TAG`: The tag of the operator image to use in the e2e test (default: development-jvm).
+* `IMAGE_TAG`: The tag of the operator image to use in the e2e test (default: main-jvm).
 * `EXTENSIONS_REPOSITORY_URL`: Allow to set a different URL for extensions repository.
 * `E2E_ENV`: This set the environment to script to use in order to setup the kubernetes cluster (default: kind).
 * `E2E_TIMEOUT`: Some operation wait on pods to be running or terminated. This environment variable controls the timeout in seconds of those operations (default: 3 minutes).

@@ -2,7 +2,7 @@
 
 . "$E2E_PATH/utils/helpers"
 
-export IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
+export IMAGE_TAG="${IMAGE_TAG:-main-jvm}"
 export ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
 export OPERATOR_PUBLIC_REGISTRY="docker.io"
 export OPERATOR_PUBLIC_REGISTRY_PATH="/stackgres/"

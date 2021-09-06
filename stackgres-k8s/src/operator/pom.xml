@@ -430,7 +430,7 @@
                           <arg>/bin/sh</arg>
                           <arg>-exc</arg>
                           <arg>
-                            OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME:-"stackgres/operator:development-jvm"}"
+                            OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME:-"stackgres/operator:main-jvm"}"
                             CONTAINER_NAME="$(docker
                             inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
                             kind load docker-image --name
@@ -493,7 +493,7 @@
                           <arg>/bin/sh</arg>
                           <arg>-exc</arg>
                           <arg>
-                            OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME:-"stackgres/operator:development"}"
+                            OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME:-"stackgres/operator:main"}"
                             CONTAINER_NAME="$(docker
                             inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
                             kind load docker-image --name
