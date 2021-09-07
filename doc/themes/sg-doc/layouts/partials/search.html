@@ -5,6 +5,12 @@
             <option value="https://stackgres.io/doc/0.9">0.9</option>
             <option value="https://stackgres.io/doc/latest" selected>1.0</option>
         </select>
+        
+        {{ if .Site.Params.isDevVersion }}
+            <p class="warning textLeft smText">
+                The version you're browsing is currently under development and may be subject to changes in functionality.
+            </p>
+        {{ end }}
     </form>
 </div>
 <hr/>
