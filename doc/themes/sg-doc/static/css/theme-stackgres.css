@@ -260,6 +260,43 @@ a:hover {
     border-color: var(--MENU-SECTION-HR-color);
 }
 
+ul.topics li {
+    position: relative;
+}
+
+ul.topics .toggleToc {
+    position: absolute;
+    right: 0;
+    top: 13px;
+    border: 1px solid var(--blue);
+    display: block;
+    height: 13px;
+    width: 13px;
+    border-radius: 3px;
+    font-size: 13px;
+    line-height: 12px;
+    text-align: center;
+    color: var(--blue);
+    cursor: pointer;
+}
+
+ul.topics .parent .toggleToc {
+    right: 16px;
+}
+
+ul.topics .toggleToc:before {
+    content: "+";
+}
+
+ul.topics .parent .toggleToc:before {
+    content: "-";
+}
+
+ul.topics li li .toggleToc {
+    display: none;
+} 
+
+
 /* SG 1.0 Styling */
 hr {
     width: 100%;
@@ -366,6 +403,13 @@ a.raw:not(.noUnderline):hover {
 
 a.noUnderline {
     text-decoration: none;
+}
+
+.warning {
+    border: 1px solid var(--lOrange);
+    border-radius: 5px;
+    padding: 10px;
+    background: rgb(255 158 23 / 5%);
 }
 
 .bgGradient {
@@ -1628,8 +1672,12 @@ code.language-bash {
         background: var(--bgColor);
         z-index: 999;
     }
+
     #sidebar.show {
+        top: 0;
+        padding-top: 100px;
         left: 0;
+        overflow-y: auto;
         transition: left .3s ease-out;
     }
 
@@ -1639,8 +1687,12 @@ code.language-bash {
         margin-top: 5px;
     }
 
-    #sidebar #header-wrapper, #sidebar-toggle-span {
-        display: none;
+    #sidebar-toggle-span, .ps-container>.ps-scrollbar-y-rail, .ps-container>.ps-scrollbar-x-rail, .ps-container>.ps-scrollbar-y-rail>.ps-scrollbar-y, .ps-container>.ps-scrollbar-x-rail>.ps-scrollbar-x {
+        display: none !important;
+    }
+
+    #sidebar > .highlightable {
+        height: auto !important;
     }
 
 }
