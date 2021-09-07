@@ -9,6 +9,7 @@ NORMALIZED_OP_NAME='major version upgrade'
 KEBAB_OP_NAME='major-version-upgrade'
 PATRONI_CONTAINER_NAME=patroni
 MAJOR_VERSION_UPGRADE_CONTAINER_NAME=major-version-upgrade
+TARGET_VERSION=12.6
 DATA_CHECKSUM=true
 
 shell_unit_test_skip() {
@@ -56,7 +57,7 @@ kubectl_mock() {
     ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ if .status.dbOps }}{{ if .status.dbOps.$OP_NAME }}true{{ end }}{{ end }}")
     ;;
     ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ .spec.postgres.version }}")
-    printf '%s' "12.4"
+    printf '%s' "11.8"
     ;;
     ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME -o json")
       echo '{
@@ -69,7 +70,7 @@ kubectl_mock() {
               "spec": {
                   "instances": 2,
                   "postgres": {
-                    "version": "12.6"
+                    "version": "11.8"
                   },
                   "sgInstanceProfile": "size-xs"
               },
@@ -95,6 +96,8 @@ kubectl_mock() {
             }'
     ;;
     ("replace --raw /apis/$CRD_GROUP/v1/namespaces/$CLUSTER_NAMESPACE/$CLUSTER_CRD_NAME/$CLUSTER_NAME/status -f"*)
+    ;;
+    ("replace --raw /apis/$CRD_GROUP/v1/namespaces/$CLUSTER_NAMESPACE/$CLUSTER_CRD_NAME/$CLUSTER_NAME -f"*)
     ;;
     ("get $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME --template={{ if .status }}true{{ else }}false{{ end }}")
     printf '%s' false
@@ -131,9 +134,6 @@ kubectl_mock() {
     ;;
     ("get pod -n $CLUSTER_NAMESPACE test-1 -o name")
     echo "pod/test-1"
-    ;;
-    ("get pod -n $CLUSTER_NAMESPACE test-0 --template={{ range .spec.containers }}{{ if eq .name \"$PATRONI_CONTAINER_NAME\" }}{{ .image }}{{ end }}{{ end }}")
-    echo 'ongres/patroni:v1.6.5-pg11.8-build-5.1'
     ;;
     ("get pod -n $CLUSTER_NAMESPACE test-0 --template={{ .metadata.annotations.status }}")
     echo '"pending_restart":false'
@@ -173,8 +173,6 @@ kubectl_mock() {
     echo "pod/test-0"
     echo "pod/test-1"
     ) > "$TEST_TARGET_PATH/cluster_pods"
-    ;;
-    ("patch $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME "*)
     ;;
     ("patch $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME "*)
     ;;

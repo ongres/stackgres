@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. "$SPEC_PATH/abstract/dbops-major-version-upgrade"
+
 e2e_test_install() {
   NODE_LABEL_KEY=$(random_string)
   NODE_LABEL_VALUE=$(random_string)
@@ -12,6 +14,7 @@ e2e_test_install() {
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.configurations.sgBackupConfig="$BACKUPCONF" \
+    --set cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
     --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
     --set configurations.backupconfig.create=true \
     --set-string configurations.backupconfig.storage.s3Compatible.bucket=test \
@@ -27,6 +30,13 @@ e2e_test_install() {
 
   DBOPS_MAJOR_VERSION_UPGRADE_NAME=major-version-upgrade
 
+  create_or_replace_cluster "configurations-for-major-version-upgrade" "$CLUSTER_NAMESPACE" 1 \
+    --set cluster.create=false \
+    --set instanceProfiles=null \
+    --set cluster.configurations.sgPostgresConfig=postgresconf-for-major-version-upgrade \
+    --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-major-version-upgrade \
+    --set-string cluster.postgres.version="$E2E_MAJOR_TARGET_POSTGRES_VERSION"
+
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
 kind: SGDbOps
@@ -36,6 +46,9 @@ metadata:
 spec:
   sgCluster: $CLUSTER_NAME
   op: majorVersionUpgrade
+  majorVersionUpgrade:
+    postgresVersion: "$E2E_MAJOR_SOURCE_POSTGRES_VERSION"
+    sgPostgresConfig: postgresconf-for-major-version-upgrade
 EOF
 
   DBOPS_MAJOR_VERSION_UPGRADE_CR="$(kubectl get sgdbops.stackgres.io -n "$CLUSTER_NAMESPACE" "$DBOPS_MAJOR_VERSION_UPGRADE_NAME" -o json \

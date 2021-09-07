@@ -72,6 +72,20 @@ public class DbOpsMajorVersionUpgradeJob extends DbOpsJob {
     return ImmutableList.<EnvVar>builder()
         .add(
             new EnvVarBuilder()
+                .withName("TARGET_VERSION")
+                .withValue(Optional.ofNullable(majorVersionUpgrade)
+                    .map(StackGresDbOpsMajorVersionUpgrade::getPostgresVersion)
+                    .map(String::valueOf)
+                    .orElseThrow())
+                .build(),
+            new EnvVarBuilder()
+                .withName("TARGET_POSTGRES_CONFIG")
+                .withValue(Optional.ofNullable(majorVersionUpgrade)
+                    .map(StackGresDbOpsMajorVersionUpgrade::getSgPostgresConfig)
+                    .map(String::valueOf)
+                    .orElseThrow())
+                .build(),
+            new EnvVarBuilder()
                 .withName("LINK")
                 .withValue(Optional.ofNullable(majorVersionUpgrade)
                     .map(StackGresDbOpsMajorVersionUpgrade::getLink)

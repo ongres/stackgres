@@ -198,6 +198,8 @@ public class DbOpsTransformer
     }
     StackGresDbOpsMajorVersionUpgrade transformation =
         new StackGresDbOpsMajorVersionUpgrade();
+    transformation.setPostgresVersion(source.getPostgresVersion());
+    transformation.setSgPostgresConfig(source.getSgPostgresConfig());
     transformation.setLink(source.getLink());
     transformation.setClone(source.getClone());
     transformation.setCheck(source.getCheck());
@@ -224,6 +226,7 @@ public class DbOpsTransformer
     }
     StackGresDbOpsMinorVersionUpgrade transformation =
         new StackGresDbOpsMinorVersionUpgrade();
+    transformation.setPostgresVersion(source.getPostgresVersion());
     transformation.setMethod(source.getMethod());
     return transformation;
   }
@@ -349,6 +352,8 @@ public class DbOpsTransformer
     }
     DbOpsMajorVersionUpgrade transformation =
         new DbOpsMajorVersionUpgrade();
+    transformation.setPostgresVersion(source.getPostgresVersion());
+    transformation.setSgPostgresConfig(source.getSgPostgresConfig());
     transformation.setLink(source.getLink());
     transformation.setClone(source.getClone());
     transformation.setCheck(source.getCheck());
@@ -375,6 +380,7 @@ public class DbOpsTransformer
     }
     DbOpsMinorVersionUpgrade transformation =
         new DbOpsMinorVersionUpgrade();
+    transformation.setPostgresVersion(source.getPostgresVersion());
     transformation.setMethod(source.getMethod());
     return transformation;
   }
@@ -455,6 +461,8 @@ public class DbOpsTransformer
       return null;
     }
     DbOpsMajorVersionUpgradeStatus transformation = new DbOpsMajorVersionUpgradeStatus();
+    transformation.setSourcePostgresVersion(source.getSourcePostgresVersion());
+    transformation.setTargetPostgresVersion(source.getTargetPostgresVersion());
     transformation.setPrimaryInstance(source.getPrimaryInstance());
     transformation.setInitialInstances(source.getInitialInstances());
     transformation.setPendingToRestartInstances(source.getPendingToRestartInstances());
@@ -485,6 +493,8 @@ public class DbOpsTransformer
       return null;
     }
     DbOpsMinorVersionUpgradeStatus transformation = new DbOpsMinorVersionUpgradeStatus();
+    transformation.setSourcePostgresVersion(source.getSourcePostgresVersion());
+    transformation.setTargetPostgresVersion(source.getTargetPostgresVersion());
     transformation.setPrimaryInstance(source.getPrimaryInstance());
     transformation.setInitialInstances(source.getInitialInstances());
     transformation.setPendingToRestartInstances(source.getPendingToRestartInstances());

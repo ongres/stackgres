@@ -20,6 +20,9 @@ metadata:
 spec:
   sgCluster: $CLUSTER_NAME
   op: majorVersionUpgrade
+  majorVersionUpgrade:
+    postgresVersion: "$E2E_MAJOR_TARGET_POSTGRES_VERSION"
+    sgPostgresConfig: postgresconf-for-major-version-upgrade
 EOF
 
   check_major_version_upgrade
@@ -40,6 +43,8 @@ spec:
   sgCluster: $CLUSTER_NAME
   op: majorVersionUpgrade
   majorVersionUpgrade:
+    postgresVersion: "$E2E_MAJOR_TARGET_POSTGRES_VERSION"
+    sgPostgresConfig: postgresconf-for-major-version-upgrade
     check: true
 EOF
 

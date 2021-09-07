@@ -17,10 +17,7 @@ run_op() {
     fi
     echo "Found primary instance $PRIMARY_INSTANCE"
     echo
-    SOURCE_IMAGE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" \
-      --template="{{ range .spec.containers }}{{ if eq .name \"$PATRONI_CONTAINER_NAME\" }}{{ .image }}{{ end }}{{ end }}")"
-    SOURCE_VERSION="$(printf '%s' "$SOURCE_IMAGE" | sed 's/^.*-pg\([0-9]\+\.[0-9]\+\)-.*$/\1/')"
-    TARGET_VERSION="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    SOURCE_VERSION="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
       --template='{{ .spec.postgres.version }}')"
     LOCALE="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" \
       -- psql -t -A -c "SHOW lc_collate")"
@@ -29,7 +26,7 @@ run_op() {
     DATA_CHECKSUM="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" \
       -- psql -t -A -c "SELECT CASE WHEN current_setting('data_checksums')::bool THEN 'true' ELSE 'false' END")"
 
-    if ! [ "${SOURCE_VERSION%%.*}" -lt "${TARGET_VERSION%%.*}" ]
+    if ! ([ -n "${TARGET_VERSION}" ] && [ "${SOURCE_VERSION%%.*}" -lt "${TARGET_VERSION%%.*}" ])
     then
       echo "FAILURE=$NORMALIZED_OP_NAME failed. Can not perform major version upgrade from version $SOURCE_VERSION to version $TARGET_VERSION" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
       exit 1
@@ -82,6 +79,8 @@ EOF
       )
     done
   else
+    SOURCE_VERSION="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+      --template='{{ .status.dbOps.majorVersionUpgrade.sourcePostgresVersion }}')"
     INITIAL_INSTANCES="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
       --template='{{ .status.dbOps.majorVersionUpgrade.initialInstances }}')"
     INITIAL_INSTANCES="$(printf '%s' "$INITIAL_INSTANCES" | tr -d '[]' | tr ' ' '\n')"
@@ -91,6 +90,7 @@ EOF
     until kubectl patch "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
         -p "$(cat << EOF
 [
+  {"op":"replace","path":"/status/dbOps/majorVersionUpgrade/targetPostgresVersion","value": $TARGET_VERSION},
   {"op":"replace","path":"/status/dbOps/majorVersionUpgrade/link","value": $LINK},
   {"op":"replace","path":"/status/dbOps/majorVersionUpgrade/clone","value": $CLONE},
   {"op":"replace","path":"/status/dbOps/majorVersionUpgrade/check","value": $CHECK}
@@ -102,6 +102,8 @@ EOF
     done
   fi
 
+  echo "Waiting StatefulSet to be updated..."
+  echo
   while true
   do
     IS_STATEFULSET_UPDATED="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
@@ -112,6 +114,22 @@ EOF
     fi
     sleep 1
   done
+  echo "done"
+  echo
+
+  echo "Setting postgres version to $TARGET_VERSION and postgres config to $TARGET_POSTGRES_CONFIG..."
+  echo
+  until (
+    CLUSTER="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json)"
+    CLUSTER="$(printf '%s' "$CLUSTER" | jq '.spec.postgres.version = "'"$TARGET_VERSION"'"')"
+    CLUSTER="$(printf '%s' "$CLUSTER" | jq '.spec.configurations.sgPostgresConfig = "'"$TARGET_POSTGRES_CONFIG"'"')"
+    printf '%s' "$CLUSTER" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME" -f -
+    )
+  do
+    sleep 1
+  done
+  echo "done"
+  echo
 
   INITIAL_INSTANCES_COUNT="$(printf '%s' "$INITIAL_INSTANCES" | tr ' ' 's' | tr '\n' ' ' | wc -w)"
   echo "Initial instances:"
@@ -353,6 +371,8 @@ update_status() {
     -p "$(cat << EOF
 [
   {"op":"$OPERATION","path":"/status/majorVersionUpgrade","value":{
+      "sourcePostgresVersion": "$SOURCE_VERSION",
+      "targetPostgresVersion": "$TARGET_VERSION",
       "primaryInstance": "$PRIMARY_INSTANCE",
       "initialInstances": [$(
         FIRST=true

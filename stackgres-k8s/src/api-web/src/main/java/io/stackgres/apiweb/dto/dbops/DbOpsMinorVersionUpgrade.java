@@ -16,8 +16,19 @@ import io.stackgres.common.StackGresUtil;
 @RegisterForReflection
 public class DbOpsMinorVersionUpgrade {
 
+  @JsonProperty("postgresVersion")
+  private String postgresVersion;
+
   @JsonProperty("method")
   private String method;
+
+  public String getPostgresVersion() {
+    return postgresVersion;
+  }
+
+  public void setPostgresVersion(String postgresVersion) {
+    this.postgresVersion = postgresVersion;
+  }
 
   public String getMethod() {
     return method;

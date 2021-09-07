@@ -26,7 +26,7 @@ import io.stackgres.jobs.dbops.StateHandler;
 
 @ApplicationScoped
 @StateHandler("securityUpgrade")
-public class ClusterRestartStateHandlerImpl extends AbstractRestartStateHandler {
+public class SecurityUpgradeStateHandlerImpl extends AbstractRestartStateHandler {
 
   @Override
   protected DbOpsRestartStatus getDbOpRestartStatus(StackGresDbOps dbOps) {
@@ -49,22 +49,22 @@ public class ClusterRestartStateHandlerImpl extends AbstractRestartStateHandler 
   }
 
   @Override
-  protected ClusterDbOpsRestartStatus getClusterRestartStatus(StackGresCluster dbOps) {
-    return Optional.ofNullable(dbOps.getStatus())
+  protected ClusterDbOpsRestartStatus getClusterRestartStatus(StackGresCluster cluster) {
+    return Optional.ofNullable(cluster.getStatus())
         .map(StackGresClusterStatus::getDbOps)
         .map(StackGresClusterDbOpsStatus::getSecurityUpgrade)
         .orElseGet(() -> {
-          if (dbOps.getStatus() == null) {
-            dbOps.setStatus(new StackGresClusterStatus());
+          if (cluster.getStatus() == null) {
+            cluster.setStatus(new StackGresClusterStatus());
           }
-          if (dbOps.getStatus().getDbOps() == null) {
-            dbOps.getStatus().setDbOps(new StackGresClusterDbOpsStatus());
+          if (cluster.getStatus().getDbOps() == null) {
+            cluster.getStatus().setDbOps(new StackGresClusterDbOpsStatus());
           }
-          if (dbOps.getStatus().getDbOps().getSecurityUpgrade() == null) {
-            dbOps.getStatus().getDbOps()
+          if (cluster.getStatus().getDbOps().getSecurityUpgrade() == null) {
+            cluster.getStatus().getDbOps()
                 .setSecurityUpgrade(new StackGresClusterDbOpsSecurityUpgradeStatus());
           }
-          return dbOps.getStatus().getDbOps().getSecurityUpgrade();
+          return cluster.getStatus().getDbOps().getSecurityUpgrade();
         });
   }
 

@@ -5,19 +5,26 @@
 
 package io.stackgres.operator.validation.cluster;
 
+import static io.stackgres.operatorframework.resource.ResourceUtil.getServiceAccountFromUsername;
+import static io.stackgres.operatorframework.resource.ResourceUtil.isServiceAccountUsername;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import io.stackgres.common.ErrorType;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.jooq.lambda.tuple.Tuple2;
@@ -33,21 +40,26 @@ public class PostgresConfigValidator implements ClusterValidator {
   private final String errorCrReferencerUri;
   private final String errorPostgresMismatchUri;
   private final String errorForbiddenUpdateUri;
+  private final int timeout;
 
   @Inject
   public PostgresConfigValidator(
-      CustomResourceFinder<StackGresPostgresConfig> configFinder) {
-    this(configFinder, StackGresComponent.POSTGRESQL.getOrderedVersions().toList());
+      CustomResourceFinder<StackGresPostgresConfig> configFinder,
+      OperatorPropertyContext operatorPropertyContext) {
+    this(configFinder, StackGresComponent.POSTGRESQL.getOrderedVersions().toList(),
+        operatorPropertyContext);
   }
 
   public PostgresConfigValidator(
       CustomResourceFinder<StackGresPostgresConfig> configFinder,
-      List<String> orderedSupportedPostgresVersions) {
+      List<String> orderedSupportedPostgresVersions,
+      OperatorPropertyContext operatorPropertyContext) {
     this.configFinder = configFinder;
     this.supportedPostgresVersions = new ArrayList<String>(orderedSupportedPostgresVersions);
     this.errorCrReferencerUri = ErrorType.getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
     this.errorPostgresMismatchUri = ErrorType.getErrorTypeUri(ErrorType.PG_VERSION_MISMATCH);
     this.errorForbiddenUpdateUri = ErrorType.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE);
+    this.timeout = operatorPropertyContext.getInt(OperatorProperty.LOCK_TIMEOUT);
   }
 
   @Override
@@ -74,6 +86,7 @@ public class PostgresConfigValidator implements ClusterValidator {
 
     String givenMajorVersion = StackGresComponent.POSTGRESQL.findMajorVersion(givenPgVersion);
     String namespace = cluster.getMetadata().getNamespace();
+    String username = review.getRequest().getUserInfo().getUsername();
 
     switch (review.getRequest().getOperation()) {
       case CREATE:
@@ -106,6 +119,26 @@ public class PostgresConfigValidator implements ClusterValidator {
         if (givenMajorVersionIndex > oldMajorVersionIndex) {
           fail(errorForbiddenUpdateUri,
               "postgres version can not be changed to a previous major version");
+        }
+
+        if (!oldPgVersion.equals(givenPgVersion)
+            && !(
+                StackGresUtil.isLocked(cluster, timeout)
+                && username != null
+                && isServiceAccountUsername(username)
+                && Objects.equals(
+                    StackGresUtil.getLockServiceAccount(cluster),
+                    getServiceAccountFromUsername(username))
+                )) {
+          if (givenMajorVersionIndex < oldMajorVersionIndex) {
+            fail(errorForbiddenUpdateUri,
+                "postgres version can not be changed manually to a new major version. Please,"
+                    + " create an SGDbOps with op==majorVersionUpgrade to perform such operation.");
+          } else {
+            fail(errorForbiddenUpdateUri,
+                "postgres version can not be changed manually to a onother minor version. Please,"
+                    + " create an SGDbOps with op==minorVersionUpgrade to perform such operation.");
+          }
         }
 
         break;

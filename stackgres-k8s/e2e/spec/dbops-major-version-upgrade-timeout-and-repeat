@@ -21,6 +21,9 @@ spec:
   sgCluster: $CLUSTER_NAME
   op: majorVersionUpgrade
   timeout: PT1S
+  majorVersionUpgrade:
+    postgresVersion: "$E2E_MAJOR_TARGET_POSTGRES_VERSION"
+    sgPostgresConfig: postgresconf-for-major-version-upgrade
 EOF
 
   if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops major-version-upgrade \
@@ -60,14 +63,17 @@ EOF
 
 check_major_version_upgrade_repeat() {
     cat << EOF | kubectl create -f -
-  apiVersion: stackgres.io/v1
-  kind: SGDbOps
-  metadata:
-    name: major-version-upgrade
-    namespace: $CLUSTER_NAMESPACE
-  spec:
-    sgCluster: $CLUSTER_NAME
-    op: majorVersionUpgrade
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: major-version-upgrade
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: majorVersionUpgrade
+  majorVersionUpgrade:
+    postgresVersion: "$E2E_MAJOR_TARGET_POSTGRES_VERSION"
+    sgPostgresConfig: postgresconf-for-major-version-upgrade
 EOF
 
   check_major_version_upgrade

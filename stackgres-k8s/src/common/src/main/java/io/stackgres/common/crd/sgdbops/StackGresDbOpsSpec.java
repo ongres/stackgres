@@ -90,17 +90,14 @@ public class StackGresDbOpsSpec implements KubernetesResource {
   @ReferencedField("timeout")
   interface Timeout extends FieldReference { }
 
-  @ReferencedField("maxRetries")
-  interface MaxRetries extends FieldReference { }
-
   @ReferencedField("benchmark")
   interface Benchmark extends FieldReference { }
 
-  @ReferencedField("vacuum")
-  interface Vacuum extends FieldReference { }
+  @ReferencedField("minorVersionUpgrade")
+  interface MinorVersionUpgrade extends FieldReference { }
 
-  @ReferencedField("repack")
-  interface Repack extends FieldReference { }
+  @ReferencedField("majorVersionUpgrade")
+  interface MajorVersionUpgrade extends FieldReference { }
 
   @JsonIgnore
   @AssertTrue(message = "op must be one of benchmark, vacuum, repack,"
@@ -152,6 +149,20 @@ public class StackGresDbOpsSpec implements KubernetesResource {
       payload = Benchmark.class)
   public boolean isBenchmarkSectionProvided() {
     return !Objects.equals(op, "benchmark") || benchmark != null;
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "minorVersionUpgrade section must be provided.",
+      payload = MinorVersionUpgrade.class)
+  public boolean isMinorVersionUpgradeSectionProvided() {
+    return !Objects.equals(op, "minorVersionUpgrade") || minorVersionUpgrade != null;
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "majorVersionUpgrade section must be provided.",
+      payload = MajorVersionUpgrade.class)
+  public boolean isMajorVersionUpgradeSectionProvided() {
+    return !Objects.equals(op, "majorVersionUpgrade") || majorVersionUpgrade != null;
   }
 
   @JsonIgnore

@@ -16,6 +16,12 @@ import io.stackgres.common.StackGresUtil;
 @RegisterForReflection
 public class DbOpsMajorVersionUpgrade {
 
+  @JsonProperty("postgresVersion")
+  private String postgresVersion;
+
+  @JsonProperty("sgPostgresConfig")
+  private String sgPostgresConfig;
+
   @JsonProperty("link")
   private Boolean link;
 
@@ -24,6 +30,22 @@ public class DbOpsMajorVersionUpgrade {
 
   @JsonProperty("check")
   private Boolean check;
+
+  public String getPostgresVersion() {
+    return postgresVersion;
+  }
+
+  public void setPostgresVersion(String postgresVersion) {
+    this.postgresVersion = postgresVersion;
+  }
+
+  public String getSgPostgresConfig() {
+    return sgPostgresConfig;
+  }
+
+  public void setSgPostgresConfig(String sgPostgresConfig) {
+    this.sgPostgresConfig = sgPostgresConfig;
+  }
 
   public Boolean getLink() {
     return link;

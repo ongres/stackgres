@@ -18,6 +18,12 @@ import io.stackgres.common.StackGresUtil;
 @RegisterForReflection
 public class DbOpsMinorVersionUpgradeStatus {
 
+  @JsonProperty("sourcePostgresVersion")
+  private String sourcePostgresVersion;
+
+  @JsonProperty("targetPostgresVersion")
+  private String targetPostgresVersion;
+
   @JsonProperty("primaryInstance")
   private String primaryInstance;
 
@@ -38,6 +44,22 @@ public class DbOpsMinorVersionUpgradeStatus {
 
   @JsonProperty("failure")
   private String failure;
+
+  public String getSourcePostgresVersion() {
+    return sourcePostgresVersion;
+  }
+
+  public void setSourcePostgresVersion(String sourcePostgresVersion) {
+    this.sourcePostgresVersion = sourcePostgresVersion;
+  }
+
+  public String getTargetPostgresVersion() {
+    return targetPostgresVersion;
+  }
+
+  public void setTargetPostgresVersion(String targetPostgresVersion) {
+    this.targetPostgresVersion = targetPostgresVersion;
+  }
 
   public String getPrimaryInstance() {
     return primaryInstance;

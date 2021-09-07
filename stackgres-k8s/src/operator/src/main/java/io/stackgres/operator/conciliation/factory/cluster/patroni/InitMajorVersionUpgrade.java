@@ -73,6 +73,7 @@ public class InitMajorVersionUpgrade implements ContainerFactory<StackGresCluste
             .map(StackGresClusterStatus::getDbOps)
             .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
             .orElseThrow();
+    String postgresVersion = clusterContext.getSource().getSpec().getPostgres().getVersion();
     String primaryInstance = majorVersionUpgradeStatus.getPrimaryInstance();
     String targetVersion = majorVersionUpgradeStatus.getTargetPostgresVersion();
     String sourceVersion = majorVersionUpgradeStatus.getSourcePostgresVersion();
@@ -115,6 +116,10 @@ public class InitMajorVersionUpgrade implements ContainerFactory<StackGresCluste
                 new EnvVarBuilder()
                     .withName("PRIMARY_INSTANCE")
                     .withValue(primaryInstance)
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("POSTGRES_VERSION")
+                    .withValue(postgresVersion)
                     .build(),
                 new EnvVarBuilder()
                     .withName("TARGET_VERSION")

@@ -25,17 +25,29 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsSecurityUpgradeStatus;
 import io.stackgres.jobs.dbops.AbstractRestartStateHandler;
 import io.stackgres.jobs.dbops.ClusterStateHandlerTest;
 import io.stackgres.jobs.dbops.StateHandler;
+import io.stackgres.testutil.JsonUtil;
 
 @QuarkusTest
-class ClusterRestartStateHandlerImplTest extends ClusterStateHandlerTest {
+class SecurityUpgradeStateHandlerImplTest extends ClusterStateHandlerTest {
 
   @Inject
   @StateHandler("securityUpgrade")
-  ClusterRestartStateHandlerImpl restartStateHandler;
+  SecurityUpgradeStateHandlerImpl restartStateHandler;
 
   @Override
   public AbstractRestartStateHandler getRestartStateHandler() {
     return restartStateHandler;
+  }
+
+  @Override
+  protected StackGresDbOps getDbOps() {
+    return JsonUtil.readFromJson("stackgres_dbops/dbops_securityupgrade.json",
+        StackGresDbOps.class);
+  }
+
+  @Override
+  protected String getRestartMethod(StackGresDbOps dbOps) {
+    return dbOps.getSpec().getSecurityUpgrade().getMethod();
   }
 
   @Override
@@ -50,7 +62,9 @@ class ClusterRestartStateHandlerImplTest extends ClusterStateHandlerTest {
         .map(StackGresClusterDbOpsStatus::getSecurityUpgrade);
   }
 
-  public void initializeDbOpsStatus(StackGresDbOps dbOps, List<Pod> pods) {
+  @Override
+  public void initializeDbOpsStatus(StackGresDbOps dbOps, StackGresCluster cluster,
+      List<Pod> pods) {
     final StackGresDbOpsSecurityUpgradeStatus securityUpgrade =
         new StackGresDbOpsSecurityUpgradeStatus();
     securityUpgrade.setInitialInstances(
@@ -62,25 +76,25 @@ class ClusterRestartStateHandlerImplTest extends ClusterStateHandlerTest {
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
             .collect(Collectors.toList()));
-    securityUpgrade.setSwitchoverInitiated(Boolean.FALSE.toString());
+    securityUpgrade.setSwitchoverInitiated(null);
 
     dbOps.getStatus().setSecurityUpgrade(securityUpgrade);
   }
 
   @Override
-  protected void initializeClusterStatus(StackGresCluster cluster, List<Pod> pods) {
-
+  protected void initializeClusterStatus(StackGresDbOps dbOps, StackGresCluster cluster,
+      List<Pod> pods) {
     final StackGresClusterStatus status = new StackGresClusterStatus();
-    final StackGresClusterDbOpsStatus dbOps = new StackGresClusterDbOpsStatus();
-    final StackGresClusterDbOpsSecurityUpgradeStatus securityUpgrade =
+    final StackGresClusterDbOpsStatus dbOpsStatus = new StackGresClusterDbOpsStatus();
+    final StackGresClusterDbOpsSecurityUpgradeStatus securityUpgradeStatus =
         new StackGresClusterDbOpsSecurityUpgradeStatus();
-    securityUpgrade.setInitialInstances(
+    securityUpgradeStatus.setInitialInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
             .collect(Collectors.toList()));
-    securityUpgrade.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
-    dbOps.setSecurityUpgrade(securityUpgrade);
-    status.setDbOps(dbOps);
+    securityUpgradeStatus.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
+    dbOpsStatus.setSecurityUpgrade(securityUpgradeStatus);
+    status.setDbOps(dbOpsStatus);
     cluster.setStatus(status);
 
   }

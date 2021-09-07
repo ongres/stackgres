@@ -8,6 +8,7 @@ package io.stackgres.common.crd.sgdbops;
 import java.util.Objects;
 
 import javax.validation.constraints.AssertTrue;
+import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -26,6 +27,10 @@ import io.stackgres.common.validation.FieldReference.ReferencedField;
 public class StackGresDbOpsMinorVersionUpgrade implements KubernetesResource {
 
   private static final long serialVersionUID = 1L;
+
+  @JsonProperty("postgresVersion")
+  @NotNull
+  private String postgresVersion;
 
   @JsonProperty("method")
   private String method;
@@ -46,6 +51,14 @@ public class StackGresDbOpsMinorVersionUpgrade implements KubernetesResource {
     return Objects.equals(method, "ReducedImpact");
   }
 
+  public String getPostgresVersion() {
+    return postgresVersion;
+  }
+
+  public void setPostgresVersion(String postgresVersion) {
+    this.postgresVersion = postgresVersion;
+  }
+
   public String getMethod() {
     return method;
   }
@@ -56,7 +69,7 @@ public class StackGresDbOpsMinorVersionUpgrade implements KubernetesResource {
 
   @Override
   public int hashCode() {
-    return Objects.hash(method);
+    return Objects.hash(method, postgresVersion);
   }
 
   @Override
@@ -68,7 +81,8 @@ public class StackGresDbOpsMinorVersionUpgrade implements KubernetesResource {
       return false;
     }
     StackGresDbOpsMinorVersionUpgrade other = (StackGresDbOpsMinorVersionUpgrade) obj;
-    return Objects.equals(method, other.method);
+    return Objects.equals(method, other.method)
+        && Objects.equals(postgresVersion, other.postgresVersion);
   }
 
   @Override

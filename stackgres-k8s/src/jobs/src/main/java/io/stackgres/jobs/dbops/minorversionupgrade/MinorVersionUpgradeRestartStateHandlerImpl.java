@@ -12,7 +12,6 @@ import javax.inject.Inject;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.smallrye.mutiny.Uni;
-import io.stackgres.common.crd.sgcluster.ClusterDbOpsRestartStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMinorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
@@ -43,37 +42,65 @@ public class MinorVersionUpgradeRestartStateHandlerImpl extends AbstractRestartS
     return String.format("%d.%d", majorVersion, minorVersion);
   }
 
-  private Uni<String> getTargetPostgresVersion(StackGresCluster cluster) {
-    return Uni.createFrom().item(cluster.getSpec().getPostgres().getVersion());
+  private Uni<String> getTargetPostgresVersion(StackGresDbOps dbOps) {
+    return Uni.createFrom().item(dbOps.getSpec().getMinorVersionUpgrade().getPostgresVersion());
   }
 
   private Uni<String> getSourcePostgresVersion(StackGresCluster cluster) {
     String clusterName = cluster.getMetadata().getName();
     String namespace = cluster.getMetadata().getNamespace();
-    return patroniApi.getMembersPatroniInformation(clusterName, namespace)
-        .onItem().transform(patronis ->
-            patronis.stream()
-                .map(PatroniInformation::getServerVersion)
-                .min(Integer::compareTo)
-                .map(MinorVersionUpgradeRestartStateHandlerImpl::convertToPostgresVersion)
-                .orElseThrow());
+    return Uni.createFrom().item(Optional.ofNullable(cluster.getStatus())
+        .map(StackGresClusterStatus::getDbOps)
+        .map(StackGresClusterDbOpsStatus::getMinorVersionUpgrade)
+        .map(StackGresClusterDbOpsMinorVersionUpgradeStatus::getSourcePostgresVersion))
+        .chain(sourcePostgresVersion -> {
+          if (sourcePostgresVersion.isPresent()) {
+            return Uni.createFrom().item(sourcePostgresVersion.get());
+          } else {
+            return patroniApi.getMembersPatroniInformation(clusterName, namespace)
+                .onItem().transform(patronis -> patronis.stream()
+                    .map(PatroniInformation::getServerVersion)
+                    .min(Integer::compareTo)
+                    .map(MinorVersionUpgradeRestartStateHandlerImpl::convertToPostgresVersion)
+                    .orElseThrow());
+          }
+        });
   }
 
   @Override
-  protected Uni<Void> initRestartStatusValues(
-      ClusterRestartState clusterRestartState, StackGresCluster cluster) {
-    return super.initRestartStatusValues(clusterRestartState, cluster)
+  protected Uni<Void> initClusterDbOpsStatusValues(ClusterRestartState clusterRestartState,
+      StackGresDbOps dbOps, StackGresCluster cluster) {
+    return super.initClusterDbOpsStatusValues(clusterRestartState, dbOps, cluster)
         .chain(ignore -> Uni.combine().all()
                 .unis(
                     getSourcePostgresVersion(cluster),
-                    getTargetPostgresVersion(cluster)
+                    getTargetPostgresVersion(dbOps)
                     ).asTuple()
         )
         .chain(versionTuple -> {
-          StackGresClusterDbOpsMinorVersionUpgradeStatus restartStatus =
+          StackGresClusterDbOpsMinorVersionUpgradeStatus minorVersionUpgradeStatus =
               cluster.getStatus().getDbOps().getMinorVersionUpgrade();
-          restartStatus.setSourcePostgresVersion(versionTuple.getItem1());
-          restartStatus.setTargetPostgresVersion(versionTuple.getItem2());
+          minorVersionUpgradeStatus.setSourcePostgresVersion(versionTuple.getItem1());
+          minorVersionUpgradeStatus.setTargetPostgresVersion(versionTuple.getItem2());
+          return Uni.createFrom().voidItem();
+        });
+  }
+
+  @Override
+  protected Uni<Void> initDbOpsRestartStatusValues(ClusterRestartState clusterRestartState,
+      StackGresDbOps dbOps, StackGresCluster cluster) {
+    return super.initDbOpsRestartStatusValues(clusterRestartState, dbOps, cluster)
+        .chain(ignore -> Uni.combine().all()
+            .unis(
+                getSourcePostgresVersion(cluster),
+                getTargetPostgresVersion(dbOps)
+                ).asTuple()
+            )
+        .chain(versionTuple -> {
+          StackGresDbOpsMinorVersionUpgradeStatus minorVersionUpgradeStatus =
+              dbOps.getStatus().getMinorVersionUpgrade();
+          minorVersionUpgradeStatus.setSourcePostgresVersion(versionTuple.getItem1());
+          minorVersionUpgradeStatus.setTargetPostgresVersion(versionTuple.getItem2());
           return Uni.createFrom().voidItem();
         });
   }
@@ -104,22 +131,23 @@ public class MinorVersionUpgradeRestartStateHandlerImpl extends AbstractRestartS
   }
 
   @Override
-  protected ClusterDbOpsRestartStatus getClusterRestartStatus(StackGresCluster dbOps) {
-    return Optional.ofNullable(dbOps.getStatus())
+  protected StackGresClusterDbOpsMinorVersionUpgradeStatus getClusterRestartStatus(
+      StackGresCluster cluster) {
+    return Optional.ofNullable(cluster.getStatus())
         .map(StackGresClusterStatus::getDbOps)
         .map(StackGresClusterDbOpsStatus::getMinorVersionUpgrade)
         .orElseGet(() -> {
-          if (dbOps.getStatus() == null) {
-            dbOps.setStatus(new StackGresClusterStatus());
+          if (cluster.getStatus() == null) {
+            cluster.setStatus(new StackGresClusterStatus());
           }
-          if (dbOps.getStatus().getDbOps() == null) {
-            dbOps.getStatus().setDbOps(new StackGresClusterDbOpsStatus());
+          if (cluster.getStatus().getDbOps() == null) {
+            cluster.getStatus().setDbOps(new StackGresClusterDbOpsStatus());
           }
-          if (dbOps.getStatus().getDbOps().getMinorVersionUpgrade() == null) {
-            dbOps.getStatus().getDbOps()
+          if (cluster.getStatus().getDbOps().getMinorVersionUpgrade() == null) {
+            cluster.getStatus().getDbOps()
                 .setMinorVersionUpgrade(new StackGresClusterDbOpsMinorVersionUpgradeStatus());
           }
-          return dbOps.getStatus().getDbOps().getMinorVersionUpgrade();
+          return cluster.getStatus().getDbOps().getMinorVersionUpgrade();
         });
   }
 
@@ -140,7 +168,9 @@ public class MinorVersionUpgradeRestartStateHandlerImpl extends AbstractRestartS
         .map(StackGresDbOpsStatus::getMinorVersionUpgrade)
         .filter(status -> status.getPrimaryInstance() != null
             && status.getInitialInstances() != null
-            && !status.getInitialInstances().isEmpty())
+            && !status.getInitialInstances().isEmpty()
+            && status.getSourcePostgresVersion() != null
+            && status.getTargetPostgresVersion() != null)
         .isPresent();
   }
 

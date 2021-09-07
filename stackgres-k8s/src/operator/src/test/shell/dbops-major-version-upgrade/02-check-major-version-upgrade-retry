@@ -16,14 +16,19 @@ mock kubectl kubectl_mock_overwrite
 kubectl_mock_overwrite() {
   mokked
   case "$*" in
-    ("get $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ if .status.dbOps }}{{ if .status.dbOps.$OP_NAME }}true{{ end }}{{ end }}")
+    ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ if .status.dbOps }}{{ if .status.dbOps.$OP_NAME }}true{{ end }}{{ end }}")
     printf true
     ;;
-    ("get $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ .status.dbOps.$OP_NAME.initialInstances }}")
+    ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ .status.dbOps.$OP_NAME.sourcePostgresVersion }}")
+    printf '11.8'
+    ;;
+    ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ .status.dbOps.$OP_NAME.initialInstances }}")
     printf '[test-0 test-1]'
     ;;
-    ("get $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ .status.dbOps.$OP_NAME.primaryInstance }}")
+    ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ .status.dbOps.$OP_NAME.primaryInstance }}")
     printf 'test-0'
+    ;;
+    ("patch $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --type=json -p "*"{\"op\":\"replace\",\"path\":\"/status/dbOps/majorVersionUpgrade"*)
     ;;
     *)
     not_mokked
