@@ -2,7 +2,7 @@
 
 set -e
 
-RESTAPI_IMAGE_NAME="${RESTAPI_IMAGE_NAME:-"stackgres/restapi:development"}"
+RESTAPI_IMAGE_NAME="${RESTAPI_IMAGE_NAME:-"stackgres/restapi:main"}"
 CONTAINER_BASE=$(buildah from "registry.access.redhat.com/ubi8-minimal:8.0")
 TARGET_RESTAPI_IMAGE_NAME="${TARGET_RESTAPI_IMAGE_NAME:-docker-daemon:$RESTAPI_IMAGE_NAME}"
 
