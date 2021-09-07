@@ -65,14 +65,11 @@
                   {{ end }}
                   {{$toc := (and (not .Params.disableToc) (not .Params.chapter))}}
                   <div id="breadcrumbs" itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb">
-                      <span id="sidebar-toggle-span">
-                          <a href="#" id="sidebar-toggle" data-sidebar-toggle="">
-                            <i class="fas fa-bars"></i>
-                          </a>
-                      </span>
-                    <!-- {{ if $toc }}
-                    <span id="toc-menu"><i class="fas fa-list-alt"></i></span>
-                    {{ end }} -->
+                    <span id="sidebar-toggle-span">
+                        <a href="#" id="sidebar-toggle" data-sidebar-toggle="">
+                          <i class="fas fa-bars"></i>
+                        </a>
+                    </span>
                     <span class="links">
                       {{$showBreadcrumb := (and (not .Params.disableBreadcrumb) (not .Site.Params.disableBreadcrumb))}}
                       {{if $showBreadcrumb}}

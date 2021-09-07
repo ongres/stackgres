@@ -58,6 +58,16 @@ function toggleDiv(id) {
     jQuery(id).toggleClass('show')
 }
 
+function toggleToc() {
+
+    let el =  $(event.target).parent();
+
+    if(el.hasClass('active') || el.hasClass('wasActive')){
+        el.toggleClass('active wasActive')
+    }
+
+    el.toggleClass('parent')
+}
 
 // for the window resize
 $(window).resize(function() {
