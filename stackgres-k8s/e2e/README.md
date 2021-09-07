@@ -52,7 +52,7 @@ Some environment variables allow to control how e2e test behave:
 * `E2E_TIMEOUT`: Some operation wait on pods to be running or terminated. This environment variable controls the timeout in seconds of those operations (default: 3 minutes).
 * `E2E_PARALLELISM`: The number of test to run in parallel with `run-all-tests.sh` (default: 8).
 * `K8S_VERSION`: This set the kubernetes cluster version to setup (default: 1.12).
-* `IMAGE_TAG`: The tag of the operator image to use in the e2e test (default: development-jvm).
+* `IMAGE_TAG`: The tag of the operator image to use in the e2e test (default: main-jvm).
 * `E2E_DEBUG_OPERATOR`: Enable operator debug (you must rebuild the operator image for this to work).
 * `E2E_DEBUG_OPERATOR_SUSPEND`: Suspend operator JVM Enable operator debug (you must rebuild the operator image for this to work).
 * `K8S_REUSE`: Kubernetes cluster setup can be very expensive in terms of time. Set this environment variable to true to reuse a kubernetes cluster if already exists.

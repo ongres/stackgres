@@ -407,7 +407,7 @@
                           <arg>/bin/sh</arg>
                           <arg>-exc</arg>
                           <arg>
-                            RESTAPI_IMAGE_NAME="${RESTAPI_IMAGE_NAME:-"stackgres/restapi:development-jvm"}"
+                            RESTAPI_IMAGE_NAME="${RESTAPI_IMAGE_NAME:-"stackgres/restapi:main-jvm"}"
                             CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
                             kind load docker-image --name "$CONTAINER_NAME" "$RESTAPI_IMAGE_NAME" || true
                           </arg>
@@ -468,7 +468,7 @@
                           <arg>/bin/sh</arg>
                           <arg>-exc</arg>
                           <arg>
-                            RESTAPI_IMAGE_NAME="${RESTAPI_IMAGE_NAME:-"stackgres/restapi:development"}"
+                            RESTAPI_IMAGE_NAME="${RESTAPI_IMAGE_NAME:-"stackgres/restapi:main"}"
                             CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
                             kind load docker-image --name "$CONTAINER_NAME" "$RESTAPI_IMAGE_NAME" || true
                           </arg>

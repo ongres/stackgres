@@ -6,7 +6,7 @@ E2E_BUILD_IMAGES="${E2E_BUILD_IMAGES:-false}"
 E2E_INCLUDE_NATIVE="${E2E_INCLUDE_NATIVE:-true}"
 GRAALVM_HOME="${GRAALVM_HOME:-/usr/lib/jvm/graalvm}"
 MATRIX_FORMAT="| %-11s | %-16s | %16s | %-28s | %8s |\n"
-STACKGRES_VERSION="${STACKGRES_VERSION:-development}"
+STACKGRES_VERSION="${STACKGRES_VERSION:-main}"
 SPEC="all"
 ROOT_TARGET_PATH="${TARGET_PATH}"
 
@@ -35,7 +35,7 @@ where:
     
 Environment variables
     STACKGRES_VERSION
-      Indicates which stackgres version to use. Default: development
+      Indicates which stackgres version to use. Default: main
  
     "
     echo "$HELP"

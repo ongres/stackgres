@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
+export IMAGE_TAG="${IMAGE_TAG:-main-jvm}"
 export ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
 export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
 export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"
@@ -717,9 +717,9 @@ get_operator_image_tag() {
     if [ "$CARDINALITY" = "3" ] \
       && [ "$(echo "$VERSION" | tr '.' '\n' | tail -n 1)" != "0" ]
     then
-      echo "development-${VERSION%.*}$SUFFIX"
+      echo "main-${VERSION%.*}$SUFFIX"
     else
-      echo "development$SUFFIX"
+      echo "main$SUFFIX"
     fi
   else
     echo "$VERSION$SUFFIX"

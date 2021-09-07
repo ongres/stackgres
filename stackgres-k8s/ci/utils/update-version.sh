@@ -8,7 +8,7 @@ message_and_exit() {
 }
 
 usage() {
-  message_and_exit "Usage: $0 <version> [<development tag version>]" 1
+  message_and_exit "Usage: $0 <version> [<main tag version>]" 1
 }
 
 yq_update_file() {
@@ -44,7 +44,7 @@ command -v yamllint > /dev/null || message_and_exit 'The program `yamllint` is r
 cd "$(dirname "$0")/../../.."
 
 VERSION="$1"
-DEVELOPMENT_IMAGE_TAG="${2:-development}"
+DEVELOPMENT_IMAGE_TAG="${2:-main}"
 IMAGE_TAG="${VERSION}-jvm"
 if [ "${VERSION##*-}" = "SNAPSHOT" ]
 then

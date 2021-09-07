@@ -2,7 +2,7 @@
 
 set -e
 
-RESTAPI_IMAGE_NAME="${RESTAPI_IMAGE_NAME:-"stackgres/restapi:development-jvm"}"
+RESTAPI_IMAGE_NAME="${RESTAPI_IMAGE_NAME:-"stackgres/restapi:main-jvm"}"
 CONTAINER_BASE=$(buildah from "azul/zulu-openjdk-alpine:8u242-jre")
 TARGET_RESTAPI_IMAGE_NAME="${TARGET_RESTAPI_IMAGE_NAME:-docker-daemon:$RESTAPI_IMAGE_NAME}"
 

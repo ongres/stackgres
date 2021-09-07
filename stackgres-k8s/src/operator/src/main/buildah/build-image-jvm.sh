@@ -2,7 +2,7 @@
 
 set -e
 
-OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME:-"stackgres/operator:development-jvm"}"
+OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME:-"stackgres/operator:main-jvm"}"
 CONTAINER_BASE=$(buildah from "azul/zulu-openjdk-alpine:8u242-jre")
 TARGET_OPERATOR_IMAGE_NAME="${TARGET_OPERATOR_IMAGE_NAME:-docker-daemon:$OPERATOR_IMAGE_NAME}"
 

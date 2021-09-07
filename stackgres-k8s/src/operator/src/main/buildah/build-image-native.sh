@@ -2,7 +2,7 @@
 
 set -e
 
-OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME:-"stackgres/operator:development"}"
+OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME:-"stackgres/operator:main"}"
 CONTAINER_BASE=$(buildah from "registry.access.redhat.com/ubi8-minimal:8.0")
 TARGET_OPERATOR_IMAGE_NAME="${TARGET_OPERATOR_IMAGE_NAME:-docker-daemon:$OPERATOR_IMAGE_NAME}"
 

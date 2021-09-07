@@ -49,7 +49,7 @@ public class ItHelper {
 
   public final static boolean OPERATOR_IN_KUBERNETES = Boolean.parseBoolean(System.getenv("OPERATOR_IN_KUBERNETES"));
   public final static String IMAGE_TAG = Optional.ofNullable(System.getenv("IMAGE_TAG"))
-      .orElse("development-jvm");
+      .orElse("main-jvm");
   public final static Predicate<String> EXCLUDE_TTY_WARNING = line -> !line.equals("stdin: is not a tty");
 
   public static final String E2E_ENV = Optional.ofNullable(System.getenv("E2E_ENV"))
