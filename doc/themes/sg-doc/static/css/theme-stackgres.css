@@ -368,6 +368,13 @@ a.noUnderline {
     text-decoration: none;
 }
 
+.warning {
+    border: 1px solid var(--lOrange);
+    border-radius: 5px;
+    padding: 10px;
+    background: rgb(255 158 23 / 5%);
+}
+
 .bgGradient {
     background: var(--baseGradient);
     color: var(--darkBlue);
@@ -1628,8 +1635,12 @@ code.language-bash {
         background: var(--bgColor);
         z-index: 999;
     }
+
     #sidebar.show {
+        top: 0;
+        padding-top: 100px;
         left: 0;
+        overflow-y: auto;
         transition: left .3s ease-out;
     }
 
@@ -1639,8 +1650,12 @@ code.language-bash {
         margin-top: 5px;
     }
 
-    #sidebar #header-wrapper, #sidebar-toggle-span {
-        display: none;
+    #sidebar-toggle-span, .ps-container>.ps-scrollbar-y-rail, .ps-container>.ps-scrollbar-x-rail, .ps-container>.ps-scrollbar-y-rail>.ps-scrollbar-y, .ps-container>.ps-scrollbar-x-rail>.ps-scrollbar-x {
+        display: none !important;
+    }
+
+    #sidebar > .highlightable {
+        height: auto !important;
     }
 
 }

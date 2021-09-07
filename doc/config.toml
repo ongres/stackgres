@@ -15,6 +15,7 @@ defaultContentLanguageInSubdir = false
   disableNextPrev = true
   themeVariant = "stackgres"
   DisableShortcutsTitle = true
+  isDevVersion = false
 
 [outputs]
 home = [ "HTML", "RSS", "JSON"]
