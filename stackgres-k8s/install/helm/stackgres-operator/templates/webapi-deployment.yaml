@@ -106,7 +106,7 @@ spec:
             readOnly: true
       - name: {{ .Values.adminui.name }}
         image: '{{ .Values.adminui.image.name }}:{{ .Values.adminui.image.tag }}'
-        imagePullPolicy: {{ .Values.adminui.pullPolicy }}
+        imagePullPolicy: {{ .Values.adminui.image.pullPolicy }}
         securityContext:
           runAsNonRoot: true
           runAsUser: 998

@@ -31,8 +31,6 @@ import io.stackgres.operator.conciliation.factory.ResourceFactory;
 @OpJob("minorVersionUpgrade")
 public class DbOpsMinorVersionUpgradeJob implements JobFactory {
 
-  public static final String IMAGE_NAME = "docker.io/stackgres/jobs:%s";
-
   private final ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory;
   private final LabelFactoryForDbOps dbOpsLabelFactory;
 
@@ -71,9 +69,8 @@ public class DbOpsMinorVersionUpgradeJob implements JobFactory {
         .withServiceAccountName(DbOpsRole.roleName(context))
         .withContainers(new ContainerBuilder()
             .withName("minor-version-upgrade")
-            .withImagePullPolicy("IfNotPresent")
-            .withImage(String.format(IMAGE_NAME,
-                StackGresProperty.OPERATOR_IMAGE_VERSION.getString()))
+            .withImagePullPolicy(getPullPolicy())
+            .withImage(getImageName())
             .addToEnv(new EnvVarBuilder()
                     .withName(OperatorProperty.OPERATOR_NAME.getEnvironmentVariableName())
                     .withValue(OperatorProperty.OPERATOR_NAME.getString())

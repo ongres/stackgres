@@ -31,8 +31,6 @@ import io.stackgres.operator.conciliation.factory.ResourceFactory;
 @OpJob("restart")
 public class DbOpsRestartJob implements JobFactory {
 
-  public static final String IMAGE_NAME = "docker.io/stackgres/jobs:%s";
-
   private final LabelFactoryForDbOps dbOpsLabelFactory;
   private final ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory;
 
@@ -71,9 +69,8 @@ public class DbOpsRestartJob implements JobFactory {
         .withServiceAccountName(DbOpsRole.roleName(context))
         .withContainers(new ContainerBuilder()
             .withName("restart")
-            .withImagePullPolicy("IfNotPresent")
-            .withImage(String.format(IMAGE_NAME,
-                StackGresProperty.OPERATOR_IMAGE_VERSION.getString()))
+            .withImagePullPolicy(getPullPolicy())
+            .withImage(getImageName())
             .addToEnv(
                 new EnvVarBuilder()
                     .withName(OperatorProperty.OPERATOR_NAME.getEnvironmentVariableName())

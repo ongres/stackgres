@@ -85,6 +85,8 @@ spec:
             value: "{{ .Values.restapi.name }}"
           - name: SG_CONTAINER_REGISTRY
             value: "{{ .Values.containerRegistry }}"
+          - name: SG_IMAGE_PULL_POLICY
+            value: "{{ .Values.imagePullPolicy }}"
           - name: EXTENSIONS_REPOSITORY_URLS
             value: "{{ range $index, $element := .Values.extensions.repositoryUrls }}{{ if $index }},{{ end }}{{ $element }}{{ end }}"
         ports:
