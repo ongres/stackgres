@@ -199,9 +199,22 @@ EOF
   fi
 
   echo "Setting up calico for kind..."
-  kubectl apply -f https://docs.projectcalico.org/v3.8/manifests/calico.yaml
-  kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
-
+  if [ "$(echo "$K8S_VERSION" | tr . '\n' | xargs -I @ printf '%05d' @)" \
+      -ge "$(echo "1.22.0" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+  then
+    kubectl create -f https://docs.projectcalico.org/archive/v3.20/manifests/tigera-operator.yaml
+    kubectl create -f https://docs.projectcalico.org/archive/v3.20/manifests/custom-resources.yaml
+    until kubectl get node --template '{{ if (index .items 0).spec.podCIDR }}true{{ end }}' | grep -q 'true'
+    do
+      sleep 1
+    done
+    K8S_POD_CIDR="$(kubectl get node --template '{{ (index .items 0).spec.podCIDR }}')"
+    kubectl patch installations.operator.tigera.io default --type json \
+      -p '[{"op":"replace","path":"/spec/calicoNetwork/ipPools/0/cidr","value":"'"$K8S_POD_CIDR"'"}]'
+  else
+    kubectl apply -f https://docs.projectcalico.org/v3.8/manifests/calico.yaml
+    kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
+  fi
   echo "...done"
 }
 
@@ -276,21 +289,43 @@ load_certificate_k8s() {
 }
 
 excluded_namespaces() {
-  echo 'local-path-storage'
-}
-
-excluded_clusterroles() {
-  echo 'local-path-provisioner-role'
-  echo 'calico-.*'
-}
-
-excluded_clusterrolebindings() {
-  echo 'local-path-provisioner-bind'
-  echo 'calico-.*'
+  echo "calico-apiserver"
+  echo "calico-system"
+  echo "default"
+  echo "kube-.*"
+  echo "local-path-storage"
+  echo "tigera-operator"
 }
 
 excluded_customresourcedefinitions() {
-  echo '.*\.crd\.projectcalico\.org'
+  echo ".*\.crd\.projectcalico\.org"
+  echo ".*\.operator\.tigera\.io"
+}
+
+excluded_podsecuritypolicies() {
+  echo "calico-.*"
+  echo "tigera-operator"
+}
+
+excluded_clusterroles() {
+  echo "admin"
+  echo "calico-.*"
+  echo "cluster-admin"
+  echo "edit"
+  echo "kubeadm:.*"
+  echo "local-path-provisioner-role"
+  echo "system:.*"
+  echo "tigera-operator"
+  echo "view"
+}
+
+excluded_clusterrolebindings() {
+  echo "calico-.*"
+  echo "cluster-admin"
+  echo "kubeadm:.*"
+  echo "local-path-provisioner-bind"
+  echo "system:.*"
+  echo "tigera-operator"
 }
 
 get_k8s_versions() {
@@ -313,6 +348,7 @@ get_kind_image() {
 
 get_kind_images() {
   cat << EOF
+v1.22.0@sha256:b8bda84bb3a190e6e028b1760d277454a72267a5454b57db34437c34a588d047
 v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6
 v1.20.7@sha256:cbeaf907fc78ac97ce7b625e4bf0de16e3ea725daf6b04f930bd14c67c671ff9
 v1.19.11@sha256:07db187ae84b4b7de440a73886f008cf903fcf5764ba8106a9fd5243d6f32729
