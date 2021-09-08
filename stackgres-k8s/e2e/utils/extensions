@@ -10,8 +10,9 @@ get_latest_version_of_extension() {
     curl -s -f "$(echo "$EXTENSIONS_REPOSITORY_URL" | sed 's#/\+$##')/index.json" > "$TARGET_PATH/index.json"
   fi
 
-  PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION" \
-    | grep '/patroni:' | grep "/patroni:.*-pg$POSTGRES_VERSION" | sort | tail -n 1)"
+  PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION")"
+  PATRONI_IMAGE="$(printf '%s' "$PATRONI_IMAGE" | grep "/patroni:.*-pg$POSTGRES_VERSION")"
+  PATRONI_IMAGE="$(printf '%s' "$PATRONI_IMAGE" | sort | tail -n 1)"
   PATRONI_IMAGE_TAG="${PATRONI_IMAGE##*:}"
   PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PATRONI_IMAGE##*-pg}"
   PATRONI_IMAGE_POSTGRES_VERSION="${PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"

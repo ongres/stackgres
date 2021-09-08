@@ -188,12 +188,12 @@ public class ExtensionManagerTest {
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))));
     verify(fileSystemHandler, times(0)).createOrReplaceSymbolicLink(any(), any());
     verify(fileSystemHandler, times(2)).copyOrReplace(any(), any());
-    verify(fileSystemHandler, times(1)).copyOrReplace(any(),
+    verify(fileSystemHandler, times(1)).copyOrReplace(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
-            .resolve("test.tgz.sha256")));
-    verify(fileSystemHandler, times(1)).copyOrReplace(any(),
+            .resolve("test.tgz.sha256")), any());
+    verify(fileSystemHandler, times(1)).copyOrReplace(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
-            .resolve("test.tgz")));
+            .resolve("test.tgz")), any());
     verify(fileSystemHandler, times(2)).setPosixFilePermissions(any(), any());
     verify(fileSystemHandler, times(1)).setPosixFilePermissions(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
@@ -210,6 +210,7 @@ public class ExtensionManagerTest {
             PosixFilePermission.GROUP_READ,
             PosixFilePermission.OTHERS_READ)));
     verify(fileSystemHandler, times(0)).deleteIfExists(any());
+    verify(fileSystemHandler, times(0)).identical(any(), any());
   }
 
   @Test
@@ -250,6 +251,7 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(0)).copyOrReplace(any(), any());
     verify(fileSystemHandler, times(0)).setPosixFilePermissions(any(), any());
     verify(fileSystemHandler, times(0)).deleteIfExists(any());
+    verify(fileSystemHandler, times(0)).identical(any(), any());
   }
 
   @Test
@@ -339,18 +341,18 @@ public class ExtensionManagerTest {
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_LIB_PATH.path(context(cluster)))
             .resolve("test.so")));
     verify(fileSystemHandler, times(4)).copyOrReplace(any(), any());
-    verify(fileSystemHandler, times(1)).copyOrReplace(any(),
+    verify(fileSystemHandler, times(1)).copyOrReplace(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
-            .resolve("usr/lib/postgresql/12/lib").resolve("test.so")));
-    verify(fileSystemHandler, times(1)).copyOrReplace(any(),
+            .resolve("usr/lib/postgresql/12/lib").resolve("test.so")), any());
+    verify(fileSystemHandler, times(1)).copyOrReplace(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
-            .resolve("usr/share/postgresql/12/extension").resolve("test.control")));
-    verify(fileSystemHandler, times(1)).copyOrReplace(any(),
+            .resolve("usr/share/postgresql/12/extension").resolve("test.control")), any());
+    verify(fileSystemHandler, times(1)).copyOrReplace(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
-            .resolve("usr/share/postgresql/12/extension").resolve("test.sql")));
-    verify(fileSystemHandler, times(1)).copyOrReplace(any(),
+            .resolve("usr/share/postgresql/12/extension").resolve("test.sql")), any());
+    verify(fileSystemHandler, times(1)).copyOrReplace(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH.path(context(cluster)))
-            .resolve("test.so.1.0")));
+            .resolve("test.so.1.0")), any());
     verify(fileSystemHandler, times(15)).setPosixFilePermissions(any(), any());
     verify(fileSystemHandler, times(1)).setPosixFilePermissions(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
@@ -471,6 +473,7 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(1)).deleteIfExists(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.PENDING_SUFFIX)));
+    verify(fileSystemHandler, times(0)).identical(any(), any());
   }
 
   @Test
@@ -491,7 +494,7 @@ public class ExtensionManagerTest {
                 .thenReturn(false);
     StackGresClusterInstalledExtension extension = getInstalledExtension();
     Assertions.assertFalse(extensionManager.getExtensionInstaller(context(cluster), extension)
-        .doesInstallOverwriteAnySharedLibrary());
+        .doesInstallOverwriteAnySharedFile());
     verify(webClientFactory, times(1)).create(anyBoolean());
     verify(webClient, times(1)).getJson(any(), any());
     verify(webClient, times(1)).getJson(
@@ -508,6 +511,52 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(0)).copyOrReplace(any(), any());
     verify(fileSystemHandler, times(0)).setPosixFilePermissions(any(), any());
     verify(fileSystemHandler, times(0)).deleteIfExists(any());
+    verify(fileSystemHandler, times(0)).identical(any(), any());
+  }
+
+  @Test
+  void testCheckExtensionWillNotOverwriteIdentical() throws Exception {
+    StackGresCluster cluster = getCluster();
+    when(webClientFactory.create(anyBoolean())).thenReturn(webClient);
+    when(webClient.getJson(any(), any())).thenReturn(getExtensions());
+    final String extensionPackageName =
+        ExtensionUtil.getExtensionPackageName(getInstalledExtension());
+    when(fileSystemHandler
+        .newInputStream(
+            eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+                .resolve(extensionPackageName + ExtensionManager.TGZ_SUFFIX))))
+                    .then(invocation -> getClass().getResourceAsStream("/test.tgz"));
+    when(fileSystemHandler
+        .exists(eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+            .resolve("usr/lib/postgresql/12/lib").resolve("test.so"))))
+                .thenReturn(true);
+    when(fileSystemHandler
+        .identical(eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+            .resolve("usr/lib/postgresql/12/lib").resolve("test.so")), any()))
+                .thenReturn(true);
+    StackGresClusterInstalledExtension extension = getInstalledExtension();
+    Assertions.assertFalse(extensionManager.getExtensionInstaller(context(cluster), extension)
+        .doesInstallOverwriteAnySharedFile());
+    verify(webClientFactory, times(1)).create(anyBoolean());
+    verify(webClient, times(1)).getJson(any(), any());
+    verify(webClient, times(1)).getJson(
+        eq(ExtensionUtil.getIndexUri(REPOSITORY)), eq(StackGresExtensions.class));
+    verify(webClient, times(0)).getInputStream(
+        eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, extension, getExtensionMetadata())));
+    verify(fileSystemHandler, times(1)).newInputStream(any());
+    verify(fileSystemHandler, times(1)).newInputStream(
+        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+            .resolve(extensionPackageName + ExtensionManager.TGZ_SUFFIX)));
+    verify(fileSystemHandler, times(0)).createOrReplaceFile(any());
+    verify(fileSystemHandler, times(0)).createDirectories(any());
+    verify(fileSystemHandler, times(0)).createOrReplaceSymbolicLink(any(), any());
+    verify(fileSystemHandler, times(0)).copyOrReplace(any(), any());
+    verify(fileSystemHandler, times(0)).setPosixFilePermissions(any(), any());
+    verify(fileSystemHandler, times(0)).deleteIfExists(any());
+    verify(fileSystemHandler, times(1)).identical(any(), any());
+    verify(fileSystemHandler, times(1)).identical(
+        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+            .resolve("usr/lib/postgresql/12/lib").resolve("test.so")), any());
   }
 
   @Test
@@ -526,9 +575,13 @@ public class ExtensionManagerTest {
         .exists(eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/lib/postgresql/12/lib").resolve("test.so"))))
                 .thenReturn(true);
+    when(fileSystemHandler
+        .identical(eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+            .resolve("usr/lib/postgresql/12/lib").resolve("test.so")), any()))
+                .thenReturn(false);
     StackGresClusterInstalledExtension extension = getInstalledExtension();
     Assertions.assertTrue(extensionManager.getExtensionInstaller(context(cluster), extension)
-        .doesInstallOverwriteAnySharedLibrary());
+        .doesInstallOverwriteAnySharedFile());
     verify(webClientFactory, times(1)).create(anyBoolean());
     verify(webClient, times(1)).getJson(any(), any());
     verify(webClient, times(1)).getJson(
@@ -547,6 +600,10 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(0)).copyOrReplace(any(), any());
     verify(fileSystemHandler, times(0)).setPosixFilePermissions(any(), any());
     verify(fileSystemHandler, times(0)).deleteIfExists(any());
+    verify(fileSystemHandler, times(1)).identical(any(), any());
+    verify(fileSystemHandler, times(1)).identical(
+        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+            .resolve("usr/lib/postgresql/12/lib").resolve("test.so")), any());
   }
 
   @Test
@@ -571,6 +628,7 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(0)).setPosixFilePermissions(
         any(), any());
     verify(fileSystemHandler, times(0)).deleteIfExists(any());
+    verify(fileSystemHandler, times(0)).identical(any(), any());
   }
 
   @Test
@@ -601,6 +659,7 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(0)).setPosixFilePermissions(
         any(), any());
     verify(fileSystemHandler, times(0)).deleteIfExists(any());
+    verify(fileSystemHandler, times(0)).identical(any(), any());
   }
 
   @Test
@@ -630,6 +689,7 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(0)).setPosixFilePermissions(
         any(), any());
     verify(fileSystemHandler, times(0)).deleteIfExists(any());
+    verify(fileSystemHandler, times(0)).identical(any(), any());
   }
 
   @Test
@@ -684,6 +744,7 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(1)).deleteIfExists(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.INSTALLED_SUFFIX)));
+    verify(fileSystemHandler, times(0)).identical(any(), any());
   }
 
 }

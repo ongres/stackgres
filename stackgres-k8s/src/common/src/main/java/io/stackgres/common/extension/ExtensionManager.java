@@ -166,23 +166,23 @@ public abstract class ExtensionManager {
     @SuppressFBWarnings(value = { "UPM_UNCALLED_PRIVATE_METHOD",
         "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE" },
         justification = "False positive")
-    public boolean doesInstallOverwriteAnySharedLibrary() throws Exception {
+    public boolean doesInstallOverwriteAnySharedFile() throws Exception {
       try (
           InputStream extensionPackageInputStream = fileSystemHandler.newInputStream(
               Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
               .resolve(extensionMetadata.getPackageName() + TGZ_SUFFIX));
           InputStream extensionPackageInputStreamUncompressed = new GZIPInputStream(
               extensionPackageInputStream)) {
-        return doesInstallOverwriteAnySharedLibrary(extensionPackageInputStreamUncompressed);
+        return doesInstallOverwriteAnySharedFile(extensionPackageInputStreamUncompressed);
       }
     }
 
     @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
         justification = "False positive")
-    public boolean doesInstallOverwriteAnySharedLibrary(InputStream inputStream) throws Exception {
+    public boolean doesInstallOverwriteAnySharedFile(InputStream inputStream) throws Exception {
       return visitTar(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context)),
           inputStream,
-          ExtensionManager.this::isSharedLibraryOverwrite,
+          ExtensionManager.this::isSharedFileOverwritten,
           false, (prev, next) -> prev || next);
     }
 
@@ -343,13 +343,36 @@ public abstract class ExtensionManager {
 
   @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
       justification = "False positive")
-  private boolean isSharedLibraryOverwrite(TarArchiveInputStream tarEntryInputStream,
+  private boolean isSharedFileOverwritten(TarArchiveInputStream tarEntryInputStream,
       Path targetPath) throws UncheckedIOException {
     if (isScriptOrControlFile(targetPath)) {
       return false;
     }
     final TarArchiveEntry tarEntry = tarEntryInputStream.getCurrentEntry();
-    return tarEntry.isFile() && fileSystemHandler.exists(targetPath);
+    try {
+      final boolean isSharedFileOverwritten = isSharedFileOverwritten(
+          tarEntryInputStream, targetPath, tarEntry);
+      if (isSharedFileOverwritten) {
+        LOGGER.info("{} will be overwritten", targetPath);
+      }
+      return isSharedFileOverwritten;
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }
+
+  private boolean isSharedFileOverwritten(TarArchiveInputStream tarEntryInputStream,
+      Path targetPath, final TarArchiveEntry tarEntry) throws IOException {
+    if (tarEntry.isFile() && fileSystemHandler.exists(targetPath)) {
+      if (tarEntry.isSymbolicLink()) {
+        return !fileSystemHandler.identicalLink(
+            targetPath, Paths.get(tarEntry.getLinkName()));
+      } else {
+        return !fileSystemHandler.identical(
+            targetPath, tarEntryInputStream);
+      }
+    }
+    return false;
   }
 
   @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
@@ -366,7 +389,7 @@ public abstract class ExtensionManager {
         }
       }
       if (tarEntry.isFile() && !tarEntry.isSymbolicLink()) {
-        fileSystemHandler.copyOrReplace(tarEntryInputStream, targetPath);
+        fileSystemHandler.copyOrReplace(targetPath, tarEntryInputStream);
         int fileMode = tarEntry.getMode();
         Set<PosixFilePermission> permissions = parseMode(fileMode);
         fileSystemHandler.setPosixFilePermissions(targetPath, permissions);
