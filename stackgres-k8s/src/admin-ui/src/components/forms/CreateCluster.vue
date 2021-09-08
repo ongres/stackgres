@@ -50,8 +50,8 @@
                     </span>
 
                     <div class="versionContainer">
-                        <label for="spec.postgresVersion">Postgres Version <span class="req">*</span></label>
-                        <ul class="select" id="postgresVersion" data-field="spec.postgresVersion">
+                        <label for="spec.postgres.version">Postgres Version <span class="req">*</span></label>
+                        <ul class="select" id="postgresVersion" data-field="spec.postgres.version">
                             <li class="selected">
                                 {{ (postgresVersion == 'latest') ? 'Latest' : 'Postgres '+postgresVersion }}
                             </li>
@@ -136,9 +136,11 @@
                 <div class="fields">
                     <div class="toolbar">
                         <div class="searchBar">
-                            <input id="keyword" v-model="searchExtension" class="search" placeholder="Search Extension..." autocomplete="off">
+                            <label class="hidden" for="spec.toInstallPostgresExtensions">Postgres Extensions</label>
+                            <input id="keyword" v-model="searchExtension" class="search" placeholder="Search Extension..." autocomplete="off" data-field="spec.toInstallPostgresExtensions">
                             <a @click="clearExtFilters()" class="btn clear border keyword" v-if="searchExtension.length">CLEAR</a>
                         </div>
+                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.toInstallPostgresExtensions')"></a>
                     </div>
                     
                     <div class="extHead">
@@ -570,9 +572,9 @@
                             
                             <fieldset>
                                 <div class="header">
-                                    <h3 for="spec.metadata.annotations.pods">Cluster Pods</h3>
+                                    <h3 for="spec.metadata.annotations.clusterPods">Cluster Pods</h3>
                                     <a class="addRow" @click="pushAnnotation('annotationsPods')">Add Annotation</a>
-                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.metadata.annotations.pods')"></a>    
+                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.metadata.annotations.clusterPods')"></a>    
                                 </div>
                                 <div class="annotation repeater" v-if="annotationsPods.length">
                                     <div class="row" v-for="(field, index) in annotationsPods">
@@ -904,7 +906,7 @@
                                                 <fieldset v-if="preferredAffinityTerm.preference.matchFields.length">
                                                     <div class="section" v-for="(field, fieldIndex) in preferredAffinityTerm.preference.matchFields">
                                                         <div class="header">
-                                                            <h3 for="pec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items">Match Field #{{ fieldIndex + 1 }}</h3>
+                                                            <h3 for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items">Match Field #{{ fieldIndex + 1 }}</h3>
                                                             <a class="addRow" @click="spliceArray(preferredAffinityTerm.preference.matchFields, fieldIndex)">Delete</a>
                                                             <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items')"></a>
                                                         </div>
