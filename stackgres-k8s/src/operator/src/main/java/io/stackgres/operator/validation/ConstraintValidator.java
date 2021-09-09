@@ -13,7 +13,6 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.validation.ConstraintViolation;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Status;
@@ -21,8 +20,6 @@ import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.fabric8.kubernetes.api.model.StatusDetails;
 import io.fabric8.kubernetes.api.model.StatusDetailsBuilder;
 import io.stackgres.common.ErrorType;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -46,22 +43,6 @@ public abstract class ConstraintValidator<T extends AdmissionReview<?>> implemen
     final HasMetadata target = review.getRequest().getObject();
 
     if (target != null) {
-      if (StackGresCluster.KIND.equals(target.getKind())) {
-        try {
-          // Names must not be longer than valid labels.
-          Preconditions.checkArgument(target.getMetadata().getName().length() <= 53,
-              "Valid name must be 53 characters or less");
-          ResourceUtil.resourceName(target.getMetadata().getName());
-        } catch (IllegalArgumentException e) {
-          Status status = new StatusBuilder()
-              .withCode(422)
-              .withMessage(e.getMessage())
-              .withKind(target.getKind())
-              .build();
-          throw new ValidationFailed(status);
-        }
-      }
-
       Set<ConstraintViolation<Object>> violations = constraintValidator.validate(target);
       if (!violations.isEmpty()) {
         StatusDetailsBuilder detailsBuilder = new StatusDetailsBuilder();

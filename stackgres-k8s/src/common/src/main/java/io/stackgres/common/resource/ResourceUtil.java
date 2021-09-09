@@ -40,7 +40,7 @@ public class ResourceUtil {
   public static final BigDecimal LOAD_MULTIPLIER = new BigDecimal(1000);
   public static final BigDecimal KILOBYTE = new BigDecimal(1024);
 
-  private static final Pattern DNS_LABEL_NAME = Pattern.compile("[a-z]([-a-z0-9]*[a-z0-9])?");
+  public static final Pattern DNS_LABEL_NAME = Pattern.compile("[a-z]([-a-z0-9]*[a-z0-9])?");
   private static final Pattern VALID_VALUE =
       Pattern.compile("(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?");
   private static final Pattern PREFIX_PART =
