@@ -33,7 +33,7 @@ ___
 | [majorVersionUpgrade](#major-version-upgrade)         |          |           |         | object  | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade >}} |
 | [restart](#restart)                                   |          |           |         | object  | {{< crd-field-description SGDbOps.spec.restart >}} |
 | [minorVersionUpgrade](#minor-version-upgrade)         |          |           |         | object  | {{< crd-field-description SGDbOps.spec.minorVersionUpgrade >}} |
-| [securityUpgrade](#secutiry-upgrade)                  |          |           |         | object  | {{< crd-field-description SGDbOps.spec.securityUpgrade >}} |
+| [securityUpgrade](#security-upgrade)                  |          |           |         | object  | {{< crd-field-description SGDbOps.spec.securityUpgrade >}} |
 
 **Status**
 
@@ -46,7 +46,7 @@ ___
 | [majorVersionUpgrade](#major-version-upgrade-status)   |          |           |         | object  | {{< crd-field-description SGDbOps.status.majorVersionUpgrade >}} |
 | [restart](#restart-status)                             |          |           |         | object  | {{< crd-field-description SGDbOps.status.restart >}} |
 | [minorVersionUpgrade](#minor-version-upgrade-status)   |          |           |         | object  | {{< crd-field-description SGDbOps.status.minorVersionUpgrade >}} |
-| [securityUpgrade](#secutiry-upgrade-status)            |          |           |         | object  | {{< crd-field-description SGDbOps.status.securityUpgrade >}} |
+| [securityUpgrade](#security-upgrade-status)            |          |           |         | object  | {{< crd-field-description SGDbOps.status.securityUpgrade >}} |
 
 ## Benchmark
 

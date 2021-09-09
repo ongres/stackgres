@@ -108,7 +108,7 @@ status:
 | end                              | string  | {{< crd-field-description SGBackup.status.process.timing.end >}} |
 | stored                           | string  | {{< crd-field-description SGBackup.status.process.timing.stored >}} |
 
-### Backup Intormation
+### Backup Information
 | Property                         | Type    | Description |
 |:---------------------------------|:--------|:------------|
 | hostname (deprecated)            | string  | {{< crd-field-description SGBackup.status.backupInformation.hostname >}} |
@@ -147,10 +147,10 @@ status:
 | Property                                                             | Required               | Updatable | Type   | Default | Description |
 |:---------------------------------------------------------------------|------------------------|-----------|:-------|:--------|:------------|
 | type                                                                 | ✓                      | ✓         | string |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.type >}} |
-| [s3](#s3--amazon-web-services-s3-configuration)                      | if type = s3           | ✓         | object |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.s3 >}} |
-| [s3Compatible](#s3--amazon-web-services-s3-compatible-configuration) | if type = s3Compatible | ✓         | object |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.s3Compatible >}} |
-| [gcs](#gsc--google-cloud-storage-configuration)                      | if type = gcs          | ✓         | object |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.gcs >}} |
-| [azureBlob](#azure--azure-blob-storage-configuration)                | if type = azureblob    | ✓         | object |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.azureBlob >}} |
+| [s3](#s3---amazon-web-services-s3-configuration)                      | if type = s3           | ✓         | object |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.s3 >}} |
+| [s3Compatible](#s3---amazon-web-services-s3-compatible-configuration) | if type = s3Compatible | ✓         | object |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.s3Compatible >}} |
+| [gcs](#gsc---google-cloud-storage-configuration)                      | if type = gcs          | ✓         | object |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.gcs >}} |
+| [azureBlob](#azure---azure-blob-storage-configuration)                | if type = azureblob    | ✓         | object |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.azureBlob >}} |
 
 ## S3
 

@@ -935,6 +935,7 @@ p+h1 {
 #ohpen_swagger_ui .scheme-container {
     width: 20%;
     display: inline-block;
+    box-shadow: none;
 }
 
 #ohpen_swagger_ui .information-container.wrapper .title > span small {
@@ -1065,7 +1066,7 @@ p+h1 {
 }
 
 #ohpen_swagger_ui .swagger-ui .btn.authorize svg {
-    filter: brightness(0.1);
+    filter: brightness(4);
 }
 
 #ohpen_swagger_ui button.btn-clear {
@@ -1096,7 +1097,7 @@ p+h1 {
 }
 
 #ohpen_swagger_ui .model-example ul.tab + div, c .swagger-ui textarea, #ohpen_swagger_ui .opblock-body pre.microlight, #ohpen_swagger_ui .swagger-ui textarea {
-    background: #0a0a0a !important;
+    background: var(--borderColor) !important;
     padding: 1rem;
     border-radius: 4px;
 }
@@ -1106,7 +1107,7 @@ p+h1 {
 }
 
 #ohpen_swagger_ui .swagger-ui .parameters-col_description input[type=text], #ohpen_swagger_ui .swagger-ui .auth-container input[type=text] {
-    background: #0a0a0a;
+    background: var(--bgColor);
     border-color: var(--MENU-SECTION-HR-color);
 }
 
@@ -1169,10 +1170,10 @@ td.col.col_header.response-col_links {
     background: rgba(255,157,0,.025);
 }
 
-#ohpen_swagger_ui .expand-methods svg, #ohpen_swagger_ui .expand-operation svg, #ohpen_swagger_ui .model-toggle:after, #ohpen_swagger_ui section.models h4 svg, #ohpen_swagger_ui select[disabled], #ohpen_swagger_ui textarea[disabled], #ohpen_swagger_ui button.close-modal svg, #ohpen_swagger_ui button.authorization__btn, #ohpen_swagger_ui .response-controls select, #ohpen_swagger_ui .content-type-wrapper select, #ohpen_swagger_ui .swagger-ui .parameters-col_description select {
+/* #ohpen_swagger_ui .expand-methods svg, #ohpen_swagger_ui .expand-operation svg, #ohpen_swagger_ui .model-toggle:after, #ohpen_swagger_ui section.models h4 svg, #ohpen_swagger_ui select[disabled], #ohpen_swagger_ui textarea[disabled], #ohpen_swagger_ui button.close-modal svg, #ohpen_swagger_ui button.authorization__btn, #ohpen_swagger_ui .response-controls select, #ohpen_swagger_ui .content-type-wrapper select, #ohpen_swagger_ui .swagger-ui .parameters-col_description select {
     -webkit-filter: invert(1) brightness(.75);
     filter: invert(1) brightness(.75);
-}
+} */
 
 #ohpen_swagger_ui .response-controls select, #ohpen_swagger_ui .content-type-wrapper select, #ohpen_swagger_ui .swagger-ui .parameters-col_description select {
     padding: 10px;
@@ -1221,8 +1222,8 @@ td.col.col_header.response-col_links {
     padding: 10px 15px !important;
 }
 
-#ohpen_swagger_ui .model table.model {
-    margin-left: 20px;
+#ohpen_swagger_ui .inner-object {
+    padding-left: 20px;
 }
 
 .swagger-ui table.model .renderedMarkdown p {
@@ -1256,7 +1257,7 @@ td.col.col_header.response-col_links {
 .swagger-ui section.models .model-container, .swagger-ui section.models .model-container:first-of-type {
     margin: 15px 0 !important;
     border: 1px solid var(--borderColor);
-    padding: 10px;
+    padding: 10px 15px;
 }
 
 /*Search*/
