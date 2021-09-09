@@ -278,7 +278,7 @@ Holds scheduling configuration for StackGres pods to have.
 | Property                    | Required | Updatable | Type     | Default        | Description |
 |:----------------------------|----------|-----------|:---------|:---------------|:------------|
 | nodeSelector                |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeSelector >}} |
-| [nodeAffinity](#nodeAffinity) |          | ✓         | object    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeAffinity >}} |
+| [nodeAffinity](#node-affinity) |          | ✓         | object    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeAffinity >}} |
 | [tolerations](#tolerations) |          | ✓         | array    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations >}} |
 
 #### Node Affinity
