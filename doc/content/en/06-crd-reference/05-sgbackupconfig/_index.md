@@ -86,10 +86,10 @@ spec:
 | Property                                                             | Required               | Updatable | Type   | Default | Description |
 |:---------------------------------------------------------------------|------------------------|-----------|:-------|:--------|:------------|
 | type                                                                 | ✓                      | ✓         | string |         | {{< crd-field-description SGBackupConfig.spec.storage.type >}} |
-| [s3](#s3--amazon-web-services-s3-configuration)                      | if type = s3           | ✓         | object |         | {{< crd-field-description SGBackupConfig.spec.storage.s3 >}} |
-| [s3Compatible](#s3--amazon-web-services-s3-compatible-configuration) | if type = s3Compatible | ✓         | object |         | {{< crd-field-description SGBackupConfig.spec.storage.s3Compatible >}} |
-| [gcs](#gsc--google-cloud-storage-configuration)                      | if type = gcs          | ✓         | object |         | {{< crd-field-description SGBackupConfig.spec.storage.gcs >}} |
-| [azureBlob](#azure--azure-blob-storage-configuration)                | if type = azureblob    | ✓         | object |         | {{< crd-field-description SGBackupConfig.spec.storage.azureBlob >}} |
+| [s3](#s3---amazon-web-services-s3-configuration)                      | if type = s3           | ✓         | object |         | {{< crd-field-description SGBackupConfig.spec.storage.s3 >}} |
+| [s3Compatible](#s3---amazon-web-services-s3-compatible-configuration) | if type = s3Compatible | ✓         | object |         | {{< crd-field-description SGBackupConfig.spec.storage.s3Compatible >}} |
+| [gcs](#gsc---google-cloud-storage-configuration)                      | if type = gcs          | ✓         | object |         | {{< crd-field-description SGBackupConfig.spec.storage.gcs >}} |
+| [azureBlob](#azure---azure-blob-storage-configuration)                | if type = azureblob    | ✓         | object |         | {{< crd-field-description SGBackupConfig.spec.storage.azureBlob >}} |
 
 ## S3
 
