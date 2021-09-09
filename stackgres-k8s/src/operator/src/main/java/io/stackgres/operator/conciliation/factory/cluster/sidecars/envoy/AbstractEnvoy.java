@@ -52,7 +52,7 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
     VolumeFactory<StackGresClusterContext> {
 
   public static final String SERVICE_MONITOR = "-stackgres-envoy";
-  public static final String SERVICE = "-prometheus-envoy";
+  public static final String SERVICE = "-envoyexp";
 
   public static final String NAME = StackgresClusterContainers.ENVOY;
 

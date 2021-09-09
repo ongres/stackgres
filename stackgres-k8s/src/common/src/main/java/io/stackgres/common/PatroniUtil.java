@@ -20,15 +20,15 @@ public interface PatroniUtil {
   int REPLICATION_SERVICE_PORT = 5433;
 
   static String name(@NotNull String clusterName) {
-    return ResourceUtil.resourceName(clusterName);
+    return ResourceUtil.nameIsValidService(clusterName);
   }
 
   static String readWriteName(@NotNull String clusterName) {
-    return ResourceUtil.resourceName(clusterName + READ_WRITE_SERVICE);
+    return ResourceUtil.nameIsValidService(clusterName + READ_WRITE_SERVICE);
   }
 
   static String readOnlyName(@NotNull String clusterName) {
-    return ResourceUtil.resourceName(clusterName + READ_ONLY_SERVICE);
+    return ResourceUtil.nameIsValidService(clusterName + READ_ONLY_SERVICE);
   }
 
   static String roleName(StackGresCluster cluster) {
@@ -36,7 +36,7 @@ public interface PatroniUtil {
   }
 
   static String roleName(String clusterName) {
-    return ResourceUtil.resourceName(clusterName + SUFFIX);
+    return ResourceUtil.nameIsValidService(clusterName + SUFFIX);
   }
 
 }

@@ -62,7 +62,7 @@ check_grafana_secret() {
 check_exporter_service() {
   local SERVICE
 
-  SERVICE="$CLUSTER_NAME-prometheus-postgres-exporter"
+  SERVICE="$CLUSTER_NAME-pgexp"
 
   if wait_until kubectl get services -n "$CLUSTER_NAMESPACE" $SERVICE
   then
@@ -108,7 +108,7 @@ check_exporter_service_monitor() {
 check_envoy_service() {
   local SERVICE
 
-  SERVICE="$CLUSTER_NAME-prometheus-envoy"
+  SERVICE="$CLUSTER_NAME-envoyexp"
 
   if wait_until kubectl get services -n "$CLUSTER_NAMESPACE" $SERVICE
   then

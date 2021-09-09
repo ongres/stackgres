@@ -54,4 +54,21 @@ public class StringUtils {
     }
     return clusterName;
   }
+
+  @NotNull
+  public static String getRandomClusterName(int size) {
+    String clusterName = sanitize(sanitize(getRandomString(size)));
+    clusterName = clusterName.replaceAll("^\\d", "a");
+    if (clusterName.length() >= size) {
+      return clusterName.substring(0, size - 1);
+    }
+    return clusterName;
+  }
+
+  @NotNull
+  public static String getRandomClusterNameWithExactlySize(int size) {
+    String clusterName = sanitize(sanitize(getRandomString(size)));
+    clusterName = clusterName.replaceAll("^\\d", "a");
+    return clusterName;
+  }
 }

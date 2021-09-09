@@ -77,7 +77,7 @@ public abstract class AbstractPatroniConfigEndpoints
 
   private String configName(StackGresClusterContext context) {
     final String scope = labelFactory.clusterScope(context.getSource());
-    return ResourceUtil.resourceName(scope + PatroniUtil.CONFIG_SERVICE);
+    return ResourceUtil.nameIsValidDnsSubdomain(scope + PatroniUtil.CONFIG_SERVICE);
   }
 
   protected boolean isBackupConfigurationPresent(StackGresClusterContext context) {

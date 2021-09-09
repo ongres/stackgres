@@ -13,8 +13,8 @@
   },
   "spec": {
     "sgCluster": "stackgres",
-    "op": "vacuum",
-    "vacuum": {
+    "op": "minorVersionUpgrade",
+    "minorVersionUpgrade": {
     }
   },
   "status": null

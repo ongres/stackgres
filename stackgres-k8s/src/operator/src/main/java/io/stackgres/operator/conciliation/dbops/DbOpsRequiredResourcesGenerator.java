@@ -6,7 +6,6 @@
 package io.stackgres.operator.conciliation.dbops;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -17,11 +16,8 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
-import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
-import io.stackgres.operator.conciliation.ResourceGenerator;
-import io.stackgres.operator.conciliation.factory.Decorator;
-import io.stackgres.operator.conciliation.factory.DecoratorDiscoverer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,20 +28,16 @@ public class DbOpsRequiredResourcesGenerator
   protected static final Logger LOGGER = LoggerFactory
       .getLogger(DbOpsRequiredResourcesGenerator.class);
 
-  private final ResourceGenerationDiscoverer<StackGresDbOpsContext> generators;
-
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
 
-  private final DecoratorDiscoverer<StackGresDbOpsContext> decoratorDiscoverer;
+  private final RequiredResourceDecorator<StackGresDbOpsContext> decorator;
 
   @Inject
   public DbOpsRequiredResourcesGenerator(
-      ResourceGenerationDiscoverer<StackGresDbOpsContext> generators,
       CustomResourceFinder<StackGresCluster> clusterFinder,
-      DecoratorDiscoverer<StackGresDbOpsContext> decoratorDiscoverer) {
-    this.generators = generators;
+      RequiredResourceDecorator<StackGresDbOpsContext> decorator) {
     this.clusterFinder = clusterFinder;
-    this.decoratorDiscoverer = decoratorDiscoverer;
+    this.decorator = decorator;
   }
 
   @Override
@@ -66,19 +58,7 @@ public class DbOpsRequiredResourcesGenerator
         .cluster(cluster)
         .build();
 
-    final List<ResourceGenerator<StackGresDbOpsContext>> resourceGenerators = generators
-        .getResourceGenerators(context);
-
-    final List<HasMetadata> resources = resourceGenerators
-        .stream().flatMap(generator -> generator.generateResource(context))
-        .collect(Collectors.toUnmodifiableList());
-
-    List<Decorator<StackGresDbOpsContext>> decorators =
-        decoratorDiscoverer.discoverDecorator(context);
-
-    decorators.forEach(decorator -> decorator.decorate(context, resources));
-
-    return resources;
+    return decorator.decorateResources(context);
   }
 
 }

@@ -55,15 +55,16 @@ public interface StackGresUtil {
   String DNS_SERVICE = "svc.cluster.local";
 
   static String statefulSetDataPersistentVolumeName(ClusterContext cluster) {
-    return ResourceUtil.resourceName(cluster.getCluster().getMetadata().getName() + DATA_SUFFIX);
+    return ResourceUtil
+        .nameIsValidService(cluster.getCluster().getMetadata().getName() + DATA_SUFFIX);
   }
 
   static String statefulSetDataPersistentVolumeName(CustomResource<?, ?> cluster) {
-    return ResourceUtil.resourceName(cluster.getMetadata().getName() + DATA_SUFFIX);
+    return ResourceUtil.nameIsValidService(cluster.getMetadata().getName() + DATA_SUFFIX);
   }
 
   static String statefulSetBackupPersistentVolumeName(StackGresCluster cluster) {
-    return ResourceUtil.resourceName(cluster.getMetadata().getName() + BACKUP_SUFFIX);
+    return ResourceUtil.nameIsValidService(cluster.getMetadata().getName() + BACKUP_SUFFIX);
   }
 
   /**
@@ -289,8 +290,8 @@ public interface StackGresUtil {
     long timedOutLock = currentTimeSeconds - lockTimeoutMillis;
     return Optional.ofNullable(resource.getMetadata())
         .map(ObjectMeta::getAnnotations)
-        .filter(annotation ->
-            annotation.containsKey(LOCK_POD_KEY) && annotation.containsKey(LOCK_TIMESTAMP_KEY))
+        .filter(annotation -> annotation.containsKey(LOCK_POD_KEY)
+            && annotation.containsKey(LOCK_TIMESTAMP_KEY))
         .map(annotations -> Long.parseLong(annotations.get(LOCK_TIMESTAMP_KEY)))
         .map(lockTimestamp -> lockTimestamp > timedOutLock)
         .orElse(false);
@@ -299,8 +300,8 @@ public interface StackGresUtil {
   static boolean isLockedByMe(HasMetadata resource, String lockPodName) {
     return Optional.ofNullable(resource.getMetadata())
         .map(ObjectMeta::getAnnotations)
-        .filter(annotation ->
-            annotation.containsKey(LOCK_POD_KEY) && annotation.containsKey(LOCK_TIMESTAMP_KEY))
+        .filter(annotation -> annotation.containsKey(LOCK_POD_KEY)
+            && annotation.containsKey(LOCK_TIMESTAMP_KEY))
         .map(annotation -> annotation.get(LOCK_POD_KEY).equals(lockPodName))
         .orElse(false);
   }
