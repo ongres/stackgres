@@ -9,6 +9,9 @@ traceable_setup_logs() {
   then
     return
   fi
+  echo "Recording resources"
+  resource_watch --log-in-files > "$TARGET_PATH/all_resources.log" 2>/dev/null &
+  trap_kill "$!"
   echo "Recording pods logs"
   pod_logs --log-in-files > "$TARGET_PATH/all_pods.log" 2>/dev/null &
   trap_kill "$!"

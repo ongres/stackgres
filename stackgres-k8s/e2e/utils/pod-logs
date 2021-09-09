@@ -3,6 +3,7 @@
 pod_logs() {
   local FILTERED_POD
   local FILTERED_CONTAINER
+  local POD
   local CONTAINER
   local NAMESPACE
   local OWNER_KIND
@@ -22,7 +23,7 @@ pod_logs() {
         FILTERED_POD="$1"
         shift
         ;;
-      -c|--CONTAINER)
+      -c|--container)
         shift
         FILTERED_CONTAINER="$1"
         shift
@@ -47,7 +48,7 @@ pod_logs() {
         ;;
     esac
   done
-  [ -f "$PODS_FILE" ] || rm -f "$PODS_FILE"
+  rm -f "$PODS_FILE"
   trap_exec kubectl get pod $(if [ -z "$NAMESPACE" ]; then echo '--all-namespaces'; else echo '-n '"$NAMESPACE"; fi) -o json --watch \
     | jq --unbuffered -r '.metadata as $metadata
         | [.status.containerStatuses,.status.initContainerStatuses][]

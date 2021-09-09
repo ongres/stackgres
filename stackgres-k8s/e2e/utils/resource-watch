@@ -1,0 +1,89 @@
+#!/bin/sh
+
+resource_watch() {
+  local FILTERED_KIND
+  local FILTERED_NAME
+  local KIND
+  local NAMESPACE
+  local OWNER_KIND
+  local RESOURCES_FILE="$TARGET_PATH/resource-watch-$(shuf -i 0-65535 -n 1)"
+  local LOG_IN_FILES=false
+  local LOG_IN_PATH="$TARGET_PATH/resource-watch"
+  local KINDS
+  local PID
+  local PIDS
+  FILTERED_KIND="^\(bindings\|componentstatuses"
+  FILTERED_KIND="$FILTERED_KIND\|localsubjectaccessreviews\.authorization\.k8s\.io"
+  FILTERED_KIND="$FILTERED_KIND\|selfsubjectaccessreviews\.authorization\.k8s\.io"
+  FILTERED_KIND="$FILTERED_KIND\|selfsubjectrulesreviews\.authorization\.k8s\.io"
+  FILTERED_KIND="$FILTERED_KIND\|subjectaccessreviews\.authorization\.k8s\.io"
+  FILTERED_KIND="$FILTERED_KIND\|tokenreviews\.authentication\.k8s\.io"
+  while [ "$#" -gt 0 ]
+  do
+    case "$1" in
+      -n|--namespace)
+        shift
+        NAMESPACE="$1"
+        shift
+        ;;
+      -k|--kind)
+        shift
+        FILTERED_KIND="$FILTERED_KIND\|$1"
+        shift
+        ;;
+      --name)
+        shift
+        FILTERED_NAME="$1"
+        shift
+        ;;
+      -F|--log-in-files)
+        shift
+        LOG_IN_FILES=true
+        ;;
+      -P|--log-in-path)
+        shift
+        LOG_IN_PATH="$1"
+        shift
+        ;;
+      *)
+        echo >&2 "Unknown parameter $1 (use: --namespace <namespace>; --kind <kind>; --name <name>)"
+        return 1
+        ;;
+    esac
+  done
+  rm -f "$RESOURCES_FILE"
+  FILTERED_KIND="$FILTERED_KIND\)$"
+  KINDS="$(kubectl api-resources -o name 2>/dev/null| grep -v "$FILTERED_KIND")"
+  for KIND in $KINDS
+  do
+    echo "Start watching $KIND..."
+    local JQ_QUERY=.
+    if [ -n "$FILTERED_NAME" ]
+    then
+      JQ_QUERY="$JQ_QUERY|select(.metadata.name|test($FILTERED_NAME))"
+    fi
+    trap_exec kubectl get "$KIND" $(if [ -z "$NAMESPACE" ]; then echo '--all-namespaces'; else echo '-n '"$NAMESPACE"; fi) -o json --watch-only \
+      | jq --unbuffered -c "$JQ_QUERY|@base64" \
+      | (
+        set +x
+        while IFS="$(printf '\n')" read RESOURCE
+        do
+          ID="$(echo "$RESOURCE" | jq -r '@base64d' | jq -r '.metadata.namespace + ":" + .metadata.name')"
+          NAMESPACE="${ID%:*}"
+          NAME="${ID#*:}"
+          if "$LOG_IN_FILES"
+          then
+            mkdir -p "$LOG_IN_PATH/$NAMESPACE/$KIND"
+            echo "$RESOURCE" | jq -r '@base64d' | jq . >> "$LOG_IN_PATH/$NAMESPACE/$KIND/$NAME.log" || true
+          else
+            echo "$RESOURCE" | jq -r '@base64d' | jq . || true
+          fi
+        done
+        ) &
+    PIDS="$PIDS $!"
+  done
+  for PID in $PIDS
+  do
+    wait "$PID" || true
+  done
+}
