@@ -35,7 +35,7 @@ e2e_test_install() {
     --set instanceProfiles=null \
     --set cluster.configurations.sgPostgresConfig=postgresconf-for-major-version-upgrade \
     --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-major-version-upgrade \
-    --set-string cluster.postgres.version="$E2E_MAJOR_TARGET_POSTGRES_VERSION"
+    --set-string cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION"
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
@@ -47,7 +47,7 @@ spec:
   sgCluster: $CLUSTER_NAME
   op: majorVersionUpgrade
   majorVersionUpgrade:
-    postgresVersion: "$E2E_MAJOR_SOURCE_POSTGRES_VERSION"
+    postgresVersion: "$E2E_MAJOR_TARGET_POSTGRES_VERSION"
     sgPostgresConfig: postgresconf-for-major-version-upgrade
 EOF
 
