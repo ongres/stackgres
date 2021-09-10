@@ -287,8 +287,8 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("postgres version can not be changed manually to a new major version."
-        + " Please, create an SGDbOps with op==majorVersionUpgrade to perform such operation.",
+    assertEquals("to upgrade a major Postgres version, please create an SGDbOps operation"
+        + " with \"op: majorVersionUpgrade\" and the target postgres version.",
         resultMessage);
   }
 
@@ -339,8 +339,8 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("postgres version can not be changed manually to a onother minor version."
-        + " Please, create an SGDbOps with op==minorVersionUpgrade to perform such operation.",
+    assertEquals("to upgrade a minor Postgres version, please create an SGDbOps operation"
+        + " with \"op: minorVersionUpgrade\" and the target postgres version.",
         resultMessage);
   }
 

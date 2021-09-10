@@ -132,12 +132,12 @@ public class PostgresConfigValidator implements ClusterValidator {
                 )) {
           if (givenMajorVersionIndex < oldMajorVersionIndex) {
             fail(errorForbiddenUpdateUri,
-                "postgres version can not be changed manually to a new major version. Please,"
-                    + " create an SGDbOps with op==majorVersionUpgrade to perform such operation.");
+                "to upgrade a major Postgres version, please create an SGDbOps operation"
+                    + " with \"op: majorVersionUpgrade\" and the target postgres version.");
           } else {
             fail(errorForbiddenUpdateUri,
-                "postgres version can not be changed manually to a onother minor version. Please,"
-                    + " create an SGDbOps with op==minorVersionUpgrade to perform such operation.");
+                "to upgrade a minor Postgres version, please create an SGDbOps operation"
+                    + " with \"op: minorVersionUpgrade\" and the target postgres version.");
           }
         }
 
