@@ -136,11 +136,11 @@
                 <div class="fields">
                     <div class="toolbar">
                         <div class="searchBar">
-                            <label class="hidden" for="spec.toInstallPostgresExtensions">Postgres Extensions</label>
-                            <input id="keyword" v-model="searchExtension" class="search" placeholder="Search Extension..." autocomplete="off" data-field="spec.toInstallPostgresExtensions">
+                            <label class="hidden" for="spec.postgres.extensions">Postgres Extensions</label>
+                            <input id="keyword" v-model="searchExtension" class="search" placeholder="Search Extension..." autocomplete="off" data-field="spec.postgres.extensions">
                             <a @click="clearExtFilters()" class="btn clear border keyword" v-if="searchExtension.length">CLEAR</a>
                         </div>
-                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.toInstallPostgresExtensions')"></a>
+                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgres.extensions')"></a>
                     </div>
                     
                     <div class="extHead">
