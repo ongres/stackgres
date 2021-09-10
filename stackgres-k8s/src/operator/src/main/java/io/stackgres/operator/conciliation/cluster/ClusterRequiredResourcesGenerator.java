@@ -37,11 +37,8 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.common.Prometheus;
+import io.stackgres.operator.conciliation.DecorateResource;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
-import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
-import io.stackgres.operator.conciliation.ResourceGenerator;
-import io.stackgres.operator.conciliation.factory.Decorator;
-import io.stackgres.operator.conciliation.factory.DecoratorDiscoverer;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfigSpec;
@@ -57,8 +54,6 @@ public class ClusterRequiredResourcesGenerator
   protected static final Logger LOGGER = LoggerFactory
       .getLogger(ClusterRequiredResourcesGenerator.class);
 
-  private final ResourceGenerationDiscoverer<StackGresClusterContext> generators;
-
   private final CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
 
   private final CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
@@ -71,34 +66,32 @@ public class ClusterRequiredResourcesGenerator
 
   private final ResourceFinder<Secret> secretFinder;
 
-  private final DecoratorDiscoverer<StackGresClusterContext> decoratorDiscoverer;
-
   private final CustomResourceScanner<PrometheusConfig> prometheusScanner;
 
   private final OperatorPropertyContext operatorContext;
 
+  private final DecorateResource<StackGresClusterContext> decorator;
+
   @Inject
   public ClusterRequiredResourcesGenerator(
-      ResourceGenerationDiscoverer<StackGresClusterContext> generators,
       CustomResourceFinder<StackGresBackupConfig> backupConfigFinder,
       CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder,
       CustomResourceFinder<StackGresPoolingConfig> poolingConfigFinder,
       CustomResourceFinder<StackGresProfile> profileFinder,
       CustomResourceScanner<StackGresBackup> backupScanner,
       ResourceFinder<Secret> secretFinder,
-      DecoratorDiscoverer<StackGresClusterContext> decoratorDiscoverer,
       CustomResourceScanner<PrometheusConfig> prometheusScanner,
-      OperatorPropertyContext operatorContext) {
-    this.generators = generators;
+      OperatorPropertyContext operatorContext,
+      DecorateResource<StackGresClusterContext> decorator) {
     this.backupConfigFinder = backupConfigFinder;
     this.postgresConfigFinder = postgresConfigFinder;
     this.poolingConfigFinder = poolingConfigFinder;
     this.profileFinder = profileFinder;
     this.backupScanner = backupScanner;
     this.secretFinder = secretFinder;
-    this.decoratorDiscoverer = decoratorDiscoverer;
     this.prometheusScanner = prometheusScanner;
     this.operatorContext = operatorContext;
+    this.decorator = decorator;
   }
 
   private static PrometheusInstallation toPrometheusInstallation(PrometheusConfig pc) {
@@ -163,7 +156,7 @@ public class ClusterRequiredResourcesGenerator
               Preconditions.checkNotNull(backup.getStatus().getProcess(),
                   "Backup is " + BackupPhase.RUNNING.label());
               Preconditions.checkArgument(backup.getStatus().getProcess().getStatus()
-                      .equals(BackupPhase.COMPLETED.label()),
+                  .equals(BackupPhase.COMPLETED.label()),
                   "Backup is " + backup.getStatus().getProcess().getStatus());
             }).findFirst().orElseThrow(() -> new IllegalArgumentException(
                 "SGCluster " + clusterNamespace + "/" + clusterName
@@ -183,19 +176,7 @@ public class ClusterRequiredResourcesGenerator
         .databaseCredentials(secretFinder.findByNameAndNamespace(clusterName, clusterNamespace))
         .build();
 
-    final List<ResourceGenerator<StackGresClusterContext>> resourceGenerators = generators
-        .getResourceGenerators(context);
-
-    final List<HasMetadata> resources = resourceGenerators
-        .stream().flatMap(generator -> generator.generateResource(context))
-        .collect(Collectors.toUnmodifiableList());
-
-    List<Decorator<StackGresClusterContext>> decorators =
-        decoratorDiscoverer.discoverDecorator(context);
-
-    decorators.forEach(decorator -> decorator.decorate(context, resources));
-
-    return resources;
+    return decorator.decorateResources(context);
   }
 
   private StackGresClusterScriptEntry getPostgresExporterInitScript() {
