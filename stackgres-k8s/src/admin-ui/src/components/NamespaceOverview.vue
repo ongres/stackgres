@@ -47,9 +47,7 @@
                                         </span>
                                     </td>
                                     <td class="icon invisible">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" target="_blank">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 13" width="15px"><g fill="#36A8FF"><path d="M.001 6.5c0-.2.1-.4.2-.5l5.6-5.7c.3-.3.8-.3 1.1 0l2.8 2.9c.3.3.3.8 0 1.1-.3.3-.8.3-1 0L6.401 2l-4.6 4.7 4.6 4.7 2.3-2.3c.3-.3.8-.3 1.1 0 .3.3.3.8 0 1.1l-2.8 2.9c-.3.3-.8.3-1.1 0l-5.6-5.7c-.2-.5-.3-.7-.3-.9z"/><path d="m12.001 9.9 2.8-2.9c.3-.3.3-.8 0-1.1l-2.8-2.9c-.3-.3-.8-.3-1.1 0-.3.3-.3.8 0 1.1l1.5 1.6h-5.3c-.4 0-.8.3-.8.8 0 .4.3.8.8.8h5.3l-1.5 1.6c-.3.3-.3.8 0 1.1.3.2.8.2 1.1-.1z"/></g></svg>
-                                        </router-link>
+                                        <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" target="_blank"></router-link>
                                     </td>
                                 </tr>
                             </template>
@@ -95,9 +93,7 @@
                                         </span>
                                     </td>
                                     <td class="icon invisible">
-                                        <router-link :to="'/' + $route.params.namespace + '/sginstanceprofile/' + profile.name" title="Instance Profile Details" target="_blank">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 13" width="15px"><g fill="#36A8FF"><path d="M.001 6.5c0-.2.1-.4.2-.5l5.6-5.7c.3-.3.8-.3 1.1 0l2.8 2.9c.3.3.3.8 0 1.1-.3.3-.8.3-1 0L6.401 2l-4.6 4.7 4.6 4.7 2.3-2.3c.3-.3.8-.3 1.1 0 .3.3.3.8 0 1.1l-2.8 2.9c-.3.3-.8.3-1.1 0l-5.6-5.7c-.2-.5-.3-.7-.3-.9z"/><path d="m12.001 9.9 2.8-2.9c.3-.3.3-.8 0-1.1l-2.8-2.9c-.3-.3-.8-.3-1.1 0-.3.3-.3.8 0 1.1l1.5 1.6h-5.3c-.4 0-.8.3-.8.8 0 .4.3.8.8.8h5.3l-1.5 1.6c-.3.3-.3.8 0 1.1.3.2.8.2 1.1-.1z"/></g></svg>
-                                        </router-link>
+                                        <router-link :to="'/' + $route.params.namespace + '/sginstanceprofile/' + profile.name" title="Instance Profile Details" target="_blank"></router-link>
                                     </td>
                                 </tr>
                             </template>
@@ -143,9 +139,7 @@
                                         </span>
                                     </td>
                                     <td class="icon invisible">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgpgconfig/' + pgconfig.name" title="Postgres Configuration Details" target="_blank">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 13" width="15px"><g fill="#36A8FF"><path d="M.001 6.5c0-.2.1-.4.2-.5l5.6-5.7c.3-.3.8-.3 1.1 0l2.8 2.9c.3.3.3.8 0 1.1-.3.3-.8.3-1 0L6.401 2l-4.6 4.7 4.6 4.7 2.3-2.3c.3-.3.8-.3 1.1 0 .3.3.3.8 0 1.1l-2.8 2.9c-.3.3-.8.3-1.1 0l-5.6-5.7c-.2-.5-.3-.7-.3-.9z"/><path d="m12.001 9.9 2.8-2.9c.3-.3.3-.8 0-1.1l-2.8-2.9c-.3-.3-.8-.3-1.1 0-.3.3-.3.8 0 1.1l1.5 1.6h-5.3c-.4 0-.8.3-.8.8 0 .4.3.8.8.8h5.3l-1.5 1.6c-.3.3-.3.8 0 1.1.3.2.8.2 1.1-.1z"/></g></svg>
-                                        </router-link>
+                                        <router-link :to="'/' + $route.params.namespace + '/sgpgconfig/' + pgconfig.name" title="Postgres Configuration Details" target="_blank"></router-link>
                                     </td>
                                 </tr>
                             </template>
@@ -191,9 +185,7 @@
                                         </span>
                                     </td>
                                     <td class="icon invisible">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgpoolconfig/' + poolconfig.name" title="Pooling Configuration Details" target="_blank">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 13" width="15px"><g fill="#36A8FF"><path d="M.001 6.5c0-.2.1-.4.2-.5l5.6-5.7c.3-.3.8-.3 1.1 0l2.8 2.9c.3.3.3.8 0 1.1-.3.3-.8.3-1 0L6.401 2l-4.6 4.7 4.6 4.7 2.3-2.3c.3-.3.8-.3 1.1 0 .3.3.3.8 0 1.1l-2.8 2.9c-.3.3-.8.3-1.1 0l-5.6-5.7c-.2-.5-.3-.7-.3-.9z"/><path d="m12.001 9.9 2.8-2.9c.3-.3.3-.8 0-1.1l-2.8-2.9c-.3-.3-.8-.3-1.1 0-.3.3-.3.8 0 1.1l1.5 1.6h-5.3c-.4 0-.8.3-.8.8 0 .4.3.8.8.8h5.3l-1.5 1.6c-.3.3-.3.8 0 1.1.3.2.8.2 1.1-.1z"/></g></svg>
-                                        </router-link>
+                                        <router-link :to="'/' + $route.params.namespace + '/sgpoolconfig/' + poolconfig.name" title="Pooling Configuration Details" target="_blank"></router-link>
                                     </td>
                                 </tr>
                             </template>
@@ -239,9 +231,7 @@
                                         </span>
                                     </td>
                                     <td class="icon invisible">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgbackupconfig/' + backupconfig.name" title="Backup Configuration Details" target="_blank">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 13" width="15px"><g fill="#36A8FF"><path d="M.001 6.5c0-.2.1-.4.2-.5l5.6-5.7c.3-.3.8-.3 1.1 0l2.8 2.9c.3.3.3.8 0 1.1-.3.3-.8.3-1 0L6.401 2l-4.6 4.7 4.6 4.7 2.3-2.3c.3-.3.8-.3 1.1 0 .3.3.3.8 0 1.1l-2.8 2.9c-.3.3-.8.3-1.1 0l-5.6-5.7c-.2-.5-.3-.7-.3-.9z"/><path d="m12.001 9.9 2.8-2.9c.3-.3.3-.8 0-1.1l-2.8-2.9c-.3-.3-.8-.3-1.1 0-.3.3-.3.8 0 1.1l1.5 1.6h-5.3c-.4 0-.8.3-.8.8 0 .4.3.8.8.8h5.3l-1.5 1.6c-.3.3-.3.8 0 1.1.3.2.8.2 1.1-.1z"/></g></svg>
-                                        </router-link>
+                                        <router-link :to="'/' + $route.params.namespace + '/sgbackupconfig/' + backupconfig.name" title="Backup Configuration Details" target="_blank"></router-link>
                                     </td>
                                 </tr>
                             </template>
@@ -287,9 +277,7 @@
                                         </span>
                                     </td>
                                     <td class="icon invisible">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + logsserver.name" title="Logs Server Details" target="_blank">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 13" width="15px"><g fill="#36A8FF"><path d="M.001 6.5c0-.2.1-.4.2-.5l5.6-5.7c.3-.3.8-.3 1.1 0l2.8 2.9c.3.3.3.8 0 1.1-.3.3-.8.3-1 0L6.401 2l-4.6 4.7 4.6 4.7 2.3-2.3c.3-.3.8-.3 1.1 0 .3.3.3.8 0 1.1l-2.8 2.9c-.3.3-.8.3-1.1 0l-5.6-5.7c-.2-.5-.3-.7-.3-.9z"/><path d="m12.001 9.9 2.8-2.9c.3-.3.3-.8 0-1.1l-2.8-2.9c-.3-.3-.8-.3-1.1 0-.3.3-.3.8 0 1.1l1.5 1.6h-5.3c-.4 0-.8.3-.8.8 0 .4.3.8.8.8h5.3l-1.5 1.6c-.3.3-.3.8 0 1.1.3.2.8.2 1.1-.1z"/></g></svg>
-                                        </router-link>
+                                        <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + logsserver.name" title="Logs Server Details" target="_blank"></router-link>
                                     </td>
                                 </tr>
                             </template>
@@ -336,9 +324,7 @@
                                         </span>
                                     </td>
                                     <td class="icon invisible">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgbackup/' + backup.data.metadata.uid" title="Backup Details" target="_blank">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 13" width="15px"><g fill="#36A8FF"><path d="M.001 6.5c0-.2.1-.4.2-.5l5.6-5.7c.3-.3.8-.3 1.1 0l2.8 2.9c.3.3.3.8 0 1.1-.3.3-.8.3-1 0L6.401 2l-4.6 4.7 4.6 4.7 2.3-2.3c.3-.3.8-.3 1.1 0 .3.3.3.8 0 1.1l-2.8 2.9c-.3.3-.8.3-1.1 0l-5.6-5.7c-.2-.5-.3-.7-.3-.9z"/><path d="m12.001 9.9 2.8-2.9c.3-.3.3-.8 0-1.1l-2.8-2.9c-.3-.3-.8-.3-1.1 0-.3.3-.3.8 0 1.1l1.5 1.6h-5.3c-.4 0-.8.3-.8.8 0 .4.3.8.8.8h5.3l-1.5 1.6c-.3.3-.3.8 0 1.1.3.2.8.2 1.1-.1z"/></g></svg>
-                                        </router-link>
+                                        <router-link :to="'/' + $route.params.namespace + '/sgbackup/' + backup.data.metadata.uid" title="Backup Details" target="_blank"></router-link>
                                     </td>
                                 </tr>
                             </template>
@@ -386,9 +372,7 @@
                                         </span>
                                     </td>
                                     <td class="icon invisible">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.name" title="Database Operation Details" target="_blank">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 13" width="15px"><g fill="#36A8FF"><path d="M.001 6.5c0-.2.1-.4.2-.5l5.6-5.7c.3-.3.8-.3 1.1 0l2.8 2.9c.3.3.3.8 0 1.1-.3.3-.8.3-1 0L6.401 2l-4.6 4.7 4.6 4.7 2.3-2.3c.3-.3.8-.3 1.1 0 .3.3.3.8 0 1.1l-2.8 2.9c-.3.3-.8.3-1.1 0l-5.6-5.7c-.2-.5-.3-.7-.3-.9z"/><path d="m12.001 9.9 2.8-2.9c.3-.3.3-.8 0-1.1l-2.8-2.9c-.3-.3-.8-.3-1.1 0-.3.3-.3.8 0 1.1l1.5 1.6h-5.3c-.4 0-.8.3-.8.8 0 .4.3.8.8.8h5.3l-1.5 1.6c-.3.3-.3.8 0 1.1.3.2.8.2 1.1-.1z"/></g></svg>
-                                        </router-link>
+                                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.name" title="Database Operation Details" target="_blank"></router-link>
                                     </td>
                                 </tr>
                             </template>
