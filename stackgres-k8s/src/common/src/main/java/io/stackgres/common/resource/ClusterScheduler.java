@@ -29,7 +29,7 @@ public class ClusterScheduler extends
 
   @Override
   public StackGresCluster update(StackGresCluster resource) {
-    return client.customResources(StackGresCluster.class, StackGresClusterList.class)
+    return client.resources(StackGresCluster.class, StackGresClusterList.class)
         .inNamespace(resource.getMetadata().getNamespace())
         .withName(resource.getMetadata().getName())
         .lockResourceVersion(resource.getMetadata().getResourceVersion())

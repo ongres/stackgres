@@ -63,7 +63,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
     cluster.getMetadata().setNamespace("test");
     cluster.getMetadata().setName(StringUtils.getRandomClusterName());
     cluster.getSpec().setConfiguration(new StackGresClusterConfiguration());
-    mockServer.getClient().customResources(
+    mockServer.getClient().resources(
         StackGresCluster.class,
         StackGresClusterList.class)
         .inNamespace(cluster.getMetadata().getNamespace())
@@ -104,7 +104,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
   void tearDown() {
     mockServer.getClient().secrets().inNamespace("test").delete();
     mockServer.getClient().configMaps().inNamespace("test").delete();
-    mockServer.getClient().customResources(
+    mockServer.getClient().resources(
         StackGresCluster.class,
         StackGresClusterList.class)
         .inNamespace(cluster.getMetadata().getNamespace())

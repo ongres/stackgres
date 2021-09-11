@@ -36,7 +36,7 @@ public abstract class AbstractCustomResourceFinder<T extends CustomResource<?, ?
    */
   @Override
   public Optional<T> findByNameAndNamespace(String name, String namespace) {
-    return Optional.ofNullable(client.customResources(
+    return Optional.ofNullable(client.resources(
         customResourceClass, customResourceListClass)
         .inNamespace(namespace)
         .withName(name)

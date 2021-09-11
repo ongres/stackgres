@@ -71,7 +71,7 @@ public interface ReconciliationOperations {
         final String crdName = CustomResource.getCRDName(ServiceMonitor.class);
         var resources = ImmutableList.<HasMetadata>builder();
         if (ResourceUtil.getCustomResource(client, crdName).isPresent()) {
-          resources.addAll(client.customResources(ServiceMonitor.class, ServiceMonitorList.class)
+          resources.addAll(client.resources(ServiceMonitor.class, ServiceMonitorList.class)
               .inAnyNamespace()
               .withLabels(labels)
               .list()

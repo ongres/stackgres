@@ -37,7 +37,7 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource<?, 
     return Optional.ofNullable(client.apiextensions().v1().customResourceDefinitions()
         .withName(crdName)
         .get())
-        .map(crd -> client.customResources(customResourceClass, customResourceListClass)
+        .map(crd -> client.resources(customResourceClass, customResourceListClass)
             .inAnyNamespace()
             .list()
             .getItems());
@@ -49,7 +49,7 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource<?, 
     return Optional.ofNullable(client.apiextensions().v1().customResourceDefinitions()
         .withName(crdName)
         .get())
-        .map(crd -> client.customResources(customResourceClass, customResourceListClass)
+        .map(crd -> client.resources(customResourceClass, customResourceListClass)
             .inNamespace(namespace)
             .list()
             .getItems());
@@ -57,7 +57,7 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource<?, 
 
   @Override
   public List<T> getResources() {
-    return client.customResources(customResourceClass, customResourceListClass)
+    return client.resources(customResourceClass, customResourceListClass)
         .inAnyNamespace()
         .list()
         .getItems();
@@ -65,7 +65,7 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource<?, 
 
   @Override
   public List<T> getResources(@Nullable String namespace) {
-    return client.customResources(customResourceClass, customResourceListClass)
+    return client.resources(customResourceClass, customResourceListClass)
         .inNamespace(namespace)
         .list()
         .getItems();

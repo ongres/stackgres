@@ -56,7 +56,7 @@ public class ClusterControllerWatchersHandlerImpl
       L extends KubernetesResourceList<T>> WatcherMonitor<T> createWatcher(
       Class<T> crClass, Class<L> listClass, Consumer<Action> consumer) {
     return new WatcherMonitor<>(watcherListener -> client
-        .customResources(crClass, listClass)
+        .resources(crClass, listClass)
         .inNamespace(ClusterControllerProperty.CLUSTER_NAMESPACE.getString())
         .watch(watcherFactory.createWatcher(consumer, watcherListener)),
         () -> new Thread(() -> Application.currentApplication().stop()).start());

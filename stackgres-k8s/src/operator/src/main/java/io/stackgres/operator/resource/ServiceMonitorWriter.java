@@ -54,6 +54,6 @@ public class ServiceMonitorWriter implements ResourceWriter<ServiceMonitor> {
 
   private MixedOperation<ServiceMonitor, ServiceMonitorList,
       Resource<ServiceMonitor>> getServiceMonitorClient() {
-    return client.customResources(ServiceMonitor.class, ServiceMonitorList.class);
+    return client.resources(ServiceMonitor.class, ServiceMonitorList.class);
   }
 }

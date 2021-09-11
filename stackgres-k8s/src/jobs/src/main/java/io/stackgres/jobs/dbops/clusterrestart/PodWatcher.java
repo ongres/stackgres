@@ -14,6 +14,7 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientTimeoutException;
 import io.smallrye.mutiny.Uni;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,14 +32,11 @@ public class PodWatcher implements Watcher<Pod> {
 
   @Override
   public Uni<Pod> waitUntilIsReady(String name, String namespace) {
-
     return waitUntilIsCreated(name, namespace)
         .chain(this::waitUntilReady);
-
   }
 
   private Uni<Pod> waitUntilReady(Pod pod) {
-
     String podName = pod.getMetadata().getName();
     String namespace = pod.getMetadata().getNamespace();
 
@@ -48,7 +46,7 @@ public class PodWatcher implements Watcher<Pod> {
         var readyPod = client.pods().inNamespace(namespace).withName(podName)
             .waitUntilReady(30, TimeUnit.MINUTES);
         em.complete(readyPod);
-      } catch (InterruptedException e) {
+      } catch (KubernetesClientTimeoutException e) {
         em.fail(e);
       }
     });
