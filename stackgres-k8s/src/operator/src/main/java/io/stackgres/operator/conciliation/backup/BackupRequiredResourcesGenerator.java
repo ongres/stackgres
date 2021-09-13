@@ -20,7 +20,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.conciliation.DecorateResource;
+import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,13 +36,13 @@ public class BackupRequiredResourcesGenerator
 
   private final CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
 
-  private final DecorateResource<StackGresBackupContext> decorator;
+  private final RequiredResourceDecorator<StackGresBackupContext> decorator;
 
   @Inject
   public BackupRequiredResourcesGenerator(
       CustomResourceFinder<StackGresCluster> clusterFinder,
       CustomResourceFinder<StackGresBackupConfig> backupConfigFinder,
-      DecorateResource<StackGresBackupContext> decorator) {
+      RequiredResourceDecorator<StackGresBackupContext> decorator) {
     this.clusterFinder = clusterFinder;
     this.backupConfigFinder = backupConfigFinder;
     this.decorator = decorator;

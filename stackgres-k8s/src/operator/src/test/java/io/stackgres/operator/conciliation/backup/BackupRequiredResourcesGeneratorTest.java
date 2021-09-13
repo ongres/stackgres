@@ -46,7 +46,7 @@ class BackupRequiredResourcesGeneratorTest {
   BackupConfigFinder backupConfigFinder;
 
   @InjectMock
-  BackupDecoratorResource decorator;
+  BackupRequiredResourceDecorator decorator;
 
   @Inject
   BackupRequiredResourcesGenerator generator;

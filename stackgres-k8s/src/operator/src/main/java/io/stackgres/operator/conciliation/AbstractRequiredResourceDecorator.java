@@ -13,29 +13,30 @@ import io.stackgres.common.ClusterContext;
 import io.stackgres.operator.conciliation.factory.Decorator;
 import io.stackgres.operator.conciliation.factory.DecoratorDiscoverer;
 
-public abstract class AbstractDecoratorResource<T extends ClusterContext>
-    implements DecorateResource<T> {
+public abstract class AbstractRequiredResourceDecorator<T extends ClusterContext>
+    implements RequiredResourceDecorator<T> {
 
   private DecoratorDiscoverer<T> decoratorDiscoverer;
-  private ResourceGenerationDiscoverer<T> generators;
+  private ResourceGenerationDiscoverer<T> generatorsDiscoverer;
 
-  public AbstractDecoratorResource(DecoratorDiscoverer<T> decoratorDiscoverer,
-      ResourceGenerationDiscoverer<T> generators) {
+  public AbstractRequiredResourceDecorator(DecoratorDiscoverer<T> decoratorDiscoverer,
+      ResourceGenerationDiscoverer<T> generatorsDiscoverer) {
     this.decoratorDiscoverer = decoratorDiscoverer;
-    this.generators = generators;
+    this.generatorsDiscoverer = generatorsDiscoverer;
   }
 
   @Override
   public List<HasMetadata> decorateResources(T context) {
-    final List<HasMetadata> resources = getGenerators().getResourceGenerators(context)
+    List<ResourceGenerator<T>> a = getGenerators().getResourceGenerators(context);
+    final List<HasMetadata> discoveredResources = a
         .stream().flatMap(generator -> generator.generateResource(context))
         .collect(Collectors.toUnmodifiableList());
 
-    List<Decorator<T>> decorators =
+    List<Decorator<T>> discoveredDecorators =
         getDecoratorDiscoverer().discoverDecorator(context);
 
-    decorators.forEach(decorator -> decorator.decorate(context, resources));
-    return resources;
+    discoveredDecorators.forEach(decorator -> decorator.decorate(context, discoveredResources));
+    return discoveredResources;
   }
 
   public DecoratorDiscoverer<T> getDecoratorDiscoverer() {
@@ -43,7 +44,7 @@ public abstract class AbstractDecoratorResource<T extends ClusterContext>
   }
 
   public ResourceGenerationDiscoverer<T> getGenerators() {
-    return generators;
+    return generatorsDiscoverer;
   }
 
 }

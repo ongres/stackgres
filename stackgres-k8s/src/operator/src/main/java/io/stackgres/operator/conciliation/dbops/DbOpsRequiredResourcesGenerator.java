@@ -16,7 +16,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.conciliation.DecorateResource;
+import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,12 +30,12 @@ public class DbOpsRequiredResourcesGenerator
 
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
 
-  private final DecorateResource<StackGresDbOpsContext> decorator;
+  private final RequiredResourceDecorator<StackGresDbOpsContext> decorator;
 
   @Inject
   public DbOpsRequiredResourcesGenerator(
       CustomResourceFinder<StackGresCluster> clusterFinder,
-      DecorateResource<StackGresDbOpsContext> decorator) {
+      RequiredResourceDecorator<StackGresDbOpsContext> decorator) {
     this.clusterFinder = clusterFinder;
     this.decorator = decorator;
   }

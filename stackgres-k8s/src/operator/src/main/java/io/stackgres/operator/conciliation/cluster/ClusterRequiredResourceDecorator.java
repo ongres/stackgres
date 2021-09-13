@@ -3,29 +3,30 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.backup;
+package io.stackgres.operator.conciliation.cluster;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.stackgres.common.CdiUtil;
-import io.stackgres.operator.conciliation.AbstractDecoratorResource;
+import io.stackgres.operator.conciliation.AbstractRequiredResourceDecorator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.factory.DecoratorDiscoverer;
 
 @ApplicationScoped
-public class BackupDecoratorResource
-    extends AbstractDecoratorResource<StackGresBackupContext> {
+public class ClusterRequiredResourceDecorator
+    extends AbstractRequiredResourceDecorator<StackGresClusterContext> {
 
   @Inject
-  public BackupDecoratorResource(
-      DecoratorDiscoverer<StackGresBackupContext> decoratorDiscoverer,
-      ResourceGenerationDiscoverer<StackGresBackupContext> generators) {
+  public ClusterRequiredResourceDecorator(
+      DecoratorDiscoverer<StackGresClusterContext> decoratorDiscoverer,
+      ResourceGenerationDiscoverer<StackGresClusterContext> generators) {
     super(decoratorDiscoverer, generators);
   }
 
-  public BackupDecoratorResource() {
+  public ClusterRequiredResourceDecorator() {
     super(null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
+
 }
