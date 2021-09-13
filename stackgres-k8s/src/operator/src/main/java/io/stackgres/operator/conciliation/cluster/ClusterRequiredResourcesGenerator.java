@@ -37,7 +37,7 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.common.Prometheus;
-import io.stackgres.operator.conciliation.DecorateResource;
+import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
@@ -70,7 +70,7 @@ public class ClusterRequiredResourcesGenerator
 
   private final OperatorPropertyContext operatorContext;
 
-  private final DecorateResource<StackGresClusterContext> decorator;
+  private final RequiredResourceDecorator<StackGresClusterContext> decorator;
 
   @Inject
   public ClusterRequiredResourcesGenerator(
@@ -82,7 +82,7 @@ public class ClusterRequiredResourcesGenerator
       ResourceFinder<Secret> secretFinder,
       CustomResourceScanner<PrometheusConfig> prometheusScanner,
       OperatorPropertyContext operatorContext,
-      DecorateResource<StackGresClusterContext> decorator) {
+      RequiredResourceDecorator<StackGresClusterContext> decorator) {
     this.backupConfigFinder = backupConfigFinder;
     this.postgresConfigFinder = postgresConfigFinder;
     this.poolingConfigFinder = poolingConfigFinder;
