@@ -21,6 +21,8 @@ spec:
   sgCluster: $CLUSTER_NAME
   op: majorVersionUpgrade
   majorVersionUpgrade:
+    postgresVersion: "$E2E_MAJOR_TARGET_POSTGRES_VERSION"
+    sgPostgresConfig: postgresconf-for-major-version-upgrade
     link: true
 EOF
 
@@ -48,6 +50,8 @@ spec:
   sgCluster: $CLUSTER_NAME
   op: majorVersionUpgrade
   majorVersionUpgrade:
+    postgresVersion: "$E2E_MAJOR_TARGET_POSTGRES_VERSION"
+    sgPostgresConfig: postgresconf-for-major-version-upgrade
     clone: true
 EOF
 

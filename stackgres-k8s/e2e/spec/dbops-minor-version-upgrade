@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. "$SPEC_PATH/abstract/dbops-restart"
+. "$SPEC_PATH/abstract/dbops-minor-version-upgrade"
 
 e2e_test_install() {
   CLUSTER_NAME=dbops-minor-version-upgrade
@@ -30,6 +30,8 @@ metadata:
 spec:
   sgCluster: $CLUSTER_NAME
   op: minorVersionUpgrade
+  minorVersionUpgrade:
+    postgresVersion: "$E2E_MINOR_TARGET_POSTGRES_VERSION"
 EOF
 
   check_minor_version_upgrade
@@ -50,6 +52,7 @@ spec:
   sgCluster: $CLUSTER_NAME
   op: minorVersionUpgrade
   minorVersionUpgrade:
+    postgresVersion: "$E2E_MINOR_TARGET_POSTGRES_VERSION"
     method: InPlace
 EOF
 

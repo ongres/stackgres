@@ -1,5 +1,8 @@
 #!/bin/sh
 
+export E2E_MINOR_SOURCE_POSTGRES_VERSION="${E2E_MINOR_SOURCE_POSTGRES_VERSION:-13.0}"
+export E2E_MINOR_TARGET_POSTGRES_VERSION="${E2E_MINOR_TARGET_POSTGRES_VERSION:-13.2}"
+
 e2e_test_install() {
   CLUSTER_NAME=dbops-restart
 
@@ -15,7 +18,8 @@ reset_cluster() {
 
   wait_until eval '[ "$(kubectl get pvc -n "$CLUSTER_NAMESPACE" --template "{{ .items | len }}")" = 0 ]'
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string cluster.postgres.version="$E2E_MINOR_SOURCE_POSTGRES_VERSION"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 3
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
@@ -23,6 +27,20 @@ reset_cluster() {
   generate_mock_data "$CLUSTER_NAME"
   check_mock_data_samehost "$CLUSTER_NAME"
   check_mock_data_replication "$CLUSTER_NAME"
+
+  if kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
+    -p "$(cat << EOF
+[
+  {"op":"replace","path":"/spec/postgres/version","value":"$E2E_MINOR_TARGET_POSTGRES_VERSION"}
+]
+EOF
+        )" >/dev/null 2>&1
+  then
+    echo "FAILED. Changed SGCluster postgres version directly."
+    return 1
+  else
+    echo "SUCCESS. Could not change SGCluster postgres version directly."
+  fi
 }
 
 check_restart() {

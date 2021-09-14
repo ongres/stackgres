@@ -35,6 +35,7 @@ import io.stackgres.jobs.dbops.clusterrestart.ImmutablePatroniInformation;
 import io.stackgres.jobs.dbops.clusterrestart.MemberRole;
 import io.stackgres.jobs.dbops.clusterrestart.MemberState;
 import io.stackgres.jobs.dbops.clusterrestart.PatroniApiHandler;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 
 @QuarkusTest
@@ -76,6 +77,17 @@ class MinorVersionUpgradeRestartStateHandlerImplTest extends ClusterStateHandler
   }
 
   @Override
+  protected StackGresDbOps getDbOps() {
+    return JsonUtil.readFromJson("stackgres_dbops/dbops_minorversionupgrade.json",
+        StackGresDbOps.class);
+  }
+
+  @Override
+  protected String getRestartMethod(StackGresDbOps dbOps) {
+    return dbOps.getSpec().getMinorVersionUpgrade().getMethod();
+  }
+
+  @Override
   public DbOpsRestartStatus getRestartStatus(StackGresDbOps dbOps) {
     return dbOps.getStatus().getMinorVersionUpgrade();
   }
@@ -89,7 +101,8 @@ class MinorVersionUpgradeRestartStateHandlerImplTest extends ClusterStateHandler
   }
 
   @Override
-  protected void initializeDbOpsStatus(StackGresDbOps dbOps, List<Pod> pods) {
+  protected void initializeDbOpsStatus(StackGresDbOps dbOps, StackGresCluster cluster,
+      List<Pod> pods) {
     final StackGresDbOpsMinorVersionUpgradeStatus minorVersionUpgradeStatus =
         new StackGresDbOpsMinorVersionUpgradeStatus();
     minorVersionUpgradeStatus.setInitialInstances(
@@ -101,39 +114,45 @@ class MinorVersionUpgradeRestartStateHandlerImplTest extends ClusterStateHandler
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
             .collect(Collectors.toList()));
-    minorVersionUpgradeStatus.setSwitchoverInitiated(Boolean.FALSE.toString());
+    minorVersionUpgradeStatus.setSwitchoverInitiated(null);
+    minorVersionUpgradeStatus.setSourcePostgresVersion(
+        cluster.getSpec().getPostgres().getVersion());
+    minorVersionUpgradeStatus.setTargetPostgresVersion(
+        dbOps.getSpec().getMinorVersionUpgrade().getPostgresVersion());
 
     dbOps.getStatus().setMinorVersionUpgrade(minorVersionUpgradeStatus);
-
   }
 
   @Override
-  protected void initializeClusterStatus(StackGresCluster cluster, List<Pod> pods) {
-
+  protected void initializeClusterStatus(StackGresDbOps dbOps, StackGresCluster cluster,
+      List<Pod> pods) {
     final StackGresClusterStatus status = new StackGresClusterStatus();
-    final StackGresClusterDbOpsStatus dbOps = new StackGresClusterDbOpsStatus();
-    final StackGresClusterDbOpsMinorVersionUpgradeStatus minorVersionUpgrade =
+    final StackGresClusterDbOpsStatus dbOpsStatus = new StackGresClusterDbOpsStatus();
+    final StackGresClusterDbOpsMinorVersionUpgradeStatus minorVersionUpgradeStatus =
         new StackGresClusterDbOpsMinorVersionUpgradeStatus();
-    minorVersionUpgrade.setInitialInstances(
+    minorVersionUpgradeStatus.setInitialInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
             .collect(Collectors.toList()));
-    minorVersionUpgrade.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
-    minorVersionUpgrade.setSourcePostgresVersion("11.6");
-    minorVersionUpgrade.setTargetPostgresVersion(cluster.getSpec().getPostgres().getVersion());
-    dbOps.setMinorVersionUpgrade(minorVersionUpgrade);
-    status.setDbOps(dbOps);
+    minorVersionUpgradeStatus.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
+    minorVersionUpgradeStatus.setSourcePostgresVersion(
+        cluster.getSpec().getPostgres().getVersion());
+    minorVersionUpgradeStatus.setTargetPostgresVersion(
+        dbOps.getSpec().getMinorVersionUpgrade().getPostgresVersion());
+    dbOpsStatus.setMinorVersionUpgrade(minorVersionUpgradeStatus);
+    status.setDbOps(dbOpsStatus);
     cluster.setStatus(status);
 
   }
 
   @Override
-  protected void verifyClusterInitializedStatus(List<Pod> pods, StackGresCluster cluster) {
-    super.verifyClusterInitializedStatus(pods, cluster);
+  protected void verifyClusterInitializedStatus(List<Pod> pods, StackGresDbOps dbOps,
+      StackGresCluster cluster) {
+    super.verifyClusterInitializedStatus(pods, dbOps, cluster);
     var restartStatus = cluster.getStatus().getDbOps().getMinorVersionUpgrade();
-    assertEquals(cluster.getSpec().getPostgres().getVersion(),
+    assertEquals(dbOps.getStatus().getMinorVersionUpgrade().getTargetPostgresVersion(),
         restartStatus.getTargetPostgresVersion());
-    assertEquals("11.5",
+    assertEquals(dbOps.getStatus().getMinorVersionUpgrade().getSourcePostgresVersion(),
         cluster.getStatus().getDbOps().getMinorVersionUpgrade().getSourcePostgresVersion());
   }
 }

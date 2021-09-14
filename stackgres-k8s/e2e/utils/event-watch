@@ -27,9 +27,9 @@ event_watch() {
     | xargs -r -n 1 -I % "$SHELL" $SHELL_XTRACE -ec "kubectl get event -o '$OUTPUT' --no-headers -n \"\$(echo '%' | cut -d '/' -f 1)\" \"\$(echo '%' | cut -d '/' -f 2)\" 2>/dev/null || true" \
     | (
       set +x
-      while IFS="$(printf '\n')" read line
+      while IFS="$(printf '\n')" read EVENT
       do
-        echo_raw "$(date --iso-8601=seconds) $line"
+        echo_raw "$(date --iso-8601=seconds) $EVENT"
       done
       )
 }

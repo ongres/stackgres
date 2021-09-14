@@ -8,6 +8,12 @@ then
   exit 0
 fi
 
+if [ "$POSTGRES_VERSION" != "$TARGET_VERSION" ]
+then
+  echo "Can not perform major version upgrade, postgres version has not been updated"
+  exit 1
+fi
+
 if [ "$PRIMARY_INSTANCE" != "$POD_NAME" ]
 then
   echo "Removing data of non primary instance"

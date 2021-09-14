@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import javax.validation.constraints.AssertTrue;
+import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -26,6 +27,14 @@ import io.stackgres.common.validation.FieldReference.ReferencedField;
 public class StackGresDbOpsMajorVersionUpgrade implements KubernetesResource {
 
   private static final long serialVersionUID = 1L;
+
+  @JsonProperty("postgresVersion")
+  @NotNull
+  private String postgresVersion;
+
+  @JsonProperty("sgPostgresConfig")
+  @NotNull
+  private String sgPostgresConfig;
 
   @JsonProperty("link")
   private Boolean link;
@@ -48,6 +57,22 @@ public class StackGresDbOpsMajorVersionUpgrade implements KubernetesResource {
   public boolean isOnlyLinkOrOnlyClone() {
     return !Optional.ofNullable(link).orElse(false)
         || !Optional.ofNullable(clone).orElse(false);
+  }
+
+  public String getPostgresVersion() {
+    return postgresVersion;
+  }
+
+  public void setPostgresVersion(String postgresVersion) {
+    this.postgresVersion = postgresVersion;
+  }
+
+  public String getSgPostgresConfig() {
+    return sgPostgresConfig;
+  }
+
+  public void setSgPostgresConfig(String sgPostgresConfig) {
+    this.sgPostgresConfig = sgPostgresConfig;
   }
 
   public Boolean getLink() {
@@ -76,7 +101,7 @@ public class StackGresDbOpsMajorVersionUpgrade implements KubernetesResource {
 
   @Override
   public int hashCode() {
-    return Objects.hash(check, link);
+    return Objects.hash(check, clone, link, postgresVersion, sgPostgresConfig);
   }
 
   @Override
@@ -88,7 +113,10 @@ public class StackGresDbOpsMajorVersionUpgrade implements KubernetesResource {
       return false;
     }
     StackGresDbOpsMajorVersionUpgrade other = (StackGresDbOpsMajorVersionUpgrade) obj;
-    return Objects.equals(check, other.check) && Objects.equals(link, other.link);
+    return Objects.equals(check, other.check) && Objects.equals(clone, other.clone)
+        && Objects.equals(link, other.link)
+        && Objects.equals(postgresVersion, other.postgresVersion)
+        && Objects.equals(sgPostgresConfig, other.sgPostgresConfig);
   }
 
   @Override

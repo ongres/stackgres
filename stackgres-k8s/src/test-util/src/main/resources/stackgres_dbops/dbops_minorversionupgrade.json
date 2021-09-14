@@ -13,9 +13,10 @@
   },
   "spec": {
     "sgCluster": "test",
-    "op": "restart",
+    "op": "minorVersionUpgrade",
     "maxRetries": 3,
-    "restart": {
+    "minorVersionUpgrade": {
+      "postgresVersion": "11.7",
       "method": "InPlace"
     }
   },

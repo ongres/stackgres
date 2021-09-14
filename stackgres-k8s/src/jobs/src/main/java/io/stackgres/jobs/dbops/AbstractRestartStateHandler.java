@@ -101,7 +101,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
   private Uni<ClusterRestartState> restartCluster(ClusterRestartState clusterRestartState) {
     return clusterRestart.restartCluster(clusterRestartState)
         .onItem()
-        .call(event -> updateJobStatus(event, clusterRestartState))
+        .call(event -> updateDbOpsStatus(event, clusterRestartState))
         .onItem()
         .call(event -> recordEvent(event, clusterRestartState))
         .onItem()
@@ -122,17 +122,17 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
 
   protected abstract void cleanClusterStatus(StackGresCluster cluster);
 
-  protected Uni<StackGresDbOps> updateJobStatus(RestartEvent event,
-                                                ClusterRestartState clusterRestartState) {
+  protected Uni<StackGresDbOps> updateDbOpsStatus(RestartEvent event,
+      ClusterRestartState clusterRestartState) {
     return findDbOps(clusterRestartState.getDbOpsName(), clusterRestartState.getNamespace())
-        .chain(dbOps -> updateJobStatus(dbOps, event))
+        .chain(dbOps -> updateDbOpsStatus(dbOps, event))
         .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
         .atMost(10);
   }
 
-  private Uni<StackGresDbOps> updateJobStatus(StackGresDbOps dbOps, RestartEvent event) {
+  private Uni<StackGresDbOps> updateDbOpsStatus(StackGresDbOps dbOps, RestartEvent event) {
     return Uni.createFrom().emitter(em -> {
       var restartStatus = getDbOpRestartStatus(dbOps);
 
@@ -206,14 +206,18 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
   }
 
   protected Uni<?> initClusterDbOpsStatus(ClusterRestartState clusterRestartState) {
-    return findSgCluster(clusterRestartState.getClusterName(), clusterRestartState.getNamespace())
-        .chain(cluster -> {
-          if (isSgClusterDbOpsStatusInitialized(cluster)) {
+    return Uni.combine().all().unis(
+        findDbOps(clusterRestartState.getDbOpsName(), clusterRestartState.getNamespace()),
+        findSgCluster(clusterRestartState.getClusterName(), clusterRestartState.getNamespace()))
+        .asTuple()
+        .chain(tuple -> {
+          if (isSgClusterDbOpsStatusInitialized(tuple.getItem2())) {
             return Uni.createFrom().voidItem();
           } else {
-            return initRestartStatusValues(clusterRestartState, cluster)
+            return initClusterDbOpsStatusValues(
+                clusterRestartState, tuple.getItem1(), tuple.getItem2())
                 .onItem()
-                .invoke(v -> clusterScheduler.updateStatus(cluster));
+                .invoke(v -> clusterScheduler.updateStatus(tuple.getItem2()));
           }
         });
   }
@@ -222,14 +226,17 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
     if (isDbOpsStatusInitialized(dbOps)) {
       return Uni.createFrom().voidItem();
     } else {
-      return initDbOpsRestartStatusValues(clusterRestartState, dbOps)
-          .onItem()
-          .transform(v -> dbOpsScheduler.update(dbOps));
+      return findSgCluster(clusterRestartState.getClusterName(), clusterRestartState.getNamespace())
+          .chain(cluster -> {
+            return initDbOpsRestartStatusValues(clusterRestartState, dbOps, cluster)
+                .onItem()
+                .transform(v -> dbOpsScheduler.update(dbOps));
+          });
     }
   }
 
   protected Uni<Void> initDbOpsRestartStatusValues(ClusterRestartState clusterRestartState,
-                                                   StackGresDbOps dbOps) {
+      StackGresDbOps dbOps, StackGresCluster cluster) {
     var restartStatus = getDbOpRestartStatus(dbOps);
 
     restartStatus.setInitialInstances(
@@ -294,7 +301,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
   protected abstract void setDbOpRestartStatus(StackGresDbOps dbOps,
                                                DbOpsRestartStatus dbOpsStatus);
 
-  protected abstract ClusterDbOpsRestartStatus getClusterRestartStatus(StackGresCluster dbOps);
+  protected abstract ClusterDbOpsRestartStatus getClusterRestartStatus(StackGresCluster cluster);
 
   protected ClusterRestartState buildClusterRestartState(StackGresDbOps dbOps,
                                                          StackGresCluster cluster,
@@ -361,8 +368,8 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
         .findFirst().orElseThrow(() -> new InvalidCluster("Cluster has no primary pod"));
   }
 
-  protected Uni<Void> initRestartStatusValues(ClusterRestartState clusterRestartState,
-                                              StackGresCluster cluster) {
+  protected Uni<Void> initClusterDbOpsStatusValues(ClusterRestartState clusterRestartState,
+      StackGresDbOps dbOps, StackGresCluster cluster) {
     var restartStatus = getClusterRestartStatus(cluster);
 
     restartStatus.setInitialInstances(

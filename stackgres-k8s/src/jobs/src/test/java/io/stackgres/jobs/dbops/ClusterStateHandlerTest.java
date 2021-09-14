@@ -40,7 +40,6 @@ import io.stackgres.common.crd.sgcluster.ClusterDbOpsRestartStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsRestartStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.event.DbOpsEventEmitter;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartImpl;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
@@ -129,8 +128,7 @@ public abstract class ClusterStateHandlerTest {
     namespace = StringUtils.getRandomNamespace();
     clusterName = StringUtils.getRandomClusterName();
 
-    dbOps = JsonUtil.readFromJson("stackgres_dbops/dbops_securityupgrade.json",
-        StackGresDbOps.class);
+    dbOps = getDbOps();
 
     cluster = JsonUtil.readFromJson("stackgres_cluster/default.json",
         StackGresCluster.class);
@@ -138,10 +136,6 @@ public abstract class ClusterStateHandlerTest {
     dbOps.getMetadata().setName(dbOpsName);
     dbOps.getMetadata().setNamespace(namespace);
     dbOps.getSpec().setSgCluster(clusterName);
-    dbOps.setStatus(new StackGresDbOpsStatus());
-    dbOps.getStatus().setOpRetries(0);
-    dbOps.getStatus().setOpStarted(Instant.now().toString());
-    dbOps.getSpec().setOp("securityUpgrade");
 
     cluster.getMetadata().setName(clusterName);
     cluster.getMetadata().setNamespace(namespace);
@@ -152,13 +146,16 @@ public abstract class ClusterStateHandlerTest {
     lenient().doNothing().when(eventEmitter).sendEvent(any(), any(), any());
   }
 
+  protected abstract StackGresDbOps getDbOps();
+
   public abstract AbstractRestartStateHandler getRestartStateHandler();
 
   public abstract DbOpsRestartStatus getRestartStatus(StackGresDbOps dbOps);
 
   public abstract Optional<ClusterDbOpsRestartStatus> getRestartStatus(StackGresCluster cluster);
 
-  protected abstract void initializeDbOpsStatus(StackGresDbOps securityUpgradeOp, List<Pod> pods);
+  protected abstract void initializeDbOpsStatus(StackGresDbOps dbOps, StackGresCluster cluster,
+      List<Pod> pods);
 
   protected Pod getPrimaryInstance(List<Pod> pods) {
     return pods.stream()
@@ -223,15 +220,21 @@ public abstract class ClusterStateHandlerTest {
     List<StackGresCluster> storedCluster = Lists.newArrayList();
     kubeDb.watchCluster(clusterName, namespace, storedCluster::add);
 
+    List<StackGresDbOps> storedDbOps = Lists.newArrayList();
+    kubeDb.watchDbOps(dbOpsName, namespace, storedDbOps::add);
+
     getRestartStateHandler()
         .restartCluster(dbOps)
         .await()
         .atMost(Duration.ofMillis(50));
 
-    verifyClusterInitializedStatus(pods, Seq.seq(storedCluster).findFirst().get());
+    verifyClusterInitializedStatus(pods,
+        Seq.seq(storedDbOps).findFirst().get(),
+        Seq.seq(storedCluster).findFirst().get());
   }
 
-  protected void verifyClusterInitializedStatus(List<Pod> pods, StackGresCluster cluster) {
+  protected void verifyClusterInitializedStatus(List<Pod> pods, StackGresDbOps dbOps,
+      StackGresCluster cluster) {
     List<String> expectedInitialInstances = pods.stream().map(Pod::getMetadata)
         .map(ObjectMeta::getName)
         .sorted(String::compareTo)
@@ -257,10 +260,6 @@ public abstract class ClusterStateHandlerTest {
   void givenAnInitializedJobState_itShouldNotModifiedIt() {
     podTestUtil.preparePods(cluster, 0, 1, 2);
 
-    var pods = podTestUtil.getClusterPods(cluster);
-
-    initializeDbOpsStatus(dbOps, pods);
-
     getRestartStateHandler()
         .restartCluster(dbOps)
         .await()
@@ -278,7 +277,7 @@ public abstract class ClusterStateHandlerTest {
 
     var pods = podTestUtil.getClusterPods(cluster);
 
-    initializeClusterStatus(cluster, pods);
+    initializeClusterStatus(dbOps, cluster, pods);
 
     List<StackGresCluster> storedCluster = Lists.newArrayList();
     kubeDb.watchCluster(clusterName, namespace, storedCluster::add);
@@ -291,8 +290,8 @@ public abstract class ClusterStateHandlerTest {
     assertEquals(1, storedCluster.size());
   }
 
-  protected abstract void initializeClusterStatus(StackGresCluster cluster,
-                                                  List<Pod> pods);
+  protected abstract void initializeClusterStatus(StackGresDbOps dbOps, StackGresCluster cluster,
+      List<Pod> pods);
 
   @Test
   void buildRestartState_shouldNotFail() {
@@ -308,8 +307,6 @@ public abstract class ClusterStateHandlerTest {
         .filter(pod -> pod.getMetadata().getName().endsWith("-1"))
         .findAny().get();
 
-    initializeDbOpsStatus(dbOps, pods);
-
     dbOps = kubeDb.addOrReplaceDbOps(dbOps);
 
     var expectedClusterState = ImmutableClusterRestartState.builder()
@@ -318,7 +315,7 @@ public abstract class ClusterStateHandlerTest {
         .dbOpsOperation(dbOps.getSpec().getOp())
         .clusterName(dbOps.getSpec().getSgCluster())
         .isOnlyPendingRestart(false)
-        .restartMethod(dbOps.getSpec().getSecurityUpgrade().getMethod())
+        .restartMethod(getRestartMethod(dbOps))
         .isSwitchoverInitiated(Boolean.FALSE)
         .isSwitchoverFinalized(Boolean.FALSE)
         .primaryInstance(primaryPod)
@@ -336,6 +333,8 @@ public abstract class ClusterStateHandlerTest {
 
     assertEqualsRestartState(expectedClusterState, clusterRestartState);
   }
+
+  protected abstract String getRestartMethod(StackGresDbOps dbOps);
 
   @Test
   void givenACleanCluster_shouldUpdateTheOpStatus() {

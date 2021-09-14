@@ -263,6 +263,14 @@ spec:
                   description: |
                     Configuration of major version upgrade (see also [`pg_upgrade`](https://www.postgresql.org/docs/current/pgupgrade.html) command)
                   properties:
+                    postgresVersion:
+                      type: string
+                      description: |
+                        The target postgres version that must have the same major version of the target SGCluster.
+                    sgPostgresConfig:
+                      type: string
+                      description: |
+                        The postgres config that must have the same major version of the target postgres version.
                     link:
                       type: boolean
                       description: |
@@ -306,6 +314,10 @@ spec:
                   description: |
                     Configuration of restart
                   properties:
+                    postgresVersion:
+                      type: string
+                      description: |
+                        The target postgres version that must have the same major version of the target SGCluster.
                     method:
                       type: string
                       description: |
@@ -464,6 +476,14 @@ spec:
                   description: |
                     The results of a major version upgrade
                   properties:
+                    sourcePostgresVersion:
+                      type: string
+                      description: |
+                        The postgres version currently used by primary instance
+                    targetPostgresVersion:
+                      type: string
+                      description: |
+                        The postgres version that the cluster will be upgraded to
                     primaryInstance:
                       type: string
                       description: |
@@ -534,6 +554,14 @@ spec:
                   description: |
                     The results of a minor version upgrade
                   properties:
+                    sourcePostgresVersion:
+                      type: string
+                      description: |
+                        The postgres version currently used by primary instance
+                    targetPostgresVersion:
+                      type: string
+                      description: |
+                        The postgres version that the cluster will be upgraded (or downgraded) to
                     primaryInstance:
                       type: string
                       description: |

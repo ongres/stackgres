@@ -36,7 +36,7 @@ public class ClusterValidator implements DbOpsValidator {
         String cluster = review.getRequest().getObject().getSpec().getSgCluster();
         String namespace = review.getRequest().getObject().getMetadata().getNamespace();
         checkIfClusterExists(cluster, namespace,
-            "Cluster " + cluster + " not found");
+            "SGCluster " + cluster + " not found");
         break;
       default:
     }

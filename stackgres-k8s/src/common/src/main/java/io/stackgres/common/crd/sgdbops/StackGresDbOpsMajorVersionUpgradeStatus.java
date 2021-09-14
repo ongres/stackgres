@@ -22,6 +22,12 @@ public class StackGresDbOpsMajorVersionUpgradeStatus implements KubernetesResour
 
   private static final long serialVersionUID = 1L;
 
+  @JsonProperty("sourcePostgresVersion")
+  private String sourcePostgresVersion;
+
+  @JsonProperty("targetPostgresVersion")
+  private String targetPostgresVersion;
+
   @JsonProperty("primaryInstance")
   private String primaryInstance;
 
@@ -36,6 +42,22 @@ public class StackGresDbOpsMajorVersionUpgradeStatus implements KubernetesResour
 
   @JsonProperty("failure")
   private String failure;
+
+  public String getSourcePostgresVersion() {
+    return sourcePostgresVersion;
+  }
+
+  public void setSourcePostgresVersion(String sourcePostgresVersion) {
+    this.sourcePostgresVersion = sourcePostgresVersion;
+  }
+
+  public String getTargetPostgresVersion() {
+    return targetPostgresVersion;
+  }
+
+  public void setTargetPostgresVersion(String targetPostgresVersion) {
+    this.targetPostgresVersion = targetPostgresVersion;
+  }
 
   public String getPrimaryInstance() {
     return primaryInstance;
@@ -80,7 +102,7 @@ public class StackGresDbOpsMajorVersionUpgradeStatus implements KubernetesResour
   @Override
   public int hashCode() {
     return Objects.hash(failure, initialInstances, pendingToRestartInstances, primaryInstance,
-        restartedInstances);
+        restartedInstances, sourcePostgresVersion, targetPostgresVersion);
   }
 
   @Override
@@ -96,7 +118,9 @@ public class StackGresDbOpsMajorVersionUpgradeStatus implements KubernetesResour
         && Objects.equals(initialInstances, other.initialInstances)
         && Objects.equals(pendingToRestartInstances, other.pendingToRestartInstances)
         && Objects.equals(primaryInstance, other.primaryInstance)
-        && Objects.equals(restartedInstances, other.restartedInstances);
+        && Objects.equals(restartedInstances, other.restartedInstances)
+        && Objects.equals(sourcePostgresVersion, other.sourcePostgresVersion)
+        && Objects.equals(targetPostgresVersion, other.targetPostgresVersion);
   }
 
   @Override

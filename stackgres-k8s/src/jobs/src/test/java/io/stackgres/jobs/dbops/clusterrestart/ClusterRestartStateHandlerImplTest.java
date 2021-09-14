@@ -25,6 +25,7 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsRestartStatus;
 import io.stackgres.jobs.dbops.AbstractRestartStateHandler;
 import io.stackgres.jobs.dbops.ClusterStateHandlerTest;
 import io.stackgres.jobs.dbops.StateHandler;
+import io.stackgres.testutil.JsonUtil;
 
 @QuarkusTest
 class ClusterRestartStateHandlerImplTest extends ClusterStateHandlerTest {
@@ -36,6 +37,17 @@ class ClusterRestartStateHandlerImplTest extends ClusterStateHandlerTest {
   @Override
   public AbstractRestartStateHandler getRestartStateHandler() {
     return restartStateHandler;
+  }
+
+  @Override
+  protected StackGresDbOps getDbOps() {
+    return JsonUtil.readFromJson("stackgres_dbops/dbops_restart.json",
+        StackGresDbOps.class);
+  }
+
+  @Override
+  protected String getRestartMethod(StackGresDbOps dbOps) {
+    return dbOps.getSpec().getRestart().getMethod();
   }
 
   @Override
@@ -52,7 +64,8 @@ class ClusterRestartStateHandlerImplTest extends ClusterStateHandlerTest {
   }
 
   @Override
-  protected void initializeDbOpsStatus(StackGresDbOps dbOps, List<Pod> pods) {
+  protected void initializeDbOpsStatus(StackGresDbOps dbOps, StackGresCluster cluster,
+      List<Pod> pods) {
     final StackGresDbOpsRestartStatus restartStatus = new StackGresDbOpsRestartStatus();
     restartStatus.setInitialInstances(
         pods.stream()
@@ -69,9 +82,10 @@ class ClusterRestartStateHandlerImplTest extends ClusterStateHandlerTest {
   }
 
   @Override
-  protected void initializeClusterStatus(StackGresCluster cluster, List<Pod> pods) {
+  protected void initializeClusterStatus(StackGresDbOps dbOps, StackGresCluster cluster,
+      List<Pod> pods) {
     final StackGresClusterStatus status = new StackGresClusterStatus();
-    final StackGresClusterDbOpsStatus dbOps = new StackGresClusterDbOpsStatus();
+    final StackGresClusterDbOpsStatus dbOpsStatus = new StackGresClusterDbOpsStatus();
     final StackGresClusterDbOpsRestartStatus restartStatus =
         new StackGresClusterDbOpsRestartStatus();
     restartStatus.setInitialInstances(
@@ -79,8 +93,8 @@ class ClusterRestartStateHandlerImplTest extends ClusterStateHandlerTest {
             .map(Pod::getMetadata).map(ObjectMeta::getName)
             .collect(Collectors.toList()));
     restartStatus.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
-    dbOps.setRestart(restartStatus);
-    status.setDbOps(dbOps);
+    dbOpsStatus.setRestart(restartStatus);
+    status.setDbOps(dbOpsStatus);
     cluster.setStatus(status);
   }
 
