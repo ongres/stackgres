@@ -14,11 +14,13 @@ import io.fabric8.kubernetes.api.model.StatusCause;
 
 public class Kubernetes16StatusParser implements StatusParser {
 
-  private static final Pattern MESSAGE_PATTERN = Pattern.compile("Invalid value: .*: ");
+  private static final Pattern INVALID_VALUE_PATTERN = Pattern.compile("Invalid value: [^ ]+: ");
+
+  private static final Pattern MESSAGE_PATTERN_ADMISSION =
+      Pattern.compile("^admission webhook [^ ]+ denied the request: ");
 
   @Override
   public String parseDetails(Status status) {
-
     String message;
 
     if (status.getDetails() != null
@@ -30,15 +32,7 @@ public class Kubernetes16StatusParser implements StatusParser {
       message = status.getMessage();
     }
 
-    Matcher m = MESSAGE_PATTERN.matcher(message);
-
-    if (m.find()) {
-      int lastIndex = m.end();
-      return message.substring(lastIndex);
-    } else {
-      return message;
-    }
-
+    return cleanupMessage(message);
   }
 
   @Override
@@ -50,5 +44,20 @@ public class Kubernetes16StatusParser implements StatusParser {
     }
 
     return new String[0];
+  }
+
+  public static String cleanupMessage(String message) {
+    Matcher admissionMessage = MESSAGE_PATTERN_ADMISSION.matcher(message);
+    Matcher invalidValueMessage = INVALID_VALUE_PATTERN.matcher(message);
+
+    if (admissionMessage.find()) {
+      int lastIndex = admissionMessage.end();
+      return message.substring(lastIndex);
+    } else if (invalidValueMessage.find()) {
+      int lastIndex = invalidValueMessage.end();
+      return message.substring(lastIndex);
+    }
+
+    return message;
   }
 }

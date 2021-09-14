@@ -98,13 +98,35 @@ class KubernetesExceptionMapperTest {
 
     Response response = mapper.toResponse(new KubernetesClientException(status));
 
+    String expected = Kubernetes16StatusParser.cleanupMessage(status.getMessage());
+
     ErrorResponse errorResponse = (ErrorResponse) response.getEntity();
 
     Assertions.assertEquals(ErrorType.getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION),
         errorResponse.getType());
     Assertions.assertEquals(ErrorType.CONSTRAINT_VIOLATION.getTitle(), errorResponse.getTitle());
-    Assertions.assertEquals(status.getMessage(), errorResponse.getDetail());
+    Assertions.assertEquals(expected, errorResponse.getDetail());
     Assertions.assertEquals(0, errorResponse.getFields().length);
+  }
+
+  @Test
+  void kubernetesInvalidDnsValidation_shouldBeParsed() {
+    mapper.setStatusParser(new Kubernetes16StatusParser());
+
+    Status status = JsonUtil.readFromJson("kube_status/invalid_dns_name.json", Status.class);
+
+    Response response = mapper.toResponse(new KubernetesClientException(status));
+
+    String expected = Kubernetes16StatusParser.cleanupMessage(status.getMessage());
+    expected = expected.replace("\\", "\\\\");
+
+    ErrorResponse errorResponse = (ErrorResponse) response.getEntity();
+
+    Assertions.assertEquals(ErrorType.getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION),
+        errorResponse.getType());
+    Assertions.assertEquals(ErrorType.CONSTRAINT_VIOLATION.getTitle(), errorResponse.getTitle());
+    Assertions.assertEquals(expected, errorResponse.getDetail());
+    Assertions.assertEquals(1, errorResponse.getFields().length);
   }
 
   @Test
