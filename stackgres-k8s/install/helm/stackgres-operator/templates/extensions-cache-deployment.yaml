@@ -1,0 +1,132 @@
+apiVersion: "apps/v1"
+kind: "StatefulSet"
+metadata:
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app: {{ .Release.Name }}-extensions-cache
+    version: "{{ .Chart.Version }}"
+    group:  stackgres.io
+  name: {{ .Release.Name }}-extensions-cache
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-extensions-cache
+      group:  stackgres.io
+  serviceName: {{ .Release.Name }}-extensions-cache
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-extensions-cache
+        group:  stackgres.io
+    spec:
+      serviceAccountName: {{ .Release.Name }}-extensions-cache
+      shareProcessNamespace: true
+      terminationGracePeriodSeconds: 0
+      containers:
+      - name: http
+        image: "registry.access.redhat.com/ubi8/nginx-118:1-39"
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+        args:
+          - '/bin/sh'
+          - '-ec'
+          - {{- if .Values.developer.showDebug }}
+            exec nginx-debug -g 'daemon off;'
+            {{- else }}
+            exec nginx -g 'daemon off;'
+            {{- end }}
+        ports:
+        - containerPort: 8080
+          name: "http"
+          protocol: "TCP"
+        volumeMounts:
+          - name: extensions-cache-nginx
+            mountPath: /etc/nginx/nginx.conf
+            subPath: nginx.conf
+            readOnly: true
+          - name: extensions-cache-nginx
+            mountPath: /etc/nginx/conf.d/stackgres-operator-extensions-cache.conf
+            subPath: stackgres-operator-extensions-cache.conf
+            readOnly: true
+          - name: extensions-cache-nginx-var
+            subPath: var/cache/nginx
+            mountPath: /var/cache/nginx
+            readOnly: false
+          - name: extensions-cache-nginx-var
+            subPath: var/run
+            mountPath: /var/run
+            readOnly: false
+          - name: extensions-cache-nginx-var
+            subPath: var/log/nginx
+            mountPath: /var/log/nginx
+            readOnly: false
+          - name: {{ .Release.Name }}-extensions-cache
+            subPath: repository
+            mountPath: /opt/app-root/src
+            readOnly: true
+      - name: "controller"
+        image: "ongres/kubectl:v1.19.7-build-6.2"
+        imagePullPolicy: "IfNotPresent"
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+        env:
+        - name: EXTENSIONS_REPOSITORY_URLS
+          value: "{{ range $index, $element := .Values.extensions.repositoryUrls }}{{ if $index }},{{ end }}{{ $element }}{{ end }}"
+        command:
+          - "/bin/bash"
+          - "-exc"
+          - |
+            cd /opt/app-root/src
+            cat << 'SCRIPT_EOF' > extensions-cache-conciliator.sh
+{{ .Files.Get "extensions-cache-conciliator.sh" | indent 12 }}
+            SCRIPT_EOF
+            sh -x extensions-cache-conciliator.sh '{{ .Release.Namespace }}' '{{ .Release.Name }}-extensions-cache'
+        volumeMounts:
+          - name: {{ .Release.Name }}-extensions-cache
+            subPath: repository
+            mountPath: /opt/app-root/src
+            readOnly: false
+      restartPolicy: Always
+      volumes:
+        - name: extensions-cache-nginx
+          configMap:
+            name: {{ .Release.Name }}-extensions-cache
+            optional: false
+            items:
+              - key: nginx.conf
+                path: nginx.conf
+              - key: stackgres-operator-extensions-cache.conf
+                path: stackgres-operator-extensions-cache.conf
+        - name: extensions-cache-nginx-var
+          emptyDir: {}
+  volumeClaimTemplates:
+  - metadata:
+      annotations:
+        meta.helm.sh/release-name: {{ .Release.Name }}
+        meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+      labels:
+        app.kubernetes.io/managed-by: Helm
+        app: {{ .Release.Name }}-extensions-cache
+        version: "{{ .Chart.Version }}"
+        group:  stackgres.io
+      name: {{ .Release.Name }}-extensions-cache
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      {{- if .Values.extensions.cache.persistentVolume.storageClass }}
+      {{- if eq "-" .Values.extensions.cache.persistentVolume.storageClass }}
+      storageClassName: ""
+      {{- else }}
+      storageClassName: "{{ .Values.extensions.cache.persistentVolume.storageClass }}"
+      {{- end }}
+      {{- end }}
+      resources:
+        requests:
+          storage: "{{ .Values.extensions.cache.persistentVolume.size }}"

@@ -429,10 +429,10 @@ install_operator_vanilla() {
 }
 
 install_operator_vanilla_from() {
+  before_operator_install_or_upgrade
   helm install stackgres-operator --namespace "$OPERATOR_NAMESPACE" \
     "$@"
-  set_max_length
-  update_ui_clear_password
+  after_operator_install_or_upgrade
 }
 
 upgrade_operator() {
@@ -473,9 +473,9 @@ upgrade_operator() {
 }
 
 upgrade_operator_vanilla() {
+  before_operator_install_or_upgrade
   helm upgrade stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$OPERATOR_CHART_PATH" "$@"
-  set_max_length
-  update_ui_clear_password
+  after_operator_install_or_upgrade
 }
 
 upgrade_operator_from_private_repository() {
@@ -494,7 +494,7 @@ upgrade_operator_from_private_repository() {
       --set-string adminui.image.name="$PRIVATE_ADMINUI_IMAGE_NAME" --set-string adminui.image.tag="$ADMINUI_IMAGE_TAG" \
       --set-string "adminui.image.pullPolicy=$(operator_pull_policy)" \
       --set serviceAccount.create=true \
-      --set-string serviceAccount.repoCredentials=regcred \
+      --set serviceAccount.repoCredentials='["regcred"]' \
       --set-string developer.extraOpts[0]='-Dquarkus.log.category."io.stackgres".level=DEBUG' \
       --set-string developer.extraOpts[1]='-Dquarkus.log.category."io.quarkus".level=INFO' \
       --set-string developer.extraOpts[2]='-Dquarkus.log.category."io.stackgres.dbops".level=TRACE' \
@@ -507,6 +507,36 @@ upgrade_operator_from_private_repository() {
       --set-string developer.extraOpts[9]='-Dquarkus.log.category."okhttp3.logging.HttpLoggingInterceptor".level='"$(
         [ "$E2E_LOG_OPERATOR_HTTP" = true ] && echo TRACE || echo INFO)" \
       "$@"
+}
+
+before_operator_install_or_upgrade() {
+  setup_extensions_secrets
+}
+
+after_operator_install_or_upgrade() {
+  set_max_length
+  update_ui_clear_password
+}
+
+setup_extensions_secrets() {
+  if printf '%s' "$EXTENSIONS_REPOSITORY_URL" | grep "[?&]imageTemplate=" | grep -q "[?&]imageRegcredSecret="
+  then
+    local IMAGE_TEMPLATE REPOSITORY_CREDENTIAL_SECRET REPOSITORY_CREDENTIAL
+    IMAGE_TEMPLATE="$(printf '%s' "$EXTENSIONS_REPOSITORY_URL" | grep "[?&]imageTemplate=")"
+    IMAGE_TEMPLATE="$(printf '%s' "$IMAGE_TEMPLATE" | sed 's/^.*[?&]imageTemplate=\([^?&]\+\)\([?&].*\)\?$/\1/')"
+    REPOSITORY_CREDENTIAL_SECRET="$(printf '%s' "$EXTENSIONS_REPOSITORY_URL" | grep "[?&]imageTemplate=" | grep "[?&]imageRegcredSecret=")"
+    REPOSITORY_CREDENTIAL_SECRET="$(printf '%s' "$REPOSITORY_CREDENTIAL_SECRET" | sed 's/^.*[?&]imageRegcredSecret=\([^?&]\+\)\([?&].*\)\?$/\1/')"
+    REPOSITORY_CREDENTIAL="$(jq -r '.auths|to_entries|.[]|.key + "|" + .value.auth' "${HOME}/.docker/config.json")"
+    REPOSITORY_CREDENTIAL="$(printf '%s' "$REPOSITORY_CREDENTIAL" | grep -F "${IMAGE_TEMPLATE%%/*}")"
+    REPOSITORY_CREDENTIAL="$(printf '%s' "$REPOSITORY_CREDENTIAL" | head -n 1 | cut -d '|' -f 2 | base64 -d)"
+    REPOSITORY_CREDENTIAL="$(jq -r '.auths|to_entries|.[]|.key + "|" + .value.auth' "${HOME}/.docker/config.json" \
+      | grep -F "${IMAGE_TEMPLATE%%/*}" | head -n 1 | cut -d '|' -f 2 | base64 -d)"
+    kubectl delete secret --ignore-not-found -n "$OPERATOR_NAMESPACE" "$REPOSITORY_CREDENTIAL_SECRET"
+    kubectl create secret docker-registry -n "$OPERATOR_NAMESPACE" "$REPOSITORY_CREDENTIAL_SECRET" \
+      --docker-server="${IMAGE_TEMPLATE%%/*}" \
+      --docker-username="${REPOSITORY_CREDENTIAL%:*}" \
+      --docker-password="${REPOSITORY_CREDENTIAL#*:}"
+  fi
 }
 
 update_ui_clear_password() {

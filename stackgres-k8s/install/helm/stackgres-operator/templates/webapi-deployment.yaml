@@ -78,7 +78,7 @@ spec:
             value: "true"
           {{- end }}
           - name: EXTENSIONS_REPOSITORY_URLS
-            value: "{{ range $index, $element := .Values.extensions.repositoryUrls }}{{ if $index }},{{ end }}{{ $element }}{{ end }}"
+            value: "http://{{ .Release.Name }}-extensions-cache.{{ .Release.Namespace }}"
         ports:
         - containerPort: 8080
           name: "resthttp"

@@ -48,12 +48,12 @@ cluster:
   pods:
     persistentVolume:
       size: 5Gi
-      ## If defined, storageClassName: <storageClass>
-      ## If set to "-", storageClassName: "", which disables dynamic provisioning
-      ## If undefined (the default) or set to null, no storageClassName spec is
+      ## If defined, storageClass: <storageClass>
+      ## If set to "-", storageClass: "", which disables dynamic provisioning
+      ## If undefined (the default) or set to null, no storageClass spec is
       ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
       ##   GKE, AWS & OpenStack)
-      #storageClass: "-"
+      # storageClass: "-"
     disableConnectionPooling: false
     disablePostgresUtil: false
     disableMetricsExporter: false
