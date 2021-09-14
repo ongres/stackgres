@@ -11,6 +11,10 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.validation.CrdMatchTestHelper;
 
@@ -46,9 +50,35 @@ public class RequiredResourceDecoratorTestHelper extends CrdMatchTestHelper {
     return currentMaxLength;
   }
 
-  public void asserThatLabelIsComplaince(Entry<String, String> label) {
+  public void asserThatLabelIsComplaint(Entry<String, String> label) {
     ResourceUtil.labelKey(label.getKey());
     ResourceUtil.labelValue(label.getValue());
+  }
+
+  public void assertThatStatefulSetResourceLabelsAreComplaints(HasMetadata resource) {
+    if (resource instanceof StatefulSet) {
+      ((StatefulSet) resource).getSpec().getTemplate().getMetadata().getLabels().entrySet().stream().forEach(label -> {
+        asserThatLabelIsComplaint(label);
+      });
+    }
+  }
+  
+  public void assertThatCronJobResourceLabelsAreComplaints(HasMetadata resource) {
+    if (resource instanceof CronJob) {
+      ((CronJob) resource).getSpec().getJobTemplate().getMetadata().getLabels().entrySet()
+          .stream().forEach(label -> {
+            asserThatLabelIsComplaint(label);
+          });
+    }
+  }
+
+  public void assertThatJobResourceLabelsAreComplaints(HasMetadata resource) {
+    if (resource instanceof Job) {
+      ((Job) resource).getSpec().getTemplate().getMetadata().getLabels().entrySet().stream()
+          .forEach(label -> {
+            asserThatLabelIsComplaint(label);
+          });
+    }
   }
 
 }

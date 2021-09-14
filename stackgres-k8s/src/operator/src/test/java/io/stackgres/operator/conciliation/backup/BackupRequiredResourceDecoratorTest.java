@@ -10,11 +10,11 @@ import java.util.List;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
@@ -64,11 +64,14 @@ public class BackupRequiredResourceDecoratorTest extends RequiredResourceDecorat
     decorateResources.stream().forEach(
         resource -> {
           resource.getMetadata().getLabels().entrySet().stream().forEach(label -> {
-            ResourceUtil.labelKey(label.getKey());
-            ResourceUtil.labelValue(label.getValue());
+            asserThatLabelIsComplaint(label);
           });
-
+          assertThatStatefulSetResourceLabelsAreComplaints(resource);
+          assertThatCronJobResourceLabelsAreComplaints(resource);
+          assertThatJobResourceLabelsAreComplaints(resource);
         });
   }
+
+  
 
 }

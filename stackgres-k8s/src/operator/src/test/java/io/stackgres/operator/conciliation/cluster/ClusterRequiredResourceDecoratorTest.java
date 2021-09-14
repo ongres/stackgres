@@ -5,40 +5,53 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
+import static java.util.Optional.ofNullable;
+
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 
 import javax.inject.Inject;
 
+import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
-import io.stackgres.common.StackGresDefaultKubernetesClient;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.resource.SecretFinder;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
+import org.jooq.lambda.Unchecked;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-//@QuarkusTest
+@QuarkusTest
 @WithKubernetesTestServer
 class ClusterRequiredResourceDecoratorTest extends RequiredResourceDecoratorTestHelper {
 
+  @InjectMock
+  SecretFinder finder;
+  
   @Inject
   ClusterRequiredResourceDecorator resourceDecorator;
 
   private StackGresCluster crd;
   private StackGresPostgresConfig clusterPgConfig;
   private StackGresProfile clusterProfile;
-  private StackGresBackupConfig backupConfig;
-  private StackGresPoolingConfig clusterPooling;
-  private Secret secret;
+  private Optional<StackGresBackupConfig> backupConfig;
+  private Optional<StackGresPoolingConfig> clusterPooling;
+  private Optional<Secret> secret;
 
-  // @BeforeEach
+   @BeforeEach
   public void setup() {
     this.crd = JsonUtil.readFromJson("stackgres_cluster/default.json",
         StackGresCluster.class);
@@ -46,25 +59,14 @@ class ClusterRequiredResourceDecoratorTest extends RequiredResourceDecoratorTest
         StackGresPostgresConfig.class);
     this.clusterProfile = JsonUtil.readFromJson("stackgres_profiles/size-s.json",
         StackGresProfile.class);
-    this.backupConfig = JsonUtil.readFromJson("backup_config/default.json",
-        StackGresBackupConfig.class);
-    this.clusterPooling = JsonUtil.readFromJson("pooling_config/default.json",
-        StackGresPoolingConfig.class);
-    this.secret = JsonUtil.readFromJson("secret/minio.json",
-        Secret.class);
-
-    initializeSecret();
+    this.backupConfig = ofNullable(null);
+    this.clusterPooling = ofNullable(JsonUtil.readFromJson("pooling_config/default.json",
+        StackGresPoolingConfig.class));
+    this.secret = ofNullable(JsonUtil.readFromJson("secret/minio.json",
+        Secret.class));
   }
 
-  private void initializeSecret() {
-    StackGresDefaultKubernetesClient stackGresKubernetesClient =
-        new StackGresDefaultKubernetesClient();
-    secret.getMetadata().setNamespace("test");
-    stackGresKubernetesClient.secrets().create(secret);
-    stackGresKubernetesClient.close();
-  }
-
-  // @Test
+   @Test
   void shouldCreateResourceSuccessfully_OnceUsingTheCurrentCrdMaxLength() throws IOException {
     withSelectedCrd("SGCluster.yaml");
 
@@ -78,7 +80,7 @@ class ClusterRequiredResourceDecoratorTest extends RequiredResourceDecoratorTest
         .backupConfig(backupConfig)
         .poolingConfig(clusterPooling)
         .prometheus(new Prometheus(false, null))
-        .internalScripts(List.of(new StackGresClusterScriptEntry()))
+        .internalScripts(List.of(getTestScripts()))
         .databaseCredentials(secret)
         .build();
 
@@ -86,10 +88,26 @@ class ClusterRequiredResourceDecoratorTest extends RequiredResourceDecoratorTest
     decorateResources.stream().forEach(
         resource -> {
           resource.getMetadata().getLabels().entrySet().stream().forEach(label -> {
-            asserThatLabelIsComplaince(label);
+            asserThatLabelIsComplaint(label);
           });
+          
+          assertThatStatefulSetResourceLabelsAreComplaints(resource);
+          assertThatCronJobResourceLabelsAreComplaints(resource);
+          assertThatJobResourceLabelsAreComplaints(resource);
         });
 
+  }
+
+  private StackGresClusterScriptEntry getTestScripts() {
+    final StackGresClusterScriptEntry script = new StackGresClusterScriptEntry();
+    script.setName("test-script");
+    script.setDatabase("db");
+    script.setScript(Unchecked.supplier(() -> Resources
+        .asCharSource(ClusterRequiredResourcesGenerator.class.getResource(
+            "/prometheus-postgres-exporter/init.sql"),
+            StandardCharsets.UTF_8)
+        .read()).get());
+    return script;
   }
 
 }

@@ -50,8 +50,12 @@ class DbOpsRequiredResourceDecoratorTest extends RequiredResourceDecoratorTestHe
     decorateResources.stream().forEach(
         resource -> {
           resource.getMetadata().getLabels().entrySet().stream().forEach(label -> {
-            asserThatLabelIsComplaince(label);
+            asserThatLabelIsComplaint(label);
           });
+          
+          assertThatStatefulSetResourceLabelsAreComplaints(resource);
+          assertThatCronJobResourceLabelsAreComplaints(resource);
+          assertThatJobResourceLabelsAreComplaints(resource);
         });
   }
 }
