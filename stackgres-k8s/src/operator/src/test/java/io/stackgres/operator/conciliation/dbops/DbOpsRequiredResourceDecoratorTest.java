@@ -5,19 +5,26 @@
 
 package io.stackgres.operator.conciliation.dbops;
 
+import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.asserThatLabelIsComplaint;
+import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.assertThatCronJobResourceLabelsAreComplaints;
+import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.assertThatJobResourceLabelsAreComplaints;
+import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.assertThatResourceNameIsComplaint;
+import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.assertThatStatefulSetResourceLabelsAreComplaints;
+import static io.stackgres.operator.validation.CrdMatchTestHelper.getMaxLengthResourceNameFrom;
+import static io.stackgres.testutil.StringUtils.getRandomClusterName;
+
 import javax.inject.Inject;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper;
-import io.stackgres.testutil.JsonUtil;
-import io.stackgres.testutil.StringUtils;
+import io.stackgres.operator.fixture.StackGresClusterFixture;
+import io.stackgres.operator.fixture.StackGresDbOpsFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class DbOpsRequiredResourceDecoratorTest extends RequiredResourceDecoratorTestHelper {
+class DbOpsRequiredResourceDecoratorTest {
 
   @Inject
   DbOpsRequiredResourceDecorator resourceDecorator;
@@ -28,19 +35,16 @@ class DbOpsRequiredResourceDecoratorTest extends RequiredResourceDecoratorTestHe
 
   @BeforeEach
   public void setup() {
-    this.crd = JsonUtil.readFromJson("dbops/vacuum.json",
-        StackGresDbOps.class);
-    this.cluster = JsonUtil.readFromJson("stackgres_cluster/default.json",
-        StackGresCluster.class);
+    this.crd = new StackGresDbOpsFixture().build("vacuum");
+    this.cluster = new StackGresClusterFixture().build("default");
   }
 
   @Test
   void shouldCreateResourceSuccessfully_OnceUsingTheCurrentCrdMaxLength() throws Exception {
 
-    withSelectedCrd("SGDbOps.yaml");
+    String validDbOpsJobName = getRandomClusterName(getMaxLengthResourceNameFrom("SGDbOps.yaml"));
+    crd.getMetadata().setName(validDbOpsJobName);
 
-    String validResourceName = StringUtils.getRandomClusterName(withCurrentCrdMaxLength());
-    crd.getMetadata().setName(validResourceName);
     var context = ImmutableStackGresDbOpsContext.builder()
         .source(crd)
         .cluster(cluster)
@@ -49,10 +53,12 @@ class DbOpsRequiredResourceDecoratorTest extends RequiredResourceDecoratorTestHe
     var decorateResources = resourceDecorator.decorateResources(context);
     decorateResources.stream().forEach(
         resource -> {
+          assertThatResourceNameIsComplaint(resource.getMetadata().getName());
+
           resource.getMetadata().getLabels().entrySet().stream().forEach(label -> {
             asserThatLabelIsComplaint(label);
           });
-          
+
           assertThatStatefulSetResourceLabelsAreComplaints(resource);
           assertThatCronJobResourceLabelsAreComplaints(resource);
           assertThatJobResourceLabelsAreComplaints(resource);

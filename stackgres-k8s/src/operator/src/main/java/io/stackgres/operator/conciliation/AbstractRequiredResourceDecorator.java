@@ -27,8 +27,7 @@ public abstract class AbstractRequiredResourceDecorator<T extends ClusterContext
 
   @Override
   public List<HasMetadata> decorateResources(T context) {
-    List<ResourceGenerator<T>> a = getGenerators().getResourceGenerators(context);
-    final List<HasMetadata> discoveredResources = a
+    final List<HasMetadata> discoveredResources = getGenerators().getResourceGenerators(context)
         .stream().flatMap(generator -> generator.generateResource(context))
         .collect(Collectors.toUnmodifiableList());
 
