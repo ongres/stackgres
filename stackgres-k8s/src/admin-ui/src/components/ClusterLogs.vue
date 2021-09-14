@@ -821,11 +821,6 @@
 				.get(thisCall)
 				.then( function(response){
 
-					if( (vc.currentSortDir == 'desc') && !vc.logs.length) {
-						response.data.reverse();
-						vc.currentSortDir = 'asc';
-					}
-
 					if( ( vc.loadingMethod == 'live') && (!append || ( $('.scroller')[0].scrollTop == ( $('.scroller')[0].scrollHeight - $('.scroller')[0].clientHeight ) ) ) ) {
 						vc.scrollToBottom();
 					}
@@ -833,7 +828,8 @@
 					if(append) {
 						vc.logs = vc.logs.concat(response.data);
 					} else {
-						vc.logs = response.data;
+						vc.currentSortDir = 'asc';
+						vc.logs = response.data.reverse();
 						vc.lastScroll = 0;
 					}
 
