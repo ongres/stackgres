@@ -5,65 +5,60 @@
 
 package io.stackgres.operator.conciliation;
 
-import java.io.IOException;
-import java.util.Arrays;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map.Entry;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.resource.ResourceUtil;
-import io.stackgres.operator.validation.CrdMatchTestHelper;
+import io.stackgres.operator.conciliation.cluster.ClusterRequiredResourcesGenerator;
+import org.jooq.lambda.Unchecked;
 
-public class RequiredResourceDecoratorTestHelper extends CrdMatchTestHelper {
+public class RequiredResourceDecoratorTestHelper {
 
-  private String selectedCrd;
-  private int currentMaxLength;
-
-  @Override
-  protected List<String> getSelectedCrds() {
-    return Arrays.asList(this.selectedCrd);
+  public static void assertThatResourceNameIsComplaint(String name) {
+    ResourceUtil.resourceName(name);
   }
 
-  protected void setupMaxLengthFromCrd() throws IOException {
-    withEveryYaml(crdTree -> {
-      JsonNode metadataMaxLength = extractMetadataMaxLengthResourceName(crdTree);
-      this.currentMaxLength = metadataMaxLength.intValue();
-    });
-  }
-
-  private JsonNode extractMetadataMaxLengthResourceName(JsonNode crdTree) {
-    return crdTree.get("spec").get("versions").get(0).get("schema").get("openAPIV3Schema")
-        .get("properties").get("metadata")
-        .get("properties").get("name").get("maxLength");
-  }
-
-  protected void withSelectedCrd(String crdFilename) throws IOException {
-    this.selectedCrd = crdFilename;
-    setupMaxLengthFromCrd();
-  }
-
-  public int withCurrentCrdMaxLength() {
-    return currentMaxLength;
-  }
-
-  public void asserThatLabelIsComplaint(Entry<String, String> label) {
+  public static void asserThatLabelIsComplaint(Entry<String, String> label) {
     ResourceUtil.labelKey(label.getKey());
     ResourceUtil.labelValue(label.getValue());
   }
 
-  public void assertThatStatefulSetResourceLabelsAreComplaints(HasMetadata resource) {
+  public static void assertThatStatefulSetResourceLabelsAreComplaints(HasMetadata resource) {
     if (resource instanceof StatefulSet) {
-      ((StatefulSet) resource).getSpec().getTemplate().getMetadata().getLabels().entrySet().stream().forEach(label -> {
-        asserThatLabelIsComplaint(label);
-      });
+      ((StatefulSet) resource).getSpec().getTemplate().getMetadata().getLabels().entrySet().stream()
+          .forEach(label -> {
+            asserThatLabelIsComplaint(label);
+          });
+
+      assertThatVolumeClaimLabelsAreComplaints(resource);
+
+      ((StatefulSet) resource).getSpec().getTemplate().getMetadata().getLabels().entrySet().stream()
+          .forEach(label -> {
+            asserThatLabelIsComplaint(label);
+          });
     }
   }
-  
-  public void assertThatCronJobResourceLabelsAreComplaints(HasMetadata resource) {
+
+  private static void assertThatVolumeClaimLabelsAreComplaints(HasMetadata resource) {
+    List<PersistentVolumeClaim> volumeClaims =
+        ((StatefulSet) resource).getSpec().getVolumeClaimTemplates();
+
+    volumeClaims.stream().forEach(volume -> {
+      volume.getMetadata().getLabels().entrySet().stream().forEach(label -> {
+        asserThatLabelIsComplaint(label);
+      });
+    });
+  }
+
+  public static void assertThatCronJobResourceLabelsAreComplaints(HasMetadata resource) {
     if (resource instanceof CronJob) {
       ((CronJob) resource).getSpec().getJobTemplate().getMetadata().getLabels().entrySet()
           .stream().forEach(label -> {
@@ -72,13 +67,25 @@ public class RequiredResourceDecoratorTestHelper extends CrdMatchTestHelper {
     }
   }
 
-  public void assertThatJobResourceLabelsAreComplaints(HasMetadata resource) {
+  public static void assertThatJobResourceLabelsAreComplaints(HasMetadata resource) {
     if (resource instanceof Job) {
       ((Job) resource).getSpec().getTemplate().getMetadata().getLabels().entrySet().stream()
           .forEach(label -> {
             asserThatLabelIsComplaint(label);
           });
     }
+  }
+
+  public static StackGresClusterScriptEntry getTestInitScripts() {
+    final StackGresClusterScriptEntry script = new StackGresClusterScriptEntry();
+    script.setName("test-script");
+    script.setDatabase("db");
+    script.setScript(Unchecked.supplier(() -> Resources
+        .asCharSource(ClusterRequiredResourcesGenerator.class.getResource(
+            "/prometheus-postgres-exporter/init.sql"),
+            StandardCharsets.UTF_8)
+        .read()).get());
+    return script;
   }
 
 }

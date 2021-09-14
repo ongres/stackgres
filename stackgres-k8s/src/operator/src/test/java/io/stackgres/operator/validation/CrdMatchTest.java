@@ -5,6 +5,9 @@
 
 package io.stackgres.operator.validation;
 
+import static io.stackgres.operator.validation.CrdMatchTestHelper.getCustomResourceClass;
+import static io.stackgres.operator.validation.CrdMatchTestHelper.getDefinition;
+import static io.stackgres.operator.validation.CrdMatchTestHelper.withEveryYaml;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -22,7 +25,7 @@ import io.stackgres.common.crd.CommonDefinition;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("rawtypes")
-class CrdMatchTest extends CrdMatchTestHelper {
+class CrdMatchTest {
 
   private static final String CRD_VERSION = CommonDefinition.VERSION;
 
@@ -30,7 +33,7 @@ class CrdMatchTest extends CrdMatchTestHelper {
 
   @Test
   void apiVersion_ShouldMatchConfiguredVersion() throws IOException {
-    withEveryYaml(crdTree -> {
+    CrdMatchTestHelper.withEveryYaml(crdTree -> {
       Class<? extends CustomResource> clazz = getCustomResourceClass(crdTree);
       String apiVersion = HasMetadata.getApiVersion(clazz);
 
