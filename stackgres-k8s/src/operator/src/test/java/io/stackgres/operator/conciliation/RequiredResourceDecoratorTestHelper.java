@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
+import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
@@ -22,8 +23,12 @@ import org.jooq.lambda.Unchecked;
 
 public class RequiredResourceDecoratorTestHelper {
 
-  public static void assertThatResourceNameIsComplaint(String name) {
-    ResourceUtil.resourceName(name);
+  public static void assertThatResourceNameIsComplaint(HasMetadata resource) {
+    if (resource instanceof Service) {
+      ResourceUtil.nameIsValidService(resource.getMetadata().getName());
+    } else {
+      ResourceUtil.nameIsValidDnsSubdomain(resource.getMetadata().getName());
+    }
   }
 
   public static void asserThatLabelIsComplaint(Entry<String, String> label) {

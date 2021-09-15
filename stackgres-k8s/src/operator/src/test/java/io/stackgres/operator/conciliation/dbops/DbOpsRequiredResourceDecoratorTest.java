@@ -11,7 +11,7 @@ import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHe
 import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.assertThatResourceNameIsComplaint;
 import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.assertThatStatefulSetResourceLabelsAreComplaints;
 import static io.stackgres.operator.validation.CrdMatchTestHelper.getMaxLengthResourceNameFrom;
-import static io.stackgres.testutil.StringUtils.getRandomClusterName;
+import static io.stackgres.testutil.StringUtils.getRandomClusterNameWithExactlySize;
 
 import javax.inject.Inject;
 
@@ -42,7 +42,8 @@ class DbOpsRequiredResourceDecoratorTest {
   @Test
   void shouldCreateResourceSuccessfully_OnceUsingTheCurrentCrdMaxLength() throws Exception {
 
-    String validDbOpsJobName = getRandomClusterName(getMaxLengthResourceNameFrom("SGDbOps.yaml"));
+    String validDbOpsJobName =
+        getRandomClusterNameWithExactlySize(getMaxLengthResourceNameFrom("SGDbOps.yaml"));
     crd.getMetadata().setName(validDbOpsJobName);
 
     var context = ImmutableStackGresDbOpsContext.builder()
@@ -53,7 +54,7 @@ class DbOpsRequiredResourceDecoratorTest {
     var decorateResources = resourceDecorator.decorateResources(context);
     decorateResources.stream().forEach(
         resource -> {
-          assertThatResourceNameIsComplaint(resource.getMetadata().getName());
+          assertThatResourceNameIsComplaint(resource);
 
           resource.getMetadata().getLabels().entrySet().stream().forEach(label -> {
             asserThatLabelIsComplaint(label);

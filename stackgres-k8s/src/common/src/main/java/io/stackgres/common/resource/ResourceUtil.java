@@ -5,6 +5,8 @@
 
 package io.stackgres.common.resource;
 
+import static java.lang.String.format;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -33,6 +35,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ResourceUtil {
+
+  private static final int DNS_SUBDOMAIN_NAME_MAX_LENGTH = 253;
+
+  private static final int DNS_LABEL_MAX_LENGTH = 63;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ResourceUtil.class);
 
@@ -63,13 +69,25 @@ public class ResourceUtil {
   }
 
   public static String resourceName(String name) {
-    Preconditions.checkArgument(name.length() <= 63,
-        "Valid name must be 63 characters or less");
+    return resourceName(name, DNS_LABEL_MAX_LENGTH);
+  }
+
+  public static String resourceName(String name, int maxLength) {
+    Preconditions.checkArgument(name.length() <= maxLength,
+        format("Valid name must be %s characters or less", maxLength));
     Preconditions.checkArgument(DNS_LABEL_NAME.matcher(name).matches(),
         "Name must consist of lower case alphanumeric "
             + "characters or '-', start with an alphabetic character, "
             + "and end with an alphanumeric character");
     return name;
+  }
+
+  public static String nameIsValidService(String name) {
+    return resourceName(name, DNS_LABEL_MAX_LENGTH);
+  }
+
+  public static String nameIsValidDnsSubdomain(String name) {
+    return resourceName(name, DNS_SUBDOMAIN_NAME_MAX_LENGTH);
   }
 
   public static String containerName(String name) {
