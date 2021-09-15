@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.backup;
+package io.stackgres.operator.conciliation.distributedlogs;
 
 import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.asserThatLabelIsComplaint;
 import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.assertThatCronJobResourceLabelsAreComplaints;
@@ -12,58 +12,59 @@ import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHe
 import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.assertThatStatefulSetResourceLabelsAreComplaints;
 import static io.stackgres.operator.validation.CrdMatchTestHelper.getMaxLengthResourceNameFrom;
 import static io.stackgres.testutil.StringUtils.getRandomClusterNameWithExactlySize;
+import static java.util.Optional.ofNullable;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 import javax.inject.Inject;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.quarkus.test.junit.QuarkusTest;
-import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.fixture.StackGresBackupConfigFixture;
-import io.stackgres.operator.fixture.StackGresBackupFixture;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.operator.fixture.SecretFixture;
 import io.stackgres.operator.fixture.StackGresClusterFixture;
+import io.stackgres.operator.fixture.StackGresDistributedLogsFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-public class BackupRequiredResourceDecoratorTest {
+class DistributedLogsRequireResourceDecoratorTest {
 
   @Inject
-  BackupRequiredResourceDecorator resourceDecorator;
+  private DistributedLogsRequireResourceDecorator resourceDecorator;
 
-  private StackGresBackup crd;
+  private StackGresDistributedLogs crd;
 
-  private StackGresCluster cluster;
+  private Optional<Secret> secret;
 
-  private StackGresBackupConfig backupConfig;
-
-  private ImmutableStackGresBackupContext context;
-
-  private List<HasMetadata> decorateResources;
+  private StackGresCluster connectecCluster;
 
   @BeforeEach
   public void setup() {
-    this.crd = new StackGresBackupFixture().build("default");
-    this.cluster = new StackGresClusterFixture().build("default");
-    this.backupConfig = new StackGresBackupConfigFixture().build("default");
+    this.crd = new StackGresDistributedLogsFixture().build("default");
+    this.connectecCluster = new StackGresClusterFixture().build("default");
+    this.secret = ofNullable(new SecretFixture().build("minio"));
   }
 
   @Test
-  void shouldCreateResourceSuccessfully_OnceUsingTheCurrentCrdMaxLength() throws Exception {
+  void shouldCreateResourceSuccessfully_OnceUsingTheCurrentCrdMaxLength()
+      throws JsonProcessingException, IOException {
 
-    String validBackupName =
-        getRandomClusterNameWithExactlySize(getMaxLengthResourceNameFrom("SGBackup.yaml"));
-    crd.getMetadata().setName(validBackupName);
+    String validClusterName =
+        getRandomClusterNameWithExactlySize(getMaxLengthResourceNameFrom("SGDistributedLogs.yaml"));
+    crd.getMetadata().setName(validClusterName);
 
-    this.context = ImmutableStackGresBackupContext.builder()
+    StackGresDistributedLogsContext context = ImmutableStackGresDistributedLogsContext.builder()
         .source(crd)
-        .cluster(cluster)
-        .backupConfig(backupConfig)
+        .addAllConnectedClusters(List.of(connectecCluster))
+        .databaseCredentials(secret)
         .build();
-    this.decorateResources = resourceDecorator.decorateResources(context);
+
+    var decorateResources = resourceDecorator.decorateResources(context);
     decorateResources.stream().forEach(
         resource -> {
           assertThatResourceNameIsComplaint(resource);
@@ -71,6 +72,7 @@ public class BackupRequiredResourceDecoratorTest {
           resource.getMetadata().getLabels().entrySet().stream().forEach(label -> {
             asserThatLabelIsComplaint(label);
           });
+
           assertThatStatefulSetResourceLabelsAreComplaints(resource);
           assertThatCronJobResourceLabelsAreComplaints(resource);
           assertThatJobResourceLabelsAreComplaints(resource);

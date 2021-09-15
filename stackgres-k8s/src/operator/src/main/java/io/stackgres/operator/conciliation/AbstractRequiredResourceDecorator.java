@@ -9,11 +9,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.ClusterContext;
 import io.stackgres.operator.conciliation.factory.Decorator;
 import io.stackgres.operator.conciliation.factory.DecoratorDiscoverer;
 
-public abstract class AbstractRequiredResourceDecorator<T extends ClusterContext>
+public abstract class AbstractRequiredResourceDecorator<T>
     implements RequiredResourceDecorator<T> {
 
   private DecoratorDiscoverer<T> decoratorDiscoverer;
