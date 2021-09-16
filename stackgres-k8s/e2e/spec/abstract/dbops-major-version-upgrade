@@ -105,6 +105,15 @@ check_major_version_upgrade() {
     return 1
   fi
 
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgcluster "$CLUSTER_NAME" \
+    --template '{{ .spec.postgres.version }}')" = "$E2E_MAJOR_TARGET_POSTGRES_VERSION" ]
+  then
+    echo "SUCCESS. cluster postgres version has been updated."
+  else
+    echo "FAILED. cluster postgres version has not been updated."
+    return 1
+  fi
+
   wait_until run_query -i 0 -q "SELECT 1;"
   check_mock_data_samehost "$CLUSTER_NAME"
   wait_until run_query -i 1 -q "SELECT 1;"
