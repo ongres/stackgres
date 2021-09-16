@@ -1099,7 +1099,7 @@
             },
             shortpostgresVersion () {
                 if (this.postgresVersion == 'latest')
-                    return '12';
+                    return Object.keys(store.state.postgresVersions).sort().reverse()[0];
                 else
                     return this.postgresVersion.substring(0,2)
             },

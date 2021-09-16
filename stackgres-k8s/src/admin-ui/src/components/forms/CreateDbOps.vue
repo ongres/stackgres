@@ -196,34 +196,88 @@
             </fieldset>
             
             <fieldset v-else-if="op == 'minorVersionUpgrade'">
-                <div class="header open">
-                    <h3>Minor Version Upgrade Details</h3>
-                </div>
+                <template v-if="sgCluster.length">
+                    <template v-for="cluster in allClusters" v-if="sgCluster == cluster.name">
+                        <template v-if="(typeof (postgresVersionsList[cluster.data.spec.postgres.version.substring(0,2)].find(v => v > cluster.data.spec.postgres.version)) != 'undefined')">
+                            <div class="header open">
+                                <h3>Minor Version Upgrade Details</h3>
+                            </div>
 
-                <label for="spec.minorVersionUpgrade.method">Method</label>
-                <select v-model="minorVersionUpgrade.method">
-                    <option value="InPlace">In Place</option>
-                    <option value="ReducedImpact">Reduced Impact</option>
-                </select>
-                <a class="help" @click="showTooltip( 'sgdbops', 'spec.minorVersionUpgrade.method')"></a>
+                            <label for="spec.minorVersionUpgrade.method">Method</label>
+                            <select v-model="minorVersionUpgrade.method">
+                                <option value="InPlace">In Place</option>
+                                <option value="ReducedImpact">Reduced Impact</option>
+                            </select>
+                            <a class="help" @click="showTooltip( 'sgdbops', 'spec.minorVersionUpgrade.method')"></a>
+
+                            <label for="spec.minorVersionUpgrade.postgresVersion">Target Postgres Version</label>
+                            <select v-model="minorVersionUpgrade.postgresVersion">
+                                <option disabled value="">Choose version...</option>
+                                <option v-for="version in postgresVersionsList[cluster.data.spec.postgres.version.substring(0,2)]" v-if="version > cluster.data.spec.postgres.version">{{ version }}</option>
+                            </select>
+                            <a class="help" @click="showTooltip( 'sgdbops', 'spec.minorVersionUpgrade.postgresVersion')"></a>
+                        </template>
+                        <template v-else>
+                            <p class="warning">
+                                Your cluster is already set to use <strong>Postgres {{ cluster.data.spec.postgres.version }}</strong> which is the latest minor version available for <strong>Postgres {{ cluster.data.spec.postgres.version.substring(0,2) }}</strong>.
+
+                                <template v-if="(typeof Object.keys(postgresVersionsList).find(v => v > cluster.data.spec.postgres.version.substring(0,2)) !== 'undefined')">
+                                    <br/><br/>
+                                    If you prefer, you could perform a Major Version Upgrade to <strong>Postgres {{ parseInt(cluster.data.spec.postgres.version.substring(0,2)) + 1 }}</strong>.
+                                </template>
+                            </p>
+                        </template>
+                    </template>
+                </template>
+                <p class="warning" v-else>
+                    You must first choose a target cluster to be able to set the upgrade details
+                </p>
             </fieldset>
 
             <fieldset v-else-if="op == 'majorVersionUpgrade'">
-                <div class="header open">
-                    <h3>Major Version Upgrade Details</h3>
-                </div>
+                <template v-if="sgCluster.length">
+                    <template v-for="cluster in allClusters" v-if="sgCluster == cluster.name">
+                        <template v-if="Object.keys(postgresVersionsList).filter(v => v > cluster.data.spec.postgres.version.substring(0,2)).length">
+                            <div class="header open">
+                                <h3>Major Version Upgrade Details</h3>
+                            </div>
 
-                <label for="spec.majorVersionUpgrade.link">Link</label>
-                <label for="majorVersionUpgradeLink" class="switch">Link<input type="checkbox" id="majorVersionUpgradeLink" v-model="majorVersionUpgrade.link" data-switch="ON"></label>
-                <a class="help" @click="showTooltip( 'sgdbops', 'spec.majorVersionUpgrade.link')"></a>
+                            <label for="spec.majorVersionUpgrade.link">Link</label>
+                            <label for="majorVersionUpgradeLink" class="switch">Link<input type="checkbox" id="majorVersionUpgradeLink" v-model="majorVersionUpgrade.link" data-switch="ON"></label>
+                            <a class="help" @click="showTooltip( 'sgdbops', 'spec.majorVersionUpgrade.link')"></a>
 
-                <label for="spec.majorVersionUpgrade.clone">Clone</label>
-                <label for="majorVersionUpgradeClone" class="switch">Clone<input type="checkbox" id="majorVersionUpgradeClone" v-model="majorVersionUpgrade.clone" data-switch="ON"></label>
-                <a class="help" @click="showTooltip( 'sgdbops', 'spec.majorVersionUpgrade.clone')"></a>
+                            <label for="spec.majorVersionUpgrade.clone">Clone</label>
+                            <label for="majorVersionUpgradeClone" class="switch">Clone<input type="checkbox" id="majorVersionUpgradeClone" v-model="majorVersionUpgrade.clone" data-switch="ON"></label>
+                            <a class="help" @click="showTooltip( 'sgdbops', 'spec.majorVersionUpgrade.clone')"></a>
 
-                <label for="spec.majorVersionUpgrade.check">Check</label>
-                <label for="majorVersionUpgradeCheck" class="switch">Check<input type="checkbox" id="majorVersionUpgradeCheck" v-model="majorVersionUpgrade.check" data-switch="ON"></label>
-                <a class="help" @click="showTooltip( 'sgdbops', 'spec.majorVersionUpgrade.check')"></a>
+                            <label for="spec.majorVersionUpgrade.check">Check</label>
+                            <label for="majorVersionUpgradeCheck" class="switch">Check<input type="checkbox" id="majorVersionUpgradeCheck" v-model="majorVersionUpgrade.check" data-switch="ON"></label>
+                            <a class="help" @click="showTooltip( 'sgdbops', 'spec.majorVersionUpgrade.check')"></a>
+
+                            <label for="spec.majorVersionUpgrade.postgresVersion">Target Postgres Version</label>
+                            <select v-model="majorVersionUpgrade.postgresVersion">
+                                <option disabled value="">Choose version...</option>
+                                <option v-for="version in postgresVersionsList[parseInt(cluster.data.spec.postgres.version.substring(0,2)) + 1]">{{ version }}</option>
+                            </select>
+                            <a class="help" @click="showTooltip( 'sgdbops', 'spec.minorVersionUpgrade.postgresVersion')"></a>
+
+                            <label for="spec.majorVersionUpgrade.sgPostgresConfig">Target Postgres Configuration</label>
+                            <select v-model="majorVersionUpgrade.sgPostgresConfig" :disabled="!majorVersionUpgrade.postgresVersion.length" :title="!majorVersionUpgrade.postgresVersion.length && 'You must select your desired target version first'">
+                                <option disabled value="">Choose config...</option>
+                                <option v-for="config in pgConfigs" v-if="config.data.spec.postgresVersion == majorVersionUpgrade.postgresVersion.substring(0,2)">{{ config.name }}</option>
+                            </select>
+                            <a class="help" @click="showTooltip( 'sgdbops', 'spec.majorVersionUpgrade.sgPostgresConfig')"></a>
+                        </template>
+                        <template v-else>
+                            <p class="warning">
+                                Your cluster is already set to use <strong>Postgres {{ cluster.data.spec.postgres.version.substring(0,2) }}</strong> which is the latest major version available.
+                            </p>
+                        </template>
+                    </template>
+                </template>
+                <p class="warning" v-else>
+                    You must first choose a target cluster to be able to set the upgrade details
+                </p>
             </fieldset>
 
             <fieldset v-else-if="op == 'benchmark'">
@@ -473,7 +527,8 @@
                     onlyPendingRestart: false
                 },
                 minorVersionUpgrade: {
-                    method: 'InPlace'
+                    method: 'InPlace',
+                    postgresVersion: ''
                 },
                 securityUpgrade: {
                     method: 'InPlace'
@@ -482,6 +537,8 @@
                     link: false,
                     clone: false,
                     check: false,
+                    postgresVersion: '',
+                    sgPostgresConfig: ''
                 },
                 benchmark: {
                     type: 'pgbench',
@@ -584,6 +641,14 @@
 
             timezone () {
                 return store.state.timezone
+            },
+
+            postgresVersionsList() {
+                return store.state.postgresVersions
+            },
+
+            pgConfigs() {
+                return store.state.pgConfig
             }
 
         },
