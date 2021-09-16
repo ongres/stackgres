@@ -111,6 +111,7 @@ developer: {}
   # externalOperatorPort: 8080
   # externalRestApiIp: 172.17.0.1
   # externalRestApiPort: 8081
+  # allowPullExtensionsFromImageRepository: true
 
 extensions:
   repositoryUrls:

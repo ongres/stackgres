@@ -46,6 +46,10 @@ spec:
         - containerPort: 8080
           name: "http"
           protocol: "TCP"
+        livenessProbe:
+          httpGet:
+            path: /index.json
+            port: 8080
         volumeMounts:
           - name: extensions-cache-nginx
             mountPath: /etc/nginx/nginx.conf
@@ -80,6 +84,13 @@ spec:
         env:
         - name: EXTENSIONS_REPOSITORY_URLS
           value: "{{ range $index, $element := .Values.extensions.repositoryUrls }}{{ if $index }},{{ end }}{{ $element }}{{ end }}"
+        - name: OPERATOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        - name: ALLOW_PULL_EXTENSIONS_FROM_IMAGE_REPOSITORY
+          value: "{{ if .Values.developer.allowPullExtensionsFromImageRepository }}true{{ else }}false{{ end }}"
         command:
           - "/bin/bash"
           - "-exc"
@@ -88,7 +99,7 @@ spec:
             cat << 'SCRIPT_EOF' > extensions-cache-conciliator.sh
 {{ .Files.Get "extensions-cache-conciliator.sh" | indent 12 }}
             SCRIPT_EOF
-            sh -x extensions-cache-conciliator.sh '{{ .Release.Namespace }}' '{{ .Release.Name }}-extensions-cache'
+            sh -x extensions-cache-conciliator.sh run "$OPERATOR_NAMESPACE" '{{ .Release.Name }}-extensions-cache'
         volumeMounts:
           - name: {{ .Release.Name }}-extensions-cache
             subPath: repository

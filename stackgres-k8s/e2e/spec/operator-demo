@@ -38,6 +38,7 @@ test_yamls() {
     | sed "$(printf '/name: OPERATOR_IMAGE_VERSION$/{$!{N;s/name: OPERATOR_IMAGE_VERSION\\n\( *\)value: .*$/name: OPERATOR_IMAGE_VERSION\\n\\1value: '"'%s'"'/;ty;P;D;:y}}' "$IMAGE_TAG")" \
     | sed "s|imagePullPolicy:.*$|imagePullPolicy: $(operator_pull_policy)|" \
     | sed "s|value: \"https://extensions.stackgres.io/postgres/repository\"$|value: \"$EXTENSIONS_REPOSITORY_URL\"|" \
+    | sed "s|stackgres-operator-extensions-cache\.stackgres|stackgres-operator-extensions-cache.$OPERATOR_NAMESPACE|" \
     > "${LOG_PATH}/stackgres-operator-demo.yml"
 
   cat "${LOG_PATH}/stackgres-operator-demo.yml" \
