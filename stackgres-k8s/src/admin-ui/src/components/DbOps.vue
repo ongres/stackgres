@@ -644,6 +644,24 @@
                                         {{ op.data.spec.majorVersionUpgrade.hasOwnProperty('check') ? op.data.spec.majorVersionUpgrade.check : 'False' }}
                                     </td>
                                 </tr>
+                                <tr>
+                                    <td class="label">
+                                        Target Postgres Version
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.majorVersionUpgrade.postgresVersion')"></span>
+                                    </td>
+                                    <td>
+                                        {{ op.data.spec.majorVersionUpgrade.postgresVersion }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="label">
+                                        Target Postgres Configuration
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.majorVersionUpgrade.sgPostgresConfig')"></span>
+                                    </td>
+                                    <td>
+                                        {{ op.data.spec.majorVersionUpgrade.sgPostgresConfig }}
+                                    </td>
+                                </tr>
                             </tbody>
                         </template>
 
@@ -656,6 +674,15 @@
                                     </td>
                                     <td>
                                         {{ op.data.spec.minorVersionUpgrade.method }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="label">
+                                        Target Postgres Version
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.minorVersionUpgrade.postgresVersion')"></span>
+                                    </td>
+                                    <td>
+                                        {{ op.data.spec.minorVersionUpgrade.postgresVersion }}
                                     </td>
                                 </tr>
                             </tbody>
