@@ -10,6 +10,7 @@ import java.net.URI;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 import javax.net.ssl.HostnameVerifier;
@@ -44,6 +45,8 @@ public class WebClientFactory {
       clientBuilder.property(proxyUri.getScheme() + ".proxyPort",
           String.valueOf(proxyUri.getPort()));
     }
+    clientBuilder.connectTimeout(1, TimeUnit.MINUTES);
+    clientBuilder.readTimeout(5, TimeUnit.MINUTES);
     return new WebClient(clientBuilder.build());
   }
 
