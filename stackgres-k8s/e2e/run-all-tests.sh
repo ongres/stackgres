@@ -195,10 +195,10 @@ echo "Preparing environment"
 
 echo "Setup versions"
 setup_versions
-echo "Setup images"
-setup_images
 echo "Setup k8s"
 setup_k8s
+echo "Setup images"
+setup_images
 echo "Setup cache"
 setup_cache
 echo "Setup helm"

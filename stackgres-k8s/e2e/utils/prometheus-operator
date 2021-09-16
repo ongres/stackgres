@@ -16,9 +16,16 @@ install_prometheus_operator_for_version() {
   local KUBE_PROMETHEUS_STACK_VERSION="$1"
   shift
 
-  if [ "$E2E_ENV" = "minishift" ]
+  if [ "$E2E_ENV" = "minishift" ] || [ "$E2E_ENV" = "crc" ]
   then
-    eval "$(minishift oc-env)"
+    if [ "$E2E_ENV" = "minishift" ]
+    then
+      eval "$(minishift oc-env)"
+    fi
+    if [ "$E2E_ENV" = "crc" ]
+    then
+      eval "$(crc oc-env)"
+    fi
     oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-prometheus-oper-admission
     oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-grafana
     oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-prometheus-oper-operator

@@ -226,10 +226,19 @@ docker_pull() {
   fi
 }
 
+docker_push() {
+  local IMAGE_NAME="$1"
+  docker push -q "$IMAGE_NAME"
+}
+
 docker_tag() {
-  docker tag "$1" "$2"
+  docker_local_tag "$1" "$2"
   if [ "$K8S_USE_INTERNAL_REPOSITORY" = true ]
   then
     tag_image_k8s "$1" "$2"
   fi
+}
+
+docker_local_tag() {
+  docker tag "$1" "$2"
 }

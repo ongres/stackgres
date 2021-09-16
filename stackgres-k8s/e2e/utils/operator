@@ -60,6 +60,11 @@ setup_images() {
     echo build_helm_artifacts
     ) | xargs_parallel_shell % "$E2E_PATH/e2e" %
   fi
+
+  if [ "$E2E_PUSH_IMAGES" = true ] && [ -n "$E2E_OPERATOR_REGISTRY" ]
+  then
+    push_operator_images
+  fi
 }
 
 build_components() {
@@ -326,6 +331,34 @@ pull_image_from() {
   docker_pull "$FROM_IMAGE"
   docker_tag "$FROM_IMAGE" "$IMAGE"
   echo "Pulled $IMAGE from $FROM_IMAGE"
+}
+
+push_operator_images() {
+  echo "Pushing operator images to $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
+  for IMAGE_NAME in \
+    "$OPERATOR_IMAGE_NAME" \
+    "$RESTAPI_IMAGE_NAME" \
+    "$JOBS_IMAGE_NAME" \
+    "$CLUSTER_CONTROLLER_IMAGE_NAME" \
+    "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" \
+    "$ADMINUI_IMAGE_NAME"
+  do
+    echo "$IMAGE_NAME"
+  done | xargs_shell % "$E2E_PATH/e2e" \
+    push_image_to "$E2E_OPERATOR_REGISTRY" "$E2E_OPERATOR_REGISTRY_PATH" "%"
+  echo "All operator images pushed to $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
+}
+
+push_image_to() {
+  [ -n "$1" -a -n "$2" -a -n "$3" ]
+  local REPOSITORY="$1"
+  local IMAGE_PATH="$2"
+  local IMAGE="$3"
+  local TO_IMAGE="$REPOSITORY$IMAGE_PATH${IMAGE#*/}"
+  echo "Pushing $IMAGE to $TO_IMAGE..."
+  docker_local_tag "$IMAGE" "$TO_IMAGE"
+  docker_push "$TO_IMAGE"
+  echo "Pushed $IMAGE to $TO_IMAGE"
 }
 
 operator_pull_policy() {

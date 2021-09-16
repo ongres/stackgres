@@ -51,6 +51,10 @@ spec:
             value: "{{ .Values.operator.image.tag }}"
           - name: PROMETHEUS_AUTOBIND
             value: "{{ .Values.prometheus.allowAutobind }}"
+          {{- if (.Capabilities.APIVersions.Has "project.openshift.io/v1") }}
+          - name: USE_ARBITRARY_USER
+            value: "true"
+          {{- end }}
           {{- if .Values.developer.logLevel }}
           - name: OPERATOR_LOG_LEVEL
             value: "{{ .Values.developer.logLevel }}"

@@ -1,0 +1,366 @@
+#!/bin/sh
+
+#
+# Follow those steps to install and start crc in Ubuntu 20.04:
+# 
+#     sudo wget https://dl.fedoraproject.org/pub/alt/okd-crc/release/linux-amd64/crc -O /usr/local/bin
+#     sudo chmod a+x /usr/local/bin/crc
+#     sudo apt install qemu-kvm libvirt-daemon libvirt-daemon-system network-manager
+#     crc config set skip-check-daemon-systemd-unit true
+#     crc config set skip-check-daemon-systemd-sockets true
+#     crc config set network-mode user
+#     crc config set host-network-access true
+#     crc config set nameserver 8.8.8.8
+#     crc setup
+#     mkdir -p "$HOME/.crc"
+#
+# Download CRC pull secret from https://console.redhat.com/openshift/create/local to "$HOME/.crc/pull-secret"
+#
+
+if [ "$K8S_VERSION" = "$DEFAULT_K8S_VERSION" ]
+then
+  >&2 echo "Warning: using kubernetes version 1.22.3 since e2e default $DEFAULT_K8S_VERSION is not available for crc"
+  K8S_VERSION=1.22.3
+fi
+export K8S_OPENSHIFT_VERSION="${K8S_OPENSHIFT_VERSION:-3.11.0}"
+export K8S_CRC_CPUS="${K8S_CRC_CPUS:-4}"
+export K8S_CRC_MEMORY="${K8S_CRC_MEMORY:-9216}"
+export K8S_CRC_DISK="${K8S_CRC_DISK:-31}"
+
+get_k8s_env_version() {
+  echo "crc version $(crc version | head -n 1 | cut -d ' ' -f 4)"
+  echo
+}
+
+update_crc_config() {
+  eval "$(crc oc-env)"
+
+  if ! timeout -s KILL 10s $(crc console --credentials | cut -d "'" -f 2 | grep kubeadmin) > /dev/null 2>&1
+  then
+    wait_until eval "crc status | grep '^OpenShift:[[:space:]]\+Running[[:space:]]'"
+    wait_until eval "timeout -s KILL 10s $(crc console --credentials | cut -d "'" -f 2 | grep kubeadmin) > /dev/null 2>&1"
+  fi
+
+  # oc adm policy add-scc-to-user hostmount-anyuid -n default -z default
+}
+
+update_k8s_config() {
+  mkdir -p "$HOME/.kube"
+  if [ "$K8S_FROM_DIND" = true ]
+  then
+    echo "Can not use crc environment from docker"
+    exit 1
+  else
+    oc config view --raw > "$HOME/.kube/config-oc"
+  fi
+
+  (
+  export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
+  if [ -s "$KUBECONFIG" ]
+  then
+    KUBECONFIG="$HOME/.kube/config-oc":"$KUBECONFIG" \
+      kubectl config view --raw > "$HOME/.kube/config-merged"
+    mv "$HOME/.kube/config-merged" "$KUBECONFIG"
+  else
+    mv "$HOME/.kube/config-oc" "$KUBECONFIG"
+  fi
+  chmod 700 "$KUBECONFIG"
+  )
+}
+
+reuse_k8s() {
+  local RESULT
+  local EXIT_CODE
+  try_function update_crc_config
+
+  if ! "$RESULT" > /dev/null 2>&1
+  then
+    echo "Can not reuse crc environment"
+    exit 1
+  fi
+
+  echo "Reusing crc environment"
+  update_crc_config
+  update_k8s_config
+}
+
+reset_k8s() {
+  if [ "$K8S_SKIP_RESET" = "true" ]
+  then
+    exit 1
+  fi
+
+  if [ "$K8S_VERSION" != 1.22.3 ]
+  then
+    echo "Only kubernetes version 1.22.3 is available for crc environment"
+    return 1
+  fi
+
+  echo "Setting up crc environment..."
+
+  crc delete -f || true
+  screen -ls 2>/dev/null | grep '\.crc-daemon' \
+    | tr '[:space:]' ' ' | cut -d ' ' -f 2 | cut -d . -f 1 \
+    | xargs -r -I % kill %
+
+  rm -Rf "$HOME/.crc/machines"
+
+  if ! [ -f "$HOME/.crc/pull-secret" ]
+  then
+    echo "Copy pull secret from https://console.redhat.com/openshift/create/local to $HOME/.crc/pull-secret"
+    return 1
+  fi
+
+  screen -dmS crc-daemon -L -Logfile "$HOME/.crc/crc-daemon.log" crc daemon
+  crc start \
+    --pull-secret-file "$HOME/.crc/pull-secret" \
+    --cpus "$K8S_CRC_CPUS" \
+    --memory "$K8S_CRC_MEMORY" \
+    --disk-size "$K8S_CRC_DISK"
+
+  update_crc_config
+
+  update_k8s_config
+
+  crc_start_debug_node
+
+  echo "...done"
+}
+
+delete_k8s() {
+  echo "Deleting crc environment..."
+
+  crc delete -f || true
+  screen -ls 2>/dev/null | grep '\.crc-daemon' \
+    | tr '[:space:]' ' ' | cut -d ' ' -f 2 | cut -d . -f 1 \
+    | xargs -r -I % kill %
+
+  echo "...done"
+}
+
+load_image_k8s() {
+  local IMAGE_ID
+  IMAGE_ID="$( (docker inspect --format '{{ .ID }}' "$1" 2>/dev/null || printf unknown) | grep -v '^$')"
+  local CRC_IMAGE_ID
+  CRC_IMAGE_ID="$( (crc_run_on_node crictl inspecti -o json "$1" 2>/dev/null || printf '{"status": {"id": "unknown"}}') | jq -r '"sha256:" + .status.id' | grep -v '^$')"
+  if [ "$IMAGE_ID" = unknown ] && [ "$KIND_IMAGE_ID" != unknown ]
+  then
+    echo "Image $1 already loaded in crc environemnt"
+    return
+  fi
+  if [ "$CRC_IMAGE_ID" = "$IMAGE_ID" ]
+  then
+    echo "Image $1 already loaded in crc environemnt"
+    return
+  fi
+
+  echo "Loading image $1 in crc environemnt"
+  docker save "$1" | crc_run_on_node podman load
+  if crc_run_on_node podman inspect "localhost/$1" > /dev/null 2>&1
+  then
+    crc_run_on_node podman tag "localhost/$1" "docker.io/$1"
+  fi
+}
+
+pull_image_k8s() {
+  local AUTH
+  AUTH="$(jq -r '.auths|to_entries|.[]|.key + "|" + .value.auth' "${HOME}/.docker/config.json" \
+    | grep -F "${1%%/*}" | head -n 1 | cut -d '|' -f 2)"
+  if [ -n "$AUTH" ]
+  then
+    crc_run_on_node crictl pull --auth "$AUTH" "$1"
+  else
+    crc_run_on_node crictl pull "$1"
+  fi
+
+  echo "Pulled image $1 in crc environemnt"
+}
+
+tag_image_k8s() {
+  crc_run_on_node podman tag "$1" "$2"
+
+  echo "Tagged image $1 as $2 in crc environemnt"
+}
+
+crc_start_debug_node() {
+  screen -ls 2>/dev/null | grep '\.crc-debug' \
+    | tr '[:space:]' ' ' | cut -d ' ' -f 2 | cut -d . -f 1 \
+    | xargs -r -I % kill %
+
+  local NODE
+  NODE="$(kubectl get node -o name)"
+  NODE="$(printf '%s' "$NODE" | head -n 1)"
+  screen -dmS crc-debug -L -Logfile "$HOME/.crc/crc-debug.log" \
+    ~/.crc/bin/oc/oc debug -q "$NODE" -- sh -c 'while true; do sleep 300; done'
+}
+
+crc_run_on_node() {
+  local NODE
+  NODE="$(kubectl get node -o name)"
+  NODE="$(printf '%s' "$NODE" | head -n 1)"
+
+  PID="$(kubectl exec "${NODE#node/}-debug" -- sh -c \
+    'for FILE in /proc/[0-9]*; do cat "$FILE/cmdline" 2>/dev/null | tr "\0" " " | grep -q "^kubelet " && echo "${FILE##*/}" && exit; done')"
+  kubectl exec -i "${NODE#node/}-debug" -- \
+    nsenter --target "$PID" --mount --uts --ipc --net --pid "$@"
+}
+
+excluded_namespaces() {
+  echo "default"
+  echo "kube-.*"
+  echo "openshift"
+  echo "openshift-.*"
+}
+
+excluded_validatingwebhookconfigurations() {
+  echo "machine-api"
+  echo ".*\.openshift\.io"
+}
+
+excluded_mutatingwebhookconfigurations() {
+  echo "machine-api"
+  echo ".*\.openshift\.io"
+}
+
+excluded_customresourcedefinitions() {
+  echo ".*\.openshift\.io"
+  echo ".*\.metal3\.io"
+  echo ".*\.operators\.coreos\.com"
+  echo ".*\.cni\.cncf\.io"
+  echo ".*\.monitoring\.coreos\.com"
+  echo ".*\.k8s\.io"
+}
+
+excluded_clusterroles() {
+  echo "admin"
+  echo "aggregate-olm-edit"
+  echo "aggregate-olm-view"
+  echo "basic-user"
+  echo "cloud-credential-operator-role"
+  echo "cluster-admin"
+  echo "cluster-autoscaler"
+  echo "cluster-autoscaler-operator"
+  echo "cluster-autoscaler-operator:cluster-reader"
+  echo "cluster-baremetal-operator"
+  echo "cluster-debugger"
+  echo "cluster-image-registry-operator"
+  echo "cluster-monitoring-operator"
+  echo "cluster-node-tuning-operator"
+  echo "cluster-node-tuning:tuned"
+  echo "cluster-reader"
+  echo "cluster-samples-operator"
+  echo "cluster-samples-operator-proxy-reader"
+  echo "cluster-status"
+  echo "console"
+  echo "console-extensions-reader"
+  echo "console-operator"
+  echo "dns-monitoring"
+  echo "edit"
+  echo "global-operators-admin"
+  echo "global-operators-edit"
+  echo "global-operators-view"
+  echo "helm-chartrepos-viewer"
+  echo "insights-operator"
+  echo "insights-operator-gather"
+  echo "kube-apiserver"
+  echo "machine-api-controllers"
+  echo "machine-api-operator"
+  echo "machine-api-operator:cluster-reader"
+  echo "machine-config-controller"
+  echo "machine-config-controller-events"
+  echo "machine-config-daemon"
+  echo "machine-config-daemon-events"
+  echo "machine-config-server"
+  echo "marketplace-operator"
+  echo "metrics-daemon-role"
+  echo "multus"
+  echo "multus-admission-controller-webhook"
+  echo "network-diagnostics"
+  echo "olm-operators-admin"
+  echo "olm-operators-edit"
+  echo "olm-operators-view"
+  echo "openshift-.*"
+  echo "operatorhub-config-reader"
+  echo "packagemanifests-v1-admin"
+  echo "packagemanifests-v1-edit"
+  echo "packagemanifests-v1-view"
+  echo "prometheus-k8s-scheduler-resources"
+  echo "registry-admin"
+  echo "registry-editor"
+  echo "registry-monitoring"
+  echo "registry-viewer"
+  echo "router-monitoring"
+  echo "self-access-reviewer"
+  echo "self-provisioner"
+  echo "storage-admin"
+  echo "sudoer"
+  echo "system:.*"
+  echo "view"
+  echo "whereabouts-cni"
+  echo "cloud-node-manager"
+  echo "cluster-samples-operator-imageconfig-reader"
+  echo "cloud-controller-manager"
+  echo "machine-api-operator-ext-remediation"
+}
+
+excluded_clusterrolebindings() {
+  echo "basic-users"
+  echo "cloud-credential-operator-rolebinding"
+  echo "cluster-admin"
+  echo "cluster-admins"
+  echo "cluster-autoscaler"
+  echo "cluster-autoscaler-operator"
+  echo "cluster-baremetal-operator"
+  echo "cluster-monitoring-operator"
+  echo "cluster-node-tuning-operator"
+  echo "cluster-node-tuning:tuned"
+  echo "cluster-readers"
+  echo "cluster-samples-operator"
+  echo "cluster-samples-operator-proxy-reader"
+  echo "cluster-status-binding"
+  echo "cluster-storage-operator-role"
+  echo "cluster-version-operator"
+  echo "console"
+  echo "console-extensions-reader"
+  echo "console-operator"
+  echo "console-operator-auth-delegator"
+  echo "csi-snapshot-controller-operator-role"
+  echo "default-account-cluster-image-registry-operator"
+  echo "default-account-cluster-network-operator"
+  echo "default-account-openshift-machine-config-operator"
+  echo "dns-monitoring"
+  echo "helm-chartrepos-view"
+  echo "insights-operator"
+  echo "insights-operator-auth"
+  echo "insights-operator-gather"
+  echo "insights-operator-gather-reader"
+  echo "kube-apiserver"
+  echo "kubeadmin"
+  echo "machine-api-controllers"
+  echo "machine-api-operator"
+  echo "machine-config-controller"
+  echo "machine-config-daemon"
+  echo "machine-config-server"
+  echo "marketplace-operator"
+  echo "metrics-daemon-sa-rolebinding"
+  echo "multus"
+  echo "multus-admission-controller-webhook"
+  echo "multus-whereabouts"
+  echo "network-diagnostics"
+  echo "olm-operator-binding-openshift-operator-lifecycle-manager"
+  echo "openshift-.*"
+  echo "packageserver-service-system:auth-delegator"
+  echo "prometheus-k8s-scheduler-resources"
+  echo "registry-monitoring"
+  echo "registry-registry-role"
+  echo "router-monitoring"
+  echo "self-access-reviewers"
+  echo "self-provisioners"
+  echo "system-bootstrap-node-bootstrapper"
+  echo "system-bootstrap-node-renewal"
+  echo "system:.*"
+  echo "cloud-node-manager"
+  echo "machine-api-operator-ext-remediation"
+  echo "cloud-controller-manager"
+  echo "cluster-samples-operator-imageconfig-reader"
+}

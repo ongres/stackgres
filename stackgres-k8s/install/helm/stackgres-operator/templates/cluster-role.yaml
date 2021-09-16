@@ -11,6 +11,7 @@ rules:
   - pods/log
   - services
   - endpoints
+  - endpoints/restricted
   - persistentvolumeclaims
   - configmaps
   - secrets
