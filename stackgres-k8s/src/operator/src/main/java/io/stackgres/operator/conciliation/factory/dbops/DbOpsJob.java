@@ -30,6 +30,7 @@ import io.stackgres.common.DbOpsUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.LabelFactoryForDbOps;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -91,10 +92,7 @@ public abstract class DbOpsJob implements JobFactory {
   }
 
   protected String getRunImage(StackGresDbOpsContext context) {
-    return StackGresComponent.PATRONI.findImageName(
-        StackGresComponent.LATEST,
-        ImmutableMap.of(StackGresComponent.POSTGRESQL,
-            context.getCluster().getSpec().getPostgres().getVersion()));
+    return StackGresUtil.getPatroniImageName(context.getCluster());
   }
 
   protected abstract ClusterStatefulSetPath getRunScript();

@@ -12,9 +12,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
@@ -36,11 +38,11 @@ class DbOpsMinorVersionUpgradeValidatorTest {
 
   private static final List<String> SUPPORTED_POSTGRES_VERSIONS =
       StackGresComponent.POSTGRESQL.getOrderedVersions().toList();
-  private static final ImmutableList<String> ALL_SUPPORTED_POSTGRES_VERSIONS =
-      Seq.of(StackGresComponent.LATEST)
+  private static final Map<StackGresComponent, List<String>> ALL_SUPPORTED_POSTGRES_VERSIONS =
+      ImmutableMap.of(StackGresComponent.POSTGRESQL, Seq.of(StackGresComponent.LATEST)
           .append(StackGresComponent.POSTGRESQL.getOrderedMajorVersions())
           .append(SUPPORTED_POSTGRES_VERSIONS)
-          .collect(ImmutableList.toImmutableList());
+          .collect(ImmutableList.toImmutableList()));
   private static final String SECOND_PG_MAJOR_VERSION =
       StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
           .skipWhile(p -> p.startsWith("14"))

@@ -54,11 +54,13 @@ public class ExtensionsResource {
   @CommonApiResponses
   @GET
   @Path("{postgresVersion}")
-  public ExtensionsDto get(@PathParam("postgresVersion") String postgresVersion) {
+  public ExtensionsDto get(@PathParam("postgresVersion") String postgresVersion,
+      @PathParam("flavor") String flavor) {
     StackGresCluster cluster = new StackGresCluster();
     cluster.setSpec(new StackGresClusterSpec());
     cluster.getSpec().setPostgres(new StackGresClusterPostgres());
     cluster.getSpec().getPostgres().setVersion(postgresVersion);
+    cluster.getSpec().getPostgres().setFlavor(flavor);
     var extensionMetadataList = clusterExtensionMetadataManager.getExtensions();
     return extensionsTransformer.toDto(extensionMetadataList, cluster);
   }

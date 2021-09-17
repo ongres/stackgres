@@ -25,4 +25,14 @@ class VersionsResourceTest {
         .body("postgresql", Matchers.hasItems(pgvers));
   }
 
+  @Test
+  void get_listOf_babelfish_versions() {
+    String[] pgvers = StackGresComponent.BABELFISH.getOrderedVersions().toArray(String[]::new);
+    when()
+        .get("/stackgres/version/postgresql?flavor=babelfish")
+        .then()
+        .statusCode(200)
+        .body("postgresql", Matchers.hasItems(pgvers));
+  }
+
 }

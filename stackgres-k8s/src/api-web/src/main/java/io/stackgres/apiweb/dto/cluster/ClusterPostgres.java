@@ -21,6 +21,9 @@ public class ClusterPostgres {
   @JsonProperty("version")
   private String version;
 
+  @JsonProperty("flavor")
+  private String flavor;
+
   @JsonProperty("extensions")
   private List<ClusterExtension> extensions;
 
@@ -33,6 +36,14 @@ public class ClusterPostgres {
 
   public void setVersion(String version) {
     this.version = version;
+  }
+
+  public String getFlavor() {
+    return flavor;
+  }
+
+  public void setFlavor(String flavor) {
+    this.flavor = flavor;
   }
 
   public List<ClusterExtension> getExtensions() {

@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.validation.cluster;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -12,7 +14,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import io.stackgres.common.ErrorType;
-import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -89,7 +90,8 @@ public class RestoreConfigValidator implements ClusterValidator {
 
         String givenPgVersion = review.getRequest().getObject().getSpec()
             .getPostgres().getVersion();
-        String givenMajorVersion = StackGresComponent.POSTGRESQL.findMajorVersion(givenPgVersion);
+        String givenMajorVersion = getPostgresFlavorComponent(review.getRequest().getObject())
+            .findMajorVersion(givenPgVersion);
 
         if (!backupMajorVersion.equals(givenMajorVersion)) {
           final String message = "Cannot restore from backup " + backupUid

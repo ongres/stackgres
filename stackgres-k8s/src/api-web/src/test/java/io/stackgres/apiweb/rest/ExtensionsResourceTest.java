@@ -138,7 +138,7 @@ class ExtensionsResourceTest {
             ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensionsMetadata)
             .get(getIndexAnyVersion(PG_VERSION, getClusterExtension("plpgsql"))));
 
-    ExtensionsDto extensionsDto = resource.get(PG_VERSION);
+    ExtensionsDto extensionsDto = resource.get(PG_VERSION, null);
 
     assertThat(extensionsDto.getPublishers(), hasSize(1));
     assertThat(extensionsDto.getExtensions(), hasSize(3));
@@ -188,7 +188,7 @@ class ExtensionsResourceTest {
             ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensionsMetadata)
             .get(getIndexAnyVersion(PG_VERSION, getClusterExtension("plpgsql"))));
 
-    ExtensionsDto extensionsDto = resource.get(PG_VERSION);
+    ExtensionsDto extensionsDto = resource.get(PG_VERSION, null);
 
     assertThat(extensionsDto.getPublishers(), hasSize(1));
     assertThat(extensionsDto.getExtensions(), hasSize(3));

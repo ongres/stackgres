@@ -5,6 +5,7 @@
 
 package io.stackgres.common.crd.sgcluster;
 
+import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -12,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.validation.ValidEnumList;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -21,6 +23,11 @@ public class StackGresClusterNonProduction {
   @JsonProperty("disableClusterPodAntiAffinity")
   public Boolean disableClusterPodAntiAffinity;
 
+  @JsonProperty("enabledFeatureGates")
+  @ValidEnumList(enumClass = StackGresFeatureGates.class, allowNulls = true,
+      message = "enabledFeatureGates must contains only babelfish-flavor")
+  public List<String> enabledFeatureGates;
+
   public Boolean getDisableClusterPodAntiAffinity() {
     return disableClusterPodAntiAffinity;
   }
@@ -29,9 +36,17 @@ public class StackGresClusterNonProduction {
     this.disableClusterPodAntiAffinity = disableClusterPodAntiAffinity;
   }
 
+  public List<String> getEnabledFeatureGates() {
+    return enabledFeatureGates;
+  }
+
+  public void setEnabledFeatureGates(List<String> enabledFeatureGates) {
+    this.enabledFeatureGates = enabledFeatureGates;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(disableClusterPodAntiAffinity);
+    return Objects.hash(disableClusterPodAntiAffinity, enabledFeatureGates);
   }
 
   @Override
@@ -43,7 +58,8 @@ public class StackGresClusterNonProduction {
       return false;
     }
     StackGresClusterNonProduction other = (StackGresClusterNonProduction) obj;
-    return Objects.equals(disableClusterPodAntiAffinity, other.disableClusterPodAntiAffinity);
+    return Objects.equals(disableClusterPodAntiAffinity, other.disableClusterPodAntiAffinity)
+        && Objects.equals(enabledFeatureGates, other.enabledFeatureGates);
   }
 
   @Override

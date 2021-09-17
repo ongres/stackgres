@@ -142,6 +142,7 @@ public class ClusterTransformer
 
     transformation.setPostgres(new StackGresClusterPostgres());
     transformation.getPostgres().setVersion(source.getPostgres().getVersion());
+    transformation.getPostgres().setFlavor(source.getPostgres().getFlavor());
     transformation.getPostgres().setExtensions(Optional.ofNullable(
         source.getPostgres().getExtensions())
         .stream()
@@ -297,6 +298,7 @@ public class ClusterTransformer
     io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction transformation =
         new io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction();
     transformation.setDisableClusterPodAntiAffinity(source.getDisableClusterPodAntiAffinity());
+    transformation.setEnabledFeatureGates(source.getEnabledFeatureGates());
     return transformation;
   }
 
@@ -352,6 +354,7 @@ public class ClusterTransformer
 
     transformation.setPostgres(new ClusterPostgres());
     transformation.getPostgres().setVersion(source.getPostgres().getVersion());
+    transformation.getPostgres().setFlavor(source.getPostgres().getFlavor());
     transformation.getPostgres().setExtensions(Optional.ofNullable(
         source.getPostgres().getExtensions())
         .stream()
@@ -499,6 +502,7 @@ public class ClusterTransformer
     }
     ClusterNonProduction transformation = new ClusterNonProduction();
     transformation.setDisableClusterPodAntiAffinity(source.getDisableClusterPodAntiAffinity());
+    transformation.setEnabledFeatureGates(source.getEnabledFeatureGates());
     return transformation;
   }
 

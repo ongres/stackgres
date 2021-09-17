@@ -29,6 +29,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
 import javax.enterprise.inject.spi.CDI;
 
 import com.google.common.collect.ImmutableList;
@@ -41,6 +42,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceStatus;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.common.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
@@ -329,6 +331,34 @@ public interface StackGresUtil {
         .orElseThrow(() -> new IllegalArgumentException(
             "Resource not locked or locked and annotation "
                 + LOCK_SERVICE_ACCOUNT_KEY + " not set"));
+  }
+
+  static String getPatroniImageName(StackGresCluster cluster) {
+    return getPatroniImageName(cluster, cluster.getSpec().getPostgres().getVersion());
+  }
+
+  static String getPatroniImageName(StackGresCluster cluster, String postgresVersion) {
+    StackGresComponent postgresComponentFlavor = getPostgresFlavorComponent(cluster);
+    return StackGresComponent.PATRONI.findImageName(
+        StackGresComponent.LATEST,
+        ImmutableMap.of(postgresComponentFlavor,
+            postgresVersion));
+  }
+
+  static StackGresComponent getPostgresFlavorComponent(StackGresCluster cluster) {
+    return getPostgresFlavorComponent(cluster.getSpec().getPostgres().getFlavor());
+  }
+
+  static StackGresComponent getPostgresFlavorComponent(@Nullable String flavor) {
+    StackGresComponent postgresComponentFlavor;
+    if (Optional.ofNullable(flavor)
+        .map(StackGresPostgresFlavor.BABELFISH.toString()::equals)
+        .orElse(false)) {
+      postgresComponentFlavor = StackGresComponent.BABELFISH;
+    } else {
+      postgresComponentFlavor = StackGresComponent.POSTGRESQL;
+    }
+    return postgresComponentFlavor;
   }
 
 }

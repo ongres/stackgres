@@ -641,11 +641,13 @@ get_component_images() {
     get_component_images_pre_1_0_0_alpha2 "$VERSION"
     return
   fi
-  local COMPONENT_POSTGRESQL_VERSIONS COMPONENT_PATRONI_VERSIONS \
+  local COMPONENT_POSTGRESQL_VERSIONS COMPONENT_BABELFISH_VERSIONS \
+    COMPONENT_PATRONI_VERSIONS \
     COMPONENT_PGBOUNCER_VERSIONS COMPONENT_POSTGRES_EXPORTER_VERSIONS \
     COMPONENT_ENVOY_VERSIONS COMPONENT_FLUENTBIT_VERSIONS \
     COMPONENT_FLUENTD_VERSIONS
   COMPONENT_POSTGRESQL_VERSIONS="$(get_component_versions "$VERSION" postgresql)"
+  COMPONENT_BABELFISH_VERSIONS="$(get_component_versions "$VERSION" babelfish)"
   COMPONENT_PATRONI_VERSIONS="$(get_component_versions "$VERSION" patroni)"
   COMPONENT_PGBOUNCER_VERSIONS="$(get_component_versions "$VERSION" pgbouncer)"
   COMPONENT_POSTGRES_EXPORTER_VERSIONS="$(get_component_versions "$VERSION" prometheus-postgres-exporter)"
@@ -661,6 +663,13 @@ get_component_images() {
       if [ "${VERSION#*-build-}" = "${SUBVERSION#*-build-}" ]
       then
         echo "docker.io/ongres/patroni:v${VERSION%-build-*}-pg${SUBVERSION%-build-*}-build-${VERSION#*-build-}"
+      fi
+    done
+    for SUBVERSION in $COMPONENT_BABELFISH_VERSIONS
+    do
+      if [ "${VERSION#*-build-}" = "${SUBVERSION#*-build-}" ]
+      then
+        echo "docker.io/ongres/patroni:v${VERSION%-build-*}-bf${SUBVERSION%-build-*}-build-${VERSION#*-build-}"
       fi
     done
   done

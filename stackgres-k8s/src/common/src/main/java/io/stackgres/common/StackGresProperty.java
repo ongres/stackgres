@@ -17,7 +17,6 @@ public enum StackGresProperty implements StackGresPropertyReader {
   DOCUMENTATION_ERRORS_PATH("stackgres.documentation.errorsPath"),
   SG_CONTAINER_REGISTRY("stackgres.containerRegistry"),
   SG_IMAGE_PULL_POLICY("stackgres.imagePullPolicy"),
-  SG_IMAGE_POSTGRESQL("stackgres.imagePostgresql"),
   SG_IMAGE_PATRONI("stackgres.imagePatroni"),
   SG_IMAGE_POSTGRES_UTIL("stackgres.imagePostgresUtil"),
   SG_IMAGE_PGBOUNCER("stackgres.imagePgbouncer"),

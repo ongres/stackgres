@@ -5,6 +5,8 @@
 
 package io.stackgres.common.extension;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +21,6 @@ import javax.ws.rs.core.UriBuilder;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
@@ -178,7 +179,7 @@ public interface ExtensionUtil {
 
   static String getDescription(StackGresCluster cluster,
       StackGresClusterExtension extension) {
-    final String pgMajorVersion = StackGresComponent.POSTGRESQL.findMajorVersion(
+    final String pgMajorVersion = getPostgresFlavorComponent(cluster).findMajorVersion(
         cluster.getSpec().getPostgres().getVersion());
     return getDescription(pgMajorVersion, extension);
   }

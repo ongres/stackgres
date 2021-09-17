@@ -5,6 +5,8 @@
 
 package io.stackgres.common;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+
 import java.util.function.Function;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
@@ -13,11 +15,11 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 
 public enum ClusterStatefulSetEnvVars {
   POSTGRES_VERSION(context -> context.getSpec().getPostgres().getVersion()),
-  POSTGRES_MAJOR_VERSION(context -> StackGresComponent.POSTGRESQL.findMajorVersion(
+  POSTGRES_MAJOR_VERSION(context -> getPostgresFlavorComponent(context).findMajorVersion(
       context.getSpec().getPostgres().getVersion())),
-  BUILD_VERSION(context -> StackGresComponent.POSTGRESQL.findBuildVersion(
+  BUILD_VERSION(context -> getPostgresFlavorComponent(context).findBuildVersion(
       context.getSpec().getPostgres().getVersion())),
-  BUILD_MAJOR_VERSION(context -> StackGresComponent.POSTGRESQL.findBuildMajorVersion(
+  BUILD_MAJOR_VERSION(context -> getPostgresFlavorComponent(context).findBuildMajorVersion(
       context.getSpec().getPostgres().getVersion())),
   PATRONI_ENV("patroni"),
   BACKUP_ENV("backup"),

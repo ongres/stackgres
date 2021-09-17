@@ -39,14 +39,30 @@ class StackGresComponentTest {
   @ParameterizedTest
   @EnumSource(StackGresComponent.class)
   void getAllImageTags_shouldNotFail(StackGresComponent component) {
-    assertThat(component.getOrderedImageNames().stream()).isNotEmpty();
-    assertThat(component.getOrderedImageNames().stream()).containsNoDuplicates();
+    if (component.hasImage()) {
+      assertThat(component.getOrderedImageNames().stream()).isNotEmpty();
+      assertThat(component.getOrderedImageNames().stream()).containsNoDuplicates();
+    }
   }
 
   @ParameterizedTest
   @EnumSource(StackGresComponent.class)
   void getLatestImageTags_shouldNotFail(StackGresComponent component) {
-    assertThat(component.findLatestImageName()).isNotEmpty();
+    if (component.hasImage()) {
+      assertThat(component.findLatestImageName()).isNotEmpty();
+    }
+  }
+
+  @ParameterizedTest
+  @EnumSource(StackGresComponent.class)
+  void getAllComposedVersions_shouldNotFail(StackGresComponent component) {
+    assertThat(component.orderedComposedVersions().toList()).isNotEmpty();
+  }
+
+  @ParameterizedTest
+  @EnumSource(StackGresComponent.class)
+  void getAllTagVersions_shouldNotFail(StackGresComponent component) {
+    assertThat(component.orderedTagVersions().toList()).isNotEmpty();
   }
 
 }

@@ -5,9 +5,10 @@
 
 package io.stackgres.common.extension;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+
 import java.util.Objects;
 
-import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 
@@ -25,12 +26,12 @@ public class StackGresExtensionIndexAnyVersion {
       StackGresClusterExtension extension) {
     this.name = extension.getName();
     this.publisher = extension.getPublisherOrDefault();
-    this.postgresVersion = StackGresComponent.POSTGRESQL.findMajorVersion(
+    this.postgresVersion = getPostgresFlavorComponent(cluster).findMajorVersion(
         cluster.getSpec().getPostgres().getVersion());
-    this.postgresExactVersion = StackGresComponent.POSTGRESQL.findVersion(
+    this.postgresExactVersion = getPostgresFlavorComponent(cluster).findVersion(
         cluster.getSpec().getPostgres().getVersion());
     this.fromIndex = false;
-    this.build = StackGresComponent.POSTGRESQL.findBuildMajorVersion(
+    this.build = getPostgresFlavorComponent(cluster).findBuildMajorVersion(
         cluster.getSpec().getPostgres().getVersion());
     this.arch = ExtensionUtil.ARCH_X86_64;
     this.os = ExtensionUtil.OS_LINUX;

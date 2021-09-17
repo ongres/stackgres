@@ -33,6 +33,7 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.StackGresVersion;
@@ -116,11 +117,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
   public Container getContainer(StackGresClusterContainerContext context) {
     final StackGresClusterContext clusterContext = context.getClusterContext();
     final StackGresCluster cluster = clusterContext.getSource();
-    final String postgresVersion = cluster.getSpec().getPostgres().getVersion();
-    final String patroniImageName = StackGresComponent.PATRONI.findImageName(
-        StackGresComponent.LATEST,
-        ImmutableMap.of(StackGresComponent.POSTGRESQL,
-            postgresVersion));
+    final String patroniImageName = StackGresUtil.getPatroniImageName(cluster);
 
     ResourceRequirements podResources = requirementsFactory
         .createResource(clusterContext);

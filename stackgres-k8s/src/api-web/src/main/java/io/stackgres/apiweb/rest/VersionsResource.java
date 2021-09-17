@@ -5,16 +5,18 @@
 
 package io.stackgres.apiweb.rest;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+
 import java.util.List;
 import java.util.Map;
 
 import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
-import io.stackgres.common.StackGresComponent;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -33,8 +35,9 @@ public class VersionsResource {
   @CommonApiResponses
   @GET
   @Path("postgresql")
-  public Map<String, List<String>> supportedPostgresVersions() {
-    return Map.of("postgresql", StackGresComponent.POSTGRESQL.getOrderedVersions().toList());
+  public Map<String, List<String>> supportedPostgresVersions(@PathParam("flavor") String flavor) {
+    return Map.of(
+        "postgresql", getPostgresFlavorComponent(flavor).getOrderedVersions().toList());
   }
 
 }

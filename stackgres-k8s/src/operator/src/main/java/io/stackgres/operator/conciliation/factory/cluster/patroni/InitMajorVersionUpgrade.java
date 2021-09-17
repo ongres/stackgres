@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 import static io.stackgres.operator.conciliation.VolumeMountProviderName.MAJOR_VERSION_UPGRADE;
 import static io.stackgres.operator.conciliation.VolumeMountProviderName.SCRIPT_TEMPLATES;
 
@@ -13,7 +14,6 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
@@ -21,7 +21,7 @@ import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
@@ -80,7 +80,8 @@ public class InitMajorVersionUpgrade implements ContainerFactory<StackGresCluste
     String primaryInstance = majorVersionUpgradeStatus.getPrimaryInstance();
     String targetVersion = majorVersionUpgradeStatus.getTargetPostgresVersion();
     String sourceVersion = majorVersionUpgradeStatus.getSourcePostgresVersion();
-    String sourceMajorVersion = StackGresComponent.POSTGRESQL.findMajorVersion(sourceVersion);
+    String sourceMajorVersion = getPostgresFlavorComponent(clusterContext.getCluster())
+        .findMajorVersion(sourceVersion);
     String locale = majorVersionUpgradeStatus.getLocale();
     String encoding = majorVersionUpgradeStatus.getEncoding();
     String dataChecksum = majorVersionUpgradeStatus.getDataChecksum().toString();
@@ -88,20 +89,18 @@ public class InitMajorVersionUpgrade implements ContainerFactory<StackGresCluste
     String clone = majorVersionUpgradeStatus.getClone().toString();
     String check = majorVersionUpgradeStatus.getCheck().toString();
 
-    final String targetPatroniImageName = StackGresComponent.PATRONI.findImageName(
-        StackGresComponent.LATEST,
-        ImmutableMap.of(StackGresComponent.POSTGRESQL,
-            targetVersion));
+    final String targetPatroniImageName = StackGresUtil.getPatroniImageName(
+        clusterContext.getCluster(), targetVersion);
 
     final PostgresContainerContext postgresContainerContext =
         ImmutablePostgresContainerContext.builder()
             .from(context)
-            .postgresMajorVersion(StackGresComponent.POSTGRESQL
+            .postgresMajorVersion(getPostgresFlavorComponent(clusterContext.getCluster())
                 .findMajorVersion(targetVersion))
             .oldMajorVersion(sourceMajorVersion)
-            .imageBuildMajorVersion(StackGresComponent.POSTGRESQL
+            .imageBuildMajorVersion(getPostgresFlavorComponent(clusterContext.getCluster())
                 .findBuildMajorVersion(targetVersion))
-            .oldImageBuildMajorVersion(StackGresComponent.POSTGRESQL
+            .oldImageBuildMajorVersion(getPostgresFlavorComponent(clusterContext.getCluster())
                 .findBuildMajorVersion(sourceVersion))
             .postgresVersion(targetVersion)
             .oldPostgresVersion(sourceVersion)
