@@ -26,7 +26,6 @@ import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.cluster.resource.ClusterResourceHandlerSelector;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterControllerProperty;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -38,8 +37,8 @@ import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
 public class ClusterControllerReconciliationCycle
-    extends ReconciliationCycle<StackGresClusterContext,
-      StackGresCluster, ClusterResourceHandlerSelector> {
+    extends
+    ReconciliationCycle<StackGresClusterContext, StackGresCluster, ClusterResourceHandlerSelector> {
 
   private final ClusterControllerPropertyContext propertyContext;
   private final EventController eventController;
@@ -48,13 +47,20 @@ public class ClusterControllerReconciliationCycle
 
   @Dependent
   public static class Parameters {
-    @Inject KubernetesClientFactory clientFactory;
-    @Inject ClusterControllerReconciliator reconciliator;
-    @Inject ClusterResourceHandlerSelector handlerSelector;
-    @Inject ClusterControllerPropertyContext propertyContext;
-    @Inject EventController eventController;
-    @Inject LabelFactoryForCluster<StackGresCluster> labelFactory;
-    @Inject CustomResourceFinder<StackGresCluster> clusterFinder;
+    @Inject
+    KubernetesClient client;
+    @Inject
+    ClusterControllerReconciliator reconciliator;
+    @Inject
+    ClusterResourceHandlerSelector handlerSelector;
+    @Inject
+    ClusterControllerPropertyContext propertyContext;
+    @Inject
+    EventController eventController;
+    @Inject
+    LabelFactoryForCluster<StackGresCluster> labelFactory;
+    @Inject
+    CustomResourceFinder<StackGresCluster> clusterFinder;
   }
 
   /**
@@ -62,7 +68,7 @@ public class ClusterControllerReconciliationCycle
    */
   @Inject
   public ClusterControllerReconciliationCycle(Parameters parameters) {
-    super("Cluster", parameters.clientFactory::create,
+    super("Cluster", parameters.client,
         parameters.reconciliator,
         parameters.handlerSelector);
     this.propertyContext = parameters.propertyContext;
@@ -100,10 +106,8 @@ public class ClusterControllerReconciliationCycle
         new String[] {
         }).getMessage();
     logger.error(message, ex);
-    try (KubernetesClient client = clientSupplier.get()) {
-      eventController.sendEvent(ClusterControllerEventReason.CLUSTER_CONTROLLER_ERROR,
-          message + ": " + ex.getMessage(), client);
-    }
+    eventController.sendEvent(ClusterControllerEventReason.CLUSTER_CONTROLLER_ERROR,
+        message + ": " + ex.getMessage(), client);
   }
 
   @Override
@@ -116,10 +120,8 @@ public class ClusterControllerReconciliationCycle
             configResource.getMetadata().getName(),
         }).getMessage();
     logger.error(message, ex);
-    try (KubernetesClient client = clientSupplier.get()) {
-      eventController.sendEvent(ClusterControllerEventReason.CLUSTER_CONTROLLER_ERROR,
-          message + ": " + ex.getMessage(), configResource, client);
-    }
+    eventController.sendEvent(ClusterControllerEventReason.CLUSTER_CONTROLLER_ERROR,
+        message + ": " + ex.getMessage(), configResource, client);
   }
 
   @Override

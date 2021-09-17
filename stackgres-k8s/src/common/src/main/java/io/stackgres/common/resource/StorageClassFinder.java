@@ -13,25 +13,22 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.KubernetesClientFactory;
 
 @ApplicationScoped
 public class StorageClassFinder implements
     ResourceFinder<StorageClass>,
     ResourceScanner<StorageClass> {
 
-  private final KubernetesClientFactory kubClientFactory;
+  private final KubernetesClient client;
 
   @Inject
-  public StorageClassFinder(KubernetesClientFactory kubClientFactory) {
-    this.kubClientFactory = kubClientFactory;
+  public StorageClassFinder(KubernetesClient client) {
+    this.client = client;
   }
 
   @Override
   public Optional<StorageClass> findByName(String name) {
-    try (KubernetesClient client = kubClientFactory.create()) {
-      return Optional.ofNullable(client.storage().storageClasses().withName(name).get());
-    }
+    return Optional.ofNullable(client.storage().storageClasses().withName(name).get());
   }
 
   @Override
@@ -41,9 +38,7 @@ public class StorageClassFinder implements
 
   @Override
   public List<StorageClass> findResources() {
-    try (KubernetesClient client = kubClientFactory.create()) {
-      return client.storage().storageClasses().list().getItems();
-    }
+    return client.storage().storageClasses().list().getItems();
   }
 
   @Override

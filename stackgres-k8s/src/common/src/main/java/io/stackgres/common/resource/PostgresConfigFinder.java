@@ -8,8 +8,8 @@ package io.stackgres.common.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigList;
 
@@ -21,8 +21,8 @@ public class PostgresConfigFinder
    * Create a {@code PostgresConfigFinder} instance.
    */
   @Inject
-  public PostgresConfigFinder(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresPostgresConfig.class, StackGresPostgresConfigList.class);
+  public PostgresConfigFinder(KubernetesClient client) {
+    super(client, StackGresPostgresConfig.class, StackGresPostgresConfigList.class);
   }
 
   public PostgresConfigFinder() {

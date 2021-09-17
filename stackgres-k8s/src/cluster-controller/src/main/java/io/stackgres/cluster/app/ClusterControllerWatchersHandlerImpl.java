@@ -14,12 +14,12 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher.Action;
 import io.quarkus.runtime.Application;
 import io.stackgres.cluster.controller.ClusterControllerReconciliationCycle;
 import io.stackgres.cluster.controller.ResourceWatcherFactory;
 import io.stackgres.common.ClusterControllerProperty;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.operatorframework.resource.WatcherMonitor;
@@ -30,15 +30,15 @@ public class ClusterControllerWatchersHandlerImpl
 
   private final List<WatcherMonitor<?>> monitors = new ArrayList<>();
 
-  private final KubernetesClientFactory clientFactory;
+  private final KubernetesClient client;
   private final ClusterControllerReconciliationCycle clusterReconciliationCycle;
   private final ResourceWatcherFactory watcherFactory;
 
   @Inject
-  public ClusterControllerWatchersHandlerImpl(KubernetesClientFactory clientFactory,
+  public ClusterControllerWatchersHandlerImpl(KubernetesClient client,
       ClusterControllerReconciliationCycle clusterReconciliationCycle,
       ResourceWatcherFactory watcherFactory) {
-    this.clientFactory = clientFactory;
+    this.client = client;
     this.clusterReconciliationCycle = clusterReconciliationCycle;
     this.watcherFactory = watcherFactory;
   }
@@ -55,7 +55,7 @@ public class ClusterControllerWatchersHandlerImpl
   private <T extends CustomResource<?, ?>,
       L extends KubernetesResourceList<T>> WatcherMonitor<T> createWatcher(
       Class<T> crClass, Class<L> listClass, Consumer<Action> consumer) {
-    return new WatcherMonitor<>(watcherListener -> clientFactory.create()
+    return new WatcherMonitor<>(watcherListener -> client
         .customResources(crClass, listClass)
         .inNamespace(ClusterControllerProperty.CLUSTER_NAMESPACE.getString())
         .watch(watcherFactory.createWatcher(consumer, watcherListener)),

@@ -15,14 +15,13 @@ import io.fabric8.kubernetes.client.dsl.Namespaceable;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.common.KubernetesClientFactory;
 
 @ApplicationScoped
 public class SecretWriter extends AbstractResourceWriter<Secret, SecretList> {
 
   @Inject
-  public SecretWriter(KubernetesClientFactory clientFactory) {
-    super(clientFactory);
+  public SecretWriter(KubernetesClient client) {
+    super(client);
   }
 
   public SecretWriter() {

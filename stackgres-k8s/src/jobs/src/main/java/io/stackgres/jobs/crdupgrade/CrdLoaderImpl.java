@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.CommonDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -29,10 +28,10 @@ public class CrdLoaderImpl implements CrdLoader {
 
   private static final YAMLMapper YAML_MAPPER = new YAMLMapper();
 
-  private final KubernetesClientFactory kubernetesClientFactory;
+  private final KubernetesClient client;
 
-  public CrdLoaderImpl(KubernetesClientFactory kubernetesClientFactory) {
-    this.kubernetesClientFactory = kubernetesClientFactory;
+  public CrdLoaderImpl(KubernetesClient client) {
+    this.client = client;
   }
 
   protected static CustomResourceDefinition readCrd(String crdFilename) {
@@ -69,8 +68,7 @@ public class CrdLoaderImpl implements CrdLoader {
   @Override
   public CustomResourceDefinition load(@NotNull String kind) {
     LOGGER.debug("Loading CRD {}", kind);
-    try (KubernetesClient client = kubernetesClientFactory.create();
-        InputStream is = CommonDefinition.class.getResourceAsStream("/crds/" + kind + ".yaml")) {
+    try (InputStream is = CommonDefinition.class.getResourceAsStream("/crds/" + kind + ".yaml")) {
       return client.apiextensions().v1().customResourceDefinitions()
           .load(is)
           .get();

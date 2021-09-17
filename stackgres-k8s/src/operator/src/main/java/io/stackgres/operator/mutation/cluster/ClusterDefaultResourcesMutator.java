@@ -13,7 +13,6 @@ import javax.inject.Inject;
 
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -26,7 +25,7 @@ import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 public class ClusterDefaultResourcesMutator implements ClusterMutator {
 
-  private KubernetesClientFactory factory;
+  private KubernetesClient client;
 
   private DefaultCustomResourceFactory<StackGresPostgresConfig> postgresFactory;
   private DefaultCustomResourceFactory<StackGresPoolingConfig> pgbouncerFactory;
@@ -42,13 +41,13 @@ public class ClusterDefaultResourcesMutator implements ClusterMutator {
 
   @Inject
   public ClusterDefaultResourcesMutator(
-      KubernetesClientFactory factory,
+      KubernetesClient client,
       DefaultCustomResourceFactory<StackGresPostgresConfig> postgresFactory,
       DefaultCustomResourceFactory<StackGresPoolingConfig> pgbouncerFactory,
       DefaultCustomResourceFactory<StackGresProfile> profileFactory,
       DefaultCustomResourceFactory<StackGresBackupConfig> backupFactory) {
 
-    this.factory = factory;
+    this.client = client;
     this.postgresFactory = postgresFactory;
     this.pgbouncerFactory = pgbouncerFactory;
     this.profileFactory = profileFactory;
@@ -57,14 +56,11 @@ public class ClusterDefaultResourcesMutator implements ClusterMutator {
 
   @PostConstruct
   public void init() {
-    try (KubernetesClient client = factory.create()) {
-      installedNamespace = client.getNamespace();
-    }
+    installedNamespace = client.getNamespace();
     defaultPostgresConfig = postgresFactory.buildResource();
     defaultPgBouncerConfig = pgbouncerFactory.buildResource();
     defaultProfile = profileFactory.buildResource();
     defaultBackup = backupFactory.buildResource();
-
   }
 
   @Override

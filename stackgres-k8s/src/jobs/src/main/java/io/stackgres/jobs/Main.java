@@ -8,10 +8,10 @@ package io.stackgres.jobs;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.resource.SecretFinder;
 import io.stackgres.jobs.app.JobsProperty;
 import io.stackgres.jobs.crdupgrade.CrdInstaller;
@@ -33,7 +33,7 @@ public class Main implements QuarkusApplication {
   boolean dbOpsJob = JobsProperty.DATABASE_OPERATION_JOB.getBoolean();
 
   @Inject
-  KubernetesClientFactory kubernetesClientFactory;
+  KubernetesClient client;
 
   @Inject
   DbOpLauncher dbOpLauncher;
@@ -48,9 +48,9 @@ public class Main implements QuarkusApplication {
      * @JsonInclude(Include.NON_EMPTY) is ignored.
      */
     Serialization.jsonMapper().disable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS);
-    final CrdLoader crdLoader = new CrdLoaderImpl(kubernetesClientFactory);
+    final CrdLoader crdLoader = new CrdLoaderImpl(client);
     final CustomResourceDefinitionFinder crdFinder =
-        new CustomResourceDefinitionFinder(kubernetesClientFactory);
+        new CustomResourceDefinitionFinder(client);
 
     if (crdUpgrade) {
       CrdInstaller crdInstaller = new CrdInstallerImpl(crdFinder, crdFinder, crdLoader);
@@ -58,7 +58,7 @@ public class Main implements QuarkusApplication {
     }
 
     if (conversionWebhooks) {
-      final SecretFinder secretFinder = new SecretFinder(kubernetesClientFactory);
+      final SecretFinder secretFinder = new SecretFinder(client);
       WebhookConfigurator webhookConfigurator = new WebhookConfiguratorImpl(
           secretFinder,
           crdFinder,

@@ -13,7 +13,6 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -32,21 +31,21 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OperatorBootstrapImpl.class);
 
-  private final KubernetesClientFactory kubeClient;
+  private final KubernetesClient client;
   private final InitializationQueue initializationQueue;
 
   @Inject
   public OperatorBootstrapImpl(
-      KubernetesClientFactory kubeClient,
+      KubernetesClient client,
       InitializationQueue initializationQueue) {
-    this.kubeClient = kubeClient;
+    this.client = client;
     this.initializationQueue = initializationQueue;
   }
 
   @Override
   public void bootstrap() {
 
-    try (KubernetesClient client = kubeClient.create()) {
+    try {
       if (client.getVersion() != null) {
         LOGGER.info("Kubernetes version: {}", client.getVersion().getGitVersion());
       }

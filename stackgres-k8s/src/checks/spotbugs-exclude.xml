@@ -48,15 +48,9 @@
     </Or>
   </Match>
 
-  <!-- False positive https://github.com/spotbugs/spotbugs/issues/1250 -->
+  <!-- False positive https://github.com/spotbugs/spotbugs/issues/1338 -->
   <Match>
     <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE" />
-    <Or>
-      <And>
-        <Class name="io.stackgres.apiweb.distributedlogs.DistributedLogsFetcherImpl" />
-        <Method name="logs" />
-      </And>
-    </Or>
   </Match>
 
   <!-- Most of them are injected in setter metods from CDI -->

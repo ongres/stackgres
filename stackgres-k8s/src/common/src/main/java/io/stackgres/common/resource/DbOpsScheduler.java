@@ -10,7 +10,6 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsList;
 
@@ -19,8 +18,8 @@ public class DbOpsScheduler
     extends AbstractCustomResourceScheduler<StackGresDbOps, StackGresDbOpsList> {
 
   @Inject
-  public DbOpsScheduler(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresDbOps.class, StackGresDbOpsList.class);
+  public DbOpsScheduler(KubernetesClient client) {
+    super(client, StackGresDbOps.class, StackGresDbOpsList.class);
   }
 
   public DbOpsScheduler() {
@@ -30,12 +29,10 @@ public class DbOpsScheduler
 
   @Override
   public StackGresDbOps update(StackGresDbOps resource) {
-    try (KubernetesClient client = clientFactory.create()) {
-      return client.customResources(StackGresDbOps.class, StackGresDbOpsList.class)
-          .inNamespace(resource.getMetadata().getNamespace())
-          .withName(resource.getMetadata().getName())
-          .lockResourceVersion(resource.getMetadata().getResourceVersion())
-          .replace(resource);
-    }
+    return client.customResources(StackGresDbOps.class, StackGresDbOpsList.class)
+        .inNamespace(resource.getMetadata().getNamespace())
+        .withName(resource.getMetadata().getName())
+        .lockResourceVersion(resource.getMetadata().getResourceVersion())
+        .replace(resource);
   }
 }

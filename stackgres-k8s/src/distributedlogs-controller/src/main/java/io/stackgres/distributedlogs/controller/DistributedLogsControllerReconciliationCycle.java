@@ -21,7 +21,6 @@ import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.DistributedLogsControllerProperty;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -40,8 +39,9 @@ import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
 public class DistributedLogsControllerReconciliationCycle
-    extends ReconciliationCycle<StackGresDistributedLogsContext,
-      StackGresDistributedLogs, DistributedLogsResourceHandlerSelector> {
+    extends
+    ReconciliationCycle<StackGresDistributedLogsContext, StackGresDistributedLogs,
+    DistributedLogsResourceHandlerSelector> {
 
   private final DistributedLogsControllerPropertyContext propertyContext;
   private final EventController eventController;
@@ -50,13 +50,20 @@ public class DistributedLogsControllerReconciliationCycle
 
   @Dependent
   public static class Parameters {
-    @Inject KubernetesClientFactory clientFactory;
-    @Inject DistributedLogsControllerReconciliator reconciliator;
-    @Inject DistributedLogsResourceHandlerSelector handlerSelector;
-    @Inject DistributedLogsControllerPropertyContext propertyContext;
-    @Inject EventController eventController;
-    @Inject LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
-    @Inject CustomResourceFinder<StackGresDistributedLogs> distributedLogsFinder;
+    @Inject
+    KubernetesClient client;
+    @Inject
+    DistributedLogsControllerReconciliator reconciliator;
+    @Inject
+    DistributedLogsResourceHandlerSelector handlerSelector;
+    @Inject
+    DistributedLogsControllerPropertyContext propertyContext;
+    @Inject
+    EventController eventController;
+    @Inject
+    LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
+    @Inject
+    CustomResourceFinder<StackGresDistributedLogs> distributedLogsFinder;
   }
 
   /**
@@ -64,7 +71,7 @@ public class DistributedLogsControllerReconciliationCycle
    */
   @Inject
   public DistributedLogsControllerReconciliationCycle(Parameters parameters) {
-    super("DistributeLogs", parameters.clientFactory::create,
+    super("DistributeLogs", parameters.client,
         parameters.reconciliator,
         parameters.handlerSelector);
     this.propertyContext = parameters.propertyContext;
@@ -102,11 +109,9 @@ public class DistributedLogsControllerReconciliationCycle
         new String[] {
         }).getMessage();
     logger.error(message, ex);
-    try (KubernetesClient client = clientSupplier.get()) {
-      eventController.sendEvent(
-          DistributedLogsControllerEventReason.DISTRIBUTEDLOGS_CONTROLLER_ERROR,
-          message + ": " + ex.getMessage(), client);
-    }
+    eventController.sendEvent(
+        DistributedLogsControllerEventReason.DISTRIBUTEDLOGS_CONTROLLER_ERROR,
+        message + ": " + ex.getMessage(), client);
   }
 
   @Override
@@ -119,11 +124,9 @@ public class DistributedLogsControllerReconciliationCycle
             configResource.getMetadata().getName(),
         }).getMessage();
     logger.error(message, ex);
-    try (KubernetesClient client = clientSupplier.get()) {
-      eventController.sendEvent(
-          DistributedLogsControllerEventReason.DISTRIBUTEDLOGS_CONTROLLER_ERROR,
-          message + ": " + ex.getMessage(), configResource, client);
-    }
+    eventController.sendEvent(
+        DistributedLogsControllerEventReason.DISTRIBUTEDLOGS_CONTROLLER_ERROR,
+        message + ": " + ex.getMessage(), configResource, client);
   }
 
   @Override

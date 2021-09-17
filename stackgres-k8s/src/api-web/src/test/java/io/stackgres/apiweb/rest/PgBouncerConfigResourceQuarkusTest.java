@@ -7,17 +7,17 @@ package io.stackgres.apiweb.rest;
 
 import static io.restassured.RestAssured.given;
 
-import javax.inject.Inject;
-
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.KubernetesTestServer;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigDto;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
 import io.stackgres.testutil.JsonUtil;
+import io.stackgres.testutil.StackGresKubernetesMockServerSetup;
 import io.stackgres.testutil.StringUtils;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
@@ -25,10 +25,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
+@WithKubernetesTestServer(https = true, setup = StackGresKubernetesMockServerSetup.class)
 class PgBouncerConfigResourceQuarkusTest implements AuthenticatedResourceTest {
 
-  @Inject
-  KubernetesClientFactory factory;
+  @KubernetesTestServer
+  KubernetesServer mockServer;
 
   private StackGresPoolingConfig resource;
 
@@ -38,26 +39,22 @@ class PgBouncerConfigResourceQuarkusTest implements AuthenticatedResourceTest {
     customResource.getMetadata().setNamespace(StringUtils.getRandomNamespace());
     customResource.getMetadata().setName(StringUtils.getRandomClusterName());
     customResource.getMetadata().setSelfLink(null);
-    try (KubernetesClient client = factory.create()) {
-      this.resource = client.customResources(
-          StackGresPoolingConfig.class,
-          StackGresPoolingConfigList.class)
-          .inNamespace(customResource.getMetadata().getNamespace())
-          .withName(customResource.getMetadata().getNamespace())
-          .create(customResource);
-    }
+    this.resource = mockServer.getClient().customResources(
+        StackGresPoolingConfig.class,
+        StackGresPoolingConfigList.class)
+        .inNamespace(customResource.getMetadata().getNamespace())
+        .withName(customResource.getMetadata().getNamespace())
+        .create(customResource);
   }
 
   @AfterEach
   void tearDown() {
-    try (KubernetesClient client = factory.create()) {
-      client.customResources(
-          StackGresPoolingConfig.class,
-          StackGresPoolingConfigList.class)
-          .inNamespace(resource.getMetadata().getNamespace())
-          .withName(resource.getMetadata().getName())
-          .delete();
-    }
+    mockServer.getClient().customResources(
+        StackGresPoolingConfig.class,
+        StackGresPoolingConfigList.class)
+        .inNamespace(resource.getMetadata().getNamespace())
+        .withName(resource.getMetadata().getName())
+        .delete();
   }
 
   private PoolingConfigDto getDto() {

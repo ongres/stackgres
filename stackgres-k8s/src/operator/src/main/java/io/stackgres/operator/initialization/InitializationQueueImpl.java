@@ -28,7 +28,6 @@ import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.Application;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresPropertyContext;
@@ -41,14 +40,14 @@ public class InitializationQueueImpl implements InitializationQueue {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InitializationQueueImpl.class);
 
-  private static final String OPERATOR_HEALTH_URL_FORMAT = "http://%s:8080/health/ready";
+  private static final String OPERATOR_HEALTH_URL_FORMAT = "http://%s:8080/q/health/ready";
   private static final String OPERATOR_SERVICE_FORMAT = "%s.%s.svc.cluster.local";
   private static final String LOCALHOST = "localhost";
 
   private final ScheduledExecutorService scheduler =
       Executors.newScheduledThreadPool(1, r -> new Thread(r, "InitializerQueueScheduler"));
 
-  private final KubernetesClientFactory clientFactory;
+  private final KubernetesClient client;
   private final String operatorName;
   private final String operatorNamespace;
   private final String operatorIP;
@@ -58,10 +57,10 @@ public class InitializationQueueImpl implements InitializationQueue {
   private InitializationStage stage = InitializationStage.STARTING;
 
   @Inject
-  public InitializationQueueImpl(KubernetesClientFactory clientFactory,
+  public InitializationQueueImpl(KubernetesClient client,
                                  StackGresPropertyContext<OperatorProperty> context,
                                  @Any Instance<Initializer> initializers) {
-    this.clientFactory = clientFactory;
+    this.client = client;
     operatorName = context.get(OperatorProperty.OPERATOR_NAME)
         .orElseThrow(() -> new IllegalStateException("Operator name is not configured"));
     operatorNamespace = context.get(OperatorProperty.OPERATOR_NAMESPACE)
@@ -194,20 +193,18 @@ public class InitializationQueueImpl implements InitializationQueue {
   }
 
   private <X> Optional<X> onRunningPod(Function<Pod, X> func) {
-    try (KubernetesClient client = clientFactory.create()) {
-      Optional<Pod> pod = Optional.ofNullable(client.pods()
-          .inNamespace(operatorNamespace)
-          .withLabel(StackGresContext.APP_KEY, operatorName)
-          .list())
-          .flatMap(podList -> {
-            if (podList.getItems().isEmpty()) {
-              return Optional.empty();
-            } else {
-              return Optional.of(podList.getItems().get(0));
-            }
-          });
-      return pod.map(func);
-    }
+    Optional<Pod> pod = Optional.ofNullable(client.pods()
+        .inNamespace(operatorNamespace)
+        .withLabel(StackGresContext.APP_KEY, operatorName)
+        .list())
+        .flatMap(podList -> {
+          if (podList.getItems().isEmpty()) {
+            return Optional.empty();
+          } else {
+            return Optional.of(podList.getItems().get(0));
+          }
+        });
+    return pod.map(func);
   }
 
   private boolean isPodReady() {

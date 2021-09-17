@@ -14,34 +14,29 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.apiweb.dto.secret.SecretDto;
 import io.stackgres.apiweb.transformer.SecretMapper;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.resource.ResourceScanner;
 
 @ApplicationScoped
 public class SecretDtoScanner implements ResourceScanner<SecretDto> {
 
-  private final KubernetesClientFactory factory;
+  private final KubernetesClient client;
 
   @Inject
-  public SecretDtoScanner(KubernetesClientFactory factory) {
-    this.factory = factory;
+  public SecretDtoScanner(KubernetesClient client) {
+    this.client = client;
   }
 
   @Override
   public List<SecretDto> findResources() {
-    try (KubernetesClient client = factory.create()) {
-      return client.secrets().list().getItems().stream()
-          .map(SecretMapper::map)
-          .collect(ImmutableList.toImmutableList());
-    }
+    return client.secrets().list().getItems().stream()
+        .map(SecretMapper::map)
+        .collect(ImmutableList.toImmutableList());
   }
 
   @Override
   public List<SecretDto> findResourcesInNamespace(String namespace) {
-    try (KubernetesClient client = factory.create()) {
-      return client.secrets().inNamespace(namespace).list().getItems().stream()
-          .map(SecretMapper::map)
-          .collect(ImmutableList.toImmutableList());
-    }
+    return client.secrets().inNamespace(namespace).list().getItems().stream()
+        .map(SecretMapper::map)
+        .collect(ImmutableList.toImmutableList());
   }
 }

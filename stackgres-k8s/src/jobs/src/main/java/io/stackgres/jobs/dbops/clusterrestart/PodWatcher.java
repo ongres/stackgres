@@ -15,7 +15,6 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.smallrye.mutiny.Uni;
-import io.stackgres.common.KubernetesClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,11 +22,11 @@ import org.slf4j.LoggerFactory;
 public class PodWatcher implements Watcher<Pod> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PodWatcher.class);
-  private final KubernetesClientFactory clientFactory;
+  private final KubernetesClient client;
 
   @Inject
-  public PodWatcher(KubernetesClientFactory clientFactory) {
-    this.clientFactory = clientFactory;
+  public PodWatcher(KubernetesClient client) {
+    this.client = client;
   }
 
   @Override
@@ -45,7 +44,7 @@ public class PodWatcher implements Watcher<Pod> {
 
     final Uni<Pod> podReadyPoll = Uni.createFrom().emitter(em -> {
       LOGGER.debug("Waiting for pod {} to be ready", podName);
-      try (KubernetesClient client = clientFactory.create()) {
+      try {
         var readyPod = client.pods().inNamespace(namespace).withName(podName)
             .waitUntilReady(30, TimeUnit.MINUTES);
         em.complete(readyPod);
@@ -114,10 +113,8 @@ public class PodWatcher implements Watcher<Pod> {
   }
 
   private Uni<Pod> getPod(String name, String namespace) {
-
     return Uni.createFrom().emitter(em -> {
-      var pod = clientFactory.withNewClient(
-          client -> client.pods().inNamespace(namespace).withName(name).get());
+      var pod = client.pods().inNamespace(namespace).withName(name).get();
       if (pod == null) {
         LOGGER.debug("Pod {} not found in namespace {}", name, namespace);
       } else {

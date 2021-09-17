@@ -8,8 +8,8 @@ package io.stackgres.common.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
 
@@ -21,8 +21,8 @@ public class DistributedLogsFinder
    * Create a {@code DistributedLogsFinder} instance.
    */
   @Inject
-  public DistributedLogsFinder(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresDistributedLogs.class, StackGresDistributedLogsList.class);
+  public DistributedLogsFinder(KubernetesClient client) {
+    super(client, StackGresDistributedLogs.class, StackGresDistributedLogsList.class);
   }
 
   public DistributedLogsFinder() {

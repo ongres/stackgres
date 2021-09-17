@@ -8,29 +8,28 @@ package io.stackgres.apiweb.rest;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
 
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.quarkus.test.junit.QuarkusTest;
-import io.stackgres.common.KubernetesClientFactory;
+import io.quarkus.test.kubernetes.client.KubernetesTestServer;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.stackgres.common.StringUtil;
+import io.stackgres.testutil.StackGresKubernetesMockServerSetup;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
+@WithKubernetesTestServer(https = true, setup = StackGresKubernetesMockServerSetup.class)
 class ConfigMapResourceTest implements AuthenticatedResourceTest {
 
-  @Inject
-  KubernetesClientFactory factory;
+  @KubernetesTestServer
+  KubernetesServer mockServer;
 
   @BeforeEach
   void setUp() {
-    try (KubernetesClient client = factory.create()) {
-      client.configMaps().inNamespace("test").delete();
-    }
+    mockServer.getClient().configMaps().inNamespace("test").delete();
   }
 
   @Test
@@ -48,15 +47,13 @@ class ConfigMapResourceTest implements AuthenticatedResourceTest {
 
     final String randomPlainValue = StringUtil.generateRandom();
 
-    try (KubernetesClient client = factory.create()) {
-      client.configMaps().inNamespace("test")
-          .create(new ConfigMapBuilder()
-              .withData(ImmutableMap.of("testKey", randomPlainValue))
-              .withNewMetadata()
-              .withName("testConfigMaps")
-              .endMetadata()
-              .build());
-    }
+    mockServer.getClient().configMaps().inNamespace("test")
+        .create(new ConfigMapBuilder()
+            .withData(ImmutableMap.of("testKey", randomPlainValue))
+            .withNewMetadata()
+            .withName("testConfigMaps")
+            .endMetadata()
+            .build());
 
     given()
         .when()

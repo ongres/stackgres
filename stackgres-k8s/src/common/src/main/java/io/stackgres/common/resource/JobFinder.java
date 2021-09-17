@@ -13,18 +13,17 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.KubernetesClientFactory;
 
 @ApplicationScoped
 public class JobFinder implements
     ResourceFinder<Job>,
     ResourceScanner<Job> {
 
-  private final KubernetesClientFactory kubClientFactory;
+  private final KubernetesClient client;
 
   @Inject
-  public JobFinder(KubernetesClientFactory kubClientFactory) {
-    this.kubClientFactory = kubClientFactory;
+  public JobFinder(KubernetesClient client) {
+    this.client = client;
   }
 
   @Override
@@ -34,32 +33,26 @@ public class JobFinder implements
 
   @Override
   public Optional<Job> findByNameAndNamespace(String name, String namespace) {
-    try (KubernetesClient client = kubClientFactory.create()) {
-      return Optional.ofNullable(client.batch().v1().jobs()
-          .inNamespace(namespace)
-          .withName(name)
-          .get());
-    }
+    return Optional.ofNullable(client.batch().v1().jobs()
+        .inNamespace(namespace)
+        .withName(name)
+        .get());
   }
 
   @Override
   public List<Job> findResources() {
-    try (KubernetesClient client = kubClientFactory.create()) {
-      return client.batch().v1().jobs()
-          .inAnyNamespace()
-          .list()
-          .getItems();
-    }
+    return client.batch().v1().jobs()
+        .inAnyNamespace()
+        .list()
+        .getItems();
   }
 
   @Override
   public List<Job> findResourcesInNamespace(String namespace) {
-    try (KubernetesClient client = kubClientFactory.create()) {
-      return client.batch().v1().jobs()
-          .inNamespace(namespace)
-          .list()
-          .getItems();
-    }
+    return client.batch().v1().jobs()
+        .inNamespace(namespace)
+        .list()
+        .getItems();
   }
 
 }

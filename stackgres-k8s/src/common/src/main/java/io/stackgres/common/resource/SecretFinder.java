@@ -13,18 +13,17 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.KubernetesClientFactory;
 
 @ApplicationScoped
 public class SecretFinder implements
     ResourceFinder<Secret>,
     ResourceScanner<Secret> {
 
-  final KubernetesClientFactory kubClientFactory;
+  final KubernetesClient client;
 
   @Inject
-  public SecretFinder(KubernetesClientFactory kubClientFactory) {
-    this.kubClientFactory = kubClientFactory;
+  public SecretFinder(KubernetesClient client) {
+    this.client = client;
   }
 
   @Override
@@ -34,23 +33,17 @@ public class SecretFinder implements
 
   @Override
   public Optional<Secret> findByNameAndNamespace(String name, String namespace) {
-    try (KubernetesClient client = kubClientFactory.create()) {
-      return Optional.ofNullable(client.secrets().inNamespace(namespace).withName(name).get());
-    }
+    return Optional.ofNullable(client.secrets().inNamespace(namespace).withName(name).get());
   }
 
   @Override
   public List<Secret> findResources() {
-    try (KubernetesClient client = kubClientFactory.create()) {
-      return client.secrets().inAnyNamespace().list().getItems();
-    }
+    return client.secrets().inAnyNamespace().list().getItems();
   }
 
   @Override
   public List<Secret> findResourcesInNamespace(String namespace) {
-    try (KubernetesClient client = kubClientFactory.create()) {
-      return client.secrets().inNamespace(namespace).list().getItems();
-    }
+    return client.secrets().inNamespace(namespace).list().getItems();
   }
 
 }

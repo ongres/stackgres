@@ -14,11 +14,11 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.Event;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectReference;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
-import io.stackgres.jobs.app.KubernetesClientProvider;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
@@ -40,7 +40,7 @@ class DatabaseOperationEventEmitterImplTest {
   @Inject
   DatabaseOperationEventEmitterImpl databaseOperationEventEmitter;
   @Inject
-  KubernetesClientProvider clientFactory;
+  KubernetesClient client;
 
   @BeforeEach
   void setUp() {
@@ -103,9 +103,9 @@ class DatabaseOperationEventEmitterImplTest {
 
   private void assertEvent(DbOpsEvents dbOpEvent, String message) {
 
-    var actualEvent = clientFactory.withNewClient(client -> client.v1().events()
+    var actualEvent = client.v1().events()
             .inNamespace(namespace)
-            .list().getItems())
+            .list().getItems()
         .stream()
         .filter(event -> event.getReason().equals(dbOpEvent.reason()))
         .findAny()

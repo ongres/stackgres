@@ -14,10 +14,10 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher.Action;
 import io.quarkus.runtime.Application;
 import io.stackgres.common.DistributedLogsControllerProperty;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
 import io.stackgres.distributedlogs.controller.DistributedLogsControllerReconciliationCycle;
@@ -30,15 +30,15 @@ public class DistributedLogsControllerWatchersHandlerImpl
 
   private final List<WatcherMonitor<?>> monitors = new ArrayList<>();
 
-  private final KubernetesClientFactory clientFactory;
+  private final KubernetesClient client;
   private final DistributedLogsControllerReconciliationCycle distributedLogsReconciliationCycle;
   private final ResourceWatcherFactory watcherFactory;
 
   @Inject
-  public DistributedLogsControllerWatchersHandlerImpl(KubernetesClientFactory clientFactory,
+  public DistributedLogsControllerWatchersHandlerImpl(KubernetesClient client,
       DistributedLogsControllerReconciliationCycle distributedLogsReconciliationCycle,
       ResourceWatcherFactory watcherFactory) {
-    this.clientFactory = clientFactory;
+    this.client = client;
     this.distributedLogsReconciliationCycle = distributedLogsReconciliationCycle;
     this.watcherFactory = watcherFactory;
   }
@@ -55,7 +55,7 @@ public class DistributedLogsControllerWatchersHandlerImpl
   private <T extends CustomResource<?, ?>,
       L extends KubernetesResourceList<T>> WatcherMonitor<T> createWatcher(
       Class<T> crClass, Class<L> listClass, Consumer<Action> consumer) {
-    return new WatcherMonitor<>(watcherListener -> clientFactory.create()
+    return new WatcherMonitor<>(watcherListener -> client
         .customResources(crClass, listClass)
         .inNamespace(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAMESPACE.getString())
         .watch(watcherFactory.createWatcher(consumer, watcherListener)),

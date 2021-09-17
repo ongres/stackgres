@@ -15,7 +15,6 @@ import io.fabric8.kubernetes.client.dsl.Namespaceable;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.resource.AbstractResourceWriter;
 
 @ApplicationScoped
@@ -23,8 +22,8 @@ public class ConfigMapWriter extends AbstractResourceWriter<
     ConfigMap, ConfigMapList> {
 
   @Inject
-  public ConfigMapWriter(KubernetesClientFactory factory) {
-    super(factory);
+  public ConfigMapWriter(KubernetesClient client) {
+    super(client);
   }
 
   public ConfigMapWriter() {

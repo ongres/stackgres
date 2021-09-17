@@ -15,7 +15,6 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.VersionInfo;
-import io.stackgres.common.KubernetesClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +25,7 @@ public class StatusParserProviderImpl implements StatusParserProvider {
   private static final Logger LOGGER = LoggerFactory.getLogger(StatusParserProviderImpl.class);
 
   private StatusParser statusParser;
-  private KubernetesClientFactory clientFactory;
+  private KubernetesClient client;
 
   @PostConstruct
   public void init() {
@@ -49,19 +48,17 @@ public class StatusParserProviderImpl implements StatusParserProvider {
   }
 
   public Optional<Integer> getVersion() {
-    try (KubernetesClient client = clientFactory.create()) {
-      return Optional.ofNullable(client.getVersion())
-          .map(VersionInfo::getMinor)
-          .map(VERSION_PATTERN::matcher)
-          .filter(Matcher::find)
-          .map(matcher -> matcher.group(1))
-          .map(Integer::parseInt);
-    }
+    return Optional.ofNullable(client.getVersion())
+        .map(VersionInfo::getMinor)
+        .map(VERSION_PATTERN::matcher)
+        .filter(Matcher::find)
+        .map(matcher -> matcher.group(1))
+        .map(Integer::parseInt);
   }
 
   @Inject
-  public void setClientFactory(KubernetesClientFactory clientFactory) {
-    this.clientFactory = clientFactory;
+  public void setClient(KubernetesClient client) {
+    this.client = client;
   }
 
   @Override

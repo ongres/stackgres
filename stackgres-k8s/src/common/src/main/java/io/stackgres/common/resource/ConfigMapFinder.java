@@ -12,16 +12,15 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.KubernetesClientFactory;
 
 @ApplicationScoped
 public class ConfigMapFinder implements ResourceFinder<ConfigMap> {
 
-  private final KubernetesClientFactory kubClientFactory;
+  private final KubernetesClient client;
 
   @Inject
-  public ConfigMapFinder(KubernetesClientFactory kubClientFactory) {
-    this.kubClientFactory = kubClientFactory;
+  public ConfigMapFinder(KubernetesClient client) {
+    this.client = client;
   }
 
   @Override
@@ -32,11 +31,9 @@ public class ConfigMapFinder implements ResourceFinder<ConfigMap> {
 
   @Override
   public Optional<ConfigMap> findByNameAndNamespace(String name, String namespace) {
-    try (KubernetesClient client = kubClientFactory.create()) {
-      return Optional.ofNullable(client.configMaps().inNamespace(namespace)
-          .withName(name)
-          .get());
-    }
+    return Optional.ofNullable(client.configMaps().inNamespace(namespace)
+        .withName(name)
+        .get());
   }
 
 }

@@ -10,8 +10,6 @@ import static io.restassured.RestAssured.given;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EventBuilder;
 import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
@@ -20,25 +18,26 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.quarkus.test.junit.QuarkusTest;
-import io.stackgres.common.KubernetesClientFactory;
+import io.quarkus.test.kubernetes.client.KubernetesTestServer;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.testutil.StackGresKubernetesMockServerSetup;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
+@WithKubernetesTestServer(https = true, setup = StackGresKubernetesMockServerSetup.class)
 class DbOpsEventResourceTest implements AuthenticatedResourceTest {
 
-  @Inject
-  KubernetesClientFactory factory;
+  @KubernetesTestServer
+  KubernetesServer mockServer;
 
   @BeforeEach
   void setUp() {
-    try (KubernetesClient client = factory.create()) {
-      client.v1().events().inNamespace("test-namespace").delete();
-    }
+    mockServer.getClient().v1().events().inNamespace("test-namespace").delete();
   }
 
   @Test
@@ -53,98 +52,96 @@ class DbOpsEventResourceTest implements AuthenticatedResourceTest {
 
   @Test
   void ifEventsAreCreated_itShouldReturnThenInAnArray() {
-    try (KubernetesClient client = factory.create()) {
-      Job testJob = client.batch().v1().jobs().inNamespace("test-namespace")
-          .create(new JobBuilder()
-          .withNewMetadata()
-          .withNamespace("test-namespace")
-          .withName("test-job")
-          .withUid("1")
-          .withOwnerReferences(ImmutableList.of(new OwnerReferenceBuilder()
-              .withKind(StackGresDbOps.KIND)
-              .withName("test")
-              .withUid("1")
-              .build()))
-          .endMetadata()
-          .build());
-      Pod testPod = client.pods().inNamespace("test-namespace")
-          .create(new PodBuilder()
-          .withNewMetadata()
-          .withNamespace("test-namespace")
-          .withName("test-pod")
-          .withUid("1")
-          .withOwnerReferences(ImmutableList.of(new OwnerReferenceBuilder()
-              .withKind("Job")
-              .withName("test-job")
-              .withUid("1")
-              .build()))
-          .endMetadata()
-          .build());
-      client.v1().events().inNamespace("test-namespace")
-          .create(new EventBuilder()
-          .withNewMetadata()
-          .withNamespace("test-namespace")
-          .withName("test.1")
-          .endMetadata()
-          .withType("Normal")
-          .withMessage("Test")
-          .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(1)))
-          .withInvolvedObject(new ObjectReferenceBuilder()
-              .withKind(StackGresDbOps.KIND)
-              .withNamespace("test-namespace")
-              .withName("test")
-              .withUid("1")
-              .build())
-          .build());
-      client.v1().events().inNamespace("test-namespace")
-          .create(new EventBuilder()
-          .withNewMetadata()
-          .withNamespace("test-namespace")
-          .withName("test.2")
-          .endMetadata()
-          .withType("Normal")
-          .withMessage("All good!")
-          .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(2)))
-          .withInvolvedObject(new ObjectReferenceBuilder()
-              .withKind("Job")
-              .withNamespace("test-namespace")
-              .withName("test-job")
-              .withUid(testJob.getMetadata().getUid())
-              .build())
-          .build());
-      client.v1().events().inNamespace("test-namespace")
-          .create(new EventBuilder()
-          .withNewMetadata()
-          .withNamespace("test-namespace")
-          .withName("test.3")
-          .endMetadata()
-          .withType("Warning")
-          .withMessage("Something wrong :(")
-          .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(3)))
-          .withInvolvedObject(new ObjectReferenceBuilder()
-              .withKind("Pod")
-              .withNamespace("test-namespace")
-              .withName("test-pod")
-              .withUid(testPod.getMetadata().getUid())
-              .build())
-          .build());
-      client.v1().events().inNamespace("test-namespace")
-          .create(new EventBuilder()
-          .withNewMetadata()
-          .withNamespace("test-namespace")
-          .withName("test.4")
-          .endMetadata()
-          .withType("Normal")
-          .withMessage("I am here too")
-          .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(0)))
-          .withInvolvedObject(new ObjectReferenceBuilder()
-              .withKind(StackGresDbOps.KIND)
-              .withNamespace("test-namespace")
-              .withName("test")
-              .withUid("1")
-              .build())
-          .build());
-    }
+    Job testJob = mockServer.getClient().batch().v1().jobs().inNamespace("test-namespace")
+        .create(new JobBuilder()
+            .withNewMetadata()
+            .withNamespace("test-namespace")
+            .withName("test-job")
+            .withUid("1")
+            .withOwnerReferences(ImmutableList.of(new OwnerReferenceBuilder()
+                .withKind(StackGresDbOps.KIND)
+                .withName("test")
+                .withUid("1")
+                .build()))
+            .endMetadata()
+            .build());
+    Pod testPod = mockServer.getClient().pods().inNamespace("test-namespace")
+        .create(new PodBuilder()
+            .withNewMetadata()
+            .withNamespace("test-namespace")
+            .withName("test-pod")
+            .withUid("1")
+            .withOwnerReferences(ImmutableList.of(new OwnerReferenceBuilder()
+                .withKind("Job")
+                .withName("test-job")
+                .withUid("1")
+                .build()))
+            .endMetadata()
+            .build());
+    mockServer.getClient().v1().events().inNamespace("test-namespace")
+        .create(new EventBuilder()
+            .withNewMetadata()
+            .withNamespace("test-namespace")
+            .withName("test.1")
+            .endMetadata()
+            .withType("Normal")
+            .withMessage("Test")
+            .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(1)))
+            .withInvolvedObject(new ObjectReferenceBuilder()
+                .withKind(StackGresDbOps.KIND)
+                .withNamespace("test-namespace")
+                .withName("test")
+                .withUid("1")
+                .build())
+            .build());
+    mockServer.getClient().v1().events().inNamespace("test-namespace")
+        .create(new EventBuilder()
+            .withNewMetadata()
+            .withNamespace("test-namespace")
+            .withName("test.2")
+            .endMetadata()
+            .withType("Normal")
+            .withMessage("All good!")
+            .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(2)))
+            .withInvolvedObject(new ObjectReferenceBuilder()
+                .withKind("Job")
+                .withNamespace("test-namespace")
+                .withName("test-job")
+                .withUid(testJob.getMetadata().getUid())
+                .build())
+            .build());
+    mockServer.getClient().v1().events().inNamespace("test-namespace")
+        .create(new EventBuilder()
+            .withNewMetadata()
+            .withNamespace("test-namespace")
+            .withName("test.3")
+            .endMetadata()
+            .withType("Warning")
+            .withMessage("Something wrong :(")
+            .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(3)))
+            .withInvolvedObject(new ObjectReferenceBuilder()
+                .withKind("Pod")
+                .withNamespace("test-namespace")
+                .withName("test-pod")
+                .withUid(testPod.getMetadata().getUid())
+                .build())
+            .build());
+    mockServer.getClient().v1().events().inNamespace("test-namespace")
+        .create(new EventBuilder()
+            .withNewMetadata()
+            .withNamespace("test-namespace")
+            .withName("test.4")
+            .endMetadata()
+            .withType("Normal")
+            .withMessage("I am here too")
+            .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(0)))
+            .withInvolvedObject(new ObjectReferenceBuilder()
+                .withKind(StackGresDbOps.KIND)
+                .withNamespace("test-namespace")
+                .withName("test")
+                .withUid("1")
+                .build())
+            .build());
 
     given()
         .when()

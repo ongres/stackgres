@@ -10,20 +10,20 @@ import static io.restassured.RestAssured.given;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EventBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.quarkus.test.junit.QuarkusMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.stackgres.common.KubernetesClientFactory;
+import io.quarkus.test.kubernetes.client.KubernetesTestServer;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.resource.DbOpsScanner;
+import io.stackgres.testutil.StackGresKubernetesMockServerSetup;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,10 +32,11 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 @QuarkusTest
+@WithKubernetesTestServer(https = true, setup = StackGresKubernetesMockServerSetup.class)
 class ClusterEventResourceTest implements AuthenticatedResourceTest {
 
-  @Inject
-  KubernetesClientFactory factory;
+  @KubernetesTestServer
+  KubernetesServer mockServer;
 
   @BeforeAll
   public static void setup() {
@@ -54,9 +55,7 @@ class ClusterEventResourceTest implements AuthenticatedResourceTest {
 
   @BeforeEach
   void setUp() {
-    try (KubernetesClient client = factory.create()) {
-      client.v1().events().inNamespace("test-namespace").delete();
-    }
+    mockServer.getClient().v1().events().inNamespace("test-namespace").delete();
   }
 
   @Test
@@ -71,73 +70,70 @@ class ClusterEventResourceTest implements AuthenticatedResourceTest {
 
   @Test
   void ifEventsAreCreated_itShouldReturnThenInAnArray() {
-    try (KubernetesClient client = factory.create()) {
-      client.v1().events().inNamespace("test-namespace")
-          .create(new EventBuilder()
-              .withNewMetadata()
-              .withNamespace("test-namespace")
-              .withName("test.1")
-              .endMetadata()
-              .withType("Normal")
-              .withMessage("Test")
-              .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(1)))
-              .withInvolvedObject(new ObjectReferenceBuilder()
-                  .withKind(StackGresCluster.KIND)
-                  .withNamespace("test-namespace")
-                  .withName("test")
-                  .withUid("1")
-                  .build())
-              .build());
-      client.v1().events().inNamespace("test-namespace")
-          .create(new EventBuilder()
-              .withNewMetadata()
-              .withNamespace("test-namespace")
-              .withName("test.2")
-              .endMetadata()
-              .withType("Normal")
-              .withMessage("All good!")
-              .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(2)))
-              .withInvolvedObject(new ObjectReferenceBuilder()
-                  .withKind("StatefulSet")
-                  .withNamespace("test-namespace")
-                  .withName("test")
-                  .withUid("1")
-                  .build())
-              .build());
-      client.v1().events().inNamespace("test-namespace")
-          .create(new EventBuilder()
-              .withNewMetadata()
-              .withNamespace("test-namespace")
-              .withName("test.3")
-              .endMetadata()
-              .withType("Warning")
-              .withMessage("Something wrong :(")
-              .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(3)))
-              .withInvolvedObject(new ObjectReferenceBuilder()
-                  .withKind("Pod")
-                  .withNamespace("test-namespace")
-                  .withName("test-0")
-                  .withUid("1")
-                  .build())
-              .build());
-      client.v1().events().inNamespace("test-namespace")
-          .create(new EventBuilder()
-              .withNewMetadata()
-              .withNamespace("test-namespace")
-              .withName("test.4")
-              .endMetadata()
-              .withType("Normal")
-              .withMessage("I am here too")
-              .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(0)))
-              .withInvolvedObject(new ObjectReferenceBuilder()
-                  .withKind(StackGresDbOps.KIND)
-                  .withNamespace("test-namespace")
-                  .withName("test-operation")
-                  .withUid("1")
-                  .build())
-              .build());
-    }
-
+    mockServer.getClient().v1().events().inNamespace("test-namespace")
+        .create(new EventBuilder()
+            .withNewMetadata()
+            .withNamespace("test-namespace")
+            .withName("test.1")
+            .endMetadata()
+            .withType("Normal")
+            .withMessage("Test")
+            .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(1)))
+            .withInvolvedObject(new ObjectReferenceBuilder()
+                .withKind(StackGresCluster.KIND)
+                .withNamespace("test-namespace")
+                .withName("test")
+                .withUid("1")
+                .build())
+            .build());
+    mockServer.getClient().v1().events().inNamespace("test-namespace")
+        .create(new EventBuilder()
+            .withNewMetadata()
+            .withNamespace("test-namespace")
+            .withName("test.2")
+            .endMetadata()
+            .withType("Normal")
+            .withMessage("All good!")
+            .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(2)))
+            .withInvolvedObject(new ObjectReferenceBuilder()
+                .withKind("StatefulSet")
+                .withNamespace("test-namespace")
+                .withName("test")
+                .withUid("1")
+                .build())
+            .build());
+    mockServer.getClient().v1().events().inNamespace("test-namespace")
+        .create(new EventBuilder()
+            .withNewMetadata()
+            .withNamespace("test-namespace")
+            .withName("test.3")
+            .endMetadata()
+            .withType("Warning")
+            .withMessage("Something wrong :(")
+            .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(3)))
+            .withInvolvedObject(new ObjectReferenceBuilder()
+                .withKind("Pod")
+                .withNamespace("test-namespace")
+                .withName("test-0")
+                .withUid("1")
+                .build())
+            .build());
+    mockServer.getClient().v1().events().inNamespace("test-namespace")
+        .create(new EventBuilder()
+            .withNewMetadata()
+            .withNamespace("test-namespace")
+            .withName("test.4")
+            .endMetadata()
+            .withType("Normal")
+            .withMessage("I am here too")
+            .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(0)))
+            .withInvolvedObject(new ObjectReferenceBuilder()
+                .withKind(StackGresDbOps.KIND)
+                .withNamespace("test-namespace")
+                .withName("test-operation")
+                .withUid("1")
+                .build())
+            .build());
     given()
         .when()
         .header(AUTHENTICATION_HEADER)

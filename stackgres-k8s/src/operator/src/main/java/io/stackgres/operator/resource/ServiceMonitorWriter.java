@@ -12,7 +12,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
-import io.stackgres.common.StackGresKubernetesClientFactory;
+import io.stackgres.common.StackGresKubernetesClient;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorList;
@@ -20,44 +20,40 @@ import io.stackgres.operator.customresource.prometheus.ServiceMonitorList;
 @ApplicationScoped
 public class ServiceMonitorWriter implements ResourceWriter<ServiceMonitor> {
 
-  private final StackGresKubernetesClientFactory clientFactory;
+  private final KubernetesClient client;
 
   @Inject
-  public ServiceMonitorWriter(StackGresKubernetesClientFactory clientFactory) {
-    this.clientFactory = clientFactory;
+  public ServiceMonitorWriter(KubernetesClient client) {
+    this.client = client;
   }
 
   @Override
   public ServiceMonitor create(ServiceMonitor resource) {
-
-    return clientFactory.create().serverSideApply(new PatchContext.Builder()
+    return ((StackGresKubernetesClient) client).serverSideApply(new PatchContext.Builder()
         .withFieldManager(STACKGRES_FIELD_MANAGER)
         .withForce(true)
         .build(),
         resource);
-
   }
 
   @Override
   public ServiceMonitor update(ServiceMonitor resource) {
-    return clientFactory.create().serverSideApply(new PatchContext.Builder()
-            .withFieldManager(STACKGRES_FIELD_MANAGER)
-            .withForce(true)
-            .build(),
+    return ((StackGresKubernetesClient) client).serverSideApply(new PatchContext.Builder()
+        .withFieldManager(STACKGRES_FIELD_MANAGER)
+        .withForce(true)
+        .build(),
         resource);
   }
 
   @Override
   public void delete(ServiceMonitor resource) {
-    clientFactory.withNewClient(this::getServiceMonitorClient)
+    getServiceMonitorClient()
         .inNamespace(resource.getMetadata().getNamespace())
         .delete(resource);
-
   }
 
   private MixedOperation<ServiceMonitor, ServiceMonitorList,
-      Resource<ServiceMonitor>> getServiceMonitorClient(
-      KubernetesClient client) {
+      Resource<ServiceMonitor>> getServiceMonitorClient() {
     return client.customResources(ServiceMonitor.class, ServiceMonitorList.class);
   }
 }

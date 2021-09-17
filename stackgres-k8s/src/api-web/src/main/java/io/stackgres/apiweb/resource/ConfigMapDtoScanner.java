@@ -14,34 +14,29 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.apiweb.dto.configmap.ConfigMapDto;
 import io.stackgres.apiweb.transformer.ConfigMapMapper;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.resource.ResourceScanner;
 
 @ApplicationScoped
 public class ConfigMapDtoScanner implements ResourceScanner<ConfigMapDto> {
 
-  private final KubernetesClientFactory factory;
+  private final KubernetesClient client;
 
   @Inject
-  public ConfigMapDtoScanner(KubernetesClientFactory factory) {
-    this.factory = factory;
+  public ConfigMapDtoScanner(KubernetesClient client) {
+    this.client = client;
   }
 
   @Override
   public List<ConfigMapDto> findResources() {
-    try (KubernetesClient client = factory.create()) {
-      return client.configMaps().list().getItems().stream()
-          .map(ConfigMapMapper::map)
-          .collect(ImmutableList.toImmutableList());
-    }
+    return client.configMaps().list().getItems().stream()
+        .map(ConfigMapMapper::map)
+        .collect(ImmutableList.toImmutableList());
   }
 
   @Override
   public List<ConfigMapDto> findResourcesInNamespace(String namespace) {
-    try (KubernetesClient client = factory.create()) {
-      return client.configMaps().inNamespace(namespace).list().getItems().stream()
-          .map(ConfigMapMapper::map)
-          .collect(ImmutableList.toImmutableList());
-    }
+    return client.configMaps().inNamespace(namespace).list().getItems().stream()
+        .map(ConfigMapMapper::map)
+        .collect(ImmutableList.toImmutableList());
   }
 }
