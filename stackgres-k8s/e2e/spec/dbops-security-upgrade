@@ -24,7 +24,7 @@ e2e_test_install() {
       "$STACKGRES_PREVIOUS_VERSION"
   fi
 
-  install_prometheus_operator 12.8.0
+  install_prometheus_operator_for_version 12.8.0
   install_operator_previous_version \
     --set grafana.autoEmbed=true \
     --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"
