@@ -38,7 +38,7 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
 public class PrometheusIntegration implements ResourceGenerator<StackGresClusterContext> {
 
-  public static final String SERVICE = "-prometheus-postgres-exporter";
+  public static final String SERVICE = "-exporter";
   public static final String SERVICE_MONITOR = "-stackgres-postgres-exporter";
   private static final String POSTGRES_EXPORTER_CONTAINER_NAME = StackgresClusterContainers
       .POSTGRES_EXPORTER;

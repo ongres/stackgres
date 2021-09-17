@@ -5,13 +5,6 @@
 
 package io.stackgres.operator.conciliation.distributedlogs;
 
-import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.asserThatLabelIsComplaint;
-import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.assertThatCronJobResourceLabelsAreComplaints;
-import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.assertThatJobResourceLabelsAreComplaints;
-import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.assertThatResourceNameIsComplaint;
-import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.assertThatStatefulSetResourceLabelsAreComplaints;
-import static io.stackgres.operator.validation.CrdMatchTestHelper.getMaxLengthResourceNameFrom;
-import static io.stackgres.testutil.StringUtils.getRandomClusterNameWithExactlySize;
 import static java.util.Optional.ofNullable;
 
 import java.io.IOException;
@@ -20,24 +13,26 @@ import java.util.Optional;
 
 import javax.inject.Inject;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.operator.conciliation.AbstractRequiredResourceDecoratorTest;
+import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.fixture.SecretFixture;
 import io.stackgres.operator.fixture.StackGresClusterFixture;
 import io.stackgres.operator.fixture.StackGresDistributedLogsFixture;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class DistributedLogsRequireResourceDecoratorTest {
+class DistributedLogsRequireResourceDecoratorTest
+    extends AbstractRequiredResourceDecoratorTest<StackGresDistributedLogsContext> {
 
   @Inject
   private DistributedLogsRequireResourceDecorator resourceDecorator;
 
-  private StackGresDistributedLogs crd;
+  private StackGresDistributedLogs resource;
 
   private Optional<Secret> secret;
 
@@ -45,38 +40,33 @@ class DistributedLogsRequireResourceDecoratorTest {
 
   @BeforeEach
   public void setup() {
-    this.crd = new StackGresDistributedLogsFixture().build("default");
+    this.resource = new StackGresDistributedLogsFixture().build("default");
     this.connectecCluster = new StackGresClusterFixture().build("default");
     this.secret = ofNullable(new SecretFixture().build("minio"));
   }
 
-  @Test
-  void shouldCreateResourceSuccessfully_OnceUsingTheCurrentCrdMaxLength()
-      throws JsonProcessingException, IOException {
+  @Override
+  protected String usingCrdFilename() {
+    return "SGDistributedLogs.yaml";
+  }
 
-    String validClusterName =
-        getRandomClusterNameWithExactlySize(getMaxLengthResourceNameFrom("SGDistributedLogs.yaml"));
-    crd.getMetadata().setName(validClusterName);
+  @Override
+  protected HasMetadata getResource() {
+    return this.resource;
+  }
 
-    StackGresDistributedLogsContext context = ImmutableStackGresDistributedLogsContext.builder()
-        .source(crd)
+  @Override
+  protected RequiredResourceDecorator<StackGresDistributedLogsContext> getResourceDecorator() {
+    return resourceDecorator;
+  }
+
+  @Override
+  protected StackGresDistributedLogsContext getResourceContext() throws IOException {
+    return ImmutableStackGresDistributedLogsContext.builder()
+        .source(resource)
         .addAllConnectedClusters(List.of(connectecCluster))
         .databaseCredentials(secret)
         .build();
-
-    var decorateResources = resourceDecorator.decorateResources(context);
-    decorateResources.stream().forEach(
-        resource -> {
-          assertThatResourceNameIsComplaint(resource);
-
-          resource.getMetadata().getLabels().entrySet().stream().forEach(label -> {
-            asserThatLabelIsComplaint(label);
-          });
-
-          assertThatStatefulSetResourceLabelsAreComplaints(resource);
-          assertThatCronJobResourceLabelsAreComplaints(resource);
-          assertThatJobResourceLabelsAreComplaints(resource);
-        });
   }
 
 }
