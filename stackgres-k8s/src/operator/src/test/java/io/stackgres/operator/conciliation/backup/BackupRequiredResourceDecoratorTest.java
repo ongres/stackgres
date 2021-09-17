@@ -5,15 +5,7 @@
 
 package io.stackgres.operator.conciliation.backup;
 
-import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.asserThatLabelIsComplaint;
-import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.assertThatCronJobResourceLabelsAreComplaints;
-import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.assertThatJobResourceLabelsAreComplaints;
-import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.assertThatResourceNameIsComplaint;
-import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.assertThatStatefulSetResourceLabelsAreComplaints;
-import static io.stackgres.operator.validation.CrdMatchTestHelper.getMaxLengthResourceNameFrom;
-import static io.stackgres.testutil.StringUtils.getRandomClusterNameWithExactlySize;
-
-import java.util.List;
+import java.io.IOException;
 
 import javax.inject.Inject;
 
@@ -22,59 +14,55 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.conciliation.AbstractRequiredResourceDecoratorTest;
+import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.fixture.StackGresBackupConfigFixture;
 import io.stackgres.operator.fixture.StackGresBackupFixture;
 import io.stackgres.operator.fixture.StackGresClusterFixture;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-public class BackupRequiredResourceDecoratorTest {
+public class BackupRequiredResourceDecoratorTest
+    extends AbstractRequiredResourceDecoratorTest<StackGresBackupContext> {
 
   @Inject
   BackupRequiredResourceDecorator resourceDecorator;
 
-  private StackGresBackup crd;
+  private StackGresBackup resource;
 
   private StackGresCluster cluster;
 
   private StackGresBackupConfig backupConfig;
 
-  private ImmutableStackGresBackupContext context;
-
-  private List<HasMetadata> decorateResources;
-
   @BeforeEach
   public void setup() {
-    this.crd = new StackGresBackupFixture().build("default");
+    this.resource = new StackGresBackupFixture().build("default");
     this.cluster = new StackGresClusterFixture().build("default");
     this.backupConfig = new StackGresBackupConfigFixture().build("default");
   }
 
-  @Test
-  void shouldCreateResourceSuccessfully_OnceUsingTheCurrentCrdMaxLength() throws Exception {
+  @Override
+  protected String usingCrdFilename() {
+    return "SGBackup.yaml";
+  }
 
-    String validBackupName =
-        getRandomClusterNameWithExactlySize(getMaxLengthResourceNameFrom("SGBackup.yaml"));
-    crd.getMetadata().setName(validBackupName);
+  @Override
+  protected HasMetadata getResource() {
+    return resource;
+  }
 
-    this.context = ImmutableStackGresBackupContext.builder()
-        .source(crd)
+  @Override
+  protected RequiredResourceDecorator<StackGresBackupContext> getResourceDecorator() {
+    return this.resourceDecorator;
+  }
+
+  @Override
+  protected StackGresBackupContext getResourceContext() throws IOException {
+    return ImmutableStackGresBackupContext.builder()
+        .source(resource)
         .cluster(cluster)
         .backupConfig(backupConfig)
         .build();
-    this.decorateResources = resourceDecorator.decorateResources(context);
-    decorateResources.stream().forEach(
-        resource -> {
-          assertThatResourceNameIsComplaint(resource);
-
-          resource.getMetadata().getLabels().entrySet().stream().forEach(label -> {
-            asserThatLabelIsComplaint(label);
-          });
-          assertThatStatefulSetResourceLabelsAreComplaints(resource);
-          assertThatCronJobResourceLabelsAreComplaints(resource);
-          assertThatJobResourceLabelsAreComplaints(resource);
-        });
   }
 
 }

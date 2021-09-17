@@ -5,64 +5,62 @@
 
 package io.stackgres.operator.conciliation.dbops;
 
-import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.asserThatLabelIsComplaint;
-import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.assertThatCronJobResourceLabelsAreComplaints;
-import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.assertThatJobResourceLabelsAreComplaints;
-import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.assertThatResourceNameIsComplaint;
-import static io.stackgres.operator.conciliation.RequiredResourceDecoratorTestHelper.assertThatStatefulSetResourceLabelsAreComplaints;
-import static io.stackgres.operator.validation.CrdMatchTestHelper.getMaxLengthResourceNameFrom;
-import static io.stackgres.testutil.StringUtils.getRandomClusterNameWithExactlySize;
+import java.io.IOException;
 
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
+import io.stackgres.operator.conciliation.AbstractRequiredResourceDecoratorTest;
+import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.fixture.StackGresClusterFixture;
 import io.stackgres.operator.fixture.StackGresDbOpsFixture;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class DbOpsRequiredResourceDecoratorTest {
+class DbOpsRequiredResourceDecoratorTest
+    extends AbstractRequiredResourceDecoratorTest<StackGresDbOpsContext> {
 
   @Inject
   DbOpsRequiredResourceDecorator resourceDecorator;
 
-  private StackGresDbOps crd;
+  private StackGresDbOps resource;
 
   private StackGresCluster cluster;
 
   @BeforeEach
   public void setup() {
-    this.crd = new StackGresDbOpsFixture().build("vacuum");
+    this.resource = new StackGresDbOpsFixture().build("minor_version_upgrade");
     this.cluster = new StackGresClusterFixture().build("default");
   }
 
-  @Test
-  void shouldCreateResourceSuccessfully_OnceUsingTheCurrentCrdMaxLength() throws Exception {
+  @Override
+  protected String usingCrdFilename() {
+    return "SGDbOps.yaml";
+  }
 
-    String validDbOpsJobName =
-        getRandomClusterNameWithExactlySize(getMaxLengthResourceNameFrom("SGDbOps.yaml"));
-    crd.getMetadata().setName(validDbOpsJobName);
+  @Override
+  protected HasMetadata getResource() {
+    return this.resource;
+  }
 
-    var context = ImmutableStackGresDbOpsContext.builder()
-        .source(crd)
+  @Override
+  protected RequiredResourceDecorator<StackGresDbOpsContext> getResourceDecorator() {
+    return this.resourceDecorator;
+  }
+
+  @Override
+  protected StackGresDbOpsContext getResourceContext() throws IOException {
+    StackGresDbOpsStatus status = new StackGresDbOpsStatus();
+    status.setOpRetries(10);
+    resource.setStatus(status);
+    resource.getSpec().setMaxRetries(10);
+    return ImmutableStackGresDbOpsContext.builder()
+        .source(resource)
         .cluster(cluster)
         .build();
-
-    var decorateResources = resourceDecorator.decorateResources(context);
-    decorateResources.stream().forEach(
-        resource -> {
-          assertThatResourceNameIsComplaint(resource);
-
-          resource.getMetadata().getLabels().entrySet().stream().forEach(label -> {
-            asserThatLabelIsComplaint(label);
-          });
-
-          assertThatStatefulSetResourceLabelsAreComplaints(resource);
-          assertThatCronJobResourceLabelsAreComplaints(resource);
-          assertThatJobResourceLabelsAreComplaints(resource);
-        });
   }
 }

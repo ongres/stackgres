@@ -7,12 +7,14 @@ package io.stackgres.operator.fixture;
 
 import static java.lang.String.format;
 
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.NodeAffinity;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.testutil.JsonUtil;
 
 public class StackGresClusterFixture {
-
+  public static final String POSTGRES_LATEST_VERSION =
+      StackGresComponent.POSTGRESQL.getOrderedVersions().get(0).get();
   private NodeAffinity nodeAffinity;
 
   public StackGresClusterFixture withNodeAffinity(NodeAffinity nodeAffinity) {
@@ -37,8 +39,10 @@ public class StackGresClusterFixture {
   }
 
   public StackGresCluster build(String jsonName) {
-    return JsonUtil.readFromJson(format("stackgres_cluster/%s.json", jsonName),
+    StackGresCluster cluster = JsonUtil.readFromJson(format("stackgres_cluster/%s.json", jsonName),
         StackGresCluster.class);
+    cluster.getSpec().getPostgres().setVersion(POSTGRES_LATEST_VERSION);
+    return cluster;
   }
 
 }
