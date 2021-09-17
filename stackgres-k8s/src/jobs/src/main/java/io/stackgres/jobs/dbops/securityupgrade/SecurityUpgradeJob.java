@@ -97,12 +97,12 @@ public class SecurityUpgradeJob implements DatabaseOperationJob {
         .atMost(10);
   }
 
-  private Uni<StackGresCluster> resumeReconciliation(StackGresCluster cluster) {
-    return Uni.createFrom().<StackGresCluster>emitter(em -> {
-      removeIgnoredMark(cluster);
-      var resumedCluster = clusterScheduler.update(cluster);
-      em.complete(resumedCluster);
-    })
+  private Uni<StackGresCluster> resumeReconciliation(StackGresCluster targetCluster) {
+    return getCluster(targetCluster)
+        .map(cluster -> {
+          removeIgnoredMark(cluster);
+          return clusterScheduler.update(cluster);
+        })
         .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))
