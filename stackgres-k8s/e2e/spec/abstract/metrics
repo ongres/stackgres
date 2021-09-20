@@ -6,7 +6,7 @@ check_metrics() {
     pgbouncer_show_stats_total_query_count pg_table_bloat_real_size
   do
     if kubectl exec -i -n "$CLUSTER_NAMESPACE" curl \
-      -- curl -s -f "http://$CLUSTER_NAME-prometheus-postgres-exporter:9187/metrics" \
+      -- curl -s -f "http://$CLUSTER_NAME-pgexp:9187/metrics" \
       | grep -q "^$METRIC"
     then
       echo "Exporter metric $METRIC was found"
@@ -17,7 +17,7 @@ check_metrics() {
   done
 
   if kubectl exec -i -n "$CLUSTER_NAMESPACE" curl \
-    -- curl -s -f "http://$CLUSTER_NAME-prometheus-envoy:8001/stats/prometheus" \
+    -- curl -s -f "http://$CLUSTER_NAME-envoyexp:8001/stats/prometheus" \
     | grep -q "^envoy_postgres_ingress_postgres_sessions"
   then
     echo "Envoy metric envoy_postgres_ingress_postgres_sessions was found"
@@ -29,7 +29,7 @@ check_metrics() {
   for ENVOY_CLUSTER in postgres_cluster postgres_raw_cluster
   do
     if kubectl exec -i -n "$CLUSTER_NAMESPACE" curl \
-      -- curl -s -f "http://$CLUSTER_NAME-prometheus-envoy:8001/stats/prometheus" \
+      -- curl -s -f "http://$CLUSTER_NAME-envoyexp:8001/stats/prometheus" \
       | grep "^envoy_cluster_upstream_cx_active" \
       | grep -q "envoy_cluster_name=\"$ENVOY_CLUSTER\""
     then
