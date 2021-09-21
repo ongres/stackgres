@@ -17,12 +17,12 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Produces;
 
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.test.Mock;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.operator.AbstractStackGresOperatorIt;
 import io.stackgres.testutil.CrdUtils;
@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 
 @Mock
 @ApplicationScoped
-public class MockKubernetesClientFactory implements KubernetesClientFactory {
+public class MockKubernetesClientFactory {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MockKubernetesClientFactory.class);
 
@@ -58,7 +58,7 @@ public class MockKubernetesClientFactory implements KubernetesClientFactory {
     }
   }
 
-  @Override
+  @Produces
   public KubernetesClient create() {
     if (AbstractStackGresOperatorIt.isRunning()) {
       if (this.auth.get() == null) {

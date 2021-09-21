@@ -18,47 +18,45 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.Namespaceable;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.stackgres.common.KubernetesClientFactory;
 
-public abstract class AbstractCustomResourceScheduler
-    <T extends CustomResource<?, ?>, L extends CustomResourceList<T>>
+public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?, ?>,
+    L extends CustomResourceList<T>>
     implements CustomResourceScheduler<T> {
 
   private final Class<T> customResourceClass;
   private final Class<L> customResourceListClass;
+
   @Inject
-  KubernetesClientFactory clientFactory;
+  KubernetesClient client;
 
   protected AbstractCustomResourceScheduler(
-      KubernetesClientFactory clientFactory,
+      KubernetesClient client,
       Class<T> customResourceClass,
       Class<L> customResourceListClass) {
-    this.clientFactory = clientFactory;
+    this.client = client;
     this.customResourceClass = customResourceClass;
     this.customResourceListClass = customResourceListClass;
   }
 
+  @Override
   public T create(T resource) {
-    try (KubernetesClient client = clientFactory.create()) {
-      return getCustomResourceEndpoints(client)
-          .inNamespace(resource.getMetadata().getNamespace())
-          .create(resource);
-    }
+    return getCustomResourceEndpoints(client)
+        .inNamespace(resource.getMetadata().getNamespace())
+        .create(resource);
   }
 
+  @Override
   public T update(T resource) {
-    try (KubernetesClient client = clientFactory.create()) {
-      return getCustomResourceEndpoints(client)
-          .inNamespace(resource.getMetadata().getNamespace())
-          .withName(resource.getMetadata().getName())
-          .patch(resource);
-    }
+    return getCustomResourceEndpoints(client)
+        .inNamespace(resource.getMetadata().getNamespace())
+        .withName(resource.getMetadata().getName())
+        .patch(resource);
   }
 
   @Override
   public <S> void updateStatus(T resource, Function<T, S> statusGetter,
-                               BiConsumer<T, S> statusSetter) {
-    try (KubernetesClient client = clientFactory.create()) {
+      BiConsumer<T, S> statusSetter) {
+    try {
       T resourceOverwrite = getCustomResourceEndpoints(client)
           .inNamespace(resource.getMetadata().getNamespace())
           .withName(resource.getMetadata().getName())
@@ -84,22 +82,18 @@ public abstract class AbstractCustomResourceScheduler
 
   @Override
   public T updateStatus(T resource) {
-    try (KubernetesClient client = clientFactory.create()) {
-      return getCustomResourceEndpoints(client)
-          .inNamespace(resource.getMetadata().getNamespace())
-          .withName(resource.getMetadata().getName())
-          .updateStatus(resource);
-    }
+    return getCustomResourceEndpoints(client)
+        .inNamespace(resource.getMetadata().getNamespace())
+        .withName(resource.getMetadata().getName())
+        .updateStatus(resource);
   }
 
   @Override
   public void delete(T resource) {
-    try (KubernetesClient client = clientFactory.create()) {
-      getCustomResourceEndpoints(client)
-          .inNamespace(resource.getMetadata().getNamespace())
-          .withName(resource.getMetadata().getName())
-          .delete();
-    }
+    getCustomResourceEndpoints(client)
+        .inNamespace(resource.getMetadata().getNamespace())
+        .withName(resource.getMetadata().getName())
+        .delete();
   }
 
   private Namespaceable<NonNamespaceOperation<T, L, Resource<T>>> getCustomResourceEndpoints(

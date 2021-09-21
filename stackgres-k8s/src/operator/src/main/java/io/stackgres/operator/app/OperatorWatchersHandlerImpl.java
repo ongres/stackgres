@@ -14,9 +14,9 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.CustomResourceList;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher.Action;
 import io.quarkus.runtime.Application;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupList;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
@@ -45,18 +45,18 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
 
   private final List<WatcherMonitor<?>> monitors = new ArrayList<>();
 
-  private final KubernetesClientFactory kubeClient;
+  private final KubernetesClient client;
   private final ClusterReconciliator clusterReconciliationCycle;
   private final DistributedLogsReconciliator distributedLogsReconciliatorCycle;
   private final DbOpsReconciliator dbOpsReconciliationCycle;
   private final ResourceWatcherFactory watcherFactory;
 
   @Inject
-  public OperatorWatchersHandlerImpl(KubernetesClientFactory kubeClient,
+  public OperatorWatchersHandlerImpl(KubernetesClient client,
       ClusterReconciliator clusterReconciliationCycle,
       DistributedLogsReconciliator distributedLogsReconciliatorCycle,
       DbOpsReconciliator dbOpsReconciliationCycle, ResourceWatcherFactory watcherFactory) {
-    this.kubeClient = kubeClient;
+    this.client = client;
     this.clusterReconciliationCycle = clusterReconciliationCycle;
     this.distributedLogsReconciliatorCycle = distributedLogsReconciliatorCycle;
     this.dbOpsReconciliationCycle = dbOpsReconciliationCycle;
@@ -112,7 +112,7 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
       L extends CustomResourceList<T>> WatcherMonitor<T> createWatcher(
       @NotNull Class<T> crClass, @NotNull Class<L> listClass, @NotNull Consumer<Action> consumer) {
 
-    return new WatcherMonitor<>(watcherListener -> kubeClient.create()
+    return new WatcherMonitor<>(watcherListener -> client
         .customResources(crClass, listClass)
         .inAnyNamespace()
         .watch(watcherFactory.createWatcher(consumer, watcherListener)),

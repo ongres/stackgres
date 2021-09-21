@@ -21,30 +21,32 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.junit.mockito.InjectSpy;
+import io.quarkus.test.kubernetes.client.KubernetesTestServer;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.jobs.app.KubernetesClientProvider;
 import io.stackgres.jobs.dbops.lock.FakeClusterScheduler;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
 import io.stackgres.testutil.JsonUtil;
+import io.stackgres.testutil.StackGresKubernetesMockServerSetup;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
-@WithKubernetesTestServer
 @QuarkusTest
+@WithKubernetesTestServer(https = true, setup = StackGresKubernetesMockServerSetup.class)
 class ClusterInstanceManagerImplTest {
 
   @Inject
   MockKubeDb kubeDb;
 
-  @Inject
-  KubernetesClientProvider clientFactory;
+  @KubernetesTestServer
+  KubernetesServer mockServer;
 
   @InjectMock
   PodWatcher podWatcher;
@@ -360,22 +362,19 @@ class ClusterInstanceManagerImplTest {
 
   private void configureNonDisruptablePod(int index) {
     Pod primaryPod = podTestUtil.buildNonDisruptablePrimaryPod(cluster, index);
-    clientFactory.withNewClient(client -> client.pods().inNamespace(namespace)
-        .replace(primaryPod));
+    mockServer.getClient().pods().inNamespace(namespace).replace(primaryPod);
   }
 
   private void configureNewPodCreated(Pod newPod) {
-    kubeDb.watchCluster(clusterName, namespace, cluster -> clientFactory
-        .withNewClient(client -> client.pods()
-            .inNamespace(namespace)
-            .createOrReplace(newPod)));
+    kubeDb.watchCluster(clusterName, namespace, cluster -> mockServer.getClient().pods()
+        .inNamespace(namespace)
+        .createOrReplace(newPod));
   }
 
   private void configurePodDeleted(Pod podToDelete) {
-    kubeDb.watchCluster(clusterName, namespace, cluster -> clientFactory
-        .withNewClient(client -> client.pods()
-            .inNamespace(namespace)
-            .delete(podToDelete)));
+    kubeDb.watchCluster(clusterName, namespace, cluster -> mockServer.getClient().pods()
+        .inNamespace(namespace)
+        .delete(podToDelete));
 
   }
 
@@ -384,22 +383,22 @@ class ClusterInstanceManagerImplTest {
     when(podWatcher.waitUntilIsReady(anyString(), eq(namespace))).thenAnswer(invocation -> {
       final String podName = invocation.getArgument(0);
       String namespace = invocation.getArgument(1);
-      Pod pod = clientFactory.withNewClient(client -> client.pods().inNamespace(namespace)
-          .withName(podName).get());
+      Pod pod = mockServer.getClient().pods().inNamespace(namespace)
+          .withName(podName).get();
       int retries = 0;
       while (pod == null) {
         Thread.sleep(100);
-        pod = clientFactory.withNewClient(client -> client.pods().inNamespace(namespace)
-            .withName(podName).get());
+        pod = mockServer.getClient().pods().inNamespace(namespace)
+            .withName(podName).get();
         retries++;
         if (retries > 10) {
-          fail("Pod " + podName + " not created available pods " + clientFactory
-              .withNewClient(client -> client.pods().inNamespace(namespace)
+          fail("Pod " + podName + " not created available pods "
+              + mockServer.getClient().pods().inNamespace(namespace)
                   .list().getItems()
                   .stream()
                   .map(Pod::getMetadata)
-                  .map(ObjectMeta::getName))
-              .collect(Collectors.toUnmodifiableList()));
+                  .map(ObjectMeta::getName)
+                  .collect(Collectors.toUnmodifiableList()));
         }
       }
       return Uni.createFrom().item(pod);

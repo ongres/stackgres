@@ -17,7 +17,6 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.DeployedResourceDecorator;
@@ -29,62 +28,57 @@ import io.stackgres.operator.conciliation.ReconciliationScopeLiteral;
 public class ClusterDeployedResourceScanner implements DeployedResourcesScanner<StackGresCluster>,
     ReconciliationOperations {
 
-  private final KubernetesClientFactory clientFactory;
+  private final KubernetesClient client;
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
   private final Instance<DeployedResourceDecorator> decorators;
 
   @Inject
   public ClusterDeployedResourceScanner(
-      KubernetesClientFactory clientFactory,
+      KubernetesClient client,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
       @Any Instance<DeployedResourceDecorator> decorators) {
-    this.clientFactory = clientFactory;
+    this.client = client;
     this.labelFactory = labelFactory;
     this.decorators = decorators;
   }
 
   @Override
   public List<HasMetadata> getDeployedResources(StackGresCluster config) {
+    final Map<String, String> genericClusterLabels = labelFactory.genericLabels(config);
 
-    try (KubernetesClient client = clientFactory.create()) {
+    Stream<HasMetadata> inNamespace = IN_NAMESPACE_RESOURCE_OPERATIONS
+        .values()
+        .stream()
+        .flatMap(resourceOperationGetter -> resourceOperationGetter.apply(client)
+            .inNamespace(config.getMetadata().getNamespace())
+            .withLabels(genericClusterLabels)
+            .list()
+            .getItems()
+            .stream());
 
-      final Map<String, String> genericClusterLabels = labelFactory.genericLabels(config);
+    Stream<HasMetadata> anyNamespace = ANY_NAMESPACE_RESOURCE_OPERATIONS
+        .values()
+        .stream()
+        .flatMap(resourceOperationGetter -> resourceOperationGetter
+            .apply(client, genericClusterLabels)
+            .stream());
 
-      Stream<HasMetadata> inNamespace = IN_NAMESPACE_RESOURCE_OPERATIONS
-          .values()
-          .stream()
-          .flatMap(resourceOperationGetter -> resourceOperationGetter.apply(client)
-              .inNamespace(config.getMetadata().getNamespace())
-              .withLabels(genericClusterLabels)
-              .list()
-              .getItems()
-              .stream());
+    List<HasMetadata> deployedResources = Stream.concat(inNamespace, anyNamespace)
+        .filter(resource1 -> resource1.getMetadata().getOwnerReferences()
+            .stream().anyMatch(ownerReference -> ownerReference.getKind()
+                .equals(StackGresCluster.KIND)
+                && ownerReference.getName().equals(config.getMetadata().getName())
+                && ownerReference.getUid().equals(config.getMetadata().getUid())))
+        .collect(Collectors.toUnmodifiableList());
 
-      Stream<HasMetadata> anyNamespace = ANY_NAMESPACE_RESOURCE_OPERATIONS
-          .values()
-          .stream()
-          .flatMap(resourceOperationGetter -> resourceOperationGetter
-              .apply(client, genericClusterLabels)
-              .stream());
+    deployedResources.forEach(resource -> {
+      Instance<DeployedResourceDecorator> decorator = decorators
+          .select(new ReconciliationScopeLiteral(StackGresCluster.class, resource.getKind()));
+      if (decorator.isResolvable()) {
+        decorator.get().decorate(resource);
+      }
+    });
 
-      List<HasMetadata> deployedResources = Stream.concat(inNamespace, anyNamespace)
-          .filter(resource1 -> resource1.getMetadata().getOwnerReferences()
-              .stream().anyMatch(ownerReference -> ownerReference.getKind()
-                  .equals(StackGresCluster.KIND)
-                  && ownerReference.getName().equals(config.getMetadata().getName())
-                  && ownerReference.getUid().equals(config.getMetadata().getUid())))
-          .collect(Collectors.toUnmodifiableList());
-
-      deployedResources.forEach(resource -> {
-        Instance<DeployedResourceDecorator> decorator = decorators
-            .select(new ReconciliationScopeLiteral(StackGresCluster.class, resource.getKind()));
-        if (decorator.isResolvable()) {
-          decorator.get().decorate(resource);
-        }
-      });
-
-      return deployedResources;
-    }
-
+    return deployedResources;
   }
 }

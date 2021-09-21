@@ -5,8 +5,6 @@
 
 package io.stackgres.operatorframework.reconciliation;
 
-import java.util.function.Supplier;
-
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
@@ -19,10 +17,10 @@ public abstract class ResourceGeneratorReconciliationCycle<
     extends ReconciliationCycle<T, H, S> {
 
   protected ResourceGeneratorReconciliationCycle(String name,
-      Supplier<KubernetesClient> clientSupplier,
+      KubernetesClient client,
       ResourceGeneratorReconciliator<T, H, S> reconciliator,
       S handlerSelector) {
-    super(name, clientSupplier, reconciliator, handlerSelector);
+    super(name, client, reconciliator, handlerSelector);
   }
 
 }

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.common;
+package io.stackgres.common.kubernetesclient;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

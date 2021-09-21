@@ -10,7 +10,6 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 
@@ -19,8 +18,8 @@ public class ClusterScheduler extends
     AbstractCustomResourceScheduler<StackGresCluster, StackGresClusterList> {
 
   @Inject
-  public ClusterScheduler(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresCluster.class, StackGresClusterList.class);
+  public ClusterScheduler(KubernetesClient client) {
+    super(client, StackGresCluster.class, StackGresClusterList.class);
   }
 
   public ClusterScheduler() {
@@ -30,13 +29,11 @@ public class ClusterScheduler extends
 
   @Override
   public StackGresCluster update(StackGresCluster resource) {
-    try (KubernetesClient client = clientFactory.create()) {
-      return client.customResources(StackGresCluster.class, StackGresClusterList.class)
-          .inNamespace(resource.getMetadata().getNamespace())
-          .withName(resource.getMetadata().getName())
-          .lockResourceVersion(resource.getMetadata().getResourceVersion())
-          .replace(resource);
-    }
+    return client.customResources(StackGresCluster.class, StackGresClusterList.class)
+        .inNamespace(resource.getMetadata().getNamespace())
+        .withName(resource.getMetadata().getName())
+        .lockResourceVersion(resource.getMetadata().getResourceVersion())
+        .replace(resource);
   }
 
 }

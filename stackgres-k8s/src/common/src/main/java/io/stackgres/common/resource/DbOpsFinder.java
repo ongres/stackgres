@@ -8,8 +8,8 @@ package io.stackgres.common.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsList;
 
@@ -21,8 +21,8 @@ public class DbOpsFinder
    * Create a {@code DbOpsFinder} instance.
    */
   @Inject
-  public DbOpsFinder(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresDbOps.class, StackGresDbOpsList.class);
+  public DbOpsFinder(KubernetesClient client) {
+    super(client, StackGresDbOps.class, StackGresDbOpsList.class);
   }
 
   public DbOpsFinder() {

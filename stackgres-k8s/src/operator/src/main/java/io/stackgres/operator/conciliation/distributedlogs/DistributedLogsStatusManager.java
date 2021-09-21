@@ -21,7 +21,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.ClusterPendingRestartUtil;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
@@ -40,13 +39,13 @@ public class DistributedLogsStatusManager
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DistributedLogsStatusManager.class);
 
-  private final KubernetesClientFactory clientFactory;
+  private final KubernetesClient client;
   private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
   @Inject
-  public DistributedLogsStatusManager(KubernetesClientFactory clientFactory,
+  public DistributedLogsStatusManager(KubernetesClient client,
       LabelFactoryForCluster<StackGresDistributedLogs> labelFactory) {
-    this.clientFactory = clientFactory;
+    this.client = client;
     this.labelFactory = labelFactory;
   }
 
@@ -104,34 +103,29 @@ public class DistributedLogsStatusManager
   }
 
   private Optional<StatefulSet> getClusterStatefulSet(StackGresDistributedLogs cluster) {
-    try (KubernetesClient client = clientFactory.create()) {
-      return client.apps().statefulSets().inNamespace(cluster.getMetadata().getNamespace())
-          .withLabels(labelFactory.genericLabels(cluster))
-          .list()
-          .getItems().stream()
-          .filter(sts -> sts.getMetadata().getOwnerReferences()
-              .stream().anyMatch(ownerReference -> ownerReference.getKind()
-                  .equals(StackGresDistributedLogs.KIND)
-                  && ownerReference.getName().equals(cluster.getMetadata().getName())))
-          .findFirst();
-
-    }
+    return client.apps().statefulSets().inNamespace(cluster.getMetadata().getNamespace())
+        .withLabels(labelFactory.genericLabels(cluster))
+        .list()
+        .getItems().stream()
+        .filter(sts -> sts.getMetadata().getOwnerReferences()
+            .stream().anyMatch(ownerReference -> ownerReference.getKind()
+                .equals(StackGresDistributedLogs.KIND)
+                && ownerReference.getName().equals(cluster.getMetadata().getName())))
+        .findFirst();
   }
 
   private List<Pod> getStsPods(StatefulSet sts, StackGresDistributedLogs cluster) {
     final Map<String, String> podClusterLabels =
         labelFactory.patroniClusterLabels(cluster);
 
-    try (KubernetesClient client = clientFactory.create()) {
-      return client.pods().inNamespace(sts.getMetadata().getNamespace())
-          .withLabels(podClusterLabels)
-          .list()
-          .getItems().stream()
-          .filter(pod -> pod.getMetadata().getOwnerReferences().stream()
-              .anyMatch(ownerReference -> ownerReference.getKind().equals("StatefulSet")
-                  && ownerReference.getName().equals(sts.getMetadata().getName())))
-          .collect(Collectors.toUnmodifiableList());
-    }
+    return client.pods().inNamespace(sts.getMetadata().getNamespace())
+        .withLabels(podClusterLabels)
+        .list()
+        .getItems().stream()
+        .filter(pod -> pod.getMetadata().getOwnerReferences().stream()
+            .anyMatch(ownerReference -> ownerReference.getKind().equals("StatefulSet")
+                && ownerReference.getName().equals(sts.getMetadata().getName())))
+        .collect(Collectors.toUnmodifiableList());
   }
 
   @Override

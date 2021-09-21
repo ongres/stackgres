@@ -12,7 +12,6 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.stackgres.common.KubernetesClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,17 +21,16 @@ public class DistributedLogsControllerBootstrapImpl implements DistributedLogsCo
   private static final Logger LOGGER = LoggerFactory.getLogger(
       DistributedLogsControllerBootstrapImpl.class);
 
-  private final KubernetesClientFactory clientFactory;
+  private final KubernetesClient client;
 
   @Inject
-  public DistributedLogsControllerBootstrapImpl(KubernetesClientFactory clientFactory) {
-    this.clientFactory = clientFactory;
+  public DistributedLogsControllerBootstrapImpl(KubernetesClient client) {
+    this.client = client;
   }
 
   @Override
   public void bootstrap() {
-
-    try (KubernetesClient client = clientFactory.create()) {
+    try {
       if (client.getVersion() != null) {
         LOGGER.info("Kubernetes version: {}", client.getVersion().getGitVersion());
       }
@@ -44,7 +42,6 @@ public class DistributedLogsControllerBootstrapImpl implements DistributedLogsCo
       }
       throw e;
     }
-
   }
 
 }

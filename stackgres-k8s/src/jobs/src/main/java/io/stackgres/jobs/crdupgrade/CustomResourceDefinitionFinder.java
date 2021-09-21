@@ -9,7 +9,6 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
 import org.jetbrains.annotations.NotNull;
@@ -17,22 +16,18 @@ import org.jetbrains.annotations.NotNull;
 public class CustomResourceDefinitionFinder implements ResourceFinder<CustomResourceDefinition>,
     ResourceWriter<CustomResourceDefinition> {
 
-  private final KubernetesClientFactory kubernetesClientFactory;
+  private final KubernetesClient client;
 
-  public CustomResourceDefinitionFinder(KubernetesClientFactory kubernetesClientFactory) {
-    this.kubernetesClientFactory = kubernetesClientFactory;
+  public CustomResourceDefinitionFinder(KubernetesClient client) {
+    this.client = client;
   }
 
   @Override
   public @NotNull Optional<CustomResourceDefinition> findByName(String name) {
-
-    try (KubernetesClient client = kubernetesClientFactory.create()) {
-      return Optional.ofNullable(client.apiextensions().v1()
-          .customResourceDefinitions()
-          .withName(name)
-          .get());
-    }
-
+    return Optional.ofNullable(client.apiextensions().v1()
+        .customResourceDefinitions()
+        .withName(name)
+        .get());
   }
 
   @Override
@@ -43,21 +38,17 @@ public class CustomResourceDefinitionFinder implements ResourceFinder<CustomReso
 
   @Override
   public CustomResourceDefinition create(CustomResourceDefinition resource) {
-    try (KubernetesClient client = kubernetesClientFactory.create()) {
-      return client.apiextensions().v1()
-          .customResourceDefinitions()
-          .create(resource);
-    }
+    return client.apiextensions().v1()
+        .customResourceDefinitions()
+        .create(resource);
   }
 
   @Override
   public CustomResourceDefinition update(CustomResourceDefinition resource) {
-    try (KubernetesClient client = kubernetesClientFactory.create()) {
-      return client.apiextensions().v1()
-          .customResourceDefinitions()
-          .withName(resource.getMetadata().getName())
-          .patch(resource);
-    }
+    return client.apiextensions().v1()
+        .customResourceDefinitions()
+        .withName(resource.getMetadata().getName())
+        .patch(resource);
   }
 
   @Override

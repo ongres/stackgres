@@ -18,13 +18,13 @@ import javax.inject.Inject;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.internal.PatchUtils;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.LabelFactoryForDbOps;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.jobs.app.KubernetesClientProvider;
 import io.stackgres.testutil.StringUtils;
 
 @ApplicationScoped
@@ -40,7 +40,7 @@ public class PodTestUtil {
   LabelFactoryForDbOps dbOpsLabelFactory;
 
   @Inject
-  KubernetesClientProvider clientFactory;
+  KubernetesClient client;
 
   public static void assertPodEquals(Pod expected, Pod actual) {
     var pm = PatchUtils.patchMapper();
@@ -58,23 +58,21 @@ public class PodTestUtil {
   }
 
   public void createPod(Pod pod) {
-    clientFactory.withNewClient(client -> client.pods()
+    client.pods()
         .inNamespace(pod.getMetadata().getNamespace())
-        .withName(pod.getMetadata().getName()))
+        .withName(pod.getMetadata().getName())
         .create(pod);
   }
 
   public List<Pod> getClusterPods(StackGresCluster cluster) {
-    return clientFactory.withNewClient(client ->
-        client.pods().inNamespace(cluster.getMetadata().getNamespace())
-            .withLabels(labelFactory.patroniClusterLabels(cluster))
-            .list()
-            .getItems()
-            .stream().filter(pod -> !pod.getMetadata()
+    return client.pods().inNamespace(cluster.getMetadata().getNamespace())
+        .withLabels(labelFactory.patroniClusterLabels(cluster))
+        .list()
+        .getItems()
+        .stream().filter(pod -> !pod.getMetadata()
             .getLabels()
             .containsKey(StackGresContext.DB_OPS_KEY))
-            .collect(Collectors.toUnmodifiableList())
-    );
+        .collect(Collectors.toUnmodifiableList());
   }
 
   public Pod buildPrimaryPod(StackGresCluster cluster, int index) {

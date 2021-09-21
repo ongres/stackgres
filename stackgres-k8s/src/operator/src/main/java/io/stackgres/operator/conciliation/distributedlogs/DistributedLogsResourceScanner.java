@@ -13,7 +13,6 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.DeployedResourcesScanner;
@@ -24,37 +23,33 @@ public class DistributedLogsResourceScanner
     implements DeployedResourcesScanner<StackGresDistributedLogs>,
     ReconciliationOperations {
 
-  private final KubernetesClientFactory clientFactory;
+  private final KubernetesClient client;
   private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
   @Inject
-  public DistributedLogsResourceScanner(KubernetesClientFactory clientFactory,
+  public DistributedLogsResourceScanner(KubernetesClient client,
       LabelFactoryForCluster<StackGresDistributedLogs> labelFactory) {
-    this.clientFactory = clientFactory;
+    this.client = client;
     this.labelFactory = labelFactory;
   }
 
   @Override
   public List<HasMetadata> getDeployedResources(StackGresDistributedLogs config) {
-    try (KubernetesClient client = clientFactory.create()) {
+    final String namespace = config.getMetadata().getNamespace();
+    List<HasMetadata> resources = IN_NAMESPACE_RESOURCE_OPERATIONS.values()
+        .stream()
+        .flatMap(resourceOperationGetter -> resourceOperationGetter.apply(client)
+            .inNamespace(namespace)
+            .withLabels(labelFactory.genericLabels(config))
+            .list()
+            .getItems()
+            .stream())
+        .filter(resource -> resource.getMetadata().getOwnerReferences()
+            .stream().anyMatch(ownerReference -> ownerReference.getKind()
+                .equals(StackGresDistributedLogs.KIND)
+                && ownerReference.getName().equals(config.getMetadata().getName())))
+        .collect(Collectors.toUnmodifiableList());
 
-      final String namespace = config.getMetadata().getNamespace();
-      List<HasMetadata> resources = IN_NAMESPACE_RESOURCE_OPERATIONS.values()
-          .stream()
-          .flatMap(resourceOperationGetter -> resourceOperationGetter.apply(client)
-              .inNamespace(namespace)
-              .withLabels(labelFactory.genericLabels(config))
-              .list()
-              .getItems()
-              .stream())
-          .filter(resource -> resource.getMetadata().getOwnerReferences()
-              .stream().anyMatch(ownerReference -> ownerReference.getKind()
-                  .equals(StackGresDistributedLogs.KIND)
-                  && ownerReference.getName().equals(config.getMetadata().getName())))
-          .collect(Collectors.toUnmodifiableList());
-
-      return resources;
-
-    }
+    return resources;
   }
 }

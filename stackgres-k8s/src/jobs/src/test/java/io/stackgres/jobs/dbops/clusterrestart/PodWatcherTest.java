@@ -16,10 +16,10 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.TimeoutException;
-import io.stackgres.jobs.app.KubernetesClientProvider;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +32,7 @@ class PodWatcherTest {
   PodWatcher podWatcher;
 
   @Inject
-  KubernetesClientProvider clientFactory;
+  KubernetesClient client;
 
   String namespace;
   String podName;
@@ -41,8 +41,8 @@ class PodWatcherTest {
   void setUp() {
     namespace = StringUtils.getRandomNamespace();
     podName = StringUtils.getRandomClusterName();
-    clientFactory.withNewClient(client -> client.namespaces().withName(namespace).create(
-        new NamespaceBuilder().withNewMetadata().withName(namespace).endMetadata().build()));
+    client.namespaces().withName(namespace).create(
+        new NamespaceBuilder().withNewMetadata().withName(namespace).endMetadata().build());
   }
 
   @Test
@@ -56,8 +56,8 @@ class PodWatcherTest {
   @Test
   void givenAPodCreated_waitUntilIsCreatedShouldPass() {
 
-    clientFactory.withNewClient(client -> client.pods().inNamespace(namespace).withName(podName)
-        .create(new PodBuilder().withNewMetadata().withName(podName).endMetadata().build()));
+    client.pods().inNamespace(namespace).withName(podName)
+        .create(new PodBuilder().withNewMetadata().withName(podName).endMetadata().build());
 
     var pod = podWatcher.waitUntilIsCreated(podName, namespace)
         .await().atMost(Duration.ofMillis(3));
@@ -75,13 +75,13 @@ class PodWatcherTest {
         .subscribe().with(futurePod::complete);
 
     Thread.sleep(1000);
-    clientFactory.withNewClient(client -> client.pods().inNamespace(namespace).withName(podName)
+    client.pods().inNamespace(namespace).withName(podName)
         .create(new PodBuilder()
             .withNewMetadata()
             .withNamespace(namespace)
             .withName(podName)
             .endMetadata()
-            .build()));
+            .build());
 
     Pod pod = futurePod.get();
 

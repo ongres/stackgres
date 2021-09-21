@@ -11,7 +11,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
-import java.util.function.Supplier;
 
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -55,7 +54,7 @@ class ReconciliationCycleTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    reconciliationCycle = new TestReconciliationCycle(() -> ReconciliationCycleTest.this.client,
+    reconciliationCycle = new TestReconciliationCycle(ReconciliationCycleTest.this.client,
         ReconciliationCycleTest.this.reconciliator, ReconciliationCycleTest.this.handlerSelector);
     when(mockReconciliationCycle.getContextFromResource(any()))
         .thenReturn(context);
@@ -93,10 +92,10 @@ class ReconciliationCycleTest {
       ReconciliationCycle<ResourceHandlerContext, CustomResource<?, ?>,
       ResourceHandlerSelector<ResourceHandlerContext>> {
 
-    public TestReconciliationCycle(Supplier<KubernetesClient> clientSupplier,
+    public TestReconciliationCycle(KubernetesClient client,
         Reconciliator<ResourceHandlerContext> reconciliator,
         ResourceHandlerSelector<ResourceHandlerContext> handlerSelector) {
-      super("Test", clientSupplier, reconciliator, handlerSelector);
+      super("Test", client, reconciliator, handlerSelector);
     }
 
     @Override

@@ -13,18 +13,17 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.KubernetesClientFactory;
 
 @ApplicationScoped
 public class ServiceFinder implements
     ResourceFinder<Service>,
     ResourceScanner<Service> {
 
-  final KubernetesClientFactory kubClientFactory;
+  final KubernetesClient client;
 
   @Inject
-  public ServiceFinder(KubernetesClientFactory kubClientFactory) {
-    this.kubClientFactory = kubClientFactory;
+  public ServiceFinder(KubernetesClient client) {
+    this.client = client;
   }
 
   @Override
@@ -34,23 +33,17 @@ public class ServiceFinder implements
 
   @Override
   public Optional<Service> findByNameAndNamespace(String name, String namespace) {
-    try (KubernetesClient client = kubClientFactory.create()) {
-      return Optional.ofNullable(client.services().inNamespace(namespace).withName(name).get());
-    }
+    return Optional.ofNullable(client.services().inNamespace(namespace).withName(name).get());
   }
 
   @Override
   public List<Service> findResources() {
-    try (KubernetesClient client = kubClientFactory.create()) {
-      return client.services().inAnyNamespace().list().getItems();
-    }
+    return client.services().inAnyNamespace().list().getItems();
   }
 
   @Override
   public List<Service> findResourcesInNamespace(String namespace) {
-    try (KubernetesClient client = kubClientFactory.create()) {
-      return client.services().inNamespace(namespace).list().getItems();
-    }
+    return client.services().inNamespace(namespace).list().getItems();
   }
 
 }

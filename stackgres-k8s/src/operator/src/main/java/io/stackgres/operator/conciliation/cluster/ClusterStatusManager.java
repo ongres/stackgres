@@ -21,7 +21,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.ClusterPendingRestartUtil;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -42,13 +41,13 @@ public class ClusterStatusManager
 
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
-  private final KubernetesClientFactory clientFactory;
+  private final KubernetesClient client;
 
   @Inject
   public ClusterStatusManager(LabelFactoryForCluster<StackGresCluster> labelFactory,
-                              KubernetesClientFactory clientFactory) {
+      KubernetesClient client) {
     this.labelFactory = labelFactory;
-    this.clientFactory = clientFactory;
+    this.client = client;
   }
 
   private static String getClusterId(StackGresCluster cluster) {
@@ -103,33 +102,29 @@ public class ClusterStatusManager
   }
 
   private Optional<StatefulSet> getClusterStatefulSet(StackGresCluster cluster) {
-    try (KubernetesClient client = clientFactory.create()) {
-      return client.apps().statefulSets().inNamespace(cluster.getMetadata().getNamespace())
-          .withLabels(labelFactory.genericLabels(cluster))
-          .list()
-          .getItems().stream()
-          .filter(sts -> sts.getMetadata().getOwnerReferences()
-              .stream().anyMatch(ownerReference -> ownerReference.getKind()
-                  .equals(StackGresCluster.KIND)
-                  && ownerReference.getName().equals(cluster.getMetadata().getName())))
-          .findFirst();
-    }
+    return client.apps().statefulSets().inNamespace(cluster.getMetadata().getNamespace())
+        .withLabels(labelFactory.genericLabels(cluster))
+        .list()
+        .getItems().stream()
+        .filter(sts -> sts.getMetadata().getOwnerReferences()
+            .stream().anyMatch(ownerReference -> ownerReference.getKind()
+                .equals(StackGresCluster.KIND)
+                && ownerReference.getName().equals(cluster.getMetadata().getName())))
+        .findFirst();
   }
 
   private List<Pod> getStsPods(StatefulSet sts, StackGresCluster cluster) {
     final Map<String, String> podClusterLabels =
         labelFactory.patroniClusterLabels(cluster);
 
-    try (KubernetesClient client = clientFactory.create()) {
-      return client.pods().inNamespace(sts.getMetadata().getNamespace())
-          .withLabels(podClusterLabels)
-          .list()
-          .getItems().stream()
-          .filter(pod -> pod.getMetadata().getOwnerReferences().stream()
-              .anyMatch(ownerReference -> ownerReference.getKind().equals("StatefulSet")
-                  && ownerReference.getName().equals(sts.getMetadata().getName())))
-          .collect(Collectors.toUnmodifiableList());
-    }
+    return client.pods().inNamespace(sts.getMetadata().getNamespace())
+        .withLabels(podClusterLabels)
+        .list()
+        .getItems().stream()
+        .filter(pod -> pod.getMetadata().getOwnerReferences().stream()
+            .anyMatch(ownerReference -> ownerReference.getKind().equals("StatefulSet")
+                && ownerReference.getName().equals(sts.getMetadata().getName())))
+        .collect(Collectors.toUnmodifiableList());
   }
 
   @Override

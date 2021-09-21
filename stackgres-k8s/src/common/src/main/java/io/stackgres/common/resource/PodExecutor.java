@@ -27,13 +27,12 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import io.fabric8.kubernetes.client.utils.Serialization;
-import io.stackgres.common.KubernetesClientFactory;
 import okhttp3.Response;
 
 @ApplicationScoped
 public class PodExecutor {
 
-  private KubernetesClientFactory clientFactory;
+  private KubernetesClient client;
 
   /**
    * Execute a command inside a container of a pod.
@@ -44,7 +43,6 @@ public class PodExecutor {
     try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
         ByteArrayOutputStream errorCodeStream = new ByteArrayOutputStream();
-        KubernetesClient client = clientFactory.create();
         ExecWatch execWatch = client.pods()
             .inNamespace(pod.getMetadata().getNamespace())
             .withName(pod.getMetadata().getName())
@@ -141,7 +139,7 @@ public class PodExecutor {
   }
 
   @Inject
-  public void setClientFactory(KubernetesClientFactory clientFactory) {
-    this.clientFactory = clientFactory;
+  public void setClientFactory(KubernetesClient client) {
+    this.client = client;
   }
 }

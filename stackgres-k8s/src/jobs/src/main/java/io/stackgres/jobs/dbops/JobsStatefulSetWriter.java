@@ -14,8 +14,8 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.RollableScalableResource;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.resource.ResourceWriter;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,11 +24,11 @@ import org.jetbrains.annotations.NotNull;
 @ApplicationScoped
 public class JobsStatefulSetWriter implements ResourceWriter<StatefulSet> {
 
-  private final KubernetesClientFactory clientFactory;
+  private final KubernetesClient client;
 
   @Inject
-  public JobsStatefulSetWriter(KubernetesClientFactory clientFactory) {
-    this.clientFactory = clientFactory;
+  public JobsStatefulSetWriter(KubernetesClient client) {
+    this.client = client;
   }
 
   @Override
@@ -51,12 +51,10 @@ public class JobsStatefulSetWriter implements ResourceWriter<StatefulSet> {
   private <T> T withStatefulSetEndpoint(
       StatefulSet statefulSet,
       Function<RollableScalableResource<StatefulSet>, T> func) {
-    return clientFactory.withNewClient(client -> {
-      String namespace = statefulSet.getMetadata().getNamespace();
-      String name = statefulSet.getMetadata().getName();
-      var endpoint = client.apps().statefulSets()
-          .inNamespace(namespace).withName(name);
-      return func.apply(endpoint);
-    });
+    String namespace = statefulSet.getMetadata().getNamespace();
+    String name = statefulSet.getMetadata().getName();
+    var endpoint = client.apps().statefulSets()
+        .inNamespace(namespace).withName(name);
+    return func.apply(endpoint);
   }
 }

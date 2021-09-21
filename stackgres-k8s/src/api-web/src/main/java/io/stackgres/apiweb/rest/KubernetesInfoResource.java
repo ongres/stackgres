@@ -14,7 +14,6 @@ import javax.ws.rs.core.Response;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
-import io.stackgres.common.KubernetesClientFactory;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -26,7 +25,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 public class KubernetesInfoResource {
 
   @Inject
-  KubernetesClientFactory clientFactory;
+  KubernetesClient client;
 
   /**
    * Return kubernetes cluster info.
@@ -34,15 +33,13 @@ public class KubernetesInfoResource {
   @Operation(
       responses = {
           @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
+              content = {@Content(
                   mediaType = "application/json",
-                  schema = @Schema(type = "string")) })
+                  schema = @Schema(type = "string"))})
       })
   @CommonApiResponses
   @GET
   public Response info() {
-    try (KubernetesClient client = clientFactory.create()) {
-      return Response.ok().entity(client.getMasterUrl()).build();
-    }
+    return Response.ok().entity(client.getMasterUrl()).build();
   }
 }

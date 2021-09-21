@@ -8,8 +8,8 @@ package io.stackgres.common.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
 
@@ -21,8 +21,8 @@ public class PoolingConfigFinder
    * Create a {@code PoolingConfigFinder} instance.
    */
   @Inject
-  public PoolingConfigFinder(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresPoolingConfig.class, StackGresPoolingConfigList.class);
+  public PoolingConfigFinder(KubernetesClient client) {
+    super(client, StackGresPoolingConfig.class, StackGresPoolingConfigList.class);
   }
 
   public PoolingConfigFinder() {

@@ -19,7 +19,6 @@ import io.fabric8.kubernetes.api.model.EventBuilder;
 import io.fabric8.kubernetes.api.model.EventSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.operatorframework.resource.EventReason;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.slf4j.Logger;
@@ -31,7 +30,7 @@ public abstract class AbstractEventEmitter<T extends HasMetadata> implements Eve
 
   private final Random random = new Random();
 
-  private KubernetesClientFactory clientFactory;
+  private KubernetesClient client;
 
   @Override
   public void sendEvent(EventReason reason, String message, T involvedObject) {
@@ -42,7 +41,7 @@ public abstract class AbstractEventEmitter<T extends HasMetadata> implements Eve
     final Instant now = Instant.now();
     final String namespace = involvedObject.getMetadata().getNamespace();
 
-    clientFactory.withNewClient(client -> client.v1().events()
+    client.v1().events()
         .inNamespace(namespace)
         .withLabels(Optional.ofNullable(involvedObject.getMetadata().getLabels())
             .orElse(ImmutableMap.of()))
@@ -53,7 +52,7 @@ public abstract class AbstractEventEmitter<T extends HasMetadata> implements Eve
         .findAny()
         .map(event -> patchEvent(event, now, client))
         .orElseGet(() -> createEvent(namespace, now,
-            reason, message, involvedObject, client)));
+            reason, message, involvedObject, client));
   }
 
   private String nextId() {
@@ -61,28 +60,28 @@ public abstract class AbstractEventEmitter<T extends HasMetadata> implements Eve
   }
 
   private boolean isSameEvent(Event event, EventReason reason, String message,
-                              HasMetadata involvedObject) {
+      HasMetadata involvedObject) {
     return Objects.equals(
         event.getInvolvedObject().getKind(),
         involvedObject.getKind())
         && Objects.equals(
-        event.getInvolvedObject().getNamespace(),
-        involvedObject.getMetadata().getNamespace())
+            event.getInvolvedObject().getNamespace(),
+            involvedObject.getMetadata().getNamespace())
         && Objects.equals(
-        event.getInvolvedObject().getName(),
-        involvedObject.getMetadata().getName())
+            event.getInvolvedObject().getName(),
+            involvedObject.getMetadata().getName())
         && Objects.equals(
-        event.getInvolvedObject().getUid(),
-        involvedObject.getMetadata().getUid())
+            event.getInvolvedObject().getUid(),
+            involvedObject.getMetadata().getUid())
         && Objects.equals(
-        event.getReason(),
-        reason.reason())
+            event.getReason(),
+            reason.reason())
         && Objects.equals(
-        event.getType(),
-        reason.type().type())
+            event.getType(),
+            reason.type().type())
         && Objects.equals(
-        event.getMessage(),
-        message);
+            event.getMessage(),
+            message);
   }
 
   private Event patchEvent(Event event, Instant now, KubernetesClient client) {
@@ -95,8 +94,8 @@ public abstract class AbstractEventEmitter<T extends HasMetadata> implements Eve
   }
 
   private Event createEvent(String namespace, Instant now,
-                            EventReason reason, String message, HasMetadata involvedObject,
-                            KubernetesClient client) {
+      EventReason reason, String message, HasMetadata involvedObject,
+      KubernetesClient client) {
     final String id = nextId();
     final String name = involvedObject.getMetadata().getName() + "." + id;
     return client.v1().events()
@@ -121,7 +120,7 @@ public abstract class AbstractEventEmitter<T extends HasMetadata> implements Eve
   }
 
   @Inject
-  public void setClientFactory(KubernetesClientFactory clientFactory) {
-    this.clientFactory = clientFactory;
+  public void setClient(KubernetesClient client) {
+    this.client = client;
   }
 }

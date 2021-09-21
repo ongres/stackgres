@@ -14,22 +14,21 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.common.KubernetesClientFactory;
 
 @ApplicationScoped
 public class PersistentVolumeClaimFinder implements
     ResourceFinder<PersistentVolumeClaim>,
     ResourceScanner<PersistentVolumeClaim> {
 
-  private final KubernetesClientFactory kubClientFactory;
+  private final KubernetesClient client;
 
   @Inject
-  public PersistentVolumeClaimFinder(KubernetesClientFactory kubClientFactory) {
-    this.kubClientFactory = kubClientFactory;
+  public PersistentVolumeClaimFinder(KubernetesClient client) {
+    this.client = client;
   }
 
   public PersistentVolumeClaimFinder() {
-    this.kubClientFactory = null;
+    this.client = null;
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
@@ -40,24 +39,18 @@ public class PersistentVolumeClaimFinder implements
 
   @Override
   public Optional<PersistentVolumeClaim> findByNameAndNamespace(String name, String namespace) {
-    try (KubernetesClient client = kubClientFactory.create()) {
-      return Optional.ofNullable(client.persistentVolumeClaims()
-          .inNamespace(namespace).withName(name).get());
-    }
+    return Optional.ofNullable(client.persistentVolumeClaims()
+        .inNamespace(namespace).withName(name).get());
   }
 
   @Override
   public List<PersistentVolumeClaim> findResources() {
-    try (KubernetesClient client = kubClientFactory.create()) {
-      return client.persistentVolumeClaims().inAnyNamespace().list().getItems();
-    }
+    return client.persistentVolumeClaims().inAnyNamespace().list().getItems();
   }
 
   @Override
   public List<PersistentVolumeClaim> findResourcesInNamespace(String namespace) {
-    try (KubernetesClient client = kubClientFactory.create()) {
-      return client.persistentVolumeClaims().inNamespace(namespace).list().getItems();
-    }
+    return client.persistentVolumeClaims().inNamespace(namespace).list().getItems();
   }
 
 }

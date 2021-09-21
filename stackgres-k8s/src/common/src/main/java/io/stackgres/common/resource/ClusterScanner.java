@@ -8,8 +8,8 @@ package io.stackgres.common.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 
@@ -21,8 +21,8 @@ public class ClusterScanner
    * Create a {@code ClusterScanner} instance.
    */
   @Inject
-  public ClusterScanner(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresCluster.class, StackGresClusterList.class);
+  public ClusterScanner(KubernetesClient client) {
+    super(client, StackGresCluster.class, StackGresClusterList.class);
   }
 
   public ClusterScanner() {

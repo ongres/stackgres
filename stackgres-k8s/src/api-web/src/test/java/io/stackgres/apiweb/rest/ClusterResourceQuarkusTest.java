@@ -14,22 +14,21 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
 
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.kubernetes.client.KubernetesTestServer;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.restassured.http.ContentType;
 import io.stackgres.apiweb.dto.Metadata;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterScriptEntry;
 import io.stackgres.apiweb.dto.cluster.ClusterScriptFrom;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
@@ -38,16 +37,18 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.resource.ClusterScheduler;
 import io.stackgres.testutil.JsonUtil;
+import io.stackgres.testutil.StackGresKubernetesMockServerSetup;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
+@WithKubernetesTestServer(https = true, setup = StackGresKubernetesMockServerSetup.class)
 class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
 
-  @Inject
-  KubernetesClientFactory factory;
+  @KubernetesTestServer
+  KubernetesServer mockServer;
 
   @InjectMock
   ClusterScheduler clusterScheduler;
@@ -56,61 +57,59 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
 
   @BeforeEach
   void setUp() {
-    try (KubernetesClient client = factory.create()) {
-      client.secrets().inNamespace("test").delete();
-      client.configMaps().inNamespace("test").delete();
+    mockServer.getClient().secrets().inNamespace("test").delete();
+    mockServer.getClient().configMaps().inNamespace("test").delete();
 
-      cluster.getMetadata().setNamespace("test");
-      cluster.getMetadata().setName(StringUtils.getRandomClusterName());
-      cluster.getSpec().setConfiguration(new StackGresClusterConfiguration());
-      client.customResources(
-          StackGresCluster.class,
-          StackGresClusterList.class)
-          .inNamespace(cluster.getMetadata().getNamespace())
-          .withName(cluster.getMetadata().getName())
-          .create(cluster);
+    cluster.getMetadata().setNamespace("test");
+    cluster.getMetadata().setName(StringUtils.getRandomClusterName());
+    cluster.getSpec().setConfiguration(new StackGresClusterConfiguration());
+    mockServer.getClient().customResources(
+        StackGresCluster.class,
+        StackGresClusterList.class)
+        .inNamespace(cluster.getMetadata().getNamespace())
+        .withName(cluster.getMetadata().getName())
+        .create(cluster);
 
-      Service primary = new ServiceBuilder()
-          .withNewMetadata()
-          .withName(PatroniUtil.readWriteName(cluster.getMetadata().getName()))
-          .withNamespace(cluster.getMetadata().getNamespace())
-          .endMetadata()
-          .withNewSpec()
-          .withType(cluster.getSpec().getPostgresServices().getPrimary().getType() != null
-              ? cluster.getSpec().getPostgresServices().getPrimary().getType()
-              : null)
-          .withClusterIP("10.10.100.8")
-          .endSpec()
-          .build();
-      Service replicas = new ServiceBuilder()
-          .withNewMetadata()
-          .withName(PatroniUtil.readOnlyName(cluster.getMetadata().getName()))
-          .withNamespace(cluster.getMetadata().getNamespace())
-          .endMetadata()
-          .withNewSpec()
-          .withType(cluster.getSpec().getPostgresServices().getReplicas().getType() != null
-              ? cluster.getSpec().getPostgresServices().getReplicas().getType()
-              : null)
-          .withClusterIP("10.10.100.30")
-          .endSpec()
-          .build();
-      client.services().inNamespace(cluster.getMetadata().getNamespace()).create(primary);
-      client.services().inNamespace(cluster.getMetadata().getNamespace()).create(replicas);
-    }
+    Service primary = new ServiceBuilder()
+        .withNewMetadata()
+        .withName(PatroniUtil.readWriteName(cluster.getMetadata().getName()))
+        .withNamespace(cluster.getMetadata().getNamespace())
+        .endMetadata()
+        .withNewSpec()
+        .withType(cluster.getSpec().getPostgresServices().getPrimary().getType() != null
+            ? cluster.getSpec().getPostgresServices().getPrimary().getType()
+            : null)
+        .withClusterIP("10.10.100.8")
+        .endSpec()
+        .build();
+    Service replicas = new ServiceBuilder()
+        .withNewMetadata()
+        .withName(PatroniUtil.readOnlyName(cluster.getMetadata().getName()))
+        .withNamespace(cluster.getMetadata().getNamespace())
+        .endMetadata()
+        .withNewSpec()
+        .withType(cluster.getSpec().getPostgresServices().getReplicas().getType() != null
+            ? cluster.getSpec().getPostgresServices().getReplicas().getType()
+            : null)
+        .withClusterIP("10.10.100.30")
+        .endSpec()
+        .build();
+    mockServer.getClient().services()
+        .inNamespace(cluster.getMetadata().getNamespace()).create(primary);
+    mockServer.getClient().services()
+        .inNamespace(cluster.getMetadata().getNamespace()).create(replicas);
   }
 
   @AfterEach
   void tearDown() {
-    try (KubernetesClient client = factory.create()) {
-      client.secrets().inNamespace("test").delete();
-      client.configMaps().inNamespace("test").delete();
-      client.customResources(
-          StackGresCluster.class,
-          StackGresClusterList.class)
-          .inNamespace(cluster.getMetadata().getNamespace())
-          .withName(cluster.getMetadata().getName())
-          .delete();
-    }
+    mockServer.getClient().secrets().inNamespace("test").delete();
+    mockServer.getClient().configMaps().inNamespace("test").delete();
+    mockServer.getClient().customResources(
+        StackGresCluster.class,
+        StackGresClusterList.class)
+        .inNamespace(cluster.getMetadata().getNamespace())
+        .withName(cluster.getMetadata().getName())
+        .delete();
   }
 
   private ClusterDto getClusterInlineScripts() {
@@ -203,16 +202,14 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
         .post("/stackgres/sgclusters")
         .then().statusCode(204);
 
-    try (KubernetesClient client = factory.create()) {
-      ConfigMap configMap = client.configMaps().inNamespace("test")
-          .withName(entry.getScriptFrom().getConfigMapKeyRef().getName())
-          .get();
-      assertNotNull(configMap);
+    ConfigMap configMap = mockServer.getClient().configMaps().inNamespace("test")
+        .withName(entry.getScriptFrom().getConfigMapKeyRef().getName())
+        .get();
+    assertNotNull(configMap);
 
-      String actualConfigScript =
-          configMap.getData().get(entry.getScriptFrom().getConfigMapKeyRef().getKey());
-      assertEquals(entry.getScriptFrom().getConfigMapScript(), actualConfigScript);
-    }
+    String actualConfigScript =
+        configMap.getData().get(entry.getScriptFrom().getConfigMapKeyRef().getKey());
+    assertEquals(entry.getScriptFrom().getConfigMapScript(), actualConfigScript);
   }
 
   @Test
@@ -232,18 +229,16 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
         .post("/stackgres/sgclusters")
         .then().statusCode(204);
 
-    try (KubernetesClient client = factory.create()) {
-      final ClusterScriptFrom scriptFrom = entry.getScriptFrom();
-      final SecretKeySelector secretKeyRef = scriptFrom.getSecretKeyRef();
-      Secret secret = client.secrets().inNamespace("test")
-          .withName(secretKeyRef.getName())
-          .get();
-      assertNotNull(secret);
+    final ClusterScriptFrom scriptFrom = entry.getScriptFrom();
+    final SecretKeySelector secretKeyRef = scriptFrom.getSecretKeyRef();
+    Secret secret = mockServer.getClient().secrets().inNamespace("test")
+        .withName(secretKeyRef.getName())
+        .get();
+    assertNotNull(secret);
 
-      byte[] actualScript = Base64.getDecoder().decode(secret.getData().get(secretKeyRef.getKey()));
-      assertEquals(scriptFrom.getSecretScript(),
-          new String(actualScript, StandardCharsets.UTF_8));
-    }
+    byte[] actualScript = Base64.getDecoder().decode(secret.getData().get(secretKeyRef.getKey()));
+    assertEquals(scriptFrom.getSecretScript(),
+        new String(actualScript, StandardCharsets.UTF_8));
   }
 
   @Test
@@ -266,29 +261,27 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
         .post("/stackgres/sgclusters")
         .then().statusCode(204);
 
-    try (KubernetesClient client = factory.create()) {
-      final ClusterScriptFrom secretScriptFrom = secretScriptEntry.getScriptFrom();
-      final SecretKeySelector secretKeyRef = secretScriptFrom.getSecretKeyRef();
-      Secret secret = client.secrets().inNamespace("test")
-          .withName(secretKeyRef.getName())
-          .get();
-      assertNotNull(secret);
+    final ClusterScriptFrom secretScriptFrom = secretScriptEntry.getScriptFrom();
+    final SecretKeySelector secretKeyRef = secretScriptFrom.getSecretKeyRef();
+    Secret secret = mockServer.getClient().secrets().inNamespace("test")
+        .withName(secretKeyRef.getName())
+        .get();
+    assertNotNull(secret);
 
-      byte[] actualScript = Base64.getDecoder().decode(secret.getData().get(secretKeyRef.getKey()));
-      assertEquals(secretScriptFrom.getSecretScript(),
-          new String(actualScript, StandardCharsets.UTF_8));
+    byte[] actualScript = Base64.getDecoder().decode(secret.getData().get(secretKeyRef.getKey()));
+    assertEquals(secretScriptFrom.getSecretScript(),
+        new String(actualScript, StandardCharsets.UTF_8));
 
-      final ClusterScriptFrom configMapScriptFrom = configMapScriptEntry.getScriptFrom();
-      final ConfigMapKeySelector configMapKeyRef = configMapScriptFrom.getConfigMapKeyRef();
-      ConfigMap configMap = client.configMaps().inNamespace("test")
-          .withName(configMapKeyRef.getName())
-          .get();
+    final ClusterScriptFrom configMapScriptFrom = configMapScriptEntry.getScriptFrom();
+    final ConfigMapKeySelector configMapKeyRef = configMapScriptFrom.getConfigMapKeyRef();
+    ConfigMap configMap = mockServer.getClient().configMaps().inNamespace("test")
+        .withName(configMapKeyRef.getName())
+        .get();
 
-      assertNotNull(configMap);
+    assertNotNull(configMap);
 
-      assertEquals(configMapScriptFrom.getConfigMapScript(),
-          configMap.getData().get(configMapKeyRef.getKey()));
-    }
+    assertEquals(configMapScriptFrom.getConfigMapScript(),
+        configMap.getData().get(configMapKeyRef.getKey()));
   }
 
   private ClusterScriptEntry getSecretScriptEntry() {

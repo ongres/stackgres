@@ -11,48 +11,41 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.Namespaceable;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.stackgres.common.KubernetesClientFactory;
 
-public abstract class AbstractResourceWriter
-    <T extends HasMetadata, L extends KubernetesResourceList<T>>
+public abstract class AbstractResourceWriter<T extends HasMetadata,
+    L extends KubernetesResourceList<T>>
     implements ResourceWriter<T> {
 
-  private final KubernetesClientFactory clientFactory;
+  private final KubernetesClient client;
 
-  protected AbstractResourceWriter(KubernetesClientFactory clientFactory) {
-    this.clientFactory = clientFactory;
+  protected AbstractResourceWriter(KubernetesClient client) {
+    this.client = client;
   }
 
   @Override
   public T create(T resource) {
-    try (KubernetesClient client = clientFactory.create()) {
-      return getResourceEndpoints(client)
-          .inNamespace(resource.getMetadata().getNamespace())
-          .create(resource);
-    }
+    return getResourceEndpoints(client)
+        .inNamespace(resource.getMetadata().getNamespace())
+        .create(resource);
   }
 
   @Override
   public T update(T resource) {
-    try (KubernetesClient client = clientFactory.create()) {
-      return getResourceEndpoints(client)
-          .inNamespace(resource.getMetadata().getNamespace())
-          .withName(resource.getMetadata().getName())
-          .patch(resource);
-    }
+    return getResourceEndpoints(client)
+        .inNamespace(resource.getMetadata().getNamespace())
+        .withName(resource.getMetadata().getName())
+        .patch(resource);
   }
 
   @Override
   public void delete(T resource) {
-    try (KubernetesClient client = clientFactory.create()) {
-      getResourceEndpoints(client)
-          .inNamespace(resource.getMetadata().getNamespace())
-          .withName(resource.getMetadata().getName())
-          .delete();
-    }
+    getResourceEndpoints(client)
+        .inNamespace(resource.getMetadata().getNamespace())
+        .withName(resource.getMetadata().getName())
+        .delete();
   }
 
-  protected abstract Namespaceable<NonNamespaceOperation<T, L, Resource<T>>>
-      getResourceEndpoints(KubernetesClient client);
+  protected abstract Namespaceable<NonNamespaceOperation<T, L, Resource<T>>> getResourceEndpoints(
+      KubernetesClient client);
 
 }

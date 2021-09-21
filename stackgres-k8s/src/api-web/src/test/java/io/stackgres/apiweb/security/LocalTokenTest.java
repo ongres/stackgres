@@ -9,27 +9,28 @@ import static io.restassured.RestAssured.given;
 
 import java.util.Map;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.KubernetesTestServer;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.restassured.http.ContentType;
 import io.stackgres.apiweb.config.WebApiProperty;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import io.stackgres.testutil.StackGresKubernetesMockServerSetup;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
+@WithKubernetesTestServer(https = true, setup = StackGresKubernetesMockServerSetup.class)
 class LocalTokenTest {
 
-  @Inject
-  KubernetesClientFactory factory;
+  @KubernetesTestServer
+  KubernetesServer mockServer;
 
   String namespace = WebApiProperty.RESTAPI_NAMESPACE.getString();
 
@@ -73,26 +74,22 @@ class LocalTokenTest {
             ResourceUtil.encodeSecret(TokenUtils.sha256("k8suserdemo123"))))
         .build();
 
-    try (KubernetesClient client = factory.create()) {
-      client.secrets().inNamespace(namespace)
-          .createOrReplace(demoUser);
-      client.secrets().inNamespace(namespace)
-          .createOrReplace(demoUserNoLabels);
-      client.secrets().inNamespace(namespace)
-          .createOrReplace(demoUserNoApiUser);
-    }
+    mockServer.getClient().secrets().inNamespace(namespace)
+        .createOrReplace(demoUser);
+    mockServer.getClient().secrets().inNamespace(namespace)
+        .createOrReplace(demoUserNoLabels);
+    mockServer.getClient().secrets().inNamespace(namespace)
+        .createOrReplace(demoUserNoApiUser);
   }
 
   @AfterEach
   void dropSecret() {
-    try (KubernetesClient client = factory.create()) {
-      client.secrets().inNamespace(namespace)
-          .withName("demo-user").delete();
-      client.secrets().inNamespace(namespace)
-          .withName("demo-user-no-labels").delete();
-      client.secrets().inNamespace(namespace)
-          .withName("demo-user-no-apiuser").delete();
-    }
+    mockServer.getClient().secrets().inNamespace(namespace)
+        .withName("demo-user").delete();
+    mockServer.getClient().secrets().inNamespace(namespace)
+        .withName("demo-user-no-labels").delete();
+    mockServer.getClient().secrets().inNamespace(namespace)
+        .withName("demo-user-no-apiuser").delete();
   }
 
   @Test

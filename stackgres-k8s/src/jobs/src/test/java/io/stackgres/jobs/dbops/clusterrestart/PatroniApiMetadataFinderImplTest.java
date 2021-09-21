@@ -19,9 +19,9 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
-import io.stackgres.jobs.app.KubernetesClientProvider;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +33,7 @@ import org.junit.jupiter.api.Test;
 class PatroniApiMetadataFinderImplTest {
 
   @Inject
-  KubernetesClientProvider clientProvider;
+  KubernetesClient client;
 
   @Inject
   PatroniApiMetadataFinderImpl patroniApiFinder;
@@ -55,17 +55,14 @@ class PatroniApiMetadataFinderImplTest {
     patroniService.getMetadata().setNamespace(namespace);
     patroniService.getMetadata().setName(clusterName + "-rest");
 
-    clientProvider.withNewClient(client -> {
-      client.namespaces().create(new NamespaceBuilder()
-          .withMetadata(new ObjectMetaBuilder()
-              .withName(namespace)
-              .build())
-          .build());
-      client.secrets().inNamespace(namespace)
-          .create(secret);
-      client.services().inNamespace(namespace).create(patroniService);
-      return null;
-    });
+    client.namespaces().create(new NamespaceBuilder()
+        .withMetadata(new ObjectMetaBuilder()
+            .withName(namespace)
+            .build())
+        .build());
+    client.secrets().inNamespace(namespace)
+        .create(secret);
+    client.services().inNamespace(namespace).create(patroniService);
   }
 
   @Test
@@ -113,19 +110,16 @@ class PatroniApiMetadataFinderImplTest {
 
   @Test
   void givenAnInvalidClusterState_shouldFailToFindPort() {
-    clientProvider.withNewClient(client -> {
-      var service = client.services()
-          .inNamespace(namespace)
-          .withName(patroniService.getMetadata().getName())
-          .get();
-      service.getSpec().setPorts(List.of(new ServicePortBuilder()
-          .withName("nopatroni")
-          .withPort(80)
-          .build()));
-      client.services().inNamespace(namespace).withName(patroniService.getMetadata().getName())
-          .replace(service);
-      return null;
-    });
+    var service = client.services()
+        .inNamespace(namespace)
+        .withName(patroniService.getMetadata().getName())
+        .get();
+    service.getSpec().setPorts(List.of(new ServicePortBuilder()
+        .withName("nopatroni")
+        .withPort(80)
+        .build()));
+    client.services().inNamespace(namespace).withName(patroniService.getMetadata().getName())
+        .replace(service);
 
     var ex = assertThrows(InvalidCluster.class,
         () -> patroniApiFinder.getPatroniPort(clusterName, namespace));
@@ -144,9 +138,9 @@ class PatroniApiMetadataFinderImplTest {
   void givenAnInvalidClusterState_shouldToFindPasword() {
     secret.getData().remove("restapi-password");
     final String name = secret.getMetadata().getName();
-    clientProvider.withNewClient(client -> client.secrets()
+    client.secrets()
         .inNamespace(namespace)
-        .withName(name))
+        .withName(name)
         .replace(secret);
     var ex = assertThrows(InvalidCluster.class,
         () -> patroniApiFinder.getPatroniPassword(clusterName, namespace));

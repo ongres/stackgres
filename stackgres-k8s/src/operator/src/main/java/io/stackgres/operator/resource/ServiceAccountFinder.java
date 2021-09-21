@@ -11,7 +11,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.ServiceAccount;
-import io.stackgres.common.KubernetesClientFactory;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
 import org.jetbrains.annotations.NotNull;
@@ -20,11 +20,11 @@ import org.jetbrains.annotations.NotNull;
 public class ServiceAccountFinder implements ResourceFinder<ServiceAccount>,
     ResourceWriter<ServiceAccount> {
 
-  final KubernetesClientFactory clientFactory;
+  final KubernetesClient client;
 
   @Inject
-  public ServiceAccountFinder(KubernetesClientFactory clientFactory) {
-    this.clientFactory = clientFactory;
+  public ServiceAccountFinder(KubernetesClient client) {
+    this.client = client;
   }
 
   @Override
@@ -34,31 +34,26 @@ public class ServiceAccountFinder implements ResourceFinder<ServiceAccount>,
 
   @Override
   public Optional<ServiceAccount> findByNameAndNamespace(String name, String namespace) {
-    try (var client = clientFactory.create()) {
-      return Optional.ofNullable(client.serviceAccounts().inNamespace(namespace)
-          .withName(name).get());
-    }
+    return Optional.ofNullable(client.serviceAccounts().inNamespace(namespace)
+        .withName(name).get());
   }
 
   @Override
   public ServiceAccount create(@NotNull ServiceAccount resource) {
-    return clientFactory.withNewClient(client ->
-        client.serviceAccounts().inNamespace(resource.getMetadata().getNamespace())
-            .create(resource));
+    return client.serviceAccounts().inNamespace(resource.getMetadata().getNamespace())
+        .create(resource);
   }
 
   @Override
   public ServiceAccount update(@NotNull ServiceAccount resource) {
-    return clientFactory.withNewClient(client ->
-        client.serviceAccounts().inNamespace(resource.getMetadata().getNamespace())
-            .withName(resource.getMetadata().getName())
-            .patch(resource));
+    return client.serviceAccounts().inNamespace(resource.getMetadata().getNamespace())
+        .withName(resource.getMetadata().getName())
+        .patch(resource);
   }
 
   @Override
   public void delete(@NotNull ServiceAccount resource) {
-    clientFactory.withNewClient(client ->
-        client.serviceAccounts().inNamespace(resource.getMetadata().getNamespace())
-            .delete(resource));
+    client.serviceAccounts().inNamespace(resource.getMetadata().getNamespace())
+        .delete(resource);
   }
 }

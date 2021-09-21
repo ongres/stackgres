@@ -15,7 +15,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -37,7 +36,7 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
   protected final Logger logger = LoggerFactory.getLogger(getClass());
 
   protected final String name;
-  protected final Supplier<KubernetesClient> clientSupplier;
+  protected final KubernetesClient client;
   protected final Reconciliator<T> reconciliator;
   protected final S handlerSelector;
   private final ExecutorService executorService;
@@ -48,11 +47,11 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
 
   private AtomicInteger reconciliationCount = new AtomicInteger(0);
 
-  protected ReconciliationCycle(String name, Supplier<KubernetesClient> clientSupplier,
+  protected ReconciliationCycle(String name, KubernetesClient client,
       Reconciliator<T> reconciliator, S handlerSelector) {
     super();
     this.name = name;
-    this.clientSupplier = clientSupplier;
+    this.client = client;
     this.reconciliator = reconciliator;
     this.handlerSelector = handlerSelector;
     this.executorService = Executors.newSingleThreadExecutor(
@@ -123,7 +122,7 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
         String contextId = contextResource.getMetadata().getNamespace() + "."
             + contextResource.getMetadata().getName();
 
-        try (KubernetesClient client = clientSupplier.get()) {
+        try {
           logger.trace("{} working on {}", cycleName, contextId);
           ImmutableList<HasMetadata> existingResourcesOnly = getExistingResources(
               client,
