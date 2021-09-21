@@ -18,8 +18,10 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -68,6 +70,14 @@ public class PgBouncerPooling extends AbstractPgPooling {
   }
 
   @Override
+  protected Map<String, String> getDefaultParameters()  {
+    return ImmutableMap.<String, String>builder()
+        .put("listen_port", Integer.toString(EnvoyUtil.PG_POOL_PORT))
+        .put("unix_socket_dir", ClusterStatefulSetPath.PG_RUN_PATH.path())
+        .build();
+  }
+
+  @Override
   protected String getConfigFile(Optional<StackGresPoolingConfig> poolingConfig) {
     var newParams = poolingConfig
         .map(StackGresPoolingConfig::getSpec)
@@ -86,7 +96,7 @@ public class PgBouncerPooling extends AbstractPgPooling {
         .map(HashMap::new)
         .orElseGet(() -> new HashMap<>(PgBouncerDefaultValues.getDefaultValues()));
 
-    parameters.putAll(DEFAULT_PARAMETERS);
+    parameters.putAll(defaultParameters);
     parameters.putAll(newParams);
 
     String pgBouncerConfig = parameters.entrySet().stream()
@@ -106,7 +116,7 @@ public class PgBouncerPooling extends AbstractPgPooling {
     return ImmutableList.<VolumeMount>builder()
         .addAll(postgresSocket.getVolumeMounts(context))
         .add(new VolumeMountBuilder()
-            .withName(StatefulSetDynamicVolumes.PG_BOUNCER.getVolumeName())
+            .withName(StatefulSetDynamicVolumes.PGBOUNCER.getVolumeName())
             .withMountPath("/etc/pgbouncer")
             .withReadOnly(true)
             .build())
