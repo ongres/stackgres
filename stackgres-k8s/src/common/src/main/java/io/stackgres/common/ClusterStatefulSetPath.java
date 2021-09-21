@@ -94,7 +94,9 @@ public enum ClusterStatefulSetPath implements VolumePath {
   RESTORE_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSetEnvVars.RESTORE_ENV.substVar()),
   RESTORE_SECRET_PATH(BASE_SECRET_PATH, ClusterStatefulSetEnvVars.RESTORE_ENV.substVar()),
   TEMPLATES_PATH("/templates"),
-  SHARED_PATH("/shared");
+  SHARED_PATH("/shared"),
+  PGBOUNCER_CONFIG_FILE_PATH("/etc/pgbouncer/pgbouncer.ini"),
+  PGBOUNCER_AUTH_FILE_PATH("/etc/pgbouncer/users.txt");
 
   private final String path;
 
@@ -146,7 +148,7 @@ public enum ClusterStatefulSetPath implements VolumePath {
       path.append(value);
       startIndexOf = this.path.indexOf("$(", endIndexOf + 1);
     }
-    if (endIndexOf == 0) {
+    if (endIndexOf == -1) {
       return this.path;
     }
     if (endIndexOf < this.path.length()) {

@@ -22,10 +22,11 @@ e2e_test() {
   run_test "Check that patroni is not accisible directly" patroni_direct_check
 
   run_test "Check that psql is storing history in postgres-util container" psql_is_storing_history_check
+
+  run_test "Check that pgbouncer database is accesible using the service" pgbouncer_database_check
 }
 
 ports_check() {
-
   RESPONSE_5432="$(run_query -i 0 -p 5432)"
   RESPONSE_6432="$(run_query -i 0 -p 6432)"
   RESPONSE_7432="$(run_query -i 0 -p 7432)"
@@ -48,7 +49,6 @@ ports_check() {
       echo "FAIL: Not all 4 ports of the primary node are working"
       return 1
   fi
-
 }
 
 service_check() {
@@ -76,6 +76,32 @@ psql_is_storing_history_check() {
     echo "SUCCESS: psql could save history to file"
   else
     echo "FAIL: psql could not save history to file"
+    return 1
+  fi
+}
+
+pgbouncer_database_check() {
+  if kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-0" -c "postgres-util" -- env \
+    PGPASSWORD="$(kubectl -n "$CLUSTER_NAMESPACE" get secrets "$CLUSTER_NAME" \
+      -o jsonpath='{.data.pgbouncer-admin-password}' | base64 -d)" \
+    PGCONNECT_TIMEOUT="$((5 + E2E_TIMEOUT / 10))" \
+    psql -t -A -U pgbouncer_admin -d pgbouncer -h "$CLUSTER_NAME" -c "SHOW FDS" >/dev/null
+  then
+    echo "SUCCESS: psql could connect to the pgbouncer database with pgobuncer_admin using service"
+  else
+    echo "FAIL: psql could not connect to the pgbouncer database with pgobuncer_admin using service"
+    return 1
+  fi
+
+  if kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-0" -c "postgres-util" -- env \
+    PGPASSWORD="$(kubectl -n "$CLUSTER_NAMESPACE" get secrets "$CLUSTER_NAME" \
+      -o jsonpath='{.data.pgbouncer-stats-password}' | base64 -d)" \
+    PGCONNECT_TIMEOUT="$((5 + E2E_TIMEOUT / 10))" \
+    psql -t -A -U pgbouncer_stats -d pgbouncer -h "$CLUSTER_NAME" -c "SHOW VERSION" >/dev/null
+  then
+    echo "SUCCESS: psql could connect to the pgbouncer database with pgobuncer_stats using service"
+  else
+    echo "FAIL: psql could not connect to the pgbouncer database with pgobuncer_stats using service"
     return 1
   fi
 }

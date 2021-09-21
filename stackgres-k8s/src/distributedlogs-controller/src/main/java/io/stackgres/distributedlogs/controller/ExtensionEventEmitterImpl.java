@@ -96,7 +96,7 @@ public class ExtensionEventEmitterImpl implements ExtensionEventEmitter {
   }
 
   private void withInvolvedObject(Consumer<StackGresDistributedLogs> emit) {
-    var distributedLogs = distributedLogsFinder
+    StackGresDistributedLogs distributedLogs = distributedLogsFinder
         .findByNameAndNamespace(distributedLogsName, namespace)
         .orElseThrow();
 
