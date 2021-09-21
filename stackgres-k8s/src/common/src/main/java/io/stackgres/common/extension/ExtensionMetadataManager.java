@@ -7,6 +7,7 @@ package io.stackgres.common.extension;
 
 import java.net.URI;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.HashMap;
@@ -14,8 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.WebClientFactory;
@@ -34,12 +33,10 @@ public abstract class ExtensionMetadataManager {
   public static final String SKIP_HOSTNAME_VERIFICATION_PARAMETER = "skipHostnameVerification";
   public static final String PROXY_URL_PARAMETER = "proxyUrl";
 
-  private static final Object EXTENSIONS = new Object();
+  private static final String CACHE_TIMEOUT_PARAMETER = "cacheTimeout";
 
-  private final Cache<Object, ExtensionMetadataCache>
-      extensionsMetadataCache = CacheBuilder.newBuilder()
-          .expireAfterWrite(Duration.of(1, ChronoUnit.HOURS))
-          .initialCapacity(1).maximumSize(1).build();
+  private static final URI LATEST_MERGED_CACHE_URI = URI.create("cache://merged-cache");
+
   private final Map<URI, ExtensionMetadataCache> uriCache =
       new HashMap<>();
 
@@ -102,20 +99,13 @@ public abstract class ExtensionMetadataManager {
     return getExtensionsMetadata().index.values();
   }
 
-  private ExtensionMetadataCache getExtensionsMetadata()
-      throws Exception {
-    return extensionsMetadataCache.get(EXTENSIONS, this::downloadExtensionsMetadata);
-  }
-
   @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE",
       justification = "False positive")
-  private ExtensionMetadataCache downloadExtensionsMetadata()
+  private synchronized ExtensionMetadataCache getExtensionsMetadata()
       throws Exception {
-    ExtensionMetadataCache cache = new ExtensionMetadataCache(
-        new HashMap<>(), new HashMap<>(), new HashMap<>());
+    boolean updated = false;
     for (URI extensionsRepositoryUri : extensionsRepositoryUris) {
       try {
-        LOGGER.info("Downloading extensions metadata from {}", extensionsRepositoryUri);
         boolean skipHostnameVerification =
             ExtensionUtil.getUriQueryParameter(
                 extensionsRepositoryUri, SKIP_HOSTNAME_VERIFICATION_PARAMETER)
@@ -124,27 +114,53 @@ public abstract class ExtensionMetadataManager {
             ExtensionUtil.getUriQueryParameter(extensionsRepositoryUri, PROXY_URL_PARAMETER)
             .map(URI::create)
             .orElse(null);
-        final URI indexUri = ExtensionUtil.getIndexUri(extensionsRepositoryUri);
-        try (WebClient client = webClientFactory.create(skipHostnameVerification, proxyUri)) {
-          StackGresExtensions repositoryExtensions = client.getJson(
-              indexUri, StackGresExtensions.class);
-          ExtensionMetadataCache current = ExtensionMetadataCache.from(
-              extensionsRepositoryUri, repositoryExtensions);
-          cache.merge(current);
-          uriCache.put(extensionsRepositoryUri, current);
+        Duration cacheTimeout =
+            ExtensionUtil.getUriQueryParameter(
+                extensionsRepositoryUri, CACHE_TIMEOUT_PARAMETER)
+            .map(Duration::parse)
+            .orElse(Duration.of(1, ChronoUnit.HOURS));
+        if (Optional.ofNullable(uriCache.get(extensionsRepositoryUri))
+            .map(ExtensionMetadataCache::getCreated)
+            .orElse(Instant.MIN)
+            .plus(cacheTimeout)
+            .isBefore(Instant.now())) {
+          LOGGER.info("Downloading extensions metadata from {}", extensionsRepositoryUri);
+          final URI indexUri = ExtensionUtil.getIndexUri(extensionsRepositoryUri);
+          try (WebClient client = webClientFactory.create(skipHostnameVerification, proxyUri)) {
+            StackGresExtensions repositoryExtensions = client.getJson(
+                indexUri, StackGresExtensions.class);
+            ExtensionMetadataCache current = ExtensionMetadataCache.from(
+                extensionsRepositoryUri, repositoryExtensions);
+            uriCache.put(extensionsRepositoryUri, current);
+            updated = true;
+          }
         }
       } catch (Exception ex) {
-        ExtensionMetadataCache previous = uriCache.get(extensionsRepositoryUri);
-        if (previous != null) {
-          cache.merge(previous);
+        String message = "Can not download extensions metadata from "
+            + extensionsRepositoryUri;
+        if (uriCache.get(extensionsRepositoryUri) != null) {
+          LOGGER.warn(message, ex);
+        } else {
+          throw new Exception(message, ex);
         }
-        LOGGER.error("Can not download extensions metadata from {}", extensionsRepositoryUri, ex);
       }
     }
-    return cache;
+
+    if (updated || extensionsRepositoryUris.isEmpty()) {
+      final ExtensionMetadataCache mergedCache = new ExtensionMetadataCache(
+          new HashMap<>(), new HashMap<>(), new HashMap<>());
+      for (URI extensionsRepositoryUri : extensionsRepositoryUris) {
+        mergedCache.merge(uriCache.get(extensionsRepositoryUri));
+      }
+      uriCache.put(LATEST_MERGED_CACHE_URI, mergedCache);
+      return mergedCache;
+    }
+
+    return uriCache.get(LATEST_MERGED_CACHE_URI);
   }
 
   static class ExtensionMetadataCache {
+    final Instant created;
     final Map<StackGresExtensionIndex, StackGresExtensionMetadata> index;
     final Map<StackGresExtensionIndexSameMajorBuild, List<StackGresExtensionMetadata>>
         indexSameMajorBuilds;
@@ -164,9 +180,14 @@ public abstract class ExtensionMetadataManager {
             indexSameMajorBuilds,
         Map<StackGresExtensionIndexAnyVersion, List<StackGresExtensionMetadata>>
             indexAnyVersions) {
+      this.created = Instant.now();
       this.index = index;
       this.indexSameMajorBuilds = indexSameMajorBuilds;
       this.indexAnyVersions = indexAnyVersions;
+    }
+
+    public Instant getCreated() {
+      return created;
     }
 
     void merge(ExtensionMetadataCache other) {
