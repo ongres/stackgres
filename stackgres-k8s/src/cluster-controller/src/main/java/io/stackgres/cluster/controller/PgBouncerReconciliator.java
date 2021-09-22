@@ -14,6 +14,7 @@ import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterControllerEventReason;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
@@ -23,6 +24,7 @@ import io.stackgres.common.FileSystemHandler;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.postgres.PostgresConnectionManager;
 import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +43,7 @@ public class PgBouncerReconciliator {
     @Inject EventController eventController;
     @Inject ClusterControllerPropertyContext propertyContext;
     @Inject CustomResourceFinder<StackGresPoolingConfig> poolingConfigFinder;
+    @Inject ResourceFinder<Secret> secretFinder;
     @Inject PostgresConnectionManager postgresConnectionManager;
   }
 
@@ -50,8 +53,8 @@ public class PgBouncerReconciliator {
     this.pgbouncerReconciliationEnabled = parameters.propertyContext.getBoolean(
         ClusterControllerProperty.CLUSTER_CONTROLLER_RECONCILE_PGBOUNCER);
     this.authFileReconciliator = new PgBouncerAuthFileReconciliator(
-        parameters.poolingConfigFinder, parameters.postgresConnectionManager,
-        new FileSystemHandler());
+        parameters.poolingConfigFinder, parameters.secretFinder,
+        parameters.postgresConnectionManager, new FileSystemHandler());
   }
 
   public static PgBouncerReconciliator create(Consumer<Parameters> consumer) {
@@ -61,7 +64,7 @@ public class PgBouncerReconciliator {
 
   public ReconciliationResult<Boolean> reconcile(KubernetesClient client, ClusterContext context)
       throws Exception {
-    if (!pgbouncerReconciliationEnabled) {
+    if (pgbouncerReconciliationEnabled) {
       try {
         authFileReconciliator.updatePgbouncerUsersInAuthFile(context);
       } catch (Exception ex) {

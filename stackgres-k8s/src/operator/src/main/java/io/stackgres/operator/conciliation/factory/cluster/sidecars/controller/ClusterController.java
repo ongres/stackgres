@@ -20,7 +20,9 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
+import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterControllerProperty;
+import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresController;
@@ -31,17 +33,19 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.factory.ClusterRunningContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 
 @Singleton
 @Sidecar(ClusterController.NAME)
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
-@RunningContainer(order = 3)
+@RunningContainer(ClusterRunningContainer.CLUSTER_CONTROLLER)
 public class ClusterController implements ContainerFactory<StackGresClusterContainerContext> {
 
   public static final String NAME = StackgresClusterContainers.CLUSTER_CONTROLLER;
@@ -134,6 +138,13 @@ public class ClusterController implements ContainerFactory<StackGresClusterConta
                 .build())
         .withVolumeMounts(userContainerMounts.getVolumeMounts(context))
         .addAllToVolumeMounts(postgresDataMounts.getVolumeMounts(context))
+        .addToVolumeMounts(
+            new VolumeMountBuilder()
+            .withName(StatefulSetDynamicVolumes.PGBOUNCER_AUTH_FILE.getVolumeName())
+            .withMountPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.path())
+            .withSubPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.subPath())
+            .withReadOnly(false)
+            .build())
         .build();
   }
 

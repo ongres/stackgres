@@ -11,11 +11,13 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 import javax.inject.Singleton;
+import javax.validation.constraints.NotNull;
 
 @Singleton
 public class PostgresConnectionManager {
 
-  public Connection getConnection(String host, String username, String password, String database)
+  public Connection getConnection(@NotNull String host, @NotNull String database,
+      @NotNull String username, @NotNull String password)
       throws SQLException {
     Properties properties = new Properties();
     properties.setProperty("user", username);

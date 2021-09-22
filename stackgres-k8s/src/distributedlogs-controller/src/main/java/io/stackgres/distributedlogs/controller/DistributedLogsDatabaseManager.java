@@ -5,6 +5,9 @@
 
 package io.stackgres.distributedlogs.controller;
 
+import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.SUPERUSER_PASSWORD_KEY;
+import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.SUPERUSER_USER_NAME;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,6 +26,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.JdbcStatementTemplate;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.postgres.PostgresConnectionManager;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.distributedlogs.common.StackGresDistributedLogsContext;
@@ -134,9 +138,10 @@ public class DistributedLogsDatabaseManager {
             "Secret with username and password for user postgres can not be found."));
     return postgresConnectionManager.getConnection(
         serviceName + "." + namespace,
-        "postgres",
-        ResourceUtil.decodeSecret(secret.getData().get("superuser-password")),
-        database);
+        database,
+        SUPERUSER_USER_NAME,
+        ResourceUtil.decodeSecret(secret.getData()
+            .get(SUPERUSER_PASSWORD_KEY)));
   }
 
 }

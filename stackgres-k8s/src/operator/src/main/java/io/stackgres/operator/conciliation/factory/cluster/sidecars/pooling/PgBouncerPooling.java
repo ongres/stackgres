@@ -40,6 +40,7 @@ import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.ClusterRunningContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.ProviderName;
@@ -55,7 +56,7 @@ import org.jetbrains.annotations.NotNull;
 @Sidecar("connection-pooling")
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
-@RunningContainer(order = 4)
+@RunningContainer(ClusterRunningContainer.PGBOUNCER)
 public class PgBouncerPooling extends AbstractPgPooling {
 
   private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
@@ -133,8 +134,8 @@ public class PgBouncerPooling extends AbstractPgPooling {
             .build())
         .add(new VolumeMountBuilder()
             .withName(StatefulSetDynamicVolumes.PGBOUNCER_AUTH_FILE.getVolumeName())
-            .withMountPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_FILE_PATH.path())
-            .withSubPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_FILE_PATH.subPath())
+            .withMountPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.path())
+            .withSubPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.subPath())
             .withReadOnly(true)
             .build())
         .addAll(

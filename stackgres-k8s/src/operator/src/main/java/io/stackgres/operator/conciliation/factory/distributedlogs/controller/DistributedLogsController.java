@@ -31,6 +31,7 @@ import io.stackgres.common.StackGresController;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.factory.ClusterRunningContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ProviderName;
@@ -42,7 +43,7 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDyn
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
-@RunningContainer(order = 3)
+@RunningContainer(ClusterRunningContainer.CLUSTER_CONTROLLER)
 public class DistributedLogsController
     implements ContainerFactory<DistributedLogsContainerContext> {
 

@@ -21,6 +21,7 @@ import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
@@ -34,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
-@InitContainer(order = 1)
+@InitContainer(ClusterInitContainer.DATA_PATHS_INITIALIZER)
 public class DataPathsInitializer implements ContainerFactory<StackGresClusterContainerContext> {
 
   private final ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext>

@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import com.google.common.collect.ImmutableMap;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.FileSystemHandler;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -32,6 +33,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.postgres.PostgresConnectionManager;
 import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +46,9 @@ public class PgBouncerAuthFileReconciliatorTest {
 
   @Mock
   private CustomResourceFinder<StackGresPoolingConfig> poolingConfigFinder;
+
+  @Mock
+  private ResourceFinder<Secret> secretFinder;
 
   @Mock
   private PostgresConnectionManager postgresConnectionManager;
@@ -68,7 +73,7 @@ public class PgBouncerAuthFileReconciliatorTest {
   @BeforeEach
   void setUp() throws Exception {
     reconciliator = new PgBouncerAuthFileReconciliator(
-        poolingConfigFinder, postgresConnectionManager, fileSystemHandler);
+        poolingConfigFinder, secretFinder, postgresConnectionManager, fileSystemHandler);
   }
 
   @Test
@@ -81,9 +86,14 @@ public class PgBouncerAuthFileReconciliatorTest {
         .readFromJson("pooling_config/default.json",
             StackGresPoolingConfig.class);
     poolingConfig.getSpec().getPgBouncer().getPgbouncerIni().setUsers(ImmutableMap.of());
+    Secret secret = JsonUtil
+        .readFromJson("secret/patroni.json",
+            Secret.class);
     when(context.getCluster()).thenReturn(cluster);
     when(poolingConfigFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(poolingConfig));
+    when(secretFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(secret));
     when(postgresConnectionManager.getConnection(any(), any(), any(), any()))
         .thenReturn(connection);
     when(connection.prepareStatement(any()))
@@ -122,9 +132,14 @@ public class PgBouncerAuthFileReconciliatorTest {
         ImmutableMap.of(
             "user1", ImmutableMap.of(),
             "user2", ImmutableMap.of()));
+    Secret secret = JsonUtil
+        .readFromJson("secret/patroni.json",
+            Secret.class);
     when(context.getCluster()).thenReturn(cluster);
     when(poolingConfigFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(poolingConfig));
+    when(secretFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(secret));
     when(postgresConnectionManager.getConnection(any(), any(), any(), any()))
         .thenReturn(connection);
     when(connection.prepareStatement(any()))

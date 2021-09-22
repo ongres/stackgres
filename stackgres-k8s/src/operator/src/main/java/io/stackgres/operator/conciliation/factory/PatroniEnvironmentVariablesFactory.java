@@ -5,6 +5,11 @@
 
 package io.stackgres.operator.conciliation.factory;
 
+import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.AUTHENTICATOR_PASSWORD_KEY;
+import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.REPLICATION_PASSWORD_KEY;
+import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.RESTAPI_PASSWORD_KEY;
+import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.SUPERUSER_PASSWORD_KEY;
+
 import java.util.List;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
@@ -34,7 +39,7 @@ public abstract class PatroniEnvironmentVariablesFactory<T>
                 .withSecretKeyRef(
                     new SecretKeySelectorBuilder()
                         .withName(cluster.getMetadata().getName())
-                        .withKey("restapi-password")
+                        .withKey(RESTAPI_PASSWORD_KEY)
                         .build())
                 .build())
             .build(),
@@ -67,7 +72,7 @@ public abstract class PatroniEnvironmentVariablesFactory<T>
                 .withSecretKeyRef(
                     new SecretKeySelectorBuilder()
                         .withName(cluster.getMetadata().getName())
-                        .withKey("superuser-password")
+                        .withKey(SUPERUSER_PASSWORD_KEY)
                         .build())
                 .build())
             .build(),
@@ -76,7 +81,7 @@ public abstract class PatroniEnvironmentVariablesFactory<T>
                 .withSecretKeyRef(
                     new SecretKeySelectorBuilder()
                         .withName(cluster.getMetadata().getName())
-                        .withKey("replication-password")
+                        .withKey(REPLICATION_PASSWORD_KEY)
                         .build())
                 .build())
             .build(),
@@ -85,7 +90,7 @@ public abstract class PatroniEnvironmentVariablesFactory<T>
                 .withSecretKeyRef(
                     new SecretKeySelectorBuilder()
                         .withName(cluster.getMetadata().getName())
-                        .withKey("authenticator-password")
+                        .withKey(AUTHENTICATOR_PASSWORD_KEY)
                         .build())
                 .build())
             .build(),

@@ -10,16 +10,15 @@ run_query() {
   local INSTANCE=0
   local CONTAINER="postgres-util"
   local SSLMODE=prefer
-  local USER="postgres:$(kubectl -n "$NAMESPACE" get secrets "$NAME" \
-      -o jsonpath='{.data.superuser-password}' | base64 -d)"
+  local USERNAME=
   local PASSWORD
 
-  local opt
+  local OPT
   local OPTARG
   local OPTIND
 
-  while getopts ":c:n:i:q:p:h:d:x:k:m:u:" opt; do
-    case $opt in
+  while getopts ":c:n:i:q:p:h:d:x:k:m:u:" OPT; do
+    case "$OPT" in
       c) NAME="$OPTARG"
       ;;
       n) NAMESPACE="$OPTARG"
@@ -40,7 +39,7 @@ run_query() {
       ;;
       m) SSLMODE="$OPTARG"
       ;;
-      u) USER="$OPTARG"
+      u) USERNAME="$OPTARG"
       ;;
       \?) echo "Invalid option -$OPTARG" >&2
       return 1
@@ -48,13 +47,18 @@ run_query() {
     esac
   done
 
-  USER="${USER%:*}"
-  PASSWORD="${USER#*:}"
+  if [ -z "$USERNAME" ]
+  then
+    USERNAME="postgres:$(kubectl -n "$NAMESPACE" get secrets "$NAME" \
+      -o jsonpath='{.data.superuser-password}' | base64 -d)"
+  fi
+  PASSWORD="${USERNAME#*:}"
+  USERNAME="${USERNAME%:*}"
   kubectl exec -n "$NAMESPACE" "${POD:-$NAME-$INSTANCE}" -c "$CONTAINER" -- env \
     PGPASSWORD="$PASSWORD" \
     PGCONNECT_TIMEOUT="$((5 + E2E_TIMEOUT / 10))" \
     PGSSLMODE="$SSLMODE" \
-    psql -t -A -U "$USER" -d "$DATABASE" -p "$PORT" -h "$HOST" -c "$QUERY"
+    psql -t -A -U "$USERNAME" -d "$DATABASE" -p "$PORT" -h "$HOST" -c "$QUERY"
 }
 
 exec_postgresutil() {
@@ -62,12 +66,12 @@ exec_postgresutil() {
   local INSTANCE=0
   local NAMESPACE="${CLUSTER_NAMESPACE:-stackgres}"
 
-  local opt
+  local OPT
   local OPTARG
   local OPTIND
 
-  while getopts ":c:n:i:q:p:h:d:" opt; do
-    case $opt in
+  while getopts ":c:n:i:q:p:h:d:" OPT; do
+    case "$OPT" in
       c) NAME="$OPTARG"
       shift 2
       ;;

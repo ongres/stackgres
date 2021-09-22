@@ -30,9 +30,9 @@ public class InitContainerFactoryDiscoverImpl
     resourceHub.forEach((key, value) -> {
       value.sort((f1, f2) -> {
         int f1Order = f1.getClass().getAnnotation(InitContainer.class)
-            .order();
+            .value().ordinal();
         int f2Order = f2.getClass().getAnnotation(InitContainer.class)
-            .order();
+            .value().ordinal();
         return Integer.compare(f1Order, f2Order);
       });
     });

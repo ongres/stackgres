@@ -113,7 +113,7 @@ pgbouncer_users_check() {
   run_query -i 0 -p 5432 -q "CREATE USER user2 WITH PASSWORD 'test'";
   kubectl get sgpoolconfig -n "$CLUSTER_NAMESPACE" pgbouncerconf -o json \
     | jq '.spec.pgBouncer["pgbouncer.ini"].users = { user1: {}, user2: {} }' \
-    | kubectl patch sgpoolconfig -n "$CLUSTER_NAMESPACE" pgbouncerconf --type marge -p "$(cat)"
+    | kubectl patch sgpoolconfig -n "$CLUSTER_NAMESPACE" pgbouncerconf --type merge -p "$(cat)"
   wait_until eval '! kubectl wait -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME" --for condition=PendingRestart --timeout 0'
   kubectl delete pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true"
   wait_pods_running "$CLUSTER_NAMESPACE" 3

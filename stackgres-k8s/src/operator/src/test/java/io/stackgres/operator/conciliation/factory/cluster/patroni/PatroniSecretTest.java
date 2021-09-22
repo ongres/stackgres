@@ -5,9 +5,9 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
-import static io.stackgres.operator.conciliation.StackGresRandomPasswordKeys.AUTHENTICATOR_PASSWORD_KEY;
-import static io.stackgres.operator.conciliation.StackGresRandomPasswordKeys.REPLICATION_PASSWORD_KEY;
-import static io.stackgres.operator.conciliation.StackGresRandomPasswordKeys.SUPERUSER_PASSWORD_KEY;
+import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.AUTHENTICATOR_PASSWORD_KEY;
+import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.REPLICATION_PASSWORD_KEY;
+import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.SUPERUSER_PASSWORD_KEY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

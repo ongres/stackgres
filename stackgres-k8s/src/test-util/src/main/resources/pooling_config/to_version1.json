@@ -24,7 +24,7 @@
   "status": {
     "pgBouncer": {
       "defaultParameters": {
-        "admin_users": "postgres",
+        "admin_users": "pgbouncer_admin",
         "application_name_add_host": "1",
         "auth_query": "SELECT usename, passwd FROM pg_shadow WHERE usename=$1",
         "auth_type": "md5",
@@ -36,7 +36,7 @@
         "max_db_connections": "0",
         "max_user_connections": "0",
         "pool_mode": "session",
-        "stats_users": "postgres"
+        "stats_users": "pgbouncer_stats"
       }
     }
   }

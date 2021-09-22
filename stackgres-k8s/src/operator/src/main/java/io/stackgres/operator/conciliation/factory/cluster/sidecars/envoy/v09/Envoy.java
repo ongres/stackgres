@@ -21,6 +21,7 @@ import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.ClusterRunningContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.ProviderName;
@@ -32,7 +33,7 @@ import io.stackgres.operator.conciliation.factory.cluster.sidecars.envoy.Abstrac
 @Singleton
 @Sidecar(AbstractEnvoy.NAME)
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
-@RunningContainer(order = 2)
+@RunningContainer(ClusterRunningContainer.ENVOY_V09)
 public class Envoy extends AbstractEnvoy {
 
   private final VolumeMountsProvider<ContainerContext> containerLocalOverrideMounts;

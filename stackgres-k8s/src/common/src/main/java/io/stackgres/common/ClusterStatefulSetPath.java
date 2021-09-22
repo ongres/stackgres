@@ -97,7 +97,8 @@ public enum ClusterStatefulSetPath implements VolumePath {
   SHARED_PATH("/shared"),
   PGBOUNCER_CONFIG_PATH("/etc/pgbouncer"),
   PGBOUNCER_CONFIG_FILE_PATH(PGBOUNCER_CONFIG_PATH, "pgbouncer.ini"),
-  PGBOUNCER_AUTH_FILE_PATH(PGBOUNCER_CONFIG_PATH, "users.txt");
+  PGBOUNCER_AUTH_PATH(PGBOUNCER_CONFIG_PATH, "auth"),
+  PGBOUNCER_AUTH_FILE_PATH(PGBOUNCER_AUTH_PATH, "users.txt");
 
   private final String path;
 

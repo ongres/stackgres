@@ -19,13 +19,14 @@ import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresController;
 import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
-@InitContainer(order = 5)
+@InitContainer(ClusterInitContainer.RECONCILIATION_CYCLE)
 public class InitReconciliationCycle implements ContainerFactory<StackGresClusterContainerContext> {
 
   @Override
@@ -95,7 +96,8 @@ public class InitReconciliationCycle implements ContainerFactory<StackGresCluste
                 .withName("DEBUG_CLUSTER_CONTROLLER_SUSPEND")
                 .withValue(System.getenv("DEBUG_OPERATOR_SUSPEND"))
                 .build())
-        .addToVolumeMounts(new VolumeMountBuilder()
+        .addToVolumeMounts(
+            new VolumeMountBuilder()
             .withName(context.getDataVolumeName())
             .withMountPath(ClusterStatefulSetPath.PG_BASE_PATH.path())
             .build())

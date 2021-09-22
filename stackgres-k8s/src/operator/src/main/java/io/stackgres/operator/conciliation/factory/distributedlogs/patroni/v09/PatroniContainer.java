@@ -34,6 +34,7 @@ import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
+import io.stackgres.operator.conciliation.factory.ClusterRunningContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.FactoryName;
@@ -48,7 +49,7 @@ import io.stackgres.operator.conciliation.factory.v09.PatroniStaticVolume;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
-@RunningContainer(order = 0)
+@RunningContainer(ClusterRunningContainer.PATRONI_V09)
 public class PatroniContainer implements ContainerFactory<DistributedLogsContainerContext> {
 
   private static final String IMAGE_NAME = "docker.io/ongres/patroni-ext:v1.6.5-pg12.6-build-6.0";
