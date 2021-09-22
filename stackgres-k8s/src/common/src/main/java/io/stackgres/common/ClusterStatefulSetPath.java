@@ -95,8 +95,9 @@ public enum ClusterStatefulSetPath implements VolumePath {
   RESTORE_SECRET_PATH(BASE_SECRET_PATH, ClusterStatefulSetEnvVars.RESTORE_ENV.substVar()),
   TEMPLATES_PATH("/templates"),
   SHARED_PATH("/shared"),
-  PGBOUNCER_CONFIG_FILE_PATH("/etc/pgbouncer/pgbouncer.ini"),
-  PGBOUNCER_AUTH_FILE_PATH("/etc/pgbouncer/users.txt");
+  PGBOUNCER_CONFIG_PATH("/etc/pgbouncer"),
+  PGBOUNCER_CONFIG_FILE_PATH(PGBOUNCER_CONFIG_PATH, "pgbouncer.ini"),
+  PGBOUNCER_AUTH_FILE_PATH(PGBOUNCER_CONFIG_PATH, "users.txt");
 
   private final String path;
 

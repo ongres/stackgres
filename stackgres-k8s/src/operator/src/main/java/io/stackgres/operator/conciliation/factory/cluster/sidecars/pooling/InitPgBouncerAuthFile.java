@@ -6,7 +6,9 @@
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling;
 
 import static io.stackgres.operator.conciliation.StackGresRandomPasswordKeys.PGBOUNCER_ADMIN_PASSWORD_KEY;
+import static io.stackgres.operator.conciliation.StackGresRandomPasswordKeys.PGBOUNCER_ADMIN_USER_NAME;
 import static io.stackgres.operator.conciliation.StackGresRandomPasswordKeys.PGBOUNCER_STATS_PASSWORD_KEY;
+import static io.stackgres.operator.conciliation.StackGresRandomPasswordKeys.PGBOUNCER_STATS_USER_NAME;
 
 import javax.inject.Singleton;
 
@@ -27,6 +29,13 @@ import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolu
 @InitContainer(order = 8)
 public class InitPgBouncerAuthFile implements ContainerFactory<StackGresClusterContainerContext> {
 
+  private static final String PGBOUNCER_ADMIN_PASSWORD_PATH =
+      ClusterStatefulSetPath.PGBOUNCER_CONFIG_PATH.path()
+      + "/" + PGBOUNCER_ADMIN_PASSWORD_KEY;
+  private static final String PGBOUNCER_STATS_PASSWORD_PATH =
+      ClusterStatefulSetPath.PGBOUNCER_CONFIG_PATH.path()
+      + "/" + PGBOUNCER_STATS_PASSWORD_KEY;
+
   @Override
   public Container getContainer(StackGresClusterContainerContext context) {
     return new ContainerBuilder()
@@ -34,52 +43,41 @@ public class InitPgBouncerAuthFile implements ContainerFactory<StackGresClusterC
         .withImage(StackGresComponent.KUBECTL.findLatestImageName())
         .withCommand("/bin/sh", "-exc",
             ""
-                + "test -f \"/etc/pgbouncer/" + PGBOUNCER_ADMIN_PASSWORD_KEY + "\"\n"
-                + "test -f \"/etc/pgbouncer/" + PGBOUNCER_STATS_PASSWORD_KEY + "\"\n"
-                + "PGBOUNCER_ADMIN_MD5=\"$(printf '%spgbouncer_admin' \"$(\n"
-                + "  cat \"/etc/pgbouncer/" + PGBOUNCER_ADMIN_PASSWORD_KEY + "\")\" \\\n"
+                + "test -f \"" + PGBOUNCER_ADMIN_PASSWORD_PATH + "\"\n"
+                + "test -f \"" + PGBOUNCER_STATS_PASSWORD_PATH + "\"\n"
+                + "PGBOUNCER_ADMIN_MD5=\"$(printf '%s" + PGBOUNCER_ADMIN_USER_NAME + "' \"$(\n"
+                + "  cat \"" + PGBOUNCER_ADMIN_PASSWORD_PATH + "\")\" \\\n"
                 + "    | md5sum | cut -d ' ' -f 1)\"\n"
-                + "PGBOUNCER_STATS_MD5=\"$(printf '%spgbouncer_stats' \"$(\n"
-                + "  cat /etc/pgbouncer/" + PGBOUNCER_STATS_PASSWORD_KEY + ")\" \\\n"
+                + "PGBOUNCER_STATS_MD5=\"$(printf '%s" + PGBOUNCER_STATS_USER_NAME + "' \"$(\n"
+                + "  cat \"" + PGBOUNCER_STATS_PASSWORD_PATH + "\")\" \\\n"
                 + "    | md5sum | cut -d ' ' -f 1)\"\n"
                 + "(\n"
-                + "echo \"\\\"pgbouncer_admin\\\" \\\"md5$PGBOUNCER_ADMIN_MD5\\\"\"\n"
-                + "echo \"\\\"pgbouncer_stats\\\" \\\"md5$PGBOUNCER_STATS_MD5\\\"\"\n"
+                + "echo \"\\\"" + PGBOUNCER_ADMIN_USER_NAME + "\\\""
+                    + " \\\"md5$PGBOUNCER_ADMIN_MD5\\\"\"\n"
+                + "echo \"\\\"" + PGBOUNCER_STATS_USER_NAME + "\\\""
+                    + " \\\"md5$PGBOUNCER_STATS_MD5\\\"\"\n"
                 + ") > \"" + ClusterStatefulSetPath.PGBOUNCER_AUTH_FILE_PATH.path() + "\"")
         .withImagePullPolicy("IfNotPresent")
         .addToVolumeMounts(
             new VolumeMountBuilder()
             .withName(StatefulSetDynamicVolumes.PGBOUNCER_AUTH_FILE.getVolumeName())
-            .withMountPath("/etc/pgbouncer")
-            .withSubPath("etc/pgbouncer")
+            .withMountPath(ClusterStatefulSetPath.PGBOUNCER_CONFIG_PATH.path())
+            .withSubPath(ClusterStatefulSetPath.PGBOUNCER_CONFIG_PATH.subPath())
             .withReadOnly(false)
             .build(),
             new VolumeMountBuilder()
             .withName(StatefulSetDynamicVolumes.PGBOUNCER_SECRETS.getVolumeName())
-            .withMountPath("/etc/pgbouncer/" + PGBOUNCER_ADMIN_PASSWORD_KEY)
+            .withMountPath(PGBOUNCER_ADMIN_PASSWORD_PATH)
             .withSubPath(PGBOUNCER_ADMIN_PASSWORD_KEY)
             .withReadOnly(true)
             .build(),
             new VolumeMountBuilder()
             .withName(StatefulSetDynamicVolumes.PGBOUNCER_SECRETS.getVolumeName())
-            .withMountPath("/etc/pgbouncer/" + PGBOUNCER_STATS_PASSWORD_KEY)
+            .withMountPath(PGBOUNCER_STATS_PASSWORD_PATH)
             .withSubPath(PGBOUNCER_STATS_PASSWORD_KEY)
             .withReadOnly(true)
             .build())
         .build();
   }
 
-  public static void main(String[] args) {
-    System.out.println(""
-                + "PGBOUNCER_ADMIN_MD5=\"$(printf 'pgbouncer_admin%s' \"$(\n"
-                + "  cat \"/etc/pgbouncer/" + PGBOUNCER_ADMIN_PASSWORD_KEY + "\")\" \\\n"
-                + "    | md5sum | cut -d ' ' -f 1)\"\n"
-                + "PGBOUNCER_STATS_MD5=\"$(printf 'pgbouncer_admin%s' \"$(\n"
-                + "  cat /etc/pgbouncer/" + PGBOUNCER_STATS_PASSWORD_KEY + ")\" \\\n"
-                + "    | md5sum | cut -d ' ' -f 1)\"\n"
-                + "(\n"
-                + "echo \"\\\"pgbouncer_admin\\\" \\\"md5$PGBOUNCER_ADMIN_MD5\\\"\"\n"
-                + "echo \"\\\"pgbouncer_stats\\\" \\\"md5$PGBOUNCER_STATS_MD5\\\"\"\n"
-                + ") > \"" + ClusterStatefulSetPath.PGBOUNCER_AUTH_FILE_PATH.path() + "\"");
-  }
 }
