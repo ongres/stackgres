@@ -46,7 +46,7 @@ read_mock_table(){
 check_mock_data_samehost(){
   local CLUSTER_NAME="${1:-$CLUSTER_NAME}"
   local INSTANCE="${2:-0}"
-  RESPONSE=$(read_mock_table -i "$INSTANCE")
+  RESPONSE="$(read_mock_table -i "$INSTANCE")"
   if [ "$RESPONSE" = "54" ]
   then
     echo "Mock data is present"
@@ -57,7 +57,7 @@ check_mock_data_samehost(){
 
 check_mock_data(){
   local CLUSTER_NAME="${1:-$CLUSTER_NAME}"
-  RESPONSE=$(read_mock_table)
+  RESPONSE="$(read_mock_table)"
   if [ "$RESPONSE" = "54" ]
   then
     echo "Mock data is present"
@@ -67,15 +67,14 @@ check_mock_data(){
 }
 
 check_mock_data_replication(){
-  
   local CLUSTER_NAME="${1:-$CLUSTER_NAME}"
   local REPLICA_INDEX="$(get_replica_index)"
   SERVER="primary"
-  RESPONSE_PRIMARY=$(read_mock_table -i "$REPLICA_INDEX")
+  RESPONSE_PRIMARY="$(read_mock_table -i "$REPLICA_INDEX")"
 
   local PRIMARY_INDEX="$(get_primary_index)"
   SERVER="replicas"
-  RESPONSE_REPlICA=$(read_mock_table -i "$PRIMARY_INDEX")
+  RESPONSE_REPlICA="$(read_mock_table -i "$PRIMARY_INDEX")"
   if [ "$RESPONSE_PRIMARY" = "$RESPONSE_REPlICA" ]
   then
     return 0

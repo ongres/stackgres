@@ -7,7 +7,13 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_install() {
-  CLUSTER_NAME=security-upgrade
+  CLUSTER_1_NAME="$(get_sgcluster_name "$CLUSTER_NAME-1")"
+  CLUSTER_2_NAME="$(get_sgcluster_name "$CLUSTER_NAME-2")"
+  CLUSTER_3_NAME="$(get_sgcluster_name "$CLUSTER_NAME-3")"
+  DBOPS_1_NAME="$(get_sgdbops_name "security-upgrade-1")"
+  DBOPS_2_NAME="$(get_sgdbops_name "security-upgrade-2")"
+  DBOPS_3_NAME="$(get_sgdbops_name "security-upgrade-3")"
+
   PREVIOUS_PATRONI_IMAGE="$(get_component_images "$STACKGRES_PREVIOUS_VERSION" | grep '/patroni\(-ext\)\?:' | tail -n 1)"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_PATRONI_IMAGE##*-pg}"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
@@ -34,7 +40,7 @@ e2e_test_install() {
 
   install_minio
 
-  DISTRIBUTED_LOGS_NAME=distributedlogs
+  DISTRIBUTED_LOGS_NAME="$(get_sgdistributedlogs_name distributedlogs)"
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \
     --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
@@ -51,7 +57,7 @@ e2e_test_install() {
     --set-string distributedLogs.persistentVolume.size=128Mi
 
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
-    "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1 \
+    "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
     --set prometheusAutobind=true \
@@ -63,7 +69,7 @@ e2e_test_install() {
     --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
 
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
-    "$CLUSTER_NAME-2" "$CLUSTER_NAMESPACE" 2 \
+    "$CLUSTER_2_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
     --set prometheusAutobind=true \
@@ -75,7 +81,7 @@ e2e_test_install() {
     --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
 
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
-    "$CLUSTER_NAME-3" "$CLUSTER_NAMESPACE" 3 \
+    "$CLUSTER_3_NAME" "$CLUSTER_NAMESPACE" 3 \
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
     --set prometheusAutobind=true \
@@ -88,9 +94,9 @@ e2e_test_install() {
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 1 "$CLUSTER_NAME-1-[0-9]\+"
+  wait_pods_running "$CLUSTER_NAMESPACE" 1 "$CLUSTER_1_NAME-[0-9]\+"
 
-  BACKUP_NAME="$CLUSTER_NAME-backup-1"
+  BACKUP_NAME="$(get_sgbackup_name "$CLUSTER_NAME-backup-1")"
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/$(kubectl get crd sgbackups.stackgres.io --template '{{ (index .spec.versions 0).name }}')
@@ -99,7 +105,7 @@ metadata:
   namespace: "$CLUSTER_NAMESPACE"
   name: "$BACKUP_NAME"
 spec:
-  sgCluster: "$CLUSTER_NAME-1"
+  sgCluster: "$CLUSTER_1_NAME"
   managedLifecycle: false
 EOF
   
@@ -107,9 +113,9 @@ EOF
 
   BACKUP_UID="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --template='{{ .metadata.uid }}')"
 
-  remove_cluster "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE"
+  remove_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
-    "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1 \
+    "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
     --set prometheusAutobind=true \
@@ -123,14 +129,14 @@ EOF
 
   wait_pods_running "$CLUSTER_NAMESPACE" 9
 
-  wait_cluster "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE"
-  wait_cluster "$CLUSTER_NAME-2" "$CLUSTER_NAMESPACE"
-  wait_cluster "$CLUSTER_NAME-3" "$CLUSTER_NAMESPACE"
+  wait_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
+  wait_cluster "$CLUSTER_2_NAME" "$CLUSTER_NAMESPACE"
+  wait_cluster "$CLUSTER_3_NAME" "$CLUSTER_NAMESPACE"
   wait_cluster "$DISTRIBUTED_LOGS_NAME" "$CLUSTER_NAMESPACE"
 
-  generate_mock_data "$CLUSTER_NAME-1"
-  generate_mock_data "$CLUSTER_NAME-2"
-  generate_mock_data "$CLUSTER_NAME-3"
+  generate_mock_data "$CLUSTER_1_NAME"
+  generate_mock_data "$CLUSTER_2_NAME"
+  generate_mock_data "$CLUSTER_3_NAME"
 
   CLUSTER_CRD="sgclusters.stackgres.io"
 }
@@ -157,22 +163,22 @@ e2e_test() {
   run_test "Check that cluster with 1 node can complete security upgrade after operator upgrade with reduced impact" check_cluster_1_security_upgrade
   run_test "Check that cluster with 2 node can complete security upgrade after operator upgrade with reduced impact" check_cluster_2_security_upgrade
   run_test "Check that cluster with 3 node can complete security upgrade after operator upgrade with in-place" check_cluster_3_security_upgrade
-  run_test "Checking that metrics are exported for cluster with 1 node" check_metrics "$CLUSTER_NAME-1"
-  run_test "Checking that metrics are exported for cluster with 2 node" check_metrics "$CLUSTER_NAME-2"
-  run_test "Checking that metrics are exported for cluster with 3 node" check_metrics "$CLUSTER_NAME-3"
+  run_test "Checking that metrics are exported for cluster with 1 node" check_metrics "$CLUSTER_1_NAME"
+  run_test "Checking that metrics are exported for cluster with 2 node" check_metrics "$CLUSTER_2_NAME"
+  run_test "Checking that metrics are exported for cluster with 3 node" check_metrics "$CLUSTER_3_NAME"
   run_test "Check that the conversion webhooks are configured" check_conversion_webhooks_configured
 }
 
 check_before_operator_upgrade() {
-  check_mock_data_samehost "$CLUSTER_NAME-1"
-  check_mock_data "$CLUSTER_NAME-2"
-  check_mock_data "$CLUSTER_NAME-3"
+  check_mock_data_samehost "$CLUSTER_1_NAME"
+  check_mock_data "$CLUSTER_2_NAME"
+  check_mock_data "$CLUSTER_3_NAME"
 
   local RESOURCE
   for RESOURCE in \
-    "sgcluster/$CLUSTER_NAME-1" \
-    "sgcluster/$CLUSTER_NAME-2" \
-    "sgcluster/$CLUSTER_NAME-3" \
+    "sgcluster/$CLUSTER_1_NAME" \
+    "sgcluster/$CLUSTER_2_NAME" \
+    "sgcluster/$CLUSTER_3_NAME" \
     "sgdistributedlogs/$DISTRIBUTED_LOGS_NAME"
   do
     if ! kubectl wait -n "$CLUSTER_NAMESPACE" "$RESOURCE" --for condition=PendingRestart --timeout 0
@@ -268,33 +274,34 @@ check_distributedlogs_security_upgrade() {
 }
 
 check_cluster_1_security_upgrade_start() {
-  check_cluster_security_upgrade_start "$CLUSTER_NAME-1" "ReducedImpact"
+  check_cluster_security_upgrade_start "$CLUSTER_1_NAME" "$DBOPS_1_NAME" "ReducedImpact"
 }
 
 check_cluster_2_security_upgrade_start() {
-  check_cluster_security_upgrade_start "$CLUSTER_NAME-2" "ReducedImpact"
+  check_cluster_security_upgrade_start "$CLUSTER_2_NAME" "$DBOPS_2_NAME" "ReducedImpact"
 }
 
 check_cluster_3_security_upgrade_start() {
-  check_cluster_security_upgrade_start "$CLUSTER_NAME-3" "InPlace"
+  check_cluster_security_upgrade_start "$CLUSTER_3_NAME" "$DBOPS_3_NAME" "InPlace"
 }
 
 check_cluster_1_security_upgrade() {
-  check_cluster_security_upgrade "$CLUSTER_NAME-1" "ReducedImpact"
+  check_cluster_security_upgrade "$CLUSTER_1_NAME" "$DBOPS_1_NAME" "ReducedImpact"
 }
 
 check_cluster_2_security_upgrade() {
-  check_cluster_security_upgrade "$CLUSTER_NAME-2" "ReducedImpact"
+  check_cluster_security_upgrade "$CLUSTER_2_NAME" "$DBOPS_2_NAME" "ReducedImpact"
 }
 
 check_cluster_3_security_upgrade() {
-  check_cluster_security_upgrade "$CLUSTER_NAME-3" "InPlace"
+  check_cluster_security_upgrade "$CLUSTER_3_NAME" "$DBOPS_3_NAME" "InPlace"
 }
 
 check_cluster_security_upgrade_start() {
   local CLUSTER_NAME="$1"
-  local METHOD="$2"
-  shift 2
+  local DBOPS_NAME="$2"
+  local METHOD="$3"
+  shift 3
 
   check_cluster_before_security_upgrade
 
@@ -304,7 +311,7 @@ check_cluster_security_upgrade_start() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: $CLUSTER_NAME
+  name: $DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -313,7 +320,7 @@ spec:
     method: $METHOD
 EOF
 
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$CLUSTER_NAME" \
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --for condition=Running
   then
     echo "SUCCESS. Cluster $CLUSTER_NAME security upgrade running."
@@ -337,10 +344,11 @@ EOF
 
 check_cluster_security_upgrade() {
   local CLUSTER_NAME="$1"
-  local METHOD="$2"
-  shift 2
+  local DBOPS_NAME="$2"
+  local METHOD="$3"
+  shift 3
 
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$CLUSTER_NAME" \
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --for condition=Completed
   then
     echo "SUCCESS. Cluster $CLUSTER_NAME security upgrade completed."
@@ -447,11 +455,11 @@ check_cluster_after_security_upgrade() {
 }
 
 check_conversion_webhooks_configured(){
-  CONVERSTION_STRATEGY=$(kubectl get crd sgclusters.stackgres.io -o jsonpath='{.spec.conversion.strategy}')
+  CONVERSTION_STRATEGY="$(kubectl get crd sgclusters.stackgres.io -o jsonpath='{.spec.conversion.strategy}')"
 
   assert_string_equal "Webhook" "$CONVERSTION_STRATEGY"
 
-  CONVERSTION_STRATEGY=$(kubectl get crd sgdistributedlogs.stackgres.io -o jsonpath='{.spec.conversion.strategy}')
+  CONVERSTION_STRATEGY="$(kubectl get crd sgdistributedlogs.stackgres.io -o jsonpath='{.spec.conversion.strategy}')"
 
   assert_string_equal "Webhook" "$CONVERSTION_STRATEGY"
 }
@@ -459,7 +467,7 @@ check_conversion_webhooks_configured(){
 check_sts_is_not_altered() {
   local TARGET_CLUSTER="$1"
 
-  local STS_PATRONI_IMAGE=$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER" -o jsonpath='{.spec.template.spec.containers[0].image}')
+  local STS_PATRONI_IMAGE="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER" -o jsonpath='{.spec.template.spec.containers[0].image}')"
 
   if assert_string_equal "$PREVIOUS_PATRONI_IMAGE" "$STS_PATRONI_IMAGE"
   then

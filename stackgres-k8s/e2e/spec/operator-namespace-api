@@ -30,17 +30,17 @@ check_namespace() {
 }
 
 check_returned_namespaces() {
-  NAMESPACES_IN_RESPONSE=$(run_curl -r "stackgres/namespaces" -n $CLUSTER_NAMESPACE \
-    | jq -M -S 'sort_by(.)[]' )
+  NAMESPACES_IN_RESPONSE="$(run_curl -r "stackgres/namespaces" -n "$CLUSTER_NAMESPACE" \
+    | jq -M -S 'sort_by(.)[]' )"
 
-  NAMESPACES_IN_K8S=$(kubectl get ns -o json \
-    | jq -M -S '.items[].metadata.name')
+  NAMESPACES_IN_K8S="$(kubectl get ns -o json \
+    | jq -M -S '.items[].metadata.name')"
 
   [ "$NAMESPACES_IN_RESPONSE" = "$NAMESPACES_IN_K8S" ]
 }
 
 get_namespace_status() {
-  run_curl -r "stackgres/namespaces" -n $CLUSTER_NAMESPACE -e "-LI -o /dev/null -w %{http_code}"
+  run_curl -r "stackgres/namespaces" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}"
 }
 
 check_namespace_status() {

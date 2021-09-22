@@ -77,12 +77,12 @@ cypress_firefox_tests(){
 }
 
 check_index_on_not_found_resource(){
-  random_resource=$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)
-  HTTP_STATUS=$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s -k "https://$SERVICE.$OPERATOR_NAMESPACE/admin/$random_resource" -X GET -LI -o /dev/null -w '%{http_code}' 2>/dev/null)
+  RANDOM_RESOURCE="$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)"
+  HTTP_STATUS="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s -k "https://$SERVICE.$OPERATOR_NAMESPACE/admin/$RANDOM_RESOURCE" -X GET -LI -o /dev/null -w '%{http_code}' 2>/dev/null)"
 
   assert_string_equal "200" "$HTTP_STATUS"
 
-  HTTP_RESPONSE=$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s -k "https://$SERVICE.$OPERATOR_NAMESPACE/admin/$random_resource" -X GET -L 2>/dev/null)
+  HTTP_RESPONSE="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s -k "https://$SERVICE.$OPERATOR_NAMESPACE/admin/$RANDOM_RESOURCE" -X GET -L 2>/dev/null)"
 
   if echo "$HTTP_RESPONSE" | grep -E "<meta.+index" > /dev/null
   then
@@ -94,8 +94,8 @@ check_index_on_not_found_resource(){
 }
 
 check_http_port(){
-  random_resource=$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)
-  HTTP_STATUS=$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s "http://$SERVICE.$OPERATOR_NAMESPACE/admin" -X GET -LI -o /dev/null -w '%{http_code}' 2>/dev/null)
+  RANDOM_RESOURCE="$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)"
+  HTTP_STATUS="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s "http://$SERVICE.$OPERATOR_NAMESPACE/admin" -X GET -LI -o /dev/null -w '%{http_code}' 2>/dev/null)"
 
   if [ "$HTTP_STATUS" = "200" ]
   then

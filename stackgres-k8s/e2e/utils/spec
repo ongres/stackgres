@@ -7,6 +7,7 @@ export E2E_BEFORE_RUN_TEST_FUNCTION="${E2E_BEFORE_RUN_TEST_FUNCTION:-e2e_before_
 export E2E_AFTER_RUN_TEST_FUNCTION="${E2E_AFTER_RUN_TEST_FUNCTION:-e2e_after_run_test}"
 export E2E_TEST_UNINSTALL_FUNCTION="${E2E_TEST_UNINSTALL_FUNCTION:-e2e_test_uninstall}"
 export E2E_TEST_AFTER_ALL_FUNCTION="${E2E_TEST_AFTER_ALL_FUNCTION:-e2e_test_after_all}"
+export E2E_LOCK
 export SPEC_PATH="$E2E_PATH/spec"
 
 e2e_test_before_all() {
@@ -122,7 +123,7 @@ spec() {
   local SPEC_PATH="$(dirname "$SPEC_FILE")"
   local SPEC_NAME="$(basename "$SPEC_FILE")"
   local CLUSTER_NAMESPACE="$SPEC_NAME-$(printf '%x' "$(date +%s)")"
-  local CLUSTER_NAME="$SPEC_NAME"
+  local CLUSTER_NAME="$(get_sgcluster_name "$SPEC_NAME")"
   local E2E_SKIP_SPEC_INSTALL="${E2E_SKIP_SPEC_INSTALL:-false}"
   local E2E_SKIP_SPEC_BEFORE_ALL="${E2E_SKIP_SPEC_BEFORE_ALL:-false}"
   local E2E_SKIP_SPEC_AFTER_ALL="${E2E_SKIP_SPEC_AFTER_ALL:-false}"
@@ -141,15 +142,15 @@ spec() {
 
   if "${E2E_LOCK:-true}" && e2e_exclusive_lock
   then
-    E2E_LOCK=false flock "$TARGET_PATH/exclusive-lock" \
-      "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" spec "$1"
+    E2E_LOCK=false flock_shell "$TARGET_PATH/exclusive-lock" \
+      "$E2E_PATH/e2e" spec "$1"
     return
   fi
 
   if "${E2E_LOCK:-true}"
   then
-    E2E_LOCK=false flock -s "$TARGET_PATH/exclusive-lock" \
-      "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" spec "$1"
+    E2E_LOCK=false flock_shared_shell "$TARGET_PATH/exclusive-lock" \
+      "$E2E_PATH/e2e" spec "$1"
     return
   fi
 
@@ -165,8 +166,8 @@ spec() {
     done
     ) &
 
-  if ! flock "$TARGET_PATH/check-operator-lock" \
-      "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" reinstall_operator_if_not_as_expected >> "$LOG_PATH/$SPEC_NAME.log"
+  if ! flock_shell "$TARGET_PATH/check-operator-lock" \
+      "$E2E_PATH/e2e" reinstall_operator_if_not_as_expected >> "$LOG_PATH/$SPEC_NAME.log"
   then
     echo "$SPEC_NAME. Operator re-install failed. See file $LOG_PATH/$SPEC_NAME.log for details" > "$TARGET_PATH/$SPEC_NAME.failed"
     echo "$SPEC_NAME. Operator re-install failed. See file $LOG_PATH/$SPEC_NAME.log for details" >> "$TARGET_PATH/logs/results.log"

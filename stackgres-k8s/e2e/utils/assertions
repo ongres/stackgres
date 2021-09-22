@@ -58,7 +58,7 @@ assert_api_error(){
   EXPECTED_ERROR_TITLE="${EXPECTED_ERROR_TITLE:-"do not comply with the syntactic rules"}"
   EXPECTED_ERROR_DETAIL="${EXPECTED_ERROR_DETAIL:-"in body"}"
   EXPECTED_ERROR_FIELD="${EXPECTED_ERROR_FIELD:-""}"
-  ERROR_TYPE="$(echo $RESPONSE | jq '.type' )"
+  ERROR_TYPE="$(echo "$RESPONSE" | jq '.type' )"
 
   assert_string_contains "$EXPECTED_ERROR_TYPE" "$ERROR_TYPE"
 

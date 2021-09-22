@@ -1,9 +1,9 @@
 #!/bin/sh
 
 install_minio(){
-  MINIO_NAME=${MINIO_NAME:-$CLUSTER_NAME-minio}
-  BUCKET_NAME=${BUCKET_NAME:-stackgres}
-  MINIO_NAMESPACE=${MINIO_NAMESPACE:-$CLUSTER_NAMESPACE}
+  MINIO_NAME="${MINIO_NAME:-$CLUSTER_NAME-minio}"
+  BUCKET_NAME="${BUCKET_NAME:-stackgres}"
+  MINIO_NAMESPACE="${MINIO_NAMESPACE:-$CLUSTER_NAMESPACE}"
   kubectl create namespace "$MINIO_NAMESPACE" || true
 
   cat << EOF > "$LOG_PATH/minio.yaml"

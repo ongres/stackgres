@@ -42,7 +42,7 @@ check_exporter_service() {
 
   SERVICE="$CLUSTER_NAME-pgexp"
 
-  if wait_until kubectl get services -n "$CLUSTER_NAMESPACE" $SERVICE
+  if wait_until kubectl get services -n "$CLUSTER_NAMESPACE" "$SERVICE"
   then
     echo "Exporter service was created"
   else
@@ -54,7 +54,7 @@ check_exporter_service() {
 check_exporter_service_monitor() {
   local SERVICE_MONITOR="$CLUSTER_NAMESPACE-$CLUSTER_NAME-stackgres-postgres-exporter"
 
-  if wait_until kubectl get servicemonitors.monitoring.coreos.com -n "$(prometheus_namespace)" $SERVICE_MONITOR
+  if wait_until kubectl get servicemonitors.monitoring.coreos.com -n "$(prometheus_namespace)" "$SERVICE_MONITOR"
   then
     echo "Exporter service monitor was created"
   else
@@ -88,7 +88,7 @@ check_envoy_service() {
 
   SERVICE="$CLUSTER_NAME-envoyexp"
 
-  if wait_until kubectl get services -n "$CLUSTER_NAMESPACE" $SERVICE
+  if wait_until kubectl get services -n "$CLUSTER_NAMESPACE" "$SERVICE"
   then
     echo "Envoy service was created"
   else
@@ -100,7 +100,7 @@ check_envoy_service() {
 check_envoy_service_monitor() {
   local SERVICE_MONITOR="$CLUSTER_NAMESPACE-$CLUSTER_NAME-stackgres-envoy"
 
-  if wait_until kubectl get servicemonitors.monitoring.coreos.com -n "$(prometheus_namespace)" $SERVICE_MONITOR
+  if wait_until kubectl get servicemonitors.monitoring.coreos.com -n "$(prometheus_namespace)" "$SERVICE_MONITOR"
   then
     echo "Envoy service monitor was created"
   else

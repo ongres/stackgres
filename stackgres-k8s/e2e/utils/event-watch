@@ -24,7 +24,7 @@ event_watch() {
   done
   trap_exec kubectl get event "$NAMESPACE" --watch-only --no-headers -o json \
     | jq --unbuffered -r '.metadata.namespace + "/" + .metadata.name' \
-    | xargs -r -n 1 -I % "$SHELL" $SHELL_XTRACE -ec "kubectl get event -o '$OUTPUT' --no-headers -n \"\$(echo '%' | cut -d '/' -f 1)\" \"\$(echo '%' | cut -d '/' -f 2)\" 2>/dev/null || true" \
+    | xargs_shell % -ec "kubectl get event -o '$OUTPUT' --no-headers -n \"\$(echo '%' | cut -d '/' -f 1)\" \"\$(echo '%' | cut -d '/' -f 2)\" 2>/dev/null || true" \
     | (
       set +x
       while IFS="$(printf '\n')" read EVENT

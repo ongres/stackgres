@@ -1,8 +1,8 @@
 #!/bin/sh
 
 e2e_test_install() {
-  NODE_LABEL_KEY=$(random_string)
-  NODE_LABEL_VALUE=$(random_string)
+  NODE_LABEL_KEY="$(random_string)"
+  NODE_LABEL_VALUE="$(random_string)"
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
@@ -18,6 +18,7 @@ spec:
 EOF
 
   RECONCILIATION_IGNORE_ANNOTATION="stackgres.io/reconciliation-pause"
+  DISTRIBUTEDLOGS_NAME="$(get_sgdistributedlogs_name "$CLUSTER_NAME-logs")"
 }
 
 
@@ -106,7 +107,7 @@ ignore_sgdistributedlogs_create(){
 apiVersion: stackgres.io/v1
 kind: SGDistributedLogs
 metadata:
-  name: $CLUSTER_NAME-logs
+  name: $DISTRIBUTEDLOGS_NAME
   namespace: $CLUSTER_NAMESPACE
   annotations:
     $RECONCILIATION_IGNORE_ANNOTATION: "true"
@@ -128,13 +129,13 @@ EOF
 
 ignore_sgdistributedlogs_patch(){
   
-  kubectl annotate sgdistributedlogs "$CLUSTER_NAME-logs" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=false" --overwrite
+  kubectl annotate sgdistributedlogs "$DISTRIBUTEDLOGS_NAME" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=false" --overwrite
 
   wait_until has_logs_generated_resources
 
-  kubectl annotate sgdistributedlogs "$CLUSTER_NAME-logs" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=true"  --overwrite
+  kubectl annotate sgdistributedlogs "$DISTRIBUTEDLOGS_NAME" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=true"  --overwrite
 
-  kubectl patch sts "$CLUSTER_NAME-logs" -n "$CLUSTER_NAMESPACE" --type='json' \
+  kubectl patch sts "$DISTRIBUTEDLOGS_NAME" -n "$CLUSTER_NAMESPACE" --type='json' \
     -p='[{"op": "replace", "path": "/spec/replicas", "value": 2}]'
 
   if wait_until -t "15" eval '[ $(get_sgdistributedlogs_replicas) = 1 ]'
@@ -147,7 +148,7 @@ ignore_sgdistributedlogs_patch(){
 }
 
 resume_sgdistributedlogs_reconciliation(){
-  kubectl annotate sgdistributedlogs "$CLUSTER_NAME-logs" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=false" --overwrite
+  kubectl annotate sgdistributedlogs "$DISTRIBUTEDLOGS_NAME" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=false" --overwrite
 
   if wait_until -t "15" eval '[ $(get_sgdistributedlogs_replicas) = 1 ]'
   then
@@ -159,7 +160,7 @@ resume_sgdistributedlogs_reconciliation(){
 }
 
 has_logs_generated_resources(){
-  kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-logs"
+  kubectl get sts -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME"
 }
 
 get_cluster_replicas() {
@@ -167,13 +168,13 @@ get_cluster_replicas() {
 }
 
 get_sgdistributedlogs_replicas() {
-  kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-logs" -o jsonpath='{.spec.replicas}'
+  kubectl get sts -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o jsonpath='{.spec.replicas}'
 }
 
 patch_sgcluster_instances(){
   local DESIRED_INSTANCES="$1"
 
-  SG_INSTANCES=$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath='{.spec.instances}')
+  SG_INSTANCES="$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath='{.spec.instances}')"
 
   echo "Current SGCluster instances $SG_INSTANCES, patching to $DESIRED_INSTANCES"
 
@@ -183,7 +184,7 @@ patch_sgcluster_instances(){
       -p='[{"op": "replace", "path": "/spec/instances", "value": '"$DESIRED_INSTANCES"'}]'
     
     sleep 10
-    SG_INSTANCES=$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath='{.spec.instances}')
+    SG_INSTANCES="$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath='{.spec.instances}')"
     if [ ! "$SG_INSTANCES" = 2 ]
     then
       echo "Patch not applied... retrying"

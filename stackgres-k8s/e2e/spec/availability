@@ -109,7 +109,7 @@ init_pgbench(){
 }
 
 run_pgbench(){
-  OUTPUT=$(kubectl exec -it pgbench -c pgbench -n "$CLUSTER_NAMESPACE" -- pgbench -U pguser pgbench -T 20 -C)
+  OUTPUT="$(kubectl exec -it pgbench -c pgbench -n "$CLUSTER_NAMESPACE" -- pgbench -U pguser pgbench -T 20 -C)"
   echo "$OUTPUT"
 }
 
@@ -145,11 +145,11 @@ read_transactions_actually_processed(){
 }
 
 compare_results(){
-  BASE_TRANSACTIONS=$(read_transactions_actually_processed "$LOG_PATH/bench_baseline")
-  ACTUAL_TRANSACTIONS=$(read_transactions_actually_processed "$LOG_PATH/bench_target")
+  BASE_TRANSACTIONS="$(read_transactions_actually_processed "$LOG_PATH/bench_baseline")"
+  ACTUAL_TRANSACTIONS="$(read_transactions_actually_processed "$LOG_PATH/bench_target")"
   THRESHOLD=5
 
-  DIFFERENCE=$((100 - ((ACTUAL_TRANSACTIONS * 100) / BASE_TRANSACTIONS)))
+  DIFFERENCE="$((100 - ((ACTUAL_TRANSACTIONS * 100) / BASE_TRANSACTIONS) ))"
 
   if [ "$DIFFERENCE" -lt "5" ]
   then

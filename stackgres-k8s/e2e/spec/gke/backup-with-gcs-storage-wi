@@ -1,6 +1,7 @@
 #!/bin/sh
 
 e2e_test_install() {
+  RESTORED_CLUSTER_NAME="$(get_sgcluster_name restored-from-gcs)"
   gsutil -m rm -r "gs://stackgres-e2e-$CLUSTER_NAME/" || true
 
   gcloud iam --project "$K8S_GKE_PROJECT" service-accounts add-iam-policy-binding \
@@ -10,7 +11,7 @@ e2e_test_install() {
 
   gcloud iam --project "$K8S_GKE_PROJECT" service-accounts add-iam-policy-binding \
     --role roles/iam.workloadIdentityUser \
-    --member "serviceAccount:$K8S_GKE_PROJECT.svc.id.goog[$CLUSTER_NAMESPACE/restored-from-gcs-patroni]" \
+    --member "serviceAccount:$K8S_GKE_PROJECT.svc.id.goog[$CLUSTER_NAMESPACE/$RESTORED_CLUSTER_NAME-patroni]" \
     "$K8S_GKE_ACCOUNT_EMAIL"
 
   if [ "$K8S_GKE_PROJECT" = "default" ]
@@ -45,7 +46,7 @@ e2e_test_install() {
   wait_until check_connectivity -i 0
   create_mock_data
 
-  BACKUP_NAME="${CLUSTER_NAME}-0-$(shuf -i 0-65535 -n 1)"
+  BACKUP_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-0-$(shuf -i 0-65535 -n 1)")"
 }
 
 e2e_test_uninstall(){
@@ -97,13 +98,13 @@ EOF
 restore_from_backup() {
   kubectl delete sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
 
-  BACKUP_UID=$(kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.metadata.uid}')
+  BACKUP_UID="$(kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.metadata.uid}')"
 
   cat <<EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
-  name: restored-from-gcs
+  name: $RESTORED_CLUSTER_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 2
@@ -130,7 +131,7 @@ EOF
 }
 
 check_restored_data() {
-  REPLICA_RESPONSE=$(run_query -p 5432 -h "restored-from-gcs-replicas" -c "restored-from-gcs" -n $CLUSTER_NAMESPACE -i 1 -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")
+  REPLICA_RESPONSE="$(run_query -p 5432 -h "$RESTORED_CLUSTER_NAME-replicas" -c "$RESTORED_CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -i 1 -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")"
   if [ "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" = "123" ]
   then
     echo "SUCCESS: restore replica db restored successfully"

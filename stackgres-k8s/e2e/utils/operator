@@ -1,7 +1,5 @@
 #!/bin/sh
 
-. "$E2E_PATH/utils/helpers"
-
 export IMAGE_TAG="${IMAGE_TAG:-main-jvm}"
 export ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
 export OPERATOR_PUBLIC_REGISTRY="docker.io"
@@ -56,7 +54,7 @@ setup_images() {
     echo build_distributedlogs_controller_image
     echo build_adminui_image
     echo build_helm_artifacts
-    ) | xargs -n 1 -I % -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" %
+    ) | xargs_parallel_shell % "$E2E_PATH/e2e" %
   fi
 }
 
@@ -64,60 +62,60 @@ build_components() {
   (
   cd "$STACKGRES_PATH/src"
   ./mvnw -q clean package -DskipTests
-  sh $SHELL_XTRACE api-web/src/main/swagger/build.sh
+  shell api-web/src/main/swagger/build.sh
   )
 }
 
 build_operator_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh $SHELL_XTRACE "operator/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
+  shell "operator/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
   )
 }
 
 build_restapi_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh $SHELL_XTRACE "api-web/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
+  shell "api-web/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
   )
 }
 
 build_jobs_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh $SHELL_XTRACE "jobs/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
+  shell "jobs/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
   )
 }
 
 build_cluster_controller_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh $SHELL_XTRACE "cluster-controller/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
+  shell "cluster-controller/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
   )
 }
 
 build_distributedlogs_controller_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh $SHELL_XTRACE "distributedlogs-controller/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
+  shell "distributedlogs-controller/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
   )
 }
 
 build_adminui_image() {
   (
   cd "$STACKGRES_PATH/src"
-  sh $SHELL_XTRACE admin-ui/npmw install
-  sh $SHELL_XTRACE admin-ui/npmw run build
-  sh $SHELL_XTRACE admin-ui/build.sh
-  sh $SHELL_XTRACE "admin-ui/$STACKGRES_IMAGE_BUILDER/build.sh"
+  shell admin-ui/npmw install
+  shell admin-ui/npmw run build
+  shell admin-ui/build.sh
+  shell "admin-ui/$STACKGRES_IMAGE_BUILDER/build.sh"
   )
 }
 
 build_helm_artifacts() {
   (
   cd "$STACKGRES_PATH/install/helm"
-  sh $SHELL_XTRACE build-helm-packages.sh
-  sh $SHELL_XTRACE build-helm-templates.sh
+  shell build-helm-packages.sh
+  shell build-helm-templates.sh
   )
 }
 
@@ -246,7 +244,7 @@ load_operator_k8s() {
         "$ADMINUI_IMAGE_NAME"
       do
         echo "$IMAGE_NAME"
-      done | xargs -n 1 -I % -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" \
+      done | xargs_parallel_shell % "$E2E_PATH/e2e" \
         pull_image_from "$E2E_OPERATOR_REGISTRY" "$E2E_OPERATOR_REGISTRY_PATH" "%"
       echo "All operator images loaded from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
     else
@@ -260,16 +258,17 @@ load_operator_k8s() {
         "$ADMINUI_IMAGE_NAME"
       do
         echo "$IMAGE_NAME"
-      done | xargs -n 1 -I % -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" \
+      done | xargs_parallel_shell % "$E2E_PATH/e2e" \
         docker_pull "%"
       echo "All operator images loaded from ${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}"
     fi
-  fi
-  if [ -n "$E2E_COMPONENTS_REGISTRY" ]
-  then
-    echo "Loading component images from ${E2E_COMPONENTS_REGISTRY}${E2E_COMPONENTS_REGISTRY_PATH}"
-    load_component_images_from "$E2E_COMPONENTS_REGISTRY" "$E2E_COMPONENTS_REGISTRY_PATH"
-    echo "All component images loaded from ${E2E_COMPONENTS_REGISTRY}${E2E_COMPONENTS_REGISTRY_PATH}"
+
+    if [ -n "$E2E_COMPONENTS_REGISTRY" ]
+    then
+      echo "Loading component images from ${E2E_COMPONENTS_REGISTRY}${E2E_COMPONENTS_REGISTRY_PATH}"
+      load_component_images_from "$E2E_COMPONENTS_REGISTRY" "$E2E_COMPONENTS_REGISTRY_PATH"
+      echo "All component images loaded from ${E2E_COMPONENTS_REGISTRY}${E2E_COMPONENTS_REGISTRY_PATH}"
+    fi
   fi
 
   if [ -n "$1" ]
@@ -312,7 +311,7 @@ load_operator_k8s_only() {
     "$ADMINUI_IMAGE_NAME"
   do
     echo "$IMAGE_NAME"
-  done | xargs -n 1 -I % -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" load_image_k8s '%'
+  done | xargs_parallel_shell % "$E2E_PATH/e2e" load_image_k8s '%'
   echo "All operator images loaded into Kubernetes registry"
 }
 
@@ -329,7 +328,7 @@ pull_image_from() {
 }
 
 operator_pull_policy() {
-  echo $E2E_OPERATOR_PULL_POLICY
+  echo "$E2E_OPERATOR_PULL_POLICY"
 }
 
 install_operator() {
@@ -380,12 +379,14 @@ install_operator_only() {
   then
     echo "Installing operator intermediate repo"
     set_up_private_repository
+    # shellcheck disable=SC2086
     upgrade_operator_from_private_repository \
       --install \
       $E2E_OPERATOR_OPTS "$@"
     return
   else
     echo "Installing operator vanilla"
+    # shellcheck disable=SC2086
     upgrade_operator_vanilla \
     --install \
     --set-string operator.image.name="${OPERATOR_IMAGE_NAME%:*}" --set-string operator.image.tag="${OPERATOR_IMAGE_NAME#*:}" \
@@ -415,6 +416,7 @@ install_operator_previous_version() {
   kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null 2>&1 \
     || kubectl create namespace "$OPERATOR_NAMESPACE"
 
+  # shellcheck disable=SC2086
   install_operator_vanilla_from "$OPERATOR_PREVIOUS_VERSION_HELM_URL" \
     $E2E_OPERATOR_OPTS "$@"
 }
@@ -428,6 +430,7 @@ install_operator_vanilla() {
 install_operator_vanilla_from() {
   helm install stackgres-operator --namespace "$OPERATOR_NAMESPACE" \
     "$@"
+  set_max_length
   update_ui_clear_password
 }
 
@@ -435,12 +438,14 @@ upgrade_operator() {
   if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" = true ]
   then
     set_up_private_repository
+    # shellcheck disable=SC2086
     upgrade_operator_from_private_repository \
       --reuse-values \
       $E2E_OPERATOR_OPTS "$@"
     return
   fi
 
+  # shellcheck disable=SC2086
   upgrade_operator_vanilla \
     --set-string operator.image.name="${OPERATOR_IMAGE_NAME%:*}" --set-string operator.image.tag="${OPERATOR_IMAGE_NAME#*:}" \
     --set-string "operator.image.pullPolicy=$(operator_pull_policy)" \
@@ -467,6 +472,7 @@ upgrade_operator() {
 
 upgrade_operator_vanilla() {
   helm upgrade stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$OPERATOR_CHART_PATH" "$@"
+  set_max_length
   update_ui_clear_password
 }
 
@@ -573,7 +579,7 @@ load_component_images_from() {
   local IMAGE_PATH="${2:-$COMPONENT_PUBLIC_REGISTRY_PATH}"
   local VERSION="${3:-$STACKGRES_VERSION}"
   get_component_images "$VERSION" \
-    | xargs -n 1 -I % -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" \
+    | xargs_parallel_shell % "$E2E_PATH/e2e" \
       load_component_image_from "$REPOSITORY" "$IMAGE_PATH" '%'
 }
 
@@ -1016,4 +1022,60 @@ setup_versions() {
   echo "* Previous StackGres operator image used is $STACKGRES_PREVIOUS_OPERATOR_IMAGE"
   echo "* Previous StackGres restapi image used is $STACKGRES_PREVIOUS_RESTAPI_IMAGE"
   echo "* Previous StackGres admin-ui image used is $STACKGRES_PREVIOUS_ADMINUI_IMAGE"
+}
+
+get_sgcluster_name() {
+  get_cr_name "$1" sgclusters.stackgres.io
+}
+
+get_sgdistributedlogs_name() {
+  get_cr_name "$1" sgdistributedlogs.stackgres.io
+}
+
+get_sgbackup_name() {
+  get_cr_name "$1" sgbackups.stackgres.io
+}
+
+get_sgdbops_name() {
+  get_cr_name "$1" sgdbops.stackgres.io
+}
+
+get_cr_name() {
+  [ -n "$1" -a -n "$2" ]
+  if [ "$E2E_SET_MAX_LENGTH_NAMES" = true ]
+  then
+    MAX_LENGTH="$(kubectl get crd "$2" \
+      -o jsonpath="{ .spec.versions[0].schema.openAPIV3Schema.properties.metadata.properties.name.maxLength }")"
+    MAX_LENGTH="${MAX_LENGTH:-0}"
+    CURRENT_LENGTH="$(printf '%s' "$1" | wc -c)"
+    if [ "$MAX_LENGTH" -ge "$CURRENT_LENGTH" ]
+    then
+      printf '%s' "$1"
+      local INDEX
+      for INDEX in $(seq 1 "$((MAX_LENGTH - CURRENT_LENGTH))")
+      do
+        printf 'x'
+      done
+    else
+      printf '%s' "$1" | head -c "$MAX_LENGTH"
+    fi
+    return
+  fi
+  printf '%s' "$1"
+}
+
+set_max_length() {
+  if [ "$E2E_SET_MAX_LENGTH_NAMES_PLUS_ONE" = true ]
+  then
+    local CRD_NAME
+    for CRD_NAME in sgclusters.stackgres.io sgdistributedlogs.stackgres.io sgbackups.stackgres.io sgdbops.stackgres.io
+    do
+      kubectl get crd "$CRD_NAME" -o json | jq '
+        if .spec.versions[0].schema.openAPIV3Schema.properties.metadata.properties.name.maxLength != null
+        then (.spec.versions[0].schema.openAPIV3Schema.properties.metadata.properties.name.maxLength =
+          (.spec.versions[0].schema.openAPIV3Schema.properties.metadata.properties.name.maxLength + 1))
+	else . end' \
+        | kubectl patch crd "$CRD_NAME" --type merge -p "$(cat)"
+    done
+  fi
 }

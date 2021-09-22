@@ -260,7 +260,7 @@ do
     fi
     SPECS_FAILED=""
     echo "$SPECS_TO_RUN" | tr ' ' '\n' \
-      | xargs -r -n 1 -I % -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE -c "'$SHELL' $SHELL_XTRACE '$E2E_PATH/e2e' spec '%'" || true
+      | xargs_parallel_shell % -c "'$SHELL' $SHELL_XTRACE '$E2E_PATH/e2e' spec '%'" || true
     BATCH_FAILED=false
     for FAILED in $(find "$TARGET_PATH" -maxdepth 1 -type f -name '*.failed')
     do

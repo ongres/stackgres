@@ -17,7 +17,7 @@ check_restart_is_working() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: restart
+  name: $DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -26,7 +26,7 @@ EOF
 
   check_restart
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" restart
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 }
 
 check_restart_in_place_is_working() {
@@ -36,7 +36,7 @@ check_restart_in_place_is_working() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: restart
+  name: $DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -47,7 +47,7 @@ EOF
 
   check_restart
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" restart
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 }
 
 check_restart_only_pending_restart_is_working() {
@@ -68,7 +68,7 @@ EOF
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: restart
+  name: $DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -80,6 +80,6 @@ EOF
 
   check_restart "$CLUSTER_NAME-0" "$CLUSTER_NAME-1"
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" restart
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 }
 

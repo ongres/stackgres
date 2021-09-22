@@ -27,7 +27,7 @@ get_k8s_env_version() {
 }
 
 set_up_resource_group(){
-  RS_EXISTS=$(az group exists --name "$K8S_AZ_RESOURCE_GROUP")
+  RS_EXISTS="$(az group exists --name "$K8S_AZ_RESOURCE_GROUP")"
   if [ "$RS_EXISTS" = true ]
   then
     echo "Deleting previous resource group"

@@ -1,24 +1,25 @@
 #!/bin/sh
 
 e2e_test_install() {
-
-  export MINIO_NAME="$CLUSTER_NAME-backup-minio"
-  export BUCKET_NAME="$CLUSTER_NAME-backup"
-  export MINIO_NAMESPACE="$CLUSTER_NAMESPACE-backup"
+  BACKUP_CLUSTER_NAME="$(get_sgcluster_name "$CLUSTER_NAME-backup")"
+  MINIO_NAME="$CLUSTER_NAME-backup-minio"
+  BUCKET_NAME="$CLUSTER_NAME-backup"
+  MINIO_NAMESPACE="$CLUSTER_NAMESPACE-backup"
   install_minio
 
   SPEC_VALUES_FILE="$SPEC_FILE.backup.values.yaml"
 
   local ENDPOINT="http://restore-backup-minio.$CLUSTER_NAMESPACE-backup.svc.cluster.local:9000"
-  create_or_replace_cluster "$CLUSTER_NAME-backup" "$CLUSTER_NAMESPACE-backup" 1 \
+  create_or_replace_cluster "$BACKUP_CLUSTER_NAME" "$CLUSTER_NAMESPACE-backup" 1 \
     --set-string "configurations.backupconfig.storage.s3Compatible.endpoint=$ENDPOINT"
 
   wait_pods_running "$CLUSTER_NAMESPACE-backup" 2
-  wait_cluster "$CLUSTER_NAME-backup" "$CLUSTER_NAMESPACE-backup"
+  wait_cluster "$BACKUP_CLUSTER_NAME" "$CLUSTER_NAMESPACE-backup"
 
   create_mock_data
 
-  BACKUP_NAME="$CLUSTER_NAME-backup-0-$(shuf -i 0-65535 -n 1)"
+  BACKUP_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-backup-0-$(shuf -i 0-65535 -n 1)")"
+  ALTER_CLUSTER_NAME="$(get_sgcluster_name "$CLUSTER_NAME-alter")"
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
@@ -27,13 +28,13 @@ metadata:
   namespace: "$CLUSTER_NAMESPACE-backup"
   name: "$BACKUP_NAME"
 spec:
-  sgCluster: "$CLUSTER_NAME-backup"
+  sgCluster: "$BACKUP_CLUSTER_NAME"
   managedLifecycle: false
 EOF
   
   wait_until is_backup_phase "Completed"
 
-  BACKUP_UID="$(kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE-backup" $BACKUP_NAME -o=jsonpath='{.metadata.uid}')"
+  BACKUP_UID="$(kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE-backup" "$BACKUP_NAME" -o=jsonpath='{.metadata.uid}')"
 
   BACKUP_PITR_DATE="$(date +%Y-%m-%dT%H:%M:%SZ --utc)"
   sleep 2
@@ -55,7 +56,7 @@ is_backup_phase() {
 
 e2e_test_uninstall() {
   helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" || true
-  helm_cleanup_chart "$CLUSTER_NAME-backup" "$CLUSTER_NAMESPACE" || true
+  helm_cleanup_chart "$BACKUP_CLUSTER_NAME" "$CLUSTER_NAMESPACE" || true
 
   k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE" || true
   k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE-backup" || true
@@ -71,24 +72,24 @@ e2e_test() {
 }
 
 create_mock_data() {
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "CREATE DATABASE test;"
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -d "test" -q "CREATE TABLE fibonacci(num integer);"
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -d "test" -q "INSERT INTO fibonacci(num) VALUES (1);"
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -d "test" -q "INSERT INTO fibonacci(num) VALUES (2);"
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -d "test" -q "INSERT INTO fibonacci(num) VALUES (3);"
+  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$BACKUP_CLUSTER_NAME" -q "CREATE DATABASE test;"
+  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "CREATE TABLE fibonacci(num integer);"
+  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "INSERT INTO fibonacci(num) VALUES (1);"
+  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "INSERT INTO fibonacci(num) VALUES (2);"
+  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "INSERT INTO fibonacci(num) VALUES (3);"
 }
 
 create_more_mock_data() {
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -d "test" -q "INSERT INTO fibonacci(num) VALUES (5);"
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -d "test" -q "INSERT INTO fibonacci(num) VALUES (8);"
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -d "test" -q "INSERT INTO fibonacci(num) VALUES (13);"
-  CURRENT_WAL_FILE="$(run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -d "test" \
+  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "INSERT INTO fibonacci(num) VALUES (5);"
+  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "INSERT INTO fibonacci(num) VALUES (8);"
+  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "INSERT INTO fibonacci(num) VALUES (13);"
+  CURRENT_WAL_FILE="$(run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$BACKUP_CLUSTER_NAME" -d "test" \
     -q "SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r")"
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -d "test" -q "CHECKPOINT;"
-  wait_until -t "$((E2E_TIMEOUT / 10))" eval '[ "$(run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -d "test" \
+  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "CHECKPOINT;"
+  wait_until -t "$((E2E_TIMEOUT / 10))" eval '[ "$(run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$BACKUP_CLUSTER_NAME" -d "test" \
     -q "SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r")" != "$CURRENT_WAL_FILE" ]'
   wait_until -t "$((E2E_TIMEOUT / 10))" timeout -s KILL "$((E2E_TIMEOUT / 20))" \
-    kubectl exec -n "$CLUSTER_NAMESPACE-backup" "$CLUSTER_NAME-backup-0" -c patroni -- \
+    kubectl exec -n "$CLUSTER_NAMESPACE-backup" "$BACKUP_CLUSTER_NAME-0" -c patroni -- \
     exec-with-env backup -- wal-g wal-fetch "$CURRENT_WAL_FILE" "/tmp/$CURRENT_WAL_FILE"
 }
 
@@ -165,7 +166,7 @@ EOF
 apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
-  name: $CLUSTER_NAME-alter
+  name: $ALTER_CLUSTER_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1

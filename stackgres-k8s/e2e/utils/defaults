@@ -3,9 +3,9 @@ get_default_cr(){
   CRD="$1"
   shift 1
 
-  CR_NAME=$(kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" -o json \
+  CR_NAME="$(kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" -o json \
     | jq -r ".items[]|select(.metadata.annotations[\"stackgres.io/operatorVersion\"] == \"$STACKGRES_VERSION\")|.metadata.name" \
-    | head -n 1 )
+    | head -n 1 )"
 
   kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" "$CR_NAME" "$@"
 }
@@ -32,7 +32,7 @@ get_generated_cr(){
   CRD="$1"
   shift 1
 
-  CR_NAME=$(kubectl get "$CRD" -n "$NAMESPACE" -o jsonpath='{.items[*].metadata.name}')
+  CR_NAME="$(kubectl get "$CRD" -n "$NAMESPACE" -o jsonpath='{.items[*].metadata.name}')"
   kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" "$CR_NAME" "$@"
 }
 

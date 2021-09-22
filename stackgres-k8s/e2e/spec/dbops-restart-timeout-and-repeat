@@ -15,7 +15,7 @@ check_restart_timed_out() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: restart
+  name: $DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -25,7 +25,7 @@ spec:
     method: InPlace
 EOF
 
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops restart \
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --for condition=Failed
   then
     echo "SUCCESS. restart failed."
@@ -35,7 +35,7 @@ EOF
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "dbops-name=restart,db-ops=true" \
+    -l "dbops-name=$DBOPS_NAME,db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
     echo "SUCCESS. restart job was not removed after failure."
@@ -44,10 +44,10 @@ EOF
     return 1
   fi
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" restart
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 
   if wait_until eval '[ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "dbops-name=restart,db-ops=true" \
+    -l "dbops-name=$DBOPS_NAME,db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 0 ]'
   then
     echo "SUCCESS. restart job was removed after sgdbops was removed."
@@ -65,7 +65,7 @@ check_restart_repeat() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: restart
+  name: $DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -76,5 +76,5 @@ EOF
 
   check_restart
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" restart
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 }

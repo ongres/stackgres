@@ -2,19 +2,10 @@
 
 set -e
 
-export SHELL="$(readlink /proc/$$/exe)"
-if [ "$(basename "$SHELL")" = busybox ]
-then
-  SHELL=sh
-fi
-SHELL_XTRACE="$(! echo $- | grep -q x || echo "-x")"
-
 export E2E_PATH="$(realpath "$(dirname "$0")")"
 export E2E_PARALLELISM="${E2E_PARALLELISM:-$(getconf _NPROCESSORS_ONLN)}"
 export TARGET_PATH="$(realpath "${TARGET_PATH:-$E2E_PATH/target}")"
 export LOG_PATH="$TARGET_PATH"
-
-[ -z "$SHELL_XTRACE" ] || set +x
 
 if ! command -v local > /dev/null 2>&1
 then
@@ -28,6 +19,10 @@ e2e_add_source() {
   eval "E2E_SOURCES_$E2E_SOURCES=$1"
   E2E_SOURCES="$((E2E_SOURCES + 1))"
 }
+
+. "$E2E_PATH/helpers"
+
+[ -z "$SHELL_XTRACE" ] || set +x
 
 UTIL_PATHS="$(find "$E2E_PATH/utils" -type f)"
 for UTIL_PATH in $UTIL_PATHS

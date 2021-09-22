@@ -77,6 +77,7 @@ run_curl() {
   then
     [ -f "$DATA_FILENAME" ]
     tar cf - "$DATA_FILENAME" | kubectl exec -i -n "$NAMESPACE" "$POD" -- tar xf - -C /tmp
+    # shellcheck disable=SC2086
     kubectl exec -n "$NAMESPACE" "$POD" -- \
       curl -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
       -H "Authorization: Bearer $JWT" \
@@ -84,6 +85,7 @@ run_curl() {
       -H "Accept: $ACCEPT"  \
       --data @"/tmp/$DATA_FILENAME" -s $EXTRA_PARAMETERS
   else
+    # shellcheck disable=SC2086
     kubectl exec -n "$NAMESPACE" "$POD" -- \
       curl -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
       -H "Authorization: Bearer $JWT" \

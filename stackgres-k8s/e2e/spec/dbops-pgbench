@@ -1,6 +1,8 @@
 #!/bin/sh
 
 e2e_test_install() {
+  DBOPS_NAME=pgbench
+
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
@@ -24,7 +26,7 @@ check_pgbench_is_working() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: benchmark
+  name: $DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -38,7 +40,7 @@ EOF
 
   check_pgbench
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" benchmark
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 }
 
 check_pgbench_many_is_working() {
@@ -46,7 +48,7 @@ check_pgbench_many_is_working() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: benchmark
+  name: $DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -62,7 +64,7 @@ EOF
 
   check_pgbench
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" benchmark
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 }
 
 check_pgbench_prepared_is_working() {
@@ -70,7 +72,7 @@ check_pgbench_prepared_is_working() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: benchmark
+  name: $DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -85,7 +87,7 @@ EOF
 
   check_pgbench
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" benchmark
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 }
 
 check_pgbench_replicas_is_working() {
@@ -93,7 +95,7 @@ check_pgbench_replicas_is_working() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: benchmark
+  name: $DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -108,11 +110,11 @@ EOF
 
   check_pgbench
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" benchmark
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 }
 
 check_pgbench() {
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --for condition=Running
   then
     echo "SUCCESS. benchmark running."
@@ -121,7 +123,7 @@ check_pgbench() {
     return 1
   fi
 
-  if kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+  if kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --for condition=Completed
   then
     echo "SUCCESS. pgbench completed."
@@ -131,7 +133,7 @@ check_pgbench() {
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "dbops-name=benchmark,db-ops=true" \
+    -l "dbops-name=$DBOPS_NAME,db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
     echo "SUCCESS. pgbench job was not removed after completion."
@@ -140,7 +142,7 @@ check_pgbench() {
     return 1
   fi
 
-  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --template '{{ .status.benchmark.pgbench.scaleFactor }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
   then
     echo "SUCCESS. pgbench returned the scale factor."
@@ -149,7 +151,7 @@ check_pgbench() {
     return 1
   fi
 
-  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --template '{{ .status.benchmark.pgbench.transactionsProcessed }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
   then
     echo "SUCCESS. pgbench returned the transactions processed."
@@ -158,7 +160,7 @@ check_pgbench() {
     return 1
   fi
 
-  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --template '{{ .status.benchmark.pgbench.latency.average.value }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
   then
     echo "SUCCESS. pgbench returned the average latency."
@@ -167,7 +169,7 @@ check_pgbench() {
     return 1
   fi
 
-  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --template '{{ .status.benchmark.pgbench.latency.average.unit }}')" \
     = "ms" ]
   then
@@ -177,7 +179,7 @@ check_pgbench() {
     return 1
   fi
 
-  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --template '{{ .status.benchmark.pgbench.latency.standardDeviation.value}}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
   then
     echo "SUCCESS. pgbench returned the latency standard deviation."
@@ -186,7 +188,7 @@ check_pgbench() {
     return 1
   fi
 
-  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --template '{{ .status.benchmark.pgbench.latency.standardDeviation.unit}}')" \
     = "ms" ]
   then
@@ -196,7 +198,7 @@ check_pgbench() {
     return 1
   fi
 
-  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --template '{{ .status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing.value }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
   then
     echo "SUCCESS. pgbench returned the tps including connections establishing."
@@ -205,7 +207,7 @@ check_pgbench() {
     return 1
   fi
 
-  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --template '{{ .status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing.unit }}')" \
     = "tps" ]
   then
@@ -215,7 +217,7 @@ check_pgbench() {
     return 1
   fi
 
-  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --template '{{ .status.benchmark.pgbench.transactionsPerSecond.excludingConnectionsEstablishing.value }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
   then
     echo "SUCCESS. pgbench returned the tps excluding connections establishing."
@@ -224,7 +226,7 @@ check_pgbench() {
     return 1
   fi
 
-  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --template '{{ .status.benchmark.pgbench.transactionsPerSecond.excludingConnectionsEstablishing.unit }}')" \
     = "tps" ]
   then
@@ -249,7 +251,7 @@ check_pgbench_timed_out() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: benchmark
+  name: $DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -262,7 +264,7 @@ spec:
       duration: PT10S
 EOF
 
-  if kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "benchmark" \
+  if kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --for condition=Failed
   then
     echo "SUCCESS. pgbench failed."
@@ -272,7 +274,7 @@ EOF
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "dbops-name=benchmark,db-ops=true" \
+    -l "dbops-name=$DBOPS_NAME,db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
     echo "SUCCESS. pgbench job was not removed after failure."
@@ -281,10 +283,10 @@ EOF
     return 1
   fi
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" benchmark
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 
   if wait_until eval '[ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "dbops-name=benchmark,db-ops=true" \
+    -l "dbops-name=$DBOPS_NAME,db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 0 ]'
   then
     echo "SUCCESS. pgbench job was removed after sgdbops was removed."

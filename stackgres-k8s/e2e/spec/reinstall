@@ -25,18 +25,20 @@ check_cluster_reset() {
   generate_mock_data
   check_mock_data
 
+  DBOPS_NAME="$(get_sgdbops_name vacuum)"
+
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: vacuum
+  name: $DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
   op: vacuum
 EOF
 
-  kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "vacuum" \
+  kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --for condition=Completed
 
   VACUUM_JOB_UID="$(kubectl get job -n "$CLUSTER_NAMESPACE" -l app=StackGresDbOps \

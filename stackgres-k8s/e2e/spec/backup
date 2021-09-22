@@ -32,7 +32,7 @@ e2e_test() {
 }
 
 check_cron_job_security_context() {
-  local RUN_AS_NON_ROOT=$(kubectl get cronjobs.batch -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-backup -o jsonpath='{.spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot}')
+  local RUN_AS_NON_ROOT="$(kubectl get cronjobs.batch -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-backup -o jsonpath='{.spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot}')"
   assert_string_equal "true" "$RUN_AS_NON_ROOT"
 }
 
@@ -60,8 +60,8 @@ check_backup_not_delect_after_cluster() {
 
   wait_pods_terminated "$CLUSTER_NAMESPACE" 2
 
-  BACKUPS_COUNT=$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o json | jq '.items | length')
+  BACKUPS_COUNT="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o json | jq '.items | length')"
 
-  assert_greater_than 0 $BACKUPS_COUNT
+  assert_greater_than 0 "$BACKUPS_COUNT"
 }
 
