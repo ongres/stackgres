@@ -10,10 +10,13 @@ import java.io.IOException;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
+import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceDecoratorTest;
 import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.fixture.StackGresClusterFixture;
@@ -48,6 +51,11 @@ class DbOpsRequiredResourceDecoratorTest
   }
 
   @Override
+  public void assertThatResourceNameIsComplaint(HasMetadata resource) {
+    ResourceUtil.resourceName(resource.getMetadata().getName());
+  }
+
+  @Override
   protected RequiredResourceDecorator<StackGresDbOpsContext> getResourceDecorator() {
     return this.resourceDecorator;
   }
@@ -63,4 +71,13 @@ class DbOpsRequiredResourceDecoratorTest
         .cluster(cluster)
         .build();
   }
+
+  @Override
+  protected void injectExtraLabelsGeneratedByKubernetes(HasMetadata resource) {
+    if (resource instanceof Job) {
+      PodTemplateSpec template = ((Job) resource).getSpec().getTemplate();
+      resource.getMetadata().getLabels().put("job-name", template.getMetadata().getName());
+    }
+  }
+
 }

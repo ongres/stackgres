@@ -14,6 +14,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceDecoratorTest;
 import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.fixture.StackGresBackupConfigFixture;
@@ -57,12 +58,22 @@ public class BackupRequiredResourceDecoratorTest
   }
 
   @Override
+  public void assertThatResourceNameIsComplaint(HasMetadata resource) {
+    ResourceUtil.resourceName(resource.getMetadata().getName());
+  }
+
+  @Override
   protected StackGresBackupContext getResourceContext() throws IOException {
     return ImmutableStackGresBackupContext.builder()
         .source(resource)
         .cluster(cluster)
         .backupConfig(backupConfig)
         .build();
+  }
+
+  @Override
+  protected void injectExtraLabelsGeneratedByKubernetes(HasMetadata resource) {
+
   }
 
 }

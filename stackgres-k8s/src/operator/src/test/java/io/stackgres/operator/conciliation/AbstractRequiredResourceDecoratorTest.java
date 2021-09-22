@@ -7,9 +7,6 @@ package io.stackgres.operator.conciliation;
 
 import static io.stackgres.operator.validation.CrdMatchTestHelper.getMaxLengthResourceNameFrom;
 import static io.stackgres.testutil.StringUtils.getRandomClusterNameWithExactlySize;
-import static java.lang.String.format;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -31,6 +28,8 @@ import org.junit.jupiter.api.Test;
 
 public abstract class AbstractRequiredResourceDecoratorTest<T> {
 
+  protected static final String CONTROLLER_REVISION_HASH = "controller-revision-hash";
+
   @Test
   void shouldCreateResourceSuccessfully_OnceUsingTheCurrentCrdMaxLength() throws IOException {
 
@@ -42,14 +41,7 @@ public abstract class AbstractRequiredResourceDecoratorTest<T> {
         getResourceDecorator().decorateResources(getResourceContext());
     decorateResources.stream().forEach(
         resource -> {
-          try {
-            assertNameAndLabels(resource);
-          } catch (Exception e) {
-            throw new RuntimeException(
-                String.format("Validation for resource %s of kind %s failed",
-                    resource.getMetadata().getName(), resource.getKind()),
-                e);
-          }
+          assertNameAndLabels(resource);
         });
   }
 
@@ -60,30 +52,13 @@ public abstract class AbstractRequiredResourceDecoratorTest<T> {
       asserThatLabelIsComplaint(label);
     });
 
+    injectExtraLabelsGeneratedByKubernetes(resource);
     assertThatStatefulSetResourceLabelsAreComplaints(resource);
     assertThatCronJobResourceLabelsAreComplaints(resource);
     assertThatJobResourceLabelsAreComplaints(resource);
   }
 
-  @Test
-  void shouldGetAnExceededNameMessage_OnceUsingAnExceededMaxLengthName() throws IOException {
-
-    String validClusterName =
-        getRandomClusterNameWithExactlySize(getMaxLengthResourceNameFrom(usingCrdFilename()) + 1);
-    getResource().getMetadata().setName(validClusterName);
-
-    Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-      List<HasMetadata> decorateResources =
-          getResourceDecorator().decorateResources(getResourceContext());
-      decorateResources.stream().forEach(
-          resource -> {
-            assertNameAndLabels(resource);
-          });
-    });
-    String errorMessage = format("Validation for resource %s of kind %s failed",
-        getResource().getMetadata().getName(), getResource().getKind());
-    assertEquals(errorMessage, "Valid name must be 63 characters or less", exception.getMessage());
-  }
+  protected abstract void injectExtraLabelsGeneratedByKubernetes(HasMetadata resource);
 
   protected abstract String usingCrdFilename();
 
@@ -96,9 +71,16 @@ public abstract class AbstractRequiredResourceDecoratorTest<T> {
   public void assertThatResourceNameIsComplaint(HasMetadata resource) {
     if (resource instanceof Service) {
       ResourceUtil.nameIsValidService(resource.getMetadata().getName());
-    } else {
-      ResourceUtil.nameIsValidDnsSubdomain(resource.getMetadata().getName());
+      return;
     }
+
+    if (resource instanceof StatefulSet) {
+      ResourceUtil.nameIsValidDnsSubdomainForSts(resource.getMetadata().getName());
+      return;
+    }
+
+    ResourceUtil.nameIsValidDnsSubdomain(resource.getMetadata().getName());
+
   }
 
   public void asserThatLabelIsComplaint(Entry<String, String> label) {
@@ -136,6 +118,13 @@ public abstract class AbstractRequiredResourceDecoratorTest<T> {
   public void assertThatCronJobResourceLabelsAreComplaints(HasMetadata resource) {
     if (resource instanceof CronJob) {
       ((CronJob) resource).getSpec().getJobTemplate().getMetadata().getLabels().entrySet()
+          .stream().forEach(label -> {
+            asserThatLabelIsComplaint(label);
+          });
+    }
+
+    if (resource instanceof Job) {
+      ((Job) resource).getSpec().getTemplate().getMetadata().getLabels().entrySet()
           .stream().forEach(label -> {
             asserThatLabelIsComplaint(label);
           });

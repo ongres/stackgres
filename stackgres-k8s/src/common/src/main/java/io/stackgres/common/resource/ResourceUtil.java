@@ -40,6 +40,8 @@ public class ResourceUtil {
 
   private static final int DNS_LABEL_MAX_LENGTH = 63;
 
+  private static final int STS_DNS_LABEL_MAX_LENGTH = 52;
+
   private static final Logger LOGGER = LoggerFactory.getLogger(ResourceUtil.class);
 
   public static final BigDecimal MILLICPU_MULTIPLIER = new BigDecimal(1000);
@@ -72,7 +74,7 @@ public class ResourceUtil {
     return resourceName(name, DNS_LABEL_MAX_LENGTH);
   }
 
-  public static String resourceName(String name, int maxLength) {
+  private static String resourceName(String name, int maxLength) {
     Preconditions.checkArgument(name.length() <= maxLength,
         format("Valid name must be %s characters or less", maxLength));
     Preconditions.checkArgument(DNS_LABEL_NAME.matcher(name).matches(),
@@ -84,6 +86,10 @@ public class ResourceUtil {
 
   public static String nameIsValidService(String name) {
     return resourceName(name, DNS_LABEL_MAX_LENGTH);
+  }
+
+  public static String nameIsValidDnsSubdomainForSts(String name) {
+    return resourceName(name, STS_DNS_LABEL_MAX_LENGTH);
   }
 
   public static String nameIsValidDnsSubdomain(String name) {
