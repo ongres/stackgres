@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 public class ExtensionUtilTest {
 
   final URI repository =
-      URI.create("https://extensions.stackgres.io/postgres/repository?skipHostVerification=true");
+      URI.create("https://extensions.stackgres.io/v1/postgres/repository?skipHostVerification=true");
   final String pgVersion = StackGresComponent.POSTGRESQL.getOrderedVersions()
       .findAny().get();
   final String firstPgMajorVersion = StackGresComponent.POSTGRESQL.getOrderedMajorVersions()

@@ -63,7 +63,7 @@
     <stackgres.crdUpgrade>false</stackgres.crdUpgrade>
     <stackgres.containerRegistry>docker.io</stackgres.containerRegistry>
     <stackgres.imagePullPolicy>IfNotPresent</stackgres.imagePullPolicy>
-    <stackgres.extensionsRepositoryUrls>https://extensions.stackgres.io/postgres/repository</stackgres.extensionsRepositoryUrls>
+    <stackgres.extensionsRepositoryUrls>https://extensions.stackgres.io/v1/postgres/repository</stackgres.extensionsRepositoryUrls>
     <stackgres.databaseOperationJob>false</stackgres.databaseOperationJob>
     <stackgres.databaseOperationCrName>stackgres</stackgres.databaseOperationCrName>
     <stackgres.dbops.serviceAccount>stackgres</stackgres.dbops.serviceAccount>

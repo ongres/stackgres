@@ -37,7 +37,7 @@ test_yamls() {
     | sed "s|image: 'stackgres/admin-ui:.*'$|image: \"$ADMINUI_IMAGE_NAME\"|" \
     | sed "$(printf '/name: OPERATOR_IMAGE_VERSION$/{$!{N;s/name: OPERATOR_IMAGE_VERSION\\n\( *\)value: .*$/name: OPERATOR_IMAGE_VERSION\\n\\1value: '"'$IMAGE_TAG'"'/;ty;P;D;:y}}')" \
     | sed "s|imagePullPolicy:.*$|imagePullPolicy: $(operator_pull_policy)|" \
-    | sed "s|value: \"https://extensions.stackgres.io/postgres/repository\"$|value: \"$EXTENSIONS_REPOSITORY_URL\"|" \
+    | sed "s|value: \"https://extensions.stackgres.io/v1/postgres/repository\"$|value: \"$EXTENSIONS_REPOSITORY_URL\"|" \
     > "${LOG_PATH}/stackgres-operator-demo.yml"
 
   cat "${LOG_PATH}/stackgres-operator-demo.yml" \

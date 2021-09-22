@@ -112,5 +112,5 @@ developer: {}
 
 extensions:
   repositoryUrls:
-  - https://extensions.stackgres.io/postgres/repository
+  - https://extensions.stackgres.io/v1/postgres/repository
 

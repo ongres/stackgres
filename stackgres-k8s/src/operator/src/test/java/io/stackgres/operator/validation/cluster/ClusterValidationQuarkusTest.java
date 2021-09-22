@@ -45,7 +45,7 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 class ClusterValidationQuarkusTest {
 
   private static final URI REPOSITORY =
-      URI.create("https://extensions.stackgres.io/postgres/repository?skipHostVerification=true");
+      URI.create("https://extensions.stackgres.io/v1/postgres/repository?skipHostVerification=true");
 
   private static final String POSTGRES_VERSION =
       StackGresComponent.POSTGRESQL.getOrderedVersions().findFirst().get();

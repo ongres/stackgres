@@ -13,7 +13,7 @@ cluster:
     #  - name: timescaledb      # The extension name
     #    publisher: com.ongres  # Optional. The extension publisher
     #    version: "1.7.1"       # Optional. The extension version or channel
-    #    repository: https://extensions.stackgres.io/postgres/repository # Optional. The extension repository
+    #    repository: https://extensions.stackgres.io/v1/postgres/repository # Optional. The extension repository
     ssl:
       enabled: false
       # certificateSecretKeySelector:
