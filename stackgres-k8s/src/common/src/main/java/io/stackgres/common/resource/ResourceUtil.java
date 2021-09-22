@@ -70,10 +70,6 @@ public class ResourceUtil {
         .anyMatch(name::equals);
   }
 
-  public static String resourceName(String name) {
-    return resourceName(name, DNS_LABEL_MAX_LENGTH);
-  }
-
   private static String resourceName(String name, int maxLength) {
     Preconditions.checkArgument(name.length() <= maxLength,
         format("Valid name must be %s characters or less", maxLength));
