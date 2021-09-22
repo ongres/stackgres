@@ -23,7 +23,6 @@ import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.fixture.SecretFixture;
 import io.stackgres.operator.fixture.StackGresClusterFixture;
 import io.stackgres.operator.fixture.StackGresDistributedLogsFixture;
-import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 
 @QuarkusTest
@@ -68,14 +67,6 @@ class DistributedLogsRequireResourceDecoratorTest
         .addAllConnectedClusters(List.of(connectecCluster))
         .databaseCredentials(secret)
         .build();
-  }
-
-  @Override
-  protected void injectExtraLabelsGeneratedByKubernetes(HasMetadata resource) {
-    String random10Digits = StringUtils.getRandomClusterNameWithExactlySize(10);
-    resource.getMetadata().getLabels().put("controller-revision-hash",
-        String.format("%s-%s", resource.getMetadata().getName(), random10Digits));
-
   }
 
 }

@@ -71,9 +71,4 @@ public class BackupRequiredResourceDecoratorTest
         .build();
   }
 
-  @Override
-  protected void injectExtraLabelsGeneratedByKubernetes(HasMetadata resource) {
-
-  }
-
 }

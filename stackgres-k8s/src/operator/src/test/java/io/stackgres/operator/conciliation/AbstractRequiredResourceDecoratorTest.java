@@ -7,6 +7,8 @@ package io.stackgres.operator.conciliation;
 
 import static io.stackgres.operator.validation.CrdMatchTestHelper.getMaxLengthResourceNameFrom;
 import static io.stackgres.testutil.StringUtils.getRandomClusterNameWithExactlySize;
+import static java.lang.String.format;
+import static org.junit.Assert.assertThrows;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -23,42 +25,35 @@ import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.cluster.ClusterRequiredResourcesGenerator;
+import junit.framework.AssertionFailedError;
 import org.jooq.lambda.Unchecked;
 import org.junit.jupiter.api.Test;
 
 public abstract class AbstractRequiredResourceDecoratorTest<T> {
 
-  protected static final String CONTROLLER_REVISION_HASH = "controller-revision-hash";
-
   @Test
   void shouldCreateResourceSuccessfully_OnceUsingTheCurrentCrdMaxLength() throws IOException {
-
     String validClusterName =
         getRandomClusterNameWithExactlySize(getMaxLengthResourceNameFrom(usingCrdFilename()));
     getResource().getMetadata().setName(validClusterName);
 
     List<HasMetadata> decorateResources =
         getResourceDecorator().decorateResources(getResourceContext());
-    decorateResources.stream().forEach(
-        resource -> {
-          assertNameAndLabels(resource);
-        });
+    decorateResources.stream().forEach(this::assertNameAndLabels);
   }
 
-  private void assertNameAndLabels(HasMetadata resource) {
-    assertThatResourceNameIsComplaint(resource);
+  @Test
+  void shouldGetAnExceededNameMessage_OnceUsingAnExceededMaxLengthName() throws IOException {
+    String invalidClusterName =
+        getRandomClusterNameWithExactlySize(getMaxLengthResourceNameFrom(usingCrdFilename()) + 1);
+    getResource().getMetadata().setName(invalidClusterName);
 
-    resource.getMetadata().getLabels().entrySet().stream().forEach(label -> {
-      asserThatLabelIsComplaint(label);
+    assertThrows(AssertionFailedError.class, () -> {
+      List<HasMetadata> decorateResources =
+          getResourceDecorator().decorateResources(getResourceContext());
+      decorateResources.stream().forEach(this::assertNameAndLabels);
     });
-
-    injectExtraLabelsGeneratedByKubernetes(resource);
-    assertThatStatefulSetResourceLabelsAreComplaints(resource);
-    assertThatCronJobResourceLabelsAreComplaints(resource);
-    assertThatJobResourceLabelsAreComplaints(resource);
   }
-
-  protected abstract void injectExtraLabelsGeneratedByKubernetes(HasMetadata resource);
 
   protected abstract String usingCrdFilename();
 
@@ -68,45 +63,75 @@ public abstract class AbstractRequiredResourceDecoratorTest<T> {
 
   protected abstract T getResourceContext() throws IOException;
 
+  private void assertNameAndLabels(HasMetadata resource) {
+    try {
+      assertThatResourceNameIsComplaint(resource);
+
+      resource.getMetadata().getLabels().entrySet().stream().forEach(label -> {
+        asserThatLabelIsComplaint(label);
+      });
+
+      assertThatStatefulSetResourceLabelsAreComplaints(resource);
+      assertThatCronJobResourceLabelsAreComplaints(resource);
+      assertThatJobResourceLabelsAreComplaints(resource);
+    } catch (Exception ex) {
+      throw new AssertionFailedError(format(
+          "Validation for resource %s of kind %s failed",
+          resource.getMetadata().getName(), resource.getKind()));
+    }
+  }
+
   public void assertThatResourceNameIsComplaint(HasMetadata resource) {
     if (resource instanceof Service) {
       ResourceUtil.nameIsValidService(resource.getMetadata().getName());
-      return;
-    }
-
-    if (resource instanceof StatefulSet) {
+    } else if (resource instanceof StatefulSet) {
       ResourceUtil.nameIsValidDnsSubdomainForSts(resource.getMetadata().getName());
-      return;
+    } else if (resource instanceof Job) {
+      ResourceUtil.nameIsValidDnsSubdomainForJob(resource.getMetadata().getName());
+    } else if (resource instanceof CronJob) {
+      ResourceUtil.nameIsValidDnsSubdomainForCronJob(resource.getMetadata().getName());
+    } else {
+      ResourceUtil.nameIsValidDnsSubdomain(resource.getMetadata().getName());
     }
-
-    ResourceUtil.nameIsValidDnsSubdomain(resource.getMetadata().getName());
-
   }
 
   public void asserThatLabelIsComplaint(Entry<String, String> label) {
-    ResourceUtil.labelKey(label.getKey());
-    ResourceUtil.labelValue(label.getValue());
+    try {
+      ResourceUtil.labelKey(label.getKey());
+    } catch (Exception ex) {
+      throw new AssertionFailedError(format(
+          "Validation of key for label key %s with value %s failed",
+          label.getKey(), label.getValue()));
+    }
+    try {
+      ResourceUtil.labelValue(label.getValue());
+    } catch (Exception ex) {
+      throw new AssertionFailedError(format(
+          "Validation of value for label key %s with value %s failed",
+          label.getKey(), label.getValue()));
+    }
   }
 
   public void assertThatStatefulSetResourceLabelsAreComplaints(HasMetadata resource) {
     if (resource instanceof StatefulSet) {
-      ((StatefulSet) resource).getSpec().getTemplate().getMetadata().getLabels().entrySet().stream()
+      final StatefulSet statefulSet = (StatefulSet) resource;
+      statefulSet.getSpec().getTemplate().getMetadata().getLabels().entrySet().stream()
           .forEach(label -> {
             asserThatLabelIsComplaint(label);
           });
 
-      assertThatVolumeClaimLabelsAreComplaints(resource);
+      assertThatVolumeClaimLabelsAreComplaints(statefulSet);
 
-      ((StatefulSet) resource).getSpec().getTemplate().getMetadata().getLabels().entrySet().stream()
+      statefulSet.getSpec().getTemplate().getMetadata().getLabels().entrySet().stream()
           .forEach(label -> {
             asserThatLabelIsComplaint(label);
           });
     }
   }
 
-  private void assertThatVolumeClaimLabelsAreComplaints(HasMetadata resource) {
+  private void assertThatVolumeClaimLabelsAreComplaints(StatefulSet statefulSet) {
     List<PersistentVolumeClaim> volumeClaims =
-        ((StatefulSet) resource).getSpec().getVolumeClaimTemplates();
+        statefulSet.getSpec().getVolumeClaimTemplates();
 
     volumeClaims.stream().forEach(volume -> {
       volume.getMetadata().getLabels().entrySet().stream().forEach(label -> {
@@ -118,13 +143,6 @@ public abstract class AbstractRequiredResourceDecoratorTest<T> {
   public void assertThatCronJobResourceLabelsAreComplaints(HasMetadata resource) {
     if (resource instanceof CronJob) {
       ((CronJob) resource).getSpec().getJobTemplate().getMetadata().getLabels().entrySet()
-          .stream().forEach(label -> {
-            asserThatLabelIsComplaint(label);
-          });
-    }
-
-    if (resource instanceof Job) {
-      ((Job) resource).getSpec().getTemplate().getMetadata().getLabels().entrySet()
           .stream().forEach(label -> {
             asserThatLabelIsComplaint(label);
           });

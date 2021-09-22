@@ -10,8 +10,6 @@ import java.io.IOException;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.PodTemplateSpec;
-import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -70,14 +68,6 @@ class DbOpsRequiredResourceDecoratorTest
         .source(resource)
         .cluster(cluster)
         .build();
-  }
-
-  @Override
-  protected void injectExtraLabelsGeneratedByKubernetes(HasMetadata resource) {
-    if (resource instanceof Job) {
-      PodTemplateSpec template = ((Job) resource).getSpec().getTemplate();
-      resource.getMetadata().getLabels().put("job-name", template.getMetadata().getName());
-    }
   }
 
 }

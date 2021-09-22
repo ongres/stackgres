@@ -37,10 +37,10 @@ import org.slf4j.LoggerFactory;
 public class ResourceUtil {
 
   private static final int DNS_SUBDOMAIN_NAME_MAX_LENGTH = 253;
-
   private static final int DNS_LABEL_MAX_LENGTH = 63;
-
   private static final int STS_DNS_LABEL_MAX_LENGTH = 52;
+  private static final int JOB_DNS_LABEL_MAX_LENGTH = 53;
+  private static final int CRON_JOB_DNS_LABEL_MAX_LENGTH = 52;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ResourceUtil.class);
 
@@ -86,6 +86,14 @@ public class ResourceUtil {
 
   public static String nameIsValidDnsSubdomainForSts(String name) {
     return resourceName(name, STS_DNS_LABEL_MAX_LENGTH);
+  }
+
+  public static String nameIsValidDnsSubdomainForJob(String name) {
+    return resourceName(name, JOB_DNS_LABEL_MAX_LENGTH);
+  }
+
+  public static String nameIsValidDnsSubdomainForCronJob(String name) {
+    return resourceName(name, CRON_JOB_DNS_LABEL_MAX_LENGTH);
   }
 
   public static String nameIsValidDnsSubdomain(String name) {

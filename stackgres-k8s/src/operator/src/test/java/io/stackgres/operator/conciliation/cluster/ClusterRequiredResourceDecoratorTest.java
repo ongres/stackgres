@@ -30,7 +30,6 @@ import io.stackgres.operator.fixture.StackGresClusterFixture;
 import io.stackgres.operator.fixture.StackGresPoolingConfigFixture;
 import io.stackgres.operator.fixture.StackGresPostgresConfigFixture;
 import io.stackgres.operator.fixture.StackGresProfileFixture;
-import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 
 @QuarkusTest
@@ -85,13 +84,6 @@ class ClusterRequiredResourceDecoratorTest
   @Override
   protected HasMetadata getResource() {
     return resource;
-  }
-
-  @Override
-  protected void injectExtraLabelsGeneratedByKubernetes(HasMetadata resource) {
-    String random10Digits = StringUtils.getRandomClusterNameWithExactlySize(10);
-    resource.getMetadata().getLabels().put(CONTROLLER_REVISION_HASH,
-        String.format("%s-%s", resource.getMetadata().getName(), random10Digits));
   }
 
 }
