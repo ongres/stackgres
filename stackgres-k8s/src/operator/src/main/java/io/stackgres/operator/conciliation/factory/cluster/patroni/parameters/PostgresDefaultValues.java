@@ -9,39 +9,43 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import org.jetbrains.annotations.NotNull;
 
 public class PostgresDefaultValues {
 
-  private static final Map<String, String> DEFAULTS;
+  private enum PostgresVersion {
+    PG_DEFAULT_VALUES("/postgresql-default-values.properties"),
+    PG13_VALUES("/postgresql-default-values-pg13.properties");
 
-  static {
-    DEFAULTS = ImmutableMap.<String, String>builder()
-        .putAll(readResource().entrySet().stream()
-            .filter(e -> !e.getKey().toString().isEmpty())
-            .collect(Collectors.toMap(
-                e -> e.getKey().toString(), e -> e.getValue().toString())))
-        .build();
-  }
+    private final @NotNull ImmutableMap<String, String> propFile;
 
-  private PostgresDefaultValues() {}
-
-  private static Properties readResource() {
-    Properties properties = new Properties();
-    try (InputStream is = PostgresDefaultValues.class.getResourceAsStream(
-        "/postgresql-default-values.properties")) {
-      properties.load(is);
-    } catch (IOException ex) {
-      throw new UncheckedIOException(ex);
+    PostgresVersion(@NotNull String file) {
+      this.propFile = readResource(file);
     }
-    return properties;
+
+    private static @NotNull ImmutableMap<String, String> readResource(@NotNull String file) {
+      Properties properties = new Properties();
+      try (InputStream is = PostgresDefaultValues.class.getResourceAsStream(file)) {
+        properties.load(is);
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
+      }
+      return Maps.fromProperties(properties);
+    }
   }
 
-  public static Map<String, String> getDefaultValues() {
-    return DEFAULTS;
+  public static @NotNull Map<String, String> getDefaultValues(@NotNull String pgVersion) {
+    Objects.requireNonNull(pgVersion, "pgVersion parameter is null");
+    int majorVersion = Integer.parseInt(pgVersion.split("\\.")[0]);
+    if (majorVersion >= 13) {
+      return PostgresVersion.PG13_VALUES.propFile;
+    }
+    return PostgresVersion.PG_DEFAULT_VALUES.propFile;
   }
 
 }

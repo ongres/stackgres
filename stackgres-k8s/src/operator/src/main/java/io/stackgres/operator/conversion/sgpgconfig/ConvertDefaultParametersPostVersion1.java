@@ -29,8 +29,14 @@ public class ConvertDefaultParametersPostVersion1 implements Converter {
         Optional.ofNullable(node.get("status"))
             .map(ObjectNode.class::cast)
             .ifPresent(status -> {
+              String pgVersion = Optional.ofNullable(node.get("spec"))
+                  .map(spec -> spec.get("postgresVersion"))
+                  .map(ObjectNode.class::cast)
+                  .map(ObjectNode::textValue)
+                  .orElse("");
+
               ObjectNode defaultParameters = node.objectNode();
-              PostgresDefaultValues.getDefaultValues()
+              PostgresDefaultValues.getDefaultValues(pgVersion)
                   .forEach(defaultParameters::put);
               status.set("defaultParameters", defaultParameters);
             });
@@ -40,12 +46,18 @@ public class ConvertDefaultParametersPostVersion1 implements Converter {
         Optional.ofNullable(node.get("status"))
             .map(ObjectNode.class::cast)
             .ifPresent(status -> {
+              String pgVersion = Optional.ofNullable(node.get("spec"))
+                  .map(spec -> spec.get("postgresVersion"))
+                  .map(ObjectNode.class::cast)
+                  .map(ObjectNode::textValue)
+                  .orElse("");
+
               ObjectNode parameters = Optional.ofNullable(node.get("spec"))
                   .map(spec -> spec.get("postgresql.conf"))
                   .map(ObjectNode.class::cast)
                   .orElse(node.objectNode());
               ArrayNode defaultParameters = node.arrayNode();
-              PostgresDefaultValues.getDefaultValues()
+              PostgresDefaultValues.getDefaultValues(pgVersion)
                   .entrySet()
                   .stream()
                   .filter(defaultParameter -> !parameters.has(defaultParameter.getKey())
