@@ -1,19 +1,21 @@
 {{- if .Values.extensions.cache.enabled }}
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
+kind: Role
 metadata:
+  namespace: {{ .Release.Namespace }}
   name: {{ .Release.Name }}-extensions-cache
   annotations:
     meta.helm.sh/release-name: {{ .Release.Name }}
     meta.helm.sh/release-namespace: {{ .Release.Namespace }}
   labels:
     app.kubernetes.io/managed-by: Helm
-subjects:
-- kind: ServiceAccount
-  name: {{ .Release.Name }}-extensions-cache
-  namespace: {{ .Release.Namespace }}
-roleRef:
-  kind: ClusterRole
-  name: {{ .Release.Name }}-extensions-cache
-  apiGroup: rbac.authorization.k8s.io
+rules:
+- apiGroups: ["", "apps"]
+  resources:
+  - serviceaccounts
+  - statefulsets
+  verbs:
+  - get
+  - patch
+  - update
 {{- end }}

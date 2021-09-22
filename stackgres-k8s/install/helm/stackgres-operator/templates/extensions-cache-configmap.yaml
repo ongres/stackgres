@@ -1,3 +1,4 @@
+{{- if .Values.extensions.cache.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,6 +7,8 @@ metadata:
 data:
   nginx.conf: |
     pid             /var/run/nginx.pid;
+    error_log /dev/stdout;
+    error_log /var/log/nginx/error.log;
     events{
     }
     http {
@@ -16,6 +19,7 @@ data:
                       '$status $body_bytes_sent "$http_referer" '
                       '"$http_user_agent" "$http_x_forwarded_for"';
       
+      access_log  /dev/stdout  main;
       access_log  /var/log/nginx/access.log  main;
       
       sendfile        on;
@@ -35,3 +39,6 @@ data:
         try_files $uri =404;
       }
     }
+  extensions-cache-conciliator.sh: |
+{{ .Files.Get "extensions-cache-conciliator.sh" | indent 4 }}
+{{- end }}

@@ -89,8 +89,13 @@ spec:
             value: "{{ .Values.containerRegistry }}"
           - name: SG_IMAGE_PULL_POLICY
             value: "{{ .Values.imagePullPolicy }}"
+          {{- if .Values.extensions.cache.enabled }}
           - name: EXTENSIONS_REPOSITORY_URLS
-            value: "http://{{ .Release.Name }}-extensions-cache.{{ .Release.Namespace }}"
+            value: "{{ range $index, $element := .Values.extensions.repositoryUrls }}{{ if $index }},{{ end }}{{ $element }}{{ if $element | contains "?" }}&{{ else }}?{{ end }}proxyUrl=http%3A%2F%2F{{ $.Release.Name }}-extensions-cache.{{ $.Release.Namespace }}%3FsetHttpScheme%3Dtrue{{ end }}"
+          {{- else }}
+          - name: EXTENSIONS_REPOSITORY_URLS
+            value: "{{ range $index, $element := .Values.extensions.repositoryUrls }}{{ if $index }},{{ end }}{{ $element }}{{ end }}"
+          {{- end }}
         ports:
         - containerPort: 8080
           name: "http"

@@ -41,28 +41,18 @@ test_yamls() {
     | sed "s|stackgres-operator-extensions-cache\.stackgres|stackgres-operator-extensions-cache.$OPERATOR_NAMESPACE|" \
     > "${LOG_PATH}/stackgres-operator-demo.yml"
 
-  cat "${LOG_PATH}/stackgres-operator-demo.yml" \
-    | grep -q "name: $OPERATOR_NAMESPACE"
-  cat "${LOG_PATH}/stackgres-operator-demo.yml" \
-    | grep -q "namespace: $OPERATOR_NAMESPACE"
-  cat "${LOG_PATH}/stackgres-operator-demo.yml" \
-    | grep -q " -n '$OPERATOR_NAMESPACE' "
-  cat "${LOG_PATH}/stackgres-operator-demo.yml" \
-    | grep -q "stackgres-operator.$OPERATOR_NAMESPACE"
-  cat "${LOG_PATH}/stackgres-operator-demo.yml" \
-    | grep -q "image: \"$OPERATOR_IMAGE_NAME\""
-  cat "${LOG_PATH}/stackgres-operator-demo.yml" \
-    | grep -q "image: \"$RESTAPI_IMAGE_NAME\""
-  cat "${LOG_PATH}/stackgres-operator-demo.yml" \
-    | grep -q "image: \"$JOBS_IMAGE_NAME\""
-  cat "${LOG_PATH}/stackgres-operator-demo.yml" \
-    | grep -q "image: \"$ADMINUI_IMAGE_NAME\""
-  cat "${LOG_PATH}/stackgres-operator-demo.yml" \
-    | grep -q "value: '$IMAGE_TAG'"
-  cat "${LOG_PATH}/stackgres-operator-demo.yml" \
-    | grep -q "imagePullPolicy: $(operator_pull_policy)"
-  cat "${LOG_PATH}/stackgres-operator-demo.yml" \
-    | grep -q "value: \"$EXTENSIONS_REPOSITORY_URL\""
+  grep -q "name: $OPERATOR_NAMESPACE" "${LOG_PATH}/stackgres-operator-demo.yml"
+  grep -q "namespace: $OPERATOR_NAMESPACE" "${LOG_PATH}/stackgres-operator-demo.yml"
+  grep -q " -n '$OPERATOR_NAMESPACE' " "${LOG_PATH}/stackgres-operator-demo.yml"
+  grep -q "stackgres-operator.$OPERATOR_NAMESPACE" "${LOG_PATH}/stackgres-operator-demo.yml"
+  grep -q "image: \"$OPERATOR_IMAGE_NAME\"" "${LOG_PATH}/stackgres-operator-demo.yml"
+  grep -q "image: \"$RESTAPI_IMAGE_NAME\"" "${LOG_PATH}/stackgres-operator-demo.yml"
+  grep -q "image: \"$JOBS_IMAGE_NAME\"" "${LOG_PATH}/stackgres-operator-demo.yml"
+  grep -q "image: \"$ADMINUI_IMAGE_NAME\"" "${LOG_PATH}/stackgres-operator-demo.yml"
+  grep -q "value: '$IMAGE_TAG'" "${LOG_PATH}/stackgres-operator-demo.yml"
+  grep -q "imagePullPolicy: $(operator_pull_policy)" "${LOG_PATH}/stackgres-operator-demo.yml"
+  grep -q "value: \"$EXTENSIONS_REPOSITORY_URL\"" "${LOG_PATH}/stackgres-operator-demo.yml"
+  grep -q "stackgres-operator-extensions-cache\.$OPERATOR_NAMESPACE" "${LOG_PATH}/stackgres-operator-demo.yml"
 
   echo "Installing operator.yml"
   kubectl create -n "${OPERATOR_NAMESPACE}" -f "${LOG_PATH}/stackgres-operator-demo.yml"

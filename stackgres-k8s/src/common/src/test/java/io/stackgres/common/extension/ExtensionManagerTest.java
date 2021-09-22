@@ -30,7 +30,6 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.WebClientFactory.WebClient;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.extension.ExtensionManager.ExtensionInstaller;
@@ -50,7 +49,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class ExtensionManagerTest {
 
   private static final URI REPOSITORY =
-      URI.create("https://extensions.stackgres.io/postgres/repository?skipHostVerification=true");
+      URI.create("https://extensions.stackgres.io/postgres/repository?skipHostnameVerification=true");
 
   private static final String POSTGRES_VERSION =
       StackGresComponent.POSTGRESQL.getOrderedVersions().findFirst().get();
@@ -131,26 +130,12 @@ public class ExtensionManagerTest {
     return extension;
   }
 
-  private StackGresExtensionMetadata getExtensionMetadata() throws Exception {
-    return new StackGresExtensionMetadata(
-        getExtension(),
-        getExtension().getVersions().get(0),
-        getExtension().getVersions().get(0).getAvailableFor().get(0),
-        getExtensions().getPublishers().get(0));
-  }
-
-  private StackGresClusterExtension getClusterExtension() {
-    StackGresClusterExtension extension = new StackGresClusterExtension();
-    extension.setName("timescaledb");
-    return extension;
-  }
-
   private StackGresClusterInstalledExtension getInstalledExtension() {
     StackGresClusterInstalledExtension installedExtension =
         new StackGresClusterInstalledExtension();
     installedExtension.setName("timescaledb");
     installedExtension.setPublisher("com.ongres");
-    installedExtension.setRepository(REPOSITORY.toASCIIString());
+    installedExtension.setRepository(REPOSITORY.toString());
     installedExtension.setVersion("1.7.1");
     installedExtension.setPostgresVersion(POSTGRES_MAJOR_VERSION);
     installedExtension.setBuild(BUILD_MAJOR_VERSION);
@@ -180,7 +165,7 @@ public class ExtensionManagerTest {
     verify(webClient, times(1)).getJson(
         eq(ExtensionUtil.getIndexUri(REPOSITORY)), eq(StackGresExtensions.class));
     verify(webClient, times(1)).getInputStream(
-        eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, extension, getExtensionMetadata())));
+        eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, extension)));
     verify(fileSystemHandler, times(0)).newInputStream(any());
     verify(fileSystemHandler, times(0)).createOrReplaceFile(any());
     verify(fileSystemHandler, times(2)).createDirectories(any());
@@ -237,7 +222,7 @@ public class ExtensionManagerTest {
     verify(webClient, times(1)).getJson(
         eq(ExtensionUtil.getIndexUri(REPOSITORY)), eq(StackGresExtensions.class));
     verify(webClient, times(0)).getInputStream(
-        eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, extension, getExtensionMetadata())));
+        eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, extension)));
     verify(fileSystemHandler, times(2)).newInputStream(any());
     verify(fileSystemHandler, times(1)).newInputStream(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
@@ -500,7 +485,7 @@ public class ExtensionManagerTest {
     verify(webClient, times(1)).getJson(
         eq(ExtensionUtil.getIndexUri(REPOSITORY)), eq(StackGresExtensions.class));
     verify(webClient, times(0)).getInputStream(
-        eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, extension, getExtensionMetadata())));
+        eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, extension)));
     verify(fileSystemHandler, times(1)).newInputStream(any());
     verify(fileSystemHandler, times(1)).newInputStream(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
@@ -542,7 +527,7 @@ public class ExtensionManagerTest {
     verify(webClient, times(1)).getJson(
         eq(ExtensionUtil.getIndexUri(REPOSITORY)), eq(StackGresExtensions.class));
     verify(webClient, times(0)).getInputStream(
-        eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, extension, getExtensionMetadata())));
+        eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, extension)));
     verify(fileSystemHandler, times(1)).newInputStream(any());
     verify(fileSystemHandler, times(1)).newInputStream(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
@@ -587,7 +572,7 @@ public class ExtensionManagerTest {
     verify(webClient, times(1)).getJson(
         eq(ExtensionUtil.getIndexUri(REPOSITORY)), eq(StackGresExtensions.class));
     verify(webClient, times(0)).getInputStream(
-        eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, extension, getExtensionMetadata())));
+        eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, extension)));
     verify(fileSystemHandler, times(0)).newInputStream(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.SHA256_SUFFIX)));
@@ -695,7 +680,6 @@ public class ExtensionManagerTest {
   @Test
   void testUninstallExtension() throws Exception {
     StackGresCluster cluster = getCluster();
-    StackGresClusterExtension extension = getClusterExtension();
     final String extensionPackageName =
         ExtensionUtil.getExtensionPackageName(getInstalledExtension());
     when(fileSystemHandler
@@ -709,8 +693,7 @@ public class ExtensionManagerTest {
     verify(webClientFactory, times(0)).create(anyBoolean(), any());
     verify(webClient, times(0)).getJson(
         eq(ExtensionUtil.getIndexUri(REPOSITORY)), eq(StackGresExtensions.class));
-    verify(webClient, times(0)).getInputStream(
-        eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, extension, getExtensionMetadata())));
+    verify(webClient, times(0)).getInputStream(any());
     verify(fileSystemHandler, times(0)).newInputStream(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.INSTALLED_SUFFIX)));

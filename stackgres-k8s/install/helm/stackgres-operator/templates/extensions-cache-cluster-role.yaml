@@ -1,3 +1,4 @@
+{{- if .Values.extensions.cache.enabled }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -16,10 +17,4 @@ rules:
   - watch
   - list
   - get
-- apiGroups: ["", "apps"]
-  resources:
-  - serviceaccounts
-  - statefulsets
-  verbs:
-  - get
-  - patch
+{{- end }}

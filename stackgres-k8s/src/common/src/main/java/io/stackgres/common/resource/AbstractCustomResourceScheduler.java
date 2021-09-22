@@ -10,14 +10,13 @@ import java.util.function.Function;
 
 import javax.inject.Inject;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.Namespaceable;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.stackgres.common.StackGresKubernetesClient;
 
 public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?, ?>,
     L extends CustomResourceList<T>>
@@ -54,38 +53,10 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?
   }
 
   @Override
-  public <S> void updateStatus(T resource, Function<T, S> statusGetter,
+  public <S> T updateStatus(T resource, Function<T, S> statusGetter,
       BiConsumer<T, S> statusSetter) {
-    try {
-      T resourceOverwrite = getCustomResourceEndpoints(client)
-          .inNamespace(resource.getMetadata().getNamespace())
-          .withName(resource.getMetadata().getName())
-          .get();
-      if (resourceOverwrite == null) {
-        throw new RuntimeException("Can not update status of resource "
-            + HasMetadata.getKind(customResourceClass)
-            + "." + HasMetadata.getGroup(customResourceClass)
-            + " " + resource.getMetadata().getNamespace()
-            + "." + resource.getMetadata().getName()
-            + ": resource not found");
-      }
-      statusSetter.accept(resourceOverwrite, statusGetter.apply(resource));
-      getCustomResourceEndpoints(client)
-          .inNamespace(resource.getMetadata().getNamespace())
-          .withName(resource.getMetadata().getName())
-          .lockResourceVersion(resource.getMetadata().getResourceVersion())
-          .replace(resourceOverwrite);
-    } catch (KubernetesClientException ex) {
-      throw new KubernetesClientStatusUpdateException(ex);
-    }
-  }
-
-  @Override
-  public T updateStatus(T resource) {
-    return getCustomResourceEndpoints(client)
-        .inNamespace(resource.getMetadata().getNamespace())
-        .withName(resource.getMetadata().getName())
-        .replaceStatus(resource);
+    return ((StackGresKubernetesClient) client).updateStatus(customResourceClass,
+        customResourceListClass, resource, statusGetter, statusSetter);
   }
 
   @Override

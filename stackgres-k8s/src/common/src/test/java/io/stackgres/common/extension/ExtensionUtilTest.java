@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 public class ExtensionUtilTest {
 
   final URI repository =
-      URI.create("https://extensions.stackgres.io/postgres/repository?skipHostVerification=true");
+      URI.create("https://extensions.stackgres.io/postgres/repository");
   final String pgVersion = StackGresComponent.POSTGRESQL.getOrderedVersions()
       .findAny().get();
   final String firstPgMajorVersion = StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
@@ -89,7 +89,7 @@ public class ExtensionUtilTest {
         new StackGresClusterInstalledExtension();
     installedExtension0.setName(extensions.get(0).getName());
     installedExtension0.setPublisher(extensionsMetadata.getPublishers().get(0).getId());
-    installedExtension0.setRepository(repository.toASCIIString());
+    installedExtension0.setRepository(repository.toString());
     installedExtension0.setVersion(extensions.get(0).getVersion());
     installedExtension0.setPostgresVersion(firstPgMajorVersion);
     installedExtension0.setBuild(build);
@@ -97,7 +97,7 @@ public class ExtensionUtilTest {
         new StackGresClusterInstalledExtension();
     installedExtension1.setName(extensions.get(1).getName());
     installedExtension1.setPublisher(extensionsMetadata.getPublishers().get(0).getId());
-    installedExtension1.setRepository(repository.toASCIIString());
+    installedExtension1.setRepository(repository.toString());
     installedExtension1.setVersion(extensionsMetadata.getExtensions().stream()
         .filter(e -> e.getName().equals(extensions.get(1).getName())).findAny().get()
         .getVersions().get(0).getVersion());
@@ -107,7 +107,7 @@ public class ExtensionUtilTest {
         new StackGresClusterInstalledExtension();
     installedExtension2.setName(extensions.get(2).getName());
     installedExtension2.setPublisher(extensionsMetadata.getPublishers().get(0).getId());
-    installedExtension2.setRepository(repository.toASCIIString());
+    installedExtension2.setRepository(repository.toString());
     installedExtension2.setVersion(extensions.get(2).getVersion());
     installedExtension2.setPostgresVersion(firstPgMajorVersion);
     installedExtension2.setBuild(build);
@@ -115,7 +115,7 @@ public class ExtensionUtilTest {
         new StackGresClusterInstalledExtension();
     installedExtension3.setName(extensions.get(3).getName());
     installedExtension3.setPublisher(extensionsMetadata.getPublishers().get(0).getId());
-    installedExtension3.setRepository(repository.toASCIIString());
+    installedExtension3.setRepository(repository.toString());
     installedExtension3.setVersion(extensionsMetadata.getExtensions().stream()
         .filter(e -> e.getName().equals(extensions.get(3).getName())).findAny().get()
         .getVersions().get(0).getVersion());
@@ -133,7 +133,7 @@ public class ExtensionUtilTest {
     Assertions.assertNotNull(extensionMetadataMap.get(
         new StackGresExtensionIndex(installedExtension1)));
     Assertions.assertEquals(
-        repository.toASCIIString(),
+        repository.toString(),
         extensionMetadataMap.get(new StackGresExtensionIndex(installedExtension1))
             .getExtension().getRepository());
     Assertions.assertNull(extensionMetadataMap.get(
@@ -141,7 +141,7 @@ public class ExtensionUtilTest {
     Assertions.assertNotNull(extensionMetadataMap.get(
         new StackGresExtensionIndex(installedExtension3)));
     Assertions.assertEquals(
-        repository.toASCIIString(),
+        repository.toString(),
         extensionMetadataMap.get(new StackGresExtensionIndex(installedExtension3))
             .getExtension().getRepository());
     installedExtension0.setPostgresVersion(secondPgMajorVersion);
@@ -157,19 +157,19 @@ public class ExtensionUtilTest {
     Assertions.assertNotNull(extensionMetadataMap.get(
         new StackGresExtensionIndex(installedExtension1)));
     Assertions.assertEquals(
-        repository.toASCIIString(),
+        repository.toString(),
         extensionMetadataMap.get(new StackGresExtensionIndex(installedExtension1))
             .getExtension().getRepository());
     Assertions.assertNotNull(extensionMetadataMap.get(
         new StackGresExtensionIndex(installedExtension2)));
     Assertions.assertEquals(
-        repository.toASCIIString(),
+        repository.toString(),
         extensionMetadataMap.get(new StackGresExtensionIndex(installedExtension2))
             .getExtension().getRepository());
     Assertions.assertNotNull(extensionMetadataMap.get(
         new StackGresExtensionIndex(installedExtension3)));
     Assertions.assertEquals(
-        repository.toASCIIString(),
+        repository.toString(),
         extensionMetadataMap.get(new StackGresExtensionIndex(installedExtension3))
             .getExtension().getRepository());
   }
@@ -196,7 +196,7 @@ public class ExtensionUtilTest {
     Assertions.assertEquals(1, extensionMetadataMap.get(
         new StackGresExtensionIndexSameMajorBuild(cluster, extensions.get(1))).size());
     Assertions.assertEquals(
-        repository.toASCIIString(),
+        repository.toString(),
         extensionMetadataMap
             .get(new StackGresExtensionIndexSameMajorBuild(cluster, extensions.get(1)))
             .get(0).getExtension().getRepository());
@@ -207,7 +207,7 @@ public class ExtensionUtilTest {
     Assertions.assertEquals(1, extensionMetadataMap.get(
         new StackGresExtensionIndexSameMajorBuild(cluster, extensions.get(3))).size());
     Assertions.assertEquals(
-        repository.toASCIIString(),
+        repository.toString(),
         extensionMetadataMap
             .get(new StackGresExtensionIndexSameMajorBuild(cluster, extensions.get(3)))
             .get(0).getExtension().getRepository());
@@ -226,7 +226,7 @@ public class ExtensionUtilTest {
     Assertions.assertEquals(1, extensionMetadataMap.get(
         new StackGresExtensionIndexSameMajorBuild(cluster, extensions.get(1))).size());
     Assertions.assertEquals(
-        repository.toASCIIString(),
+        repository.toString(),
         extensionMetadataMap
             .get(new StackGresExtensionIndexSameMajorBuild(cluster, extensions.get(1)))
             .get(0).getExtension().getRepository());
@@ -235,7 +235,7 @@ public class ExtensionUtilTest {
     Assertions.assertEquals(1, extensionMetadataMap.get(
         new StackGresExtensionIndexSameMajorBuild(cluster, extensions.get(2))).size());
     Assertions.assertEquals(
-        repository.toASCIIString(),
+        repository.toString(),
         extensionMetadataMap
             .get(new StackGresExtensionIndexSameMajorBuild(cluster, extensions.get(2)))
             .get(0).getExtension().getRepository());
@@ -244,7 +244,7 @@ public class ExtensionUtilTest {
     Assertions.assertEquals(1, extensionMetadataMap.get(
         new StackGresExtensionIndexSameMajorBuild(cluster, extensions.get(3))).size());
     Assertions.assertEquals(
-        repository.toASCIIString(),
+        repository.toString(),
         extensionMetadataMap
             .get(new StackGresExtensionIndexSameMajorBuild(cluster, extensions.get(3)))
             .get(0).getExtension().getRepository());
@@ -273,7 +273,7 @@ public class ExtensionUtilTest {
     Assertions.assertEquals(1, extensionMetadataMap.get(
         new StackGresExtensionIndexAnyVersion(cluster, extensions.get(1))).size());
     Assertions.assertEquals(
-        repository.toASCIIString(),
+        repository.toString(),
         extensionMetadataMap.get(new StackGresExtensionIndexAnyVersion(cluster, extensions.get(1)))
             .get(0).getExtension().getRepository());
     Assertions.assertNotNull(extensionMetadataMap.get(
@@ -281,7 +281,7 @@ public class ExtensionUtilTest {
     Assertions.assertEquals(1, extensionMetadataMap.get(
         new StackGresExtensionIndexAnyVersion(cluster, extensions.get(2))).size());
     Assertions.assertEquals(
-        repository.toASCIIString(),
+        repository.toString(),
         extensionMetadataMap.get(new StackGresExtensionIndexAnyVersion(cluster, extensions.get(2)))
             .get(0).getExtension().getRepository());
     Assertions.assertNotNull(extensionMetadataMap.get(
@@ -289,7 +289,7 @@ public class ExtensionUtilTest {
     Assertions.assertEquals(1, extensionMetadataMap.get(
         new StackGresExtensionIndexAnyVersion(cluster, extensions.get(3))).size());
     Assertions.assertEquals(
-        repository.toASCIIString(),
+        repository.toString(),
         extensionMetadataMap.get(new StackGresExtensionIndexAnyVersion(cluster, extensions.get(3)))
             .get(0).getExtension().getRepository());
     cluster.getSpec().getPostgres().setVersion(secondPgMajorVersion);
@@ -306,11 +306,11 @@ public class ExtensionUtilTest {
     Assertions.assertEquals(2, extensionMetadataMap.get(
         new StackGresExtensionIndexAnyVersion(cluster, extensions.get(1))).size());
     Assertions.assertEquals(
-        repository.toASCIIString(),
+        repository.toString(),
         extensionMetadataMap.get(new StackGresExtensionIndexAnyVersion(cluster, extensions.get(1)))
             .get(0).getExtension().getRepository());
     Assertions.assertEquals(
-        repository.toASCIIString(),
+        repository.toString(),
         extensionMetadataMap.get(new StackGresExtensionIndexAnyVersion(cluster, extensions.get(1)))
             .get(1).getExtension().getRepository());
     Assertions.assertNotNull(extensionMetadataMap.get(
@@ -318,11 +318,11 @@ public class ExtensionUtilTest {
     Assertions.assertEquals(2, extensionMetadataMap.get(
         new StackGresExtensionIndexAnyVersion(cluster, extensions.get(2))).size());
     Assertions.assertEquals(
-        repository.toASCIIString(),
+        repository.toString(),
         extensionMetadataMap.get(new StackGresExtensionIndexAnyVersion(cluster, extensions.get(2)))
             .get(0).getExtension().getRepository());
     Assertions.assertEquals(
-        repository.toASCIIString(),
+        repository.toString(),
         extensionMetadataMap.get(new StackGresExtensionIndexAnyVersion(cluster, extensions.get(2)))
             .get(1).getExtension().getRepository());
     Assertions.assertNotNull(extensionMetadataMap.get(
@@ -330,7 +330,7 @@ public class ExtensionUtilTest {
     Assertions.assertEquals(1, extensionMetadataMap.get(
         new StackGresExtensionIndexAnyVersion(cluster, extensions.get(3))).size());
     Assertions.assertEquals(
-        repository.toASCIIString(),
+        repository.toString(),
         extensionMetadataMap.get(new StackGresExtensionIndexAnyVersion(cluster, extensions.get(3)))
             .get(0).getExtension().getRepository());
   }

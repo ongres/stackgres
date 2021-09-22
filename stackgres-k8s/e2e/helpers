@@ -113,3 +113,69 @@ xargs_shell() {
   # shellcheck disable=SC2086
   xargs -r -n 1 -I "$PLACEHOLDER" "$SHELL" $SHELL_XTRACE "$@"
 }
+
+urlencode() {
+  notrace_function traceable_urlencode
+}
+
+traceable_urlencode() {
+  sed 's/\(.\)/\1\n/g' \
+    | {
+      NEWLINE="$(printf '\n')"
+      while IFS="$NEWLINE" read -r C
+      do
+        case "$C" in
+        [-_.~a-zA-Z0-9]) printf %c "$C" ;;
+        "") printf %%0A ;;
+        *) printf %%%02X "'$C'" ;;
+        esac
+      done
+      }
+}
+
+urldecode() {
+  notrace_function traceable_urldecode
+}
+
+traceable_urldecode() {
+  sed 's/\(.\)/\1\n/g' \
+    | {
+      NEWLINE="$(printf '\n')"
+      CODE=
+      while IFS="$NEWLINE" read -r C
+      do
+        case "$C" in
+        \+)
+          if [ -n "$CODE" ]
+          then
+            >&2 echo "Wrong code $CODE$C"
+            exit 1
+          fi
+          printf ' '
+          ;;
+        %)
+          if [ -n "$CODE" ]
+          then
+            >&2 echo "Wrong code $CODE$C"
+            exit 1
+          fi
+          CODE='0x'
+          ;;
+        *)
+          if [ -z "$CODE" ]
+          then
+            printf %c "$C"
+          else
+            CODE="$CODE$C"
+            if [ -z "${CODE#0x??}" ]
+            then
+              # shellcheck disable=SC2059
+              printf "$(printf '\\%03o' "$CODE")"
+              CODE=
+            fi
+          fi
+          ;;
+        esac
+      done
+      }
+}

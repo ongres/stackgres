@@ -137,7 +137,7 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
             extensionEventEmitter.emitExtensionDeployed(extension);
           }
         } else {
-          if (!extensionInstaller.isLinksCreated()) {
+          if (!extensionInstaller.areLinksCreated()) {
             LOGGER.info("Create links for extension {}", ExtensionUtil.getDescription(extension));
             extensionInstaller.createExtensionLinks();
           }

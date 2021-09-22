@@ -6,25 +6,25 @@
 package io.stackgres.common.extension;
 
 import java.net.URI;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.ws.rs.core.UriBuilder;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
-import org.jooq.lambda.tuple.Tuple2;
 
 public interface ExtensionUtil {
 
@@ -46,10 +46,11 @@ public interface ExtensionUtil {
 
   static Map<StackGresExtensionIndex, StackGresExtensionMetadata> toExtensionsMetadataIndex(
       URI repositoryBaseUri, StackGresExtensions currentExtensionsMetadata) {
+    Preconditions.checkArgument(Objects.isNull(repositoryBaseUri.getRawQuery()));
     return currentExtensionsMetadata.getExtensions().stream()
         .peek(extension -> {
           if (extension.getRepository() == null) {
-            extension.setRepository(repositoryBaseUri.toASCIIString());
+            extension.setRepository(repositoryBaseUri.toString());
           }
         })
         .flatMap(extension -> extension.getVersions().stream()
@@ -69,10 +70,11 @@ public interface ExtensionUtil {
   static Map<StackGresExtensionIndexSameMajorBuild, List<StackGresExtensionMetadata>>
       toExtensionsMetadataIndexSameMajorBuilds(URI repositoryBaseUri,
           StackGresExtensions currentExtensionsMetadata) {
+    Preconditions.checkArgument(Objects.isNull(repositoryBaseUri.getRawQuery()));
     return Seq.seq(currentExtensionsMetadata.getExtensions())
         .peek(extension -> {
           if (extension.getRepository() == null) {
-            extension.setRepository(repositoryBaseUri.toASCIIString());
+            extension.setRepository(repositoryBaseUri.toString());
           }
         })
         .flatMap(extension -> extension.getVersions().stream()
@@ -95,10 +97,11 @@ public interface ExtensionUtil {
   static Map<StackGresExtensionIndexAnyVersion, List<StackGresExtensionMetadata>>
       toExtensionsMetadataIndexAnyVersions(URI repositoryBaseUri,
           StackGresExtensions currentExtensionsMetadata) {
+    Preconditions.checkArgument(Objects.isNull(repositoryBaseUri.getRawQuery()));
     return Seq.seq(currentExtensionsMetadata.getExtensions())
         .peek(extension -> {
           if (extension.getRepository() == null) {
-            extension.setRepository(repositoryBaseUri.toASCIIString());
+            extension.setRepository(repositoryBaseUri.toString());
           }
         })
         .flatMap(extension -> extension.getVersions().stream()
@@ -118,15 +121,11 @@ public interface ExtensionUtil {
             .collect(ImmutableList.toImmutableList()));
   }
 
-  static String getExtensionPackageName(
-      StackGresExtension extension, StackGresExtensionVersion version,
-      StackGresExtensionVersionTarget target) {
-    final Optional<String> buildVersion = Optional.ofNullable(
-        target.getBuild());
-    return extension.getName()
-        + "-" + version.getVersion()
-        + "-pg" + target.getPostgresVersion()
-        + buildVersion.map(build -> "-build-" + build).orElse("");
+  static Map<String, StackGresExtensionPublisher> toPublishersIndex(
+      StackGresExtensions extensions) {
+    return Seq.seq(extensions.getPublishers())
+        .collect(ImmutableMap.toImmutableMap(
+            StackGresExtensionPublisher::getId, Function.identity()));
   }
 
   static String getExtensionPackageName(
@@ -139,25 +138,12 @@ public interface ExtensionUtil {
         + buildVersion.map(build -> "-build-" + build).orElse("");
   }
 
-  static URI getExtensionPackageUri(URI defaultRepositoryUri,
-      StackGresClusterExtension extension, StackGresExtensionMetadata extensionMetadata) {
-    final URI repository = getExtensionRepositoryUri(extension, extensionMetadata)
-        .orElse(defaultRepositoryUri);
-    return UriBuilder.fromUri(repository)
-        .path(extension.getPublisherOrDefault())
-        .path(ARCH_X86_64).path(OS_LINUX)
-        .path(extensionMetadata.getPackageName() + ".tar")
-        .build();
-  }
-
-  static URI getExtensionPackageUri(URI defaultRepositoryUri,
-      StackGresClusterInstalledExtension installedExtension,
-      StackGresExtensionMetadata extensionMetadata) {
-    final URI repository = URI.create(installedExtension.getRepository());
-    return UriBuilder.fromUri(repository)
+  static URI getExtensionPackageUri(URI repositoryUri,
+      StackGresClusterInstalledExtension installedExtension) {
+    return UriBuilder.fromUri(repositoryUri)
         .path(installedExtension.getPublisher())
         .path(ARCH_X86_64).path(OS_LINUX)
-        .path(extensionMetadata.getPackageName() + ".tar")
+        .path(getExtensionPackageName(installedExtension) + ".tar")
         .build();
   }
 
@@ -173,7 +159,7 @@ public interface ExtensionUtil {
     installedExtension.setRepository(getExtensionRepositoryUri(extension, extensionMetadata)
         .orElseThrow(() -> new RuntimeException("URI not found for extension "
             + ExtensionUtil.getDescription(extensionMetadata)))
-        .toASCIIString());
+        .toString());
     installedExtension.setPostgresVersion(extensionMetadata.getTarget().getPostgresVersion());
     installedExtension.setBuild(extensionMetadata.getTarget().getBuild());
     return installedExtension;
@@ -222,20 +208,6 @@ public interface ExtensionUtil {
         + "[" + target.getPostgresVersion()
         + "/" + target.getArchOrDefault()
         + "/" + target.getOsOrDefault() + "]";
-  }
-
-  static Optional<String> getUriQueryParameter(URI uri, String parameter) {
-    return Optional.ofNullable(uri.getQuery())
-        .stream()
-        .flatMap(query -> Stream.of(query.split("&")))
-        .map(paramAndValue -> paramAndValue.split("="))
-        .filter(paramAndValue -> paramAndValue.length == 2)
-        .map(paramAndValue -> Tuple.tuple(paramAndValue[0], paramAndValue[1]))
-        .map(t -> t.map1(v -> URLDecoder.decode(v, StandardCharsets.UTF_8)))
-        .map(t -> t.map2(v -> URLDecoder.decode(v, StandardCharsets.UTF_8)))
-        .filter(t -> t.v1.equals(parameter))
-        .map(Tuple2::v2)
-        .findAny();
   }
 
   static String getMajorBuildOrNull(String build) {

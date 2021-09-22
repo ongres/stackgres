@@ -1,7 +1,8 @@
 {{- if .Values.extensions.cache.enabled }}
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
+kind: RoleBinding
 metadata:
+  namespace: {{ .Release.Namespace }}
   name: {{ .Release.Name }}-extensions-cache
   annotations:
     meta.helm.sh/release-name: {{ .Release.Name }}
@@ -13,7 +14,7 @@ subjects:
   name: {{ .Release.Name }}-extensions-cache
   namespace: {{ .Release.Namespace }}
 roleRef:
-  kind: ClusterRole
+  kind: Role
   name: {{ .Release.Name }}-extensions-cache
   apiGroup: rbac.authorization.k8s.io
 {{- end }}

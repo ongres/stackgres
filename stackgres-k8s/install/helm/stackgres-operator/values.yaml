@@ -117,7 +117,15 @@ extensions:
   repositoryUrls:
   - https://extensions.stackgres.io/postgres/repository
   cache:
+    enabled: true
+    preloadedExtensions:
+    - dblink-.*-pg(12|13)
+    - pg_stat_statements-.*-pg(12|13)
+    - plpgsql-.*-pg(12|13)
+    - plpython3u-.*-pg(12|13)
+    - timescaledb-1.7.4-pg12
     persistentVolume:
+      ## Only use whole numbers (e.g. not 1e6) and K/Ki/M/Mi/G/Gi as units
       size: 1Gi
       ## If defined, storageClass: <storageClass>
       ## If set to "-", storageClass: "", which disables dynamic provisioning

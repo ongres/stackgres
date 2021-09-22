@@ -5,6 +5,7 @@
 
 package io.stackgres.common.extension;
 
+import static io.stackgres.common.WebClientFactory.getUriQueryParameter;
 import static io.stackgres.common.extension.ExtensionMetadataManager.PROXY_URL_PARAMETER;
 import static io.stackgres.common.extension.ExtensionMetadataManager.SKIP_HOSTNAME_VERIFICATION_PARAMETER;
 
@@ -12,18 +13,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.URI;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.security.SignatureException;
 import java.util.HashSet;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -31,16 +27,13 @@ import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.FileSystemHandler;
 import io.stackgres.common.SignatureUtil;
-import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.WebClientFactory.WebClient;
-import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple;
-import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,29 +60,13 @@ public abstract class ExtensionManager {
     this.fileSystemHandler = fileSystemHandler;
   }
 
-  public boolean areCompatibles(ClusterContext context, StackGresClusterExtension extension,
-      StackGresClusterInstalledExtension installedExtension) {
-    return Objects.equals(extension.getName(), installedExtension.getName())
-        && Objects.equals(extension.getPublisherOrDefault(), installedExtension.getPublisher())
-        && Objects.equals(extension.getRepository(), installedExtension.getRepository())
-        && Objects.equals(Optional.ofNullable(extension.getVersion())
-            .orElseGet(Unchecked.supplier(() -> extensionMetadataManager
-                .getExtensionCandidateSameMajorBuild(context.getCluster(), extension)
-                .getVersion().getVersion())), installedExtension.getVersion())
-        && Objects.equals(StackGresComponent.POSTGRESQL.findMajorVersion(
-            context.getCluster().getSpec().getPostgres().getVersion()),
-            installedExtension.getPostgresVersion())
-        && Objects.equals(StackGresComponent.POSTGRESQL.findBuildMajorVersion(
-            context.getCluster().getSpec().getPostgres().getVersion()),
-            ExtensionUtil.getMajorBuildOrNull(installedExtension.getBuild()));
-  }
-
   public ExtensionInstaller getExtensionInstaller(ClusterContext context,
       StackGresClusterInstalledExtension installedExtension) throws Exception {
-    StackGresExtensionMetadata extensionMetadata = extensionMetadataManager
-        .getExtensionCandidate(installedExtension);
-    final URI extensionsRepositoryUri = URI.create(installedExtension.getRepository());
-    return new ExtensionInstaller(context, installedExtension, extensionMetadata,
+    final StackGresExtensionPublisher extensionPublisher = extensionMetadataManager
+        .getPublisher(installedExtension.getPublisher());
+    final URI extensionsRepositoryUri = extensionMetadataManager
+        .getExtensionRepositoryUri(URI.create(installedExtension.getRepository()));
+    return new ExtensionInstaller(context, installedExtension, extensionPublisher,
         extensionsRepositoryUri);
   }
 
@@ -100,19 +77,23 @@ public abstract class ExtensionManager {
 
   public class ExtensionInstaller {
     private final ClusterContext context;
-    private final StackGresExtensionMetadata extensionMetadata;
+    private final StackGresClusterInstalledExtension installedExtension;
+    private final StackGresExtensionPublisher extensionPublisher;
+    private final String packageName;
     private final URI extensionsRepositoryUri;
     private final URI extensionUri;
 
     private ExtensionInstaller(ClusterContext context,
         StackGresClusterInstalledExtension installedExtension,
-        StackGresExtensionMetadata extensionMetadata,
+        StackGresExtensionPublisher extensionPublisher,
         URI extensionsRepositoryUri) {
       this.context = context;
-      this.extensionMetadata = extensionMetadata;
+      this.installedExtension = installedExtension;
+      this.extensionPublisher = extensionPublisher;
+      this.packageName = ExtensionUtil.getExtensionPackageName(installedExtension);
       this.extensionsRepositoryUri = extensionsRepositoryUri;
       this.extensionUri = ExtensionUtil.getExtensionPackageUri(
-          extensionsRepositoryUri, installedExtension, extensionMetadata);
+          extensionsRepositoryUri, installedExtension);
     }
 
     @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
@@ -120,15 +101,15 @@ public abstract class ExtensionManager {
     public boolean isExtensionInstalled() throws Exception {
       return fileSystemHandler.exists(
           Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
-          .resolve(extensionMetadata.getPackageName() + INSTALLED_SUFFIX));
+          .resolve(packageName + INSTALLED_SUFFIX));
     }
 
     @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
         justification = "False positive")
-    public boolean isLinksCreated() throws Exception {
+    public boolean areLinksCreated() throws Exception {
       return fileSystemHandler.exists(
           Paths.get(ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH.path(context))
-          .resolve(extensionMetadata.getPackageName() + LINKS_CREATED_SUFFIX));
+          .resolve(packageName + LINKS_CREATED_SUFFIX));
     }
 
     @SuppressFBWarnings(value = { "UPM_UNCALLED_PRIVATE_METHOD",
@@ -143,7 +124,7 @@ public abstract class ExtensionManager {
           .map(URI::create)
           .orElse(null);
       LOGGER.info("Downloading {} from {}",
-          ExtensionUtil.getDescription(extensionMetadata), extensionUri);
+          ExtensionUtil.getDescription(installedExtension), extensionUri);
       try (WebClient client = webClientFactory.create(skipHostnameVerification, proxyUri)) {
         try (InputStream inputStream = client.getInputStream(extensionUri)) {
           extractTar(inputStream);
@@ -157,11 +138,11 @@ public abstract class ExtensionManager {
     public void verify() throws Exception {
       try (InputStream signatureInputStream = fileSystemHandler.newInputStream(
           Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
-          .resolve(extensionMetadata.getPackageName() + SHA256_SUFFIX));
+          .resolve(packageName + SHA256_SUFFIX));
           InputStream extensionPackageInputStream = fileSystemHandler.newInputStream(
               Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
-              .resolve(extensionMetadata.getPackageName() + TGZ_SUFFIX))) {
-        if (!SignatureUtil.verify(extensionMetadata.getPublisher().getPublicKey(),
+              .resolve(packageName + TGZ_SUFFIX))) {
+        if (!SignatureUtil.verify(extensionPublisher.getPublicKey(),
             signatureInputStream, extensionPackageInputStream)) {
           throw new SignatureException("Signature verification failed");
         }
@@ -175,7 +156,7 @@ public abstract class ExtensionManager {
       try (
           InputStream extensionPackageInputStream = fileSystemHandler.newInputStream(
               Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
-              .resolve(extensionMetadata.getPackageName() + TGZ_SUFFIX));
+              .resolve(packageName + TGZ_SUFFIX));
           InputStream extensionPackageInputStreamUncompressed = new GZIPInputStream(
               extensionPackageInputStream)) {
         return doesInstallOverwriteAnySharedFile(extensionPackageInputStreamUncompressed);
@@ -198,7 +179,7 @@ public abstract class ExtensionManager {
       try (
           InputStream extensionPackageInputStream = fileSystemHandler.newInputStream(
               Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
-              .resolve(extensionMetadata.getPackageName() + TGZ_SUFFIX));
+              .resolve(packageName + TGZ_SUFFIX));
           InputStream extensionPackageInputStreamUncompressed = new GZIPInputStream(
               extensionPackageInputStream)) {
         extractTar(extensionPackageInputStreamUncompressed);
@@ -206,10 +187,10 @@ public abstract class ExtensionManager {
       createExtensionLinks();
       fileSystemHandler.createOrReplaceFile(
           Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
-          .resolve(extensionMetadata.getPackageName() + INSTALLED_SUFFIX));
+          .resolve(packageName + INSTALLED_SUFFIX));
       fileSystemHandler.deleteIfExists(
           Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
-          .resolve(extensionMetadata.getPackageName() + PENDING_SUFFIX));
+          .resolve(packageName + PENDING_SUFFIX));
     }
 
     public void createExtensionLinks() throws Exception {
@@ -223,7 +204,7 @@ public abstract class ExtensionManager {
                   .createOrReplaceSymbolicLink(t.v2, t.v1)));
       fileSystemHandler.createOrReplaceFile(
           Paths.get(ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH.path(context))
-          .resolve(extensionMetadata.getPackageName() + LINKS_CREATED_SUFFIX));
+          .resolve(packageName + LINKS_CREATED_SUFFIX));
     }
 
     private void extractTar(InputStream inputStream)
@@ -237,13 +218,13 @@ public abstract class ExtensionManager {
     public boolean isExtensionPendingOverwrite() {
       return fileSystemHandler.exists(
           Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
-          .resolve(extensionMetadata.getPackageName() + PENDING_SUFFIX));
+          .resolve(packageName + PENDING_SUFFIX));
     }
 
     public void setExtensionAsPending() throws Exception {
       fileSystemHandler.createOrReplaceFile(
           Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
-          .resolve(extensionMetadata.getPackageName() + PENDING_SUFFIX));
+          .resolve(packageName + PENDING_SUFFIX));
     }
   }
 
@@ -301,22 +282,6 @@ public abstract class ExtensionManager {
           ExtensionManager.this::removeFileIfExists,
           null, (prev, next) -> null);
     }
-  }
-
-  @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
-      justification = "False positive")
-  private Optional<String> getUriQueryParameter(URI uri, String parameter) {
-    return Optional.ofNullable(uri.getQuery())
-        .stream()
-        .flatMap(query -> Stream.of(query.split("&")))
-        .map(paramAndValue -> paramAndValue.split("="))
-        .filter(paramAndValue -> paramAndValue.length == 2)
-        .map(paramAndValue -> Tuple.tuple(paramAndValue[0], paramAndValue[1]))
-        .map(t -> t.map1(v -> URLDecoder.decode(v, StandardCharsets.UTF_8)))
-        .map(t -> t.map2(v -> URLDecoder.decode(v, StandardCharsets.UTF_8)))
-        .filter(t -> t.v1.equals(parameter))
-        .map(Tuple2::v2)
-        .findAny();
   }
 
   @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",

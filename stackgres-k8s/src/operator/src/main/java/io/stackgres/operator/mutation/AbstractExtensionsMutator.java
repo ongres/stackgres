@@ -22,19 +22,14 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.extension.ExtensionUtil;
-import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
 import org.jooq.lambda.Seq;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
     R extends AdmissionReview<T>> implements JsonPatchMutator<R> {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractExtensionsMutator.class);
 
   protected static final ObjectNode EMPTY_OBJECT = FACTORY.objectNode();
 
@@ -135,14 +130,10 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
       String extensionName) {
     StackGresClusterExtension extension = new StackGresClusterExtension();
     extension.setName(extensionName);
-    try {
-      StackGresExtensionMetadata extensionMetadata = getExtensionMetadataManager()
-          .getExtensionCandidateAnyVersion(cluster, extension);
-      return Optional.of(ExtensionUtil.getInstalledExtension(extension, extensionMetadata));
-    } catch (Exception ex) {
-      LOGGER.warn("Unable to retrieve any candidate for extension", ex);
-      return Optional.empty();
-    }
+    return getExtensionMetadataManager()
+        .findExtensionCandidateAnyVersion(cluster, extension)
+        .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
+            extension, extensionMetadata));
   }
 
   protected Optional<StackGresClusterInstalledExtension> getExtension(StackGresCluster cluster,
@@ -150,26 +141,18 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
     StackGresClusterExtension extension = new StackGresClusterExtension();
     extension.setName(extensionName);
     extension.setVersion(extensionVersion);
-    try {
-      StackGresExtensionMetadata extensionMetadata = getExtensionMetadataManager()
-          .getExtensionCandidateSameMajorBuild(cluster, extension);
-      return Optional.of(ExtensionUtil.getInstalledExtension(extension, extensionMetadata));
-    } catch (Exception ex) {
-      LOGGER.warn("Unable to retrieve candidate with same major build for extension", ex);
-      return Optional.empty();
-    }
+    return getExtensionMetadataManager()
+        .findExtensionCandidateSameMajorBuild(cluster, extension)
+        .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
+            extension, extensionMetadata));
   }
 
   private Optional<StackGresClusterInstalledExtension> getToInstallExtension(
       StackGresCluster cluster, StackGresClusterExtension extension) {
-    try {
-      StackGresExtensionMetadata extensionMetadata = getExtensionMetadataManager()
-          .getExtensionCandidateSameMajorBuild(cluster, extension);
-      return Optional.of(ExtensionUtil.getInstalledExtension(extension, extensionMetadata));
-    } catch (Exception ex) {
-      LOGGER.warn("Unable to retrieve candidate with same major build for extension", ex);
-      return Optional.empty();
-    }
+    return getExtensionMetadataManager()
+        .findExtensionCandidateSameMajorBuild(cluster, extension)
+        .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
+            extension, extensionMetadata));
   }
 
 }

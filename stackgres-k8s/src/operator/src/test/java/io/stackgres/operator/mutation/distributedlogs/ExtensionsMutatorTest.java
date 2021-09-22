@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
@@ -66,10 +67,10 @@ class ExtensionsMutatorTest {
         "timescaledb")
         .map(this::getDefaultExtension)
         .collect(ImmutableList.toImmutableList());
-    when(extensionMetadataManager.getExtensionCandidateAnyVersion(
+    when(extensionMetadataManager.findExtensionCandidateAnyVersion(
         any(), any()))
         .then(this::getDefaultExtensionMetadata);
-    when(extensionMetadataManager.getExtensionCandidateSameMajorBuild(
+    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(),
         argThat(extension -> defaultExtensions.stream()
             .anyMatch(defaultExtension -> defaultExtension.getName()
@@ -77,11 +78,12 @@ class ExtensionsMutatorTest {
         .then(this::getDefaultExtensionMetadata);
   }
 
-  private StackGresExtensionMetadata getDefaultExtensionMetadata(InvocationOnMock invocation) {
-    return new StackGresExtensionMetadata(defaultExtensions.stream()
+  private Optional<StackGresExtensionMetadata> getDefaultExtensionMetadata(
+      InvocationOnMock invocation) {
+    return Optional.of(new StackGresExtensionMetadata(defaultExtensions.stream()
         .filter(defaultExtension -> defaultExtension.getName()
             .equals(((StackGresClusterExtension) invocation.getArgument(1)).getName()))
-        .findAny().get());
+        .findAny().get()));
   }
 
   @Test

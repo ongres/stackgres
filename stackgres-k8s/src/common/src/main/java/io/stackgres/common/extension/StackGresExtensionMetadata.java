@@ -22,7 +22,6 @@ public class StackGresExtensionMetadata {
   private final StackGresExtensionVersion version;
   private final StackGresExtensionVersionTarget target;
   private final StackGresExtensionPublisher publisher;
-  private final String packageName;
   private final Integer majorBuild;
   private final Integer minorBuild;
 
@@ -34,7 +33,6 @@ public class StackGresExtensionMetadata {
     this.version = version;
     this.target = target;
     this.publisher = publisher;
-    this.packageName = ExtensionUtil.getExtensionPackageName(extension, version, target);
     Optional<Matcher> matcher = Optional.ofNullable(target.getBuild())
         .map(BUILD_PATTERN::matcher)
         .filter(Matcher::find);
@@ -62,7 +60,6 @@ public class StackGresExtensionMetadata {
     this.target.setOs(ExtensionUtil.DEFAULT_OS);
     this.target.setArch(ExtensionUtil.DEFAULT_ARCH);
     this.publisher = new StackGresExtensionPublisher();
-    this.packageName = ExtensionUtil.getExtensionPackageName(installedExtension);
     Optional<Matcher> matcher = Optional.ofNullable(installedExtension.getBuild())
         .map(BUILD_PATTERN::matcher)
         .filter(Matcher::find);
@@ -92,13 +89,9 @@ public class StackGresExtensionMetadata {
     return publisher;
   }
 
-  public String getPackageName() {
-    return packageName;
-  }
-
   @Override
   public int hashCode() {
-    return Objects.hash(extension, packageName, publisher, target, version);
+    return Objects.hash(extension, publisher, target, version);
   }
 
   @Override
@@ -111,7 +104,6 @@ public class StackGresExtensionMetadata {
     }
     StackGresExtensionMetadata other = (StackGresExtensionMetadata) obj;
     return Objects.equals(extension, other.extension)
-        && Objects.equals(packageName, other.packageName)
         && Objects.equals(publisher, other.publisher) && Objects.equals(target, other.target)
         && Objects.equals(version, other.version);
   }
