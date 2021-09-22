@@ -1,8 +1,8 @@
 #!/bin/sh
 
 e2e_test_install() {
-  NODE_LABEL_KEY=$(random_string)
-  NODE_LABEL_VALUE=$(random_string)
+  NODE_LABEL_KEY="$(random_string)"
+  NODE_LABEL_VALUE="$(random_string)"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
@@ -15,7 +15,7 @@ e2e_test() {
 }
 
 delete_with_cluster(){
-  if ERROR=$(kubectl delete -n "$CLUSTER_NAMESPACE" sginstanceprofiles.stackgres.io size-xs 2>&1)
+  if ERROR="$(kubectl delete -n "$CLUSTER_NAMESPACE" sginstanceprofiles.stackgres.io size-xs 2>&1)"
   then
     echo "INFO: It should not be able to delete size-xs"
     return 1
@@ -36,7 +36,7 @@ delete_with_cluster(){
 delete_whitout_cluster(){
   kubectl get -n "$CLUSTER_NAMESPACE" sgclusters.stackgres.io "$CLUSTER_NAME" -o yaml | kubectl delete -f -
 
-  if ERROR=$(kubectl get -n "$CLUSTER_NAMESPACE" sginstanceprofiles.stackgres.io size-xs 2>&1)
+  if ERROR="$(kubectl get -n "$CLUSTER_NAMESPACE" sginstanceprofiles.stackgres.io size-xs 2>&1)"
   then
     echo "SUCCESS: Good. It has deleted the configuration"
     return 0

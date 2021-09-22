@@ -59,7 +59,7 @@ get_pod_ip(){
 
 patroni_curl(){
   PORT=8008
-  POD_IP=$(get_pod_ip)
+  POD_IP="$(get_pod_ip)"
   ENPOINT="cluster"
 
   local opt

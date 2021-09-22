@@ -1,8 +1,8 @@
 #!/bin/sh
 
 e2e_test_install() {
-  NODE_LABEL_KEY=$(random_string)
-  NODE_LABEL_VALUE=$(random_string)
+  NODE_LABEL_KEY="$(random_string)"
+  NODE_LABEL_VALUE="$(random_string)"
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
   PGCBOUNCER="pgbouncer"
@@ -126,9 +126,9 @@ check_pgbouncer_data(){
 }
 
 check_parameter_count(){
-  PARAM=$1
-  COUNT=$2
-  PARAM_COUNT=$(get_pgbouncer_configmap | grep -c "$PARAM")
+  PARAM="$1"
+  COUNT="$2"
+  PARAM_COUNT="$(get_pgbouncer_configmap | grep -c "$PARAM")"
 
   if assert_string_equal "$COUNT" "$PARAM_COUNT"
   then

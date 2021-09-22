@@ -5,7 +5,8 @@ export E2E_MAJOR_TARGET_POSTGRES_VERSION="${E2E_MAJOR_TARGET_POSTGRES_VERSION:-1
 export E2E_STORAGE_CLASS_REFLINK_ENABLED="${E2E_STORAGE_CLASS_REFLINK_ENABLED:-false}"
 
 e2e_test_install() {
-  CLUSTER_NAME=dbops-major-version-upgrade
+  CLUSTER_NAME="$(get_sgcluster_name dbops-major-version-upgrade)"
+  DBOPS_NAME="$(get_sgdbops_name major-version-upgrade)"
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
@@ -65,7 +66,7 @@ EOF
 }
 
 check_major_version_upgrade() {
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "major-version-upgrade" \
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --for condition=Running
   then
     echo "SUCCESS. major version upgrade running."
@@ -86,7 +87,7 @@ check_major_version_upgrade() {
     echo "SUCCESS. Cluster has not been updated while locked."
   fi
 
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "major-version-upgrade" \
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --for condition=Completed
   then
     echo "SUCCESS. major version upgrade completed."
@@ -96,7 +97,7 @@ check_major_version_upgrade() {
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "dbops-name=major-version-upgrade,db-ops=true" \
+    -l "dbops-name=$DBOPS_NAME,db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
     echo "SUCCESS. major version upgrade job was not removed after completion."

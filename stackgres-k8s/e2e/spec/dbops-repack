@@ -1,6 +1,8 @@
 #!/bin/sh
 
 e2e_test_install() {
+  DBOPS_NAME=repack
+
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1
@@ -30,7 +32,7 @@ check_repack_is_working() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: repack
+  name: $DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -39,7 +41,7 @@ EOF
 
   check_repack
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" repack
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 }
 
 check_repack_no_order_is_working() {
@@ -47,7 +49,7 @@ check_repack_no_order_is_working() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: repack
+  name: $DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -58,7 +60,7 @@ EOF
 
   check_repack
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" repack
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 }
 
 check_repack_wait_timeout_is_working() {
@@ -66,7 +68,7 @@ check_repack_wait_timeout_is_working() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: repack
+  name: $DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -77,7 +79,7 @@ EOF
 
   check_repack
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" repack
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 }
 
 check_repack_no_kill_backend_is_working() {
@@ -85,7 +87,7 @@ check_repack_no_kill_backend_is_working() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: repack
+  name: $DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -96,7 +98,7 @@ EOF
 
   check_repack
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" repack
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 }
 
 check_repack_no_analyze_is_working() {
@@ -104,7 +106,7 @@ check_repack_no_analyze_is_working() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: repack
+  name: $DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -115,7 +117,7 @@ EOF
 
   check_repack
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" repack
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 }
 
 check_repack_exclude_extension_is_working() {
@@ -123,7 +125,7 @@ check_repack_exclude_extension_is_working() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: repack
+  name: $DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -134,7 +136,7 @@ EOF
 
   check_repack
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" repack
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 }
 
 check_repack_specific_databases_is_working() {
@@ -152,7 +154,7 @@ check_repack_specific_databases_is_working() {
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: repack
+  name: $DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -167,11 +169,11 @@ EOF
 
   check_repack
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" repack
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 }
 
 check_repack() {
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "repack" \
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --for condition=Running
   then
     echo "SUCCESS. repack running."
@@ -180,7 +182,7 @@ check_repack() {
     return 1
   fi
 
-  if kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "repack" \
+  if kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --for condition=Completed
   then
     echo "SUCCESS. repack completed."
@@ -190,7 +192,7 @@ check_repack() {
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "dbops-name=repack,db-ops=true" \
+    -l "dbops-name=$DBOPS_NAME,db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
     echo "SUCCESS. repack job was not removed after completion."
@@ -216,7 +218,7 @@ EOF
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: repack
+  name: $DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -224,7 +226,7 @@ spec:
   timeout: PT1S
 EOF
 
-  if kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "repack" \
+  if kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --for condition=Failed
   then
     echo "SUCCESS. repack failed."
@@ -234,7 +236,7 @@ EOF
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "dbops-name=repack,db-ops=true" \
+    -l "dbops-name=$DBOPS_NAME,db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
     echo "SUCCESS. repack job was not removed after failure."
@@ -243,10 +245,10 @@ EOF
     return 1
   fi
 
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" repack
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 
   if wait_until eval '[ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "dbops-name=repack,db-ops=true" \
+    -l "dbops-name=$DBOPS_NAME,db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 0 ]'
   then
     echo "SUCCESS. repack job was removed after sgdbops was removed."

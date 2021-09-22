@@ -1,8 +1,8 @@
 #!/bin/sh
 
 e2e_test_install() {
-  NODE_LABEL_KEY=$(random_string)
-  NODE_LABEL_VALUE=$(random_string)
+  NODE_LABEL_KEY="$(random_string)"
+  NODE_LABEL_VALUE="$(random_string)"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
@@ -15,7 +15,7 @@ e2e_test() {
 }
 
 delete_with_cluster() {
-  if ERROR_MESSAGE=$( { kubectl delete -n "$CLUSTER_NAMESPACE" sgpoolconfigs.stackgres.io pgbouncerconf; } 2>&1 )
+  if ERROR_MESSAGE="$( { kubectl delete -n "$CLUSTER_NAMESPACE" sgpoolconfigs.stackgres.io pgbouncerconf; } 2>&1 )"
   then
     echo "ERROR: It should not be able to delete pgbouncerconf"
     return 1
@@ -44,7 +44,7 @@ delete_whitout_cluster() {
     echo "SUCCESS: Good. It has deleted the configuration"
     return 0
   else
-    ERROR=$(kubectl delete -n "$CLUSTER_NAMESPACE" sgpoolconfigs.stackgres.io pgbouncerconf)
+    ERROR="$(kubectl delete -n "$CLUSTER_NAMESPACE" sgpoolconfigs.stackgres.io pgbouncerconf)"
     echo "FAIL: It should be able to delete the pgbouncerconf. ERROR $ERROR"
     return 1
   fi

@@ -1,7 +1,8 @@
 #!/bin/sh
 
 e2e_test_install() {
-  CLUSTER_NAME=dbops-restart
+  CLUSTER_NAME="$(get_sgcluster_name dbops-restart)"
+  DBOPS_NAME="$(get_sgdbops_name restart)"
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
@@ -29,7 +30,7 @@ check_restart() {
   local RESTARTED_PODS="$1"
   local NOT_RESTARTED_PODS="$2"
 
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "restart" \
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --for condition=Running
   then
     echo "SUCCESS. restart running."
@@ -50,7 +51,7 @@ check_restart() {
     echo "SUCCESS. Cluster has not been updated while locked."
   fi
 
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "restart" \
+  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --for condition=Completed
   then
     echo "SUCCESS. restart completed."
@@ -67,7 +68,7 @@ check_restart() {
   printf '%s %s' "$RESTARTED_PODS" "$NOT_RESTARTED_PODS" | wc -w | grep -q '^2$'
 
   local DBOPS_CREATION_TIMESTAMP
-  DBOPS_CREATION_TIMESTAMP="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "restart" --template='{{ .metadata.creationTimestamp }}')"
+  DBOPS_CREATION_TIMESTAMP="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --template='{{ .metadata.creationTimestamp }}')"
   DBOPS_CREATION_TIMESTAMP="$(date -d "$DBOPS_CREATION_TIMESTAMP" +%s)"
   local POD_CREATION_TIMESTAMP
   local POD
@@ -97,7 +98,7 @@ check_restart() {
   done
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "dbops-name=restart,db-ops=true" \
+    -l "dbops-name=$DBOPS_NAME,db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
     echo "SUCCESS. restart job was not removed after completion."

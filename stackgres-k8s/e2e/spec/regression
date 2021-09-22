@@ -15,9 +15,9 @@ e2e_test() {
 }
 
 check_persistent_volume_claim_size() {
-  VOLUME_CLAIM_CAPACITY=$(kubectl get persistentvolumeclaims -n "$CLUSTER_NAMESPACE" \
+  VOLUME_CLAIM_CAPACITY="$(kubectl get persistentvolumeclaims -n "$CLUSTER_NAMESPACE" \
     "$CLUSTER_NAME-data-$CLUSTER_NAME-0" \
-    -o jsonpath='{.spec.resources.requests.storage}')
+    -o jsonpath='{.spec.resources.requests.storage}')"
 
   if [ "$VOLUME_CLAIM_CAPACITY" = "128Mi" ]
   then
@@ -29,7 +29,7 @@ check_persistent_volume_claim_size() {
 }
 
 check_shared_memory() {
-  SHM_SIZE=$(get_shared_memory)
+  SHM_SIZE="$(get_shared_memory)"
 
   assert_string_not_equal "64M" "$SHM_SIZE"
 }
@@ -64,9 +64,9 @@ check_persistent_volume_claim_is_updated() {
 
 check_persistent_volume_claim() {
   local EXPECTED_CAPACITY="$1"
-  VOLUME_CLAIM_CAPACITY=$(kubectl get sts -n "$CLUSTER_NAMESPACE" \
+  VOLUME_CLAIM_CAPACITY="$(kubectl get sts -n "$CLUSTER_NAMESPACE" \
     "$CLUSTER_NAME" \
-    -o jsonpath='{.spec.volumeClaimTemplates[0].spec.resources.requests.storage}')
+    -o jsonpath='{.spec.volumeClaimTemplates[0].spec.resources.requests.storage}')"
 
   [ "$VOLUME_CLAIM_CAPACITY" = "$EXPECTED_CAPACITY" ]
 }

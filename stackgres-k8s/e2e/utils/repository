@@ -41,7 +41,7 @@ set_up_private_repository() {
   fi  
 
 
-  export PRIVATE_REPO_URI=$(get_private_repository_uri)
+  export PRIVATE_REPO_URI="$(get_private_repository_uri)"
   export PRIVATE_OPERATOR_IMAGE_NAME="$PRIVATE_REPO_URI/$OPERATOR_IMAGE_NAME"
   export PRIVATE_RESTAPI_IMAGE_NAME="$PRIVATE_REPO_URI/$RESTAPI_IMAGE_NAME"
   export PRIVATE_JOBS_IMAGE_NAME="$PRIVATE_REPO_URI/$JOBS_IMAGE_NAME"
@@ -105,8 +105,8 @@ EOF
 }
 
 get_private_repository_uri() {
-  local AWS_ACCOUNT_ID=$(aws --output=text sts get-caller-identity | awk '{print $1}')
-  local AWS_REGION=$(aws configure get region)
+  local AWS_ACCOUNT_ID="$(aws --output=text sts get-caller-identity | awk '{print $1}')"
+  local AWS_REGION="$(aws configure get region)"
 
   echo "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
 }
@@ -123,8 +123,7 @@ load_cached_images_from_local_repository() {
   fi
   cat "$E2E_PULLED_IMAGES_PATH" \
     | cut -d : -f 2-3 | sort | uniq \
-    | xargs -r -n 1 -I % -P "$E2E_PARALLELISM" \
-      "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" load_cached_image_from_local_repository '%'
+    | xargs_parallel_shell % "$E2E_PATH/e2e" load_cached_image_from_local_repository '%'
 }
 
 load_cached_image_from_local_repository() {
