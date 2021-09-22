@@ -9,6 +9,7 @@ import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAIN
 import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_DATA;
 
 import java.util.Map;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -24,6 +25,9 @@ import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresController;
 import io.stackgres.common.StackgresClusterContainers;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -91,6 +95,18 @@ public class ClusterController implements ContainerFactory<StackGresClusterConta
                     .CLUSTER_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES
                     .getEnvironmentVariableName())
                 .withValue(Boolean.TRUE.toString())
+                .build(),
+            new EnvVarBuilder()
+                .withName(ClusterControllerProperty
+                    .CLUSTER_CONTROLLER_RECONCILE_PGBOUNCER
+                    .getEnvironmentVariableName())
+                .withValue(Optional.of(context.getClusterContext().getCluster())
+                    .map(StackGresCluster::getSpec)
+                    .map(StackGresClusterSpec::getPod)
+                    .map(StackGresClusterPod::getDisableConnectionPooling)
+                    .map(getDisableConnectionPooling -> !getDisableConnectionPooling)
+                    .orElse(Boolean.TRUE)
+                    .toString())
                 .build(),
             new EnvVarBuilder()
                 .withName("CLUSTER_CONTROLLER_LOG_LEVEL")

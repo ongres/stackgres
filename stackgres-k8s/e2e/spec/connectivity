@@ -24,6 +24,8 @@ e2e_test() {
   run_test "Check that psql is storing history in postgres-util container" psql_is_storing_history_check
 
   run_test "Check that pgbouncer database is accesible using the service" pgbouncer_database_check
+
+  run_test "Check that users configured in pgbouncer can access using the service" pgbouncer_users_check
 }
 
 ports_check() {
@@ -102,6 +104,35 @@ pgbouncer_database_check() {
     echo "SUCCESS: psql could connect to the pgbouncer database with pgobuncer_stats using service"
   else
     echo "FAIL: psql could not connect to the pgbouncer database with pgobuncer_stats using service"
+    return 1
+  fi
+}
+
+pgbouncer_users_check() {
+  run_query -i 0 -p 5432 -q "CREATE USER user1 WITH PASSWORD 'test'";
+  run_query -i 0 -p 5432 -q "CREATE USER user2 WITH PASSWORD 'test'";
+  kubectl get sgpoolconfig -n "$CLUSTER_NAMESPACE" pgbouncerconf -o json \
+    | jq '.spec.pgBouncer["pgbouncer.ini"].users = { user1: {}, user2: {} }' \
+    | kubectl patch sgpoolconfig -n "$CLUSTER_NAMESPACE" pgbouncerconf --type marge -p "$(cat)"
+  wait_until eval '! kubectl wait -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME" --for condition=PendingRestart --timeout 0'
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true"
+  wait_pods_running "$CLUSTER_NAMESPACE" 3
+
+  RESPONSE_REPLICA="$(run_query -h "$CLUSTER_NAME"-primary -i 1 -p 5432 -u user1:test)"
+  if [ "$RESPONSE_REPLICA" = "1" ]
+  then
+    echo "SUCCESS: Connections are possible using user1 in pgbouncer users section"
+  else
+    echo "FAIL: Cannot connect using user1 in pgbouncer users section"
+    return 1
+  fi
+
+  RESPONSE_REPLICA="$(run_query -h "$CLUSTER_NAME"-primary -i 1 -p 5432 -u user2:test)"
+  if [ "$RESPONSE_REPLICA" = "1" ]
+  then
+    echo "SUCCESS: Connections are possible using user2 in pgbouncer users section"
+  else
+    echo "FAIL: Cannot connect using user2 in pgbouncer users section"
     return 1
   fi
 }
