@@ -81,6 +81,20 @@
                         <input v-model="postgresVersion" @change="checkPgConfigVersion" required class="hide">
                     </div>
 
+                    <label for="spec.postgres.flavor">Postgres Flavor</label>
+                    <select :disabled="editMode" v-model="flavor" required data-field="spec.postgres.flavor">
+                        <option disabled value="">Postgres Flavor</option>
+                        <option selected value="Vanilla">Vanilla</option>
+                        <option value="babelfish">Babelfish</option>
+                    </select>
+                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgres.flavor')"></a>
+
+                    <template v-if="flavor === 'babelfish'">
+                        <label for="spec.nonProductionOptions.enabledFeatureGates">Feature Gates</label>  
+                        <label disabled for="featureGates" class="switch yes-no">Babelfish Flavor Feature Enabled<input disabled type="checkbox" id="featureGates" v-model="featureGates" data-switch="NO"></label>
+                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.nonProductionOptions.enabledFeatureGates')"></a>
+                    </template>
+
                     <label for="spec.instances">Number of Instances <span class="req">*</span></label>
                     <select v-model="instances" required data-field="spec.instances">    
                         <option disabled value="">Instances</option>
@@ -1000,6 +1014,8 @@
                 name: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
                 namespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 postgresVersion: 'latest',
+                flavor: 'vanilla',
+                featureGates: true,
                 instances: 1,
                 resourceProfile: '',
                 pgConfig: '',
@@ -1150,6 +1166,8 @@
                             let volumeUnit = c.data.spec.pods.persistentVolume.size.match(/[a-zA-Z]+/g);
 
                             vm.postgresVersion = c.data.spec.postgres.version;
+                            vm.flavor = c.data.spec.postgres.hasOwnProperty('flavor') ? c.data.spec.postgres.flavor : 'Vanilla' ;
+                            vm.featureGates = vm.hasProp(c, 'data.spec.nonProductionOptions.enabledFeatureGates') && c.data.spec.nonProductionOptions.enabledFeatureGates.includes('babelfish-flavor');
                             vm.instances = c.data.spec.instances;
                             vm.resourceProfile = c.data.spec.sgInstanceProfile;
                             vm.pgConfig = c.data.spec.configurations.sgPostgresConfig;
@@ -1385,7 +1403,12 @@
                                 }) 
                             ),
                             ...(this.prometheusAutobind && ( {"prometheusAutobind": this.prometheusAutobind }) ),
-                            ...(this.disableClusterPodAntiAffinity && ( {"nonProductionOptions": { "disableClusterPodAntiAffinity": this.disableClusterPodAntiAffinity } }) ),
+                            ...((this.disableClusterPodAntiAffinity || (this.flavor == 'babelfish' && this.featureGates)) && ( {
+                                "nonProductionOptions": { 
+                                    ...(this.disableClusterPodAntiAffinity && ({"disableClusterPodAntiAffinity": this.disableClusterPodAntiAffinity}) ),
+                                    ...((this.flavor == 'babelfish' && this.featureGates) && ({ "enabledFeatureGates": ['babelfish-flavor'] }))
+                                    } 
+                                }) ),
                             ...( (!$.isEmptyObject(this.parseProps(this.annotationsAll)) || !$.isEmptyObject(this.parseProps(this.annotationsPods)) || !$.isEmptyObject(this.parseProps(this.annotationsServices)) || !$.isEmptyObject(this.parseProps(this.postgresServicesPrimaryAnnotations)) || !$.isEmptyObject(this.parseProps(this.postgresServicesReplicasAnnotations)) || !$.isEmptyObject(this.parseProps(this.podsMetadata, 'label')) ) && ({
                                 "metadata": {
                                     "annotations": {
@@ -1416,7 +1439,8 @@
                                 "version": this.postgresVersion,
                                 ...(this.selectedExtensions.length && ({
                                     "extensions": this.selectedExtensions
-                                }))
+                                })),
+                                ...( (this.flavor == 'babelfish') && ( {"flavor": this.flavor }) )
                             }
 
                         }
