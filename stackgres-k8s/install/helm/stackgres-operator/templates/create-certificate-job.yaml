@@ -49,13 +49,25 @@ spec:
             EOF
 
             openssl req -new -nodes -text -keyout /tmp/root.key \
-                -subj "/CN={{ .Release.Name }}.{{ .Release.Namespace }}.svc" \
+                -subj "/CN=system:node:{{ .Release.Name }}.{{ .Release.Namespace }}.svc;/O=system:nodes" \
                 -out /tmp/server.csr \
                 -config /tmp/csr.conf
             openssl rsa -in /tmp/root.key -pubout -out /tmp/root.pem
 
+            K8S_VERSION="$(kubectl get node --template '{{ "{{ (index .items 0).status.nodeInfo.kubeletVersion }}" }}')"
+            K8S_VERSION="${K8S_VERSION#v}"
             cat << EOF | kubectl create -f -
-            apiVersion: certificates.k8s.io/v1beta1
+            $(
+            if [ "$(echo "$K8S_VERSION" | tr . '\n' \
+                | while read NUMBER; do printf '%05d' "$NUMBER"; done)" \
+              -ge "$(echo "1.21.0" | tr . '\n' \
+                | while read NUMBER; do printf '%05d' "$NUMBER"; done)" ]
+            then
+              echo "apiVersion: certificates.k8s.io/v1"
+            else
+              echo "apiVersion: certificates.k8s.io/v1beta1"
+            fi
+            )
             kind: CertificateSigningRequest
             metadata:
               name: {{ .Release.Name }}
@@ -65,6 +77,15 @@ spec:
               - digital signature
               - key encipherment
               - server auth
+            $(
+            if [ "$(echo "$K8S_VERSION" | tr . '\n' \
+                | while read NUMBER; do printf '%05d' "$NUMBER"; done)" \
+              -ge "$(echo "1.21.0" | tr . '\n' \
+                | while read NUMBER; do printf '%05d' "$NUMBER"; done)" ]
+            then
+              echo "  signerName: kubernetes.io/kubelet-serving"
+            fi
+            )
             EOF
 
             if ! kubectl get csr '{{ .Release.Name }}' -o yaml|grep -q '^    type: Approved$'

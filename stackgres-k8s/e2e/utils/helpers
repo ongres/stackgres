@@ -71,3 +71,40 @@ do_transform_params() {
 escape_quote() {
   printf '%s' "$1" | sed s/\'/\'\\\\\'\'/g
 }
+
+export SHELL="$(readlink /proc/$$/exe)"
+if [ "$(basename "$SHELL")" = busybox ]
+then
+  SHELL=sh
+fi
+SHELL_XTRACE="$(! echo $- | grep -q x || echo "-x")"
+
+[ -z "$SHELL_XTRACE" ] || set +x
+
+shell() {
+  # shellcheck disable=SC2086
+  "$SHELL" $SHELL_XTRACE "$@"
+}
+
+flock_shell() {
+  local LOCK_FILE="$1"
+  shift
+  # shellcheck disable=SC2086
+  flock "$LOCK_FILE" "$SHELL" $SHELL_XTRACE "$@"
+}
+
+xargs_parallel_shell() {
+  [ -n "$1" ]
+  local PLACEHOLDER="$1"
+  shift
+  # shellcheck disable=SC2086
+  xargs -r -n 1 -I "$PLACEHOLDER" -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE "$@"
+}
+
+xargs_shell() {
+  [ -n "$1" ]
+  local PLACEHOLDER="$1"
+  shift
+  # shellcheck disable=SC2086
+  xargs -r -n 1 -I "$PLACEHOLDER" "$SHELL" $SHELL_XTRACE "$@"
+}

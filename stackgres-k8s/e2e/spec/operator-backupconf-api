@@ -1,8 +1,8 @@
 #!/bin/sh
 
 e2e_test_install() {
-  NODE_LABEL_KEY=$(random_string)
-  NODE_LABEL_VALUE=$(random_string)
+  NODE_LABEL_KEY="$(random_string)"
+  NODE_LABEL_VALUE="$(random_string)"
 
   BACKUPCONF="backupconf"
 
@@ -26,16 +26,16 @@ e2e_test_install() {
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1
 
-  DEFAULT_BACKUPCONFIG_CR=$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUPCONF"  -o json \
+  DEFAULT_BACKUPCONFIG_CR="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUPCONF"  -o json \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation)
-      | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)')
+      | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)')"
   echo "$DEFAULT_BACKUPCONFIG_CR" > "$LOG_PATH/default-backupconfig-cr.json"
 
-  DEFAULT_BACKUPCONFIG=$(cat "$LOG_PATH/default-backupconfig-cr.json" \
+  DEFAULT_BACKUPCONFIG="$(cat "$LOG_PATH/default-backupconfig-cr.json" \
     | jq 'del(.apiVersion) | del(.kind)' \
     | jq 'del(.spec.storage.s3Compatible.awsCredentials.secretKeySelectors)
       | .spec.storage.s3Compatible.awsCredentials.accessKeyId = "secret"
-      | .spec.storage.s3Compatible.awsCredentials.secretAccessKey = "secret"')
+      | .spec.storage.s3Compatible.awsCredentials.secretAccessKey = "secret"')"
   echo "$DEFAULT_BACKUPCONFIG" > "$LOG_PATH/default-backupconfig.json"
 
   kubectl delete sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUPCONF"
@@ -399,7 +399,7 @@ test_api_delete_backupconfig_is_invible() {
 
 test_constraint_violation_api_error() {
 
-  INVALID_PGCONFIG=$(cat "$LOG_PATH/default-backupconfig.json" | jq '.spec.baseBackups.retention = -1' )
+  INVALID_PGCONFIG="$(cat "$LOG_PATH/default-backupconfig.json" | jq '.spec.baseBackups.retention = -1' )"
 
   echo "$INVALID_PGCONFIG" > "$LOG_PATH/invalid-backupconfig.json"
 

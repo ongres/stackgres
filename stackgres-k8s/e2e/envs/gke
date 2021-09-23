@@ -15,7 +15,7 @@ K8S_GKE_NODES="${K8S_GKE_NODES:-1}"
 K8S_GKE_PROJECT="${K8S_GKE_PROJECT:-default}"
 K8S_GKE_OPTS="$K8S_GKE_OPTS"
 K8S_GKE_SERVICEACCOUNT="${K8S_GKE_SERVICEACCOUNT:-stackgres-e2e}"
-K8S_GKE_ACCOUNT_EMAIL=$K8S_GKE_SERVICEACCOUNT@$K8S_GKE_PROJECT.iam.gserviceaccount.com
+K8S_GKE_ACCOUNT_EMAIL="$K8S_GKE_SERVICEACCOUNT@$K8S_GKE_PROJECT.iam.gserviceaccount.com"
 K8S_GKE_ACCOUNT_MEMBER="serviceAccount:$K8S_GKE_ACCOUNT_EMAIL"
 
 export E2E_USE_INTERMIDIATE_PRIVATE_REPO=true
@@ -78,7 +78,7 @@ delete_k8s() {
   gcloud -q compute disks list --project "$K8S_GKE_PROJECT" --filter "zone:($K8S_GKE_REGION)" \
     | tail -n+2 | sed 's/ \+/|/g' | cut -d '|' -f 1-2 \
     | grep '^gke-'"$K8S_GKE_NAME"'-[0-9a-f]\{4\}-pvc-[0-9a-f]\{8\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{12\}|' \
-    | xargs -r -n 1 -I % "$SHELL" $SHELL_XTRACE -ec "gcloud -q compute disks delete --project '$K8S_GKE_PROJECT' --zone \"\$(echo '%' | cut -d '|' -f 2)\" \"\$(echo '%' | cut -d '|' -f 1)\""
+    | xargs_shell % -ec "gcloud -q compute disks delete --project '$K8S_GKE_PROJECT' --zone \"\$(echo '%' | cut -d '|' -f 2)\" \"\$(echo '%' | cut -d '|' -f 1)\""
 
   echo "...done"
 }

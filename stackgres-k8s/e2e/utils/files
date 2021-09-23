@@ -2,7 +2,7 @@
 write_to(){
   FILE="$1"
   shift 1
-  OUTPUT=$( "$@" )
+  OUTPUT="$( "$@" )"
 
   cat << EOF > "$FILE"
 $OUTPUT

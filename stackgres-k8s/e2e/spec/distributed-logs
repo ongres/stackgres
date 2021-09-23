@@ -1,7 +1,8 @@
 #!/bin/sh
 
 e2e_test_install() {
-  DISTRIBUTED_LOGS_NAME=distributedlogs
+  COPY_CLUSTER_NAME="$(get_sgcluster_name "$CLUSTER_NAME-copy")"
+  DISTRIBUTED_LOGS_NAME="$(get_sgdistributdlogs_name distributedlogs)"
 
   TIMESCALE_VERSION="$(get_latest_version_of_extension timescaledb)"
 
@@ -65,7 +66,8 @@ check_latest_timescaledb_version_is_installed() {
 }
 
 default_annotations(){
-  local DEFAULT_ANNOTATION=$(kubectl get sgdistributedlogs.stackgres.io -n $CLUSTER_NAMESPACE $DISTRIBUTED_LOGS_NAME -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')
+  local DEFAULT_ANNOTATION="$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" \
+    -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
@@ -77,7 +79,7 @@ default_annotations(){
 }
 
 check_distributed_logs_attach_to_clusters() {
-  create_or_replace_cluster "$CLUSTER_NAME-copy" "$CLUSTER_NAMESPACE" "1" \
+  create_or_replace_cluster "$COPY_CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=false \
     --set instanceProfiles=null \
@@ -91,7 +93,7 @@ check_distributed_logs_attach_to_clusters() {
   wait_pods_running "$CLUSTER_NAMESPACE" "5"
   wait_services_available "$CLUSTER_NAMESPACE" "1" "$CLUSTER_NAME$"
   wait_until -t "$((E2E_TIMEOUT * 4))" has_cluster_joined_distributedlogs
-  wait_services_available "$CLUSTER_NAMESPACE" "1" "$CLUSTER_NAME-copy$"
+  wait_services_available "$CLUSTER_NAMESPACE" "1" "$COPY_CLUSTER_NAME$"
   wait_until -t "$((E2E_TIMEOUT * 4))" has_cluster_joined_distributedlogs -copy
 
   local TEXT
@@ -113,14 +115,14 @@ check_distributed_logs_attach_to_clusters() {
 
   for TEXT in distributed-logs-copy-worked distributed-logs-copy-works distributed-logs-copy-still-works
   do
-    RESPONSE="$(run_query -c "$CLUSTER_NAME-copy" -x psql -k postgres \
-      -h "$CLUSTER_NAME-copy"-primary -p 5432 -q "SELECT '$TEXT'")"
+    RESPONSE="$(run_query -c "$COPY_CLUSTER_NAME" -x psql -k postgres \
+      -h "$COPY_CLUSTER_NAME"-primary -p 5432 -q "SELECT '$TEXT'")"
 
     if [ "$RESPONSE" = "$TEXT" ]
     then
-      echo "SUCCESS: Log entry '$TEXT' created for $CLUSTER_NAME-copy"
+      echo "SUCCESS: Log entry '$TEXT' created for $COPY_CLUSTER_NAME"
     else
-      echo "FAIL: Cannot create log entry '$TEXT' for $CLUSTER_NAME-copy"
+      echo "FAIL: Cannot create log entry '$TEXT' for $COPY_CLUSTER_NAME"
       return 1
     fi
   done
@@ -142,9 +144,9 @@ check_distributed_logs_attach_to_clusters() {
   do
     if wait_until eval 'get_logs_count_with_text "$TEXT" -copy | grep -q "^1$"'
     then
-      echo "SUCCESS: Cluster log entry '$TEXT' included in json response for cluster $CLUSTER_NAME-copy"
+      echo "SUCCESS: Cluster log entry '$TEXT' included in json response for cluster $COPY_CLUSTER_NAME"
     else
-      echo "FAIL: Cluster log entry '$TEXT' not included in json response for cluster $CLUSTER_NAME-copy"
+      echo "FAIL: Cluster log entry '$TEXT' not included in json response for cluster $COPY_CLUSTER_NAME"
       return 1
     fi
   done
@@ -153,9 +155,9 @@ check_distributed_logs_attach_to_clusters() {
   do
     if get_logs_count_with_text "$TEXT" | grep -q "^0$"
     then
-      echo "SUCCESS: Cluster log entry '$TEXT' for cluster $CLUSTER_NAME-copy not included in json response for cluster $CLUSTER_NAME"
+      echo "SUCCESS: Cluster log entry '$TEXT' for cluster $COPY_CLUSTER_NAME not included in json response for cluster $CLUSTER_NAME"
     else
-      echo "FAIL: Cluster log entry '$TEXT' for cluster $CLUSTER_NAME-copy included in json response for cluster $CLUSTER_NAME"
+      echo "FAIL: Cluster log entry '$TEXT' for cluster $COPY_CLUSTER_NAME included in json response for cluster $CLUSTER_NAME"
       return 1
     fi
   done
@@ -164,9 +166,9 @@ check_distributed_logs_attach_to_clusters() {
   do
     if get_logs_count_with_text "$TEXT" -copy | grep -q "^0$"
     then
-      echo "SUCCESS: Cluster log entry '$TEXT' for cluster $CLUSTER_NAME not included in json response for cluster $CLUSTER_NAME-copy"
+      echo "SUCCESS: Cluster log entry '$TEXT' for cluster $CLUSTER_NAME not included in json response for cluster $COPY_CLUSTER_NAME"
     else
-      echo "FAIL: Cluster log entry '$TEXT' for cluster $CLUSTER_NAME included in json response for cluster $CLUSTER_NAME-copy"
+      echo "FAIL: Cluster log entry '$TEXT' for cluster $CLUSTER_NAME included in json response for cluster $COPY_CLUSTER_NAME"
       return 1
     fi
   done

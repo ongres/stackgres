@@ -45,6 +45,9 @@ class BackupRequiredResourcesGeneratorTest {
   @InjectMock
   BackupConfigFinder backupConfigFinder;
 
+  @InjectMock
+  BackupRequiredResourceDecorator decorator;
+
   @Inject
   BackupRequiredResourcesGenerator generator;
 
@@ -109,13 +112,14 @@ class BackupRequiredResourcesGeneratorTest {
       if (resource.getMetadata().getOwnerReferences().size() == 0) {
         fail("Resource " + resource.getMetadata().getName() + " doesn't have any owner");
       }
-      assertTrue(resource.getMetadata().getOwnerReferences().stream().anyMatch(ownerReference
-          -> ownerReference.getApiVersion().equals(HasMetadata.getApiVersion(StackGresBackup.class))
-          && ownerReference.getKind().equals(HasMetadata.getKind(StackGresBackup.class))
-          && ownerReference.getName().equals(backup.getMetadata().getName())
-          && ownerReference.getUid().equals(backup.getMetadata().getUid())
-          && Optional.ofNullable(ownerReference.getBlockOwnerDeletion()).orElse(Boolean.FALSE)
-          .equals(Boolean.FALSE)));
+      assertTrue(resource.getMetadata().getOwnerReferences().stream()
+          .anyMatch(ownerReference -> ownerReference.getApiVersion()
+              .equals(HasMetadata.getApiVersion(StackGresBackup.class))
+              && ownerReference.getKind().equals(HasMetadata.getKind(StackGresBackup.class))
+              && ownerReference.getName().equals(backup.getMetadata().getName())
+              && ownerReference.getUid().equals(backup.getMetadata().getUid())
+              && Optional.ofNullable(ownerReference.getBlockOwnerDeletion()).orElse(Boolean.FALSE)
+                  .equals(Boolean.FALSE)));
     });
 
     verify(clusterFinder, times(1)).findByNameAndNamespace(any(), any());

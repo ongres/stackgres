@@ -35,7 +35,7 @@ check_user_on_replica() {
 check_user() {
   local HOST="$1"
   local FROM_HOST_INDEX="$2"
-  if run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "SELECT usename FROM pg_user;" -d "postgres" \
+  if run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT usename FROM pg_user;" -d "postgres" \
     | grep -q "^sakila$"
   then
     echo "SUCCESS: sakila user was created successfully"
@@ -56,7 +56,7 @@ check_database_on_replica() {
 check_database() {
   local HOST="$1"
   local FROM_HOST_INDEX="$2"
-  if run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "SELECT datname FROM pg_database;" -d "postgres" \
+  if run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT datname FROM pg_database;" -d "postgres" \
     | grep -q "^sakila$"
   then
     echo "SUCCESS: sakila database was created successfully"
@@ -77,9 +77,9 @@ check_schema_on_replica() {
 check_schema() {
   local HOST="$1"
   local FROM_HOST_INDEX="$2"
-  if run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "SELECT tablename FROM pg_tables;" -d "sakila" \
+  if run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT tablename FROM pg_tables;" -d "sakila" \
     | grep -q "^film$" \
-    && run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "SELECT tablename FROM pg_tables;" -d "sakila" \
+    && run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT tablename FROM pg_tables;" -d "sakila" \
     | grep -q "^store$"
   then
     echo "SUCCESS: sakila schema was created successfully"

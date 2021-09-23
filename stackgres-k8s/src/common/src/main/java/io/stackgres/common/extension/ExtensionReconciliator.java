@@ -120,7 +120,7 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
           LOGGER.info("Verify extension {}", ExtensionUtil.getDescription(extension));
           extensionInstaller.verify();
           if (skipSharedLibrariesOverwrites
-              && extensionInstaller.doesInstallOverwriteAnySharedLibrary()) {
+              && extensionInstaller.doesInstallOverwriteAnySharedFile()) {
             LOGGER.info("Skip installation of extension {}",
                 ExtensionUtil.getDescription(extension));
             if (!extensionInstaller.isExtensionPendingOverwrite()) {

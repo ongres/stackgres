@@ -23,7 +23,6 @@ import io.restassured.http.ContentType;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigList;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -187,44 +186,6 @@ class ClusterValidationQuarkusTest {
         .then()
         .body("response.allowed", is(true),
             "kind", is("AdmissionReview"))
-        .statusCode(200);
-  }
-
-  @Test
-  void given_invalidStackGresClusterName_shouldFail() {
-    StackGresClusterReview clusterReview = getConstraintClusterReview();
-    StackGresCluster cluster = clusterReview.getRequest().getObject();
-    cluster.getMetadata().setName("postgres-13.0-to-13.1");
-    RestAssured.given()
-        .body(clusterReview)
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .post(ValidationUtil.CLUSTER_VALIDATION_PATH)
-        .then()
-        .body("response.allowed", is(false),
-            "kind", is("AdmissionReview"),
-            "response.status.code", is(422),
-            "response.status.message", is("Name must consist of lower case alphanumeric "
-                + "characters or '-', start with an alphabetic character, "
-                + "and end with an alphanumeric character"))
-        .statusCode(200);
-  }
-
-  @Test
-  void given_invalidStackGresClusterLongName_shouldFail() {
-    StackGresClusterReview clusterReview = getConstraintClusterReview();
-    StackGresCluster cluster = clusterReview.getRequest().getObject();
-    cluster.getMetadata().setName("husked-condition-calculus-ridden-pancreas-heave-extented");
-    RestAssured.given()
-        .body(clusterReview)
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .post(ValidationUtil.CLUSTER_VALIDATION_PATH)
-        .then()
-        .body("response.allowed", is(false),
-            "kind", is("AdmissionReview"),
-            "response.status.code", is(422),
-            "response.status.message", is("Valid name must be 53 characters or less"))
         .statusCode(200);
   }
 

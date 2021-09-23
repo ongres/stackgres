@@ -1,8 +1,8 @@
 #!/bin/sh
 
 e2e_test_install() {
-  NODE_LABEL_KEY=$(random_string)
-  NODE_LABEL_VALUE=$(random_string)
+  NODE_LABEL_KEY="$(random_string)"
+  NODE_LABEL_VALUE="$(random_string)"
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
   cat <<EOF | kubectl apply -f -
@@ -32,7 +32,7 @@ e2e_test() {
 check_label(){
   local EXPECTED_LABEL_VALUE="$1"
 
-  local ACTUAL_LABEL=$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath="{.spec.template.metadata.labels.test-label}")
+  local ACTUAL_LABEL="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath="{.spec.template.metadata.labels.test-label}")"
 
   if assert_string_equal "$EXPECTED_LABEL_VALUE" "$ACTUAL_LABEL"
   then
@@ -44,7 +44,7 @@ check_label(){
 }
 
 direct_custom_labels(){
-  local RANDOM_VALUE=$(random_string)
+  local RANDOM_VALUE="$(random_string)"
   cat <<EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1
 kind: SGCluster
@@ -76,7 +76,7 @@ EOF
 }
 
 helm_custom_labels(){
-  local RANDOM_VALUE=$(random_string)
+  local RANDOM_VALUE="$(random_string)"
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
     --set cluster.metadata.labels.clusterPods.test-label="$RANDOM_VALUE"
@@ -89,11 +89,11 @@ helm_custom_labels(){
 get_cluster_json() {
   LABEL_VALUE="$1"
 
-  CLUSTER_JSON=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+  CLUSTER_JSON="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation)' \
     | jq 'del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
     | jq 'del(.apiVersion) | del(.kind)' \
-    | jq ".spec.metadata.labels.clusterPods[\"test-label\"]=\"$LABEL_VALUE\"" )
+    | jq ".spec.metadata.labels.clusterPods[\"test-label\"]=\"$LABEL_VALUE\"" )"
   echo "$CLUSTER_JSON"
 }
 
@@ -138,7 +138,7 @@ EOF
 
   RANDOM_VALUE="$(random_string)"
 
-  CLUSTER_JSON="$(get_cluster_json $RANDOM_VALUE)"
+  CLUSTER_JSON="$(get_cluster_json "$RANDOM_VALUE")"
 
   echo_raw "$CLUSTER_JSON" > "$LOG_PATH/stackgres-cluster.json"
 
@@ -152,7 +152,7 @@ EOF
 }
 
 get_api_custom_labels() {
-  local RANDOM_VALUE=$(random_string)
+  local RANDOM_VALUE="$(random_string)"
   cat <<EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1
 kind: SGCluster
@@ -178,7 +178,7 @@ spec:
         test-label: '$RANDOM_VALUE'
 EOF
 
-  local LABEL_VALUE=$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.spec.metadata.labels.clusterPods["test-label"]' -r)
+  local LABEL_VALUE="$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.spec.metadata.labels.clusterPods["test-label"]' -r)"
 
 run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME"
   assert_string_equal "$RANDOM_VALUE" "$LABEL_VALUE"

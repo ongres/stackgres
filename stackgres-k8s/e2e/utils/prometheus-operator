@@ -9,6 +9,13 @@ prometheus_service() {
 }
 
 install_prometheus_operator() {
+  install_prometheus_operator_for_version 18.0.6 "$@"
+}
+
+install_prometheus_operator_for_version() {
+  local KUBE_PROMETHEUS_STACK_VERSION="$1"
+  shift
+
   if [ "$E2E_ENV" = "minishift" ]
   then
     eval "$(minishift oc-env)"
@@ -18,7 +25,7 @@ install_prometheus_operator() {
     oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-prometheus-oper-prometheus
   fi
 
-  helm install prometheus "$E2E_PATH/helm/kube-prometheus-stack-12.8.0.tgz" \
+  helm install prometheus "$E2E_PATH/helm/kube-prometheus-stack-$KUBE_PROMETHEUS_STACK_VERSION.tgz" \
     --create-namespace \
     --namespace "$(prometheus_namespace)" \
     --disable-openapi-validation \

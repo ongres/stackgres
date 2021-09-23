@@ -3,8 +3,8 @@
 . "$SPEC_PATH/abstract/dbops-minor-version-upgrade"
 
 e2e_test_install() {
-  NODE_LABEL_KEY=$(random_string)
-  NODE_LABEL_VALUE=$(random_string)
+  NODE_LABEL_KEY="$(random_string)"
+  NODE_LABEL_VALUE="$(random_string)"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
@@ -15,13 +15,13 @@ e2e_test_install() {
 
   wait_until kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" > /dev/null 2>&1
 
-  DBOPS_MINOR_VERSION_UPGRADE_NAME=minor-version-upgrade
+  DBOPS_NAME="$(get_sgdbops_name minor-version-upgrade)"
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: $DBOPS_MINOR_VERSION_UPGRADE_NAME
+  name: $DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -30,11 +30,11 @@ spec:
     postgresVersion: "$E2E_MINOR_TARGET_POSTGRES_VERSION"
 EOF
 
-  kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_MINOR_VERSION_UPGRADE_NAME" -o json \
+  kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" -o json \
     | jq "$(cat << EOF
       . as \$dbops | {} | {
         metadata: {
-          name: "$DBOPS_MINOR_VERSION_UPGRADE_NAME.1-test",
+          name: "$DBOPS_NAME.1-test",
           namespace: "$CLUSTER_NAMESPACE"
         },
         apiVersion: "v1",
@@ -44,7 +44,7 @@ EOF
         firstTimestamp: "2021-06-15T15:29:39Z",
         lastTimestamp: "2021-06-21T17:20:46Z",
         type: "Normal",
-        message: "StackGres DbOps $CLUSTER_NAMESPACE.$DBOPS_MINOR_VERSION_UPGRADE_NAME started",
+        message: "StackGres DbOps $CLUSTER_NAMESPACE.$DBOPS_NAME started",
         reason: "DbOpsStarted",
         reportingComponent: "",
         reportingInstance: "",
@@ -72,12 +72,12 @@ e2e_test() {
 
 check_cluster_events() {
   if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/events" \
-    | jq -r "any(.metadata.namespace == \"$CLUSTER_NAMESPACE\" and .involvedObject.kind == \"SGDbOps\" and .involvedObject.name == \"$DBOPS_MINOR_VERSION_UPGRADE_NAME\")" \
+    | jq -r "any(.metadata.namespace == \"$CLUSTER_NAMESPACE\" and .involvedObject.kind == \"SGDbOps\" and .involvedObject.name == \"$DBOPS_NAME\")" \
     | grep -q "^true$"
   then
-    echo "SGDbOps events for $DBOPS_MINOR_VERSION_UPGRADE_NAME included in json response"
+    echo "SGDbOps events for $DBOPS_NAME included in json response"
   else
-    echo "SGDbOps events for $DBOPS_MINOR_VERSION_UPGRADE_NAME not included in json response"
+    echo "SGDbOps events for $DBOPS_NAME not included in json response"
     return 1
   fi
 

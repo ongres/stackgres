@@ -12,14 +12,35 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public class FileSystemHandler {
 
   public boolean exists(Path path) {
     return Files.exists(path);
+  }
+
+  @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE",
+      justification = "False positive")
+  public boolean identical(Path path, InputStream inputStream) throws IOException {
+    try (InputStream pathInputStream = Files.newInputStream(path)) {
+      return compareInputStreams(inputStream, pathInputStream);
+    }
+  }
+
+  public boolean identicalLink(Path path, Path target) throws IOException {
+    final Path resolvedTarget;
+    if (target.isAbsolute()) {
+      resolvedTarget = target;
+    } else {
+      resolvedTarget = Optional.of(path.getParent()).orElseThrow().resolve(target);
+    }
+    return Files.isSymbolicLink(path) && Files.readSymbolicLink(path).equals(resolvedTarget);
   }
 
   public void createOrReplaceFile(Path path) throws IOException {
@@ -33,7 +54,7 @@ public class FileSystemHandler {
     Files.createDirectories(path);
   }
 
-  public void copyOrReplace(InputStream inputStream, Path path) throws IOException {
+  public void copyOrReplace(Path path, InputStream inputStream) throws IOException {
     Path temporaryPath = getTemporaryPath(path);
     Files.copy(inputStream, temporaryPath,
         StandardCopyOption.REPLACE_EXISTING);
@@ -79,12 +100,51 @@ public class FileSystemHandler {
     return Files.list(path);
   }
 
-  public long size(Path targetPath) throws IOException {
-    return Files.size(targetPath);
+  public long size(Path path) throws IOException {
+    return Files.size(path);
   }
 
-  public boolean isSymbolicLink(Path targetPath) {
-    return Files.isSymbolicLink(targetPath);
+  public boolean isSymbolicLink(Path path) {
+    return Files.isSymbolicLink(path);
+  }
+
+  public boolean compareInputStreams(InputStream inputStream1, InputStream inputStream2)
+      throws IOException {
+    final byte[] inputStreamBuffer1 = new byte[8192];
+    final byte[] inputStreamBuffer2 = new byte[8192];
+    int offset1 = 0;
+    int offset2 = 0;
+    int inputStreamReaded1 = 0;
+    int inputStreamReaded2 = 0;
+    while (true) {
+      if (offset1 == 0) {
+        inputStreamReaded1 = inputStream1.read(inputStreamBuffer1);
+      }
+      if (offset2 == 0) {
+        inputStreamReaded2 = inputStream2.read(inputStreamBuffer2);
+      }
+      if (inputStreamReaded1 == -1 || inputStreamReaded2 == -1) {
+        return inputStreamReaded1 == inputStreamReaded2;
+      }
+      final int minLength = Math.min(
+          inputStreamReaded1 - offset1,
+          inputStreamReaded2 - offset2);
+      if (!Arrays.equals(
+          inputStreamBuffer1, offset1, minLength + offset1,
+          inputStreamBuffer2, offset2, minLength + offset2)) {
+        return false;
+      }
+      if (inputStreamReaded1 - offset1 > minLength) {
+        offset1 += minLength;
+      } else {
+        offset1 = 0;
+      }
+      if (inputStreamReaded2 - offset2 > minLength) {
+        offset2 += minLength;
+      } else {
+        offset2 = 0;
+      }
+    }
   }
 
 }

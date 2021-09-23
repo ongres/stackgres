@@ -165,7 +165,7 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(1)).verify();
     verify(extensionInstaller, times(1)).installExtension();
     verify(extensionInstaller, times(0)).createExtensionLinks();
-    verify(extensionInstaller, times(1)).doesInstallOverwriteAnySharedLibrary();
+    verify(extensionInstaller, times(1)).doesInstallOverwriteAnySharedFile();
     verify(extensionInstaller, times(0)).setExtensionAsPending();
     verify(extensionUninstaller, times(0)).uninstallExtension();
     verify(eventEmitter).emitExtensionDeployed(installedExtension);
@@ -210,7 +210,7 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(0)).verify();
     verify(extensionInstaller, times(0)).installExtension();
     verify(extensionInstaller, times(0)).createExtensionLinks();
-    verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedLibrary();
+    verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedFile();
     verify(extensionInstaller, times(0)).setExtensionAsPending();
     verify(extensionUninstaller, times(0)).uninstallExtension();
   }
@@ -261,7 +261,7 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(0)).verify();
     verify(extensionInstaller, times(0)).installExtension();
     verify(extensionInstaller, times(1)).createExtensionLinks();
-    verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedLibrary();
+    verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedFile();
     verify(extensionInstaller, times(0)).setExtensionAsPending();
     verify(extensionUninstaller, times(0)).uninstallExtension();
   }
@@ -303,7 +303,7 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(1)).verify();
     verify(extensionInstaller, times(1)).installExtension();
     verify(extensionInstaller, times(0)).createExtensionLinks();
-    verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedLibrary();
+    verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedFile();
     verify(extensionInstaller, times(0)).setExtensionAsPending();
     verify(extensionUninstaller, times(0)).uninstallExtension();
     verify(eventEmitter).emitExtensionDeployed(installedExtension);
@@ -322,7 +322,7 @@ public class ExtensionReconciliationTest {
         .isExtensionPendingOverwrite())
         .thenReturn(false);
     when(extensionInstaller
-        .doesInstallOverwriteAnySharedLibrary())
+        .doesInstallOverwriteAnySharedFile())
         .thenReturn(true);
     ExtensionReconciliatorContext context = getContext(cluster -> {
       cluster.getSpec().getPostgres().setExtensions(null);
@@ -352,7 +352,7 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(1)).verify();
     verify(extensionInstaller, times(0)).installExtension();
     verify(extensionInstaller, times(0)).createExtensionLinks();
-    verify(extensionInstaller, times(1)).doesInstallOverwriteAnySharedLibrary();
+    verify(extensionInstaller, times(1)).doesInstallOverwriteAnySharedFile();
     verify(extensionInstaller, times(1)).setExtensionAsPending();
     verify(extensionUninstaller, times(0)).uninstallExtension();
     verify(eventEmitter).emitExtensionDeployedRestart(installedExtension);
@@ -404,7 +404,7 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(1)).verify();
     verify(extensionInstaller, times(1)).installExtension();
     verify(extensionInstaller, times(0)).createExtensionLinks();
-    verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedLibrary();
+    verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedFile();
     verify(extensionInstaller, times(0)).setExtensionAsPending();
     verify(extensionUninstaller, times(0)).uninstallExtension();
     verify(eventEmitter).emitExtensionDeployed(installedExtension);
@@ -460,7 +460,7 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(0)).verify();
     verify(extensionInstaller, times(0)).installExtension();
     verify(extensionInstaller, times(0)).createExtensionLinks();
-    verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedLibrary();
+    verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedFile();
     verify(extensionInstaller, times(0)).setExtensionAsPending();
     verify(extensionUninstaller, times(0)).uninstallExtension();
   }
@@ -511,7 +511,7 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(0)).installExtension();
     verify(extensionInstaller, times(0)).createExtensionLinks();
     verify(extensionInstaller, times(0)).createExtensionLinks();
-    verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedLibrary();
+    verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedFile();
     verify(extensionInstaller, times(0)).setExtensionAsPending();
     verify(extensionUninstaller, times(0)).uninstallExtension();
   }
@@ -566,7 +566,7 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(1)).verify();
     verify(extensionInstaller, times(1)).installExtension();
     verify(extensionInstaller, times(0)).createExtensionLinks();
-    verify(extensionInstaller, times(1)).doesInstallOverwriteAnySharedLibrary();
+    verify(extensionInstaller, times(1)).doesInstallOverwriteAnySharedFile();
     verify(extensionInstaller, times(0)).setExtensionAsPending();
     verify(extensionUninstaller, times(0)).uninstallExtension();
     verify(eventEmitter).emitExtensionChanged(previousInstalledExtension, installedExtension);
@@ -615,7 +615,7 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(0)).installExtension();
     verify(extensionInstaller, times(0)).createExtensionLinks();
     verify(extensionInstaller, times(0)).createExtensionLinks();
-    verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedLibrary();
+    verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedFile();
     verify(extensionInstaller, times(0)).setExtensionAsPending();
     verify(extensionUninstaller, times(1)).uninstallExtension();
     verify(eventEmitter).emitExtensionRemoved(installedExtension);
@@ -657,7 +657,7 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(0)).installExtension();
     verify(extensionInstaller, times(0)).createExtensionLinks();
     verify(extensionInstaller, times(0)).createExtensionLinks();
-    verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedLibrary();
+    verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedFile();
     verify(extensionInstaller, times(0)).setExtensionAsPending();
     verify(extensionUninstaller, times(0)).uninstallExtension();
   }
@@ -688,7 +688,7 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(0)).verify();
     verify(extensionInstaller, times(0)).installExtension();
     verify(extensionInstaller, times(0)).createExtensionLinks();
-    verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedLibrary();
+    verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedFile();
     verify(extensionInstaller, times(0)).setExtensionAsPending();
     verify(extensionUninstaller, times(0)).uninstallExtension();
   }

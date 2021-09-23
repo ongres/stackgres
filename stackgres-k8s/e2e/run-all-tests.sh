@@ -7,11 +7,11 @@ e2e_list_utils | while read UTIL_PATH
   do
     echo " - $UTIL_PATH"
   done
+echo
 
 E2E_RETRY="${E2E_RETRY:-2}"
 E2E_ONLY_INCLUDES="${E2E_ONLY_INCLUDES}"
 E2E_EXCLUDES="${E2E_EXCLUDES}"
-SPECS_EXCLUDED=""
 SPECS_NO_STATS=""
 
 if [ -n "$E2E_RUN_ONLY" ] && [ -z "$E2E_ONLY_INCLUDES" ]
@@ -43,36 +43,13 @@ then
     exit 1
   fi
   BATCH_TESTS="$("$BATCH_LIST_TEST_FUNCTION")"
-  if [ -n "$E2E_EXCLUDES" ]
-  then
-    BATCH_TESTS="$(echo "$BATCH_TESTS" | \
-      while IFS="$(printf '\n')" read LINE
-      do
-        IS_EXCLUDED=false
-        for EXCLUDED in $E2E_EXCLUDES
-        do
-          if echo "${LINE##*spec/}" | grep -qxF "${EXCLUDED##*spec/}"
-          then
-            SPECS_EXCLUDED="$SPECS_EXCLUDED ${EXCLUDED##*spec/}"
-            IS_EXCLUDED=true
-            break
-          fi
-        done
-        if ! "$IS_EXCLUDED"
-        then
-          echo "${LINE##*spec/}"
-        fi
-      done)"
-  fi
   E2E_ONLY_INCLUDES="$(echo "$BATCH_TESTS"  \
     | while IFS="$(printf '\n')" read LINE
       do
         if [ -f "$E2E_PATH/test.stats" ] \
-          && cat "$E2E_PATH/test.stats" | cut -d : -f 1 | grep -qxF "${LINE##*spec/}"
+          && grep -q "^${LINE##*spec/}:" "$E2E_PATH/test.stats"
         then
-          INDEX="$(cat "$E2E_PATH/test.stats" | cut -d : -f 1 \
-            | grep -nxF "${LINE##*spec/}" | cut -d : -f 1)"
-          tail -n "+$INDEX" "$E2E_PATH/test.stats" | head -n 1
+          grep "^${LINE##*spec/}:" "$E2E_PATH/test.stats"
         else
           SPECS_NO_STATS="$SPECS_NO_STATS ${LINE##*spec/}"
           echo "${LINE##*spec/}:3600"
@@ -81,11 +58,12 @@ then
     | sort | sort -t : -k 2 -n | grep -n '.' \
     | while IFS="$(printf '\n')" read LINE
       do
-        if [ "$(( (${LINE%%:*} - 1) % BATCH_COUNT))" = "$((BATCH_INDEX - 1))" ]
+        if [ "$(( (${LINE%%:*} - 1) % BATCH_COUNT))" -eq "$((BATCH_INDEX - 1))" ]
         then
           echo "$LINE" | cut -d : -f 2
         fi
-      done)"
+      done
+      )"
 fi
 
 if [ -z "$E2E_ONLY_INCLUDES" ]
@@ -95,61 +73,42 @@ else
   SPECS="$(echo_raw "$E2E_ONLY_INCLUDES" | tr ' ' '\n')"
 fi
 
-if [ -n "$E2E_EXCLUDES" ] && [ -z "$SPECS_EXCLUDED" ]
+if [ -n "$E2E_EXCLUDES" ]
 then
+  E2E_EXCLUDES="$(
+    echo "$E2E_EXCLUDES" | tr ' ' '\n' | grep -v '^$' | \
+      while IFS="$(printf '\n')" read LINE
+      do
+        if echo "$SPECS" \
+          | while IFS="$(printf '\n')" read SPEC
+            do
+              echo "${SPEC##*spec/}"
+            done \
+          | grep -q "^${LINE##*spec/}$"
+        then
+          echo "${LINE##*spec/}"
+        fi
+      done
+    )"
+
   SPECS="$(echo "$SPECS" | \
     while IFS="$(printf '\n')" read LINE
     do
-      IS_EXCLUDED=false
-      for EXCLUDED in $E2E_EXCLUDES
-      do
-        if echo "${LINE##*spec/}" | grep -qxF "${EXCLUDED##*spec/}"
-        then
-          SPECS_EXCLUDED="$SPECS_EXCLUDED ${EXCLUDED##*spec/}"
-          IS_EXCLUDED=true
-          break
-        fi
-      done
-      if ! "$IS_EXCLUDED"
+      if ! echo " $E2E_EXCLUDES " | tr '\n' ' ' | grep -q "${LINE##*spec/}"
       then
         echo "$SPEC_PATH/${LINE##*spec/}"
       fi
-    done)"
+    done
+    )"
 else
-  SPECS="$(echo "$SPECS" | \
-    while IFS="$(printf '\n')" read LINE
-    do
-      echo "$SPEC_PATH/${LINE##*spec/}"
-    done)"
+  SPECS="$(
+    echo "$SPECS" | \
+      while IFS="$(printf '\n')" read LINE
+      do
+        echo "$SPEC_PATH/${LINE##*spec/}"
+      done
+    )"
 fi
-
-SPECS="$(
-  SPEC_COUNT="$(echo "$SPECS" | tr ' ' '\n' | wc -l)"
-  BATCH_COUNT="$(( (SPEC_COUNT + E2E_PARALLELISM - 1) / E2E_PARALLELISM ))"
-  for BATCH_INDEX in $(seq 1 $BATCH_COUNT)
-  do
-    echo "$SPECS"  \
-      | while IFS="$(printf '\n')" read LINE
-        do
-          if [ -f "$E2E_PATH/test.stats" ] \
-            && cat "$E2E_PATH/test.stats" | cut -d : -f 1 | grep -qxF "${LINE##*spec/}"
-          then
-            INDEX="$(cat "$E2E_PATH/test.stats" | cut -d : -f 1 \
-              | grep -nxF "${LINE##*spec/}" | cut -d : -f 1)"
-            tail -n "+$INDEX" "$E2E_PATH/test.stats" | head -n 1
-          else
-            echo "${LINE##*spec/}:3600"
-          fi
-        done \
-      | sort | sort -t : -k 2 -n | grep -n '.' \
-      | while IFS="$(printf '\n')" read LINE
-        do
-          if [ "$(( (${LINE%%:*} - 1) % BATCH_COUNT))" = "$((BATCH_INDEX - 1))" ]
-          then
-            echo "$SPEC_PATH/$(echo "$LINE" | cut -d : -f 2)"
-          fi
-        done
-  done)"
 
 SPECS_NO_STATS="$(
   SPEC_COUNT="$(echo "$SPECS" | tr ' ' '\n' | wc -l)"
@@ -175,7 +134,7 @@ $(echo "$SPECS_NO_STATS" \
   | sort | uniq \
   | while IFS="$(printf '\n')" read LINE
     do
-      echo "${LINE##*spec/}"
+      echo " - ${LINE##*spec/}"
     done)
 
 Please, to improve performance add a duration estimation in seconds for each test in file
@@ -187,26 +146,34 @@ Format of each line is: <test path>:<duration>
 "
 fi
 
-if [ -n "$SPECS_EXCLUDED" ]
+if [ -n "$E2E_EXCLUDES" ]
 then
   echo_raw "Excluded tests:
 
-$(echo "$SPECS_EXCLUDED" | \
-    while IFS="$(printf '\n')" read LINE
-    do
-      echo "${LINE##*spec/}"
-    done)
+$(
+    echo "$E2E_EXCLUDES" | tr ' ' '\n' | grep -v '^$' | \
+      while IFS="$(printf '\n')" read LINE
+      do
+        echo " - ${LINE##*spec/}"
+      done
+  )
 "
 fi
 
 echo_raw "Running tests:
 
-$(echo "$SPECS" | \
-    while IFS="$(printf '\n')" read LINE
+$(echo "$SPECS" | grep -v '^$' \
+    | while IFS="$(printf '\n')" read LINE
     do
-      echo "${LINE##*spec/}"
+      echo " - ${LINE##*spec/}"
     done)
 "
+
+if [ "$(echo "$SPECS" | tr '\n' ' ' | wc -w)" = 0 ]
+then
+  echo "Nothing to test!"
+  exit
+fi
 
 echo "Preparing environment"
 
@@ -241,7 +208,7 @@ CLEANUP=false
 find "$TARGET_PATH" -maxdepth 1 -type f -name '*.retries' -delete
 while true
 do
-  SPEC_COUNT="$(echo "$SPECS" | tr ' ' '\n' | wc -l)"
+  SPEC_COUNT="$(echo "$SPECS" | tr '\n' ' ' | wc -w)"
   if [ "$COUNT" -ge "$SPEC_COUNT" ]
   then
     break
@@ -260,7 +227,7 @@ do
     fi
     SPECS_FAILED=""
     echo "$SPECS_TO_RUN" | tr ' ' '\n' \
-      | xargs -r -n 1 -I % -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE -c "'$SHELL' $SHELL_XTRACE '$E2E_PATH/e2e' spec '%'" || true
+      | xargs_parallel_shell % -c "'$SHELL' $SHELL_XTRACE '$E2E_PATH/e2e' spec '%'" || true
     BATCH_FAILED=false
     for FAILED in $(find "$TARGET_PATH" -maxdepth 1 -type f -name '*.failed')
     do
@@ -302,7 +269,7 @@ do
       done
     fi
     RUNNED_COUNT=0
-    while [ "$RUNNED_COUNT" -lt "$(echo "$SPECS_TO_RUN" | tr ' ' '\n' | wc -l)" ]
+    while [ "$RUNNED_COUNT" -lt "$(echo "$SPECS_TO_RUN" | tr '\n' ' ' | wc -w)" ]
     do
       RUNNED_COUNT="$((RUNNED_COUNT+1))"
       SPEC="$(echo "$SPECS_TO_RUN" | tr ' ' '\n' | tail -n+"$RUNNED_COUNT" | head -n 1)"

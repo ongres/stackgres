@@ -53,8 +53,8 @@ insert_data(){
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci(num) VALUES (2);" -d test
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci(num) VALUES (3);" -d test
 
-  PRIMARY_RESPONSE=$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")
-  REPLICA_RESPONSE=$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")
+  PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")"
+  REPLICA_RESPONSE="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")"
 
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
   then

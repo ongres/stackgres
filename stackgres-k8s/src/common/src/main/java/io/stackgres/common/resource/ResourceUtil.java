@@ -5,6 +5,8 @@
 
 package io.stackgres.common.resource;
 
+import static java.lang.String.format;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -34,13 +36,19 @@ import org.slf4j.LoggerFactory;
 
 public class ResourceUtil {
 
+  private static final int DNS_SUBDOMAIN_NAME_MAX_LENGTH = 253;
+  private static final int DNS_LABEL_MAX_LENGTH = 63;
+  private static final int STS_DNS_LABEL_MAX_LENGTH = 52;
+  private static final int JOB_DNS_LABEL_MAX_LENGTH = 53;
+  private static final int CRON_JOB_DNS_LABEL_MAX_LENGTH = 52;
+
   private static final Logger LOGGER = LoggerFactory.getLogger(ResourceUtil.class);
 
   public static final BigDecimal MILLICPU_MULTIPLIER = new BigDecimal(1000);
   public static final BigDecimal LOAD_MULTIPLIER = new BigDecimal(1000);
   public static final BigDecimal KILOBYTE = new BigDecimal(1024);
 
-  private static final Pattern DNS_LABEL_NAME = Pattern.compile("[a-z]([-a-z0-9]*[a-z0-9])?");
+  public static final Pattern DNS_LABEL_NAME = Pattern.compile("[a-z]([-a-z0-9]*[a-z0-9])?");
   private static final Pattern VALID_VALUE =
       Pattern.compile("(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?");
   private static final Pattern PREFIX_PART =
@@ -62,14 +70,34 @@ public class ResourceUtil {
         .anyMatch(name::equals);
   }
 
-  public static String resourceName(String name) {
-    Preconditions.checkArgument(name.length() <= 63,
-        "Valid name must be 63 characters or less");
+  private static String resourceName(String name, int maxLength) {
+    Preconditions.checkArgument(name.length() <= maxLength,
+        format("Valid name must be %s characters or less", maxLength));
     Preconditions.checkArgument(DNS_LABEL_NAME.matcher(name).matches(),
         "Name must consist of lower case alphanumeric "
             + "characters or '-', start with an alphabetic character, "
             + "and end with an alphanumeric character");
     return name;
+  }
+
+  public static String nameIsValidService(String name) {
+    return resourceName(name, DNS_LABEL_MAX_LENGTH);
+  }
+
+  public static String nameIsValidDnsSubdomainForSts(String name) {
+    return resourceName(name, STS_DNS_LABEL_MAX_LENGTH);
+  }
+
+  public static String nameIsValidDnsSubdomainForJob(String name) {
+    return resourceName(name, JOB_DNS_LABEL_MAX_LENGTH);
+  }
+
+  public static String nameIsValidDnsSubdomainForCronJob(String name) {
+    return resourceName(name, CRON_JOB_DNS_LABEL_MAX_LENGTH);
+  }
+
+  public static String nameIsValidDnsSubdomain(String name) {
+    return resourceName(name, DNS_SUBDOMAIN_NAME_MAX_LENGTH);
   }
 
   public static String containerName(String name) {

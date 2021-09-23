@@ -7,21 +7,21 @@ e2e_test_install() {
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
 
-  OPERATOR_CLUSTER_CR=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' )
+  OPERATOR_CLUSTER_CR="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+    | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' )"
 
   echo_raw "$OPERATOR_CLUSTER_CR" > "$LOG_PATH/stackgres-cluster-cr.json"
 
-  OPERATOR_CLUSTER=$(cat "$LOG_PATH/stackgres-cluster-cr.json" \
-    | jq 'del(.apiVersion) | del(.kind)' )
+  OPERATOR_CLUSTER="$(cat "$LOG_PATH/stackgres-cluster-cr.json" \
+    | jq 'del(.apiVersion) | del(.kind)' )"
 
   echo_raw "$OPERATOR_CLUSTER" > "$LOG_PATH/stackgres-cluster.json"
 
-  NODE_LABEL_KEY=$(random_string)
-  NODE_LABEL_VALUE=$(random_string)
+  NODE_LABEL_KEY="$(random_string)"
+  NODE_LABEL_VALUE="$(random_string)"
 
-  DUMMY_OPERATOR_CLUSTER=$(cat "$LOG_PATH/stackgres-cluster.json" \
-    | jq ".spec.pods.scheduling={nodeSelector:{\"$NODE_LABEL_KEY\": \"$NODE_LABEL_VALUE\"}}" )
+  DUMMY_OPERATOR_CLUSTER="$(cat "$LOG_PATH/stackgres-cluster.json" \
+    | jq ".spec.pods.scheduling={nodeSelector:{\"$NODE_LABEL_KEY\": \"$NODE_LABEL_VALUE\"}}" )"
 
   echo_raw "$DUMMY_OPERATOR_CLUSTER" > "$LOG_PATH/dummy-cluster.json"
 
@@ -119,7 +119,7 @@ test_cluster_stats_are_loaded() {
   fi
 
   local STATUS_RESPONSE
-  STATUS_RESPONSE=$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/stats")
+  STATUS_RESPONSE="$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/stats")"
 
   if [ "$(echo_raw "$STATUS_RESPONSE" \
     | jq 'select(.cpuFound != null and .memoryUsed != null and .diskUsed != null and .averageLoad1m != null)' \
@@ -195,7 +195,7 @@ test_cluster_component_versions_are_annotated() {
 }
 
 test_cluster_pod_count() {
-  BACKUP_NAME="${CLUSTER_NAME}-0-$(shuf -i 0-65535 -n 1)"
+  BACKUP_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-0-$(shuf -i 0-65535 -n 1)")"
 
     cat << EOF | kubectl create -f -
   apiVersion: stackgres.io/v1
@@ -292,9 +292,9 @@ test_api_created_cluster_is_visible() {
 update_cluster_parameter_with_api() {
   local HTTP_STATUS
 
-  UPDATED_STACKGRES_CLUSTER=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+  UPDATED_STACKGRES_CLUSTER="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
-    | jq ".spec[\"$1\"] = $2" )
+    | jq ".spec[\"$1\"] = $2" )"
 
   echo_raw "$UPDATED_STACKGRES_CLUSTER" > "$LOG_PATH/updated-stackgres-cluster.json"
 
@@ -444,14 +444,14 @@ check_create_cluster_with_inline_script() {
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
 
-  OPERATOR_CLUSTER_CR=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+  OPERATOR_CLUSTER_CR="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
     | jq '.spec.initialData={}' | jq '.spec.initialData.scripts=[]' \
     | jq '.spec.initialData.scripts[0].name = "init"' \
     | jq '.spec.initialData.scripts[0].script = "CREATE DATABASE test"' \
     | jq '.spec.initialData.scripts[1].name = "table"' \
     | jq '.spec.initialData.scripts[1].database = "test"' \
-    | jq '.spec.initialData.scripts[1].script = "CREATE TABLE fibonacci(num integer)"')
+    | jq '.spec.initialData.scripts[1].script = "CREATE TABLE fibonacci(num integer)"')"
 
   echo_raw "$OPERATOR_CLUSTER_CR" > "$LOG_PATH/inline-scripts-cluster.json"
 
@@ -485,20 +485,20 @@ check_create_cluster_with_inline_script() {
 }
 
 check_create_cluster_node_selectors_script() {
-  NODE_LABEL_KEY=$(random_string)
-  NODE_LABEL_VALUE=$(random_string)
+  NODE_LABEL_KEY="$(random_string)"
+  NODE_LABEL_VALUE="$(random_string)"
 
-  OPERATOR_CLUSTER_CR=$(cat "$LOG_PATH/stackgres-cluster.json" \
+  OPERATOR_CLUSTER_CR="$(cat "$LOG_PATH/stackgres-cluster.json" \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
     | jq '.spec.pods.scheduling={}' | jq '.spec.pods.scheduling.nodeSelector={}' \
-    | jq '.spec.pods.scheduling.nodeSelector["'"$NODE_LABEL_KEY"'"] = "'"$NODE_LABEL_VALUE"'"')
+    | jq '.spec.pods.scheduling.nodeSelector["'"$NODE_LABEL_KEY"'"] = "'"$NODE_LABEL_VALUE"'"')"
 
   echo_raw "$OPERATOR_CLUSTER_CR" > "$LOG_PATH/node-selector-cluster.json"
 
   create_cluster_with_api "$LOG_PATH/node-selector-cluster.json"
 
-  ACTUAL_NODE_VALUE=$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    -o jsonpath='{.spec.pods.scheduling.nodeSelector.'"$NODE_LABEL_KEY"'}')
+  ACTUAL_NODE_VALUE="$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    -o jsonpath='{.spec.pods.scheduling.nodeSelector.'"$NODE_LABEL_KEY"'}')"
 
   assert_string_equal "$NODE_LABEL_VALUE" "$ACTUAL_NODE_VALUE"
 }
@@ -508,7 +508,7 @@ check_create_cluster_with_secret_and_configmap_script() {
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
 
-  OPERATOR_CLUSTER_CR=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+  OPERATOR_CLUSTER_CR="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
     | jq 'del(.status)' \
     | jq '.spec.initialData={}' | jq '.spec.initialData.scripts=[]' \
@@ -524,7 +524,7 @@ check_create_cluster_with_secret_and_configmap_script() {
     | jq '.spec.initialData.scripts[1].scriptFrom.configMapScript = "CREATE TABLE fibonacci(num integer)"' \
     | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef = {}' \
     | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef.name = "table-script"' \
-    | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef.key = "script"')
+    | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef.key = "script"')"
 
   echo_raw "$OPERATOR_CLUSTER_CR" > "$LOG_PATH/secret-and-configmap-scripts-cluster.json"
 
@@ -570,7 +570,7 @@ check_failed_cluster_creation_with_secret_and_configmap_script() {
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
 
-  OPERATOR_CLUSTER_CR=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+  OPERATOR_CLUSTER_CR="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
     | jq 'del(.status)' \
     | jq '.spec.instances = -1' \
@@ -587,7 +587,7 @@ check_failed_cluster_creation_with_secret_and_configmap_script() {
     | jq '.spec.initialData.scripts[1].scriptFrom.configMapScript = "CREATE TABLE fibonacci(num integer)"' \
     | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef = {}' \
     | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef.name = "table-script"' \
-    | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef.key = "script"')
+    | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef.key = "script"')"
 
   echo_raw "$OPERATOR_CLUSTER_CR" > "$LOG_PATH/invalid-secret-and-configmap-scripts-cluster.json"
 

@@ -7,7 +7,6 @@ package io.stackgres.operator.conciliation.backup;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -21,11 +20,8 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
-import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
-import io.stackgres.operator.conciliation.ResourceGenerator;
-import io.stackgres.operator.conciliation.factory.Decorator;
-import io.stackgres.operator.conciliation.factory.DecoratorDiscoverer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,24 +32,20 @@ public class BackupRequiredResourcesGenerator
   protected static final Logger LOGGER = LoggerFactory
       .getLogger(BackupRequiredResourcesGenerator.class);
 
-  private final ResourceGenerationDiscoverer<StackGresBackupContext> generators;
-
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
 
   private final CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
 
-  private final DecoratorDiscoverer<StackGresBackupContext> decoratorDiscoverer;
+  private final RequiredResourceDecorator<StackGresBackupContext> decorator;
 
   @Inject
   public BackupRequiredResourcesGenerator(
-      ResourceGenerationDiscoverer<StackGresBackupContext> generators,
       CustomResourceFinder<StackGresCluster> clusterFinder,
       CustomResourceFinder<StackGresBackupConfig> backupConfigFinder,
-      DecoratorDiscoverer<StackGresBackupContext> decoratorDiscoverer) {
-    this.generators = generators;
+      RequiredResourceDecorator<StackGresBackupContext> decorator) {
     this.clusterFinder = clusterFinder;
     this.backupConfigFinder = backupConfigFinder;
-    this.decoratorDiscoverer = decoratorDiscoverer;
+    this.decorator = decorator;
   }
 
   @Override
@@ -88,19 +80,7 @@ public class BackupRequiredResourcesGenerator
         .backupConfig(backupConfig)
         .build();
 
-    final List<ResourceGenerator<StackGresBackupContext>> resourceGenerators = generators
-        .getResourceGenerators(context);
-
-    final List<HasMetadata> resources = resourceGenerators
-        .stream().flatMap(generator -> generator.generateResource(context))
-        .collect(Collectors.toUnmodifiableList());
-
-    List<Decorator<StackGresBackupContext>> decorators =
-        decoratorDiscoverer.discoverDecorator(context);
-
-    decorators.forEach(decorator -> decorator.decorate(context, resources));
-
-    return resources;
+    return decorator.decorateResources(context);
   }
 
 }

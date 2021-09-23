@@ -90,7 +90,7 @@ traceable_k8s_cleanup() {
       | grep -v "^[^/]\+/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
       | grep -v "^[^/]\+/\($(env_excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
       | cut -d / -f 2 \
-      | xargs -r -n 1 -I @ -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE \
+      | xargs_parallel_shell @ \
         -ec "$(k8s_finalize_namespace_script)"
 }
 
@@ -106,7 +106,7 @@ traceable_k8s_async_cleanup() {
     | grep -v "^[^/]\+/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | cut -d / -f 2 \
-    | xargs -r -n 1 -I % -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE \
+    | xargs_parallel_shell % \
         -ec "kubectl delete namespace --wait=false % \
           || kubectl get namespace % --template '{{ .status.phase }}' | grep -q 'Terminating' \
           || ! kubectl get namespace % >/dev/null 2>&1"
@@ -165,7 +165,7 @@ traceable_k8s_webhook_cleanup() {
   kubectl get crd -o name \
     | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | xargs -r -n 1 -I @ -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE \
+    | xargs_parallel_shell @ \
       -ec "$(k8s_remove_crd_conversion_webhook_script)"
 }
 
@@ -178,11 +178,11 @@ traceable_helm_cleanup_but_operator() {
   helm list --all-namespaces \
     | grep -v "stackgres-operator\s\+$OPERATOR_NAMESPACE\s" \
     | awk 'FNR > 1 { printf("helm uninstall %s --namespace %s\n", $1, $2) }' \
-    | xargs -r -n 1 -I % -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE -c "%" \
+    | xargs_parallel_shell % -c "%" \
     || helm list --all-namespaces \
       | grep -v "stackgres-operator\s\+$OPERATOR_NAMESPACE\s" \
       | awk 'FNR > 1 { printf("! helm status "%s" --namespace "%s" 2> /dev/null\n", $1, $2) }' \
-      | xargs -r -n 1 -I % -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE -c "%"
+      | xargs_parallel_shell % -c "%"
 }
 
 k8s_cleanup_but_operator() {
@@ -207,7 +207,7 @@ traceable_k8s_cleanup_but_operator() {
       | grep -v "^[^/]\+/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
       | grep -v "^[^/]\+/\($(env_excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
       | cut -d / -f 2 \
-      | xargs -r -n 1 -I @ -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE \
+      | xargs_parallel_shell @ \
         -ec "$(k8s_finalize_namespace_script)"
   ! kubectl api-resources | grep -q '^podsecuritypolicies ' \
     || kubectl get podsecuritypolicies -o name \
@@ -227,7 +227,7 @@ traceable_k8s_async_cleanup_but_operator() {
     | grep -v "^[^/]\+/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | cut -d / -f 2 \
-    | xargs -r -n 1 -I % -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE \
+    | xargs_parallel_shell % \
         -ec "kubectl delete namespace --wait=false % \
           || kubectl get namespace % --template '{{ .status.phase }}' | grep -q 'Terminating' \
           || ! kubectl get namespace % >/dev/null 2>&1"
@@ -243,7 +243,7 @@ traceable_k8s_cleanup_namespace() {
   ! kubectl get namespace "$1" -o name >/dev/null 2>&1 \
     || kubectl delete namespace "$1" --timeout="${TIMEOUT}s" \
     || kubectl get namespace "$1" -o name | cut -d / -f 2 \
-      | xargs -r -n 1 -I @ -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE \
+      | xargs_parallel_shell @ \
         -ec "$(k8s_finalize_namespace_script)"
 }
 
