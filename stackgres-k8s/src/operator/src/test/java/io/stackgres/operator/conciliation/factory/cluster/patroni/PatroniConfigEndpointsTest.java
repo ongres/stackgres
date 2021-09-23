@@ -66,7 +66,9 @@ class PatroniConfigEndpointsTest {
     postgresConfig = JsonUtil.readFromJson("postgres_config/default_postgres.json",
         StackGresPostgresConfig.class);
     postgresConfig.setStatus(new StackGresPostgresConfigStatus());
-    postgresConfig.getStatus().setDefaultParameters(PostgresDefaultValues.getDefaultValues());
+    final String version = postgresConfig.getSpec().getPostgresVersion();
+    postgresConfig.getStatus()
+        .setDefaultParameters(PostgresDefaultValues.getDefaultValues(version));
 
     lenient().when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
     lenient().when(context.getPostgresConfig()).thenReturn(postgresConfig);
@@ -114,7 +116,8 @@ class PatroniConfigEndpointsTest {
     when(context.getBackupConfig()).thenReturn(Optional.empty());
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
 
-    Map<String, String> defValues = PostgresDefaultValues.getDefaultValues();
+    final String version = postgresConfig.getSpec().getPostgresVersion();
+    Map<String, String> defValues = PostgresDefaultValues.getDefaultValues(version);
 
     defValues.forEach((key, value) -> {
       postgresConfig.getSpec().getPostgresqlConf().put(key, StringUtil.generateRandom());
@@ -148,7 +151,8 @@ class PatroniConfigEndpointsTest {
     PatroniConfig patroniConfig = MAPPER
         .readValue(annotations.get(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY),
             PatroniConfig.class);
-    PostgresDefaultValues.getDefaultValues().forEach(
+    final String version = postgresConfig.getSpec().getPostgresVersion();
+    PostgresDefaultValues.getDefaultValues(version).forEach(
         (key, value) -> assertTrue(patroniConfig.getPostgresql().getParameters().containsKey(key)));
     assertEquals(30, patroniConfig.getTtl());
     assertEquals(10, patroniConfig.getLoopWait());

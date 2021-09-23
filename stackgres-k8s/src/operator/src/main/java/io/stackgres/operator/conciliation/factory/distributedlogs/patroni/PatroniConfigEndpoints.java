@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.common.resource.ResourceUtil;
@@ -74,7 +75,8 @@ public class PatroniConfigEndpoints
 
   @NotNull
   public Map<String, String> getPostgresConfigValues(StackGresDistributedLogsContext context) {
-    Map<String, String> params = new HashMap<>(PostgresDefaultValues.getDefaultValues());
+    final String pgVersion = StackGresDistributedLogsUtil.getPostgresVersion();
+    Map<String, String> params = new HashMap<>(PostgresDefaultValues.getDefaultValues(pgVersion));
 
     params.put("archive_command", "/bin/true");
     params.put("dynamic_library_path", "$libdir:/opt/stackgres/lib");
