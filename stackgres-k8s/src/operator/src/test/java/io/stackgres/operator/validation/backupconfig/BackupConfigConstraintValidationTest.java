@@ -122,4 +122,29 @@ class BackupConfigConstraintValidationTest
     assertDoesNotThrow(() -> validator.validate(review));
   }
 
+  @ParameterizedTest
+  @ValueSource(strings = {"http://s3.demo.com", "https://fra1.digitaloceanspaces.com",
+      "https://webappname.azurewebsites.net", "https://s3.us-gov-west-1.amazonaws.com/",
+      "https://s3endpoint", "https://s3-acceleratee.amazonaws.com"})
+  void givenValidEnpointUrl_shouldPass(String url) {
+    BackupConfigReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getStorage().getS3Compatible()
+        .setEndpoint(url);
+
+    assertDoesNotThrow(() -> validator.validate(review));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"s3.demo.com", "https/fra1.digitaloceanspaces.com", ":3030",
+      "https://s3.de\nmo.com", "htts://s3proxy.cloudapp.azure.com/", "ftp://s3proxy.azure.com/"})
+  void givenInvalidEnpointUrl_shouldFail(String url) {
+    BackupConfigReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getStorage().getS3Compatible()
+        .setEndpoint(url);
+
+    ValidationFailed ex = assertThrows(ValidationFailed.class, () -> validator.validate(review));
+    assertEquals("SGBackupConfig has invalid properties. "
+        + "spec.storage.s3Compatible.endpoint must be a valid URL", ex.getMessage());
+  }
+
 }

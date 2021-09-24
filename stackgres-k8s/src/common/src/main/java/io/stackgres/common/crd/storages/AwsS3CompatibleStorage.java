@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.ValidEnum;
+import org.hibernate.validator.constraints.URL;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -38,6 +39,8 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
   private String region;
 
   @JsonProperty("endpoint")
+  @URL(message = "spec.storage.s3Compatible.endpoint must be a valid URL",
+      regexp = "^(http:|https:).*")
   private String endpoint;
 
   @JsonProperty("enablePathStyleAddressing")
@@ -131,8 +134,10 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
     return Objects.equals(awsCredentials, other.awsCredentials)
         && Objects.equals(bucket, other.bucket)
         && Objects.equals(enablePathStyleAddressing, other.enablePathStyleAddressing)
-        && Objects.equals(endpoint, other.endpoint) && Objects.equals(path, other.path)
-        && Objects.equals(region, other.region) && Objects.equals(storageClass, other.storageClass);
+        && Objects.equals(endpoint, other.endpoint)
+        && Objects.equals(path, other.path)
+        && Objects.equals(region, other.region)
+        && Objects.equals(storageClass, other.storageClass);
   }
 
   @Override
