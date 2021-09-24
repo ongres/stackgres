@@ -18,5 +18,21 @@
         "pool_mode": "transaction"
       }
     }
+  },
+  "status": {
+    "pgBouncer": {
+      "defaultParameters": [
+        "stats_users",
+        "ignore_startup_parameters",
+        "auth_type",
+        "max_db_connections",
+        "auth_query",
+        "application_name_add_host",
+        "max_user_connections",
+        "auth_user",
+        "listen_addr",
+        "admin_users"
+      ]
+    }
   }
 }
