@@ -645,7 +645,7 @@
             },
 
             postgresVersionsList() {
-                return store.state.postgresVersions
+                return store.state.postgresVersions.vanilla
             },
 
             pgConfigs() {

@@ -31,7 +31,7 @@ export default new Vuex.Store({
     logs: [],
     logsClusters: [],
     dbOps: [],
-    postgresVersions: [],
+    postgresVersions: {},
     cloneCRD: {},
     timezone: 'local',
     view: 'normal',

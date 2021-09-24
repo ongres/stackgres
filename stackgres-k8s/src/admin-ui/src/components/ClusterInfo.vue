@@ -113,7 +113,7 @@
 								Postgres Flavor
 								<span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgres.flavor')"></span>
 							</td>
-							<td colspan="3">{{ cluster.data.spec.postgres.flavor ? cluster.data.spec.postgres.flavor : 'Vanilla' }}</td>
+							<td colspan="3" class="capitalize">{{ cluster.data.spec.postgres.flavor ? cluster.data.spec.postgres.flavor : 'Vanilla' }}</td>
 						</tr>
 						<template v-if="cluster.data.spec.postgres.flavor">
 							<tr>
