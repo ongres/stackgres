@@ -5,10 +5,17 @@
 
 package io.stackgres.operator.conversion;
 
+import java.util.Optional;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public interface Converter {
 
   ObjectNode convert(long originalVersion, long desiredVersion, ObjectNode node);
+
+  static void removeFieldIfExists(ObjectNode target, String fieldName) {
+    Optional.ofNullable(target.get(fieldName))
+        .ifPresent(o -> target.remove(fieldName));
+  }
 
 }
