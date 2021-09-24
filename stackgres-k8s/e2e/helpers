@@ -32,14 +32,6 @@ notrace_function() {
   return "$EXIT_CODE"
 }
 
-if [ "$E2E_TRACE_ALL" = true ]
-then
-  echo "Everithing will be traced!"
-  notrace_function() {
-    "$@"
-  }
-fi
-
 transform_params() {
   [ "$#" -ge 2 ]
   local TRANSFORMER="$1"
@@ -79,7 +71,13 @@ then
 fi
 SHELL_XTRACE="$(! echo $- | grep -q x || echo "-x")"
 
-[ -z "$SHELL_XTRACE" ] || set +x
+if [ "$E2E_TRACE_ALL" = true ] && [ "x" != "x$SHELL_XTRACE" ]
+then
+  echo "Everithing will be traced!"
+  notrace_function() {
+    "$@"
+  }
+fi
 
 shell() {
   # shellcheck disable=SC2086
@@ -91,6 +89,13 @@ flock_shell() {
   shift
   # shellcheck disable=SC2086
   flock "$LOCK_FILE" "$SHELL" $SHELL_XTRACE "$@"
+}
+
+flock_shared_shell() {
+  local LOCK_FILE="$1"
+  shift
+  # shellcheck disable=SC2086
+  flock -s "$LOCK_FILE" "$SHELL" $SHELL_XTRACE "$@"
 }
 
 xargs_parallel_shell() {

@@ -8,6 +8,7 @@ export E2E_AFTER_RUN_TEST_FUNCTION="${E2E_AFTER_RUN_TEST_FUNCTION:-e2e_after_run
 export E2E_TEST_UNINSTALL_FUNCTION="${E2E_TEST_UNINSTALL_FUNCTION:-e2e_test_uninstall}"
 export E2E_TEST_AFTER_ALL_FUNCTION="${E2E_TEST_AFTER_ALL_FUNCTION:-e2e_test_after_all}"
 export SPEC_PATH="$E2E_PATH/spec"
+export E2E_LOCK
 
 e2e_test_before_all() {
   true
@@ -141,15 +142,15 @@ spec() {
 
   if "${E2E_LOCK:-true}" && e2e_exclusive_lock
   then
-    E2E_LOCK=false flock "$TARGET_PATH/exclusive-lock" \
-      shell "$E2E_PATH/e2e" spec "$1"
+    E2E_LOCK=false flock_shell "$TARGET_PATH/exclusive-lock" \
+      "$E2E_PATH/e2e" spec "$1"
     return
   fi
 
   if "${E2E_LOCK:-true}"
   then
-    E2E_LOCK=false flock -s "$TARGET_PATH/exclusive-lock" \
-      shell "$E2E_PATH/e2e" spec "$1"
+    E2E_LOCK=false flock_shared_shell "$TARGET_PATH/exclusive-lock" \
+      "$E2E_PATH/e2e" spec "$1"
     return
   fi
 
