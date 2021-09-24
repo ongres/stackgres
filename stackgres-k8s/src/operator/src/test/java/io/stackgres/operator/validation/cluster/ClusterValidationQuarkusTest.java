@@ -90,50 +90,50 @@ class ClusterValidationQuarkusTest {
   @BeforeAll
   void setUp() {
     StackGresPoolingConfigList poolconfList =
-        client.customResources(StackGresPoolingConfig.class, StackGresPoolingConfigList.class)
+        client.resources(StackGresPoolingConfig.class, StackGresPoolingConfigList.class)
             .list();
-    client.customResources(StackGresPoolingConfig.class, StackGresPoolingConfigList.class)
+    client.resources(StackGresPoolingConfig.class, StackGresPoolingConfigList.class)
         .delete(poolconfList.getItems());
     var poolConfig = readFromJson("pooling_config/default.json", StackGresPoolingConfig.class);
     poolConfig.getMetadata().setNamespace("test");
-    client.customResources(StackGresPoolingConfig.class, StackGresPoolingConfigList.class)
+    client.resources(StackGresPoolingConfig.class, StackGresPoolingConfigList.class)
         .inNamespace(poolConfig.getMetadata().getNamespace())
         .withName(poolConfig.getMetadata().getName())
         .createOrReplace(poolConfig);
 
     StackGresBackupConfigList bkconfList = client
-        .customResources(StackGresBackupConfig.class, StackGresBackupConfigList.class)
+        .resources(StackGresBackupConfig.class, StackGresBackupConfigList.class)
         .list();
-    client.customResources(StackGresBackupConfig.class, StackGresBackupConfigList.class)
+    client.resources(StackGresBackupConfig.class, StackGresBackupConfigList.class)
         .delete(bkconfList.getItems());
     var backupConfig = readFromJson("backup_config/default.json", StackGresBackupConfig.class);
     backupConfig.getMetadata().setNamespace("test");
-    client.customResources(StackGresBackupConfig.class, StackGresBackupConfigList.class)
+    client.resources(StackGresBackupConfig.class, StackGresBackupConfigList.class)
         .inNamespace(backupConfig.getMetadata().getNamespace())
         .withName(backupConfig.getMetadata().getName())
         .createOrReplace(backupConfig);
 
     StackGresPostgresConfigList pgconfList = client
-        .customResources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)
+        .resources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)
         .list();
-    client.customResources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)
+    client.resources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)
         .delete(pgconfList.getItems());
     var pgConfig =
         readFromJson("postgres_config/default_postgres.json", StackGresPostgresConfig.class);
     pgConfig.getMetadata().setNamespace("test");
-    client.customResources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)
+    client.resources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)
         .inNamespace(pgConfig.getMetadata().getNamespace())
         .withName(pgConfig.getMetadata().getName())
         .createOrReplace(pgConfig);
 
     StackGresProfileList instanceList =
-        client.customResources(StackGresProfile.class, StackGresProfileList.class)
+        client.resources(StackGresProfile.class, StackGresProfileList.class)
             .list();
-    client.customResources(StackGresProfile.class, StackGresProfileList.class)
+    client.resources(StackGresProfile.class, StackGresProfileList.class)
         .delete(instanceList.getItems());
     var instanceConfig = readFromJson("stackgres_profiles/size-xs.json", StackGresProfile.class);
     instanceConfig.getMetadata().setNamespace("test");
-    client.customResources(StackGresProfile.class, StackGresProfileList.class)
+    client.resources(StackGresProfile.class, StackGresProfileList.class)
         .inNamespace(instanceConfig.getMetadata().getNamespace())
         .withName(instanceConfig.getMetadata().getName())
         .createOrReplace(instanceConfig);
@@ -147,28 +147,28 @@ class ClusterValidationQuarkusTest {
   @AfterAll
   void tearDown() {
     StackGresPoolingConfigList poolconfList =
-        client.customResources(StackGresPoolingConfig.class, StackGresPoolingConfigList.class)
+        client.resources(StackGresPoolingConfig.class, StackGresPoolingConfigList.class)
             .list();
-    client.customResources(StackGresPoolingConfig.class, StackGresPoolingConfigList.class)
+    client.resources(StackGresPoolingConfig.class, StackGresPoolingConfigList.class)
         .delete(poolconfList.getItems());
 
     StackGresBackupConfigList bkconfList = client
-        .customResources(StackGresBackupConfig.class, StackGresBackupConfigList.class)
+        .resources(StackGresBackupConfig.class, StackGresBackupConfigList.class)
         .list();
-    client.customResources(StackGresBackupConfig.class, StackGresBackupConfigList.class)
+    client.resources(StackGresBackupConfig.class, StackGresBackupConfigList.class)
         .delete(bkconfList.getItems());
 
     StackGresPostgresConfigList pgconfList = client
-        .customResources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)
+        .resources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)
         .list();
     client
-        .customResources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)
+        .resources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)
         .delete(pgconfList.getItems());
 
     StackGresProfileList instanceList = client
-        .customResources(StackGresProfile.class, StackGresProfileList.class)
+        .resources(StackGresProfile.class, StackGresProfileList.class)
         .list();
-    client.customResources(StackGresProfile.class, StackGresProfileList.class)
+    client.resources(StackGresProfile.class, StackGresProfileList.class)
         .delete(instanceList.getItems());
 
     StorageClassList storageList = client.storage().storageClasses().list();

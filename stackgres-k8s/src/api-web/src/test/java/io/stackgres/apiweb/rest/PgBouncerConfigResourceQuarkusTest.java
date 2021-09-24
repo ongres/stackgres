@@ -39,7 +39,7 @@ class PgBouncerConfigResourceQuarkusTest implements AuthenticatedResourceTest {
     customResource.getMetadata().setNamespace(StringUtils.getRandomNamespace());
     customResource.getMetadata().setName(StringUtils.getRandomClusterName());
     customResource.getMetadata().setSelfLink(null);
-    this.resource = mockServer.getClient().customResources(
+    this.resource = mockServer.getClient().resources(
         StackGresPoolingConfig.class,
         StackGresPoolingConfigList.class)
         .inNamespace(customResource.getMetadata().getNamespace())
@@ -49,7 +49,7 @@ class PgBouncerConfigResourceQuarkusTest implements AuthenticatedResourceTest {
 
   @AfterEach
   void tearDown() {
-    mockServer.getClient().customResources(
+    mockServer.getClient().resources(
         StackGresPoolingConfig.class,
         StackGresPoolingConfigList.class)
         .inNamespace(resource.getMetadata().getNamespace())

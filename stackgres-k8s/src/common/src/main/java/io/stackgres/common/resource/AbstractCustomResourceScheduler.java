@@ -85,7 +85,7 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?
     return getCustomResourceEndpoints(client)
         .inNamespace(resource.getMetadata().getNamespace())
         .withName(resource.getMetadata().getName())
-        .updateStatus(resource);
+        .replaceStatus(resource);
   }
 
   @Override
@@ -98,7 +98,7 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?
 
   private Namespaceable<NonNamespaceOperation<T, L, Resource<T>>> getCustomResourceEndpoints(
       KubernetesClient client) {
-    return client.customResources(customResourceClass, customResourceListClass);
+    return client.resources(customResourceClass, customResourceListClass);
   }
 
 }

@@ -26,7 +26,7 @@ public class ClusterFinder implements CustomResourceFinder<StackGresCluster> {
 
   @Override
   public Optional<StackGresCluster> findByNameAndNamespace(String name, String namespace) {
-    return Optional.ofNullable(client.customResources(
+    return Optional.ofNullable(client.resources(
         StackGresCluster.class,
         StackGresClusterList.class)
         .inNamespace(namespace)

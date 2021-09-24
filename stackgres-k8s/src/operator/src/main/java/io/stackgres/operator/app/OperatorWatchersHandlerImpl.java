@@ -113,7 +113,7 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
       @NotNull Class<T> crClass, @NotNull Class<L> listClass, @NotNull Consumer<Action> consumer) {
 
     return new WatcherMonitor<>(watcherListener -> client
-        .customResources(crClass, listClass)
+        .resources(crClass, listClass)
         .inAnyNamespace()
         .watch(watcherFactory.createWatcher(consumer, watcherListener)),
         () -> new Thread(() -> Application.currentApplication().stop()).start());

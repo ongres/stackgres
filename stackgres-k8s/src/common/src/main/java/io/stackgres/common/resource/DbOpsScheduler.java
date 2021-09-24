@@ -29,7 +29,7 @@ public class DbOpsScheduler
 
   @Override
   public StackGresDbOps update(StackGresDbOps resource) {
-    return client.customResources(StackGresDbOps.class, StackGresDbOpsList.class)
+    return client.resources(StackGresDbOps.class, StackGresDbOpsList.class)
         .inNamespace(resource.getMetadata().getNamespace())
         .withName(resource.getMetadata().getName())
         .lockResourceVersion(resource.getMetadata().getResourceVersion())
