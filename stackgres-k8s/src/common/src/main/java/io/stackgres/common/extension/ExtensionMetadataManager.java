@@ -31,7 +31,8 @@ public abstract class ExtensionMetadataManager {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(ExtensionMetadataManager.class);
 
-  private static final String SKIP_HOSTNAME_VERIFICATION_PARAMETER = "skipHostnameVerification";
+  public static final String SKIP_HOSTNAME_VERIFICATION_PARAMETER = "skipHostnameVerification";
+  public static final String PROXY_URL_PARAMETER = "proxyUrl";
 
   private static final Object EXTENSIONS = new Object();
 
@@ -119,8 +120,12 @@ public abstract class ExtensionMetadataManager {
             ExtensionUtil.getUriQueryParameter(
                 extensionsRepositoryUri, SKIP_HOSTNAME_VERIFICATION_PARAMETER)
             .map(Boolean::valueOf).orElse(false);
+        URI proxyUri =
+            ExtensionUtil.getUriQueryParameter(extensionsRepositoryUri, PROXY_URL_PARAMETER)
+            .map(URI::create)
+            .orElse(null);
         final URI indexUri = ExtensionUtil.getIndexUri(extensionsRepositoryUri);
-        try (WebClient client = webClientFactory.create(skipHostnameVerification)) {
+        try (WebClient client = webClientFactory.create(skipHostnameVerification, proxyUri)) {
           StackGresExtensions repositoryExtensions = client.getJson(
               indexUri, StackGresExtensions.class);
           ExtensionMetadataCache current = ExtensionMetadataCache.from(

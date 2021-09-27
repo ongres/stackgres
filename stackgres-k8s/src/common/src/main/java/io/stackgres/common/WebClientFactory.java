@@ -11,6 +11,7 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
+import javax.annotation.Nullable;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
@@ -19,9 +20,12 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.MediaType;
 
+import com.google.common.base.Preconditions;
+
 public class WebClientFactory {
 
-  public WebClient create(boolean skipHostnameVerification) throws Exception {
+  public WebClient create(boolean skipHostnameVerification,
+      @Nullable URI proxyUri) throws Exception {
     ClientBuilder clientBuilder = ClientBuilder.newBuilder();
     if (skipHostnameVerification) {
       SSLContext sslContext = SSLContext.getInstance("TLS");
@@ -30,6 +34,15 @@ public class WebClientFactory {
           new SecureRandom());
       clientBuilder.hostnameVerifier(InsecureHostnameVerifier.INSTANCE)
           .sslContext(sslContext);
+    }
+    if (proxyUri != null) {
+      Preconditions.checkArgument(
+          "http".equals(proxyUri.getScheme())
+          || "https".equals(proxyUri.getScheme()));
+      clientBuilder.property(proxyUri.getScheme() + ".proxyHost",
+          proxyUri.getHost());
+      clientBuilder.property(proxyUri.getScheme() + ".proxyPort",
+          String.valueOf(proxyUri.getPort()));
     }
     return new WebClient(clientBuilder.build());
   }
@@ -83,4 +96,5 @@ public class WebClientFactory {
       return true;
     }
   }
+
 }

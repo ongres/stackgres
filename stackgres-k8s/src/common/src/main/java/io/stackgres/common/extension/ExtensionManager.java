@@ -5,6 +5,9 @@
 
 package io.stackgres.common.extension;
 
+import static io.stackgres.common.extension.ExtensionMetadataManager.PROXY_URL_PARAMETER;
+import static io.stackgres.common.extension.ExtensionMetadataManager.SKIP_HOSTNAME_VERIFICATION_PARAMETER;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -45,8 +48,6 @@ public abstract class ExtensionManager {
 
   private static final Logger LOGGER =
       LoggerFactory.getLogger(ExtensionManager.class);
-
-  private static final String SKIP_HOSTNAME_VERIFICATION_PARAMETER = "skipHostnameVerification";
 
   public static final String SHA256_SUFFIX = ".sha256";
   public static final String TGZ_SUFFIX = ".tgz";
@@ -137,9 +138,13 @@ public abstract class ExtensionManager {
       boolean skipHostnameVerification =
           getUriQueryParameter(extensionsRepositoryUri, SKIP_HOSTNAME_VERIFICATION_PARAMETER)
           .map(Boolean::valueOf).orElse(false);
+      URI proxyUri =
+          getUriQueryParameter(extensionsRepositoryUri, PROXY_URL_PARAMETER)
+          .map(URI::create)
+          .orElse(null);
       LOGGER.info("Downloading {} from {}",
           ExtensionUtil.getDescription(extensionMetadata), extensionUri);
-      try (WebClient client = webClientFactory.create(skipHostnameVerification)) {
+      try (WebClient client = webClientFactory.create(skipHostnameVerification, proxyUri)) {
         try (InputStream inputStream = client.getInputStream(extensionUri)) {
           extractTar(inputStream);
         }
