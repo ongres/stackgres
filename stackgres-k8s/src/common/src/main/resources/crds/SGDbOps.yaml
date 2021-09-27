@@ -47,7 +47,7 @@ spec:
                   maxLength: 21
                   pattern: "[a-z]([-a-z0-9]*[a-z0-9])?"
                   description: |
-                    Name of the Database Operation. A database operation represents a ""kind"" of operation on a StackGres cluster, classified by a given name. The operation reference one SGCluster by its name. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the `-` character allowed anywhere except the first or last character.
+                    Name of the Database Operation. A database operation represents a ""kind"" of operation on a StackGres cluster, classified by a given name. The operation reference one SGCluster by its name. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 `label`, an alphanumeric (a-z, and 0-9) string, with a maximum length of 21 characters, with the '-' character allowed anywhere except the first or last character.
 
                     The name must be unique across all database operations in the same namespace."
             spec:
@@ -56,7 +56,7 @@ spec:
                 sgCluster:
                   type: string
                   description: |
-                    The name of SGCluster on which the operation will be performed
+                    The name of SGCluster on which the operation will be performed.
                 op:
                   type: string
                   description: |
@@ -75,13 +75,13 @@ spec:
                   description: |
                     An ISO 8601 date, that holds UTC scheduled date of the operation execution.
 
-                    If not specified or date it’s in the past it will be interpreted as ASAP.
+                    If not specified or if the date it's in the past, it will be interpreted ASAP.
                 timeout:
                   type: string
                   description: |
-                    An ISO 8601 duration format `PnDTnHnMn.nS`, that specify a timeout after which the operation execution will not be performed.
+                    An ISO 8601 duration in the format `PnDTnHnMn.nS`, that specifies a timeout after which the operation execution will be canceled.
 
-                    If the operation can not be performed due to timeout expiration the condition `Failed` will have a status of `True` and and the reason will be `TimedOut`.
+                    If the operation can not be performed due to timeout expiration, the condition `Failed` will have a status of `True` and the reason will be `OperationTimedOut`.
 
                     If not specified the operation will never fail for timeout expiration.
                 maxRetries:
@@ -89,7 +89,7 @@ spec:
                   description: |
                     The maximum number of retries the operation is allowed to do after a failure.
 
-                    If not specified this default to `1`. Can not be greater than `10`.
+                    A value of `0` (zero) means no retries are made. Can not be greater than `10`. Defaults to: `0`.
                 benchmark:
                   type: object
                   description: |
@@ -98,9 +98,9 @@ spec:
                     type:
                       type: string
                       description: |
-                        The type of benchmark that will be performed on the SGCluster. Available benchamrks are:
+                        The type of benchmark that will be performed on the SGCluster. Available benchmarks are:
 
-                        * `pgbench`: run [pgnech](https://www.postgresql.org/docs/current/pgbench.html) on the specified SGCluster and report the results in the status.
+                        * `pgbench`: run [pgbench](https://www.postgresql.org/docs/current/pgbench.html) on the specified SGCluster and report the results in the status.
                     pgbench:
                       type: object
                       description: |
@@ -114,24 +114,24 @@ spec:
                         duration:
                           type: string
                           description: |
-                            An ISO 8601 duration format `PnDTnHnMn.nS`, that specify the duration of the benchmark.
+                            An ISO 8601 duration in the format `PnDTnHnMn.nS`, that specifies how long the benchmark will run.
                         usePreparedStatements:
                           type: boolean
                           description: |
-                            Use extended query protocol with prepared statements. If not specified is considered `false`.
+                            Use extended query protocol with prepared statements. Defaults to: `false`.
                         concurrentClients:
                           type: integer
                           description: |
-                            Number of clients simulated, that is, number of concurrent database sessions. Default is 1.
+                            Number of clients simulated, that is, number of concurrent database sessions. Defaults to: `1`.
                         threads:
                           type: integer
                           description: |
-                            Number of worker threads within pgbench. Using more than one thread can be helpful on multi-CPU machines. Clients are distributed as evenly as possible among available threads. Default is 1.
+                            Number of worker threads within pgbench. Using more than one thread can be helpful on multi-CPU machines. Clients are distributed as evenly as possible among available threads. Default is `1`.
                       required: [ "databaseSize", "duration" ]
                     connectionType:
                       type: string
                       description: |
-                        Specify where the benchmark connection will be directed:
+                        Specify the service where the benchmark will connect to:
 
                         * `primary-service`: Connect to the primary service
                         * `replicas-service`: Connect to the replicas service
@@ -147,17 +147,17 @@ spec:
                         If true selects "full" vacuum, which can reclaim more space, but takes much longer and exclusively locks the table.
                         This method also requires extra disk space, since it writes a new copy of the table and doesn't release the old copy
                          until the operation is complete. Usually this should only be used when a significant amount of space needs to be
-                         reclaimed from within the table. By default false
+                         reclaimed from within the table. Defaults to: `false`.
                     freeze:
                       type: boolean
                       description: |
                         If true selects aggressive "freezing" of tuples. Specifying FREEZE is equivalent to performing VACUUM with the
                          vacuum_freeze_min_age and vacuum_freeze_table_age parameters set to zero. Aggressive freezing is always performed
-                         when the table is rewritten, so this option is redundant when FULL is specified. By default false
+                         when the table is rewritten, so this option is redundant when FULL is specified. Defaults to: `false`.
                     analyze:
                       type: boolean
                       description: |
-                        If true, updates statistics used by the planner to determine the most efficient way to execute a query. By default true
+                        If true, updates statistics used by the planner to determine the most efficient way to execute a query. Defaults to: `true`.
                     disablePageSkipping:
                       type: boolean
                       description: |
@@ -166,11 +166,11 @@ spec:
                          aggressive vacuum. Furthermore, except when performing an aggressive vacuum, some pages may be skipped in order to avoid
                          waiting for other sessions to finish using them. This option disables all page-skipping behavior, and is intended to be
                          used only when the contents of the visibility map are suspect, which should happen only if there is a hardware or
-                         software issue causing database corruption. By default false
+                         software issue causing database corruption. Defaults to: `false`.
                     databases:
                       type: array
                       description: |
-                        List of database to vacuum or repack, don't specify to select all databases
+                        List of databases to vacuum or repack, don't specify to select all databases
                       items:
                         type: object
                         required: [ "name" ]
@@ -184,17 +184,17 @@ spec:
                               If true selects "full" vacuum, which can reclaim more space, but takes much longer and exclusively locks the table.
                               This method also requires extra disk space, since it writes a new copy of the table and doesn't release the old copy
                                until the operation is complete. Usually this should only be used when a significant amount of space needs to be
-                               reclaimed from within the table. By default false
+                               reclaimed from within the table. Defaults to: `false`.
                           freeze:
                             type: boolean
                             description: |
                               If true selects aggressive "freezing" of tuples. Specifying FREEZE is equivalent to performing VACUUM with the
                                vacuum_freeze_min_age and vacuum_freeze_table_age parameters set to zero. Aggressive freezing is always performed
-                               when the table is rewritten, so this option is redundant when FULL is specified. By default false
+                               when the table is rewritten, so this option is redundant when FULL is specified. Defaults to: `false`.
                           analyze:
                             type: boolean
                             description: |
-                              If true, updates statistics used by the planner to determine the most efficient way to execute a query. By default true
+                              If true, updates statistics used by the planner to determine the most efficient way to execute a query. Defaults to: `true`.
                           disablePageSkipping:
                             type: boolean
                             description: |
@@ -203,7 +203,7 @@ spec:
                                aggressive vacuum. Furthermore, except when performing an aggressive vacuum, some pages may be skipped in order to avoid
                                waiting for other sessions to finish using them. This option disables all page-skipping behavior, and is intended to be
                                used only when the contents of the visibility map are suspect, which should happen only if there is a hardware or
-                               software issue causing database corruption. By default false
+                               software issue causing database corruption. Defaults to: `false`.
                 repack:
                   type: object
                   description: |
@@ -212,7 +212,7 @@ spec:
                     noOrder:
                       type: boolean
                       description: |
-                        If true do vacuum full instead of cluster. By default false.
+                        If true do vacuum full instead of cluster. Defaults to: `false`.
                     waitTimeout:
                       type: string
                       description: |
@@ -220,15 +220,15 @@ spec:
                     noKillBackend:
                       type: boolean
                       description: |
-                        If true don't kill other backends when timed out. By default false.
+                        If true don't kill other backends when timed out. Defaults to: `false`.
                     noAnalyze:
                       type: boolean
                       description: |
-                        If true don't analyze at end. By default false.
+                        If true don't analyze at end. Defaults to: `false`.
                     excludeExtension:
                       type: boolean
                       description: |
-                        If true don't repack tables which belong to specific extension. By default false.
+                        If true don't repack tables which belong to specific extension. Defaults to: `false`.
                     databases:
                       type: array
                       description: |
@@ -243,7 +243,7 @@ spec:
                           noOrder:
                             type: boolean
                             description: |
-                              If true do vacuum full instead of cluster. By default false.
+                              If true do vacuum full instead of cluster. Defaults to: `false`.
                           waitTimeout:
                             type: string
                             description: |
@@ -251,15 +251,15 @@ spec:
                           noKillBackend:
                             type: boolean
                             description: |
-                              If true don't kill other backends when timed out. By default false.
+                              If true don't kill other backends when timed out. Defaults to: `false`.
                           noAnalyze:
                             type: boolean
                             description: |
-                              If true don't analyze at end. By default false.
+                              If true don't analyze at end. Defaults to: `false`.
                           excludeExtension:
                             type: boolean
                             description: |
-                              If true don't repack tables which belong to specific extension. By default false.
+                              If true don't repack tables which belong to specific extension. Defaults to: `false`.
                 majorVersionUpgrade:
                   type: object
                   description: |
@@ -276,13 +276,13 @@ spec:
                     link:
                       type: boolean
                       description: |
-                        If true use hard links instead of copying files to the new cluster. This option is mutually exclusive with `clone`. By default false.
+                        If true use hard links instead of copying files to the new cluster. This option is mutually exclusive with `clone`. Defaults to: `false`.
                     clone:
                       type: boolean
                       description: |
                         If true use efficient file cloning (also known as "reflinks" on some systems) instead of copying files to the new cluster.
                         This can result in near-instantaneous copying of the data files, giving the speed advantages of `link` while leaving the old
-                         cluster untouched. This option is mutually exclusive with `link`. By default false.
+                         cluster untouched. This option is mutually exclusive with `link`. Defaults to: `false`.
 
                         File cloning is only supported on some operating systems and file systems. If it is selected but not supported, the pg_upgrade
                          run will error. At present, it is supported on Linux (kernel 4.5 or later) with Btrfs and XFS (on file systems created with
@@ -290,7 +290,7 @@ spec:
                     check:
                       type: boolean
                       description: |
-                        If true check clusters before changing any data. By default false.
+                        If true check clusters before changing any data. Defaults to: `false`.
                 restart:
                   type: object
                   description: |
@@ -310,11 +310,11 @@ spec:
                       type: boolean
                       description: |
                         By default all Pods are restarted. Setting this option to `true` allow to restart only those Pods which
-                         are in pending restart state as detected by the operation.
+                         are in pending restart state as detected by the operation. Defaults to: `false`.
                 minorVersionUpgrade:
                   type: object
                   description: |
-                    Configuration of restart
+                    Configuration of minor version upgrade
                   properties:
                     postgresVersion:
                       type: string
@@ -355,8 +355,8 @@ spec:
                     Possible conditions are:
 
                     * Running: to indicate when the operation is actually running
-                    * Completed: to indicate when the operation is completed successfully
-                    * Failed: to indicate when the operation had failed
+                    * Completed: to indicate when the operation has completed successfully
+                    * Failed: to indicate when the operation has failed
                   items:
                     type: object
                     properties:
@@ -364,13 +364,13 @@ spec:
                         description: Last time the condition transitioned from one status to another.
                         type: string
                       message:
-                        description: A human readable message indicating details about the transition.
+                        description: A human-readable message indicating details about the transition.
                         type: string
                       reason:
-                        description: The reason for the condition's last transition.
+                        description: The reason for the condition last transition.
                         type: string
                       status:
-                        description: Status of the condition, one of True, False, Unknown.
+                        description: Status of the condition, one of `True`, `False` or `Unknown`.
                         type: string
                       type:
                         description: Type of deployment condition.
@@ -397,16 +397,16 @@ spec:
                           type: number
                           nullable: true
                           description: |
-                            The scale factor user to run pgbench (`--scale`).
+                            The scale factor used to run pgbench (`--scale`).
                         transactionsProcessed:
                           type: integer
                           nullable: true
                           description: |
-                            The number of transaction processed.
+                            The number of transactions processed.
                         latency:
                           type: object
                           description: |
-                            The lantency results of the pgbench benchmark
+                            The latency results of the pgbench benchmark
                           properties:
                             average:
                               type: object
@@ -422,11 +422,11 @@ spec:
                                   type: string
                                   nullable: false
                                   description: |
-                                    The latency measure unit represented by milliseconds
+                                    The latency measure unit represented in milliseconds
                             standardDeviation:
                               type: object
                               description: |
-                                The latency stdandard deviation of transactions.
+                                The latency standard deviation of transactions.
                               properties:
                                 value: 
                                   type: number
@@ -437,7 +437,7 @@ spec:
                                   type: string
                                   nullable: false
                                   description: |
-                                    The latency measure unit represented by milliseconds
+                                    The latency measure unit represented in milliseconds
                         transactionsPerSecond:
                           type: object
                           description: |
@@ -446,13 +446,13 @@ spec:
                             includingConnectionsEstablishing:
                               type: object
                               description: |
-                                Number of transaction per second including connection establishing.
+                                Number of Transaction Per Second (tps) including connection establishing.
                               properties:
                                 value: 
                                   type: number
                                   nullable: true
                                   description: |
-                                    The tps including connections establishing value
+                                    The Transaction Per Second (tps) including connections establishing value
                                 unit:
                                   type: string
                                   nullable: false
@@ -461,13 +461,13 @@ spec:
                             excludingConnectionsEstablishing:
                               type: object
                               description: |
-                                Number of transaction per second excluding connection establishing.
+                                Number of Transaction Per Second (tps) excluding connection establishing.
                               properties:
                                 value: 
                                   type: number
                                   nullable: true
                                   description: |
-                                    The tps excluding connections establishing value
+                                    The Transaction Per Second (tps) excluding connections establishing value
                                 unit: 
                                   type: string
                                   nullable: false
@@ -481,7 +481,7 @@ spec:
                     sourcePostgresVersion:
                       type: string
                       description: |
-                        The postgres version currently used by primary instance
+                        The postgres version currently used by the primary instance
                     targetPostgresVersion:
                       type: string
                       description: |
@@ -559,7 +559,7 @@ spec:
                     sourcePostgresVersion:
                       type: string
                       description: |
-                        The postgres version currently used by primary instance
+                        The postgres version currently used by the primary instance
                     targetPostgresVersion:
                       type: string
                       description: |
