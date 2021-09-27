@@ -226,18 +226,13 @@ do
       setup_k8s
     fi
     SPECS_FAILED=""
-    echo "$SPECS_TO_RUN" | tr ' ' '\n' \
-      | xargs_parallel_shell % -c "'$SHELL' $SHELL_XTRACE '$E2E_PATH/e2e' spec '%'" || true
-    BATCH_FAILED=false
-    for FAILED in $(find "$TARGET_PATH" -maxdepth 1 -type f -name '*.failed')
-    do
-      if [ "$(stat -c %Y "$FAILED" || echo 0)" -lt "$START" ]
-      then
-        continue
-      fi
+    if echo "$SPECS_TO_RUN" | tr ' ' '\n' \
+      | xargs_parallel_shell % -c "'$SHELL' $SHELL_XTRACE '$E2E_PATH/e2e' spec '%'"
+    then
+      BATCH_FAILED=false
+    else
       BATCH_FAILED=true
-      break
-    done
+    fi
     if "$BATCH_FAILED"
     then
       if [ "$((COUNT%E2E_PARALLELISM))" -ne 0 ]
@@ -246,12 +241,14 @@ do
         SPECS="$SPECS $(seq 1 "$PAD_COUNT")"
         COUNT="$((COUNT+PAD_COUNT))"
       fi
+      NONE_FAILED=true
       for FAILED in $(find "$TARGET_PATH" -maxdepth 1 -type f -name '*.failed')
       do
         if [ "$(stat -c %Y "$FAILED" || echo 0)" -lt "$START" ]
         then
           continue
         fi
+        NONE_FAILED=false
         SPEC_NAME="$(basename "$FAILED"|sed 's/\.failed$//')"
         RETRIES="$([ -f "$TARGET_PATH/$SPEC_NAME.retries" ] && cat "$TARGET_PATH/$SPEC_NAME.retries" || echo 0)"
         RETRIES="$((RETRIES + 1))"
@@ -267,6 +264,11 @@ do
         fi
         CLEANUP=true
       done
+      if "$NONE_FAILED"
+      then
+        echo "Some test failed but no <test name>.failed file was found...this is weird!"
+        OVERALL_RESULT=false
+      fi
     fi
     RUNNED_COUNT=0
     while [ "$RUNNED_COUNT" -lt "$(echo "$SPECS_TO_RUN" | tr '\n' ' ' | wc -w)" ]

@@ -66,7 +66,7 @@ check_extension_with_same_shared_library_when_added() {
     --reset-values \
     --set-string 'cluster.postgres.version=12.6' \
     --set-string 'cluster.postgres.extensions[0].name=postgis' \
-    --set-string 'cluster.postgres.extensions[0].name=postgis_raster' \
+    --set-string 'cluster.postgres.extensions[1].name=postgis_raster' \
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
 
   try_function wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \

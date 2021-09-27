@@ -20,6 +20,10 @@ e2e_add_source() {
   E2E_SOURCES="$((E2E_SOURCES + 1))"
 }
 
+. "$E2E_PATH/helpers"
+
+[ "x" = "x$SHELL_XTRACE" ] || [ "$E2E_TRACE_ALL" = true ] || set +x
+
 UTIL_PATHS="$(find "$E2E_PATH/utils" -type f)"
 for UTIL_PATH in $UTIL_PATHS
 do
@@ -39,7 +43,7 @@ do
   eval ". \"$E2E_PATH/\$E2E_SOURCES_$E2E_SOURCES\""
 done
 
-[ -z "$SHELL_XTRACE" ] || set -x
+[ "x" = "x$SHELL_XTRACE" ] || [ "$E2E_TRACE_ALL" = true ] || set -x
 
 if [ "$(basename "$0")" = "e2e" ] && [ ! -z "$1" ]
 then

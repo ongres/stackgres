@@ -17,5 +17,42 @@
       "random_page_cost": "1.5",
       "shared_buffers": "256MB"
     }
+  },
+  "status": {
+    "defaultParameters": [
+      "enable_partitionwise_aggregate",
+      "min_wal_size",
+      "max_wal_senders",
+      "log_checkpoints",
+      "max_prepared_transactions",
+      "jit_inline_above_cost",
+      "autovacuum_max_workers",
+      "track_functions",
+      "wal_keep_segments",
+      "checkpoint_completion_target",
+      "enable_partitionwise_join",
+      "log_autovacuum_min_duration",
+      "superuser_reserved_connections",
+      "random_page_cost",
+      "log_temp_files",
+      "log_lock_waits",
+      "max_locks_per_transaction",
+      "log_disconnections",
+      "log_connections",
+      "maintenance_work_mem",
+      "pg_stat_statements.track_utility",
+      "shared_preload_libraries",
+      "track_activity_query_size",
+      "max_pred_locks_per_transaction",
+      "max_wal_size",
+      "autovacuum_vacuum_cost_delay",
+      "log_min_duration_statement",
+      "log_statement",
+      "max_replication_slots",
+      "default_statistics_target",
+      "work_mem",
+      "log_line_prefix",
+      "track_io_timing"
+    ]
   }
 }
