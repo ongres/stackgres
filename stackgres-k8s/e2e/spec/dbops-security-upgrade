@@ -10,9 +10,9 @@ e2e_test_install() {
   CLUSTER_1_NAME="$(get_sgcluster_name "$CLUSTER_NAME-1")"
   CLUSTER_2_NAME="$(get_sgcluster_name "$CLUSTER_NAME-2")"
   CLUSTER_3_NAME="$(get_sgcluster_name "$CLUSTER_NAME-3")"
-  DBOPS_1_NAME="$(get_sgdbops_name "$CLUSTER_NAME-1")"
-  DBOPS_2_NAME="$(get_sgdbops_name "$CLUSTER_NAME-2")"
-  DBOPS_3_NAME="$(get_sgdbops_name "$CLUSTER_NAME-3")"
+  DBOPS_1_NAME="$(get_sgdbops_name "security-upgrade-1")"
+  DBOPS_2_NAME="$(get_sgdbops_name "security-upgrade-2")"
+  DBOPS_3_NAME="$(get_sgdbops_name "security-upgrade-3")"
 
   PREVIOUS_PATRONI_IMAGE="$(get_component_images "$STACKGRES_PREVIOUS_VERSION" | grep '/patroni\(-ext\)\?:' | tail -n 1)"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_PATRONI_IMAGE##*-pg}"
