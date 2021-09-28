@@ -18,6 +18,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Positive;
 
+import com.google.common.base.CaseFormat;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusCause;
 import io.fabric8.kubernetes.api.model.StatusDetails;
@@ -131,6 +132,13 @@ public class ValidationUtils {
         } catch (NoSuchMethodException e) {
           ex.addSuppressed(e);
         }
+        try {
+          annotation =
+              from.getDeclaredMethod(fieldToGetter(fieldOrMethod)).getAnnotation(constraint);
+          break;
+        } catch (NoSuchMethodException e) {
+          ex.addSuppressed(e);
+        }
         from = from.getSuperclass();
         if (from == Object.class) {
           throw ex;
@@ -145,4 +153,9 @@ public class ValidationUtils {
           e);
     }
   }
+
+  private static String fieldToGetter(@NotNull String name) {
+    return "get" + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, name);
+  }
+
 }
