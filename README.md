@@ -50,6 +50,12 @@ Everybody is welcome in this open Community for StackGres, check out the differe
 - [Public dashboards](https://gitlab.com/ongresinc/stackgres/-/issues): If you want to see what’s coming down the road, check our issues. They are open so you can create issues yourself or comment on open issues. We welcome feedback, ideas and collaborations!
 - Join the [Slack](https://slack.stackgres.io/) & [Discord](https://discord.stackgres.io/) Community becoming an advocate, user, tester or contributor of StackGres.
 
+### Code of Conduct 
+
+To ensure a more open and welcoming community, StackGres adheres to a [Code of Conduct](code_of_conduct.md), and everyone involved in the projects, issues, chat rooms, and any other official communication channel, is expected to follow it.
+
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+
 ## About the Operator
 
 This repository holds one of the major components around StackGres and is the StackGres Operator
@@ -89,7 +95,7 @@ We love the concept of GitLab’s stewardship, and in the same spirit, we promis
 StackGres will always be open source software.
 
 ### What PostgreSQL versions are supported?
-As of now, PostgreSQL major version 11 and 12.
+As of now, PostgreSQL major version 12 and 13.
 
 ### Where does it run?
 StackGres has been designed to run on any Kubernetes-certified platform. Whether is a
