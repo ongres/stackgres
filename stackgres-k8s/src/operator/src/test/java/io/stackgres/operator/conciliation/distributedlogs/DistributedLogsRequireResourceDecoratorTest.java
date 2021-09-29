@@ -30,7 +30,7 @@ class DistributedLogsRequireResourceDecoratorTest
     extends AbstractRequiredResourceDecoratorTest<StackGresDistributedLogsContext> {
 
   @Inject
-  private DistributedLogsRequireResourceDecorator resourceDecorator;
+  DistributedLogsRequireResourceDecorator resourceDecorator;
 
   private StackGresDistributedLogs resource;
 
