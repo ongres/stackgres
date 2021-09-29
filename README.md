@@ -52,7 +52,7 @@ Everybody is welcome in this open Community for StackGres, check out the differe
 
 ### Code of Conduct 
 
-To ensure a more open and welcoming community, StackGres adheres to a [Code of Conduct](code_of_conduct.md), and everyone involved in the projects, issues, chat rooms, and any other official communication channel, is expected to follow it.
+To ensure a more open and welcoming community, StackGres adheres to a [Code of Conduct](CODE_OF_CONDUCT.md), and everyone involved in the projects, issues, chat rooms, and any other official communication channel, is expected to follow it.
 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
