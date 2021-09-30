@@ -95,7 +95,7 @@ We love the concept of GitLab’s stewardship, and in the same spirit, we promis
 StackGres will always be open source software.
 
 ### What PostgreSQL versions are supported?
-As of now, PostgreSQL major version 12 and 13.
+As of now, PostgreSQL major version 12 and 13. As a general rule, StackGres will support the last 2 Postgres version. 
 
 ### Where does it run?
 StackGres has been designed to run on any Kubernetes-certified platform. Whether is a
