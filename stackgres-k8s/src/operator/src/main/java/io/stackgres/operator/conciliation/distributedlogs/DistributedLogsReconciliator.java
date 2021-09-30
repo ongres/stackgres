@@ -63,7 +63,16 @@ public class DistributedLogsReconciliator extends StackGresReconciliator<StackGr
     refreshConnectedClusters(config);
 
     statusManager.refreshCondition(config);
-    distributedLogsScheduler.updateStatus(config);
+    distributedLogsScheduler.updateStatus(config,
+        StackGresDistributedLogs::getStatus, (targetDistributedLogs, status) -> {
+          var targetPodStatuses = Optional.ofNullable(targetDistributedLogs.getStatus())
+              .map(StackGresDistributedLogsStatus::getPodStatuses)
+              .orElse(null);
+          if (status != null) {
+            status.setPodStatuses(targetPodStatuses);
+          }
+          targetDistributedLogs.setStatus(status);
+        });
   }
 
   private void refreshConnectedClusters(StackGresDistributedLogs config) {

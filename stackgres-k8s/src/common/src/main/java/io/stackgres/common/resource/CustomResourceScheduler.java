@@ -17,10 +17,8 @@ public interface CustomResourceScheduler<T extends CustomResource<?, ?>> {
 
   T update(@NotNull T resource);
 
-  <S> void updateStatus(@NotNull T resource, @NotNull Function<T, S> statusGetter,
+  <S> T updateStatus(@NotNull T resource, @NotNull Function<T, S> statusGetter,
       @NotNull BiConsumer<T, S> statusSetter);
-
-  T updateStatus(@NotNull T resource);
 
   void delete(@NotNull T resource);
 

@@ -5,6 +5,7 @@
 
 package io.stackgres.cluster.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,7 +22,6 @@ import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
-import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
 import io.stackgres.operatorframework.reconciliation.Reconciliator;
@@ -32,14 +32,12 @@ public class ClusterControllerReconciliator
 
   private final CustomResourceScheduler<StackGresCluster> clusterScheduler;
   private final ClusterExtensionReconciliator extensionReconciliator;
-  private final CustomResourceFinder<StackGresCluster> clusterFinder;
   private final ClusterControllerPropertyContext propertyContext;
 
   @Inject
   public ClusterControllerReconciliator(Parameters parameters) {
     this.clusterScheduler = parameters.clusterScheduler;
     this.extensionReconciliator = parameters.extensionReconciliator;
-    this.clusterFinder = parameters.clusterFinder;
     this.propertyContext = parameters.propertyContext;
   }
 
@@ -49,14 +47,6 @@ public class ClusterControllerReconciliator
     this.propertyContext = null;
     this.clusterScheduler = null;
     this.extensionReconciliator = null;
-    this.clusterFinder = null;
-  }
-
-  private static void applyPodStatusChanges(StackGresClusterPodStatus podStatus,
-                                            StackGresClusterPodStatus savedPodStatus) {
-    savedPodStatus.setInstalledPostgresExtensions(
-        podStatus.getInstalledPostgresExtensions());
-    savedPodStatus.setPendingRestart(podStatus.getPendingRestart());
   }
 
   @SuppressFBWarnings(value = "REC_CATCH_EXCEPTION",
@@ -72,29 +62,28 @@ public class ClusterControllerReconciliator
       final String podName = propertyContext.getString(
           ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
       final StackGresCluster cluster = context.getCluster();
-      final StackGresClusterStatus status = cluster.getStatus();
 
-      String clusterName = cluster.getMetadata().getName();
-      String namespace = cluster.getMetadata().getNamespace();
-
-      clusterFinder.findByNameAndNamespace(clusterName, namespace)
-          .ifPresent(savedCluster -> {
-            var newPodStatus = findPodStatus(status.getPodStatuses(), podName)
+      clusterScheduler.updateStatus(cluster,
+          StackGresCluster::getStatus, (targetCluster, status) -> {
+            var podStatus = Optional.ofNullable(status)
+                .map(StackGresClusterStatus::getPodStatuses)
+                .flatMap(podStatuses -> findPodStatus(podStatuses, podName))
                 .orElseThrow();
-            Optional.ofNullable(savedCluster.getStatus()).ifPresentOrElse(
-                savedStatus ->
-                    Optional.ofNullable(savedStatus.getPodStatuses()).ifPresentOrElse(
-                        savedPodStatuses ->
-                            findPodStatus(savedPodStatuses, podName).ifPresentOrElse(
-                                savedPodStatus ->
-                                    applyPodStatusChanges(newPodStatus, savedPodStatus),
-                                () -> savedPodStatuses.add(newPodStatus)),
-                        () -> savedStatus.setPodStatuses(status.getPodStatuses())),
-                () -> savedCluster.setStatus(status));
-
-            clusterScheduler.updateStatus(savedCluster);
+            if (targetCluster.getStatus() == null) {
+              targetCluster.setStatus(new StackGresClusterStatus());
+            }
+            if (targetCluster.getStatus().getPodStatuses() == null) {
+              targetCluster.getStatus().setPodStatuses(new ArrayList<>());
+            }
+            findPodStatus(targetCluster.getStatus().getPodStatuses(), podName)
+                .ifPresentOrElse(
+                    targetPodStatus -> {
+                      targetCluster.getStatus().getPodStatuses().set(
+                          targetCluster.getStatus().getPodStatuses().indexOf(targetPodStatus),
+                          podStatus);
+                    },
+                    () -> targetCluster.getStatus().getPodStatuses().add(podStatus));
           });
-
     }
     return extensionReconciliationResult;
   }
@@ -102,7 +91,8 @@ public class ClusterControllerReconciliator
   private Optional<StackGresClusterPodStatus> findPodStatus(
       List<StackGresClusterPodStatus> podStatuses,
       String podName) {
-    return podStatuses.stream().filter(podStatus -> podStatus.getName().equals(podName))
+    return podStatuses.stream()
+        .filter(podStatus -> podStatus.getName().equals(podName))
         .findFirst();
   }
 
@@ -112,8 +102,6 @@ public class ClusterControllerReconciliator
     CustomResourceScheduler<StackGresCluster> clusterScheduler;
     @Inject
     ClusterExtensionReconciliator extensionReconciliator;
-    @Inject
-    CustomResourceFinder<StackGresCluster> clusterFinder;
     @Inject
     ClusterControllerPropertyContext propertyContext;
   }

@@ -41,7 +41,9 @@ public class FakeDbOpsScheduler implements CustomResourceScheduler<StackGresDbOp
   }
 
   @Override
-  public StackGresDbOps updateStatus(StackGresDbOps resource) {
+  public <S> StackGresDbOps updateStatus(@NotNull StackGresDbOps resource,
+      @NotNull Function<StackGresDbOps, S> statusGetter,
+      @NotNull BiConsumer<StackGresDbOps, S> statusSetter) {
     String name = resource.getMetadata().getName();
     String namespace = resource.getMetadata().getNamespace();
 
@@ -50,10 +52,4 @@ public class FakeDbOpsScheduler implements CustomResourceScheduler<StackGresDbOp
     return kubeDb.addOrReplaceDbOps(savedOp);
   }
 
-  @Override
-  public <S> void updateStatus(@NotNull StackGresDbOps resource,
-      @NotNull Function<StackGresDbOps, S> statusGetter,
-      @NotNull BiConsumer<StackGresDbOps, S> statusSetter) {
-    throw new UnsupportedOperationException("not implemented");
-  }
 }

@@ -217,7 +217,16 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
             return initClusterDbOpsStatusValues(
                 clusterRestartState, tuple.getItem1(), tuple.getItem2())
                 .onItem()
-                .invoke(v -> clusterScheduler.updateStatus(tuple.getItem2()));
+                .invoke(v -> clusterScheduler.updateStatus(tuple.getItem2(),
+                    StackGresCluster::getStatus, (targetCluster, status) -> {
+                      var dbOps = Optional.ofNullable(status)
+                          .map(StackGresClusterStatus::getDbOps)
+                          .orElse(null);
+                      if (targetCluster.getStatus() == null) {
+                        targetCluster.setStatus(new StackGresClusterStatus());
+                      }
+                      targetCluster.getStatus().setDbOps(dbOps);
+                    }));
           }
         });
   }
@@ -395,7 +404,16 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
   protected Uni<StackGresCluster> cleanCluster(StackGresCluster cluster) {
     return Uni.createFrom().emitter(em -> {
       cleanClusterStatus(cluster);
-      var updatedCluster = clusterScheduler.updateStatus(cluster);
+      var updatedCluster = clusterScheduler.updateStatus(cluster,
+          StackGresCluster::getStatus, (targetCluster, status) -> {
+            var dbOps = Optional.ofNullable(status)
+                .map(StackGresClusterStatus::getDbOps)
+                .orElse(null);
+            if (targetCluster.getStatus() == null) {
+              targetCluster.setStatus(new StackGresClusterStatus());
+            }
+            targetCluster.getStatus().setDbOps(dbOps);
+          });
       em.complete(updatedCluster);
     });
   }
