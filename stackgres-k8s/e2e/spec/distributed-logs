@@ -66,7 +66,8 @@ check_latest_timescaledb_version_is_installed() {
 }
 
 default_annotations(){
-  local DEFAULT_ANNOTATION="$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" \
+  local DEFAULT_ANNOTATION
+  DEFAULT_ANNOTATION="$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" \
     -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
@@ -304,7 +305,8 @@ check_distributed_logs_query_endpoint() {
 }
 
 get_logs_count_with_text() {
-  local RESULT="$(run_curl \
+  local RESULT
+  RESULT="$(run_curl \
     -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME$2/logs?text=$1" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
@@ -312,7 +314,8 @@ get_logs_count_with_text() {
 }
 
 get_logs_entries_with_text() {
-  local RESULT="$(run_curl \
+  local RESULT
+  RESULT="$(run_curl \
     -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME$2/logs?text=$1" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
@@ -320,11 +323,13 @@ get_logs_entries_with_text() {
 }
 
 get_logs_count_with_text_after_log_with_text() {
-  local LOG_TIME="$(run_curl \
+  local LOG_TIME
+  LOG_TIME="$(run_curl \
     -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?text=$1" \
     -n "$CLUSTER_NAMESPACE" \
     | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | .[0] | .logTime + \",\" + (.logTimeIndex|tostring)")"
-  local RESULT="$(run_curl \
+  local RESULT
+  RESULT="$(run_curl \
     -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?from=$LOG_TIME&sort=asc" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
@@ -332,11 +337,13 @@ get_logs_count_with_text_after_log_with_text() {
 }
 
 get_logs_count_with_text_before_log_with_text() {
-  local LOG_TIME="$(run_curl \
+  local LOG_TIME
+  LOG_TIME="$(run_curl \
     -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?text=$1" \
     -n "$CLUSTER_NAMESPACE" \
     | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | .[0] | .logTime + \",\" + (.logTimeIndex|tostring)")"
-  local RESULT="$(run_curl \
+  local RESULT
+  RESULT="$(run_curl \
     -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?from=$LOG_TIME&sort=desc" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
@@ -344,15 +351,18 @@ get_logs_count_with_text_before_log_with_text() {
 }
 
 get_logs_count_between_log_with_texts_desc() {
-  local START_LOG_TIME="$(run_curl \
+  local START_LOG_TIME
+  START_LOG_TIME="$(run_curl \
     -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?text=$1&sort=desc" \
     -n "$CLUSTER_NAMESPACE" \
     | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | .[0] | .logTime + \",\" + (.logTimeIndex|tostring)")"
-  local END_LOG_TIME="$(run_curl \
+  local END_LOG_TIME
+  END_LOG_TIME="$(run_curl \
     -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?text=$3&sort=desc" \
     -n "$CLUSTER_NAMESPACE" \
     | jq -r "map(select(.message != null and (.message | contains(\"$3\")))) | .[0] | .logTime + \",\" + (.logTimeIndex|tostring)")"
-  local RESULT="$(run_curl \
+  local RESULT
+  RESULT="$(run_curl \
     -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?from=$START_LOG_TIME&to=$END_LOG_TIME&sort=desc" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
@@ -360,15 +370,18 @@ get_logs_count_between_log_with_texts_desc() {
 }
 
 get_logs_count_between_log_with_texts_asc() {
-  local START_LOG_TIME="$(run_curl \
+  local START_LOG_TIME
+  START_LOG_TIME="$(run_curl \
     -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?text=$1&sort=asc" \
     -n "$CLUSTER_NAMESPACE" \
     | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | .[0] | .logTime + \",\" + (.logTimeIndex|tostring)")"
-  local END_LOG_TIME="$(run_curl \
+  local END_LOG_TIME
+  END_LOG_TIME="$(run_curl \
     -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?text=$3&sort=asc" \
     -n "$CLUSTER_NAMESPACE" \
     | jq -r "map(select(.message != null and (.message | contains(\"$3\")))) | .[0] | .logTime + \",\" + (.logTimeIndex|tostring)")"
-  local RESULT="$(run_curl \
+  local RESULT
+  RESULT="$(run_curl \
     -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?from=$START_LOG_TIME&to=$END_LOG_TIME&sort=asc" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
@@ -376,7 +389,8 @@ get_logs_count_between_log_with_texts_asc() {
 }
 
 get_postgres_logs_count_with_text() {
-  local RESULT="$(run_curl \
+  local RESULT
+  RESULT="$(run_curl \
     -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?text=$1&logType=pg" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
@@ -385,7 +399,8 @@ get_postgres_logs_count_with_text() {
 
 get_patroni_logs_count() {
   local FILTER="{\"logType\":\"pa\"}"
-  local RESULT="$(run_curl \
+  local RESULT
+  RESULT="$(run_curl \
     -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?logType=pa" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
@@ -393,7 +408,8 @@ get_patroni_logs_count() {
 }
 
 get_error_and_info_logs_count() {
-  local RESULT="$(run_curl \
+  local RESULT
+  RESULT="$(run_curl \
     -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?errorLevel=ERROR&errorLevel=LOG&errorLevel=INFO" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
@@ -401,11 +417,13 @@ get_error_and_info_logs_count() {
 }
 
 get_logs_count_with_filter_of_log_with_text() {
-  local FILTER="$(run_curl \
+  local FILTER
+  FILTER="$(run_curl \
     -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?text=$1" \
     -n "$CLUSTER_NAMESPACE" \
     | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | .[0] | .$2 | select(. == null) = \"\"")"
-  local RESULT="$(run_curl \
+  local RESULT
+  RESULT="$(run_curl \
     -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/logs?text=$1&$2=$(uriencode "$FILTER")" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
@@ -463,7 +481,8 @@ check_retention() {
 }
 
 get_logs_timestamp_with_text() {
-  local RESULT="$(run_curl \
+  local RESULT
+  RESULT="$(run_curl \
     -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME$2/logs?text=$1" \
     -n "$CLUSTER_NAMESPACE")"
   date -d "$(echo_raw "$RESULT" \

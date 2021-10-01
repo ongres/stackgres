@@ -73,8 +73,10 @@ spec:
     custom.unsignificant: "true"
 EOF
 
-  local CREATED_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')"
-  local DEFAULT_FIELDS="$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | length')"
+  local CREATED_FIELDS
+  CREATED_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')"
+  local DEFAULT_FIELDS
+  DEFAULT_FIELDS="$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | length')"
 
   if [ "$CREATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
   then
@@ -84,8 +86,10 @@ EOF
     return 1
   fi
 
-  local CREATED_DEFAULTS_PARAMETERS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.status.defaultParameters | keys | sort')"
-  local DEFAULTS_PARAMETERS="$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | keys | sort')"
+  local CREATED_DEFAULTS_PARAMETERS
+  CREATED_DEFAULTS_PARAMETERS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.status.defaultParameters | keys | sort')"
+  local DEFAULTS_PARAMETERS
+  DEFAULTS_PARAMETERS="$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | keys | sort')"
 
   if [ "$CREATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
   then
@@ -95,7 +99,8 @@ EOF
     return 1
   fi
 
-  local DEFAULT_ANNOTATION="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+  local DEFAULT_ANNOTATION
+  DEFAULT_ANNOTATION="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
@@ -118,14 +123,17 @@ spec:
   postgresVersion: "13"
   postgresql.conf: {}
 EOF
-  local PATCH="$(kubectl get sgpgconfig -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json \
+  local PATCH
+  PATCH="$(kubectl get sgpgconfig -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json \
     | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
     | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])|.spec["postgresql.conf"]["custom.unsignificant"] = "true"' \
     | kubectl create -f - --dry-run=client -o yaml)"
   kubectl patch sgpgconfig -n "$CLUSTER_NAMESPACE" "$PGCONFIG" --type merge -p "$PATCH"
 
-  local UPDATED_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')"
-  local DEFAULT_FIELDS="$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | length')"
+  local UPDATED_FIELDS
+  UPDATED_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')"
+  local DEFAULT_FIELDS
+  DEFAULT_FIELDS="$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | length')"
 
   if [ "$UPDATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
   then
@@ -135,8 +143,10 @@ EOF
     return 1
   fi
 
-  local UPDATED_DEFAULTS_PARAMETERS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.status.defaultParameters | keys | sort')"
-  local DEFAULTS_PARAMETERS="$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | keys | sort')"
+  local UPDATED_DEFAULTS_PARAMETERS
+  UPDATED_DEFAULTS_PARAMETERS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.status.defaultParameters | keys | sort')"
+  local DEFAULTS_PARAMETERS
+  DEFAULTS_PARAMETERS="$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | keys | sort')"
 
   if [ "$UPDATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
   then
@@ -146,7 +156,8 @@ EOF
     return 1
   fi
 
-  local DEFAULT_ANNOTATION="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+  local DEFAULT_ANNOTATION
+  DEFAULT_ANNOTATION="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
@@ -172,8 +183,10 @@ spec:
         unsignificant: "true"
 EOF
 
-  local CREATED_FIELDS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | length')"
-  local DEFAULT_FIELDS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | length')"
+  local CREATED_FIELDS
+  CREATED_FIELDS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | length')"
+  local DEFAULT_FIELDS
+  DEFAULT_FIELDS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | length')"
 
   if [ "$CREATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
   then
@@ -183,8 +196,10 @@ EOF
     return 1
   fi
 
-  local CREATED_DEFAULTS_PARAMETERS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.status.pgBouncer.defaultParameters | keys | sort')"
-  local DEFAULTS_PARAMETERS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | keys | sort')"
+  local CREATED_DEFAULTS_PARAMETERS
+  CREATED_DEFAULTS_PARAMETERS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.status.pgBouncer.defaultParameters | keys | sort')"
+  local DEFAULTS_PARAMETERS
+  DEFAULTS_PARAMETERS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | keys | sort')"
 
   if [ "$CREATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
   then
@@ -194,7 +209,8 @@ EOF
     return 1
   fi
 
-  local DEFAULT_ANNOTATION="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+  local DEFAULT_ANNOTATION
+  DEFAULT_ANNOTATION="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
@@ -215,14 +231,17 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec: {}
 EOF
-  local PATCH="$(kubectl get sgpoolconfig -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json \
+  local PATCH
+  PATCH="$(kubectl get sgpoolconfig -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json \
     | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
     | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])|.spec.pgBouncer["pgbouncer.ini"].pgbouncer.unsignificant = "true"' \
     | kubectl create -f - --dry-run=client -o yaml)"
   kubectl patch sgpoolconfig -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" --type merge -p "$PATCH"
 
-  local UPDATED_FIELDS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | length')"
-  local DEFAULT_FIELDS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | length')"
+  local UPDATED_FIELDS
+  UPDATED_FIELDS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | length')"
+  local DEFAULT_FIELDS
+  DEFAULT_FIELDS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | length')"
 
   if [ "$UPDATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
   then
@@ -232,8 +251,10 @@ EOF
     return 1
   fi
 
-  local UPDATED_DEFAULTS_PARAMETERS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.status.pgBouncer.defaultParameters | keys | sort')"
-  local DEFAULTS_PARAMETERS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | keys | sort')"
+  local UPDATED_DEFAULTS_PARAMETERS
+  UPDATED_DEFAULTS_PARAMETERS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.status.pgBouncer.defaultParameters | keys | sort')"
+  local DEFAULTS_PARAMETERS
+  DEFAULTS_PARAMETERS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | keys | sort')"
 
   if [ "$UPDATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
   then
@@ -243,7 +264,8 @@ EOF
     return 1
   fi
 
-  local DEFAULT_ANNOTATION="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+  local DEFAULT_ANNOTATION
+  DEFAULT_ANNOTATION="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
@@ -267,8 +289,10 @@ spec:
     compression: brotli
 EOF
 
-  local CREATED_FIELDS="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec')"
-  local DEFAULT_FIELDS="$(get_default_backupconf -o json | jq '.spec.baseBackups.compression = "brotli" | .spec')"
+  local CREATED_FIELDS
+  CREATED_FIELDS="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec')"
+  local DEFAULT_FIELDS
+  DEFAULT_FIELDS="$(get_default_backupconf -o json | jq '.spec.baseBackups.compression = "brotli" | .spec')"
 
   if [ "$CREATED_FIELDS" = "$DEFAULT_FIELDS" ]
   then
@@ -278,7 +302,8 @@ EOF
     return 1
   fi
 
-  local DEFAULT_ANNOTATION="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+  local DEFAULT_ANNOTATION
+  DEFAULT_ANNOTATION="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
@@ -299,14 +324,17 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec: {}
 EOF
-  local PATCH="$(kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json \
+  local PATCH
+  PATCH="$(kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json \
     | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
     | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])|.spec.baseBackups.compression = "brotli"' \
     | kubectl create -f - --dry-run=client -o yaml)"
   kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --type merge -p "$PATCH"
 
-  local UPDATED_FIELDS="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec')"
-  local DEFAULT_FIELDS="$(get_default_backupconf -o json | jq '.spec.baseBackups.compression = "brotli" | .spec')"
+  local UPDATED_FIELDS
+  UPDATED_FIELDS="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec')"
+  local DEFAULT_FIELDS
+  DEFAULT_FIELDS="$(get_default_backupconf -o json | jq '.spec.baseBackups.compression = "brotli" | .spec')"
 
   if [ "$UPDATED_FIELDS" = "$DEFAULT_FIELDS" ]
   then
@@ -316,7 +344,8 @@ EOF
     return 1
   fi
 
-  local DEFAULT_ANNOTATION="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+  local DEFAULT_ANNOTATION
+  DEFAULT_ANNOTATION="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
@@ -339,8 +368,10 @@ spec:
   memory: '512Mi'
 EOF
 
-  local CREATED_FIELDS="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.spec')"
-  local DEFAULT_FIELDS="$(get_default_profile -o json | jq '.spec.memory = "512Mi" | .spec')"
+  local CREATED_FIELDS
+  CREATED_FIELDS="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.spec')"
+  local DEFAULT_FIELDS
+  DEFAULT_FIELDS="$(get_default_profile -o json | jq '.spec.memory = "512Mi" | .spec')"
 
   if [ "$CREATED_FIELDS" = "$DEFAULT_FIELDS" ]
   then
@@ -350,7 +381,8 @@ EOF
     return 1
   fi
 
-  local DEFAULT_ANNOTATION="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+  local DEFAULT_ANNOTATION
+  DEFAULT_ANNOTATION="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
@@ -371,14 +403,17 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec: {}
 EOF
-  local PATCH="$(kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json \
+  local PATCH
+  PATCH="$(kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json \
     | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
     | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])|.spec.memory = "512Mi"' \
     | kubectl create -f - --dry-run=client -o yaml)"
   kubectl patch sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" --type merge -p "$PATCH"
 
-  local UPDATED_FIELDS="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.spec')"
-  local DEFAULT_FIELDS="$(get_default_profile -o json | jq '.spec.memory = "512Mi" | .spec')"
+  local UPDATED_FIELDS
+  UPDATED_FIELDS="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.spec')"
+  local DEFAULT_FIELDS
+  DEFAULT_FIELDS="$(get_default_profile -o json | jq '.spec.memory = "512Mi" | .spec')"
 
   if [ "$UPDATED_FIELDS" = "$DEFAULT_FIELDS" ]
   then
@@ -388,7 +423,8 @@ EOF
     return 1
   fi
 
-  local DEFAULT_ANNOTATION="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+  local DEFAULT_ANNOTATION
+  DEFAULT_ANNOTATION="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
@@ -421,7 +457,8 @@ spec:
     disableClusterPodAntiAffinity: true
 EOF
 
-  local CREATED_PGBOUNCER="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGBOUNCER_CLUSTER_NAME" -o='jsonpath={.spec.configurations.sgPoolingConfig}')"
+  local CREATED_PGBOUNCER
+  CREATED_PGBOUNCER="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGBOUNCER_CLUSTER_NAME" -o='jsonpath={.spec.configurations.sgPoolingConfig}')"
 
   if kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGBOUNCER"
   then
@@ -499,15 +536,18 @@ EOF
     return 1
   fi
 
-  local DISABLED_CONN_POOL="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$NOSIDECARS_CLUSTER_NAME" -o json | jq -r '.spec.pods.disableConnectionPooling')"
+  local DISABLED_CONN_POOL
+  DISABLED_CONN_POOL="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$NOSIDECARS_CLUSTER_NAME" -o json | jq -r '.spec.pods.disableConnectionPooling')"
 
   assert_string_equal "true" "$DISABLED_CONN_POOL"
 
-  local DISABLED_METRIC_EXPORTER="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$NOSIDECARS_CLUSTER_NAME" -o json | jq -r '.spec.pods.disableMetricsExporter')"
+  local DISABLED_METRIC_EXPORTER
+  DISABLED_METRIC_EXPORTER="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$NOSIDECARS_CLUSTER_NAME" -o json | jq -r '.spec.pods.disableMetricsExporter')"
 
   assert_string_equal "true" "$DISABLED_METRIC_EXPORTER"
 
-  local DISABLED_POSTGRES_UTIL="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$NOSIDECARS_CLUSTER_NAME" -o json | jq -r '.spec.pods.disablePostgresUtil')"
+  local DISABLED_POSTGRES_UTIL
+  DISABLED_POSTGRES_UTIL="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$NOSIDECARS_CLUSTER_NAME" -o json | jq -r '.spec.pods.disablePostgresUtil')"
 
   assert_string_equal "true" "$DISABLED_POSTGRES_UTIL"
 
@@ -535,7 +575,8 @@ spec:
     disableClusterPodAntiAffinity: true
 EOF
 
-  local CREATED_PGCONFIG="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o='jsonpath={.spec.configurations.sgPostgresConfig}')"
+  local CREATED_PGCONFIG
+  CREATED_PGCONFIG="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o='jsonpath={.spec.configurations.sgPostgresConfig}')"
 
   if kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGCONFIG"
   then
@@ -545,8 +586,10 @@ EOF
     return 1
   fi
 
-  local CREATED_PGCONFIG_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')"
-  local DEFAULT_PGCONFIG_FIELDS="$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | length')"
+  local CREATED_PGCONFIG_FIELDS
+  CREATED_PGCONFIG_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')"
+  local DEFAULT_PGCONFIG_FIELDS
+  DEFAULT_PGCONFIG_FIELDS="$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | length')"
 
   if [ "$CREATED_PGCONFIG_FIELDS" = "$DEFAULT_PGCONFIG_FIELDS" ]
   then
@@ -556,7 +599,8 @@ EOF
     return 1
   fi
 
-  local CREATED_PROFILE="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o='jsonpath={.spec.sgInstanceProfile}')"
+  local CREATED_PROFILE
+  CREATED_PROFILE="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o='jsonpath={.spec.sgInstanceProfile}')"
 
   if kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PROFILE"
   then
@@ -566,8 +610,10 @@ EOF
     return 1
   fi
 
-  local CREATED_PROFILE_FIELDS="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PROFILE" -o json | jq '.spec | length')"
-  local DEFAULT_PROFILE_FIELDS="$(get_default_profile -o json | jq '.spec | length')"
+  local CREATED_PROFILE_FIELDS
+  CREATED_PROFILE_FIELDS="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PROFILE" -o json | jq '.spec | length')"
+  local DEFAULT_PROFILE_FIELDS
+  DEFAULT_PROFILE_FIELDS="$(get_default_profile -o json | jq '.spec | length')"
 
   if [ "$CREATED_PROFILE_FIELDS" = "$DEFAULT_PROFILE_FIELDS" ]
   then
@@ -577,7 +623,8 @@ EOF
     return 1
   fi
 
-  local DEFAULT_ANNOTATION="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+  local DEFAULT_ANNOTATION
+  DEFAULT_ANNOTATION="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
@@ -589,7 +636,8 @@ EOF
 
   wait_until eval 'kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o name'
 
-  local INSTALLED_CONTAINERS="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath='{.spec.template.spec.containers[*].name}')"
+  local INSTALLED_CONTAINERS
+  INSTALLED_CONTAINERS="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath='{.spec.template.spec.containers[*].name}')"
 
   if echo "$INSTALLED_CONTAINERS" | grep "prometheus-postgres-exporter" > /dev/null
   then
@@ -633,13 +681,15 @@ spec:
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
-  local PATCH="$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+  local PATCH
+  PATCH="$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.generation)' \
     | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])' \
     | kubectl create -f - --dry-run=client -o yaml)"
   kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type merge -p "$PATCH"
 
-  local DEFAULT_ANNOTATION="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+  local DEFAULT_ANNOTATION
+  DEFAULT_ANNOTATION="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
@@ -651,7 +701,8 @@ EOF
 
   wait_until eval 'kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o name'
 
-  local INSTALLED_CONTAINERS="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath='{.spec.template.spec.containers[*].name}')"
+  local INSTALLED_CONTAINERS
+  INSTALLED_CONTAINERS="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath='{.spec.template.spec.containers[*].name}')"
 
   if echo "$INSTALLED_CONTAINERS" | grep "prometheus-postgres-exporter" > /dev/null
   then
@@ -759,7 +810,8 @@ spec:
     disableClusterPodAntiAffinity: true
 EOF
 
-  local DEFAULT_ANNOTATION="$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+  local DEFAULT_ANNOTATION
+  DEFAULT_ANNOTATION="$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
@@ -771,13 +823,15 @@ EOF
 }
 
 update_empty_distributedlogs() {
-  local PATCH="$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o json \
+  local PATCH
+  PATCH="$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o json \
     | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
     | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])' \
     | kubectl create -f - --dry-run=client -o yaml)"
   kubectl patch sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" --type merge -p "$PATCH"
 
-  local DEFAULT_ANNOTATION="$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+  local DEFAULT_ANNOTATION
+  DEFAULT_ANNOTATION="$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then

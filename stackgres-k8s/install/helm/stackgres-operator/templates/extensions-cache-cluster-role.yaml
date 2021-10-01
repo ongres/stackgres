@@ -14,7 +14,6 @@ rules:
   - sgclusters
   - sgdistributedlogs
   verbs:
-  - watch
   - list
   - get
 {{- end }}

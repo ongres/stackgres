@@ -25,7 +25,8 @@ update_k8s_config() {
   then
     if docker network ls --format '{{ .Name }}' | grep -q '^kind$'
     then
-      local CONTAINER_NAME="$(docker ps --format '{{ .Names }}' | grep "^$(hostname)")"
+      local CONTAINER_NAME
+      CONTAINER_NAME="$(docker ps --format '{{ .Names }}' | grep "^$(hostname)")"
       if [ -z "$CONTAINER_NAME" ]
       then
         CONTAINER_NAME="$(docker ps --format '{{ .ID }}' | grep "^$(hostname)")"
@@ -35,7 +36,8 @@ update_k8s_config() {
         | grep -q '^kind$' \
         || docker network connect kind "$CONTAINER_NAME"
     fi
-    local KIND_CONTROL_PLANE_IP="$(docker inspect "$KIND_NAME-control-plane" \
+    local KIND_CONTROL_PLANE_IP
+    KIND_CONTROL_PLANE_IP="$(docker inspect "$KIND_NAME-control-plane" \
       -f '{{ .NetworkSettings.Networks.kind.IPAddress }}')"
     kind get kubeconfig --name "$KIND_NAME" --internal \
       | sed "s/$KIND_NAME-control-plane/$KIND_CONTROL_PLANE_IP/" \

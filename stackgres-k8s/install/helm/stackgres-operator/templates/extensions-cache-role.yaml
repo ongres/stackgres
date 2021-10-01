@@ -18,4 +18,13 @@ rules:
   - get
   - patch
   - update
+  resourceNames:
+  - {{ .Release.Name }}-extensions-cache
+- apiGroups: [""]
+  resources:
+  - pods
+  verbs:
+  - delete
+  resourceNames:
+  - {{ .Release.Name }}-extensions-cache-0
 {{- end }}

@@ -1,4 +1,4 @@
-{{ if and .Values.deploy.operator .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort }}
+{{ if and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort }}
 apiVersion: v1
 kind: ConfigMap
 metadata:

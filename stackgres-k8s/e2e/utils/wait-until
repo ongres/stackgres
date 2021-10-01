@@ -12,7 +12,9 @@ traceable_wait_until() {
   local START="$(date +%s)"
   local TIMEOUT="$E2E_TIMEOUT"
   local INTERVAL=2
-  local OUTPUT_PATH="$LOG_PATH/wait-until-$START-$(shuf -i 0-65535 -n 1).log"
+  local ID="$(shuf -i 0-65535 -n 1)"
+  local SUFFIX="$(printf '%s' "$*" | head -c 192 | tr -d -c '[A-Z][a-z][0-9]_-' ' ' | tr -s ' ')"
+  local OUTPUT_PATH="$LOG_PATH/wait-until-$START-$ID-$SUFFIX.log"
   while echo_raw "$1" | grep -q '^-'
   do
     if [ "$1" = "-t" ]

@@ -24,7 +24,8 @@ e2e_test_install() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
 
   SERVICE="stackgres-restapi"
-  local PASSWORD="$(kubectl get secrets -n "$OPERATOR_NAMESPACE" "$SERVICE" -o jsonpath="{.data.clearPassword}" | base64 -d)"
+  local PASSWORD
+  PASSWORD="$(kubectl get secrets -n "$OPERATOR_NAMESPACE" "$SERVICE" -o jsonpath="{.data.clearPassword}" | base64 -d)"
   CYPRESS_POD="cypress"
   
   cat << EOF | kubectl apply -f -

@@ -123,7 +123,8 @@ spec() {
   local SPEC_PATH="$(dirname "$SPEC_FILE")"
   local SPEC_NAME="$(basename "$SPEC_FILE")"
   local CLUSTER_NAMESPACE="$SPEC_NAME-$(printf '%x' "$(date +%s)")"
-  local CLUSTER_NAME="$(get_sgcluster_name "$SPEC_NAME")"
+  local CLUSTER_NAME
+  CLUSTER_NAME="$(get_sgcluster_name "$SPEC_NAME")"
   local E2E_SKIP_SPEC_INSTALL="${E2E_SKIP_SPEC_INSTALL:-false}"
   local E2E_SKIP_SPEC_BEFORE_ALL="${E2E_SKIP_SPEC_BEFORE_ALL:-false}"
   local E2E_SKIP_SPEC_AFTER_ALL="${E2E_SKIP_SPEC_AFTER_ALL:-false}"
@@ -182,7 +183,7 @@ spec() {
 
   local START="$(date +%s)"
   try_function run_spec >> "$LOG_PATH/$SPEC_NAME.log" 2>&1
-  SPEC_TIME="$(($(date +%s)-START))"
+  SPEC_TIME="$(( $(date +%s)-START ))"
   echo "$SPEC_TIME" > "$TARGET_PATH/$SPEC_NAME.duration"
   if ! "$RESULT"
   then

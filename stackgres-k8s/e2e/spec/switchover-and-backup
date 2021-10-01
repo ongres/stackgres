@@ -26,7 +26,8 @@ e2e_test() {
 }
 
 check_cron_job_security_context() {
-  local RUN_AS_NON_ROOT="$(kubectl get cronjobs.batch -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-backup -o jsonpath='{.spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot}')"
+  local RUN_AS_NON_ROOT
+  RUN_AS_NON_ROOT="$(kubectl get cronjobs.batch -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-backup -o jsonpath='{.spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot}')"
   assert_string_equal "true" "$RUN_AS_NON_ROOT"
 }
 

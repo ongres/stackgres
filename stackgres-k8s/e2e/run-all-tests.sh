@@ -187,10 +187,10 @@ echo "Setup cache"
 setup_cache
 echo "Setup helm"
 setup_helm
-echo "Setup operator"
-setup_operator
 echo "Setup logs"
 setup_logs
+echo "Setup operator"
+setup_operator
 
 rm -f "$TARGET_PATH/e2e-tests-junit-report.results.xml"
 

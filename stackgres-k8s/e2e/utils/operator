@@ -204,12 +204,6 @@ setup_operator() {
     then
       install_operator
       store_operator_values
-      if [ "$E2E_WAIT_OPERATOR" = true ]
-      then
-        wait_pods_running "$OPERATOR_NAMESPACE"
-        wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator$"
-        wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-restapi$"
-      fi
     fi
   else
     echo "Performing cleanup skipping operator"
@@ -584,14 +578,6 @@ reinstall_operator_if_not_as_expected() {
 
     kubectl create namespace "$OPERATOR_NAMESPACE"
     install_operator_only -f "$TARGET_PATH/operator-values.yaml"
-    wait_pods_running "$OPERATOR_NAMESPACE"
-    if helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator | grep -q externalOperatorIp \
-      && helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator | grep -q externalOperatorPort
-    then
-      wait_services_available "$OPERATOR_NAMESPACE" 2
-    else
-      wait_services_available "$OPERATOR_NAMESPACE" 1
-    fi
   fi
 }
 
@@ -641,20 +627,25 @@ load_image_from() {
 get_component_images() {
   [ -n "$1" ]
   local VERSION="$1"
-  local VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
-  local VERSION_1_0_0_ALPHA1="$(get_version_as_number 1.0.0-alpha1)"
+  local VERSION_AS_NUMBER VERSION_1_0_0_ALPHA1
+  VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
+  VERSION_1_0_0_ALPHA1="$(get_version_as_number 1.0.0-alpha1)"
   if [ "$VERSION_AS_NUMBER" -le "$VERSION_1_0_0_ALPHA1" ]
   then
     get_component_images_pre_1_0_0_alpha2 "$VERSION"
     return
   fi
-  local COMPONENT_POSTGRESQL_VERSIONS="$(get_component_versions "$VERSION" postgresql)"
-  local COMPONENT_PATRONI_VERSIONS="$(get_component_versions "$VERSION" patroni)"
-  local COMPONENT_PGBOUNCER_VERSIONS="$(get_component_versions "$VERSION" pgbouncer)"
-  local COMPONENT_POSTGRES_EXPORTER_VERSIONS="$(get_component_versions "$VERSION" prometheus-postgres-exporter)"
-  local COMPONENT_ENVOY_VERSIONS="$(get_component_versions "$VERSION" envoy)"
-  local COMPONENT_FLUENTBIT_VERSIONS="$(get_component_versions "$VERSION" fluentbit)"
-  local COMPONENT_FLUENTD_VERSIONS="$(get_component_versions "$VERSION" fluentd)"
+  local COMPONENT_POSTGRESQL_VERSIONS COMPONENT_PATRONI_VERSIONS \
+    COMPONENT_PGBOUNCER_VERSIONS COMPONENT_POSTGRES_EXPORTER_VERSIONS \
+    COMPONENT_ENVOY_VERSIONS COMPONENT_FLUENTBIT_VERSIONS \
+    COMPONENT_FLUENTD_VERSIONS
+  COMPONENT_POSTGRESQL_VERSIONS="$(get_component_versions "$VERSION" postgresql)"
+  COMPONENT_PATRONI_VERSIONS="$(get_component_versions "$VERSION" patroni)"
+  COMPONENT_PGBOUNCER_VERSIONS="$(get_component_versions "$VERSION" pgbouncer)"
+  COMPONENT_POSTGRES_EXPORTER_VERSIONS="$(get_component_versions "$VERSION" prometheus-postgres-exporter)"
+  COMPONENT_ENVOY_VERSIONS="$(get_component_versions "$VERSION" envoy)"
+  COMPONENT_FLUENTBIT_VERSIONS="$(get_component_versions "$VERSION" fluentbit)"
+  COMPONENT_FLUENTD_VERSIONS="$(get_component_versions "$VERSION" fluentd)"
   local VERSION
   local SUBVERSION
   for VERSION in $COMPONENT_PATRONI_VERSIONS
@@ -723,9 +714,10 @@ get_component_images_pre_1_0_0_alpha2() {
   [ -n "$1" ]
   local VERSION="$1"
   local BUILD
-  local VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
-  local VERSION_0_9_4="$(get_version_as_number 0.9.4)"
-  local VERSION_1_0_0_ALPHA1="$(get_version_as_number 1.0.0-alpha1)"
+  local VERSION_AS_NUMBER VERSION_0_9_4 VERSION_1_0_0_ALPHA1
+  VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
+  VERSION_0_9_4="$(get_version_as_number 0.9.4)"
+  VERSION_1_0_0_ALPHA1="$(get_version_as_number 1.0.0-alpha1)"
   BUILD="$(get_container_build_pre_1_0_0_alpha2 "$VERSION")"
   if [ "$VERSION_AS_NUMBER" -le "$VERSION_0_9_4" ] \
     || [ "$VERSION_AS_NUMBER" -ge "$VERSION_1_0_0_ALPHA1" ]
@@ -733,13 +725,17 @@ get_component_images_pre_1_0_0_alpha2() {
     get_component_images_pre_0_9_5 "$BUILD"
     return
   fi
-  local COMPONENT_POSTGRESQL_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 "$VERSION" postgresql)"
-  local COMPONENT_PATRONI_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 "$VERSION" patroni)"
-  local COMPONENT_PGBOUNCER_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 "$VERSION" pgbouncer)"
-  local COMPONENT_POSTGRES_EXPORTER_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 "$VERSION" prometheus-postgres-exporter)"
-  local COMPONENT_ENVOY_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 "$VERSION" envoy)"
-  local COMPONENT_FLUENTBIT_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 "$VERSION" fluentbit)"
-  local COMPONENT_FLUENTD_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 "$VERSION" fluentd)"
+  local COMPONENT_POSTGRESQL_VERSIONS COMPONENT_PATRONI_VERSIONS \
+    COMPONENT_PGBOUNCER_VERSIONS COMPONENT_POSTGRES_EXPORTER_VERSIONS \
+    COMPONENT_ENVOY_VERSIONS COMPONENT_FLUENTBIT_VERSIONS \
+    COMPONENT_FLUENTD_VERSIONS
+  COMPONENT_POSTGRESQL_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 "$VERSION" postgresql)"
+  COMPONENT_PATRONI_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 "$VERSION" patroni)"
+  COMPONENT_PGBOUNCER_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 "$VERSION" pgbouncer)"
+  COMPONENT_POSTGRES_EXPORTER_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 "$VERSION" prometheus-postgres-exporter)"
+  COMPONENT_ENVOY_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 "$VERSION" envoy)"
+  COMPONENT_FLUENTBIT_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 "$VERSION" fluentbit)"
+  COMPONENT_FLUENTD_VERSIONS="$(get_component_versions_pre_1_0_0_alpha2 "$VERSION" fluentd)"
   local VERSION
   local SUBVERSION
   for VERSION in $COMPONENT_PATRONI_VERSIONS
@@ -812,14 +808,19 @@ get_versions_url_pre_1_0_0_alpha2() {
 
 get_component_images_pre_0_9_5() {
   [ -n "$1" ]
-  local COMPONENTS_VERSIONS_YAML="$(curl -f -s "$(get_components_versions_url_pre_0_9_5 "$1")")"
-  local COMPONENT_POSTGRESQL_VERSIONS="$(get_component_versions_pre_0_9_5 postgresql)"
-  local COMPONENT_PATRONI_VERSIONS="$(get_component_versions_pre_0_9_5 patroni)"
-  local COMPONENT_PGBOUNCER_VERSIONS="$(get_component_versions_pre_0_9_5 pgbouncer)"
-  local COMPONENT_POSTGRES_EXPORTER_VERSIONS="$(get_component_versions_pre_0_9_5 postgres_exporter)"
-  local COMPONENT_ENVOY_VERSIONS="$(get_component_versions_pre_0_9_5 envoy)"
-  local COMPONENT_FLUENTBIT_VERSIONS="$(get_component_versions_pre_0_9_5 fluentbit)"
-  local COMPONENT_FLUENTD_VERSIONS="$(get_component_versions_pre_0_9_5 fluentd)"
+  local COMPONENTS_VERSIONS_YAML
+  COMPONENTS_VERSIONS_YAML="$(curl -f -s "$(get_components_versions_url_pre_0_9_5 "$1")")"
+  local COMPONENT_POSTGRESQL_VERSIONS COMPONENT_PATRONI_VERSIONS \
+    COMPONENT_PGBOUNCER_VERSIONS COMPONENT_POSTGRES_EXPORTER_VERSIONS \
+    COMPONENT_ENVOY_VERSIONS COMPONENT_FLUENTBIT_VERSIONS \
+    COMPONENT_FLUENTD_VERSIONS
+  COMPONENT_POSTGRESQL_VERSIONS="$(get_component_versions_pre_0_9_5 postgresql)"
+  COMPONENT_PATRONI_VERSIONS="$(get_component_versions_pre_0_9_5 patroni)"
+  COMPONENT_PGBOUNCER_VERSIONS="$(get_component_versions_pre_0_9_5 pgbouncer)"
+  COMPONENT_POSTGRES_EXPORTER_VERSIONS="$(get_component_versions_pre_0_9_5 postgres_exporter)"
+  COMPONENT_ENVOY_VERSIONS="$(get_component_versions_pre_0_9_5 envoy)"
+  COMPONENT_FLUENTBIT_VERSIONS="$(get_component_versions_pre_0_9_5 fluentbit)"
+  COMPONENT_FLUENTD_VERSIONS="$(get_component_versions_pre_0_9_5 fluentd)"
   local VERSION
   local SUBVERSION
   for VERSION in $COMPONENT_PATRONI_VERSIONS
@@ -909,10 +910,11 @@ get_component_versions_pre_0_9_5() {
 get_operator_image_tag() {
   [ -n "$1" ]
   local VERSION="$1"
-  local VERSION_AS_NUMBER="$(get_version_as_number "$1")"
-  local VERSION_0_9_5="$(get_version_as_number 0.9.5)"
-  local VERSION_1_0_0_ALPHA1="$(get_version_as_number 1.0.0-alpha1)"
-  local VERSION_1_0_0_ALPHA2="$(get_version_as_number 1.0.0-alpha2)"
+  local VERSION_AS_NUMBER VERSION_0_9_5 VERSION_1_0_0_ALPHA1 VERSION_1_0_0_ALPHA2
+  VERSION_AS_NUMBER="$(get_version_as_number "$1")"
+  VERSION_0_9_5="$(get_version_as_number 0.9.5)"
+  VERSION_1_0_0_ALPHA1="$(get_version_as_number 1.0.0-alpha1)"
+  VERSION_1_0_0_ALPHA2="$(get_version_as_number 1.0.0-alpha2)"
 
   if [ "$VERSION" = "$STACKGRES_VERSION" ]
   then
@@ -930,24 +932,28 @@ get_operator_image_tag() {
 }
 
 get_operator_image() {
-  local TAG="$(get_operator_image_tag "$1")"
+  local TAG
+  TAG="$(get_operator_image_tag "$1")"
   echo "stackgres/operator:$TAG"
 }
 
 get_restapi_image() {
-  local TAG="$(get_operator_image_tag "$1")"
+  local TAG
+  TAG="$(get_operator_image_tag "$1")"
   echo "stackgres/restapi:$TAG"
 }
 
 get_adminui_image() {
-  local TAG="$(get_operator_image_tag "$1")"
+  local TAG
+  TAG="$(get_operator_image_tag "$1")"
   echo "stackgres/admin-ui:${TAG%-jvm}"
 }
 
 get_operator_helm_url() {
   local VERSION="$1"
-  local VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
-  local VERSION_0_9_2="$(get_version_as_number 0.9.2)"
+  local VERSION_AS_NUMBER VERSION_0_9_2
+  VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
+  VERSION_0_9_2="$(get_version_as_number 0.9.2)"
   if [ "$VERSION_AS_NUMBER" -le "$VERSION_0_9_2" ]
   then
     get_operator_helm_url_pre_0_9_3
@@ -962,8 +968,9 @@ get_operator_helm_url_pre_0_9_3() {
 
 get_cluster_helm_url() {
   local VERSION="$1"
-  local VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
-  local VERSION_0_9_2="$(get_version_as_number 0.9.2)"
+  local VERSION_AS_NUMBER VERSION_0_9_2
+  VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
+  VERSION_0_9_2="$(get_version_as_number 0.9.2)"
   if [ "$VERSION_AS_NUMBER" -le "$VERSION_0_9_2" ]
   then
     echo "https://stackgres.io/downloads/stackgres-k8s/stackgres/$VERSION/demo-helm-cluster.tgz"
@@ -977,9 +984,10 @@ get_version_as_number() {
 }
 
 traceable_get_version_as_number() {
+  [ -n "$VERSION" ]
   local VERSION="$1"
 
-  local CARDINALITY="$(echo "$VERSION" | tr '.' '\n' | wc -l)"
+  local CARDINALITY="$(printf '%s' "$VERSION" | tr '.' ' ' | wc -w)"
   local MAJOR=""
   local MINOR
   local PATCH="0"

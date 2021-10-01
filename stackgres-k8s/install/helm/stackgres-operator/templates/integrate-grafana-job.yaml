@@ -26,6 +26,15 @@ spec:
       - name: "integrate-grafana"
         image: "ongres/kubectl:v1.19.7-build-6.3"
         imagePullPolicy: "IfNotPresent"
+        env:
+          {{- if .Values.connectivity.httpProxy }}
+          - name: http_proxy
+            value: {{ .Values.connectivity.httpProxy | squote }}
+          {{- end }}
+          {{- if .Values.connectivity.httpsProxy }}
+          - name: HTTPS_PROXY
+            value: {{ .Values.connectivity.httpsProxy | squote }}
+          {{- end }}
         command:
           - "/bin/bash"
           - "-ecx"

@@ -13,7 +13,7 @@ traceable_wait_services_available() {
     >&2 echo "Must specify a number of expected available services of 1 or more or a grep regular expression that identify expected available service names"
     return 1
   fi
-  local END="$(($(date +%s) + (E2E_TIMEOUT * EXPECTED_AVAILABLE_SERVICES)))"
+  local END="$(( $(date +%s) + (E2E_TIMEOUT * EXPECTED_AVAILABLE_SERVICES) ))"
   local SERVICES
   local AVAILABLE_SERVICES
   while [ "$(date +%s)" -lt "$END" ]

@@ -105,8 +105,9 @@ EOF
 }
 
 get_private_repository_uri() {
-  local AWS_ACCOUNT_ID="$(aws --output=text sts get-caller-identity | awk '{print $1}')"
-  local AWS_REGION="$(aws configure get region)"
+  local AWS_ACCOUNT_ID AWS_REGION
+  AWS_ACCOUNT_ID="$(aws --output=text sts get-caller-identity | awk '{print $1}')"
+  AWS_REGION="$(aws configure get region)"
 
   echo "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
 }

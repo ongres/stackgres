@@ -134,3 +134,6 @@ extensions:
       ##   GKE, AWS & OpenStack)
       # storageClass: "-"
 
+connectivity: {}
+  # httpProxy: http://[<user>:<password>@]<host>:<port>
+  # httpsProxy: http://[<user>:<password>@]<host>:<port>

@@ -68,11 +68,13 @@ check_mock_data(){
 
 check_mock_data_replication(){
   local CLUSTER_NAME="${1:-$CLUSTER_NAME}"
-  local REPLICA_INDEX="$(get_replica_index)"
+  local REPLICA_INDEX
+  REPLICA_INDEX="$(get_replica_index)"
   SERVER="primary"
   RESPONSE_PRIMARY="$(read_mock_table -i "$REPLICA_INDEX")"
 
-  local PRIMARY_INDEX="$(get_primary_index)"
+  local PRIMARY_INDEX
+  PRIMARY_INDEX="$(get_primary_index)"
   SERVER="replicas"
   RESPONSE_REPlICA="$(read_mock_table -i "$PRIMARY_INDEX")"
   if [ "$RESPONSE_PRIMARY" = "$RESPONSE_REPlICA" ]

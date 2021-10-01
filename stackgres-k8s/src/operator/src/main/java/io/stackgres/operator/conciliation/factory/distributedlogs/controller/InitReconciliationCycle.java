@@ -122,8 +122,15 @@ public class InitReconciliationCycle implements ContainerFactory<DistributedLogs
             new EnvVarBuilder()
                 .withName("DEBUG_DISTRIBUTEDLOGS_CONTROLLER_SUSPEND")
                 .withValue(System.getenv("DEBUG_OPERATOR_SUSPEND"))
-                .build()
-        )
+                .build(),
+            new EnvVarBuilder()
+                .withName("HTTP_PROXY")
+                .withValue(System.getenv("HTTP_PROXY"))
+                .build(),
+            new EnvVarBuilder()
+                .withName("HTTPS_PROXY")
+                .withValue(System.getenv("HTTPS_PROXY"))
+                .build())
         .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
         .addAllToVolumeMounts(postgresDataMounts.getVolumeMounts(context))
         .addToVolumeMounts(

@@ -6,18 +6,21 @@ resource_watch() {
   local KIND
   local NAMESPACE
   local OWNER_KIND
-  local RESOURCES_FILE="$TARGET_PATH/resource-watch-$(shuf -i 0-65535 -n 1)"
   local LOG_IN_FILES=false
   local LOG_IN_PATH="$TARGET_PATH/resource-watch"
   local KINDS
-  local PID
-  local PIDS
-  FILTERED_KIND="^\(bindings\|componentstatuses"
-  FILTERED_KIND="$FILTERED_KIND\|localsubjectaccessreviews\.authorization\.k8s\.io"
-  FILTERED_KIND="$FILTERED_KIND\|selfsubjectaccessreviews\.authorization\.k8s\.io"
-  FILTERED_KIND="$FILTERED_KIND\|selfsubjectrulesreviews\.authorization\.k8s\.io"
-  FILTERED_KIND="$FILTERED_KIND\|subjectaccessreviews\.authorization\.k8s\.io"
-  FILTERED_KIND="$FILTERED_KIND\|tokenreviews\.authentication\.k8s\.io"
+  local KIND_PID
+  local KIND_PIDS
+  local KIND_PID_PATH
+  local NEW_KIND_PIDS
+  local EXCLUDED_FILTERED_KIND
+  EXCLUDED_FILTERED_KIND="^\(bindings\|componentstatuses"
+  EXCLUDED_FILTERED_KIND="$EXCLUDED_FILTERED_KIND\|localsubjectaccessreviews\.authorization\.k8s\.io"
+  EXCLUDED_FILTERED_KIND="$EXCLUDED_FILTERED_KIND\|selfsubjectaccessreviews\.authorization\.k8s\.io"
+  EXCLUDED_FILTERED_KIND="$EXCLUDED_FILTERED_KIND\|selfsubjectrulesreviews\.authorization\.k8s\.io"
+  EXCLUDED_FILTERED_KIND="$EXCLUDED_FILTERED_KIND\|subjectaccessreviews\.authorization\.k8s\.io"
+  EXCLUDED_FILTERED_KIND="$EXCLUDED_FILTERED_KIND\|tokenreviews\.authentication\.k8s\.io"
+  EXCLUDED_FILTERED_KIND="$EXCLUDED_FILTERED_KIND\)$"
   while [ "$#" -gt 0 ]
   do
     case "$1" in
@@ -28,7 +31,7 @@ resource_watch() {
         ;;
       -k|--kind)
         shift
-        FILTERED_KIND="$FILTERED_KIND\|$1"
+        FILTERED_KIND="$1"
         shift
         ;;
       --name)
@@ -51,39 +54,116 @@ resource_watch() {
         ;;
     esac
   done
-  rm -f "$RESOURCES_FILE"
-  FILTERED_KIND="$FILTERED_KIND\)$"
-  KINDS="$(kubectl api-resources -o name 2>/dev/null| grep -v "$FILTERED_KIND")"
+  KINDS="$(kubectl api-resources -o name \
+    | grep -v "$EXCLUDED_FILTERED_KIND" \
+    | ( [ -z "$FILTERED_KIND" ] && cat || grep -xF "$FILTERED_KIND" ))"
   for KIND in $KINDS
   do
     echo "Start watching $KIND..."
-    local JQ_QUERY=.
-    if [ -n "$FILTERED_NAME" ]
-    then
-      JQ_QUERY="$JQ_QUERY|select(.metadata.name|test($FILTERED_NAME))"
-    fi
-    trap_exec kubectl get "$KIND" $(if [ -z "$NAMESPACE" ]; then echo '--all-namespaces'; else echo '-n '"$NAMESPACE"; fi) -o json --watch-only \
-      | jq --unbuffered -c "$JQ_QUERY|@base64" \
-      | (
-        set +x
-        while IFS="$(printf '\n')" read RESOURCE
-        do
-          ID="$(echo "$RESOURCE" | jq -r '@base64d' | jq -r '.metadata.namespace + ":" + .metadata.name')"
-          NAMESPACE="${ID%:*}"
-          NAME="${ID#*:}"
-          if "$LOG_IN_FILES"
-          then
-            mkdir -p "$LOG_IN_PATH/$NAMESPACE/$KIND"
-            echo "$RESOURCE" | jq -r '@base64d' | jq . >> "$LOG_IN_PATH/$NAMESPACE/$KIND/$NAME.log" || true
-          else
-            echo "$RESOURCE" | jq -r '@base64d' | jq . || true
-          fi
-        done
-        ) &
-    PIDS="$PIDS $!"
+    KIND_PID_PATH="$TARGET_PATH/resource-$KIND-watch.pid"
+    resource_kind_watch_in_trap -k "$KIND" -p "$KIND_PID_PATH" \
+      $([ -z "$NAMESPACE" ] || printf '%s %s' '-n' "$NAMESPACE") \
+      $([ "$LOG_IN_FILES" != true ] || printf '%s' '-F') -P "$LOG_IN_PATH" \
+      $([ -z "$FILTERED_NAME" ] || printf '%s %s' '--name' "$FILTERED_NAME")
+    KIND_PID="$KIND:$(cat "$KIND_PID_PATH")"
+    KIND_PIDS="$KIND_PIDS $KIND_PID"
   done
-  for PID in $PIDS
+  while true
   do
-    wait "$PID" || true
+    NEW_KIND_PIDS=""
+    for KIND_PID in $KIND_PIDS
+    do
+      KIND="${KIND_PID%:*}"
+      if ! kill -0 "${KIND_PID#*:}" >/dev/null 2>&1
+      then
+        KIND_PID_PATH="$TARGET_PATH/resource-$KIND-watch.pid"
+        resource_kind_watch_in_trap -k "$KIND" -p "$KIND_PID_PATH" \
+          $([ -z "$NAMESPACE" ] || printf '-n %s' "$NAMESPACE") \
+          $([ "$LOG_IN_FILES" != true ] || printf '-F') -P "$LOG_IN_PATH" \
+          $([ -z "$FILTERED_NAME" ] || printf '--name %s' "$FILTERED_NAME")
+        KIND_PID="$KIND:$(cat "$KIND_PID_PATH")"
+      fi
+      NEW_KIND_PIDS="$NEW_KIND_PIDS $KIND_PID"
+    done
+    KIND_PIDS="$NEW_KIND_PIDS"
+    sleep 10
   done
+}
+
+resource_kind_watch_in_trap() {
+  local FILTERED_NAME
+  local KIND
+  local NAMESPACE
+  local OWNER_KIND
+  local LOG_IN_FILES=false
+  local LOG_IN_PATH="$TARGET_PATH/resource-watch"
+  local KINDS
+  local KIND_PID
+  local KIND_PIDS
+  local KIND_PID_PATH
+  while [ "$#" -gt 0 ]
+  do
+    case "$1" in
+      -n|--namespace)
+        shift
+        NAMESPACE="$1"
+        shift
+        ;;
+      -k|--kind)
+        shift
+        KIND="$1"
+        KIND_PID_PATH="$TARGET_PATH/resource-$KIND-watch.pid"
+        shift
+        ;;
+      -p|--kind-pid-path)
+        shift
+        KIND_PID_PATH="$1"
+        shift
+        ;;
+      --name)
+        shift
+        FILTERED_NAME="$1"
+        shift
+        ;;
+      -F|--log-in-files)
+        shift
+        LOG_IN_FILES=true
+        ;;
+      -P|--log-in-path)
+        shift
+        LOG_IN_PATH="$1"
+        shift
+        ;;
+      *)
+        echo >&2 "Unknown parameter $1 (use: --namespace <namespace>; --kind <kind>; --name <name>)"
+        return 1
+        ;;
+    esac
+  done
+  local JQ_QUERY=.
+  if [ -n "$FILTERED_NAME" ]
+  then
+    JQ_QUERY="$JQ_QUERY|select(.metadata.name|test($FILTERED_NAME))"
+  fi
+  trap_exec kubectl get "$KIND" \
+    $(if [ -z "$NAMESPACE" ]; then echo '--all-namespaces'; else echo '-n '"$NAMESPACE"; fi) \
+    -o json --watch-only \
+    | jq --unbuffered -c "$JQ_QUERY|@base64" \
+    | (
+      set +x
+      while IFS="$(printf '\n')" read -r RESOURCE
+      do
+        ID="$(echo "$RESOURCE" | jq -r '@base64d' | jq -r '.metadata.namespace + ":" + .metadata.name')"
+        NAMESPACE="${ID%:*}"
+        NAME="${ID#*:}"
+        if "$LOG_IN_FILES"
+        then
+          mkdir -p "$LOG_IN_PATH/$NAMESPACE/$KIND"
+          echo "$RESOURCE" | jq -r '@base64d' | jq . >> "$LOG_IN_PATH/$NAMESPACE/$KIND/$NAME.log" || true
+        else
+          echo "$RESOURCE" | jq -r '@base64d' | jq . || true
+        fi
+      done
+      ) &
+  printf '%s' "$!" > "$KIND_PID_PATH"
 }

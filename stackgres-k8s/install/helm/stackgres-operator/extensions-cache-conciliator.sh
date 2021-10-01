@@ -109,6 +109,15 @@ run () {
         | sort | uniq | jq -sR .)"
     if [ "$ALREADY_PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING" != "$PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING" ]
     then
+      RUNNING_IMAGES="$(kubectl get statefulset -n "$NAMESPACE" "$STATEFULSET_NAME" \
+        --template '{{ range .spec.template.spec.containers }}{{ printf "%s\n" .image }}{{ end }}')"
+      RUNNING_IMAGES="$(printf '%s' "$RUNNING_IMAGES" | sort)"
+      REQUIRED_IMAGES="$(jq '.spec.template.spec.containers[].image' "$STATEFULSET_JSON_FILE")"
+      REQUIRED_IMAGES="$(printf '%s' "$REQUIRED_IMAGES" | sort)"
+      if [ "$RUNNING_IMAGES" != "$REQUIRED_IMAGES" ]
+      then
+        touch /tmp/need-restart
+      fi
       STATEFULSET="$(cat "$STATEFULSET_JSON_FILE")"
       printf '%s' "$STATEFULSET" \
         | jq ".metadata.annotations.pulled_extensions = $PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING" \
@@ -124,6 +133,10 @@ run () {
           "$STATEFULSET_JSON_FILE.lastest" "$STATEFULSET_JSON_FILE" > "$STATEFULSET_JSON_FILE.new"
       done
     fi
+    if test -f /tmp/need-restart
+    then
+      kubectl delete pod -n "$NAMESPACE" "$STATEFULSET_NAME-0"
+    fi
     )
     echo "done"
     echo
@@ -131,6 +144,10 @@ run () {
     EXIT_CODE="$?"
     if [ "$EXIT_CODE" = 0 ]
     then
+      if ! test -f /tmp/need-restart
+      then
+        touch /tmp/extensions-cache-ready
+      fi
       echo
       echo "...wait for next reconciliation cycle"
       echo
@@ -452,7 +469,7 @@ download_extension() {
   local BUILD_ARCH="$3"
   local BUILD_OS="$4"
   local EXTENSION_PACKAGE="$5"
-  local TEMP="$RANDOM"
+  local TEMP="$(shuf -i 0-65535 -n 1)"
   local REPOSITORY_PATH="${REPOSITORY#*://}"
   REPOSITORY_PATH="${REPOSITORY_PATH#*/}"
 

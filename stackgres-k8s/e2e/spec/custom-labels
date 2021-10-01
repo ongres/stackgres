@@ -32,7 +32,8 @@ e2e_test() {
 check_label(){
   local EXPECTED_LABEL_VALUE="$1"
 
-  local ACTUAL_LABEL="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath="{.spec.template.metadata.labels.test-label}")"
+  local ACTUAL_LABEL
+  ACTUAL_LABEL="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath="{.spec.template.metadata.labels.test-label}")"
 
   if assert_string_equal "$EXPECTED_LABEL_VALUE" "$ACTUAL_LABEL"
   then
@@ -178,7 +179,8 @@ spec:
         test-label: '$RANDOM_VALUE'
 EOF
 
-  local LABEL_VALUE="$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.spec.metadata.labels.clusterPods["test-label"]' -r)"
+  local LABEL_VALUE
+  LABEL_VALUE="$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.spec.metadata.labels.clusterPods["test-label"]' -r)"
 
 run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME"
   assert_string_equal "$RANDOM_VALUE" "$LABEL_VALUE"
