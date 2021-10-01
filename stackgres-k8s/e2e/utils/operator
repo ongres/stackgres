@@ -245,7 +245,7 @@ load_operator_k8s() {
       do
         echo "$IMAGE_NAME"
       done | xargs_parallel_shell % "$E2E_PATH/e2e" \
-        pull_image_from "$E2E_OPERATOR_REGISTRY" "$E2E_OPERATOR_REGISTRY_PATH" "%"
+        pull_image_from "$E2E_OPERATOR_REGISTRY" "${E2E_OPERATOR_REGISTRY_PATH}stackgres/" "%"
       echo "All operator images loaded from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
     else
       echo "Loading operator images from ${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}"
@@ -263,11 +263,18 @@ load_operator_k8s() {
       echo "All operator images loaded from ${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}"
     fi
 
-    if [ -n "$E2E_COMPONENTS_REGISTRY" ]
+    if [ -n "$E2E_COMPONENTS_REGISTRY" ] && [ "$E2E_SKIP_LOAD_COMPONENTS" != true ]
     then
       echo "Loading component images from ${E2E_COMPONENTS_REGISTRY}${E2E_COMPONENTS_REGISTRY_PATH}"
       load_component_images_from "$E2E_COMPONENTS_REGISTRY" "$E2E_COMPONENTS_REGISTRY_PATH"
       echo "All component images loaded from ${E2E_COMPONENTS_REGISTRY}${E2E_COMPONENTS_REGISTRY_PATH}"
+    fi
+
+    if [ "$E2E_SKIP_LOAD_EXTENSIONS" != true ]
+    then
+      echo "Loading extensions images from ${E2E_EXTENSIONS_REGISTRY}${E2E_EXTENSIONS_REGISTRY_PATH}"
+      load_extensions_images_from "$E2E_EXTENSIONS_REGISTRY" "$E2E_EXTENSIONS_REGISTRY_PATH"
+      echo "All extensions images loaded from ${E2E_EXTENSIONS_REGISTRY}${E2E_EXTENSIONS_REGISTRY_PATH}"
     fi
   fi
 
@@ -320,7 +327,7 @@ pull_image_from() {
   local REPOSITORY="$1"
   local IMAGE_PATH="$2"
   local IMAGE="$3"
-  local FROM_IMAGE="$REPOSITORY$IMAGE_PATH${IMAGE#*/}"
+  local FROM_IMAGE="$REPOSITORY$IMAGE_PATH${IMAGE##*/}"
   echo "Pulling $IMAGE from $FROM_IMAGE..."
   docker_pull "$FROM_IMAGE"
   docker_tag "$FROM_IMAGE" "$IMAGE"
@@ -521,29 +528,6 @@ after_operator_install_or_upgrade() {
   update_ui_clear_password
 }
 
-setup_extensions_secrets() {
-  if printf '%s' "$EXTENSIONS_REPOSITORY_URL" | grep "[?&]imageTemplate=" | grep -q "[?&]imageRegcredSecret="
-  then
-    local IMAGE_TEMPLATE REPOSITORY_CREDENTIAL_SECRET REPOSITORY_CREDENTIAL
-    IMAGE_TEMPLATE="$(printf '%s' "$EXTENSIONS_REPOSITORY_URL" | grep "[?&]imageTemplate=")"
-    IMAGE_TEMPLATE="$(printf '%s' "$IMAGE_TEMPLATE" | sed 's/^.*[?&]imageTemplate=\([^?&]\+\)\([?&].*\)\?$/\1/')"
-    IMAGE_TEMPLATE="$(printf '%s' "$IMAGE_TEMPLATE" | urldecode)"
-    REPOSITORY_CREDENTIAL_SECRET="$(printf '%s' "$EXTENSIONS_REPOSITORY_URL" | grep "[?&]imageTemplate=" | grep "[?&]imageRegcredSecret=")"
-    REPOSITORY_CREDENTIAL_SECRET="$(printf '%s' "$REPOSITORY_CREDENTIAL_SECRET" | sed 's/^.*[?&]imageRegcredSecret=\([^?&]\+\)\([?&].*\)\?$/\1/')"
-    REPOSITORY_CREDENTIAL_SECRET="$(printf '%s' "$REPOSITORY_CREDENTIAL_SECRET" | urldecode)"
-    REPOSITORY_CREDENTIAL="$(jq -r '.auths|to_entries|.[]|.key + "|" + .value.auth' "${HOME}/.docker/config.json")"
-    REPOSITORY_CREDENTIAL="$(printf '%s' "$REPOSITORY_CREDENTIAL" | grep -F "${IMAGE_TEMPLATE%%/*}")"
-    REPOSITORY_CREDENTIAL="$(printf '%s' "$REPOSITORY_CREDENTIAL" | head -n 1 | cut -d '|' -f 2 | base64 -d)"
-    REPOSITORY_CREDENTIAL="$(jq -r '.auths|to_entries|.[]|.key + "|" + .value.auth' "${HOME}/.docker/config.json" \
-      | grep -F "${IMAGE_TEMPLATE%%/*}" | head -n 1 | cut -d '|' -f 2 | base64 -d)"
-    kubectl delete secret --ignore-not-found -n "$OPERATOR_NAMESPACE" "$REPOSITORY_CREDENTIAL_SECRET"
-    kubectl create secret docker-registry -n "$OPERATOR_NAMESPACE" "$REPOSITORY_CREDENTIAL_SECRET" \
-      --docker-server="${IMAGE_TEMPLATE%%/*}" \
-      --docker-username="${REPOSITORY_CREDENTIAL%:*}" \
-      --docker-password="${REPOSITORY_CREDENTIAL#*:}"
-  fi
-}
-
 update_ui_clear_password() {
   local PASSWORD
   PASSWORD="$(helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator -o json \
@@ -612,26 +596,45 @@ reinstall_operator_if_not_as_expected() {
 }
 
 load_component_images_from() {
-  [ -n "$1" ]
   local REPOSITORY="${1:-$COMPONENT_PUBLIC_REGISTRY}"
   local IMAGE_PATH="${2:-$COMPONENT_PUBLIC_REGISTRY_PATH}"
   local VERSION="${3:-$STACKGRES_VERSION}"
-  local COMPONENTS="$(get_component_images "$VERSION")"
+  local COMPONENTS
+  COMPONENTS="$(get_component_images "$VERSION")"
   printf '%s' "$COMPONENTS" \
     | xargs_parallel_shell % "$E2E_PATH/e2e" \
-      load_component_image_from "$REPOSITORY" "$IMAGE_PATH" '%'
+      load_image_from "$REPOSITORY" "$IMAGE_PATH" '%'
 }
 
-load_component_image_from() {
+load_extensions_images_from() {
+  local REPOSITORY="$1"
+  local IMAGE_PATH="$2"
+  local EXTENSIONS
+  EXTENSIONS="$(get_preloaded_extensions)"
+  EXTENSIONS="$(printf '%s' "$EXTENSIONS" \
+    | while read -r REPOSITORY PUBLISHER NAME VERSION POSTGRES_VERSION BUILD_ARCH BUILD_OS BUILD
+      do
+        get_extension_image "$EXTENSIONS_REPOSITORY_URL" "$PUBLISHER" "$NAME" \
+          "$VERSION" "$POSTGRES_VERSION" "$BUILD_ARCH" "$BUILD_OS" "$BUILD"
+      done)"
+  if [ -n "$REPOSITORY" ] && [ -n "$IMAGE_PATH" ]
+  then
+    printf '%s' "$EXTENSIONS" \
+      | xargs_parallel_shell % "$E2E_PATH/e2e" \
+        load_image_from "$REPOSITORY" "$IMAGE_PATH" '%'
+  else
+    printf '%s' "$EXTENSIONS" \
+      | xargs_parallel_shell % "$E2E_PATH/e2e" \
+        load_image_k8s '%'
+  fi
+}
+
+load_image_from() {
   [ -n "$1" -a -n "$2" -a -n "$3" ]
   local REPOSITORY="$1"
   local IMAGE_PATH="$2"
   local IMAGE="$3"
-  local FROM_IMAGE="$REPOSITORY$IMAGE_PATH${IMAGE##*/}"
-  echo "Pulling $IMAGE from $FROM_IMAGE..."
-  docker_pull "$FROM_IMAGE"
-  docker_tag "$FROM_IMAGE" "$IMAGE"
-  echo "Image $IMAGE pulled from $FROM_IMAGE"
+  pull_image_from "$REPOSITORY" "$IMAGE_PATH" "$IMAGE"
   load_image_k8s "$IMAGE"
 }
 

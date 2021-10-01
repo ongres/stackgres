@@ -164,16 +164,19 @@ is_image_repository_with_regcred_secret_url() {
   printf '%s' "$1" | grep "[?&]imageTemplate=" | grep -q "[?&]imageRegcredSecret="
 }
 
-is_repository_url() {
-  printf '%s' "$1" | grep -q "[?&]repository="
-}
-
 get_image_template_from_url() {
   local IMAGE_TEMPLATE
   IMAGE_TEMPLATE="$(printf '%s' "$1" | grep "[?&]imageTemplate=")"
   IMAGE_TEMPLATE="$(printf '%s' "$IMAGE_TEMPLATE" \
     | sed 's/^.*[?&]imageTemplate=\([^?&]\+\)\([?&].*\)\?$/\1/')"
   IMAGE_TEMPLATE="$(printf '%s' "$IMAGE_TEMPLATE" | urldecode)"
+  # shellcheck disable=SC2016
+  if printf '%s' "$IMAGE_TEMPLATE" | grep -q '\([`;"]\|\$(\)'
+  then
+    # shellcheck disable=SC2016
+    echo 'Forbidden strings [`|;|"|$(] found in parameter imageTemplate of URL '"$1" >&2
+    return 1
+  fi
   printf '%s' "$IMAGE_TEMPLATE"
 }
 
