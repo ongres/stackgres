@@ -6,12 +6,13 @@
 package io.stackgres.operatorframework.resource;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-import com.google.common.util.concurrent.Uninterruptibles;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
@@ -28,6 +29,7 @@ public class WatcherMonitor<T> implements AutoCloseable {
   private final Random random = new Random();
   private final String name;
   private final Function<WatcherListener<T>, Watch> watcherCreator;
+  private final Function<Integer, Duration> backoffSleepDuration;
   private final ExecutorService executorService;
   private boolean closeCalled = false;
 
@@ -36,45 +38,70 @@ public class WatcherMonitor<T> implements AutoCloseable {
   public WatcherMonitor(
       String name,
       Function<WatcherListener<T>, Watch> watcherCreator) {
+    this(name, watcherCreator, null);
+  }
+
+  public WatcherMonitor(
+      String name,
+      Function<WatcherListener<T>, Watch> watcherCreator,
+      Function<Integer, Duration> backoffSleepDuration) {
     this.name = name;
     this.watcherCreator = watcherCreator;
-    this.executorService = Executors.newFixedThreadPool(1, r -> new Thread(r, "Watcher-" + name));
+    this.backoffSleepDuration = Optional.ofNullable(backoffSleepDuration)
+        .orElse(this::exponentialBackoffSleepDuration);;
+    this.executorService = Executors.newFixedThreadPool(
+        1, r -> new Thread(r, "WatcherInit-" + name));
     this.executorService.execute(this::run);
   }
 
   private void run() {
-    int attempt = 1;
-    while (true) {
-      try {
-        watcher = watcherCreator.apply(listener);
-        break;
-      } catch (Exception ex) {
-        LOGGER.warn("An error occurred while creating watcher " + name, ex);
-        Uninterruptibles.sleepUninterruptibly(exponentialBackoffSleepDuration(attempt++));
-      }
-    }
+    tryCreateWatcher();
     this.executorService.shutdown();
   }
 
-  private synchronized void onWatcherClosed(Exception cause) {
-    if (closeCalled) {
-      return;
-    }
+  private void onWatcherClosed() {
+    tryCreateWatcher();
+  }
+
+  private void tryCreateWatcher() {
     int attempts = 1;
-    try {
+    while (true) {
+      try {
+        createWatcher();
+        break;
+      } catch (Exception ex) {
+        LOGGER.warn("An error occurred while creating watcher " + name, ex);
+        try {
+          Thread.sleep(backoffSleepDuration.apply(attempts++).toMillis());
+        } catch (InterruptedException iex) {
+          break;
+        }
+      }
+    }
+  }
+
+  private synchronized void createWatcher() {
+    if (!closeCalled) {
       watcher = watcherCreator.apply(listener);
-    } catch (Exception ex) {
-      LOGGER.warn("An error occurred while creating watcher " + name, ex);
-      Uninterruptibles.sleepUninterruptibly(exponentialBackoffSleepDuration(attempts++));
-      onWatcherClosed(ex);
     }
   }
 
   @Override
-  public synchronized void close() {
+  public void close() {
+    closeWatcher();
+    try {
+      this.executorService.awaitTermination(1, TimeUnit.SECONDS);
+    } catch (InterruptedException iex) {
+      return;
+    }
+  }
+
+  private synchronized void closeWatcher() {
     closeCalled = true;
     try {
-      watcher.close();
+      if (watcher != null) {
+        watcher.close();
+      }
     } catch (Exception ex) {
       LOGGER.warn("Error while closing watcher " + name, ex);
     }
@@ -82,7 +109,7 @@ public class WatcherMonitor<T> implements AutoCloseable {
 
   private Duration exponentialBackoffSleepDuration(int attempts) {
     final double pow = Math.pow(2, attempts);
-    final int rand = random.nextInt(1000);
+    final int rand = random.nextInt(Math.abs((int) pow));
     return Duration.ofSeconds((long) Math.min(pow + rand, MAX_BACKOFF_SLEEP_SECONDS));
   }
 
@@ -94,7 +121,7 @@ public class WatcherMonitor<T> implements AutoCloseable {
     @Override
     public void watcherError(WatcherException ex) {
       LOGGER.warn("An error occurred in watcher " + name, ex);
-      onWatcherClosed(ex);
+      onWatcherClosed();
     }
 
     @Override
