@@ -28,13 +28,6 @@ spec:
           - "/bin/bash"
           - "-ecx"
           - |
-            {{- range $path, $_ := .Files.Glob "crds/*" }}
-            cat << 'EOF' > /tmp/crd.yaml
-{{ $.Files.Get $path | indent 12 }}
-            EOF
-            kubectl apply -f /tmp/crd.yaml
-            {{- end }}
-
             {{- if .Release.IsUpgrade }}
             cat << 'EOF' > /tmp/prometheus-postgres-exporter-init.sql
 {{ $.Files.Get "prometheus-postgres-exporter-init.sql" | indent 12 }}
