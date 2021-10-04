@@ -115,14 +115,6 @@ public class ClusterController implements ContainerFactory<StackGresClusterConta
             new EnvVarBuilder()
                 .withName("DEBUG_CLUSTER_CONTROLLER_SUSPEND")
                 .withValue(System.getenv("DEBUG_OPERATOR_SUSPEND"))
-                .build(),
-            new EnvVarBuilder()
-                .withName("HTTP_PROXY")
-                .withValue(System.getenv("HTTP_PROXY"))
-                .build(),
-            new EnvVarBuilder()
-                .withName("HTTPS_PROXY")
-                .withValue(System.getenv("HTTPS_PROXY"))
                 .build())
         .withVolumeMounts(userContainerMounts.getVolumeMounts(context))
         .addAllToVolumeMounts(postgresDataMounts.getVolumeMounts(context))

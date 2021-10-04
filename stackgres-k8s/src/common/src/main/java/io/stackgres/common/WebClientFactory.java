@@ -34,13 +34,8 @@ import com.google.common.net.HttpHeaders;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class WebClientFactory {
-
-  private static final Logger LOGGER =
-      LoggerFactory.getLogger(WebClientFactory.class);
 
   static final String PROPERTY_PROXY_SCHEME = "org.jboss.resteasy.jaxrs.client.proxy.scheme";
   static final String PROPERTY_PROXY_HOST = "org.jboss.resteasy.jaxrs.client.proxy.host";
@@ -62,8 +57,6 @@ public class WebClientFactory {
     final Map<String, String> extraHeaders = new HashMap<>();
     final boolean setHttpScheme;
     final URI clientProxyUri = Optional.ofNullable(proxyUri)
-        .or(WebClientFactory::getHttpsProxy)
-        .or(WebClientFactory::getHttpProxy)
         .orElse(null);
     if (clientProxyUri != null) {
       String userInfo = clientProxyUri.getUserInfo();
@@ -157,24 +150,6 @@ public class WebClientFactory {
     @Override
     public boolean verify(final String s, final SSLSession sslSession) {
       return true;
-    }
-  }
-
-  private static Optional<URI> getHttpsProxy() {
-    return getUriFromEnvVar("HTTPS_PROXY");
-  }
-
-  private static Optional<URI> getHttpProxy() {
-    return getUriFromEnvVar("HTTP_PROXY");
-  }
-
-  private static Optional<URI> getUriFromEnvVar(String envVar) {
-    try {
-      return Optional.ofNullable(System.getenv(envVar))
-          .map(URI::create);
-    } catch (Exception ex) {
-      LOGGER.warn("Error while parsing " + envVar + " environment variable", ex);
-      return Optional.empty();
     }
   }
 

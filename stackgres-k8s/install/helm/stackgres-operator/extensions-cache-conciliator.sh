@@ -181,6 +181,10 @@ is_image_repository_with_regcred_secret_url() {
   printf '%s' "$1" | grep "[?&]imageTemplate=" | grep -q "[?&]imageRegcredSecret="
 }
 
+is_proxied_repository_url() {
+  printf '%s' "$1" | grep -q "[?&]proxyUrl="
+}
+
 get_image_template_from_url() {
   local IMAGE_TEMPLATE
   IMAGE_TEMPLATE="$(printf '%s' "$1" | grep "[?&]imageTemplate=")"
@@ -206,6 +210,15 @@ get_image_regcred_secret_from_url() {
   printf '%s' "$REPOSITORY_CREDENTIAL_SECRET"
 }
 
+get_proxy_from_url() {
+  local PROXY_URL
+  PROXY_URL="$(printf '%s' "$1" | grep "[?&]proxyUrl=")"
+  PROXY_URL="$(printf '%s' "$PROXY_URL" \
+    | sed 's/^.*[?&]imageTemplate=\([^?&]\+\)\([?&].*\)\?$/\1/')"
+  PROXY_URL="$(printf '%s' "$PROXY_URL" | urldecode)"
+  printf '%s' "$PROXY_URL"
+}
+
 pull_indexes() {
   local INDEX_NAME EXTENSIONS_REPOSITORY_URL
   local INDEX
@@ -223,7 +236,14 @@ pull_indexes() {
       then
         continue
       fi
-      curl -f -s -L -k "${EXTENSIONS_REPOSITORY_URL%%\?*}/${INDEX_NAME}.json" > "last-${INDEX_NAME}.json"
+      local CURL_EXTRA_OPTS=""
+      if is_proxied_repository_url "$EXTENSIONS_REPOSITORY_URL"
+      then
+        local PROXY_URL
+        PROXY_URL="$(get_proxy_from_url "$EXTENSIONS_REPOSITORY_URL")"
+        CURL_EXTRA_OPTS="--proxy $PROXY_URL"
+      fi
+      curl -f -s -L -k $CURL_EXTRA_OPTS "${EXTENSIONS_REPOSITORY_URL%%\?*}/${INDEX_NAME}.json" > "last-${INDEX_NAME}.json"
       jq -s '.[0] as $last | .[1] as $current_unwrapped
         | $last
         | .publishers = (.publishers | map(
@@ -437,7 +457,8 @@ pull_extension() {
   if [ "$ANY_IMAGE_REPOSITORY_URL" != true ] \
     || ! is_image_repository_url "$EXTENSIONS_REPOSITORY_URL"
   then
-    download_extension "$REPOSITORY" "$PUBLISHER" "$BUILD_ARCH" "$BUILD_OS" "$EXTENSION_PACKAGE"
+    download_extension "$EXTENSIONS_REPOSITORY_URL" "$REPOSITORY" "$PUBLISHER" "$BUILD_ARCH" "$BUILD_OS"\
+      "$EXTENSION_PACKAGE"
   else
     add_extension_image_to_statefulset "$EXTENSIONS_REPOSITORY_URL" "$REPOSITORY" "$PUBLISHER" "$NAME" \
       "$VERSION" "$POSTGRES_VERSION" "$BUILD_ARCH" "$BUILD_OS" "$BUILD"
@@ -463,12 +484,14 @@ find_repository_base_url() {
 }
 
 download_extension() {
-  [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ] && [ -n "$4" ] && [ -n "$5" ]
-  local REPOSITORY="$1"
-  local PUBLISHER="$2"
-  local BUILD_ARCH="$3"
-  local BUILD_OS="$4"
-  local EXTENSION_PACKAGE="$5"
+  [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ] && [ -n "$4" ] \
+    && [ -n "$5" ] && [ -n "$6" ]
+  local EXTENSIONS_REPOSITORY_URL="$1"
+  local REPOSITORY="$2"
+  local PUBLISHER="$3"
+  local BUILD_ARCH="$4"
+  local BUILD_OS="$5"
+  local EXTENSION_PACKAGE="$6"
   local TEMP="$(shuf -i 0-65535 -n 1)"
   local REPOSITORY_PATH="${REPOSITORY#*://}"
   REPOSITORY_PATH="${REPOSITORY_PATH#*/}"
@@ -477,7 +500,14 @@ download_extension() {
   then
     echo "   + Downloading from $REPOSITORY/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.tar"
     mkdir -p "$REPOSITORY_PATH/$PUBLISHER/$BUILD_ARCH/$BUILD_OS"
-    curl -f -s -L -k -I "$REPOSITORY/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.tar" \
+    local CURL_EXTRA_OPTS=""
+    if is_proxied_repository_url "$EXTENSIONS_REPOSITORY_URL"
+    then
+      local PROXY_URL
+      PROXY_URL="$(get_proxy_from_url "$EXTENSIONS_REPOSITORY_URL")"
+      CURL_EXTRA_OPTS="--proxy $PROXY_URL"
+    fi
+    curl -f -s -L -k -I $CURL_EXTRA_OPTS "$REPOSITORY/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.tar" \
       > "$REPOSITORY_PATH/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.headers.$TEMP"
     CONTENT_LENGTH="$(grep -i 'Content-Length' "$REPOSITORY_PATH/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.headers.$TEMP")"
     CONTENT_LENGTH="$(printf '%s' "$CONTENT_LENGTH" | tr -d '[:space:]' | cut -d ':' -f 2)"

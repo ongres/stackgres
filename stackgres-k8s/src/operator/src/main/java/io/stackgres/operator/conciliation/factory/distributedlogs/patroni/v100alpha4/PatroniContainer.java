@@ -112,15 +112,6 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
                 .withName(cluster.getMetadata().getName()).build())
             .build())
         .withEnv(getEnvVar(context))
-        .addToEnv(
-            new EnvVarBuilder()
-                .withName("HTTP_PROXY")
-                .withValue(System.getenv("HTTP_PROXY"))
-                .build(),
-            new EnvVarBuilder()
-                .withName("HTTPS_PROXY")
-                .withValue(System.getenv("HTTPS_PROXY"))
-                .build())
         .withLivenessProbe(new ProbeBuilder()
             .withHttpGet(new HTTPGetActionBuilder()
                 .withPath("/cluster")

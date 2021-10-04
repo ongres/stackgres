@@ -198,15 +198,6 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
                 .withName(PatroniConfigMap.name(clusterContext)).build())
             .build())
         .withEnv(getEnvVars(context))
-        .addToEnv(
-            new EnvVarBuilder()
-                .withName("HTTP_PROXY")
-                .withValue(System.getenv("HTTP_PROXY"))
-                .build(),
-            new EnvVarBuilder()
-                .withName("HTTPS_PROXY")
-                .withValue(System.getenv("HTTPS_PROXY"))
-                .build())
         .withLivenessProbe(new ProbeBuilder()
             .withHttpGet(new HTTPGetActionBuilder()
                 .withPath("/cluster")
