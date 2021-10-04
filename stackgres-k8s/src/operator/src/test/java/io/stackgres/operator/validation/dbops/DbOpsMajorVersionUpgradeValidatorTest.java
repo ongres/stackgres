@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.validation.dbops;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
@@ -47,15 +48,19 @@ class DbOpsMajorVersionUpgradeValidatorTest {
           .collect(ImmutableList.toImmutableList());
   private static final String FIRST_PG_MAJOR_VERSION =
       StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
+          .skipWhile(p -> p.startsWith("14"))
           .get(0).get();
   private static final String SECOND_PG_MAJOR_VERSION =
       StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
+          .skipWhile(p -> p.startsWith("14"))
           .get(1).get();
   private static final String FIRST_PG_MINOR_VERSION =
       StackGresComponent.POSTGRESQL.getOrderedVersions()
+          .skipWhile(p -> p.startsWith("14"))
           .get(0).get();
   private static final String SECOND_PG_MINOR_VERSION =
       StackGresComponent.POSTGRESQL.getOrderedVersions()
+          .skipWhile(p -> p.startsWith("14"))
           .get(1).get();
 
   private DbOpsMajorVersionUpgradeValidator validator;
@@ -104,7 +109,7 @@ class DbOpsMajorVersionUpgradeValidatorTest {
     when(postgresConfigFinder.findByNameAndNamespace(sgpostgresconfig, namespace))
         .thenReturn(Optional.of(postgresConfig));
 
-    validator.validate(review);
+    assertDoesNotThrow(() -> validator.validate(review));
 
     verify(clusterFinder).findByNameAndNamespace(eq(sgcluster), eq(namespace));
     verify(postgresConfigFinder).findByNameAndNamespace(eq(sgpostgresconfig), eq(namespace));
@@ -125,7 +130,7 @@ class DbOpsMajorVersionUpgradeValidatorTest {
     when(postgresConfigFinder.findByNameAndNamespace(sgpostgresconfig, namespace))
         .thenReturn(Optional.of(postgresConfig));
 
-    validator.validate(review);
+    assertDoesNotThrow(() -> validator.validate(review));
 
     verify(clusterFinder).findByNameAndNamespace(eq(sgcluster), eq(namespace));
     verify(postgresConfigFinder).findByNameAndNamespace(eq(sgpostgresconfig), eq(namespace));

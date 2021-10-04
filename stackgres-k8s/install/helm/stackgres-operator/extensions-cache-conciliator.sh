@@ -397,7 +397,8 @@ get_to_install_extensions() {
     .extensions[] | . as $extension
     | .versions[] | . as $version
     | .availableFor = (.availableFor
-      | sort_by(if .build == null then 0 else (.build | split(".") | (.[0] | tonumber | . * 10000) + (.[1] | tonumber)) end)
+      | sort_by(if .build == null then 0 else (.build | split(".") 
+        | (.[0] | tonumber | . * 10000) + (.[1] | sub("-dev$", "") | tonumber)) end)
       | reduce .[] as $availableForEntry ({};
         . as $result | ($availableForEntry.postgresVersion | if . != null then . else "any" end) as $key
         | $availableForEntry | $result | .[$key] = $availableForEntry) | to_entries | map(.value))

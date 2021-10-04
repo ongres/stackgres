@@ -43,12 +43,15 @@ class DbOpsMinorVersionUpgradeValidatorTest {
           .collect(ImmutableList.toImmutableList());
   private static final String SECOND_PG_MAJOR_VERSION =
       StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
+          .skipWhile(p -> p.startsWith("14"))
           .get(1).get();
   private static final String FIRST_PG_MINOR_VERSION =
       StackGresComponent.POSTGRESQL.getOrderedVersions()
+          .skipWhile(p -> p.startsWith("14"))
           .get(0).get();
   private static final String SECOND_PG_MINOR_VERSION =
       StackGresComponent.POSTGRESQL.getOrderedVersions()
+          .skipWhile(p -> p.startsWith("14"))
           .get(1).get();
 
   private DbOpsMinorVersionUpgradeValidator validator;

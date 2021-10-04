@@ -173,7 +173,7 @@ public interface ExtensionUtil {
   }
 
   static URI getIndexUri(URI extensionsUrl) {
-    return UriBuilder.fromUri(extensionsUrl).path("/index.json").build();
+    return UriBuilder.fromUri(extensionsUrl).path("/v1/index.json").build();
   }
 
   static String getDescription(StackGresCluster cluster,

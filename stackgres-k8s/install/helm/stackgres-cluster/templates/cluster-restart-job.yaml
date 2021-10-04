@@ -70,7 +70,7 @@ spec:
       serviceAccountName: {{ .Release.Name }}-cluster-restart
       containers:
       - name: "{{ .Release.Name }}-fix-deployment-selector"
-        image: "ongres/kubectl:v1.19.7-build-6.2"
+        image: "ongres/kubectl:v1.19.13-build-6.5"
         imagePullPolicy: "IfNotPresent"
         command:
           - "/bin/bash"
