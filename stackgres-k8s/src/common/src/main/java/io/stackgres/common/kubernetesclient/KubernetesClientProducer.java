@@ -43,7 +43,11 @@ public class KubernetesClientProducer {
   @PreDestroy
   public void preDestroy() {
     LOGGER.info("Closing instance of StackGresKubernetesClient");
-    targetKubernetesClient.close();
+    try {
+      targetKubernetesClient.close();
+    } catch (Exception ex) {
+      LOGGER.warn("Can not close Kubernetes client", ex);
+    }
   }
 
   private static class KubernetesClientInvocationHandler implements InvocationHandler {
