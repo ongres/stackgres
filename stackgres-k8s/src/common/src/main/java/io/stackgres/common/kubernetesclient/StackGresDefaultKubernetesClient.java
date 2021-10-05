@@ -7,12 +7,19 @@ package io.stackgres.common.kubernetesclient;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
@@ -20,12 +27,14 @@ import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.fabric8.kubernetes.client.internal.PatchUtils;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.stackgres.common.StackGresKubernetesClient;
+import io.stackgres.common.resource.KubernetesClientStatusUpdateException;
 import okhttp3.Call;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +59,56 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
       return apply(intent, applyUrl);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
+    }
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public <T extends HasMetadata, S, L extends KubernetesResourceList<T>> T updateStatus(
+      @NotNull Class<T> resourceClass, @NotNull Class<L> resourceListClass, @NotNull T resource,
+      @NotNull Function<T, S> statusGetter, @NotNull BiConsumer<T, S> statusSetter) {
+    try {
+      T resourceOverwrite = resources(resourceClass, resourceListClass)
+          .inNamespace(resource.getMetadata().getNamespace())
+          .withName(resource.getMetadata().getName())
+          .get();
+      if (resourceOverwrite == null) {
+        throw new RuntimeException("Can not update status of resource "
+            + HasMetadata.getKind(resourceClass)
+            + "." + HasMetadata.getGroup(resourceClass)
+            + " " + resource.getMetadata().getNamespace()
+            + "." + resource.getMetadata().getName()
+            + ": resource not found");
+      }
+      statusSetter.accept(resourceOverwrite, statusGetter.apply(resource));
+      var replaceDeleteable = resources(resourceClass, resourceListClass)
+          .inNamespace(resource.getMetadata().getNamespace())
+          .withName(resource.getMetadata().getName())
+          .lockResourceVersion(resource.getMetadata().getResourceVersion());
+      Method replaceMethod = replaceDeleteable.getClass().getSuperclass()
+          .getDeclaredMethod("replace", HasMetadata.class, boolean.class);
+      AccessController.doPrivileged((PrivilegedAction<?>) () -> {
+        replaceMethod.setAccessible(true);
+        return null;
+      });
+      return (T) replaceMethod.invoke(replaceDeleteable, resourceOverwrite, true);
+    } catch (KubernetesClientException ex) {
+      throw new KubernetesClientStatusUpdateException(ex);
+    } catch (InvocationTargetException ex) {
+      Throwable targetEx = ex.getTargetException();
+      if (targetEx instanceof KubernetesClientException) {
+        throw new KubernetesClientStatusUpdateException(
+            (KubernetesClientException) targetEx);
+      } else if (targetEx instanceof RuntimeException) {
+        throw (RuntimeException) targetEx;
+      } else if (targetEx instanceof Error) {
+        throw (Error) targetEx;
+      }
+      throw new RuntimeException(targetEx);
+    } catch (RuntimeException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
     }
   }
 

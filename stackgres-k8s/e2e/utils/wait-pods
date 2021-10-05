@@ -21,7 +21,7 @@ traceable_wait_pods_running() {
   local RUNNING_PODS
   local RUNNING_CONTAINERS
   local EXPECTED_CONTAINERS
-  local END="$(($(date +%s) + (E2E_TIMEOUT * EXPECTED_RUNNING_PODS)))"
+  local END="$(( $(date +%s) + (E2E_TIMEOUT * EXPECTED_RUNNING_PODS) ))"
   while [ "$(date +%s)" -lt "$END" ]
   do
     PODS="$(kubectl get pods --no-headers "$NAMESPACE_OPT" 2>/dev/null)"

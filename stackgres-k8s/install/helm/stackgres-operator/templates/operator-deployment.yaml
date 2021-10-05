@@ -89,8 +89,13 @@ spec:
             value: "{{ .Values.containerRegistry }}"
           - name: SG_IMAGE_PULL_POLICY
             value: "{{ .Values.imagePullPolicy }}"
+          {{- if .Values.extensions.cache.enabled }}
+          - name: EXTENSIONS_REPOSITORY_URLS
+            value: "{{ range $index, $element := .Values.extensions.repositoryUrls }}{{ if $index }},{{ end }}{{ $element := regexReplaceAll "([?&])proxyUrl=[^&]+[&]" $element "${1}" }}{{ $element := regexReplaceAll "([?&])proxyUrl=[^&]+$" $element "" }}{{ $element }}{{ if $element | contains "?" }}&{{ else }}?{{ end }}proxyUrl=http%3A%2F%2F{{ $.Release.Name }}-extensions-cache.{{ $.Release.Namespace }}%3FsetHttpScheme%3Dtrue{{ end }}"
+          {{- else }}
           - name: EXTENSIONS_REPOSITORY_URLS
             value: "{{ range $index, $element := .Values.extensions.repositoryUrls }}{{ if $index }},{{ end }}{{ $element }}{{ end }}"
+          {{- end }}
         ports:
         - containerPort: 8080
           name: "http"
@@ -120,7 +125,7 @@ spec:
             readOnly: true
       {{- else }}
       - name: {{ .Release.Name }}-nginx
-        image: "nginx:1.17.4-alpine"
+        image: "registry.access.redhat.com/ubi8/nginx-118:1-39"
         imagePullPolicy: IfNotPresent
         args:
           - '/bin/sh'
@@ -128,8 +133,7 @@ spec:
           {{- if .Values.developer.showDebug }}
           - '-x'
           {{- end }}
-          - |
-            exec nginx-debug -g 'daemon off;'
+          - exec nginx -g 'daemon off;'
         ports:
         - containerPort: 9443
           name: "proxyhttps"

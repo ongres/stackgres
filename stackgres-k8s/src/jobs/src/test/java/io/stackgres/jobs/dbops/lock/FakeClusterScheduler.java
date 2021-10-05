@@ -44,17 +44,13 @@ public class FakeClusterScheduler implements CustomResourceScheduler<StackGresCl
   }
 
   @Override
-  public StackGresCluster updateStatus(StackGresCluster resource) {
+  public <S> StackGresCluster updateStatus(@NotNull StackGresCluster resource,
+      @NotNull Function<StackGresCluster, S> statusGetter,
+      @NotNull BiConsumer<StackGresCluster, S> statusSetter) {
     final ObjectMeta metadata = resource.getMetadata();
     var cluster = kubeDb.getCluster(metadata.getName(), metadata.getNamespace());
     cluster.setStatus(resource.getStatus());
     return kubeDb.addOrReplaceCluster(resource);
   }
 
-  @Override
-  public <S> void updateStatus(@NotNull StackGresCluster resource,
-                               @NotNull Function<StackGresCluster, S> statusGetter,
-                               @NotNull BiConsumer<StackGresCluster, S> statusSetter) {
-    throw new UnsupportedOperationException("not implemented");
-  }
 }

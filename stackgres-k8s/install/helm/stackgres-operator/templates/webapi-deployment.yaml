@@ -77,8 +77,13 @@ spec:
           - name: USE_ARBITRARY_USER
             value: "true"
           {{- end }}
+          {{- if .Values.extensions.cache.enabled }}
+          - name: EXTENSIONS_REPOSITORY_URLS
+            value: "{{ range $index, $element := .Values.extensions.repositoryUrls }}{{ if $index }},{{ end }}{{ $element := regexReplaceAll "([?&])proxyUrl=[^&]+[&]" $element "${1}" }}{{ $element := regexReplaceAll "([?&])proxyUrl=[^&]+$" $element "" }}{{ $element }}{{ if $element | contains "?" }}&{{ else }}?{{ end }}proxyUrl=http%3A%2F%2F{{ $.Release.Name }}-extensions-cache.{{ $.Release.Namespace }}%3FsetHttpScheme%3Dtrue{{ end }}"
+          {{- else }}
           - name: EXTENSIONS_REPOSITORY_URLS
             value: "{{ range $index, $element := .Values.extensions.repositoryUrls }}{{ if $index }},{{ end }}{{ $element }}{{ end }}"
+          {{- end }}
         ports:
         - containerPort: 8080
           name: "resthttp"
@@ -163,11 +168,7 @@ spec:
             {{- if .Values.developer.showDebug }}
             cat /etc/nginx/conf.d/stackgres-operator.conf
             {{- end }}
-            {{- if .Values.developer.showDebug }}
-            exec nginx-debug -g 'daemon off;'
-            {{- else }}
             exec nginx -g 'daemon off;'
-            {{- end }}
         ports:
         - containerPort: 9443
           name: "https"

@@ -16,7 +16,6 @@ import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher.Action;
-import io.quarkus.runtime.Application;
 import io.stackgres.cluster.controller.ClusterControllerReconciliationCycle;
 import io.stackgres.cluster.controller.ResourceWatcherFactory;
 import io.stackgres.common.ClusterControllerProperty;
@@ -55,11 +54,11 @@ public class ClusterControllerWatchersHandlerImpl
   private <T extends CustomResource<?, ?>,
       L extends KubernetesResourceList<T>> WatcherMonitor<T> createWatcher(
       Class<T> crClass, Class<L> listClass, Consumer<Action> consumer) {
-    return new WatcherMonitor<>(watcherListener -> client
+    return new WatcherMonitor<>(crClass.getSimpleName(),
+        watcherListener -> client
         .resources(crClass, listClass)
         .inNamespace(ClusterControllerProperty.CLUSTER_NAMESPACE.getString())
-        .watch(watcherFactory.createWatcher(consumer, watcherListener)),
-        () -> new Thread(() -> Application.currentApplication().stop()).start());
+        .watch(watcherFactory.createWatcher(consumer, watcherListener)));
   }
 
   private Consumer<Action> reconcileCluster() {

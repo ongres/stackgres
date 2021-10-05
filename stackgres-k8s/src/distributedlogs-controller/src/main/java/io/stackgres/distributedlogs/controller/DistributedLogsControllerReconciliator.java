@@ -5,6 +5,8 @@
 
 package io.stackgres.distributedlogs.controller;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -16,10 +18,13 @@ import javax.inject.Inject;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.DistributedLogsControllerProperty;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.distributedlogs.common.StackGresDistributedLogsContext;
+import io.stackgres.distributedlogs.configuration.DistributedLogsControllerPropertyContext;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
 import io.stackgres.operatorframework.reconciliation.Reconciliator;
 
@@ -30,12 +35,14 @@ public class DistributedLogsControllerReconciliator
   private final DistributedLogsExtensionReconciliator extensionReconciliator;
   private final DistributedLogsClusterReconciliator clusterReconciliator;
   private final CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler;
+  private final DistributedLogsControllerPropertyContext propertyContext;
 
   @Dependent
   public static class Parameters {
     @Inject DistributedLogsExtensionReconciliator extensionReconciliator;
     @Inject DistributedLogsClusterReconciliator clusterReconciliator;
     @Inject CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler;
+    @Inject DistributedLogsControllerPropertyContext propertyContext;
   }
 
   @Inject
@@ -43,6 +50,7 @@ public class DistributedLogsControllerReconciliator
     this.extensionReconciliator = parameters.extensionReconciliator;
     this.clusterReconciliator = parameters.clusterReconciliator;
     this.distributedLogsScheduler = parameters.distributedLogsScheduler;
+    this.propertyContext = parameters.propertyContext;
   }
 
   public DistributedLogsControllerReconciliator() {
@@ -51,6 +59,7 @@ public class DistributedLogsControllerReconciliator
     this.extensionReconciliator = null;
     this.clusterReconciliator = null;
     this.distributedLogsScheduler = null;
+    this.propertyContext = null;
   }
 
   public static DistributedLogsControllerReconciliator create(Consumer<Parameters> consumer) {
@@ -80,11 +89,40 @@ public class DistributedLogsControllerReconciliator
     statusUpdated = statusUpdated || clusterReconciliationResult.result().orElse(false);
     if (extensionReconciliationResult.result().orElse(false)
         || clusterReconciliationResult.result().orElse(false)) {
+      final String podName = propertyContext.getString(
+          DistributedLogsControllerProperty.DISTRIBUTEDLOGS_CONTROLLER_POD_NAME);
       distributedLogsScheduler.updateStatus(context.getDistributedLogs(),
-          StackGresDistributedLogs::getStatus,
-          StackGresDistributedLogs::setStatus);
+          StackGresDistributedLogs::getStatus, (targetDistributedLogs, status) -> {
+            var podStatus = Optional.ofNullable(status)
+                .map(StackGresDistributedLogsStatus::getPodStatuses)
+                .flatMap(podStatuses -> findPodStatus(podStatuses, podName))
+                .orElseThrow();
+            if (targetDistributedLogs.getStatus() == null) {
+              targetDistributedLogs.setStatus(new StackGresDistributedLogsStatus());
+            }
+            if (targetDistributedLogs.getStatus().getPodStatuses() == null) {
+              targetDistributedLogs.getStatus().setPodStatuses(new ArrayList<>());
+            }
+            findPodStatus(targetDistributedLogs.getStatus().getPodStatuses(), podName)
+                .ifPresentOrElse(
+                    targetPodStatus -> {
+                      targetDistributedLogs.getStatus().getPodStatuses().set(
+                          targetDistributedLogs.getStatus().getPodStatuses()
+                          .indexOf(targetPodStatus),
+                          podStatus);
+                    },
+                    () -> targetDistributedLogs.getStatus().getPodStatuses().add(podStatus));
+          });
     }
     return extensionReconciliationResult.join(clusterReconciliationResult);
+  }
+
+  private Optional<StackGresClusterPodStatus> findPodStatus(
+      List<StackGresClusterPodStatus> podStatuses,
+      String podName) {
+    return podStatuses.stream()
+        .filter(podStatus -> podStatus.getName().equals(podName))
+        .findFirst();
   }
 
 }

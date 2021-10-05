@@ -30,7 +30,8 @@ create_or_replace_cluster() {
   local INSTANCES="$3"
   shift 3
 
-  local OPERATOR_VERSION="$(get_installed_operator_version)"
+  local OPERATOR_VERSION
+  OPERATOR_VERSION="$(get_installed_operator_version)"
   if [ "$OPERATOR_VERSION" != "$STACKGRES_VERSION" ]
   then
     create_or_replace_cluster_for_version "$OPERATOR_VERSION" "$RELEASE" "$NAMESPACE" "$INSTANCES" "$@"

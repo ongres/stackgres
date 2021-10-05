@@ -10,7 +10,10 @@ e2e_list_utils | while read UTIL_PATH
 echo
 
 E2E_RETRY="${E2E_RETRY:-2}"
-E2E_ONLY_INCLUDES="${E2E_ONLY_INCLUDES}"
+if [ -z "$E2E_ONLY_INCLUDES" ]
+then
+  E2E_ONLY_INCLUDES="$*"
+fi
 E2E_EXCLUDES="${E2E_EXCLUDES}"
 SPECS_NO_STATS=""
 
@@ -187,10 +190,10 @@ echo "Setup cache"
 setup_cache
 echo "Setup helm"
 setup_helm
-echo "Setup operator"
-setup_operator
 echo "Setup logs"
 setup_logs
+echo "Setup operator"
+setup_operator
 
 rm -f "$TARGET_PATH/e2e-tests-junit-report.results.xml"
 

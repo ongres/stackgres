@@ -79,9 +79,12 @@ node_port_services(){
   wait_until kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
   wait_until kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"primary"
 
-  local PRIMARY_SERVICE_TYPE="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath='{.spec.type}')"
-  local OLD_PRIMARY_SERVICE_TYPE="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"primary" -o jsonpath='{.spec.type}')"
-  local REPLICA_SERVICE_TYPE="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"replicas" -o jsonpath='{.spec.type}')"
+  local PRIMARY_SERVICE_TYPE
+  PRIMARY_SERVICE_TYPE="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath='{.spec.type}')"
+  local OLD_PRIMARY_SERVICE_TYPE
+  OLD_PRIMARY_SERVICE_TYPE="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"primary" -o jsonpath='{.spec.type}')"
+  local REPLICA_SERVICE_TYPE
+  REPLICA_SERVICE_TYPE="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"replicas" -o jsonpath='{.spec.type}')"
 
   assert_string_equal "NodePort" "$PRIMARY_SERVICE_TYPE"
   assert_string_equal "ExternalName" "$OLD_PRIMARY_SERVICE_TYPE"
@@ -102,9 +105,12 @@ load_balancer_services(){
   wait_until kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"primary"
   wait_until kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"replicas"
 
-  local PRIMARY_SERVICE_TYPE="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath='{.spec.type}')"
-  local OLD_PRIMARY_SERVICE_TYPE="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"primary" -o jsonpath='{.spec.type}')"
-  local REPLICA_SERVICE_TYPE="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"replicas" -o jsonpath='{.spec.type}')"
+  local PRIMARY_SERVICE_TYPE
+  PRIMARY_SERVICE_TYPE="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath='{.spec.type}')"
+  local OLD_PRIMARY_SERVICE_TYPE
+  OLD_PRIMARY_SERVICE_TYPE="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"primary" -o jsonpath='{.spec.type}')"
+  local REPLICA_SERVICE_TYPE
+  REPLICA_SERVICE_TYPE="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"replicas" -o jsonpath='{.spec.type}')"
 
   assert_string_equal "LoadBalancer" "$PRIMARY_SERVICE_TYPE"
   assert_string_equal "ExternalName" "$OLD_PRIMARY_SERVICE_TYPE"

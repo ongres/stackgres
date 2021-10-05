@@ -20,10 +20,10 @@ echo "Setup cache"
 setup_cache
 echo "Setup helm"
 setup_helm
-echo "Setup operator"
-setup_operator
 echo "Setup logs"
 setup_logs
+echo "Setup operator"
+setup_operator
 
 echo "Functional tests results" > "$TARGET_PATH/logs/results.log"
 

@@ -78,7 +78,7 @@ class ClusterValidationQuarkusTest {
       var installedExtension = new StackGresClusterInstalledExtension();
       installedExtension.setName(name);
       installedExtension.setPublisher("com.ongres");
-      installedExtension.setRepository(REPOSITORY.toASCIIString());
+      installedExtension.setRepository(REPOSITORY.toString());
       installedExtension.setVersion(POSTGRES_VERSION);
       installedExtension.setPostgresVersion(POSTGRES_MAJOR_VERSION);
       installedExtension.setBuild(BUILD_MAJOR_VERSION);

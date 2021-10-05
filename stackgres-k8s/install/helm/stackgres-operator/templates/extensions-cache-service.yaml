@@ -1,0 +1,21 @@
+{{- if .Values.extensions.cache.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-extensions-cache
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Release.Name }}-extensions-cache
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: http
+{{- end }}

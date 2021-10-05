@@ -1,0 +1,164 @@
+{{- if .Values.extensions.cache.enabled }}
+apiVersion: "apps/v1"
+kind: "StatefulSet"
+metadata:
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app: {{ .Release.Name }}-extensions-cache
+    version: "{{ .Chart.Version }}"
+    group:  stackgres.io
+  name: {{ .Release.Name }}-extensions-cache
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-extensions-cache
+      group:  stackgres.io
+  serviceName: {{ .Release.Name }}-extensions-cache
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-extensions-cache
+        group:  stackgres.io
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+      serviceAccountName: {{ .Release.Name }}-extensions-cache
+      shareProcessNamespace: true
+      terminationGracePeriodSeconds: 0
+      containers:
+      - name: http
+        image: "registry.access.redhat.com/ubi8/nginx-118:1-39"
+        args:
+          - '/bin/sh'
+          - '-ec'
+          {{- if .Values.developer.showDebug }}
+          - '-x'
+          {{- end }}
+          - exec nginx -g 'daemon off;'
+        ports:
+        - containerPort: 8080
+          name: "http"
+          protocol: "TCP"
+        readinessProbe:
+          tcpSocket:
+            port: 8080
+        volumeMounts:
+          - name: extensions-cache-config
+            mountPath: /etc/nginx/nginx.conf
+            subPath: nginx.conf
+            readOnly: true
+          - name: extensions-cache-config
+            mountPath: /etc/nginx/conf.d/stackgres-operator-extensions-cache.conf
+            subPath: stackgres-operator-extensions-cache.conf
+            readOnly: true
+          - name: extensions-cache-nginx-var
+            subPath: var/cache/nginx
+            mountPath: /var/cache/nginx
+            readOnly: false
+          - name: extensions-cache-nginx-var
+            subPath: var/run
+            mountPath: /var/run
+            readOnly: false
+          - name: extensions-cache-nginx-var
+            subPath: var/log/nginx
+            mountPath: /var/log/nginx
+            readOnly: false
+          - name: {{ .Release.Name }}-extensions-cache
+            subPath: repository
+            mountPath: /opt/app-root/src
+            readOnly: true
+      - name: "controller"
+        image: "ongres/kubectl:v1.19.7-build-6.2"
+        env:
+          - name: EXTENSIONS_REPOSITORY_URLS
+            value: "{{ range $index, $element := .Values.extensions.repositoryUrls }}{{ if $index }},{{ end }}{{ $element }}{{ end }}"
+          - name: OPERATOR_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          {{- if .Values.developer.logLevel }}
+          - name: EXTENSIONS_CACHE_LOG_LEVEL
+            value: "{{ .Values.developer.logLevel }}"
+          {{- end }}
+          {{- range .Values.developer.extraOpts }}
+            {{- if . | hasPrefix "-Dquarkus.log.category.\"stackgres-extensions-cache\".level=" }}
+          - name: EXTENSIONS_CACHE_LOG_LEVEL
+            value: "{{ . | trimPrefix "-Dquarkus.log.category.\"stackgres-extensions-cache\".level=" }}"
+            {{- end }}
+          {{- end }}
+          {{- if .Values.extensions.cache.preloadedExtensions }}
+          - name: EXTENSIONS_CACHE_PRELOADED_EXTENSIONS
+            value: {{ .Values.extensions.cache.preloadedExtensions | toJson | squote }}
+          {{- end }}
+        command:
+          - "/bin/bash"
+          - "-ec"
+          - |
+            echo "$EXTENSIONS_CACHE_LOG_LEVEL" | grep -v -q '^\(DEBUG\|TRACE\)$' || set -x
+            cd /opt/app-root/src
+            sh /usr/local/bin/extensions-cache-conciliator.sh run "$OPERATOR_NAMESPACE" '{{ .Release.Name }}-extensions-cache'
+        readinessProbe:
+          exec:
+            command:
+            - test
+            - -f
+            - /tmp/extensions-cache-ready
+        volumeMounts:
+          - name: extensions-cache-config
+            mountPath: /usr/local/bin/extensions-cache-conciliator.sh
+            subPath: extensions-cache-conciliator.sh
+            readOnly: true
+          - name: {{ .Release.Name }}-extensions-cache
+            subPath: repository
+            mountPath: /opt/app-root/src
+            readOnly: false
+          - name: extensions-cache-nginx-var
+            subPath: var/log/nginx
+            mountPath: /var/log/nginx
+            readOnly: true
+      restartPolicy: Always
+      volumes:
+        - name: extensions-cache-config
+          configMap:
+            name: {{ .Release.Name }}-extensions-cache
+            optional: false
+            items:
+              - key: nginx.conf
+                path: nginx.conf
+              - key: stackgres-operator-extensions-cache.conf
+                path: stackgres-operator-extensions-cache.conf
+              - key: extensions-cache-conciliator.sh
+                path: extensions-cache-conciliator.sh
+        - name: extensions-cache-nginx-var
+          emptyDir: {}
+  volumeClaimTemplates:
+  - metadata:
+      annotations:
+        meta.helm.sh/release-name: {{ .Release.Name }}
+        meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+      labels:
+        app.kubernetes.io/managed-by: Helm
+        app: {{ .Release.Name }}-extensions-cache
+        version: "{{ .Chart.Version }}"
+        group:  stackgres.io
+      name: {{ .Release.Name }}-extensions-cache
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      {{- if .Values.extensions.cache.persistentVolume.storageClass }}
+      {{- if eq "-" .Values.extensions.cache.persistentVolume.storageClass }}
+      storageClassName: ""
+      {{- else }}
+      storageClassName: "{{ .Values.extensions.cache.persistentVolume.storageClass }}"
+      {{- end }}
+      {{- end }}
+      resources:
+        requests:
+          storage: "{{ .Values.extensions.cache.persistentVolume.size }}"
+{{- end }}

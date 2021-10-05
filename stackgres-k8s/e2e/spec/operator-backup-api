@@ -317,7 +317,8 @@ check_backup_without_config_is_pending() {
     --set configurations.create=false --set instanceProfiles=false \
     --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
 
-  local BACKUP_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-pending-$(shuf -i 0-65535 -n 1)")"
+  local BACKUP_NAME
+  BACKUP_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-pending-$(shuf -i 0-65535 -n 1)")"
 
   cat << EOF | kubectl create -f -
   apiVersion: stackgres.io/v1

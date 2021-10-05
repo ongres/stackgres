@@ -264,8 +264,10 @@ spec:
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
-  local POD_ANNOTATION_VALUE="$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.spec.metadata.annotations.clusterPods["test-annotation"]' -r)"
-  local SERVICE_ANNOTATION_VALUE="$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.spec.metadata.annotations.services["service-annotation"]' -r)"
+  local POD_ANNOTATION_VALUE
+  POD_ANNOTATION_VALUE="$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.spec.metadata.annotations.clusterPods["test-annotation"]' -r)"
+  local SERVICE_ANNOTATION_VALUE
+  SERVICE_ANNOTATION_VALUE="$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.spec.metadata.annotations.services["service-annotation"]' -r)"
 
   assert_string_equal "$POD_RANDOM_VALUE" "$POD_ANNOTATION_VALUE"
   assert_string_equal "$SERVICE_RANDOM_VALUE" "$SERVICE_ANNOTATION_VALUE"

@@ -14,7 +14,9 @@ e2e_test_install() {
   DBOPS_2_NAME="$(get_sgdbops_name "security-upgrade-2")"
   DBOPS_3_NAME="$(get_sgdbops_name "security-upgrade-3")"
 
-  PREVIOUS_PATRONI_IMAGE="$(get_component_images "$STACKGRES_PREVIOUS_VERSION" | grep '/patroni\(-ext\)\?:' | tail -n 1)"
+  PREVIOUS_PATRONI_IMAGE="$(get_component_images "$STACKGRES_PREVIOUS_VERSION")"
+  PREVIOUS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:')"
+  PREVIOUS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | tail -n 1)"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_PATRONI_IMAGE##*-pg}"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
   PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION" | grep '/patroni\(-ext\)\?:' | grep "[-]pg$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION-" | tail -n 1)"
@@ -406,9 +408,11 @@ check_cluster_after_security_upgrade() {
     return 1
   fi
 
-  local STS_UPDATE_REVISION="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .status.updateRevision }}')"
+  local STS_UPDATE_REVISION
+  STS_UPDATE_REVISION="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .status.updateRevision }}')"
   local POD_CONTROLLER_REVISION_HASH
-  local POD_CONTROLLER_REVISION_HASHES="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+  local POD_CONTROLLER_REVISION_HASHES
+  POD_CONTROLLER_REVISION_HASHES="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
       -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true" -o json \
     | jq ".items[]|select(.metadata.name | startswith(\"$CLUSTER_NAME\"))" \
     | jq -r '.metadata.labels."controller-revision-hash"')"
@@ -443,7 +447,8 @@ check_cluster_after_security_upgrade() {
     fi
   done
 
-  local PRIMARY_SERVICE_TYPE="$(kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-primary" \
+  local PRIMARY_SERVICE_TYPE
+  PRIMARY_SERVICE_TYPE="$(kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-primary" \
     --template '{{ .spec.type }}')"
   if [ "$PRIMARY_SERVICE_TYPE" = "ExternalName" ]
   then
@@ -467,7 +472,8 @@ check_conversion_webhooks_configured(){
 check_sts_is_not_altered() {
   local TARGET_CLUSTER="$1"
 
-  local STS_PATRONI_IMAGE="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER" -o jsonpath='{.spec.template.spec.containers[0].image}')"
+  local STS_PATRONI_IMAGE
+  STS_PATRONI_IMAGE="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER" -o jsonpath='{.spec.template.spec.containers[0].image}')"
 
   if assert_string_equal "$PREVIOUS_PATRONI_IMAGE" "$STS_PATRONI_IMAGE"
   then

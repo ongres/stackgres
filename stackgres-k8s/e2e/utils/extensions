@@ -1,5 +1,22 @@
 #!/bin/sh
 
+EXTENSIONS_CACHE_PRELOADED_EXTENSIONS="$(
+  {
+    echo 'dblink-.*-pg(12|13)'
+    echo 'pg_stat_statements-.*-pg(12|13)'
+    echo 'plpgsql-.*-pg(12|13)'
+    echo 'plpython3u-.*-pg(12|13)'
+    echo 'timescaledb-1.7.4-pg12'
+    echo 'intagg-.*-pg12'
+    echo 'pageinspect-.*-pg12'
+    echo 'pg_repack-.*-pg(12|13)'
+    echo 'postgis-.*-pg(12|13)'
+    echo 'postgis_raster-.*-pg12(12|13)'
+  } | jq -R . | jq -s .
+  )"
+DEFAULT_BUILD_ARCH=x86_64
+DEFAULT_BUILD_OS=linux
+
 get_latest_version_of_extension() {
   local EXTENSION_NAME="$1"
   local POSTGRES_VERSION="$2"
@@ -7,7 +24,7 @@ get_latest_version_of_extension() {
 
   if [ ! -f "$TARGET_PATH/index.json" ]
   then
-    curl -s -f "$(echo "$EXTENSIONS_REPOSITORY_URL" | sed 's#/\+$##')/index.json" > "$TARGET_PATH/index.json"
+    curl -s -f "$(echo "${EXTENSIONS_REPOSITORY_URL%%\?*}" | sed 's#/\+$##')/index.json" > "$TARGET_PATH/index.json"
   fi
 
   PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION")"
@@ -38,3 +55,209 @@ EOF
   fi
   echo "$VERSIONS" | head -n 1
 }
+
+get_preloaded_extensions() {
+  if [ ! -f "$TARGET_PATH/index.json" ]
+  then
+    curl -s -f "$(echo "${EXTENSIONS_REPOSITORY_URL%%\?*}" | sed 's#/\+$##')/index.json" > "$TARGET_PATH/index.json"
+  fi
+  if [ ! -f "$TARGET_PATH/unwrapped-hashes.json" ]
+  then
+    curl -s -f "$(echo "${EXTENSIONS_REPOSITORY_URL%%\?*}" | sed 's#/\+$##')/hashes.json" > "$TARGET_PATH/hashes.json"
+    jq '
+      .publishers = (.publishers | map(
+        {
+          key: .id,
+          value: .
+        }
+        ) | from_entries)
+      | .extensions = (.extensions | map(
+        {
+          key: .name,
+          value: .
+        }
+        ) | from_entries)
+      ' "$TARGET_PATH/hashes.json" > "$TARGET_PATH/unwrapped-hashes.json"
+  fi
+  if ! jq -r '
+    .extensions[] | . as $extension
+    | .versions[] | . as $version
+    | .availableFor = (.availableFor
+      | sort_by(if .build == null then 0 else (.build | split(".") | (.[0] | tonumber | . * 10000) + (.[1] | tonumber)) end)
+      | reduce .[] as $availableForEntry ({};
+        . as $result | ($availableForEntry.postgresVersion | if . != null then . else "any" end) as $key
+        | $availableForEntry | $result | .[$key] = $availableForEntry) | to_entries | map(.value))
+    | .availableFor[] | . as $availableFor
+    | select('"$EXTENSIONS_CACHE_PRELOADED_EXTENSIONS"' | any(. as $test
+      | $extension.name + "-" + $version.version + "-pg" + $availableFor.postgresVersion
+        + ($availableFor.build | if . != null then "-build-" + . else "" end)
+      | test($test; "")))
+    | ($extension.repository | if . != null then . else '"$(
+      printf '%s' "${EXTENSIONS_REPOSITORY_URL%%\?*}" | jq -sR .)"' end) + " "
+      + $extension.publisher + " "
+      + $extension.name + " "
+      + $version.version + " "
+      + $availableFor.postgresVersion
+      + " " + ($availableFor.arch | if . != null then . else "'"$DEFAULT_BUILD_ARCH"'" end)
+      + " " + ($availableFor.os | if . != null then . else "'"$DEFAULT_BUILD_OS"'" end)
+      + " " + ($availableFor.build | if . != null then . else "" end)' \
+    "$TARGET_PATH/index.json"
+  then
+    echo "Error while applying filter $EXTENSIONS_CACHE_PRELOADED_EXTENSIONS to preload extensions" >&2
+    return 1
+  fi
+}
+
+get_extension_image() {
+  [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ] && [ -n "$4" ] \
+    && [ -n "$5" ] && [ -n "$6" ] && [ -n "$7" ]
+  local EXTENSIONS_REPOSITORY_URL="$1"
+  local PUBLISHER="$2"
+  local NAME="$3"
+  local VERSION="$4"
+  local POSTGRES_VERSION="$5"
+  local BUILD_ARCH="$6"
+  local BUILD_OS="$7"
+  local BUILD="$8"
+  local IMAGE_TEMPLATE COMPONENT COMPONENT_VERSION HASH IMAGE_NAME CONTAINER STATEFULSET
+  IMAGE_TEMPLATE="$(get_image_template_from_url "$EXTENSIONS_REPOSITORY_URL")"
+  COMPONENT="$(jq -r ".extensions[\"$NAME\"]
+    | .component" "$TARGET_PATH/unwrapped-hashes.json")"
+  # shellcheck disable=SC2034
+  COMPONENT_VERSION="$(jq -r ".extensions[\"$NAME\"]
+    | .versions[] | select(.version == \"$VERSION\")
+    | .componentVersion | if . != null then . else \"\" end" "$TARGET_PATH/unwrapped-hashes.json")"
+  if [ -z "$COMPONENT_VERSION" ]
+  then
+    # TODO: this is a mock that have to be fixed
+    # in the extensions repository by adding a
+    # .extensions[].versions[].componentVersion field
+    # in the hashes.json index
+    COMPONENT_VERSION="$VERSION"
+    case "$COMPONENT" in
+      (core|contrib)
+        COMPONENT_VERSION="$COMPONENT"
+        ;;
+      (citus)
+        COMPONENT_VERSION="10.1.2"
+        ;;
+      (healpix)
+        # shellcheck disable=SC2034
+        COMPONENT_VERSION="1.0"
+        ;;
+    esac
+  fi
+  if [ -z "$COMPONENT_VERSION" ]
+  then
+    echo "Can not retrieve component version for extension $REPOSITORY $PUBLISHER $NAME $VERSION pg$POSTGRES_VERSION $BUILD $BUILD_ARCH $BUILD_OS"
+    return 1
+  fi
+  # shellcheck disable=SC2034
+  HASH="$(jq -r ".extensions[\"$NAME\"]
+    | .versions[] | select(.version == \"$VERSION\")
+    | .availableFor[] | select(.postgresVersion == \"$POSTGRES_VERSION\" and (.build == \"$BUILD\" or (.build == null and \"$BUILD\" == \"\")))
+    | .buildHash" "$TARGET_PATH/unwrapped-hashes.json")"
+  if [ -z "$HASH" ]
+  then
+    echo "Can not retrieve hash for extension $REPOSITORY $PUBLISHER $NAME $VERSION pg$POSTGRES_VERSION $BUILD $BUILD_ARCH $BUILD_OS"
+    return 1
+  fi
+  # shellcheck disable=SC2034
+  POSTGRES_EXACT_VERSION="$(jq -r ".extensions[\"plpgsql\"]
+    | .versions[]
+    | .availableFor[] | select(.postgresVersion == \"$POSTGRES_VERSION\" and (.build == \"$BUILD\" or (.build == null and \"$BUILD\" == \"\")))
+    | .postgresVersion" "$TARGET_PATH/unwrapped-hashes.json")"
+  if [ -z "$POSTGRES_EXACT_VERSION" ]
+  then
+    # TODO: this is a mock that have to be fixed
+    # in the extensions repository by adding a
+    # .extensions[].versions[].availableFor[].postgresExactVersion field
+    # in the hashes.json index
+    POSTGRES_EXACT_VERSION="$POSTGRES_VERSION"
+    case "$POSTGRES_VERSION" in
+      (11)
+        POSTGRES_EXACT_VERSION="11.13"
+        ;;
+      (12)
+        POSTGRES_EXACT_VERSION="12.8"
+        ;;
+      (13)
+        # shellcheck disable=SC2034
+        POSTGRES_EXACT_VERSION="13.4"
+        ;;
+    esac
+  fi
+  if [ -z "$POSTGRES_EXACT_VERSION" ]
+  then
+    echo "Can not retrieve postgres exact version for extension $REPOSITORY $PUBLISHER $NAME $VERSION pg$POSTGRES_VERSION $BUILD $BUILD_ARCH $BUILD_OS"
+    return 1
+  fi
+  IMAGE_NAME="$(eval "echo \"$IMAGE_TEMPLATE\"")"
+  printf '%s\n' "$IMAGE_NAME"
+}
+
+is_image_repository_url() {
+  printf '%s' "$1" | grep -q "[?&]imageTemplate="
+}
+
+is_image_repository_with_regcred_secret_url() {
+  printf '%s' "$1" | grep "[?&]imageTemplate=" | grep -q "[?&]imageRegcredSecret="
+}
+
+is_proxied_repository_url() {
+  printf '%s' "$1" | grep -q "[?&]proxyUrl="
+}
+
+get_proxy_url_from_url() {
+  local PROXY_URL
+  PROXY_URL="$(printf '%s' "$1" | grep "[?&]proxyUrl=")"
+  PROXY_URL="$(printf '%s' "$PROXY_URL" \
+    | sed 's/^.*[?&]proxyUrl=\([^?&]\+\)\([?&].*\)\?$/\1/')"
+  PROXY_URL="$(printf '%s' "$PROXY_URL" | urldecode)"
+  printf '%s' "$PROXY_URL"
+}
+
+get_image_template_from_url() {
+  local IMAGE_TEMPLATE
+  IMAGE_TEMPLATE="$(printf '%s' "$1" | grep "[?&]imageTemplate=")"
+  IMAGE_TEMPLATE="$(printf '%s' "$IMAGE_TEMPLATE" \
+    | sed 's/^.*[?&]imageTemplate=\([^?&]\+\)\([?&].*\)\?$/\1/')"
+  IMAGE_TEMPLATE="$(printf '%s' "$IMAGE_TEMPLATE" | urldecode)"
+  # shellcheck disable=SC2016
+  if printf '%s' "$IMAGE_TEMPLATE" | grep -q '\([`;"]\|\$(\)'
+  then
+    # shellcheck disable=SC2016
+    echo 'Forbidden strings [`|;|"|$(] found in parameter imageTemplate of URL '"$1" >&2
+    return 1
+  fi
+  printf '%s' "$IMAGE_TEMPLATE"
+}
+
+get_image_regcred_secret_from_url() {
+  local REPOSITORY_CREDENTIAL_SECRET
+  REPOSITORY_CREDENTIAL_SECRET="$(printf '%s' "$1" | grep "[?&]imageRegcredSecret=")"
+  REPOSITORY_CREDENTIAL_SECRET="$(printf '%s' "$REPOSITORY_CREDENTIAL_SECRET" \
+    | sed 's/^.*[?&]imageRegcredSecret=\([^?&]\+\)\([?&].*\)\?$/\1/')"
+  REPOSITORY_CREDENTIAL_SECRET="$(printf '%s' "$REPOSITORY_CREDENTIAL_SECRET" | urldecode)"
+  printf '%s' "$REPOSITORY_CREDENTIAL_SECRET"
+}
+
+setup_extensions_secrets() {
+  if is_image_repository_with_regcred_secret_url "$EXTENSIONS_REPOSITORY_URL"
+  then
+    local IMAGE_TEMPLATE REPOSITORY_CREDENTIAL_SECRET REPOSITORY_CREDENTIAL
+    IMAGE_TEMPLATE="$(get_image_template_from_url "$EXTENSIONS_REPOSITORY_URL")"
+    REPOSITORY_CREDENTIAL_SECRET="$(get_image_regcred_secret_from_url "$EXTENSIONS_REPOSITORY_URL")"
+    REPOSITORY_CREDENTIAL="$(jq -r '.auths|to_entries|.[]|.key + "|" + .value.auth' "${HOME}/.docker/config.json")"
+    REPOSITORY_CREDENTIAL="$(printf '%s' "$REPOSITORY_CREDENTIAL" | grep -F "${IMAGE_TEMPLATE%%/*}")"
+    REPOSITORY_CREDENTIAL="$(printf '%s' "$REPOSITORY_CREDENTIAL" | head -n 1 | cut -d '|' -f 2 | base64 -d)"
+    REPOSITORY_CREDENTIAL="$(jq -r '.auths|to_entries|.[]|.key + "|" + .value.auth' "${HOME}/.docker/config.json" \
+      | grep -F "${IMAGE_TEMPLATE%%/*}" | head -n 1 | cut -d '|' -f 2 | base64 -d)"
+    kubectl delete secret --ignore-not-found -n "$OPERATOR_NAMESPACE" "$REPOSITORY_CREDENTIAL_SECRET"
+    kubectl create secret docker-registry -n "$OPERATOR_NAMESPACE" "$REPOSITORY_CREDENTIAL_SECRET" \
+      --docker-server="${IMAGE_TEMPLATE%%/*}" \
+      --docker-username="${REPOSITORY_CREDENTIAL%:*}" \
+      --docker-password="${REPOSITORY_CREDENTIAL#*:}"
+  fi
+}
+

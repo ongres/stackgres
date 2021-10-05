@@ -13,15 +13,16 @@ traceable_wait_services_available() {
     >&2 echo "Must specify a number of expected available services of 1 or more or a grep regular expression that identify expected available service names"
     return 1
   fi
-  local END="$(($(date +%s) + (E2E_TIMEOUT * EXPECTED_AVAILABLE_SERVICES)))"
+  local END="$(( $(date +%s) + (E2E_TIMEOUT * EXPECTED_AVAILABLE_SERVICES) ))"
   local SERVICES
   local AVAILABLE_SERVICES
   while [ "$(date +%s)" -lt "$END" ]
   do
     ENDPOINTS="$(kubectl get endpoints "$NAMESPACE_OPT" \
-      --template '{{ range .items }}{{ $name := .metadata.name }}{{ with .subsets }}{{ range . }}{{ printf "%s\n" $name }}{{ end }}{{ end }}{{ end }}' 2>/dev/null)"
+      --template '{{ range .items }}{{ $name := .metadata.name }}{{ with .subsets }}{{ range . }}{{ with .addresses }}{{ range . }}{{ printf "%s\n" $name }}{{ end }}{{ end }}{{ end }}{{ end }}{{ end }}' 2>/dev/null)"
     AVAILABLE_SERVICES="$(printf "%s" "$ENDPOINTS" \
-      | grep "$EXPECTED_AVAILABLE_SERVICES_EXPRESSION" | tr '\n[:blank:]' ' -' | wc -w)"
+      | grep "$EXPECTED_AVAILABLE_SERVICES_EXPRESSION" \
+      | sort | uniq | tr '\n[:blank:]' ' -' | wc -w)"
     if [ "$AVAILABLE_SERVICES" -ge "$EXPECTED_AVAILABLE_SERVICES" ]
     then
       echo "$([ -z "$1" ] && echo "All services available" || echo "All services available in namespace $1")"
