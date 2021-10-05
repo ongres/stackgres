@@ -79,7 +79,7 @@ public class PgBouncerAuthFileReconciliator {
         InputStream originalInputStream = fileSystemHandler.newInputStream(
             ORIGINAL_AUTH_FILE_PATH);
         InputStream additionalInputStream = new ByteArrayInputStream(
-            usersSection.getBytes(StandardCharsets.UTF_8.displayName()));
+            usersSection.getBytes(StandardCharsets.UTF_8));
         SequenceInputStream inputStream = new SequenceInputStream(
             originalInputStream, additionalInputStream)) {
       fileSystemHandler.copyOrReplace(inputStream, AUTH_FILE_PATH);
