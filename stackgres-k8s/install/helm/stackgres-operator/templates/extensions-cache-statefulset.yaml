@@ -37,11 +37,10 @@ spec:
         args:
           - '/bin/sh'
           - '-ec'
-          - {{- if .Values.developer.showDebug }}
-            exec nginx-debug -g 'daemon off;'
-            {{- else }}
-            exec nginx -g 'daemon off;'
-            {{- end }}
+          {{- if .Values.developer.showDebug }}
+          - '-x'
+          {{- end }}
+          - exec nginx -g 'daemon off;'
         ports:
         - containerPort: 8080
           name: "http"

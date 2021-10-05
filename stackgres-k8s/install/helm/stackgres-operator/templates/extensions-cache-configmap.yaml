@@ -36,7 +36,7 @@ data:
       root   /opt/app-root/src;
       
       location / {
-        try_files $uri =404;
+        try_files /$host$uri =404;
       }
     }
   extensions-cache-conciliator.sh: |

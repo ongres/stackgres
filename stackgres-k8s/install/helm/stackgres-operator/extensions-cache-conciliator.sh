@@ -185,6 +185,14 @@ is_proxied_repository_url() {
   printf '%s' "$1" | grep -q "[?&]proxyUrl="
 }
 
+is_cache_timeout_repository_url() {
+  printf '%s' "$1" | grep -q "[?&]cacheTimeout="
+}
+
+is_skip_hostname_verification_repository_url() {
+  printf '%s' "$1" | grep -q "[?&]skipHostnameVerification="
+}
+
 get_image_template_from_url() {
   local IMAGE_TEMPLATE
   IMAGE_TEMPLATE="$(printf '%s' "$1" | grep "[?&]imageTemplate=")"
@@ -214,9 +222,27 @@ get_proxy_from_url() {
   local PROXY_URL
   PROXY_URL="$(printf '%s' "$1" | grep "[?&]proxyUrl=")"
   PROXY_URL="$(printf '%s' "$PROXY_URL" \
-    | sed 's/^.*[?&]imageTemplate=\([^?&]\+\)\([?&].*\)\?$/\1/')"
+    | sed 's/^.*[?&]proxyUrl=\([^?&]\+\)\([?&].*\)\?$/\1/')"
   PROXY_URL="$(printf '%s' "$PROXY_URL" | urldecode)"
   printf '%s' "$PROXY_URL"
+}
+
+get_cache_timeout_from_url() {
+  local CACHE_TIMEOUT
+  CACHE_TIMEOUT="$(printf '%s' "$1" | grep "[?&]cacheTimeout=")"
+  CACHE_TIMEOUT="$(printf '%s' "$CACHE_TIMEOUT" \
+    | sed 's/^.*[?&]cacheTimeout=\([^?&]\+\)\([?&].*\)\?$/\1/')"
+  CACHE_TIMEOUT="$(printf '%s' "$CACHE_TIMEOUT" | urldecode)"
+  printf '%s' "$CACHE_TIMEOUT"
+}
+
+get_skip_hostname_verification_from_url() {
+  local SKIP_HOSTNAME_VERIFICATION
+  SKIP_HOSTNAME_VERIFICATION="$(printf '%s' "$1" | grep "[?&]skipHostnameVerification=")"
+  SKIP_HOSTNAME_VERIFICATION="$(printf '%s' "$SKIP_HOSTNAME_VERIFICATION" \
+    | sed 's/^.*[?&]skipHostnameVerification=\([^?&]\+\)\([?&].*\)\?$/\1/')"
+  SKIP_HOSTNAME_VERIFICATION="$(printf '%s' "$SKIP_HOSTNAME_VERIFICATION" | urldecode)"
+  printf '%s' "$SKIP_HOSTNAME_VERIFICATION"
 }
 
 pull_indexes() {
@@ -232,7 +258,7 @@ pull_indexes() {
     for EXTENSIONS_REPOSITORY_URL in $(echo "$EXTENSIONS_REPOSITORY_URLS" | tr ',' '\n')
     do
       INDEX="$((INDEX + 1))"
-      if ! is_index_cache_expired "$INDEX_NAME" "$INDEX"
+      if ! is_index_cache_expired "$EXTENSIONS_REPOSITORY_URL" "$INDEX_NAME" "$INDEX"
       then
         continue
       fi
@@ -241,9 +267,18 @@ pull_indexes() {
       then
         local PROXY_URL
         PROXY_URL="$(get_proxy_from_url "$EXTENSIONS_REPOSITORY_URL")"
-        CURL_EXTRA_OPTS="--proxy $PROXY_URL"
+        CURL_EXTRA_OPTS="$CURL_EXTRA_OPTS --proxy $PROXY_URL"
       fi
-      curl -f -s -L -k $CURL_EXTRA_OPTS "${EXTENSIONS_REPOSITORY_URL%%\?*}/${INDEX_NAME}.json" > "last-${INDEX_NAME}.json"
+      if is_skip_hostname_verification_repository_url "$EXTENSIONS_REPOSITORY_URL"
+      then
+        local SKIP_HOSTNAME_VERIFICATION
+        SKIP_HOSTNAME_VERIFICATION="$(get_skip_hostname_verification_from_url "$EXTENSIONS_REPOSITORY_URL")"
+        if [ "$SKIP_HOSTNAME_VERIFICATION" = true ]
+        then
+          CURL_EXTRA_OPTS="$CURL_EXTRA_OPTS -k"
+        fi
+      fi
+      curl -f -s -L $CURL_EXTRA_OPTS "${EXTENSIONS_REPOSITORY_URL%%\?*}/${INDEX_NAME}.json" > "last-${INDEX_NAME}.json"
       jq -s '.[0] as $last | .[1] as $current_unwrapped
         | $last
         | .publishers = (.publishers | map(
@@ -262,7 +297,6 @@ pull_indexes() {
         | $current_unwrapped * $last_unwrapped
         ' "last-${INDEX_NAME}.json" "unwrapped-${INDEX_NAME}.json" > "new-unwrapped-${INDEX_NAME}.json"
       local EXTENSIONS_REPOSITORY_PATH="${EXTENSIONS_REPOSITORY_URL#*://}"
-      EXTENSIONS_REPOSITORY_PATH="${EXTENSIONS_REPOSITORY_PATH#*/}"
       EXTENSIONS_REPOSITORY_PATH="${EXTENSIONS_REPOSITORY_PATH%%\?*}"
       mkdir -p "$EXTENSIONS_REPOSITORY_PATH"
       mv "last-${INDEX_NAME}.json" "$EXTENSIONS_REPOSITORY_PATH/${INDEX_NAME}.json"
@@ -284,7 +318,7 @@ is_any_index_expired() {
     for EXTENSIONS_REPOSITORY_URL in $(echo "$EXTENSIONS_REPOSITORY_URLS" | tr ',' '\n')
     do
       INDEX="$((INDEX + 1))"
-      if is_index_cache_expired "$INDEX_NAME" "$INDEX"
+      if is_index_cache_expired "$EXTENSIONS_REPOSITORY_URL" "$INDEX_NAME" "$INDEX"
       then
         return
       fi
@@ -294,10 +328,17 @@ is_any_index_expired() {
 }
 
 is_index_cache_expired() {
-  local INDEX_NAME="$1"
-  local INDEX="$2"
+  [ -n "$1" ] && [ -n "$2" ] && [-n "$3" ]
+  local EXTENSIONS_REPOSITORY_URL="$1"
+  local INDEX_NAME="$2"
+  local INDEX="$3"
+  local CACHE_TIMEOUT=3600
+  if is_cache_timeout_repository_url "$EXTENSIONS_REPOSITORY_URL"
+  then
+    CACHE_TIMEOUT="$(get_cache_timeout_from_url "$EXTENSIONS_REPOSITORY_URL")"
+  fi
   ! test -f "${INDEX_NAME}-${INDEX}.timestamp" \
-    ||  [ "$(date +%s)" -ge "$(( $(cat "${INDEX_NAME}-${INDEX}.timestamp") + 3600 ))" ]
+    ||  [ "$(date +%s)" -ge "$(( $(cat "${INDEX_NAME}-${INDEX}.timestamp") + CACHE_TIMEOUT ))" ]
 }
 
 update_repositories_credentials() {
@@ -494,7 +535,6 @@ download_extension() {
   local EXTENSION_PACKAGE="$6"
   local TEMP="$(shuf -i 0-65535 -n 1)"
   local REPOSITORY_PATH="${REPOSITORY#*://}"
-  REPOSITORY_PATH="${REPOSITORY_PATH#*/}"
 
   if ! test -f "$REPOSITORY_PATH/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.tar"
   then
@@ -507,7 +547,16 @@ download_extension() {
       PROXY_URL="$(get_proxy_from_url "$EXTENSIONS_REPOSITORY_URL")"
       CURL_EXTRA_OPTS="--proxy $PROXY_URL"
     fi
-    curl -f -s -L -k -I $CURL_EXTRA_OPTS "$REPOSITORY/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.tar" \
+    if is_skip_hostname_verification_repository_url "$EXTENSIONS_REPOSITORY_URL"
+    then
+      local SKIP_HOSTNAME_VERIFICATION
+      SKIP_HOSTNAME_VERIFICATION="$(get_skip_hostname_verification_from_url "$EXTENSIONS_REPOSITORY_URL")"
+      if [ "$SKIP_HOSTNAME_VERIFICATION" = true ]
+      then
+        CURL_EXTRA_OPTS="$CURL_EXTRA_OPTS -k"
+      fi
+    fi
+    curl -f -s -L -I $CURL_EXTRA_OPTS "$REPOSITORY/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.tar" \
       > "$REPOSITORY_PATH/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.headers.$TEMP"
     CONTENT_LENGTH="$(grep -i 'Content-Length' "$REPOSITORY_PATH/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.headers.$TEMP")"
     CONTENT_LENGTH="$(printf '%s' "$CONTENT_LENGTH" | tr -d '[:space:]' | cut -d ':' -f 2)"
@@ -517,7 +566,7 @@ download_extension() {
     else
       echo "Warning: Can not determine Content-Length for URL $REPOSITORY/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.tar"
     fi
-    curl -f -s -L -k "$REPOSITORY/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.tar" \
+    curl -f -s -L $CURL_EXTRA_OPTS "$REPOSITORY/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.tar" \
       -o "$REPOSITORY_PATH/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.tar.tmp.$TEMP"
     mv "$REPOSITORY_PATH/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.tar.tmp.$TEMP" \
       "$REPOSITORY_PATH/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.tar"
@@ -557,7 +606,7 @@ apply_extension_cache_retention_policy() {
                   ! test -f "$DIR/$FILE" || stat --format '%X:%n' "$DIR/$FILE"
                 done
           done \
-        | sort -t : -k 1n | head -n 1 | cut -d : -f 2 \
+        | sort -t : -k 1n | grep -v '\.json$' | head -n 1 | cut -d : -f 2 \
         | while read -r FILE
           do
             echo "Removing $FILE of $(stat '%s' "$FILE")"
@@ -682,7 +731,6 @@ get_extension_container_as_yaml() {
   local BUILD_ARCH="$4"
   local BUILD_OS="$5"
   local REPOSITORY_PATH="${REPOSITORY#*://}"
-  REPOSITORY_PATH="${REPOSITORY_PATH#*/}"
   cat << EOF
 {
   name: "extension-$(jq -r '(.spec.template.spec.containers | length) - 2' "$STATEFULSET_JSON_FILE")",

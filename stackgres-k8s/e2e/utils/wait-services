@@ -19,9 +19,10 @@ traceable_wait_services_available() {
   while [ "$(date +%s)" -lt "$END" ]
   do
     ENDPOINTS="$(kubectl get endpoints "$NAMESPACE_OPT" \
-      --template '{{ range .items }}{{ $name := .metadata.name }}{{ with .subsets }}{{ range . }}{{ printf "%s\n" $name }}{{ end }}{{ end }}{{ end }}' 2>/dev/null)"
+      --template '{{ range .items }}{{ $name := .metadata.name }}{{ with .subsets }}{{ range . }}{{ with .addresses }}{{ range . }}{{ printf "%s\n" $name }}{{ end }}{{ end }}{{ end }}{{ end }}{{ end }}' 2>/dev/null)"
     AVAILABLE_SERVICES="$(printf "%s" "$ENDPOINTS" \
-      | grep "$EXPECTED_AVAILABLE_SERVICES_EXPRESSION" | tr '\n[:blank:]' ' -' | wc -w)"
+      | grep "$EXPECTED_AVAILABLE_SERVICES_EXPRESSION" \
+      | sort | uniq | tr '\n[:blank:]' ' -' | wc -w)"
     if [ "$AVAILABLE_SERVICES" -ge "$EXPECTED_AVAILABLE_SERVICES" ]
     then
       echo "$([ -z "$1" ] && echo "All services available" || echo "All services available in namespace $1")"

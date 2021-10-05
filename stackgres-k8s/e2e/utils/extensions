@@ -9,9 +9,9 @@ EXTENSIONS_CACHE_PRELOADED_EXTENSIONS="$(
     echo 'timescaledb-1.7.4-pg12'
     echo 'intagg-.*-pg12'
     echo 'pageinspect-.*-pg12'
-    echo 'pg_repack-.*-pg12'
-    echo 'postgis-.*-pg12'
-    echo 'postgis_raster-.*-pg12'
+    echo 'pg_repack-.*-pg(12|13)'
+    echo 'postgis-.*-pg(12|13)'
+    echo 'postgis_raster-.*-pg12(12|13)'
   } | jq -R . | jq -s .
   )"
 DEFAULT_BUILD_ARCH=x86_64
@@ -202,6 +202,19 @@ is_image_repository_url() {
 
 is_image_repository_with_regcred_secret_url() {
   printf '%s' "$1" | grep "[?&]imageTemplate=" | grep -q "[?&]imageRegcredSecret="
+}
+
+is_proxied_repository_url() {
+  printf '%s' "$1" | grep -q "[?&]proxyUrl="
+}
+
+get_proxy_url_from_url() {
+  local PROXY_URL
+  PROXY_URL="$(printf '%s' "$1" | grep "[?&]proxyUrl=")"
+  PROXY_URL="$(printf '%s' "$PROXY_URL" \
+    | sed 's/^.*[?&]proxyUrl=\([^?&]\+\)\([?&].*\)\?$/\1/')"
+  PROXY_URL="$(printf '%s' "$PROXY_URL" | urldecode)"
+  printf '%s' "$PROXY_URL"
 }
 
 get_image_template_from_url() {
