@@ -214,7 +214,7 @@ metadata:
 spec:
   instances: 1
   postgres:
-    version: 'latest'
+    version: '13'
   pods:
     persistentVolume:
       size: '128Mi'
