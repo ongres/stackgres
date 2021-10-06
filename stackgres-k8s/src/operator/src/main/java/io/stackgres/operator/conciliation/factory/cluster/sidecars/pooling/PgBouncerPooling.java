@@ -133,7 +133,8 @@ public class PgBouncerPooling extends AbstractPgPooling {
         .map(StackGresPoolingConfigPgBouncerPgbouncerIni::getDatabases)
         .orElseGet(HashMap::new);
 
-    return "* = port=" + EnvoyUtil.PG_PORT + "\n\n"
+    return "[databases]\n"
+        + "* = port=" + EnvoyUtil.PG_PORT + "\n\n"
         + (!databases.isEmpty()
             ? getSections(databases) + "\n\n"
             : "");
