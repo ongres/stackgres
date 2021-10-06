@@ -10,6 +10,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection(targets = {
     io.fabric8.kubernetes.api.model.Pod.class,
     io.fabric8.kubernetes.api.model.Status.class,
+    io.fabric8.kubernetes.client.dsl.base.HasMetadataOperation.class
 })
 public class ReflectionConfiguration {
 }
