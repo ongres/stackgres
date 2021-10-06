@@ -34,8 +34,8 @@ public enum ErrorType {
       "Invalid storage class"),
   INVALID_SECRET("invalid-secret",
       "Invalid secret"),
-  MISSING_EXTENSION("missing-extension",
-      "Missing extension");
+  EXTENSION_NOT_FOUND("extension-not-found",
+      "Extension not found");
 
   private String uri;
   private String title;

@@ -5,6 +5,10 @@
 
 package io.stackgres.operator.validation.cluster;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.when;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,8 +16,11 @@ import com.google.common.collect.ImmutableList;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.testutil.JsonUtil;
@@ -21,6 +28,8 @@ import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,9 +45,12 @@ class ExtensionsValidatorTest {
 
   private List<StackGresClusterInstalledExtension> defaultExtensions;
 
+  @Mock
+  private ClusterExtensionMetadataManager extensionMetadataManager;
+
   @BeforeEach
   void setUp() {
-    validator = new ExtensionsValidator();
+    validator = new ExtensionsValidator(extensionMetadataManager);
 
     defaultExtensions = Seq.of(
         "plpgsql",
@@ -46,6 +58,15 @@ class ExtensionsValidatorTest {
         "dblink",
         "plpython3u")
         .map(this::getDefaultExtension)
+        .collect(ImmutableList.toImmutableList());
+  }
+
+  private List<StackGresExtensionMetadata> getDefaultExtensionMetadatas(
+      InvocationOnMock invocation) {
+    return defaultExtensions.stream()
+        .filter(defaultExtension -> defaultExtension.getName()
+            .equals(((StackGresClusterExtension) invocation.getArgument(1)).getName()))
+        .map(StackGresExtensionMetadata::new)
         .collect(ImmutableList.toImmutableList());
   }
 
@@ -73,10 +94,15 @@ class ExtensionsValidatorTest {
   void givenACreationWithMissingExtensions_shouldFail() {
     final StackGresClusterReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getPostgres().setExtensions(null);
+    when(extensionMetadataManager.getExtensionsAnyVersion(
+        same(review.getRequest().getObject()), any()))
+        .then(this::getDefaultExtensionMetadatas);
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
-        ErrorType.MISSING_EXTENSION,
-        "Extensions dblink, pg_stat_statements, plpgsql, plpython3u are missing.");
+        ErrorType.EXTENSION_NOT_FOUND,
+        "Some extensions were not found: dblink (available 1.0.0),"
+            + " pg_stat_statements (available 1.0.0), plpgsql (available 1.0.0),"
+            + " plpython3u (available 1.0.0)");
   }
 
   private StackGresClusterReview getCreationReview() {
