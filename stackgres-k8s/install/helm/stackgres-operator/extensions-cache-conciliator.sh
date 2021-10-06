@@ -79,8 +79,6 @@ run () {
     else
       true > pull_to_install_extensions
     fi
-    )
-    (
     get_not_found_to_install_extensions > not_found_to_install_extensions
     )
     rm -f pulled_to_install_extensions
@@ -100,7 +98,7 @@ run () {
               "(publisher $PUBLISHER from $TO_INSTALL_REPOSITORY for $BUILD_ARCH/$BUILD_OS)" >&2
           fi
         done
-      (
+    (
     [ "$EXTENSIONS_CACHE_LOG_LEVEL" = TRACE ] || set +x
     ALREADY_PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING="$(
       jq '.metadata.annotations.pulled_extensions' "$STATEFULSET_JSON_FILE")"
@@ -328,11 +326,13 @@ is_any_index_expired() {
 }
 
 is_index_cache_expired() {
-  [ -n "$1" ] && [ -n "$2" ] && [-n "$3" ]
+  [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ] \
+    && true || false
   local EXTENSIONS_REPOSITORY_URL="$1"
   local INDEX_NAME="$2"
   local INDEX="$3"
   local CACHE_TIMEOUT=3600
+  false
   if is_cache_timeout_repository_url "$EXTENSIONS_REPOSITORY_URL"
   then
     CACHE_TIMEOUT="$(get_cache_timeout_from_url "$EXTENSIONS_REPOSITORY_URL")"
@@ -428,7 +428,7 @@ get_not_found_to_install_extensions() {
 }
 
 get_extension_from_url() {
-  [ -n "$1" ]
+  [ -n "$1" ] && true || false
   local NOT_FOUND_URL="$1"
   local EXTENSIONS_REPOSITORY_URL NOT_FOUND_URL_PATH EXTENSIONS_REPOSITORY_URL_PATH
   local REPOSITORY PUBLISHER BUILD_ARCH BUILD_OS EXTENSION_PACKAGE EXTENSION_ID_JSON
@@ -479,7 +479,8 @@ get_extension_from_url() {
 
 pull_extension() {
   [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ] && [ -n "$4" ] \
-    && [ -n "$5" ] && [ -n "$6" ] && [ -n "$7" ]
+    && [ -n "$5" ] && [ -n "$6" ] && [ -n "$7" ] \
+    && true || false
   local TO_INSTALL_REPOSITORY="$1"
   local PUBLISHER="$2"
   local NAME="$3"
@@ -507,6 +508,8 @@ pull_extension() {
 }
 
 find_repository_base_url() {
+  [ -n "$1" ] && true || false
+  local REPOSITORY="$1"
   local EXTENSIONS_REPOSITORY_URL
   for EXTENSIONS_REPOSITORY_URL in $(echo "$EXTENSIONS_REPOSITORY_URLS" | tr ',' '\n')
   do
@@ -526,7 +529,7 @@ find_repository_base_url() {
 
 download_extension() {
   [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ] && [ -n "$4" ] \
-    && [ -n "$5" ] && [ -n "$6" ]
+    && [ -n "$5" ] && [ -n "$6" ] && true || false
   local EXTENSIONS_REPOSITORY_URL="$1"
   local REPOSITORY="$2"
   local PUBLISHER="$3"
@@ -576,7 +579,7 @@ download_extension() {
 }
 
 apply_extension_cache_retention_policy() {
-  [ "$1" -ge 0 ]
+  [ "$1" -ge 0 ] && true || false
   local REQUIRED_BYTES="$1"
   local AVAILABLE_BYTES BLOCK_SIZE REQUIRED_BYTES_WITH_BLOCK_SIZE
   AVAILABLE_BYTES="$(df -B 1 . | tail -n 1 | tr '[:space:]' ':' | cut -d : -f 4)"
@@ -625,7 +628,8 @@ apply_extension_cache_retention_policy() {
 
 add_extension_image_to_statefulset() {
   [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ] && [ -n "$4" ] \
-    && [ -n "$5" ] && [ -n "$6" ] && [ -n "$7" ] && [ -n "$8" ]
+    && [ -n "$5" ] && [ -n "$6" ] && [ -n "$7" ] && [ -n "$8" ] \
+    && true || false
   local EXTENSIONS_REPOSITORY_URL="$1"
   local REPOSITORY="$2"
   local PUBLISHER="$3"
@@ -724,7 +728,8 @@ add_extension_image_to_statefulset() {
 }
 
 get_extension_container_as_yaml() {
-  [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ] && [ -n "$4" ] && [ -n "$5" ]
+  [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ] && [ -n "$4" ] \
+    && [ -n "$5" ] && true || false
   local IMAGE_NAME="$1"
   local REPOSITORY="$2"
   local PUBLISHER="$3"
@@ -760,7 +765,8 @@ EOF
 }
 
 provide() {
-  [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ] && [ -n "$4" ]
+  [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ] && [ -n "$4" ] \
+    && true || false
   local REPOSITORY_PATH="$1"
   local PUBLISHER="$2"
   local BUILD_ARCH="$3"

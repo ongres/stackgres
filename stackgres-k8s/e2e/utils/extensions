@@ -57,6 +57,10 @@ EOF
 }
 
 get_preloaded_extensions() {
+  if ! is_image_repository_url "$EXTENSIONS_REPOSITORY_URL"
+  then
+    return
+  fi
   if [ ! -f "$TARGET_PATH/index.json" ]
   then
     curl -s -f "$(echo "${EXTENSIONS_REPOSITORY_URL%%\?*}" | sed 's#/\+$##')/index.json" > "$TARGET_PATH/index.json"
