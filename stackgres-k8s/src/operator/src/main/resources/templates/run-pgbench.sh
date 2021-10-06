@@ -20,7 +20,7 @@ run_op() {
     then
       break
     fi
-    DROP_RETRY="$((DROP_RETRY + 1))"
+    DROP_RETRY="$((DROP_RETRY - 1))"
     sleep 3
   done
 
@@ -31,12 +31,25 @@ run_pgbench() {
   (
   export PGHOST="$PRIMARY_PGHOST"
 
-  until [ "$(psql -t -A \
-    -c "SELECT EXISTS (SELECT * FROM pg_database WHERE datname = 'pgbench')")" = 'f' ]
+  (
+  set +e
+
+  DROP_RETRY=3
+  while [ "$DROP_RETRY" -ge 0 ]
   do
-    psql -c "SELECT pg_cancel_backend(pid) FROM pg_stat_activity WHERE datname = 'pgbench' AND pid != pg_backend_pid()" \
-      -c "DROP DATABASE pgbench" || true
+    if [ "$(psql -t -A \
+      -c "SELECT EXISTS (SELECT * FROM pg_database WHERE datname = 'pgbench')")" != 'f' ]
+    then
+      if psql -c "SELECT pg_cancel_backend(pid) FROM pg_stat_activity WHERE datname = 'pgbench' AND pid != pg_backend_pid()" \
+        -c "DROP DATABASE pgbench"
+      then
+        break
+      fi
+    fi
+    DROP_RETRY="$((DROP_RETRY - 1))"
+    sleep 3
   done
+  )
 
   psql -c "CREATE DATABASE pgbench"
 
