@@ -48,14 +48,26 @@ spec:
             DNS.4 = {{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local
             EOF
 
-            openssl req -new -nodes -text -keyout /tmp/root.key \
-                -subj "/CN=system:node:{{ .Release.Name }}.{{ .Release.Namespace }}.svc;/O=system:nodes" \
-                -out /tmp/server.csr \
-                -config /tmp/csr.conf
-            openssl rsa -in /tmp/root.key -pubout -out /tmp/root.pem
-
             K8S_VERSION="$(kubectl get node --template '{{ "{{ (index .items 0).status.nodeInfo.kubeletVersion }}" }}')"
             K8S_VERSION="${K8S_VERSION#v}"
+
+            if [ "$(echo "$K8S_VERSION" | tr . '\n' \
+                | while read NUMBER; do printf '%05d' "$NUMBER"; done)" \
+              -ge "$(echo "1.21.0" | tr . '\n' \
+                | while read NUMBER; do printf '%05d' "$NUMBER"; done)" ]
+            then
+              openssl req -new -nodes -text -keyout /tmp/root.key \
+                  -subj "/CN=system:node:{{ .Release.Name }}.{{ .Release.Namespace }}.svc;/O=system:nodes" \
+                  -out /tmp/server.csr \
+                  -config /tmp/csr.conf
+            else
+              openssl req -new -nodes -text -keyout /tmp/root.key \
+                  -subj "/CN={{ .Release.Name }}.{{ .Release.Namespace }}.svc" \
+                  -out /tmp/server.csr \
+                  -config /tmp/csr.conf
+            fi
+            openssl rsa -in /tmp/root.key -pubout -out /tmp/root.pem
+
             cat << EOF | kubectl create -f -
             $(
             if [ "$(echo "$K8S_VERSION" | tr . '\n' \
