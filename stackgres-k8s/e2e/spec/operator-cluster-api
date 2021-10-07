@@ -625,9 +625,9 @@ check_extension_validation() {
 
   ERROR_RESPONSE="$(run_curl -r "stackgres/sgclusters" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-extension-cluster.json" -e '-X POST')"
 
-  EXPECTED_ERROR_TYPE="missing-extension"
-  EXPECTED_ERROR_TITLE="Missing extension"
-  EXPECTED_ERROR_DETAIL="Extension non-existing-extension is missing."
+  EXPECTED_ERROR_TYPE="extension-not-found"
+  EXPECTED_ERROR_TITLE="Extension not found"
+  EXPECTED_ERROR_DETAIL="Extension was not found: non-existing-extension"
   EXPECTED_ERROR_FIELD=""
 
   assert_api_error "$ERROR_RESPONSE"
