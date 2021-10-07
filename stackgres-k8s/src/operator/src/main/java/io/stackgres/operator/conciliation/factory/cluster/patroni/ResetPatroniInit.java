@@ -29,6 +29,7 @@ import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
@@ -40,7 +41,7 @@ import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContai
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
-@InitContainer(order = 7)
+@InitContainer(ClusterInitContainer.RESET_PATRONI_INIT)
 public class ResetPatroniInit implements ContainerFactory<StackGresClusterContainerContext> {
 
   private final PatroniServices patroniServices;

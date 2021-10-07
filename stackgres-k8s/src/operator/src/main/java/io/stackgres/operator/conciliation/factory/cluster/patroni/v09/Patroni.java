@@ -39,6 +39,7 @@ import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.ClusterRunningContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ProviderName;
@@ -55,7 +56,7 @@ import io.stackgres.operator.patroni.factory.PatroniScriptsConfigMap;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
-@RunningContainer(order = 0)
+@RunningContainer(ClusterRunningContainer.PATRONI_V09)
 public class Patroni implements ContainerFactory<StackGresClusterContainerContext> {
 
   public static final String POST_INIT_SUFFIX = "-post-init";

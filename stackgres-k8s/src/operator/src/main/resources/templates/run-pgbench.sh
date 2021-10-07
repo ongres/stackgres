@@ -1,5 +1,7 @@
 #!/bin/sh
 
+DATABASE_NAME="pgbench_$(printf '%x' "$(date +%s)")"
+
 run_op() {
   set +e
 
@@ -11,18 +13,7 @@ run_op() {
 
   EXIT_CODE="$?"
 
-  DROP_RETRY=3
-  while [ "$DROP_RETRY" -ge 0 ]
-  do
-    if psql --host="$PRIMARY_PGHOST" -c "SELECT pg_terminate_backend(pid)
-        FROM pg_stat_activity WHERE datname = 'pgbench'" \
-      -c "DROP DATABASE pgbench"
-    then
-      break
-    fi
-    DROP_RETRY="$((DROP_RETRY + 1))"
-    sleep 3
-  done
+  try_drop_pgbench_database
 
   return "$EXIT_CODE"
 }
@@ -31,31 +22,84 @@ run_pgbench() {
   (
   export PGHOST="$PRIMARY_PGHOST"
 
-  until [ "$(psql -t -A \
-    -c "SELECT EXISTS (SELECT * FROM pg_database WHERE datname = 'pgbench')")" = 'f' ]
-  do
-    psql -c "SELECT pg_cancel_backend(pid) FROM pg_stat_activity WHERE datname = 'pgbench' AND pid != pg_backend_pid()" \
-      -c "DROP DATABASE pgbench" || true
-  done
+  DATABASE_EXISTS="$(psql -t -A \
+    -c "SELECT EXISTS (SELECT * FROM pg_database WHERE datname = '$DATABASE_NAME')")"
+  if [ "$DATABASE_EXISTS" != 'f' ]
+  then
+    try_drop_pgbench_database
+  fi
 
-  psql -c "CREATE DATABASE pgbench"
+  if MESSAGE="$(psql -c "CREATE DATABASE $DATABASE_NAME" 2>&1)"
+  then
+    echo "$MESSAGE"
+    create_event "DatabaseCreated" "Normal" "Database $DATABASE_NAME created"
+  else
+    create_event "CreateDatabaseFailed" "Warning" "Can not create database $DATABASE_NAME: $MESSAGE"
+    return 1
+  fi
 
-  pgbench -s "$SCALE" -i pgbench
+  create_event "BenchmarkInitializationStarted" "Normal" "Benchamrk initialization started"
+  if MESSAGE="$(pgbench -s "$SCALE" -i "$DATABASE_NAME" 2>&1)"
+  then
+    echo "$MESSAGE"
+    create_event "BenchmarkInitialized" "Normal" "Benchamrk initialized"
+  else
+    create_event "BenchmarkInitializationFailed" "Warning" "Can not initialize benchmark: $MESSAGE"
+    return 1
+  fi
   )
 
   if "$READ_WRITE"
   then
-    pgbench -M "$PROTOCOL" -s "$SCALE" -T "$DURATION" -c "$CLIENTS" -j "$JOBS" -r -P 1 pgbench
+    create_event "BenchmarkStarted" "Normal" "Benchamrk started"
+    if MESSAGE="$(pgbench -M "$PROTOCOL" -s "$SCALE" -T "$DURATION" -c "$CLIENTS" -j "$JOBS" -r -P 1 -d "$DATABASE_NAME" 2>&1)"
+    then
+      echo "$MESSAGE"
+      create_event "BenchmarkCompleted" "Normal" "Benchmark completed"
+    else
+      create_event "BenchmarkFailed" "Warning" "Can not complete benchmark: $MESSAGE"
+      return 1
+    fi
   else
-    PGBENCH_ACCOUNTS_COUNT="$(PGHOST="$PRIMARY_PGHOST" psql -t -A -d pgbench \
+    create_event "BenchmarkPostInitializationStarted" "Normal" "Benchamrk post initialization started"
+    PGBENCH_ACCOUNTS_COUNT="$(PGHOST="$PRIMARY_PGHOST" psql -t -A -d "$DATABASE_NAME" \
       -c "SELECT COUNT(*) FROM pgbench_accounts")"
 
-    until [ "$(psql -t -A -d pgbench \
+    until [ "$(psql -t -A -d "$DATABASE_NAME" \
       -c "SELECT COUNT(*) FROM pgbench_accounts")" = "$PGBENCH_ACCOUNTS_COUNT" ]
     do
       sleep 1
     done
+    create_event "BenchmarkPostInitializationCompleted" "Normal" "Benchamrk post initialization completed"
 
-    pgbench -b "select-only" -M "$PROTOCOL" -s "$SCALE" -T "$DURATION" -c "$CLIENTS" -j "$JOBS" -r -P 1 pgbench
+    create_event "BenchmarkStarted" "Normal" "Benchamrk started"
+    if MESSAGE="$(pgbench -b "select-only" -M "$PROTOCOL" -s "$SCALE" -T "$DURATION" -c "$CLIENTS" -j "$JOBS" -r -P 1 -d "$DATABASE_NAME" 2>&1)"
+    then
+      echo "$MESSAGE"
+      create_event "BenchmarkCompleted" "Normal" "Benchmark completed"
+    else
+      create_event "BenchmarkFailed" "Warning" "Can not complete benchmark: $MESSAGE"
+      return 1
+    fi
   fi
 }
+
+try_drop_pgbench_database() {
+  (
+  set +e
+  DROP_RETRY=3
+  while [ "$DROP_RETRY" -ge 0 ]
+  do
+      if MESSAGE="$(psql \
+        -c "SELECT pg_cancel_backend(pid) FROM pg_stat_activity WHERE datname = '$DATABASE_NAME' AND pid != pg_backend_pid()" \
+        -c "DROP DATABASE $DATABASE_NAME" 2>&1)"
+    then
+      break
+    fi
+    create_event "DropDatabaseFailed" "Warning" "Can not drop $DATABASE_NAME database: $MESSAGE"
+    DROP_RETRY="$((DROP_RETRY - 1))"
+    sleep 3
+  done
+  )
+}
+

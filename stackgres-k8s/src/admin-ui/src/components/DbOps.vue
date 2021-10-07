@@ -27,7 +27,7 @@
                         <a v-if="iCan('delete','sgdbops',$route.params.namespace)" title="Delete Operation" @click="deleteCRD('sgdbops',$route.params.namespace, $route.params.name, '/' + $route.params.namespace + '/sgdbops')">
                             Delete Operation
                         </a>
-                        <router-link class="borderLeft" :to="'/' + $route.params.namespace + '/sgdbops'" title="Close Details">Close Details</router-link>
+                        <router-link class="borderLeft" :to="'/' + $route.params.namespace + '/sgdbops'" title="Close Operation Details">Close Operation Details</router-link>
                     </template>
                     <template v-else>
                         <router-link v-if="iCan('create','sgdbops',$route.params.namespace)"  :to="'/' + $route.params.namespace + '/sgdbops/new'" class="add">Add New</router-link>
@@ -237,7 +237,8 @@
                     <div class="info"></div>
                 </div>
             </template>
-            <template v-else>
+
+            <template v-else-if="$route.params.hasOwnProperty('name') && !$route.params.hasOwnProperty('uid')">
                 <h2>Operation Details</h2>
                 <template v-for="(op, index) in dbOps" v-if="op.name == $route.params.name">
                     <template v-if="( (op.data.spec.op == 'minorVersionUpgrade') && hasProp(op, 'data.status.conditions') )">
@@ -1193,8 +1194,232 @@
                                 </template>
                             </tbody>
                         </table>
+
+                        <h2>Operation Events</h2>
+                        <div class="fixedHeight">
+                            <table class="events resizable" v-columns-resizable>
+                                <thead>
+                                    <th class="firstTimestamp hasTooltip">
+                                        <span title="First Timestamp">
+                                            First Timestamp
+                                        </span>
+                                    </th>
+                                    <th class="lastTimestamp hasTooltip">
+                                        <span title="Last Timestamp">
+                                            Last Timestamp
+                                        </span>
+                                    </th>
+                                    <th class="involvedObject hasTooltip">
+                                        <span title="Component">
+                                            Component
+                                        </span>
+                                    </th>
+                                    <th class="eventMessage hasTooltip">
+                                        <span title="Message">
+                                            Message
+                                        </span>
+                                    </th>
+                                </thead>
+                                <tbody>
+                                    <template v-if="!events.length">
+                                        <tr class="no-results">
+                                            <td colspan="999">
+                                                No recent events have been recorded for this operation.
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <template v-else>
+                                        <template v-for="event in events">
+                                            <tr class="base">
+                                                <td class="timestamp hasTooltip">
+                                                    <span v-if="event.hasOwnProperty('firstTimestamp')">
+                                                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + $route.params.name + '/event/' + event.metadata.uid" class="noColor">
+                                                            <span class='date'>
+                                                                {{ event.firstTimestamp | formatTimestamp('date') }}
+                                                            </span>
+                                                            <span class='time'>
+                                                                {{ event.firstTimestamp | formatTimestamp('time') }}
+                                                            </span>
+                                                            <span class='ms'>
+                                                                {{ event.firstTimestamp | formatTimestamp('ms') }}
+                                                            </span>
+                                                            <span class='tzOffset'>{{ showTzOffset() }}</span>
+                                                        </router-link>
+                                                    </span>
+                                                </td>
+                                                <td class="timestamp hasTooltip">
+                                                    <span v-if="event.hasOwnProperty('lastTimestamp')">
+                                                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + $route.params.name + '/event/' + event.metadata.uid" class="noColor">
+                                                            <span class='date'>
+                                                                {{ event.lastTimestamp | formatTimestamp('date') }}
+                                                            </span>
+                                                            <span class='time'>
+                                                                {{ event.lastTimestamp | formatTimestamp('time') }}
+                                                            </span>
+                                                            <span class='ms'>
+                                                                {{ event.lastTimestamp | formatTimestamp('ms') }}
+                                                            </span>
+                                                            <span class='tzOffset'>{{ showTzOffset() }}</span>
+                                                        </router-link>
+                                                    </span>
+                                                </td>
+                                                <td class="involvedObject">
+                                                    <span>
+                                                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + $route.params.name + '/event/' + event.metadata.uid" class="noColor">
+                                                            {{ event.involvedObject.kind }}/{{ event.involvedObject.name }}
+                                                        </router-link>
+                                                    </span>
+                                                </td>
+                                                <td class="eventMessage hasTooltip">
+                                                    <span>
+                                                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + $route.params.name + '/event/' + event.metadata.uid" class="noColor">
+                                                            {{ event.message }}
+                                                        </router-link>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    
+                        <div id="nameTooltip">
+                            <div class="info"></div>
+                        </div>
                     </template>
                 </template>
+            </template>
+            
+            <template v-else-if="$route.params.hasOwnProperty('name') && $route.params.hasOwnProperty('uid')">
+                <div class="relative">
+                    <h2>Event Details</h2>
+                    <div class="titleLinks">
+                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + $route.params.name" title="Close Event Details">Close Event Details</router-link>
+                    </div>
+                    <div class="configurationDetails" v-for="event in events" v-if="event.metadata.uid == $route.params.uid">
+                        <table class="events crdDetails">
+                            <tbody>
+                                <tr>
+                                    <td class="label">Name</td>
+                                    <td>{{ event.metadata.name }}</td>
+                                </tr>
+                                <tr v-if="event.hasOwnProperty('type') && event.type">
+                                    <td class="label">Type</td>
+                                    <td>{{ event.type }}</td>
+                                </tr>
+                                <tr v-if="event.hasOwnProperty('eventTime') && event.eventTime">
+                                    <td class="label">Event Time</td>
+                                    <td class="timestamp">
+                                        <span class='date'>
+                                            {{ event.eventTime | formatTimestamp('date') }}
+                                        </span>
+                                        <span class='time'>
+                                            {{ event.eventTime | formatTimestamp('time') }}
+                                        </span>
+                                        <span class='ms'>
+                                            {{ event.eventTime | formatTimestamp('ms') }}
+                                        </span>
+                                        <span class='tzOffset'>{{ showTzOffset() }}</span>
+                                    </td>
+                                </tr>
+                                <tr v-if="event.hasOwnProperty('firstTimestamp') && event.firstTimestamp">
+                                    <td class="label">First Timestamp</td>
+                                    <td class="timestamp">
+                                        <span class='date'>
+                                            {{ event.firstTimestamp | formatTimestamp('date') }}
+                                        </span>
+                                        <span class='time'>
+                                            {{ event.firstTimestamp | formatTimestamp('time') }}
+                                        </span>
+                                        <span class='ms'>
+                                            {{ event.firstTimestamp | formatTimestamp('ms') }}
+                                        </span>
+                                        <span class='tzOffset'>{{ showTzOffset() }}</span>
+                                    </td>
+                                </tr>
+                                <tr v-if="event.hasOwnProperty('lastTimestamp') && event.lastTimestamp">
+                                    <td class="label">Last Timestamp</td>
+                                    <td class="timestamp">
+                                        <span class='date'>
+                                            {{ event.lastTimestamp | formatTimestamp('date') }}
+                                        </span>
+                                        <span class='time'>
+                                            {{ event.lastTimestamp | formatTimestamp('time') }}
+                                        </span>
+                                        <span class='ms'>
+                                            {{ event.lastTimestamp | formatTimestamp('ms') }}
+                                        </span>
+                                        <span class='tzOffset'>{{ showTzOffset() }}</span>
+                                    </td>
+                                </tr>
+                                <tr v-if="event.hasOwnProperty('message') && event.message">
+                                    <td class="label">Message</td>
+                                    <td>{{ event.message }}</td>
+                                </tr>
+                                <tr v-if="event.hasOwnProperty('action') && event.action">
+                                    <td class="label">Action</td>
+                                    <td>{{ event.action }}</td>
+                                </tr>
+                                <tr v-if="event.hasOwnProperty('count') && event.count">
+                                    <td class="label">Count</td>
+                                    <td>{{ event.count }}</td>
+                                </tr>
+                                <tr v-if="event.hasOwnProperty('reason') && event.reason">
+                                    <td class="label">Reason</td>
+                                    <td>{{ event.reason }}</td>
+                                </tr>
+                                <tr v-if="event.hasOwnProperty('involvedObject') && event.involvedObject">
+                                    <td class="label">Involved Object</td>
+                                    <td>{{ event.involvedObject.kind }}/{{ event.involvedObject.name }}</td>
+                                </tr>
+                                <tr v-if="event.hasOwnProperty('related') && event.related">
+                                    <td class="label">Related</td>
+                                    <td>{{ event.related.kind }}/{{ event.related.name }}</td>
+                                </tr>
+                                <tr v-if="event.hasOwnProperty('reportingComponent') && event.reportingComponent">
+                                    <td class="label">Reporting Component</td>
+                                    <td class="vPad">{{ event.reportingComponent }}</td>
+                                </tr>
+                                <tr v-if="event.hasOwnProperty('reportingInstance') && event.reportingInstance">
+                                    <td class="label">Reporting Instance</td>
+                                    <td class="vPad">{{ event.reportingInstance }}</td>
+                                </tr>
+                                <tr v-if="event.hasOwnProperty('series') && event.series && event.series.hasOwnProperty('count') && event.series.count">
+                                    <td class="label">Series Count</td>
+                                    <td>{{ event.series.count }}</td>
+                                </tr>
+                                <tr v-if="event.hasOwnProperty('series') && event.series && event.series.hasOwnProperty('lastObservedTime') && event.series.lastObservedTime">
+                                    <td class="label">Series Last Observed Time</td>
+                                    <td class="timestamp">
+                                        <span class='date'>
+                                            {{ event.series.lastObservedTime | formatTimestamp('date') }}
+                                        </span>
+                                        <span class='time'>
+                                            {{ event.series.lastObservedTime | formatTimestamp('time') }}
+                                        </span>
+                                        <span class='ms'>
+                                            {{ event.series.lastObservedTime | formatTimestamp('ms') }}
+                                        </span>
+                                        <span class='tzOffset'>{{ showTzOffset() }}</span>
+                                    </td>
+                                </tr>
+                                <tr v-if="event.hasOwnProperty('series') && event.series && event.series.hasOwnProperty('state') && event.series.state">
+                                    <td class="label">Series State</td>
+                                    <td>{{ event.series.state }}</td>
+                                </tr>
+                                <tr v-if="event.hasOwnProperty('source') && event.source && event.source.hasOwnProperty('component') && event.source.component">
+                                    <td class="label">Source Component</td>
+                                    <td>{{ event.source.component }}</td>
+                                </tr>
+                                <tr v-if="event.hasOwnProperty('source') && event.source && event.source.hasOwnProperty('host') && event.source.host">
+                                    <td class="label">Source Host</td>
+                                    <td>{{ event.source.host }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </template>
         </div>
     </div>
@@ -1232,8 +1457,20 @@
 				},
                 podConnections: {},
                 pollClusterStats: 0,
+                events: [],
+                eventsPooling: null
             }
         },
+
+        mounted: function() {
+			const vc = this;
+
+			vc.getOpEvents();
+			vc.eventsPooling = setInterval( function() {
+				vc.getOpEvents()
+			}, 10000);
+		},
+
         methods: {
 
             getOpStatus(op) {
@@ -1348,6 +1585,31 @@
                 return connections
             },
 
+            getOpEvents() {
+				const vc = this;
+				
+				axios
+				.get('/stackgres/namespaces/' + vc.$route.params.namespace + '/sgdbops/' + vc.$route.params.name + '/events')
+				.then( function(response) {
+					vc.events = [...response.data]
+
+                    vc.events.sort((a,b) => {
+						
+						if(moment(a.firstTimestamp).isValid && moment(b.firstTimestamp).isValid) {
+
+							if(moment(a.firstTimestamp).isBefore(moment(b.firstTimestamp)))
+								return 1;
+						
+							if(moment(a.firstTimestamp).isAfter(moment(b.firstTimestamp)))
+								return -1;  
+
+						}
+					});
+				}).catch(function(err) {
+					console.log(err);
+					vc.checkAuthError(err);
+				});
+			},
         },
         
         computed: {
@@ -1446,7 +1708,8 @@
         },
 
         beforeDestroy: function() {
-            clearInterval(this.pollClusterStats)
+            clearInterval(this.pollClusterStats);
+            clearInterval(this.eventsPooling)
         }
     }
 </script>
@@ -1698,6 +1961,12 @@
 
     tr:nth-child(even) span.helpTooltip.alert, .darkmode tr:nth-child(even) span.helpTooltip.alert {
         border-color: var(--activeBg);
+    }
+
+    .fixedHeight {
+        max-height: 33vh;
+        overflow-y: auto;
+        overflow-x: hidden;
     }
 
     @media screen and (min-width: 2600px) {

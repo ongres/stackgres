@@ -39,6 +39,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
+import io.stackgres.operator.conciliation.factory.ClusterRunningContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ContextUtil;
@@ -57,7 +58,7 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.patroni.Patron
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10A4)
-@RunningContainer(order = 0)
+@RunningContainer(ClusterRunningContainer.PATRONI)
 public class PatroniContainer implements ContainerFactory<DistributedLogsContainerContext> {
 
   private static final String IMAGE_NAME = "docker.io/ongres/patroni:v1.6.5-pg12.6-build-6.2";

@@ -17,16 +17,13 @@ import javax.inject.Inject;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
-import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.stackgres.cluster.common.ExtensionEventReason;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.event.ClusterEventEmitter;
-import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.event.EventEmitterType;
 import io.stackgres.common.resource.ClusterFinder;
-import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operatorframework.resource.EventReason;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;

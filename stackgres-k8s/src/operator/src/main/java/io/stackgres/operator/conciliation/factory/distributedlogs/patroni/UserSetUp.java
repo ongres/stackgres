@@ -14,6 +14,7 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
@@ -22,7 +23,7 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDyn
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
-@InitContainer(order = 0)
+@InitContainer(ClusterInitContainer.USER_SET_UP)
 public class UserSetUp implements ContainerFactory<DistributedLogsContainerContext> {
 
   @Override

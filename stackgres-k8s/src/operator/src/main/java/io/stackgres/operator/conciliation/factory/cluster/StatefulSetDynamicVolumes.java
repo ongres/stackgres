@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.cluster;
 
+import java.util.Optional;
+
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 public enum StatefulSetDynamicVolumes {
@@ -18,11 +20,18 @@ public enum StatefulSetDynamicVolumes {
   ENVOY("envoy", "%s-envoy-config"),
   EXPORTER_QUERIES("queries", "%s-prometheus-postgres-exporter-config"),
   EXPORTER_INIT("postgres-exporter-init", "%s-prometheus-postgresx"),
-  PG_BOUNCER("pgbouncer", "%s-connection-pooling-config"),
+  PGBOUNCER("pgbouncer", "%s-connection-pooling-config"),
+  PGBOUNCER_AUTH_FILE("pgbouncer-auth-file"),
+  PGBOUNCER_SECRETS("pgbouncer-secrets"),
   FLUENT_BIT("fluent-bit", "%s-fluent-bit");
 
   private final String volumeName;
   private final String resourceNameFormat;
+
+  StatefulSetDynamicVolumes(String volumeName) {
+    this.volumeName = volumeName;
+    this.resourceNameFormat = null;
+  }
 
   StatefulSetDynamicVolumes(String volumeName, String resourceFormat) {
     this.volumeName = volumeName;
@@ -34,6 +43,10 @@ public enum StatefulSetDynamicVolumes {
   }
 
   public String getResourceName(String clusterName) {
-    return ResourceUtil.resourceName(String.format(resourceNameFormat, clusterName));
+    return Optional.ofNullable(resourceNameFormat)
+        .map(resourceNameFormat -> ResourceUtil.resourceName(
+            String.format(resourceNameFormat, clusterName)))
+        .orElseThrow(() -> new IllegalArgumentException(getClass().getSimpleName()
+            + " " + name() + " has no resource format configured"));
   }
 }

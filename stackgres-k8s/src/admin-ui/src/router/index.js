@@ -380,6 +380,14 @@ const routes = [
     },
   },
   { 
+    path: '/:namespace/sgdbop/:name/event/:uid', 
+    component: DbOps,
+    name: 'SingleDbOpsEvents',
+    meta: {
+      conditionalRoute: false
+    },
+  },
+  { 
     path: '/:namespace/sgcluster/:name/monitor', 
     component: Grafana,
     name: 'ClusterMonitor',

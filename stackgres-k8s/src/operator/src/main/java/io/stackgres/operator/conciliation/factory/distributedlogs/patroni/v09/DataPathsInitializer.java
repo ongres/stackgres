@@ -20,6 +20,7 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
+import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.FactoryName;
@@ -33,7 +34,7 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.patroni.Distri
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
-@InitContainer(order = 1)
+@InitContainer(ClusterInitContainer.DATA_PATHS_INITIALIZER)
 public class DataPathsInitializer implements ContainerFactory<DistributedLogsContainerContext> {
 
   private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;

@@ -359,7 +359,7 @@ public abstract class ExtensionManager {
         }
       }
       if (tarEntry.isFile() && !tarEntry.isSymbolicLink()) {
-        fileSystemHandler.copyOrReplace(targetPath, tarEntryInputStream);
+        fileSystemHandler.copyOrReplace(tarEntryInputStream, targetPath);
         int fileMode = tarEntry.getMode();
         Set<PosixFilePermission> permissions = parseMode(fileMode);
         fileSystemHandler.setPosixFilePermissions(targetPath, permissions);

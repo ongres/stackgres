@@ -36,7 +36,7 @@ That means that all of error messages follows the following structure:
 | [constraint-violation](#constraint-violation) | One of the properties of the CR that you are creating or updating violates its syntactic rules. |
 | [forbidden-authorization](#forbidden-authorization) | You don't have the permisions to access the Kubernetes resource based on the RBAC rules. |
 | [invalid-secret](#invalid-secret) | You are trying to create a cluster using a secret that doesn't exists |
-| [missing-extension](#missing-extension) | Any of the default or configured extensions can not be found in extensions repository |
+| [extension-not-found](#extension-not-found) | Any of the default or configured extensions can not be found in extensions repository |
 | [already-exists](#already-exists) | The resource already exists |
 
 ## Postgres Blocklist
@@ -311,7 +311,7 @@ If you specify a secret in the cluster creation, that secret have to already exs
 
 If it doesn't you will get an error.
 
-## Missing Extension
+## Extension not found
 
 If you specify an extension than can not be found in any repository you will get an error.
 

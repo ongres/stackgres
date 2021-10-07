@@ -26,6 +26,7 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ContextUtil;
@@ -37,7 +38,7 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLog
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
-@InitContainer(order = 4)
+@InitContainer(ClusterInitContainer.INIT_RELOCATE_BINARIES)
 public class InitRelocateBinaries implements ContainerFactory<DistributedLogsContainerContext> {
 
   private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;

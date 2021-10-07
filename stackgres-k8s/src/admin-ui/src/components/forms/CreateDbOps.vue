@@ -327,6 +327,7 @@
                         </select>
                     </div>
                     <a class="help" @click="showTooltip( 'sgdbops', 'spec.benchmark.pgbench.duration')"></a>
+                    <span class="warning">The pgbench Benchmark Duration <strong>does not include database preparation</strong> that, depending on the selected size and environment, may take from some seconds to hours.</span>
 
                     <label for="spec.benchmark.pgbench.usePreparedStatements">Prepared Statements</label>
                     <label for="usePreparedStatements" class="switch yes-no">Enable<input type="checkbox" id="usePreparedStatements" v-model="benchmark.pgbench.usePreparedStatements" data-switch="NO"></label>

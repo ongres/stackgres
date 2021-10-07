@@ -32,12 +32,14 @@ public class ClusterControllerReconciliator
 
   private final CustomResourceScheduler<StackGresCluster> clusterScheduler;
   private final ClusterExtensionReconciliator extensionReconciliator;
+  private final PgBouncerReconciliator pgbouncerReconciliator;
   private final ClusterControllerPropertyContext propertyContext;
 
   @Inject
   public ClusterControllerReconciliator(Parameters parameters) {
     this.clusterScheduler = parameters.clusterScheduler;
     this.extensionReconciliator = parameters.extensionReconciliator;
+    this.pgbouncerReconciliator = parameters.pgbouncerReconciliator;
     this.propertyContext = parameters.propertyContext;
   }
 
@@ -47,6 +49,7 @@ public class ClusterControllerReconciliator
     this.propertyContext = null;
     this.clusterScheduler = null;
     this.extensionReconciliator = null;
+    this.pgbouncerReconciliator = null;
   }
 
   @SuppressFBWarnings(value = "REC_CATCH_EXCEPTION",
@@ -56,9 +59,10 @@ public class ClusterControllerReconciliator
                                               StackGresClusterContext context) throws Exception {
     ReconciliationResult<Boolean> extensionReconciliationResult =
         extensionReconciliator.reconcile(client, context);
+    ReconciliationResult<Boolean> pgbouncerReconciliationResult =
+        pgbouncerReconciliator.reconcile(client, context);
 
     if (extensionReconciliationResult.result().orElse(false)) {
-
       final String podName = propertyContext.getString(
           ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
       final StackGresCluster cluster = context.getCluster();
@@ -85,7 +89,9 @@ public class ClusterControllerReconciliator
                     () -> targetCluster.getStatus().getPodStatuses().add(podStatus));
           });
     }
-    return extensionReconciliationResult;
+
+    return extensionReconciliationResult
+        .join(pgbouncerReconciliationResult);
   }
 
   private Optional<StackGresClusterPodStatus> findPodStatus(
@@ -102,6 +108,8 @@ public class ClusterControllerReconciliator
     CustomResourceScheduler<StackGresCluster> clusterScheduler;
     @Inject
     ClusterExtensionReconciliator extensionReconciliator;
+    @Inject
+    PgBouncerReconciliator pgbouncerReconciliator;
     @Inject
     ClusterControllerPropertyContext propertyContext;
   }

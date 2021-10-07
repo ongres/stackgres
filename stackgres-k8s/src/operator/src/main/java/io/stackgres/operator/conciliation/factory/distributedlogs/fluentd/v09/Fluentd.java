@@ -45,6 +45,7 @@ import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
+import io.stackgres.operator.conciliation.factory.ClusterRunningContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
@@ -61,7 +62,7 @@ import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
-@RunningContainer(order = 2)
+@RunningContainer(ClusterRunningContainer.FLUENTD_V09)
 public class Fluentd implements ContainerFactory<DistributedLogsContainerContext>,
     ResourceGenerator<StackGresDistributedLogsContext>,
     VolumeFactory<StackGresDistributedLogsContext> {

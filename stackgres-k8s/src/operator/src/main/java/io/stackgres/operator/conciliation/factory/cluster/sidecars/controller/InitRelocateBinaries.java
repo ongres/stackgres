@@ -20,6 +20,7 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ContextUtil;
@@ -31,7 +32,7 @@ import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContai
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
-@InitContainer(order = 4)
+@InitContainer(ClusterInitContainer.INIT_RELOCATE_BINARIES)
 public class InitRelocateBinaries implements ContainerFactory<StackGresClusterContainerContext> {
 
   private final VolumeMountsProvider<PostgresContainerContext> postgresExtensionsMounts;

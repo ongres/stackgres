@@ -97,6 +97,7 @@ check_pgbouncer_database(){
   check_pgbouncer_data "foodb" "max_db_connections=1000"
   check_pgbouncer_data "foodb" "reserve_pool=5"
   check_pgbouncer_data "foodb" "datestyle=ISO"
+  check_pgbouncer_data "*" "port=5432"
 }
 
 check_pgbouncer_users(){
