@@ -116,7 +116,7 @@ public class JsonUtil {
   public static void assertJsonEquals(ObjectNode expected, ObjectNode actual) {
     try {
       JSONAssert.assertEquals(
-          expected.toString(), actual.toString(), JSONCompareMode.STRICT);
+          expected.toString(), actual.toString(), JSONCompareMode.NON_EXTENSIBLE);
     } catch (JSONException ex) {
       throw new RuntimeException(ex);
     }

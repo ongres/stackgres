@@ -106,7 +106,7 @@ class ClusterRequiredResourcesGeneratorTest {
         .setPostgresVersion(StackGresComponent.POSTGRESQL.findLatestMajorVersion());
     setNamespace(postgresConfig);
     postgresConfig.setStatus(new StackGresPostgresConfigStatus());
-    final String version = cluster.getSpec().getPostgres().getVersion();
+    final String version = postgresConfig.getSpec().getPostgresVersion();
     postgresConfig.getStatus()
         .setDefaultParameters(PostgresDefaultValues.getDefaultValues(version));
     poolingConfig =

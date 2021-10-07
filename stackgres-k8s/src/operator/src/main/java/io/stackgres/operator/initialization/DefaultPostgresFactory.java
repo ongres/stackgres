@@ -6,22 +6,24 @@
 package io.stackgres.operator.initialization;
 
 import java.util.List;
+import java.util.Properties;
 
 import javax.enterprise.context.Dependent;
 
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.Blocklist;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresBlocklist;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
+import org.jetbrains.annotations.NotNull;
 
 @Dependent
 public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackGresPostgresConfig>
     implements PostgresConfigurationFactory {
 
   public static final String NAME = "defaultpgconfig";
-  public static final String POSTGRES_DEFAULT_VALUES = "postgresql-default-values.properties";
 
-  private String postgresVersion;
+  private @NotNull String postgresVersion;
 
   public DefaultPostgresFactory() {
     this.postgresVersion = StackGresComponent.POSTGRESQL.findMajorVersion(
@@ -29,13 +31,13 @@ public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackG
   }
 
   @Override
-  String getDefaultPropertiesFile() {
-    return POSTGRES_DEFAULT_VALUES;
+  Properties getDefaultPropertiesFile() {
+    return PostgresDefaultValues.getProperties(postgresVersion);
   }
 
   @Override
   List<String> getExclusionProperties() {
-    return Blocklist.getBlocklistParameters();
+    return List.copyOf(PostgresBlocklist.getBlocklistParameters());
   }
 
   @Override
@@ -73,7 +75,7 @@ public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackG
     return postgresVersion;
   }
 
-  public void setPostgresVersion(String postgresVersion) {
+  public void setPostgresVersion(@NotNull String postgresVersion) {
     this.postgresVersion = postgresVersion;
   }
 }

@@ -5,47 +5,39 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni.parameters;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import io.stackgres.common.StackGresUtil;
 import org.jetbrains.annotations.NotNull;
 
 public class PostgresDefaultValues {
 
   private enum PostgresVersion {
     PG_DEFAULT_VALUES("/postgresql-default-values.properties"),
-    PG13_VALUES("/postgresql-default-values-pg13.properties");
+    PG_13_VALUES("/postgresql-default-values-pg13.properties");
 
-    private final @NotNull ImmutableMap<String, String> propFile;
+    private final @NotNull Properties propFile;
 
     PostgresVersion(@NotNull String file) {
-      this.propFile = readResource(file);
+      this.propFile = StackGresUtil.loadProperties(file);
     }
 
-    private static @NotNull ImmutableMap<String, String> readResource(@NotNull String file) {
-      Properties properties = new Properties();
-      try (InputStream is = PostgresDefaultValues.class.getResourceAsStream(file)) {
-        properties.load(is);
-      } catch (IOException ex) {
-        throw new UncheckedIOException(ex);
-      }
-      return Maps.fromProperties(properties);
-    }
   }
 
-  public static @NotNull Map<String, String> getDefaultValues(@NotNull String pgVersion) {
+  public static @NotNull Properties getProperties(@NotNull String pgVersion) {
     Objects.requireNonNull(pgVersion, "pgVersion parameter is null");
     int majorVersion = Integer.parseInt(pgVersion.split("\\.")[0]);
     if (majorVersion >= 13) {
-      return PostgresVersion.PG13_VALUES.propFile;
+      return PostgresVersion.PG_13_VALUES.propFile;
     }
     return PostgresVersion.PG_DEFAULT_VALUES.propFile;
+  }
+
+  public static @NotNull Map<String, String> getDefaultValues(@NotNull String pgVersion) {
+    return Maps.fromProperties(getProperties(pgVersion));
   }
 
 }

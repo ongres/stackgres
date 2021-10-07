@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.initialization;
 
-import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -34,14 +33,10 @@ public class PostgresDefaultFactoriesProvider
   public List<PostgresConfigurationFactory> buildFactories() {
     return Seq.seq(StackGresComponent.POSTGRESQL.getOrderedMajorVersions())
         .map(majorVersion -> {
-          try {
-            DefaultPostgresFactory factory = resourceFactories.get();
-            factory.setPostgresVersion(majorVersion);
-            factory.init();
-            return factory;
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
+          DefaultPostgresFactory factory = resourceFactories.get();
+          factory.setPostgresVersion(majorVersion);
+          factory.init();
+          return factory;
         }).collect(ImmutableList.toImmutableList());
   }
 

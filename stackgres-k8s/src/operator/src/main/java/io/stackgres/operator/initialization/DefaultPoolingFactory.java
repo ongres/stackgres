@@ -5,18 +5,19 @@
 
 package io.stackgres.operator.initialization;
 
+import java.util.Properties;
+
 import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerPgbouncerIni;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
+import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerDefaultValues;
 
 @ApplicationScoped
 public class DefaultPoolingFactory
     extends AbstractCustomResourceFactory<StackGresPoolingConfig> {
-
-  public static final String PGBOUNCER_DEFAULT_VALUES = "pgbouncer-default-values.properties";
 
   @Override
   StackGresPoolingConfig buildResource(String namespace) {
@@ -27,8 +28,8 @@ public class DefaultPoolingFactory
 
     StackGresPoolingConfigSpec spec = new StackGresPoolingConfigSpec();
     final StackGresPoolingConfigPgBouncer pgBouncer = new StackGresPoolingConfigPgBouncer();
-    final StackGresPoolingConfigPgBouncerPgbouncerIni pgbouncerIni
-        = new StackGresPoolingConfigPgBouncerPgbouncerIni();
+    final StackGresPoolingConfigPgBouncerPgbouncerIni pgbouncerIni =
+        new StackGresPoolingConfigPgBouncerPgbouncerIni();
     pgbouncerIni.setParameters(getDefaultValues());
     pgBouncer.setPgbouncerIni(pgbouncerIni);
     spec.setPgBouncer(pgBouncer);
@@ -38,8 +39,8 @@ public class DefaultPoolingFactory
   }
 
   @Override
-  String getDefaultPropertiesFile() {
-    return PGBOUNCER_DEFAULT_VALUES;
+  Properties getDefaultPropertiesFile() {
+    return PgBouncerDefaultValues.getProperties();
   }
 
 }

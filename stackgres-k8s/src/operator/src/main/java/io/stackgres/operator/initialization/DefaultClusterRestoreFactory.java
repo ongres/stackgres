@@ -5,19 +5,22 @@
 
 package io.stackgres.operator.initialization;
 
+import java.util.Properties;
+
 import javax.enterprise.context.ApplicationScoped;
 
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 
 @ApplicationScoped
 public class DefaultClusterRestoreFactory
     extends AbstractCustomResourceFactory<StackGresClusterRestore> {
 
-  private static final String DEFAULT_RESTORE_VALUES_FILE = "restore-default-values.properties";
+  private static final String DEFAULT_RESTORE_VALUES_FILE = "/restore-default-values.properties";
 
   @Override
-  String getDefaultPropertiesFile() {
-    return DEFAULT_RESTORE_VALUES_FILE;
+  Properties getDefaultPropertiesFile() {
+    return StackGresUtil.loadProperties(DEFAULT_RESTORE_VALUES_FILE);
   }
 
   @Override

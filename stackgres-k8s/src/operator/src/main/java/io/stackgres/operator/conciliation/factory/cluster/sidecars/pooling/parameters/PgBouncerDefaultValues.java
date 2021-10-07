@@ -5,46 +5,27 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import io.stackgres.common.StackGresUtil;
+import org.jetbrains.annotations.NotNull;
 
 public class PgBouncerDefaultValues {
 
-  private static final Map<String, String> DEFAULTS;
+  private static final String FILE_PATH = "/pgbouncer-default-values.properties";
 
-  static {
-    DEFAULTS = ImmutableMap.<String, String>builder()
-        .putAll(readResource().entrySet().stream()
-            .filter(e -> !e.getKey().toString().isEmpty())
-            .collect(Collectors.toMap(
-                e -> e.getKey().toString(), e -> e.getValue().toString())))
-        .build();
-  }
+  private static final @NotNull Properties DEFAULTS = StackGresUtil.loadProperties(FILE_PATH);
 
   private PgBouncerDefaultValues() {}
 
-  private static Properties readResource() {
-    Properties properties = new Properties();
-    try (InputStream is = PgBouncerDefaultValues.class.getResourceAsStream(
-        "/pgbouncer-default-values.properties")) {
-      if (is == null) {
-        throw new IOException("Couldn't read pgbouncer-default-values.properties");
-      }
-      properties.load(is);
-    } catch (IOException ex) {
-      throw new UncheckedIOException(ex);
-    }
-    return properties;
+  public static @NotNull Properties getProperties() {
+    return DEFAULTS;
   }
 
-  public static Map<String, String> getDefaultValues() {
-    return DEFAULTS;
+  public static @NotNull Map<String, String> getDefaultValues() {
+    return Maps.fromProperties(getProperties());
   }
 
 }

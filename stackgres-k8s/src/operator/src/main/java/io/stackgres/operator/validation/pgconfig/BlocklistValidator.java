@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.validation.pgconfig;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -13,7 +12,7 @@ import javax.inject.Singleton;
 
 import io.stackgres.common.ErrorType;
 import io.stackgres.operator.common.PgConfigReview;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.Blocklist;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresBlocklist;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -22,7 +21,7 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 @ValidationType(ErrorType.PG_CONFIG_BLOCKLIST)
 public class BlocklistValidator implements PgConfigValidator {
 
-  private static final Set<String> BLOCKLIST = new HashSet<>(Blocklist.getBlocklistParameters());
+  private static final Set<String> BLOCKLIST = PostgresBlocklist.getBlocklistParameters();
 
   @Override
   public void validate(PgConfigReview review) throws ValidationFailed {

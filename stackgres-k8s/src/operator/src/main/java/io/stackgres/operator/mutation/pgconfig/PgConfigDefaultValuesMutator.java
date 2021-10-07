@@ -6,12 +6,12 @@
 package io.stackgres.operator.mutation.pgconfig;
 
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.common.PgConfigReview;
@@ -40,7 +40,7 @@ public class PgConfigDefaultValuesMutator
       operations.add(new AddOperation(PG_CONFIG_POINTER.parent(), FACTORY.objectNode()));
     }
     if (spec.getPostgresqlConf() == null) {
-      pgConfig.getSpec().setPostgresqlConf(ImmutableMap.of());
+      pgConfig.getSpec().setPostgresqlConf(Map.of());
       operations.add(new AddOperation(PG_CONFIG_POINTER, FACTORY.objectNode()));
     }
 

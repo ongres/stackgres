@@ -10,8 +10,22 @@ get_default_cr(){
   kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" "$CR_NAME" "$@"
 }
 
+get_default_cr_filter(){
+  CRD="$1"
+  FILTER="$2"
+  shift 2
+
+  CR_NAME="$(kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" -o json \
+    | jq -r ".items[]|select(.metadata.annotations[\"stackgres.io/operatorVersion\"] == \"$STACKGRES_VERSION\")|.metadata.name" \
+    | grep $FILTER | head -n 1 )"
+
+  kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" "$CR_NAME" "$@"
+}
+
 get_default_pgconfig(){
-  get_default_cr "sgpgconfigs.stackgres.io" "$@"
+  FILTER="$1"
+  shift 1
+  get_default_cr_filter "sgpgconfigs.stackgres.io" "$FILTER" "$@"
 }
 
 

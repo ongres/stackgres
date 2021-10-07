@@ -16,6 +16,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -33,7 +34,7 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.Blocklist;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresBlocklist;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -125,7 +126,7 @@ class PatroniConfigEndpointsTest {
 
     Map<String, String> pgParams = generator.getPostgresConfigValues(context);
 
-    List<String> blocklistedKeys = Blocklist.getBlocklistParameters();
+    Set<String> blocklistedKeys = PostgresBlocklist.getBlocklistParameters();
     defValues.forEach((key, value) -> {
       assertTrue(pgParams.containsKey(key));
       if (blocklistedKeys.contains(key)) {

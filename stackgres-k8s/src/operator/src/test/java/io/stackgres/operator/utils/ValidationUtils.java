@@ -154,7 +154,7 @@ public class ValidationUtils {
     }
   }
 
-  private static String fieldToGetter(@NotNull String name) {
+  private static String fieldToGetter(String name) {
     return "get" + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, name);
   }
 
