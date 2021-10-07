@@ -232,25 +232,6 @@ e2e exclusive tests jvm image part 6:
       - $E2E_TEST
       - $E2E_EXCLUSIVE_JOBS =~ /^[12345]$/
 
-e2e exclusive tests jvm image part 2:
-  extends: .e2e tests jvm image
-  variables:
-    E2E_RUN_ONLY: exclusive:2/$E2E_EXCLUSIVE_JOBS
-    E2E_SKIP_OPERATOR_INSTALL: "true"
-  except:
-    variables:
-      - $E2E_TEST
-      - $E2E_EXCLUSIVE_JOBS =~ /^[12345]$/
-
-e2e exclusive tests jvm image part 2:
-  extends: .e2e tests jvm image
-  variables:
-    E2E_RUN_ONLY: exclusive:2/$E2E_EXCLUSIVE_JOBS
-    E2E_SKIP_OPERATOR_INSTALL: "true"
-  except:
-    variables:
-      - $E2E_TEST
-
 .e2e tests native image:
   extends: .e2e tests
   variables:
@@ -286,7 +267,7 @@ e2e tests native image part 2:
 e2e tests native image part 3:
   extends: .e2e tests native image
   variables:
-    E2E_RUN_ONLY: non_exclusive:2/$E2E_JOBS
+    E2E_RUN_ONLY: non_exclusive:3/$E2E_JOBS
   except:
     variables:
       - $E2E_TEST
@@ -295,7 +276,7 @@ e2e tests native image part 3:
 e2e tests native image part 4:
   extends: .e2e tests native image
   variables:
-    E2E_RUN_ONLY: non_exclusive:2/$E2E_JOBS
+    E2E_RUN_ONLY: non_exclusive:4/$E2E_JOBS
   except:
     variables:
       - $E2E_TEST
@@ -304,7 +285,7 @@ e2e tests native image part 4:
 e2e tests native image part 5:
   extends: .e2e tests native image
   variables:
-    E2E_RUN_ONLY: non_exclusive:2/$E2E_JOBS
+    E2E_RUN_ONLY: non_exclusive:5/$E2E_JOBS
   except:
     variables:
       - $E2E_TEST
@@ -313,7 +294,7 @@ e2e tests native image part 5:
 e2e tests native image part 6:
   extends: .e2e tests native image
   variables:
-    E2E_RUN_ONLY: non_exclusive:2/$E2E_JOBS
+    E2E_RUN_ONLY: non_exclusive:6/$E2E_JOBS
   except:
     variables:
       - $E2E_TEST
