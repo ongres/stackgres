@@ -332,7 +332,7 @@ is_index_cache_expired() {
   local INDEX_NAME="$2"
   local INDEX="$3"
   local CACHE_TIMEOUT=3600
-  false
+
   if is_cache_timeout_repository_url "$EXTENSIONS_REPOSITORY_URL"
   then
     CACHE_TIMEOUT="$(get_cache_timeout_from_url "$EXTENSIONS_REPOSITORY_URL")"
