@@ -224,7 +224,9 @@ class ClusterValidationQuarkusTest {
             "kind", is("AdmissionReview"),
             "response.status.code", is(400),
             "response.status.message",
-            is("Extensions dblink, pg_stat_statements, plpgsql, plpython3u are missing."))
+            is("Some extensions were not found: dblink (available 1.2),"
+                + " pg_stat_statements (available 1.7), plpgsql (available 1.0),"
+                + " plpython3u (available 1.0)"))
         .statusCode(200);
   }
 

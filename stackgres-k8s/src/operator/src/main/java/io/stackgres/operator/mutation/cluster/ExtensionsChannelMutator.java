@@ -29,13 +29,9 @@ import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class ExtensionsChannelMutator implements ClusterMutator {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(ExtensionsChannelMutator.class);
 
   private final ClusterExtensionMetadataManager extensionMetadataManager;
 
@@ -63,24 +59,20 @@ public class ExtensionsChannelMutator implements ClusterMutator {
                 .forEach(Unchecked.consumer(extension -> {
                   final JsonPointer extensionVersionPointer =
                       CLUSTER_CONFIG_POINTER.append("postgres").append("extensions")
-                      .append(extension.v2.intValue()).append("version");
-                  final StackGresExtensionMetadata extensionMetadata;
-                  try {
-                    extensionMetadata =
-                        extensionMetadataManager.getExtensionCandidateSameMajorBuild(
-                            cluster, extension.v1);
-                  } catch (Exception ex) {
-                    LOGGER.warn("Unable to retrieve candidate with same major build for extension",
-                        ex);
-                    return;
-                  }
-                  final StackGresClusterInstalledExtension installedExtension =
-                      ExtensionUtil.getInstalledExtension(extension.v1, extensionMetadata);
-                  final TextNode extensionVersion = new TextNode(installedExtension.getVersion());
-                  if (extension.v1.getVersion() == null) {
-                    operations.add(new AddOperation(extensionVersionPointer, extensionVersion));
-                  } else if (!installedExtension.getVersion().equals(extension.v1.getVersion())) {
-                    operations.add(new ReplaceOperation(extensionVersionPointer, extensionVersion));
+                          .append(extension.v2.intValue()).append("version");
+                  final Optional<StackGresExtensionMetadata> extensionMetadata =
+                      extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+                          cluster, extension.v1);
+                  if (extensionMetadata.isPresent()) {
+                    final StackGresClusterInstalledExtension installedExtension =
+                        ExtensionUtil.getInstalledExtension(extension.v1, extensionMetadata.get());
+                    final TextNode extensionVersion = new TextNode(installedExtension.getVersion());
+                    if (extension.v1.getVersion() == null) {
+                      operations.add(new AddOperation(extensionVersionPointer, extensionVersion));
+                    } else if (!installedExtension.getVersion().equals(extension.v1.getVersion())) {
+                      operations
+                          .add(new ReplaceOperation(extensionVersionPointer, extensionVersion));
+                    }
                   }
                 }));
           });

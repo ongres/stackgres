@@ -8,19 +8,48 @@ package io.stackgres.operator.validation.cluster;
 import java.util.List;
 import java.util.Optional;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import com.google.common.collect.ImmutableList;
+import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
 import io.stackgres.operator.validation.AbstractExtensionsValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import org.jooq.lambda.tuple.Tuple2;
 
 @Singleton
 public class ExtensionsValidator extends AbstractExtensionsValidator<StackGresClusterReview>
     implements ClusterValidator {
+
+  private final ClusterExtensionMetadataManager extensionMetadataManager;
+
+  @Inject
+  public ExtensionsValidator(ClusterExtensionMetadataManager extensionMetadataManager) {
+    super();
+    this.extensionMetadataManager = extensionMetadataManager;
+  }
+
+  @Override
+  protected ClusterExtensionMetadataManager getExtensionMetadataManager() {
+    return extensionMetadataManager;
+  }
+
+  @Override
+  protected ImmutableList<Tuple2<String, Optional<String>>> getDefaultExtensions() {
+    return StackGresUtil.getDefaultClusterExtensions();
+  }
+
+  @Override
+  protected StackGresCluster getCluster(StackGresClusterReview review) {
+    return review.getRequest().getObject();
+  }
 
   @Override
   protected Optional<List<StackGresClusterExtension>> getPostgresExtensions(

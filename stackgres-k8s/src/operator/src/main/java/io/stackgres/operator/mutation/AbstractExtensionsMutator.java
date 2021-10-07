@@ -22,6 +22,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.extension.ExtensionUtil;
+import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
@@ -149,10 +150,21 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
 
   private Optional<StackGresClusterInstalledExtension> getToInstallExtension(
       StackGresCluster cluster, StackGresClusterExtension extension) {
-    return getExtensionMetadataManager()
+    Optional<StackGresClusterInstalledExtension> exactCandidateExtension =
+        getExtensionMetadataManager()
         .findExtensionCandidateSameMajorBuild(cluster, extension)
         .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
             extension, extensionMetadata));
+    if (exactCandidateExtension.isEmpty()) {
+      List<StackGresExtensionMetadata> candidateExtensionMetadatas =
+          getExtensionMetadataManager().getExtensionsAnyVersion(cluster, extension);
+      if (candidateExtensionMetadatas.size() == 1) {
+        return Optional.of(ExtensionUtil.getInstalledExtension(
+            extension, candidateExtensionMetadatas.get(0)));
+      }
+      return Optional.empty();
+    }
+    return exactCandidateExtension;
   }
 
 }

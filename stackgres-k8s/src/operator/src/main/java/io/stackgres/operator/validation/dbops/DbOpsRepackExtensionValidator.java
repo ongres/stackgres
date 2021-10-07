@@ -24,7 +24,7 @@ import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @Singleton
-@ValidationType(ErrorType.MISSING_EXTENSION)
+@ValidationType(ErrorType.EXTENSION_NOT_FOUND)
 public class DbOpsRepackExtensionValidator implements DbOpsValidator {
 
   private static final String PG_REPACK = "pg_repack";
