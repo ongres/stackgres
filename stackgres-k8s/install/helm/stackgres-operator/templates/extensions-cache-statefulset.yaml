@@ -26,8 +26,11 @@ spec:
         group:  stackgres.io
     spec:
       securityContext:
+        {{- if not (.Capabilities.APIVersions.Has "project.openshift.io/v1") }}
         runAsUser: 1000
         runAsGroup: 1000
+        fsGroup: 1000
+        {{- end }}
       serviceAccountName: {{ .Release.Name }}-extensions-cache
       shareProcessNamespace: true
       terminationGracePeriodSeconds: 0

@@ -191,6 +191,10 @@ is_skip_hostname_verification_repository_url() {
   printf '%s' "$1" | grep -q "[?&]skipHostnameVerification="
 }
 
+is_set_http_scheme_url() {
+  printf '%s' "$1" | grep -q "[?&]setHttpScheme="
+}
+
 get_image_template_from_url() {
   local IMAGE_TEMPLATE
   IMAGE_TEMPLATE="$(printf '%s' "$1" | grep "[?&]imageTemplate=")"
@@ -241,6 +245,15 @@ get_skip_hostname_verification_from_url() {
     | sed 's/^.*[?&]skipHostnameVerification=\([^?&]\+\)\([?&].*\)\?$/\1/')"
   SKIP_HOSTNAME_VERIFICATION="$(printf '%s' "$SKIP_HOSTNAME_VERIFICATION" | urldecode)"
   printf '%s' "$SKIP_HOSTNAME_VERIFICATION"
+}
+
+get_set_http_scheme_from_url() {
+  local SET_HTTP_SCHEME
+  SET_HTTP_SCHEME="$(printf '%s' "$1" | grep "[?&]setHttpScheme=")"
+  SET_HTTP_SCHEME="$(printf '%s' "$SET_HTTP_SCHEME" \
+    | sed 's/^.*[?&]setHttpScheme=\([^?&]\+\)\([?&].*\)\?$/\1/')"
+  SET_HTTP_SCHEME="$(printf '%s' "$SET_HTTP_SCHEME" | urldecode)"
+  printf '%s' "$SET_HTTP_SCHEME"
 }
 
 pull_indexes() {
@@ -332,7 +345,7 @@ is_index_cache_expired() {
   local INDEX_NAME="$2"
   local INDEX="$3"
   local CACHE_TIMEOUT=3600
-  false
+
   if is_cache_timeout_repository_url "$EXTENSIONS_REPOSITORY_URL"
   then
     CACHE_TIMEOUT="$(get_cache_timeout_from_url "$EXTENSIONS_REPOSITORY_URL")"
@@ -510,11 +523,29 @@ pull_extension() {
 find_repository_base_url() {
   [ -n "$1" ] && true || false
   local REPOSITORY="$1"
+  local IS_PROXY_URL_AND_SET_HTTP_SCHEME=false
+
+  if is_proxied_repository_url "$REPOSITORY"
+  then
+    local PROXY_URL
+    PROXY_URL="$(get_proxy_from_url "$REPOSITORY")"
+    if is_set_http_scheme_url "$PROXY_URL"
+    then
+      IS_PROXY_URL_AND_SET_HTTP_SCHEME="$(get_set_http_scheme_from_url "$PROXY_URL")"
+    fi
+  fi
+  ! test -f "${INDEX_NAME}-${INDEX}.timestamp" \
+    ||  [ "$(date +%s)" -ge "$(( $(cat "${INDEX_NAME}-${INDEX}.timestamp") + CACHE_TIMEOUT ))" ]
   local EXTENSIONS_REPOSITORY_URL
   for EXTENSIONS_REPOSITORY_URL in $(echo "$EXTENSIONS_REPOSITORY_URLS" | tr ',' '\n')
   do
-    if printf '%s' "$EXTENSIONS_REPOSITORY_URL" | grep -q "^${REPOSITORY%%\?*}" \
-      || printf '%s' "$REPOSITORY" | grep -q "^${EXTENSIONS_REPOSITORY_URL%%\?*}"
+    local TEST_EXTENSIONS_REPOSITORY_URL="$EXTENSIONS_REPOSITORY_URL"
+    if [ "$IS_PROXY_URL_AND_SET_HTTP_SCHEME" = true ]
+    then
+      TEST_EXTENSIONS_REPOSITORY_URL="http://${EXTENSIONS_REPOSITORY_URL#*://}"
+    fi
+    if printf '%s' "$TEST_EXTENSIONS_REPOSITORY_URL" | grep -q "^${REPOSITORY%%\?*}" \
+      || printf '%s' "$REPOSITORY" | grep -q "^${TEST_EXTENSIONS_REPOSITORY_URL%%\?*}"
     then
       printf '%s' "$EXTENSIONS_REPOSITORY_URL"
       return
