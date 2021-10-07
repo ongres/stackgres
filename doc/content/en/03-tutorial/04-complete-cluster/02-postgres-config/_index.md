@@ -5,14 +5,11 @@ url: tutorial/complete-cluster/postgres-config
 description: Details about how to create custom PostgreSQL configurations.
 ---
 
-While StackGres comes with a carefully tuned, default Postgres configuration, you may want to set your own configuration
-and parameters. StackGres uses for this purpose the CRD
-[SGPostgresConfig]({{% relref "06-crd-reference/03-sgpostgresconfig" %}}). By using a CRD, coupled with a webhook
-validator, instead of a simple ConfigMap, StackGres is able to strongly validate the desired configuration, ensuring
-that parameters and values are valid for the major Postgres version, and within bounds.
+StackGres comes with an expertly tuned Postgres configuration (aka `postgresql.conf`) by default. However, it does not prevent you from using your own specialized Postgres configuration. If you want to create one and need some guidance, consider using the [postgresqlCONF](https://postgresqlco.nf) service, which gives you detailed parameter information in several langauges, recommendations, a tuning guide and even a facility to store and manage your Postgres configurations online.
 
-Configurations are assigned a name, which you may reference later from one or more Postgres clusters. Create the file
-`sgpostgresconfig-config1.yaml`:
+StackGres hides the implementation details of how Postgres configuration file works, and how to configure it with Patroni. Instead, a specialized CRD is exposed for you to manage Postgres configurations, called [SGPostgresConfig]({{% relref "06-crd-reference/03-sgpostgresconfig" %}})`. Postgres configurations are created (and/or modified) once and then can be used in zero, one or multiple clusters. No need to repeat the configuration in every cluster.
+
+Configurations are assigned a name, which you may reference later from one or more Postgres clusters. Create the file `sgpostgresconfig-config1.yaml`:
 
 ```yaml
 apiVersion: stackgres.io/v1
@@ -21,7 +18,7 @@ metadata:
   namespace: demo
   name: pgconfig1
 spec:
-  postgresVersion: "12"
+  postgresVersion: "14"
   postgresql.conf:
     work_mem: '16MB'
     shared_buffers: '2GB'

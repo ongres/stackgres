@@ -25,9 +25,10 @@ metadata:
 spec:
   pgBouncer:
     pgbouncer.ini:
-      pool_mode: session
-      max_client_conn: '200'
-      default_pool_size: '200'
+      pgbouncer:
+        max_client_conn: '200'
+        default_pool_size: '200'
+        pool_mode: transaction
 ```
 
 and deploy to Kubernetes:

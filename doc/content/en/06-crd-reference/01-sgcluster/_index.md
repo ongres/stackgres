@@ -82,7 +82,7 @@ metadata:
 spec:
   postgres:
     extensions:
-  - name: 'timescaledb'
+      - {name: 'timescaledb', version: '2.3.1'}
 ```
 
 ### Postgres SSL

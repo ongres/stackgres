@@ -31,3 +31,10 @@ kubectl apply -f sginstanceprofile-small.yaml
 ```
 
 You may create other instance profiles with other sizes if you wish.
+
+You can list the created (available) instance profiles from the Web Console or via:
+
+```bash
+$ kubectl -n demo get sginstanceprofiles
+```
+
