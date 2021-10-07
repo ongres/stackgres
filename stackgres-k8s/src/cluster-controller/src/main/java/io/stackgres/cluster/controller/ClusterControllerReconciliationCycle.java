@@ -168,7 +168,7 @@ public class ClusterControllerReconciliationCycle
         .extensions(Optional.ofNullable(cluster.getSpec())
             .map(StackGresClusterSpec::getToInstallPostgresExtensions)
             .orElse(ImmutableList.of()))
-        .labels(labelFactory.clusterLabels(cluster))
+        .labels(labelFactory.genericLabels(cluster))
         .build();
   }
 

@@ -60,7 +60,6 @@ public class PatroniTemplatesConfigMap
   }
 
   public @NotNull HasMetadata buildSource(StackGresDistributedLogsContext context) {
-
     Map<String, String> data = getPatroniTemplates();
 
     final StackGresDistributedLogs cluster = context.getSource();

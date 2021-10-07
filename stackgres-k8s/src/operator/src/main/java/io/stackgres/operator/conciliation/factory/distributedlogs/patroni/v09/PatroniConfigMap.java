@@ -93,12 +93,12 @@ public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsC
     final StackGresDistributedLogs cluster = context.getSource();
     final String pgVersion = "12.6";
 
-    final String patroniLabels;
-    final Map<String, String> value = labelFactory
+    final String patroniClusterLabelsAsJson;
+    final Map<String, String> patroniClusterLabels = labelFactory
         .patroniClusterLabels(cluster);
     try {
-      patroniLabels = objectMapper.writeValueAsString(
-          value);
+      patroniClusterLabelsAsJson = objectMapper.writeValueAsString(
+          patroniClusterLabels);
     } catch (JsonProcessingException ex) {
       throw new RuntimeException(ex);
     }
@@ -108,7 +108,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsC
     Map<String, String> data = new HashMap<>();
     data.put("PATRONI_SCOPE", labelFactory.clusterScope(cluster));
     data.put("PATRONI_KUBERNETES_SCOPE_LABEL", labelFactory.labelMapper().clusterScopeKey());
-    data.put("PATRONI_KUBERNETES_LABELS", patroniLabels);
+    data.put("PATRONI_KUBERNETES_LABELS", patroniClusterLabelsAsJson);
     data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
     data.put("PATRONI_KUBERNETES_PORTS", getKubernetesPorts(pgPort, pgRawPort));
     data.put("PATRONI_SUPERUSER_USERNAME", "postgres");
@@ -132,7 +132,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsC
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(name(context))
-        .withLabels(value)
+        .withLabels(patroniClusterLabels)
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(data))
         .build();

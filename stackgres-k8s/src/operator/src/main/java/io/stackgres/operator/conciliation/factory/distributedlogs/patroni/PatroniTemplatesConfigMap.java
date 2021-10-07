@@ -61,7 +61,6 @@ public class PatroniTemplatesConfigMap
   }
 
   public @NotNull HasMetadata buildSource(StackGresDistributedLogsContext context) {
-
     Map<String, String> data = getPatroniTemplates();
 
     final StackGresDistributedLogs cluster = context.getSource();
@@ -70,7 +69,7 @@ public class PatroniTemplatesConfigMap
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(name(cluster))
-        .withLabels(labelFactory.clusterLabels(cluster))
+        .withLabels(labelFactory.genericLabels(cluster))
         .endMetadata()
         .withData(data)
         .build();

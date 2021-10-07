@@ -176,7 +176,7 @@ public class DistributedLogsControllerReconciliationCycle
         .extensions(Optional.ofNullable(distributedLogs.getSpec())
             .map(StackGresDistributedLogsSpec::getToInstallPostgresExtensions)
             .orElse(ImmutableList.of()))
-        .labels(labelFactory.clusterLabels(distributedLogs))
+        .labels(labelFactory.genericLabels(distributedLogs))
         .build();
   }
 

@@ -54,7 +54,7 @@ class PatroniServicesTest {
     defaultCluster = JsonUtil
         .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
 
-    lenient().when(labelFactory.clusterLabels(any(StackGresCluster.class)))
+    lenient().when(labelFactory.genericLabels(any(StackGresCluster.class)))
         .thenReturn(ImmutableMap.of());
     lenient().when(labelFactory.patroniPrimaryLabels(any(StackGresCluster.class)))
         .thenReturn(ImmutableMap.of());

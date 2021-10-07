@@ -67,7 +67,7 @@ public class TemplatesConfigMap extends AbstractPatroniTemplatesConfigMap<StackG
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(name(context))
-        .withLabels(labelFactory.clusterLabels(cluster))
+        .withLabels(labelFactory.genericLabels(cluster))
         .endMetadata()
         .withData(data)
         .build();
@@ -81,7 +81,7 @@ public class TemplatesConfigMap extends AbstractPatroniTemplatesConfigMap<StackG
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(name(context))
-        .withLabels(labelFactory.clusterLabels(cluster))
+        .withLabels(labelFactory.genericLabels(cluster))
         .endMetadata()
         .withData(data)
         .build();

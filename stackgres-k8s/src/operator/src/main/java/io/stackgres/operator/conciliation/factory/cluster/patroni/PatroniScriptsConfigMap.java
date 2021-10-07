@@ -113,7 +113,7 @@ public class PatroniScriptsConfigMap implements
                     .withNewMetadata()
                     .withNamespace(cluster.getMetadata().getNamespace())
                     .withName(name(context, t))
-                    .withLabels(labelFactory.patroniClusterLabels(cluster))
+                    .withLabels(labelFactory.genericLabels(cluster))
                     .endMetadata()
                     .withData(ImmutableMap.of(scriptName(t), t.v1.getScript()))
                     .build()

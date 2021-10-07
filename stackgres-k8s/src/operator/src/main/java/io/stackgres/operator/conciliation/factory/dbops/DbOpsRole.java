@@ -21,7 +21,7 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBindingBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
-import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.LabelFactoryForDbOps;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -37,7 +37,7 @@ public class DbOpsRole implements ResourceGenerator<StackGresDbOpsContext> {
 
   public static final String SUFFIX = "-dbops";
 
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private LabelFactoryForDbOps labelFactory;
 
   public static String roleName(StackGresDbOpsContext context) {
     return roleName(context.getSource());
@@ -64,8 +64,7 @@ public class DbOpsRole implements ResourceGenerator<StackGresDbOpsContext> {
    */
   private ServiceAccount createServiceAccount(StackGresDbOpsContext context) {
     final StackGresDbOps dbOps = context.getSource();
-    final Map<String, String> labels = labelFactory
-        .clusterLabels(context.getCluster());
+    final Map<String, String> labels = labelFactory.genericLabels(context.getSource());
 
     final String serviceAccountName = roleName(context);
     final String serviceAccountNamespace = dbOps.getMetadata().getNamespace();
@@ -84,7 +83,7 @@ public class DbOpsRole implements ResourceGenerator<StackGresDbOpsContext> {
    */
   private Role createRole(StackGresDbOpsContext context) {
     final StackGresDbOps dbOps = context.getSource();
-    final Map<String, String> labels = labelFactory.clusterLabels(context.getCluster());
+    final Map<String, String> labels = labelFactory.genericLabels(context.getSource());
     return new RoleBuilder()
         .withNewMetadata()
         .withName(roleName(context))
@@ -146,8 +145,7 @@ public class DbOpsRole implements ResourceGenerator<StackGresDbOpsContext> {
    */
   private RoleBinding createRoleBinding(StackGresDbOpsContext context) {
     final StackGresDbOps dbOps = context.getSource();
-    final Map<String, String> labels = labelFactory
-        .clusterLabels(context.getCluster());
+    final Map<String, String> labels = labelFactory.genericLabels(context.getSource());
     return new RoleBindingBuilder()
         .withNewMetadata()
         .withName(roleName(context))
@@ -168,7 +166,7 @@ public class DbOpsRole implements ResourceGenerator<StackGresDbOpsContext> {
   }
 
   @Inject
-  public void setLabelFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
+  public void setLabelFactory(LabelFactoryForDbOps labelFactory) {
     this.labelFactory = labelFactory;
   }
 

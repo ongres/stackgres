@@ -216,7 +216,7 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(configMapName)
-        .withLabels(labelFactory.clusterLabels(stackGresCluster))
+        .withLabels(labelFactory.genericLabels(stackGresCluster))
         .endMetadata()
         .withData(data)
         .build();

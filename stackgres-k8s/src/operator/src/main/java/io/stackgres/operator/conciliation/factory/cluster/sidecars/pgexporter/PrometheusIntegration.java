@@ -63,10 +63,9 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
   @Override
   public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getSource();
-    final Map<String, String> defaultLabels = labelFactory.clusterLabels(cluster);
-    Map<String, String> labels = new ImmutableMap.Builder<String, String>()
-        .putAll(labelFactory.clusterCrossNamespaceLabels(cluster))
-        .build();
+    final Map<String, String> labels = labelFactory.genericLabels(cluster);
+    Map<String, String> crossNamespaceLabels = labelFactory
+        .clusterCrossNamespaceLabels(cluster);
     final String clusterNamespace = cluster.getMetadata().getNamespace();
     final Stream<HasMetadata> resources = Stream.of(
         new ServiceBuilder()
@@ -74,12 +73,12 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
             .withNamespace(clusterNamespace)
             .withName(serviceName(context))
             .withLabels(ImmutableMap.<String, String>builder()
-                .putAll(labels)
+                .putAll(crossNamespaceLabels)
                 .put("container", POSTGRES_EXPORTER_CONTAINER_NAME)
                 .build())
             .endMetadata()
             .withSpec(new ServiceSpecBuilder()
-                .withSelector(defaultLabels)
+                .withSelector(labels)
                 .withPorts(new ServicePortBuilder()
                     .withName(POSTGRES_EXPORTER_CONTAINER_NAME)
                     .withProtocol("TCP")
@@ -97,7 +96,7 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
               .withName(serviceMonitorName(context))
               .withLabels(ImmutableMap.<String, String>builder()
                   .putAll(pi.getMatchLabels())
-                  .putAll(labels)
+                  .putAll(crossNamespaceLabels)
                   .build())
               .build());
 
@@ -109,7 +108,7 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
           namespaceSelector.setMatchNames(ImmutableList.of(clusterNamespace));
           spec.setNamespaceSelector(namespaceSelector);
 
-          selector.setMatchLabels(labels);
+          selector.setMatchLabels(crossNamespaceLabels);
           Endpoint endpoint = new Endpoint();
           endpoint.setPort(POSTGRES_EXPORTER_CONTAINER_NAME);
           spec.setEndpoints(Collections.singletonList(endpoint));

@@ -72,9 +72,9 @@ public class PatroniServices implements
     final StackGresDistributedLogs cluster = context.getSource();
     final String namespace = cluster.getMetadata().getNamespace();
 
-    final Map<String, String> clusterLabels = labelFactory.clusterLabels(cluster);
+    final Map<String, String> labels = labelFactory.genericLabels(cluster);
 
-    Service config = createConfigService(namespace, configName(context), clusterLabels);
+    Service config = createConfigService(namespace, configName(context), labels);
     Service patroni = createPatroniService(context);
     Service primary = createPrimaryService(context);
     Seq<HasMetadata> services = Seq.of(config, patroni, primary);
@@ -147,13 +147,13 @@ public class PatroniServices implements
 
     StackGresDistributedLogs cluster = context.getSource();
 
-    final Map<String, String> primaryLabels = labelFactory.clusterLabels(cluster);
+    final Map<String, String> labels = labelFactory.genericLabels(cluster);
 
     return new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(readWriteName(context))
-        .withLabels(primaryLabels)
+        .withLabels(labels)
         .endMetadata()
         .withNewSpec()
         .withType("ExternalName")

@@ -102,7 +102,7 @@ public abstract class AbstractPgPooling
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(configMapName)
-        .withLabels(labelFactory.clusterLabels(sgCluster))
+        .withLabels(labelFactory.genericLabels(sgCluster))
         .endMetadata()
         .withData(data)
         .build();

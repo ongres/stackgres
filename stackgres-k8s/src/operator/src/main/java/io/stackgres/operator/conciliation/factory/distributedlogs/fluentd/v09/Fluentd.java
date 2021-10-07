@@ -217,13 +217,12 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
         "fluentd.conf", getFluentdConfig(context),
         "databases", databaseList);
 
-    final Map<String, String> clusterLabels = labelFactory
-        .clusterLabels(cluster);
+    final Map<String, String> labels = labelFactory.clusterLabels(cluster);
     return new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(FluentdUtil.configName(cluster))
-        .withLabels(clusterLabels)
+        .withLabels(labels)
         .endMetadata()
         .withData(data)
         .build();
@@ -234,8 +233,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
     final StackGresDistributedLogs cluster = context.getSource();
     final String namespace = cluster.getMetadata().getNamespace();
 
-    final Map<String, String> labels = labelFactory
-        .patroniPrimaryLabels(cluster);
+    final Map<String, String> labels = labelFactory.clusterLabels(cluster);
     final Service service = new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(namespace)

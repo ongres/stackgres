@@ -181,7 +181,7 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
         .withNewMetadata()
         .withName(configName(context))
         .withNamespace(context.getSource().getMetadata().getNamespace())
-        .withLabels(labelFactory.clusterCrossNamespaceLabels(context.getSource()))
+        .withLabels(labelFactory.genericLabels(context.getSource()))
         .endMetadata()
         .withData(ImmutableMap.of("queries.yaml",
             Unchecked.supplier(() -> Resources
