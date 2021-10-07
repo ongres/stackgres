@@ -80,10 +80,10 @@ public class PatroniServices implements
     final StackGresCluster cluster = context.getSource();
     final String namespace = cluster.getMetadata().getNamespace();
 
-    final Map<String, String> clusterLabels = labelFactory.clusterLabels(cluster);
+    final Map<String, String> labels = labelFactory.genericLabels(cluster);
 
     Service config = createConfigService(namespace, configName(context),
-        clusterLabels);
+        labels);
     Service rest = createPatroniRestService(context);
 
     Seq<HasMetadata> services = Seq.of(config, rest);
@@ -134,13 +134,13 @@ public class PatroniServices implements
   private Service createPatroniRestService(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getSource();
 
-    final Map<String, String> clusterLabels = labelFactory.clusterLabels(cluster);
+    final Map<String, String> labels = labelFactory.genericLabels(cluster);
 
     return new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(restName(context))
-        .withLabels(clusterLabels)
+        .withLabels(labels)
         .endMetadata()
         .withNewSpec()
         .withPorts(
@@ -203,13 +203,13 @@ public class PatroniServices implements
   private Service createPrimaryService(StackGresClusterContext context) {
     StackGresCluster cluster = context.getSource();
 
-    final Map<String, String> clusterLabels = labelFactory.clusterLabels(cluster);
+    final Map<String, String> labels = labelFactory.genericLabels(cluster);
 
     return new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(readWriteName(context))
-        .withLabels(clusterLabels)
+        .withLabels(labels)
         .endMetadata()
         .withNewSpec()
         .withType("ExternalName")

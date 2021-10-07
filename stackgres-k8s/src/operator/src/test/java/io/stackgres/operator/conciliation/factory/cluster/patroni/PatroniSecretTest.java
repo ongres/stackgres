@@ -57,7 +57,7 @@ class PatroniSecretTest {
     StackGresCluster defaultCluster = JsonUtil
         .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
     patroniSecret.setFactoryFactory(labelFactory);
-    when(labelFactory.clusterLabels(any(StackGresCluster.class))).thenReturn(ImmutableMap.of());
+    when(labelFactory.genericLabels(any(StackGresCluster.class))).thenReturn(ImmutableMap.of());
 
     when(generatorContext.getSource()).thenReturn(defaultCluster);
 

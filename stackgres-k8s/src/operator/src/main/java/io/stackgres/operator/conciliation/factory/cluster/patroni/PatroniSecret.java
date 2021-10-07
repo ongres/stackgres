@@ -52,8 +52,7 @@ public class PatroniSecret implements
     final StackGresCluster cluster = context.getSource();
     final String name = cluster.getMetadata().getName();
     final String namespace = cluster.getMetadata().getNamespace();
-    final Map<String, String> labels = factoryFactory
-        .clusterLabels(cluster);
+    final Map<String, String> labels = factoryFactory.genericLabels(cluster);
 
     Map<String, String> generatedPasswords = context.getDatabaseCredentials()
         .map(Secret::getData)

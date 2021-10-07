@@ -103,14 +103,16 @@ public class DistributedLogsStatusManager
   }
 
   private Optional<StatefulSet> getClusterStatefulSet(StackGresDistributedLogs cluster) {
-    return client.apps().statefulSets().inNamespace(cluster.getMetadata().getNamespace())
-        .withLabels(labelFactory.genericLabels(cluster))
-        .list()
-        .getItems().stream()
+    return Optional.ofNullable(client.apps().statefulSets()
+        .inNamespace(cluster.getMetadata().getNamespace())
+        .withName(cluster.getMetadata().getName())
+        .get())
+        .stream()
         .filter(sts -> sts.getMetadata().getOwnerReferences()
             .stream().anyMatch(ownerReference -> ownerReference.getKind()
                 .equals(StackGresDistributedLogs.KIND)
-                && ownerReference.getName().equals(cluster.getMetadata().getName())))
+                && ownerReference.getName().equals(cluster.getMetadata().getName())
+                && ownerReference.getUid().equals(cluster.getMetadata().getUid())))
         .findFirst();
   }
 

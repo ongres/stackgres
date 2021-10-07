@@ -192,7 +192,7 @@ public class FluentBit extends AbstractFluentBit {
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(configName(context))
-        .withLabels(labelFactory.clusterLabels(cluster))
+        .withLabels(labelFactory.genericLabels(cluster))
         .endMetadata()
         .withData(data)
         .build();

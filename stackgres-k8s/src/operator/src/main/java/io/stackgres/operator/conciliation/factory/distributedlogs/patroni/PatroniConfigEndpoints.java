@@ -49,7 +49,6 @@ public class PatroniConfigEndpoints
 
   @Override
   public Stream<HasMetadata> generateResource(StackGresDistributedLogsContext context) {
-
     PatroniConfig patroniConf = new PatroniConfig();
     patroniConf.setTtl(30);
     patroniConf.setLoopWait(10);

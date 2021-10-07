@@ -79,7 +79,7 @@ public class BackupSecret
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(name(context))
-        .withLabels(labelFactory.clusterLabels(cluster))
+        .withLabels(labelFactory.genericLabels(cluster))
         .endMetadata()
         .withType("Opaque")
         .withStringData(StackGresUtil.addMd5Sum(data))

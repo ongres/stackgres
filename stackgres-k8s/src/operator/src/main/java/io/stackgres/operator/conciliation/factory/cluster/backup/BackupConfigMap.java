@@ -78,7 +78,7 @@ public class BackupConfigMap extends AbstractBackupConfigMap
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(name(context))
-        .withLabels(labelFactory.patroniClusterLabels(cluster))
+        .withLabels(labelFactory.genericLabels(cluster))
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(data))
         .build();

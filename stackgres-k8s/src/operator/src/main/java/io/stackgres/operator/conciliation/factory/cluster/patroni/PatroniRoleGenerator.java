@@ -62,8 +62,7 @@ public class PatroniRoleGenerator implements
    */
   private ServiceAccount createServiceAccount(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getSource();
-    final Map<String, String> labels = labelFactory
-        .clusterLabels(cluster);
+    final Map<String, String> labels = labelFactory.genericLabels(cluster);
     final String serviceAccountName = roleName(context);
     final String serviceAccountNamespace = cluster.getMetadata().getNamespace();
 
@@ -82,8 +81,7 @@ public class PatroniRoleGenerator implements
    */
   private Role createRole(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getSource();
-    final Map<String, String> labels = labelFactory
-        .clusterLabels(cluster);
+    final Map<String, String> labels = labelFactory.genericLabels(cluster);
     return new RoleBuilder()
         .withNewMetadata()
         .withName(roleName(context))
@@ -156,8 +154,7 @@ public class PatroniRoleGenerator implements
    */
   private RoleBinding createRoleBinding(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getSource();
-    final Map<String, String> labels = labelFactory
-        .clusterLabels(cluster);
+    final Map<String, String> labels = labelFactory.genericLabels(cluster);
     return new RoleBindingBuilder()
         .withNewMetadata()
         .withName(roleName(context))

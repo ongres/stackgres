@@ -35,7 +35,7 @@ public class DefaultDistributedLogsResourceHandler
         .stream()
         .flatMap(resourceOperationGetter -> resourceOperationGetter.apply(client)
             .inNamespace(context.getDistributedLogs().getMetadata().getNamespace())
-            .withLabels(labelFactory.clusterLabels(context.getDistributedLogs()))
+            .withLabels(labelFactory.genericLabels(context.getDistributedLogs()))
             .list()
             .getItems()
             .stream());
