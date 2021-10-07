@@ -54,11 +54,19 @@ public class FileSystemHandler {
     Files.createDirectories(path);
   }
 
-  public void copyOrReplace(Path path, InputStream inputStream) throws IOException {
+  public void copyOrReplace(Path path, Path target) throws IOException {
     Path temporaryPath = getTemporaryPath(path);
+    Files.copy(path, temporaryPath,
+        StandardCopyOption.REPLACE_EXISTING);
+    Files.move(temporaryPath, target,
+        StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+  }
+
+  public void copyOrReplace(InputStream inputStream, Path target) throws IOException {
+    Path temporaryPath = getTemporaryPath(target);
     Files.copy(inputStream, temporaryPath,
         StandardCopyOption.REPLACE_EXISTING);
-    Files.move(temporaryPath, path,
+    Files.move(temporaryPath, target,
         StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
   }
 

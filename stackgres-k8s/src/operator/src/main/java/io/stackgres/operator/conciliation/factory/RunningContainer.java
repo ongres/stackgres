@@ -17,5 +17,5 @@ import javax.inject.Qualifier;
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RunningContainer {
-  @Nonbinding int order() default Integer.MAX_VALUE;
+  @Nonbinding ClusterRunningContainer value() default ClusterRunningContainer.NONE;
 }

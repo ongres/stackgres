@@ -18,6 +18,7 @@ import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.factory.ClusterRunningContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.ProviderName;
@@ -28,7 +29,7 @@ import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContai
 @Sidecar(StackgresClusterContainers.POSTGRES_UTIL)
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
-@RunningContainer(order = 5)
+@RunningContainer(ClusterRunningContainer.POSTGRES_UTIL)
 public class PostgresUtil extends AbstractPostgresUtil {
 
   private VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;

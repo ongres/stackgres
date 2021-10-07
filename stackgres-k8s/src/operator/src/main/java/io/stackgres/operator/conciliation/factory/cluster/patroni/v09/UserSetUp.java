@@ -20,6 +20,7 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
@@ -31,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
-@InitContainer(order = 0)
+@InitContainer(ClusterInitContainer.USER_SET_UP)
 public class UserSetUp implements ContainerFactory<StackGresClusterContainerContext> {
 
   private final ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext>

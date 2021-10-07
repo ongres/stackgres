@@ -12,6 +12,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
@@ -172,13 +173,13 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(2)).createDirectories(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))));
     verify(fileSystemHandler, times(0)).createOrReplaceSymbolicLink(any(), any());
-    verify(fileSystemHandler, times(2)).copyOrReplace(any(), any());
-    verify(fileSystemHandler, times(1)).copyOrReplace(
+    verify(fileSystemHandler, times(2)).copyOrReplace(any(InputStream.class), any());
+    verify(fileSystemHandler, times(1)).copyOrReplace(any(InputStream.class),
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
-            .resolve("test.tgz.sha256")), any());
-    verify(fileSystemHandler, times(1)).copyOrReplace(
+            .resolve("test.tgz.sha256")));
+    verify(fileSystemHandler, times(1)).copyOrReplace(any(InputStream.class),
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
-            .resolve("test.tgz")), any());
+            .resolve("test.tgz")));
     verify(fileSystemHandler, times(2)).setPosixFilePermissions(any(), any());
     verify(fileSystemHandler, times(1)).setPosixFilePermissions(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
@@ -233,7 +234,7 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(0)).createOrReplaceFile(any());
     verify(fileSystemHandler, times(0)).createDirectories(any());
     verify(fileSystemHandler, times(0)).createOrReplaceSymbolicLink(any(), any());
-    verify(fileSystemHandler, times(0)).copyOrReplace(any(), any());
+    verify(fileSystemHandler, times(0)).copyOrReplace(any(InputStream.class), any());
     verify(fileSystemHandler, times(0)).setPosixFilePermissions(any(), any());
     verify(fileSystemHandler, times(0)).deleteIfExists(any());
     verify(fileSystemHandler, times(0)).identical(any(), any());
@@ -325,19 +326,19 @@ public class ExtensionManagerTest {
             .resolve("test.so")),
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_LIB_PATH.path(context(cluster)))
             .resolve("test.so")));
-    verify(fileSystemHandler, times(4)).copyOrReplace(any(), any());
-    verify(fileSystemHandler, times(1)).copyOrReplace(
+    verify(fileSystemHandler, times(4)).copyOrReplace(any(InputStream.class), any());
+    verify(fileSystemHandler, times(1)).copyOrReplace(any(InputStream.class),
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
-            .resolve("usr/lib/postgresql/12/lib").resolve("test.so")), any());
-    verify(fileSystemHandler, times(1)).copyOrReplace(
+            .resolve("usr/lib/postgresql/12/lib").resolve("test.so")));
+    verify(fileSystemHandler, times(1)).copyOrReplace(any(InputStream.class),
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
-            .resolve("usr/share/postgresql/12/extension").resolve("test.control")), any());
-    verify(fileSystemHandler, times(1)).copyOrReplace(
+            .resolve("usr/share/postgresql/12/extension").resolve("test.control")));
+    verify(fileSystemHandler, times(1)).copyOrReplace(any(InputStream.class),
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
-            .resolve("usr/share/postgresql/12/extension").resolve("test.sql")), any());
-    verify(fileSystemHandler, times(1)).copyOrReplace(
+            .resolve("usr/share/postgresql/12/extension").resolve("test.sql")));
+    verify(fileSystemHandler, times(1)).copyOrReplace(any(InputStream.class),
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH.path(context(cluster)))
-            .resolve("test.so.1.0")), any());
+            .resolve("test.so.1.0")));
     verify(fileSystemHandler, times(15)).setPosixFilePermissions(any(), any());
     verify(fileSystemHandler, times(1)).setPosixFilePermissions(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
@@ -493,7 +494,7 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(0)).createOrReplaceFile(any());
     verify(fileSystemHandler, times(0)).createDirectories(any());
     verify(fileSystemHandler, times(0)).createOrReplaceSymbolicLink(any(), any());
-    verify(fileSystemHandler, times(0)).copyOrReplace(any(), any());
+    verify(fileSystemHandler, times(0)).copyOrReplace(any(InputStream.class), any());
     verify(fileSystemHandler, times(0)).setPosixFilePermissions(any(), any());
     verify(fileSystemHandler, times(0)).deleteIfExists(any());
     verify(fileSystemHandler, times(0)).identical(any(), any());
@@ -535,7 +536,7 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(0)).createOrReplaceFile(any());
     verify(fileSystemHandler, times(0)).createDirectories(any());
     verify(fileSystemHandler, times(0)).createOrReplaceSymbolicLink(any(), any());
-    verify(fileSystemHandler, times(0)).copyOrReplace(any(), any());
+    verify(fileSystemHandler, times(0)).copyOrReplace(any(InputStream.class), any());
     verify(fileSystemHandler, times(0)).setPosixFilePermissions(any(), any());
     verify(fileSystemHandler, times(0)).deleteIfExists(any());
     verify(fileSystemHandler, times(1)).identical(any(), any());
@@ -582,7 +583,7 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(0)).createOrReplaceFile(any());
     verify(fileSystemHandler, times(0)).createDirectories(any());
     verify(fileSystemHandler, times(0)).createOrReplaceSymbolicLink(any(), any());
-    verify(fileSystemHandler, times(0)).copyOrReplace(any(), any());
+    verify(fileSystemHandler, times(0)).copyOrReplace(any(InputStream.class), any());
     verify(fileSystemHandler, times(0)).setPosixFilePermissions(any(), any());
     verify(fileSystemHandler, times(0)).deleteIfExists(any());
     verify(fileSystemHandler, times(1)).identical(any(), any());
@@ -609,7 +610,7 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(0)).createOrReplaceFile(any());
     verify(fileSystemHandler, times(0)).createDirectories(any());
     verify(fileSystemHandler, times(0)).createOrReplaceSymbolicLink(any(), any());
-    verify(fileSystemHandler, times(0)).copyOrReplace(any(), any());
+    verify(fileSystemHandler, times(0)).copyOrReplace(any(InputStream.class), any());
     verify(fileSystemHandler, times(0)).setPosixFilePermissions(
         any(), any());
     verify(fileSystemHandler, times(0)).deleteIfExists(any());
@@ -640,7 +641,7 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(0)).createOrReplaceFile(any());
     verify(fileSystemHandler, times(0)).createDirectories(any());
     verify(fileSystemHandler, times(0)).createOrReplaceSymbolicLink(any(), any());
-    verify(fileSystemHandler, times(0)).copyOrReplace(any(), any());
+    verify(fileSystemHandler, times(0)).copyOrReplace(any(InputStream.class), any());
     verify(fileSystemHandler, times(0)).setPosixFilePermissions(
         any(), any());
     verify(fileSystemHandler, times(0)).deleteIfExists(any());
@@ -670,7 +671,7 @@ public class ExtensionManagerTest {
             .resolve(extensionPackageName + ExtensionManager.PENDING_SUFFIX)));
     verify(fileSystemHandler, times(0)).createDirectories(any());
     verify(fileSystemHandler, times(0)).createOrReplaceSymbolicLink(any(), any());
-    verify(fileSystemHandler, times(0)).copyOrReplace(any(), any());
+    verify(fileSystemHandler, times(0)).copyOrReplace(any(InputStream.class), any());
     verify(fileSystemHandler, times(0)).setPosixFilePermissions(
         any(), any());
     verify(fileSystemHandler, times(0)).deleteIfExists(any());
@@ -703,7 +704,7 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(0)).createOrReplaceFile(any());
     verify(fileSystemHandler, times(0)).createDirectories(any());
     verify(fileSystemHandler, times(0)).createOrReplaceSymbolicLink(any(), any());
-    verify(fileSystemHandler, times(0)).copyOrReplace(any(), any());
+    verify(fileSystemHandler, times(0)).copyOrReplace(any(InputStream.class), any());
     verify(fileSystemHandler, times(0)).setPosixFilePermissions(any(), any());
     verify(fileSystemHandler, times(7)).deleteIfExists(any());
     verify(fileSystemHandler, times(1)).deleteIfExists(

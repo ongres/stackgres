@@ -16,6 +16,7 @@ import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.factory.ClusterRunningContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
@@ -26,7 +27,7 @@ import io.stackgres.operator.conciliation.factory.cluster.sidecars.pgutils.Abstr
 @Sidecar(StackgresClusterContainers.POSTGRES_UTIL)
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
-@RunningContainer(order = 1)
+@RunningContainer(ClusterRunningContainer.POSTGRES_UTIL_V09)
 public class PostgresUtil extends AbstractPostgresUtil {
 
   private static final String IMAGE_NAME = "docker.io/ongres/postgres-util:v%s-build-6.0";

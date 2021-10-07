@@ -22,6 +22,7 @@ import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
@@ -35,7 +36,7 @@ import io.stackgres.operator.conciliation.factory.v09.PatroniStaticVolume;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
-@InitContainer(order = 2)
+@InitContainer(ClusterInitContainer.SCRIPTS_SET_UP)
 public class ScriptsSetUp implements ContainerFactory<StackGresClusterContainerContext> {
 
   private final ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext>

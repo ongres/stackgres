@@ -13,13 +13,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import io.fabric8.kubernetes.api.model.EmptyDirVolumeSourceBuilder;
+import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
+import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -32,19 +39,24 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.ClusterRunningContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
+import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
+import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerBlocklist;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerDefaultValues;
+import org.jetbrains.annotations.NotNull;
 
 @Sidecar("connection-pooling")
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
-@RunningContainer(order = 4)
+@RunningContainer(ClusterRunningContainer.PGBOUNCER)
 public class PgBouncerPooling extends AbstractPgPooling {
 
   private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
@@ -52,13 +64,54 @@ public class PgBouncerPooling extends AbstractPgPooling {
 
   @Inject
   protected PgBouncerPooling(LabelFactoryForCluster<StackGresCluster> labelFactory,
-                             @ProviderName(CONTAINER_USER_OVERRIDE)
-                                 VolumeMountsProvider<ContainerContext> containerUserOverrideMounts,
-                             @ProviderName(POSTGRES_SOCKET)
-                                 VolumeMountsProvider<ContainerContext> postgresSocket) {
+      @ProviderName(CONTAINER_USER_OVERRIDE)
+      VolumeMountsProvider<ContainerContext> containerUserOverrideMounts,
+      @ProviderName(POSTGRES_SOCKET)
+      VolumeMountsProvider<ContainerContext> postgresSocket) {
     super(labelFactory);
     this.containerUserOverrideMounts = containerUserOverrideMounts;
     this.postgresSocket = postgresSocket;
+  }
+
+  @Override
+  protected Map<String, String> getDefaultParameters() {
+    return ImmutableMap.<String, String>builder()
+        .put("listen_port", Integer.toString(EnvoyUtil.PG_POOL_PORT))
+        .put("unix_socket_dir", ClusterStatefulSetPath.PG_RUN_PATH.path())
+        .put("auth_file", ClusterStatefulSetPath.PGBOUNCER_AUTH_FILE_PATH.path())
+        .build();
+  }
+
+  @Override
+  public @NotNull Stream<VolumePair> buildVolumes(@NotNull StackGresClusterContext context) {
+    return Stream.of(
+        ImmutableVolumePair.builder()
+            .volume(buildVolume(context))
+            .source(buildSource(context))
+            .build(),
+        ImmutableVolumePair.builder()
+            .volume(buildAuthFileVolume())
+            .build(),
+        ImmutableVolumePair.builder()
+            .volume(buildSecretVolume(context))
+            .build());
+  }
+
+  private Volume buildAuthFileVolume() {
+    return new VolumeBuilder()
+        .withName(StatefulSetDynamicVolumes.PGBOUNCER_AUTH_FILE.getVolumeName())
+        .withEmptyDir(new EmptyDirVolumeSourceBuilder()
+            .build())
+        .build();
+  }
+
+  private Volume buildSecretVolume(StackGresClusterContext context) {
+    return new VolumeBuilder()
+        .withName(StatefulSetDynamicVolumes.PGBOUNCER_SECRETS.getVolumeName())
+        .withSecret(new SecretVolumeSourceBuilder()
+            .withSecretName(context.getCluster().getMetadata().getName())
+            .build())
+        .build();
   }
 
   @Override
@@ -74,8 +127,15 @@ public class PgBouncerPooling extends AbstractPgPooling {
     return ImmutableList.<VolumeMount>builder()
         .addAll(postgresSocket.getVolumeMounts(context))
         .add(new VolumeMountBuilder()
-            .withName(StatefulSetDynamicVolumes.PG_BOUNCER.getVolumeName())
-            .withMountPath("/etc/pgbouncer")
+            .withName(StatefulSetDynamicVolumes.PGBOUNCER.getVolumeName())
+            .withMountPath(ClusterStatefulSetPath.PGBOUNCER_CONFIG_FILE_PATH.path())
+            .withSubPath("pgbouncer.ini")
+            .withReadOnly(true)
+            .build())
+        .add(new VolumeMountBuilder()
+            .withName(StatefulSetDynamicVolumes.PGBOUNCER_AUTH_FILE.getVolumeName())
+            .withMountPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.path())
+            .withSubPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.subPath())
             .withReadOnly(true)
             .build())
         .addAll(
@@ -101,7 +161,7 @@ public class PgBouncerPooling extends AbstractPgPooling {
         .map(HashMap::new)
         .orElseGet(() -> new HashMap<>(PgBouncerDefaultValues.getDefaultValues()));
 
-    parameters.putAll(DEFAULT_PARAMETERS);
+    parameters.putAll(defaultParameters);
     parameters.putAll(newParams);
 
     String pgBouncerConfig = parameters.entrySet().stream()
@@ -135,7 +195,11 @@ public class PgBouncerPooling extends AbstractPgPooling {
 
     return !databases.isEmpty()
         ? "[databases]\n" + getSections(databases) + "\n\n"
-        : "[databases]\n" + "* = port=" + EnvoyUtil.PG_PORT + "\n\n";
+            + ";; fallback connect string\n"
+            + "* = port=" + EnvoyUtil.PG_PORT + "\n\n"
+        : "[databases]\n\n"
+            + ";; fallback connect string\n"
+            + "* = port=" + EnvoyUtil.PG_PORT + "\n\n";
   }
 
   private String getSections(Map<String, Map<String, String>> sections) {
