@@ -17,7 +17,7 @@ showToc: true
 | WAL-G | 1.1 |
 | PgBouncer | 1.15.0 |
 | Postgres Exporter | 0.10.0 |
-| Envoy | 1.17.1 |
+| Envoy | 1.19.1 |
 | Fluent-Bit | 1.8.1 |
 | Fluentd | 1.13.2 |
 

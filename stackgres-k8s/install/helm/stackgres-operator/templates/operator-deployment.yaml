@@ -125,7 +125,7 @@ spec:
             readOnly: true
       {{- else }}
       - name: {{ .Release.Name }}-nginx
-        image: "registry.access.redhat.com/ubi8/nginx-118:1-39"
+        image: "registry.access.redhat.com/ubi8/nginx-118:1-42"
         imagePullPolicy: IfNotPresent
         args:
           - '/bin/sh'

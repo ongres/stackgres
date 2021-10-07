@@ -36,7 +36,7 @@ spec:
       terminationGracePeriodSeconds: 0
       containers:
       - name: http
-        image: "registry.access.redhat.com/ubi8/nginx-118:1-39"
+        image: "registry.access.redhat.com/ubi8/nginx-118:1-42"
         args:
           - '/bin/sh'
           - '-ec'
