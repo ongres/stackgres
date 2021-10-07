@@ -18,6 +18,7 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.github.fge.jsonpatch.ReplaceOperation;
 import com.google.common.collect.ImmutableList;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -29,6 +30,7 @@ import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
+import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
 public class ExtensionsChannelMutator implements ClusterMutator {
@@ -60,26 +62,50 @@ public class ExtensionsChannelMutator implements ClusterMutator {
                   final JsonPointer extensionVersionPointer =
                       CLUSTER_CONFIG_POINTER.append("postgres").append("extensions")
                           .append(extension.v2.intValue()).append("version");
-                  final Optional<StackGresExtensionMetadata> extensionMetadata =
-                      extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-                          cluster, extension.v1);
-                  if (extensionMetadata.isPresent()) {
-                    final StackGresClusterInstalledExtension installedExtension =
-                        ExtensionUtil.getInstalledExtension(extension.v1, extensionMetadata.get());
-                    final TextNode extensionVersion = new TextNode(installedExtension.getVersion());
-                    if (extension.v1.getVersion() == null) {
-                      operations.add(new AddOperation(extensionVersionPointer, extensionVersion));
-                    } else if (!installedExtension.getVersion().equals(extension.v1.getVersion())) {
-                      operations
-                          .add(new ReplaceOperation(extensionVersionPointer, extensionVersion));
-                    }
-                  }
+                  getToInstallExtension(cluster, extension.v1)
+                      .ifPresent(installedExtension -> {
+                        leaveOrAddOrReplaceExtensionVersion(operations, extension,
+                            extensionVersionPointer, installedExtension);
+                      });
                 }));
           });
       return operations.build();
     }
 
     return ImmutableList.of();
+  }
+
+  private Optional<StackGresClusterInstalledExtension> getToInstallExtension(
+      StackGresCluster cluster, StackGresClusterExtension extension) {
+    Optional<StackGresClusterInstalledExtension> exactCandidateExtension =
+        extensionMetadataManager
+        .findExtensionCandidateSameMajorBuild(cluster, extension)
+        .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
+            extension, extensionMetadata));
+    if (exactCandidateExtension.isEmpty()) {
+      List<StackGresExtensionMetadata> candidateExtensionMetadatas =
+          extensionMetadataManager.getExtensionsAnyVersion(cluster, extension);
+      if (candidateExtensionMetadatas.size() == 1) {
+        return Optional.of(ExtensionUtil.getInstalledExtension(
+            extension, candidateExtensionMetadatas.get(0)));
+      }
+      return Optional.empty();
+    }
+    return exactCandidateExtension;
+  }
+
+  private void leaveOrAddOrReplaceExtensionVersion(
+      ImmutableList.Builder<JsonPatchOperation> operations,
+      Tuple2<StackGresClusterExtension, Long> extension,
+      final JsonPointer extensionVersionPointer,
+      StackGresClusterInstalledExtension installedExtension) {
+    final TextNode extensionVersion = new TextNode(installedExtension.getVersion());
+    if (extension.v1.getVersion() == null) {
+      operations.add(new AddOperation(extensionVersionPointer, extensionVersion));
+    } else if (!installedExtension.getVersion().equals(extension.v1.getVersion())) {
+      operations
+          .add(new ReplaceOperation(extensionVersionPointer, extensionVersion));
+    }
   }
 
 }
