@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
@@ -71,7 +72,7 @@ public class NamespacedClusterEventsResource {
     Map<String, List<ObjectMeta>> relatedResources = new HashMap<>();
     relatedResources.put(StackGresDbOps.KIND,
         Seq.seq(dbOpsScanner.getResources(namespace))
-            .filter(dbOps -> dbOps.getSpec().getSgCluster().equals(name))
+            .filter(dbOps -> Objects.equals(dbOps.getSpec().getSgCluster(), name))
             .map(StackGresDbOps::getMetadata)
             .toList());
     return Seq.seq(scanner.findResourcesInNamespace(namespace))
@@ -83,19 +84,20 @@ public class NamespacedClusterEventsResource {
   private boolean isClusterEvent(EventDto event, String namespace, String name,
       Map<String, List<ObjectMeta>> relatedResources) {
     ObjectReference involvedObject = event.getInvolvedObject();
-    return involvedObject.getNamespace().equals(namespace)
-        && ((involvedObject.getKind().equals(StackGresCluster.KIND)
-            && involvedObject.getName().equals(name))
-            || (involvedObject.getKind().equals("StatefulSet")
-                && involvedObject.getName().equals(name))
-            || (involvedObject.getKind().equals("Pod")
+    return Objects.equals(involvedObject.getNamespace(), namespace)
+        && ((Objects.equals(involvedObject.getKind(), StackGresCluster.KIND)
+            && Objects.equals(involvedObject.getName(), name))
+            || (Objects.equals(involvedObject.getKind(), "StatefulSet")
+                && Objects.equals(involvedObject.getName(), name))
+            || (Objects.equals(involvedObject.getKind(), "Pod")
+                && Objects.nonNull(involvedObject.getName())
                 && involvedObject.getName().matches(ResourceUtil.getNameWithIndexPattern(name)))
             || (Optional.ofNullable(relatedResources.get(involvedObject.getKind()))
                 .stream().flatMap(relatedResource -> relatedResource.stream())
-                .anyMatch(relatedResource -> relatedResource.getNamespace()
-                    .equals(involvedObject.getNamespace())
-                    && relatedResource.getName().equals(involvedObject.getName())
-                    && relatedResource.getUid().equals(involvedObject.getUid()))));
+                .anyMatch(relatedResource -> Objects
+                    .equals(relatedResource.getNamespace(), involvedObject.getNamespace())
+                    && Objects.equals(relatedResource.getName(), involvedObject.getName())
+                    && Objects.equals(relatedResource.getUid(), involvedObject.getUid()))));
   }
 
   private int orderByLastTimestamp(EventDto e1, EventDto e2) {

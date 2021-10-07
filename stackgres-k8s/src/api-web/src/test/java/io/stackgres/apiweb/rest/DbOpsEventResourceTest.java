@@ -142,6 +142,22 @@ class DbOpsEventResourceTest implements AuthenticatedResourceTest {
                 .withUid("1")
                 .build())
             .build());
+    mockServer.getClient().v1().events().inNamespace("test-namespace")
+        .create(new EventBuilder()
+            .withNewMetadata()
+            .withNamespace("test-namespace")
+            .withName("test.5")
+            .endMetadata()
+            .withType("Normal")
+            .withMessage("Test")
+            .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(1)))
+            .withInvolvedObject(new ObjectReferenceBuilder()
+                .withKind("Node")
+                .withNamespace(null)
+                .withName("test")
+                .withUid("1")
+                .build())
+            .build());
 
     given()
         .when()
