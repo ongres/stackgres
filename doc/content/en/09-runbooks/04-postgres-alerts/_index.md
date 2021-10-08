@@ -10,7 +10,7 @@ This runbook will show you how to add Postgres alerts to your Prometheus install
 
 ## Environment
 
-This runbook will show you to add postgres alerts using a default Prometheus installation with [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack). In case you still haven't a Prometheus installation follow the steps in the [StackGres tutorial]({{% relref "03-tutorial/01-pre-requisites/03-prometheus-grafana" %}}).
+This runbook will show you to add postgres alerts using a default Prometheus installation with [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack). 
 
 The Prometheus installation will add to your K8s cluster some CRS's:
 
