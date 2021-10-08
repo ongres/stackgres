@@ -118,7 +118,7 @@ class ExtensionsMutatorTest {
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
     assertEquals(2, operations.size());
-    assertEquals(1, operations.stream().filter(o -> o instanceof AddOperation).count());
+    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
     assertEquals(1, operations.stream().filter(o -> o instanceof AddOperation).count());
   }
 

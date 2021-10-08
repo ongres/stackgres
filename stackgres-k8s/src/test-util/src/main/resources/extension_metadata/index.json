@@ -45,6 +45,12 @@
       }, {
         "build": "5.1",
         "postgresVersion": "12"
+      },{
+        "build": "5.0",
+        "postgresVersion": "11"
+      }, {
+        "build": "5.0",
+        "postgresVersion": "12"
       }]
     }, {
       "version": "0.0.6",

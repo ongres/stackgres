@@ -16,6 +16,7 @@ import static org.mockito.Mockito.when;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Objects;
 
 import io.stackgres.apiweb.dto.extension.Extension;
 import io.stackgres.apiweb.dto.extension.ExtensionsDto;
@@ -44,47 +45,76 @@ class ExtensionsResourceTest {
 
   private static final URI REPOSITORY = URI.create("https://extensions.stackgres.io/postgres/repository");
 
-  private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getOrderedVersions().findFirst().get();
-
-  private static final String POSTGRES_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getOrderedMajorVersions().findFirst().get();
-
-  private static final String BUILD_VERSION =
-      StackGresComponent.POSTGRESQL.getOrderedBuildVersions().findFirst().get();
+  static final String PG_VERSION =
+      StackGresComponent.POSTGRESQL.getOrderedVersions()
+      .findAny().get();
+  static final String FIRST_PG_MAJOR_VERSION =
+      StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
+      .get(0).get();
+  static final String SECOND_PG_MAJOR_VERSION =
+      StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
+      .get(1).get();
+  static final String SECOND_PG_VERSION =
+      StackGresComponent.POSTGRESQL.findVersion(SECOND_PG_MAJOR_VERSION);
+  static final String BUILD_VERSION =
+      StackGresComponent.POSTGRESQL.findBuildVersion(PG_VERSION);
+  static final String BUILD_MAJOR_VERSION =
+      StackGresComponent.POSTGRESQL.findBuildMajorVersion(PG_VERSION);
 
   @Mock
   private ClusterExtensionMetadataManager clusterExtensionMetadataManager;
 
-  private StackGresExtensions extensions;
+  private StackGresExtensions extensionsMetadata;
 
   private ExtensionsResource resource;
 
   @BeforeEach
   void setUp() {
-    extensions = JsonUtil
+    extensionsMetadata = JsonUtil
         .readFromJson("extension_metadata/index.json",
             StackGresExtensions.class);
-    extensions.getExtensions().stream()
+    extensionsMetadata.getExtensions().stream()
         .map(StackGresExtension::getVersions)
         .flatMap(List::stream)
         .map(StackGresExtensionVersion::getAvailableFor)
         .flatMap(List::stream)
-        .filter(target -> target.getPostgresVersion().equals("12"))
-        .forEach(target -> {
-          target.setBuild(BUILD_VERSION);
-          target.setPostgresVersion(POSTGRES_MAJOR_VERSION);
-        });
-    extensions.getExtensions().stream()
+        .filter(target -> Objects.equals(target.getBuild(), "5.1"))
+        .forEach(target -> target.setBuild(BUILD_VERSION));
+    extensionsMetadata.getExtensions().stream()
         .map(StackGresExtension::getVersions)
         .flatMap(List::stream)
         .map(StackGresExtensionVersion::getAvailableFor)
         .flatMap(List::stream)
-        .filter(target -> target.getPostgresVersion().equals("12.4"))
-        .forEach(target -> {
-          target.setBuild(BUILD_VERSION);
-          target.setPostgresVersion(POSTGRES_VERSION);
-        });
+        .forEach(target -> target.setBuild(
+            BUILD_MAJOR_VERSION + "." + target.getBuild().split("\\.")[1]));
+    extensionsMetadata.getExtensions().stream()
+        .map(StackGresExtension::getVersions)
+        .flatMap(List::stream)
+        .map(StackGresExtensionVersion::getAvailableFor)
+        .flatMap(List::stream)
+        .filter(target -> Objects.equals(target.getPostgresVersion(), "12"))
+        .forEach(target -> target.setPostgresVersion(FIRST_PG_MAJOR_VERSION));
+    extensionsMetadata.getExtensions().stream()
+        .map(StackGresExtension::getVersions)
+        .flatMap(List::stream)
+        .map(StackGresExtensionVersion::getAvailableFor)
+        .flatMap(List::stream)
+        .filter(target -> Objects.equals(target.getPostgresVersion(), "11"))
+        .forEach(target -> target.setPostgresVersion(SECOND_PG_MAJOR_VERSION));
+    extensionsMetadata.getExtensions().stream()
+        .map(StackGresExtension::getVersions)
+        .flatMap(List::stream)
+        .map(StackGresExtensionVersion::getAvailableFor)
+        .flatMap(List::stream)
+        .filter(target -> Objects.equals(target.getPostgresVersion(), "12.4"))
+        .forEach(target -> target.setPostgresVersion(PG_VERSION));
+    extensionsMetadata.getExtensions().stream()
+        .map(StackGresExtension::getVersions)
+        .flatMap(List::stream)
+        .map(StackGresExtensionVersion::getAvailableFor)
+        .flatMap(List::stream)
+        .filter(target -> Objects.equals(target.getPostgresVersion(), "11.9"))
+        .forEach(target -> target.setPostgresVersion(SECOND_PG_VERSION));
     resource = new ExtensionsResource(clusterExtensionMetadataManager,
         new ExtensionsTransformer(clusterExtensionMetadataManager));
   }
@@ -92,23 +122,23 @@ class ExtensionsResourceTest {
   @Test
   void getWithExactVersionShouldReturnAllExtensions() throws Exception {
     when(clusterExtensionMetadataManager.getExtensions()).thenReturn(
-        Seq.seq(ExtensionUtil.toExtensionsMetadataIndex(REPOSITORY, extensions))
+        Seq.seq(ExtensionUtil.toExtensionsMetadataIndex(REPOSITORY, extensionsMetadata))
           .map(Tuple2::v2)
           .toList());
     when(clusterExtensionMetadataManager.getExtensionsAnyVersion(
         any(), eq(getClusterExtension("pgsodium")))).thenReturn(
-            ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensions)
-            .get(getIndexAnyVersion(POSTGRES_VERSION, getClusterExtension("pgsodium"))));
+            ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensionsMetadata)
+            .get(getIndexAnyVersion(PG_VERSION, getClusterExtension("pgsodium"))));
     when(clusterExtensionMetadataManager.getExtensionsAnyVersion(
         any(), eq(getClusterExtension("mysqlcompat")))).thenReturn(
-            ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensions)
-            .get(getIndexAnyVersion(POSTGRES_VERSION, getClusterExtension("mysqlcompat"))));
+            ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensionsMetadata)
+            .get(getIndexAnyVersion(PG_VERSION, getClusterExtension("mysqlcompat"))));
     when(clusterExtensionMetadataManager.getExtensionsAnyVersion(
         any(), eq(getClusterExtension("plpgsql")))).thenReturn(
-            ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensions)
-            .get(getIndexAnyVersion(POSTGRES_VERSION, getClusterExtension("plpgsql"))));
+            ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensionsMetadata)
+            .get(getIndexAnyVersion(PG_VERSION, getClusterExtension("plpgsql"))));
 
-    ExtensionsDto extensionsDto = resource.get(POSTGRES_VERSION);
+    ExtensionsDto extensionsDto = resource.get(PG_VERSION);
 
     assertThat(extensionsDto.getPublishers(), hasSize(1));
     assertThat(extensionsDto.getExtensions(), hasSize(3));
@@ -129,34 +159,36 @@ class ExtensionsResourceTest {
   @Test
   void getWithExactVersionShouldReturnAllExtensionsButUniqueVersions() throws Exception {
     StackGresExtension sameVersionWithAnotherBuildExtension = JsonUtil
-        .fromJson(JsonUtil.toJson(extensions.getExtensions().stream()
+        .fromJson(JsonUtil.toJson(extensionsMetadata.getExtensions().stream()
             .filter(extension -> extension.getName().equals("mysqlcompat"))
             .findFirst()
             .get()), StackGresExtension.class);
-    sameVersionWithAnotherBuildExtension.getVersions().stream()
+    Seq.seq(sameVersionWithAnotherBuildExtension.getVersions())
         .map(StackGresExtensionVersion::getAvailableFor)
         .flatMap(List::stream)
-        .forEach(target -> target.setBuild(BUILD_VERSION.replaceFirst(".[0-9]+", ".999999999")));
-    extensions.getExtensions().add(sameVersionWithAnotherBuildExtension);
+        .zipWithIndex()
+        .forEach(t -> t.v1.setBuild(BUILD_VERSION
+            .replaceFirst(".[0-9]+", ".99999999" + Math.min(9, t.v2.intValue()))));
+    extensionsMetadata.getExtensions().add(sameVersionWithAnotherBuildExtension);
 
     when(clusterExtensionMetadataManager.getExtensions()).thenReturn(
-        Seq.seq(ExtensionUtil.toExtensionsMetadataIndex(REPOSITORY, extensions))
+        Seq.seq(ExtensionUtil.toExtensionsMetadataIndex(REPOSITORY, extensionsMetadata))
           .map(Tuple2::v2)
           .toList());
     when(clusterExtensionMetadataManager.getExtensionsAnyVersion(
         any(), eq(getClusterExtension("pgsodium")))).thenReturn(
-            ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensions)
-            .get(getIndexAnyVersion(POSTGRES_VERSION, getClusterExtension("pgsodium"))));
+            ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensionsMetadata)
+            .get(getIndexAnyVersion(PG_VERSION, getClusterExtension("pgsodium"))));
     when(clusterExtensionMetadataManager.getExtensionsAnyVersion(
         any(), eq(getClusterExtension("mysqlcompat")))).thenReturn(
-            ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensions)
-            .get(getIndexAnyVersion(POSTGRES_VERSION, getClusterExtension("mysqlcompat"))));
+            ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensionsMetadata)
+            .get(getIndexAnyVersion(PG_VERSION, getClusterExtension("mysqlcompat"))));
     when(clusterExtensionMetadataManager.getExtensionsAnyVersion(
         any(), eq(getClusterExtension("plpgsql")))).thenReturn(
-            ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensions)
-            .get(getIndexAnyVersion(POSTGRES_VERSION, getClusterExtension("plpgsql"))));
+            ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensionsMetadata)
+            .get(getIndexAnyVersion(PG_VERSION, getClusterExtension("plpgsql"))));
 
-    ExtensionsDto extensionsDto = resource.get(POSTGRES_VERSION);
+    ExtensionsDto extensionsDto = resource.get(PG_VERSION);
 
     assertThat(extensionsDto.getPublishers(), hasSize(1));
     assertThat(extensionsDto.getExtensions(), hasSize(3));
@@ -172,7 +204,7 @@ class ExtensionsResourceTest {
   }
 
   private StackGresClusterExtension getClusterExtension(String name) {
-    return extensions.getExtensions().stream()
+    return extensionsMetadata.getExtensions().stream()
         .filter(extension -> extension.getName().equals(name))
         .map(extension -> {
           StackGresClusterExtension clusterExtension = new StackGresClusterExtension();

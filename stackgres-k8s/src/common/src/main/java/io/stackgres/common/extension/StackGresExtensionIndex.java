@@ -71,38 +71,38 @@ public class StackGresExtensionIndex {
         && Objects.equals(name, other.name)
         && Objects.equals(postgresVersion, other.postgresVersion)) {
       if (fromIndex && other.fromIndex) {
-        return Objects.equals(channels, other.channels)
-            && Objects.equals(version, other.version)
-            && Objects.equals(arch, other.arch)
-            && Objects.equals(os, other.os)
-            && Objects.equals(build, other.build);
-      }
-      if (fromIndex && !other.fromIndex) {
-        return (version.equals(other.version)
-            || channels.stream()
-                .anyMatch(channel -> channel.equals(other.version)))
-            && (Objects.isNull(build)
-                || (Objects.equals(arch, other.arch) // NOPMD
-                && Objects.equals(os, other.os)
-                && Objects.equals(build, other.build)));
-      }
-      if (!fromIndex && other.fromIndex) {
-        return (version.equals(other.version)
-            || other.channels.stream()
-                .anyMatch(channel -> channel.equals(version)))
-            && (Objects.isNull(other.build)
-                || (Objects.equals(arch, other.arch) // NOPMD
-                && Objects.equals(os, other.os)
-                && Objects.equals(build, other.build)));
+        return equalsBothFromIndex(this, other);
       }
       if (!fromIndex && !other.fromIndex) {
-        return Objects.equals(version, other.version)
-            && Objects.equals(arch, other.arch)
-            && Objects.equals(os, other.os)
-            && Objects.equals(build, other.build);
+        return equalsBothFromIndex(this, other);
+      }
+      if (fromIndex && !other.fromIndex) {
+        return equalsWithFromIndex(other, this);
+      }
+      if (!fromIndex && other.fromIndex) {
+        return equalsWithFromIndex(this, other);
       }
     }
     return false;
+  }
+
+  private boolean equalsWithFromIndex(StackGresExtensionIndex other,
+      StackGresExtensionIndex fromIndex) {
+    return (fromIndex.version.equals(other.version)
+        || fromIndex.channels.stream().anyMatch(other.version::equals))
+        && (Objects.isNull(fromIndex.build)
+            || (Objects.equals(fromIndex.arch, other.arch) // NOPMD
+            && Objects.equals(fromIndex.os, other.os)
+            && Objects.equals(fromIndex.build, other.build)));
+  }
+
+  private boolean equalsBothFromIndex(StackGresExtensionIndex self,
+      StackGresExtensionIndex other) {
+    return Objects.equals(self.channels, other.channels)
+        && Objects.equals(self.version, other.version)
+        && Objects.equals(self.arch, other.arch)
+        && Objects.equals(self.os, other.os)
+        && Objects.equals(self.build, other.build);
   }
 
   @Override

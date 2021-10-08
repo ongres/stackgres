@@ -26,6 +26,8 @@ import io.stackgres.common.WebClientFactory.WebClient;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +75,6 @@ public abstract class ExtensionMetadataManager {
   public Optional<StackGresExtensionMetadata> findExtensionCandidateSameMajorBuild(
       StackGresCluster cluster, StackGresClusterExtension extension) {
     return getExtensionsSameMajorBuild(cluster, extension).stream()
-        .sorted((l, r) -> r.compareBuild(l))
         .findFirst();
   }
 
@@ -82,6 +83,7 @@ public abstract class ExtensionMetadataManager {
     return Optional
         .ofNullable(getExtensionsMetadata().indexSameMajorBuilds
             .get(new StackGresExtensionIndexSameMajorBuild(cluster, extension)))
+        .map(this::extractLatestVersions)
         .orElse(ImmutableList.of());
   }
 
@@ -96,7 +98,6 @@ public abstract class ExtensionMetadataManager {
   public Optional<StackGresExtensionMetadata> findExtensionCandidateAnyVersion(
       StackGresCluster cluster, StackGresClusterExtension extension) {
     return getExtensionsAnyVersion(cluster, extension).stream()
-        .sorted((l, r) -> r.compareBuild(l))
         .findFirst();
   }
 
@@ -105,7 +106,21 @@ public abstract class ExtensionMetadataManager {
     return Optional
         .ofNullable(getExtensionsMetadata().indexAnyVersions
             .get(new StackGresExtensionIndexAnyVersion(cluster, extension)))
+        .map(this::extractLatestVersions)
         .orElse(ImmutableList.of());
+  }
+
+  private ImmutableList<StackGresExtensionMetadata> extractLatestVersions(
+      List<StackGresExtensionMetadata> list) {
+    return Seq.seq(list)
+        .map(e -> Tuple.tuple(e.getVersion().getVersion(), e.getMajorBuild(), e))
+        .grouped(Tuple3::limit2)
+        .map(group -> group.v2
+            .map(Tuple3::v3)
+            .sorted(StackGresExtensionMetadata::compareBuild)
+            .findFirst()
+            .orElseThrow())
+        .collect(ImmutableList.toImmutableList());
   }
 
   public Collection<StackGresExtensionMetadata> getExtensions() {
