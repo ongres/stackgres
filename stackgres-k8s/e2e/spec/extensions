@@ -1,12 +1,12 @@
 #!/bin/sh
 
 e2e_test_install() {
-  INTAGG_VERSION="$(get_latest_version_of_extension intagg 12.6)"
-  PAGEINSPECT_VERSION="$(get_latest_version_of_extension pageinspect 12.6)"
-  PG_REPACK_VERSION="$(get_latest_version_of_extension pg_repack 12.6)"
+  INTAGG_VERSION="$(get_latest_version_of_extension intagg 12.8)"
+  PAGEINSPECT_VERSION="$(get_latest_version_of_extension pageinspect 12.8)"
+  PG_REPACK_VERSION="$(get_latest_version_of_extension pg_repack 12.8)"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
-    --set-string 'cluster.postgres.version=12.6' \
+    --set-string 'cluster.postgres.version=12.8' \
     --set-string 'cluster.postgres.extensions[0].name=timescaledb' \
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=timescaledb
 
@@ -65,7 +65,7 @@ check_extension_installed_after_booting() {
 check_extension_not_uninstalled_when_removed() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --reset-values \
-    --set-string 'cluster.postgres.version=12.6' \
+    --set-string 'cluster.postgres.version=12.8' \
     --set 'cluster.postgres.extensions=null' \
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
 
@@ -123,7 +123,7 @@ check_extension_not_uninstalled_when_removed() {
 check_extension_without_shared_library_installed_when_added() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --reset-values \
-    --set-string 'cluster.postgres.version=12.6' \
+    --set-string 'cluster.postgres.version=12.8' \
     --set 'cluster.postgres.extensions=null' \
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
 
@@ -132,7 +132,7 @@ check_extension_without_shared_library_installed_when_added() {
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --reset-values \
-    --set-string 'cluster.postgres.version=12.6' \
+    --set-string 'cluster.postgres.version=12.8' \
     --set-string 'cluster.postgres.extensions[0].name=intagg' \
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
 
@@ -170,7 +170,7 @@ check_extension_without_shared_library_installed_when_added() {
 check_extension_without_shared_library_installed_when_upgraded() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --reset-values \
-    --set-string 'cluster.postgres.version=12.6' \
+    --set-string 'cluster.postgres.version=12.8' \
     --set-string 'cluster.postgres.extensions[0].name=intagg' \
     --set-string 'cluster.postgres.extensions[0].version='"$INTAGG_NEW_VERSION" \
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
@@ -221,7 +221,7 @@ check_extension_without_shared_library_installed_when_upgraded() {
 check_extension_with_shared_library_installed_when_added() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --reset-values \
-    --set-string 'cluster.postgres.version=12.6' \
+    --set-string 'cluster.postgres.version=12.8' \
     --set 'cluster.postgres.extensions=null' \
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
 
@@ -230,7 +230,7 @@ check_extension_with_shared_library_installed_when_added() {
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --reset-values \
-    --set-string 'cluster.postgres.version=12.6' \
+    --set-string 'cluster.postgres.version=12.8' \
     --set-string 'cluster.postgres.extensions[0].name=pageinspect' \
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
 
@@ -268,7 +268,7 @@ check_extension_with_shared_library_installed_when_added() {
 check_extension_with_shared_library_installed_when_upgraded() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --reset-values \
-    --set-string 'cluster.postgres.version=12.6' \
+    --set-string 'cluster.postgres.version=12.8' \
     --set-string 'cluster.postgres.extensions[0].name=pageinspect' \
     --set-string 'cluster.postgres.extensions[0].version='"$PAGEINSPECT_NEW_VERSION" \
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
@@ -339,7 +339,7 @@ check_extension_with_shared_library_installed_when_upgraded() {
 check_extension_with_executable_installed_when_added() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --reset-values \
-    --set-string 'cluster.postgres.version=12.6' \
+    --set-string 'cluster.postgres.version=12.8' \
     --set 'cluster.postgres.extensions=null' \
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
 
@@ -348,7 +348,7 @@ check_extension_with_executable_installed_when_added() {
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --reset-values \
-    --set-string 'cluster.postgres.version=12.6' \
+    --set-string 'cluster.postgres.version=12.8' \
     --set-string 'cluster.postgres.extensions[0].name=pg_repack' \
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
 

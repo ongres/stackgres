@@ -8,6 +8,7 @@ package io.stackgres.operator.validation;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -78,9 +79,9 @@ public abstract class AbstractExtensionsValidator<T extends AdmissionReview<?>>
           String errorTypeUri = ErrorType.getErrorTypeUri(ErrorType.EXTENSION_NOT_FOUND);
           String missingExtensionsMessage = Seq.seq(missingExtensions)
               .map(missingExtension -> {
-                final List<String> availableVersions =
-                    candidateExtensionVersions.get(missingExtension.v1);
-                if (availableVersions.size() > 0) {
+                final Set<String> availableVersions =
+                    Set.copyOf(candidateExtensionVersions.get(missingExtension.v1));
+                if (!availableVersions.isEmpty()) {
                   return missingExtension.v1
                       + " (available " + Seq.seq(availableVersions).toString(", ") + ")";
                 }

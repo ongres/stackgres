@@ -36,7 +36,7 @@ spec:
       terminationGracePeriodSeconds: 0
       containers:
       - name: http
-        image: "registry.access.redhat.com/ubi8/nginx-118:1-39"
+        image: "registry.access.redhat.com/ubi8/nginx-118:1-42"
         args:
           - '/bin/sh'
           - '-ec'
@@ -77,7 +77,7 @@ spec:
             mountPath: /opt/app-root/src
             readOnly: true
       - name: "controller"
-        image: "ongres/kubectl:v1.19.7-build-6.2"
+        image: "ongres/kubectl:v1.19.14-build-6.6"
         env:
           - name: EXTENSIONS_REPOSITORY_URLS
             value: "{{ range $index, $element := .Values.extensions.repositoryUrls }}{{ if $index }},{{ end }}{{ $element }}{{ end }}"

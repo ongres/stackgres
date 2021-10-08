@@ -8,6 +8,8 @@ package io.stackgres.common;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 
+import java.util.Comparator;
+
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
@@ -31,7 +33,7 @@ class StackGresComponentTest {
   @EnumSource(StackGresComponent.class)
   void getAllBuildVersions_shouldNotFail(StackGresComponent component) {
     assertThat(component.getOrderedBuildVersions().stream()).isNotEmpty();
-    assertThat(component.getOrderedBuildVersions().stream()).hasSize(1);
+    assertThat(component.getOrderedBuildVersions().stream()).isInOrder(Comparator.reverseOrder());
   }
 
   @ParameterizedTest

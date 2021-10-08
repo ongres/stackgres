@@ -24,7 +24,7 @@ spec:
       serviceAccountName: {{ .Release.Name }}-init
       containers:
       - name: "integrate-grafana"
-        image: "ongres/kubectl:v1.19.7-build-6.3"
+        image: "ongres/kubectl:v1.19.14-build-6.6"
         imagePullPolicy: "IfNotPresent"
         command:
           - "/bin/bash"

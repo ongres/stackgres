@@ -22,7 +22,7 @@ spec:
       serviceAccountName: {{ .Release.Name }}-init
       containers:
       - name: "{{ .Release.Name }}-wait"
-        image: "ongres/kubectl:v1.19.7-build-6.2"
+        image: "ongres/kubectl:v1.19.14-build-6.6"
         imagePullPolicy: "IfNotPresent"
         command:
           - "/bin/bash"
