@@ -1,3 +1,58 @@
+# :rocket: Release 1.0.0-RC1 (2021-10-08)
+
+## :notepad_spiral: NOTES
+
+We are proud to announce firt StackGres 1.0.0-RC1 GA!! :medal: :tada: :bottle_with_popping_cork:
+
+This release brings a lot of new features and bugfixes. The most significant one is the availability of 120+ extensions, and many more to come. This makes StackGres the Postgres platform with more extensions! Load and unload them dynamically, at will, onto your pods, via simple YAML or the Web Console.
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 0.9 version or above) helm chart issue following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+## :sparkles: CHANGES
+
+* Support Kubernetes 1.22
+* Support for Postgres 14.
+* Patroni 2.1.1
+* Envoy 1.19.1
+* Postgres Exporter 0.10.0
+* Extensions cache (disabled by default)
+* Support to use a proxy to access extensions repository
+* Add events to pgbench sgdbops
+* Support install extension using required shared library if already present and identical
+* Re-implement SGDbOps for minor and major version upgrade to change Postgres version in the Job
+* Allow to change image pull policy for all controllers and jobs images
+
+## :bug: FIXES
+
+* Generic labels were not correctly set in some cases generating loots of secrets when running sgdbops
+* Validate that pg_repack extension is added before running the SGDbOps repack
+* Relax default extension candidate finding logic
+* Allow all databases connections even when databases section is configured in pgbouncer
+* Update status with lock resources for sgcluster
+* PgBouncer fail authentication for users defined in users section
+* PgBouncer does not allow to connect remotely to the console at pgbouncer database
+* sgpgconfig conversion webhooks fail to convert default parameters
+* Wrong wal_keep_size used in Postgres 13 configurations
+* Added pattern and maxLength validation on metada.name property for sgcluster, distributedlogs, sgdbops and sgbackup CRD.
+* Native and jvm image APP_OPTS and JAVA_OPTS defaults are overwritten
+* NullPointerException returned by cluster and dbops events endpoint in REST API
+* Cleanup admission webhook validation message returned in REST API
+
+## :construction: KNOWN ISSUES
+
+* Installation fail in EKS 1.21+ due to CSR not returning the certificate ([#1358](https://gitlab.com/ongresinc/stackgres/-/issues/1358)) 
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.0.0-RC1)
+
 # :rocket: Release 1.0.0-beta3 (2021-09-03)
 
 ## :notepad_spiral: NOTES
