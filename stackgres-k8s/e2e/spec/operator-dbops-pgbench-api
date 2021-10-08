@@ -207,8 +207,8 @@ test_api_delete_dbops_pgbench_is_visible() {
 test_constraint_violation_api_error() {
   local HTTP_STATUS
 
-  INVALID_DISTRIBUTED_LOGS="$(cat "$LOG_PATH/dbops-pgbench.json" | jq '.spec.sgCluster = null' )"
-  echo_raw "$INVALID_DISTRIBUTED_LOGS" > "$LOG_PATH/invalid-dbops-pgbench.json"
+  INVALID_DBOPS="$(cat "$LOG_PATH/dbops-pgbench.json" | jq '.spec.sgCluster = null' )"
+  echo_raw "$INVALID_DBOPS" > "$LOG_PATH/invalid-dbops-pgbench.json"
 
   HTTP_STATUS="$(run_curl -r "stackgres/sgdbops" -n "$CLUSTER_NAMESPACE"  -d "$LOG_PATH/invalid-dbops-pgbench.json" -e '-X POST -w %{http_code} -o /dev/null')"
 
@@ -216,23 +216,29 @@ test_constraint_violation_api_error() {
 
   ERROR_RESPONSE="$(run_curl -r "stackgres/sgdbops" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-dbops-pgbench.json" -e '-X POST')"
 
-  check_error_response_1 || check_error_response_2
-}
-
-check_error_response_1() {
   EXPECTED_ERROR_TYPE="constraint-violation"
   EXPECTED_ERROR_TITLE="Some fields do not comply with the syntactic rules"
   EXPECTED_ERROR_DETAIL="Required value"
   EXPECTED_ERROR_FIELD="spec.sgCluster"
 
   assert_api_error "$ERROR_RESPONSE"
-}
 
-check_error_response_2() {
+  INVALID_DBOPS_NAME="$(cat "$LOG_PATH/dbops-pgbench.json" | jq '.metadata.name = "test-pg12.8"' )"
+
+  echo "$INVALID_DBOPS_NAME" > "$LOG_PATH/invalid-dbops-name.json"
+
+  local HTTP_STATUS
+
+  HTTP_STATUS="$(run_curl -r "stackgres/sgdbops" -n "$CLUSTER_NAMESPACE"  -d "$LOG_PATH/invalid-dbops-name.json" -e '-X POST -w %{http_code} -o /dev/null')"
+
+  assert_string_equal "422" "$HTTP_STATUS"
+
+  ERROR_RESPONSE="$(run_curl -r "stackgres/sgdbops" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-dbops-name.json" -e '-X POST')"
+
   EXPECTED_ERROR_TYPE="constraint-violation"
   EXPECTED_ERROR_TITLE="Some fields do not comply with the syntactic rules"
-  EXPECTED_ERROR_DETAIL="Required value"
-  EXPECTED_ERROR_FIELD="spec.sgCluster"
+  EXPECTED_ERROR_DETAIL="metadata.name in body should match '^[a-z]([-a-z0-9]*[a-z0-9])?$'"
+  EXPECTED_ERROR_FIELD="metadata.name"
 
   assert_api_error "$ERROR_RESPONSE"
 }

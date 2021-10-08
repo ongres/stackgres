@@ -253,10 +253,9 @@ test_api_delete_backup_is_visible() {
 }
 
 test_constraint_violation_api_error() {
+  INVALID_BACKUP="$(cat "$LOG_PATH/stackgres-backup.json" | jq '.spec.sgCluster = null' )"
 
-  INVALID_PGCONFIG="$(cat "$LOG_PATH/stackgres-backup.json" | jq '.spec.sgCluster = null' )"
-
-  echo "$INVALID_PGCONFIG" > "$LOG_PATH/invalid-backup.json"
+  echo "$INVALID_BACKUP" > "$LOG_PATH/invalid-backup.json"
 
   local HTTP_STATUS
 
@@ -275,6 +274,24 @@ test_constraint_violation_api_error() {
 
   assert_api_error "$ERROR_RESPONSE"
 
+  INVALID_BACKUP_NAME="$(cat "$LOG_PATH/stackgres-backup.json" | jq '.metadata.name = "test-pg12.8"' )"
+
+  echo "$INVALID_BACKUP_NAME" > "$LOG_PATH/invalid-backup-name.json"
+
+  local HTTP_STATUS
+
+  HTTP_STATUS="$(run_curl -r "stackgres/sgbackups" -n "$CLUSTER_NAMESPACE"  -d "$LOG_PATH/invalid-backup-name.json" -e '-X POST -w %{http_code} -o /dev/null')"
+
+  assert_string_equal "422" "$HTTP_STATUS"
+
+  ERROR_RESPONSE="$(run_curl -r "stackgres/sgbackups" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-backup-name.json" -e '-X POST')"
+
+  EXPECTED_ERROR_TYPE="constraint-violation"
+  EXPECTED_ERROR_TITLE="Some fields do not comply with the syntactic rules"
+  EXPECTED_ERROR_DETAIL="metadata.name in body should match '^[a-z]([-a-z0-9]*[a-z0-9])?$'"
+  EXPECTED_ERROR_FIELD="metadata.name"
+
+  assert_api_error "$ERROR_RESPONSE"
 }
 
 test_authentication_api_error() {

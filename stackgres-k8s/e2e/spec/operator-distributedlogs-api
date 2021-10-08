@@ -241,23 +241,29 @@ test_constraint_violation_api_error() {
 
   ERROR_RESPONSE="$(run_curl -r "stackgres/sgdistributedlogs" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-distributed-logs.json" -e '-X POST')"
 
-  check_error_response_1 || check_error_response_2
-}
-
-check_error_response_1() {
   EXPECTED_ERROR_TYPE="constraint-violation"
   EXPECTED_ERROR_TITLE="do not comply with the syntactic rules"
   EXPECTED_ERROR_DETAIL="must be specified"
   EXPECTED_ERROR_FIELD="spec.persistentVolume.size"
 
   assert_api_error "$ERROR_RESPONSE"
-}
 
-check_error_response_2() {
+  INVALID_DISTRIBUTED_LOGS_NAME="$(cat "$LOG_PATH/distributed-logs.json" | jq '.metadata.name = "test-pg12.8"' )"
+
+  echo "$INVALID_DISTRIBUTED_LOGS_NAME" > "$LOG_PATH/invalid-distributed-logs-name.json"
+
+  local HTTP_STATUS
+
+  HTTP_STATUS="$(run_curl -r "stackgres/sgdistributedlogs" -n "$CLUSTER_NAMESPACE"  -d "$LOG_PATH/invalid-distributed-logs-name.json" -e '-X POST -w %{http_code} -o /dev/null')"
+
+  assert_string_equal "422" "$HTTP_STATUS"
+
+  ERROR_RESPONSE="$(run_curl -r "stackgres/sgdistributedlogs" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-distributed-logs-name.json" -e '-X POST')"
+
   EXPECTED_ERROR_TYPE="constraint-violation"
-  EXPECTED_ERROR_TITLE="do not comply with the syntactic rules"
-  EXPECTED_ERROR_DETAIL="must be specified"
-  EXPECTED_ERROR_FIELD="spec.persistentVolume.size"
+  EXPECTED_ERROR_TITLE="Some fields do not comply with the syntactic rules"
+  EXPECTED_ERROR_DETAIL="metadata.name in body should match '^[a-z]([-a-z0-9]*[a-z0-9])?$'"
+  EXPECTED_ERROR_FIELD="metadata.name"
 
   assert_api_error "$ERROR_RESPONSE"
 }

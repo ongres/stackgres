@@ -395,6 +395,25 @@ test_constraint_violation_api_error() {
   EXPECTED_ERROR_FIELD="instances"
 
   assert_api_error "$ERROR_RESPONSE"
+
+  INVALID_CLUSTER_NAME="$(cat "$LOG_PATH/dummy-cluster.json" | jq '.metadata.name = "test-pg12.8"' )"
+
+  echo "$INVALID_CLUSTER_NAME" > "$LOG_PATH/invalid-cluster-name.json"
+
+  local HTTP_STATUS
+
+  HTTP_STATUS="$(run_curl -r "stackgres/sgclusters" -n "$CLUSTER_NAMESPACE"  -d "$LOG_PATH/invalid-cluster-name.json" -e '-X POST -w %{http_code} -o /dev/null')"
+
+  assert_string_equal "422" "$HTTP_STATUS"
+
+  ERROR_RESPONSE="$(run_curl -r "stackgres/sgclusters" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-cluster-name.json" -e '-X POST')"
+
+  EXPECTED_ERROR_TYPE="constraint-violation"
+  EXPECTED_ERROR_TITLE="Some fields do not comply with the syntactic rules"
+  EXPECTED_ERROR_DETAIL="metadata.name in body should match '^[a-z]([-a-z0-9]*[a-z0-9])?$'"
+  EXPECTED_ERROR_FIELD="metadata.name"
+
+  assert_api_error "$ERROR_RESPONSE"
 }
 
 test_authentication_api_error() {
