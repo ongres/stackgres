@@ -114,6 +114,8 @@ developer: {}
   # allowPullExtensionsFromImageRepository: true
 
 extensions:
+  ## To set a proxy for extensions repository add parameter proxyUrl to the URL:
+  ##  https://extensions.stackgres.io/postgres/repository?proxyUrl=<proxy scheme>%3A%2F%2F<proxy host>[%3A<proxy port>] (URL encoded)
   repositoryUrls:
   - https://extensions.stackgres.io/postgres/repository
   cache:

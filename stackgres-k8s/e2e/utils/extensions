@@ -57,7 +57,8 @@ EOF
 }
 
 get_preloaded_extensions() {
-  if ! is_image_repository_url "$EXTENSIONS_REPOSITORY_URL"
+  if [ "$EXTENSIONS_CACHE_ENABLED" != true ] \
+    || ! is_image_repository_url "$EXTENSIONS_REPOSITORY_URL"
   then
     return
   fi

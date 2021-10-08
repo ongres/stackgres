@@ -41,7 +41,12 @@ test_yamls() {
     | sed "s|value: \"https://extensions.stackgres.io/postgres/repository?|value: \"$ESCAPED_EXTENSIONS_REPOSITORY_URL$(
       [ -z "${EXTENSIONS_REPOSITORY_URL#*\?}" ] && printf '\&' || printf '?')|" \
     | sed "s|value: \"https://extensions.stackgres.io/postgres/repository\"$|value: \"$ESCAPED_EXTENSIONS_REPOSITORY_URL\"|" \
-    | sed "s|http%3A%2F%2Fstackgres-operator-extensions-cache\.stackgres%3FsetHttpScheme%3Dtrue|http%3A%2F%2Fstackgres-operator-extensions-cache.$OPERATOR_NAMESPACE%3FsetHttpScheme%3Dtrue|" \
+    | if [ "$EXTENSIONS_CACHE_ENABLED" = true ]
+      then
+        sed "s|http%3A%2F%2Fstackgres-operator-extensions-cache\.stackgres%3FsetHttpScheme%3Dtrue|http%3A%2F%2Fstackgres-operator-extensions-cache.$OPERATOR_NAMESPACE%3FsetHttpScheme%3Dtrue|"
+      else
+        cat
+      fi \
     > "${LOG_PATH}/stackgres-operator-demo.yml"
 
   grep -qF "name: $OPERATOR_NAMESPACE" "${LOG_PATH}/stackgres-operator-demo.yml"
@@ -57,7 +62,10 @@ test_yamls() {
   grep -qF "value: \"$EXTENSIONS_REPOSITORY_URL$(
     [ -z "${EXTENSIONS_REPOSITORY_URL#*\?}" ] && printf '&' || printf '?')" "${LOG_PATH}/stackgres-operator-demo.yml"
   grep -qF "value: \"$EXTENSIONS_REPOSITORY_URL\"" "${LOG_PATH}/stackgres-operator-demo.yml"
-  grep -qF "http%3A%2F%2Fstackgres-operator-extensions-cache.$OPERATOR_NAMESPACE%3FsetHttpScheme%3Dtrue" "${LOG_PATH}/stackgres-operator-demo.yml"
+  if [ "$EXTENSIONS_CACHE_ENABLED" = true ]
+  then
+    grep -qF "http%3A%2F%2Fstackgres-operator-extensions-cache.$OPERATOR_NAMESPACE%3FsetHttpScheme%3Dtrue" "${LOG_PATH}/stackgres-operator-demo.yml"
+  fi
 
   echo "Installing operator.yml"
   kubectl create -n "${OPERATOR_NAMESPACE}" -f "${LOG_PATH}/stackgres-operator-demo.yml"
@@ -84,12 +92,15 @@ test_yamls() {
     echo "SUCCESS. The demo StackGres restapi service was available."
   fi
 
-  if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator-extensions-cache$"
+  if [ "$EXTENSIONS_CACHE_ENABLED" = true ]
   then
-    echo "FAILED. The demo StackGres extensions cache service was not available."
-    return 1
-  else
-    echo "SUCCESS. The demo StackGres extensions cache service was available."
+    if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator-extensions-cache$"
+    then
+      echo "FAILED. The demo StackGres extensions cache service was not available."
+      return 1
+    else
+      echo "SUCCESS. The demo StackGres extensions cache service was available."
+    fi
   fi
 
   echo "Creating demo cluster"
@@ -205,12 +216,15 @@ test_packages() {
     echo "SUCCESS. The StackGres restapi service was available."
   fi
 
-  if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator-extensions-cache$"
+  if [ "$EXTENSIONS_CACHE_ENABLED" = true ]
   then
-    echo "FAILED. The demo StackGres extensions cache service was not available."
-    return 1
-  else
-    echo "SUCCESS. The demo StackGres extensions cache service was available."
+    if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator-extensions-cache$"
+    then
+      echo "FAILED. The demo StackGres extensions cache service was not available."
+      return 1
+    else
+      echo "SUCCESS. The demo StackGres extensions cache service was available."
+    fi
   fi
 
   echo "Creating demo package cluster"
