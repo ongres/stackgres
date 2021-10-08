@@ -117,7 +117,7 @@ extensions:
   repositoryUrls:
   - https://extensions.stackgres.io/postgres/repository
   cache:
-    enabled: true
+    enabled: false
     preloadedExtensions:
     - dblink-.*-pg(12|13)
     - pg_stat_statements-.*-pg(12|13)
