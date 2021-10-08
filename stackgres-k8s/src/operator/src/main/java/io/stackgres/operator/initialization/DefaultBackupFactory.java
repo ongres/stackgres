@@ -5,15 +5,18 @@
 
 package io.stackgres.operator.initialization;
 
+import java.util.Properties;
+
 import javax.enterprise.context.ApplicationScoped;
 
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 
 @ApplicationScoped
 public class DefaultBackupFactory extends AbstractCustomResourceFactory<StackGresBackupConfig> {
 
-  public static final String BACKUP_DEFAULT_VALUES = "backup-default-values.properties";
+  public static final String BACKUP_DEFAULT_VALUES = "/backup-default-values.properties";
   public static final String NAME = "defaultbackupconfig";
 
   @Override
@@ -29,8 +32,8 @@ public class DefaultBackupFactory extends AbstractCustomResourceFactory<StackGre
   }
 
   @Override
-  String getDefaultPropertiesFile() {
-    return BACKUP_DEFAULT_VALUES;
+  Properties getDefaultPropertiesFile() {
+    return StackGresUtil.loadProperties(BACKUP_DEFAULT_VALUES);
   }
 
 }

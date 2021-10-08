@@ -11,6 +11,7 @@ import static io.stackgres.common.StackGresContext.LOCK_TIMESTAMP_KEY;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -207,17 +208,18 @@ public interface StackGresUtil {
    *
    * @param path the path of the properties file to load
    * @return the loaded file
-   * @throws IOException if cannot load the properties file
+   * @throws UncheckedIOException if cannot load the properties file
    */
-  static Properties loadProperties(@NotNull String path) throws IOException {
-    try (InputStream is = ClassLoader.getSystemResourceAsStream(path)) {
-      if (is != null) {
-        Properties props = new Properties();
-        props.load(is);
-        return props;
-      } else {
-        throw new IOException("cannot load the properties file");
+  static @NotNull Properties loadProperties(@NotNull String path) {
+    try (InputStream is = StackGresUtil.class.getResourceAsStream(path)) {
+      if (is == null) {
+        throw new IOException("Cannot load the properties file: " + path);
       }
+      Properties props = new Properties();
+      props.load(is);
+      return props;
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
   }
 

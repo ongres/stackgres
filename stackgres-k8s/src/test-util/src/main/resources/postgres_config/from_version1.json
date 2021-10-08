@@ -52,7 +52,7 @@
       "track_activity_query_size": "4096",
       "track_functions": "pl",
       "track_io_timing": "on",
-      "wal_keep_segments": "100",
+      "wal_keep_segments": "96",
       "work_mem": "10MB"
     }
   }

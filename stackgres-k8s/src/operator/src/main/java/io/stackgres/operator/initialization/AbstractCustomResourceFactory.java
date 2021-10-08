@@ -10,16 +10,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
+import com.google.common.collect.Maps;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresPropertyContext;
-import io.stackgres.common.StackGresUtil;
 
 public abstract class AbstractCustomResourceFactory<T>
     implements DefaultCustomResourceFactory<T> {
@@ -31,14 +29,14 @@ public abstract class AbstractCustomResourceFactory<T>
   private transient String installedNamespace;
 
   @PostConstruct
-  public void init() throws IOException {
-    loadDefaultProperties(getDefaultPropertiesFile());
+  public void init() {
+    loadDefaultProperties();
     installedNamespace = context.get(OperatorProperty.OPERATOR_NAMESPACE)
         .orElseThrow(() -> new IllegalStateException("Operator not configured properly"));
   }
 
-  protected void loadDefaultProperties(String propertiesPath) throws IOException {
-    defaultValues = StackGresUtil.loadProperties(propertiesPath);
+  protected void loadDefaultProperties() {
+    defaultValues = getDefaultPropertiesFile();
     getExclusionProperties().forEach(p -> defaultValues.remove(p));
   }
 
@@ -51,8 +49,7 @@ public abstract class AbstractCustomResourceFactory<T>
   }
 
   protected Map<String, String> getDefaultValues() {
-    return defaultValues.stringPropertyNames().stream()
-        .collect(Collectors.toMap(Function.identity(), k -> defaultValues.getProperty(k)));
+    return Maps.fromProperties(defaultValues);
   }
 
   @Inject
@@ -60,7 +57,7 @@ public abstract class AbstractCustomResourceFactory<T>
     this.context = context;
   }
 
-  abstract String getDefaultPropertiesFile();
+  abstract Properties getDefaultPropertiesFile();
 
   List<String> getExclusionProperties() {
     return Collections.emptyList();

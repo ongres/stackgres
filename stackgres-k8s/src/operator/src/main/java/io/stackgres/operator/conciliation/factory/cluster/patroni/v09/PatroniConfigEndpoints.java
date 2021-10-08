@@ -26,7 +26,7 @@ import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.AbstractPatroniConfigEndpoints;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.Blocklist;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresBlocklist;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
 
 @Singleton
@@ -50,7 +50,7 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
     final String version = pgConfig.getSpec().getPostgresVersion();
     Map<String, String> params = new HashMap<>(PostgresDefaultValues.getDefaultValues(version));
     Map<String, String> userParams = pgConfig.getSpec().getPostgresqlConf();
-    for (String bl : Blocklist.getBlocklistParameters()) {
+    for (String bl : PostgresBlocklist.getBlocklistParameters()) {
       userParams.remove(bl);
     }
     for (Map.Entry<String, String> userParam : userParams.entrySet()) {

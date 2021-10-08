@@ -14,7 +14,7 @@ import java.util.Set;
 
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.common.PgConfigReview;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.Blocklist;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresBlocklist;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 class BlocklistValidatorTest {
 
   private static String[] BLOCKLISTED_PROPERTIES =
-      Blocklist.getBlocklistParameters().toArray(new String[0]);
+      PostgresBlocklist.getBlocklistParameters().toArray(new String[0]);
 
   private BlocklistValidator validator = new BlocklistValidator();
 

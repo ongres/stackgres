@@ -6,9 +6,10 @@
 package io.stackgres.operator.initialization;
 
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import org.jetbrains.annotations.NotNull;
 
 public interface PostgresConfigurationFactory
     extends DefaultCustomResourceFactory<StackGresPostgresConfig> {
 
-  String getPostgresVersion();
+  @NotNull String getPostgresVersion();
 }
