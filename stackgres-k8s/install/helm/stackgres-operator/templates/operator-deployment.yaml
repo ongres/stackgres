@@ -91,7 +91,7 @@ spec:
             value: "{{ .Values.imagePullPolicy }}"
           {{- if .Values.extensions.cache.enabled }}
           - name: EXTENSIONS_REPOSITORY_URLS
-            value: "{{ range $index, $element := .Values.extensions.repositoryUrls }}{{ if $index }},{{ end }}{{ $element := regexReplaceAll "([?&])proxyUrl=[^&]+[&]" $element "${1}" }}{{ $element := regexReplaceAll "([?&])proxyUrl=[^&]+$" $element "" }}{{ $element }}{{ if $element | contains "?" }}&{{ else }}?{{ end }}proxyUrl=http%3A%2F%2F{{ $.Release.Name }}-extensions-cache.{{ $.Release.Namespace }}%3FsetHttpScheme%3Dtrue{{ end }}"
+            value: "{{ range $index, $element := .Values.extensions.repositoryUrls }}{{ if $index }},{{ end }}{{ $element := regexReplaceAll "([?&])proxyUrl=[^&]+[&]" $element "${1}" }}{{ $element := regexReplaceAll "([?&])proxyUrl=[^&]+$" $element "" }}{{ $element }}{{ if $element | contains "?" }}&{{ else }}?{{ end }}proxyUrl=http%3A%2F%2F{{ $.Release.Name }}-extensions-cache.{{ $.Release.Namespace }}%3FsetHttpScheme%3Dtrue&retry=3%3A5{{ end }}"
           {{- else }}
           - name: EXTENSIONS_REPOSITORY_URLS
             value: "{{ range $index, $element := .Values.extensions.repositoryUrls }}{{ if $index }},{{ end }}{{ $element }}{{ end }}"
