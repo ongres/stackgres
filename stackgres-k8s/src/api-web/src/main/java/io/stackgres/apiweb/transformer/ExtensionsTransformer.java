@@ -20,8 +20,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.extension.StackGresExtension;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.common.extension.StackGresExtensionPublisher;
+import io.stackgres.common.extension.StackGresExtensionVersion;
 import org.jooq.lambda.Seq;
-import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
@@ -65,9 +65,9 @@ public class ExtensionsTransformer {
     extension.setName(source.getName());
     extension.setRepository(source.getRepository());
     transformation.setVersions(
-        Seq.seq(Unchecked.supplier(() -> clusterExtensionMetadataManager
-            .getExtensionsAnyVersion(cluster, extension)).get())
-        .map(extensionMetadata -> extensionMetadata.getVersion().getVersion())
+        Seq.seq(clusterExtensionMetadataManager.getExtensionsAnyVersion(cluster, extension))
+        .map(StackGresExtensionMetadata::getVersion)
+        .map(StackGresExtensionVersion::getVersion)
         .grouped(Function.identity())
         .map(Tuple2::v1)
         .toList());

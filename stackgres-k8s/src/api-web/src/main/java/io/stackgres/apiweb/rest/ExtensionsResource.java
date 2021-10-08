@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.rest;
 
-import java.util.Optional;
-
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -24,7 +22,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import org.jooq.lambda.Unchecked;
 
 @Path("extensions")
 @RequestScoped
@@ -62,10 +59,8 @@ public class ExtensionsResource {
     cluster.setSpec(new StackGresClusterSpec());
     cluster.getSpec().setPostgres(new StackGresClusterPostgres());
     cluster.getSpec().getPostgres().setVersion(postgresVersion);
-    return Optional.of(Unchecked.supplier(() -> clusterExtensionMetadataManager
-            .getExtensions()).get())
-        .map(extensionMetadataList -> extensionsTransformer.toDto(extensionMetadataList, cluster))
-        .get();
+    var extensionMetadataList = clusterExtensionMetadataManager.getExtensions();
+    return extensionsTransformer.toDto(extensionMetadataList, cluster);
   }
 
 }

@@ -65,36 +65,37 @@ public class StackGresExtensionIndexAnyVersion {
     if (Objects.equals(publisher, other.publisher)
         && Objects.equals(name, other.name)) {
       if (fromIndex && other.fromIndex) {
-        return Objects.equals(arch, other.arch)
-            && Objects.equals(os, other.os)
-            && Objects.equals(build, other.build)
-            && Objects.equals(postgresVersion, other.postgresVersion);
-      }
-      if (fromIndex && !other.fromIndex) {
-        return (Objects.equals(postgresVersion, other.postgresVersion) // NOPMD
-            || Objects.equals(postgresVersion, other.postgresExactVersion)) // NOPMD
-            && (Objects.isNull(build) // NOPMD
-                || (Objects.equals(arch, other.arch) // NOPMD
-                && Objects.equals(os, other.os)
-                && Objects.equals(build, other.build)));
-      }
-      if (!fromIndex && other.fromIndex) {
-        return (Objects.equals(other.postgresVersion, postgresVersion) // NOPMD
-            || Objects.equals(other.postgresVersion, postgresExactVersion)) // NOPMD
-            && (Objects.isNull(other.build) // NOPMD
-                || (Objects.equals(arch, other.arch) // NOPMD
-                && Objects.equals(os, other.os)
-                && Objects.equals(build, other.build)));
+        return equalsBothFromIndex(this, other);
       }
       if (!fromIndex && !other.fromIndex) {
-        return Objects.equals(arch, other.arch)
-            && Objects.equals(os, other.os)
-            && Objects.equals(build, other.build)
-            && Objects.equals(postgresVersion, other.postgresVersion)
-            && Objects.equals(postgresExactVersion, other.postgresExactVersion);
+        return equalsBothFromIndex(this, other);
+      }
+      if (fromIndex && !other.fromIndex) {
+        return equalsWithFromIndex(other, this);
+      }
+      if (!fromIndex && other.fromIndex) {
+        return equalsWithFromIndex(this, other);
       }
     }
     return false;
+  }
+
+  private boolean equalsBothFromIndex(StackGresExtensionIndexAnyVersion self,
+      StackGresExtensionIndexAnyVersion other) {
+    return Objects.equals(self.arch, other.arch)
+        && Objects.equals(self.os, other.os)
+        && Objects.equals(self.build, other.build)
+        && Objects.equals(self.postgresVersion, other.postgresVersion);
+  }
+
+  private boolean equalsWithFromIndex(StackGresExtensionIndexAnyVersion other,
+      StackGresExtensionIndexAnyVersion fromIndex) {
+    return (Objects.equals(fromIndex.postgresVersion, other.postgresVersion) // NOPMD
+        || Objects.equals(fromIndex.postgresVersion, other.postgresExactVersion)) // NOPMD
+        && (Objects.isNull(fromIndex.build) // NOPMD
+            || (Objects.equals(fromIndex.arch, other.arch) // NOPMD
+            && Objects.equals(fromIndex.os, other.os)
+            && Objects.equals(fromIndex.build, other.build)));
   }
 
   @Override

@@ -81,6 +81,10 @@ public class StackGresExtensionMetadata {
     return version;
   }
 
+  public int getMajorBuild() {
+    return majorBuild;
+  }
+
   public StackGresExtensionVersionTarget getTarget() {
     return target;
   }
@@ -108,17 +112,18 @@ public class StackGresExtensionMetadata {
         && Objects.equals(version, other.version);
   }
 
-  public int compareBuild(StackGresExtensionMetadata o) {
-    int compare = majorBuild.compareTo(o.majorBuild);
-    if (compare == 0) {
-      compare = minorBuild.compareTo(o.minorBuild);
-    }
-    return compare;
-  }
-
   @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
+  }
+
+  public static int compareBuild(StackGresExtensionMetadata left,
+      StackGresExtensionMetadata right) {
+    int compare = left.majorBuild.compareTo(right.majorBuild);
+    if (compare == 0) {
+      compare = left.minorBuild.compareTo(right.minorBuild);
+    }
+    return compare;
   }
 
 }

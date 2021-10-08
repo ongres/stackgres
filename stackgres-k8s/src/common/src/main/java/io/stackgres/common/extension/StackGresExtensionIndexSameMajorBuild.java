@@ -79,44 +79,41 @@ public class StackGresExtensionIndexSameMajorBuild {
     if (Objects.equals(publisher, other.publisher)
         && Objects.equals(name, other.name)) {
       if (fromIndex && other.fromIndex) {
-        return Objects.equals(channels, other.channels)
-            && Objects.equals(version, other.version)
-            && Objects.equals(arch, other.arch)
-            && Objects.equals(os, other.os)
-            && Objects.equals(build, other.build)
-            && Objects.equals(postgresVersion, other.postgresVersion);
-      }
-      if (fromIndex && !other.fromIndex) {
-        return (version.equals(other.version)
-            || channels.stream()
-            .anyMatch(channel -> channel.equals(other.version)))
-            && (Objects.equals(postgresVersion, other.postgresVersion) // NOPMD
-                || Objects.equals(postgresVersion, other.postgresExactVersion)) // NOPMD
-            && (Objects.isNull(build) // NOPMD
-                || (Objects.equals(arch, other.arch) // NOPMD
-                && Objects.equals(os, other.os)
-                && Objects.equals(build, other.build)));
-      }
-      if (!fromIndex && other.fromIndex) {
-        return (version.equals(other.version)
-            || other.channels.stream()
-            .anyMatch(channel -> channel.equals(version)))
-            && (Objects.equals(other.postgresVersion, postgresVersion) // NOPMD
-                || Objects.equals(other.postgresVersion, postgresExactVersion)) // NOPMD
-            && (Objects.isNull(other.build) // NOPMD
-                || (Objects.equals(arch, other.arch) // NOPMD
-                && Objects.equals(os, other.os)
-                && Objects.equals(build, other.build)));
+        return equalsBothFromIndex(this, other);
       }
       if (!fromIndex && !other.fromIndex) {
-        return Objects.equals(version, other.version)
-            && Objects.equals(arch, other.arch)
-            && Objects.equals(os, other.os)
-            && Objects.equals(build, other.build)
-            && Objects.equals(postgresVersion, other.postgresVersion);
+        return equalsBothFromIndex(this, other);
+      }
+      if (fromIndex && !other.fromIndex) {
+        return equalsWithFromIndex(other, this);
+      }
+      if (!fromIndex && other.fromIndex) {
+        return equalsWithFromIndex(this, other);
       }
     }
     return false;
+  }
+
+  private boolean equalsBothFromIndex(StackGresExtensionIndexSameMajorBuild self,
+      StackGresExtensionIndexSameMajorBuild other) {
+    return Objects.equals(self.channels, other.channels)
+        && Objects.equals(self.version, other.version)
+        && Objects.equals(self.arch, other.arch)
+        && Objects.equals(self.os, other.os)
+        && Objects.equals(self.build, other.build)
+        && Objects.equals(self.postgresVersion, other.postgresVersion);
+  }
+
+  private boolean equalsWithFromIndex(StackGresExtensionIndexSameMajorBuild other,
+      StackGresExtensionIndexSameMajorBuild fromIndex) {
+    return (fromIndex.version.equals(other.version)
+        || fromIndex.channels.stream().anyMatch(other.version::equals))
+        && (Objects.equals(fromIndex.postgresVersion, other.postgresVersion) // NOPMD
+            || Objects.equals(fromIndex.postgresVersion, other.postgresExactVersion)) // NOPMD
+        && (Objects.isNull(fromIndex.build) // NOPMD
+            || (Objects.equals(fromIndex.arch, other.arch) // NOPMD
+            && Objects.equals(fromIndex.os, other.os)
+            && Objects.equals(fromIndex.build, other.build)));
   }
 
   @Override
