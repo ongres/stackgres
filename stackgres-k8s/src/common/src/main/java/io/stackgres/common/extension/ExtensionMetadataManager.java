@@ -34,12 +34,9 @@ public abstract class ExtensionMetadataManager {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(ExtensionMetadataManager.class);
 
-  public static final String SKIP_HOSTNAME_VERIFICATION_PARAMETER = "skipHostnameVerification";
-  public static final String PROXY_URL_PARAMETER = "proxyUrl";
+  private static final URI LATEST_MERGED_CACHE_URI = URI.create("cache://merged-cache");
 
   private static final String CACHE_TIMEOUT_PARAMETER = "cacheTimeout";
-
-  private static final URI LATEST_MERGED_CACHE_URI = URI.create("cache://merged-cache");
 
   private final Map<URI, ExtensionMetadataCache> uriCache =
       new HashMap<>();
@@ -121,15 +118,7 @@ public abstract class ExtensionMetadataManager {
     boolean updated = false;
     for (URI extensionsRepositoryUri : extensionsRepositoryUris) {
       try {
-        boolean skipHostnameVerification =
-            getUriQueryParameter(
-                extensionsRepositoryUri, SKIP_HOSTNAME_VERIFICATION_PARAMETER)
-            .map(Boolean::valueOf).orElse(false);
-        URI proxyUri =
-            getUriQueryParameter(extensionsRepositoryUri, PROXY_URL_PARAMETER)
-            .map(URI::create)
-            .orElse(null);
-        Duration cacheTimeout =
+        final Duration cacheTimeout =
             getUriQueryParameter(
                 extensionsRepositoryUri, CACHE_TIMEOUT_PARAMETER)
             .map(Duration::parse)
@@ -139,9 +128,9 @@ public abstract class ExtensionMetadataManager {
             .orElse(Instant.MIN)
             .plus(cacheTimeout)
             .isBefore(Instant.now())) {
-          LOGGER.info("Downloading extensions metadata from {}", extensionsRepositoryUri);
-          final URI indexUri = ExtensionUtil.getIndexUri(extensionsRepositoryUri);
-          try (WebClient client = webClientFactory.create(skipHostnameVerification, proxyUri)) {
+          try (WebClient client = webClientFactory.create(extensionsRepositoryUri)) {
+            LOGGER.info("Downloading extensions metadata from {}", extensionsRepositoryUri);
+            final URI indexUri = ExtensionUtil.getIndexUri(extensionsRepositoryUri);
             StackGresExtensions repositoryExtensions = client.getJson(
                 indexUri, StackGresExtensions.class);
             ExtensionMetadataCache current = ExtensionMetadataCache.from(

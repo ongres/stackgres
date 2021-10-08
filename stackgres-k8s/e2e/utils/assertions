@@ -4,7 +4,7 @@ assert_string_contains() {
   EXPECTED="$1"
   ACTUAL="$2"
 
-  if echo "$ACTUAL" | grep "$EXPECTED" > /dev/null
+  if echo "$ACTUAL" | grep -F "$EXPECTED" > /dev/null
   then 
     echo "SUCCESS. $ACTUAL contains $EXPECTED"
   else

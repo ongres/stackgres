@@ -12,18 +12,20 @@ import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import javax.annotation.Nullable;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.X509TrustManager;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation.Builder;
@@ -41,11 +43,19 @@ public class WebClientFactory {
   static final String PROPERTY_PROXY_HOST = "org.jboss.resteasy.jaxrs.client.proxy.host";
   static final String PROPERTY_PROXY_PORT = "org.jboss.resteasy.jaxrs.client.proxy.port";
 
+  static final String SKIP_HOSTNAME_VERIFICATION_PARAMETER = "skipHostnameVerification";
+  static final String RETRY_PARAMETER = "retry";
+  static final String PROXY_URL_PARAMETER = "proxyUrl";
   static final String SET_HTTP_SCHEME_PARAMETER = "setHttpScheme";
 
-  public WebClient create(boolean skipHostnameVerification,
-      @Nullable URI proxyUri) throws Exception {
+  public WebClient create(@NotNull URI uri) throws Exception {
     ClientBuilder clientBuilder = ClientBuilder.newBuilder();
+    final boolean skipHostnameVerification =
+        getUriQueryParameter(uri, SKIP_HOSTNAME_VERIFICATION_PARAMETER)
+        .map(Boolean::valueOf).orElse(false);
+    final Optional<URI> optionalProxyUri = getUriQueryParameter(uri, PROXY_URL_PARAMETER)
+        .map(URI::create);
+    final Optional<String> optionalRetry = getUriQueryParameter(uri, RETRY_PARAMETER);
     if (skipHostnameVerification) {
       SSLContext sslContext = SSLContext.getInstance("TLS");
       sslContext.init(null,
@@ -56,57 +66,80 @@ public class WebClientFactory {
     }
     final Map<String, String> extraHeaders = new HashMap<>();
     final boolean setHttpScheme;
-    final URI clientProxyUri = Optional.ofNullable(proxyUri)
-        .orElse(null);
-    if (clientProxyUri != null) {
-      String userInfo = clientProxyUri.getUserInfo();
+    if (optionalProxyUri.isPresent()) {
+      final URI proxyUri = optionalProxyUri.get();
+      String userInfo = proxyUri.getUserInfo();
       if (userInfo != null) {
         extraHeaders.put(HttpHeaders.PROXY_AUTHORIZATION,
             "Bearer " + Base64.getEncoder().encodeToString(
                 userInfo.getBytes(StandardCharsets.UTF_8)));
       }
-      clientBuilder.property(PROPERTY_PROXY_SCHEME, clientProxyUri.getScheme());
-      clientBuilder.property(PROPERTY_PROXY_HOST, clientProxyUri.getHost());
-      clientBuilder.property(PROPERTY_PROXY_PORT, String.valueOf(clientProxyUri.getPort()));
+      clientBuilder.property(PROPERTY_PROXY_SCHEME, proxyUri.getScheme());
+      clientBuilder.property(PROPERTY_PROXY_HOST, proxyUri.getHost());
+      clientBuilder.property(PROPERTY_PROXY_PORT, String.valueOf(proxyUri.getPort()));
       setHttpScheme = getUriQueryParameter(
-          clientProxyUri, SET_HTTP_SCHEME_PARAMETER)
+          proxyUri, SET_HTTP_SCHEME_PARAMETER)
           .map(Boolean::valueOf).orElse(false);
     } else {
       setHttpScheme = false;
     }
+    final int maxRetries;
+    final Duration sleepBeforeRetry;
+    if (optionalRetry.isPresent()) {
+      String[] retryParts = optionalRetry.get().split(":");
+      maxRetries = Integer.parseInt(retryParts[0]);
+      sleepBeforeRetry = Optional.of(retryParts)
+          .filter(parts -> parts.length < 2)
+          .map(parts -> Duration.ofSeconds(Integer.parseInt(parts[1])))
+          .orElse(Duration.ZERO);
+    } else {
+      maxRetries = 1;
+      sleepBeforeRetry = Duration.ZERO;
+    }
     clientBuilder.connectTimeout(5, TimeUnit.SECONDS);
-    return new WebClient(clientBuilder.build(), extraHeaders, setHttpScheme);
+    return new WebClient(clientBuilder.build(), extraHeaders, setHttpScheme,
+        maxRetries, sleepBeforeRetry);
   }
 
   public static class WebClient implements AutoCloseable {
     private final Client client;
     private final Map<String, String> extraHeaders;
     private final boolean setHttpScheme;
+    private final int maxRetries;
+    private final Duration sleepBeforeRetry;
 
     public WebClient(Client client,
         Map<String, String> extraHeaders,
-        boolean setHttpScheme) {
+        boolean setHttpScheme,
+        int maxRetries,
+        Duration sleepBeforeRetry) {
       this.client = client;
       this.extraHeaders = extraHeaders;
       this.setHttpScheme = setHttpScheme;
+      this.maxRetries = maxRetries;
+      this.sleepBeforeRetry = sleepBeforeRetry;
     }
 
     public <T> T getJson(URI uri, Class<T> clazz) {
-      final Builder request = client.target(targetUri(uri))
-          .request(MediaType.APPLICATION_JSON);
-      Seq.seq(extraHeaders).forEach(
-          extraHeader -> request.header(extraHeader.v1, extraHeader.v2));
-      return request
-          .get(clazz);
+      return doWithRetry(() -> {
+        final Builder request = client.target(targetUri(uri))
+            .request(MediaType.APPLICATION_JSON);
+        Seq.seq(extraHeaders).forEach(
+            extraHeader -> request.header(extraHeader.v1, extraHeader.v2));
+        return request
+            .get(clazz);
+      });
     }
 
     public InputStream getInputStream(URI uri) {
-      final Builder request = client.target(targetUri(uri))
-          .request(MediaType.APPLICATION_OCTET_STREAM);
-      Seq.seq(extraHeaders).forEach(
-          extraHeader -> request.header(extraHeader.v1, extraHeader.v2));
-      return request
-          .get(InputStream.class);
+      return doWithRetry(() -> {
+        final Builder request = client.target(targetUri(uri))
+            .request(MediaType.APPLICATION_OCTET_STREAM);
+        Seq.seq(extraHeaders).forEach(
+            extraHeader -> request.header(extraHeader.v1, extraHeader.v2));
+        return request
+            .get(InputStream.class);
+      });
     }
 
     private URI targetUri(URI uri) {
@@ -117,6 +150,28 @@ public class WebClientFactory {
         return uri;
       }
       return UriBuilder.fromUri(uri).scheme("http").build();
+    }
+
+    private <T> T doWithRetry(Supplier<T> supplier) {
+      RuntimeException firstEx = null;
+      for (int retryCount = 1; retryCount <= maxRetries; retryCount++) {
+        try {
+          return supplier.get();
+        } catch (RuntimeException ex) {
+          if (firstEx == null) {
+            firstEx = ex;
+          } else {
+            firstEx.addSuppressed(ex);
+          }
+          try {
+            Thread.sleep(sleepBeforeRetry.toMillis());
+          } catch (InterruptedException iex) {
+            firstEx.addSuppressed(iex);
+            throw firstEx;
+          }
+        }
+      }
+      throw firstEx;
     }
 
     @Override

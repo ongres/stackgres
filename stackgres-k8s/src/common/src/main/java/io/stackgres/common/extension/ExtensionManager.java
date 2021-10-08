@@ -5,10 +5,6 @@
 
 package io.stackgres.common.extension;
 
-import static io.stackgres.common.WebClientFactory.getUriQueryParameter;
-import static io.stackgres.common.extension.ExtensionMetadataManager.PROXY_URL_PARAMETER;
-import static io.stackgres.common.extension.ExtensionMetadataManager.SKIP_HOSTNAME_VERIFICATION_PARAMETER;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -116,16 +112,9 @@ public abstract class ExtensionManager {
         "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE" },
         justification = "False positive")
     public void downloadAndExtract() throws Exception {
-      boolean skipHostnameVerification =
-          getUriQueryParameter(extensionsRepositoryUri, SKIP_HOSTNAME_VERIFICATION_PARAMETER)
-          .map(Boolean::valueOf).orElse(false);
-      URI proxyUri =
-          getUriQueryParameter(extensionsRepositoryUri, PROXY_URL_PARAMETER)
-          .map(URI::create)
-          .orElse(null);
       LOGGER.info("Downloading {} from {}",
           ExtensionUtil.getDescription(installedExtension), extensionUri);
-      try (WebClient client = webClientFactory.create(skipHostnameVerification, proxyUri)) {
+      try (WebClient client = webClientFactory.create(extensionsRepositoryUri)) {
         try (InputStream inputStream = client.getInputStream(extensionUri)) {
           extractTar(inputStream);
         }
