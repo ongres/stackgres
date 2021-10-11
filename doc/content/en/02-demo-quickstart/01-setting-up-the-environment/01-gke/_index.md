@@ -23,7 +23,7 @@ To create a [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engin
 gcloud -q beta container \
   --project my-project \
   clusters create stackgres \
-  --cluster-version 1.13.11-gke.23 \
+  --cluster-version 1.20.10-gke.301 \
   --region us-west1 \
   --node-locations us-west1-a,us-west1-b,us-west1-c \
   --machine-type n1-standard-1 \
