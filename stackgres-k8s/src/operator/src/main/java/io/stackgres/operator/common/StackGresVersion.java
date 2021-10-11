@@ -30,6 +30,7 @@ public enum StackGresVersion {
   V10B2("1.0.0-beta2"),
   V10B3("1.0.0-beta3"),
   V10RC1("1.0.0-RC1"),
+  V100("1.0.0"),
   V10("1.0");
 
   private final String version;
