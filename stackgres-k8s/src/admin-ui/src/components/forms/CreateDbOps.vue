@@ -649,7 +649,7 @@
             },
 
             pgConfigs() {
-                return store.state.pgConfig
+                return store.state.pgConfig.filter(pgconfig => (pgconfig.data.metadata.namespace == this.$route.params.namespace))
             }
 
         },
