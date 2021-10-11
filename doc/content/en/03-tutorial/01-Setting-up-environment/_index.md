@@ -41,7 +41,6 @@ helm repo add prometheus-community https://prometheus-community.github.io/helm-c
 
 helm install --namespace monitoring \
         prometheus prometheus-community/kube-prometheus-stack \
-        --version 19.0.2 \
         --set grafana.enabled=true
 ```
 
