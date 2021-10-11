@@ -39,9 +39,7 @@ And install the Prometheus stack with Helm:
 ```
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 
-helm install --namespace monitoring \
-        prometheus prometheus-community/kube-prometheus-stack \
-        --set grafana.enabled=true
+helm install --namespace monitoring prometheus-operator prometheus-community/kube-prometheus-stack
 ```
 
 After some seconds / a minute you should have several pods including Prometheus, Grafana and AlertManager in the `monitoring` namespace.
