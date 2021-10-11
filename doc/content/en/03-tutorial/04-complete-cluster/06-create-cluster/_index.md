@@ -1,16 +1,19 @@
 ---
-title: Create the Cluster
+title: Create the more advanced Cluster
 weight: 6
 url: tutorial/complete-cluster/create-cluster
 description: Details about how to create the database cluster.
 ---
 
-In the section [Create a simple cluster]({{% relref "03-tutorial/03-simple-cluster" %}}) it was already presented how to
-create a simple cluster. Here a more advanced cluster will be created, referencing all the configurations and
-infrastructure already prepared.
 
-For more information, review the [SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}}) CRD specification.
-Create the file `sgcluster-cluster1.yaml` with the following content:
+We're now completely ready to create a more "advanced" cluster. The main differences from the one created before will be:
+* That we have explicitly set the size (t-shirt size) of the cluster.
+* We have custom Postgres and connection pooling (PgBouncer) configurations.
+* It will have automated backups, based on the backup configuration.
+* It will export metrics to Prometheus automatically. Grafana dashboards will be visible from the embedded pane in the Web Console.
+* Logs will be sent to the distributed logs server, which will in turn show them in the Web Console.
+
+Create the file `sgcluster-cluster1.yaml` and apply the following YAML file:
 
 ```yaml
 apiVersion: stackgres.io/v1
@@ -20,7 +23,7 @@ metadata:
   name: cluster
 spec:
   postgres:
-    version: '12.3'
+    version: 'latest'
   instances: 3
   sgInstanceProfile: 'size-small'
   pods:
@@ -43,13 +46,20 @@ and deploy to Kubernetes:
 kubectl apply -f sgcluster-cluster1.yaml
 ```
 
-You may watch pod and container creation:
+You may notice that in this ocassion the pods contain one extra container. This is due to the agent (FluentBit) used to export the logs to the distributed logs server. You can check both from `kubectl -n demo get pods --watch`:
 
-```bash
-kubectl -n demo get pods --watch
+```
+$ kubectl -n demo get pods
+NAME                          READY   STATUS    RESTARTS   AGE
+distributedlogs-0             3/3     Running   0          3m16s
+hol-0                         7/7     Running   0          98s
+hol-1                         7/7     Running   0          72s
 ```
 
-or from the Web Console:
+as well as `kubectl -n demo describe sgcluster cluster` and the Web Console the status of the newly created cluster.
+
+
+From the Web Console:
 
 ![Cluster Creation](cluster-creation.png "Cluster Creation")
 
