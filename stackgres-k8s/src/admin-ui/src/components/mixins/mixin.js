@@ -1078,8 +1078,17 @@ export const mixin = {
         if( !!moment().utcOffset() && (store.state.timezone == 'local') ) {    
 
           let crontab = baseCrontab.split(' ');
-    
-          if(crontab[1] != '*') {
+          
+          const isParsable = function(n) {
+            try {
+              var t = parseInt(n);
+              return Number.isInteger(t)
+            } catch(err) {
+                return false
+            }
+          }
+
+          if(isParsable(crontab[1])) {
             
             let tzOffset = (moment().utcOffset() / 60);      
             let dom = crontab[2];
@@ -1093,7 +1102,7 @@ export const mixin = {
             if(!crontab[1].isInteger) {
               
               // Fix minutes offset if in timezone with 30/45min offsets
-              if (crontab[0] != '*') {
+              if (isParsable(crontab[0])) {
                 let minOffset = crontab[1] % 1;
 
                 if(crontab[0].includes('-')) {
@@ -1121,14 +1130,15 @@ export const mixin = {
               crontab[2] = (parseInt(dom.split('-')[0]) + modifier) + '-' + (parseInt(dom.split('-')[1]) + modifier )
             } else if (dom.includes('/')) {
               crontab[2] = (parseInt(dom.split('/')[0]) + modifier) + '/' + (parseInt(dom.split('/')[1]) + modifier )
-            } else if (dom !== '*') {
+            } else if (isParsable(dom)) {
               crontab[2] = (parseInt(dom) + modifier)
       
               // Fix DOM offset on month edges
               if(crontab[2] < 1) {
 
+                var month = crontab[3];
                 // Offset month 
-                if(parseInt(crontab[3]) > 1) { 
+                if(isParsable(month) && parseInt(month) > 1) { 
                   crontab[3] = (parseInt(crontab[3]) - 1)
                 } else { // Jan > Dec
                   crontab[3] = 12
@@ -1161,7 +1171,7 @@ export const mixin = {
       
             }
       
-            if(dow.includes('-')) {
+            if(!isParsable(dow) && dow.includes('-')) {
               crontab[4] = (parseInt(dow.split('-')[0]) + modifier) + '-' + (parseInt(dow.split('-')[1]) + modifier )
             } else if (dow.includes('/')) {
               crontab[4] = (parseInt(dow.split('/')[0]) + modifier) + '/' + (parseInt(dow.split('/')[1]) + modifier )
