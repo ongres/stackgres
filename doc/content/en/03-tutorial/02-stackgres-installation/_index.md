@@ -17,15 +17,25 @@ StackGres recommended installation is performed from the published Helm chart. S
 
 Proceed to install StackGres:
 
+- Add the helm repo:
+
+```
+helm repo add stackgres-charts https://stackgres.io/downloads/stackgres-k8s/stackgres/helm/
+```
+
+- Install the Operator
+
 ```bash
 helm install --namespace stackgres stackgres-operator \
-        --set grafana.autoEmbed=true \
-        --set-string grafana.webHost=prometheus-grafana.monitoring \
-        --set-string grafana.user=admin \
-        --set-string grafana.password=prom-operator \
-        --set-string adminui.service.type=LoadBalancer \
-        https://stackgres.io/downloads/stackgres-k8s/stackgres/1.0.0-RC1-SNAPSHOT/helm/stackgres-operator.tgz
-        {{< download-url >}}/helm/stackgres-operator.tgz
+    --version 1.0.0 \
+    --set grafana.autoEmbed=true \
+    --set-string grafana.webHost=prometheus-operator-grafana.monitoring \
+    --set-string grafana.secretNamespace=monitoring \
+    --set-string grafana.secretName=prometheus-operator-grafana \
+    --set-string grafana.secretUserKey=admin-user \
+    --set-string grafana.secretPasswordKey=admin-password \
+    --set-string adminui.service.type=LoadBalancer \
+stackgres-charts/stackgres-operator
 ```
 
 Note that using `adminui.service.type=LoadBalancer` will create a network load balancer, which may incur in additional costs. You may alternatively use `ClusterIP` if that's your preference.
@@ -96,7 +106,7 @@ Web Console. If the `LoadBalancer` parameter was used, let's query the URL of th
 K8s Service created:
 
 ```bash
-kubectl -n stackgres get svc --field-selector metadata.name=stackgres-restapi             
+kubectl -n stackgres get svc --field-selector metadata.name=stackgres-restapi
 
 NAME                TYPE           CLUSTER-IP      EXTERNAL-IP                                                              PORT(S)         AGE
 stackgres-restapi   LoadBalancer   10.100.165.13   aa372eefc1630469f95e64d384caa004-833850176.eu-west-1.elb.amazonaws.com   443:32194/TCP   47m
