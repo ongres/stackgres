@@ -1,3 +1,65 @@
+# :rocket: Release 1.0.0 (2021-10-13)
+
+## :notepad_spiral: NOTES
+
+We are proud to announce firt StackGres 1.0.0 GA!! :medal: :tada: :bottle_with_popping_cork:
+
+This release brings a lot of new features and bugfixes. The most significant one is the availability of 120+ extensions, and many more to come. This makes StackGres the Postgres platform with more extensions! Load and unload them dynamically, at will, onto your pods, via simple YAML or the Web Console.
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 0.9 version or above) helm chart issue following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+## :sparkles: CHANGES
+
+* Support for Kubernetes 1.20 and 1.21
+* Support for Postgres 14 and Postgres 13. Following our open source policy of maintaining 2 major releases, Postgres 11 is dropped.
+* All latest Postgres minor versions up to 14.0, 13.4 and 12.8
+* Patroni 2.1.1
+* Envoy 1.19.1
+* Postgres Exporter 0.10.0
+* Fluentd 1.13.2
+* Fluent-bit 1.8.1
+* Support to install Postgres extensions on demand
+* Support for day-2 operations including minor, major, and security (for new operator versions) upgrade
+* Support for recovery with PITR
+* Support for configuring pgbouncer databases and users sections
+* Enabled use of [Server Side Apply](https://kubernetes.io/docs/reference/using-api/server-side-apply/) in the operator
+* Added extra column that is shown for resources in-group `stackgres.io` using `kubectl`
+* CRDs promoted to apiVersion: stackgres.io/v1
+* A completely new experience with the new Web UI and REST API
+
+## :bug: FIXES
+
+* Grafana integration is failing
+* Prometheus integration does not work if the service monitor does not have matchLabels
+* Reuse the Kubernetes Client in order to minimize resource usage on the operator, jobs, and controllers
+* Improve REST API response when resource already exists
+* Empty fields returned by REST API when validation fails
+* REST API must not return any secret
+* Exclusive lock was not correctly failing when lost for backup jobs
+* When retrieving all context fail whole reconciliation cycle breaks
+* REST API is not able to update `shared_preload_libraries` configuration parameters.
+* Default `log_line_prefix` include quotes in the value
+* Check and sanitize database names in initial data scripts
+* Restrict CRD names to avoid failure in the reconciliation cycle
+* Disabled envoy SQL parsing due to performance issues
+
+## :construction: KNOWN ISSUES
+
+* Installation fail in EKS 1.21+ due to CSR not returning the certificate ([#1358](https://gitlab.com/ongresinc/stackgres/-/issues/1358)) 
+* Major version upgrade fail if some extensions version are not available for the target Postgres version ([#1368](https://gitlab.com/ongresinc/stackgres/-/issues/1368)) 
+* When deleting primary pod cluster may become unresponsive ([#783](https://gitlab.com/ongresinc/stackgres/-/issues/783))
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.0.0)
+
 # :rocket: Release 1.0.0-RC1 (2021-10-08)
 
 ## :notepad_spiral: NOTES
