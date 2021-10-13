@@ -210,8 +210,8 @@
                             </select>
                             <a class="help" @click="showTooltip( 'sgdbops', 'spec.minorVersionUpgrade.method')"></a>
 
-                            <label for="spec.minorVersionUpgrade.postgresVersion">Target Postgres Version</label>
-                            <select v-model="minorVersionUpgrade.postgresVersion">
+                            <label for="spec.minorVersionUpgrade.postgresVersion">Target Postgres Version <span class="req">*</span></label>
+                            <select v-model="minorVersionUpgrade.postgresVersion" required>
                                 <option disabled value="">Choose version...</option>
                                 <option v-for="version in postgresVersionsList[cluster.data.spec.postgres.version.substring(0,2)]" v-if="version > cluster.data.spec.postgres.version">{{ version }}</option>
                             </select>
@@ -254,15 +254,15 @@
                             <label for="majorVersionUpgradeCheck" class="switch">Check<input type="checkbox" id="majorVersionUpgradeCheck" v-model="majorVersionUpgrade.check" data-switch="ON"></label>
                             <a class="help" @click="showTooltip( 'sgdbops', 'spec.majorVersionUpgrade.check')"></a>
 
-                            <label for="spec.majorVersionUpgrade.postgresVersion">Target Postgres Version</label>
-                            <select v-model="majorVersionUpgrade.postgresVersion">
+                            <label for="spec.majorVersionUpgrade.postgresVersion">Target Postgres Version <span class="req">*</span></label>
+                            <select v-model="majorVersionUpgrade.postgresVersion" required>
                                 <option disabled value="">Choose version...</option>
                                 <option v-for="version in postgresVersionsList[parseInt(cluster.data.spec.postgres.version.substring(0,2)) + 1]">{{ version }}</option>
                             </select>
                             <a class="help" @click="showTooltip( 'sgdbops', 'spec.minorVersionUpgrade.postgresVersion')"></a>
 
-                            <label for="spec.majorVersionUpgrade.sgPostgresConfig">Target Postgres Configuration</label>
-                            <select v-model="majorVersionUpgrade.sgPostgresConfig" :disabled="!majorVersionUpgrade.postgresVersion.length" :title="!majorVersionUpgrade.postgresVersion.length && 'You must select your desired target version first'">
+                            <label for="spec.majorVersionUpgrade.sgPostgresConfig">Target Postgres Configuration <span class="req">*</span></label>
+                            <select v-model="majorVersionUpgrade.sgPostgresConfig" :disabled="!majorVersionUpgrade.postgresVersion.length" :title="!majorVersionUpgrade.postgresVersion.length && 'You must select your desired target version first'" required>
                                 <option disabled value="">Choose config...</option>
                                 <option v-for="config in pgConfigs" v-if="config.data.spec.postgresVersion == majorVersionUpgrade.postgresVersion.substring(0,2)">{{ config.name }}</option>
                             </select>
