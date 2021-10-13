@@ -16,19 +16,19 @@ e2e_test_install() {
 }
 
 reset_cluster() {
+  local PODS_RUNNING="${1:-3}"
+  [ "$#" -lt 1 ] || shift
+
   remove_cluster_if_exists "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   wait_until eval '[ "$(kubectl get pvc -n "$CLUSTER_NAMESPACE" --template "{{ .items | len }}")" = 0 ]'
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set-string cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
-    --set-string cluster.postgres.extensions[0].name=postgis
+    --set-string cluster.postgres.extensions[0].name=postgis \
+    "$@"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 2
-
-  kubectl delete pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true"
-
-  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_pods_running "$CLUSTER_NAMESPACE" "$PODS_RUNNING"
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c postgres-util -- psql -c "$(cat << 'EOF'
