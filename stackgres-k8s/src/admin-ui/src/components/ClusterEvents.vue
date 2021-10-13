@@ -118,7 +118,7 @@
 													</router-link>
 												</span>
 											</td>
-                                            <td class="involvedObject" v-if="showInvolvedObjectsColumn">
+                                            <td class="involvedObject hasTooltip" v-if="showInvolvedObjectsColumn">
 												<span>
 													<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/event/' + event.metadata.uid" class="noColor">
 														{{ event.involvedObject.kind }}/{{ event.involvedObject.name }}

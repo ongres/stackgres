@@ -1263,7 +1263,7 @@
                                                         </router-link>
                                                     </span>
                                                 </td>
-                                                <td class="involvedObject">
+                                                <td class="involvedObject hasTooltip">
                                                     <span>
                                                         <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + $route.params.name + '/event/' + event.metadata.uid" class="noColor">
                                                             {{ event.involvedObject.kind }}/{{ event.involvedObject.name }}
