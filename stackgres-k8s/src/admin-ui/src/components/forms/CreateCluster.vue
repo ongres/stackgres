@@ -1285,7 +1285,7 @@
                         if(!script.name.length)
                             delete script.name
 
-                        if(!script.database.length)
+                        if(script.hasOwnProperty('database') && !script.database.length)
                             delete script.database
                     })
                 }
