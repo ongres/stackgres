@@ -19,6 +19,7 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
+import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackgresClusterContainers;
@@ -34,6 +35,7 @@ import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ImmutablePostgresContainerContext;
 import io.stackgres.operator.conciliation.factory.InitContainer;
+import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.PostgresContainerContext;
 import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
@@ -165,6 +167,14 @@ public class InitMajorVersionUpgrade implements ContainerFactory<StackGresCluste
             .addAllToVolumeMounts(
                 majorVersionUpgradeMounts.getVolumeMounts(postgresContainerContext)
             )
+            .addToVolumeMounts(new VolumeMountBuilder()
+                .withName(PatroniStaticVolume.DSHM.getVolumeName())
+                .withMountPath(ClusterStatefulSetPath.SHARED_MEMORY_PATH.path())
+                .build())
+            .addToVolumeMounts(new VolumeMountBuilder()
+                .withName(PatroniStaticVolume.LOG.getVolumeName())
+                .withMountPath(ClusterStatefulSetPath.PG_LOG_PATH.path())
+                .build())
             .build();
   }
 

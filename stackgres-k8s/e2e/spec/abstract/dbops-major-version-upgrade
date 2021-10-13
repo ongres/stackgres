@@ -17,7 +17,7 @@ e2e_test_install() {
 
 reset_cluster() {
   local PODS_RUNNING="${1:-3}"
-  shift
+  [ "$#" -lt 1 ] || shift
 
   remove_cluster_if_exists "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
