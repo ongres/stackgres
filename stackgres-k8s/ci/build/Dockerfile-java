@@ -23,16 +23,22 @@ FROM docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11 as build
   ARG PRE_BUILD_COMMANDS
   USER root
   ARG SHELL_XTRACE
-  RUN sh -ec $SHELL_XTRACE "$PRE_BUILD_COMMANDS"
+  RUN sh -ec $SHELL_XTRACE "$PRE_BUILD_COMMANDS" \
+    || true > "$MODULE_PATH/failed"
   USER $UID
   ENV HOME=/project
-  RUN mvn $MAVEN_CLI_OPTS clean install -P safer -f "$MODULE_PATH/pom.xml"
+  RUN test -f "$MODULE_PATH/failed" \
+    || mvn $MAVEN_CLI_OPTS clean install -P safer -f "$MODULE_PATH/pom.xml" \
+    || true > "$MODULE_PATH/failed"
   ARG POST_BUILD_COMMANDS
   USER root
-  RUN sh -ec $SHELL_XTRACE "$POST_BUILD_COMMANDS"
+  RUN test -f "$MODULE_PATH/failed" \
+    || sh -ec $SHELL_XTRACE "$POST_BUILD_COMMANDS" \
+    || true > "$MODULE_PATH/failed"
   USER $UID
   ARG IMAGE_NAME
   LABEL build-of=$IMAGE_NAME
+  RUN ! test -f "$MODULE_PATH/failed"
 
 FROM "$SOURCE_IMAGE_NAME" as package
   ARG UID
