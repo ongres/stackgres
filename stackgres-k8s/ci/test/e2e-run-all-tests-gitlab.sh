@@ -24,7 +24,7 @@ do
   export K8S_USE_INTERNAL_REPOSITORY=true
   export KIND_LOCK_PATH="/tmp/kind-lock$SUFFIX"
   export E2E_LOCK_PATH="/tmp/e2e-lock$SUFFIX"
-  export KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache/$KIND_NAME"
+  export KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache$SUFFIX"
 
   if [ "$E2E_CLEAN_IMAGE_CACHE" = "true" ]
   then
