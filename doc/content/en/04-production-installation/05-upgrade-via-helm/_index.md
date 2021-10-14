@@ -13,7 +13,7 @@ Upgrade the operator with the following command:
 ```bash
 helm upgrade --namespace stackgres stackgres-operator \
   --values my-operator-values.yml \
-  {{< download-url >}}/helm/stackgres-operator.tgz
+  stackgres-charts/stackgres-operator
 ```
 
 >**Important note:** Do not use the `--reuse-values` option from Helm, this prevent the new operator resources and the new values needed to be set. Pass your installation params using the values file or setting the values directly in the command using `--set-string` option.

@@ -17,8 +17,7 @@ Each component of your infrastructure needs to be isolated in different namespac
 
 ```bash
 kubectl create namespace stackgres
-kubectl create namespace monitoring # This should be already created if you followed pre-requisites
-                                    # steps.
+kubectl create namespace monitoring # This should be already created if you followed pre-requisites steps.
 kubectl create namespace my-cluster
 ```
 
@@ -36,19 +35,30 @@ we can proceed to the StackGres Operator itself!
 
 > The `grafana.webHost` value may change if the installation is not Prometheus' default, as well as `grafana.user` and `grafana.password`. Take note of above section's secret outputs and replace them accordingly.
 
+- Add the StackGres helm repo:
+
+```bash
+helm repo add stackgres-charts https://stackgres.io/downloads/stackgres-k8s/stackgres/helm/
+```
+
+- Install the Operator: 
+
 ```bash
 helm install --namespace stackgres stackgres-operator \
-        --set grafana.autoEmbed=true \
-        --set-string grafana.webHost=prometheus-grafana.monitoring \
-        --set-string grafana.user=admin \
-        --set-string grafana.password=prom-operator \
-        --set-string adminui.service.type=LoadBalancer \
-        {{< download-url >}}/helm/stackgres-operator.tgz
+    --set grafana.autoEmbed=true \
+    --set-string grafana.webHost=prometheus-grafana.monitoring \
+    --set-string grafana.secretNamespace=monitoring \
+    --set-string grafana.secretName=prometheus-grafana \
+    --set-string grafana.secretUserKey=admin-user \
+    --set-string grafana.secretPasswordKey=admin-password \
+    --set-string adminui.service.type=LoadBalancer \
+stackgres-charts/stackgres-operator
 ```
+
+> You can specify the version adding `--version 1.0.0` to the Helm command. 
 
 In the previous example StackGres have included several options to the installation, including the needed options to enable
 the monitoring. Follow the [Cluster Parameters]({{% relref "04-production-installation/06-cluster-parameters" %}}) section for a described list.
-
 
 
 ## Creating and customizing your Postgres Clusters 
