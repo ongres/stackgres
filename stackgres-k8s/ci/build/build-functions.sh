@@ -508,16 +508,26 @@ build_image() {
     else
       echo "Building $MODULE ..."
       docker images --filter "label=build-of=$IMAGE_NAME" --format '{{.ID}}' \
-	| while read ID
+        | while read ID
           do
             docker rmi "$ID"
           done
+      set +e
+      (
+      set -e
       "$MODULE_BUILD_FUNCTION" "$MODULE" "$SOURCE_IMAGE_NAME" "$IMAGE_NAME"
+      )
+      BUILD_EXIT_CODE="$?"
+      set -e
       MODULE_CACHE="$(module_list_of_files "$MODULE" cache "[]")"
       if [ -n "$MODULE_CACHE" ]
       then
         BUILD_IMAGE_ID="$(docker images --filter "label=build-of=$IMAGE_NAME" --format '{{.ID}}')"
         extract_from_image "$BUILD_IMAGE_ID" $MODULE_CACHE
+      fi
+      if [ "$BUILD_EXIT_CODE" != 0 ]
+      then
+        return "$BUILD_EXIT_CODE"
       fi
     fi
     if [ "$SKIP_PUSH" != true ]

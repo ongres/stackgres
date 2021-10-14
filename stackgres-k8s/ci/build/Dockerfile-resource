@@ -20,9 +20,11 @@ FROM "$BUILD_IMAGE_NAME" as build
   RUN cp -r /project-copy/. /project
   ARG BUILD_COMMANDS
   ARG SHELL_XTRACE
-  RUN sh -ec $SHELL_XTRACE "$BUILD_COMMANDS"
+  RUN sh -ec $SHELL_XTRACE "$BUILD_COMMANDS" \
+    || true > "$MODULE_PATH/failed"
   ARG IMAGE_NAME
   LABEL build-of=$IMAGE_NAME
+  RUN ! test -f "$MODULE_PATH/failed"
 
 FROM "$SOURCE_IMAGE_NAME" as package
   ARG UID
