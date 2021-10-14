@@ -25,8 +25,8 @@ build:
      stale_schedule, job_execution_timeout, archived_failure, unmet_prerequisites, scheduler_failure, data_integrity_failure ] 
   cache:
     paths:
-      - .m2/repository
       - stackgres-k8s/src/.mvn
+      - .m2/repository
   artifacts:
     expire_in: 1 week
     when: always
@@ -77,14 +77,9 @@ build documentation:
       DOCUMENTATION_BASE_URL="https://ongresinc.gitlab.io/stackgres"
       if [ "${CI_COMMIT_REF_NAME%%-*}" != "main" ] && [ "${CI_COMMIT_REF_NAME%%-*}" != "current" ]
       then
-        DOCUMENTATION_BASE_URL="https://stackgres.io/doc"
-      else
-        DOCUMENTATION_BASE_URL="https://ongresinc.gitlab.io/stackgres"
-        if [ "${CI_COMMIT_REF_NAME%%-*}" != "development" ] && [ "${CI_COMMIT_REF_NAME%%-*}" != "master" ]
-        then
-          DOCUMENTATION_EXTRA_PATH="$CI_COMMIT_REF_NAME/"
-        fi
+        DOCUMENTATION_EXTRA_PATH="$CI_COMMIT_REF_NAME/"
       fi
+    fi
   - mkdir -p "doc/public/$DOCUMENTATION_EXTRA_PATH$STACKGRES_VERSION"
   - hugo -v --source doc --destination "$(pwd)/doc/public/$DOCUMENTATION_EXTRA_PATH$STACKGRES_DOC_VERSION" --baseURL="$DOCUMENTATION_BASE_URL/$DOCUMENTATION_EXTRA_PATH$STACKGRES_DOC_VERSION"
   - |
