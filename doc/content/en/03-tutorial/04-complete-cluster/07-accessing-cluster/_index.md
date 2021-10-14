@@ -1,7 +1,7 @@
 ---
 title: Accessing the cluster
 weight: 7
-url: tutorial/complete-cluster/create-cluster
+url: tutorial/complete-cluster/accessing-cluster
 description: Details about how to access the database cluster.
 ---
 
@@ -68,7 +68,7 @@ That looks like a very limited set of extensions available. Can we do better? Fo
 
 ```yaml
     extensions:
-      - {name: 'ltree', version: '1.2'}
+      - name: 'ltree'
 ```
 
 (note the indentation; it's 1 level, 2 spaces). After apply it and a few seconds, the extension would have been dynamically downloaded onto the container, and will now show in the Postgres console if we repeat the previous query.

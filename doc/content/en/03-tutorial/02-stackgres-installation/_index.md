@@ -27,7 +27,6 @@ helm repo add stackgres-charts https://stackgres.io/downloads/stackgres-k8s/stac
 
 ```bash
 helm install --namespace stackgres stackgres-operator \
-    --version 1.0.0 \
     --set grafana.autoEmbed=true \
     --set-string grafana.webHost=prometheus-operator-grafana.monitoring \
     --set-string grafana.secretNamespace=monitoring \
@@ -37,6 +36,7 @@ helm install --namespace stackgres stackgres-operator \
     --set-string adminui.service.type=LoadBalancer \
 stackgres-charts/stackgres-operator
 ```
+> You can specify the version adding `--version 1.0.0` to the Helm command. 
 
 Note that using `adminui.service.type=LoadBalancer` will create a network load balancer, which may incur in additional costs. You may alternatively use `ClusterIP` if that's your preference.
 

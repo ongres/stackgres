@@ -35,8 +35,10 @@ You can also install the StackGres operator using [helm version 3.1.x](https://g
 ```
 kubectl create namespace stackgres
 
+helm repo add stackgres-charts https://stackgres.io/downloads/stackgres-k8s/stackgres/helm/
+
 helm install --namespace stackgres stackgres-operator \
-  {{< download-url >}}/helm/stackgres-operator.tgz \
+  stackgres-charts/stackgres-operator \
   --set-string adminui.service.type=LoadBalancer
 ```
 
