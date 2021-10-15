@@ -463,11 +463,11 @@
 			executeClusterRestart() {
 				const vc = this;
 
-				let opCount = store.state.dbOps.filter(op => (op.data.metadata.name.includes('restart-' + store.state.restartCluster.name))).length
+				let opCount = store.state.dbOps.filter(op => (op.data.metadata.name.includes('restart-'))).length
 
 				let dbOp = {
 					metadata: {
-						name: 'restart-' + store.state.restartCluster.name + ( (opCount > 0) ? ('-' + opCount) : ''),
+						name: 'restart-' + opCount,
 						namespace: store.state.restartCluster.namespace
 					},
 					spec: {
