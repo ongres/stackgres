@@ -584,6 +584,10 @@ pre code {
     
 }
 
+span[style="color:#960050;background-color:#1e0010"] {
+    background-color: transparent !important;
+}
+
 
 /* Header */
 #header  nav a, nav a:visited {
