@@ -9,6 +9,6 @@ url: demo/quickstart
 
 # Demo / Quickstart
 
-Try out StackGres by setting up a demo in your favorite k8s environment.
+Try out StackGres by setting up a cluster with high availability in few seconds
 
 {{% children style="li" depth="1" description="true" %}}
