@@ -35,3 +35,4 @@ RUN wget -q -O /bin/yajsv https://github.com/neilpa/yajsv/releases/download/v1.4
 RUN chmod a+x /bin/yajsv
 RUN pip3 install yamllint yq
 RUN mkdir -p "$HOME/.docker"; echo '{"experimental":"enabled"}' > "$HOME/.docker/config.json"
+RUN apk add git

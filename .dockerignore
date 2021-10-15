@@ -1,7 +1,0 @@
-.git
-.idea
-**/target/
-!stackgres-k8s/ci/build/target
-!**/target/*-runner
-!**/target/*-runner.jar
-!**/target/lib/*
