@@ -574,6 +574,10 @@ img.border {
     background: rgb(255 158 23 / 5%);
 }
 
+.postgresExtensions th {
+    min-width: 60px;
+}
+
 /* Lightmode Fixes */
 pre code {
     color: var(--textColor);
