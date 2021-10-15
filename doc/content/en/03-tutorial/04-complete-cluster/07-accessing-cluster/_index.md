@@ -5,7 +5,7 @@ url: tutorial/complete-cluster/accessing-cluster
 description: Details about how to access the database cluster.
 ---
 
-# Accesing the Postgres database via the services
+## Accesing the Postgres database via the services
 
 StackGres creates, by default, two Kubernetes services to expose the Postgres cluster: one for reads and writes (`-primary`) and one for reads (`-replicas`), which is load balanced across all replicas. The name of the services is the name of the cluster plus one of the two suffixes (e.g. `cluster-primary`).
 
@@ -24,7 +24,7 @@ $ kubectl -n demo get secret cluster --template '{{ printf "%s" (index .data "su
 Now you should be able to connect and operate normally. Also to the `-replicas` service, by using `-h cluster-replicas` in the `psql` connection string. Your applications are now ready to use Postgres!
 
 
-# Accesing Postgres and Patroni logs
+## Accesing Postgres and Patroni logs
 
 It's easy: go to the Web Console, to the cluster, and click on the `Logs` pane. But now, let's do from the CLI. Because StackGres stores Postgres logs on a (separate!) Postgres database, enhanced by the time-series TimescaleDB extension, you are able to connect to the database and query the logs with SQL! Indeed, the `SGDistributedLogs` CR that we created before led to the creation of a specialized `SGCluster`, used for logs. So how to connect to it? The same way we just connected to the main cluster: through the `-primary` service, where in this case the host is obviously the `distributedlogs` name that we use for the `SGDistributedLogs` CR. Similarly, we can retrieve the connection password from the equivalent secret:
 
@@ -47,7 +47,7 @@ select * from log_postgres where error_severity = 'ERROR';
 ```
 
 
-# Let's add some extensions!
+## Let's add some extensions!
 
 Postgres extensions are awesome. Possibly, one of the most appreciated Postgres features.
 
@@ -78,7 +78,7 @@ You just need now to run `create extension ltree;` on those databases that you w
 To check the currently available extensions and versions, please check the Web Console. Please also note that installing some extensions may require a cluster restart. This restriction will be lifted in future versions.
 
 
-# Let's run a benchmark!
+## Let's run a benchmark!
 
 StackGres also supports automating "Day 2 Operations". This is performed via a CRD called `SGDbOps`. `SGDbOps` support several kind of operations, with more added in future versions. Let's try one of them, that runs a benchmark. Create and apply the following YAML file:
 

@@ -3,7 +3,7 @@ $(document).ready(function(){
 
         // Get postgres extensions file
         $.ajax({
-            url: "https://extensions.stackgres.io/postgres/repository/index.json",
+            url: "https://extensions.stackgres.io/postgres/repository/v1/index.json",
         }).done(function(extIndex) {
             let extensions = extIndex.extensions.sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
     
@@ -12,9 +12,9 @@ $(document).ready(function(){
                     <thead>
                         <tr>
                             <th>Name</th>
-                            <th>PG 13</th>
                             <th>PG 12</th>
-                            <th>PG 11</th>
+                            <th>PG 13</th>
+                            <th>PG 14</th>
                             <th>Description</th>
                         </tr>
                     </thead>
@@ -25,20 +25,7 @@ $(document).ready(function(){
                 tableHtml += `
                     <tr>
                         <td><a href="` + ext.url + `" target="_blank">` + ext.name + `</a></td>`;
-
-                /* Postgres 13 */
-                let pg13 = [];
                 
-                ext.versions.forEach(v => {
-                    v.availableFor.forEach( pg => {
-                        if( (pg.postgresVersion.split(".")[0] == "13") && !pg13.includes(v.version) ) {
-                            pg13.push(v.version)
-                        }
-                    })
-                })
-
-                tableHtml += '<td>' + pg13.join(', ') + '</td>';
-
                 /* Postgres 12 */
                 let pg12 = [];
                 
@@ -50,20 +37,33 @@ $(document).ready(function(){
                     })
                 })
 
-                tableHtml += '<td>' + pg12.join(', ') + '</td>';                
-                        
-                /* Postgres 11 */
-                let pg11 = [];
-
+                tableHtml += '<td>' + pg12.join(', ') + '</td>';
+                
+                /* Postgres 13 */
+                let pg13 = [];
+                
                 ext.versions.forEach(v => {
                     v.availableFor.forEach( pg => {
-                        if( (pg.postgresVersion.split(".")[0] == "11") && !pg11.includes(v.version) ) {
-                            pg11.push(v.version)
+                        if( (pg.postgresVersion.split(".")[0] == "13") && !pg13.includes(v.version) ) {
+                            pg13.push(v.version)
                         }
                     })
                 })
 
-                tableHtml += '<td>' + pg11.join(', ') + '</td>';
+                tableHtml += '<td>' + pg13.join(', ') + '</td>';                
+                        
+                /* Postgres 14 */
+                let pg14 = [];
+
+                ext.versions.forEach(v => {
+                    v.availableFor.forEach( pg => {
+                        if( (pg.postgresVersion.split(".")[0] == "14") && !pg14.includes(v.version) ) {
+                            pg14.push(v.version)
+                        }
+                    })
+                })
+
+                tableHtml += '<td>' + pg14.join(', ') + '</td>';
 
                 tableHtml += `<td class="capitalFirstLetter">` + ext.description + `</td>
                 </tr>`;
