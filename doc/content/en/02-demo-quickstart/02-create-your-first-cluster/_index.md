@@ -6,7 +6,7 @@ description: Details about the how to create the first StackGres cluster.
 showToc: true
 ---
 
-## Installation with kubectl
+## Cluster Creation
 
 To create your first StackGres cluster you have to create a simple custom resource that reflect
  the cluster configuration. Assuming you have already installed the
@@ -44,8 +44,8 @@ kubectl get pods --watch
 
 ```
 NAME       READY   STATUS    RESTARTS   AGE
-simple-0   6/6     Running   0          82s
-simple-1   6/6     Running   0          36s
+simple-0   6/6     Running   0          2m50s
+simple-1   6/6     Running   0          1m56s
 
 ```
 
@@ -60,27 +60,7 @@ kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,cluster=true
 
 Please check [about the postgres-util side car]({{% relref "05-administration-guide/02-Connecting-to-the-cluster/03-postgres-util" %}}) and [how to connect to the postgres cluster]({{% relref "05-administration-guide/02-Connecting-to-the-cluster" %}}) for more details.
 
-Each `SGCluster` will create a service for both the primary and the replicas. They will be create as `${CLUSTER-NAME}-primary` and `${CLUSTER-NAME}-replicas`.
-
-You will be able to connect to the cluster primary instance using service DNS `simple-primary` from any pod in the same namespace.
-
-For example:
-
-```bash
-➜ kubectl run -it psql-connect --rm --image=postgres:12 -- psql -U postgres -h simple-primary                    
-If you don't see a command prompt, try pressing enter.
-
-psql (12.4 (Debian 12.4-1.pgdg100+1), server 12.3 OnGres Inc.)
-Type "help" for help.
-
-postgres=# \q
-Session ended, resume using 'kubectl attach psql-connect -c psql-connect -i -t' command when the pod is running
-pod "psql-connect" deleted
-```
-
-Check [how to connect to the cluster]({{% relref "/05-administration-guide/02-connecting-to-the-cluster#dns-resolution" %}}) for more details.
-
-## Cluster Status and Automated Failover
+## Cluster Management and Automated Failover
 
 Now that the cluster is up and running, you can also open a shell in any instance to use patronictl and control the status of the cluster:
 
@@ -88,34 +68,87 @@ Now that the cluster is up and running, you can also open a shell in any instanc
 kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,cluster=true -o name | head -n 1)" -c patroni -- patronictl list
 ```
 
-The result should be something similar to this:
+You should see something similar to this:
 ```bash
 + Cluster: simple (6868989109118287945) ---------+----+-----------+
 |  Member  |       Host       |  Role  |  State  | TL | Lag in MB |
 +----------+------------------+--------+---------+----+-----------+
 | simple-0 | 10.244.0.9:7433  | Leader | running |  1 |           |
-| simple-1 | 10.244.0.11:7433 |        | running |  1 |         0 |
+| simple-1 | 10.244.0.11:7433 | Replica| running |  1 |         0 |
 +----------+------------------+--------+---------+----+-----------+
 ```
 
-To test the automated cluster failover, let's simulate a disaster killing the leader:
+Now to test the automated failover, let's simulate a disaster by killing the leader `simple-0`:
 ```bash
 kubectl delete pod simple-0
 ```
 
-You can observe the failover process in action by running the command:
+After deleted the leader `simple-0` Patroni should perform the switchover, electing `simple-1` as new leader and replace with a new container the `simple-0` instance. After Patroni performs the failover operation, you can check the cluster status again:
 ```bash
 kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,cluster=true -o name | head -n 1)" -c patroni -- patronictl list
 ```
 
-The final state of the failover will result as the `simple-1` node as the leader:
+The final state of the failover will result with node `simple-1` as the leader and `simple-0` as the replica.
 ```bash
 + Cluster: simple (6868989109118287945) ---------+----+-----------+
 |  Member  |       Host       |  Role  |  State  | TL | Lag in MB |
 +----------+------------------+--------+---------+----+-----------+
-| simple-0 | 10.244.0.9:7433  |        | running |  1 |           |
-| simple-1 | 10.244.0.11:7433 | Leader | running |  1 |         0 |
+| simple-0 | 10.244.0.9:7433  | Replica| running |  2 |         0 |
+| simple-1 | 10.244.0.11:7433 | Leader | running |  2 |           |
 +----------+------------------+--------+---------+----+-----------+
 ```
 
 Please check [about the patroni-management]({{% relref "05-administration-guide/16-patroni-management" %}}) for more details.
+
+## Connect to the UI
+
+The UI will ask for a username and a password. By default those are `admin` and a randomly generated password. You can run the command below to get the user and password auto-generated:
+
+```bash
+kubectl get secret -n stackgres stackgres-restapi --template 'username = {{ printf "%s\n" (.data.k8sUsername | base64decode) }}password = {{ printf "%s\n" ( .data.clearPassword | base64decode) }}'
+```
+
+With the credentials in hand, let's connect to the Web UI of the operator, for this you may forward port 443 of the operator pod:
+
+```
+POD_NAME=$(kubectl get pods --namespace stackgres -l "app=stackgres-restapi" -o jsonpath="{.items[0].metadata.name}")
+kubectl port-forward "$POD_NAME" 8443:9443 --namespace stackgres
+```
+
+Then open the browser at following address [`localhost:8443/admin/`]](`https://localhost:8443/admin/`)
+
+### Changing the UI password
+
+You can use the command below to change the password:
+
+```bash
+NEW_USER=admin
+NEW_PASSWORD=password
+kubectl create secret generic -n stackgres stackgres-restapi  --dry-run=client -o json \
+  --from-literal=k8sUsername="$NEW_USER" \
+  --from-literal=password="$(echo -n "${NEW_USER}${NEW_PASSWORD}"| sha256sum | awk '{ print $1 }' )" > password.patch
+
+kubectl patch secret -n stackgres stackgres-restapi -p "$(cat password.patch)" && rm password.patch
+```
+
+Remember to remove the generated password hint from the secret to avoid security flaws:
+
+```bash
+kubectl patch secrets --namespace stackgres stackgres-restapi --type json -p '[{"op":"remove","path":"/data/clearPassword"}]'
+```
+
+> See [installation via helm]({{% relref "/04-production-installation/02-installation-via-helm" %}}) section in order to change those.
+
+## Cleaning up
+
+To uninstall all resources generated by this demo you can run:
+```bash
+kubectl delete sgcluster simple
+```
+
+As result you will see:
+```
+sgcluster.stackgres.io "simple" deleted
+```
+
+> Check the [uninstall]({{% relref "/05-administration-guide/999999-uninstall" %}}) section for more details.

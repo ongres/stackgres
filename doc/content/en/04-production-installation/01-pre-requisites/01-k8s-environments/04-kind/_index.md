@@ -2,7 +2,7 @@
 title: "Kind"
 weight: 7
 url: demo/setenv/kind
-description: Details about how to set up a k8s cluster using kind.
+description: kind is a tool for running local Kubernetes clusters using Docker container “nodes”.
 ---
 
 [Kind](https://kind.sigs.k8s.io/) is a tool for running local Kubernetes clusters using Docker container "nodes".
