@@ -77,7 +77,8 @@ class ClusterReconciliatorTest {
     final List<HasMetadata> creations = KubernetessMockResourceGenerationUtil
         .buildResources("test", "test");
 
-    creations.forEach(resource -> when(handlerDelegator.create(resource)).thenReturn(resource));
+    creations.forEach(resource -> when(handlerDelegator.create(cluster, resource))
+        .thenReturn(resource));
 
     when(clusterConciliator.evalReconciliationState(cluster))
         .thenReturn(new ReconciliationResult(
@@ -89,7 +90,7 @@ class ClusterReconciliatorTest {
 
     verify(clusterScanner).getResources();
     verify(clusterConciliator).evalReconciliationState(cluster);
-    creations.forEach(resource -> verify(handlerDelegator).create(resource));
+    creations.forEach(resource -> verify(handlerDelegator).create(cluster, resource));
   }
 
   @Test
@@ -101,7 +102,7 @@ class ClusterReconciliatorTest {
         .stream().map(r -> Tuple.tuple(r, r))
         .collect(Collectors.toUnmodifiableList());
 
-    patches.forEach(resource -> when(handlerDelegator.patch(resource.v1, resource.v2))
+    patches.forEach(resource -> when(handlerDelegator.patch(cluster, resource.v1, resource.v2))
         .thenReturn(resource.v1));
 
     when(clusterConciliator.evalReconciliationState(cluster))
@@ -114,7 +115,7 @@ class ClusterReconciliatorTest {
 
     verify(clusterScanner).getResources();
     verify(clusterConciliator).evalReconciliationState(cluster);
-    patches.forEach(resource -> verify(handlerDelegator).patch(resource.v1, resource.v2));
+    patches.forEach(resource -> verify(handlerDelegator).patch(cluster, resource.v1, resource.v2));
   }
 
   @Test
@@ -124,7 +125,7 @@ class ClusterReconciliatorTest {
     final List<HasMetadata> deletions = KubernetessMockResourceGenerationUtil
         .buildResources("test", "test");
 
-    deletions.forEach(resource -> doNothing().when(handlerDelegator).delete(resource));
+    deletions.forEach(resource -> doNothing().when(handlerDelegator).delete(cluster, resource));
 
     when(clusterConciliator.evalReconciliationState(cluster))
         .thenReturn(new ReconciliationResult(
@@ -136,7 +137,7 @@ class ClusterReconciliatorTest {
 
     verify(clusterScanner).getResources();
     verify(clusterConciliator).evalReconciliationState(cluster);
-    deletions.forEach(resource -> verify(handlerDelegator).delete(resource));
+    deletions.forEach(resource -> verify(handlerDelegator).delete(cluster, resource));
   }
 
   @Test

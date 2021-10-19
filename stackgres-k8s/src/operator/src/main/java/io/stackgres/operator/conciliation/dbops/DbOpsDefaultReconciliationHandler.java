@@ -13,6 +13,7 @@ import io.stackgres.operator.conciliation.ReconciliationScope;
 
 @ReconciliationScope(value = StackGresDbOps.class, kind = "HasMetadata")
 @ApplicationScoped
-public class DbOpsDefaultReconciliationHandler extends AbstractReconciliationHandler {
+public class DbOpsDefaultReconciliationHandler
+    extends AbstractReconciliationHandler<StackGresDbOps> {
 
 }

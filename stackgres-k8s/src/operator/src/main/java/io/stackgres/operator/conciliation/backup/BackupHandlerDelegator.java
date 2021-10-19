@@ -21,41 +21,42 @@ import io.stackgres.operator.conciliation.ReconciliationScopeLiteral;
 @ApplicationScoped
 public class BackupHandlerDelegator implements HandlerDelegator<StackGresBackup> {
 
-  private final Instance<ReconciliationHandler> handlers;
+  private final Instance<ReconciliationHandler<StackGresBackup>> handlers;
 
-  private final ReconciliationHandler defaultHandler;
+  private final ReconciliationHandler<StackGresBackup> defaultHandler;
 
   @Inject
   public BackupHandlerDelegator(
-      @Any Instance<ReconciliationHandler> handlers,
+      @Any Instance<ReconciliationHandler<StackGresBackup>> handlers,
       @ReconciliationScope(value = StackGresBackup.class, kind = "HasMetadata")
-          ReconciliationHandler defaultHandler) {
+          ReconciliationHandler<StackGresBackup> defaultHandler) {
     this.handlers = handlers;
     this.defaultHandler = defaultHandler;
   }
 
   @Override
-  public HasMetadata create(HasMetadata resource) {
-    return getHandler(resource).create(resource);
+  public HasMetadata create(StackGresBackup context, HasMetadata resource) {
+    return getHandler(resource).create(context, resource);
   }
 
   @Override
-  public HasMetadata patch(HasMetadata newResource, HasMetadata oldResource) {
-    return getHandler(newResource).patch(newResource, oldResource);
+  public HasMetadata patch(StackGresBackup context, HasMetadata newResource,
+      HasMetadata oldResource) {
+    return getHandler(newResource).patch(context, newResource, oldResource);
   }
 
   @Override
-  public HasMetadata replace(HasMetadata resource) {
-    return getHandler(resource).replace(resource);
+  public HasMetadata replace(StackGresBackup context, HasMetadata resource) {
+    return getHandler(resource).replace(context, resource);
   }
 
   @Override
-  public void delete(HasMetadata resource) {
-    getHandler(resource).delete(resource);
+  public void delete(StackGresBackup context, HasMetadata resource) {
+    getHandler(resource).delete(context, resource);
   }
 
-  private ReconciliationHandler getHandler(HasMetadata r1) {
-    Instance<ReconciliationHandler> instance = handlers
+  private ReconciliationHandler<StackGresBackup> getHandler(HasMetadata r1) {
+    Instance<ReconciliationHandler<StackGresBackup>> instance = handlers
         .select(new ReconciliationScopeLiteral(StackGresCluster.class, r1.getKind()));
     if (!instance.isResolvable()) {
       return defaultHandler;

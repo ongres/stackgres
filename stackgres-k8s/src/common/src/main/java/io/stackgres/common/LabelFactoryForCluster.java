@@ -8,7 +8,6 @@ package io.stackgres.common;
 import java.util.Map;
 
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.common.resource.ResourceUtil;
 
 public interface LabelFactoryForCluster<T extends CustomResource<?, ?>>
     extends LabelFactory<T> {
@@ -31,9 +30,5 @@ public interface LabelFactoryForCluster<T extends CustomResource<?, ?>>
 
   @Override
   LabelMapperForCluster<T> labelMapper();
-
-  default String clusterScope(T resource) {
-    return ResourceUtil.labelValue(resourceName(resource));
-  }
 
 }

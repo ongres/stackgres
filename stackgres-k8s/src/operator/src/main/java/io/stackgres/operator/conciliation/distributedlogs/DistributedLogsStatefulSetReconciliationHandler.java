@@ -31,7 +31,8 @@ import io.stackgres.operator.conciliation.ReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 
 @ReconciliationScope(value = StackGresDistributedLogs.class, kind = "StatefulSet")
-public class DistributedLogsStatefulSetReconciliationHandler implements ReconciliationHandler {
+public class DistributedLogsStatefulSetReconciliationHandler
+    implements ReconciliationHandler<StackGresDistributedLogs> {
 
   private final ResourceWriter<StatefulSet> statefulSetWriter;
 
@@ -60,13 +61,14 @@ public class DistributedLogsStatefulSetReconciliationHandler implements Reconcil
   }
 
   @Override
-  public HasMetadata create(HasMetadata resource) {
+  public HasMetadata create(StackGresDistributedLogs context, HasMetadata resource) {
     StatefulSet sts = safeCast(resource);
     return statefulSetWriter.create(sts);
   }
 
   @Override
-  public HasMetadata patch(HasMetadata newResource, HasMetadata oldResource) {
+  public HasMetadata patch(StackGresDistributedLogs context, HasMetadata newResource,
+      HasMetadata oldResource) {
     var newSts = safeCast(newResource);
     var oldSts = safeCast(oldResource);
     var updatedSts = updateStatefulSet(newSts, oldSts);
@@ -77,7 +79,7 @@ public class DistributedLogsStatefulSetReconciliationHandler implements Reconcil
   }
 
   @Override
-  public HasMetadata replace(HasMetadata resource) {
+  public HasMetadata replace(StackGresDistributedLogs context, HasMetadata resource) {
     var newSts = safeCast(resource);
     var updatedSts = updateStatefulSet(newSts);
     var pods = getDeployedPods(newSts);
@@ -101,7 +103,7 @@ public class DistributedLogsStatefulSetReconciliationHandler implements Reconcil
   }
 
   @Override
-  public void delete(HasMetadata resource) {
+  public void delete(StackGresDistributedLogs context, HasMetadata resource) {
     final StatefulSet requiredSts = safeCast(resource);
     statefulSetWriter.delete(requiredSts);
   }

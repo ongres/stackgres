@@ -148,3 +148,6 @@ videos/
 # Built project info
 doc/themes/sg-doc/static/sg-swagger.yaml
 stackgres-k8s/src/api-web/swagger-merged.yaml
+
+.dockerignore
+.m2

@@ -117,6 +117,7 @@ public class ClusterStatefulSet
         .withLabels(labels)
         .endMetadata()
         .withNewSpec()
+        .withPodManagementPolicy("OrderedReady")
         .withReplicas(cluster.getSpec().getInstances())
         .withSelector(new LabelSelectorBuilder()
             .addToMatchLabels(podLabels)

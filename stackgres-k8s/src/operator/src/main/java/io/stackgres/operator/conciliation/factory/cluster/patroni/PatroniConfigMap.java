@@ -130,7 +130,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
     final int pgPort = EnvoyUtil.PG_ENTRY_PORT;
     final int babelfishPort = EnvoyUtil.BF_ENTRY_PORT;
     Map<String, String> data = new HashMap<>();
-    data.put("PATRONI_SCOPE", labelFactory.clusterScope(cluster));
+    data.put("PATRONI_SCOPE", clusterScope(cluster));
     data.put("PATRONI_KUBERNETES_SCOPE_LABEL", labelFactory.labelMapper().clusterScopeKey());
     data.put("PATRONI_KUBERNETES_LABELS", patroniClusterLabelsAsJson);
     data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
@@ -174,6 +174,10 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(data))
         .build();
+  }
+
+  public static String clusterScope(StackGresCluster cluster) {
+    return cluster.getMetadata().getName();
   }
 
   @Inject

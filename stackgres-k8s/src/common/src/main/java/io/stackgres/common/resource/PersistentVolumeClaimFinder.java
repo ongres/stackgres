@@ -6,6 +6,7 @@
 package io.stackgres.common.resource;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -34,7 +35,8 @@ public class PersistentVolumeClaimFinder implements
 
   @Override
   public Optional<PersistentVolumeClaim> findByName(String name) {
-    throw new UnsupportedOperationException();
+    return Optional.ofNullable(client.persistentVolumeClaims()
+        .withName(name).get());
   }
 
   @Override
@@ -51,6 +53,13 @@ public class PersistentVolumeClaimFinder implements
   @Override
   public List<PersistentVolumeClaim> findResourcesInNamespace(String namespace) {
     return client.persistentVolumeClaims().inNamespace(namespace).list().getItems();
+  }
+
+  @Override
+  public List<PersistentVolumeClaim> findByLabelsAndNamespace(String namespace,
+      Map<String, String> labels) {
+    return client.persistentVolumeClaims().inNamespace(namespace)
+        .withLabels(labels).list().getItems();
   }
 
 }

@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 public interface ResourceUtil {
 
   Logger LOGGER = LoggerFactory.getLogger(ResourceUtil.class);
-  String INDEX_PATTERN = "^.*-([0-9]+)$";
+  Pattern INDEX_PATTERN = Pattern.compile("^.*-([0-9]+)$");
 
   /**
    * Filter metadata of resources to find if the name match in the provided list.
@@ -88,16 +88,16 @@ public interface ResourceUtil {
     return name;
   }
 
-  static String getIndexPattern() {
+  static Pattern getIndexPattern() {
     return INDEX_PATTERN;
   }
 
-  static String getNameWithIndexPattern(String name) {
-    return "^" + Pattern.quote(name) + "-([0-9]+)$";
+  static Pattern getNameWithIndexPattern(String name) {
+    return Pattern.compile("^" + Pattern.quote(name) + "-([0-9]+)$");
   }
 
-  static String getNameWithHashPattern(String name) {
-    return "^" + Pattern.quote(name) + "-([a-z0-9]+){10}-([a-z0-9]+){5}$";
+  static Pattern getNameWithHashPattern(String name) {
+    return Pattern.compile("^" + Pattern.quote(name) + "-([a-z0-9]+){10}-([a-z0-9]+){5}$");
   }
 
   /**

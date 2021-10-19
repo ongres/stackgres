@@ -90,7 +90,7 @@ public class PatroniConfigEndpoints
   }
 
   private String configName(StackGresDistributedLogsContext context) {
-    final String scope = labelFactory.clusterScope(context.getSource());
+    final String scope = PatroniConfigMap.clusterScope(context.getSource());
     return ResourceUtil.nameIsValidDnsSubdomain(scope + PatroniUtil.CONFIG_SERVICE);
   }
 

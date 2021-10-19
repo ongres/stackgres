@@ -174,6 +174,7 @@ class PatroniConfigEndpointsTest {
 
   private Endpoints generateEndpoint() {
     when(context.getSource()).thenReturn(cluster);
+    when(context.getCluster()).thenReturn(cluster);
     when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
 

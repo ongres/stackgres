@@ -107,7 +107,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsC
     final int pgRawPort = EnvoyUtil.PG_PORT;
     final int pgPort = EnvoyUtil.PG_PORT;
     Map<String, String> data = new HashMap<>();
-    data.put("PATRONI_SCOPE", labelFactory.clusterScope(cluster));
+    data.put("PATRONI_SCOPE", clusterScope(cluster));
     data.put("PATRONI_KUBERNETES_SCOPE_LABEL", labelFactory.labelMapper().clusterScopeKey());
     data.put("PATRONI_KUBERNETES_LABELS", patroniClusterLabelsAsJson);
     data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
@@ -137,6 +137,10 @@ public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsC
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(data))
         .build();
+  }
+
+  public static String clusterScope(StackGresDistributedLogs distributedLogs) {
+    return distributedLogs.getMetadata().getName();
   }
 
 }
