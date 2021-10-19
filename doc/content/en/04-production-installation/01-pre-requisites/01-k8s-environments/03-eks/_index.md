@@ -1,7 +1,7 @@
 ---
 title: "EKS"
 weight: 1
-url: demo/setenv/eks
+url: install/prerequisites/k8s/eks
 description: Amazon Elastic Kubernetes Service (EKS) is a managed service and certified Kubernetes conformant to run Kubernetes on AWS and on-premises.
 ---
 
