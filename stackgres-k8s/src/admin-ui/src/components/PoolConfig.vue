@@ -81,10 +81,14 @@
 											</router-link>
 										</span>
 									</td>
-									<td class="parameters">
-										<router-link :to="'/' + $route.params.namespace + '/sgpoolconfig/' + conf.name" class="noColor">
-											<ul class="yaml" v-html="parseParams(conf.data.spec.pgBouncer['pgbouncer.ini'])"></ul>
-										</router-link>
+									<td class="parameters hasTooltip">
+										<span>
+											<router-link :to="'/' + $route.params.namespace + '/sgpoolconfig/' + conf.name" class="noColor">
+												<template v-for="param in conf.data.status.pgBouncer['pgbouncer.ini']">
+													<strong>{{ param.parameter }}:</strong> {{ param.value }}; 
+												</template>
+											</router-link>
+										</span>
 									</td>
 									<td class="actions">
 										<router-link :to="'/' + $route.params.namespace + '/sgpoolconfig/' + conf.name" target="_blank" class="newTab"></router-link>

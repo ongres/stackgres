@@ -613,14 +613,6 @@ export const mixin = {
         return "<p>You don't have enough permissions to access this resource</p>"
       },
   
-      parseParams: function(params) {
-        params = params.replace(/=/g, ':</strong> ');
-        params = '<li><strong class="label">'+params+'</li>';
-        params = params.replace(/(?:\r\n|\r|\n)/g, '</li><li><strong class="label">')
-        
-        return params;
-      },
-  
       sort: function(param, type = 'alphabetical') {
               
         if(param === this.currentSort.param) {

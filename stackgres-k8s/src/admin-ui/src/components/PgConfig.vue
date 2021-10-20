@@ -94,16 +94,14 @@
 											{{ conf.data.spec.postgresVersion }}
 										</router-link>
 									</td>
-									<td class="parameters">
-										<router-link :to="'/' + $route.params.namespace + '/sgpgconfig/' + conf.name" class="noColor">
-											<ul class="yaml">
+									<td class="parameters hasTooltip">
+										<span>
+											<router-link :to="'/' + $route.params.namespace + '/sgpgconfig/' + conf.name" class="noColor">
 												<template v-for="param in conf.data.status['postgresql.conf']">
-													<li>
-														<strong class="label">{{ param.parameter }}:</strong> {{ param.value }}
-													</li>
+													<strong>{{ param.parameter }}:</strong> {{ param.value }}; 
 												</template>
-											</ul>
-										</router-link>
+											</router-link>
+										</span>
 									</td>
 									<td class="actions">
 										<router-link :to="'/' + $route.params.namespace + '/sgpgconfig/' + conf.name" target="_blank" class="newTab"></router-link>
