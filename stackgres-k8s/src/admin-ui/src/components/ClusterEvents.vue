@@ -53,17 +53,17 @@
                 <template v-if="!$route.params.hasOwnProperty('uid')">
                     <table id="events" class="resizable" v-columns-resizable>
                         <thead>
-							<th class="firstTimestamp hasTooltip">
+							<th class="firstTimestamp hasTooltip" data-type="timestamp">
                                 <span title="First Timestamp">
                                     First Timestamp
                                 </span>
                             </th>
-                            <th class="lastTimestamp hasTooltip">
+                            <th class="lastTimestamp hasTooltip" data-type="timestamp">
                                 <span title="Last Timestamp">
                                     Last Timestamp
                                 </span>
                             </th>
-                            <th class="involvedObject hasTooltip" v-if="showInvolvedObjectsColumn">
+                            <th class="involvedObject hasTooltip" data-type="involvedObject" v-if="showInvolvedObjectsColumn">
                                 <span title="Component">
                                     Component
                                 </span>
@@ -282,7 +282,7 @@
 						}
 					});
 
-					vc.showInvolvedObjectsColumn =  (vc.events.filter(e => (e.involvedObject.kind != 'SGCluster') ).length > 0)
+					vc.showInvolvedObjectsColumn = (vc.events.filter(e => (e.involvedObject.kind != 'SGCluster') ).length > 0)
 				}).catch(function(err) {
 					console.log(err);
 					vc.checkAuthError(err);
@@ -307,3 +307,10 @@
 		} 
 	}
 </script>
+
+<style scoped>
+	table.resizable th[data-type="involvedObject"] {
+		min-width: 150px;
+		max-width: 250px;
+	}
+</style>

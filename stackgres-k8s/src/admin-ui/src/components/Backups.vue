@@ -181,15 +181,15 @@
 					</div>
 					<table class="backups resizable fullWidth" v-columns-resizable>
 						<thead class="sort">
-							<th class="sorted desc timestamp hasTooltip">
+							<th class="sorted desc timestamp hasTooltip" data-type="timestamp">
 								<span @click="sort('data.status.process.timing.stored','timestamp')" title="Timestamp">Timestamp</span>
 								<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.timing.stored')"></span>
 							</th>
-							<th class="desc managedLifecycle hasTooltip">
+							<th class="desc managedLifecycle hasTooltip" data-type="lifecycle">
 								<span @click="sort('data.spec.managedLifecycle')" title="Managed Lifecycle (request)">Managed Lifecycle (request)</span>
 								<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.spec.managedLifecycle')"></span>
 							</th>
-							<th class="desc phase center hasTooltip">
+							<th class="desc phase center hasTooltip" data-type="phase">
 								<span @click="sort('data.status.process.status')" title="Status">Status</span>
 								<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.status')"></span>
 							</th>
@@ -197,7 +197,7 @@
 								<span @click="sort('data.status.backupInformation.size.uncompressed', 'memory')" title="Size uncompressed (compressed)">Size uncompressed (compressed)</span>
 								<span class="helpTooltip" data-tooltip="Size (in bytes) of the uncompressed backup (Size (in bytes) of the compressed backup)."></span>
 							</th>
-							<th class="desc postgresVersion hasTooltip" v-if="!isCluster">
+							<th class="desc postgresVersion hasTooltip" v-if="!isCluster" data-type="version">
 								<span@click="sort('data.status.backupInformation.postgresVersion')" title="Postgres Version">PG</span>
 								<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.postgresVersion')"></span>
 							</th>
@@ -1213,4 +1213,12 @@
         min-width: 95px;
         max-width: 95px;
     }
+
+	table.resizable th[data-type="phase"] {
+		max-width: 105px;
+	}
+
+	table.resizable th[data-type="lifecycle"] {
+		max-width: 240px;
+	}
 </style>

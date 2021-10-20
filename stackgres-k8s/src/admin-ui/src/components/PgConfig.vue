@@ -54,7 +54,7 @@
 							</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.metadata.name')"></span>
 						</th>
-						<th class="desc postgresVersion hasTooltip">
+						<th class="desc postgresVersion hasTooltip" data-type="version">
 							<span @click="sort('data.spec.postgresVersion')" title="Postgres Version">
 								PG
 							</span>

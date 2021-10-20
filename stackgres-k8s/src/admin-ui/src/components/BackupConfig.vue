@@ -55,7 +55,7 @@
 							</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.metadata.name')"></span>
 						</th>
-						<th class="desc retention hasTooltip textRight">
+						<th class="desc retention hasTooltip textRight" data-type="retention">
 							<span @click="sort('data.spec.baseBackups.retention')" title="Retention">Retention</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.retention')"></span>
 						</th>
@@ -63,11 +63,11 @@
 							<span @click="sort('data.spec.baseBackups.cronSchedule')" title="Full Schedule">Full Schedule</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.cronSchedule')"></span>
 						</th>
-						<th class="desc compression hasTooltip">
+						<th class="desc compression hasTooltip" data-type="compression">
 							<span @click="sort('data.spec.baseBackups.compression')" title="Compression Method">Compression Method</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.compression')"></span>
 						</th>
-						<th class="desc uploadDiskConcurrency hasTooltip textRight">
+						<th class="desc uploadDiskConcurrency hasTooltip textRight" data-type="concurrency">
 							<span @click="sort('data.spec.baseBackups.performance.uploadDiskConcurrency')" title="Upload Disk Concurrency">Upload Disk Concurrency</span>
 							<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.performance.uploadDiskConcurrency')"></span>
 						</th>
@@ -473,7 +473,6 @@
 
 <script>
 	import { mixin } from './mixins/mixin'
-	import router from '../router'
 	import store from '../store'
 
     export default {
@@ -506,3 +505,13 @@
 	}
 
 </script>
+
+<style scoped>
+	table.resizable th[data-type="retention"] {
+		max-width: 95px;
+	}
+
+	table.resizable th[data-type="compression"], table.resizable th[data-type="concurrency"] {
+		max-width: 125px;
+	}
+</style>

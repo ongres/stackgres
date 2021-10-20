@@ -97,11 +97,11 @@
                 
                 <table id="sgdbops" class="dbops resizable fullWidth" v-columns-resizable>
                     <thead class="sort">
-                        <th class="asc start hasTooltip">
+                        <th class="asc start hasTooltip" data-type="timestamp">
                             <span @click="sort('data.spec.runAt', 'timestamp')" title="Start">Start</span>
                             <span class="helpTooltip" :data-tooltip="(timezone == 'local') ? getTooltip('sgdbops.spec.runAt').replace('UTC ','') : getTooltip('sgdbops.spec.runAt')"></span>
                         </th>
-                        <th class="asc operationType">
+                        <th class="asc operationType" data-type="type">
                             <span @click="sort('data.spec.op')" title="Operation">Operation</span>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.op')"></span>
                         </th>
@@ -109,7 +109,7 @@
                             <span @click="sort('data.metadata.name')" title="Name">Name</span>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.metadata.name')"></span>
                         </th>
-                        <th class="asc phase hasTooltip">
+                        <th class="asc phase hasTooltip" data-type="phase">
                             <span @click="sort('data.status.conditions')" title="Status">Status</span>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.conditions')"></span>
                         </th>
@@ -125,7 +125,7 @@
                             <span @click="sort('data.status.opRetries')" title="Current / Max Retries">Current / Max Retries</span>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.opRetries') + ' / '+ getTooltip('sgdbops.spec.maxRetries')"></span> 
                         </th>
-                        <th class="asc timedOut textRight hasTooltip">
+                        <th class="asc timedOut textRight hasTooltip" data-type="timedOut">
                             <span @click="sort('data.spec.timeout')" title="Timed Out">Timed Out</span>
                             <span class="helpTooltip" data-tooltip="States whether the operation failed because of timeout expiration."></span>
                         </th>
@@ -1199,12 +1199,12 @@
                         <div class="fixedHeight">
                             <table class="events resizable" v-columns-resizable>
                                 <thead>
-                                    <th class="firstTimestamp hasTooltip">
+                                    <th class="firstTimestamp hasTooltip" data-type="timestamp">
                                         <span title="First Timestamp">
                                             First Timestamp
                                         </span>
                                     </th>
-                                    <th class="lastTimestamp hasTooltip">
+                                    <th class="lastTimestamp hasTooltip" data-type="timestamp">
                                         <span title="Last Timestamp">
                                             Last Timestamp
                                         </span>
@@ -1519,9 +1519,9 @@
 
             hasTimedOut(op) {
                 if( op.data.hasOwnProperty('status') ) {
-                    let failedOp = op.data.status.conditions.find(c => (c.status === 'True') && (c.type == 'Failed') )
+                    let failedOp = op.data.status.conditions.find(c => (c.status === 'True') && (c.type == 'Failed') && (c.reason == 'OperationTimedOut' ) )
 
-                    if( (typeof failedOp !== 'undefined') && (failedOp.reason == 'OperationTimedOut') )
+                    if( typeof failedOp !== 'undefined' )
                         return 'YES'
                     else
                         return 'NO'
@@ -1967,7 +1967,20 @@
         max-height: 33vh;
         overflow-y: auto;
         overflow-x: hidden;
+        margin-bottom: 20px;
     }
+
+    table.resizable th[data-type="phase"] {
+		max-width: 105px;
+	}
+
+    table.resizable th[data-type="type"] {
+		max-width: 190px;
+	}
+
+    table.resizable th[data-type="timedOut"] {
+		max-width: 120px;
+	}
 
     @media screen and (min-width: 2600px) {
         .clusterStatus .pod {
