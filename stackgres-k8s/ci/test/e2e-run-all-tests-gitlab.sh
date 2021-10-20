@@ -47,7 +47,7 @@ do
   export IS_NATIVE
   E2E_EXCLUDES_BY_HASH="$(flock /tmp/e2e-retrieve-pipeline-info.lock \
     timeout -s KILL 300 \
-    sh stackgres-k8s/ci/test/e2e-already-passed-gitlab.sh || true)"
+    sh stackgres-k8s/ci/test/e2e-already-passed-gitlab.sh)"
   if echo "$E2E_EXCLUDES_BY_HASH" | grep -q '[^ ]'
   then
     echo "Excluding following tests since already passed:"

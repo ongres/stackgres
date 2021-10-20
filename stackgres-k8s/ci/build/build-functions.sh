@@ -64,7 +64,7 @@ copy_from_image() {
     --user "$UID" \
     "$SOURCE_IMAGE_NAME" \
     sh -ec $(echo "$-" | grep -v -q x || printf '%s' '-x') \
-      'cp -r /project/. /project-target/.'
+      'cp -rd /project/. /project-target/.'
 }
 
 pre_build_in_container() {
@@ -145,9 +145,12 @@ build_module_image() {
   local MODULE_SOURCES
   local MODULE_ARTIFACTS
   local MODULE_DOCKERFILE
-  local MODULE_DOCKERFILE_ARGS
   BUILD_IMAGE_NAME="$(jq -r ".modules[\"$MODULE\"].build_image" stackgres-k8s/ci/build/target/config.json)"
   TARGET_IMAGE_NAME="$(jq -r ".modules[\"$MODULE\"].target_image" stackgres-k8s/ci/build/target/config.json)"
+  if [ "$TARGET_IMAGE_NAME" = null ]
+  then
+    TARGET_IMAGE_NAME="$SOURCE_IMAGE_NAME"
+  fi
   copy_from_image "$SOURCE_IMAGE_NAME"
   if [ "$BUILD_IMAGE_NAME" != null ]
   then
@@ -176,11 +179,15 @@ build_module_image() {
           do
             printf 'ARG %s\n' "$KEY"
           done
-    if [ "$MODULE_DOCKERFILE" != null ]
-    then
-      sed "s#^\( *COPY\) \+'#\1 './$MODULE_PATH/#" \
-        "$MODULE_DOCKERFILE"
-    fi
+    eval "cat '$MODULE_DOCKERFILE'$(
+        jq -r ".modules[\"$MODULE\"].dockerfile.seds[]" stackgres-k8s/ci/build/target/config.json \
+          | while read -r SED_EXPRESSION
+            do
+              cat << EOF | tr -d '\n'
+ | sed "$SED_EXPRESSION"
+EOF
+              done
+      )"
     ) > "stackgres-k8s/ci/build/target/Dockerfile.$MODULE"
   else
   (
@@ -199,6 +206,7 @@ EOF
     ) > "stackgres-k8s/ci/build/target/Dockerfile.$MODULE"
   fi
   # shellcheck disable=SC2086
+  # shellcheck disable=SC2046
   docker_build $DOCKER_BUILD_OPTS -t "$IMAGE_NAME" \
     --build-arg "UID=$UID" \
     --build-arg "TARGET_IMAGE_NAME=$TARGET_IMAGE_NAME" \
@@ -221,6 +229,10 @@ module_list_of_files() {
     jq -r ".modules[\"$MODULE\"][\"$MODULE_FILES_PATH\"] | if . != null then .[] else [][] end" stackgres-k8s/ci/build/target/config.json
     )"
   printf '%s' "$MODULE_FILES"
+}
+
+project_hash() {
+  git rev-parse HEAD
 }
 
 file_hash() {
@@ -363,6 +375,48 @@ generate_image_hashes() {
 
   yq . stackgres-k8s/ci/build/config.yml > stackgres-k8s/ci/build/target/config.json
 
+  if [ -n "$(git status --porcelain)" ] && [ "$BUILD_SKIP_GIT_STATUS_CHECK" != true ]
+  then
+    echo >&2
+    echo "FATAL: You have uncommited changes that may affect hash calculation" >&2
+    echo >&2
+    echo "Set BUILD_SKIP_GIT_STATUS_CHECK to true to skip this check." >&2
+    echo >&2
+    return 1
+  fi
+
+  if test -f stackgres-k8s/ci/build/target/project_hash \
+    && [ "$(cat stackgres-k8s/ci/build/target/project_hash)" = "$(project_hash)" ]
+  then
+    echo "Calculated image hashes..."
+
+    while IFS='=' read -r MODULE IMAGE_NAME
+    do
+      printf ' - %s => %s\n' "$MODULE" "$IMAGE_NAME"
+    done < stackgres-k8s/ci/build/target/image-hashes
+
+    echo "done"
+
+    echo
+
+    echo "Calculated image type hashes ..."
+
+    for MODULE_TYPE_IMAGE_HASHES in stackgres-k8s/ci/build/target/*-image-hashes
+    do
+      local MODULE_TYPE="${MODULE_TYPE_IMAGE_HASHES##*/}"
+      MODULE_TYPE="${MODULE_TYPE%-image-hashes}"
+      local MODULE_TYPE_HASH
+      MODULE_TYPE_HASH="$(md5sum "$MODULE_TYPE_IMAGE_HASHES" | cut -d ' ' -f 1 | tr -d '\n')"
+      printf " - %s hash => %s\n" "$MODULE_TYPE" "$MODULE_TYPE_HASH"
+    done
+
+    echo "done"
+
+    echo
+
+    return
+  fi
+
   echo "Calculating image hashes ..."
 
   cat << EOF > stackgres-k8s/ci/build/target/junit-build.hashes.xml
@@ -392,6 +446,7 @@ EOF
   do
     printf ' - %s => %s\n' "$MODULE" "$IMAGE_NAME"
   done < stackgres-k8s/ci/build/target/image-hashes
+
   echo "done"
 
   echo
@@ -412,12 +467,14 @@ EOF
 
   echo "done"
 
+  echo
+
   cat << EOF >> stackgres-k8s/ci/build/target/junit-build.hashes.xml
   </testsuite>
 </testsuites>
 EOF
 
-  echo
+  project_hash > stackgres-k8s/ci/build/target/project_hash
 }
 
 retrieve_image_digests() {

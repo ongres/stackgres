@@ -1,5 +1,5 @@
 modules:
-  stackgres:
+  stackgres-parent: &stackgres-parent
     type: java
     path: stackgres-k8s/src/.
     target_image: alpine:3.13.5
@@ -7,22 +7,6 @@ modules:
     sources:
       - stackgres-k8s/src/pom.xml
       - stackgres-k8s/src/checks
-      - stackgres-k8s/src/operator-framework/pom.xml
-      - stackgres-k8s/src/operator-framework/src
-      - stackgres-k8s/src/test-util/pom.xml
-      - stackgres-k8s/src/test-util/src
-      - stackgres-k8s/src/common/pom.xml
-      - stackgres-k8s/src/common/src
-      - stackgres-k8s/src/operator/pom.xml
-      - stackgres-k8s/src/operator/src
-      - stackgres-k8s/src/api-web/pom.xml
-      - stackgres-k8s/src/api-web/src
-      - stackgres-k8s/src/jobs/pom.xml
-      - stackgres-k8s/src/jobs/src
-      - stackgres-k8s/src/cluster-controller/pom.xml
-      - stackgres-k8s/src/cluster-controller/src
-      - stackgres-k8s/src/distributedlogs-controller/pom.xml
-      - stackgres-k8s/src/distributedlogs-controller/src
     build_env: &mvn_build_env
       MAVEN_OPTS: |
         -Dhttps.protocols=TLSv1.2
@@ -41,31 +25,88 @@ modules:
         -Dsurefire.useFile=false
         -DtrimStackTrace=false
     build_commands:
-      - 'mvn $MAVEN_CLI_OPTS clean install -P safer -f "$MODULE_PATH/pom.xml"'
-    post_build_commands:
-      - 'microdnf install python3-pip jq'
-      - 'pip3 install yamllint yq'
-      - 'sh $SHELL_XTRACE stackgres-k8s/src/api-web/src/main/swagger/build.sh'
+      - 'mvn $MAVEN_CLI_OPTS clean install -P safer -f "$MODULE_PATH/pom.xml" -N'
     cache:
       - stackgres-k8s/src/.mvn
       - .m2/repository
     artifacts:
       - stackgres-k8s/src/target
       - .m2/repository/io/stackgres/stackgres-parent
+  stackgres-operator-framework: &stackgres-operator-framework
+    <<: *stackgres-parent
+    path: stackgres-k8s/src/operator-framework/.
+    target_image: null
+    sources:
+      - stackgres-k8s/src/operator-framework/pom.xml
+      - stackgres-k8s/src/operator-framework/src
+    artifacts:
       - stackgres-k8s/src/operator-framework/target
       - .m2/repository/io/stackgres/stackgres-operator-framework
+  stackgres-test-util:
+    <<: *stackgres-operator-framework
+    path: stackgres-k8s/src/test-util/.
+    sources:
+      - stackgres-k8s/src/test-util/pom.xml
+      - stackgres-k8s/src/test-util/src
+    artifacts:
       - stackgres-k8s/src/test-util/target
       - .m2/repository/io/stackgres/stackgres-test-util
+  stackgres-common:
+    <<: *stackgres-operator-framework
+    path: stackgres-k8s/src/common/.
+    sources:
+      - stackgres-k8s/src/common/pom.xml
+      - stackgres-k8s/src/common/src
+    artifacts:
       - stackgres-k8s/src/common/target
       - .m2/repository/io/stackgres/stackgres-common
+  stackgres-operator:
+    <<: *stackgres-operator-framework
+    path: stackgres-k8s/src/operator/.
+    sources:
+      - stackgres-k8s/src/operator/pom.xml
+      - stackgres-k8s/src/operator/src
+    artifacts:
       - stackgres-k8s/src/operator/target
       - .m2/repository/io/stackgres/stackgres-operator
+  stackgres-restapi:
+    <<: *stackgres-operator-framework
+    path: stackgres-k8s/src/api-web/.
+    sources:
+      - stackgres-k8s/src/api-web/pom.xml
+      - stackgres-k8s/src/api-web/src
+    post_build_commands:
+      - 'microdnf install python3-pip jq'
+      - 'pip3 install yamllint yq'
+      - 'sh $SHELL_XTRACE stackgres-k8s/src/api-web/src/main/swagger/build.sh'
+    artifacts:
       - stackgres-k8s/src/api-web/target
       - .m2/repository/io/stackgres/stackgres-restapi
+  stackgres-jobs:
+    <<: *stackgres-operator-framework
+    path: stackgres-k8s/src/jobs/.
+    sources:
+      - stackgres-k8s/src/jobs/pom.xml
+      - stackgres-k8s/src/jobs/src
+    artifacts:
       - stackgres-k8s/src/jobs/target
       - .m2/repository/io/stackgres/stackgres-jobs
+  stackgres-cluster-controller:
+    <<: *stackgres-operator-framework
+    path: stackgres-k8s/src/cluster-controller/.
+    sources:
+      - stackgres-k8s/src/cluster-controller/pom.xml
+      - stackgres-k8s/src/cluster-controller/src
+    artifacts:
       - stackgres-k8s/src/cluster-controller/target
       - .m2/repository/io/stackgres/stackgres-cluster-controller
+  stackgres-distributedlogs-controller:
+    <<: *stackgres-operator-framework
+    path: stackgres-k8s/src/distributedlogs-controller/.
+    sources:
+      - stackgres-k8s/src/distributedlogs-controller/pom.xml
+      - stackgres-k8s/src/distributedlogs-controller/src
+    artifacts:
       - stackgres-k8s/src/distributedlogs-controller/target
       - .m2/repository/io/stackgres/stackgres-distributedlogs-controller
   admin-ui:
@@ -93,7 +134,6 @@ modules:
       - stackgres-k8s/src/admin-ui/target
   operator-native: &native
     type: native
-    name: operator
     path: stackgres-k8s/src/operator
     target_image: alpine:3.13.5
     build_image: *jdk_build_image
@@ -108,44 +148,40 @@ modules:
       - stackgres-k8s/src/operator/target/stackgres-operator-runner
   restapi-native:
     <<: *native
-    name: restapi
     path: stackgres-k8s/src/api-web
     artifacts:
       - stackgres-k8s/src/api-web/target/stackgres-restapi-runner
   jobs-native:
     <<: *native
-    name: jobs
     path: stackgres-k8s/src/jobs
     artifacts:
       - stackgres-k8s/src/jobs/target/stackgres-jobs-runner
   cluster-controller-native:
     <<: *native
-    name: cluster-controller
     path: stackgres-k8s/src/cluster-controller
     artifacts:
       - stackgres-k8s/src/cluster-controller/target/stackgres-cluster-controller-runner
   distributedlogs-controller-native:
     <<: *native
-    name: distributedlogs-controller
     path: stackgres-k8s/src/distributedlogs-controller
     artifacts:
       - stackgres-k8s/src/distributedlogs-controller/target/stackgres-distributedlogs-controller-runner
   operator-jvm-image: &jvm-image
     type: jvm-image
-    name: operator
     path: stackgres-k8s/src/operator
     target_image: registry.access.redhat.com/ubi8/openjdk-11:1.3-15
     dockerfile: &jvm-image-args
       path: stackgres-k8s/src/operator/src/main/docker/Dockerfile.jvm
       args:
         BASE_IMAGE: $TARGET_IMAGE_NAME
+      seds:
+        - "s#^\\( *COPY\\) \\+'#\\1 './$MODULE_PATH/#"
     artifacts:
       - stackgres-k8s/src/operator/target/stackgres-operator-runner.jar
       - stackgres-k8s/src/operator/src/main/docker/stackgres-operator.jvm.sh
       - stackgres-k8s/src/operator/target/lib
   restapi-jvm-image:
     <<: *jvm-image
-    name: restapi
     path: stackgres-k8s/src/api-web
     dockerfile:
       <<: *jvm-image-args
@@ -156,7 +192,6 @@ modules:
       - stackgres-k8s/src/api-web/target/lib
   jobs-jvm-image:
     <<: *jvm-image
-    name: jobs
     path: stackgres-k8s/src/jobs
     dockerfile:
       <<: *jvm-image-args
@@ -167,7 +202,6 @@ modules:
       - stackgres-k8s/src/jobs/target/lib
   cluster-controller-jvm-image:
     <<: *jvm-image
-    name: cluster-controller
     path: stackgres-k8s/src/cluster-controller
     dockerfile:
       <<: *jvm-image-args
@@ -178,7 +212,6 @@ modules:
       - stackgres-k8s/src/cluster-controller/target/lib
   distributedlogs-controller-jvm-image:
     <<: *jvm-image
-    name: distributedlogs-controller
     path: stackgres-k8s/src/distributedlogs-controller
     dockerfile:
       <<: *jvm-image-args
@@ -195,23 +228,25 @@ modules:
       path: stackgres-k8s/src/admin-ui/docker/Dockerfile
       args:
         BASE_IMAGE: $TARGET_IMAGE_NAME
+      seds:
+        - "s#^\\( *COPY\\) \\+'#\\1 './$MODULE_PATH/#"
     artifacts:
       - stackgres-k8s/src/admin-ui/target/public
   operator-native-image: &native-image
     type: native-image
-    name: operator
     path: stackgres-k8s/src/operator
     target_image: registry.access.redhat.com/ubi8-minimal:8.4-210
     dockerfile: &native-image-args
       path: stackgres-k8s/src/operator/src/main/docker/Dockerfile.native
       args:
         BASE_IMAGE: $TARGET_IMAGE_NAME
+      seds:
+        - "s#^\\( *COPY\\) \\+'#\\1 './$MODULE_PATH/#"
     artifacts:
       - stackgres-k8s/src/operator/target/stackgres-operator-runner
       - stackgres-k8s/src/operator/src/main/docker/stackgres-operator.native.sh
   restapi-native-image:
     <<: *native-image
-    name: restapi
     path: stackgres-k8s/src/api-web
     dockerfile:
       <<: *native-image-args
@@ -221,7 +256,6 @@ modules:
       - stackgres-k8s/src/api-web/src/main/docker/stackgres-restapi.native.sh
   jobs-native-image:
     <<: *native-image
-    name: jobs
     path: stackgres-k8s/src/jobs
     dockerfile:
       <<: *native-image-args
@@ -231,7 +265,6 @@ modules:
       - stackgres-k8s/src/jobs/src/main/docker/stackgres-jobs.native.sh
   cluster-controller-native-image:
     <<: *native-image
-    name: cluster-controller
     path: stackgres-k8s/src/cluster-controller
     dockerfile:
       <<: *native-image-args
@@ -241,7 +274,6 @@ modules:
       - stackgres-k8s/src/cluster-controller/src/main/docker/stackgres-cluster-controller.native.sh
   distributedlogs-controller-native-image:
     <<: *native-image
-    name: distributedlogs-controller
     path: stackgres-k8s/src/distributedlogs-controller
     dockerfile:
       <<: *native-image-args
@@ -276,19 +308,27 @@ modules:
     artifacts:
       - stackgres-k8s/install/helm/target/templates
 stages:
-  - stackgres: null
-  - admin-ui: stackgres
-  - operator-jvm-image: stackgres
-  - restapi-jvm-image: stackgres
-  - jobs-jvm-image: stackgres
-  - cluster-controller-jvm-image: stackgres
-  - distributedlogs-controller-jvm-image: stackgres
+  - stackgres-parent: null
+  - stackgres-operator-framework: stackgres-parent
+  - stackgres-test-util: stackgres-operator-framework
+  - stackgres-common: stackgres-test-util
+  - stackgres-operator: stackgres-common
+  - stackgres-restapi: stackgres-common
+  - stackgres-jobs: stackgres-common
+  - stackgres-cluster-controller: stackgres-common
+  - stackgres-distributedlogs-controller: stackgres-common
+  - admin-ui: stackgres-restapi
+  - operator-jvm-image: stackgres-operator
+  - restapi-jvm-image: stackgres-restapi
+  - jobs-jvm-image: stackgres-jobs
+  - cluster-controller-jvm-image: stackgres-cluster-controller
+  - distributedlogs-controller-jvm-image: stackgres-distributedlogs-controller
   - admin-ui-image: admin-ui
-  - operator-native: stackgres
-  - restapi-native: stackgres
-  - jobs-native: stackgres
-  - cluster-controller-native: stackgres
-  - distributedlogs-controller-native: stackgres
+  - operator-native: stackgres-operator
+  - restapi-native: stackgres-restapi
+  - jobs-native: stackgres-jobs
+  - cluster-controller-native: stackgres-cluster-controller
+  - distributedlogs-controller-native: stackgres-distributedlogs-controller
   - operator-native-image: operator-native
   - restapi-native-image: restapi-native
   - jobs-native-image: jobs-native

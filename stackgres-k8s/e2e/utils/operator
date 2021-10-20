@@ -12,7 +12,6 @@ export JOBS_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PA
 export CLUSTER_CONTROLLER_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}cluster-controller:$IMAGE_TAG"
 export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}distributedlogs-controller:$IMAGE_TAG"
 export ADMINUI_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}admin-ui:$ADMINUI_IMAGE_TAG"
-export EXTENSIONS_REPOSITORY_URL="${EXTENSIONS_REPOSITORY_URL:-https://extensions.stackgres.io/postgres/repository}"
 
 export STACKGRES_PATH="${STACKGRES_PATH:-$E2E_PATH/..}"
 export STACKGRES_VERSION="$(grep '<artifactId>stackgres-parent</artifactId>' "$STACKGRES_PATH/src/pom.xml" -A 2 -B 2 \
@@ -30,6 +29,8 @@ export E2E_OPERATOR_PULL_POLICY="${E2E_OPERATOR_PULL_POLICY:-Never}"
 export E2E_BUILD_IMAGES="${E2E_BUILD_IMAGES:-true}"
 export E2E_SKIP_OPERATOR_LOAD="${E2E_SKIP_OPERATOR_LOAD:-false}"
 export E2E_WAIT_OPERATOR="${E2E_WAIT_OPERATOR:-true}"
+
+export E2E_INCLUDE_ONLY_POSTGRES_VERSIONS="12.8 13.0 13.4 14.0"
 
 generate_operator_namespace() {
   echo stackgres-$(printf '%x' "$(date +%s)")
@@ -411,6 +412,7 @@ install_operator_only() {
     --set-string adminui.image.name="${ADMINUI_IMAGE_NAME%:*}" --set-string adminui.image.tag="${ADMINUI_IMAGE_NAME#*:}" \
     --set-string "adminui.image.pullPolicy=$(operator_pull_policy)" \
     --set-string "extensions.repositoryUrls[0]=$EXTENSIONS_REPOSITORY_URL" \
+    --set "extensions.cache.preload=$(printf '%s' "$EXTENSIONS_CACHE_PRELOADED_EXTENSIONS" | tr '[]\n"' '{}  ')" \
     --set-string developer.extraOpts[0]='-Dquarkus.log.category."io.stackgres".level=DEBUG' \
     --set-string developer.extraOpts[1]='-Dquarkus.log.category."io.quarkus".level=INFO' \
     --set-string developer.extraOpts[2]='-Dquarkus.log.category."io.stackgres.dbops".level=TRACE' \
@@ -473,6 +475,7 @@ upgrade_operator() {
     --set-string adminui.image.name="${ADMINUI_IMAGE_NAME%:*}" --set-string adminui.image.tag="${ADMINUI_IMAGE_NAME#*:}" \
     --set-string "adminui.image.pullPolicy=$(operator_pull_policy)" \
     --set-string "extensions.repositoryUrls[0]=$EXTENSIONS_REPOSITORY_URL" \
+    --set "extensions.cache.preload=$(printf '%s' "$EXTENSIONS_CACHE_PRELOADED_EXTENSIONS" | tr '[]\n"' '{}  ')" \
     --set-string developer.extraOpts[0]='-Dquarkus.log.category."io.stackgres".level=DEBUG' \
     --set-string developer.extraOpts[1]='-Dquarkus.log.category."io.quarkus".level=INFO' \
     --set-string developer.extraOpts[2]='-Dquarkus.log.category."io.stackgres.dbops".level=TRACE' \
@@ -514,6 +517,8 @@ upgrade_operator_from_private_repository() {
       --set-string "adminui.image.pullPolicy=$(operator_pull_policy)" \
       --set serviceAccount.create=true \
       --set serviceAccount.repoCredentials='["regcred"]' \
+      --set-string "extensions.repositoryUrls[0]=$EXTENSIONS_REPOSITORY_URL" \
+      --set "extensions.cache.preload=$(printf '%s' "$EXTENSIONS_CACHE_PRELOADED_EXTENSIONS" | tr '[]\n"' '{}  ')" \
       --set-string developer.extraOpts[0]='-Dquarkus.log.category."io.stackgres".level=DEBUG' \
       --set-string developer.extraOpts[1]='-Dquarkus.log.category."io.quarkus".level=INFO' \
       --set-string developer.extraOpts[2]='-Dquarkus.log.category."io.stackgres.dbops".level=TRACE' \
@@ -605,6 +610,18 @@ load_component_images_from() {
   local VERSION="${3:-$STACKGRES_VERSION}"
   local COMPONENTS
   COMPONENTS="$(get_component_images "$VERSION")"
+  if [ -n "$E2E_INCLUDE_ONLY_POSTGRES_VERSIONS" ]
+  then
+    COMPONENTS="$(
+      printf '%s' "$COMPONENTS" \
+        | grep "/patroni\(-ext\)\?:v[^-]\+-pg\($(printf '%s' "$E2E_INCLUDE_ONLY_POSTGRES_VERSIONS" \
+          | sed 's/ /\\|/g' | sed 's/\./\\./g')\)-"
+      printf '%s' "$COMPONENTS" \
+        | grep "/postgres-util:v\($(printf '%s' "$E2E_INCLUDE_ONLY_POSTGRES_VERSIONS" \
+          | sed 's/ /\\|/g' | sed 's/\./\\./g')\)-"
+      printf '%s' "$COMPONENTS" \
+        | grep -v "\(/postgres-util:\|/patroni\(-ext\)\?:\)")"
+  fi
   printf '%s' "$COMPONENTS" \
     | xargs_parallel_shell % "$E2E_PATH/e2e" \
       load_image_from "$REPOSITORY" "$IMAGE_PATH" '%'

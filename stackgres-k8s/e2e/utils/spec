@@ -26,7 +26,7 @@ e2e_test_install_pods() {
 }
 
 e2e_test() {
-  echo "You should define a test function"
+  echo "Please, define a test function"
   false
 }
 
@@ -117,8 +117,6 @@ spec() {
   local RESULT
   local EXIT_CODE
   local SPEC_FILE="$1"
-  local SPEC_BEFORE_FILE="$SPEC_FILE.before"
-  local SPEC_AFTER_FILE="$SPEC_FILE.after"
   local SPEC_VALUES_FILE="$1.values.yaml"
   local SPEC_PATH="$(dirname "$SPEC_FILE")"
   local SPEC_NAME="$(basename "$SPEC_FILE")"
@@ -187,7 +185,7 @@ spec() {
   echo "$SPEC_TIME" > "$TARGET_PATH/$SPEC_NAME.duration"
   if ! "$RESULT"
   then
-    echo "$SPEC_NAME. FAIL. See file $LOG_PATH/$SPEC_NAME.log for details" > "$TARGET_PATH/$SPEC_NAME.failed"
+    echo "$SPEC_FILE" > "$TARGET_PATH/$SPEC_NAME.failed"
     echo "$SPEC_NAME. FAIL. See file $LOG_PATH/$SPEC_NAME.log for details" >> "$TARGET_PATH/logs/results.log"
     if [ "$E2E_SPEC_TRY_UNINSTALL_ON_FAILURE" = "true" ]
     then
