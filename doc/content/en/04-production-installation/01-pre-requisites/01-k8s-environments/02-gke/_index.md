@@ -1,8 +1,8 @@
 ---
 title: "GKE"
 weight: 1
-url: demo/setenv/gke
-description: Details about how to set up a GKE cluster.
+url: install/prerequisites/k8s/gke
+description: Google Kubernetes Engine (GKE) is a managed, production-ready environment for running containerized applications.
 ---
 
 To create a [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/) you have to do so in a [Google Cloud Project](https://cloud.google.com/resource-manager/docs/creating-managing-projects).
