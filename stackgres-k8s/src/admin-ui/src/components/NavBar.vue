@@ -135,7 +135,7 @@
 			<div id="restartCluster" v-if="restartCluster.hasOwnProperty('name')">
 				<h3 class="title">Restart Cluster</h3>
 				<p>
-					This operation will create a new <strong>RESTART sgdbop</strong> and the cluster <strong>{{ restartCluster.name }}</strong> will be restarted as soon as posible.
+					This operation will create a new <strong>RESTART sgdbop</strong> with the name <strong>restart-{{ restartsCount + 1 }}</strong> and the cluster <strong>{{ restartCluster.name }}</strong> will be restarted as soon as posible.
 				</p><br/>
 				
 				<p><strong>Are you sure you want to proceed?</strong></p><br/>
@@ -306,7 +306,12 @@
 
 			restartCluster() {
 				return store.state.restartCluster
+			},
+
+			restartsCount() {
+				return store.state.dbOps.filter(op => ( (op.data.spec.op == 'restart') && (op.data.metadata.namespace == store.state.currentNamespace) ) ).length
 			}
+			
 		},
 
 		methods: {
@@ -463,7 +468,7 @@
 			executeClusterRestart() {
 				const vc = this;
 
-				let opCount = store.state.dbOps.filter(op => (op.data.metadata.name.includes('restart-'))).length
+				let opCount = store.state.dbOps.filter(op => ( (op.data.spec.op == 'restart') && (op.data.metadata.namespace == store.state.currentNamespace) ) ).length + 1;
 
 				let dbOp = {
 					metadata: {
@@ -488,6 +493,7 @@
 				.then(function (response) {
 					vc.setRestartCluster();
 					vc.notify('Restart operation created successfully', 'message', 'sgdbops');
+					vc.fetchAPI('sgdbops');
 				})
 				.catch(function (error) {
 					vc.setRestartCluster();
