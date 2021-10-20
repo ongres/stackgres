@@ -1209,7 +1209,7 @@
                                             Last Timestamp
                                         </span>
                                     </th>
-                                    <th class="involvedObject hasTooltip">
+                                    <th class="involvedObject hasTooltip" data-type="involvedObject">
                                         <span title="Component">
                                             Component
                                         </span>
@@ -1980,6 +1980,11 @@
 
     table.resizable th[data-type="timedOut"] {
 		max-width: 120px;
+	}
+
+    table.resizable th[data-type="involvedObject"] {
+		min-width: 150px;
+		max-width: 200px;
 	}
 
     @media screen and (min-width: 2600px) {
