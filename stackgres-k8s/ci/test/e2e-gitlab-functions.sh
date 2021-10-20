@@ -5,15 +5,14 @@ SHELL_XTRACE="$(! echo $- | grep -q x || echo "-x")"
 
 set -e
 
+[ -n "$READ_API_TOKEN" ]
+[ -n "$CI_PROJECT_ID" ]
+
 cd "$(dirname "$0")/../../.."
 
 mkdir -p stackgres-k8s/ci/test/target
 TEMP_DIR="/tmp/$CI_PROJECT_ID"
 mkdir -p "$TEMP_DIR"
-
-[ -n "$READ_API_TOKEN" ]
-[ -n "$CI_PROJECT_ID" ]
-[ -n "$CI_PIPELINE_ID" ]
 
 get_or_default_script() {
   [ "$#" -ge 3 ]

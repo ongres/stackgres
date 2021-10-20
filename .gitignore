@@ -145,6 +145,8 @@ stackgres-k8s/src/api-web/src/main/resources/META-INF/resources/stackgres
 cypress.env.json
 videos/
 *.mp4
+.config
+.npm
 
 # Built project info
 doc/themes/sg-doc/static/sg-swagger.yaml

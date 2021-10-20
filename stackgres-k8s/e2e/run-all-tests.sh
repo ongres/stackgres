@@ -217,7 +217,6 @@ do
   fi
   COUNT="$((COUNT+1))"
   SPEC="$(echo "$SPECS" | tr ' ' '\n' | tail -n+"$COUNT" | head -n 1)"
-  SPEC_NAME="$(basename "$SPEC")"
   SPECS_TO_RUN="$SPECS_TO_RUN $SPEC"
   SPECS_TO_RUN="${SPECS_TO_RUN# *}"
   if [ "$((COUNT%E2E_PARALLELISM))" -eq 0 ] || [ "$COUNT" -eq "$SPEC_COUNT" ]
@@ -251,7 +250,8 @@ do
           continue
         fi
         NONE_FAILED=false
-        SPEC_NAME="$(basename "$FAILED"|sed 's/\.failed$//')"
+        SPEC="$(cat "$FAILED")"
+        SPEC_NAME="$(basename "$FAILED" | sed 's/\.failed$//')"
         RETRIES="$([ -f "$TARGET_PATH/$SPEC_NAME.retries" ] && cat "$TARGET_PATH/$SPEC_NAME.retries" || echo 0)"
         RETRIES="$((RETRIES + 1))"
         if [ "$RETRIES" -lt "$E2E_RETRY" ]
@@ -260,7 +260,7 @@ do
           rm "$FAILED"
           SPECS="$SPECS $SPEC_PATH/$SPEC_NAME"
         else
-          SPECS_FAILED="$SPECS_FAILED $SPEC_NAME"
+          SPECS_FAILED="$SPECS_FAILED $SPEC"
           SPECS_FAILED="${SPECS_FAILED# *}"
           OVERALL_RESULT=false
         fi
@@ -279,7 +279,11 @@ do
       SPEC="$(echo "$SPECS_TO_RUN" | tr ' ' '\n' | tail -n+"$RUNNED_COUNT" | head -n 1)"
       SPEC_NAME="$(basename "$SPEC")"
       SPEC_HASH="$(echo "$SPEC_HASHES" | grep "^$SPEC:" | cut -d : -f 2)"
-      if echo " $SPECS_FAILED " | grep -q -F " $SPEC_NAME "
+      if echo " $(echo "$SPECS" | tr ' ' '\n' | tail -n+"$((COUNT+1))" | tr '\n' ' ') " | grep -qF " $SPEC "
+      then
+        continue
+      fi
+      if echo " $SPECS_FAILED " | grep -qF " $SPEC "
       then
         cat << EOF >> "$TARGET_PATH/e2e-tests-junit-report.results.xml"
     <testcase classname="$SPEC_NAME" name="$SPEC_HASH" time="$(cat "$TARGET_PATH/$SPEC_NAME.duration")">
