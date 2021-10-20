@@ -3180,6 +3180,14 @@ table.resizable th.textRight span:first-child {
     right: -5px !important;
 }
 
+table.resizable th[data-type="timestamp"] {
+    max-width: 245px;
+}
+
+table.resizable th[data-type="version"] {
+    max-width: 105px;
+}
+
 th.actions, td.actions {
     text-align: right;
     width: 120px !important;
