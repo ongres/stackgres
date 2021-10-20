@@ -9,7 +9,7 @@ url: demo/quickstart
 
 # Demo / Quickstart
 
-> **NOTE:** To run this demo you will need a [K8s environment]({{% relref "04-production-installation/01-pre-requisites/01-k8s-environments" %}}). You can use [kind](https://kind.sigs.k8s.io/) locally for testing pourpose, in this case we recommend to use one of the [+1.17](https://github.com/kubernetes-sigs/kind/releases/tag/v0.11.1) tags.
+> **NOTE:** To run this demo you will need a [K8s environment]({{% relref "04-production-installation/01-pre-requisites/01-k8s-environments" %}}) with 2 worker nodes at least. 
 
 ## Operator Installation
 
@@ -107,7 +107,7 @@ Please check [about the postgres-util side car]({{% relref "05-administration-gu
 Now that the cluster is up and running, you can also open a shell in any instance to use patronictl and control the status of the cluster:
 
 ```bash
-kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,cluster=true -o name | head -n 1)" -c patroni -- patronictl list
+kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,cluster=true,role=master -o name)" -c patroni -- patronictl list
 ```
 
 You should see something similar to this:
@@ -127,7 +127,7 @@ kubectl delete pod simple-0
 
 After deleted the leader `simple-0` Patroni should perform the switchover, electing `simple-1` as new leader and replace with a new container the `simple-0` instance. After Patroni performs the failover operation, you can check the cluster status again:
 ```bash
-kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,cluster=true -o name | head -n 1)" -c patroni -- patronictl list
+kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,cluster=true,role=master -o name)" -c patroni -- patronictl list
 ```
 
 The final state of the failover will result with node `simple-1` as the leader and `simple-0` as the replica.
@@ -157,7 +157,7 @@ POD_NAME=$(kubectl get pods --namespace stackgres -l "app=stackgres-restapi" -o 
 kubectl port-forward "$POD_NAME" 8443:9443 --namespace stackgres
 ```
 
-Then open the browser at following address [`localhost:8443/admin/`]](`https://localhost:8443/admin/`)
+Then open the browser at following address [`localhost:8443/admin/`](`https://localhost:8443/admin/`)
 
 ## Cleaning up
 
