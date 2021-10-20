@@ -93,7 +93,8 @@ spec:
       size: '10Gi'
   initialData:
     restore:
-      fromBackup: 0a3bb287-6b3f-4309-87bf-8d7c4c9e1beb
+      fromBackup:
+        uid: 0a3bb287-6b3f-4309-87bf-8d7c4c9e1beb
 ```
 
 Now you should have a new cluster called `demo-restore` with all the data restored:
