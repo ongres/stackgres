@@ -17,6 +17,9 @@ StackGres support Backups with the following storage options:
 * AWS S3
 * Google CLoud Storage
 * Azure Blob Storage
+* S3-Compatible Storages:
+  * DigitalOcean Spaces
+  * Self-hosted MinIO
 
 
 > Examples are using [MinIO](https://min.io/) service as a S3 compatible service for

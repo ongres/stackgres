@@ -1,6 +1,6 @@
 ---
 title: "EKS"
-weight: 1
+weight: 3
 url: install/prerequisites/k8s/eks
 description: Amazon Elastic Kubernetes Service (EKS) is a managed service and certified Kubernetes conformant to run Kubernetes on AWS and on-premises.
 ---
@@ -9,12 +9,12 @@ This section will illustrate how to create an [AWS Elastic Kubernetes Service](h
  Assuming you have already installed the [aws CLI](https://aws.amazon.com/cli/) and the [eksctl CLI](https://github.com/weaveworks/eksctl)
  you can proceed by creating the kubernetes cluster with following characteristics (that you may change):
 
- * Cluster name: stackgres
- * Kubernetes version: 1.13
- * Zone: us-west-2
- * Machine type: m5.large
- * Number of nodes: 3
- * Disk size 20GB
+* Cluster name: stackgres
+* Kubernetes version: 1.13
+* Zone: us-west-2
+* Machine type: m5.large
+* Number of nodes: 3
+* Disk size 20GB
 
 ```bash
 eksctl create cluster --name stackgres \
@@ -22,7 +22,7 @@ eksctl create cluster --name stackgres \
   --node-type m5.large \
   --node-volume-size 20 \
   --nodes 3 \
-  --version 1.18
+  --version 1.21
 ```
 
 ```bash
@@ -33,7 +33,7 @@ eksctl create cluster --name stackgres \
 [ℹ]  subnets for us-west-2c - public:192.168.32.0/19 private:192.168.128.0/19
 [ℹ]  subnets for us-west-2b - public:192.168.64.0/19 private:192.168.160.0/19
 [ℹ]  nodegroup "ng-308f6134" will use "ami-09bcf0b1f5b446c5d" [AmazonLinux2/1.13]
-[ℹ]  using Kubernetes version 1.13
+[ℹ]  using Kubernetes version 1.21
 [ℹ]  creating EKS cluster "stackgres" in "us-west-2" region with un-managed nodes
 [ℹ]  will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup
 [ℹ]  if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=us-west-2 --cluster=stackgres'
@@ -48,7 +48,7 @@ eksctl create cluster --name stackgres \
 [ℹ]  --nodes-max=3 was set automatically for nodegroup ng-308f6134
 [ℹ]  deploying stack "eksctl-stackgres-nodegroup-ng-308f6134"
 [✔]  all EKS cluster resources for "stackgres" have been created
-[✔]  saved kubeconfig as "/home/matteom/.kube/config-aws"
+[✔]  saved kubeconfig as "/home/$USER/.kube/config-aws"
 [ℹ]  adding identity "arn:aws:iam::661392101474:role/eksctl-stackgres-nodegroup-ng-NodeInstanceRole-C8R84QGP5UYX" to auth ConfigMap
 [ℹ]  nodegroup "ng-308f6134" has 1 node(s)
 [ℹ]  node "ip-192-168-66-45.us-west-2.compute.internal" is not ready
@@ -57,7 +57,7 @@ eksctl create cluster --name stackgres \
 [ℹ]  node "ip-192-168-2-185.us-west-2.compute.internal" is ready
 [ℹ]  node "ip-192-168-58-166.us-west-2.compute.internal" is ready
 [ℹ]  node "ip-192-168-66-45.us-west-2.compute.internal" is ready
-[ℹ]  kubectl command should work with "/home/matteom/.kube/config-aws", try 'kubectl --kubeconfig=/home/matteom/.kube/config-aws get nodes'
+[ℹ]  kubectl command should work with "/home/$USER/.kube/config-aws", try 'kubectl --kubeconfig=/home/$USER/.kube/config-aws get nodes'
 [✔]  EKS cluster "stackgres" in "us-west-2" region is ready
 ```
 
