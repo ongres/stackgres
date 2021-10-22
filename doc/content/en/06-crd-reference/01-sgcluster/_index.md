@@ -57,6 +57,7 @@ spec:
 | Property                            | Required | Updatable | Type     | Default  | Description |
 |:------------------------------------|----------|-----------|:---------|:---------|:------------|
 | version                             | ✓        | ✓         | string   |          | {{< crd-field-description SGCluster.spec.postgres.version >}}       |
+| flavor                              |          |           | string   |          | {{< crd-field-description SGCluster.spec.postgres.flavor >}}       |
 | [extensions](#postgres-extensions)  |          | ✓         | array    |          | {{< crd-field-description SGCluster.spec.postgres.extensions >}}    |
 | [ssl](#postgres-ssl)                |          | ✓         | object   |          | {{< crd-field-description SGCluster.spec.postgres.ssl >}} |
 
@@ -465,3 +466,4 @@ The following options should NOT be enabled in a production environment.
 | Property                      | Required | Updatable | Type     | Default | Description |
 |:------------------------------|----------|-----------|:---------|:--------|:------------|
 | disableClusterPodAntiAffinity |          | ✓         | boolean  | false   | {{< crd-field-description SGCluster.spec.nonProductionOptions.disableClusterPodAntiAffinity >}} |
+| enabledFeatureGates           |          | ✓         | boolean  | false   | {{< crd-field-description SGCluster.spec.nonProductionOptions.enabledFeatureGates >}} |
