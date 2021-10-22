@@ -42,9 +42,20 @@ home = [ "HTML", "RSS", "JSON"]
 
         # Main Menu EN
         [[languages.en.menu.main]]
-            name    = "Features"
-            url     = "https://stackgres.io/features"
+            name    = "StackGres"
             weight  = 1
+            identifier = "stackgres"
+
+            [[languages.en.menu.main]]
+                name    = "Features"
+                url     = "https://stackgres.io/features"
+                weight  = 1
+                parent = "stackgres"
+            [[languages.en.menu.main]]
+                name    = "Extensions"
+                url     = "https://stackgres.io/extensions"
+                weight  = 2
+                parent = "stackgres"
         [[languages.en.menu.main]]
             name    = "Install"
             url     = "https://stackgres.io/install"
@@ -65,10 +76,6 @@ home = [ "HTML", "RSS", "JSON"]
             name    = "Blog"
             url     = "https://stackgres.io/blog"
             weight  = 6
-        [[languages.en.menu.main]]
-            name    = "Contact"
-            url     = "https://stackgres.io/contact"
-            weight  = 7
 
         # Product EN
         [[languages.en.menu.product]]
@@ -76,17 +83,21 @@ home = [ "HTML", "RSS", "JSON"]
             url     = "https://stackgres.io/features"
             weight  = 1
         [[languages.en.menu.product]]
+            name    = "Extensions"
+            url     = "https://stackgres.io/extensions"
+            weight  = 2
+        [[languages.en.menu.product]]
             name    = "Install"
             url     = "https://stackgres.io/install"
-            weight  = 2
+            weight  = 3
         [[languages.en.menu.product]]
             name    = "Pricing"
             url     = "https://stackgres.io/pricing"
-            weight  = 3
-        [[languages.en.menu.product]]
-            name    = "Contact"
-            url     = "https://stackgres.io/contact"
             weight  = 4
+        [[languages.en.menu.product]]
+            name    = "About"
+            url     = "https://stackgres.io/about"
+            weight  = 5
         
         # Resources EN
         [[languages.en.menu.resources]]
@@ -108,13 +119,21 @@ home = [ "HTML", "RSS", "JSON"]
             url     = "https://github.com/ongres/stackgres/"
             weight  = 1
         [[languages.en.menu.more]]
-            name    = "Join our Slack"
-            url     = "https://slack.stackgres.io/"
+            name    = "GitLab Repository"
+            url     = "https://gitlab.com/ongresinc/stackgres/"
             weight  = 2
         [[languages.en.menu.more]]
-            name    = "Stalk us on Twitter"
-            url     = "https://twitter.com/ongresinc"
+            name    = "Join our Slack"
+            url     = "https://slack.stackgres.io/"
             weight  = 3
+        [[languages.en.menu.more]]
+            name    = "Follow us on Twitter"
+            url     = "https://twitter.com/ongresinc"
+            weight  = 4
+        [[languages.en.menu.more]]
+            name    = "Contact"
+            url     = "https://stackgres.io/contact"
+            weight  = 5
         
 
 [markup.goldmark.renderer]
