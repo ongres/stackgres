@@ -48,7 +48,7 @@ home = [ "HTML", "RSS", "JSON"]
 
             [[languages.en.menu.main]]
                 name    = "Features"
-                url     = "features"
+                url     = "https://stackgres.io/features"
                 weight  = 1
                 parent = "stackgres"
             [[languages.en.menu.main]]
