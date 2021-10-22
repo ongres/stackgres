@@ -27,7 +27,23 @@
 					{{ $currentPage := (eq "Documentation" .Name) }}
 					{{ $url := urls.Parse .URL }}
 					{{ $baseurl := urls.Parse $.Site.Params.Baseurl }}
-					<li class="{{ if $currentPage }}active{{ end }}"><a href="{{ .URL | relURL }}">{{ .Name }}</a></li>
+
+					{{ if .HasChildren }}
+						<li class='hasSubmenu {{ if or (eq $currentUrl "/features/") (eq $currentUrl "/extensions/") }}active{{ end }}'>
+							<a title="{{ .Name }}">{{ .Name }}</a>
+								
+							<ul class="submenu">
+								{{ range .Children }}
+								{{ $currentPage := (in $currentUrl .URL) }}
+									<li class="{{ if $currentPage }}active{{ end }}">
+										<a href="{{ .URL | relURL }}" title="{{ .Name }}"><span>{{ .Name }}</span></a>
+									</li>
+								{{ end }}
+							</ul>
+						</li>
+					{{ else }}
+						<li class="{{ if $currentPage }}active{{ end }}"><a href="{{ .URL | relURL }}">{{ .Name }}</a></li>
+					{{ end }}
 				{{ end }}
 			</ul>
 		</nav>
