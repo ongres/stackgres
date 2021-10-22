@@ -1466,6 +1466,32 @@ code.language-bash {
 
 }
 
+/* Submenu */
+.hasSubmenu {
+    position: relative;
+}
+
+.submenu {
+    position: absolute;
+    top: 25px;
+    left: calc(50% - 100px);
+    margin-top: 0;
+    padding: 30px;
+    background-color: var(--inputBg);
+    width: 200px;
+    box-sizing: border-box;
+    border-radius: 15px;
+    display: none;
+    z-index: 2;
+}
+
+.submenu li:first-child {
+    padding-bottom: 15px;
+}
+
+.hasSubmenu:hover .submenu {
+    display: block;
+}
 
 @media screen and (max-width: 990px) { 
     
