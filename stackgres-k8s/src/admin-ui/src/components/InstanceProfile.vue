@@ -29,7 +29,7 @@
 							<router-link v-if="iCan('patch','sginstanceprofiles',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sginstanceprofile/' + conf.name + '/edit'" title="Edit Profile">
 								Edit Profile
 							</router-link>
-							<a v-if="iCan('create','sginstanceprofiles',$route.params.namespace)" @click="cloneCRD('SGInstanceProfile', $route.params.namespace, conf.name)" class="cloneCRD" title="Clone Profile">
+							<a v-if="iCan('create','sginstanceprofiles',$route.params.namespace)" @click="cloneCRD('SGInstanceProfiles', $route.params.namespace, conf.name)" class="cloneCRD" title="Clone Profile">
 								Clone Profile
 							</a>
 							<a v-if="iCan('delete','sginstanceprofiles',$route.params.namespace)" @click="deleteCRD('sginstanceprofiles',$route.params.namespace, conf.name, '/' + $route.params.namespace + '/sginstanceprofiles')" title="Delete Profile" :class="conf.data.status.clusters.length ? 'disabled' : ''">
