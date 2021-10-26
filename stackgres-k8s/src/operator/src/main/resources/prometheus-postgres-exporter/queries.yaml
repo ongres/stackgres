@@ -167,33 +167,6 @@ pg_database:
         usage: "GAUGE"
         description: "Disk space used by the database"
 
-pg_archiver:
-  master: true
-  query: |
-    WITH
-      current_wal_file AS (
-         SELECT CASE WHEN NOT pg_is_in_recovery() THEN pg_walfile_name(pg_last_wal_replay_lsn()) ELSE NULL END pg_walfile_name
-      ),
-      current_wal AS (
-        SELECT
-          ('x'||substring(pg_walfile_name,9,8))::bit(32)::int log,
-          ('x'||substring(pg_walfile_name,17,8))::bit(32)::int seg,
-          pg_walfile_name
-        FROM current_wal_file
-      ),
-      archive_wal AS(
-        SELECT
-          ('x'||substring(last_archived_wal,9,8))::bit(32)::int log,
-          ('x'||substring(last_archived_wal,17,8))::bit(32)::int seg,
-          last_archived_wal
-        FROM pg_catalog.pg_stat_archiver
-      )
-    SELECT coalesce(((cw.log - aw.log) * 256) + (cw.seg-aw.seg),'NaN'::float) as pending_wal_count FROM current_wal cw, archive_wal aw 
-  metrics:
-    - pending_wal_count:
-        usage: "GAUGE"
-        description: "No. of pending WAL files to be archived"
-
 pg_stat_user_indexes:
   master: true
   query: |
@@ -541,27 +514,6 @@ pg_replication_slots:
     - confirmed_flush_lsn_bytes:
         usage: "GAUGE"
         description: "Amount of data on in xlog that must be this replica has not yet received"
-
-pg_stat_ssl:
-  master: true
-  query: |
-    SELECT pid, bits,
-           CASE WHEN ssl THEN 1.0 ELSE 0.0 END AS active,
-           CASE WHEN compression THEN 1.0 ELSE 0.0 END AS compression
-           FROM pg_catalog.pg_stat_ssl
-  metrics:
-    - pid:
-        usage: "LABEL"
-        description: "Process ID of a backend or WAL sender process"
-    - active:
-        usage: "GAUGE"
-        description: "Boolean flag indicating if SSL is used on this connection"
-    - bits:
-        usage: "GAUGE"
-        description: "Number of bits in the encryption algorithm is in use"
-    - compression:
-        usage: "GAUGE"
-        description: "Boolean flag indicating if SSL compression is in use"
 
 pg_table_bloat:
   master: true
