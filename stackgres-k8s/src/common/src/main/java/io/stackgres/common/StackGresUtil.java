@@ -21,7 +21,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -31,10 +30,10 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.enterprise.inject.spi.CDI;
-import javax.xml.bind.DatatypeConverter;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.BaseEncoding;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -158,8 +157,7 @@ public interface StackGresUtil {
         .getBytes(StandardCharsets.UTF_8));
     return ImmutableMap.<String, String>builder()
         .putAll(data)
-        .put("MD5SUM", DatatypeConverter.printHexBinary(
-            messageDigest.digest()).toUpperCase(Locale.US))
+        .put("MD5SUM", BaseEncoding.base16().encode(messageDigest.digest()))
         .build();
   }
 
@@ -173,8 +171,7 @@ public interface StackGresUtil {
         .sorted()
         .map(Unchecked.function(Files::readAllBytes))
         .forEach(messageDigest::update);
-    return DatatypeConverter.printHexBinary(
-        messageDigest.digest()).toUpperCase(Locale.US);
+    return BaseEncoding.base16().encode(messageDigest.digest());
   }
 
   /**

@@ -15,8 +15,13 @@ public enum BackupPhase {
   FAILED;
 
   public String label() {
-    return name().substring(0, 1).toUpperCase(Locale.US)
-        + name().substring(1).toLowerCase(Locale.US);
+    return toString();
+  }
+
+  @Override
+  public String toString() {
+    return name().substring(0, 1).toUpperCase(Locale.ROOT)
+        + name().substring(1).toLowerCase(Locale.ROOT);
   }
 
 }

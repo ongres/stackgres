@@ -148,7 +148,8 @@ class DistributedLogsRequiredResourcesGeneratorTest {
 
     StatefulSet generatedSts = generator.getRequiredResources(distributedLogs095)
         .stream().filter(r -> r.getKind().equals("StatefulSet"))
-        .map(r -> (StatefulSet) r)
+        .filter(StatefulSet.class::isInstance)
+        .map(StatefulSet.class::cast)
         .findFirst().orElseThrow();
 
     /*
@@ -172,7 +173,8 @@ class DistributedLogsRequiredResourcesGeneratorTest {
         .stream().filter(r -> r.getKind().equals("ConfigMap"))
         .filter(
             r -> r.getMetadata().getName().equals(expectedPatroniConfigMap.getMetadata().getName()))
-        .map(r -> (ConfigMap) r)
+        .filter(ConfigMap.class::isInstance)
+        .map(ConfigMap.class::cast)
         .findFirst().orElseThrow();
 
     assertTrue(configMapComparator.isTheSameResource(generatedConfigMap, expectedPatroniConfigMap));
@@ -190,7 +192,8 @@ class DistributedLogsRequiredResourcesGeneratorTest {
     ConfigMap generatedConfigMap = generator.getRequiredResources(distributedLogs)
         .stream().filter(r -> r.getKind().equals("ConfigMap"))
         .filter(r -> r.getMetadata().getName().equals(expectedConfigMap.getMetadata().getName()))
-        .map(r -> (ConfigMap) r)
+        .filter(ConfigMap.class::isInstance)
+        .map(ConfigMap.class::cast)
         .findFirst().orElseThrow();
 
     assertTrue(configMapComparator.isTheSameResource(generatedConfigMap, expectedConfigMap));
@@ -207,7 +210,8 @@ class DistributedLogsRequiredResourcesGeneratorTest {
     ConfigMap generatedConfigMap = generator.getRequiredResources(distributedLogs)
         .stream().filter(r -> r.getKind().equals("ConfigMap"))
         .filter(r -> r.getMetadata().getName().equals(expectedConfigMap.getMetadata().getName()))
-        .map(r -> (ConfigMap) r)
+        .filter(ConfigMap.class::isInstance)
+        .map(ConfigMap.class::cast)
         .findFirst().orElseThrow();
 
     assertTrue(configMapComparator.isTheSameResource(generatedConfigMap, expectedConfigMap));
@@ -222,7 +226,8 @@ class DistributedLogsRequiredResourcesGeneratorTest {
     ConfigMap generatedConfigMap = generator.getRequiredResources(distributedLogs)
         .stream().filter(r -> r.getKind().equals("ConfigMap"))
         .filter(r -> r.getMetadata().getName().equals(expectedConfigMap.getMetadata().getName()))
-        .map(r -> (ConfigMap) r)
+        .filter(ConfigMap.class::isInstance)
+        .map(ConfigMap.class::cast)
         .findFirst().orElseThrow();
 
     assertTrue(configMapComparator.isTheSameResource(generatedConfigMap, expectedConfigMap));

@@ -28,7 +28,7 @@ e2e_test() {
 
   run_test "Checking that backup is working after killing storage provider service" check_backup_after_kill_storage_provider_service
 
-  run_test "Checking that backups aren't being deleted after the cluster is deleted" check_backup_not_delect_after_cluster
+  run_test "Checking that backups aren't being deleted after the cluster is deleted" check_backup_not_deleted_after_cluster
 }
 
 check_cron_job_security_context() {
@@ -56,7 +56,7 @@ check_backup_after_kill_storage_provider_service() {
   check_backup 0
 }
 
-check_backup_not_delect_after_cluster() {
+check_backup_not_deleted_after_cluster() {
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
 
   wait_pods_terminated "$CLUSTER_NAMESPACE" 2

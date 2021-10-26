@@ -74,6 +74,9 @@ cat << EOF > "$PATRONI_CONFIG_PATH/bootstrap"
 #!/bin/sh
 
 exec-with-env "$RESTORE_ENV" \\
+  -- sh -ec 'if test -n "$RESTORE_BACKUP_ERROR"; then echo "$RESTORE_BACKUP_ERROR" >&2; exit 1; fi'
+
+exec-with-env "$RESTORE_ENV" \\
   -- sh -ec 'wal-g backup-fetch "\$PG_DATA_PATH" "\$RESTORE_BACKUP_ID"'
 EOF
 chmod a+x "$PATRONI_CONFIG_PATH/bootstrap"
