@@ -484,6 +484,26 @@ public enum StackGresComponent {
             this.name + " version " + version + " not available"));
   }
 
+  public String findBuildVersion(String version,
+      Map<StackGresComponent, String> subComponentVersions) {
+    checkSubComponents(subComponentVersions);
+    return orderedComposedVersions()
+        .filter(cv -> isVersion(version, cv.getVersion()))
+        .filter(cv -> Seq.seq(cv.getSubVersions())
+            .zipWithIndex()
+            .map(subVersion -> Tuple.tuple(
+                subComponents.get(subVersion.v2.intValue()).get(subVersion.v1.v1),
+                subVersion.v1.v2))
+            .allMatch(subVersion -> subComponentVersions.containsKey(subVersion.v1)
+                && isVersion(subComponentVersions.get(subVersion.v1), subVersion.v2)))
+        .map(ComposedVersion::getVersion)
+        .map(ImageVersion::getBuild)
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException(
+            this.name + " version " + version + " and sub-components "
+                + subComponentVersions + " not available"));
+  }
+
   public String findBuildMajorVersion(String version) {
     return latestBuildVersion(version)
         .map(ImageVersion::getBuildMajor)

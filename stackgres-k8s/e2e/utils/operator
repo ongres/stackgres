@@ -226,35 +226,38 @@ load_operator_k8s() {
   local IMAGE_NAME
   if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
   then
-    if [ -n "$E2E_OPERATOR_REGISTRY" ]
+    if [ "$E2E_SKIP_LOAD_OPERATOR" != true ]
     then
-      echo "Loading operator images from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
-      for IMAGE_NAME in \
-        "$OPERATOR_IMAGE_NAME" \
-        "$RESTAPI_IMAGE_NAME" \
-        "$JOBS_IMAGE_NAME" \
-        "$CLUSTER_CONTROLLER_IMAGE_NAME" \
-        "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" \
-        "$ADMINUI_IMAGE_NAME"
-      do
-        echo "$IMAGE_NAME"
-      done | xargs_parallel_shell % "$E2E_PATH/e2e" \
-        pull_image_from "$E2E_OPERATOR_REGISTRY" "${E2E_OPERATOR_REGISTRY_PATH}stackgres/" "%"
-      echo "All operator images loaded from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
-    else
-      echo "Loading operator images from ${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}"
-      for IMAGE_NAME in \
-        "$OPERATOR_IMAGE_NAME" \
-        "$RESTAPI_IMAGE_NAME" \
-        "$JOBS_IMAGE_NAME" \
-        "$CLUSTER_CONTROLLER_IMAGE_NAME" \
-        "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" \
-        "$ADMINUI_IMAGE_NAME"
-      do
-        echo "$IMAGE_NAME"
-      done | xargs_parallel_shell % "$E2E_PATH/e2e" \
-        docker_pull "%"
-      echo "All operator images loaded from ${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}"
+      if [ -n "$E2E_OPERATOR_REGISTRY" ]
+      then
+        echo "Loading operator images from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
+        for IMAGE_NAME in \
+          "$OPERATOR_IMAGE_NAME" \
+          "$RESTAPI_IMAGE_NAME" \
+          "$JOBS_IMAGE_NAME" \
+          "$CLUSTER_CONTROLLER_IMAGE_NAME" \
+          "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" \
+          "$ADMINUI_IMAGE_NAME"
+        do
+          echo "$IMAGE_NAME"
+        done | xargs_parallel_shell % "$E2E_PATH/e2e" \
+          pull_image_from "$E2E_OPERATOR_REGISTRY" "${E2E_OPERATOR_REGISTRY_PATH}stackgres/" "%"
+        echo "All operator images loaded from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
+      else
+        echo "Loading operator images from ${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}"
+        for IMAGE_NAME in \
+          "$OPERATOR_IMAGE_NAME" \
+          "$RESTAPI_IMAGE_NAME" \
+          "$JOBS_IMAGE_NAME" \
+          "$CLUSTER_CONTROLLER_IMAGE_NAME" \
+          "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" \
+          "$ADMINUI_IMAGE_NAME"
+        do
+          echo "$IMAGE_NAME"
+        done | xargs_parallel_shell % "$E2E_PATH/e2e" \
+          docker_pull "%"
+        echo "All operator images loaded from ${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}"
+      fi
     fi
 
     if [ -n "$E2E_COMPONENTS_REGISTRY" ] && [ "$E2E_SKIP_LOAD_COMPONENTS" != true ]

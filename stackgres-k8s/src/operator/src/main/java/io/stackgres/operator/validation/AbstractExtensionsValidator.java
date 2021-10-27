@@ -40,7 +40,7 @@ public abstract class AbstractExtensionsValidator<T extends AdmissionReview<?>>
                 .flatMap(List::stream)
                 .map(extension -> Tuple.tuple(
                     extension.getName(), Optional.ofNullable(extension.getVersion())))
-                .append(Seq.seq(getDefaultExtensions()))
+                .append(Seq.seq(getDefaultExtensions(cluster)))
                 .collect(ImmutableList.toImmutableList());
         List<Tuple2<String, Optional<String>>> toInstallExtensions =
             Seq.seq(getToInstallExtensions(review))
@@ -102,7 +102,8 @@ public abstract class AbstractExtensionsValidator<T extends AdmissionReview<?>>
     }
   }
 
-  protected abstract ImmutableList<Tuple2<String, Optional<String>>> getDefaultExtensions();
+  protected abstract ImmutableList<Tuple2<String, Optional<String>>> getDefaultExtensions(
+      StackGresCluster cluster);
 
   protected abstract StackGresCluster getCluster(T customResource);
 

@@ -3,12 +3,13 @@
 run_query() {
   local NAME="${CLUSTER_NAME}"
   local NAMESPACE="${CLUSTER_NAMESPACE}"
-  local QUERY="SELECT 1"
+  local QUERY='SELECT 1'
   local PORT=5432
   local HOST=127.0.0.1
   local DATABASE=postgres
   local INSTANCE=0
   local CONTAINER="postgres-util"
+  local TYPE="postgres"
   local SSLMODE=prefer
   local USERNAME=
   local PASSWORD
@@ -17,7 +18,7 @@ run_query() {
   local OPTARG
   local OPTIND
 
-  while getopts ":c:n:i:q:p:h:d:x:k:m:u:" OPT; do
+  while getopts ":c:n:i:q:p:h:d:x:k:m:u:t:" OPT; do
     case "$OPT" in
       c) NAME="$OPTARG"
       ;;
@@ -41,24 +42,43 @@ run_query() {
       ;;
       u) USERNAME="$OPTARG"
       ;;
+      t) TYPE="$OPTARG"
+      ;;
       \?) echo "Invalid option -$OPTARG" >&2
       return 1
       ;;
     esac
   done
 
-  if [ -z "$USERNAME" ]
+  if [ "$TYPE" = postgres ]
   then
-    USERNAME="postgres:$(kubectl -n "$NAMESPACE" get secrets "$NAME" \
-      -o jsonpath='{.data.superuser-password}' | base64 -d)"
+    if [ -z "$USERNAME" ]
+    then
+      USERNAME="postgres:$(kubectl -n "$NAMESPACE" get secrets "$NAME" \
+        -o jsonpath='{.data.superuser-password}' | base64 -d)"
+    fi
+    PASSWORD="${USERNAME#*:}"
+    USERNAME="${USERNAME%:*}"
+    kubectl exec -n "$NAMESPACE" "${POD:-$NAME-$INSTANCE}" -c "$CONTAINER" -- env \
+      PGPASSWORD="$PASSWORD" \
+      PGCONNECT_TIMEOUT="$((5 + E2E_TIMEOUT / 10))" \
+      PGSSLMODE="$SSLMODE" \
+      psql -t -A -U "$USERNAME" -d "$DATABASE" -p "$PORT" -h "$HOST" -c "$QUERY"
+  elif [ "$TYPE" = babelfish ]
+  then
+    if [ -z "$USERNAME" ]
+    then
+      USERNAME="babelfish:$(kubectl -n "$NAMESPACE" get secrets "$NAME" \
+        -o jsonpath='{.data.babelfish-password}' | base64 -d)"
+    fi
+    PASSWORD="${USERNAME#*:}"
+    USERNAME="${USERNAME%:*}"
+    kubectl exec -n "$NAMESPACE" "${POD:-$NAME-$INSTANCE}" -c "$CONTAINER" -- env \
+      usql -q -t -A "ms://$USERNAME:$PASSWORD@$HOST:$PORT" -c "$QUERY"
+  else
+    echo "Unknown type $TYPE"
+    return 1
   fi
-  PASSWORD="${USERNAME#*:}"
-  USERNAME="${USERNAME%:*}"
-  kubectl exec -n "$NAMESPACE" "${POD:-$NAME-$INSTANCE}" -c "$CONTAINER" -- env \
-    PGPASSWORD="$PASSWORD" \
-    PGCONNECT_TIMEOUT="$((5 + E2E_TIMEOUT / 10))" \
-    PGSSLMODE="$SSLMODE" \
-    psql -t -A -U "$USERNAME" -d "$DATABASE" -p "$PORT" -h "$HOST" -c "$QUERY"
 }
 
 exec_postgresutil() {

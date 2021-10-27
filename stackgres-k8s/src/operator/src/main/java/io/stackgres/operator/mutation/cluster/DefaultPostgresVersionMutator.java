@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.mutation.cluster;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -16,6 +18,7 @@ import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
@@ -38,13 +41,14 @@ public class DefaultPostgresVersionMutator implements ClusterMutator {
 
   @Override
   public List<JsonPatchOperation> mutate(StackGresClusterReview review) {
-    final String postgresVersion = review.getRequest().getObject().getSpec()
+    final StackGresCluster cluster = review.getRequest().getObject();
+    final String postgresVersion = cluster.getSpec()
         .getPostgres().getVersion();
 
     if (review.getRequest().getOperation() == Operation.CREATE
         || review.getRequest().getOperation() == Operation.UPDATE) {
       if (postgresVersion != null) {
-        final String calculatedPostgresVersion = StackGresComponent.POSTGRESQL.findVersion(
+        final String calculatedPostgresVersion = getPostgresFlavorComponent(cluster).findVersion(
             postgresVersion);
 
         if (!calculatedPostgresVersion.equals(postgresVersion)) {
@@ -56,7 +60,7 @@ public class DefaultPostgresVersionMutator implements ClusterMutator {
           return operations.build();
         }
       } else {
-        JsonNode target = mapper.valueToTree(StackGresComponent.POSTGRESQL.findVersion(
+        JsonNode target = mapper.valueToTree(getPostgresFlavorComponent(cluster).findVersion(
             StackGresComponent.LATEST));
         ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
         operations.add(applyAddValue(postgresVersionPointer, target));

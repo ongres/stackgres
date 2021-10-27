@@ -7,6 +7,9 @@ spec:
   instances: {{ .Values.cluster.instances }}
   postgres:
     version: '{{ .Values.cluster.postgres.version }}'
+    {{- if .Values.cluster.postgres.flavor }}
+    flavor: {{ .Values.cluster.postgres.flavor }}
+    {{- end }}
     {{- if not .Values.cluster.postgres.extensions }}
     extensions: []
     {{- else }}
@@ -255,6 +258,12 @@ spec:
     disableClusterPodAntiAffinity: false
   {{- else }}
     disableClusterPodAntiAffinity: {{ .Values.nonProductionOptions.disableClusterPodAntiAffinity }}
+  {{- end }}
+  {{- if .Values.nonProductionOptions.enabledFeatureGates }}
+    enabledFeatureGates:
+  {{- range .Values.nonProductionOptions.enabledFeatureGates }}
+    - '{{ . }}'
+  {{- end }}
   {{- end }}
   {{- end }}
 {{ end }}

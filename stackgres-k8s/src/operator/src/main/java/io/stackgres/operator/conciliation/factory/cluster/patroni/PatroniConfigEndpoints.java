@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -18,6 +20,7 @@ import io.stackgres.common.ClusterStatefulSetEnvVars;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -79,9 +82,16 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
       params.put("log_destination", "csvlog");
       params.put("log_directory", ClusterStatefulSetPath.PG_LOG_PATH.path());
       params.put("log_filename", "postgres-%M.log");
-      params.put("log_rotation_age", "30");
+      params.put("log_rotation_age", "30min");
       params.put("log_rotation_size", "0");
       params.put("log_truncate_on_rotation", "on");
+    }
+
+    if (getPostgresFlavorComponent(context.getSource()) == StackGresComponent.BABELFISH) {
+      params.put("shared_preload_libraries", Optional.ofNullable(
+          params.get("shared_preload_libraries"))
+          .map(sharedPreloadLibraries -> "babelfishpg_tds, " + sharedPreloadLibraries)
+          .orElse("babelfishpg_tds"));
     }
 
     params.put("wal_level", "logical");

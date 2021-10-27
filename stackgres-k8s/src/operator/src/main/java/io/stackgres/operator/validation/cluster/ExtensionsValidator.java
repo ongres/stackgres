@@ -42,8 +42,9 @@ public class ExtensionsValidator extends AbstractExtensionsValidator<StackGresCl
   }
 
   @Override
-  protected ImmutableList<Tuple2<String, Optional<String>>> getDefaultExtensions() {
-    return StackGresUtil.getDefaultClusterExtensions();
+  protected ImmutableList<Tuple2<String, Optional<String>>> getDefaultExtensions(
+      StackGresCluster cluster) {
+    return StackGresUtil.getDefaultClusterExtensions(cluster);
   }
 
   @Override

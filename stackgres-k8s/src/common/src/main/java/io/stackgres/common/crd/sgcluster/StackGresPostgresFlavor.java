@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 public enum StackGresPostgresFlavor {
 
+  VANILLA("vanilla"),
   BABELFISH("babelfish");
 
   private final @NotNull String type;

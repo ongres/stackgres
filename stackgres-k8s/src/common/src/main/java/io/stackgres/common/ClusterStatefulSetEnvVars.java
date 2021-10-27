@@ -17,6 +17,7 @@ public enum ClusterStatefulSetEnvVars {
   POSTGRES_VERSION(context -> context.getSpec().getPostgres().getVersion()),
   POSTGRES_MAJOR_VERSION(context -> getPostgresFlavorComponent(context).findMajorVersion(
       context.getSpec().getPostgres().getVersion())),
+  POSTGRES_FLAVOR(context -> getPostgresFlavorComponent(context).getName()),
   BUILD_VERSION(context -> getPostgresFlavorComponent(context).findBuildVersion(
       context.getSpec().getPostgres().getVersion())),
   BUILD_MAJOR_VERSION(context -> getPostgresFlavorComponent(context).findBuildMajorVersion(

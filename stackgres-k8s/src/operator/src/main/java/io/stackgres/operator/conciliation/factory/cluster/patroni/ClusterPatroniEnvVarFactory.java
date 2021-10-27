@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,7 +36,8 @@ public class ClusterPatroniEnvVarFactory
   public List<EnvVar> createResource(StackGresClusterContext context) {
     StackGresCluster cluster = context.getSource();
 
-    List<EnvVar> additionalEnvVars = Optional.ofNullable(cluster.getSpec())
+    List<EnvVar> additionalEnvVars = new ArrayList<>();
+    Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getInitData)
         .map(StackGresClusterInitData::getRestore)
         .map(StackGresClusterRestore::getFromBackup)
@@ -50,8 +52,7 @@ public class ClusterPatroniEnvVarFactory
                 .withZone(ZoneId.from(ZoneOffset.UTC))
                 .format(restoreToTimestamp))
             .build())
-        .map(List::of)
-        .orElse(List.of());
+        .ifPresent(additionalEnvVars::add);
 
     List<EnvVar> patroniEnvVars = createPatroniEnvVars(cluster);
 

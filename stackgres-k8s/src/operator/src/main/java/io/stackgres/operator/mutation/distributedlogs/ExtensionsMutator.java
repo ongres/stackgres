@@ -73,7 +73,7 @@ public class ExtensionsMutator
   @Override
   protected ImmutableList<StackGresClusterInstalledExtension> getDefaultExtensions(
       StackGresCluster cluster) {
-    return Seq.seq(StackGresUtil.getDefaultDistributedLogsExtensions())
+    return Seq.seq(StackGresUtil.getDefaultDistributedLogsExtensions(cluster))
         .map(t -> t.v2
         .map(version -> getExtension(cluster, t.v1, version))
             .orElseGet(() -> getExtension(cluster, t.v1)))

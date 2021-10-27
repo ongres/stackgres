@@ -63,22 +63,28 @@ class PatroniConfigEndpointsTest {
 
     cluster = JsonUtil
         .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    cluster.getSpec().setDistributedLogs(null);
     backupConfig = JsonUtil.readFromJson("backup_config/default.json", StackGresBackupConfig.class);
     postgresConfig = JsonUtil.readFromJson("postgres_config/default_postgres.json",
         StackGresPostgresConfig.class);
     postgresConfig.setStatus(new StackGresPostgresConfigStatus());
-    final String version = postgresConfig.getSpec().getPostgresVersion();
-    postgresConfig.getStatus()
-        .setDefaultParameters(PostgresDefaultValues.getDefaultValues(version));
+    setDefaultParameters(postgresConfig);
 
     lenient().when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
     lenient().when(context.getPostgresConfig()).thenReturn(postgresConfig);
+  }
+
+  private void setDefaultParameters(StackGresPostgresConfig postgresConfig) {
+    final String version = postgresConfig.getSpec().getPostgresVersion();
+    postgresConfig.getStatus()
+        .setDefaultParameters(PostgresDefaultValues.getDefaultValues(version));
   }
 
   @Test
   void getPostgresConfigValues_shouldConfigureBackupParametersIfArePresent() {
     when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
+    when(context.getSource()).thenReturn(cluster);
 
     Map<String, String> pgParams = generator.getPostgresConfigValues(context);
 
@@ -92,6 +98,7 @@ class PatroniConfigEndpointsTest {
   void getPostgresConfigValues_shouldNotConfigureBackupParametersIfAreNotPresent() {
     when(context.getBackupConfig()).thenReturn(Optional.empty());
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
+    when(context.getSource()).thenReturn(cluster);
 
     Map<String, String> pgParams = generator.getPostgresConfigValues(context);
 
@@ -103,6 +110,7 @@ class PatroniConfigEndpointsTest {
   void getPostgresConfigValues_shouldConfigurePgParameters() {
     when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
+    when(context.getSource()).thenReturn(cluster);
 
     Map<String, String> pgParams = generator.getPostgresConfigValues(context);
 
@@ -116,6 +124,7 @@ class PatroniConfigEndpointsTest {
   void getPostgresConfigValues_shouldNotModifyBlockedValuesIfArePresent() {
     when(context.getBackupConfig()).thenReturn(Optional.empty());
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
+    when(context.getSource()).thenReturn(cluster);
 
     final String version = postgresConfig.getSpec().getPostgresVersion();
     Map<String, String> defValues = PostgresDefaultValues.getDefaultValues(version);
@@ -130,7 +139,8 @@ class PatroniConfigEndpointsTest {
     defValues.forEach((key, value) -> {
       assertTrue(pgParams.containsKey(key));
       if (blocklistedKeys.contains(key)) {
-        assertEquals(value, pgParams.get(key));
+        assertEquals(value, pgParams.get(key), "Blocklisted parameter " + key + " with value "
+            + value + " has been modified with value " + pgParams.get(key));
       }
     });
   }

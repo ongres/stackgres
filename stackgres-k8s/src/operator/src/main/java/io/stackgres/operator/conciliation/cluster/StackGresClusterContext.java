@@ -21,7 +21,7 @@ import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.GenerationContext;
-import io.stackgres.operator.patroni.factory.PatroniScriptsConfigMap;
+import io.stackgres.operator.conciliation.factory.PatroniScriptsConfigMap;
 import org.immutables.value.Value;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple4;

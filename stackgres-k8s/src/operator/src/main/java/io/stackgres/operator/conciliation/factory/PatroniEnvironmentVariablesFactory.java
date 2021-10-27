@@ -5,11 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory;
 
-import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.AUTHENTICATOR_PASSWORD_KEY;
-import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.REPLICATION_PASSWORD_KEY;
-import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.RESTAPI_PASSWORD_KEY;
-import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.SUPERUSER_PASSWORD_KEY;
-
 import java.util.List;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
@@ -19,6 +14,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.stackgres.common.EnvoyUtil;
+import io.stackgres.common.patroni.StackGresRandomPasswordKeys;
 
 public abstract class PatroniEnvironmentVariablesFactory<T>
     implements ResourceFactory<T, List<EnvVar>> {
@@ -39,7 +35,7 @@ public abstract class PatroniEnvironmentVariablesFactory<T>
                 .withSecretKeyRef(
                     new SecretKeySelectorBuilder()
                         .withName(cluster.getMetadata().getName())
-                        .withKey(RESTAPI_PASSWORD_KEY)
+                        .withKey(StackGresRandomPasswordKeys.RESTAPI_PASSWORD_KEY)
                         .build())
                 .build())
             .build(),
@@ -72,7 +68,7 @@ public abstract class PatroniEnvironmentVariablesFactory<T>
                 .withSecretKeyRef(
                     new SecretKeySelectorBuilder()
                         .withName(cluster.getMetadata().getName())
-                        .withKey(SUPERUSER_PASSWORD_KEY)
+                        .withKey(StackGresRandomPasswordKeys.SUPERUSER_PASSWORD_KEY)
                         .build())
                 .build())
             .build(),
@@ -81,22 +77,23 @@ public abstract class PatroniEnvironmentVariablesFactory<T>
                 .withSecretKeyRef(
                     new SecretKeySelectorBuilder()
                         .withName(cluster.getMetadata().getName())
-                        .withKey(REPLICATION_PASSWORD_KEY)
+                        .withKey(StackGresRandomPasswordKeys.REPLICATION_PASSWORD_KEY)
                         .build())
                 .build())
             .build(),
-        new EnvVarBuilder().withName("PATRONI_authenticator_PASSWORD")
+        new EnvVarBuilder().withName(
+                "PATRONI_" + StackGresRandomPasswordKeys.AUTHENTICATOR_USER_NAME + "_PASSWORD")
             .withValueFrom(new EnvVarSourceBuilder()
                 .withSecretKeyRef(
                     new SecretKeySelectorBuilder()
                         .withName(cluster.getMetadata().getName())
-                        .withKey(AUTHENTICATOR_PASSWORD_KEY)
+                        .withKey(StackGresRandomPasswordKeys.AUTHENTICATOR_PASSWORD_KEY)
                         .build())
                 .build())
             .build(),
-        new EnvVarBuilder().withName("PATRONI_authenticator_OPTIONS")
+        new EnvVarBuilder().withName(
+                "PATRONI_" + StackGresRandomPasswordKeys.AUTHENTICATOR_USER_NAME + "_OPTIONS")
             .withValue("superuser")
             .build());
-
   }
 }

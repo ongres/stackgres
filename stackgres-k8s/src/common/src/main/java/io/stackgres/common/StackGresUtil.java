@@ -270,7 +270,18 @@ public interface StackGresUtil {
     return serviceDns;
   }
 
-  static ImmutableList<Tuple2<String, Optional<String>>> getDefaultClusterExtensions() {
+  static ImmutableList<Tuple2<String, Optional<String>>> getDefaultClusterExtensions(
+      StackGresCluster cluster) {
+    if (getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH) {
+      return ImmutableList.of();
+    }
+    if (Objects.equals("6.6",
+        getPostgresFlavorComponent(cluster).findBuildVersion(
+            StackGresComponent.LATEST, ImmutableMap.of(
+                StackGresComponent.POSTGRESQL,
+                cluster.getSpec().getPostgres().getVersion())))) {
+      return ImmutableList.of();
+    }
     return Seq.of(
         Tuple.tuple("plpgsql"),
         Tuple.tuple("pg_stat_statements"),
@@ -280,8 +291,9 @@ public interface StackGresUtil {
         .collect(ImmutableList.toImmutableList());
   }
 
-  static ImmutableList<Tuple2<String, Optional<String>>> getDefaultDistributedLogsExtensions() {
-    return Seq.seq(getDefaultClusterExtensions())
+  static ImmutableList<Tuple2<String, Optional<String>>> getDefaultDistributedLogsExtensions(
+      StackGresCluster cluster) {
+    return Seq.seq(getDefaultClusterExtensions(cluster))
         .append(Tuple.tuple("timescaledb", Optional.of("1.7.4")))
         .collect(ImmutableList.toImmutableList());
   }
@@ -352,11 +364,15 @@ public interface StackGresUtil {
   static StackGresComponent getPostgresFlavorComponent(@Nullable String flavor) {
     StackGresComponent postgresComponentFlavor;
     if (Optional.ofNullable(flavor)
+        .map(StackGresPostgresFlavor.VANILLA.toString()::equals)
+        .orElse(true)) {
+      postgresComponentFlavor = StackGresComponent.POSTGRESQL;
+    } else if (Optional.ofNullable(flavor)
         .map(StackGresPostgresFlavor.BABELFISH.toString()::equals)
         .orElse(false)) {
       postgresComponentFlavor = StackGresComponent.BABELFISH;
     } else {
-      postgresComponentFlavor = StackGresComponent.POSTGRESQL;
+      throw new IllegalArgumentException("Unknown flavor " + flavor);
     }
     return postgresComponentFlavor;
   }

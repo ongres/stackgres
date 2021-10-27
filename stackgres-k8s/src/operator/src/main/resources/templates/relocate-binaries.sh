@@ -23,7 +23,7 @@ for RELOCATE_PATH in "$PG_BIN_PATH:$PG_RELOCATED_BIN_PATH" \
 do
   if [ ! -f "${RELOCATE_PATH#*:}/.done" ]
   then
-    echo "Relocating ${RELOCATE_PATH%:*} to ${RELOCATE_PATH#*:}..."
+    echo "Relocating ${RELOCATE_PATH%:*} to ${RELOCATE_PATH#*:} ..."
     mkdir -p "${RELOCATE_PATH#*:}"
     rm -fr "${RELOCATE_PATH#*:}"
     cp -a "${RELOCATE_PATH%:*}" "${RELOCATE_PATH#*:}"
@@ -33,4 +33,18 @@ do
   else
     echo "${RELOCATE_PATH%:*} already relocated to ${RELOCATE_PATH#*:}, skipping"
   fi
+done
+
+for EXTENSION_CONTROL_FILE in "$PG_EXTENSION_PATH"/*.control
+do
+  if ! [ -f "$EXTENSION_CONTROL_FILE" ]
+  then
+    continue
+  fi
+  EXTENSION_NAME="${EXTENSION_CONTROL_FILE%.*}"
+  EXTENSION_NAME="${EXTENSION_NAME##*/}"
+  echo "Relocating $EXTENSION_CONTROL_FILE (and $EXTENSION_NAME--*.sql) to $PG_EXTENSIONS_EXTENSION_PATH/. ..."
+  cp -a "$EXTENSION_CONTROL_FILE" "${EXTENSION_CONTROL_FILE%.*}"--*.sql \
+    "$PG_EXTENSIONS_EXTENSION_PATH/."
+  echo "done."
 done
