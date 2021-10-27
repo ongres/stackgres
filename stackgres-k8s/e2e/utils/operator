@@ -614,7 +614,7 @@ load_component_images_from() {
   then
     COMPONENTS="$(
       printf '%s' "$COMPONENTS" \
-        | grep "/patroni\(-ext\)\?:v[^-]\+-pg\($(printf '%s' "$E2E_INCLUDE_ONLY_POSTGRES_VERSIONS" \
+        | grep "/patroni\(-ext\)\?:v[^-]\+-..\($(printf '%s' "$E2E_INCLUDE_ONLY_POSTGRES_VERSIONS" \
           | sed 's/ /\\|/g' | sed 's/\./\\./g')\)-"
       printf '%s' "$COMPONENTS" \
         | grep "/postgres-util:v\($(printf '%s' "$E2E_INCLUDE_ONLY_POSTGRES_VERSIONS" \
